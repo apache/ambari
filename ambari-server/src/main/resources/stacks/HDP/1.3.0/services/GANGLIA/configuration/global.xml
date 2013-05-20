@@ -41,6 +41,11 @@
     <value>nobody</value>
     <description>User </description>
   </property>
+    <property>
+    <name>gmond_user</name>
+    <value>nobody</value>
+    <description>User </description>
+  </property>
   <property>
     <name>rrdcached_base_dir</name>
     <value>/var/lib/ganglia/rrds</value>

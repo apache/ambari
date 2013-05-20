@@ -5,7 +5,8 @@
       "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/requests/3",
       "Requests" : {
         "id" : 3,
-        "cluster_name" : "mycluster"
+        "cluster_name" : "mycluster",
+        "request_context" : "Stop Services"
       },
       "tasks" : [
         {
@@ -68,7 +69,8 @@
       "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/requests/2",
       "Requests" : {
         "id" : 2,
-        "cluster_name" : "mycluster"
+        "cluster_name" : "mycluster",
+        "request_context" : "Start HDFS Service"
       },
       "tasks" : [
         {
@@ -203,7 +205,8 @@
       "href" : "http://dev.hortonworks.com:8080/api/clusters/mycluster/requests/1",
       "Requests" : {
         "id" : 1,
-        "cluster_name" : "mycluster"
+        "cluster_name" : "mycluster",
+        "request_context" : "Install Service"
       },
       "tasks" : [
         {

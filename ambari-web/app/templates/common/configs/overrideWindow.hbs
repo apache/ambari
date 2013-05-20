@@ -19,19 +19,26 @@
 {{! #with view.categoryConfigProperty}}
   <form class="form-horizontal">
       <div class="override-controls">
-        <h4 class="message">Select hosts from the list of available hosts</h4>
-        
+        <h4 class="message">{{t hosts.selectHostsDialog.message}}</h4>
+        {{#if view.parentView.warningMessage}}
+	        <div class="text-warning">
+	          {{view.parentView.warningMessage}}
+	        </div>
+        {{/if}}
         <table style="width: 100%;">
           <tr>
             <td>
-              <a href="#" {{action clearFilters target="view" }}>{{view.hostSelectMessage}}</a>
+              <a href="#" {{action toggleShowSelectedHosts target="view" }}>{{view.hostSelectMessage}}</a>
+              {{#if view.showOnlySelectedHosts}}
+                <i class='icon-ok-sign'></i>
+              {{/if}}
             </td>
             <td width="30%">
               <div class="row">
-                <div class="span2">
+                <div class="span2" id="filter-dropdown-div">
                   <!-- Filter text box with drop-down -->
 		              <div class="input-append">
-		                {{view Ember.TextField valueBinding="view.filterText" id="appendedDropdownButton" placeholder="Filter..." class="span2"}}
+		                {{view Ember.TextField valueBinding="view.filterText" id="appendedDropdownButton" placeholderBinding="view.filterTextPlaceholder" class="span2"}}
 		                <div class="btn-group">
 		                  <button class="btn dropdown-toggle" data-toggle="dropdown">
 		                    <span class="caret"></span>
@@ -53,7 +60,7 @@
 		                </div>
 		              </div>
                 </div>
-                <div class="span2">
+                <div class="span2" id="component-dropdown-div">
                   <!-- Host-components drop-down -->
 		              <div class="btn-group">
 		                <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">

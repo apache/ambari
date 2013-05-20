@@ -129,7 +129,7 @@ App.showReloadPopup = function(){
  * @param {String} body - additional text constant. Will be placed in the popup-body
  * @return {*}
  */
-App.showConfirmationPopup = function(primary, body) {
+App.showConfirmationPopup = function(primary, body, template) {
   if (!primary) {
     return false;
   }
@@ -137,10 +137,33 @@ App.showConfirmationPopup = function(primary, body) {
     primary: Em.I18n.t('yes'),
     secondary: Em.I18n.t('no'),
     header: Em.I18n.t('popup.confirmation.commonHeader'),
-    body: Em.I18n.t('question.sure').format(body || ''),
+    body: body || 'Are you sure?',
     onPrimary: function() {
-      primary();
       this.hide();
+      primary();
+    }
+  });
+}
+
+/**
+ * Show alert popup
+ *
+ * @param {String} header - header of the popup
+ * @param {String} body - body of the popup
+ * @param {Function} primary - function to call upon clicking the OK button
+ * @return {*}
+ */
+App.showAlertPopup = function(header, body, primary) {
+  return App.ModalPopup.show({
+    primary: Em.I18n.t('ok'),
+    secondary: null,
+    header: header,
+    body: body,
+    onPrimary: function() {
+      this.hide();
+      if (primary) {
+        primary();
+      }
     }
   });
 }

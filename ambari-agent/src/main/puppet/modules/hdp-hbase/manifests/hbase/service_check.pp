@@ -22,7 +22,7 @@ class hdp-hbase::hbase::service_check()
 {
   $smoke_test_user = $hdp::params::smokeuser
 
-  $output_file = "/apps/hbase/data/usertable"
+  $output_file = "/apps/hbase/data/ambarismoketest"
   $conf_dir = $hdp::params::hbase_conf_dir
 
   $test_cmd = "fs -test -e ${output_file}" 

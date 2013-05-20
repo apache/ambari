@@ -31,6 +31,7 @@ import javax.ws.rs.core.UriInfo;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -99,7 +100,7 @@ public abstract class BaseServiceTest {
 
   private void testMethod(ServiceTestInvocation testMethod) throws InvocationTargetException, IllegalAccessException {
     try {
-      expect(bodyParser.parse(testMethod.getBody())).andReturn(requestBody);
+      expect(bodyParser.parse(testMethod.getBody())).andReturn(Collections.singleton(requestBody));
     } catch (BodyParseException e) {
       // needed for compiler
     }
@@ -137,7 +138,7 @@ public abstract class BaseServiceTest {
 
   private void testMethod_resultInErrorState(ServiceTestInvocation testMethod) throws Exception {
     try {
-      expect(bodyParser.parse(testMethod.getBody())).andReturn(requestBody);
+      expect(bodyParser.parse(testMethod.getBody())).andReturn(Collections.singleton(requestBody));
     } catch (BodyParseException e) {
       // needed for compiler
     }

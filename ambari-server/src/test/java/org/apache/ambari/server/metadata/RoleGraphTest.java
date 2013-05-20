@@ -47,7 +47,21 @@ public class RoleGraphTest {
     RoleGraphNode jobtracker_start = new RoleGraphNode(Role.JOBTRACKER, RoleCommand.START);
     Assert.assertEquals(1, rco.order(datanode_start, datanode_install));
     Assert.assertEquals(1, rco.order(jobtracker_start, datanode_start));
-
     Assert.assertEquals(0, rco.order(jobtracker_start, jobtracker_start));
+
+    RoleGraphNode hive_client_install = new RoleGraphNode(Role.HIVE_CLIENT,
+      RoleCommand.INSTALL);
+    RoleGraphNode mapred_client_install = new RoleGraphNode(Role.MAPREDUCE_CLIENT,
+      RoleCommand.INSTALL);
+    RoleGraphNode hcat_client_install = new RoleGraphNode(Role.HCAT,
+      RoleCommand.INSTALL);
+    RoleGraphNode nagios_server_install = new RoleGraphNode(Role.NAGIOS_SERVER,
+      RoleCommand.INSTALL);
+    RoleGraphNode oozie_client_install = new RoleGraphNode(Role.OOZIE_CLIENT,
+      RoleCommand.INSTALL);
+    Assert.assertEquals(1, rco.order(nagios_server_install, hive_client_install));
+    Assert.assertEquals(1, rco.order(nagios_server_install, mapred_client_install));
+    Assert.assertEquals(1, rco.order(nagios_server_install, hcat_client_install));
+    Assert.assertEquals(1, rco.order(nagios_server_install, oozie_client_install));
   }
 }

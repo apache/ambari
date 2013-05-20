@@ -82,6 +82,8 @@ log4j.appender.TLA.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n
 #Security audit appender
 #
 hadoop.security.logger=INFO,console
+hadoop.security.log.maxfilesize=256MB
+hadoop.security.log.maxbackupindex=20
 log4j.category.SecurityLogger=${hadoop.security.logger}
 hadoop.security.log.file=SecurityAuth.audit
 log4j.appender.DRFAS=org.apache.log4j.DailyRollingFileAppender 
@@ -89,6 +91,13 @@ log4j.appender.DRFAS.File=${hadoop.log.dir}/${hadoop.security.log.file}
 log4j.appender.DRFAS.layout=org.apache.log4j.PatternLayout
 log4j.appender.DRFAS.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n
 log4j.appender.DRFAS.DatePattern=.yyyy-MM-dd
+
+log4j.appender.RFAS=org.apache.log4j.RollingFileAppender 
+log4j.appender.RFAS.File=${hadoop.log.dir}/${hadoop.security.log.file}
+log4j.appender.RFAS.layout=org.apache.log4j.PatternLayout
+log4j.appender.RFAS.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n
+log4j.appender.RFAS.MaxFileSize=${hadoop.security.log.maxfilesize}
+log4j.appender.RFAS.MaxBackupIndex=${hadoop.security.log.maxbackupindex}
 
 #
 # hdfs audit logging
@@ -118,16 +127,16 @@ log4j.appender.MRAUDIT.DatePattern=.yyyy-MM-dd
 # Rolling File Appender
 #
 
-#log4j.appender.RFA=org.apache.log4j.RollingFileAppender
-#log4j.appender.RFA.File=${hadoop.log.dir}/${hadoop.log.file}
+log4j.appender.RFA=org.apache.log4j.RollingFileAppender
+log4j.appender.RFA.File=${hadoop.log.dir}/${hadoop.log.file}
 
 # Logfile size and and 30-day backups
-#log4j.appender.RFA.MaxFileSize=1MB
-#log4j.appender.RFA.MaxBackupIndex=30
+log4j.appender.RFA.MaxFileSize=1MB
+log4j.appender.RFA.MaxBackupIndex=30
 
-#log4j.appender.RFA.layout=org.apache.log4j.PatternLayout
-#log4j.appender.RFA.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} - %m%n
-#log4j.appender.RFA.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n
+log4j.appender.RFA.layout=org.apache.log4j.PatternLayout
+log4j.appender.RFA.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} - %m%n
+log4j.appender.RFA.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n
 
 
 # Custom Logging levels

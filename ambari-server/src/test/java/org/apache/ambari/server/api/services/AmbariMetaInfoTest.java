@@ -72,6 +72,7 @@ public class AmbariMetaInfoTest {
   private AmbariMetaInfo metaInfo = null;
   private final static Logger LOG =
       LoggerFactory.getLogger(AmbariMetaInfoTest.class);
+  private static final String FILE_NAME = "hbase-site.xml";
   
 
   @Rule
@@ -260,6 +261,17 @@ public class AmbariMetaInfoTest {
       }
     }
     Assert.assertTrue(checkforglobal);
+    sinfo = metaInfo.getServiceInfo("HDP",
+        "0.2", "MAPREDUCE");
+    boolean checkforhadoopheapsize = false;
+    pinfo = sinfo.getProperties();
+    for (PropertyInfo pinfol: pinfo) {
+      if ("global.xml".equals(pinfol.getFilename())) {
+        if ("hadoop_heapsize".equals(pinfol.getName()))
+          checkforhadoopheapsize = true;
+      }
+    }
+    Assert.assertTrue(checkforhadoopheapsize);
   }
   
   @Test
@@ -375,6 +387,7 @@ public class AmbariMetaInfoTest {
   public void testGetProperty() throws Exception {
     PropertyInfo property = metaInfo.getProperty(STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS, PROPERTY_NAME);
     Assert.assertEquals(property.getName(), PROPERTY_NAME);
+    Assert.assertEquals(property.getFilename(), FILE_NAME);
 
     try {
       metaInfo.getProperty(STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS, NON_EXT_VALUE);
@@ -401,5 +414,18 @@ public class AmbariMetaInfoTest {
     } catch (StackAccessException e) {
       Assert.assertTrue(e instanceof StackAccessException);
     }
+  }
+
+  @Test
+  public void isOsSupported() throws Exception {
+    Assert.assertTrue(metaInfo.isOsSupported("redhat5"));
+    Assert.assertTrue(metaInfo.isOsSupported("centos5"));
+    Assert.assertTrue(metaInfo.isOsSupported("oraclelinux5"));
+    Assert.assertTrue(metaInfo.isOsSupported("redhat6"));
+    Assert.assertTrue(metaInfo.isOsSupported("centos6"));
+    Assert.assertTrue(metaInfo.isOsSupported("oraclelinux6"));
+    Assert.assertTrue(metaInfo.isOsSupported("suse11"));
+    Assert.assertTrue(metaInfo.isOsSupported("sles11"));
+    Assert.assertFalse(metaInfo.isOsSupported("windows"));
   }
 }

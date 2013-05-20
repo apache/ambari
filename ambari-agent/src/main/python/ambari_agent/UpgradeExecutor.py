@@ -20,17 +20,11 @@ limitations under the License.
 import json
 import os.path
 import logging
-import subprocess
-from manifestGenerator import generateManifest
-from RepoInstaller import RepoInstaller
-import pprint, threading
-from Grep import Grep
-from threading import Thread
-import shell
-import traceback
+import pprint
+import re
 from Grep import Grep
 from StackVersionsFileHandler import StackVersionsFileHandler
-import re, json
+
 
 logger = logging.getLogger()
 grep = Grep()
@@ -145,9 +139,9 @@ class UpgradeExecutor:
     stack_name = verdict["stackName"].strip()
 
     matchObj = re.match( r'(\d+).(\d+)', verdict["stackVersion"].strip(), re.M|re.I)
-    stack_major_ver = matchObj.group(1)
-    stack_minor_ver = matchObj.group(2)
     if matchObj:
+      stack_major_ver = matchObj.group(1)
+      stack_minor_ver = matchObj.group(2)
       return stack_name, stack_major_ver, stack_minor_ver
     else:
       return None

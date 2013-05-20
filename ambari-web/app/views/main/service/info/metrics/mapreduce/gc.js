@@ -30,8 +30,8 @@ App.ChartServiceMetricsMapReduce_GC = App.ChartLinearTimeView.extend({
   id: "service-metrics-mapreduce-gc",
   title: Em.I18n.t('services.service.info.metrics.mapreduce.gc'),
   yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
-  sourceUrl: "/hosts/{jobTrackerNode}/host_components/JOBTRACKER?fields=metrics/jvm/gcTimeMillis[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/services/metrics/mapreduce/gc.json",
+
+  ajaxIndex: 'service.metrics.mapreduce.gc',
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

@@ -37,3 +37,12 @@ App.WizardStep1View = Em.View.extend({
   }.property('controller.clusterNameError')
 
 });
+
+App.WizardStep1ViewClusterNameInput = Em.TextField.extend({
+  keyPress: function(event) {
+    if (event.keyCode == 13) {
+      this.get('parentView.controller').submit();
+      return false;
+    }
+  }
+});

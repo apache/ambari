@@ -50,7 +50,7 @@ public class PersistKeyValueService {
   public Response update(String keyValues)
       throws WebApplicationException, InvalidStateTransitionException,
       JAXBException, IOException {
-    LOG.info("Received message from UI " + keyValues);
+    LOG.debug("Received message from UI " + keyValues);
     Map<String, String> keyValuesMap = StageUtils.fromJson(keyValues, Map.class);
     /* Call into the heartbeat handler */
 
@@ -88,7 +88,7 @@ public class PersistKeyValueService {
   public String getAllKeyValues() throws JAXBException, IOException {
     Map<String, String> ret = persistKeyVal.getAllKeyValues();
     String stringRet = StageUtils.jaxbToString(ret);
-    LOG.info("Returning " + stringRet);
+    LOG.debug("Returning " + stringRet);
     return stringRet;
   }
 }

@@ -29,6 +29,7 @@ class hdp-hue::params() inherits hdp::params {
   $hue_lock_file = hdp_default("hue_lock_file", "/var/lock/subsys/hue")
   $hue_server_user = hdp_default("hue_user", "hue")
   $hue_server_group = hdp_default("hue_user_group", "hadoop")
+  $hue_home_dir = hdp_default("hue_home_dir", "/usr/lib/hue")
 
   # Other properties - not exposed
 

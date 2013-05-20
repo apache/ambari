@@ -21,12 +21,12 @@
     <div class="navbar navbar-static-top">
       <div class="navbar-inner">
         <div class="container">
-          <a {{translateAttr href="topnav.logo.href"}} class="logo" target="_blank"><img src="/img/logo-small.png" alt="Apache Ambari" title="Apache Ambari"></a>
+          <a {{translateAttr href="topnav.logo.href"}} class="logo" target="_blank"><img src="/img/logo.png" alt="Apache Ambari" title="Apache Ambari"></a>
           <a class="brand" {{translateAttr href="topnav.logo.href"}} target="_blank" alt="Apache Ambari" title="Apache Ambari">{{t app.name}}</a>
 
           {{#if isClusterDataLoaded}}
               <a class="brand cluster-name" href="javascript:void(null);" {{bindAttr title="clusterName"}}>
-                {{clusterDisplayName}}
+                <span {{action "showPopup" target="App.router.backgroundOperationsController"}} >{{clusterDisplayName}} </span>
 
                 {{#with App.router.backgroundOperationsController}}
                   {{#if allOperationsCount}}

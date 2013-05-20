@@ -22,9 +22,16 @@ module Puppet::Parser::Functions
   newfunction(:hdp_default, :type => :rvalue) do |args|
     args = function_hdp_args_as_array(args)
     scoped_var_name = args[0]
-    var_name = scoped_var_name.split("/").last
-    default = args[1]
-    val = lookupvar("::#{var_name}")
+    var_parts = scoped_var_name.split("/")
+    var_name = var_parts.last    
+    default = args[1]    
+    val = lookupvar("::#{var_name}")    
+    # Lookup value inside a hash map.
+    if var_parts.length > 1 and function_hdp_is_empty(val) and function_hdp_is_empty(lookupvar("configuration")) == false and function_hdp_is_empty(lookupvar("#{var_parts[-2]}")) == false
+      keyHash = var_parts[-2]
+      hashMap = lookupvar("#{keyHash}") 
+      val = hashMap.fetch(var_name, default.to_s)
+    end
     # To workaround string-boolean comparison issues,
     # ensure that we return boolean result if the default value
     # is also boolean

@@ -66,30 +66,51 @@ public class HBaseMasterPortScannerTest {
   private static Cluster cluster;
   private static Host host;
   private static ServiceComponentHost serviceComponentHost;
+  private static int scanTimeOut = 100; 
+  private static int reScanTimeOut = 3000;
+  private static int maxAttempts = 2;
 
   public HBaseMasterPortScannerTest() {
   }
 
+  private static void setUpPortState(boolean open) {
+    if (open) {
+      if (serverSocket == null || serverSocket.isClosed()) {
+        try {
+          serverSocket = new ServerSocket(60010);
+        } catch (IOException e) {
+          try {
+            serverSocket.close();
+          } catch (IOException ex) {
+            log.debug("Could not close on port: 60010");
+            log.error(ex.getMessage());
+          }
+          log.error("Could not listen on port: 60010");
+        }
+      }
+    } else {
+      if (serverSocket != null && !serverSocket.isClosed()) {
+        try {
+          serverSocket.close();
+          serverSocket = null;
+        } catch (IOException ex) {
+          log.debug("Could not close on port: 60010");
+          log.error(ex.getMessage());
+        }
+      }
+    }
+  }
+  
+  
   @BeforeClass
   public static void setUpClass() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     hostnames = new ArrayList<String>();
-    hostnames.add("localhost");
-    hostnames.add("localhost1");
-    hostnames.add("localhost2");
-    hostnames.add("localhost3");
-    try {
-      serverSocket = new ServerSocket(60010);
-    } catch (IOException e) {
-      try {
-        serverSocket.close();
-      } catch (IOException ex) {
-        log.debug("Could not close on port: 60010");
-        log.error(ex.getMessage());
-      }
-      log.error("Could not listen on port: 60010");
-    }
+    hostnames.add("127.0.0.1");
+    hostnames.add("host1");
+    hostnames.add("host2");
+    hostnames.add("host3");
     scaner = injector.getInstance(HBaseMasterPortScanner.class);
     clusters = injector.getInstance(Clusters.class);
     metaInfo = injector.getInstance(AmbariMetaInfo.class);
@@ -107,7 +128,7 @@ public class HBaseMasterPortScannerTest {
       hostObject.setIPv6("ipv6");
       hostObject.setOsType(DummyOsType);
       hostNamesSet.add(hostname);
-      if (hostname.equals("localhost")) {
+      if (hostname.equals("127.0.0.1")) {
         host = hostObject;
       }
     }
@@ -115,9 +136,9 @@ public class HBaseMasterPortScannerTest {
     Service service = cluster.addService(HDFS);
     service.persist();
     service.addServiceComponent(NAMENODE).persist();
-    service.getServiceComponent(NAMENODE).addServiceComponentHost("localhost").persist();
+    service.getServiceComponent(NAMENODE).addServiceComponentHost("127.0.0.1").persist();
     service.addServiceComponent(DATANODE).persist();
-    service.getServiceComponent(DATANODE).addServiceComponentHost("localhost").persist();
+    service.getServiceComponent(DATANODE).addServiceComponentHost("127.0.0.1").persist();
     service = serviceFactory.createNew(cluster, "HBASE");
     cluster.addService(service);
     service.persist();
@@ -126,17 +147,16 @@ public class HBaseMasterPortScannerTest {
     service.persist();
     for (String hostname : hostnames) {
       service.getServiceComponent(HBASE_MASTER).addServiceComponentHost(hostname).persist();
-      if (hostname.equals("localhost")) {
+      if (hostname.equals("127.0.0.1")) {
         serviceComponentHost = service.getServiceComponent(HBASE_MASTER).getServiceComponentHost(hostname);
       }
     }
-
   }
 
   @AfterClass
   public static void tearDownUpClass() {
     try {
-      serverSocket.close();
+      if(serverSocket!=null) serverSocket.close();
     } catch (IOException ex) {
       log.debug("Could not close on port: 60010");
       log.error(ex.getMessage());
@@ -145,7 +165,7 @@ public class HBaseMasterPortScannerTest {
 
   @Before
   public void setUp() throws AmbariException, Exception {
-    serviceComponentHost.convertToResponse().setHa_status("passive");
+    serviceComponentHost.setHAState("passive");
   }
 
   /**
@@ -153,9 +173,13 @@ public class HBaseMasterPortScannerTest {
    */
   @Test
   public void testUpdateHBaseMaster_Cluster() throws InterruptedException {
+    setUpPortState(true);
+    scaner.setDefaultScanTimeoutMsc(scanTimeOut);
+    scaner.setMaxAttempts(maxAttempts);
+    scaner.setRescanTimeoutMsc(reScanTimeOut);
     log.debug("updateHBaseMaster - pass Cluster");
     scaner.updateHBaseMaster(cluster);
-    Thread.sleep(2000);
+    Thread.sleep(1000);
     assertEquals("active", serviceComponentHost.convertToResponse().getHa_status());
   }
 
@@ -164,9 +188,13 @@ public class HBaseMasterPortScannerTest {
    */
   @Test
   public void testUpdateHBaseMaster_Host() throws InterruptedException {
+    setUpPortState(true);
+    scaner.setDefaultScanTimeoutMsc(scanTimeOut);
+    scaner.setMaxAttempts(maxAttempts);
+    scaner.setRescanTimeoutMsc(reScanTimeOut);
     log.debug("updateHBaseMaster - pass Host");
     scaner.updateHBaseMaster(host);
-    Thread.sleep(2000);
+    Thread.sleep(1000);
     assertEquals("active", serviceComponentHost.convertToResponse().getHa_status());
   }
 
@@ -175,9 +203,58 @@ public class HBaseMasterPortScannerTest {
    */
   @Test
   public void testUpdateHBaseMaster_ServiceComponentHost() throws InterruptedException {
+    setUpPortState(true);
+    scaner.setDefaultScanTimeoutMsc(scanTimeOut);
+    scaner.setMaxAttempts(maxAttempts);
+    scaner.setRescanTimeoutMsc(reScanTimeOut);    
     log.debug("updateHBaseMaster - pass ServiceComponentHost");
     scaner.updateHBaseMaster(serviceComponentHost);
-    Thread.sleep(2000);
+    Thread.sleep(1000);
     assertEquals("active", serviceComponentHost.convertToResponse().getHa_status());
   }
+
+  /**
+   * Test of multiple call of updateHBaseMaster method.
+   */
+  @Test
+  public void testMultipleCall() throws InterruptedException {
+    setUpPortState(true);
+    scaner.setDefaultScanTimeoutMsc(scanTimeOut);
+    scaner.setMaxAttempts(maxAttempts);
+    scaner.setRescanTimeoutMsc(reScanTimeOut);    
+    log.debug("updateHBaseMaster - pass ServiceComponentHost");
+    //Test if some call of updateHBaseMaster in short time
+    scaner.updateHBaseMaster(cluster);
+    scaner.updateHBaseMaster(host);
+    scaner.updateHBaseMaster(serviceComponentHost);
+    Thread.sleep(1000);
+    assertEquals("active", serviceComponentHost.convertToResponse().getHa_status());
+  }  
+  
+  /**
+   * Test case of if port is closed or not enough scan timeout.
+   */
+  @Test
+  public void testOfBrokenMasterScenario() throws InterruptedException {
+    setUpPortState(false);
+    scaner.setDefaultScanTimeoutMsc(scanTimeOut);
+    scaner.setMaxAttempts(maxAttempts);
+    scaner.setRescanTimeoutMsc(reScanTimeOut);
+    log.debug("testOfBrokenMasterScenario start");
+    scaner.updateHBaseMaster(cluster);
+    Thread.sleep(2000);
+    //Should not be active masters
+    assertEquals("passive", serviceComponentHost.convertToResponse().getHa_status());
+    serviceComponentHost.setHAState("passive");
+    //Scanner should try to scan maxAttempts times
+    assertEquals(maxAttempts, scaner.getCountAttempts()-1);
+    //Timeout for scan shoul be scanTimeOut * scaner.getCountAttempts()
+    assertEquals(scanTimeOut * scaner.getCountAttempts(), scaner.getTestScanTimeoutMsc());
+    //Task for latter scan shoul be created
+    assertNotNull(scaner.getRescanSchedulerTask());
+    setUpPortState(true);
+    Thread.sleep(3500);
+    //Test active masters after latter rescan
+    assertEquals("active", serviceComponentHost.convertToResponse().getHa_status());
+  }  
 }

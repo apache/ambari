@@ -1,0 +1,122 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+<div>
+    <div class="top-portion">
+        <ul class="breadcrumb">
+            <li><a href="#/main/mirroring">{{t mirroring.dataset.AllDataSets}}</a> </li>
+        </ul>
+    </div>
+{{#if App.isAdmin}}
+    <div class="mirroring-top-nav button-section pull-right">
+        <button class="btn btn-inverse add-host-button" {{action addNewDataset}}>
+            <i class="icon-plus icon-white"></i>
+          {{t mirroring.dataset.createNewDataset}}
+        </button>
+    </div>
+{{/if}}
+</div>
+
+<div class="row-fluid">
+  <div class="span2 mirroring-sidebar">
+    <h5>{{t mirroring.sidebar.header.history}}</h5>
+    <hr />
+    <ul>
+      {{#each job in view.jobs}}
+        <li><a href="#" {{action "gotoShowJobs" job.dataset}}>{{job.dataset.name}}</a><br />{{job.startDateFormatted}}</li>
+      {{/each}}
+    </ul>
+    <h5>{{t mirroring.sidebar.header.clusters}} <span class="pull-right"><a {{action addTargetCluster controller.name}}  href="#">{{t add}}</a></span></h5>
+    <hr />
+    <ul>
+      {{#each cluster in view.targetClusters}}
+        <li><a {{action "editTargetCluster" cluster}}>{{cluster.clusterName}}</a></li>
+      {{/each}}
+    </ul>
+  </div>
+  <div class="span10">
+    <div id="mirroring">
+      <table class="table table-bordered table-striped">
+        <thead>
+        <tr>
+          {{#view view.sortView contentBinding="view.filteredContent"}}
+            <th class="first"> </th>
+            {{view view.parentView.nameSort}}
+            {{view view.parentView.dataSetSourceSort}}
+            {{view view.parentView.lastSuccessSort}}
+            {{view view.parentView.lastFailSort}}
+            {{view view.parentView.lastDurationSort}}
+            {{view view.parentView.avgDataSort}}
+          {{/view}}
+        </tr>
+        <tr>
+          <th class="first"> </th>
+          <th>{{view view.nameFilterView}}</th>
+          <th>{{view view.datasetSourceFilterView}}</th>
+          <th>{{view view.lastSuccessFilterView}}</th>
+          <th>{{view view.lastFailFilterView}}</th>
+          <th>{{view view.lastDurationFilterView}}</th>
+          <th>{{view view.avgDataFilterView}}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#if view.pageContent}}
+        {{!#each dataset in view.pageContent}}
+        {{#each dataset in datasets}}
+            {{#view view.DatasetView contentBinding="dataset"}}
+
+              <td class="first">
+              </td>
+
+              <td class="name">
+                <a title="{{unbound dataset.name}}" href="#" {{action "gotoShowJobs" dataset}}>{{unbound dataset.name}}</a>
+              </td>
+              <td>{{dataset.sourceDir}}</td>
+              <td>{{view.lastSucceededDateFormatted}}</td>
+              <td>{{view.lastFailedDateFormatted}}</td>
+
+              <td>
+                {{view.lastDurationFormatted}}
+              </td>
+
+              <td>{{dataset.avgData}}</td>
+            {{/view}}
+          {{/each}}
+        {{else}}
+          <tr>
+            <td class="first"></td>
+            <td colspan="6">
+              {{t mirroring.table.noDatasets}}
+            </td>
+          </tr>
+        {{/if}}
+        </tbody>
+      </table>
+
+      <div class="page-bar">
+        <div class="items-on-page">
+          <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
+        </div>
+        <div class="info">{{view.paginationInfo}}</div>
+        <div class="paging_two_button">
+          {{view view.paginationLeft}}
+          {{view view.paginationRight}}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

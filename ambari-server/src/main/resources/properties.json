@@ -5,7 +5,6 @@
         "Clusters/version",
         "Clusters/state",
         "Clusters/desired_configs",
-        "Clusters/actual_configs",
         "_"
     ],
     "Service":[
@@ -17,6 +16,7 @@
         "Services/attributes",
         "ServiceInfo/desired_configs",
         "params/run_smoke_test",
+        "params/reconfigure_client",
         "_"
     ],
     "Host":[
@@ -65,6 +65,7 @@
         "HostRoles/desired_stack_id",
         "HostRoles/actual_configs",
         "params/run_smoke_test",
+        "HostRoles/nagios_alerts",
         "_"
     ],
     "Configuration":[
@@ -151,7 +152,7 @@
         "StackConfigurations/property_name",
         "StackConfigurations/property_value",
         "StackConfigurations/property_description",
-        "StackConfigurations/filename",
+        "StackConfigurations/type",
         "_"
     ],
     "StackServiceComponent":[

@@ -34,6 +34,7 @@ import javax.xml.bind.JAXBException;
 
 import com.google.gson.Gson;
 import com.google.inject.Injector;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
@@ -41,6 +42,8 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.commons.logging.Log;
@@ -83,6 +86,9 @@ public class StageUtils {
     componentToClusterInfoKeyMap.put("NAMENODE", "namenode_host");
     componentToClusterInfoKeyMap.put("JOBTRACKER", "jtnode_host");
     componentToClusterInfoKeyMap.put("SNAMENODE", "snamenode_host");
+    componentToClusterInfoKeyMap.put("RESOURCEMANAGER", "rm_host");
+    componentToClusterInfoKeyMap.put("NODEMANAGER", "nm_hosts");
+    componentToClusterInfoKeyMap.put("HISTORYSERVER", "hs_host");
     componentToClusterInfoKeyMap.put("ZOOKEEPER_SERVER", "zookeeper_hosts");
     componentToClusterInfoKeyMap.put("HBASE_MASTER", "hbase_master_hosts");
     componentToClusterInfoKeyMap.put("HBASE_REGIONSERVER", "hbase_rs_hosts");
@@ -97,7 +103,7 @@ public class StageUtils {
     componentToClusterInfoKeyMap.put("GANGLIA_SERVER",
         "ganglia_server_host");
     componentToClusterInfoKeyMap.put("DATANODE", "slave_hosts");
-    componentToClusterInfoKeyMap.put("TASKTRACKER", "slave_hosts");
+    componentToClusterInfoKeyMap.put("TASKTRACKER", "mapred_tt_hosts");
     componentToClusterInfoKeyMap.put("HBASE_REGIONSERVER", "hbase_rs_hosts");
     componentToClusterInfoKeyMap.put("KERBEROS_SERVER", "kdc_host");
     componentToClusterInfoKeyMap.put("KERBEROS_ADMIN_CLIENT",
@@ -181,7 +187,9 @@ public class StageUtils {
   }
 
 
-  public static Map<String, List<String>> getClusterHostInfo(Cluster cluster, HostsMap hostsMap, Injector injector) {
+  public static Map<String, List<String>> getClusterHostInfo(
+      Map<String, Host> allHosts, Cluster cluster, HostsMap hostsMap,
+      Injector injector) throws AmbariException {
     Map<String, List<String>> info = new HashMap<String, List<String>>();
     if (cluster.getServices() != null) {
       for (String serviceName : cluster.getServices().keySet()) {
@@ -207,7 +215,11 @@ public class StageUtils {
             //Set up ambari-rca connection properties, is this a hack?
 //            info.put("ambari_db_server_host", Arrays.asList(hostsMap.getHostMap(getHostName())));
             Configuration configuration = injector.getInstance(Configuration.class);
-            info.put("ambari_db_rca_url", Arrays.asList(configuration.getRcaDatabaseUrl()));
+            String url = configuration.getRcaDatabaseUrl();
+            if (url.contains(Configuration.HOSTNAME_MACRO)) {
+              url = url.replace(Configuration.HOSTNAME_MACRO, hostsMap.getHostMap(getHostName()));
+            }
+            info.put("ambari_db_rca_url", Arrays.asList(url));
             info.put("ambari_db_rca_driver", Arrays.asList(configuration.getRcaDatabaseDriver()));
             info.put("ambari_db_rca_username", Arrays.asList(configuration.getRcaDatabaseUser()));
             info.put("ambari_db_rca_password", Arrays.asList(configuration.getRcaDatabasePassword()));
@@ -216,6 +228,14 @@ public class StageUtils {
         }
       }
     }
+
+    // Add a list of all host for agent and host monitoring
+    List<String> allHostNames = new ArrayList<String>();
+    for (Host host : allHosts.values()) {
+      allHostNames.add(host.getHostName());
+    }
+    info.put("all_hosts", allHostNames);
+
     return info;
   }
 

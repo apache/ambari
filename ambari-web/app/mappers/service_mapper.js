@@ -30,7 +30,8 @@ App.servicesMapper = App.QuickDataMapper.create({
     'NAGIOS',
     'ZOOKEEPER',
     'PIG',
-    'SQOOP'
+    'SQOOP',
+    'HUE'
   ],
   sortByOrder: function (sortOrder, array) {
     var sorted = [];
@@ -117,6 +118,7 @@ App.servicesMapper = App.QuickDataMapper.create({
     work_status: 'HostRoles.state',
     desired_status: 'HostRoles.desired_state',
     component_name: 'HostRoles.component_name',
+    ha_status: 'HostRoles.ha_status',
     host_id: 'HostRoles.host_name',
     $service_id: 'none' /* will be set outside of parse function */
   },
@@ -176,10 +178,12 @@ App.servicesMapper = App.QuickDataMapper.create({
 
       // Host components
       result = [];
+      var hostComponentToActualConfigsMap = {};
       json.items.forEach(function(item){
         item.components.forEach(function(component){
           var service = component.ServiceComponentInfo.service_name;
           component.host_components.forEach(function(host_component){
+            hostComponentToActualConfigsMap[host_component.id] = host_component.HostRoles.actual_configs;
             var comp = this.parseIt(host_component, this.config3);
             comp.service_id = service;
             result.push(comp);
@@ -192,8 +196,32 @@ App.servicesMapper = App.QuickDataMapper.create({
       }, this);
 
       App.store.loadMany(this.get('model3'), result);
+      for(var hostComponentId in hostComponentToActualConfigsMap){
+        var hostComponentObj = App.HostComponent.find(hostComponentId);
+        var actualConfigs = [];
+        // Create actual_configs
+        for(var site in hostComponentToActualConfigsMap[hostComponentId]){
+          var tag = hostComponentToActualConfigsMap[hostComponentId][site].tag;
+          var configObj = App.ConfigSiteTag.create({
+            site: site,
+            tag: tag,
+            hostOverrides: {}
+          });
+          var overrides = hostComponentToActualConfigsMap[hostComponentId][site].host_overrides;
+          if(overrides!=null){
+            var hostOverridesArray = {};
+            overrides.forEach(function(override){
+              var hostname = override.host_name;
+              var tag = override.tag;
+              hostOverridesArray[hostname] = tag;
+            });
+            configObj.set('hostOverrides', hostOverridesArray);
+          }
+          actualConfigs.push(configObj);
+        }
+        hostComponentObj.set('actualConfigs', actualConfigs);
+      }
     }
-
     console.log('out service mapper.  Took ' + (new Date().getTime() - start) + 'ms');
   },
 

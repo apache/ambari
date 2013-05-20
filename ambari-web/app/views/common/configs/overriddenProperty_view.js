@@ -36,6 +36,35 @@ App.ServiceConfigView.SCPOverriddenRowsView = Ember.View.extend({
     var overrides = this.get('serviceConfigProperty.overrides');
     overrides = overrides.without(scpToBeRemoved);
     this.set('serviceConfigProperty.overrides', overrides);
-  }
-
+  },
+  
+  hostsCountView: Em.View.extend({
+    classNames: ['overridden-hosts-view'],
+    template: Ember.Handlebars.compile("<a class=\"action overriden-hosts-link\" href=\"#\" {{action showOverrideWindow overriddenSCP controller target=\"view.parentView\" }} rel=\"tooltip\" {{bindAttr data-original-title=\"view.hostsList\"}} >{{view.overriddenSCP.selectedHostOptions.length}} hosts </a>"),
+    overriddenSCP: null,
+    didInsertElement: function () {
+      var links = $(".overriden-hosts-link");
+      console.log(links);
+      links.tooltip({html:true, placement:"right"});
+    },
+    /**
+     * New line separated list of hosts
+     * @type String
+     */
+    hostsList: function () {
+      var tooltip = "<ul>";
+      var hosts = this.get('overriddenSCP.selectedHostOptions');
+      if (hosts != null) {
+        hosts.forEach(function (host) {
+          var hostObj = App.Host.find(host);
+          if (hostObj != null) {
+            host = hostObj.get('publicHostName');
+          }
+          tooltip += ("<li>" + host + "</li>");
+        });
+      }
+      tooltip += "</ul>";
+      return tooltip;
+    }.property('overriddenSCP', 'overriddenSCP.selectedHostOptions')
+  })
 });

@@ -19,8 +19,6 @@
 package org.apache.ambari.server.controller.spi;
 
 
-import org.apache.ambari.server.api.util.TreeNode;
-
 import java.util.Map;
 
 /**
@@ -34,14 +32,6 @@ public interface Resource {
    * @return the resource type
    */
   public Type getType();
-
-  /**
-   * Get the properties contained by this resource.
-   * Each category is contained in a sub-node.
-   *
-   * @return resource properties tree
-   */
-  public TreeNode<Map<String, Object>> getProperties();
 
   /**
    * Obtain the properties contained by this group in a map structure.

@@ -21,102 +21,15 @@ var filters = require('views/common/filter_view');
 var sort = require('views/common/sort_view');
 var date = require('utils/date');
 
-App.MainHostView = Em.View.extend({
+App.MainHostView = App.TableView.extend({
   templateName:require('templates/main/host'),
   content:function () {
-    return App.router.get('mainHostController.content');
-  }.property('App.router.mainHostController.content'),
-  oTable: null,
+    return this.get('controller.content');
+  }.property('controller.content.length'),
 
   didInsertElement:function () {
-    this.filter();
-    if (this.get('controller.comeWithAlertsFilter')) {
-      this.set('controller.comeWithAlertsFilter', false);
-      this.set('controller.filteredByAlerts', true);
-    } else {
-      this.set('controller.filteredByAlerts', false);
-    }
+    this._super();
   },
-
-  /**
-   * return pagination information displayed on the hosts page
-   */
-  paginationInfo: function () {
-    return this.t('apps.filters.paginationInfo').format(this.get('startIndex'), this.get('endIndex'), this.get('filteredContent.length'));
-  }.property('displayLength', 'filteredContent.length', 'startIndex', 'endIndex'),
-
-  paginationLeft: Ember.View.extend({
-    tagName: 'a',
-    template: Ember.Handlebars.compile('<i class="icon-arrow-left"></i>'),
-    classNameBindings: ['class'],
-    class: function () {
-      if (this.get("parentView.startIndex") > 1) {
-       return "paginate_previous";
-      }
-      return "paginate_disabled_previous";
-    }.property("parentView.startIndex", 'filteredContent.length'),
-
-    click: function () {
-      this.get('parentView').previousPage();
-    }
-  }),
-
-  paginationRight: Ember.View.extend({
-    tagName: 'a',
-    template: Ember.Handlebars.compile('<i class="icon-arrow-right"></i>'),
-    classNameBindings: ['class'],
-    class: function () {
-      if ((this.get("parentView.endIndex")) < this.get("parentView.filteredContent.length")) {
-       return "paginate_next";
-      }
-      return "paginate_disabled_next";
-    }.property("parentView.endIndex", 'filteredContent.length'),
-
-    click: function () {
-      this.get('parentView').nextPage();
-    }
-  }),
-
-  hostPerPageSelectView: Em.Select.extend({
-    content: ['10', '25', '50']
-  }),
-
-  // start index for displayed content on the hosts page
-  startIndex: 1,
-
-  // calculate end index for displayed content on the hosts page
-  endIndex: function () {
-    return Math.min(this.get('filteredContent.length'), this.get('startIndex') + parseInt(this.get('displayLength')) - 1);
-  }.property('startIndex', 'displayLength', 'filteredContent.length'),
-
-  /**
-   * onclick handler for previous page button on the hosts page
-   */
-  previousPage: function () {
-    var result = this.get('startIndex') - parseInt(this.get('displayLength'));
-    if (result  < 2) {
-      result = 1;
-    }
-    this.set('startIndex', result);
-  },
-
-  /**
-   * onclick handler for next page button on the hosts page
-   */
-  nextPage: function () {
-    var result = this.get('startIndex') + parseInt(this.get('displayLength'));
-    if (result - 1 < this.get('filteredContent.length')) {
-      this.set('startIndex', result);
-    }
-  },
-
-  // the number of hosts to show on every page of the hosts page view
-  displayLength: null,
-
-  // calculates default value for startIndex property after applying filter or changing displayLength
-  updatePaging: function () {
-      this.set('startIndex', Math.min(1, this.get('filteredContent.length')));
-  }.observes('displayLength', 'filteredContent.length'),
 
   sortView: sort.wrapperView,
   nameSort: sort.fieldView.extend({
@@ -150,6 +63,9 @@ App.MainHostView = Em.View.extend({
   HostView:Em.View.extend({
     content:null,
     tagName: 'tr',
+    didInsertElement: function(){
+      this.$("[rel='HealthTooltip'], [rel='UsageTooltip']").tooltip();
+    },
     shortLabels: function() {
       var labels = this.get('content.hostComponents').getEach('displayName');
       var shortLabels = '';
@@ -187,7 +103,10 @@ App.MainHostView = Em.View.extend({
 
     hostsCount: function () {
       var statusString = this.get('healthStatusValue');
-      if (statusString == "") {
+      var alerts = this.get('alerts');
+      if(alerts){
+        return this.get('view.content').filterProperty('criticalAlertsCount').get('length');
+      } else if (statusString == "") {
         return this.get('view.content').get('length');
       } else {
         return this.get('view.content').filterProperty('healthClass', statusString ).get('length');
@@ -223,7 +142,8 @@ App.MainHostView = Em.View.extend({
       self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.green'), healthStatusValue: 'health-status-LIVE'}),
       self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.red'), healthStatusValue: 'health-status-DEAD-RED'}),
       self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.orange'), healthStatusValue: 'health-status-DEAD-ORANGE'}),
-      self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.yellow'), healthStatusValue: 'health-status-DEAD-YELLOW', last: true })
+      self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.yellow'), healthStatusValue: 'health-status-DEAD-YELLOW'}),
+      self.categoryObject.create({value: Em.I18n.t('hosts.host.alerts.label'), healthStatusValue: '', last: true, alerts: true })
     ];
 
     this.set('category', categories.get('firstObject'));
@@ -235,8 +155,23 @@ App.MainHostView = Em.View.extend({
 
   selectCategory: function(event, context){
     this.set('category', event.context);
-    this.updateFilter(0, event.context.get('healthStatusValue'), 'string');
+    if(event.context.get('alerts')){
+      this.updateFilter(0, '', 'string');
+      this.updateFilter(7, '>0', 'number');
+    } else {
+      this.updateFilter(7, '', 'number');
+      this.updateFilter(0, event.context.get('healthStatusValue'), 'string');
+    }
   },
+
+
+  /**
+   * Count of the hosts with alerts
+   */
+  hostsWithAlertsCount: function() {
+    return this.get('content.length') - this.get('content').filterProperty('criticalAlertsCount', 0).length;
+  }.property('content.@each.criticalAlertsCount'),
+
 
   /**
    * Filter view for name column
@@ -389,38 +324,6 @@ App.MainHostView = Em.View.extend({
   }),
 
   /**
-   * Filter hosts by hosts with at least one alert
-   */
-  filterByAlerts:function() {
-    if (this.get('controller.filteredByAlerts')) {
-      this.updateFilter(7, '>0', 'number')
-    } else {
-      this.updateFilter(7, '', 'number')
-    }
-  }.observes('controller.filteredByAlerts'),
-
-  /**
-   * Apply each filter to host
-   *
-   * @param iColumn number of column by which filter
-   * @param value
-   */
-  updateFilter: function(iColumn, value, type){
-    var filterCondition = this.get('filterConditions').findProperty('iColumn', iColumn);
-    if(filterCondition) {
-      filterCondition.value = value;
-    } else {
-      filterCondition = {
-        iColumn: iColumn,
-        value: value,
-        type: type
-      }
-      this.get('filterConditions').push(filterCondition);
-    }
-    this.filter();
-  },
-
-  /**
    * associations between host property and column index
    */
   colPropAssoc: function(){
@@ -429,81 +332,10 @@ App.MainHostView = Em.View.extend({
     associations[1] = 'publicHostName';
     associations[2] = 'ip';
     associations[3] = 'cpu';
-    associations[4] = 'memory';
+    associations[4] = 'memoryFormatted';
     associations[5] = 'loadAvg';
     associations[6] = 'hostComponents';
     associations[7] = 'criticalAlertsCount';
     return associations;
-  }.property(),
-
-  globalSearchValue:null,
-
-  /**
-   * filter table by all fields
-   */
-  globalFilter: function(){
-    var content = this.get('content');
-    var searchValue = this.get('globalSearchValue');
-    var result;
-    if(searchValue){
-      result = content.filter(function(host){
-        var match = false;
-        this.get('colPropAssoc').forEach(function(item){
-          var filterFunc = filters.getFilterByType('string', false);
-          if(item === 'hostComponents'){
-            filterFunc = filters.getFilterByType('multiple', true);
-          }
-          if(!match){
-            match = filterFunc(host.get(item), searchValue);
-          }
-        });
-        return match;
-      }, this);
-      this.set('filteredContent', result);
-    } else {
-      this.filter();
-    }
-  }.observes('globalSearchValue', 'content'),
-
-  /**
-   * contain filter conditions for each column
-   */
-  filterConditions: [],
-  filteredContent: null,
-
-  filteredContent: [],
-
-  // contain content to show on the current page of hosts page view
-  pageContent: function () {
-    return this.get('filteredContent').slice(this.get('startIndex') - 1, this.get('endIndex'));
-  }.property('filteredContent.length', 'startIndex', 'endIndex'),
-
-  /**
-   * filter table by filterConditions
-   */
-  filter: function(){
-    var content = this.get('content');
-    var filterConditions = this.get('filterConditions').filterProperty('value');
-    var result;
-    var self = this;
-    var assoc = this.get('colPropAssoc');
-    if(!this.get('globalSearchValue')){
-      if(filterConditions.length){
-        result = content.filter(function(host){
-          var match = true;
-          filterConditions.forEach(function(condition){
-            var filterFunc = filters.getFilterByType(condition.type, false);
-            if(match){
-              match = filterFunc(host.get(assoc[condition.iColumn]), condition.value);
-            }
-          });
-          return match;
-        });
-        this.set('filteredContent', result);
-      } else {
-        this.set('filteredContent', content.toArray());
-      }
-    }
-  }.observes('content')
-
+  }.property()
 });

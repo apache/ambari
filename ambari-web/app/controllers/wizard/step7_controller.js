@@ -58,9 +58,6 @@ App.WizardStep7Controller = Em.Controller.extend({
     return this.get('content.slaveGroupProperties');
   }.property('content.slaveGroupProperties', 'content.slaveComponentHosts'),
 
-  serviceConfigs: require('data/service_configs'),
-  configMapping: require('data/config_mapping'),
-  customConfigs: require('data/custom_configs'),
   customData: [],
 
   clearStep: function () {
@@ -73,193 +70,26 @@ App.WizardStep7Controller = Em.Controller.extend({
   loadStep: function () {
     console.log("TRACE: Loading step7: Configure Services");
     this.clearStep();
-    var serviceConfigs = this.get('serviceConfigs');
-    var advancedConfig = this.get('content.advancedServiceConfig') || [];
-    this.loadAdvancedConfig(serviceConfigs, advancedConfig);
-    this.loadCustomConfig();
-    this.renderServiceConfigs(serviceConfigs);
-    var storedServices = this.get('content.serviceConfigProperties');
-    if (storedServices) {
-      var configs = new Ember.Set();
-
-      // for all services`
-      this.get('stepConfigs').forEach(function (_content) {
-        //for all components
-        
-        // Update existing values
-        var seenStoredConfigs = {};
-        _content.get('configs').forEach(function (_config) {
-          var componentVal = storedServices.findProperty('name', _config.get('name'));
-          //if we have config for specified component
-          if (componentVal) {
-            //set it
-            seenStoredConfigs[componentVal.name] = 'true';
-            _config.set('value', componentVal.value)
-            this.updateHostOverrides(_config, componentVal);
-          }
-        }, this);
-        
-        // Create new values
-        var currentServiceStoredConfigs = storedServices.filterProperty('service', _content.serviceName);
-        currentServiceStoredConfigs.forEach(function (storedConfig) {
-          if(!(storedConfig.name in seenStoredConfigs)){
-            console.log("loadStep7(): New property from local storage: ", storedConfig);
-            // Determine category
-            var configCategory = 'Advanced';
-            var serviceConfigMetaData = serviceConfigs.findProperty('serviceName', _content.serviceName);
-            var categoryMetaData = serviceConfigMetaData == null ? null : serviceConfigMetaData.configCategories.findProperty('siteFileName', storedConfig.filename);
-            if (categoryMetaData != null) {
-              configCategory = categoryMetaData.get('name');
-            }
-            // Configuration data
-            var configData = {
-                id: storedConfig.id,
-                name: storedConfig.name,
-                displayName: storedConfig.name,
-                serviceName: _content.serviceName,
-                value: storedConfig.value,
-                defaultValue: storedConfig.defaultValue,
-                displayType: "advanced",
-                filename: storedConfig.filename,
-                category: configCategory,
-                isUserProperty: true
-            }
-            var serviceConfigProperty = App.ServiceConfigProperty.create(configData);
-            serviceConfigProperty.serviceConfig = _content;
-            serviceConfigProperty.initialValue();
-            this.updateHostOverrides(serviceConfigProperty, storedConfig);
-            _content.configs.pushObject(serviceConfigProperty);
-            serviceConfigProperty.validate();
-          }
-        }, this);
-      }, this);
-    }
+    //STEP 1: Load advanced configs
+    var advancedConfigs = this.get('content.advancedServiceConfig');
+    //STEP 2: Load on-site configs by service from local DB
+    var storedConfigs = this.get('content.serviceConfigProperties');
+    //STEP 3: Merge pre-defined configs with loaded on-site configs
+    var configs = App.config.mergePreDefinedWithStored(storedConfigs, advancedConfigs);
+    //STEP 4: Add advanced configs
+    App.config.addAdvancedConfigs(configs, advancedConfigs);
+    //STEP 5: Add custom configs
+    App.config.addCustomConfigs(configs);
+    //STEP 6: Distribute configs by service and wrap each one in App.ServiceConfigProperty (configs -> serviceConfigs)
+    var serviceConfigs = App.config.renderConfigs(configs, this.get('allInstalledServiceNames'), this.get('selectedServiceNames'));
+    this.set('stepConfigs', serviceConfigs);
+    this.activateSpecialConfigs();
+    this.set('selectedService', this.get('stepConfigs').filterProperty('showConfig', true).objectAt(0));
   },
-  
-  updateHostOverrides: function (configProperty, storedConfigProperty) {
-    if(storedConfigProperty.overrides!=null && storedConfigProperty.overrides.length>0){
-      var overrides = configProperty.get('overrides');
-      if (!overrides) {
-        overrides = []; 
-        configProperty.set('overrides', overrides);
-      }
-      storedConfigProperty.overrides.forEach(function(overrideEntry){
-        // create new override with new value
-        var newSCP = App.ServiceConfigProperty.create(configProperty);
-        newSCP.set('value', overrideEntry.value);
-        newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
-        newSCP.set('parentSCP', configProperty);
-        var hostsArray = Ember.A([]);
-        overrideEntry.hosts.forEach(function(host){
-          hostsArray.push(host);
-        });
-        newSCP.set('selectedHostOptions', hostsArray);
-        overrides.pushObject(newSCP);
-      });
-    }
-  },
-
-  /*
-   Loads the advanced configs fetched from the server metadata libarary
+   /**
+   * make some configs visible depending on active services
    */
-
-  loadAdvancedConfig: function (serviceConfigs, advancedConfig) {
-    advancedConfig.forEach(function (_config) {
-      if (_config) {
-        var service = serviceConfigs.findProperty('serviceName', _config.serviceName);
-        if (service) {
-          if (this.get('configMapping').someProperty('name', _config.name)) {
-          } else if (!(service.configs.someProperty('name', _config.name))) {
-            _config.id = "site property";
-            _config.category = 'Advanced';
-            var serviceConfigMetaData = this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName'));
-            var categoryMetaData = serviceConfigMetaData == null ? null : serviceConfigMetaData.configCategories.findProperty('siteFileName', serviceConfigObj.filename);
-            if (categoryMetaData != null) {
-              _config.category = categoryMetaData.get('name');
-            }
-            _config.displayName = _config.name;
-            _config.defaultValue = _config.value;
-            // make all advanced configs optional and populated by default
-            /*
-             * if (/\${.*}/.test(_config.value) || (service.serviceName !==
-             * 'OOZIE' && service.serviceName !== 'HBASE')) { _config.isRequired =
-             * false; _config.value = ''; } else if
-             * (/^\s+$/.test(_config.value)) { _config.isRequired = false; }
-             */
-            _config.isRequired = false;
-            _config.isVisible = true;
-            _config.displayType = 'advanced';
-            service.configs.pushObject(_config);
-          }
-        }
-      }
-    }, this);
-  },
-
-
-  /**
-   * Render a custom conf-site box for entering properties that will be written in *-site.xml files of the services
-   */
-  loadCustomConfig: function () {
-    var serviceConfigs = this.get('serviceConfigs');
-    this.get('customConfigs').forEach(function (_config) {
-      var service = serviceConfigs.findProperty('serviceName', _config.serviceName);
-      if (service) {
-        if (!(service.configs.someProperty('name', _config.name))) {
-          if( Object.prototype.toString.call( _config.defaultValue ) === '[object Array]' ) {
-            this.loadDefaultCustomConfig(_config);
-          }
-          service.configs.pushObject(_config);
-        }
-      }
-    }, this);
-  },
-
-  loadDefaultCustomConfig: function (customConfig) {
-    var customValue = '';
-    var length = customConfig.defaultValue.length;
-    customConfig.defaultValue.forEach(function (_config, index) {
-      customValue += _config.name + '=' + _config.value;
-      if (index !== length - 1) {
-        customValue += '\n';
-      }
-    }, this);
-    customConfig.value = customValue;
-  },
-
-  /**
-   * Render configs for active services
-   * @param serviceConfigs
-   */
-  renderServiceConfigs: function (serviceConfigs) {
-    serviceConfigs.forEach(function (_serviceConfig) {
-
-      var serviceConfig = App.ServiceConfig.create({
-        filename: _serviceConfig.filename,
-        serviceName: _serviceConfig.serviceName,
-        displayName: _serviceConfig.displayName,
-        configCategories: _serviceConfig.configCategories,
-        showConfig: false,
-        configs: []
-      });
-
-      if (this.get('allInstalledServiceNames').contains(serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
-
-        this.loadComponentConfigs(_serviceConfig, serviceConfig);
-
-        console.log('pushing ' + serviceConfig.serviceName, serviceConfig);
-
-        if (this.get('selectedServiceNames').contains(serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
-          serviceConfig.showConfig = true;
-        }
-
-        this.get('stepConfigs').pushObject(serviceConfig);
-
-      } else {
-        console.log('skipping ' + serviceConfig.serviceName);
-      }
-    }, this);
-
+  activateSpecialConfigs: function () {
     var miscConfigs = this.get('stepConfigs').findProperty('serviceName', 'MISC').configs;
     var showProxyGroup = this.get('selectedServiceNames').contains('HIVE') ||
       this.get('selectedServiceNames').contains('HCATALOG') ||
@@ -271,27 +101,10 @@ App.WizardStep7Controller = Em.Controller.extend({
     miscConfigs.findProperty('name', 'hcat_user').set('isVisible', this.get('selectedServiceNames').contains('HCATALOG'));
     miscConfigs.findProperty('name', 'webhcat_user').set('isVisible', this.get('selectedServiceNames').contains('WEBHCAT'));
     miscConfigs.findProperty('name', 'oozie_user').set('isVisible', this.get('selectedServiceNames').contains('OOZIE'));
-    miscConfigs.findProperty('name', 'pig_user').set('isVisible', this.get('selectedServiceNames').contains('PIG'));
-    miscConfigs.findProperty('name', 'sqoop_user').set('isVisible', this.get('selectedServiceNames').contains('SQOOP'));
     miscConfigs.findProperty('name', 'zk_user').set('isVisible', this.get('selectedServiceNames').contains('ZOOKEEPER'));
+    miscConfigs.findProperty('name', 'gmetad_user').set('isVisible', this.get('selectedServiceNames').contains('GANGLIA'));
     miscConfigs.findProperty('name', 'rrdcached_base_dir').set('isVisible', this.get('selectedServiceNames').contains('GANGLIA'));
-
-    this.set('selectedService', this.get('stepConfigs').filterProperty('showConfig', true).objectAt(0));
-  },
-
-  /**
-   * Load child components to service config object
-   * @param _componentConfig
-   * @param componentConfig
-   */
-  loadComponentConfigs: function (_componentConfig, componentConfig) {
-    _componentConfig.configs.forEach(function (_serviceConfigProperty) {
-      var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
-      serviceConfigProperty.serviceConfig = componentConfig;
-      serviceConfigProperty.initialValue();
-      componentConfig.configs.pushObject(serviceConfigProperty);
-      serviceConfigProperty.validate();
-    }, this);
+    miscConfigs.findProperty('name', 'nagios_user').set('isVisible', this.get('selectedServiceNames').contains('NAGIOS'));
   },
 
   /**

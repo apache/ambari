@@ -68,17 +68,20 @@ class HostComponentResourceProvider extends AbstractControllerResourceProvider {
   
   //Component name mappings
   private static final Map<String, PropertyProvider> HOST_COMPONENT_PROPERTIES_PROVIDER = new HashMap<String, PropertyProvider>();
-  
-  private static final int HOST_COMPONENT_HTTP_PROPERTY_REQUEST_TIMEOUT = 1500;
-  
+
+  private static final int HOST_COMPONENT_HTTP_PROPERTY_REQUEST_CONNECT_TIMEOUT = 1500;
+  private static final int HOST_COMPONENT_HTTP_PROPERTY_REQUEST_READ_TIMEOUT    = 10000;
+
   static {
     HOST_COMPONENT_PROPERTIES_PROVIDER.put(
         "NAGIOS_SERVER",
-        new HttpProxyPropertyProvider(new URLStreamProvider(
-            HOST_COMPONENT_HTTP_PROPERTY_REQUEST_TIMEOUT), PropertyHelper
-            .getPropertyId("HostRoles", "cluster_name"), PropertyHelper
-            .getPropertyId("HostRoles", "host_name"), PropertyHelper
-            .getPropertyId("HostRoles", "component_name")));
+        new HttpProxyPropertyProvider(
+            new URLStreamProvider(
+              HOST_COMPONENT_HTTP_PROPERTY_REQUEST_CONNECT_TIMEOUT,
+              HOST_COMPONENT_HTTP_PROPERTY_REQUEST_READ_TIMEOUT),
+            PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+            PropertyHelper.getPropertyId("HostRoles", "host_name"),
+            PropertyHelper.getPropertyId("HostRoles", "component_name")));
   }
 
   //Parameters from the predicate

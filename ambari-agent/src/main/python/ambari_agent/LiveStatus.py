@@ -22,10 +22,6 @@ import json
 import logging
 from StatusCheck import StatusCheck
 import AmbariConfig
-import socket
-import time
-import traceback
-from pprint import pprint, pformat
 from StackVersionsFileHandler import StackVersionsFileHandler
 from ActualConfigHandler import ActualConfigHandler
 
@@ -36,7 +32,7 @@ class LiveStatus:
   SERVICES = [
     "HDFS", "MAPREDUCE", "GANGLIA", "HBASE",
     "NAGIOS", "ZOOKEEPER", "OOZIE", "HCATALOG",
-    "KERBEROS", "TEMPLETON", "HIVE"
+    "KERBEROS", "TEMPLETON", "HIVE", "WEBHCAT"
   ]
 
   COMPONENTS = [
@@ -88,6 +84,8 @@ class LiveStatus:
        "componentName" : "HIVE_METASTORE"},
       {"serviceName" : "HIVE",               #!
        "componentName" : "MYSQL_SERVER"},
+      {"serviceName" : "WEBHCAT",
+       "componentName" : "WEBHCAT_SERVER"},
   ]
 
   LIVE_STATUS = "STARTED"

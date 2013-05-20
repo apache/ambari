@@ -18,8 +18,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import logging
-import logging.handlers
 import ConfigParser
 import StringIO
 
@@ -84,8 +82,13 @@ rolesToClass = {
   'SECONDARY_NAMENODE': 'hdp-hadoop::snamenode',
   'JOBTRACKER': 'hdp-hadoop::jobtracker',
   'TASKTRACKER': 'hdp-hadoop::tasktracker',
+  'RESOURCEMANAGER': 'hdp-yarn::resourcemanager',
+  'NODEMANAGER': 'hdp-yarn::nodemanager',
+  'HISTORYSERVER': 'hdp-yarn::historyserver',
+  'YARN_CLIENT': 'hdp-yarn::yarn_client',
   'HDFS_CLIENT': 'hdp-hadoop::client',
   'MAPREDUCE_CLIENT': 'hdp-hadoop::client',
+  'MAPREDUCEv2_CLIENT': 'hdp-yarn::mapreducev2_client',
   'ZOOKEEPER_SERVER': 'hdp-zookeeper',
   'ZOOKEEPER_CLIENT': 'hdp-zookeeper::client',
   'HBASE_MASTER': 'hdp-hbase::master',
@@ -120,7 +123,10 @@ rolesToClass = {
   'WEBHCAT_SERVICE_CHECK': 'hdp-templeton::templeton::service_check',
   'DASHBOARD_SERVICE_CHECK': 'hdp-dashboard::dashboard::service_check',
   'DECOMMISSION_DATANODE': 'hdp-hadoop::hdfs::decommission',
-  'HUE_SERVICE_CHECK': 'hdp-hue::service_check'
+  'HUE_SERVICE_CHECK': 'hdp-hue::service_check',
+  'RESOURCEMANAGER_SERVICE_CHECK': 'hdp-yarn::resourcemanager::service_check',
+  'HISTORYSERVER_SERVICE_CHECK': 'hdp-yarn::historyserver::service_check',
+  'TEZ_CLIENT': 'hdp-tez::tez_client'
 }
 
 serviceStates = {
@@ -135,6 +141,9 @@ servicesToPidNames = {
   'DATANODE': 'hadoop-{USER}-datanode.pid$',
   'JOBTRACKER': 'hadoop-{USER}-jobtracker.pid$',
   'TASKTRACKER': 'hadoop-{USER}-tasktracker.pid$',
+  'RESOURCEMANAGER': 'yarn-{USER}-resourcemanager.pid$',
+  'NODEMANAGER': 'yarn-{USER}-nodemanager.pid$',
+  'HISTORYSERVER': 'mapred-{USER}-historyserver.pid$',
   'OOZIE_SERVER': 'oozie.pid',
   'ZOOKEEPER_SERVER': 'zookeeper_server.pid',
   'TEMPLETON_SERVER': 'templeton.pid',
@@ -147,7 +156,9 @@ servicesToPidNames = {
   'KERBEROS_SERVER': 'kadmind.pid',
   'HIVE_SERVER': 'hive-server.pid',
   'HIVE_METASTORE': 'hive.pid',
-  'MYSQL_SERVER': 'mysqld.pid'
+  'MYSQL_SERVER': 'mysqld.pid',
+  'HUE_SERVER': '/var/run/hue/supervisor.pid',
+  'WEBHCAT_SERVER': 'webhcat.pid',
 }
 
 linuxUserPattern = '[A-Za-z0-9_-]*[$]?'
@@ -171,8 +182,10 @@ pidPathesVars = [
    'defaultValue' : '/var/run/webhcat'},                       
   {'var' : 'hive_pid_dir',
    'defaultValue' : '/var/run/hive'},                      
-   {'var' : 'mysqld_pid_dir',
-   'defaultValue' : '/var/run/mysqld'}
+  {'var' : 'mysqld_pid_dir',
+   'defaultValue' : '/var/run/mysqld'},
+  {'var' : 'webhcat_pid_dir',
+   'defaultValue' : '/var/run/webhcat'},                      
 ]
 
 class AmbariConfig:

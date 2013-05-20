@@ -31,8 +31,7 @@ App.ChartServiceMetricsHDFS_SpaceUtilization = App.ChartLinearTimeView.extend({
   title: Em.I18n.t('services.service.info.metrics.hdfs.spaceUtilization'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
-  sourceUrl: "/hosts/{nameNodeName}/host_components/NAMENODE?fields=metrics/dfs/FSNamesystem/CapacityRemainingGB[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/FSNamesystem/CapacityUsedGB[{fromSeconds},{toSeconds},{stepSeconds}],metrics/dfs/FSNamesystem/CapacityTotalGB[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/services/metrics/hdfs/space_utilization.json",
+  ajaxIndex: 'service.metrics.hdfs.space_utilization',
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

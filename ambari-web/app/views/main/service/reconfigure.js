@@ -19,7 +19,7 @@ var App = require('app');
 
 App.MainServiceReconfigureView = Em.View.extend({
 
-  templateName: require('templates/main/service/reconfigure'),
+  templateName: require('templates/main/service/reconfigure')
 
 });
 

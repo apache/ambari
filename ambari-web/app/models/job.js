@@ -25,22 +25,22 @@ App.Job = DS.Model.extend({
 
   run: DS.belongsTo('App.Run'),
 
-  jobName:DS.attr('string'),
-  workflowEntityName:DS.attr('string'),
-  userName:DS.attr('string'),
-  confPath:DS.attr('string'),
-  submitTime:DS.attr('number'),
-  maps:DS.attr('number'),
-  reduces:DS.attr('number'),
-  status:DS.attr('string'),
-  input:DS.attr('number'),
-  output:DS.attr('number'),
-  elapsedTime:DS.attr('number'),
-  duration: function() {
+  jobName: DS.attr('string'),
+  workflowEntityName: DS.attr('string'),
+  userName: DS.attr('string'),
+  confPath: DS.attr('string'),
+  submitTime: DS.attr('number'),
+  maps: DS.attr('number'),
+  reduces: DS.attr('number'),
+  status: DS.attr('string'),
+  input: DS.attr('number'),
+  output: DS.attr('number'),
+  elapsedTime: DS.attr('number'),
+  duration: function () {
     return date.timingFormat(parseInt(this.get('elapsedTime')));
   }.property('elapsedTime'),
-  jobTimeLine:DS.attr('string'),
-  jobTaskView:DS.attr('string'),
+  jobTimeLine: DS.attr('string'),
+  jobTaskView: DS.attr('string'),
   /**
    *  Sum of input bandwidth for all jobs with appropriate measure
    */

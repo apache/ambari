@@ -28,6 +28,11 @@ module.exports = {
     return intRegex.test(value);
   },
 
+  isValidUNIXUser: function(value){
+    var regex = /^[a-z_][a-z0-9_-]{0,31}$/;
+    return regex.test(value);
+  },
+
   isValidFloat: function(value) {
     if (typeof value === 'string' && value.trim() === '') {
       return false;
@@ -87,8 +92,18 @@ module.exports = {
    * @return {Boolean}
    */
   isValidUserName: function(value) {
-    var usernameRegex = /^[a-z]([-a-z0-9]{0,30})\$?$/;
+    var usernameRegex = /^[a-z]([-a-z0-9]{0,30})$/;
     return usernameRegex.test(value);
+  },
+
+  /**
+   * validate key of configurations
+   * @param value
+   * @return {Boolean}
+   */
+  isValidConfigKey: function(value) {
+    var configKeyRegex = /^[0-9a-z_\-\.]+$/i;
+    return configKeyRegex.test(value);
   },
 
   empty:function (e) {

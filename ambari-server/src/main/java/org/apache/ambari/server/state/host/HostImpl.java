@@ -20,7 +20,6 @@
 package org.apache.ambari.server.state.host;
 
 import java.lang.reflect.Type;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,8 +43,8 @@ import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostEvent;
 import org.apache.ambari.server.state.HostEventType;
 import org.apache.ambari.server.state.HostHealthStatus;
@@ -1062,7 +1061,9 @@ public class HostImpl implements Host {
   
   @Override
   @Transactional
-  public void addDesiredConfig(long clusterId, boolean selected, Config config) {
+  public boolean addDesiredConfig(long clusterId, boolean selected, String user, Config config) {
+    if (null == user)
+      throw new NullPointerException("User must be specified.");
     
     HostConfigMappingEntity exist = getDesiredConfigEntity(clusterId, config.getType());
     if (null != exist && exist.getVersion().equals(config.getVersionTag())) {
@@ -1070,10 +1071,10 @@ public class HostImpl implements Host {
         exist.setSelected(0);
         hostConfigMappingDAO.merge(exist);
       }
-      return;
+      return false;
     }
     
-    writeLock.lock();      
+    writeLock.lock();
     
     try {
       // set all old mappings for this type to empty
@@ -1085,9 +1086,10 @@ public class HostImpl implements Host {
       
       HostConfigMappingEntity entity = new HostConfigMappingEntity();
       entity.setClusterId(Long.valueOf(clusterId));
-      entity.setCreateTimestamp(Long.valueOf(new Date().getTime()));
+      entity.setCreateTimestamp(Long.valueOf(System.currentTimeMillis()));
       entity.setHostName(hostEntity.getHostName());
       entity.setSelected(1);
+      entity.setUser(user);
       entity.setType(config.getType());
       entity.setVersion(config.getVersionTag());
       
@@ -1098,6 +1100,8 @@ public class HostImpl implements Host {
     }
     
     hostDAO.merge(hostEntity);
+    
+    return true;
   }
   
   @Override
@@ -1110,7 +1114,7 @@ public class HostImpl implements Host {
       DesiredConfig dc = new DesiredConfig();
       dc.setVersion(e.getVersion());
       dc.setServiceName(e.getServiceName());
-      
+      dc.setUser(e.getUser());
       map.put(e.getType(), dc);
       
     }

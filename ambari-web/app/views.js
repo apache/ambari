@@ -17,7 +17,6 @@
  */
 
 
-
 // load all views here
 
 require('views/application');
@@ -33,6 +32,7 @@ require('views/common/quick_view_link_view');
 require('views/common/configs/services_config');
 require('views/common/configs/overriddenProperty_view');
 require('views/common/filter_combobox');
+require('views/common/table_view');
 require('views/login');
 require('views/main');
 require('views/main/menu');
@@ -41,6 +41,9 @@ require('views/main/host');
 require('views/main/host/details');
 require('views/main/host/menu');
 require('views/main/host/summary');
+require('views/main/host/configs');
+require('views/main/host/configs_service');
+require('views/main/host/configs_service_menu');
 require('views/main/host/metrics');
 require('views/main/host/add_view');
 require('views/main/host/metrics/cpu');
@@ -51,6 +54,7 @@ require('views/main/host/metrics/network');
 require('views/main/host/metrics/processes');
 require('views/main/admin');
 require('views/main/admin/cluster');
+require('views/main/admin/misc_view');
 require('views/main/admin/stack_upgrade');
 require('views/main/admin/advanced');
 require('views/main/admin/advanced/password');
@@ -120,6 +124,13 @@ require('views/main/apps/item_view');
 require('views/main/apps/item/bar_view');
 require('views/main/apps/item/dag_view');
 require('views/main/mirroring_view');
+require('views/main/mirroring/dropdown_view');
+require('views/main/mirroring/dataset_view');
+require('views/main/mirroring/datasets_view');
+require('views/main/mirroring/jobs_view');
+require('views/main/mirroring/targetClusterView');
+require('views/main/mirroring/testConnection_view');
+require('views/main/mirroring/testConnectionResults_view');
 require('views/installer');
 require('views/wizard/controls_view');
 require('views/wizard/step1_view');
@@ -140,3 +151,4 @@ require('views/wizard/stack_upgrade/step1_view');
 require('views/wizard/stack_upgrade/step2_view');
 require('views/wizard/stack_upgrade/step3_view');
 require('views/loading');
+

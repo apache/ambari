@@ -19,13 +19,7 @@ limitations under the License.
 '''
 
 from unittest import TestCase
-import os, errno, getpass
-from ambari_agent.ActionQueue import ActionQueue
-from ambari_agent.AmbariConfig import AmbariConfig
-from ambari_agent.FileUtil import getFilePath
-from ambari_agent import shell
-from ambari_agent.shell import serverTracker
-import time
+
 
 class TestAgentActions(TestCase):
 #This feature is not yet implemented in ActionQueue

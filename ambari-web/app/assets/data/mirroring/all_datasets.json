@@ -5,7 +5,7 @@
       "href":"http://ec2...com:8080/api/v1/feeds/feed1",
       "Feeds":{
         "description":"test feed 1",
-        "name":"feed 1",
+        "name":"feed_1",
         "status":"SCHEDULED",
         "groups":"online,bi",
         "frequency":"minutes(1)",
@@ -16,7 +16,7 @@
         "clusters":{
           "cluster":[
             {
-              "name":"drsource",
+              "name":"drsource3",
               "type":"source",
               "validity":{
                 "start":"2010-01-01T00:00Z",
@@ -28,7 +28,7 @@
               }
             },
             {
-              "name":"drtarget",
+              "name":"drtarget3",
               "type":"target",
               "validity":{
                 "start":"2010-01-01T00:00Z",
@@ -132,7 +132,7 @@
       "href":"http://ec2...com:8080/api/v1/feeds/feed2",
       "Feeds":{
         "description":"test feed 2",
-        "name":"feed 2",
+        "name":"feed_2",
         "status":"SCHEDULED",
         "groups":"online,bi",
         "frequency":"minutes(1)",
@@ -143,7 +143,7 @@
         "clusters":{
           "cluster":[
             {
-              "name":"drsource",
+              "name":"drsource1",
               "type":"source",
               "validity":{
                 "start":"2010-01-01T00:00Z",
@@ -155,7 +155,7 @@
               }
             },
             {
-              "name":"drtarget",
+              "name":"drtarget1",
               "type":"target",
               "validity":{
                 "start":"2010-01-01T00:00Z",
@@ -233,7 +233,7 @@
       "href":"http://ec2...com:8080/api/v1/feeds/feed1",
       "Feeds":{
         "description":"feed 3",
-        "name":"feed 3",
+        "name":"feed_3",
         "status":"SCHEDULED",
         "groups":"online,bi",
         "frequency":"minutes(1)",
@@ -244,7 +244,7 @@
         "clusters":{
           "cluster":[
             {
-              "name":"drsource",
+              "name":"drsource2",
               "type":"source",
               "validity":{
                 "start":"2010-01-01T00:00Z",
@@ -256,7 +256,7 @@
               }
             },
             {
-              "name":"drtarget",
+              "name":"drtarget2",
               "type":"target",
               "validity":{
                 "start":"2010-01-01T00:00Z",

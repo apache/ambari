@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var uiEffects = require('utils/ui_effects');
 
 App.MainHostSummaryView = Em.View.extend({
   templateName: require('templates/main/host/summary'),
@@ -129,7 +130,9 @@ App.MainHostSummaryView = Em.View.extend({
       return App.format.role(this.get('componentName'));
     }.property('componentName')
   }),
-
+  isAddComponent: function(){
+    return this.get('content.healthClass') !== 'health-status-DEAD-YELLOW';
+  }.property('content.healthClass'),
   addableComponents:function(){
     var components = [];
     var services = App.Service.find();
@@ -161,7 +164,7 @@ App.MainHostSummaryView = Em.View.extend({
       components.pushObject(this.addableComponentObject.create({ 'componentName': 'HBASE_REGIONSERVER' }));
     }
     return components;
-  }.property('content'),
+  }.property('content', 'content.hostComponents.length'),
 
   ComponentView: Em.View.extend({
     content: null,
@@ -175,7 +178,7 @@ App.MainHostSummaryView = Em.View.extend({
       var serviceComponent = this.get('content');
       var host = App.router.get('mainHostDetailsController.content');
       if(host){
-        var hostComponent = host.get('hostComponents').findProperty('componentName', serviceComponent.get('componentName'));
+        hostComponent = host.get('hostComponents').findProperty('componentName', serviceComponent.get('componentName'));
       }
       return hostComponent;
     }.property('content', 'App.router.mainHostDetailsController.content'),
@@ -195,14 +198,29 @@ App.MainHostSummaryView = Em.View.extend({
           return 'health-status-DEAD-ORANGE';
         }
       }
+      if(this.get('workStatus') === App.HostComponentStatus.install_failed){
+        return 'icon-remove';
+      }
       return 'health-status-' + App.HostComponentStatus.getKeyName(this.get('workStatus'));
     }.property('workStatus', 'isDataNodeRecommissionAvailable'),
+    /**
+     * For Upgrade failed state
+     */
+    isUpgradeFailed:function(){
+      return App.HostComponentStatus.getKeyName(this.get('workStatus')) === "upgrade_failed";
+    }.property("workStatus"),
+    /**
+     * For Install failed state
+     */
+    isInstallFailed:function(){
+      return App.HostComponentStatus.getKeyName(this.get('workStatus')) === "install_failed";
+    }.property("workStatus"),
     /**
      * Disable element while component is starting/stopping
      */
     disabledClass:function(){
       var workStatus = this.get('workStatus');
-      if([App.HostComponentStatus.starting, App.HostComponentStatus.stopping].contains(workStatus) ){
+      if([App.HostComponentStatus.starting, App.HostComponentStatus.stopping, App.HostComponentStatus.unknown].contains(workStatus) ){
         return 'disabled';
       } else {
         return '';
@@ -220,8 +238,10 @@ App.MainHostSummaryView = Em.View.extend({
         if (dataNodeComponent)
           pulsate = dataNodeComponent.get('isDecommissioning');
       }
-      if (pulsate) {
-        this.$('.components-health').effect("pulsate", null, 1000, function () {
+      if (pulsate && !self.get('isBlinking')) {
+        self.set('isBlinking', true);
+        uiEffects.pulsate(self.$('.components-health'), 1000, function(){
+          !self.get('isDestroyed') && self.set('isBlinking', false);
           self.doBlinking();
         });
       }

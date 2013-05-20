@@ -12,6 +12,123 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-2163. Add smoke tests as part of starting all services in
+ security wizard. (jaimin)
+
+ AMBARI-2140. Improve Ambari-agent test coverage. (swagle)
+
+ AMBARI-2133. Add Nagios alerts for Hadoop 2.0 in Ambari. (swagle)
+
+ AMBARI-2123. Allow the user to specify a non-root ssh user in Install Options.
+ (yusaku)
+
+ AMBARI-2096. Create smoke test for HISTORYSERVER. (swagle)
+
+ AMBARI-2094. Create smoke test for NODEMANAGER component as a part of 
+ MapReduce V2 Service check. (swagle)
+
+ AMBARI-2093. Add Tez as a configurable Service in Hadoop 2.0 stack. (swagle)
+
+ AMBARI-2031. AMBARI-2031. Add clover code coverage profile. 
+ (Giridharan Kesavan via swagle)
+
+ AMBARI-2050. Create smoke test for RESOURCEMANAGER component. (swagle)
+
+ AMBARI-2049. Create ambari agent scripts for MAPREDUCEv2_CLIENT. (swagle)
+
+ AMBARI-2048. Create ambari agent scripts for historyserver. (swagle)
+
+ AMBARI-2046. Create ambari agent scripts for Hadoop 2.0 installation, node 
+ manager. (swagle)
+
+ AMBARI-2047. Create ambari agent scripts for yarn client. (swagle)
+
+ AMBARI-1679. Create ambari agent scripts for Hadoop 2.0 installation, 
+ configuration and management. (swagle)
+
+ AMBARI-1680. Add Hadoop 2.0 stack definition to Ambari. (swagle)
+
+ AMBARI-1908. HDFS Mirroring: Add Bread Crumbs and Validation. (Arun Kandregula
+ via yusaku)
+
+ AMBARI-1558. Script to add host components to existing hosts.
+ (yusaku via jaimi)
+
+ AMBARI-1936. Support for installing on mixed OS versions install + mgmt.
+ (swagle)
+
+ AMBARI-1924. Allow for users to customize Ganglia gmetad + gmond user 
+ accounts. (Sumit Mohanty via swagle)
+
+ AMBARI-1923. Allow for users to customize Nagios user accounts. 
+ (Sumit Mohanty via swagle)
+
+ AMBARI-1922. Support not root ssh via a user that can sudo in as root. 
+ (Sumit Mohanty via swagle)
+ 
+ AMBARI-1914. Add Nagios alerts for Hue service. (swagle)
+
+ AMBARI-1895. Refactor ajax requests. (srimanth)
+
+ AMBARI-1868. Include stack version as a parameter in manifest. (swagle)
+
+ AMBARI-1847. Make single PUT call for multiple host overrides. (srimanth)
+
+ AMBARI-1857. Capacity Scheduler: field order for Add/Edit popup. (yusaku via
+ srimanth)
+
+ AMBARI-1855. Capacity Scheduler: when adding a new queue, populate 
+ fields. (yusaku via srimanth)
+ 
+ AMBARI-1850. Update unit tests. (yusaku via srimanth)
+
+ AMBARI-1829. HDFS Mirroring: Display Status and handle maintenance operations 
+ like Stop, Suspend, Activate etc. (Arun Kandregula via srimanth)
+
+ AMBARI-1840. For global properties show restart for appropriate services
+ only. (srimanth)
+
+ AMBARI-1800. Add "Admin > Misc" section to Ambari Web to show service user
+ accounts. (yusaku)
+
+ AMBARI-1756. Add ability to install and edit HUE as a service. (srimanth via 
+ yusaku)
+
+ AMBARI-1742. HDFS Mirroring: Edit/Delete Cluster. (Arun Kandregula via yusaku)
+
+ AMBARI-1723. HDFS Mirroring: Edit/Delete Data Set. (srimanth via yusaku)
+
+ AMBARI-1717. Add ability to start and stop all services from Services
+ page. (Xi Wang via yusaku)
+
+ AMBARI-1716. HDFS Mirroring: Add a cluster. (Arun Kandregula via yusaku)
+
+ AMBARI-1710. HDFS Mirroring: Edit/Delete Data Set. (srimanth via yusaku)
+
+ AMBARI-1699. HDFS Mirroring: Side Panel of individual jobs page.
+ (yusaku)
+
+ AMBARI-1698. Host Detail page needs to allow upgrade for host components
+ that failed to upgrade. (yusaku)
+
+ AMBARI-1696. Capacity Scheduler configuration UI. (yusaku)
+
+ AMBARI-1693. HDFS Mirroring: Display Jobs table. (yusaku)
+
+ AMBARI-1691. Add filtering by host-level status on Step 9 of Installer.
+ (Xi Wang via yusaku)
+
+ AMBARI-1668. HDFS Mirroring: Add Data Set Popup. (Arun Kandregula via
+ yusaku)
+
+ AMBARI-1650. Add Oracle and MySQL option for Oozie during Ambari cluster
+ install. (Xi Wang via yusaku)
+
+ AMBARI-1610. Expose ability to customize Hive Metastore log dir.
+ (yusaku)
+
+ AMBARI-1729. Creating smoke test for Hue service. (swagle)
+
  AMBARI-1776. ZooKeeper Servers needs to store correct kerberos principal 
  in zookeeper_jaas.conf. (swagle)
 
@@ -183,6 +300,189 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2158. Certain queries with metrics takes a long time (3 minutes on
+ a 450-node cluster). (tbeerbower)
+
+ AMBARI-2150. Reassign Master Wizard: start the service after reassigning the
+ master. (yusaku)
+
+ AMBARI-1887. Heatmap should display full details on mapped metric.
+ (Sandeep Baldawa via yusaku)
+
+ AMBARI-2137. Enable WebHDFS by default. (yusaku)
+
+ AMBARI-2122. Improve navigation when jumping from one page to Host Details
+ page and back. (yusaku)
+
+ AMBARI-2121. Allow Nagios user to be customized during install. (yusaku)
+
+ AMBARI-2111. Enable customization of smoke test user. (yusaku)
+
+ AMBARI-2147. Added config change auditing. (ncole)
+
+ AMBARI-2110. Update hive-site.xml, set fs.file.impl.disable.cache=true.
+ (mahadev)
+
+ AMBARI-2070. Changing service directories should popup a confirmation/warning
+ dialog upon save. (yusaku)
+
+ AMBARI-2061. HBase Heatmaps: clean up labels and units. (yusaku)
+
+ AMBARI-2042. Update Ambari logo. (yusaku)
+
+ AMBARI-2040. Customize Services page: reduce padding to prevent tabs from
+ wrapping. (yusaku)
+
+ AMBARI-1388. Document management API. (tbeerbower)
+
+ AMBARI-2030. Make frontend changes to account for the host component status
+ UNKNOWN. (yusaku)
+
+ AMBARI-2028. Customize Services: make the services display consistent.
+ (yusaku)
+
+ AMBARI-2027. Add validation checks for Add Property on custom site configs.
+ (yusaku)
+
+ AMBARI-2017. Admin Misc page tweaks. (yusaku)
+
+ AMBARI-2022. Service Component metric collection API takes over a minute
+ on large cluster. (tbeerbower)
+
+ AMBARI-2005. When adding a component to a host (after cluster deployment),
+ UI should warn that nagios server need to be restarted. (yusaku)
+
+ AMBARI-2004. Background Operation Popup needs label/styling fixes.
+ (yusaku)
+
+ AMBARI-2003. Hosts tab: clicking on red badge should not toggle "Alerts"
+ filter. (yusaku)
+
+ AMBARI-2002. Dashboard: remove "Version" row from HDFS, MapReduce, and
+ HBase dashboard summary. (yusaku)
+
+ AMBARI-1982. Disallow editing Hadoop log/PID directories post install.
+ (yusaku)
+
+ AMBARI-1981. Expose ability to customize the username for running
+ Ganglia daemons. (yusaku)
+
+ AMBARI-1987. Add unit tests for admin/cluster page and cluster loading.
+ (yusaku)
+
+ AMBARI-1929. Make the default stack and version configurable via mvn build.
+ (yusaku)
+
+ AMBARI-1967. Add smoke test user customization toggle via App.supports.
+ (yusaku)
+
+ AMBARI-1964. Add ability to toggle on/off assigning masters for new hosts
+ being added via Add Host wizard. (yusaku)
+
+ AMBARI-1958. Update alert icon legend on Hosts page. (yusaku)
+
+ AMBARI-1955. Add ability to turn on/off HUE support. (yusaku)
+
+ AMBARI-1941. Create a flag to toggle the support for multiple
+ HBase Masters. (jaimin)
+
+ AMBARI-1940. Create a flag to toggle the support for additional database 
+ support in Hive and Oozie. (jaimin)
+
+ AMBARI-1928. Make experimental Ambari Web features toggleable
+ via mvn build. (yusaku via jaimin)
+ 
+ AMBARI-1906. Make experimental Ambari Web features toggleable 
+ (turned on/off via config file). (yusaku via jaimin)
+
+ AMBARI-1905. Test mode is broken. (yusaku via jaimin)
+
+ AMBARI-1904. Update default stack version to 1.3.0. (yusaku via jaimin)
+
+ AMBARI-1921. Change tasks order in popup on deploy page. (jaimin)
+
+ AMBARI-1913. Security Wizard - "Kerberos security is disabled on the cluster"
+ should not be shown in red. (jaimin)
+
+ AMBARI-1403. Remove SPI dependencies on other code. (tbeerbower)
+
+ AMBARI-1892. Restrict user on a Disable security popup while the poccessi
+ is in progress. (jaimin)
+
+ AMBARI-1879. Show error message when hostname is undefined for quick_links.
+ (yusaku)
+
+ AMBARI-1877. Reassign Master Wizard, Step 2: prevent proceed next without
+ changing target host. (yusaku)
+
+ AMBARI-1876. Capacity Scheduler: implement user/group and admin user/group
+ validation rules. (yusaku)
+
+ AMBARI-1864. Remove package dependency on mocha-phantomjs. (yusaku)
+
+ AMBARI-1844. Need ability to update multiple hosts in 1 PUT call.
+ (tbeerbower)
+
+ AMBARI-1845. Server log is being flooded with log messages.
+ (tbeerbower)
+
+ AMBARI-1825. Minor label change for the buttons to start/stop all services
+ in the side nav. (yusaku)
+
+ AMBARI-1824. Background operations popup: progress bar styling. (yusaku)
+
+ AMBARI-1823. Add hover tooltip for the green host health status icon in
+ Hosts page and Host Detail page. (yusaku)
+
+ AMBARI-1815. After modifying custom configs, properties are shown as blank,
+ leading to corrupt core-site.xml upon save. (yusaku)
+
+ AMBARI-1814. Refactor configurations functionality. (yusaku)
+
+ AMBARI-1809. Specify request context for Smoke test. (yusaku)
+
+ AMBARI-1808. Add ability to customize the smoke test user (frontend changes).
+ (yusaku)
+
+ AMBARI-1807. Disallow $ from usernames created via Misc in Install Wizard.
+ (yusaku)
+
+ AMBARI-1805. Minor text change in the Assign Masters page. (yusaku)
+
+ AMBARI-1798. Explicitly state that FQDNs need to be used when specifying
+ hosts to add to the cluster. (yusaku)
+
+ AMBARI-1785. Provide restart service indicator to all services. (srimanth
+ via yusaku)
+
+ AMBARI-1773. Integrate MySQL/Oracle options for Hive and Oozie. (Xi Wang via
+ yusaku)
+
+ AMBARI-1758. Reassign Master Wizard: Integration and hardening. 
+ (srimanth via yusaku)
+
+ AMBARI-1743. Stack Upgade Wizard - integrate with Ambari 1.3.0 repo.
+ (srimanth via yusaku)
+
+ AMBARI-1741. Exceptions thrown when using host overrides during install.
+ (srimanth via yusaku)
+
+ AMBARI-1740. Provide restart message in service config page. (srimanth via
+ yusaku)
+
+ AMBARI-1722. Frontend support for LDAP Group to Ambari Role Mapping.
+ (srimanth via yusaku)
+
+ AMBARI-1718. If there is no HBase master in active status, show proper
+ error message. (jaimin via yusaku)
+
+ AMBARI-1701. Stack Upgrade Wizard: Integrate with API. (yusaku)
+ 
+ AMBARI-1700. HDFS Mirroring: Display Jobs table (refactor). (yusaku)
+
+ AMBARI-1697. UI changes on HBase service page for HBase Multi-master/HA.
+ (yusaku)
+
  AMBARI-1782. Security wizard navigation: Restrict user on step3 until
  the decision of the step is reached. (jaimin)
 
@@ -227,6 +527,12 @@ Trunk (unreleased changes):
  and "HBase Master". (yusaku)
 
  AMBARI-1546. Improve Cluster Management loading screen. (Xi Wang via yusaku)
+
+ AMBARI-1890. Add configuration to test_api.sh script (ncole)
+
+ AMBARI-2026. Add WebHCat to live status checks. (ncole)
+
+ AMBARI-1975. Add Clover coverage (ncole)
 
  AMBARI-1537. Constrain the width of all wizard popups. (Xi Wang via yusaku)
 
@@ -556,7 +862,622 @@ Trunk (unreleased changes):
  AMBARI-1384. WorkflowJsonService service doesn't use the API framework and is
  inconsistent with other API's. (billie)
 
+ AMBARI-1871. ambari-agent RPM does not claim ownership of
+ /var/lib/ambari-agent. (Matthew Farrellee via mahadev)
+
+ AMBARI-1870. ambari-agent RPM claims ownership of /usr/sbin. (Matthew
+ Farrellee via mahadev)
+
  BUG FIXES
+
+ AMBARI-2166. Stack versions should be marked as active. (srimanth)
+
+ AMBARI-2164. START_FAILED and STOP_FAILED no longer exist, the upgrade 
+ script should repair hostcomponentstate table to convert these to i
+ INSTALLED. (smohanty)
+
+ AMBARI-2156. zookeeper service check fails when zk client is not co-hosted
+ with zk server. (jaimin)
+
+ AMBARI-2161. Datanode Start fails in secure cluster. (jaimin)
+
+ AMBARI-2160. zookeeper smoke test fails with unknown host exception for
+ secure cluster.(jaimin)
+
+ AMBARI-2155. Incorrect page display after closing Reassign Master Wizard.
+ (yusaku)
+
+ AMBARI-2154. Unwanted auto scrolling on the Host detail page. (yusaku)
+
+ AMBARI-2153. Reassign Master Wizard: Background Operations popup should show
+ display names for services and components. (yusaku)
+
+ AMBARI-2152. Sometimes stale host / host component indicators are shown.
+ (yusaku)
+
+ AMBARI-2151. Incorrect error message for invalid user name. (yusaku)
+
+ AMBARI-2149. Ambari needs to set right path for GC log directory of Hbase
+ process. (mahadev)
+
+ AMBARI-2116. Add parameters to improve HIVE performance. Missing property. 
+ (swagle)
+
+ AMBARI-2146. When hive and oozie users have been changed after upgrade hive
+ metastore and oozie cannot start properly. (smohanty)
+
+ AMBARI-2145. Create script for deploying all new services for UI. (smohanty)
+
+ AMBARI-2144. Installation with existing Oracle DB fails. (swagle)
+
+ AMBARI-2143. HBASE fails to start on master. (smohanty
+
+ AMBARI-2141. When hbase user is changed hbase does not start properly
+ after upgrade. (smohanty)
+
+ AMBARI-2142. Unecessary use of @Transactional on all DAO methods. (swagle)
+
+ AMBARI-2107. Cluster CPU Chart is off the charts. Reopened. (swagle)
+
+ AMBARI-2139. Hive Service check fails on secure cluster. (jaimin)
+
+ AMBARI-2138. HBase smoke test fails on secure cluster. (swagle)
+
+ AMBARI-2136. Home paths are not set correctly in /etc/sqoop/conf/sqoop-env.sh
+ (mahadev)
+
+ AMBARI-2135. Ambari agent start say to look at .out, not .log. (smohanty)
+
+ AMBARI-2134. Set default value of oozie property
+ "oozie.service.AuthorizationService.authorization.enabled" to true. (jaimin)
+
+ AMBARI-2132. Error during "HDFS" service starting. (swagle)
+
+ AMBARI-2116. Add parameters to improve HIVE performance. With decriptions. 
+ (swagle)
+
+ AMBARI-2127. Service check should not emit log with Exceptions considering
+ its a positive scenario. (smohanty)
+
+ AMBARI-2124. Hive client is not getting reconfigured when it is co-hosted with 
+ hive server/metastore. (swagle)
+
+ AMBARI-2114. Refresh on the Service page always activates summary tab. (jaimin)
+
+ AMBARI-2120. Add few logs to allow root-cause the issue where agent seems
+ to unable to communicate with the server. (smohanty)
+
+ AMBARI-2116. Add parameters to improve HIVE performance. (swagle)
+
+ AMBARI-2117. Set jobtracker retire interval. (swagle)
+
+ AMBARI-2109. Sanitize KEYS and NOTICE.txt on trunk. (yusaku)
+ 
+ AMBARI-2108. Fix apache rat check issues for ambari (top-level dir).
+ (yusaku)
+
+ AMBARI-2105. Assign Slaves page allows the user to specify a host with no
+ components on it. (jaimin)
+
+ AMBARI-2106. Fix apache rat check issues for ambari-server and ambari-agent.
+ (swagle)
+
+ AMBARI-2107. Cluster CPU Chart is off the charts. (swagle)
+
+ AMBARI-2102. Confusing message "ls: cannot access /usr/share/java/*oracle*:
+ No such file or directory". (smohanty)
+
+ AMBARI-2104. Fix apache rat check issues for ambari-web. (yusaku)
+
+ AMBARI-2100. HBase throws AccessDeniedException. (yusaku)
+
+ AMBARI-2099. Cluster install failed due to timeout and the user can proceed
+ to cluster management; the user was not presented an option to retry install.
+ (yusaku)
+
+ AMBARI-2101. Hive service check (still) failing with file permissions.
+ (swagle)
+
+ AMBARI-2095. It's possible to get into a state where install retry is not
+ possible if the agent stops heartbeating. (jaimin via yusaku)
+
+ AMBARI-2091. Custom JDK path not used when adding new hosts. (yusaku)
+
+ AMBARI-2089. Post Ambari upgrade, Hive and Oozie fail to start after
+ reconfigure. (Xi Wang via yusaku)
+
+ AMBARI-2084. Wrong host mapping in Assign Masters step. (yusaku)
+
+ AMBARI-2098. Customizing webcat pid run directory fails service status. 
+ (swagle)
+
+ AMBARI-2076. DataNode install failed with custom users. (swagle)
+
+ AMBARI-2085. UI allows user to set empty value for configs in
+ Advanced category. (jaimin)
+
+ AMBARI-2087. Tasks are not filtered by parent request id. (smohanty)
+
+ AMBARI-2086. Agent on host with clients and DATANODE only seems to schedule 
+ STATUS commands for several other services. (swagle)
+
+ AMBARI-2088. Cluster installation times out at server side too fast. (swagle)
+
+ AMBARI-2083. Upgrade fails on Sles. (smohanty)
+
+ AMBARI-2082. Oozie service check fails. (jaimin)
+
+ AMBARI-2081. changeUid.sh failing during installation. (swagle)
+
+ AMBARI-2079. Can't change service configuration if heartbeat lost from
+ service component host. (yusaku)
+
+ AMBARI-2075. Admin role can't be assigned to LDAP user. (yusaku)
+
+ AMBARI-2080. Cluster name and Background operations indicator should
+ disappear on logout. (jaimin)
+
+ AMBARI-2078. Hive Metastore host not changing on Assign Masters page. (jaimin)
+
+ AMBARI-2077. Update stack mock data to make testMode functional on step4 of
+ installer wizard. (jaimin)
+
+ AMBARI-2076. DataNode install failed with custom users. (smohanty)
+
+ AMBARI-2074. Deployment of HDP 1.2.1 fails on Sles. (smohanty)
+
+ AMBARI-2073. After Ambari upgrade to 1.2.3, MapReduce service check fails 
+ because uid of ambari_qa changed. (swagle)
+
+ AMBARI-2067. hive-site.xml cannot be readonly for clients. (swagle)
+
+ AMBARI-2068. "Preparing to install <component>" message needs spacing.
+ (yusaku)
+
+ AMBARI-1979. Last HeartBeat time and heartbeat status for agent take around 2-3 
+ minutes to update on a server restart. (swagle)
+
+ AMBARI-1983. Add new parameters to improve HBase MTTR. HDPLocal fixes. 
+ (swagle)
+
+ AMBARI-2066. HDFS shortcircuit skip checksum should be removed. (smohanty)
+
+ AMBARI-2056. Show proper error message while user tries to save configurations 
+ of partially stopped service. (srimanth)
+
+ AMBARI-2064. Legend for zoomed-in graphs do not render properly in IE9.
+ (yusaku)
+
+ AMBARI-2063. Admin features not available for user with admin rights under
+ certain conditions. (yusaku)
+
+ AMBARI-2060. Initiate a recommission, on success, the operations dialog says
+ decommission, not recommission. (yusaku)
+
+ AMBARI-2058. Host Detail page: if the host component is in INSTALL_FAILED
+ state, we should let the user reinstall it. (yusaku)
+
+ AMBARI-2055. Oozie reconfig forces the user to enter bogus values for two
+ parameters in order to save any changes. (yusaku)
+
+ AMBARI-2054. If "Install from Local Repository" selected in install wizard,
+ Add Host wizard not working. (yusaku)
+
+ AMBARI-2053. Align "add hosts" button vertically with host health filter.
+ (yusaku)
+
+ AMBARI-2052. Fix delete user popup. (yusaku)
+
+ AMBARI-2065. Hadoop group customization does not take affect. (smohanty)
+
+ AMBARI-2062. Service versions shown during install dont match installed
+ versions. (smohanty)
+
+ AMBARI-2038. Services links on Dashboard connected to incorrect pages.
+ (yusaku)
+
+ AMBARI-2059. Add dependency for Nagios server on Hive Client install. (swagle)
+
+ AMBARI-2044. hive-site.xml permission denied exception. (swagle)
+
+ AMBARI-2057. Gmond left in init after install. (smohanty)
+
+ AMBARI-2051. Remove hard-coded ports from agent scripts - Nagios. (swagle)
+
+ AMBARI-2045. Add Unit test to verify, client re-install for install failed 
+ client. (swagle)
+
+ AMBARI-2044. hive-site.xml permission denied exception. (swagle)
+
+ AMBARI-2041. If a host that has a service client installed and the host is down, 
+ service start will fail. (swagle)
+
+ AMBARI-2039. Service check should be scheduled on a client that is on
+ a host in HEALTHY state - use correct state enum. (smohanty)
+
+ AMBARI-2035. "Add local user" button is enabled but nothing happens upon
+ clicking it under certain conditions. (yusaku)
+
+ AMBARI-2034. Disable "Add Component" button in the Host Details page if the
+ host is in UNKNOWN state or !isHeartbeating. (yusaku)
+
+ AMBARI-2033. Decommission DataNode does not have any request context.
+ (yusaku)
+
+ AMBARI-2029. Error when loading /main/services directly. (yusaku)
+ 
+ AMBARI-2039. Service check should be scheduled on a client that is on
+ a host in HEALTHY state. (smohanty)
+
+ AMBARI-2037. Nagios web not installing as expected on Sles11. (swagle)
+
+ AMBARI-1924. Allow for users to customize Ganglia gmetad + gmond user
+ accounts. (smohanty)
+
+ AMBARI-2024. Ambari Server becomes unresponsive after crashing on http reads 
+ on jersey. (swagle)
+
+ AMBARI-2020. Incorrect behavior of "Services" page. (yusaku)
+
+ AMBARI-2018. Hosts page: no filter selection is shown after clicking on
+ "Alerts" filter, navigating away, and coming back to Hosts page. (yusaku)
+
+ AMBARI-2016. Hide Maintenance pulldown if no operation can be performed.
+ (yusaku)
+
+ AMBARI-2015. Host component start/stop causes "Uncaught TypeError: Cannot call
+ method 'call' of undefined". (yusaku)
+
+ AMBARI-2011. Add Hosts gets stuck at 33% (some hosts in the cluster were
+ down). (yusaku)
+
+ AMBARI-2014. Install Wizard/Add Host Wizard Review page: local repo option
+ is always displayed as "No", even when it is enabled. (yusaku)
+
+ AMBARI-2019. Cannot decommission data node (ensure recommission also works).
+ (swagle)
+ 
+ AMBARI-2021. Hadoop installation on cluster with SUSE-11 failed. (smohanty)
+
+ AMBARI-2010. Tasks do not timeout for failed hosts. (swagle)
+
+ AMBARI-2012. Check Ambari-agent process - nagios alert is only being
+ configured on the nagios-server host. (smohanty)
+
+ AMBARI-2001. Filtering on Jobs table does not work under certain situations.
+ (yusaku)
+
+ AMBARI-2000. Undo links still remain after the config changes are saved.
+ (yusaku)
+
+ AMBARI-1999. Clicking on Cancel on the Service Config page should not reload
+ the entire app. (yusaku)
+
+ AMBARI-1998. Action buttons on host details page not formatted properly on
+ Firefox. (yusaku)
+
+ AMBARI-1997. Filtered hosts get out of sync with the filter selection. (yusaku)
+
+ AMBARI-2009. task-log4j.properties file ownership should not be
+ root. (smohanty)
+
+ AMBARI-2008. Using mixed OS overwrites ambari.repo during install. (smohanty)
+
+ AMBARI-1952. hadoop dependency version for ambari-log4j is hardcoded, making
+ it regular expression based to pick latest from the repository. (smohanty)
+
+ AMBARI-2007. Decom DataNode throws JS error. (smohanty)
+
+ AMBARI-1994. Adding component to Host should should wire-up + adjust
+ associated Nagios alerts. (smohanty)
+
+ AMBARI-1753. Puppet paramter configuration not working as expected. (swagle)
+
+ AMBARI-1978. Deploying HDP-1.3.0 results in several alerts - is it related to 
+ hard-coded port. Incremental update. (swagle)
+
+ AMBARI-1990. After successful registration, going back to the Confirm Hosts
+ or re-installing agents from Install Options page causes host registration
+ to fail. (smohanty)
+
+ AMBARI-1991. Remove unused python files from ambari-agent. (smohanty)
+
+ AMBARI-1984. WebHCat log and pid dirs configs should be under WebHCat >
+ Advanced. (yusaku)
+
+ AMBARI-1989. Add component shows the same component again even if the
+ component is already added/installed/started. (yusaku)
+
+ AMBARI-1988. Hostname pattern expression is broken. (yusaku)
+
+ AMBARI-1986. HDFS General section has disappeared from Customize Services 
+ step of the Install Wizard. (yusaku)
+
+ AMBARI-1985. Incorrect behavior of "Undo" button for password fields. (yusaku)
+
+ AMBARI-1702. Ambari/GSInstallers need to set the value of 
+ mapred.jobtracker.completeuserjobs.maximum. New recommended value. (swagle)
+
+ AMBARI-1983. Add new parameters to improve HBase MTTR. (swagle)
+
+ AMBARI-1979. Last HeartBeat time and heartbeat status for agent take around 2-3 
+ minutes to update on a server restart. (swagle)
+
+ AMBARI-1978. Deploying HDP-1.3.0 results in several alerts - is it related to 
+ hard-coded port. (swagle)
+
+ AMBARI-1974. BootStrapTest is failing on the master build. (smohanty)
+
+ AMBARI-1968. Hadoop Classpath is being overwridden which causes hive
+ server/metastore to fail. (smohanty)
+
+ AMBARI-1973. log4j Appender for RCA should be able to write the same database
+ being used for Ambari Server (oracle/MySql). (smohanty)
+
+ AMBARI-1972. Stacks2 api implemenation using the standard framework is not
+ complete - does not show configuration tags. (smohanty)
+
+ AMBARI-1954. Dashboard does not come up if the upgrade stack does not contain
+ a service with the same name. (yusaku)
+
+ AMBARI-1953. On Add Hosts, the request context for the start phase shows up
+ as "Request Name Not Specified". (yusaku)
+
+ AMBARI-1966. Client install tasks are shown twice in progress popup during
+ start phase of install wizard (update API call to include
+ params/reconfigure_client). (yusaku)
+
+ AMBARI-1965. core-site properties are incorrectly populated in Advanced/
+ General category of MapReduce service. (yusaku)
+
+ AMBARI-1963. Deploying progress bar shows 0 tasks after installation failure
+ and going back to a previous step to retry. (yusaku)
+
+ AMBARI-1962. Host Check popup keeps the "rerun check" button disabled even
+ after it is done and its hard to know if its actually run or not. (yusaku)
+
+ AMBARI-1961. Select Services: clicking on "all" selects HUE even when HUE
+ support is toggled off. (yusaku)
+
+ AMBARI-1960. "Back" button can be pressed while host registration is taking
+ process, even though the button seems disabled. (yusaku)
+
+ AMBARI-1959. Cannot login to Ambari after login failure. (yusaku)
+
+ AMBARI-1957. Hosts table: whether the alert filter is in effect or not is
+ not clear. (yusaku)
+
+ AMBARI-1956. Wrong install status shown in Add Service Wizard. (yusaku)
+
+ AMBARI-1951. Ambari agent setup during bootstrap should install the same
+ version of agent as the server. (smohanty)
+
+ AMBARI-1950. Hadoop install was failed on SUSE-11.1sp1 cluster with all 
+ services except Hue. (smohanty)
+
+ AMBARI-1949. Reconfiguration of Services has issues and the configurations 
+ save button does not take affect. (srimanth)
+
+ AMBARI-1948. System logs are not present on tasktracker. (swagle)
+
+ AMBARI-1947. Oozie Smoke test fails with errors on the start services/install 
+ page. (swagle)
+
+ AMBARI-1946. Heatmap memory should not include cached memory as part of
+ "used". (Jeff Sposetti via yusaku)
+
+ AMBARI-1944. All Service Smoke tests fail when run with service start. (swagle)
+
+ AMBARI-1939. Make service restart feedback based on supports functionality. 
+ (srimanth)
+
+ AMBARI-1943. Properties that do not map to any global property are not being
+ sent to server. (jaimin)
+
+ AMBARI-1937. Ambari-web installer wizard doesn't work in test mode. (jaimin)
+
+ AMBARI-1927. In background operations popup, requests with same context
+ are showing hosts/tasks info from last request. (yusaku via jaimin)
+
+ AMBARI-1907. Service check commands are not getting created on a
+ cluster install -> start. (yusaku via jaimin)
+
+ AMBARI-1942. Nagios server failed to start. (swagle)
+
+ AMBARI-1938. Update mock data for stack HDP-1.3.0. (jaimin)
+
+ AMBARI-1934. Security vulnerability with Ganglia and Nagios. (smohanty)
+
+ AMBARI-1933. Test failure : testCascadeDeleteStages. (smohanty)
+
+ AMBARI-1931. params/run_smoke_test=true is not taking effect. (smohanty)
+
+ AMBARI-1919. JobTracker History Server failed to come up on 1.3.0 stack
+ and the request for service stall is stalled. (smohanty)
+
+ AMBARI-1900. Update the DDL update script to modify the table to includei
+ ph_cpu_count. (smohanty)
+
+ AMBARI-1926. One HBase master should have active HA status at all time. 
+ (smohanty)
+
+ AMBARI-1925. Remove "hadoop_deploy" user. (smohanty)
+
+ AMBARI-1915. Client install tasks are shown twice in install progress 
+ popup. (swagle)
+
+ AMBARI-1916. Filter for showing only properties which need restart is 
+ broken. (srimanth)
+
+ AMBARI-1918. Set correct Oozie property for security instead of deprecated
+ property. (jaimin)
+
+ AMBARI-1917. Ambari Core-Site.xml Missing Property for LZO (enabled) -
+ io.compression.codecs (jaimin).
+
+ AMBARI-1889. Added documentation for configuration (ncole)
+
+ AMBARI-1912: HBase master doesn't come up after disabling security. (jaimin)
+
+ AMBARI-1902: RegionServer does not start in secure cluster. (jaimin)
+
+ AMBARI-1903. Host Exception Popup layout and cosmetic issues. (srimanth)
+
+ AMBARI-1901. Add additional tests for verifying request behavior based on 
+ host role command results. (smohanty)
+
+ AMBARI-1899. ambari-reset does not respect -s. (swagle)
+
+ AMBARI-1898. Update stack definitions for 1.3.0. (smohanty)
+
+ AMBARI-1886. Derived properties not being overridden for hosts. (srimanth)
+
+ AMBARI-1896. Disable editing Capacity Scheduler on host configs. (srimanth)
+
+ AMBARI-1894. Refactor configs of Capacity Scheduler category. (srimanth)
+
+ AMBARI-1893. Parsing new alerts format fails. (srimanth)
+
+ AMBARI-1891. Impossibility to scroll metric window after browser width 
+ changing. (srimanth)
+
+ AMBARI-1880. stacks2 API uses "type" to refer to config tags and no longer
+ exposes "filename" as a property. (srimanth via yusaku)
+
+ AMBARI-1873. HUE pid and log dir labels are flip flopped. (yusaku)
+
+ AMBARI-1878. Host overrides functionality broken in wizard Step7 controller.
+ (yusaku)
+
+ AMBARI-1875. Restart Service tooltip overlaps another tooltip. (yusaku)
+
+ AMBARI-1874. Add Service Wizard: remove the ability to install master
+ components for already installed services. (yusaku)
+
+ AMBARI-1872. Ambari FE is not setting proper value for 
+ fs.checkpoint.edits.dir (jaimin)
+
+ AMBARI-1869. Permission on agent site.pp files needs to be 660. (swagle)
+
+ AMBARI-1867. Processing API requests takes too long. (swagle)
+
+ AMBARI-1856. Queries for metrics to populate the dashboard graphs don't work
+ with updated Ganglia. (tbeerbower)
+
+ AMBARI-1862. Nagios credentials are freely available at ambari-agent.log.
+ (smohanty)
+
+ AMBARI-1726. It seems upgrades available at the FE is hard-coded to 1.3.0. 
+ (yusaku via srimanth)
+
+ AMBARI-1854. Wizards available for a non-administrator user. (yusaku via srimanth)
+
+ AMBARI-1852. Upon clicking Services > Service > Config, a call to 
+ "configurations resource is made and the server throws 400. (yusaku via srimanth)
+
+ AMBARI-1851. Ambari Web behaves strangely when there is no Active HBase 
+ Master. (yusaku via srimanth)
+
+ AMBARI-1849. Cosmetic problems on HBase Dashboard. (yusaku via srimanth)
+
+ AMBARI-1848. Install Wizard, Step 7: Oozie Database Derby option should say 
+ "New Derby Database", not "Current Derby Database". (Xi Wang via srimanth)
+
+ AMBARI-1860. Master broken - Cannot deploy services. (smohanty)
+
+ AMBARI-1859. Cannot load Nagios Alerts due to 400 Bad Request. (smohanty)
+
+ AMBARI-1842. Collapsable service restart message section should have pointer 
+ cursor. (srimanth)
+
+ AMBARI-1841. Properties that should be exposed in Advanced category
+ are populated in Custom categories. (jaimin)
+
+ AMBARI-1837. Few core-site properties vanished after seemingly benign 
+ reconfiguration. (jaimin)
+
+ AMBARI-1838. Cluster Management > Services > MapReduce > Config throws JS error
+ and the page comes up blank. (jaimin)
+
+ AMBARI-1836. Remove hard-coded ports from agent scripts. (swagle)
+
+ AMBARI-1834. Reduce the number of states that a host component can be in.
+ (smohanty)
+
+ AMBARI-1789. Stopping and then Starting all services doesn't start 
+ NameNode. (smohanty)
+
+ AMBARI-1822. Hue service link points to wrong URL and no smoke test drop
+ down is shown. (yusaku)
+
+ AMBARI-1821. Upgrading component is not very clear and Upgrade action
+ is not available. (yusaku)
+
+ AMBARI-1820. Installer Step 7 - DataNode hosts, TaskTracker hosts, and
+ RegionServer hosts not displayed correctly. (yusaku)
+
+ AMBARI-1819. Ambari Installer: page refreshes upon hitting enter in text
+ fields (Step 1 and Step 7). (yusaku)
+
+ AMBARI-1813. The back button seems disabled during host registration (step 3),
+ but you can actually click it to go back. (yusaku)
+
+ AMBARI-1812. Unable to re-configure core-site. (yusaku)
+
+ AMBARI-1811. Start/Stop service doesn't work. (yusaku)
+
+ AMBARI-1810. Security Wizard - Progress popup is not filtering tasks
+ correctly. (yusaku)
+
+ AMBARI-1806. Maintenance checks issued from frontend does not have request
+ context set appropriately. (yusaku)
+
+ AMBARI-1804. Reassign master should show only the hosts that do not have
+ another instance of the master for HBase. (yusaku)
+
+ AMBARI-1803. Reassign HBase master menu displays multiple entries with no
+ distinction when there are multiple HBase masters. (yusaku)
+
+ AMBARI-1802. Install wizard and subsequent reconfig screens lose 'confirm'
+ password content and show up as red even if the use is not editing these
+ fields. (yusaku)
+
+ AMBARI-1801. After adding hosts successfully, you need to refresh the hosts
+ page manually to see the new hosts. (yusaku)
+
+ AMBARI-1799. On service reconfig, Save button can be clicked even when there
+ are validation errors. (yusaku)
+
+ AMBARI-1796. Specific custom configs do not display after reload.
+ (srimanth via yusaku)
+
+ AMBARI-1768. Cluster install wizard does not succeed at service start.
+ (yusaku)
+
+ AMBARI-1755. Provide context for background operations. (srimanth via yusaku)
+
+ AMBARI-1744. isAdmin doesn't switch after login/out. (srimanth via yusaku)
+
+ AMBARI-1709. When all hosts are assigned a master component, the last host
+ should have all slave components and clients (Step 6). (srimanth via yusaku)
+
+ AMBARI-1695. Customize Services page - validation error count is not reflect
+ in the service tab for host exceptions. (yusaku)
+
+ AMBARI-1675. ASF license header missing from
+ app/templates/main/admin/security/add/step2.hbs. (yusaku)
+
+ AMBARI-1670. Changing service user name from web UI should also change
+ configuration properties that depends on those user name. (jaimin via yusaku)
+
+ AMBARI-1826. Use service stop and start for Nagios/Ganglia/MySQL rather than
+ puppet artifacts for starting stopping these services. (smohanty)
+
+ AMBARI-1818. HBase master shuts down immediately after start in a secure 
+ cluster. (swagle)
+
+ AMBARI-1816. Security wizard: Add missing secure configs to Hbase service and
+ make "zookeeper" as default primary name for zookeeper principal. (jaimin)
 
  AMBARI-1791. Can not specify request context for smoke test request. (swagle)
 
@@ -694,6 +1615,24 @@ Trunk (unreleased changes):
 
  AMBARI-1657. User directories on HDFS do not get created with custom names 
  provided from Ambari UI. (swagle)
+
+ AMBARI-2125. Fix for UNKNOWN state failing retry on install. (ncole)
+
+ AMBARI-2072. Fix to remove actual_configs from cluster response. (ncole)
+
+ AMBARI-2036. Fix to send global configs with status_commands to agents. (ncole)
+
+ AMBARI-2025. Fix to restrict how UNKNOWN is assigned to a host-component. (ncole)
+
+ AMBARI-2013. Fix to delete cluster with components in unknown state. (ncole)
+
+ AMBARI-1977. Honor service configs when there are no matching cluster configs (ncole)
+
+ AMBARI-1976. When host expires, update each component for host with unknown state. (ncole)
+
+ AMBARI-1980. Fix for nagios_alerts element when there is an error. (ncole)
+
+ AMBARI-1865. Fix for upgrade script to copy configurations. (ncole)
 
  AMBARI-1703. Fix for smoke tests getting configurations. (ncole)
 
@@ -1115,6 +2054,8 @@ AMBARI-1.2.0 branch:
 
  AMBARI-1202. Unncessary use of xml tree python library in ambari-server
  setup. Its not being used. (Siddharth Wagle via mahadev)
+
+ AMBARI-1769. Python REST client to invoke REST calls. (Subin M via mahadev)
 
  IMPROVEMENTS
 

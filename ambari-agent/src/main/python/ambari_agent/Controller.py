@@ -19,34 +19,30 @@ limitations under the License.
 '''
 
 import logging
-import logging.handlers
 import signal
 import json
-import hostname
-import sys, traceback
+import sys
 import time
 import threading
 import urllib2
-from urllib2 import Request, urlopen, URLError
-import httplib
-import ssl
-import AmbariConfig
 import pprint
+from random import randint
+
+import hostname
+import AmbariConfig
 import ProcessHelper
 from Heartbeat import Heartbeat
 from Register import Register
 from ActionQueue import ActionQueue
-from optparse import OptionParser
-from wsgiref.simple_server import ServerHandler
 import security
 from NetUtil import NetUtil
-from random import randrange, randint
+
 
 logger = logging.getLogger()
 
 class Controller(threading.Thread):
 
-  def __init__(self, config, range=120):
+  def __init__(self, config, range=30):
     threading.Thread.__init__(self)
     logger.debug('Initializing Controller RPC thread.')
     self.lock = threading.Lock()
@@ -63,13 +59,6 @@ class Controller(threading.Thread):
     self.cachedconnect = None
     self.range = range
 
-  def start(self):
-    self.actionQueue = ActionQueue(self.config)
-    self.actionQueue.start()
-    self.register = Register(self.config)
-    self.heartbeat = Heartbeat(self.actionQueue)
-    pass
-  
   def __del__(self):
     logger.info("Server connection disconnected.")
     pass
@@ -210,6 +199,11 @@ class Controller(threading.Thread):
     pass
 
   def run(self):
+    self.actionQueue = ActionQueue(self.config)
+    self.actionQueue.start()
+    self.register = Register(self.config)
+    self.heartbeat = Heartbeat(self.actionQueue)
+
     opener = urllib2.build_opener()
     urllib2.install_opener(opener)
 

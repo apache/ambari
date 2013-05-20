@@ -26,7 +26,7 @@
   <repositories>
     <repository>
       <id>hdp.internal</id>
-      <url>http://s3.amazonaws.com/repo.hortonworks.com/release</url>
+      <url>http://repo1.maven.org/maven2</url>
     </repository>
   </repositories>
   <dependencies>
@@ -39,12 +39,12 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-tools</artifactId>
-      <version>1.1.1.1</version>
+      <version>[1.0,2.0)</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-core</artifactId>
-      <version>1.1.1.1</version>
+      <version>[1.0,2.0)</version>
     </dependency>
     <dependency>
       <groupId>log4j</groupId>

@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller.predicate;
 
+import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 
 import java.util.Arrays;
@@ -29,20 +30,20 @@ import java.util.List;
  */
 public class OrPredicate extends ArrayPredicate {
 
-  public OrPredicate(BasePredicate... predicates) {
+  public OrPredicate(Predicate... predicates) {
     super(predicates);
   }
 
   @Override
-  public BasePredicate create(BasePredicate... predicates) {
+  public Predicate create(Predicate... predicates) {
     return instance(predicates);
   }
 
-  public static BasePredicate instance(BasePredicate... predicates) {
-    List<BasePredicate> predicateList = new LinkedList<BasePredicate>();
+  public static Predicate instance(Predicate... predicates) {
+    List<Predicate> predicateList = new LinkedList<Predicate>();
 
     // Simplify the predicate array
-    for (BasePredicate predicate : predicates) {
+    for (Predicate predicate : predicates) {
       if (predicate instanceof AlwaysPredicate) {
         return predicate;
       }
@@ -55,13 +56,13 @@ public class OrPredicate extends ArrayPredicate {
     }
     return predicateList.size() == 1 ?
         predicateList.get(0) :
-        new OrPredicate(predicateList.toArray(new BasePredicate[predicateList.size()]));
+        new OrPredicate(predicateList.toArray(new Predicate[predicateList.size()]));
   }
 
   @Override
   public boolean evaluate(Resource resource) {
-    BasePredicate[] predicates = getPredicates();
-    for (BasePredicate predicate : predicates) {
+    Predicate[] predicates = getPredicates();
+    for (Predicate predicate : predicates) {
       if (predicate.evaluate(resource)) {
         return true;
       }

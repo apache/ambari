@@ -44,17 +44,23 @@
           {{t common.retry}}
         </a>
         {{/if}}
-        {{#if App.testMode}}
-        <a class="btn btn-info" href="#" {{action mockBtn target="controller"}}>
-          {{t installer.mockData}}
-        </a>
-        <a class="btn btn-primary"
-           href="#" {{action pollBtn target="controller"}}><i class="icon-repeat icon-white"></i>
-          {{t installer.pollData}}
-        </a>
-        {{/if}}
       </div>
-
+      <!-- filter by host level -->
+      <div id="host-filter" class="pull-right">
+        <ul class="clearfix">
+          <li class="first">{{t common.show}}:</li>
+          {{#each category in controller.categories}}
+            <li {{bindAttr class="category.itemClass"}}>
+              <a {{action selectCategory category target="controller"}} href="#">
+                {{category.label}}
+              </a>
+            </li>
+            {{#unless category.last}}
+              <li>|</li>
+            {{/unless}}
+          {{/each}}
+        </ul>
+      </div>
     </div>
     <div class="pre-scrollable" style="max-height: 750px;">
       <table id="deploy-status-by-host" class="table table-bordered table-striped">
@@ -71,7 +77,7 @@
         </thead>
 
         <tbody>
-        {{#each host in controller.hosts}}
+        {{#each host in controller.visibleHosts}}
         {{#view App.HostStatusView objBinding="host"}}
         <td>
           {{host.name}}

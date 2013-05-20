@@ -28,22 +28,30 @@ module.exports = Em.Application.create({
       simulateRemoteResponse: false
     })
   }),
-  isAdmin : function(){
-    var user = this.db && this.db.getUser();
-    return user ? user.admin : false;
-  }.property(),
+  isAdmin: false,
   /**
    * return url prefix with number value of version of HDP stack
    */
   stackVersionURL:function(){
     var stackVersion = this.get('currentStackVersion') || this.get('defaultStackVersion');
+    if(stackVersion.indexOf('HDPLocal') !== -1){
+      return '/stacks/HDPLocal/version/' + stackVersion.replace(/HDPLocal-/g, '');
+    }
     return '/stacks/HDP/version/' + stackVersion.replace(/HDP-/g, '');
   }.property('currentStackVersion'),
+  
+  /**
+   * return url prefix with number value of version of HDP stack
+   */
+  stack2VersionURL:function(){
+    var stackVersion = this.get('currentStackVersion') || this.get('defaultStackVersion');
+    if(stackVersion.indexOf('HDPLocal') !== -1){
+      return '/stacks2/HDPLocal/versions/' + stackVersion.replace(/HDPLocal-/g, '');
+    }
+    return '/stacks2/HDP/versions/' + stackVersion.replace(/HDP-/g, '');
+  }.property('currentStackVersion'),
   clusterName: null,
-  currentStackVersion: null,
-  ready: function(){
-    this.set('currentStackVersion', this.get('defaultStackVersion'));
-  }
+  currentStackVersion: null
 });
 
 /**

@@ -23,7 +23,6 @@ import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
-import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.controller.spi.*;
@@ -133,9 +132,9 @@ public class QueryImpl implements Query {
       m_mapSubResources.putAll(m_resource.getSubResources());
     }
 
-    if (LOG.isInfoEnabled()) {
+    if (LOG.isDebugEnabled()) {
       //todo: include predicate info.  Need to implement toString for all predicates.
-      LOG.info("Executing resource query: " + m_resource.getIds());
+      LOG.debug("Executing resource query: " + m_resource.getIds());
     }
 
     Predicate predicate = createPredicate(m_resource);
@@ -245,12 +244,12 @@ public class QueryImpl implements Query {
     return resourceAdded;
   }
 
-  private BasePredicate createInternalPredicate(ResourceInstance resource) {
+  private Predicate createInternalPredicate(ResourceInstance resource) {
     Resource.Type resourceType = resource.getResourceDefinition().getType();
     Map<Resource.Type, String> mapResourceIds = resource.getIds();
     Schema schema = getClusterController().getSchema(resourceType);
 
-    Set<BasePredicate> setPredicates = new HashSet<BasePredicate>();
+    Set<Predicate> setPredicates = new HashSet<Predicate>();
     for (Map.Entry<Resource.Type, String> entry : mapResourceIds.entrySet()) {
       if (entry.getValue() != null) {
         String keyPropertyId = schema.getKeyPropertyId(entry.getKey());
@@ -263,7 +262,7 @@ public class QueryImpl implements Query {
     if (setPredicates.size() == 1) {
       return setPredicates.iterator().next();
     } else if (setPredicates.size() > 1) {
-      return new AndPredicate(setPredicates.toArray(new BasePredicate[setPredicates.size()]));
+      return new AndPredicate(setPredicates.toArray(new Predicate[setPredicates.size()]));
     } else {
       return null;
     }
@@ -272,14 +271,14 @@ public class QueryImpl implements Query {
   private Predicate createPredicate(ResourceInstance resource) {
     Predicate predicate = null;
     //todo: change reference type to Predicate when predicate hierarchy is fixed
-    BasePredicate internalPredicate = createInternalPredicate(resource);
+    Predicate internalPredicate = createInternalPredicate(resource);
     if (internalPredicate == null) {
       if (m_userPredicate != null) {
         predicate = m_userPredicate;
       }
     } else {
       predicate = (m_userPredicate == null ? internalPredicate :
-          new AndPredicate((BasePredicate) m_userPredicate, internalPredicate));
+          new AndPredicate(m_userPredicate, internalPredicate));
     }
     return predicate;
   }

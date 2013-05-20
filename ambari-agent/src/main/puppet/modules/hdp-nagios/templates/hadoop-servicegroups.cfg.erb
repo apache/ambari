@@ -7,6 +7,11 @@ define servicegroup {
   alias  MAPREDUCE Checks
 }
 define servicegroup {
+  servicegroup_name  YARN
+  alias  YARN Checks
+}
+
+define servicegroup {
   servicegroup_name  HBASE
   alias  HBASE Checks
 }
@@ -37,4 +42,8 @@ define servicegroup {
 define servicegroup {
   servicegroup_name  AMBARI
   alias  AMBARI Checks
+}
+define servicegroup {
+  servicegroup_name  HUE
+  alias  HUE Checks
 }

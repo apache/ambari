@@ -251,9 +251,13 @@ public class ServiceComponentHostTest {
     } catch (Exception e) {
       exceptionThrown = true;
     }
-    if (impl.getState() == State.INSTALLING || impl.getState() == State.STARTING) {
+    if (impl.getState() == State.INSTALLING || impl.getState() == State.STARTING
+      || impl.getState() == State.UNINSTALLING
+        || impl.getState() == State.WIPING_OUT
+        || impl.getState() == State.STARTED
+        ) {
       startTime = timestamp;
-    // We need to allow install on a install.
+    // Exception is not expected on valid event
       Assert.assertTrue("Exception not thrown on invalid event", !exceptionThrown);
     }
     else {
@@ -348,9 +352,19 @@ public class ServiceComponentHostTest {
     Assert.assertEquals(inProgressState,
         impl.getState());
 
-    ServiceComponentHostOpSucceededEvent succeededEvent = new
-        ServiceComponentHostOpSucceededEvent(impl.getServiceComponentName(),
-            impl.getHostName(), ++timestamp);
+    ServiceComponentHostEvent succeededEvent;
+    if (startEventType == ServiceComponentHostEventType.HOST_SVCCOMP_START) {
+      succeededEvent = new ServiceComponentHostStartedEvent(impl.getServiceComponentName(),
+          impl.getHostName(), ++timestamp);
+    } else if (startEventType == ServiceComponentHostEventType.HOST_SVCCOMP_STOP) {
+      succeededEvent = new ServiceComponentHostStoppedEvent(impl.getServiceComponentName(),
+          impl.getHostName(), ++timestamp);
+    } else {
+      succeededEvent = new
+          ServiceComponentHostOpSucceededEvent(impl.getServiceComponentName(),
+          impl.getHostName(), ++timestamp);
+    }
+
     endTime = timestamp;
     impl.handleEvent(succeededEvent);
     Assert.assertEquals(startTime, impl.getLastOpStartTime());
@@ -377,7 +391,7 @@ public class ServiceComponentHostTest {
       runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_START,
         State.INSTALLED,
         State.STARTING,
-        State.START_FAILED,
+        State.INSTALLED,
         State.STARTED);
     }
     catch (Exception e) {
@@ -388,13 +402,13 @@ public class ServiceComponentHostTest {
     runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_UNINSTALL,
         State.INSTALLED,
         State.UNINSTALLING,
-        State.UNINSTALL_FAILED,
+        State.UNINSTALLING,
         State.UNINSTALLED);
 
     runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_WIPEOUT,
         State.UNINSTALLED,
         State.WIPING_OUT,
-        State.WIPEOUT_FAILED,
+        State.WIPING_OUT,
         State.INIT);
 
   }
@@ -413,25 +427,25 @@ public class ServiceComponentHostTest {
     runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_START,
       State.INSTALLED,
       State.STARTING,
-      State.START_FAILED,
+      State.INSTALLED,
       State.STARTED);
 
     runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_STOP,
       State.STARTED,
       State.STOPPING,
-      State.STOP_FAILED,
+      State.STARTED,
       State.INSTALLED);
 
     runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_UNINSTALL,
         State.INSTALLED,
         State.UNINSTALLING,
-        State.UNINSTALL_FAILED,
+        State.UNINSTALLING,
         State.UNINSTALLED);
 
     runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_WIPEOUT,
         State.UNINSTALLED,
         State.WIPING_OUT,
-        State.WIPEOUT_FAILED,
+        State.WIPING_OUT,
         State.INIT);
   }
 
@@ -527,7 +541,7 @@ public class ServiceComponentHostTest {
     ServiceComponentHostImpl impl =  (ServiceComponentHostImpl) sch;
 
     sch.setDesiredState(State.STARTED);
-    sch.setState(State.START_FAILED);
+    sch.setState(State.INSTALLED);
 
     long timestamp = 0;
 

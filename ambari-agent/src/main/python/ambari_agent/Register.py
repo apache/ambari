@@ -18,15 +18,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import sys, os
-import json
-from Hardware import Hardware
-from ActionQueue import ActionQueue
-from ServerStatus import ServerStatus
-import hostname
+import os
 import time
-import urllib2
 import subprocess
+from Hardware import Hardware
+import hostname
 from HostInfo import HostInfo
 
 

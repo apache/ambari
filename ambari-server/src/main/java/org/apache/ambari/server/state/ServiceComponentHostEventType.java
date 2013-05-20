@@ -48,6 +48,14 @@ public enum ServiceComponentHostEventType {
    */
   HOST_SVCCOMP_STOP,
   /**
+   * Start completed.
+   */
+  HOST_SVCCOMP_STARTED,
+  /**
+   * Stop completed.
+   */
+  HOST_SVCCOMP_STOPPED,
+  /**
    * Triggering an uninstall.
    */
   HOST_SVCCOMP_UNINSTALL,

@@ -19,8 +19,11 @@
 var App = require('app');
 App.MainAdminSecurityController = Em.Controller.extend({
   name: 'mainAdminSecurityController',
-  securityEnabledBinding: 'App.router.mainAdminController.securityEnabled',
   isSubmitDisabled: false,
+  securityEnabled: false,
+  dataIsLoaded: false,
+  serviceUsers: [],
+  tag: null,
   getAddSecurityWizardStatus: function () {
     return App.db.getSecurityWizardStatus();
   },
@@ -39,7 +42,6 @@ App.MainAdminSecurityController = Em.Controller.extend({
         secondary: null,
         onPrimary: function () {
           App.router.transitionTo('disableSecurity');
-          self.set('isSubmitDisabled', true);
           this.hide();
         },
         bodyClass: Ember.View.extend({
@@ -47,8 +49,104 @@ App.MainAdminSecurityController = Em.Controller.extend({
         })
       });
     }
-  }
+  },
+  //
+  /**
+   * return true if security status is loaded and false otherwise
+   */
+  setSecurityStatus: function () {
+    if (App.testMode) {
+      this.set('securityEnabled', !App.testEnableSecurity);
+      this.set('dataIsLoaded', true);
+    } else {
+      //get Security Status From Server
+      App.ajax.send({
+        name: 'admin.security_status',
+        sender: this,
+        success: 'getSecurityStatusFromServerSuccessCallback',
+        error: 'errorCallback'
+      });
+    }
+  },
 
+  errorCallback: function() {
+    this.set('dataIsLoaded', true);
+    this.showSecurityErrorPopup();
+  },
+
+  getSecurityStatusFromServerSuccessCallback: function (data) {
+    var configs = data.Clusters.desired_configs;
+    if ('global' in configs) {
+      this.set('tag', configs['global'].tag);
+      this.getServiceConfigsFromServer();
+    }
+    else {
+      this.showSecurityErrorPopup();
+    }
+  },
+
+  getServiceConfigsFromServer: function () {
+    App.ajax.send({
+      name: 'admin.service_config',
+      sender: this,
+      data: {
+        siteName: 'global',
+        tagName: this.get('tag')
+      },
+      success: 'getServiceConfigsFromServerSuccessCallback',
+      error: 'errorCallback'
+    });
+  },
+
+  getServiceConfigsFromServerSuccessCallback: function (data) {
+    console.log("TRACE: In success function for the GET getServiceConfigsFromServer call");
+    var configs = data.items.findProperty('tag', this.get('tag')).properties;
+    if (configs && configs['security_enabled'] === 'true') {
+      this.set('securityEnabled', true);
+    }
+    else {
+      this.loadUsers(configs);
+      this.set('securityEnabled', false);
+    }
+    this.set('dataIsLoaded', true);
+  },
+
+  loadUsers: function (configs) {
+    var serviceUsers = this.get('serviceUsers');
+    serviceUsers.pushObject({
+      id: 'puppet var',
+      name: 'hdfs_user',
+      value: configs['hdfs_user'] ? configs['hdfs_user'] : 'hdfs'
+    });
+    serviceUsers.pushObject({
+      id: 'puppet var',
+      name: 'mapred_user',
+      value: configs['mapred_user'] ? configs['mapred_user'] : 'mapred'
+    });
+    serviceUsers.pushObject({
+      id: 'puppet var',
+      name: 'hbase_user',
+      value: configs['hbase_user'] ? configs['hbase_user'] : 'hbase'
+    });
+    serviceUsers.pushObject({
+      id: 'puppet var',
+      name: 'hive_user',
+      value: configs['hive_user'] ? configs['hive_user'] : 'hive'
+    });
+  },
+
+  showSecurityErrorPopup: function () {
+    App.ModalPopup.show({
+      header: Em.I18n.translations['common.error'],
+      secondary: false,
+      onPrimary: function () {
+        this.hide();
+      },
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile('<p>{{t admin.security.status.error}}</p>')
+      })
+    });
+  }
 });
 
 

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-module.exports = [
+var configs = [
   {
     "name": "fs.default.name",
     "templateName": ["namenode_host"],
@@ -47,9 +47,9 @@ module.exports = [
   },
   {
     "name": "fs.checkpoint.edits.dir",
-    "templateName": [],
-    "foreignKey": ["fs.checkpoint.dir"],
-    "value": "<foreignKey[0]>",
+    "templateName": ["fs_checkpoint_dir"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
     "filename": "core-site.xml"
   },
   {
@@ -57,42 +57,48 @@ module.exports = [
     "templateName": ["proxyuser_group"],
     "foreignKey": ["hive_user"],
     "value": "<templateName[0]>",
-    "filename": "core-site.xml"
+    "filename": "core-site.xml",
+    "isOverridable" : true
   },
   {
     "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
     "templateName": ["hivemetastore_host"],
     "foreignKey": ["hive_user"],
     "value": "<templateName[0]>",
-    "filename": "core-site.xml"
+    "filename": "core-site.xml",
+    "isOverridable" : true
   },
   {
     "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
     "templateName": ["proxyuser_group"],
     "foreignKey": ["oozie_user"],
     "value": "<templateName[0]>",
-    "filename": "core-site.xml"
+    "filename": "core-site.xml",
+    "isOverridable" : true
   },
   {
     "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
     "templateName": ["oozieserver_host"],
     "foreignKey": ["oozie_user"],
     "value": "<templateName[0]>",
-    "filename": "core-site.xml"
+    "filename": "core-site.xml",
+    "isOverridable" : true
   },
   {
     "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
     "templateName": ["proxyuser_group"],
     "foreignKey": ["webhcat_user"],
     "value": "<templateName[0]>",
-    "filename": "core-site.xml"
+    "filename": "core-site.xml",
+    "isOverridable" : true
   },
   {
     "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
     "templateName": ["hivemetastore_host"],
     "foreignKey": ["webhcat_user"],
     "value": "<templateName[0]>",
-    "filename": "core-site.xml"
+    "filename": "core-site.xml",
+    "isOverridable" : true
   },
   {
     "name": "dfs.name.dir",
@@ -310,43 +316,6 @@ module.exports = [
     "value": "http://<templateName[0]>:11000/oozie",
     "filename": "oozie-site.xml"
   },
-  /*
-   {
-   "name": "oozie.service.JPAService.jdbc.password",
-   "templateName": [],
-   "foreignKey": null,
-   "value": " ",
-   "filename": "oozie-site.xml"
-   },
-   {
-   "name": "oozie.db.schema.name",
-   "templateName": [],
-   "foreignKey": null,
-   "value": "oozie",
-   "filename": "oozie-site.xml"
-   },
-   {
-   "name": "oozie.service.JPAService.jdbc.url",
-   "templateName": [],
-   "foreignKey": null,
-   "value": "jdbc:derby:/var/data/oozie/oozie-db;create=true",
-   "filename": "oozie-site.xml"
-   },
-   {
-   "name": "oozie.action.ssh.http.command.post.options",
-   "templateName": [],
-   "foreignKey": null,
-   "value": " ",
-   "filename": "oozie-site.xml"
-   },
-   */
-  {
-    "name": "javax.jdo.option.ConnectionURL",
-    "templateName": ["hive_database_type", "hive_hostname", "hive_database_name"],
-    "foreignKey": null,
-    "value": "jdbc:<templateName[0]>://<templateName[1]>/<templateName[2]>?createDatabaseIfNotExist=true",
-    "filename": "hive-site.xml"
-  },
   {
     "name": "javax.jdo.option.ConnectionUserName",
     "templateName": ["hive_metastore_user_name"],
@@ -361,6 +330,7 @@ module.exports = [
     "value": "<templateName[0]>",
     "filename": "hive-site.xml"
   },
+
   {
     "name": "hive.metastore.uris",
     "templateName": ["hivemetastore_host"],
@@ -767,10 +737,24 @@ module.exports = [
     "filename": "hbase-site.xml"
   },
   {
-    "name": "dfs.client.read.shortcircuit.skip.checksum",
-    "templateName": ["hdfs_enable_shortcircuit_skipchecksum"],
+    "name": "hbase.security.authentication",
+    "templateName": [],
     "foreignKey": null,
-    "value": "<templateName[0]>",
+    "value": "simple",
+    "filename": "hbase-site.xml"
+  },
+  {
+    "name": "hbase.rpc.engine",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "org.apache.hadoop.hbase.ipc.WritableRpcEngine",
+    "filename": "hbase-site.xml"
+  },
+  {
+    "name": "hbase.security.authorization",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "false",
     "filename": "hbase-site.xml"
   },
   {
@@ -793,5 +777,30 @@ module.exports = [
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "hbase-site.xml"
+  },
+  {
+    "name": "zookeeper.znode.parent",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "/hbase-unsecure",
+    "filename": "hbase-site.xml"
   }
 ];
+
+/**
+ * Configs consists of 2 types: Computed values, which cannot be modified by user
+ * and overridable values, which user can modify. We provide interface how to get all of this
+ * configs separately
+ * @type {Object}
+ */
+module.exports = {
+  all : function(){
+    return configs.slice(0);
+  },
+  overridable: function(){
+    return configs.filterProperty('foreignKey');
+  },
+  computed: function(){
+    return configs.filterProperty('foreignKey', null);
+  }
+};

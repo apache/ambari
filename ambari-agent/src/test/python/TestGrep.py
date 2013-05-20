@@ -19,7 +19,7 @@ limitations under the License.
 '''
 
 from unittest import TestCase
-from Grep import Grep
+from ambari_agent.Grep import Grep
 import socket
 import os, sys
 import logging

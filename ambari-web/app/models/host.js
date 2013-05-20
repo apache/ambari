@@ -110,9 +110,9 @@ App.Host = DS.Model.extend({
     return misc.formatBandwidth(this.get('memory') * 1024);
   }.property('memory'),
   /**
-   * Return true if host not heartbeating last 180 seconds
+   * Return true if the host has not sent heartbeat within the last 180 seconds
    */
-  isNotHeartBeating : function(){
+  isNotHeartBeating : function() {
     return (App.testMode) ? false : ((new Date()).getTime() - this.get('lastHeartBeatTime')) > 180 * 1000;
   }.property('lastHeartBeatTime'),
 
@@ -146,7 +146,7 @@ App.Host = DS.Model.extend({
       var masterComponentsRunning = masterComponents.everyProperty('workStatus', App.HostComponentStatus.started);
       var slaveComponents = this.get('hostComponents').filterProperty('isSlave');
       var slaveComponentsRunning = slaveComponents.everyProperty('workStatus', App.HostComponentStatus.started);
-      if (this.get('isNotHeartBeating')) {
+      if (this.get('isNotHeartBeating') || healthStatus == 'UNKNOWN') {
         status = 'DEAD-YELLOW';
       } else if (masterComponentsRunning && slaveComponentsRunning) {
         status = 'LIVE';
@@ -187,9 +187,12 @@ App.Host = DS.Model.extend({
           output += (index == (hostComponents.length-1)) ? hc.get('displayName') : (hc.get('displayName')+", ");
         }, this);
         break;
+      case 'health-status-LIVE':
+        output = Em.I18n.t('hosts.host.healthStatus.allUp');
+        break;
     }
     return output;
-  }.property('healthClass')
+  }.property('hostComponents.@each.workStatus')
 });
 
 App.Host.FIXTURES = [];

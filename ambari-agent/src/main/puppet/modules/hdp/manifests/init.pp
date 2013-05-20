@@ -33,7 +33,6 @@ class hdp(
     ensure => present
   }
 
-
  ## Port settings
   if has_key($configuration, 'hdfs-site') {
     $hdfs-site = $configuration['hdfs-site']
@@ -48,30 +47,38 @@ class hdp(
 
   if has_key($configuration, 'mapred-site') {
     $mapred-site = $configuration['mapred-site']
-    $jtnode_port = hdp_get_port_from_url($mapred-site["mapred.job.tracker.http.address"])
-    $tasktracker_port = hdp_get_port_from_url($mapred-site["mapred.task.tracker.http.address"])
-    $jobhistory_port = hdp_get_port_from_url($mapred-site["mapreduce.history.server.http.address"])
-  } else {
-    $jtnode_port = "50030"
-    $tasktracker_port = "50060"
-    $jobhistory_port = "51111"
+    $jtnode_port = hdp_get_port_from_url($mapred-site["mapred.job.tracker.http.address"],"50030")
+    $tasktracker_port = hdp_get_port_from_url($mapred-site["mapred.task.tracker.http.address"],"50060")
+    $jobhistory_port = hdp_get_port_from_url($mapred-site["mapreduce.history.server.http.address"],"51111")
+
+    $hs_port = hdp_get_port_from_url($mapred-site["mapreduce.jobhistory.webapp.address"],"19888")
   }
 
-  if has_key($configuration, 'hbase-site') {
-    $hbase-site = $configuration['hbase-site']
-    $hbase_master_port = $hbase-site["hbase.master.info.port"]
-    $hbase_rs_port = $hbase-site["hbase.regionserver.info.port"]
-  } else {
-    $hbase_master_port = "60010"
-    $hbase_rs_port = "60030"
+  if has_key($configuration, 'yarn-site') {
+    $yarn-site = $configuration['yarn-site']
+    $rm_port = hdp_get_port_from_url($yarn-site["yarn.resourcemanager.webapp.address"],"8088")
+    $nm_port = hdp_get_port_from_url($yarn-site["yarn.nodemanager.webapp.address"],"8042")
   }
 
+  $hbase_master_port = hdp_default("hbase-site/hbase.master.info.port","60010")
+  $hbase_rs_port = hdp_default("hbase-site/hbase.regionserver.info.port","60030")
+  
+  $ganglia_port = hdp_default("ganglia_port","8651")
+  $ganglia_collector_slaves_port = hdp_default("ganglia_collector_slaves_port","8660")
+  $ganglia_collector_namenode_port = hdp_default("ganglia_collector_namenode_port","8661")
+  $ganglia_collector_jobtracker_port = hdp_default("ganglia_collector_jobtracker_port","8662")
+  $ganglia_collector_hbase_port = hdp_default("ganglia_collector_hbase_port","8663")
+  $ganglia_collector_rm_port = hdp_default("ganglia_collector_rm_port","8664")
+  $ganglia_collector_nm_port = hdp_default("ganglia_collector_nm_port","8665")
+  $ganglia_collector_hs_port = hdp_default("ganglia_collector_hs_port","8666")
 
+  $oozie_server_port = hdp_default("oozie_server_port","11000")
+
+  $templeton_port = hdp_default("webhcat-site/templeton.port","50111")
+
+  $namenode_metadata_port = hdp_default("namenode_metadata_port","8020")
+  
   #TODO: think not needed and also there seems to be a puppet bug around this and ldap
-  hdp::user { $hdp::params::hadoop_user:
-    gid => $hdp::params::user_group
-  }
-  Group[$hdp::params::user_group] -> Hdp::User[$hdp::params::hadoop_user] 
   class { 'hdp::snmp': service_state => 'running'}
 
   class { 'hdp::create_smoke_user': }
@@ -156,15 +163,25 @@ class hdp::create_smoke_user()
 
   ## Set smoke user uid to > 1000 for enable security feature
   $secure_uid = $hdp::params::smoketest_user_secure_uid
-  $cmd_set_uid = "usermod -u ${secure_uid} ${smoke_user}"
-  $cmd_set_uid_check = "id -u ${smoke_user} | grep ${secure_uid}"
+  $changeUid_path = "/tmp/changeUid.sh"
+  $smoke_user_dirs = "/tmp/hadoop-${smoke_user},/tmp/hsperfdata_${smoke_user},/home/${smoke_user},/tmp/${smoke_user},/tmp/sqoop-${smoke_user}"
+  $cmd_set_uid = "$changeUid_path ${smoke_user} ${secure_uid} ${smoke_user_dirs} 2>/dev/null"
+  $cmd_set_uid_check = "test $(id -u ${smoke_user}) -gt 1000"
+
+  file { $changeUid_path :
+    ensure => present,
+    source => "puppet:///modules/hdp/changeToSecureUid.sh",
+    mode => '0755'
+  }
+
   hdp::exec{ $cmd_set_uid:
    command => $cmd_set_uid,
    unless => $cmd_set_uid_check,
-   require => Hdp::User[$smoke_user]
+   require => File[$changeUid_path]
   }
 
-  Group<||> -> Hdp::User[$smoke_user]
+  Group<|title == $smoke_group or title == $proxyuser_group|> ->
+  Hdp::User[$smoke_user] -> Hdp::Exec[$cmd_set_uid]
 }
 
 
@@ -211,7 +228,7 @@ define hdp::user(
 
      
 define hdp::directory(
-  $owner = $hdp::params::hadoop_user,
+  $owner = undef,
   $group = $hdp::params::user_group,
   $mode  = undef,
   $ensure = directory,
@@ -248,7 +265,7 @@ define hdp::directory(
 }
 #TODO: check on -R flag and use of recurse
 define hdp::directory_recursive_create(
-  $owner = $hdp::params::hadoop_user,
+  $owner = undef,
   $group = $hdp::params::user_group,
   $mode = undef,
   $context_tag = undef,
@@ -277,7 +294,7 @@ define hdp::directory_recursive_create(
 }
 
 define hdp::directory_recursive_create_ignore_failure(
-  $owner = $hdp::params::hadoop_user,
+  $owner = undef,
   $group = $hdp::params::user_group,
   $mode = undef,
   $context_tag = undef,

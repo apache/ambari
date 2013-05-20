@@ -75,6 +75,19 @@ public class HttpPropertyProviderTest {
    Assert.assertNotNull("Expected non-null for 'nagios_alerts'",
      resource.getPropertyValue(PROPERTY_ID_NAGIOS_ALERTS));        
   }
+  
+  @Test
+  public void testReadWithRequestedFail() throws Exception {
+    
+   Set<String> propertyIds = new HashSet<String>();
+   propertyIds.add(PropertyHelper.getPropertyId("HostRoles", "nagios_alerts"));
+   propertyIds.add(PROPERTY_ID_COMPONENT_NAME);
+   
+   Resource resource = doPopulate("NAGIOS_SERVER", propertyIds, true);
+
+   Assert.assertNull("Expected null for 'nagios_alerts'",
+       resource.getPropertyValue(PROPERTY_ID_NAGIOS_ALERTS));        
+  }
 
   @SuppressWarnings("rawtypes")
   @Test
@@ -121,9 +134,14 @@ public class HttpPropertyProviderTest {
   }
   
   private Resource doPopulate(String componentName, Set<String> requestProperties) throws Exception {
+    return doPopulate(componentName, requestProperties, false);
+  }
+  
+  private Resource doPopulate(String componentName,
+      Set<String> requestProperties, boolean throwException) throws Exception {
     
     HttpProxyPropertyProvider propProvider = new HttpProxyPropertyProvider(
-       new TestStreamProvider(),
+       new TestStreamProvider(throwException),
        PROPERTY_ID_CLUSTER_NAME,
        PROPERTY_ID_HOST_NAME,
        PROPERTY_ID_COMPONENT_NAME);
@@ -140,15 +158,23 @@ public class HttpPropertyProviderTest {
     return resource;
   }
   
-  
-  
   private static class TestStreamProvider implements StreamProvider {
-
+    private boolean throwError = false;
+    
+    private TestStreamProvider(boolean throwErr) {
+      throwError = throwErr;
+    }
+    
     @Override
     public InputStream readFrom(String spec) throws IOException {
+      if (throwError) {
+        throw new IOException("Fake error");
+      }
+      
       String responseStr = "{\"alerts\": [{\"Alert Body\": \"Body\"}],"
           + " \"hostcounts\": {\"up_hosts\":\"1\", \"down_hosts\":\"0\"}}";
         return new ByteArrayInputStream(responseStr.getBytes("UTF-8"));
     }
   }
+  
 }

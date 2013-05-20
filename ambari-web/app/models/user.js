@@ -62,7 +62,11 @@ App.EditUserForm = App.Form.extend({
   disableAdminCheckbox:function () {
     var object = this.get('object');
     if (object) {
-      this.getField("admin").set("disabled", (object.get('userName') == App.get('router').getLoginName()) ? "disabled" : false);
+      if ((object.get('userName') == App.get('router').getLoginName()) || App.supports.ldapGroupMapping && object.get("isLdap")) {
+        this.getField("admin").set("disabled", true);
+      } else {
+        this.getField("admin").set("disabled", false);
+      }
     }
   }.observes('object'),
 
@@ -151,17 +155,16 @@ App.CreateUserForm = App.Form.extend({
     var object = this.get('object');
     var formValues = {};
     $.each(this.get('fields'), function () {
-      formValues[this.get('name')] = this.get('value');
+      formValues[Ember.String.decamelize(this.get('name'))] = this.get('value');
     });
 
     if (this.get('className')) {
-      App.store.createRecord(this.get('className'), formValues);
+      App.store.load(this.get('className'), formValues.user_name, formValues);
     }
     else {
       console.log("Please define class name for your form " + this.constructor);
     }
 
-    //App.store.commit();
     this.set('result', 1);
 
     return true;

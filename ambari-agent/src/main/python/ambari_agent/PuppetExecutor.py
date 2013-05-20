@@ -21,13 +21,15 @@ import json
 import os.path
 import logging
 import subprocess
+import pprint
+import threading
+from threading import Thread
+
 from manifestGenerator import generateManifest
 from RepoInstaller import RepoInstaller
-import pprint, threading
 from Grep import Grep
-from threading import Thread
 import shell
-import traceback
+
 
 logger = logging.getLogger()
 
@@ -194,7 +196,7 @@ class PuppetExecutor:
     else:
       result["stderr"] = str(error)
     puppetOutput = open(tmpoutfile, 'r').read()
-    logger.info("Output from puppet :\n" + puppetOutput)
+    logger.debug("Output from puppet :\n" + puppetOutput)
     logger.info("Puppet exit code is " + str(returncode))
     if result.has_key("exitcode"):
       result["exitcode"] = max(returncode, result["exitcode"])

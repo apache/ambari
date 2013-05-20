@@ -18,7 +18,6 @@
 package org.apache.ambari.server.controller.utilities;
 
 import org.apache.ambari.server.controller.predicate.AndPredicate;
-import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.predicate.GreaterEqualsPredicate;
 import org.apache.ambari.server.controller.predicate.GreaterPredicate;
@@ -26,6 +25,7 @@ import org.apache.ambari.server.controller.predicate.LessEqualsPredicate;
 import org.apache.ambari.server.controller.predicate.LessPredicate;
 import org.apache.ambari.server.controller.predicate.NotPredicate;
 import org.apache.ambari.server.controller.predicate.OrPredicate;
+import org.apache.ambari.server.controller.spi.Predicate;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -36,7 +36,7 @@ import java.util.List;
 public class PredicateBuilder {
 
   private String propertyId;
-  private List<BasePredicate> predicates = new LinkedList<BasePredicate>();
+  private List<Predicate> predicates = new LinkedList<Predicate>();
   private Operator operator = null;
   private final PredicateBuilder outer;
   private boolean done = false;
@@ -71,7 +71,7 @@ public class PredicateBuilder {
     return new PredicateBuilder(this);
   }
 
-  public BasePredicate toPredicate() {
+  public Predicate toPredicate() {
     return getPredicate();
   }
 
@@ -85,7 +85,7 @@ public class PredicateBuilder {
     return new PredicateBuilderWithPredicate();
   }
 
-  private void addPredicate(BasePredicate predicate) {
+  private void addPredicate(Predicate predicate) {
     predicates.add(predicate);
   }
 
@@ -97,14 +97,14 @@ public class PredicateBuilder {
     if (predicates.size() == 0) {
       throw new IllegalStateException("No left operand.");
     }
-    BasePredicate predicate;
+    Predicate predicate;
 
     switch (operator) {
       case And:
-        predicate = new AndPredicate(predicates.toArray(new BasePredicate[predicates.size()]));
+        predicate = new AndPredicate(predicates.toArray(new Predicate[predicates.size()]));
         break;
       case Or:
-        predicate = new OrPredicate(predicates.toArray(new BasePredicate[predicates.size()]));
+        predicate = new OrPredicate(predicates.toArray(new Predicate[predicates.size()]));
         break;
       default:
         throw new IllegalStateException("Unknown operator " + this.operator);
@@ -113,11 +113,11 @@ public class PredicateBuilder {
     addPredicate(predicate);
   }
 
-  private BasePredicate getPredicate() {
+  private Predicate getPredicate() {
     handleComparator();
 
     if (predicates.size() == 1) {
-      BasePredicate predicate = predicates.get(0);
+      Predicate predicate = predicates.get(0);
       if (not) {
         predicate = new NotPredicate(predicate);
         not = false;
@@ -199,7 +199,7 @@ public class PredicateBuilder {
       return PredicateBuilder.this;
     }
 
-    public BasePredicate toPredicate() {
+    public Predicate toPredicate() {
       if (outer != null) {
         throw new IllegalStateException("Unbalanced block - missing end.");
       }

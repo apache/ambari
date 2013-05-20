@@ -88,8 +88,29 @@ App.Router = Em.Router.extend({
   getAuthenticated: function () {
     var auth = App.db.getAuthenticated();
     var authResp = (auth && auth === true);
-    this.set('loggedIn', authResp);
-    return authResp;
+    if (authResp) {
+      App.ajax.send({
+        name: 'router.authentication',
+        sender: this,
+        success: 'onAuthenticationSuccess',
+        error: 'onAuthenticationError'
+      });
+    } else {
+      this.set('loggedIn', false);
+    }
+    return this.get('loggedIn');
+  },
+
+  onAuthenticationSuccess: function (data) {
+    this.set('loggedIn', true);
+  },
+
+  onAuthenticationError: function (data) {
+    if (data.status === 403) {
+      this.set('loggedIn', false);
+    } else {
+      console.log('error in getAuthenticated');
+    }
   },
 
   setAuthenticated: function (authenticated) {
@@ -122,130 +143,119 @@ App.Router = Em.Router.extend({
     return App.db.getUser();
   },
 
-  resetAuth: function (authenticated) {
-    if (!authenticated) {
-      App.db.cleanUp();
-      this.set('loggedIn', false);
-      this.set('loginController.loginName', '');
-      this.set('loginController.password', '');
-      this.transitionTo('login');
-    }
-    return authenticated;
-  },
-
-  login: function (postLogin) {
+  login: function () {
     var controller = this.get('loginController');
     var loginName = controller.get('loginName').toLowerCase();
     controller.set('loginName', loginName);
     var hash = window.btoa(loginName + ":" + controller.get('password'));
-    var router = this;
-    var url = '';
+    var usr = '';
 
     if (App.testMode) {
       if (loginName === "admin" && controller.get('password') === 'admin') {
-        url = '/data/users/user_admin.json';
+        usr = 'admin';
       } else if (loginName === 'user' && controller.get('password') === 'user') {
-        url = '/data/users/user_user.json';
+        usr = 'user';
       }
     }
 
-    $.ajax({
-      url: (App.testMode) ? url : App.apiPrefix + '/users/' + loginName,
-      dataType: 'json',
-      type: 'GET',
-      beforeSend: function (xhr) {
-        xhr.setRequestHeader("Authorization", "Basic " + hash);
+    App.ajax.send({
+      name: 'router.login',
+      sender: this,
+      data: {
+        auth: "Basic " + hash,
+        usr: usr,
+        loginName: loginName
       },
-      statusCode: {
-        200: function () {
-          console.log("Status code 200: Success.");
-        },
-        401: function () {
-          console.log("Error code 401: Unauthorized.");
-        },
-        403: function () {
-          console.log("Error code 403: Forbidden.");
-        }
-      },
-      success: function (data) {
-        console.log('login success');
-
-        var resp = data;
-        var isAdmin = resp.Users.roles.indexOf('admin') >= 0;
-        if (isAdmin) {
-          router.setAuthenticated(true);
-          router.setLoginName(loginName);
-          App.usersMapper.map({"items": [data]});
-          router.setUser(App.User.find(loginName));
-          router.transitionTo(router.getSection());
-          postLogin(true);
-        } else {
-          $.ajax({
-            url: (App.testMode) ? '/data/clusters/info.json' : App.apiPrefix + '/clusters',
-            dataType: 'text',
-            type: 'GET',
-            success: function (data) {
-              var clusterResp = $.parseJSON(data);
-              if (clusterResp.items.length) {
-                router.setAuthenticated(true);
-                router.setLoginName(loginName);
-                App.usersMapper.map({"items": [resp]});
-                router.setUser(App.User.find(loginName));
-                router.transitionTo(router.getSection());
-                postLogin(true);
-              } else {
-                controller.set('errorMessage', Em.I18n.t('router.hadoopClusterNotSetUp'));
-              }
-            },
-            error: function (req) {
-              console.log("Server not responding: " + req.statusCode);
-            }
-          });
-        }
-      },
-      error: function (req) {
-        console.log("login error: " + req.statusCode);
-        router.setAuthenticated(false);
-        postLogin(false);
-      }
+      beforeSend: 'authBeforeSend',
+      success: 'loginSuccessCallback',
+      error: 'loginErrorCallback'
     });
 
   },
 
+  authBeforeSend: function(opt, xhr, data) {
+    xhr.setRequestHeader("Authorization", data.auth);
+  },
+
+  loginSuccessCallback: function(data, opt, params) {
+    console.log('login success');
+    var d = data;
+    var isAdmin = data.Users.roles.indexOf('admin') >= 0;
+    if (isAdmin) {
+      var controller = this.get('loginController');
+      this.setAuthenticated(true);
+      this.setLoginName(params.loginName);
+      App.usersMapper.map({"items": [data]});
+      this.setUser(App.User.find(params.loginName));
+      this.transitionTo(this.getSection());
+      controller.postLogin(true);
+    }
+    else {
+      App.ajax.send({
+        name: 'router.login2',
+        sender: this,
+        data: {
+          loginName: params.loginName,
+          loginData: data
+        },
+        success: 'login2SuccessCallback',
+        error: 'login2ErrorCallback'
+      });
+    }
+  },
+
+  loginErrorCallback: function(request, ajaxOptions, error, opt) {
+    var controller = this.get('loginController');
+    console.log("login error: " + error);
+    this.setAuthenticated(false);
+    controller.postLogin(false);
+  },
+
+  login2SuccessCallback: function (clusterResp, opt, params) {
+    var controller = this.get('loginController');
+    if (clusterResp.items.length) {
+      this.setAuthenticated(true);
+      this.setLoginName(params.loginName);
+      App.usersMapper.map({"items": [params.loginData]});
+      this.setUser(App.User.find(params.loginName));
+      this.transitionTo(this.getSection());
+      controller.postLogin(true);
+    }
+    else {
+      controller.set('errorMessage', Em.I18n.t('router.hadoopClusterNotSetUp'));
+    }
+  },
+
+  login2ErrorCallback: function (req) {
+    console.log("Server not responding: " + req.statusCode);
+  },
+
   setAmbariStacks: function () {
-    var self = this;
-    var method = 'GET';
-    var url = (App.testMode) ? '/data/wizard/stack/stacks.json' : App.apiPrefix + '/stacks';
-    $.ajax({
-      type: method,
-      url: url,
-      async: false,
-      dataType: 'text',
-      timeout: App.timeout,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: In success function for the setAmbariStacks call");
-        console.log("TRACE: value of the url is: " + url);
-        var stacks = [];
-        jsonData.forEach(function (_stack) {
-          stacks.pushObject({
-            name: _stack.name,
-            version: _stack.version
-          });
-        }, this);
-        App.db.setAmbariStacks(stacks);
-        console.log('TRACEIINNGG: ambaristacks: ' + JSON.stringify(App.db.getAmbariStacks()));
-      },
-
-      error: function (request, ajaxOptions, error) {
-        console.log("TRACE: In error function for the setAmbariStacks call");
-        console.log("TRACE: value of the url is: " + url);
-        console.log("TRACE: error code status is: " + request.status);
-        console.log('Error message is: ' + request.responseText);
-      },
-
-      statusCode: require('data/statusCodes')
+    App.ajax.send({
+      name: 'router.set_ambari_stacks',
+      sender: this,
+      success: 'setAmbariStacksSuccessCallback',
+      error: 'setAmbariStacksErrorCallback'
     });
+  },
+
+  setAmbariStacksSuccessCallback: function (jsonData) {
+    console.log("TRACE: In success function for the setAmbariStacks call");
+    var stacks = [];
+    jsonData.forEach(function (_stack) {
+      stacks.pushObject({
+        name: _stack.name,
+        version: _stack.version
+      });
+    }, this);
+    App.db.setAmbariStacks(stacks);
+    console.log('TRACEIINNGG: ambaristacks: ' + JSON.stringify(App.db.getAmbariStacks()));
+  },
+
+  setAmbariStacksErrorCallback: function (request, ajaxOptions, error) {
+    console.log("TRACE: In error function for the setAmbariStacks call");
+    console.log("TRACE: error code status is: " + request.status);
+    console.log('Error message is: ' + request.responseText);
   },
 
   getSection: function () {
@@ -258,14 +268,20 @@ App.Router = Em.Router.extend({
     }
     App.clusterStatus.updateFromServer();
     var clusterStatusOnServer = App.clusterStatus.get('value');
-    if (clusterStatusOnServer && (clusterStatusOnServer.clusterState === 'CLUSTER_STARTED_5' || clusterStatusOnServer.clusterState === 'ADD_HOSTS_COMPLETED_5' || clusterStatusOnServer.clusterState === 'STACK_UPGRADE_COMPLETED')) {
+    if (!localStorage.getObject('ambari').app.user.admin || clusterStatusOnServer && (clusterStatusOnServer.clusterState === 'CLUSTER_STARTED_5' || clusterStatusOnServer.clusterState === 'ADD_HOSTS_COMPLETED_5' || clusterStatusOnServer.clusterState === 'STACK_UPGRADE_COMPLETED' || clusterStatusOnServer.clusterState === 'REASSIGN_MASTER_COMPLETED')) {
       return 'main.index';
     } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('addHostController.name')) {
       // if wizardControllerName == "addHostController", then it means someone closed the browser or the browser was crashed when we were last in Add Hosts wizard
       return 'main.hostAdd';
+    } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('addServiceController.name')) {
+      // if wizardControllerName == "addHostController", then it means someone closed the browser or the browser was crashed when we were last in Add Hosts wizard
+      return 'main.serviceAdd';
     } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('stackUpgradeController.name')) {
       // if wizardControllerName == "stackUpgradeController", then it means someone closed the browser or the browser was crashed when we were last in Stack Upgrade wizard
       return 'main.stackUpgrade';
+    } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('reassignMasterController.name')) {
+      // if wizardControllerName == "reassignMasterController", then it means someone closed the browser or the browser was crashed when we were last in Reassign Master wizard
+      return 'main.reassignMaster';
     } else {
       // if wizardControllerName == "installerController", then it means someone closed the browser or the browser was crashed when we were last in Installer wizard
       return 'installer';
@@ -281,43 +297,34 @@ App.Router = Em.Router.extend({
     // otherwise, this.set('installerController.currentStep, 0) would have no effect
     // since it's a computed property but we are not setting it as a dependent of App.db.
     App.db.cleanUp();
+    App.set('isAdmin', false);
+    this.set('loggedIn', false);
     this.clearAllSteps();
     console.log("Log off: " + App.router.getClusterName());
     this.set('loginController.loginName', '');
     this.set('loginController.password', '');
-
-    if (!App.testMode) {
-      $.ajax({
-        url: App.apiPrefix + '/logout',
-        dataType: 'json',
-        type: 'GET',
-        beforeSend: function (xhr) {
-          xhr.setRequestHeader("Authorization", "Basic " + hash);
+    // When logOff is called by Sign Out button, context contains event object. As it is only case we should send logoff request, we are checking context below.
+    if (!App.testMode && context) {
+      App.ajax.send({
+        name: 'router.logoff',
+        sender: this,
+        data: {
+          auth: "Basic " + hash
         },
-        statusCode: {
-          200: function () {
-            console.log("Status code 200: Success.");
-          },
-          401: function () {
-            console.log("Error code 401: Unauthorized.");
-          },
-          403: function () {
-            console.log("Error code 403: Forbidden.");
-          }
-        },
-        success: function (data) {
-          console.log("invoked logout on the server successfully");
-        },
-        error: function (data) {
-          console.log("failed to invoke logout on the server");
-        },
-        complete: function () {
-          console.log('done');
-        }
+        beforeSend: 'authBeforeSend',
+        success: 'logOffSuccessCallback',
+        error:'logOffErrorCallback'
       });
     }
-
     this.transitionTo('login', context);
+  },
+
+  logOffSuccessCallback: function (data) {
+    console.log("invoked logout on the server successfully");
+  },
+
+  logOffErrorCallback: function (req) {
+    console.log("failed to invoke logout on the server");
   },
 
   root: Em.Route.extend({
@@ -346,7 +353,7 @@ App.Router = Em.Router.extend({
         console.log('/login:connectOutlet');
         console.log('currentStep is: ' + router.getInstallerCurrentStep());
         console.log('authenticated is: ' + router.getAuthenticated());
-        router.get('applicationController').connectOutlet('login', App.LoginView);
+        router.get('applicationController').connectOutlet('login');
       }
     }),
 
@@ -359,4 +366,4 @@ App.Router = Em.Router.extend({
     }
 
   })
-})
+});

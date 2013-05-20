@@ -39,11 +39,10 @@ App.MainAdminUserController = Em.Controller.extend({
 
       return;
     }
-    ;
 
     App.ModalPopup.show({
       header:Em.I18n.t('admin.users.delete.header').format(event.context.get('userName')),
-      body:Em.I18n.t('question.sure'),
+      body:Em.I18n.t('question.sure').format(''),
       primary:Em.I18n.t('yes'),
       secondary:Em.I18n.t('no'),
 

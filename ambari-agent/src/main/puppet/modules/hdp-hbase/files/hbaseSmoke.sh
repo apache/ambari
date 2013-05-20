@@ -18,9 +18,9 @@
 # under the License.
 #
 #
-disable 'usertable'
-drop 'usertable'
-create 'usertable','family'
-put 'usertable','row01','family:col01','value1'
-scan 'usertable'
+disable 'ambarismoketest'
+drop 'ambarismoketest'
+create 'ambarismoketest','family'
+put 'ambarismoketest','row01','family:col01','value1'
+scan 'ambarismoketest'
 exit

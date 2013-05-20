@@ -20,6 +20,10 @@ String.prototype.trim = function () {
   return this.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
 };
 
+String.prototype.endsWith = function(suffix) {
+  return this.indexOf(suffix, this.length - suffix.length) !== -1;
+};
+
 /**
  * convert ip address string to long int
  * @return {*}
@@ -323,11 +327,13 @@ App.format = {
       case 'GANGLIA_MONITOR':
         return 'Ganglia Monitor';
       case 'GMOND_SERVICE_CHECK':
-        return 'Gmond Check'
+        return 'Gmond Check';
       case 'GMETAD_SERVICE_CHECK':
         return 'Gmetad Check';
       case 'DECOMMISSION_DATANODE':
-        return 'Decommission DataNode';
+        return 'Update Exclude File';
+      case 'HUE_SERVER':
+        return 'Hue Server';
     }
   },
 

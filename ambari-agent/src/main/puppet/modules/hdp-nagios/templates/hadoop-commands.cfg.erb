@@ -61,7 +61,7 @@ define command{
 
 define command{
         command_name    check_webui
-        command_line    $USER1$/check_webui.sh $ARG1$ $HOSTADDRESS$ $PORT$
+        command_line    $USER1$/check_webui.sh $ARG1$ $HOSTADDRESS$ $ARG2$
        }
 
 define command{
@@ -86,4 +86,8 @@ define command{
 define command{
         command_name    check_ambari_agent_status
         command_line    $USER1$/check_ambari_agent_status.sh
+       }
+define command{
+        command_name    check_hue_status
+        command_line    $USER1$/check_hue_status.sh
        }

@@ -22,17 +22,18 @@ package org.apache.ambari.server.controller;
 public class StackConfigurationResponse {
 
   
-  public StackConfigurationResponse(String propertyName, String propertyValue, String propertyDescription, String fileName) {
+  public StackConfigurationResponse(String propertyName, String propertyValue, String propertyDescription, String type) {
     setPropertyName(propertyName);
     setPropertyValue(propertyValue);
     setPropertyDescription(propertyDescription);
-    setFileName(fileName);
+    setType(type);
   }
   
   private String propertyName;
   private String propertyValue;
   private String propertyDescription;
-  private String fileName;
+  private String type;
+
 
   public String getPropertyName() {
     return propertyName;
@@ -58,11 +59,11 @@ public class StackConfigurationResponse {
     this.propertyDescription = propertyDescription;
   }
 
-  public String getFileName() {
-    return fileName;
+  public String getType() {
+    return type;
   }
-
-  public void setFileName(String fileName) {
-    this.fileName = fileName;
+  
+  public void setType(String type) {
+    this.type = type;
   }
 }

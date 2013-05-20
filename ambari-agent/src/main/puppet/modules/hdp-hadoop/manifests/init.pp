@@ -107,6 +107,16 @@ debug('##Configs generation for hdp-hadoop')
     }
   }
 
+  $task_log4j_properties_location = "${conf_dir}/task-log4j.properties"
+
+  file { $task_log4j_properties_location:
+    owner   => $hdp-hadoop::params::mapred_user,
+    group   => $hdp::params::user_group,
+    mode    => 644,
+    ensure  => present,
+    source  => "puppet:///modules/hdp-hadoop/task-log4j.properties",
+    replace => false
+  }
 
   if has_key($configuration, 'capacity-scheduler') {
     configgenerator::configfile{'capacity-scheduler':
@@ -216,9 +226,13 @@ class hdp-hadoop(
       group => $hdp::params::user_group
     }
  
-    hdp::user{ $hdfs_user:}
+    hdp::user{ $hdfs_user:
+      groups => [$hdp::params::user_group]
+    }
     if ($hdfs_user != $mapred_user) {
-      hdp::user { $mapred_user:}
+      hdp::user { $mapred_user:
+        groups => [$hdp::params::user_group]
+      }
     }
 
     $logdirprefix = $hdp-hadoop::params::hdfs_log_dir_prefix
@@ -326,7 +340,8 @@ define hdp-hadoop::exec-hadoop(
   $timeout = 900,
   $try_sleep = undef,
   $user = undef,
-  $logoutput = undef
+  $logoutput = undef,
+  $onlyif = undef
 )
 {
   include hdp-hadoop::params
@@ -368,6 +383,7 @@ define hdp-hadoop::exec-hadoop(
     tries       => $tries,
     timeout     => $timeout,
     try_sleep   => $try_sleep,
-    logoutput   => $logoutput
+    logoutput   => $logoutput,
+    onlyif      => $onlyif
   }
 }

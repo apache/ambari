@@ -54,6 +54,10 @@ App.ReassignMasterController = App.WizardController.extend({
     reassign: null
   }),
 
+  skipStep3: function () {
+    return this.get('content.reassign.service_id') == 'GANGLIA';
+  }.property('content.reassign.service_id'),
+
   /**
    * return new object extended from clusterStatusTemplate
    * @return Object
@@ -67,7 +71,7 @@ App.ReassignMasterController = App.WizardController.extend({
    */
   loadServicesFromServer: function() {
     var displayOrderConfig = require('data/services');
-    var apiUrl = App.get('stackVersionURL');
+    var apiUrl = App.get('stack2VersionURL');
     var apiService = this.loadServiceComponents(displayOrderConfig, apiUrl);
     //
     apiService.forEach(function(item, index){
@@ -126,6 +130,33 @@ App.ReassignMasterController = App.WizardController.extend({
   },
 
   /**
+   * Load tasks statuses for step5 of Reassign Master Wizard to restore installation
+   */
+  loadTasksStatuses: function(){
+    var statuses = App.db.getReassignTasksStatuses();
+    this.set('content.tasksStatuses', statuses);
+    console.log('ReassignMasterController.loadTasksStatuses: loaded statuses', statuses);
+  },
+
+  /**
+   * save status of the cluster.
+   * @param clusterStatus object with status,requestId fields.
+   */
+  saveClusterStatus: function (clusterStatus) {
+    var oldStatus = this.toObject(this.get('content.cluster'));
+    clusterStatus = jQuery.extend(oldStatus, clusterStatus);
+    if (clusterStatus.requestId) {
+      clusterStatus.requestId.forEach(function (requestId) {
+        if (clusterStatus.oldRequestsId.indexOf(requestId) === -1) {
+          clusterStatus.oldRequestsId.push(requestId)
+        }
+      }, this);
+    }
+    this.set('content.cluster', clusterStatus);
+    this.save('cluster');
+  },
+
+  /**
    * Save Master Component Hosts data to Main Controller
    * @param stepController App.WizardStep5Controller
    */
@@ -162,36 +193,10 @@ App.ReassignMasterController = App.WizardController.extend({
     };
     App.db.setMasterToReassign(component);
   },
-
-  /**
-   * Save config properties
-   * @param stepController Step7WizardController
-   */
-  saveServiceConfigProperties: function (stepController) {
-    var serviceConfigProperties = [];
-    stepController.get('stepConfigs').forEach(function (_content) {
-      _content.get('configs').forEach(function (_configProperties) {
-        var displayType = _configProperties.get('displayType');
-        if (displayType === 'directories' || displayType === 'directory') {
-          var value = _configProperties.get('value').trim().split(/\s+/g).join(',');
-          _configProperties.set('value', value);
-        }
-        var configProperty = {
-          id: _configProperties.get('id'),
-          name: _configProperties.get('name'),
-          value: _configProperties.get('value'),
-          defaultValue: _configProperties.get('defaultValue'),
-          service: _configProperties.get('serviceName'),
-          domain:  _configProperties.get('domain'),
-          filename: _configProperties.get('filename')
-        };
-        serviceConfigProperties.push(configProperty);
-      }, this);
-
-    }, this);
-
-    App.db.setServiceConfigProperties(serviceConfigProperties);
-    this.set('content.serviceConfigProperties', serviceConfigProperties);
+  saveTasksStatuses: function(statuses){
+    App.db.setReassignTasksStatuses(statuses);
+    this.set('content.tasksStatuses', statuses);
+    console.log('ReassignMasterController.saveTasksStatuses: saved statuses', statuses);
   },
 
   /**
@@ -202,8 +207,10 @@ App.ReassignMasterController = App.WizardController.extend({
     switch (step) {
       case '6':
       case '5':
+        this.loadTasksStatuses();
       case '4':
       case '3':
+        this.loadServiceConfigProperties();
       case '2':
         this.loadServicesFromServer();
         this.loadMasterComponentHosts();

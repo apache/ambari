@@ -281,7 +281,23 @@ module.exports = {
           }
           rowValue = (jQuery(rowValue).text()) ? jQuery(rowValue).text() : rowValue;
 
-          var convertedRowValue = rowValue*1024;
+          var convertedRowValue;
+          if (rowValue === '<1KB') {
+            convertedRowValue = 1;
+          } else {
+            var rowValueScale = rowValue.substr(rowValue.length - 2, 2);
+            switch (rowValueScale) {
+              case 'KB':
+                convertedRowValue = parseFloat(rowValue)*1024;
+                break;
+              case 'MB':
+                convertedRowValue = parseFloat(rowValue)*1048576;
+                break;
+              case 'GB':
+                convertedRowValue = parseFloat(rowValue)*1073741824;
+                break;
+            }
+          }
 
           switch (compareChar) {
             case '<':

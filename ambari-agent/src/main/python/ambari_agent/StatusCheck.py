@@ -18,13 +18,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-from shell import shellRunner
 import logging
-import logging.handlers
-import sys
 import os
 import re
 import string
+from shell import shellRunner
+
 
 logger = logging.getLogger()
 

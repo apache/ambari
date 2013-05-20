@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceRequest;
@@ -37,6 +38,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -194,7 +196,7 @@ public class ServiceResourceProviderTest {
 
     // set expectations
     expect(managementController.updateServices(capture(requestsCapture),
-        eq(mapRequestProps), eq(false))).andReturn(response).once();
+      eq(mapRequestProps), eq(false), eq(true))).andReturn(response).once();
 
     // replay
     replay(managementController, response);
@@ -228,6 +230,83 @@ public class ServiceResourceProviderTest {
     assertEquals("Service102", sr.getServiceName());
     assertEquals("DEPLOYED", sr.getDesiredState());
     assertNull(sr.getConfigVersions());
+  }
+
+  @Test
+  public void testReconfigureClientsFlag() throws Exception {
+    Resource.Type type = Resource.Type.Service;
+
+    AmbariManagementController managementController1 = createMock(AmbariManagementController.class);
+    AmbariManagementController managementController2 = createMock
+      (AmbariManagementController.class);
+
+    RequestStatusResponse response1 = createNiceMock(RequestStatusResponse.class);
+    RequestStatusResponse response2 = createNiceMock(RequestStatusResponse
+      .class);
+    Capture<Set<ServiceRequest>> requestsCapture = new Capture<Set<ServiceRequest>>();
+
+    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    mapRequestProps.put("context", "Called from a test");
+
+    Set<ServiceResponse> nameResponse = new HashSet<ServiceResponse>();
+    nameResponse.add(new ServiceResponse(100L, "Cluster100", "Service102", null, "HDP-0.1", "DEPLOYED"));
+
+    // set expectations
+    expect(managementController1.getServices(EasyMock.<Set<ServiceRequest>>anyObject())).andReturn(nameResponse).once();
+    expect(managementController2.getServices(EasyMock.<Set<ServiceRequest>>anyObject())).andReturn(nameResponse).once();
+
+    // set expectations
+    expect(managementController1.updateServices(capture(requestsCapture),
+      eq(mapRequestProps), eq(false), eq(true))).andReturn(response1).once();
+
+    expect(managementController2.updateServices(capture(requestsCapture),
+      eq(mapRequestProps), eq(false), eq(false))).andReturn(response2).once();
+
+    // replay
+    replay(managementController1, response1);
+    replay(managementController2, response2);
+
+    ResourceProvider provider1 = AbstractControllerResourceProvider.getResourceProvider(
+      type,
+      PropertyHelper.getPropertyIds(type),
+      PropertyHelper.getKeyPropertyIds(type),
+      managementController1);
+
+    ResourceProvider provider2 = AbstractControllerResourceProvider
+      .getResourceProvider(
+      type,
+      PropertyHelper.getPropertyIds(type),
+      PropertyHelper.getKeyPropertyIds(type),
+      managementController2);
+
+    // add the property map to a set for the request.
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    properties.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID,
+      "STARTED");
+
+    // create the request
+    Request request = PropertyHelper.getUpdateRequest(properties, mapRequestProps);
+
+    // update the service named Service102
+    Predicate  predicate1 = new PredicateBuilder().property
+      (ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
+      and().property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).
+      equals("Service102").and().property("params/reconfigure_client").
+      equals("true").toPredicate();
+
+    Predicate  predicate2 = new PredicateBuilder().property
+      (ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
+      and().property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).
+      equals("Service102").and().property("params/reconfigure_client").equals
+      ("false").toPredicate();
+
+    provider1.updateResources(request, predicate1);
+    provider2.updateResources(request, predicate2);
+
+    // verify
+    verify(managementController1, response1);
+    verify(managementController2, response2);
   }
 
   @Test

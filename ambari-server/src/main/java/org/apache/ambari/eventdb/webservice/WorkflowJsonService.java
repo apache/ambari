@@ -33,6 +33,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.ambari.eventdb.db.MySQLConnector;
 import org.apache.ambari.eventdb.db.OracleConnector;
 import org.apache.ambari.eventdb.db.PostgresConnector;
 import org.apache.ambari.eventdb.model.DataTable;
@@ -48,6 +49,8 @@ import org.apache.ambari.eventdb.model.Workflows.WorkflowDBEntry;
 import org.apache.ambari.eventdb.model.Workflows.WorkflowDBEntry.WorkflowFields;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Path("/jobhistory")
 public class WorkflowJsonService {
@@ -57,8 +60,8 @@ public class WorkflowJsonService {
   private static final String USERNAME = PREFIX + "db.user";
   private static final String PASSWORD = PREFIX + "db.password";
   
-  private static String DEFAULT_DRIVER = "localhost";
-  private static String DEFAULT_URL = "ambarirca";
+  private static String DEFAULT_DRIVER;
+  private static String DEFAULT_URL;
   private static String DEFAULT_USERNAME = "mapred";
   private static String DEFAULT_PASSWORD = "mapred";
   
@@ -68,19 +71,26 @@ public class WorkflowJsonService {
     List<WorkflowDBEntry> emptyWorkflows = Collections.emptyList();
     EMPTY_WORKFLOWS.setWorkflows(emptyWorkflows);
   }
+
+  private static final Logger LOG = LoggerFactory.getLogger(WorkflowJsonService.class);
   
   PostgresConnector getConnector() throws IOException {
     //TODO fix temp hack
     if (StringUtils.contains(DEFAULT_DRIVER, "oracle")) {
-      return new OracleConnector(DEFAULT_DRIVER, DEFAULT_URL, DEFAULT_USERNAME, DEFAULT_PASSWORD);
+      return new OracleConnector(DEFAULT_URL, DEFAULT_DRIVER, DEFAULT_USERNAME, DEFAULT_PASSWORD);
+    }else if (StringUtils.contains(DEFAULT_DRIVER, "mysql")) {
+      return new MySQLConnector(DEFAULT_URL, DEFAULT_DRIVER, DEFAULT_USERNAME, DEFAULT_PASSWORD);
     } else {
-      return new PostgresConnector(DEFAULT_DRIVER, DEFAULT_URL, DEFAULT_USERNAME, DEFAULT_PASSWORD);
+      return new PostgresConnector(DEFAULT_URL, DEFAULT_DRIVER, DEFAULT_USERNAME, DEFAULT_PASSWORD);
     }
   }
 
   public static void setDBProperties(Configuration configuration) {
     DEFAULT_DRIVER = configuration.getRcaDatabaseDriver();
     DEFAULT_URL = configuration.getRcaDatabaseUrl();
+    if (DEFAULT_URL.contains(Configuration.HOSTNAME_MACRO)) {
+      DEFAULT_URL = DEFAULT_URL.replace(Configuration.HOSTNAME_MACRO, "localhost");
+    }
     DEFAULT_USERNAME = configuration.getRcaDatabaseUser();
     DEFAULT_PASSWORD = configuration.getRcaDatabasePassword();
   }
@@ -106,7 +116,7 @@ public class WorkflowJsonService {
         workflows = conn.fetchWorkflows(WorkflowFields.valueOf(field), sortDir.toUpperCase().equals(PostgresConnector.SORT_ASC), offset, limit);
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      LOG.error("Error interacting with RCA database ", e);
       workflows = EMPTY_WORKFLOWS;
     } finally {
       if (conn != null) {
@@ -182,7 +192,7 @@ public class WorkflowJsonService {
       table = conn.fetchWorkflows(start, amount, searchTerm, echo, field, sortAscending, workflowId, workflowName, workflowType, userName, minJobs, maxJobs,
           minInputBytes, maxInputBytes, minOutputBytes, maxOutputBytes, minDuration, maxDuration, minStartTime, maxStartTime, minFinishTime, maxFinishTime);
     } catch (IOException e) {
-      e.printStackTrace();
+      LOG.error("Error interacting with RCA database ", e);
     } finally {
       if (conn != null) {
         conn.close();
@@ -205,7 +215,7 @@ public class WorkflowJsonService {
       else if (maxStartTime >= minFinishTime)
         jobs.setJobs(conn.fetchJobDetails(minFinishTime, maxStartTime));
     } catch (IOException e) {
-      e.printStackTrace();
+      LOG.error("Error interacting with RCA database ", e);
       jobs.setJobs(EMPTY_JOBS);
     } finally {
       if (conn != null) {
@@ -252,7 +262,7 @@ public class WorkflowJsonService {
           getTaskDetails(taskAttempts, points, submitTimeSecs, finishTimeSecs, step);
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      LOG.error("Error interacting with RCA database ", e);
     } finally {
       if (conn != null) {
         conn.close();
@@ -275,7 +285,7 @@ public class WorkflowJsonService {
         taskAttempts = conn.fetchWorkflowTaskAttempts(workflowId);
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      LOG.error("Error interacting with RCA database ", e);
     } finally {
       if (conn != null) {
         conn.close();
@@ -304,7 +314,7 @@ public class WorkflowJsonService {
         getExactTaskAttemptsByLocality(conn.fetchWorkflowTaskAttempts(workflowId), data, minr, maxr);
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      LOG.error("Error interacting with RCA database ", e);
     } finally {
       if (conn != null) {
         conn.close();

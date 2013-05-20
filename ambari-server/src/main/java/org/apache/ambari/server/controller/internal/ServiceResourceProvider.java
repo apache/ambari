@@ -47,7 +47,10 @@ class ServiceResourceProvider extends AbstractControllerResourceProvider {
 
   //Parameters from the predicate
   private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID =
-      "params/run_smoke_test";
+    "params/run_smoke_test";
+
+  private static final String QUERY_PARAMETERS_RECONFIGURE_CLIENT =
+    "params/reconfigure_client";
 
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
@@ -143,12 +146,16 @@ class ServiceResourceProvider extends AbstractControllerResourceProvider {
       }
 
       final boolean runSmokeTest = "true".equals(getQueryParameterValue(
-          QUERY_PARAMETERS_RUN_SMOKE_TEST_ID, predicate)) ? true : false;
+        QUERY_PARAMETERS_RUN_SMOKE_TEST_ID, predicate)) ? true : false;
+
+      final boolean reconfigureClients = "false".equals(getQueryParameterValue(
+        QUERY_PARAMETERS_RECONFIGURE_CLIENT, predicate)) ? false : true;
 
       response = modifyResources(new Command<RequestStatusResponse>() {
         @Override
         public RequestStatusResponse invoke() throws AmbariException {
-          return getManagementController().updateServices(requests, request.getRequestInfoProperties(), runSmokeTest);
+          return getManagementController().updateServices(requests,
+            request.getRequestInfoProperties(), runSmokeTest, reconfigureClients);
         }
       });
     }

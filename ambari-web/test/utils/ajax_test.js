@@ -20,23 +20,3 @@
  * Here is fix for ajax support
  * @type {*}
  */
-var XMLHttpRequest = xmlhttprequest.XMLHttpRequest;
-var $ = window.$;
-
-$.support.cors = true;
-$.ajaxSettings.xhr = function () {
-  return new XMLHttpRequest();
-}
-
-$.mocho = true;
-$.hostName = testHost;
-
-/*sinon.stub2 = function(object, property, value){
-  var origin = object[property];
-  var count = 0;
-  var newValue = function(){
-    count++;
-    return value.call(this, arguments, origin, count);
-  }
-  sinon.stub(object, property, newValue);
-}*/

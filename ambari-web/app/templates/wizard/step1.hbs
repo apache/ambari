@@ -29,7 +29,7 @@
   </label>
 
   <div class="controls">
-    {{view Ember.TextField id="cluster-name" valueBinding="content.cluster.name" placeholder="cluster name" target="controller"}}
+    {{view App.WizardStep1ViewClusterNameInput valueBinding="content.cluster.name" placeholder="cluster name" target="controller"}}
     <p class="help-inline">{{clusterNameError}}</p>
   </div>
 </div>

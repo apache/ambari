@@ -36,7 +36,7 @@ App.targetClusterMapper = App.QuickDataMapper.create({
         try {
           item.name_node_web_url = (item.Clusters.interfaces.interface.findProperty("type", "readonly")).endpoint;
           item.name_node_rpc_url = (item.Clusters.interfaces.interface.findProperty("type", "write")).endpoint;
-          //item.oozie_server_url = (item.Clusters.interfaces.interface.findProperty("type","workflow")).endpoint;
+          item.oozie_server_url = (item.Clusters.interfaces.interface.findProperty("type","workflow")).endpoint;
           item.id = item.Clusters.name;
 
           var re = new RegExp(" ", "g");

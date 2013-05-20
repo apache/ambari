@@ -27,15 +27,25 @@ App.ServiceConfig = Ember.Object.extend({
   serviceName: '',
   configCategories: [],
   configs: null,
-
+  restartRequired: false,
+  restartRequiredMessage: '',
+  restartRequiredHostsAndComponents: {},
   errorCount: function () {
+    var overrideErrors = 0;
+    this.get('configs').filterProperty("overrides").forEach(function (e) {
+      e.overrides.forEach(function (e) {
+        if (e.error) {
+          overrideErrors += 1;
+        }
+      })
+    })
     var masterErrors = this.get('configs').filterProperty('isValid', false).filterProperty('isVisible', true).get('length');
     var slaveErrors = 0;
-    this.get('configCategories').forEach(function(_category){
+    this.get('configCategories').forEach(function (_category) {
       slaveErrors += _category.get('slaveErrorCount');
-    },this);
-    return masterErrors + slaveErrors;
-  }.property('configs.@each.isValid', 'configs.@each.isVisible', 'configCategories.@each.slaveErrorCount')
+    }, this);
+    return masterErrors + slaveErrors + overrideErrors;
+  }.property('configs.@each.isValid', 'configs.@each.isVisible', 'configCategories.@each.slaveErrorCount', 'configs.@each.overrideErrorTrigger')
 });
 
 App.ServiceConfigCategory = Ember.Object.extend({
@@ -46,8 +56,13 @@ App.ServiceConfigCategory = Ember.Object.extend({
   displayName: null,
   slaveConfigs: null,
   /**
+   * check whether to show custom view in category instead of default
+   */
+  isCustomView: false,
+  customView: null,
+  /**
    * Each category might have a site-name associated (hdfs-site, core-site, etc.)
-   * and this will be used when determining which category a particular property 
+   * and this will be used when determining which category a particular property
    * ends up in, based on its site.
    */
   siteFileName: null,
@@ -90,7 +105,7 @@ App.ServiceConfigCategory = Ember.Object.extend({
     }
     return length;
   }.property('slaveConfigs.groups.@each.errorCount'),
-  
+
   isAdvanced : function(){
     var name = this.get('name');
     return name.indexOf("Advanced") !== -1 ;
@@ -123,6 +138,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
   name: '',
   displayName: '',
   value: '',
+  retypedPassword: '',
   defaultValue: '',
   defaultDirectory: '',
   description: '',
@@ -137,23 +153,37 @@ App.ServiceConfigProperty = Ember.Object.extend({
   serviceConfig: null, // points to the parent App.ServiceConfig object
   filename: '',
   isOriginalSCP : true, // if true, then this is original SCP instance and its value is not overridden value.
-  parentSCP: null, // This is the main SCP which is overridden by this. Set only when isOriginalSCP is false. 
+  parentSCP: null, // This is the main SCP which is overridden by this. Set only when isOriginalSCP is false.
   selectedHostOptions : null, // contain array of hosts configured with overridden value
   overrides : null,
   isUserProperty: null, // This property was added by user. Hence they get removal actions etc.
+  isOverridable: true,
+  error: false,
+  overrideErrorTrigger: 0, //Trigger for overrridable property error
+  isRestartRequired: false,
+  restartRequiredMessage: 'Restart required',
+  index: null, //sequence number in category
+
+  /**
+   * On Overridable property error message, change overrideErrorTrigger value to recount number of errors service have
+   */
+  observeErrors: function () {
+    this.set("overrideErrorTrigger", this.get("overrideErrorTrigger") + 1);
+  }.observes("overrides.@each.errorMessage"),
   /**
    * No override capabilities for fields which are not edtiable
    * and fields which represent master hosts.
    */
-  isOverridable : function() {
+  isPropertyOverridable : function() {
+    var overrideable = this.get('isOverridable');
   	var editable = this.get('isEditable');
   	var dt = this.get('displayType');
-  	return editable && ("masterHost"!=dt);
-  }.property('isEditable', 'displayType'),
+  	return overrideable && editable && ("masterHost"!=dt);
+  }.property('isEditable', 'displayType', 'isOverridable'),
   isOverridden: function() {
     var overrides = this.get('overrides');
-    return overrides != null;
-  }.property('overrides'),
+    return (overrides != null && overrides.get('length')>0) || !this.get('isOriginalSCP');
+  }.property('overrides', 'overrides.length', 'isOriginalSCP'),
   isRemovable: function() {
     var isOriginalSCP = this.get('isOriginalSCP');
     var isUserProperty = this.get('isUserProperty');
@@ -161,12 +191,15 @@ App.ServiceConfigProperty = Ember.Object.extend({
     return isUserProperty || !isOriginalSCP;
   }.property('isUserProperty', 'isOriginalSCP'),
   init: function () {
-    if (this.get('id') === 'puppet var') {
+    if(this.get("displayType")=="password"){
+      this.set('retypedPassword', this.get('defaultValue'));
+    }
+    if ((this.get('id') === 'puppet var') && this.get('value') == '') {
       this.set('value', this.get('defaultValue'));
     }
     // TODO: remove mock data
   },
-  
+
   /**
    * Indicates when value is not the default value.
    * Returns false when there is no default value.
@@ -193,12 +226,12 @@ App.ServiceConfigProperty = Ember.Object.extend({
     });
     return result;
   }.property('displayType'),
-  
-  initialValue: function () {
-    var masterComponentHostsInDB = App.db.getMasterComponentHosts();
+
+  initialValue: function (localDB) {
+    var masterComponentHostsInDB = localDB.masterComponentHosts;
     //console.log("value in initialvalue: " + JSON.stringify(masterComponentHostsInDB));
-    var hostsInfo = App.db.getHosts(); // which we are setting in installerController in step3.
-    var slaveComponentHostsInDB = App.db.getSlaveComponentHosts();
+    var hostsInfo = localDB.hosts; // which we are setting in installerController in step3.
+    var slaveComponentHostsInDB = localDB.slaveComponentHosts;
     var isOnlyFirstOneNeeded = true;
     switch (this.get('name')) {
       case 'namenode_host':
@@ -232,6 +265,12 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'oozieserver_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'OOZIE_SERVER').hostName);
         break;
+      case 'webhcatserver_host':
+        this.set('value', masterComponentHostsInDB.findProperty('component', 'WEBHCAT_SERVER').hostName);
+        break;
+      case 'hueserver_host':
+        this.set('value', masterComponentHostsInDB.findProperty('component', 'HUE_SERVER').hostName);
+        break;
       case 'oozie_ambari_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'OOZIE_SERVER').hostName);
         break;
@@ -241,23 +280,23 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'dfs_name_dir':
       case 'dfs_data_dir':
       case 'mapred_local_dir':
-        this.unionAllMountPoints(!isOnlyFirstOneNeeded);
+        this.unionAllMountPoints(!isOnlyFirstOneNeeded, localDB);
         break;
       case 'fs_checkpoint_dir':
       case 'zk_data_dir':
       case 'oozie_data_dir':
-        this.unionAllMountPoints(isOnlyFirstOneNeeded);
+        this.unionAllMountPoints(isOnlyFirstOneNeeded, localDB);
         break;
     }
   },
-  
-  unionAllMountPoints: function (isOnlyFirstOneNeeded) {
+
+  unionAllMountPoints: function (isOnlyFirstOneNeeded, localDB) {
     var hostname = '';
     var mountPointsPerHost = [];
     var mountPointAsRoot;
-    var masterComponentHostsInDB = App.db.getMasterComponentHosts();
-    var slaveComponentHostsInDB = App.db.getSlaveComponentHosts();
-    var hostsInfo = App.db.getHosts(); // which we are setting in installerController in step3.
+    var masterComponentHostsInDB = localDB.masterComponentHosts;
+    var slaveComponentHostsInDB = localDB.slaveComponentHosts;
+    var hostsInfo = localDB.hosts; // which we are setting in installerController in step3.
     App.Host.find().forEach(function(item){
       if(!hostsInfo[item.get('id')]){
         hostsInfo[item.get('id')] = {
@@ -400,12 +439,13 @@ App.ServiceConfigProperty = Ember.Object.extend({
   }.property('displayType'),
 
   validate: function () {
-
     var value = this.get('value');
+    var valueRange = this.get('valueRange');
+    var values = [];//value split by "," to check UNIX users, groups list
 
     var isError = false;
 
-    if (typeof value === 'string' && value.trim().length === 0) {
+    if (typeof value === 'string' && value.length === 0) {
       if (this.get('isRequired')) {
         this.set('errorMessage', 'This is required');
         isError = true;
@@ -420,12 +460,34 @@ App.ServiceConfigProperty = Ember.Object.extend({
           if (!validator.isValidInt(value)) {
             this.set('errorMessage', 'Must contain digits only');
             isError = true;
+          } else {
+            if(valueRange){
+              if(value < valueRange[0] || value > valueRange[1]){
+                this.set('errorMessage', 'Must match the range');
+                isError = true;
+              }
+            }
           }
           break;
         case 'float':
           if (!validator.isValidFloat(value)) {
             this.set('errorMessage', 'Must be a valid number');
             isError = true;
+          }
+          break;
+        case 'UNIXList':
+          if(value != '*'){
+            values = value.split(',');
+            for(var i = 0, l = values.length; i < l; i++){
+              if(!validator.isValidUNIXUser(values[i])){
+                if(this.get('type') == 'USERS'){
+                  this.set('errorMessage', 'Must be a valid list of user names');
+                } else {
+                  this.set('errorMessage', 'Must be a valid list of group names');
+                }
+                isError = true;
+              }
+            }
           }
           break;
         case 'checkbox':
@@ -492,15 +554,23 @@ App.ServiceConfigProperty = Ember.Object.extend({
         }
       }
     }
-    
+
     if (!isError) {
       this.set('errorMessage', '');
+      this.set('error', false);
+    } else {
+      this.set('error', true);
     }
   }.observes('value', 'retypedPassword')
 
 });
 
-App.ServiceConfigProperty.SelectListItem = Ember.Object.extend({
-  value :null,
-  label : null
+App.ConfigSiteTag = Ember.Object.extend({
+  site: DS.attr('string'),
+  tag: DS.attr('string'),
+  /**
+   * Object map of hostname->override-tag for overrides.
+   * <b>Creators should set new object here.<b>
+   */
+  hostOverrides: null
 });

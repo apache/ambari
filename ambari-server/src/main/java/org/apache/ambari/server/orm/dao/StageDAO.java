@@ -25,11 +25,12 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.StageEntityPK;
 import org.apache.ambari.server.utils.StageUtils;
-
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Collection;
+import java.util.Map;
 
 public class StageDAO {
 
@@ -105,4 +106,33 @@ public class StageDAO {
     remove(findByPK(stageEntityPK));
   }
 
+  @Transactional
+  public Map<Long, String> findRequestContext(List<Long> requestIds) {
+    Map<Long, String> resultMap = new HashMap<Long, String>();
+    if (requestIds != null && !requestIds.isEmpty()) {
+      TypedQuery<StageEntity> query = entityManagerProvider.get()
+        .createQuery("SELECT stage FROM StageEntity stage WHERE " +
+          "stage.requestId IN (SELECT DISTINCT s.requestId FROM StageEntity s " +
+          "WHERE s.requestId IN ?1)", StageEntity.class);
+      List<StageEntity> result = daoUtils.selectList(query, requestIds);
+      if (result != null && !result.isEmpty()) {
+        for (StageEntity entity : result) {
+          resultMap.put(entity.getRequestId(), entity.getRequestContext());
+        }
+      }
+    }
+    return resultMap;
+  }
+
+  @Transactional
+  public String findRequestContext(long requestId) {
+    TypedQuery<String> query = entityManagerProvider.get().createQuery(
+      "SELECT stage.requestContext " + "FROM StageEntity stage " +
+        "WHERE stage.requestId=?1", String.class);
+    String result =  daoUtils.selectOne(query, requestId);
+    if (result != null)
+      return result;
+    else
+      return ""; // Since it is defined as empty string in the StageEntity
+  }
 }

@@ -43,6 +43,8 @@ public class HostRoleCommandDAO {
   @Inject
   DaoUtils daoUtils;
   private static Logger LOG = LoggerFactory.getLogger(HostRoleCommandDAO.class);
+  private static final int REQUESTS_RESULT_LIMIT_WITH_FILTER =  20;
+  private static final int REQUESTS_RESULT_LIMIT = 200;
 
   @Transactional
   public HostRoleCommandEntity findByPK(long taskId) {
@@ -71,7 +73,7 @@ public class HostRoleCommandDAO {
   public List<HostRoleCommandEntity> findByRequestAndTaskIds(Collection<Long> requestIds, Collection<Long> taskIds) {
     TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery(
         "SELECT DISTINCT task FROM HostRoleCommandEntity task " +
-            "WHERE task.requestId IN ?1 OR task.taskId IN ?2 " +
+            "WHERE task.requestId IN ?1 AND task.taskId IN ?2 " +
             "ORDER BY task.taskId", HostRoleCommandEntity.class
     );
     return daoUtils.selectList(query, requestIds, taskIds);
@@ -173,8 +175,11 @@ public class HostRoleCommandDAO {
         }
         queryStr.append("IN ?1 ");
       }
-      resultsLimit = 20;
+      resultsLimit = REQUESTS_RESULT_LIMIT_WITH_FILTER;
+    } else {
+      resultsLimit = REQUESTS_RESULT_LIMIT;
     }
+
     queryStr.append("ORDER BY command.requestId DESC");
     TypedQuery<Long> query = entityManagerProvider.get().createQuery(queryStr.toString(),
         Long.class);

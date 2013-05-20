@@ -20,12 +20,52 @@ List Hosts
 
 [Back to Resources](index.md#resources)
 
-Returns a collection of all hosts in a given cluster.
+**Summary**
 
-    GET /clusters/:name/hosts
+Returns a collection of all hosts for the cluster identified by ":clusterName".
+
+    GET /clusters/:clusterName/hosts
 
 **Response**
+<table>
+  <tr>
+    <th>HTTP CODE</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>200</td>
+    <td>OK</td>  
+  </tr>
+  <tr>
+    <td>400</td>
+    <td>Bad Request</td>  
+  </tr>
+  <tr>
+    <td>401</td>
+    <td>Unauthorized</td>  
+  </tr>
+  <tr>
+    <td>403</td>
+    <td>Forbidden</td>  
+  </tr> 
+  <tr>
+    <td>404</td>
+    <td>Not Found</td>  
+  </tr>
+  <tr>
+    <td>500</td>
+    <td>Internal Server Error</td>  
+  </tr>
+</table>
 
+
+
+**Example**
+
+Get the collection of the hosts for the cluster named "c1".
+
+    GET /clusters/c1/hosts
+    
     200 OK
     {
     	"href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/",

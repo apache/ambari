@@ -224,7 +224,7 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   retryHosts: function (hosts) {
-    var bootStrapData = JSON.stringify({'verbose': true, 'sshKey': this.get('content.installOptions.sshKey'), hosts: hosts.mapProperty('name')});
+    var bootStrapData = JSON.stringify({'verbose': true, 'sshKey': this.get('content.installOptions.sshKey'), 'hosts': hosts.mapProperty('name'), 'user': this.get('content.installOptions.sshUser')});
     this.numPolls = 0;
     if (this.get('content.installOptions.manualInstall') !== true) {
       var requestId = App.router.get('installerController').launchBootstrap(bootStrapData);
@@ -290,61 +290,69 @@ App.WizardStep3Controller = Em.Controller.extend({
       return;
     }
     this.numPolls++;
-    var self = this;
-    var url = App.testMode ? '/data/wizard/bootstrap/poll_' + this.numPolls + '.json' : App.apiPrefix + '/bootstrap/' + this.get('content.installOptions.bootRequestId');
-    $.ajax({
-      type: 'GET',
-      url: url,
-      timeout: App.timeout,
-      success: function (data) {
-        if (data.hostsStatus !== null) {
-          // in case of bootstrapping just one host, the server returns an object rather than an array, so
-          // force into an array
-          if (!(data.hostsStatus instanceof Array)) {
-            data.hostsStatus = [ data.hostsStatus ];
-          }
-          console.log("TRACE: In success function for the GET bootstrap call");
-          var keepPolling = self.parseHostInfo(data.hostsStatus);
 
-          // Single host : if the only hostname is invalid (data.status == 'ERROR')
-          // Multiple hosts : if one or more hostnames are invalid
-          // following check will mark the bootStatus as 'FAILED' for the invalid hostname
-          if (data.status == 'ERROR' || data.hostsStatus.length != self.get('bootHosts').length) {
+    App.ajax.send({
+      name: 'wizard.step3.bootstrap',
+      sender: this,
+      data: {
+        bootRequestId: this.get('content.installOptions.bootRequestId'),
+        numPolls: this.numPolls
+      },
+      success: 'doBootstrapSuccessCallback'
+    }).
+      retry({
+        times: App.maxRetries,
+        timeout: App.timeout
+      }).
+      then(
+        null,
+        function () {
+          App.showReloadPopup();
+          console.log('Bootstrap failed');
+        }
+      );
+  },
 
-            var hosts = self.get('bootHosts');
+  doBootstrapSuccessCallback: function (data) {
+    if (data.hostsStatus !== null) {
+      // in case of bootstrapping just one host, the server returns an object rather than an array, so
+      // force into an array
+      if (!(data.hostsStatus instanceof Array)) {
+        data.hostsStatus = [ data.hostsStatus ];
+      }
+      console.log("TRACE: In success function for the GET bootstrap call");
+      var keepPolling = this.parseHostInfo(data.hostsStatus);
 
-            for (var i = 0; i < hosts.length; i++) {
+      // Single host : if the only hostname is invalid (data.status == 'ERROR')
+      // Multiple hosts : if one or more hostnames are invalid
+      // following check will mark the bootStatus as 'FAILED' for the invalid hostname
+      if (data.status == 'ERROR' || data.hostsStatus.length != this.get('bootHosts').length) {
 
-              var isValidHost = data.hostsStatus.someProperty('hostName', hosts[i].get('name'));
-              if(hosts[i].get('bootStatus') !== 'REGISTERED'){
-                if (!isValidHost) {
-                  hosts[i].set('bootStatus', 'FAILED');
-                  hosts[i].set('bootLog', Em.I18n.t('installer.step3.hosts.bootLog.failed'));
-                }
-              }
+        var hosts = this.get('bootHosts');
+
+        for (var i = 0; i < hosts.length; i++) {
+
+          var isValidHost = data.hostsStatus.someProperty('hostName', hosts[i].get('name'));
+          if(hosts[i].get('bootStatus') !== 'REGISTERED'){
+            if (!isValidHost) {
+              hosts[i].set('bootStatus', 'FAILED');
+              hosts[i].set('bootLog', Em.I18n.t('installer.step3.hosts.bootLog.failed'));
             }
           }
-
-          if (data.hostsStatus.someProperty('status', 'DONE') || data.hostsStatus.someProperty('status', 'FAILED')) {
-            // kicking off registration polls after at least one host has succeeded
-            self.startRegistration();
-          }
-          if (keepPolling) {
-            window.setTimeout(function () {
-              self.doBootstrap()
-            }, 3000);
-            return;
-          }
         }
-      },
-      statusCode: require('data/statusCodes')
-    }).retry({times: App.maxRetries, timeout: App.timeout}).then(null,
-      function () {
-        App.showReloadPopup();
-        console.log('Bootstrap failed');
       }
-    );
 
+      if (data.hostsStatus.someProperty('status', 'DONE') || data.hostsStatus.someProperty('status', 'FAILED')) {
+        // kicking off registration polls after at least one host has succeeded
+        this.startRegistration();
+      }
+      if (keepPolling) {
+        var self = this;
+        window.setTimeout(function () {
+          self.doBootstrap()
+        }, 3000);
+      }
+    }
   },
 
   /*
@@ -368,88 +376,94 @@ App.WizardStep3Controller = Em.Controller.extend({
     if (this.get('stopBootstrap')) {
       return;
     }
-    var self = this;
+    App.ajax.send({
+      name: 'wizard.step3.is_hosts_registered',
+      sender: this,
+      success: 'isHostsRegisteredSuccessCallback'
+    }).
+      retry({
+        times: App.maxRetries,
+        timeout: App.timeout
+      }).
+        then(
+          null,
+          function () {
+            App.showReloadPopup();
+            console.log('Error: Getting registered host information from the server');
+          }
+        );
+  },
+
+  isHostsRegisteredSuccessCallback: function (data) {
+    console.log('registration attempt...');
     var hosts = this.get('bootHosts');
-    var url = App.testMode ? '/data/wizard/bootstrap/single_host_registration.json' : App.apiPrefix + '/hosts';
+    var jsonData = data;
+    if (!jsonData) {
+      console.warn("Error: jsonData is null");
+      return;
+    }
 
-    $.ajax({
-      type: 'GET',
-      url: url,
-      timeout: App.timeout,
-      success: function (data) {
-        console.log('registration attempt...');
-        var jsonData = App.testMode ? data : jQuery.parseJSON(data);
-        if (!jsonData) {
-          console.log("Error: jsonData is null");
-          return;
+    // keep polling until all hosts have registered/failed, or registrationTimeout seconds after the last host finished bootstrapping
+    var stopPolling = true;
+    hosts.forEach(function (_host, index) {
+      // Change name of first host for test mode.
+      if (App.testMode) {
+        if (index == 0) {
+          _host.set('name', 'localhost.localdomain');
         }
-
-        // keep polling until all hosts have registered/failed, or registrationTimeout seconds after the last host finished bootstrapping
-        var stopPolling = true;
-        hosts.forEach(function (_host, index) {
-          // Change name of first host for test mode.
-          if (App.testMode) {
-            if (index == 0) {
-              _host.set('name', 'localhost.localdomain');
-            }
+      }
+      // actions to take depending on the host's current bootStatus
+      // RUNNING - bootstrap is running; leave it alone
+      // DONE - bootstrap is done; transition to REGISTERING
+      // REGISTERING - bootstrap is done but has not registered; transition to REGISTERED if host found in polling API result
+      // REGISTERED - bootstrap and registration is done; leave it alone
+      // FAILED - either bootstrap or registration failed; leave it alone
+      console.log(_host.name + ' bootStatus=' + _host.get('bootStatus'));
+      switch (_host.get('bootStatus')) {
+        case 'DONE':
+          _host.set('bootStatus', 'REGISTERING');
+          _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + Em.I18n.t('installer.step3.hosts.bootLog.registering'));
+          // update registration timestamp so that the timeout is computed from the last host that finished bootstrapping
+          this.set('registrationStartedAt', new Date().getTime());
+          stopPolling = false;
+          break;
+        case 'REGISTERING':
+          if (jsonData.items.someProperty('Hosts.host_name', _host.name)) {
+            console.log(_host.name + ' has been registered');
+            _host.set('bootStatus', 'REGISTERED');
+            _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + Em.I18n.t('installer.step3.hosts.bootLog.registering'));
+          } else {
+            console.log(_host.name + ' is registering...');
+            stopPolling = false;
           }
-          // actions to take depending on the host's current bootStatus
-          // RUNNING - bootstrap is running; leave it alone
-          // DONE - bootstrap is done; transition to REGISTERING
-          // REGISTERING - bootstrap is done but has not registered; transition to REGISTERED if host found in polling API result
-          // REGISTERED - bootstrap and registration is done; leave it alone
-          // FAILED - either bootstrap or registration failed; leave it alone
-          console.log(_host.name + ' bootStatus=' + _host.get('bootStatus'));
-          switch (_host.get('bootStatus')) {
-            case 'DONE':
-              _host.set('bootStatus', 'REGISTERING');
-              _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + Em.I18n.t('installer.step3.hosts.bootLog.registering'));
-              // update registration timestamp so that the timeout is computed from the last host that finished bootstrapping
-              self.set('registrationStartedAt', new Date().getTime());
-              stopPolling = false;
-              break;
-            case 'REGISTERING':
-              if (jsonData.items.someProperty('Hosts.host_name', _host.name)) {
-                console.log(_host.name + ' has been registered');
-                _host.set('bootStatus', 'REGISTERED');
-                _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + Em.I18n.t('installer.step3.hosts.bootLog.registering'));
-              } else {
-                console.log(_host.name + ' is registering...');
-                stopPolling = false;
-              }
-              break;
-            case 'RUNNING':
-              stopPolling = false;
-              break;
-            case 'REGISTERED':
-            case 'FAILED':
-            default:
-              break;
-          }
-        }, this);
+          break;
+        case 'RUNNING':
+          stopPolling = false;
+          break;
+        case 'REGISTERED':
+        case 'FAILED':
+        default:
+          break;
+      }
+    }, this);
 
-        if (stopPolling) {
-          self.getHostInfo();
-        } else if (hosts.someProperty('bootStatus', 'RUNNING') || new Date().getTime() - self.get('registrationStartedAt') < self.get('registrationTimeoutSecs') * 1000) {
-          // we want to keep polling for registration status if any of the hosts are still bootstrapping (so we check for RUNNING).
-          window.setTimeout(function () {
-            self.isHostsRegistered();
-          }, 3000);
-        } else {
-          // registration timed out.  mark all REGISTERING hosts to FAILED
-          console.log('registration timed out');
-          hosts.filterProperty('bootStatus', 'REGISTERING').forEach(function (_host) {
-            _host.set('bootStatus', 'FAILED');
-            _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + Em.I18n.t('installer.step3.hosts.bootLog.failed'));
-          });
-          self.getHostInfo();
-        }
-      },
-      statusCode: require('data/statusCodes')
-    }).retry({times: App.maxRetries, timeout: App.timeout}).then(null, function () {
-        App.showReloadPopup();
-        console.log('Error: Getting registered host information from the server');
+    if (stopPolling) {
+      this.getHostInfo();
+    } else if (hosts.someProperty('bootStatus', 'RUNNING') || new Date().getTime() - this.get('registrationStartedAt') < this.get('registrationTimeoutSecs') * 1000) {
+      // we want to keep polling for registration status if any of the hosts are still bootstrapping (so we check for RUNNING).
+      var self = this;
+      window.setTimeout(function () {
+        self.isHostsRegistered();
+      }, 3000);
+    } else {
+      // registration timed out.  mark all REGISTERING hosts to FAILED
+      console.log('registration timed out');
+      hosts.filterProperty('bootStatus', 'REGISTERING').forEach(function (_host) {
+        _host.set('bootStatus', 'FAILED');
+        _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + Em.I18n.t('installer.step3.hosts.bootLog.failed'));
       });
+      this.getHostInfo();
+    }
   },
 
   registerErrPopup: function (header, message) {
@@ -470,44 +484,39 @@ App.WizardStep3Controller = Em.Controller.extend({
    * Get disk info and cpu count of booted hosts from server
    */
   getHostInfo: function () {
-    var self = this;
-    var kbPerGb = 1024;
-    var hosts = this.get('bootHosts');
-    var url = App.testMode ? '/data/wizard/bootstrap/two_hosts_information.json' : App.apiPrefix + '/hosts?fields=Hosts/total_mem,Hosts/cpu_count,Hosts/disk_info,Hosts/last_agent_env';
-    var method = 'GET';
-    $.ajax({
-      type: 'GET',
-      url: url,
-      contentType: 'application/json',
-      timeout: App.timeout,
-      success: function (data) {
-        var jsonData = (App.testMode) ? data : jQuery.parseJSON(data);
-        self.parseWarnings(jsonData);
-        hosts.forEach(function (_host) {
-          var host = (App.testMode) ? jsonData.items[0] : jsonData.items.findProperty('Hosts.host_name', _host.name);
-          if (App.skipBootstrap) {
-            _host.cpu = 2;
-            _host.memory = ((parseInt(2000000))).toFixed(2);
-            _host.disk_info = [{"mountpoint": "/", "type":"ext4"},{"mountpoint": "/grid/0", "type":"ext4"}, {"mountpoint": "/grid/1", "type":"ext4"}, {"mountpoint": "/grid/2", "type":"ext4"}];
-          } else if (host) {
-            _host.cpu = host.Hosts.cpu_count;
-            _host.memory = ((parseInt(host.Hosts.total_mem))).toFixed(2);
-            _host.disk_info = host.Hosts.disk_info;
-
-            console.log("The value of memory is: " + _host.memory);
-          }
-        });
-        self.set('bootHosts', hosts);
-        console.log("The value of hosts: " + JSON.stringify(hosts));
-        self.stopRegistration();
-      },
-
-      error: function () {
-        console.log('INFO: Getting host information(cpu_count and total_mem) from the server failed');
-        self.registerErrPopup(Em.I18n.t('installer.step3.hostInformation.popup.header'), Em.I18n.t('installer.step3.hostInformation.popup.body'));
-      },
-      statusCode: require('data/statusCodes')
+    App.ajax.send({
+      name: 'wizard.step3.host_info',
+      sender: this,
+      success: 'getHostInfoSuccessCallback',
+      error: 'getHostInfoErrorCallback'
     });
+  },
+
+  getHostInfoSuccessCallback: function (jsonData) {
+    var hosts = this.get('bootHosts');
+    this.parseWarnings(jsonData);
+    hosts.forEach(function (_host) {
+      var host = (App.testMode) ? jsonData.items[0] : jsonData.items.findProperty('Hosts.host_name', _host.name);
+      if (App.skipBootstrap) {
+        _host.cpu = 2;
+        _host.memory = ((parseInt(2000000))).toFixed(2);
+        _host.disk_info = [{"mountpoint": "/", "type":"ext4"},{"mountpoint": "/grid/0", "type":"ext4"}, {"mountpoint": "/grid/1", "type":"ext4"}, {"mountpoint": "/grid/2", "type":"ext4"}];
+      } else if (host) {
+        _host.cpu = host.Hosts.cpu_count;
+        _host.memory = ((parseInt(host.Hosts.total_mem))).toFixed(2);
+        _host.disk_info = host.Hosts.disk_info;
+
+        console.log("The value of memory is: " + _host.memory);
+      }
+    });
+    this.set('bootHosts', hosts);
+    console.log("The value of hosts: " + JSON.stringify(hosts));
+    this.stopRegistration();
+  },
+
+  getHostInfoErrorCallback: function () {
+    console.log('INFO: Getting host information(cpu_count and total_mem) from the server failed');
+    this.registerErrPopup(Em.I18n.t('installer.step3.hostInformation.popup.header'), Em.I18n.t('installer.step3.hostInformation.popup.body'));
   },
 
   stopRegistration: function () {
@@ -593,27 +602,28 @@ App.WizardStep3Controller = Em.Controller.extend({
     }, 1000);
     setTimeout(function(){
       clearInterval(interval);
-      $.ajax({
-        type: 'GET',
-        url: url,
-        contentType: 'application/json',
-        timeout: App.timeout,
-        success: function (data) {
-          var jsonData = (App.testMode) ? data : jQuery.parseJSON(data);
-          self.set('checksUpdateProgress', 100);
-          self.set('checksUpdateStatus', 'SUCCESS');
-          self.parseWarnings(jsonData);
-        },
-        error: function () {
-          self.set('checksUpdateProgress', 100);
-          self.set('checksUpdateStatus', 'FAILED');
-          console.log('INFO: Getting host information(last_agent_env) from the server failed');
-        },
-        statusCode: require('data/statusCodes')
-      })
+      App.ajax.send({
+        name: 'wizard.step3.rerun_checks',
+        sender: self,
+        success: 'rerunChecksSuccessCallback',
+        error: 'rerunChecksErrorCallback'
+      });
     }, this.get('warningsTimeInterval'));
 
   },
+
+  rerunChecksSuccessCallback: function (data) {
+    this.set('checksUpdateProgress', 100);
+    this.set('checksUpdateStatus', 'SUCCESS');
+    this.parseWarnings(data);
+  },
+
+  rerunChecksErrorCallback: function () {
+    this.set('checksUpdateProgress', 100);
+    this.set('checksUpdateStatus', 'FAILED');
+    console.log('INFO: Getting host information(last_agent_env) from the server failed');
+  },
+
   warnings: [],
   warningsTimeInterval: 60000,
   /**
@@ -937,6 +947,13 @@ App.WizardStep3Controller = Em.Controller.extend({
     if (this.parseHostInfo(mockHosts, selectedHosts)) {
       // this.saveHostInfoToDb();
     }
+  },
+
+  back: function () {
+    if (this.get('isInstallInProgress')) {
+      return false;
+    }
+    App.router.send('back');
   }
 
 });

@@ -14,23 +14,9 @@
 ~~ limitations under the License.
 ~~
 
-What's New in Ambari 1.2.2?
+What's New in Ambari 1.3.0?
 
-  There’s a lot of activity occurring in trunk. We’ve had a great response from the
-  community and received a lot of input into the direction. Here are some highlights for 1.2.2:
-
-  * Major performance enhancements for the REST APIs as well as Ambari Web UI
-
-  * Stability and robustness for the server and agent
-
-  * More intuitive Job Analytics (swim-lane display for representing Pig/Hive DAGs)
-
-  * Host-level alerts (in addition to Service-level alerts)
-
-  * Support for Active Directory integration
-
-  * Paging control for zoomed-in metric graphs
-
+ * Check back later for the new features in 1.3.0. 
 
 Getting Ambari Source
 
@@ -43,13 +29,13 @@ $ svn checkout http://svn.apache.org/repos/asf/incubator/ambari/trunk ambari
 JIRA
 
   You can follow all the work going on by watching the Ambari JIRA project. You can see the
-  JIRA details for Ambari 1.2.2 here:
+  JIRA details for Ambari 1.3.0 here:
 
-  {{{https://issues.apache.org/jira/issues/?jql=fixVersion%20%3D%20%221.2.2%22%20AND%20project%20%3D%20AMBARI} https://issues.apache.org/jira/issues/?jql=fixVersion%20%3D%20%221.2.2%22%20AND%20project%20%3D%20AMBARI}}
+  {{{https://issues.apache.org/jira/issues/?jql=fixVersion%20%3D%20%221.3.0%22%20AND%20project%20%3D%20AMBARI} https://issues.apache.org/jira/issues/?jql=fixVersion%20%3D%20%221.3.0%22%20AND%20project%20%3D%20AMBARI}}
 
 User Guide
 
-  Take a look at {{{http://incubator.apache.org/ambari/1.2.2/installing-hadoop-using-ambari/content/index.html} how to install a Hadoop cluster using Ambari 1.2.2 RC}}.
+  Take a look at {{{http://incubator.apache.org/ambari/1.2.2/installing-hadoop-using-ambari/content/index.html} how to install a Hadoop cluster using Ambari 1.2.2}}.
 
 Stay Tuned
 

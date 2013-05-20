@@ -29,28 +29,29 @@ import org.apache.ambari.server.controller.utilities.StreamProvider;
  * URL based implementation of a stream provider.
  */
 public class URLStreamProvider implements StreamProvider {
-  
-  private int connTimeout = -1;
-  
-  public URLStreamProvider() {
-  }
-  
+
+  private final int connTimeout;
+  private final int readTimeout;
+
   /**
    * Provide the connection timeout for the underlying connection.
-   * 
+   *
    * @param connectionTimeout time, in milliseconds, to attempt a connection
+   * @param readTimeout
    */
-  public URLStreamProvider(int connectionTimeout) {
-    connTimeout = connectionTimeout;
+  public URLStreamProvider(int connectionTimeout, int readTimeout) {
+    this.connTimeout = connectionTimeout;
+    this.readTimeout = readTimeout;
   }
   
   @Override
   public InputStream readFrom(String spec) throws IOException {
     URLConnection connection = new URL(spec).openConnection();
-    if (connTimeout > 0) {
-      connection.setConnectTimeout(connTimeout);
-    }
+
+    connection.setConnectTimeout(connTimeout);
+    connection.setReadTimeout(readTimeout);
     connection.setDoOutput(true);
+
     return connection.getInputStream();
   }
 }

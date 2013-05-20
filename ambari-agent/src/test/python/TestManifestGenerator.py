@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import os
+import os, sys, StringIO
 
 from unittest import TestCase
 from ambari_agent import manifestGenerator
@@ -32,16 +32,21 @@ from mock.mock import patch, MagicMock, call
 class TestManifestGenerator(TestCase):
 
   def setUp(self):
+    # disable stdout
+    out = StringIO.StringIO()
+    sys.stdout = out
+
     self.dir = tempfile.mkdtemp()
     self.config = AmbariConfig()
     jsonCommand = file('../../main/python/ambari_agent/test.json').read()
     self.parsedJson = json.loads(jsonCommand)
 
-    pass
 
   def tearDown(self):
     shutil.rmtree(self.dir)
-    pass
+
+    # enable stdout
+    sys.stdout = sys.__stdout__
 
 
   def testWriteImports(self):

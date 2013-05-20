@@ -32,6 +32,9 @@ class hdp-nagios::server::config()
   hdp-nagios::server::configfile { 'hadoop-services.cfg': }
   hdp-nagios::server::configfile { 'hadoop-commands.cfg': }
   hdp-nagios::server::configfile { 'contacts.cfg': }
+  if ($hdp::params::hdp_os_type in ['centos5', 'centos6', 'redhat5', 'redhat6', 'oraclelinux5', 'oraclelinux6']) {
+    hdp-nagios::server::configfile { 'nagios': conf_dir => '/etc/init.d/', mode => '0755', owner => 'root', group => 'root'}
+  }
 
   hdp-nagios::server::check { 'check_cpu.pl': }
   hdp-nagios::server::check { 'check_datanode_storage.php': }
@@ -45,6 +48,7 @@ class hdp-nagios::server::config()
   hdp-nagios::server::check { 'check_templeton_status.sh': }
   hdp-nagios::server::check { 'check_hive_metastore_status.sh': }
   hdp-nagios::server::check { 'check_ambari_agent_status.sh': }
+  hdp-nagios::server::check { 'check_hue_status.sh': }
 
   anchor{'hdp-nagios::server::config::begin':} -> Hdp-nagios::Server::Configfile<||> -> anchor{'hdp-nagios::server::config::end':}
   Anchor['hdp-nagios::server::config::begin'] -> Hdp-nagios::Server::Check<||> -> Anchor['hdp-nagios::server::config::end']

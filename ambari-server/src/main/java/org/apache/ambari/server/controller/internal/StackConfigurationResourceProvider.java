@@ -43,26 +43,27 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 public class StackConfigurationResourceProvider extends
     ReadOnlyResourceProvider {
 
-  private static final String STACK_NAME_PROPERTY_ID = PropertyHelper
+  public static final String STACK_NAME_PROPERTY_ID = PropertyHelper
       .getPropertyId("StackConfigurations", "stack_name");
 
-  private static final String STACK_VERSION_PROPERTY_ID = PropertyHelper
+  public static final String STACK_VERSION_PROPERTY_ID = PropertyHelper
       .getPropertyId("StackConfigurations", "stack_version");
 
-  private static final String SERVICE_NAME_PROPERTY_ID = PropertyHelper
+  public static final String SERVICE_NAME_PROPERTY_ID = PropertyHelper
       .getPropertyId("StackConfigurations", "service_name");
 
-  private static final String PROPERTY_NAME_PROPERTY_ID = PropertyHelper
+  public static final String PROPERTY_NAME_PROPERTY_ID = PropertyHelper
       .getPropertyId("StackConfigurations", "property_name");
 
-  private static final String PROPERTY_VALUE_PROPERTY_ID = PropertyHelper
+  public static final String PROPERTY_VALUE_PROPERTY_ID = PropertyHelper
       .getPropertyId("StackConfigurations", "property_value");
 
-  private static final String PROPERTY_DESCRIPTION_PROPERTY_ID = PropertyHelper
+  public static final String PROPERTY_DESCRIPTION_PROPERTY_ID = PropertyHelper
       .getPropertyId("StackConfigurations", "property_description");
 
-  private static final String PROPERTY_FILE_NAME_PROPERTY_ID = PropertyHelper
-      .getPropertyId("StackConfigurations", "filename");
+  public static final String PROPERTY_TYPE_PROPERTY_ID = PropertyHelper
+      .getPropertyId("StackConfigurations", "type");
+
 
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(new String[] { STACK_NAME_PROPERTY_ID,
@@ -113,9 +114,9 @@ public class StackConfigurationResourceProvider extends
 
       setResourceProperty(resource, PROPERTY_DESCRIPTION_PROPERTY_ID,
           response.getPropertyDescription(), requestedIds);
-
-      setResourceProperty(resource, PROPERTY_FILE_NAME_PROPERTY_ID,
-          response.getFileName(), requestedIds);
+      
+      setResourceProperty(resource, PROPERTY_TYPE_PROPERTY_ID,
+          response.getType(), requestedIds);
 
       resources.add(resource);
     }

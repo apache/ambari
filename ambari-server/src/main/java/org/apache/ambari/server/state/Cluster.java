@@ -126,9 +126,12 @@ public interface Cluster {
   /**
    * Adds and sets a DESIRED configuration to be applied to a cluster.  There
    * can be only one selected config per type.
+   * @param user the user making the change for audit purposes
    * @param config  the {@link Config} object to set as desired
+   * @return <code>true</code> if the config was added, or <code>false</code>
+   * if the config is already set as the current
    */
-  public void addDesiredConfig(Config config);
+  public boolean addDesiredConfig(String user, Config config);
 
   /**
    * Gets the desired (and selected) config by type.
@@ -195,18 +198,5 @@ public interface Cluster {
    * @throws AmbariException
    */
   Service addService(String serviceName) throws AmbariException;
-
-  /**
-   * Gets the mapping of actual configurations as reported by a host.
-   * @return the map of actual configs
-   */
-  public Map<String, DesiredConfig> getActualConfigs();
-
-  /**
-   * Updates the actual configs as reported by the host
-   * @param hostName the host that reported a successful configuration change
-   * @param configTags the tags from the host as applied to the cluster
-   */
-  public void updateActualConfigs(String hostName, Map<String, Map<String,String>> configTags);
 
 }

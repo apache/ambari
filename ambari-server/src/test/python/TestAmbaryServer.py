@@ -23,6 +23,7 @@ from mock.mock import patch
 from mock.mock import MagicMock
 from mock.mock import create_autospec
 import os, errno, tempfile
+import signal
 import stat
 # We have to use this import HACK because the filename contains a dash
 ambari_server = __import__('ambari-server')
@@ -617,6 +618,34 @@ class TestAmbariServer(TestCase):
     self.assertTrue(printInfoMsg_mock.called)
 
 
+  @patch("glob.glob")
+  @patch.object(ambari_server, "print_info_msg")
+  def test_get_share_jars(self, printInfoMsg_mock, globMock):
+    globMock.return_value = ["one", "two"]
+    expected = "one:two:one:two"
+    result = ambari_server.get_share_jars()
+    self.assertEqual(expected, result)
+    globMock.return_value = []
+    expected = ""
+    result = ambari_server.get_share_jars()
+    self.assertEqual(expected, result)
+
+
+  @patch("glob.glob")
+  @patch.object(ambari_server, "print_info_msg")
+  def test_get_ambari_classpath(self, printInfoMsg_mock, globMock):
+    globMock.return_value = ["one"]
+    result = ambari_server.get_ambari_classpath()
+    print result
+    self.assertTrue(ambari_server.get_ambari_jars() in result)
+    self.assertTrue(ambari_server.get_share_jars() in result)
+    globMock.return_value = []
+    result = ambari_server.get_ambari_classpath()
+    print result
+    self.assertTrue(ambari_server.get_ambari_jars() in result)
+    self.assertFalse(":" in result)
+
+
   @patch.object(ambari_server, "print_info_msg")
   def test_get_conf_dir(self, printInfoMsg_mock):
 
@@ -932,24 +961,24 @@ class TestAmbariServer(TestCase):
 
 
 
-  @patch("__builtin__.raw_input")
+  @patch.object(ambari_server, "get_YN_input")
   @patch.object(ambari_server, "setup_db")
   @patch.object(ambari_server, "print_info_msg")
   @patch.object(ambari_server, "run_os_command")
   @patch.object(ambari_server, "configure_postgres_username_password")
   def test_reset(self, configure_postgres_username_password_mock,
                  run_os_command_mock, print_info_msg_mock,
-                 setup_db_mock, raw_inputMock):
+                 setup_db_mock, get_YN_inputMock):
 
     out = StringIO.StringIO()
     sys.stdout = out
 
     args = MagicMock()
-    raw_inputMock.return_value = "No"
+    get_YN_inputMock.return_value = False
     rcode = ambari_server.reset(args)
     self.assertEqual(-1, rcode)
 
-    raw_inputMock.return_value = "yes"
+    get_YN_inputMock.return_value = True
     run_os_command_mock.return_value = (1, None, None)
     rcode = ambari_server.reset(args)
     self.assertEqual(1, rcode)
@@ -959,6 +988,36 @@ class TestAmbariServer(TestCase):
     self.assertEqual(None, rcode)
     self.assertTrue(setup_db_mock.called)
 
+    sys.stdout = sys.__stdout__
+
+
+
+  @patch.object(ambari_server, "setup_db")
+  @patch.object(ambari_server, "print_info_msg")
+  @patch.object(ambari_server, "run_os_command")
+  @patch.object(ambari_server, "configure_postgres_username_password")
+  def test_silent_reset(self, configure_postgres_username_password_mock,
+                 run_os_command_mock, print_info_msg_mock,
+                 setup_db_mock):
+
+    out = StringIO.StringIO()
+    sys.stdout = out
+
+    args = MagicMock()
+    ambari_server.SILENT = True
+    self.assertTrue(ambari_server.SILENT)
+    run_os_command_mock.return_value = (0, None, None)
+
+    def signal_handler(signum, frame):
+       self.fail("Timed out!")
+
+    signal.signal(signal.SIGALRM, signal_handler)
+    signal.alarm(5)
+    rcode = ambari_server.reset(args)
+    
+    self.assertEqual(None, rcode)
+    self.assertTrue(setup_db_mock.called)
+    
     sys.stdout = sys.__stdout__
 
 

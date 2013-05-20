@@ -257,5 +257,13 @@ module.exports = new Ember.Set([
     isMaster: false,
     isClient: true,
     description: ''
+  },
+  {
+    service_name: 'HUE',
+    component_name: 'HUE_SERVER',
+    display_name: 'Hue Server',
+    isMaster: true,
+    isClient: false,
+    description: ''
   }
 ]);

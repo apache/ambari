@@ -49,7 +49,15 @@
           <div class="row-fluid">
           {{#view view.ComponentView contentBinding="component" decommissionDataNodeHostNamesBinding="view.decommissionDataNodeHostNames"}}
             <div class="span7">
-              <span {{bindAttr class="view.statusClass :components-health"}}></span>&nbsp;
+              {{#if view.isUpgradeFailed}}
+                {{#if App.isAdmin}}
+                  <a href="#" {{action "upgradeComponent" view.content target="controller"}} >
+                    <i title="Component upgrade failed" class="components-health icon-arrow-up"></i>
+                  </a>
+                {{/if}}
+              {{else}}
+                <span {{bindAttr class="view.statusClass :components-health"}}></span>&nbsp;
+              {{/if}}
               {{component.displayName}}&nbsp;/&nbsp;
               <a href="#" {{action routeToService component.service target="controller"  }}>{{component.service.displayName}}</a>
             </div>
@@ -78,9 +86,19 @@
                       {{t common.stop}}
                     </a>
                   </li>
-                  <li {{bindAttr class="view.isStart:hidden:"}}>
+                  <li {{bindAttr class="view.isStart:hidden: view.isInstallFailed:hidden"}}>
                     <a href="javascript:void(null)" data-toggle="modal" {{action "startComponent" view.content target="controller"}}>
                       {{t common.start}}
+                    </a>
+                  </li>
+                  <li {{bindAttr class="view.isUpgradeFailed::hidden"}}>
+                    <a href="javascript:void(null)" data-toggle="modal" {{action "upgradeComponent" view.content target="controller"}}>
+                      {{t common.upgrade}}
+                    </a>
+                  </li>
+                  <li {{bindAttr class="view.isInstallFailed::hidden"}}>
+                    <a href="javascript:void(null)" data-toggle="modal" {{action "installComponent" view.content target="controller"}}>
+                      {{t common.install}}
                     </a>
                   </li>
                 </ul>
@@ -107,22 +125,24 @@
               {{/if}}
             </div>
             <div class="span5 row">
-              {{#if view.addableComponents.length}}
-                <div class="btn-group">
-                  <button id="add_component" class="btn btn-info dropdown-toggle" data-toggle="dropdown">
-                    {{t common.addComponent}}
-                    <span class="caret pull-right"></span>
-                  </button>
-                  <ul class="dropdown-menu">
-                    {{#each component in view.addableComponents}}
-                      <li>
-                      <a href="javascript:void(null)" data-toggle="modal" {{action addComponent component target="controller"}}>
-                        {{component.displayName}}
-                      </a>
-                      </li>
-                    {{/each}}
-                  </ul>
-                </div>
+              {{#if view.isAddComponent}}
+                {{#if view.addableComponents.length}}
+                    <div class="btn-group">
+                        <button id="add_component" class="btn btn-info dropdown-toggle" data-toggle="dropdown">
+                          {{t common.addComponent}}
+                            <span class="caret pull-right"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                          {{#each component in view.addableComponents}}
+                              <li>
+                                  <a href="javascript:void(null)" data-toggle="modal" {{action addComponent component target="controller"}}>
+                                    {{component.displayName}}
+                                  </a>
+                              </li>
+                          {{/each}}
+                        </ul>
+                    </div>
+                {{/if}}
               {{/if}}
             </div>
           </div>

@@ -31,8 +31,8 @@ App.ChartHostMetricsDisk = App.ChartLinearTimeView.extend({
   title: Em.I18n.t('hosts.host.metrics.disk'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
-  sourceUrl: "/hosts/{hostName}?fields=metrics/disk/disk_total[{fromSeconds},{toSeconds},{stepSeconds}],metrics/disk/disk_free[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/hosts/metrics/disk.json",
+
+  ajaxIndex: 'host.metrics.disk',
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

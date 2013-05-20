@@ -20,8 +20,9 @@ limitations under the License.
 
 import socket
 import subprocess
-import AmbariConfig
 import urllib2
+import AmbariConfig
+
 
 def hostname():
   config = AmbariConfig.config

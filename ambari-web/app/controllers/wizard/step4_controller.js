@@ -31,7 +31,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * Check whether all properties are selected
    */
   isAll: function () {
-    return this.everyProperty('isSelected', true);
+    return this.filterProperty('canBeSelected', true).everyProperty('isSelected', true);
   }.property('@each.isSelected'),
 
   /**
@@ -63,7 +63,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * Onclick handler for <code>select all</code> link
    */
   selectAll: function () {
-    this.setEach('isSelected', true);
+    this.filterProperty('canBeSelected', true).setEach('isSelected', true);
   },
 
   /**

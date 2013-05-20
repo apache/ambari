@@ -20,7 +20,6 @@ package org.apache.ambari.server.api.predicate.expressions;
 
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.operators.LogicalOperator;
-import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.predicate.NotPredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
 
@@ -59,7 +58,6 @@ public class NotLogicalExpression extends LogicalExpression {
 
   @Override
   public Predicate toPredicate() throws InvalidQueryException {
-    //todo: remove need to down cast to BasePredicate
-    return new NotPredicate((BasePredicate) getRightOperand().toPredicate());
+    return new NotPredicate(getRightOperand().toPredicate());
   }
 }

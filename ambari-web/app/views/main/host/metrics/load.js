@@ -30,8 +30,8 @@ App.ChartHostMetricsLoad = App.ChartLinearTimeView.extend({
   id: "host-metrics-load",
   title: Em.I18n.t('hosts.host.metrics.load'),
   renderer: 'line',
-  sourceUrl: "/hosts/{hostName}?fields=metrics/load/load_fifteen[{fromSeconds},{toSeconds},{stepSeconds}],metrics/load/load_one[{fromSeconds},{toSeconds},{stepSeconds}],metrics/load/load_five[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/hosts/metrics/load.json",
+
+  ajaxIndex: 'host.metrics.load',
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

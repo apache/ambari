@@ -20,6 +20,8 @@ package org.apache.ambari.server.api.services.parsers;
 
 import org.apache.ambari.server.api.services.RequestBody;
 
+import java.util.Set;
+
 /**
  * Parse the provided String into a map of properties and associated values.
  */
@@ -40,12 +42,12 @@ public interface RequestBodyParser {
   public static final String BODY_TITLE = "Body";
 
   /**
-   * Parse the provided string into a request body which contains all properties in the string.
+   * Parse the provided string into request bodies based on the
+   * properties in the given body string.
    *
+   * @param body  the string body to be parsed
    *
-   * @param s  the string body to be parsed
-   *
-   * @return RequestBody instance containing all properties in the string
+   * @return a set of {@link RequestBody} instances
    */
-  public RequestBody parse(String s) throws BodyParseException;
+  public Set<RequestBody> parse(String body) throws BodyParseException;
 }

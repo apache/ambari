@@ -42,6 +42,9 @@ import java.util.*;
  */
 public abstract class AbstractProviderModule implements ProviderModule, ResourceProviderObserver, JMXHostProvider, GangliaHostProvider {
 
+  private static final int PROPERTY_REQUEST_CONNECT_TIMEOUT = 5000;
+  private static final int PROPERTY_REQUEST_READ_TIMEOUT    = 10000;
+
   private static final String CLUSTER_NAME_PROPERTY_ID                  = PropertyHelper.getPropertyId("Clusters", "cluster_name");
   private static final String HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID   = PropertyHelper.getPropertyId("HostRoles", "cluster_name");
   private static final String HOST_COMPONENT_HOST_NAME_PROPERTY_ID      = PropertyHelper.getPropertyId("HostRoles", "host_name");
@@ -106,7 +109,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   /**
    * JMX ports read from the configs
    */
-  private Map<String, Map<String, String>> jmxPortMap = Collections
+  private final Map<String, Map<String, String>> jmxPortMap = Collections
     .synchronizedMap(new HashMap<String, Map<String, String>>());
 
   private volatile boolean initialized = false;
@@ -175,6 +178,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     Map<String,String> clusterJmxPorts = jmxPortMap.get(clusterName);
     if (clusterJmxPorts == null) {
       synchronized (jmxPortMap) {
+        clusterJmxPorts = jmxPortMap.get(clusterName);
         if (clusterJmxPorts == null) {
           clusterJmxPorts = new HashMap<String, String>();
           jmxPortMap.put(clusterName, clusterJmxPorts);
@@ -242,7 +246,8 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
 
     List<PropertyProvider> providers = new LinkedList<PropertyProvider>();
 
-    URLStreamProvider streamProvider = new URLStreamProvider();
+    URLStreamProvider streamProvider = new URLStreamProvider(
+        PROPERTY_REQUEST_CONNECT_TIMEOUT, PROPERTY_REQUEST_READ_TIMEOUT);
 
     switch (type){
       case Cluster :
@@ -268,7 +273,9 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
             this,
             PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
             null,
-            PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name")));
+            PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"),
+            PropertyHelper.getPropertyId("ServiceComponentInfo", "state"),
+            Collections.singleton("STARTED")));
 
         providers.add(new GangliaComponentPropertyProvider(
             PropertyHelper.getGangliaPropertyIds(type),
@@ -284,7 +291,9 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
             this,
             PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
             PropertyHelper.getPropertyId("HostRoles", "host_name"),
-            PropertyHelper.getPropertyId("HostRoles", "component_name")));
+            PropertyHelper.getPropertyId("HostRoles", "component_name"),
+            PropertyHelper.getPropertyId("HostRoles", "state"),
+            Collections.singleton("STARTED")));
 
         providers.add(new GangliaHostComponentPropertyProvider(
             PropertyHelper.getGangliaPropertyIds(type),
@@ -325,7 +334,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     Request          request  = PropertyHelper.getReadRequest(CLUSTER_NAME_PROPERTY_ID);
 
     try {
-      jmxPortMap = new HashMap<String, Map<String, String>>();
+      jmxPortMap.clear();
       Set<Resource> clusters = provider.getResources(request, null);
 
       clusterHostComponentMap    = new HashMap<String, Map<String, String>>();
@@ -411,8 +420,8 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     String versionTag = "version1";
     if (serviceResource != null) {
       for (Resource res : serviceResource) {
-        Map<String, String> configs = (Map<String,
-          String>) res.getPropertyValue(ServiceResourceProvider.SERVICE_DESIRED_CONFIGS_PROPERTY_ID);
+        Map<String, String> configs = (Map<String, String>)
+            res.getPropertyValue(ServiceResourceProvider.SERVICE_DESIRED_CONFIGS_PROPERTY_ID);
         if (configs != null) {
           versionTag = configs.get(configType);
         }
@@ -431,7 +440,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
       (ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID).equals(clusterName).and()
       .property(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TYPE_PROPERTY_ID).equals(configType).and()
       .property(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID).equals(versionTag).toPredicate();
-    Set<Resource> configResources = null;
+    Set<Resource> configResources;
     try {
       configResources = configResourceProvider.getResources
         (PropertyHelper.getReadRequest(ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID,
@@ -439,7 +448,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
           ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID), configPredicate);
     } catch (NoSuchResourceException e) {
       LOG.info("Resource for the desired config not found. " + e);
-      return Collections.EMPTY_MAP;
+      return Collections.emptyMap();
     }
     Map<String, String> mConfigs = new HashMap<String, String>();
     if (configResources != null) {

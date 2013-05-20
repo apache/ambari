@@ -51,6 +51,30 @@ module.exports = Em.Route.extend({
             this.fitHeight();
           }
         });
+
+        App.clusterStatus.updateFromServer();
+        var currentClusterStatus = App.clusterStatus.get('value');
+
+        if (currentClusterStatus) {
+          switch (currentClusterStatus.clusterState) {
+            case 'ADD_SERVICES_DEPLOY_PREP_2' :
+              addServiceController.setCurrentStep('5');
+              App.db.data = currentClusterStatus.localdb;
+              break;
+            case 'ADD_SERVICES_INSTALLING_3' :
+            case 'SERVICE_STARTING_3' :
+              addServiceController.setCurrentStep('6');
+              App.db.data = currentClusterStatus.localdb;
+              break;
+            case 'ADD_SERVICES_INSTALLED_4' :
+              addServiceController.setCurrentStep('7');
+              App.db.data = currentClusterStatus.localdb;
+              break;
+            default:
+              break;
+          }
+        }
+
         router.transitionTo('step' + addServiceController.get('currentStep'));
       });
     } else {
@@ -121,6 +145,8 @@ module.exports = Em.Route.extend({
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
         controller.connectOutlet('wizardStep6', controller.get('content'));
+        var wizardStep6Controller = router.get('wizardStep6Controller');
+        wizardStep6Controller.set('isMasters', false);
       })
     },
     back: function(router){
@@ -192,6 +218,9 @@ module.exports = Em.Route.extend({
       var wizardStep8Controller = router.get('wizardStep8Controller');
       addServiceController.installServices();
       addServiceController.setInfoForStep9();
+
+      addServiceController.saveClusterState('ADD_SERVICES_INSTALLING_3');
+      wizardStep8Controller.set('servicesInstalled', true);
       router.transitionTo('step6');
     }
   }),
@@ -214,12 +243,14 @@ module.exports = Em.Route.extend({
     retry: function(router,context) {
       var addServiceController = router.get('addServiceController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
-      if (!wizardStep9Controller.get('isSubmitDisabled')) {
-        if (wizardStep9Controller.get('content.cluster.status') !== 'START FAILED') {
-        addServiceController.installServices(true);
-        addServiceController.setInfoForStep9();
-        } else {
-          wizardStep9Controller.set('content.cluster.isCompleted', false);
+      if (wizardStep9Controller.get('showRetry')) {
+        if (wizardStep9Controller.get('content.cluster.status') === 'INSTALL FAILED') {
+          var isRetry = true;
+          addServiceController.installServices(isRetry);
+          addServiceController.setInfoForStep9();
+          wizardStep9Controller.resetHostsForRetry();
+          // We need to do recovery based on whether we are in Add Host or Installer wizard
+          addServiceController.saveClusterState('ADD_SERVICES_INSTALLING_3');
         }
         wizardStep9Controller.navigateStep();
       }
@@ -231,6 +262,10 @@ module.exports = Em.Route.extend({
       var addServiceController = router.get('addServiceController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
       addServiceController.saveInstalledHosts(wizardStep9Controller);
+
+      // We need to do recovery based on whether we are in Add Host or Installer wizard
+      addServiceController.saveClusterState('ADD_SERVICES_INSTALLED_4');
+
       router.transitionTo('step7');
     }
   }),
@@ -249,8 +284,13 @@ module.exports = Em.Route.extend({
     back: Em.Router.transitionTo('step6'),
     complete: function (router, context) {
       if (true) {   // this function will be moved to installerController where it will validate
-        router.get('addServiceController').finish();
+        var addServiceController = router.get('addServiceController');
+        App.router.get('updateController').updateAll();
+        addServiceController.finish();
         $(context.currentTarget).parents("#modal").find(".close").trigger('click');
+
+        // We need to do recovery based on whether we are in Add Host or Installer wizard
+        addServiceController.saveClusterState('ADD_SERVICES_COMPLETED_5');
       }
     }
   }),

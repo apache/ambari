@@ -222,7 +222,7 @@ module.exports = [
     "filename": "hive-site.xml"
   },
   {
-    "name": "oozie.service.AuthorizationService.security.enabled",
+    "name": "oozie.service.AuthorizationService.authorization.enabled",
     "templateName": [],
     "foreignKey": null,
     "value": "true",
@@ -312,6 +312,62 @@ module.exports = [
     "value": "hive.metastore.local=false, hive.metastore.uris=thrift://MetastoreHost_FQDN:9083, hive.q" +
       "metastore.sasl.enabled=true,hive.metastore.execute.setugi= true, hive.exec.mode.local.auto=false, hive.metastore.kerberos.principal=<templateName[0]>/_HOST@EXAMPLE.COM",
     "filename": "webhcat-site.xml"
+  },
+  {
+    "name": "hbase.coprocessor.master.classes",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "org.apache.hadoop.hbase.security.access.AccessController",
+    "filename": "hbase-site.xml"
+  },
+  {
+    "name": "hbase.coprocessor.region.classes",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.hadoop.hbase.security.access.AccessController",
+    "filename": "hbase-site.xml"
+  },
+  {
+    "name": "hbase.security.authentication",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "kerberos",
+    "filename": "hbase-site.xml"
+  },
+  {
+    "name": "hbase.rpc.engine",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "org.apache.hadoop.hbase.ipc.SecureRpcEngine",
+    "filename": "hbase-site.xml"
+  },
+  {
+    "name": "hbase.security.authorization",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "true",
+    "filename": "hbase-site.xml"
+  },
+  {
+    "name": "hbase.coprocessor.region.classes",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.hadoop.hbase.security.access.AccessController",
+    "filename": "hbase-site.xml"
+  },
+  {
+    "name": "hbase.bulkload.staging.dir",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "/apps/hbase/staging",
+    "filename": "hbase-site.xml"
+  },
+  {
+    "name": "zookeeper.znode.parent",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "/hbase-secure",
+    "filename": "hbase-site.xml"
   }
 ];
 

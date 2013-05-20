@@ -304,20 +304,20 @@ public class ClusterTest {
     
     Config config3 = configFactory.createNew(c1, "core-site",
         new HashMap<String, String>() {{ put("x", "y"); }});
-    config3.setVersionTag("version2");    
+    config3.setVersionTag("version2");
     
     c1.addConfig(config1);
     c1.addConfig(config2);
     c1.addConfig(config3);
     
-    c1.addDesiredConfig(config1);
+    c1.addDesiredConfig("_test", config1);
     Config res = c1.getDesiredConfigByType("global");
     Assert.assertNotNull("Expected non-null config", res);
     
     res = c1.getDesiredConfigByType("core-site");
     Assert.assertNull("Expected null config", res);
     
-    c1.addDesiredConfig(config2);
+    c1.addDesiredConfig("_test", config2);
     res = c1.getDesiredConfigByType("global");
     Assert.assertEquals("Expected version tag to be 'version2'", "version2", res.getVersionTag());
     
@@ -335,14 +335,22 @@ public class ClusterTest {
     
     Config config3 = configFactory.createNew(c1, "core-site",
         new HashMap<String, String>() {{ put("x", "y"); }});
-    config3.setVersionTag("version2");    
+    config3.setVersionTag("version2");
     
     c1.addConfig(config1);
     c1.addConfig(config2);
     c1.addConfig(config3);
     
-    c1.addDesiredConfig(config1);
-    c1.addDesiredConfig(config3);
+    try {
+      c1.addDesiredConfig(null, config1);
+      fail("Cannot set a null user with config");
+    }
+    catch (Exception e) {
+      // test failure
+    }
+    
+    c1.addDesiredConfig("_test1", config1);
+    c1.addDesiredConfig("_test3", config3);
     
     Map<String, DesiredConfig> desiredConfigs = c1.getDesiredConfigs();
     Assert.assertFalse("Expect desired config not contain 'mapred-site'", desiredConfigs.containsKey("mapred-site"));
@@ -350,13 +358,20 @@ public class ClusterTest {
     Assert.assertTrue("Expect desired config contain " + config3.getType(), desiredConfigs.containsKey("core-site"));
     Assert.assertEquals("Expect desired config for global should be " + config1.getVersionTag(),
         config1.getVersionTag(), desiredConfigs.get(config1.getType()).getVersion());
+    Assert.assertEquals("_test1", desiredConfigs.get(config1.getType()).getUser());
+    Assert.assertEquals("_test3", desiredConfigs.get(config3.getType()).getUser());
     DesiredConfig dc = desiredConfigs.get(config1.getType());
     Assert.assertTrue("Expect no host-level overrides",
         (null == dc.getHostOverrides() || dc.getHostOverrides().size() == 0));
+    
+    c1.addDesiredConfig("_test2", config2);
+    Assert.assertEquals("_test2", c1.getDesiredConfigs().get(config2.getType()).getUser());
+    
+    c1.addDesiredConfig("_test1", config1);
 
     // setup a host that also has a config override
     Host host = clusters.getHost("h1");
-    host.addDesiredConfig(c1.getClusterId(), true, config2);
+    host.addDesiredConfig(c1.getClusterId(), true, "_test2", config2);
 
     desiredConfigs = c1.getDesiredConfigs();
     dc = desiredConfigs.get(config1.getType());
@@ -364,127 +379,6 @@ public class ClusterTest {
     Assert.assertNotNull("Expect host-level overrides", dc.getHostOverrides());
     Assert.assertEquals("Expect one host-level override", 1, dc.getHostOverrides().size());
   }
-  
-  @Test
-  public void testActualConfigs() throws Exception {
-    
-    Assert.assertEquals (0, c1.getActualConfigs().size());
-    
-    c1.updateActualConfigs("h1",
-        new HashMap<String, Map<String,String>>() {{
-          put("global", new HashMap<String,String>() {{ put("tag", "version1"); }});
-        }});
-    Map<String, DesiredConfig> actual = c1.getActualConfigs();
-    Assert.assertEquals(1, actual.size());
-    Assert.assertNotNull(actual.get("global"));
-    Assert.assertEquals("version1", actual.get("global").getVersion());
-
-    // change global version
-    c1.updateActualConfigs("h1",
-        new HashMap<String, Map<String,String>>() {{
-          put("global", new HashMap<String,String>() {{ put("tag", "version2"); }});
-        }});
-    actual = c1.getActualConfigs();
-    Assert.assertEquals(1, actual.size());
-    Assert.assertNotNull(actual.get("global"));
-    Assert.assertEquals("version2", actual.get("global").getVersion());
-
-
-   // add a host override
-   c1.updateActualConfigs("h1",
-       new HashMap<String, Map<String,String>>() {{
-         put("global", new HashMap<String,String>() {{
-           put("tag", "version2");
-           put("host_override_tag", "xxyyzz");
-         }});
-       }});
-   actual = c1.getActualConfigs();
-   Assert.assertEquals(1, actual.size());
-   Assert.assertNotNull(actual.get("global"));
-   Assert.assertEquals("version2", actual.get("global").getVersion());
-   Assert.assertEquals(1, actual.get("global").getHostOverrides().size());
-
-   // add another host
-   c1.updateActualConfigs("h2",
-       new HashMap<String, Map<String,String>>() {{
-         put("global", new HashMap<String,String>() {{
-           put("tag", "version2");
-           put("host_override_tag", "aabbcc");
-         }});
-       }});
-   actual = c1.getActualConfigs();
-   Assert.assertEquals(1, actual.size());
-   Assert.assertNotNull(actual.get("global"));
-   Assert.assertEquals("version2", actual.get("global").getVersion());
-   Assert.assertEquals(2, actual.get("global").getHostOverrides().size());
-   for (HostOverride o : actual.get("global").getHostOverrides()) {
-     if (o.getName().equals("h1")) {
-       Assert.assertEquals(o.getVersionTag(), "xxyyzz");
-     } else {
-       Assert.assertEquals(o.getVersionTag(), "aabbcc");
-     }
-   }
-   
-   // remove h2 override
-   c1.updateActualConfigs("h2",
-       new HashMap<String, Map<String,String>>() {{
-         put("global", new HashMap<String,String>() {{
-           put("tag", "version3");
-         }});
-       }});
-   actual = c1.getActualConfigs();
-   Assert.assertEquals(1, actual.size());
-   Assert.assertNotNull(actual.get("global"));
-   Assert.assertEquals("version3", actual.get("global").getVersion());
-   Assert.assertEquals(1, actual.get("global").getHostOverrides().size());
-   Assert.assertEquals("h1", actual.get("global").getHostOverrides().get(0).getName());
-
-   
-   // change h1 override
-   c1.updateActualConfigs("h1",
-       new HashMap<String, Map<String,String>>() {{
-         put("global", new HashMap<String,String>() {{
-           put("tag", "version2");
-           put("host_override_tag", "mmnnoo");
-         }});
-       }});
-   actual = c1.getActualConfigs();
-   Assert.assertEquals(1, actual.size());
-   Assert.assertNotNull(actual.get("global"));
-   Assert.assertEquals("version2", actual.get("global").getVersion());
-   Assert.assertEquals(1, actual.get("global").getHostOverrides().size());
-   Assert.assertEquals("h1", actual.get("global").getHostOverrides().get(0).getName());
-   Assert.assertEquals("mmnnoo", actual.get("global").getHostOverrides().get(0).getVersionTag());
-   
-   // remove h1 override
-   c1.updateActualConfigs("h1",
-       new HashMap<String, Map<String,String>>() {{
-         put("global", new HashMap<String,String>() {{
-           put("tag", "version2");
-         }});
-       }});
-   Assert.assertEquals(1, actual.size());
-   Assert.assertNotNull(actual.get("global"));
-   Assert.assertEquals("version2", actual.get("global").getVersion());
-   Assert.assertEquals(0, actual.get("global").getHostOverrides().size());
-
-   
-   // create new one with override, not as an update
-   // remove h1 override
-   c1.updateActualConfigs("h1",
-       new HashMap<String, Map<String,String>>() {{
-         put("core-site", new HashMap<String,String>() {{
-           put("tag", "version4");
-           put("host_override_tag", "qqrrss");
-         }});
-       }});
-   Assert.assertEquals(2, actual.size());
-   Assert.assertNotNull(actual.get("global"));
-   Assert.assertNotNull(actual.get("core-site"));
-   Assert.assertEquals("version4", actual.get("core-site").getVersion());
-   Assert.assertEquals("qqrrss", actual.get("core-site").getHostOverrides().get(0).getVersionTag());
-   
-  }  
   
   public ClusterEntity createDummyData() {
     ClusterEntity clusterEntity = new ClusterEntity();

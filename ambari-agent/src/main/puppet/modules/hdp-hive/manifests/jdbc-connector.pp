@@ -34,7 +34,7 @@ class hdp-hive::jdbc-connector()
    }
 
 
-  if ($hive_ambari_database == "MySQL"){
+  if ($hive_jdbc_driver == "com.mysql.jdbc.Driver"){
    hdp::exec { 'hive mkdir -p ${artifact_dir} ;  cp /usr/share/java/${jdbc_jar_name}  ${target}':
        command => "mkdir -p ${artifact_dir} ;  cp /usr/share/java/${jdbc_jar_name}  ${target}",
        unless  => "test -f ${target}",
@@ -43,7 +43,7 @@ class hdp-hive::jdbc-connector()
        require => Hdp::Package['mysql-connector-java'],
        notify  =>  Anchor['hdp-hive::jdbc-connector::end'],
    }
-  } elsif ($hive_ambari_database == "Oracle") {
+  } elsif ($hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver") {
    hdp::exec { 'hive mkdir -p ${artifact_dir} ;  cp /usr/share/java/${jdbc_jar_name}  ${target}':
        command => "mkdir -p ${artifact_dir} ;  cp /usr/share/java/${jdbc_jar_name}  ${target}",
        unless  => "test -f ${target}",

@@ -51,7 +51,7 @@ App.MainChartHeatmapMemoryUsedMetric = App.MainChartHeatmapMetric.extend({
         });
         if (value != null) {
           var total = value.mem_total;
-          var used = value.mem_total - value.mem_free;
+          var used = value.mem_total - value.mem_free - value.mem_cached;
           value = ((used * 100) / total).toFixed(1);
           var hostName = item.Hosts.host_name;
           hostToValueMap[hostName] = value;

@@ -90,7 +90,9 @@ public abstract class BaseRequest implements Request {
 
   @Override
   public Result process() {
-    LOG.info("Handling API Request: '" + getURI() + "'");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Handling API Request: '" + getURI() + "'");
+    }
 
     Result result;
     try {

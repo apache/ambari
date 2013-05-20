@@ -17,14 +17,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import os.path
 import logging
 import subprocess
-import pprint, threading
-from Grep import Grep
+import pprint
+import threading
 from threading import Thread
+from Grep import Grep
 import shell
-import traceback
+
 
 logger = logging.getLogger()
 

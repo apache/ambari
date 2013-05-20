@@ -18,12 +18,9 @@ package org.apache.ambari.server.controller;
  * limitations under the License.
  */
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.state.DesiredConfig;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -39,19 +36,10 @@ public class ClusterResponseTest {
     ClusterResponse r1 =
         new ClusterResponse(clusterId, clusterName, hostNames, "bar");
     
-    Map<String, DesiredConfig> actual = new HashMap<String, DesiredConfig>();
-    DesiredConfig dc = new DesiredConfig();
-    dc.setVersion("version1");
-    actual.put("global", dc);
-    
-    r1.setActualConfigs(actual);
-    
     Assert.assertEquals(clusterId, r1.getClusterId());
     Assert.assertEquals(clusterName, r1.getClusterName());
     Assert.assertArrayEquals(hostNames.toArray(), r1.getHostNames().toArray());
     Assert.assertEquals("bar", r1.getDesiredStackVersion());
-    Assert.assertNotNull(r1.getActualConfigs());
-
   }
 
   @Test

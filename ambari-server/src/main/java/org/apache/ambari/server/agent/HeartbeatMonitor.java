@@ -21,15 +21,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.HashMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHeartbeatLostEvent;
 import org.apache.ambari.server.state.svccomphost.HBaseMasterPortScanner;
@@ -82,8 +87,10 @@ public class HeartbeatMonitor implements Runnable {
   public void run() {
     while (shouldRun) {
       try {
-        Thread.sleep(threadWakeupInterval);
         doWork();
+        LOG.trace("Putting monitor to sleep for " + threadWakeupInterval + " " +
+          "milliseconds");
+        Thread.sleep(threadWakeupInterval);
       } catch (InterruptedException ex) {
         LOG.warn("Scheduler thread is interrupted going to stop", ex);
         shouldRun = false;
@@ -112,11 +119,29 @@ public class HeartbeatMonitor implements Runnable {
       } catch (AmbariException e) {
         LOG.warn("Exception in getting host object; Is it fatal?", e);
       }
-      if (lastHeartbeat + 5*threadWakeupInterval < now) {
+      if (lastHeartbeat + 2*threadWakeupInterval < now) {
         LOG.warn("Hearbeat lost from host "+host);
         //Heartbeat is expired
         hostObj.handleEvent(new HostHeartbeatLostEvent(host));
+        
+        // mark all components that are not clients with unknown status
+        for (Cluster cluster : fsm.getClustersForHost(hostObj.getHostName())) {
+          for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostObj.getHostName())) {
+            Service s = cluster.getService(sch.getServiceName());
+            ServiceComponent sc = s.getServiceComponent(sch.getServiceComponentName());
+            if (!sc.isClientComponent() &&
+                !sch.getState().equals(State.INIT) &&
+                !sch.getState().equals(State.INSTALLING) &&
+                !sch.getState().equals(State.INSTALL_FAILED) &&
+                !sch.getState().equals(State.UNINSTALLED)) {
+              sch.setState(State.UNKNOWN);
+            }
+          }
+        }
+        
+        // hbase
         if(hostState != hostObj.getState() && scanner != null) scanner.updateHBaseMaster(hostObj);
+        
         //Purge action queue
         actionQueue.dequeueAll(host);
         //notify action manager
@@ -133,6 +158,8 @@ public class HeartbeatMonitor implements Runnable {
 
       // Get status of service components
       List<StatusCommand> cmds = generateStatusCommands(hostname);
+      LOG.trace("Generated " + cmds.size() + " status commands for host: " +
+        hostname);
       if (cmds.isEmpty()) {
         // Nothing to do
       } else {
@@ -149,33 +176,64 @@ public class HeartbeatMonitor implements Runnable {
    */
   public List<StatusCommand> generateStatusCommands(String hostname) throws AmbariException {
     List<StatusCommand> cmds = new ArrayList<StatusCommand>();
+    
     for (Cluster cl : fsm.getClustersForHost(hostname)) {
-      List<ServiceComponentHost> roleList = cl
-              .getServiceComponentHosts(hostname);
-      for (ServiceComponentHost sch : roleList) {
+      for (ServiceComponentHost sch : cl.getServiceComponentHosts(hostname)) {
         String serviceName = sch.getServiceName();
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Live status will include status of service " + serviceName +
-                " of cluster " + cl.getClusterName());
+        Service service = cl.getService(sch.getServiceName());
+        ServiceComponent sc = service.getServiceComponent(sch
+          .getServiceComponentName());
+        // Do not send status commands for client components
+        if (!sc.isClientComponent()) {
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Live status will include status of service " + serviceName + " of cluster " + cl.getClusterName());
+          }
+
+          Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
+
+          // get the cluster config for type 'global'
+          // apply service overrides, if the tag is not the same
+          // apply host overrides, if any
+
+          Config clusterConfig = cl.getDesiredConfigByType("global");
+          if (null != clusterConfig) {
+            // cluster config for 'global'
+            Map<String, String> props = new HashMap<String, String>(clusterConfig.getProperties());
+
+            // apply service overrides, only if the tag is not the same (for when service configs are overrides)
+            Config svcConfig = service.getDesiredConfigs().get("global");
+            if (null != svcConfig && !svcConfig.getVersionTag().equals(clusterConfig.getVersionTag())) {
+              props.putAll(svcConfig.getProperties());
+            }
+
+            // apply host overrides, if any
+            Host host = fsm.getHost(hostname);
+            DesiredConfig dc = host.getDesiredConfigs(cl.getClusterId()).get("global");
+            if (null != dc) {
+              Config hostConfig = cl.getConfig("global", dc.getVersion());
+              if (null != hostConfig) {
+                props.putAll(hostConfig.getProperties());
+              }
+            }
+
+            configurations.put("global", props);
+          }
+
+          // HACK - if any service exists with global tag, and we have none, use
+          // that instead
+          if (configurations.isEmpty()) {
+            Config config = service.getDesiredConfigs().get("global");
+            if (null != config)
+              configurations.put("global", new HashMap<String, String>(config.getProperties()));
+          }
+
+          StatusCommand statusCmd = new StatusCommand();
+          statusCmd.setClusterName(cl.getClusterName());
+          statusCmd.setServiceName(serviceName);
+          statusCmd.setComponentName(sch.getServiceComponentName());
+          statusCmd.setConfigurations(configurations);
+          cmds.add(statusCmd);
         }
-        
-        Map<String, Config> configs = sch.getDesiredConfigs();
-        
-        Map<String, Map<String, String>> configurations =
-            new TreeMap<String, Map<String, String>>();
-        
-        for (Config config : configs.values()) {
-          if (config.getType().equals("global"))
-            configurations.put(config.getType(),
-              config.getProperties());
-        }
-        
-        StatusCommand statusCmd = new StatusCommand();
-        statusCmd.setClusterName(cl.getClusterName());
-        statusCmd.setServiceName(serviceName);
-        statusCmd.setComponentName(sch.getServiceComponentName());
-        statusCmd.setConfigurations(configurations);			
-        cmds.add(statusCmd);
       }
     }
     return cmds;

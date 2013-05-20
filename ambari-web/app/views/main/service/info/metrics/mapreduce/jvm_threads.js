@@ -30,8 +30,8 @@ App.ChartServiceMetricsMapReduce_JVMThreads = App.ChartLinearTimeView.extend({
   id: "service-metrics-mapreduce-jvm-threads",
   title: Em.I18n.t('services.service.info.metrics.mapreduce.jvmThreads'),
   renderer: 'line',
-  sourceUrl: "/hosts/{jobTrackerNode}/host_components/JOBTRACKER?fields=metrics/jvm/threadsRunnable[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsBlocked[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsWaiting[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsTimedWaiting[{fromSeconds},{toSeconds},{stepSeconds}]",
-  mockUrl: "/data/services/metrics/mapreduce/jvm_threads.json",
+
+  ajaxIndex: 'service.metrics.mapreduce.jobs_threads',
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

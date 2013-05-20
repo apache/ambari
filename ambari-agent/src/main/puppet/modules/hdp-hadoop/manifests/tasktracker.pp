@@ -52,8 +52,8 @@ class hdp-hadoop::tasktracker(
         owner => $hdp-hadoop::params::mapred_user
       }
     }
-  
-    hdp-hadoop::tasktracker::create_local_dirs { $mapred_local_dir: 
+
+    hdp-hadoop::tasktracker::create_local_dirs { $mapred_local_dir:
       service_state => $service_state
     }
     

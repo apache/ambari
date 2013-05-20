@@ -84,7 +84,30 @@ public class RoleCommandOrder {
   }
 
   public static void initialize() {
+    // Installs
+    addDependency(Role.NAGIOS_SERVER, RoleCommand.INSTALL, Role.HIVE_CLIENT,
+      RoleCommand.INSTALL);
+    addDependency(Role.NAGIOS_SERVER, RoleCommand.INSTALL, Role.HCAT,
+      RoleCommand.INSTALL);
+    addDependency(Role.NAGIOS_SERVER, RoleCommand.INSTALL, Role.MAPREDUCE_CLIENT,
+      RoleCommand.INSTALL);
+    addDependency(Role.NAGIOS_SERVER, RoleCommand.INSTALL, Role.OOZIE_CLIENT,
+      RoleCommand.INSTALL);
+
+    // Starts
     addDependency(Role.SECONDARY_NAMENODE, RoleCommand.START, Role.NAMENODE,
+        RoleCommand.START);
+    addDependency(Role.RESOURCEMANAGER, RoleCommand.START, Role.NAMENODE,
+        RoleCommand.START);
+    addDependency(Role.RESOURCEMANAGER, RoleCommand.START, Role.DATANODE,
+        RoleCommand.START);
+    addDependency(Role.NODEMANAGER, RoleCommand.START, Role.NAMENODE,
+        RoleCommand.START);
+    addDependency(Role.NODEMANAGER, RoleCommand.START, Role.DATANODE,
+        RoleCommand.START);
+    addDependency(Role.HISTORYSERVER, RoleCommand.START, Role.NAMENODE,
+        RoleCommand.START);
+    addDependency(Role.HISTORYSERVER, RoleCommand.START, Role.DATANODE,
         RoleCommand.START);
     addDependency(Role.HBASE_MASTER, RoleCommand.START, Role.ZOOKEEPER_SERVER,
         RoleCommand.START);
@@ -136,6 +159,8 @@ public class RoleCommandOrder {
         Role.JOBTRACKER, RoleCommand.START);
     addDependency(Role.MAPREDUCE_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.TASKTRACKER, RoleCommand.START);
+    addDependency(Role.RESOURCEMANAGER_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.RESOURCEMANAGER, RoleCommand.START);
     addDependency(Role.OOZIE_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.OOZIE_SERVER, RoleCommand.START);
     addDependency(Role.WEBHCAT_SERVICE_CHECK, RoleCommand.EXECUTE,
@@ -177,10 +202,22 @@ public class RoleCommandOrder {
         Role.JOBTRACKER, RoleCommand.STOP);
     addDependency(Role.NAMENODE, RoleCommand.STOP,
         Role.TASKTRACKER, RoleCommand.STOP);
+    addDependency(Role.NAMENODE, RoleCommand.STOP,
+        Role.RESOURCEMANAGER, RoleCommand.STOP);
+    addDependency(Role.NAMENODE, RoleCommand.STOP,
+        Role.NODEMANAGER, RoleCommand.STOP);
+    addDependency(Role.NAMENODE, RoleCommand.STOP,
+        Role.HISTORYSERVER, RoleCommand.STOP);
     addDependency(Role.DATANODE, RoleCommand.STOP,
         Role.JOBTRACKER, RoleCommand.STOP);
     addDependency(Role.DATANODE, RoleCommand.STOP,
         Role.TASKTRACKER, RoleCommand.STOP);
+    addDependency(Role.DATANODE, RoleCommand.STOP,
+        Role.RESOURCEMANAGER, RoleCommand.STOP);
+    addDependency(Role.DATANODE, RoleCommand.STOP,
+        Role.NODEMANAGER, RoleCommand.STOP);
+    addDependency(Role.DATANODE, RoleCommand.STOP,
+        Role.HISTORYSERVER, RoleCommand.STOP);
 
     addDependency(Role.SECONDARY_NAMENODE, RoleCommand.UPGRADE,
         Role.NAMENODE, RoleCommand.UPGRADE);

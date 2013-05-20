@@ -331,6 +331,9 @@
                 <source>
                   <location>src/main/python/setupAgent.py</location>
                 </source>
+                <source>
+                  <location>src/main/python/os_type_check.sh</location>
+                </source>
               </sources>
             </mapping>
             <mapping>
@@ -404,6 +407,16 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.atlassian.maven.plugins</groupId>
+        <artifactId>maven-clover2-plugin</artifactId>
+        <version>3.1.11</version>
+        <!--
+        <configuration>
+          <licenseLocation>/path/to/clover.license</licenseLocation>
+        </configuration>
+        -->
       </plugin>
     </plugins>
   </build>

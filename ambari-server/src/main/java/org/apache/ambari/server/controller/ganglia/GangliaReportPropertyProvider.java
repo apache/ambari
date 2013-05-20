@@ -52,8 +52,6 @@ public class GangliaReportPropertyProvider extends AbstractPropertyProvider {
   protected final static Logger LOG =
       LoggerFactory.getLogger(GangliaReportPropertyProvider.class);
 
-  private static final String GANGLIA_CLUSTER_NAME = "HDPSlaves";
-
 
   // ----- Constructors ------------------------------------------------------
 
@@ -217,9 +215,7 @@ public class GangliaReportPropertyProvider extends AbstractPropertyProvider {
 
     sb.append("http://").
         append(hostProvider.getGangliaCollectorHostName(clusterName)).
-        append("/ganglia/graph.php?c=").
-        append(GANGLIA_CLUSTER_NAME).
-        append("&g=").
+        append("/ganglia/graph.php?g=").
         append(report).
         append("&json=1");
 

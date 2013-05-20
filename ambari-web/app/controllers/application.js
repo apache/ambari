@@ -34,8 +34,8 @@ App.ApplicationController = Em.Controller.extend({
   }.property('clusterName'),
 
   isClusterDataLoaded: function() {
-    return App.router.get('clusterController.isLoaded');
-  }.property('App.router.clusterController.isLoaded'),
+    return App.router.get('clusterController.isLoaded') && App.router.get('loggedIn');
+  }.property('App.router.clusterController.isLoaded','App.router.loggedIn'),
 
   init: function(){
     this._super();

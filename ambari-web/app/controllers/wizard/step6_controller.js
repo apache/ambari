@@ -43,10 +43,14 @@ App.WizardStep6Controller = Em.Controller.extend({
    */
   isMasters: false,
 
-  components:require('data/service_components'),
+  components: require('data/service_components'),
 
-  isAddHostWizard: function(){
+  isAddHostWizard: function () {
     return this.get('content.controllerName') === 'addHostController';
+  }.property('content.controllerName'),
+
+  isInstallerWizard: function () {
+    return this.get('content.controllerName') === 'installerController';
   }.property('content.controllerName'),
 
   clearError: function () {
@@ -55,9 +59,9 @@ App.WizardStep6Controller = Em.Controller.extend({
     var err = true;
     var hosts = this.get('hosts');
     var headers = this.get('headers');
-    headers.forEach(function(header) {
+    headers.forEach(function (header) {
       var all_false = true;
-      hosts.forEach(function(host) {
+      hosts.forEach(function (host) {
         var checkboxes = host.get('checkboxes');
         all_false &= !checkboxes.findProperty('title', header.get('label')).checked;
       });
@@ -68,14 +72,14 @@ App.WizardStep6Controller = Em.Controller.extend({
       this.set('errorMessage', '');
     }
 
-    if(this.get('isAddHostWizard')) {
+    if (this.get('isAddHostWizard')) {
       if (this.get('isMasters')) {
         this.set('errorMessage', '');
       }
       else {
-        hosts.forEach(function(host) {
+        hosts.forEach(function (host) {
           isError = false;
-          headers.forEach(function(header) {
+          headers.forEach(function (header) {
             isError |= host.get('checkboxes').findProperty('title', header.get('label')).checked;
           });
           isError = !isError;
@@ -109,7 +113,7 @@ App.WizardStep6Controller = Em.Controller.extend({
    * Enable some service for all hosts
    * @param event
    */
-  selectAllNodes: function(event) {
+  selectAllNodes: function (event) {
     this.setAllNodes(event.context.label, true);
   },
 
@@ -117,7 +121,7 @@ App.WizardStep6Controller = Em.Controller.extend({
    * Disable some services for all hosts
    * @param event
    */
-  deselectAllNodes: function(event) {
+  deselectAllNodes: function (event) {
     this.setAllNodes(event.context.label, false);
   },
 
@@ -126,9 +130,9 @@ App.WizardStep6Controller = Em.Controller.extend({
    * @param {String} label - service name
    * @param {Boolean} checked - true - enable, false - disable
    */
-  setAllNodes: function(label, checked) {
-    this.get('hosts').forEach(function(host) {
-      host.get('checkboxes').forEach(function(checkbox) {
+  setAllNodes: function (label, checked) {
+    this.get('hosts').forEach(function (host) {
+      host.get('checkboxes').forEach(function (checkbox) {
         if (checkbox.get('title') === label) {
           checkbox.set('checked', checked);
         }
@@ -141,7 +145,7 @@ App.WizardStep6Controller = Em.Controller.extend({
    * @param name serviceName
    * @return {*}
    */
-  isServiceSelected: function(name) {
+  isServiceSelected: function (name) {
     return this.get('content.services').findProperty('serviceName', name).get('isSelected');
   },
 
@@ -149,14 +153,14 @@ App.WizardStep6Controller = Em.Controller.extend({
    * Checkbox check callback
    * @param {String} title
    */
-  checkCallback: function(title) {
+  checkCallback: function (title) {
 
     var header = this.get('headers').findProperty('label', title);
     var hosts = this.get('hosts');
     var allTrue = true;
     var allFalse = true;
-    hosts.forEach(function(host) {
-      host.get('checkboxes').forEach(function(cb) {
+    hosts.forEach(function (host) {
+      host.get('checkboxes').forEach(function (cb) {
         if (cb.get('title') === title) {
           allTrue &= cb.get('checked');
           allFalse &= !cb.get('checked');
@@ -168,7 +172,7 @@ App.WizardStep6Controller = Em.Controller.extend({
     this.clearError();
   },
 
-  getComponentDisplayName: function(componentName) {
+  getComponentDisplayName: function (componentName) {
     return this.get('components').findProperty('component_name', componentName).display_name
   },
 
@@ -182,7 +186,7 @@ App.WizardStep6Controller = Em.Controller.extend({
     var headers = [];
 
     if (this.get('isMasters')) {
-      if (this.isServiceSelected('HBASE')) {
+      if (this.isServiceSelected('HBASE') && App.supports.multipleHBaseMasters) {
         headers.pushObject(Em.Object.create({
           name: 'HBASE_MASTER',
           label: self.getComponentDisplayName('HBASE_MASTER')
@@ -190,9 +194,9 @@ App.WizardStep6Controller = Em.Controller.extend({
       }
       if (this.isServiceSelected('ZOOKEEPER')) {
         headers.pushObject(Em.Object.create({
-         name:'ZOOKEEPER_SERVER',
-         label: self.getComponentDisplayName('ZOOKEEPER_SERVER')
-       }));
+          name: 'ZOOKEEPER_SERVER',
+          label: self.getComponentDisplayName('ZOOKEEPER_SERVER')
+        }));
       }
     }
     else {
@@ -202,13 +206,13 @@ App.WizardStep6Controller = Em.Controller.extend({
       }));
       if (this.isServiceSelected('MAPREDUCE')) {
         headers.pushObject(Em.Object.create({
-          name:'TASKTRACKER',
+          name: 'TASKTRACKER',
           label: self.getComponentDisplayName('TASKTRACKER')
         }));
       }
       if (this.isServiceSelected('HBASE')) {
         headers.pushObject(Em.Object.create({
-          name:'HBASE_REGIONSERVER',
+          name: 'HBASE_REGIONSERVER',
           label: self.getComponentDisplayName('HBASE_REGIONSERVER')
         }));
       }
@@ -218,7 +222,7 @@ App.WizardStep6Controller = Em.Controller.extend({
       }));
     }
 
-    headers.forEach(function(header) {
+    headers.forEach(function (header) {
       header.setProperties({ allChecked: false, noChecked: true });
     });
 
@@ -226,12 +230,12 @@ App.WizardStep6Controller = Em.Controller.extend({
 
     this.render();
     if (this.get('isMasters')) {
-      if(this.get('content.skipMasterStep')) {
+      if (this.get('content.skipMasterStep')) {
         App.router.send('next');
       }
     }
     else {
-      if(this.get('content.skipSlavesStep')) {
+      if (this.get('content.skipSlavesStep')) {
         App.router.send('next');
       }
     }
@@ -268,11 +272,11 @@ App.WizardStep6Controller = Em.Controller.extend({
         checkboxes: []
       });
 
-      self.get('headers').forEach(function(header) {
+      self.get('headers').forEach(function (header) {
         obj.checkboxes.pushObject(Em.Object.create({
           title: header.label,
           checked: false,
-          installed: false
+          isInstalled: false
         }));
       });
 
@@ -289,7 +293,7 @@ App.WizardStep6Controller = Em.Controller.extend({
     hostsObj.forEach(function (host) {
       this.get('hosts').pushObject(host);
     }, this);
-    this.get('headers').forEach(function(header) {
+    this.get('headers').forEach(function (header) {
       self.checkCallback(header.get('label'));
     });
   },
@@ -299,17 +303,18 @@ App.WizardStep6Controller = Em.Controller.extend({
    * @param hostsObj
    * @return {*}
    */
-  renderSlaves: function(hostsObj) {
+  renderSlaves: function (hostsObj) {
     var self = this;
     var allHosts = this.getHostNames();
     var headers = this.get('headers');
     var slaveComponents = this.get('content.slaveComponentHosts');
     if (!slaveComponents) { // we are at this page for the first time
       var client_is_set = false;
-      hostsObj.forEach(function(host) {
+      hostsObj.forEach(function (host) {
         host.isMaster = self.hasMasterComponents(host.hostName);
         var checkboxes = host.get('checkboxes');
         checkboxes.setEach('checked', !host.isMaster);
+        checkboxes.setEach('isInstalled', false);
         checkboxes.findProperty('title', headers.findProperty('name', 'CLIENT').get('label')).set('checked', false);
         // First not Master should have Client (only first!)
         if (!client_is_set) {
@@ -320,16 +325,21 @@ App.WizardStep6Controller = Em.Controller.extend({
           }
         }
       });
+
+      if (this.get('isInstallerWizard') && hostsObj.everyProperty('isMaster', true)) {
+        var lastHost = hostsObj[hostsObj.length - 1];
+        lastHost.get('checkboxes').setEach('checked', true);
+      }
     }
     else {
-      this.get('headers').forEach(function(header) {
+      this.get('headers').forEach(function (header) {
         var nodes = slaveComponents.findProperty('componentName', header.get('name'));
         if (nodes) {
           nodes.hosts.forEach(function (_node) {
             var node = hostsObj.findProperty('hostName', _node.hostName);
             if (node) {
               node.get('checkboxes').findProperty('title', header.get('label')).set('checked', true);
-              node.get('checkboxes').findProperty('title', header.get('label')).set('installed', _node.isInstalled);
+              node.get('checkboxes').findProperty('title', header.get('label')).set('isInstalled', _node.isInstalled);
             }
           });
         }
@@ -349,16 +359,19 @@ App.WizardStep6Controller = Em.Controller.extend({
    * @param hostsObj
    * @return {*}
    */
-  renderMasters: function(hostsObj) {
+  renderMasters: function (hostsObj) {
     var self = this;
     var masterComponentHosts = this.get('content.masterComponentHosts');
     console.warn('masterComponentHosts', masterComponentHosts);
 
     if (masterComponentHosts) {
-      masterComponentHosts.forEach(function(item) {
+      masterComponentHosts.forEach(function (item) {
         var host = hostsObj.findProperty('hostName', item.hostName);
         if (host) {
-          host.get('checkboxes').findProperty('title', item.display_name).set('checked', true);
+          var checkbox = host.get('checkboxes').findProperty('title', item.display_name);
+          if (checkbox) {
+            checkbox.set('checked', true);
+          }
         }
       });
     }
@@ -381,39 +394,64 @@ App.WizardStep6Controller = Em.Controller.extend({
    * @return {Boolean}
    */
   validate: function () {
+
+    if (this.get('isAddHostWizard')) {
+      return this.validateEachHost(Em.I18n.t('installer.step6.error.mustSelectOneForHost'));
+    }
+    else if (this.get('isInstallerWizard')) {
+      //this.validateEachComponent() ? this.validateEachHost(Em.I18n.t('installer.step6.error.mustSelectOneForHost') ? return true : return false : return false;
+     return this.validateEachComponent() && this.validateEachHost(Em.I18n.t('installer.step6.error.mustSelectOneForSlaveHost'));
+    }
+  },
+
+  /**
+   * Validate all components for each host. Return do we have errors or not
+   * @return {Boolean}
+   */
+  validateEachHost: function (errorMsg) {
+
     var isError = false;
     var hosts = this.get('hosts');
     var headers = this.get('headers');
-    if(this.get('isAddHostWizard')) {
-      for(var i = 0; i < hosts.length; i++) {
-        var checkboxes = hosts[i].get('checkboxes');
-        isError = false;
-        headers.forEach(function(header) {
-          isError |= checkboxes.findProperty('title', header.get('label')).checked;
-        });
-        isError = !isError;
-        if (isError) {
-          this.set('errorMessage', Em.I18n.t('installer.step6.error.mustSelectOneForHost'));
-          break;
-        }
+    for (var i = 0; i < hosts.length; i++) {
+      if (this.get('isInstallerWizard') && this.get('content.masterComponentHosts').someProperty('hostName', hosts[i].hostName)) {
+        continue;
       }
-    }
-    else {
-
-      headers.forEach(function(header) {
-        var all_false = true;
-        hosts.forEach(function(host) {
-          var checkboxes = host.get('checkboxes');
-          all_false = all_false && !checkboxes.findProperty('title', header.get('label')).checked;
-        });
-        isError = isError || all_false;
+      var checkboxes = hosts[i].get('checkboxes');
+      isError = false;
+      headers.forEach(function (header) {
+        isError |= checkboxes.findProperty('title', header.get('label')).checked;
       });
+      isError = !isError;
       if (isError) {
-        this.set('errorMessage', Em.I18n.t('installer.step6.error.mustSelectOne'));
+        this.set('errorMessage', errorMsg);
+        break;
       }
     }
+    return !isError;
+  },
 
+  /**
+   * Validate a component for all hosts. Return do we have errors or not
+   * @return {Boolean}
+   */
+  validateEachComponent: function () {
+    var isError = false;
+    var hosts = this.get('hosts');
+    var headers = this.get('headers');
+    headers.forEach(function (header) {
+      var all_false = true;
+      hosts.forEach(function (host) {
+        var checkboxes = host.get('checkboxes');
+        all_false = all_false && !checkboxes.findProperty('title', header.get('label')).checked;
+      });
+      isError = isError || all_false;
+    });
+    if (isError) {
+      this.set('errorMessage', Em.I18n.t('installer.step6.error.mustSelectOne'));
+    }
     return !isError;
   }
 
-});
+})
+;

@@ -1,13 +1,28 @@
+--
+-- Licensed to the Apache Software Foundation (ASF) under one
+-- or more contributor license agreements.  See the NOTICE file
+-- distributed with this work for additional information
+-- regarding copyright ownership.  The ASF licenses this file
+-- to you under the Apache License, Version 2.0 (the
+-- "License"); you may not use this file except in compliance
+-- with the License.  You may obtain a copy of the License at
+--
+--     http://www.apache.org/licenses/LICENSE-2.0
+--
+-- Unless required by applicable law or agreed to in writing, software
+-- distributed under the License is distributed on an "AS IS" BASIS,
+-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-- See the License for the specific language governing permissions and
+-- limitations under the License.
+--
 DROP DATABASE IF EXISTS `ambari`;
-DROP DATABASE IF EXISTS `ambarirca`;
-DROP USER `ambari-server`;
--- DROP USER `mapred`;
+DROP USER `ambari`;
 
 delimiter ;
 
 CREATE DATABASE `ambari` /*!40100 DEFAULT CHARACTER SET utf8 */;
 
-CREATE USER 'ambari-server' IDENTIFIED BY 'bigdata';
+CREATE USER 'ambari' IDENTIFIED BY 'bigdata';
 
 USE ambari;
 
@@ -26,7 +41,7 @@ CREATE TABLE servicecomponentdesiredstate (component_name VARCHAR(255) NOT NULL,
 CREATE TABLE serviceconfigmapping (config_type VARCHAR(255) NOT NULL, cluster_id BIGINT NOT NULL, config_tag VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, timestamp BIGINT NOT NULL, PRIMARY KEY (config_type, cluster_id, service_name));
 CREATE TABLE servicedesiredstate (cluster_id BIGINT NOT NULL, desired_host_role_mapping INTEGER NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, desired_state VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id, service_name));
 CREATE TABLE roles (role_name VARCHAR(255) NOT NULL, PRIMARY KEY (role_name));
-CREATE TABLE users (user_id INTEGER NOT NULL, create_time DATETIME, ldap_user INTEGER, user_name VARCHAR(255), user_password VARCHAR(255), PRIMARY KEY (user_id));
+CREATE TABLE users (user_id INTEGER NOT NULL, create_time DATETIME DEFAULT NOW(), ldap_user INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255), user_password VARCHAR(255), PRIMARY KEY (user_id));
 CREATE TABLE execution_command (task_id BIGINT NOT NULL, command LONGBLOB, PRIMARY KEY (task_id));
 CREATE TABLE host_role_command (task_id BIGINT NOT NULL, attempt_count SMALLINT NOT NULL, event LONGTEXT NOT NULL, exitcode INTEGER NOT NULL, host_name VARCHAR(255) NOT NULL, last_attempt_time BIGINT NOT NULL, request_id BIGINT NOT NULL, role VARCHAR(255), role_command VARCHAR(255), stage_id BIGINT NOT NULL, start_time BIGINT NOT NULL, status VARCHAR(255), std_error LONGBLOB, std_out LONGBLOB, PRIMARY KEY (task_id));
 CREATE TABLE role_success_criteria (role VARCHAR(255) NOT NULL, request_id BIGINT NOT NULL, stage_id BIGINT NOT NULL, success_factor DOUBLE NOT NULL, PRIMARY KEY (role, request_id, stage_id));
@@ -76,24 +91,24 @@ INSERT INTO ambari_sequences(sequence_name, value) values ('host_role_command_id
 INSERT INTO ambari_sequences(sequence_name, value) values ('user_id_seq', 1);
 
 insert into ambari.Roles(role_name)
-select 'admin'
-union all
-select 'user';
+  select 'admin'
+  union all
+  select 'user';
 
 insert into ambari.Users(user_id, user_name, user_password)
-select 1,'admin','538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00';
+  select 1,'admin','538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00';
 
 insert into ambari.user_roles(role_name, user_id)
-select 'admin',1;
+  select 'admin',1;
 
 insert into ambari.metainfo(`metainfo_key`, `metainfo_value`)
-select 'version','1.3.0';
+  select 'version','1.3.0';
 
 
 
 CREATE TABLE workflow (
   workflowId VARCHAR(255), workflowName TEXT,
-  parentWorkflowId VARCHAR(255),  
+  parentWorkflowId VARCHAR(255),
   workflowContext TEXT, userName TEXT,
   startTime BIGINT, lastUpdateTime BIGINT,
   numJobsTotal INTEGER, numJobsCompleted INTEGER,
@@ -105,37 +120,37 @@ CREATE TABLE workflow (
 
 CREATE TABLE job (
   jobId VARCHAR(255), workflowId VARCHAR(255), jobName TEXT, workflowEntityName TEXT,
-  userName TEXT, queue TEXT, acls TEXT, confPath TEXT, 
-  submitTime BIGINT, launchTime BIGINT, finishTime BIGINT, 
-  maps INTEGER, reduces INTEGER, status TEXT, priority TEXT, 
-  finishedMaps INTEGER, finishedReduces INTEGER, 
-  failedMaps INTEGER, failedReduces INTEGER, 
+  userName TEXT, queue TEXT, acls TEXT, confPath TEXT,
+  submitTime BIGINT, launchTime BIGINT, finishTime BIGINT,
+  maps INTEGER, reduces INTEGER, status TEXT, priority TEXT,
+  finishedMaps INTEGER, finishedReduces INTEGER,
+  failedMaps INTEGER, failedReduces INTEGER,
   mapsRuntime BIGINT, reducesRuntime BIGINT,
-  mapCounters TEXT, reduceCounters TEXT, jobCounters TEXT, 
+  mapCounters TEXT, reduceCounters TEXT, jobCounters TEXT,
   inputBytes BIGINT, outputBytes BIGINT,
   PRIMARY KEY(jobId),
   FOREIGN KEY(workflowId) REFERENCES workflow(workflowId)
 );
 
 CREATE TABLE task (
-  taskId VARCHAR(255), jobId VARCHAR(255), taskType TEXT, splits TEXT, 
-  startTime BIGINT, finishTime BIGINT, status TEXT, error TEXT, counters TEXT, 
-  failedAttempt TEXT, 
-  PRIMARY KEY(taskId), 
+  taskId VARCHAR(255), jobId VARCHAR(255), taskType TEXT, splits TEXT,
+  startTime BIGINT, finishTime BIGINT, status TEXT, error TEXT, counters TEXT,
+  failedAttempt TEXT,
+  PRIMARY KEY(taskId),
   FOREIGN KEY(jobId) REFERENCES job(jobId)
 );
 
 CREATE TABLE taskAttempt (
-  taskAttemptId VARCHAR(255), taskId VARCHAR(255), jobId VARCHAR(255), taskType TEXT, taskTracker TEXT, 
-  startTime BIGINT, finishTime BIGINT, 
-  mapFinishTime BIGINT, shuffleFinishTime BIGINT, sortFinishTime BIGINT, 
-  locality TEXT, avataar TEXT, 
-  status TEXT, error TEXT, counters TEXT, 
+  taskAttemptId VARCHAR(255), taskId VARCHAR(255), jobId VARCHAR(255), taskType TEXT, taskTracker TEXT,
+  startTime BIGINT, finishTime BIGINT,
+  mapFinishTime BIGINT, shuffleFinishTime BIGINT, sortFinishTime BIGINT,
+  locality TEXT, avataar TEXT,
+  status TEXT, error TEXT, counters TEXT,
   inputBytes BIGINT, outputBytes BIGINT,
-  PRIMARY KEY(taskAttemptId), 
-  FOREIGN KEY(jobId) REFERENCES job(jobId), 
+  PRIMARY KEY(taskAttemptId),
+  FOREIGN KEY(jobId) REFERENCES job(jobId),
   FOREIGN KEY(taskId) REFERENCES task(taskId)
-); 
+);
 
 CREATE TABLE hdfsEvent (
   timestamp BIGINT,
@@ -159,9 +174,9 @@ CREATE TABLE mapreduceEvent (
 );
 
 CREATE TABLE clusterEvent (
-  timestamp BIGINT, 
-  service TEXT, status TEXT, 
-  error TEXT, data TEXT , 
+  timestamp BIGINT,
+  service TEXT, status TEXT,
+  error TEXT, data TEXT ,
   host TEXT, rack TEXT
 );
 

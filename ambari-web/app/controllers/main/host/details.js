@@ -94,8 +94,13 @@ App.MainHostDetailsController = Em.Controller.extend({
       var component = event.context;
 
       self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(),{
-        HostRoles:{
-          state: 'STARTED'
+        RequestInfo : {
+          "context" : Em.I18n.t('requestInfo.startHostComponent') + " " + component.get('displayName')
+        },
+        Body:{
+          HostRoles:{
+            state: 'STARTED'
+          }
         }
       }, 'PUT',
         function(requestId){
@@ -113,16 +118,6 @@ App.MainHostDetailsController = Em.Controller.extend({
           },App.testModeDelayForActions);
         } else {
           App.router.get('clusterController').loadUpdatedStatusDelayed(500);
-          App.router.get('backgroundOperationsController.eventsArray').push({
-            "when" : function(controller){
-              var result = (controller.getOperationsForRequestId(requestId).length == 0);
-              console.log('startComponent.when = ', result)
-              return result;
-            },
-            "do" : function(){
-              App.router.get('clusterController').loadUpdatedStatus();
-            }
-          });
         }
 
         App.router.get('backgroundOperationsController').showPopup();
@@ -132,6 +127,46 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   /**
+   * send command to server to upgrade selected host component
+   * @param event
+   */
+  upgradeComponent: function (event) {
+    var self = this;
+    var component = event.context;
+    App.showConfirmationPopup(function() {
+      self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(),{
+            RequestInfo : {
+              "context" : Em.I18n.t('requestInfo.upgradeHostComponent') + " " + component.get('displayName')
+            },
+            Body:{
+              HostRoles:{
+                stack_id: 'HDP-1.2.2',
+                state: 'INSTALLED'
+              }
+            }
+          }, 'PUT',
+          function(requestId){
+            if(!requestId){
+              return;
+            }
+
+            console.log('Send request for UPGRADE successfully');
+
+            if (App.testMode) {
+              component.set('workStatus', App.HostComponentStatus.starting);
+              setTimeout(function(){
+                component.set('workStatus', App.HostComponentStatus.started);
+              },App.testModeDelayForActions);
+            } else {
+              App.router.get('clusterController').loadUpdatedStatusDelayed(500);
+            }
+
+            App.router.get('backgroundOperationsController').showPopup();
+
+          });
+    });
+  },
+  /**
    * send command to server to stop selected host component
    * @param event
    */
@@ -140,8 +175,13 @@ App.MainHostDetailsController = Em.Controller.extend({
     App.showConfirmationPopup(function() {
       var component = event.context;
       self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(),{
-        HostRoles:{
-          state: 'INSTALLED'
+        RequestInfo : {
+          "context" : Em.I18n.t('requestInfo.stopHostComponent')+ " " + component.get('displayName')
+        },
+        Body:{
+          HostRoles:{
+            state: 'INSTALLED'
+          }
         }
       }, 'PUT',
         function(requestId){
@@ -157,17 +197,7 @@ App.MainHostDetailsController = Em.Controller.extend({
             component.set('workStatus', App.HostComponentStatus.stopped);
           },App.testModeDelayForActions);
         } else {
-          App.router.get('clusterController').loadUpdatedStatus();
-          App.router.get('backgroundOperationsController.eventsArray').push({
-            "when" : function(controller){
-              var result = (controller.getOperationsForRequestId(requestId).length == 0);
-              console.log('stopComponent.when = ', result)
-              return result;
-            },
-            "do" : function(){
-              App.router.get('clusterController').loadUpdatedStatus();
-            }
-          });
+          App.router.get('clusterController').loadUpdatedStatusDelayed(500);
         }
 
         App.router.get('backgroundOperationsController').showPopup();
@@ -185,59 +215,128 @@ App.MainHostDetailsController = Em.Controller.extend({
     var self = this;
     var component = event.context;
     var componentName = component.get('componentName').toUpperCase().toString();
+    var displayName = component.get('displayName');
 
-    App.showConfirmationPopup(function() {
+    App.ModalPopup.show({
+      primary: Em.I18n.t('yes'),
+      secondary: Em.I18n.t('no'),
+      header: Em.I18n.t('popup.confirmation.commonHeader'),
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile([
+          '{{t hosts.delete.popup.body}}<br><br>',
+          '{{t hosts.host.addComponent.note}}'
+        ].join(''))
+      }),
+      onPrimary: function () {
+        this.hide();
+        self.sendCommandToServer('/hosts?Hosts/host_name=' + self.get('content.hostName'), {
+            RequestInfo: {
+              "context": Em.I18n.t('requestInfo.installHostComponent') + " " + displayName
+            },
+            Body: {
+              host_components: [
+                {
+                  HostRoles: {
+                    component_name: componentName
+                  }
+                }
+              ]
+            }
+          },
+          'POST',
+          function (requestId) {
 
-      self.sendCommandToServer('/hosts?Hosts/host_name=' + self.get('content.hostName'),{
-        host_components: [{
-          HostRoles:{
-            component_name: componentName
-          }
-        }]
+            console.log('Send request for ADDING NEW COMPONENT successfully');
 
-      },
-        'POST',
-        function(requestId){
+            self.sendCommandToServer('/host_components?HostRoles/host_name=' + self.get('content.hostName') + '\&HostRoles/component_name=' + componentName + '\&HostRoles/state=INIT', {
+                RequestInfo: {
+                  "context": Em.I18n.t('requestInfo.installNewHostComponent') + " " + displayName
+                },
+                Body: {
+                  HostRoles: {
+                    state: 'INSTALLED'
+                  }
+                }
+              },
+              'PUT',
+              function (requestId) {
+                if (!requestId) {
+                  return;
+                }
 
-          console.log('Send request for ADDING NEW COMPONENT successfully');
+                console.log('Send request for INSTALLING NEW COMPONENT successfully');
 
-          self.sendCommandToServer('/host_components?HostRoles/host_name=' + self.get('content.hostName') + '\&HostRoles/component_name=' + componentName + '\&HostRoles/state=INIT',{
-              HostRoles:{
+                if (App.testMode) {
+                  component.set('workStatus', App.HostComponentStatus.installing);
+                  setTimeout(function () {
+                    component.set('workStatus', App.HostComponentStatus.stopped);
+                  }, App.testModeDelayForActions);
+                } else {
+                  App.router.get('clusterController').loadUpdatedStatusDelayed(500);
+                }
+
+                App.router.get('backgroundOperationsController').showPopup();
+
+              });
+            return;
+          });
+      }
+    });
+  },
+  /**
+   * send command to server to install selected host component
+   * @param event
+   * @param context
+   */
+  installComponent: function (event, context) {
+    var self = this;
+    var component = event.context;
+    var componentName = component.get('componentName').toUpperCase().toString();
+    var displayName = component.get('displayName');
+
+    App.ModalPopup.show({
+      primary: Em.I18n.t('yes'),
+      secondary: Em.I18n.t('no'),
+      header: Em.I18n.t('popup.confirmation.commonHeader'),
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile([
+          '{{t hosts.delete.popup.body}}<br /><br />',
+          '{{t hosts.host.addComponent.note}}'
+        ].join(''))
+      }),
+      onPrimary: function () {
+        this.hide();
+        self.sendCommandToServer('/hosts/' + self.get('content.hostName') + '/host_components/' + component.get('componentName').toUpperCase(), {
+            RequestInfo: {
+              "context": Em.I18n.t('requestInfo.installHostComponent') + " " + displayName
+            },
+            Body: {
+              HostRoles: {
                 state: 'INSTALLED'
               }
-            },
-            'PUT',
-            function(requestId){
-              if(!requestId){
-                return;
-              }
+            }
+          },
+          'PUT',
+          function (requestId) {
+            if (!requestId) {
+              return;
+            }
 
-              console.log('Send request for INSTALLING NEW COMPONENT successfully');
+            console.log('Send request for REINSTALL COMPONENT successfully');
 
-              if (App.testMode) {
-                component.set('workStatus', App.HostComponentStatus.installing);
-                setTimeout(function(){
-                  component.set('workStatus', App.HostComponentStatus.stopped);
-                },App.testModeDelayForActions);
-              } else {
-                App.router.get('clusterController').loadUpdatedStatus();
-                App.router.get('backgroundOperationsController.eventsArray').push({
-                  "when" : function(controller){
-                    var result = (controller.getOperationsForRequestId(requestId).length == 0);
-                    console.log('installComponent.when = ', result)
-                    return result;
-                  },
-                  "do" : function(){
-                    App.router.get('clusterController').loadUpdatedStatus();
-                  }
-                });
-              }
+            if (App.testMode) {
+              component.set('workStatus', App.HostComponentStatus.installing);
+              setTimeout(function () {
+                component.set('workStatus', App.HostComponentStatus.stopped);
+              }, App.testModeDelayForActions);
+            } else {
+              App.router.get('clusterController').loadUpdatedStatusDelayed(500);
+            }
 
-              App.router.get('backgroundOperationsController').showPopup();
+            App.router.get('backgroundOperationsController').showPopup();
 
-            });
-          return;
-        });
+          });
+      }
     });
   },
   /**
@@ -260,22 +359,24 @@ App.MainHostDetailsController = Em.Controller.extend({
         if (index < 0) {
           decommissionHostNames.push(hostName);
         }
-        self.doDatanodeDecommission(decommissionHostNames);
+        self.doDatanodeDecommission(decommissionHostNames, true);
       }
       App.router.get('backgroundOperationsController').showPopup();
     });
   },
 
   /**
-   * Performs either Decommission or Recommision by updating the hosts list on
+   * Performs either Decommission or Recommission by updating the hosts list on
    * server.
+   * @param decommission defines context for request (true for decommission and false for recommission)
    */
-  doDatanodeDecommission: function(decommissionHostNames){
+  doDatanodeDecommission: function(decommissionHostNames, decommission){
     var self = this;
     if (decommissionHostNames == null) {
       decommissionHostNames = [];
     }
     var invocationTag = String(new Date().getTime());
+    var context = decommission ? Em.I18n.t('hosts.host.datanode.decommission') : Em.I18n.t('hosts.host.datanode.recommission');
     var clusterName = App.router.get('clusterController.clusterName');
     var clusterUrl = App.apiPrefix + '/clusters/' + clusterName;
     var configsUrl = clusterUrl + '/configurations';
@@ -295,10 +396,14 @@ App.MainHostDetailsController = Em.Controller.extend({
       success: function(){
         var actionsUrl = clusterUrl + '/services/HDFS/actions/DECOMMISSION_DATANODE';
         var actionsData = {
-          parameters: {
-            excludeFileTag: invocationTag
+          RequestInfo: {
+            context: context},
+          Body: {
+            parameters: {
+              excludeFileTag: invocationTag
+            }
           }
-        }
+        };
         var actionsAjax = {
           type: 'POST',
           url: actionsUrl,
@@ -356,7 +461,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         var hostName = self.get('content.hostName');
         var index = decommissionHostNames.indexOf(hostName);
         decommissionHostNames.splice(index, 1);
-        self.doDatanodeDecommission(decommissionHostNames);
+        self.doDatanodeDecommission(decommissionHostNames, false);
       }
       App.router.get('backgroundOperationsController').showPopup();
     });
@@ -364,11 +469,11 @@ App.MainHostDetailsController = Em.Controller.extend({
 
   /**
    * Deletion of hosts not supported for this version
-   * 
+   *
    * validateDeletion: function () { var slaveComponents = [ 'DataNode',
    * 'TaskTracker', 'RegionServer' ]; var masterComponents = []; var
    * workingComponents = [];
-   * 
+   *
    * var components = this.get('content.components');
    * components.forEach(function (cInstance) { var cName =
    * cInstance.get('componentName'); if (slaveComponents.contains(cName)) { if

@@ -55,6 +55,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -321,7 +322,7 @@ public class ClustersTest {
     config2.persist();
     
     // cluster desired config
-    cluster.addDesiredConfig(config1);
+    cluster.addDesiredConfig("_test", config1);
 
     clusters.addHost(h1);
     clusters.addHost(h2);
@@ -340,7 +341,7 @@ public class ClustersTest {
     }, c1);
 
     // host config override
-    host1.addDesiredConfig(cluster.getClusterId(), true, config2);
+    host1.addDesiredConfig(cluster.getClusterId(), true, "_test", config2);
     host1.persist();
 
     Service hdfs = cluster.addService("HDFS");
@@ -356,12 +357,19 @@ public class ClustersTest {
     nameNode.persist();
     ServiceComponent dataNode = hdfs.addServiceComponent("DATANODE");
     dataNode.persist();
+    
+    ServiceComponent serviceCheckNode = hdfs.addServiceComponent("HDFS_CLIENT");
+    serviceCheckNode.persist();
 
     ServiceComponentHost nameNodeHost = nameNode.addServiceComponentHost(h1);
     nameNodeHost.persist();
 
     ServiceComponentHost dataNodeHost = dataNode.addServiceComponentHost(h2);
     dataNodeHost.persist();
+    
+    ServiceComponentHost serviceCheckNodeHost = serviceCheckNode.addServiceComponentHost(h2);
+    serviceCheckNodeHost.persist();
+    serviceCheckNodeHost.setState(State.UNKNOWN);
 
     HostComponentStateEntityPK hkspk = new HostComponentStateEntityPK();
     HostComponentDesiredStateEntityPK hkdspk = new HostComponentDesiredStateEntityPK();

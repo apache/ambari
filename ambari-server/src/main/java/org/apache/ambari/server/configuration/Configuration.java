@@ -130,7 +130,8 @@ public class Configuration {
   public static final String JDBC_IN_MEMORY_URL = "jdbc:derby:memory:myDB/ambari;create=true";
   public static final String JDBC_IN_MEMROY_DRIVER = "org.apache.derby.jdbc.EmbeddedDriver";
 
-  public static final String JDBC_RCA_LOCAL_URL = "jdbc:postgresql://localhost/ambarirca";
+  public static final String HOSTNAME_MACRO = "{hostname}";
+  public static final String JDBC_RCA_LOCAL_URL = "jdbc:postgresql://" + HOSTNAME_MACRO + "/ambarirca";
   public static final String JDBC_RCA_LOCAL_DRIVER = "org.postgresql.Driver";
 
   private static final String SERVER_JDBC_USER_NAME_DEFAULT = "ambari-server";
@@ -142,7 +143,7 @@ public class Configuration {
   public static final String OS_VERSION_KEY =
       "server.os_type";
 
-  public static final String SRVR_HOSTS_MAPPING = 
+  public static final String SRVR_HOSTS_MAPPING =
       "server.hosts.mapping";
 
   // Command parameter names
@@ -163,6 +164,8 @@ public class Configuration {
   private static final String RESOURCES_DIR_DEFAULT =
       "/var/share/ambari/resources/";
 
+  private static final String  ANONYMOUS_AUDIT_NAME_KEY = "anonymous.audit.name";
+      
   private static final String CLIENT_SECURITY_DEFAULT = "local";
   private static final int CLIENT_API_PORT_DEFAULT = 8080;
 
@@ -186,8 +189,12 @@ public class Configuration {
   //TODO for development purposes only, should be changed to 'false'
   private static final String SERVER_PERSISTENCE_TYPE_DEFAULT = "local";
 
+  private static final String SERVER_CONNECTION_MAX_IDLE_TIME =
+    "server.connection.max.idle.millis";
 
-
+  public static final String HIVE_CONFIG_TAG = "hive-site";
+  public static final String HIVE_METASTORE_PASSWORD_PROPERTY =
+    "javax.jdo.option.ConnectionPassword";
 
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
@@ -521,4 +528,16 @@ public class Configuration {
     return JPATableGenerationStrategy.fromString(System.getProperty(SERVER_JDBC_GENERATE_TABLES_KEY));
   }
 
+  public int getConnectionMaxIdleTime() {
+    return Integer.parseInt(properties.getProperty
+      (SERVER_CONNECTION_MAX_IDLE_TIME, String.valueOf("900000")));
+  }
+
+  /**
+   * @return the name to be used for audit information if there is no
+   * logged-in user.  Default is '_anonymous'.
+   */
+  public String getAnonymousAuditName() {
+    return properties.getProperty(ANONYMOUS_AUDIT_NAME_KEY, "_anonymous");
+  }
 }

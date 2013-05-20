@@ -41,9 +41,15 @@ public class SshHostInfo {
 
   @XmlElement
   private List<String>  hosts = new ArrayList<String>();
-  
+
   @XmlElement
   private boolean verbose = false;
+
+  @XmlElement
+  private String user;
+
+  @XmlElement
+  private String password;
 
   public String getSshKey() {
     return sshKey;
@@ -67,6 +73,22 @@ public class SshHostInfo {
   
   public void setVerbose(boolean verbose) {
     this.verbose = verbose;
+  }
+
+  public String getUser() {
+    return user;
+  }
+
+  public void setUser(String user) {
+    this.user = user;
+  }
+
+  public String getPassword() {
+    return password;
+  }
+
+  public void setPassword(String password) {
+    this.password = password;
   }
 
   public String hostListAsString() {

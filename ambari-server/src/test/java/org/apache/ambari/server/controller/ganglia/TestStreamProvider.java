@@ -25,12 +25,17 @@ import java.io.InputStream;
 
 public class TestStreamProvider implements StreamProvider {
 
+  private final String fileName;
   private String lastSpec;
+
+  public TestStreamProvider(String fileName) {
+    this.fileName = fileName;
+  }
 
   @Override
   public InputStream readFrom(String spec) throws IOException {
     lastSpec = spec;
-    return ClassLoader.getSystemResourceAsStream("temporal_ganglia_data.txt");
+    return ClassLoader.getSystemResourceAsStream(fileName);
   }
 
   public String getLastSpec() {

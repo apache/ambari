@@ -40,53 +40,37 @@ public enum State {
    */
   STARTING(4),
   /**
-   * Start failed.
-   */
-  START_FAILED(5),
-  /**
    * State when start completed successfully.
    */
-  STARTED(6),
+  STARTED(5),
   /**
    * In the process of stopping.
    */
-  STOPPING(7),
-  /**
-   * Stop failed.
-   */
-  STOP_FAILED(8),
+  STOPPING(6),
   /**
    * In the process of uninstalling.
    */
-  UNINSTALLING(9),
-  /**
-   * Uninstall failed.
-   */
-  UNINSTALL_FAILED(10),
+  UNINSTALLING(7),
   /**
    * State when uninstall completed successfully.
    */
-  UNINSTALLED(11),
+  UNINSTALLED(8),
   /**
    * In the process of wiping out the install.
    */
-  WIPING_OUT(12),
-  /**
-   * State when wipeout fails.
-   */
-  WIPEOUT_FAILED(13),
+  WIPING_OUT(9),
   /**
    * In the process of upgrading the deployed bits.
    */
-  UPGRADING(14),
-  /**
-   * Upgrade has failed.
-   */
-  UPGRADE_FAILED(15),
+  UPGRADING(10),
   /**
    * Disabled master's backup state
    */
-  MAINTENANCE(16);
+  MAINTENANCE(11),
+  /**
+   * State could not be determined.
+   */
+  UNKNOWN(12);
 
   private final int state;
 
@@ -140,8 +124,6 @@ public enum State {
     switch (State.values()[this.state]) {
       case STARTING:
       case STARTED:
-      case START_FAILED:
-      case STOP_FAILED:
       case STOPPING:
         return false;
       default:
@@ -160,8 +142,8 @@ public enum State {
       case INSTALLING:
       case INSTALLED:
       case INSTALL_FAILED:
-      case UPGRADE_FAILED:
       case UNINSTALLED:
+      case UNKNOWN:
       case MAINTENANCE:
         return true;
       default:

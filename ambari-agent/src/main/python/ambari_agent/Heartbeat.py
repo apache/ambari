@@ -20,16 +20,14 @@ limitations under the License.
 
 import json
 import logging
-from Hardware import Hardware
+import time
+from pprint import pformat
+
 from ActionQueue import ActionQueue
-from ServerStatus import ServerStatus
-import NetUtil
 import AmbariConfig
 import hostname
-import time
-import traceback
-from pprint import pprint, pformat
 from HostInfo import HostInfo
+
 
 logger = logging.getLogger()
 
@@ -59,7 +57,7 @@ class Heartbeat:
       heartbeat['reports'] = queueResult['reports']
       heartbeat['componentStatus'] = queueResult['componentStatus']
       pass
-    logger.info("Heartbeat : " + pformat(heartbeat))
+    logger.debug("Heartbeat : " + pformat(heartbeat))
 
     if (int(id) >= 0) and state_interval > 0 and (int(id) % state_interval) == 0:
       hostInfo = HostInfo()

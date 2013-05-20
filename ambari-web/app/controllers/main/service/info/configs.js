@@ -33,7 +33,67 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   configs: require('data/config_properties').configProperties,
   configMapping: require('data/config_mapping'),
   customConfigs: require('data/custom_configs'),
+  
+  /**
+   * During page load time, we get the host overrides from the server.
+   * The current host -> site:tag map is stored below. This will be 
+   * useful during save, so that removals can also be determined.
+   * 
+   * Example:
+   * {
+   *  'hostname1':{
+   *    'global': 'version1',
+   *    'core-site': 'version1',
+   *    'hdfs-site', 'tag3187261938'
+   *  }
+   * } 
+   *  
+   * @see savedHostToOverrideSiteToTagMap
+   */
+  loadedHostToOverrideSiteToTagMap: {},
 
+  /**
+   * During page load time the cluster level site to tag
+   * mapping is stored here.
+   *
+   * Example:
+   * {
+   *  'global': 'version1',
+   *  'hdfs-site': 'version1',
+   *  'core-site': 'version1'
+   * }
+   */
+  loadedClusterSiteToTagMap: {},
+
+  /**
+   * During page save time, we set the host overrides to the server.
+   * The new host -> site:tag map is stored below. This will be 
+   * useful during save, to update the host's host components. Also,
+   * it will be useful in deletion of overrides.
+   * 
+   * Example:
+   * {
+   *  'hostname1': {
+   *    'global': {
+   *      'tagName': 'tag3187261938_hostname1',
+   *      'map': {
+   *        'hadoop_heapsize': '2048m'
+   *      }
+   *    }
+   *  }
+   * }
+   * 
+   * @see loadedHostToOverrideSiteToTagMap
+   */
+  savedHostToOverrideSiteToTagMap: {},
+
+  /**
+   * Holds the actual base service-config server data uploaded.
+   * This is used by the host-override mechanism to update host
+   * specific values.
+   */
+  savedSiteNameToServerServiceConfigDataMap: {},
+  
   isSubmitDisabled: function () {
     return (!(this.stepConfigs.everyProperty('errorCount', 0)) || this.get('isApplyingChanges'));
   }.property('stepConfigs.@each.errorCount', 'isApplyingChanges'),
@@ -50,7 +110,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    */
   filterColumns: function(){
     var result = [];
-    for(var i = 1; i<3; i++){
+    for(var i = 1; i<4; i++){
       result.push(Ember.Object.create({
         name: this.t('common.combobox.dropdown.' + i),
         selected: false
@@ -70,6 +130,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.get('globalConfigs').clear();
     this.get('uiConfigs').clear();
     this.get('customConfig').clear();
+    this.set('loadedHostToOverrideSiteToTagMap', {});
+    this.set('savedHostToOverrideSiteToTagMap', {});
+    this.set('savedSiteNameToServerServiceConfigDataMap', {});
     if (this.get('serviceConfigTags')) {
       this.set('serviceConfigTags', null);
     }
@@ -85,377 +148,406 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   loadStep: function () {
     console.log("TRACE: Loading configure for service");
     this.clearStep();
-    // this.set('serviceConfigs',require('data/service_configs'));
-    //STEP 1: set the present state of the service Properties. State depends on array of: unique combination of type(ex. core-site) and tag (ex. version01) derived from serviceInfo desired_state
-    this.loadMasterComponents();
-    //this.loadSlaveComponentVersion();
+    this.loadServiceConfigs();
   },
 
   /**
-   * loads Master component properties
+   * Loads the actual configuration of all host components. 
+   * This helps in determining which services need a restart, and also
+   * in showing which properties are actually applied or not. 
+   * This method also compares the actual_configs with the desired_configs
+   * and builds a diff structure.
+   * 
+   * Internall it calculates an array of host-components which need restart.
+   * Example:
+   * [
+   *  {
+   *    componentName: 'DATANODE',
+   *    serviceName: 'HDFS',
+   *    host: 'host.name',
+   *    type: 'core-site',
+   *    desiredConfigTags: {tag:'version1'},
+   *    actualConfigTags: {tag:'version4'. host_override:'version2'}
+   *  },
+   *  ...
+   * ]
+   * 
+   * From there it return the following restart-data for this service.
+   * It represents the hosts, whose components need restart, and the
+   * properties which require restart.
+   * 
+   * {
+   *  hostAndHostComponents: {
+   *   'hostname1': {
+   *     'DATANODE': {
+   *       'property1': 'value1',
+   *       'property2': 'value2'
+   *     },
+   *     'TASKTRACKER': {
+   *       'prop1': 'val1'
+   *     }
+   *    },
+   *    'hostname6': {
+   *     'ZOOKEEPER': {
+   *       'property1': 'value3'
+   *     }
+   *    }
+   *  },
+   *  propertyToHostAndComponent: {
+   *    'property1': {
+   *      'hostname1': ['DATANODE'],
+   *      'hostname6': ['ZOOKEEPER']
+   *    },
+   *    'property2': {
+   *      'hostname1': ['DATANODE']
+   *    },
+   *    'prop1': {
+   *      'hostname1': ['TASKTRACKER']
+   *    }
+   *  }
+   * }
    */
-  loadMasterComponents: function () {
-    this.setServciceConfigs();
-  },
-
-
-  /**
-   * loads slave Group Version from Ambari UI Database
-   */
-  loadSlaveComponentVersion: function () {
+  loadActualConfigsAndCalculateRestarts: function () {
+    var currentService = this.get('content.serviceName');
+    var restartData = {
+        hostAndHostComponents: {},
+        propertyToHostAndComponent: {}
+    };
     var self = this;
-    var url = App.apiPrefix + '/persist/current_version';
+    var actualConfigsUrl = this.getUrl('/data/services/host_component_actual_configs.json', '/services?fields=components/host_components/HostRoles/actual_configs');
     $.ajax({
       type: 'GET',
-      url: url,
-      timeout: 10000,
-
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: In success function for the GET loadSlaveComponentGroup call");
-        console.log("TRACE: The url is: " + url);
-        self.loadSlaveComponentGroup(jsonData["current_version"]);
-      },
-
-      error: function (request, ajaxOptions, error) {
-        console.log("TRACE: In error function for the getServciceConfigs call");
-        console.log("TRACE: value of the url is: " + url);
-        console.log("TRACE: error code status is: " + request.status);
-
-      },
-
-      statusCode: require('data/statusCodes')
-    });
-
-  },
-
-  /**
-   * loads slave Group properties of currntly applid version from Ambari UI Database
-   */
-  loadSlaveComponentGroup: function (version) {
-    var self = this;
-    var url = App.apiPrefix + '/persist/' + version;
-    $.ajax({
-      type: 'GET',
-      url: url,
-      timeout: 10000,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: In success function for the GET loadSlaveComponentGroup call");
-        console.log("TRACE: The url is: " + url);
-        self.set('slaveComponentGroups', jsonData[version]);
-      },
-
-      error: function (request, ajaxOptions, error) {
-        console.log("TRACE: In error function for the getServciceConfigs call");
-        console.log("TRACE: value of the url is: " + url);
-        console.log("TRACE: error code status is: " + request.status);
-
-      },
-
-      statusCode: require('data/statusCodes')
-    });
-  },
-
-  /**
-   * Get the current applied slave configuration version from Ambari UI Database
-   */
-  getCurrentSlaveConfiguration: function () {
-
-  },
-
-  /**
-   *  Loads the advanced configs fetched from the server metadata libarary
-   */
-  loadAdvancedConfig: function (serviceConfigs, advancedConfig) {
-    advancedConfig.forEach(function (_config) {
-      if (_config) {
-        if (this.get('configMapping').someProperty('name', _config.name)) {
-        } else if (!(serviceConfigs.someProperty('name', _config.name))) {
-          _config.id = "site property";
-          _config.category = 'Advanced';
-          _config.displayName = _config.name;
-          _config.defaultValue = _config.value;
-          _config.isRequired = false;
-          _config.isVisible = true;
-          _config.displayType = 'advanced';
-          _config.serviceName = this.get('content.serviceName');
-          serviceConfigs.pushObject(_config);
-        }
-      }
-    }, this);
-  },
-
-  /**
-   * Get configuration for the *-site.xml
-   */
-  setServciceConfigs: function () {
-    var self = this;
-    var url = App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/services/' + this.get('content.serviceName');
-    if(App.testMode){
-      url = '/data/services/hdfs.json';
-    }
-    $.ajax({
-      type: 'GET',
-      url: url,
-      timeout: 10000,
-      dataType: 'text',
-      success: function (data) {
-        console.log("TRACE: In success function for the GET getServciceConfigs call");
-        console.log("TRACE: The url is: " + url);
-        var jsonData = jQuery.parseJSON(data);
-        self.set('serviceConfigTags', jsonData.ServiceInfo.desired_configs);
-        //STEP 2: Create an array of objects defining tagnames to be polled and new tagnames to be set after submit
-        self.setServiceTagNames();
-        //STEP 5: Add the advanced configs to the serviceConfigs property
-        var advancedConfig = App.router.get('installerController').loadAdvancedConfig(self.get('content.serviceName')) || [];
-        //STEP 3: Set globalConfigs and Get an array of serviceProperty objects
-        var serviceConfigs = self.getSitesConfigProperties(advancedConfig);
-        self.loadAdvancedConfig(serviceConfigs, advancedConfig);
-        self.loadCustomConfig(serviceConfigs);
-        var serviceConfig = self.get('serviceConfigs').findProperty('serviceName', self.get('content.serviceName'));
-        self.addHostNamesToGlobalConfig();
-        serviceConfig.configs = self.get('globalConfigs').concat(serviceConfigs);
-
-        self.renderServiceConfigs(serviceConfig);
-        self.set('dataIsLoaded', true);
-      },
-
-      error: function (request, ajaxOptions, error) {
-        console.log("TRACE: In error function for the getServciceConfigs call");
-        console.log("TRACE: value of the url is: " + url);
-        console.log("TRACE: error code status is: " + request.status);
-
-      },
-
-      statusCode: require('data/statusCodes')
-    });
-  },
-
-
-  /**
-   * set tagnames for configuration of the *-site.xml
-   */
-  setServiceTagNames: function () {
-    console.log("TRACE: In setServiceTagNames function:");
-    var newServiceConfigTags = [];
-    var serviceConfigTags = this.get('serviceConfigTags');
-    for (var index in serviceConfigTags) {
-      console.log("The value of serviceConfigTags[index]: " + serviceConfigTags[index]);
-      newServiceConfigTags.pushObject({
-        siteName: index,
-        tagName: serviceConfigTags[index],
-        newTagName: null
-      }, this);
-    }
-    this.set('serviceConfigTags', newServiceConfigTags);
-  },
-
-  /**
-   * Render a custom conf-site box for entering properties that will be written in *-site.xml files of the services
-   */
-
-  loadCustomConfig: function (serviceConfigs) {
-    if (this.get('customConfigs').findProperty('serviceName', this.get('content.serviceName'))) {
-      var customConfigs = this.get('customConfigs').filterProperty('serviceName', this.get('content.serviceName'));
-      customConfigs.forEach(function (_customConfig) {
-        var customValue = '';
-        var length = this.get('customConfig').length;
-        this.get('customConfig').forEach(function (_config, index) {
-          if (_config.filename === (_customConfig.name + '.xml')) {
-            customValue += _config.name + '=' + _config.value;
-            if (index !== length - 1) {
-              customValue += '\n';
-            }
-          }
-        }, this);
-        _customConfig.value = customValue;
-        serviceConfigs.pushObject(_customConfig);
-
-      }, this);
-
-    }
-  },
-
-
-  /**
-   * load the configs from the server
-   */
-
-  getSitesConfigProperties: function (advancedConfig) {
-    var serviceConfigs = [];
-    var globalConfigs = [];
-
-    this.get('serviceConfigTags').forEach(function (_tag) {
-      var properties = this.getSiteConfigProperties(_tag.siteName, _tag.tagName);
-      for (var index in properties) {
-        var serviceConfigObj = {
-          name: index,
-          value: properties[index],
-          defaultValue: properties[index],
-          filename: _tag.siteName + ".xml",
-          isUserProperty: false
-        };
-        if (this.get('configs').someProperty('name', index)) {
-          var configProperty = this.get('configs').findProperty('name', index);
-          if (this.get('configs').findProperty('name', index).isReconfigurable === false) {
-          }
-          serviceConfigObj.displayType = configProperty.displayType;
-          serviceConfigObj.isRequired = configProperty.isRequired ? configProperty.isRequired : true;
-          serviceConfigObj.isReconfigurable = (configProperty.isReconfigurable !== undefined) ? configProperty.isReconfigurable : true;
-          serviceConfigObj.isVisible = (configProperty.isVisible !== undefined) ? configProperty.isVisible : true;
-          serviceConfigObj.unit = (configProperty.unit !== undefined) ? configProperty.unit : undefined;
-          serviceConfigObj.description = (configProperty.description !== undefined) ? configProperty.description : undefined;
-
-        }
-        serviceConfigObj.displayType = this.get('configs').someProperty('name', index) ? this.get('configs').findProperty('name', index).displayType : null;
-
-        serviceConfigObj.isRequired = this.get('configs').someProperty('name', index) ? this.get('configs').findProperty('name', index).isRequired : null;
-
-        if (_tag.siteName === 'global') {
-          if (this.get('configs').someProperty('name', index)) {
-            var item = this.get('configs').findProperty('name', index);
-            if (item.displayType === 'int') {
-              if (/\d+m$/.test(properties[index])) {
-
-                serviceConfigObj.value = properties[index].slice(0, properties[index].length - 1);
-                serviceConfigObj.defaultValue = serviceConfigObj.value;
-              }
-            }
-            if (item.displayType === 'checkbox') {
-              switch (properties[index]) {
-                case 'true' :
-                  serviceConfigObj.value = true;
-                  serviceConfigObj.defaultValue = true;
-                  break;
-                case 'false' :
-                  serviceConfigObj.value = false;
-                  serviceConfigObj.defaultValue = false;
-                  break;
-              }
-            }
-          }
-          serviceConfigObj.id = 'puppet var';
-          serviceConfigObj.serviceName = this.get('configs').someProperty('name', index) ? this.get('configs').findProperty('name', index).serviceName : null;
-          serviceConfigObj.displayName = this.get('configs').someProperty('name', index) ? this.get('configs').findProperty('name', index).displayName : null;
-          serviceConfigObj.category = this.get('configs').someProperty('name', index) ? this.get('configs').findProperty('name', index).category : null;
-          serviceConfigObj.options = this.get('configs').someProperty('name', index) ? this.get('configs').findProperty('name', index).options : null;
-          globalConfigs.pushObject(serviceConfigObj);
-        } else if (!this.get('configMapping').someProperty('name', index)) {
-        	if (advancedConfig.someProperty('name', index)) {
-            serviceConfigObj.id = 'site property';
-            serviceConfigObj.displayType = 'advanced';
-            serviceConfigObj.displayName = index;
-            serviceConfigObj.serviceName = this.get('content.serviceName');
-            serviceConfigObj.category = 'Advanced';
-            if (advancedConfig.findProperty('name', index).filename) {
-              serviceConfigObj.filename = advancedConfig.findProperty('name', index).filename;
-            }
-            serviceConfigs.pushObject(serviceConfigObj);
-          } else {
-            var serviceConfigMetaData = this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName'));
-          	var categoryMetaData = serviceConfigMetaData == null ? null : serviceConfigMetaData.configCategories.findProperty('siteFileName', serviceConfigObj.filename);
-          	if (categoryMetaData != null) {
-          	  serviceConfigObj.id = 'site property';
-          	  serviceConfigObj.category = categoryMetaData.get('name');
-          	  serviceConfigObj.serviceName = this.get('content.serviceName');
-          	  serviceConfigObj.displayName = index;
-          	  serviceConfigObj.displayType = 'advanced';
-          	  serviceConfigObj.isUserProperty = true;
-          	  serviceConfigs.pushObject(serviceConfigObj);
-          	} else {
-          	  serviceConfigObj.id = 'conf-site';
-            	serviceConfigObj.serviceName = this.get('content.serviceName');
-            	this.get('customConfig').pushObject(serviceConfigObj);
-          	}
-          }
-        }
-      }
-    }, this);
-    this.set('globalConfigs', globalConfigs);
-    return serviceConfigs;
-  },
-
-  /**
-   * return site config properties
-   * @param sitename
-   * @param tagname
-   * @return {Object}
-   */
-  getSiteConfigProperties: function (sitename, tagname) {
-    var self = this;
-    var properties = {};
-    var url = App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/configurations/?type=' + sitename + '&tag=' + tagname;
-    if(App.testMode){
-      url = '/data/configuration/' + sitename + '.json';
-    }
-    $.ajax({
-      type: 'GET',
-      url: url,
+      url: actualConfigsUrl,
       async: false,
       timeout: 10000,
       dataType: 'json',
       success: function (data) {
-        console.log("TRACE: In success function for the GET getSiteConfigProperties call");
-        console.log("TRACE: The url is: " + url);
-        properties = data.items.findProperty('tag', tagname).properties;
+        var diffHostComponents = [];
+        console.debug("loadActualConfigs(" + actualConfigsUrl + "): Data=", data);
+        var configsToDownload = [];
+        data.items.forEach(function (service) {
+          // For current service, do any of the host_components differ in
+          // configuration?
+          if (currentService === service.ServiceInfo.service_name) {
+            service.components.forEach(function (serviceComponent) {
+              serviceComponent.host_components.forEach(function (hostComponent) {
+                if (hostComponent.HostRoles.actual_configs) {
+                  for ( var site in hostComponent.HostRoles.actual_configs) {
+                    var actualConfigsTags = hostComponent.HostRoles.actual_configs[site];
+                    var desiredConfigTags = self.getDesiredConfigTag(site, hostComponent.HostRoles.host_name);
+                    if (desiredConfigTags.tag !== actualConfigsTags.tag || 
+                        (desiredConfigTags.host_override != null && 
+                            actualConfigsTags.host_override != null && 
+                            desiredConfigTags.host_override !== actualConfigsTags.host_override)) {
+                      // Restart may be necessary for this host-component
+                      diffHostComponents.push({
+                        componentName: hostComponent.HostRoles.component_name,
+                        serviceName: serviceComponent.ServiceComponentInfo.service_name,
+                        host: hostComponent.HostRoles.host_name,
+                        type: site,
+                        desiredConfigTags: desiredConfigTags,
+                        actualConfigTags: actualConfigsTags
+                      });
+                      self.addConfigDownloadParam(site, actualConfigsTags.tag, configsToDownload);
+                      self.addConfigDownloadParam(site, actualConfigsTags.host_override, configsToDownload);
+                      self.addConfigDownloadParam(site, desiredConfigTags.tag, configsToDownload);
+                      self.addConfigDownloadParam(site, desiredConfigTags.host_override, configsToDownload);
+                    }
+                  }
+                }
+              });
+            });
+          }
+        });
+        if (configsToDownload.length > 0) {
+          var url = self.getUrl('/data/configurations/cluster_level_actual_configs.json?' + configsToDownload.join('|'), '/configurations?' + configsToDownload.join('|'));
+          $.ajax({
+            type: 'GET',
+            url: url,
+            async: false,
+            timeout: 10000,
+            dataType: 'json',
+            success: function (data) {
+              console.log("configsToDownload(): In success for ", url);
+              if (data.items) {
+                data.items.forEach(function (item) {
+                  App.config.loadedConfigurationsCache[item.type + "_" + item.tag] = item.properties;
+                });
+              }
+            },
+            error: function (request, ajaxOptions, error) {
+              console.log("TRACE: In error function for the configsToDownload call");
+              console.log("TRACE: value of the url is: " + url);
+              console.log("TRACE: error code status is: " + request.status);
+            },
+            statusCode: require('data/statusCodes')
+          });
+        }
+        // Now all the configurations are loaded.
+        // Find the diff in properties
+        if (diffHostComponents.length > 0) {
+          diffHostComponents.forEach(function (diffHostComponent) {
+            var actualConfigs = App.config.loadedConfigurationsCache[diffHostComponent.type + "_" + diffHostComponent.actualConfigTags.tag];
+            var desiredConfigs = App.config.loadedConfigurationsCache[diffHostComponent.type + "_" + diffHostComponent.desiredConfigTags.tag];
+            var diffs = self.getConfigDifferences(actualConfigs, desiredConfigs);
+            if (!jQuery.isEmptyObject(diffs)) {
+              var skip = false;
+              if (diffHostComponent.type == 'global') {
+                if(!App.config.isServiceEffectedByGlobalChange(
+                    diffHostComponent.serviceName, 
+                    diffHostComponent.desiredConfigTags.tag, 
+                    diffHostComponent.actualConfigTags.tag)){
+                  skip = true;
+                }
+              }
+              if(!skip){
+                // Populate restartData.hostAndHostComponents
+                if (!(diffHostComponent.host in restartData.hostAndHostComponents)) {
+                  restartData.hostAndHostComponents[diffHostComponent.host] = {};
+                }
+                if (!(diffHostComponent.componentName in restartData.hostAndHostComponents[diffHostComponent.host])) {
+                  restartData.hostAndHostComponents[diffHostComponent.host][diffHostComponent.componentName] = {};
+                }
+                jQuery.extend(restartData.hostAndHostComponents[diffHostComponent.host][diffHostComponent.componentName], diffs);
 
-        console.log("The value of config properties is: " + properties);
+                // Populate restartData.propertyToHostAndComponent
+                for ( var diff in diffs) {
+                  if (!(diff in restartData.propertyToHostAndComponent)) {
+                    restartData.propertyToHostAndComponent[diff] = {};
+                  }
+                  if (!(diffHostComponent.host in restartData.propertyToHostAndComponent[diff])) {
+                    restartData.propertyToHostAndComponent[diff][diffHostComponent.host] = [];
+                  }
+                  if (!(restartData.propertyToHostAndComponent[diff][diffHostComponent.host].contains(diffHostComponent.componentName))) {
+                    restartData.propertyToHostAndComponent[diff][diffHostComponent.host].push(diffHostComponent.componentName);
+                  }
+                }
+              }
+            }
+          });
+        }
+        console.log("loadActualConfigs(): Finished loading. Restart host components = ", diffHostComponents);
       },
-
       error: function (request, ajaxOptions, error) {
-        console.log("TRACE: In error function for the getServciceConfigs call");
-        console.log("TRACE: value of the url is: " + url);
-        console.log("TRACE: error code status is: " + request.status);
-
+        console.log("loadActualConfigs(): URL:" + actualConfigsUrl + ". Status:", request.status, ", Error:", error);
       },
-
       statusCode: require('data/statusCodes')
     });
-    return properties;
+    console.log("loadActualConfigsAndCalculateRestarts(): Restart data = ", restartData);
+    return restartData;
+  },
+  
+  /**
+   * Determines the differences between desired and actual configs and returns
+   * them as an object. The key is the property, and value is actual_config.
+   */
+  getConfigDifferences: function (actualConfigs, desiredConfigs) {
+    var differences = {};
+    if (actualConfigs != null && desiredConfigs != null) {
+      for(var desiredProp in desiredConfigs){
+        if(desiredConfigs[desiredProp] !== actualConfigs[desiredProp]){
+          differences[desiredProp] = actualConfigs[desiredProp];
+        }
+      }
+    }
+    return differences;
+  },
+  
+  addConfigDownloadParam: function(site, tag, configsToDownload){
+    if(tag!=null && !(site+"_"+tag in App.config.loadedConfigurationsCache)){
+      var configParam = "(type="+site+"&tag="+tag+")";
+      if(!configsToDownload.contains(configParam)){
+        configsToDownload.push(configParam);
+      }
+    }
+  },
+  
+  getDesiredConfigTag: function(site, hostName){
+    var tag = {tag: this.loadedClusterSiteToTagMap[site], host_override: null};
+    if(hostName in this.loadedHostToOverrideSiteToTagMap){
+      var map = this.loadedHostToOverrideSiteToTagMap[hostName];
+      if(site in map){
+        tag.host_overrides = map[site];
+      }
+    }
+    return tag;
   },
 
   /**
-   * Render configs for active services
-   * @param serviceConfigs
+   * Loads service configurations
    */
-  renderServiceConfigs: function (serviceConfigs) {
-
-    var serviceConfig = App.ServiceConfig.create({
-      filename: serviceConfigs.filename,
-      serviceName: serviceConfigs.serviceName,
-      displayName: serviceConfigs.displayName,
-      configCategories: serviceConfigs.configCategories,
-      configs: []
+  loadServiceConfigs: function () {
+    App.ajax.send({
+      name: 'config.tags',
+      sender: this,
+      data: {
+        serviceName: this.get('content.serviceName'),
+        serviceConfigsDef: this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName'))
+      },
+      success: 'loadServiceTagsSuccess'
     });
+  },
 
-    if ((this.get('content.serviceName') && this.get('content.serviceName').toUpperCase() === serviceConfig.serviceName) || serviceConfig.serviceName === 'MISC') {
+  loadServiceTagsSuccess: function(data, opt, params){
+    var serviceConfigsDef = params.serviceConfigsDef;
+    var serviceName = this.get('content.serviceName');
+    console.debug("loadServiceConfigs(): data=", data);
 
-      this.loadComponentConfigs(serviceConfigs, serviceConfig);
-
-      console.log('pushing ' + serviceConfig.serviceName);
-      this.get('stepConfigs').pushObject(serviceConfig);
-
-    } else {
-      console.log('skipping ' + serviceConfig.serviceName);
+    this.loadedClusterSiteToTagMap = {};
+    //STEP 1: handle tags from JSON data
+    for ( var site in data.Clusters.desired_configs) {
+      if (serviceConfigsDef.sites.indexOf(site) > -1) {
+        this.loadedClusterSiteToTagMap[site] = data.Clusters.desired_configs[site]['tag'];
+        var overrides = data.Clusters.desired_configs[site].host_overrides;
+        if (overrides) {
+          overrides.forEach(function (override) {
+            var hostname = override.host_name;
+            var tag = override.tag;
+            if(!this.loadedHostToOverrideSiteToTagMap[hostname]){
+              this.loadedHostToOverrideSiteToTagMap[hostname] = {};
+            }
+            this.loadedHostToOverrideSiteToTagMap[hostname][site] = tag;
+          }, this);
+        }
+      }
     }
+    //STEP 2: Create an array of objects defining tag names to be polled and new tag names to be set after submit
+    this.setServiceConfigTags(this.loadedClusterSiteToTagMap);
+    //STEP 3: Load advanced configs from server
+    var advancedConfigs = App.config.loadAdvancedConfig(serviceName) || [];
+    //STEP 4: Load on-site config by service from server
+    var configGroups = App.config.loadConfigsByTags(this.get('serviceConfigTags'));
+    //STEP 5: Merge global and on-site configs with pre-defined
+    var configSet = App.config.mergePreDefinedWithLoaded(configGroups, advancedConfigs, this.get('serviceConfigTags'), serviceName);
 
+    //var serviceConfigs = this.getSitesConfigProperties(advancedConfigs);
+    var configs = configSet.configs;
+    //put global configs into globalConfigs to save them separately
+    this.set('globalConfigs', configSet.globalConfigs);
+
+    //STEP 6: add advanced configs
+    App.config.addAdvancedConfigs(configs, advancedConfigs, serviceName);
+    //STEP 7: add custom configs
+    App.config.addCustomConfigs(configs);
+    //STEP 8: add configs as names of host components
+    this.addHostNamesToGlobalConfig();
+
+    var allConfigs = this.get('globalConfigs').concat(configs);
+    //this.loadServiceConfigHostsOverrides(serviceConfigs, this.loadedHostToOverrideSiteToTagMap);
+    //STEP 9: Load and add host override configs
+    App.config.loadServiceConfigHostsOverrides(allConfigs, this.loadedHostToOverrideSiteToTagMap);
+    var restartData = this.loadActualConfigsAndCalculateRestarts();
+    //STEP 10: creation of serviceConfig object which contains configs for current service
+    var serviceConfig = App.config.createServiceConfig(serviceName);
+    this.checkForRestart(serviceConfig, restartData);
+    if (serviceName || serviceConfig.serviceName === 'MISC') {
+    //STEP 11: render configs and wrap each in ServiceConfigProperty object
+      this.loadComponentConfigs(allConfigs, serviceConfig, restartData);
+      this.get('stepConfigs').pushObject(serviceConfig);
+    }
     this.set('selectedService', this.get('stepConfigs').objectAt(0));
+    this.set('dataIsLoaded', true);
+  },
+  /**
+   * Changes format from Object to Array
+   * 
+   * {
+   *  'core-site': 'version1',
+   *  'hdfs-site': 'version1',
+   *  'global': 'version2',
+   *  ...
+   * }
+   * 
+   * to 
+   * 
+   * [
+   *  {
+   *    siteName: 'core-site',
+   *    tagName: 'version1',
+   *    newTageName: null
+   *  },
+   *  ...
+   * ]
+   * 
+   * set tagnames for configuration of the *-site.xml
+   */
+  setServiceConfigTags: function (desiredConfigsSiteTags) {
+    console.debug("setServiceConfigTags(): Trying to set ", desiredConfigsSiteTags);
+    var newServiceConfigTags = [];
+    for (var index in desiredConfigsSiteTags) {
+      newServiceConfigTags.pushObject({
+        siteName: index,
+        tagName: desiredConfigsSiteTags[index],
+        newTagName: null
+      }, this);
+    }
+    console.debug("setServiceConfigTags(): Setting 'serviceConfigTags' to ", newServiceConfigTags);
+    this.set('serviceConfigTags', newServiceConfigTags);
+  },
+
+  /**
+   * check whether host component must be restarted
+   * @param serviceConfig
+   * @param restartData
+   */
+  checkForRestart: function(serviceConfig, restartData){
+    var hostsCount = 0;
+    var hostComponentCount = 0;
+    var restartHosts = Ember.A([]);
+    if(restartData != null && restartData.hostAndHostComponents != null && !jQuery.isEmptyObject(restartData.hostAndHostComponents)){
+      serviceConfig.set('restartRequired', true);
+      for(var host in restartData.hostAndHostComponents){
+        hostsCount++;
+        var componentsArray = Ember.A([]);
+        for(var component in restartData.hostAndHostComponents[host]){
+          componentsArray.push(Ember.Object.create({name: App.format.role(component)}));
+          hostComponentCount++;
+        }
+        var hostObj = App.Host.find(host);
+        restartHosts.push(Ember.Object.create({hostData: hostObj, components: componentsArray}))
+      }
+      serviceConfig.set('restartRequiredHostsAndComponents', restartHosts);
+      serviceConfig.set('restartRequiredMessage', 'Service needs '+hostComponentCount+' components on ' + hostsCount +' hosts to be restarted.')
+    }
   },
 
   /**
    * Load child components to service config object
-   * @param _componentConfig
+   * @param configs
    * @param componentConfig
+   * @param restartData
    */
-  loadComponentConfigs: function (_componentConfig, componentConfig) {
-    _componentConfig.configs.forEach(function (_serviceConfigProperty) {
+  loadComponentConfigs: function (configs, componentConfig, restartData) {
+    configs.forEach(function (_serviceConfigProperty) {
       console.log("config", _serviceConfigProperty);
       if (!_serviceConfigProperty) return;
+      var overrides = _serviceConfigProperty.overrides;
+      // we will populate the override properties below
+      _serviceConfigProperty.overrides = null;
+
+      if (_serviceConfigProperty.isOverridable === undefined) {
+        _serviceConfigProperty.isOverridable = true;
+      }
       var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
+      var propertyName = serviceConfigProperty.get('name');
+      if (restartData != null && propertyName in restartData.propertyToHostAndComponent) {
+        serviceConfigProperty.set('isRestartRequired', true);
+        var message = '<ul>';
+        for(var host in restartData.propertyToHostAndComponent[propertyName]){
+          var appHost = App.Host.find(host);
+          message += "<li>"+appHost.get('publicHostName');
+          message += "<ul>";
+          restartData.propertyToHostAndComponent[propertyName][host].forEach(function(comp){
+            message += "<li>"+App.format.role(comp)+"</li>"
+          });
+          message += "</ul></li>";
+        }
+        message += "</ul>";
+        serviceConfigProperty.set('restartRequiredMessage', message);
+      }
       if (serviceConfigProperty.get('serviceName') === this.get('content.serviceName')) {
         // serviceConfigProperty.serviceConfig = componentConfig;
-        if (App.db.getUser().admin) {
+        if (App.get('isAdmin')) {
           serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
         } else {
           serviceConfigProperty.set('isEditable', false);
@@ -465,99 +557,237 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       } else {
         serviceConfigProperty.set('isVisible', false);
       }
+      if (overrides != null) {
+        for(var overridenValue in overrides){
+          var hostsArray = overrides[overridenValue];
+          var newSCP = App.ServiceConfigProperty.create(_serviceConfigProperty);
+          newSCP.set('value', overridenValue);
+          newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
+          newSCP.set('parentSCP', serviceConfigProperty);
+          newSCP.set('selectedHostOptions', Ember.A(hostsArray));
+          var parentOverridesArray = serviceConfigProperty.get('overrides');
+          if(parentOverridesArray == null){
+            parentOverridesArray = Ember.A([]);
+            serviceConfigProperty.set('overrides', parentOverridesArray);
+          }
+          parentOverridesArray.pushObject(newSCP);
+          console.debug("createOverrideProperty(): Added:", newSCP, " to main-property:", serviceConfigProperty)
+        }
+      }
       componentConfig.configs.pushObject(serviceConfigProperty);
       serviceConfigProperty.validate();
     }, this);
   },
 
   /**
+   * Determines which host components are running on each host.
+   * @param status 'running' or 'unknown'
+   * @return Returned in the following format:
+   * {
+   *  runningHosts: {
+   *    'hostname1': 'NameNode, DataNode, JobTracker',
+   *    'hostname2': 'DataNode',
+   *  },
+   *  runningComponentCount: 5
+   * }
+   */
+  getHostComponentsByStatus: function (services, status) {
+    var hosts = [];
+    var componentCount = 0;
+    var hostToIndexMap = {};
+    services.forEach(function (service) {
+      var hostComponents = (status == App.HostComponentStatus.started) ? service.get('runningHostComponents') : service.get('unknownHostComponents');
+      if (hostComponents != null) {
+        hostComponents.forEach(function (hc) {
+          var hostName = hc.get('host.publicHostName');
+          var componentName = hc.get('displayName');
+          componentCount++;
+          if (!(hostName in hostToIndexMap)) {
+            hosts.push({
+              name: hostName,
+              components: ""
+            });
+            hostToIndexMap[hostName] = hosts.length - 1;
+          }
+          var hostObj = hosts[hostToIndexMap[hostName]];
+          if (hostObj.components.length > 0)
+            hostObj.components += ", " + componentName;
+          else
+            hostObj.components += componentName;
+        });
+        hosts.sort(function (a, b) {
+          return a.name.localeCompare(b.name);
+        });
+      }
+    });
+    return {
+      hosts: hosts,
+      componentCount: componentCount
+    };
+  },
+  
+  /**
    * open popup with appropriate message
    */
   restartServicePopup: function (event) {
+    if(this.get("isSubmitDisabled")){
+      return;
+    }
     var header;
     var message;
+    var messageClass;
+    var hasUnknown = false;
     var value;
-    var flag;
-    if ((this.get('content.serviceName') !== 'HDFS' && this.get('content.isStopped') === true) || ((this.get('content.serviceName') === 'HDFS') && this.get('content.isStopped') === true && (!App.Service.find().someProperty('id', 'MAPREDUCE') || App.Service.find('MAPREDUCE').get('isStopped')))) {
-      var result = this.saveServiceConfigProperties();
-      flag = result.flag;
-      if (flag === true) {
-        header = Em.I18n.t('services.service.config.startService');
-        message = Em.I18n.t('services.service.config.saveConfig');
-      } else {
-        header = Em.I18n.t('common.failure');
-        message = result.message;
-        value = result.value;
+    var flag = false;
+    var runningHosts = null;
+    var runningComponentCount = 0;
+    var unknownHosts = null;
+    var unknownComponentCount = 0;
+
+    var dfd = $.Deferred();
+    var self = this;
+    var serviceName = this.get('content.serviceName');
+    var displayName = this.get('content.displayName');
+
+    if (App.supports.hostOverrides || 
+        (serviceName !== 'HDFS' && this.get('content.isStopped') === true) ||
+        ((serviceName === 'HDFS') && this.get('content.isStopped') === true && (!App.Service.find().someProperty('id', 'MAPREDUCE') || App.Service.find('MAPREDUCE').get('isStopped')))) {
+
+      // warn the user if any service directories are being changed
+      var dirChanged = false;
+
+      if (serviceName === 'HDFS') {
+        var hdfsConfigs = self.get('stepConfigs').findProperty('serviceName', 'HDFS').get('configs');
+        if (
+          hdfsConfigs.findProperty('name', 'dfs_name_dir').get('isNotDefaultValue') ||
+          hdfsConfigs.findProperty('name', 'fs_checkpoint_dir').get('isNotDefaultValue') ||
+          hdfsConfigs.findProperty('name', 'dfs_data_dir').get('isNotDefaultValue')
+        ) {
+          dirChanged = true;
+        }
+      } else if (serviceName === 'MAPREDUCE') {
+        var mapredConfigs = self.get('stepConfigs').findProperty('serviceName', 'MAPREDUCE').get('configs');
+        if (
+          mapredConfigs.findProperty('name', 'mapred_local_dir').get('isNotDefaultValue') ||
+          mapredConfigs.findProperty('name', 'mapred_system_dir').get('isNotDefaultValue')
+        ) {
+          dirChanged = true;
+        }
       }
 
+      if (dirChanged) {
+        App.showConfirmationPopup(function() {
+          dfd.resolve();
+        }, Em.I18n.t('services.service.config.confirmDirectoryChange').format(displayName));
+      } else {
+        dfd.resolve();
+      }
+
+      dfd.done(function() {
+        var result = self.saveServiceConfigProperties();
+        App.router.get('clusterController').updateClusterData();
+        flag = result.flag;
+        if (result.flag === true) {
+          header = Em.I18n.t('services.service.config.saved');
+          message = Em.I18n.t('services.service.config.saved.message');
+          messageClass = 'alert alert-success';
+          // warn the user if any of the components are in UNKNOWN state
+          var uhc;
+          if (self.get('content.serviceName') !== 'HDFS' || (self.get('content.serviceName') === 'HDFS' && !App.Service.find().someProperty('id', 'MAPREDUCE'))) {
+            uhc = self.getHostComponentsByStatus([self.get('content')], App.HostComponentStatus.unknown);
+          } else {
+            uhc = self.getHostComponentsByStatus([self.get('content'), App.Service.find('MAPREDUCE')], App.HostComponentStatus.unknown);
+          }
+          unknownHosts = uhc.hosts;
+          unknownComponentCount = uhc.componentCount;
+        } else {
+          header = Em.I18n.t('common.failure');
+          message = result.message;
+          messageClass = 'alert alert-error';
+          value = result.value;
+        }
+      });
     } else {
+      var rhc;
       if (this.get('content.serviceName') !== 'HDFS' || (this.get('content.serviceName') === 'HDFS' && !App.Service.find().someProperty('id', 'MAPREDUCE'))) {
-        header = Em.I18n.t('services.service.config.stopService');
+        rhc = this.getHostComponentsByStatus([this.get('content')], App.HostComponentStatus.started);
+        header = Em.I18n.t('services.service.config.notSaved');
         message = Em.I18n.t('services.service.config.msgServiceStop');
       } else {
-        header = Em.I18n.t('services.service.config.stopService');
+        rhc = this.getHostComponentsByStatus([this.get('content'), App.Service.find('MAPREDUCE')], App.HostComponentStatus.started);
+        header = Em.I18n.t('services.service.config.notSaved');
         message = Em.I18n.t('services.service.config.msgHDFSMapRServiceStop');
       }
+      messageClass = 'alert alert-error';
+      runningHosts = rhc.hosts;
+      runningComponentCount = rhc.componentCount;
+      dfd.resolve();
     }
-    App.ModalPopup.show({
-      header: header,
-      primary: Em.I18n.t('ok'),
-      secondary: null,
-      onPrimary: function () {
-        this.hide();
-      },
-      bodyClass: Ember.View.extend({
-        flag: flag,
-        message: message,
-        siteProperties: value,
-        getDisplayMessage: function () {
-          var displayMsg = [];
-          var siteProperties = this.get('siteProperties');
-          if (siteProperties) {
-            siteProperties.forEach(function (_siteProperty) {
-              var displayProperty = _siteProperty.siteProperty;
-              var displayNames = _siteProperty.displayNames;
-              /////////
-              if (displayNames && displayNames.length) {
-                if (displayNames.length === 1) {
-                  displayMsg.push(displayProperty + Em.I18n.t('as') + displayNames[0]);
-                } else {
-                  var name;
-                  displayNames.forEach(function (_name, index) {
-                    if (index === 0) {
-                      name = _name;
-                    } else if (index === siteProperties.length - 1) {
-                      name = name + Em.I18n.t('and') + _name;
-                    } else {
-                      name = name + ', ' + _name;
-                    }
-                  }, this);
-                  displayMsg.push(displayProperty + Em.I18n.t('as') + name);
 
-                }
-              } else {
-                displayMsg.push(displayProperty);
-              }
-            }, this);
+    dfd.done(function () {
+      App.ModalPopup.show({
+        header: header,
+        primary: Em.I18n.t('ok'),
+        secondary: null,
+        onPrimary: function () {
+          this.hide();
+          if (flag) {
+            self.loadStep();
           }
-          return displayMsg;
+        },
+        bodyClass: Ember.View.extend({
+          flag: flag,
+          message: message,
+          messageClass: messageClass,
+          runningHosts: runningHosts,
+          runningComponentCount: runningComponentCount,
+          unknownHosts: unknownHosts,
+          unknownComponentCount: unknownComponentCount,
+          siteProperties: value,
+          getDisplayMessage: function () {
+            var displayMsg = [];
+            var siteProperties = this.get('siteProperties');
+            if (siteProperties) {
+              siteProperties.forEach(function (_siteProperty) {
+                var displayProperty = _siteProperty.siteProperty;
+                var displayNames = _siteProperty.displayNames;
+                /////////
+                if (displayNames && displayNames.length) {
+                  if (displayNames.length === 1) {
+                    displayMsg.push(displayProperty + Em.I18n.t('as') + displayNames[0]);
+                  } else {
+                    var name;
+                    displayNames.forEach(function (_name, index) {
+                      if (index === 0) {
+                        name = _name;
+                      } else if (index === siteProperties.length - 1) {
+                        name = name + Em.I18n.t('and') + _name;
+                      } else {
+                        name = name + ', ' + _name;
+                      }
+                    }, this);
+                    displayMsg.push(displayProperty + Em.I18n.t('as') + name);
 
-        }.property('siteProperties'),
-        template: Ember.Handlebars.compile([
-          '<h5>{{view.message}}</h5>',
-          '{{#unless view.flag}}',
-          '<br/>',
-          '<div class="pre-scrollable" style="max-height: 250px;">',
-          '<ul>',
-          '{{#each val in view.getDisplayMessage}}',
-          '<li>',
-          '{{val}}',
-          '</li>',
-          '{{/each}}',
-          '</ul>',
-          '</div>',
-          '{{/unless}}'
-        ].join('\n'))
+                  }
+                } else {
+                  displayMsg.push(displayProperty);
+                }
+              }, this);
+            }
+            return displayMsg;
+
+          }.property('siteProperties'),
+
+          runningHostsMessage: function () {
+            return Em.I18n.t('services.service.config.stopService.runningHostComponents').format(this.get('runningComponentCount'), this.get('runningHosts.length'));
+          }.property('runningComponentCount', 'runningHosts.length'),
+
+          unknownHostsMessage: function () {
+            return Em.I18n.t('services.service.config.stopService.unknownHostComponents').format(this.get('unknownComponentCount'), this.get('unknownHosts.length'));
+          }.property('unknownComponentCount', 'unknownHosts.length'),
+
+          templateName: require('templates/main/service/info/configs_save_popup')
+        })
       })
     });
   },
@@ -571,34 +801,23 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       message: null,
       value: null
     };
+    this.savedHostToOverrideSiteToTagMap = {};
     var configs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs');
     this.saveGlobalConfigs(configs);
     this.saveSiteConfigs(configs);
-    this.setCustomConfigs();
-    /*
-     For now, we are skipping validation checks to see if the user is overriding already-defined paramaters, as
-     the user needs this flexibility.  We may turn this back on as a warning in the future...
-     if (result.flag !== true) {
-     result.message = 'Error in custom configuration. Some properties entered in the box are already exposed on this page';
-     return result;
-     }
+
+    /**
+     * First we put cluster configurations, which automatically creates /configurations
+     * resources. Next we update host level overrides.
      */
-    result.flag = this.createConfigurations();
-    if (result.flag === true) {
-      if (this.get('content.serviceName') !== 'HDFS') {
-        result.flag = this.applyCreatedConfToService(this.get('content.serviceName'));
-      } else {
-        var mapRFlag = true;
-        if (App.Service.find().someProperty('id', 'MAPREDUCE')) {
-          mapRFlag = this.applyCreatedConfToService('MAPREDUCE');
-        }
-        if (!mapRFlag) {
-          result.message = Em.I18n.t('services.service.config.failSaveConfig');
-        }
-        result.flag = this.applyCreatedConfToService(this.get('content.serviceName')) && mapRFlag;
+    result.flag = this.doPUTClusterConfigurations();
+    if (!result.flag) {
+      result.message = Em.I18n.t('services.service.config.failSaveConfig');
+    }else{
+      result.flag = result.flag && this.doPUTHostOverridesConfigurationSites();
+      if (!result.flag) {
+        result.message = Em.I18n.t('services.service.config.failSaveConfigHostExceptions');
       }
-    } else {
-      result.message = Em.I18n.t('services.service.config.failCreateConfig');
     }
     console.log("The result from applyCreatdConfToService is: " + result);
     return result;
@@ -610,18 +829,31 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    */
   saveGlobalConfigs: function (configs) {
     var globalConfigs = this.get('globalConfigs');
-    configs.filterProperty('id', 'puppet var').forEach(function (_config) {
-      if (globalConfigs.someProperty('name', _config.name)) {
-        globalConfigs.findProperty('name', _config.name).value = _config.value;
+    configs.filterProperty('id', 'puppet var').forEach(function (uiConfigProperty) {
+      if (globalConfigs.someProperty('name', uiConfigProperty.name)) {
+        var modelGlobalConfig = globalConfigs.findProperty('name', uiConfigProperty.name);
+        modelGlobalConfig.value = uiConfigProperty.value;
+        var uiOverrides = uiConfigProperty.get('overrides');
+        if(uiOverrides!=null && uiOverrides.get('length')>0){
+          modelGlobalConfig.overrides = {};
+          uiOverrides.forEach(function(uiOverride){
+            var value = uiOverride.get('value');
+            modelGlobalConfig.overrides[value] = [];
+            uiOverride.get('selectedHostOptions').forEach(function(host){
+              modelGlobalConfig.overrides[value].push(host);
+            });
+          });
+        }
       } else {
         globalConfigs.pushObject({
-          name: _config.name,
-          value: _config.value
+          name: uiConfigProperty.name,
+          value: uiConfigProperty.value
         });
       }
     }, this);
 
     this.setHiveHostName(globalConfigs);
+    this.setOozieHostName(globalConfigs);
     this.set('globalConfigs', globalConfigs);
   },
 
@@ -631,28 +863,84 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    */
   setHiveHostName: function (globals) {
     if (globals.someProperty('name', 'hive_database')) {
-      //TODO: Hive host depends on the type of db selected. Change puppet variable name if postgres is not the default db
       var hiveDb = globals.findProperty('name', 'hive_database');
       if (hiveDb.value === 'New MySQL Database') {
-        if (globals.someProperty('name', 'hive_ambari_host')) {
-          globals.findProperty('name', 'hive_ambari_host').name = 'hive_hostname';
+        var ambariHost = globals.findProperty('name', 'hive_ambari_host');
+        if (ambariHost) {
+          ambariHost.name = 'hive_hostname';
         }
         globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_host'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_database'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
       } else if (hiveDb.value === 'Existing MySQL Database'){
-        globals.findProperty('name', 'hive_existing_mysql_host').name = 'hive_hostname';
+        var existingMySqlHost = globals.findProperty('name', 'hive_existing_mysql_host');
+        if (existingMySqlHost) {
+          existingMySqlHost.name = 'hive_hostname';
+        }
         globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
-      } else{ //existing oracle database
-        globals.findProperty('name', 'hive_existing_oracle_host').name = 'hive_hostname';
+      } else { //existing oracle database
+        var existingOracleHost = globals.findProperty('name', 'hive_existing_oracle_host');
+        if (existingOracleHost) {
+          existingOracleHost.name = 'hive_hostname';
+        }
         globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_host'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_database'));
+      }
+
+    }
+  },
+
+  /**
+   * set oozie hostnames in global configs
+   * @param globals
+   */
+  setOozieHostName: function (globals) {
+    if (globals.someProperty('name', 'oozie_database')) {
+      var oozieDb = globals.findProperty('name', 'oozie_database');
+      if (oozieDb.value === 'New Derby Database'){
+        globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
+        globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_database'));
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
+      } else if (oozieDb.value === 'New MySQL Database') {
+        var ambariHost = globals.findProperty('name', 'oozie_ambari_host');
+        if (ambariHost) {
+          ambariHost.name = 'oozie_hostname';
+        }
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_database'));
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
+        globals = globals.without(globals.findProperty('name', 'oozie_derby_database'));
+
+      } else if (oozieDb.value === 'Existing MySQL Database') {
+        var existingMySqlHost = globals.findProperty('name', 'oozie_existing_mysql_host');
+        if (existingMySqlHost) {
+          existingMySqlHost.name = 'oozie_hostname';
+        }
+        globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
+        globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
+        globals = globals.without(globals.findProperty('name', 'oozie_derby_database'));
+      } else{ //existing oracle database
+        var existingOracleHost = globals.findProperty('name', 'oozie_existing_oracle_host');
+        if (existingOracleHost) {
+          existingOracleHost.name = 'oozie_hostname';
+        }
+        globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
+        globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));
+        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_database'));
+        globals = globals.without(globals.findProperty('name', 'oozie_derby_database'));
       }
 
     }
@@ -663,38 +951,35 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @param configs
    */
   saveSiteConfigs: function (configs) {
-    var storedConfigs = configs.filterProperty('id', 'site property').filterProperty('value');
-    var uiConfigs = this.loadUiSideConfigs();
-    this.set('uiConfigs', storedConfigs.concat(uiConfigs));
+    //storedConfigs contains custom configs as well
+    var serviceConfigProperties = configs.filterProperty('id', 'site property');
+    serviceConfigProperties.forEach(function(_config){
+      if(typeof _config.get('value') === "boolean") _config.set('value', _config.value.toString());
+    });
+    var storedConfigs = serviceConfigProperties.filterProperty('value');
+    var allUiConfigs = this.loadUiSideConfigs(this.get('configMapping').all());
+    this.set('uiConfigs', storedConfigs.concat(allUiConfigs));
   },
 
   /**
    * return configs from the UI side
+   * @param configMapping array with configs
    * @return {Array}
    */
-  loadUiSideConfigs: function () {
+  loadUiSideConfigs: function (configMapping) {
     var uiConfig = [];
-    var configs = this.get('configMapping').filterProperty('foreignKey', null);
+    var configs = configMapping.filterProperty('foreignKey', null);
     configs.forEach(function (_config) {
-      var value = this.getGlobConfigValue(_config.templateName, _config.value, _config.name);
-      if (value !== null) {
+      var valueWithOverrides = this.getGlobConfigValueWithOverrides(_config.templateName, _config.value, _config.name);
+      if (valueWithOverrides !== null) {
         uiConfig.pushObject({
           "id": "site property",
           "name": _config.name,
-          "value": value,
-          "filename": _config.filename
+          "value": valueWithOverrides.value,
+          "filename": _config.filename,
+          "overrides": valueWithOverrides.overrides
         });
       }
-    }, this);
-    var dependentConfig = this.get('configMapping').filterProperty('foreignKey');
-    dependentConfig.forEach(function (_config) {
-      this.setConfigValue(uiConfig, _config);
-      uiConfig.pushObject({
-        "id": "site property",
-        "name": _config.name,
-        "value": _config.value,
-        "filename": _config.filename
-      });
     }, this);
     return uiConfig;
   },
@@ -704,40 +989,44 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @param templateName
    * @param expression
    * @param name
-   * @return {*}
+   * @return {
+   *   value: '...',
+   *   overrides: {
+   *    'value1': [h1, h2],
+   *    'value2': [h3]
+   *   }
+   * }
    */
-  getGlobConfigValue: function (templateName, expression, name) {
+  getGlobConfigValueWithOverrides: function (templateName, expression, name) {
     var express = expression.match(/<(.*?)>/g);
     var value = expression;
     if (express == null) {
-      return expression;
+      return { value : expression, overrides: {}};      // if site property do not map any global property then return the value
     }
-
+    var overrideHostToValue = {};
     express.forEach(function (_express) {
       //console.log("The value of template is: " + _express);
       var index = parseInt(_express.match(/\[([\d]*)(?=\])/)[1]);
       if (this.get('globalConfigs').someProperty('name', templateName[index])) {
         //console.log("The name of the variable is: " + this.get('content.serviceConfigProperties').findProperty('name', templateName[index]).name);
-        var globValue = this.get('globalConfigs').findProperty('name', templateName[index]).value;
+        var globalObj = this.get('globalConfigs').findProperty('name', templateName[index]);
+        var globValue = globalObj.value;
         // Hack for templeton.zookeeper.hosts
+        var preReplaceValue = null;
         if (value !== null) {   // if the property depends on more than one template name like <templateName[0]>/<templateName[1]> then don't proceed to the next if the prior is null or not found in the global configs
-          if (name === "templeton.zookeeper.hosts" || name === 'hbase.zookeeper.quorum') {
-            var zooKeeperPort = '2181';
-            if (typeof globValue === 'string') {
-              var temp = [];
-              temp.push(globValue);
-              globValue = temp;
-            }
-            if (name === "templeton.zookeeper.hosts") {
-              var temp = [];
-              globValue.forEach(function (_host, index) {
-                temp.push(globValue[index] + ':' + zooKeeperPort);
-              }, this);
-              globValue = temp;
-            }
-            value = value.replace(_express, globValue.toString());
-          } else {
-            value = value.replace(_express, globValue);
+          preReplaceValue = value;
+          value = this._replaceConfigValues(name, _express, value, globValue);
+        }
+        if(globalObj.overrides!=null){
+          for(ov in globalObj.overrides){
+            var hostsArray = globalObj.overrides[ov];
+            hostsArray.forEach(function(host){
+              if(!(host in overrideHostToValue)){
+                overrideHostToValue[host] = this._replaceConfigValues(name, _express, preReplaceValue, ov);
+              }else{
+                overrideHostToValue[host] = this._replaceConfigValues(name, _express, overrideHostToValue[host], ov);
+              }
+            }, this);
           }
         }
       } else {
@@ -750,89 +1039,232 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         value = null;
       }
     }, this);
-    return value;
+
+    var valueWithOverrides = {
+        value: value,
+        overrides: {}
+    };
+    if(!jQuery.isEmptyObject(overrideHostToValue)){
+      for(var host in overrideHostToValue){
+        var hostVal = overrideHostToValue[host];
+        if(!(hostVal in valueWithOverrides.overrides)){
+          valueWithOverrides.overrides[hostVal] = [];
+        }
+        valueWithOverrides.overrides[hostVal].push(host);
+      }
+    }
+    return valueWithOverrides;
   },
-  /**
-   * Set all site property that are derived from other site-properties
-   */
-  setConfigValue: function (uiConfig, config) {
-    if (config.value == null) {
-      return;
+  
+  _replaceConfigValues: function (name, express, value, globValue) {
+    if (name === "templeton.zookeeper.hosts" || name === 'hbase.zookeeper.quorum') {
+      var zooKeeperPort = '2181';
+      if (typeof globValue === 'string') {
+        var temp = [];
+        temp.push(globValue);
+        globValue = temp;
+      }
+      if (name === "templeton.zookeeper.hosts") {
+        var temp = [];
+        globValue.forEach(function (_host, index) {
+          temp.push(globValue[index] + ':' + zooKeeperPort);
+        }, this);
+        globValue = temp;
+      }
+      value = value.replace(express, globValue.toString());
+    } else {
+      value = value.replace(express, globValue);
     }
-    var fkValue = config.value.match(/<(foreignKey.*?)>/g);
-    if (fkValue) {
-      fkValue.forEach(function (_fkValue) {
-        var index = parseInt(_fkValue.match(/\[([\d]*)(?=\])/)[1]);
-        if (uiConfig.someProperty('name', config.foreignKey[index])) {
-          var globalValue = uiConfig.findProperty('name', config.foreignKey[index]).value;
-          config.value = config.value.replace(_fkValue, globalValue);
-        } else if (this.get('globalConfigs').someProperty('name', config.foreignKey[index])) {
-          var globalValue;
-          if (this.get('globalConfigs').findProperty('name', config.foreignKey[index]).value === '') {
-            globalValue = this.get('globalConfigs').findProperty('name', config.foreignKey[index]).defaultValue;
-          } else {
-            globalValue = this.get('globalConfigs').findProperty('name', config.foreignKey[index]).value;
-          }
-          config.value = config.value.replace(_fkValue, globalValue);
-        }
-      }, this);
-    }
-    if (fkValue = config.name.match(/<(foreignKey.*?)>/g)) {
-      fkValue.forEach(function (_fkValue) {
-        var index = parseInt(_fkValue.match(/\[([\d]*)(?=\])/)[1]);
-        if (uiConfig.someProperty('name', config.foreignKey[index])) {
-          var globalValue = uiConfig.findProperty('name', config.foreignKey[index]).value;
-          config.name = config.name.replace(_fkValue, globalValue);
-        } else if (this.get('globalConfigs').someProperty('name', config.foreignKey[index])) {
-          var globalValue;
-          if (this.get('globalConfigs').findProperty('name', config.foreignKey[index]).value === '') {
-            globalValue = this.get('globalConfigs').findProperty('name', config.foreignKey[index]).defaultValue;
-          } else {
-            globalValue = this.get('globalConfigs').findProperty('name', config.foreignKey[index]).value;
-          }
-          config.name = config.name.replace(_fkValue, globalValue);
-        }
-      }, this);
-    }
-    //For properties in the configMapping file having foreignKey and templateName properties.
-    var templateValue = config.value.match(/<(templateName.*?)>/g);
-    if (templateValue) {
-      templateValue.forEach(function (_value) {
-        var index = parseInt(_value.match(/\[([\d]*)(?=\])/)[1]);
-        if (this.get('globalConfigs').someProperty('name', config.templateName[index])) {
-          var globalValue = this.get('globalConfigs').findProperty('name', config.templateName[index]).value;
-          config.value = config.value.replace(_value, globalValue);
-        } else {
-          config.value = null;
-        }
-      }, this);
-    }
+    return value;
   },
 
   /**
-   * try to create configuration and return true for success or false for failure
+   * Saves cluster level configurations for all necessary sites.
+   * PUT calls are made to /api/v1/clusters/clusterName for each site.
+   * 
    * @return {Boolean}
    */
-  createConfigurations: function () {
+  doPUTClusterConfigurations: function () {
     var result = true;
     var serviceConfigTags = this.get('serviceConfigTags');
     this.setNewTagNames(serviceConfigTags);
+    var siteNameToServerDataMap = {};
+    
     serviceConfigTags.forEach(function (_serviceTags) {
       if (_serviceTags.siteName === 'global') {
         console.log("TRACE: Inside global");
-        result = result && this.createConfigSite(this.createGlobalSiteObj(_serviceTags.newTagName));
+        var serverGlobalConfigs = this.createGlobalSiteObj(_serviceTags.newTagName);
+        siteNameToServerDataMap['global'] = serverGlobalConfigs;
+        if(this.isConfigChanged(App.config.loadedConfigurationsCache['global_'+this.loadedClusterSiteToTagMap['global']], serverGlobalConfigs.properties)){
+          result = result && this.doPUTClusterConfigurationSite(serverGlobalConfigs);
+        }
       } else if (_serviceTags.siteName === 'core-site') {
         console.log("TRACE: Inside core-site");
         if (this.get('content.serviceName') === 'HDFS') {
-          result = result && this.createConfigSite(this.createCoreSiteObj(_serviceTags.newTagName));
+          var coreSiteConfigs = this.createCoreSiteObj(_serviceTags.newTagName);
+          siteNameToServerDataMap['core-site'] = coreSiteConfigs;
+          if(this.isConfigChanged(App.config.loadedConfigurationsCache['core-site_'+this.loadedClusterSiteToTagMap['core-site']], coreSiteConfigs.properties)){
+            result = result && this.doPUTClusterConfigurationSite(coreSiteConfigs);
+          }
         }
       } else {
-        result = result && this.createConfigSite(this.createSiteObj(_serviceTags.siteName, _serviceTags.newTagName));
-      }
+        var serverConfigs = this.createSiteObj(_serviceTags.siteName, _serviceTags.newTagName);
+        siteNameToServerDataMap[_serviceTags.siteName] = serverConfigs;
+        if(this.isConfigChanged(App.config.loadedConfigurationsCache[_serviceTags.siteName+'_'+this.loadedClusterSiteToTagMap[_serviceTags.siteName]], serverConfigs.properties)){
+          result = result && this.doPUTClusterConfigurationSite(serverConfigs);
+        }
+     }
     }, this);
+    this.savedSiteNameToServerServiceConfigDataMap = siteNameToServerDataMap;
+    return result;
+  },
+  
+
+  /**
+   * Compares the loaded config values with the saving config values.
+   */
+  isConfigChanged: function (loadedConfig, savingConfig) {
+    var changed = false;
+    if (loadedConfig != null && savingConfig != null) {
+      var seenLoadKeys = [];
+      for ( var loadKey in loadedConfig) {
+        seenLoadKeys.push(loadKey);
+        var loadValue = loadedConfig[loadKey];
+        var saveValue = savingConfig[loadKey];
+        if("boolean" == typeof(saveValue)){
+          saveValue = saveValue.toString();
+        }
+        if(saveValue==null){
+          saveValue = "null";
+        }
+        if (loadValue !== saveValue) {
+          changed = true;
+          break;
+        }
+      }
+      for ( var saveKey in savingConfig) {
+        if (seenLoadKeys.indexOf(saveKey) < 0) {
+          changed = true;
+          break;
+        }
+      }
+    }
+    return changed;
+  },
+  
+  /**
+   * Saves configuration of a particular site. The provided data
+   * contains the site name and tag to be used.
+   */
+  doPUTClusterConfigurationSite: function (data) {
+    var result;
+    var url = this.getUrl('', '');
+    var clusterData = {
+        Clusters: {
+          desired_config: data
+        }
+    };
+    console.log("applyClusterConfigurationToSite(): PUTting data:", clusterData);
+    $.ajax({
+      type: 'PUT',
+      url: url,
+      async: false,
+      dataType: 'text',
+      data: JSON.stringify(clusterData),
+      timeout: 5000,
+      success: function (data) {
+        console.log("applyClusterConfigurationToSite(): In success for data:", data);
+        result = true;
+      },
+      error: function (request, ajaxOptions, error) {
+        console.log('applyClusterConfigurationToSite(): ERROR:', request.responseText, ", error=", error);
+        result = false;
+      },
+      statusCode: require('data/statusCodes')
+    });
+    console.log("applyClusterConfigurationToSite(): Exiting with result=" + result);
     return result;
   },
 
+
+  /**
+   * Creates host level overrides for service configuration.
+   * 
+   */
+  doPUTHostOverridesConfigurationSites: function(){
+    var singlePUTHostData = [];
+    var savedHostSiteArray = [];
+    for ( var host in this.savedHostToOverrideSiteToTagMap) {
+      for ( var siteName in this.savedHostToOverrideSiteToTagMap[host]) {
+        var tagName = this.savedHostToOverrideSiteToTagMap[host][siteName].tagName;
+        var map = this.savedHostToOverrideSiteToTagMap[host][siteName].map;
+        savedHostSiteArray.push(host+"///"+siteName);
+        singlePUTHostData.push({
+          RequestInfo: {
+            query: 'Hosts/host_name='+host
+          },
+          Body: {
+            Hosts: {
+              desired_config: {
+                type: siteName,
+                tag: tagName,
+                properties: map
+              }
+            }
+          }
+        });
+      }
+    }
+    // Now cleanup removed overrides
+    for ( var loadedHost in this.loadedHostToOverrideSiteToTagMap) {
+      for ( var loadedSiteName in this.loadedHostToOverrideSiteToTagMap[loadedHost]) {
+        if (!(savedHostSiteArray.contains(loadedHost + "///" + loadedSiteName))) {
+          // This host-site combination was loaded, but not saved.
+          // Meaning it is not needed anymore. Hence send a DELETE command.
+          singlePUTHostData.push({
+            RequestInfo: {
+              query: 'Hosts/host_name='+loadedHost
+            },
+            Body: {
+              Hosts: {
+                desired_config: {
+                  type: loadedSiteName,
+                  tag: this.loadedHostToOverrideSiteToTagMap[loadedHost][loadedSiteName],
+                  selected: false
+                }
+              }
+            }
+          });
+        }
+      }
+    }
+    console.debug("createHostOverrideConfigSites(): PUTting host-overrides. Data=",singlePUTHostData);
+    if(singlePUTHostData.length>0){
+      var url = this.getUrl('', '/hosts');
+      var hostOverrideResult = true;
+      $.ajax({
+        type: 'PUT',
+        url: url,
+        data: JSON.stringify(singlePUTHostData),
+        async: false,
+        dataType: 'text',
+        timeout: 5000,
+        success: function (data) {
+          var jsonData = jQuery.parseJSON(data);
+          hostOverrideResult = true;
+          console.log("createHostOverrideConfigSites(): SUCCESS:", url, ". RESPONSE:",jsonData);
+        },
+        error: function (request, ajaxOptions, error) {
+          hostOverrideResult = false;
+          console.log("createHostOverrideConfigSites(): ERROR:", url, ". RESPONSE:",request.responseText);
+        },
+        statusCode: require('data/statusCodes')
+      });
+      return hostOverrideResult;
+    }
+    return true;
+  },
+   
   /**
    * add newTagName property to each config in serviceConfigs
    * @param serviceConfigs
@@ -842,47 +1274,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     serviceConfigs.forEach(function (_serviceConfigs) {
       _serviceConfigs.newTagName = 'version' + time;
     }, this);
-  },
-
-  /**
-   * send request to the server to create configs and return true for success and false for failure
-   * @param data
-   * @return {*}
-   */
-  createConfigSite: function (data) {
-    var result;
-    var realData = data;
-    console.log("Inside createConfigSite");
-    var clusterName = App.router.getClusterName();
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/configurations';
-    $.ajax({
-      type: 'POST',
-      url: url,
-      data: JSON.stringify(data),
-      async: false,
-      dataType: 'text',
-      timeout: 5000,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        result = true;
-        console.log("TRACE: In success function for the createConfigSite");
-        console.log("TRACE: value of the url is: " + url);
-        console.log("TRACE: value of the received data is: " + jsonData);
-      },
-
-      error: function (request, ajaxOptions, error) {
-        result = false;
-        console.log('TRACE: In Error ');
-        console.log("The original data was: " + JSON.stringify(realData));
-        console.log('TRACE: Error message is: ' + request.responseText);
-        console.log("TRACE: value of the url is: " + url);
-      },
-
-      statusCode: require('data/statusCodes')
-    });
-    console.log("Exiting createConfigSite");
-    console.log("Value of result is: " + result);
-    return result;
   },
 
   /**
@@ -900,11 +1291,68 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           _globalSiteObj.value += "m";
         }
         globalSiteProperties[_globalSiteObj.name] = _globalSiteObj.value;
+        this.recordHostOverride(_globalSiteObj, 'global', tagName, this);
         //console.log("TRACE: name of the global property is: " + _globalSiteObj.name);
         //console.log("TRACE: value of the global property is: " + _globalSiteObj.value);
       }
     }, this);
     return {"type": "global", "tag": tagName, "properties": globalSiteProperties};
+  },
+  
+  recordHostOverride: function(serviceConfigObj, siteName, tagName, self){
+    if('get' in serviceConfigObj){
+      return this._recordHostOverrideFromEmberObj(serviceConfigObj, siteName, tagName, self);
+    }else{
+      return this._recordHostOverrideFromObj(serviceConfigObj, siteName, tagName, self);
+    }
+  },
+  
+  /**
+   * Records all the host overrides per site/tag
+   */
+  _recordHostOverrideFromObj: function(serviceConfigObj, siteName, tagName, self){
+    var overrides = serviceConfigObj.overrides;
+    if(overrides){
+      for(var value in overrides){
+        overrides[value].forEach(function(host){
+          if(!(host in self.savedHostToOverrideSiteToTagMap)){
+            self.savedHostToOverrideSiteToTagMap[host] = {};
+          }
+          if(!(siteName in self.savedHostToOverrideSiteToTagMap[host])){
+            self.savedHostToOverrideSiteToTagMap[host][siteName] = {};
+            self.savedHostToOverrideSiteToTagMap[host][siteName].map = {};
+          }
+          var finalTag = tagName + '_' + host;
+          console.log("recordHostOverride(): Saving host override for host="+host+", site="+siteName+", tag="+finalTag+", (key,value)=("+serviceConfigObj.name+","+value+")");
+          self.savedHostToOverrideSiteToTagMap[host][siteName].tagName = finalTag;
+          self.savedHostToOverrideSiteToTagMap[host][siteName].map[serviceConfigObj.name] = value;
+        });
+      }
+    }
+  },
+
+  /**
+   * Records all the host overrides per site/tag
+   */
+  _recordHostOverrideFromEmberObj: function(serviceConfigObj, siteName, tagName, self){
+    var overrides = serviceConfigObj.get('overrides');
+    if(overrides){
+      overrides.forEach(function(override){
+        override.get('selectedHostOptions').forEach(function(host){
+          if(!(host in self.savedHostToOverrideSiteToTagMap)){
+            self.savedHostToOverrideSiteToTagMap[host] = {};
+          }
+          if(!(siteName in self.savedHostToOverrideSiteToTagMap[host])){
+            self.savedHostToOverrideSiteToTagMap[host][siteName] = {};
+            self.savedHostToOverrideSiteToTagMap[host][siteName].map = {};
+          }
+          var finalTag = tagName + '_' + host;
+          console.log("recordHostOverride(): Saving host override for host="+host+", site="+siteName+", tag="+finalTag+", (key,value)=("+serviceConfigObj.name+","+override.get('value')+")");
+          self.savedHostToOverrideSiteToTagMap[host][siteName].tagName = finalTag;
+          self.savedHostToOverrideSiteToTagMap[host][siteName].map[serviceConfigObj.name] = override.get('value');
+        });
+      });
+    }
   },
 
   /**
@@ -925,9 +1373,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     coreSiteObj.forEach(function (_coreSiteObj) {
       if ((isOozieSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.groups')) && (isHiveSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.groups')) && (isHcatSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.groups'))) {
         coreSiteProperties[_coreSiteObj.name] = _coreSiteObj.value;
+        this.recordHostOverride(_coreSiteObj, 'core-site', tagName, this);
       }
-      //console.log("TRACE: name of the property is: " + _coreSiteObj.name);
-      //console.log("TRACE: value of the property is: " + _coreSiteObj.value);
     }, this);
     return {"type": "core-site", "tag": tagName, "properties": coreSiteProperties};
   },
@@ -943,95 +1390,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var siteProperties = {};
     siteObj.forEach(function (_siteObj) {
       siteProperties[_siteObj.name] = _siteObj.value;
+      this.recordHostOverride(_siteObj, siteName, tagName, this);
     }, this);
     return {"type": siteName, "tag": tagName, "properties": siteProperties};
-  },
-
-  /**
-   * apply created configs to service and return true for success and false for failure
-   * @param serviceName
-   * @return {*}
-   */
-  applyCreatedConfToService: function (serviceName) {
-    var result;
-    var clusterName = App.router.getClusterName();
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/services/' + serviceName;
-    var data = this.getConfigForService(serviceName);
-    var realData = data;
-    $.ajax({
-      type: 'PUT',
-      url: url,
-      async: false,
-      dataType: 'text',
-      data: JSON.stringify(data),
-      timeout: 5000,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: In success function for the applyCreatedConfToService call");
-        console.log("TRACE: value of the url is: " + url);
-        result = true;
-      },
-
-      error: function (request, ajaxOptions, error) {
-        console.log('Error: In Error of apply');
-        console.log("The original data was: " + JSON.stringify(realData));
-        console.log('Error: Error message is: ' + request.responseText);
-        result = false;
-      },
-
-      statusCode: require('data/statusCodes')
-    });
-    console.log("Exiting applyCreatedConfToService");
-    console.log("Value of result is: " + result);
-    return result;
-  },
-
-  /**
-   * return config for service
-   * @param serviceName
-   * @return {Object}
-   */
-  getConfigForService: function (serviceName) {
-    var data = {config: {}};
-    this.get('serviceConfigTags').forEach(function (_serviceTag) {
-      if (_serviceTag.siteName === 'core-site') {
-        if (this.get('content.serviceName') === 'HDFS') {
-          data.config[_serviceTag.siteName] = _serviceTag.newTagName;
-        } else {
-          data.config[_serviceTag.siteName] = _serviceTag.tagName;
-        }
-      } else if (this.get('content.serviceName') === serviceName) {
-        data.config[_serviceTag.siteName] = _serviceTag.newTagName;
-      }
-    }, this);
-    return data;
-  },
-
-  /**
-   * return custom comfig
-   */
-  setCustomConfigs: function () {
-    var site = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs').filterProperty('id', 'conf-site');
-    var siteProperties = [];
-    var flag = true;
-    site.forEach(function (_site) {
-      var keyValue = _site.value.split(/\n+/);
-      if (keyValue) {
-        keyValue.forEach(function (_keyValue) {
-          console.log("The value of the keyValue is: " + _keyValue.trim());
-          _keyValue = _keyValue.trim();
-
-          // split on the first = encountered (the value may contain ='s)
-          var matches = _keyValue.match(/^([^=]+)=(.*)$/);
-          if (matches) {
-            var key = matches[1];
-            var value = matches[2];
-            // Check that entered config is allowed to reconfigure
-            this.setSiteProperty(key, value, _site.name + '.xml');
-          }
-        }, this);
-      }
-    }, this);
   },
 
   /**
@@ -1116,8 +1477,18 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         break;
       case 'HBASE':
         var hbaseMasterHost = serviceConfigs.findProperty('name', 'hbasemaster_host');
-        hbaseMasterHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'HBASE_MASTER').get('host.hostName');
+        hbaseMasterHost.defaultValue = this.get('content.hostComponents').filterProperty('componentName', 'HBASE_MASTER').mapProperty('host.hostName');
         globalConfigs.push(hbaseMasterHost);
+        break;
+      case 'HUE':
+        var hueServerHost = serviceConfigs.findProperty('name', 'hueserver_host');
+        hueServerHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'HUE_SERVER').get('host.hostName');
+        globalConfigs.push(hueServerHost);
+        break;
+      case 'WEBHCAT':
+        var webhcatMasterHost = serviceConfigs.findProperty('name', 'webhcatserver_host');
+        webhcatMasterHost.defaultValue = this.get('content.hostComponents').filterProperty('componentName', 'WEBHCAT_SERVER').mapProperty('host.hostName');
+        globalConfigs.push(webhcatMasterHost);
         break;
     }
   },
@@ -1151,6 +1522,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   }.property('App.router.mainHostController.content'),
   
   doCancel: function () {
-    location.reload();
+    this.loadStep();
   }
 });

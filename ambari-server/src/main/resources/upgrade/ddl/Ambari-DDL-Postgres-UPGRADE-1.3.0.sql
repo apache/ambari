@@ -19,7 +19,7 @@
 
 -- Upgrade from 1.2.0
 ALTER TABLE ambari.hosts
-  ADD COLUMN ph_cpu_count INTEGER NOT NULL,
+  ADD COLUMN ph_cpu_count INTEGER,
   ALTER COLUMN disks_info TYPE VARCHAR(10000);
 
 -- Upgrade to 1.3.0
@@ -29,11 +29,16 @@ ALTER TABLE ambari.clusterstate
 CREATE TABLE ambari.metainfo ("metainfo_key" VARCHAR(255), "metainfo_value" VARCHAR, PRIMARY KEY("metainfo_key"));
 GRANT ALL PRIVILEGES ON TABLE ambari.metainfo TO :username;
 
-CREATE TABLE ambari.clusterconfigmapping (cluster_id bigint NOT NULL, type_name VARCHAR(255) NOT NULL, version_tag VARCHAR(255) NOT NULL, create_timestamp BIGINT NOT NULL, selected INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (cluster_id, type_name, create_timestamp));
+CREATE TABLE ambari.clusterconfigmapping (cluster_id bigint NOT NULL, type_name VARCHAR(255) NOT NULL, version_tag VARCHAR(255) NOT NULL, create_timestamp BIGINT NOT NULL, selected INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL DEFAULT '_db', PRIMARY KEY (cluster_id, type_name, create_timestamp));
 GRANT ALL PRIVILEGES ON TABLE ambari.clusterconfigmapping TO :username;
 ALTER TABLE ambari.clusterconfigmapping ADD CONSTRAINT FK_clusterconfigmapping_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
+INSERT INTO ambari.clusterconfigmapping(cluster_id, type_name, version_tag, create_timestamp, selected)
+  (SELECT DISTINCT cluster_id, config_type, config_tag, cast(date_part('epoch', now()) as bigint), 1
+    FROM ambari.serviceconfigmapping scm
+    WHERE timestamp = (SELECT max(timestamp) FROM ambari.serviceconfigmapping WHERE cluster_id = scm.cluster_id AND config_type = scm.config_type));
+DELETE FROM ambari.serviceconfigmapping;
 
-CREATE TABLE ambari.hostconfigmapping (cluster_id bigint NOT NULL, host_name VARCHAR(255) NOT NULL, type_name VARCHAR(255) NOT NULL, version_tag VARCHAR(255) NOT NULL, service_name VARCHAR(255), create_timestamp BIGINT NOT NULL, selected INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (cluster_id, host_name, type_name, create_timestamp));
+CREATE TABLE ambari.hostconfigmapping (cluster_id bigint NOT NULL, host_name VARCHAR(255) NOT NULL, type_name VARCHAR(255) NOT NULL, version_tag VARCHAR(255) NOT NULL, service_name VARCHAR(255), create_timestamp BIGINT NOT NULL, selected INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL DEFAULT '_db', PRIMARY KEY (cluster_id, host_name, type_name, create_timestamp));
 GRANT ALL PRIVILEGES ON TABLE ambari.hostconfigmapping TO :username;
 ALTER TABLE ambari.hostconfigmapping ADD CONSTRAINT FK_hostconfigmapping_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
 ALTER TABLE ambari.hostconfigmapping ADD CONSTRAINT FK_hostconfigmapping_host_name FOREIGN KEY (host_name) REFERENCES ambari.hosts (host_name);
@@ -71,3 +76,6 @@ insert into ambari.metainfo(metainfo_key, metainfo_value)
 select 'version','1.3.0';
 
 COMMIT;
+
+UPDATE ambari.hostcomponentstate SET current_state = 'INSTALLED' WHERE current_state like 'STOP_FAILED';
+UPDATE ambari.hostcomponentstate SET current_state = 'INSTALLED' WHERE current_state like 'START_FAILED';

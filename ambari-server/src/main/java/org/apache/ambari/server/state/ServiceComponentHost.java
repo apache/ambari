@@ -120,5 +120,6 @@ public interface ServiceComponentHost {
    * @return the actual config map
    */
   public Map<String, DesiredConfig> getActualConfigs();
-  
+
+  public HostState getHostState();
 }

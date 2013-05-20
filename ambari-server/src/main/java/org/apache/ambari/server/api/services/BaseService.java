@@ -31,7 +31,9 @@ import org.apache.ambari.server.controller.spi.Resource;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Provides common functionality to all services.
@@ -64,13 +66,19 @@ public abstract class BaseService {
   protected Response handleRequest(HttpHeaders headers, String body, UriInfo uriInfo,
                                    Request.Type requestType, ResourceInstance resource) {
 
-    Result result;
+    Result result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.OK));
     try {
-      RequestBody requestBody = getBodyParser().parse(body);
-      Request request = getRequestFactory().createRequest(
-          headers, requestBody, uriInfo, requestType, resource);
+      Set<RequestBody> requestBodySet = getBodyParser().parse(body);
 
-      result = request.process();
+      Iterator<RequestBody> iterator = requestBodySet.iterator();
+      while (iterator.hasNext() && result.getStatus().getStatus().equals(ResultStatus.STATUS.OK)) {
+        RequestBody requestBody = iterator.next();
+
+        Request request = getRequestFactory().createRequest(
+            headers, requestBody, uriInfo, requestType, resource);
+
+        result = request.process();
+      }
     } catch (BodyParseException e) {
       result =  new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e.getMessage()));
     }

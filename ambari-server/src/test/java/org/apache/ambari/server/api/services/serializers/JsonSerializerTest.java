@@ -60,30 +60,14 @@ public class JsonSerializerTest {
     mapCategoryProps.put("catProp1", "catValue1");
     mapCategoryProps.put("catProp2", "catValue2");
 
-    TreeNode<Map<String, Object>> treeProps1 = new TreeNodeImpl<Map<String, Object>>(
-        null, mapRootProps, null);
+    Map<String, Map<String, Object>> propertyMap = new HashMap<String, Map<String, Object>>();
 
-    treeProps1.addChild(mapCategoryProps, "category");
-
-//    // resource2 properties
-//    HashMap<String, Object> map2RootProps = new HashMap<String, Object>();
-//    map2RootProps.put("2prop1", "2value1");
-//
-//    HashMap<String, Object> map2CategoryProps = new HashMap<String, Object>();
-//    map2CategoryProps.put("2catProp1", "2catValue1");
-//
-//    TreeNode<Map<String, Object>> treeProps2 = new TreeNodeImpl<Map<String, Object>>(
-//        null, map2RootProps, null);
-//
-//    treeProps2.addChild(mapCategoryProps, "little-category");
-
+    propertyMap.put(null, mapRootProps);
+    propertyMap.put("category", mapCategoryProps);
 
     //expectations
-    expect(resource.getProperties()).andReturn(treeProps1).anyTimes();
+    expect(resource.getPropertiesMap()).andReturn(propertyMap).anyTimes();
     expect(resource.getType()).andReturn(Resource.Type.Cluster).anyTimes();
-
-//    expect(resource2.getProperties()).andReturn(treeProps2).anyTimes();
-//    expect(resource2.getType()).andReturn(Resource.Type.Service).anyTimes();
 
     replay(uriInfo, resource/*, resource2*/);
 

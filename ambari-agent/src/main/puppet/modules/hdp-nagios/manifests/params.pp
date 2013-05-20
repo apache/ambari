@@ -20,15 +20,37 @@
 #
 class hdp-nagios::params() inherits hdp::params
 {   
- 
-  $nagios_user = "nagios"
-  $nagios_group = hdp_default("smoke_user_group","nagios")
+  $nagios_default_user = "nagios"
+  $nagios_default_group = "nagios"
+  $nagios_user = hdp_default("nagios_user", $nagios_default_user)
+  $nagios_group = hdp_default("nagios_group",$nagios_default_group)
   
   $conf_dir = hdp_default("nagios_conf_dir","/etc/nagios")
+
+  if hdp_is_empty($hdp::params::services_names[httpd]) {
+    hdp_fail("There is no service name for service httpd")
+  } else {
+    $service_name_by_os = $hdp::params::services_names[httpd]
+  }
+
+  if hdp_is_empty($service_name_by_os[$hdp::params::hdp_os_type]) {
+    if hdp_is_empty($service_name_by_os['ALL']) {
+      hdp_fail("There is no service name for service httpd")
+    } else {
+      $service_name = $service_name_by_os['ALL']
+    }
+  } else {
+    $service_name = $service_name_by_os[$hdp::params::hdp_os_type]
+  }
+
+  $httpd_conf_file = "/etc/${service_name}/conf.d/nagios.conf"
 
   $plugins_dir = "/usr/lib64/nagios/plugins"
   $eventhandlers_dir = "/usr/lib64/nagios/eventhandlers"  # Does not exist yet
   $nagios_pid_dir = "/var/run/nagios"
+  $nagios_log_dir = '/var/log/nagios'
+  $nagios_log_archives_dir = "${nagios_log_dir}/archives"
+  
 
   $nagios_obj_dir = hdp_default("nagios_obj_dir","/etc/nagios/objects")
   $nagios_var_dir = hdp_default("nagios_var_dir","/var/nagios")
@@ -53,6 +75,8 @@ class hdp-nagios::params() inherits hdp::params
     namenode => {host_member_info => 'namenode_host'},
     snamenode => {host_member_info => 'snamenode_host'},
     slaves => {host_member_info => 'slave_hosts'},
+    tasktracker-servers => {host_member_info => 'mapred_tt_hosts'},
+    agent-servers => {host_member_info => 'all_hosts'},
     nagios-server => {host_member_info => 'nagios_server_host'},
     jobtracker  => {host_member_info => 'jtnode_host'},
     ganglia-server => {host_member_info => 'ganglia_server_host'},
@@ -61,6 +85,10 @@ class hdp-nagios::params() inherits hdp::params
     hiveserver => {host_member_info => 'hive_server_host'},
     region-servers => {host_member_info => 'hbase_rs_hosts'},
     oozie-server => {host_member_info => 'oozie_server'},
-    webhcat-server => {host_member_info => 'webhcat_server_host'}
+    webhcat-server => {host_member_info => 'webhcat_server_host'},
+    hue-server => {host_member_info => 'hue_server_host'},
+    resorcemanager => {host_member_info => 'rm_host'},
+    nodemanagers => {host_member_info => 'nm_hosts'},
+    historyserver2 => {host_member_info => 'hs_host'}
   }
 }

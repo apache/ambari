@@ -21,14 +21,15 @@ package org.apache.ambari.server.controller.internal;
 import org.apache.ambari.server.controller.predicate.AlwaysPredicate;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.predicate.ArrayPredicate;
-import org.apache.ambari.server.controller.predicate.BasePredicate;
 import org.apache.ambari.server.controller.predicate.CategoryPredicate;
 import org.apache.ambari.server.controller.predicate.ComparisonPredicate;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.predicate.OrPredicate;
 import org.apache.ambari.server.controller.predicate.PredicateVisitor;
 import org.apache.ambari.server.controller.predicate.UnaryPredicate;
+import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -66,7 +67,7 @@ public class SimplifyingPredicateVisitor implements PredicateVisitor {
   /**
    * The last visited predicate.
    */
-  private BasePredicate lastVisited = null;
+  private Predicate lastVisited = null;
 
 
   /**
@@ -83,7 +84,7 @@ public class SimplifyingPredicateVisitor implements PredicateVisitor {
    *
    * @return a list of simplified predicates
    */
-  public List<BasePredicate> getSimplifiedPredicates() {
+  public List<Predicate> getSimplifiedPredicates() {
     if (lastVisited == null) {
       return Collections.emptyList();
     }
@@ -106,13 +107,13 @@ public class SimplifyingPredicateVisitor implements PredicateVisitor {
 
   @Override
   public void acceptArrayPredicate(ArrayPredicate arrayPredicate) {
-    List<BasePredicate> predicateList = new LinkedList<BasePredicate>();
+    List<Predicate> predicateList = new LinkedList<Predicate>();
     boolean hasOrs = false;
 
-    BasePredicate[] predicates = arrayPredicate.getPredicates();
+    Predicate[] predicates = arrayPredicate.getPredicates();
     if (predicates.length > 0) {
-      for (BasePredicate predicate : predicates) {
-        predicate.accept(this);
+      for (Predicate predicate : predicates) {
+        PredicateHelper.visit(predicate, this);
         predicateList.add(lastVisited);
         if (lastVisited instanceof OrPredicate) {
           hasOrs = true;
@@ -122,17 +123,17 @@ public class SimplifyingPredicateVisitor implements PredicateVisitor {
     // distribute so that A && ( B || C ) becomes ( A && B ) || ( A && C )
     if (hasOrs && arrayPredicate instanceof AndPredicate) {
       int size = predicateList.size();
-      List<BasePredicate> andPredicateList = new LinkedList<BasePredicate>();
+      List<Predicate> andPredicateList = new LinkedList<Predicate>();
 
       for (int i = 0; i < size; ++i) {
         for (int j = i + 1; j < size; ++j) {
           andPredicateList.addAll(distribute(predicateList.get(i), predicateList.get(j)));
         }
       }
-      lastVisited = OrPredicate.instance(andPredicateList.toArray(new BasePredicate[andPredicateList.size()]));
+      lastVisited = OrPredicate.instance(andPredicateList.toArray(new Predicate[andPredicateList.size()]));
     }
     else {
-      lastVisited = arrayPredicate.create(predicateList.toArray(new BasePredicate[predicateList.size()]));
+      lastVisited = arrayPredicate.create(predicateList.toArray(new Predicate[predicateList.size()]));
     }
   }
 
@@ -146,7 +147,7 @@ public class SimplifyingPredicateVisitor implements PredicateVisitor {
     lastVisited = predicate;
   }
 
-  private static List<BasePredicate> distribute(BasePredicate left, BasePredicate right) {
+  private static List<Predicate> distribute(Predicate left, Predicate right) {
 
     if (left instanceof OrPredicate) {
       return distributeOr((OrPredicate) left, right);
@@ -159,15 +160,15 @@ public class SimplifyingPredicateVisitor implements PredicateVisitor {
         left : AndPredicate.instance(left, right));
   }
 
-  private static List<BasePredicate> distributeOr(OrPredicate orPredicate, BasePredicate other) {
-    List<BasePredicate> andPredicateList = new LinkedList<BasePredicate>();
+  private static List<Predicate> distributeOr(OrPredicate orPredicate, Predicate other) {
+    List<Predicate> andPredicateList = new LinkedList<Predicate>();
     OrPredicate otherOr = null;
 
     if (other instanceof OrPredicate) {
       otherOr = (OrPredicate) other;
     }
 
-    for (BasePredicate basePredicate : orPredicate.getPredicates()) {
+    for (Predicate basePredicate : orPredicate.getPredicates()) {
 
       if (otherOr != null) {
         andPredicateList.addAll(distributeOr(otherOr, basePredicate));

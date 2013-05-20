@@ -19,21 +19,21 @@
 {{view App.MainServiceInfoMenuView configTabBinding="view.hasConfigTab"}}
 {{#if App.isAdmin}}
 <div class="service-button">
-  {{#if view.hasMaintenanceControl}}
-  <div class="btn-group display-inline-block">
-    <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-      {{t services.service.actions.maintenance}}
-      <span class="caret"></span>
-    </a>
-    <ul class="dropdown-menu">
-      <!-- dropdown menu links -->
-      {{#each option in view.maintenance}}
-      <li {{bindAttr class="controller.content.isStopDisabled:disabled"}}>
-        <a {{action "doAction" option target="controller" href=true}}>{{option.label}}</a>
-      </li>
-      {{/each}}
-    </ul>
-  </div>
+  {{#if view.isMaintenanceActive}}
+    <div class="btn-group display-inline-block">
+      <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+        {{t services.service.actions.maintenance}}
+        <span class="caret"></span>
+      </a>
+      <ul class="dropdown-menu">
+        <!-- dropdown menu links -->
+        {{#each option in view.maintenance}}
+        <li {{bindAttr class="controller.content.isStopDisabled:disabled"}}>
+          <a {{action "doAction" option target="controller" href=true}}>{{option.label}}</a>
+        </li>
+        {{/each}}
+      </ul>
+    </div>
   {{/if}}
   <a href="javascript:void(null)" {{bindAttr class=":btn controller.content.isStartDisabled:disabled:btn-success" }}
      data-toggle="modal" {{action "startService" target="controller"}}>

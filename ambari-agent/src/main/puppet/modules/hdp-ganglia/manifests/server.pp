@@ -72,10 +72,11 @@ class hdp-ganglia::server(
   class { 'hdp-ganglia::server::gmetad': ensure => $service_state}
 
   class { 'hdp-ganglia::service::change_permission': ensure => $service_state }
-  
+
   if ($service_state == 'installed_and_configured') {
     $webserver_state = 'restart'
   } elsif ($service_state == 'running') {
+    class { 'hdp-ganglia::server::delete_default_gmond_process': }
     $webserver_state = 'running'
   } else {
     # We are never stopping httpd
@@ -84,9 +85,9 @@ class hdp-ganglia::server(
 
   class { 'hdp-monitor-webserver': service_state => $webserver_state}
 
-   class { 'hdp-ganglia::server::files':
-      ensure => 'present'
-   }
+  class { 'hdp-ganglia::server::files':
+     ensure => 'present'
+  }
 
   file { "${hdp-ganglia::params::ganglia_dir}/gmetad.conf":
     owner => 'root',
@@ -176,6 +177,18 @@ class hdp-ganglia::server::files(
 
     File[$rrd_py_file_path] -> Hdp::Directory_recursive_create[$rrd_files_dir] -> File[$rrdcached_default_file_dir] -> Anchor['hdp-ganglia::server::files::end']
   }
+  elsif ($rrd_file_owner != $hdp::params::NOBODY_USER) {
+    #owner of rrdcached_default_file_dir is 'nobody' by default 
+    #need to change owner to gmetad_user for proper gmetad service start
+    
+    hdp::directory { $rrdcached_default_file_dir:
+      owner => $rrd_file_owner,
+      group => $rrd_file_owner,
+      override_owner => true
+    }
+    
+    File[$rrd_py_file_path] -> Hdp::Directory[$rrdcached_default_file_dir] -> Anchor['hdp-ganglia::server::files::end']
+  }
 }
 
 
@@ -185,8 +198,9 @@ class hdp-ganglia::service::change_permission(
 {
   if ($ensure == 'running' or $ensure == 'installed_and_configured') {
     hdp::directory_recursive_create { '/var/lib/ganglia/dwoo' :
-      mode => '0777'
-      }
+      mode => '0777',
+      owner => $hdp-ganglia::params::gmetad_user
+    }
   }
 }
 
@@ -204,5 +218,13 @@ class hdp-ganglia::server::gmetad(
       command => "$command",
       path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
     }
+  }
+}
+
+class hdp-ganglia::server::delete_default_gmond_process() {
+  hdp::exec { "delete_default_gmond_process" :
+    command => "chkconfig --del gmond",
+    path => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+    require => Class['hdp-ganglia::server::packages']
   }
 }

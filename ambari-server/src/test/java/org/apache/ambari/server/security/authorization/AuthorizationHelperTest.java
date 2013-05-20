@@ -17,15 +17,19 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import org.apache.ambari.server.orm.entities.RoleEntity;
-import org.junit.Test;
-import org.springframework.security.core.GrantedAuthority;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
-import static org.junit.Assert.assertEquals;
+import org.apache.ambari.server.orm.entities.RoleEntity;
+import org.junit.Assert;
+import org.junit.Test;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 public class AuthorizationHelperTest {
 
@@ -45,5 +49,18 @@ public class AuthorizationHelperTest {
     Iterator<GrantedAuthority> iterator = authorities.iterator();
     assertEquals("Wrong authority name", "ADMIN", iterator.next().getAuthority());
 
+  }
+  
+  @Test
+  public void testAuthName() throws Exception {
+    String user = AuthorizationHelper.getAuthenticatedName();
+    Assert.assertNull(user);
+    
+    Authentication auth = new UsernamePasswordAuthenticationToken("admin",null);
+    SecurityContextHolder.getContext().setAuthentication(auth);
+
+    user = AuthorizationHelper.getAuthenticatedName();
+    Assert.assertEquals("admin", user);
+    
   }
 }

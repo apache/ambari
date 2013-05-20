@@ -29,5 +29,8 @@ App.MainHostDetailsView = Em.View.extend({
   maintenance: function(){
     var options = [{action: 'deleteHost', 'label': this.t('hosts.host.details.deleteHost')}];
     return options;
-  }.property('controller.content')
+  }.property('controller.content'),
+  didInsertElement: function() {
+    $("[rel='HealthTooltip']").tooltip();
+  }
 });

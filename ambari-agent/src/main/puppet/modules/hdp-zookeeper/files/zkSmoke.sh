@@ -24,7 +24,7 @@ smoke_script=$1
 smoke_user=$2
 conf_dir=$3
 export ZOOKEEPER_EXIT_CODE=0
-zkhosts=` grep server  $conf_dir/zoo.cfg  | cut -f 2 -d '=' | cut -f 1 -d ':' | tr '\n' ' ' `
+zkhosts=` grep "^server\.[[:digit:]]"  $conf_dir/zoo.cfg  | cut -f 2 -d '=' | cut -f 1 -d ':' | tr '\n' ' ' `
 zk_node1=`echo $zkhosts | tr ' ' '\n' | head -n 1`  
 echo "zk_node1=$zk_node1"
 # Delete /zk_smoketest znode if exists

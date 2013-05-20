@@ -35,11 +35,11 @@ class hdp-hive::service(
   if ($service_type == 'metastore') {
 
     $pid_file = "${hdp-hive::params::hive_pid_dir}/hive.pid" 
-    $cmd = "env HADOOP_HOME=${hadoop_home} JAVA_HOME=$hdp::params::java64_home $start_metastore_path ${hive_log_dir}/hive.out ${hive_log_dir}/hive.log $pid_file"
+    $cmd = "env HADOOP_HOME=${hadoop_home} JAVA_HOME=$hdp::params::java64_home $start_metastore_path ${hive_log_dir}/hive.out ${hive_log_dir}/hive.log $pid_file ${hive_server_conf_dir}"
     
   } elsif ($service_type == 'hiveserver2') {
     $pid_file = "$hive_pid_dir/$hive_pid" 
-    $cmd = "env JAVA_HOME=$hdp::params::java64_home $start_hiveserver2_path ${hive_log_dir}/hive-server2.out  ${hive_log_dir}/hive-server2.log $pid_file"
+    $cmd = "env JAVA_HOME=$hdp::params::java64_home $start_hiveserver2_path ${hive_log_dir}/hive-server2.out  ${hive_log_dir}/hive-server2.log $pid_file ${hive_server_conf_dir}"
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_type}")
   }
@@ -94,7 +94,7 @@ class hdp-hive::service(
     ensure => $pid_file_state
   }
 
-    Hdp-hive::Service::Directory<||> File[ $start_metastore_path]-> File[ $start_hiveserver2_path]-> Hdp::Exec[$daemon_cmd] -> File[$pid_file] -> Anchor['hdp-hive::service::end']
+    Hdp-hive::Service::Directory<||> -> File[ $start_metastore_path]-> File[ $start_hiveserver2_path]-> Hdp::Exec[$daemon_cmd] -> File[$pid_file] -> Anchor['hdp-hive::service::end']
   }
 }
 

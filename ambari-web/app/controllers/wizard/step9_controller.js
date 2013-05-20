@@ -61,6 +61,72 @@ App.WizardStep9Controller = Em.Controller.extend({
     return 'info';
   }.property('hosts.@each.status', 'progress'),
 
+  categoryObject: Em.Object.extend({
+    hostsCount: function () {
+      var category = this;
+      var hosts = this.get('controller.hosts').filter(function(_host) {
+        if(category.get('hostStatus') == 'inProgress'){   // queued, pending, in_progress map to inProgress
+          return (_host.get('status') !== 'success' && _host.get('status') !== 'failed' && _host.get('status') !== 'warning');
+        }
+        return (_host.get('status') == category.get('hostStatus'));
+      }, this);
+      return hosts.get('length');
+    }.property('controller.hosts.@each.status'),
+    label: function () {
+      return "%@ (%@)".fmt(this.get('value'), this.get('hostsCount'));
+    }.property('value', 'hostsCount')
+  }),
+  getCategory: function(field, value){
+    return this.get('categories').find(function(item){
+      return item.get(field) == value;
+    });
+  },
+
+  categories: function () {
+    var self = this;
+    self.categoryObject.reopen({
+      controller: self,
+      isActive: function(){
+        return this.get('controller.category') == this;
+      }.property('controller.category'),
+      itemClass: function(){
+        return this.get('isActive') ? 'active' : '';
+      }.property('isActive')
+    });
+
+    var categories = [
+      self.categoryObject.create({value: Em.I18n.t('common.all'), hostStatus:'all', hostsCount: function () {
+        return this.get('controller.hosts.length');
+      }.property('controller.hosts.length') }),
+      self.categoryObject.create({value: Em.I18n.t('installer.step9.hosts.status.label.inProgress'), hostStatus: 'inProgress'}),
+      self.categoryObject.create({value: Em.I18n.t('installer.step9.hosts.status.label.warning'), hostStatus: 'warning'}),
+      self.categoryObject.create({value: Em.I18n.t('common.success'), hostStatus: 'success'}),
+      self.categoryObject.create({value: Em.I18n.t('common.fail'), hostStatus: 'failed', last: true })
+    ];
+
+    this.set('category', categories.get('firstObject'));
+    return categories;
+  }.property(),
+
+  category: false,
+  visibleHosts: function(){
+    var targetStatus = this.get('category.hostStatus');
+    var visibleHosts =  this.get('hosts').filter(function(_host) {
+      if (targetStatus == 'all') {
+        return true;
+      }
+      if (targetStatus == 'inProgress') {   // queued, pending, in_progress map to inProgress
+        return (_host.get('status') !== 'success' && _host.get('status') !== 'failed' && _host.get('status') !== 'warning');
+      }
+      return (_host.get('status') == targetStatus);
+    }, this);
+    return visibleHosts;
+  }.property('category', 'hosts.@each.status'),
+
+  selectCategory: function(event){
+    this.set('category', event.context);
+  },
+
   showRetry: function () {
     return this.get('content.cluster.status') == 'INSTALL FAILED';
   }.property('content.cluster.status'),
@@ -85,6 +151,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       // this is for repeatedly testing out installs in test mode
       this.set('content.cluster.status', 'PENDING');
       this.set('content.cluster.isCompleted', false);
+      this.set('content.cluster.requestId',1);
     }
     var clusterStatus = this.get('content.cluster.status');
     console.log('navigateStep: clusterStatus = ' + clusterStatus);
@@ -265,68 +332,80 @@ App.WizardStep9Controller = Em.Controller.extend({
    * run start/check services after installation phase
    */
   launchStartServices: function () {
-    var self = this;
-    var clusterName = this.get('content.cluster.name');
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/services?ServiceInfo/state=INSTALLED';
-    var data = '{"ServiceInfo": {"state": "STARTED"}}';
-    var method = 'PUT';
+    var data = {
+      "RequestInfo": {
+        "context": Em.I18n.t("requestInfo.startServices")
+      },
+      "Body": {
+        "ServiceInfo": { "state": "STARTED" }
+      }
+    };
+    var name = 'wizard.step9.installer.launch_start_services';
 
     if (this.get('content.controllerName') === 'addHostController') {
-      url = App.apiPrefix + '/clusters/' + clusterName + '/host_components?(HostRoles/component_name=GANGLIA_MONITOR|HostRoles/component_name=HBASE_REGIONSERVER|HostRoles/component_name=DATANODE|HostRoles/component_name=TASKTRACKER)&(HostRoles/state=INSTALLED)';
-      data = '{"HostRoles": {"state": "STARTED"}}';
+      var hostnames = [];
+      for (var hostname in App.db.getHosts()) {
+        hostnames.push(hostname);
+      }
+      data = {
+        "RequestInfo": {
+          "context": Em.I18n.t("requestInfo.startHostComponents"),
+          "query": "HostRoles/component_name.in(GANGLIA_MONITOR,HBASE_REGIONSERVER,DATANODE,TASKTRACKER)&HostRoles/state=INSTALLED&HostRoles/host_name.in(" + hostnames.join(',') + ")"
+        },
+        "Body": {
+          "HostRoles": { "state": "STARTED" }
+        }
+      };
+      name = 'wizard.step9.add_host.launch_start_services';
     }
-
+    data = JSON.stringify(data);
     if (App.testMode) {
-      url = this.get('mockDataPrefix') + '/poll_6.json';
-      method = 'GET';
       this.numPolls = 6;
     }
 
-    $.ajax({
-      type: method,
-      url: url,
-      async: false,
-      data: data,
-      dataType: 'text',
-      timeout: App.timeout,
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: Step9 -> In success function for the startService call");
-        console.log("TRACE: Step9 -> value of the url is: " + url);
-        console.log("TRACE: Step9 -> value of the received data is: " + jsonData);
-        var requestId = jsonData.Requests.id;
-        console.log('requestId is: ' + requestId);
-        var clusterStatus = {
-          status: 'INSTALLED',
-          requestId: requestId,
-          isStartError: false,
-          isCompleted: false
-        };
-
-        App.router.get(self.get('content.controllerName')).saveClusterStatus(clusterStatus);
-
-        // We need to do recovery if there is a browser crash
-        App.clusterStatus.setClusterStatus({
-          clusterState: 'SERVICE_STARTING_3',
-          localdb: App.db.data
-        });
-
-        self.startPolling();
+    App.ajax.send({
+      name: name,
+      sender: this,
+      data: {
+        data: data,
+        cluster: this.get('content.cluster.name')
       },
-
-      error: function () {
-        console.log("ERROR");
-        var clusterStatus = {
-          status: 'START FAILED',
-          isStartError: true,
-          isCompleted: false
-        };
-
-        App.router.get(self.get('content.controllerName')).saveClusterStatus(clusterStatus);
-      },
-
-      statusCode: require('data/statusCodes')
+      success: 'launchStartServicesSuccessCallback',
+      error: 'launchStartServicesErrorCallback'
     });
+  },
+
+  launchStartServicesSuccessCallback: function (jsonData) {
+    console.log("TRACE: Step9 -> In success function for the startService call");
+    console.log("TRACE: Step9 -> value of the received data is: " + jsonData);
+    var requestId = jsonData.Requests.id;
+    console.log('requestId is: ' + requestId);
+    var clusterStatus = {
+      status: 'INSTALLED',
+      requestId: requestId,
+      isStartError: false,
+      isCompleted: false
+    };
+
+    App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
+
+    // We need to do recovery if there is a browser crash
+    App.clusterStatus.setClusterStatus({
+      clusterState: 'SERVICE_STARTING_3',
+      localdb: App.db.data
+    });
+
+    this.startPolling();
+  },
+
+  launchStartServicesErrorCallback: function () {
+    console.log("ERROR");
+    var clusterStatus = {
+      status: 'START FAILED',
+      isStartError: true,
+      isCompleted: false
+    };
+    App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
   },
 
   // marks a host's status as "success" if all tasks are in COMPLETED state
@@ -337,13 +416,27 @@ App.WizardStep9Controller = Em.Controller.extend({
   },
 
   // marks a host's status as "warning" if at least one of the tasks is FAILED, ABORTED, or TIMEDOUT and marks host's status as "failed" if at least one master component install task is FAILED.
+  // note that if the master failed to install because of ABORTED or TIMEDOUT, we don't mark it as failed, because this would mark all hosts as "failed" and makes it difficult for the user
+  // to find which host FAILED occurred on, if any
   onErrorPerHost: function (actions, contentHost) {
     if (actions.someProperty('Tasks.status', 'FAILED') || actions.someProperty('Tasks.status', 'ABORTED') || actions.someProperty('Tasks.status', 'TIMEDOUT')) {
       contentHost.set('status', 'warning');
     }
-    if (this.get('content.cluster.status') === 'PENDING' && actions.someProperty('Tasks.status', 'FAILED')) {
+    if ((this.get('content.cluster.status') === 'PENDING' && actions.someProperty('Tasks.status', 'FAILED')) || (this.isMasterFailed(actions))) {
       contentHost.set('status', 'failed');
     }
+  },
+  //return true if there is at least one FAILED task of master component install
+  isMasterFailed: function(polledData) {
+    var result = false;
+    polledData.filterProperty('Tasks.command', 'INSTALL').filterProperty('Tasks.status', 'FAILED').mapProperty('Tasks.role').forEach (
+      function (task) {
+        if (!['DATANODE', 'TASKTRACKER', 'HBASE_REGIONSERVER', 'GANGLIA_MONITOR'].contains(task)) {
+          result = true;
+        }
+      }
+    );
+    return result;
   },
 
   onInProgressPerHost: function (tasks, contentHost) {
@@ -401,19 +494,33 @@ App.WizardStep9Controller = Em.Controller.extend({
     return polledData.everyProperty('Tasks.status', 'COMPLETED');
   },
 
-  //return true if at least 50% of the slave host components for the particular service component fails to install
+  /**
+   * return true if:
+   *  1. any of the master/client components failed to install
+   *  OR
+   *  2. at least 50% of the slave host components for the particular service component fails to install
+   */
   isStepFailed: function () {
     var failed = false;
     var polledData = this.get('polledData');
     polledData.filterProperty('Tasks.command', 'INSTALL').mapProperty('Tasks.role').uniq().forEach(function (role) {
+      if (failed) {
+        return;
+      }
+      var actionsPerRole = polledData.filterProperty('Tasks.role', role);
       if (['DATANODE', 'TASKTRACKER', 'HBASE_REGIONSERVER', 'GANGLIA_MONITOR'].contains(role)) {
-        var actionsPerRole = polledData.filterProperty('Tasks.role', role);
+        // check slave components for success factor.
+        // partial failure for slave components are allowed.
         var actionsFailed = actionsPerRole.filterProperty('Tasks.status', 'FAILED');
         var actionsAborted = actionsPerRole.filterProperty('Tasks.status', 'ABORTED');
         var actionsTimedOut = actionsPerRole.filterProperty('Tasks.status', 'TIMEDOUT');
         if ((((actionsFailed.length + actionsAborted.length + actionsTimedOut.length) / actionsPerRole.length) * 100) > 50) {
           failed = true;
         }
+      } else if (actionsPerRole.someProperty('Tasks.status', 'FAILED') || actionsPerRole.someProperty('Tasks.status', 'ABORTED') ||
+        actionsPerRole.someProperty('Tasks.status', 'TIMEDOUT')) {
+        // check non-salve components (i.e., masters and clients).  all of these must be successfully installed.
+        failed = true;
       }
     }, this);
     return failed;
@@ -457,7 +564,7 @@ App.WizardStep9Controller = Em.Controller.extend({
           status: 'PENDING',
           requestId: requestId,
           isCompleted: false
-        }
+        };
         if (this.get('status') === 'failed') {
           clusterStatus.status = 'INSTALL FAILED';
           this.set('progress', '100');
@@ -577,14 +684,12 @@ App.WizardStep9Controller = Em.Controller.extend({
     var requestsId = App.db.getCluster().oldRequestsId;
     if (App.testMode) {
       this.POLL_INTERVAL = 1;
-      this.numPolls++;
     }
 
     requestsId.forEach(function(requestId) {
       url = this.getUrl(requestId);
       if (App.testMode) {
         this.POLL_INTERVAL = 1;
-
         url = this.get('mockDataPrefix') + '/poll_' + this.numPolls + '.json';
       }
       this.getLogsByRequest(url, false);
@@ -658,61 +763,5 @@ App.WizardStep9Controller = Em.Controller.extend({
     if (!this.get('isSubmitDisabled')) {
       App.router.send('back');
     }
-  },
-
-  mockBtn: function () {
-    this.set('isSubmitDisabled', false);
-    this.hosts.clear();
-    var hostInfo = this.mockHostData;
-    this.renderHosts(hostInfo);
-  },
-
-  pollBtn: function () {
-    this.set('isSubmitDisabled', false);
-    var data1 = require('data/mock/step9PolledData/pollData_1');
-    var data2 = require('data/mock/step9PolledData/pollData_2');
-    var data3 = require('data/mock/step9PolledData/pollData_3');
-    var data4 = require('data/mock/step9PolledData/pollData_4');
-    var data5 = require('data/mock/step9PolledData/pollData_5');
-    var data6 = require('data/mock/step9PolledData/pollData_6');
-    var data7 = require('data/mock/step9PolledData/pollData_7');
-    var data8 = require('data/mock/step9PolledData/pollData_8');
-    var data9 = require('data/mock/step9PolledData/pollData_9');
-    console.log("TRACE: In pollBtn function data1");
-    var counter = parseInt(this.get('pollDataCounter')) + 1;
-    this.set('pollDataCounter', counter.toString());
-    switch (this.get('pollDataCounter')) {
-      case '1':
-        this.parseHostInfo(data1);
-        break;
-      case '2':
-        this.parseHostInfo(data2);
-        break;
-      case '3':
-        this.parseHostInfo(data3);
-        break;
-      case '4':
-        this.parseHostInfo(data4);
-        break;
-      case '5':
-        this.parseHostInfo(data5);
-        break;
-      case '6':
-        this.set('content.cluster.status', 'INSTALLED');
-        this.parseHostInfo(data6);
-        break;
-      case '7':
-        this.parseHostInfo(data7);
-        break;
-      case '8':
-        this.parseHostInfo(data8);
-        break;
-      case '9':
-        this.parseHostInfo(data9);
-        break;
-      default:
-        break;
-    }
   }
-
 });

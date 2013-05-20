@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import com.google.inject.persist.UnitOfWork;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
@@ -31,7 +32,6 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpFailedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.*;
 
 /**
@@ -44,6 +44,7 @@ class ActionScheduler implements Runnable {
   private static Logger LOG = LoggerFactory.getLogger(ActionScheduler.class);
   private final long actionTimeout;
   private final long sleepTime;
+  private final UnitOfWork unitOfWork;
   private volatile boolean shouldRun = true;
   private Thread schedulerThread = null;
   private final ActionDBAccessor db;
@@ -64,7 +65,7 @@ class ActionScheduler implements Runnable {
 
   public ActionScheduler(long sleepTimeMilliSec, long actionTimeoutMilliSec,
       ActionDBAccessor db, ActionQueue actionQueue, Clusters fsmObject,
-      int maxAttempts, HostsMap hostsMap, ServerActionManager serverActionManager) {
+      int maxAttempts, HostsMap hostsMap, ServerActionManager serverActionManager, UnitOfWork unitOfWork) {
     this.sleepTime = sleepTimeMilliSec;
     this.hostsMap = hostsMap;
     this.actionTimeout = actionTimeoutMilliSec;
@@ -73,6 +74,7 @@ class ActionScheduler implements Runnable {
     this.fsmObject = fsmObject;
     this.maxAttempts = (short) maxAttempts;
     this.serverActionManager = serverActionManager;
+    this.unitOfWork = unitOfWork;
   }
 
   public void start() {
@@ -120,89 +122,96 @@ class ActionScheduler implements Runnable {
   }
 
   public void doWork() throws AmbariException {
-    List<Stage> stages = db.getStagesInProgress();
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Scheduler wakes up");
-    }
-    if (stages == null || stages.isEmpty()) {
-      //Nothing to do
+    try {
+      unitOfWork.begin();
+
+      List<Stage> stages = db.getStagesInProgress();
       if (LOG.isDebugEnabled()) {
-        LOG.debug("No stage in progress..nothing to do");
+        LOG.debug("Scheduler wakes up");
       }
-      return;
-    }
-
-    for (Stage s : stages) {
-      List<ExecutionCommand> commandsToSchedule = new ArrayList<ExecutionCommand>();
-      Map<String, RoleStats> roleStats = processInProgressStage(s, commandsToSchedule);
-      //Check if stage is failed
-      boolean failed = false;
-      for (String role : roleStats.keySet()) {
-        RoleStats stats = roleStats.get(role);
+      if (stages == null || stages.isEmpty()) {
+        //Nothing to do
         if (LOG.isDebugEnabled()) {
-          LOG.debug("Stats for role:" + role + ", stats=" + stats);
+          LOG.debug("No stage in progress..nothing to do");
         }
-        if (stats.isRoleFailed()) {
-          failed = true;
-          break;
-        }
-      }
-
-      if(!failed) {
-        // Prior stage may have failed and it may need to fail the whole request
-        failed = hasPreviousStageFailed(s);
-      }
-
-      if (failed) {
-        LOG.warn("Operation completely failed, aborting request id:"
-            + s.getRequestId());
-        db.abortOperation(s.getRequestId());
         return;
       }
 
-      //Schedule what we have so far
-      for (ExecutionCommand cmd : commandsToSchedule) {
-        if (cmd.getRole() == Role.AMBARI_SERVER_ACTION) {
-          try {
-            long now = System.currentTimeMillis();
-            String hostName = cmd.getHostname();
-            String roleName = cmd.getRole().toString();
+      for (Stage s : stages) {
+        List<ExecutionCommand> commandsToSchedule = new ArrayList<ExecutionCommand>();
+        Map<String, RoleStats> roleStats = processInProgressStage(s, commandsToSchedule);
+        //Check if stage is failed
+        boolean failed = false;
+        for (String role : roleStats.keySet()) {
+          RoleStats stats = roleStats.get(role);
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Stats for role:" + role + ", stats=" + stats);
+          }
+          if (stats.isRoleFailed()) {
+            failed = true;
+            break;
+          }
+        }
 
-            s.setStartTime(hostName, roleName, now);
-            s.setLastAttemptTime(hostName, roleName, now);
-            s.incrementAttemptCount(hostName, roleName);
-            s.setHostRoleStatus(hostName, roleName, HostRoleStatus.QUEUED);
-            db.hostRoleScheduled(s, hostName, roleName);
-            String actionName = cmd.getRoleParams().get(ServerAction.ACTION_NAME);
-            this.serverActionManager.executeAction(actionName, cmd.getCommandParams());
-            reportServerActionSuccess(s, cmd);
-          } catch (AmbariException e) {
-            LOG.warn("Could not execute server action " + cmd.toString(), e);
-            reportServerActionFailure(s, cmd, e.getMessage());
+        if(!failed) {
+          // Prior stage may have failed and it may need to fail the whole request
+          failed = hasPreviousStageFailed(s);
+        }
+
+        if (failed) {
+          LOG.warn("Operation completely failed, aborting request id:"
+              + s.getRequestId());
+          db.abortOperation(s.getRequestId());
+          return;
+        }
+
+        //Schedule what we have so far
+        for (ExecutionCommand cmd : commandsToSchedule) {
+          if (cmd.getRole() == Role.AMBARI_SERVER_ACTION) {
+            try {
+              long now = System.currentTimeMillis();
+              String hostName = cmd.getHostname();
+              String roleName = cmd.getRole().toString();
+
+              s.setStartTime(hostName, roleName, now);
+              s.setLastAttemptTime(hostName, roleName, now);
+              s.incrementAttemptCount(hostName, roleName);
+              s.setHostRoleStatus(hostName, roleName, HostRoleStatus.QUEUED);
+              db.hostRoleScheduled(s, hostName, roleName);
+              String actionName = cmd.getRoleParams().get(ServerAction.ACTION_NAME);
+              this.serverActionManager.executeAction(actionName, cmd.getCommandParams());
+              reportServerActionSuccess(s, cmd);
+            } catch (AmbariException e) {
+              LOG.warn("Could not execute server action " + cmd.toString(), e);
+              reportServerActionFailure(s, cmd, e.getMessage());
+            }
+          } else {
+            try {
+              scheduleHostRole(s, cmd);
+            } catch (InvalidStateTransitionException e) {
+              LOG.warn("Could not schedule host role " + cmd.toString(), e);
+              db.abortHostRole(cmd.getHostname(), s.getRequestId(), s.getStageId(),
+                  cmd.getRole());
+            }
           }
-        } else {
-          try {
-            scheduleHostRole(s, cmd);
-          } catch (InvalidStateTransitionException e) {
-            LOG.warn("Could not schedule host role " + cmd.toString(), e);
-            db.abortHostRole(cmd.getHostname(), s.getRequestId(), s.getStageId(),
-                cmd.getRole());
+        }
+
+        //Check if ready to go to next stage
+        boolean goToNextStage = true;
+        for (String role : roleStats.keySet()) {
+          RoleStats stats = roleStats.get(role);
+          if (!stats.isSuccessFactorMet()) {
+            goToNextStage = false;
+            break;
           }
+        }
+        if (!goToNextStage) {
+          return;
         }
       }
 
-      //Check if ready to go to next stage
-      boolean goToNextStage = true;
-      for (String role : roleStats.keySet()) {
-        RoleStats stats = roleStats.get(role);
-        if (!stats.isSuccessFactorMet()) {
-          goToNextStage = false;
-          break;
-        }
-      }
-      if (!goToNextStage) {
-        return;
-      }
+    } finally {
+      unitOfWork.end();
     }
   }
 
@@ -279,7 +288,7 @@ class ActionScheduler implements Runnable {
    * has succeeded or failed.
    */
   private Map<String, RoleStats> processInProgressStage(Stage s,
-      List<ExecutionCommand> commandsToSchedule) {
+      List<ExecutionCommand> commandsToSchedule) throws AmbariException {
     // Map to track role status
     Map<String, RoleStats> roleStats = initRoleStats(s);
     long now = System.currentTimeMillis();
@@ -289,11 +298,14 @@ class ActionScheduler implements Runnable {
     }
     for (String host : s.getHosts()) {
       List<ExecutionCommandWrapper> commandWrappers = s.getExecutionCommands(host);
+      Cluster cluster = fsmObject.getCluster(s.getClusterName());
+      Host hostObj = fsmObject.getHost(host);
       for(ExecutionCommandWrapper wrapper : commandWrappers) {
         ExecutionCommand c = wrapper.getExecutionCommand();
         String roleStr = c.getRole().toString();
         HostRoleStatus status = s.getHostRoleStatus(host, roleStr);
-        if (timeOutActionNeeded(status, s, host, roleStr, now, taskTimeout)) {
+        if (timeOutActionNeeded(status, s, hostObj, roleStr, now,
+          taskTimeout)) {
           LOG.info("Host:" + host + ", role:" + roleStr + ", actionId:"
               + s.getActionId() + " timed out");
           if (s.getAttemptCount(host, roleStr) >= maxAttempts) {
@@ -307,7 +319,6 @@ class ActionScheduler implements Runnable {
                 new ServiceComponentHostOpFailedEvent(roleStr,
                     host, now);
             try {
-              Cluster cluster = fsmObject.getCluster(s.getClusterName());
               Service svc = cluster.getService(c.getServiceName());
               ServiceComponent svcComp = svc.getServiceComponent(
                   roleStr);
@@ -315,13 +326,16 @@ class ActionScheduler implements Runnable {
                   svcComp.getServiceComponentHost(host);
               svcCompHost.handleEvent(timeoutEvent);
             } catch (ServiceComponentNotFoundException scnex) {
-              LOG.info("Not a service component, assuming its an action", scnex);
+              LOG.debug("Not a service component, assuming its an action. Details: "
+                  + scnex.getMessage());
             } catch (InvalidStateTransitionException e) {
               LOG.info("Transition failed for host: " + host + ", role: "
                   + roleStr, e);
             } catch (AmbariException ex) {
               LOG.warn("Invalid live state", ex);
             }
+            // Dequeue command
+            actionQueue.dequeue(host, c.getCommandId());
           } else {
             commandsToSchedule.add(c);
           }
@@ -360,12 +374,19 @@ class ActionScheduler implements Runnable {
   }
 
   private boolean timeOutActionNeeded(HostRoleStatus status, Stage stage,
-      String host, String role, long currentTime, long taskTimeout) {
+      Host host, String role, long currentTime, long taskTimeout) throws
+    AmbariException {
     if (( !status.equals(HostRoleStatus.QUEUED) ) &&
         ( ! status.equals(HostRoleStatus.IN_PROGRESS) )) {
       return false;
     }
-    if (currentTime > stage.getLastAttemptTime(host, role)+taskTimeout) {
+    // Fast fail task if host state is unknown
+    if (host.getState().equals(HostState.HEARTBEAT_LOST)) {
+      LOG.debug("Timing out action since agent is not heartbeating.");
+      return true;
+    }
+    if (currentTime > stage.getLastAttemptTime(host.getHostName(),
+      role) + taskTimeout) {
       return true;
     }
     return false;
@@ -401,7 +422,7 @@ class ActionScheduler implements Runnable {
     }
     s.setLastAttemptTime(hostname, roleStr, now);
     s.incrementAttemptCount(hostname, roleStr);
-    LOG.info("Scheduling command: "+cmd.toString()+" for host: "+hostname);
+    LOG.debug("Scheduling command: "+cmd.toString()+" for host: "+hostname);
     /** change the hostname in the command for the host itself **/
     cmd.setHostname(hostsMap.getHostMap(hostname));
     actionQueue.enqueue(hostname, cmd);

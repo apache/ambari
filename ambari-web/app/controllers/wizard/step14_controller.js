@@ -20,15 +20,31 @@ var App = require('app');
 
 App.WizardStep14Controller = Em.Controller.extend({
 
-  status: function () {
+  status: 'IN_PROGRESS',
+
+  onStatusChange: function () {
     if (this.get('tasks').someProperty('status', 'FAILED')) {
-      return 'FAILED';
+      this.set('status', 'FAILED');
+      if (this.get('tasks')[5].status == 'FAILED' || this.get('tasks')[6].status == 'FAILED') {
+        this.set('showRetry', true);
+      }
+    } else if (this.get('tasks').everyProperty('status', 'COMPLETED')) {
+      this.set('status', 'COMPLETED');
+      this.set('isSubmitDisabled', false);
+    } else {
+      this.set('status', 'IN_PROGRESS')
     }
-    if (this.get('tasks').everyProperty('status', 'COMPLETED')) {
-      return 'COMPLETED';
-    }
-    return 'IN_PROGRESS';
-  }.property('tasks.@each.status'),
+    var statuses = this.get('tasks').mapProperty('status');
+    App.router.get(this.get('content.controllerName')).saveTasksStatuses(statuses);
+    App.clusterStatus.setClusterStatus({
+      clusterName: this.get('content.cluster.name'),
+      clusterState: 'REASSIGN_MASTER_INSTALLING',
+      wizardControllerName: this.get('content.controllerName'),
+      localdb: App.db.data
+    });
+    this.setTasksMessages();
+    this.navigateStep();
+  },
 
   tasks: [],
 
@@ -38,6 +54,10 @@ App.WizardStep14Controller = Em.Controller.extend({
   setTasksMessages: function () {
     var service = this.get('service.displayName');
     var master = this.get('masterComponent.display_name');
+    if (this.get('isCohosted')) {
+      service = 'Hive, WebHCat';
+      master = Em.I18n.t('installer.step5.hiveGroup');
+    }
     for (i = 0; i < this.get('tasks').length; i++) {
       var status = this.get('tasks')[i].status.toLowerCase().replace('initialize', 'pending').replace('_', ' ');
       if (i == 0 || i == 6) {
@@ -46,17 +66,19 @@ App.WizardStep14Controller = Em.Controller.extend({
         this.get('tasks')[i].set('message', Em.I18n.t('installer.step14.task' + i).format(master) + ' ' + status);
       }
     }
-  }.observes('tasks.@each.status'),
+  },
 
   configs: [],
   globals: [],
-  configMapping: require('data/config_mapping'),
+  configMapping: require('data/config_mapping').all(),
   newConfigsTag: null,
   createdConfigs: [],
 
-  currentRequestId: null,
+  currentRequestId: [],
 
   isSubmitDisabled: true,
+
+  showRetry: false,
 
   service: function () {
     return App.Service.find().findProperty('serviceName', this.get('masterComponent.service_id'));
@@ -66,13 +88,20 @@ App.WizardStep14Controller = Em.Controller.extend({
     return this.get('content.reassign');
   }.property('content.reassign'),
 
+  isCohosted: function () {
+    return this.get('masterComponent.component_name') == 'HIVE_SERVER';
+  }.property('masterComponent'),
+
   loadStep: function () {
     this.clearStep();
     this.loadTasks();
-    this.navigateStep();
+    this.addObserver('tasks.@each.status', this, 'onStatusChange');
+    this.onStatusChange();
   },
 
   clearStep: function () {
+    this.removeObserver('tasks.@each.status', this, 'onStatusChange');
+    this.removeObserver('createdConfigs.length', this, 'onCreateConfigsCompleted');
     var tasks = [];
     for (var i = 0; i < 8; i++) {
       tasks.pushObject(Ember.Object.create({
@@ -83,6 +112,10 @@ App.WizardStep14Controller = Em.Controller.extend({
       }));
     }
     this.set('tasks', tasks);
+    this.set('createdConfigsCount', 0);
+    this.set('queueTasksCompleted', 0);
+    this.set('dataPollCounter', 1);
+    this.set('showRetry', false);
     this.set('isSubmitDisabled', true);
     this.get('configs').clear();
     this.get('globals').clear();
@@ -90,7 +123,17 @@ App.WizardStep14Controller = Em.Controller.extend({
   },
 
   loadTasks: function () {
-
+    var statuses = this.get('content.tasksStatuses');
+    if (statuses) {
+      statuses.forEach(function (status, index) {
+        this.get('tasks')[index].status = status;
+      }, this)
+    }
+    var statusesForRequestId = ['PENDING', 'QUEUED', 'IN_PROGRESS'];
+    if (statusesForRequestId.contains(statuses[0]) || statusesForRequestId.contains(statuses[5]) || statusesForRequestId.contains(statuses[6])) {
+      this.set('currentRequestId', this.get('content.cluster.requestId'));
+      this.getLogsByRequest();
+    }
   },
 
   /**
@@ -100,7 +143,7 @@ App.WizardStep14Controller = Em.Controller.extend({
     if (this.get('tasks')[0].status == 'INITIALIZE') {
       this.stopService();
     }
-    else if (this.get('tasks')[1].status == 'INITIALIZE') {
+    else if (this.taskIsReady(1)) {
       this.createMasterComponent();
     }
     else if (this.taskIsReady(2)) {
@@ -121,7 +164,7 @@ App.WizardStep14Controller = Em.Controller.extend({
     else if (this.taskIsReady(7)) {
       this.removeComponent();
     }
-  }.observes('tasks.@each.status'),
+  },
 
   /**
    * Determine preparedness to run task
@@ -129,10 +172,14 @@ App.WizardStep14Controller = Em.Controller.extend({
    * @return {Boolean}
    */
   taskIsReady: function (task) {
-    var startIndex = (task == 5) ? 0 : 1;
-    var tempArr = this.get('tasks').mapProperty('status').slice(startIndex, task).uniq();
-    return this.get('tasks')[task].status == 'INITIALIZE' && tempArr.length == 1 && tempArr[0] == 'COMPLETED';
+    if (this.get('tasks')[task].status != 'INITIALIZE') {
+      return false;
+    }
+    var tempArr = this.get('tasks').mapProperty('status').slice(0, task).uniq();
+    return tempArr.length == 1 && tempArr[0] == 'COMPLETED';
   },
+
+  queueTasksCompleted: 0,
 
   /**
    * Change status of the task
@@ -140,140 +187,167 @@ App.WizardStep14Controller = Em.Controller.extend({
    * @param status
    */
   setTasksStatus: function (task, status) {
-    this.get('tasks')[task].set('status', status);
+    if (status == 'COMPLETED' && this.get('isCohosted') && [1, 4, 7].contains(task) && this.get('queueTasksCompleted') < 2) {
+      this.set('queueTasksCompleted', this.get('queueTasksCompleted') + 1);
+    } else {
+      this.get('tasks')[task].set('status', status);
+    }
+  },
+
+  saveClusterStatus: function (requestId, status) {
+    var clusterStatus = {
+      status: status,
+      requestId: requestId
+    };
+    App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
   },
 
   stopService: function () {
-    var self = this;
-    var clusterName = this.get('content.cluster.name');
-    var serviceName = this.get('masterComponent.service_id');
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/services/' + serviceName;
-    var data = '{"ServiceInfo": {"state": "INSTALLED"}}';
-    var method = 'PUT';
-    $.ajax({
-      type: method,
-      url: url,
-      data: data,
-      dataType: 'text',
-      timeout: App.timeout,
+    this.set('currentRequestId', []);
+    var serviceNames = [this.get('masterComponent.service_id')];
+    if (this.get('isCohosted')) {
+      serviceNames = ['HIVE', 'WEBHCAT'];
+    }
+    serviceNames.forEach(function (serviceName) {
+      App.ajax.send({
+        name: 'reassign.stop_service',
+        sender: this,
+        data: {
+          serviceName: serviceName,
+          displayName: App.Service.find().findProperty('serviceName', serviceName).get('displayName')
+        },
+        beforeSend: 'onStopServiceBeforeSend',
+        success: 'onStopServiceSuccess',
+        error: 'onStopServiceError'
+      });
+    }, this);
+  },
 
-      beforeSend: function () {
-        self.setTasksStatus(0, 'PENDING');
-      },
+  onStopServiceBeforeSend: function () {
+    this.setTasksStatus(0, 'PENDING');
+  },
 
-      success: function (data) {
-        if (jQuery.parseJSON(data)) {
-          self.set('currentRequestId', jQuery.parseJSON(data).Requests.id);
-          self.getLogsByRequest();
-        } else {
-          self.setTasksStatus(0, 'FAILED');
-        }
-      },
+  onStopServiceSuccess: function (data) {
+    if (data) {
+      var requestId = data.Requests.id;
+      this.get('currentRequestId').push(requestId);
+      this.saveClusterStatus(this.get('currentRequestId'), 'PENDING');
+      if ((this.get('isCohosted') && this.get('currentRequestId.length') == 2) || !this.get('isCohosted')) {
+        this.getLogsByRequest();
+      }
+    } else {
+      this.setTasksStatus(0, 'FAILED');
+    }
+  },
 
-      error: function () {
-        self.setTasksStatus(0, 'FAILED');
-      },
-
-      statusCode: require('data/statusCodes')
-    });
+  onStopServiceError: function () {
+    this.setTasksStatus(0, 'FAILED');
   },
 
   createMasterComponent: function () {
-    var self = this;
-    var clusterName = this.get('content.cluster.name');
     var hostName = this.get('content.masterComponentHosts').findProperty('component', this.get('content.reassign.component_name')).hostName;
-    var componentName = this.get('masterComponent.component_name');
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/hosts?Hosts/host_name=' + hostName;
-    var data = {
-      "host_components": [
-        {
-          "HostRoles": {
-            "component_name": componentName
-          }
-        }
-      ]
-    };
-    var method = 'POST';
-    $.ajax({
-      type: method,
-      url: url,
-      data: JSON.stringify(data),
-      dataType: 'text',
-      timeout: App.timeout,
+    var componentNames = [this.get('masterComponent.component_name')];
+    if (this.get('isCohosted')) {
+      this.set('queueTasksCompleted', 0);
+      componentNames = ['HIVE_SERVER', 'WEBHCAT_SERVER', 'MYSQL_SERVER'];
+    }
+    componentNames.forEach(function (componentName) {
+      if (App.testMode) {
+        this.setTasksStatus(1, 'COMPLETED');
+      } else {
+        App.ajax.send({
+          name: 'reassign.create_master',
+          sender: this,
+          data: {
+            hostName: hostName,
+            componentName: componentName
+          },
+          beforeSend: 'onCreateMasterComponentBeforeSend',
+          success: 'onCreateMasterComponentSuccess',
+          error: 'onCreateMasterComponentError'
+        });
+      }
+    }, this);
+  },
 
-      beforeSend: function () {
-        self.setTasksStatus(1, 'PENDING');
-      },
+  onCreateMasterComponentBeforeSend: function () {
+    this.setTasksStatus(1, 'PENDING');
+  },
 
-      success: function () {
-        self.setTasksStatus(1, 'COMPLETED');
-      },
+  onCreateMasterComponentSuccess: function () {
+    this.setTasksStatus(1, 'COMPLETED');
+  },
 
-      error: function () {
-        self.setTasksStatus(1, 'FAILED');
-      },
-
-      statusCode: require('data/statusCodes')
-    });
-
+  onCreateMasterComponentError: function () {
+    this.setTasksStatus(1, 'FAILED');
   },
 
   createConfigs: function () {
-    this.loadGlobals();
-    this.loadConfigs();
-    this.set('newConfigsTag', 'version' + (new Date).getTime());
-    var serviceName = this.get('service.serviceName');
-    this.createConfigSite(this.createGlobalSiteObj());
-    this.createConfigSite(this.createCoreSiteObj());
-    if (serviceName == 'HDFS') {
-      this.createConfigSite(this.createHdfsSiteObj());
-    }
-    if (serviceName == 'MAPREDUCE') {
-      this.createConfigSite(this.createMrSiteObj());
-    }
-    if (serviceName == 'HBASE') {
-      this.createConfigSite(this.createHbaseSiteObj());
-    }
-    if (serviceName == 'OOZIE') {
-      this.createConfigSite(this.createOozieSiteObj());
-    }
-    if (serviceName == 'HIVE') {
-      this.createConfigSite(this.createHiveSiteObj());
-    }
-    if (serviceName == 'WEBHCAT') {
-      this.createConfigSite(this.createWebHCatSiteObj());
-    }
-    if (this.get('tasks')[2].status !== 'FAILED') {
+    if (this.get('service.serviceName') == 'GANGLIA' || App.testMode) {
       this.setTasksStatus(2, 'COMPLETED');
+    } else {
+      this.setTasksStatus(2, 'PENDING');
+      this.loadGlobals();
+      this.loadConfigs();
+      this.set('newConfigsTag', 'version' + (new Date).getTime());
+      var serviceName = this.get('service.serviceName');
+      this.createConfigSite(this.createGlobalSiteObj());
+      this.createConfigSite(this.createCoreSiteObj());
+      if (serviceName == 'HDFS') {
+        this.createConfigSite(this.createSiteObj('hdfs-site'));
+      }
+      if (serviceName == 'MAPREDUCE') {
+        this.createConfigSite(this.createSiteObj('mapred-site'));
+      }
+      if (serviceName == 'HBASE') {
+        this.createConfigSite(this.createSiteObj('hbase-site'));
+      }
+      if (serviceName == 'OOZIE') {
+        this.createConfigSite(this.createSiteObj('oozie-site'));
+      }
+      if (serviceName == 'HIVE' || this.get('isCohosted')) {
+        this.createConfigSite(this.createSiteObj('hive-site'));
+      }
+      if (serviceName == 'WEBHCAT' || this.get('isCohosted')) {
+        this.createConfigSite(this.createSiteObj('webhcat-site'));
+      }
+      this.addObserver('createdConfigs.length', this, 'onCreateConfigsCompleted');
+      this.onCreateConfigsCompleted();
     }
   },
 
-  createConfigSite: function (data) {
-    var self = this;
-    data.tag = this.get('newConfigsTag');
-    var clusterName = this.get('content.cluster.name');
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/configurations';
-    $.ajax({
-      type: 'POST',
-      url: url,
-      data: JSON.stringify(data),
-      dataType: 'text',
-      timeout: 5000,
-
-      beforeSend: function () {
-        self.setTasksStatus(2, 'PENDING');
+  createConfigSite: function (configs) {
+    configs.tag = this.get('newConfigsTag');
+    App.ajax.send({
+      name: 'reassign.create_configs',
+      sender: this,
+      data: {
+        configs: configs
       },
-
-      success: function () {
-        self.get('createdConfigs').push(data.type);
-      },
-
-      error: function () {
-        self.setTasksStatus(2, 'FAILED');
-      },
-
-      statusCode: require('data/statusCodes')
+      beforeSend: 'onCreateConfigsBeforeSend',
+      success: 'onCreateConfigsSuccess',
+      error: 'onCreateConfigsError'
     });
+  },
+
+  onCreateConfigsBeforeSend: function () {
+    this.set('createdConfigsCount', this.get('createdConfigsCount') + 1);
+  },
+
+  onCreateConfigsSuccess: function (data, opts) {
+    this.get('createdConfigs').pushObject(opts.configs.type);
+  },
+
+  onCreateConfigsError: function () {
+    this.setTasksStatus(2, 'FAILED');
+  },
+
+  createdConfigsCount: 0,
+
+  onCreateConfigsCompleted: function () {
+    if (this.get('createdConfigs.length') == this.get('createdConfigsCount')) {
+      this.setTasksStatus(2, 'COMPLETED');
+    }
   },
 
   loadGlobals: function () {
@@ -334,10 +408,8 @@ App.WizardStep14Controller = Em.Controller.extend({
       return expression;
     }
     express.forEach(function (_express) {
-      //console.log("The value of template is: " + _express);
       var index = parseInt(_express.match(/\[([\d]*)(?=\])/)[1]);
       if (this.get('globals').someProperty('name', templateName[index])) {
-        //console.log("The name of the variable is: " + this.get('content.serviceConfigProperties').findProperty('name', templateName[index]).name);
         var globValue = this.get('globals').findProperty('name', templateName[index]).value;
         // Hack for templeton.zookeeper.hosts
         if (value !== null) {   // if the property depends on more than one template name like <templateName[0]>/<templateName[1]> then don't proceed to the next if the prior is null or not found in the global configs
@@ -357,12 +429,6 @@ App.WizardStep14Controller = Em.Controller.extend({
           }
         }
       } else {
-        /*
-         console.log("ERROR: The variable name is: " + templateName[index]);
-         console.log("ERROR: mapped config from configMapping file has no corresponding variable in " +
-         "content.serviceConfigProperties. Two possible reasons for the error could be: 1) The service is not selected. " +
-         "and/OR 2) The service_config metadata file has no corresponding global var for the site property variable");
-         */
         value = null;
       }
     }, this);
@@ -426,32 +492,6 @@ App.WizardStep14Controller = Em.Controller.extend({
     }
   },
 
-
-  /**
-   * override site properties with the entered key-value pair in *-site.xml
-   */
-  setCustomConfigs: function () {
-    var site = this.get('content.serviceConfigProperties').filterProperty('id', 'conf-site');
-    site.forEach(function (_site) {
-      var keyValue = _site.value.split(/\n+/);
-      if (keyValue) {
-        keyValue.forEach(function (_keyValue) {
-          _keyValue = _keyValue.trim();
-          console.log("The value of the keyValue is: " + _keyValue);
-          // split on the first = encountered (the value may contain ='s)
-          var matches = _keyValue.match(/^([^=]+)=(.*)$/);
-          if (matches) {
-            var key = matches[1];
-            var value = matches[2];
-            if (key) {
-              this.setSiteProperty(key, value, _site.name + '.xml');
-            }
-          }
-        }, this);
-      }
-    }, this);
-  },
-
   /**
    * Set property of the site variable
    */
@@ -476,8 +516,6 @@ App.WizardStep14Controller = Em.Controller.extend({
         } else {
           globalSiteProperties[_globalSiteObj.name] = _globalSiteObj.value;
         }
-        console.log("STEP8: name of the global property is: " + _globalSiteObj.name);
-        console.log("STEP8: value of the global property is: " + _globalSiteObj.value);
       }
     }, this);
     return {"type": "global", "properties": globalSiteProperties};
@@ -498,93 +536,39 @@ App.WizardStep14Controller = Em.Controller.extend({
       if ((isOozieSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.groups')) && (isHiveSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.groups')) && (isHcatSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.groups'))) {
         coreSiteProperties[_coreSiteObj.name] = _coreSiteObj.value;
       }
-      console.log("STEP*: name of the property is: " + _coreSiteObj.name);
-      console.log("STEP8: value of the property is: " + _coreSiteObj.value);
     }, this);
     return {"type": "core-site", "properties": coreSiteProperties};
   },
 
-  createHdfsSiteObj: function () {
-    var hdfsSiteObj = this.get('configs').filterProperty('filename', 'hdfs-site.xml');
-    var hdfsProperties = {};
-    hdfsSiteObj.forEach(function (_configProperty) {
-      hdfsProperties[_configProperty.name] = _configProperty.value;
-      console.log("STEP*: name of the property is: " + _configProperty.name);
-      console.log("STEP8: value of the property is: " + _configProperty.value);
-    }, this);
-    return {"type": "hdfs-site", "properties": hdfsProperties };
-  },
-
-  createMrSiteObj: function () {
-    var configs = this.get('configs').filterProperty('filename', 'mapred-site.xml');
-    var mrProperties = {};
+  createSiteObj: function (name) {
+    var fileName = name + '.xml';
+    var configs = this.get('configs').filterProperty('filename', fileName);
+    var properties = {};
     configs.forEach(function (_configProperty) {
-      mrProperties[_configProperty.name] = _configProperty.value;
-      console.log("STEP*: name of the property is: " + _configProperty.name);
-      console.log("STEP8: value of the property is: " + _configProperty.value);
+      properties[_configProperty.name] = _configProperty.value;
     }, this);
-    return {type: 'mapred-site', properties: mrProperties};
-  },
-
-  createHbaseSiteObj: function () {
-    var configs = this.get('configs').filterProperty('filename', 'hbase-site.xml');
-    var hbaseProperties = {};
-    configs.forEach(function (_configProperty) {
-      hbaseProperties[_configProperty.name] = _configProperty.value;
-    }, this);
-    return {type: 'hbase-site', properties: hbaseProperties};
-  },
-
-  createOozieSiteObj: function () {
-    var configs = this.get('configs').filterProperty('filename', 'oozie-site.xml');
-    var oozieProperties = {};
-    configs.forEach(function (_configProperty) {
-      oozieProperties[_configProperty.name] = _configProperty.value;
-    }, this);
-    return {type: 'oozie-site', properties: oozieProperties};
-  },
-
-  createHiveSiteObj: function () {
-    var configs = this.get('configs').filterProperty('filename', 'hive-site.xml');
-    var hiveProperties = {};
-    configs.forEach(function (_configProperty) {
-      hiveProperties[_configProperty.name] = _configProperty.value;
-    }, this);
-    return {type: 'hive-site', properties: hiveProperties};
-  },
-
-  createWebHCatSiteObj: function () {
-    var configs = this.get('configs').filterProperty('filename', 'webhcat-site.xml');
-    var webHCatProperties = {};
-    configs.forEach(function (_configProperty) {
-      webHCatProperties[_configProperty.name] = _configProperty.value;
-    }, this);
-    return {type: 'webhcat-site', properties: webHCatProperties};
+    return {type: name, properties: properties};
   },
 
   applyConfigs: function () {
-    var self = this;
-    var configTags;
-    var clusterName = this.get('content.cluster.name');
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/services/' + this.get('service.serviceName');
-    $.ajax({
-      type: 'GET',
-      url: url,
-      async: false,
-      timeout: 10000,
-      dataType: 'text',
-      success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
-        configTags = jsonData.ServiceInfo.desired_configs;
-      },
+    if (this.get('service.serviceName') == 'GANGLIA' || App.testMode) {
+      this.setTasksStatus(3, 'COMPLETED');
+    } else {
+      var serviceName = this.get('service.serviceName');
+      App.ajax.send({
+        name: 'reassign.check_configs',
+        sender: this,
+        data: {
+          serviceName: serviceName
+        },
+        success: 'onCheckConfigsSuccess',
+        error: 'onCheckConfigsError'
+      });
+    }
+  },
 
-      error: function () {
-        self.setTasksStatus(3, 'FAILED');
-      },
-
-      statusCode: require('data/statusCodes')
-    });
-
+  onCheckConfigsSuccess: function (configs) {
+    var configTags = configs.ServiceInfo.desired_configs;
     if (!configTags) {
       this.setTasksStatus(0, 'FAILED');
       return;
@@ -596,100 +580,158 @@ App.WizardStep14Controller = Em.Controller.extend({
       }
     }
     var data = {config: configTags};
-
-    $.ajax({
-      type: 'PUT',
-      url: url,
-      dataType: 'text',
-      data: JSON.stringify(data),
-      timeout: 5000,
-
-      beforeSend: function () {
-        self.setTasksStatus(3, 'PENDING');
+    var serviceName = this.get('service.serviceName');
+    App.ajax.send({
+      name: 'reassign.apply_configs',
+      sender: this,
+      data: {
+        serviceName: serviceName,
+        configs: data
       },
-
-      success: function () {
-        self.setTasksStatus(3, 'COMPLETED');
-      },
-
-      error: function () {
-        self.setTasksStatus(3, 'FAILED');
-      },
-
-      statusCode: require('data/statusCodes')
+      beforeSend: 'onApplyConfigsBeforeSend',
+      success: 'onApplyConfigsSuccess',
+      error: 'onApplyConfigsError'
     });
+  },
+
+  onCheckConfigsError: function () {
+    this.setTasksStatus(3, 'FAILED');
+  },
+
+  onApplyConfigsBeforeSend: function () {
+    this.setTasksStatus(3, 'PENDING');
+  },
+
+  onApplyConfigsSuccess: function () {
+    this.setTasksStatus(3, 'COMPLETED');
+  },
+
+  onApplyConfigsError: function () {
+    this.setTasksStatus(3, 'FAILED');
   },
 
   putInMaintenanceMode: function () {
-    //todo after API providing
+    if (App.testMode) {
+      this.setTasksStatus(4, 'COMPLETED');
+    } else {
+      var hostName = this.get('content.reassign.host_id');
+      var componentNames = [this.get('masterComponent.component_name')];
+      if (this.get('isCohosted')) {
+        componentNames = ['HIVE_SERVER', 'WEBHCAT_SERVER', 'MYSQL_SERVER'];
+        this.set('queueTasksCompleted', 0);
+      }
+      componentNames.forEach(function (componentName) {
+        App.ajax.send({
+          name: 'reassign.maintenance_mode',
+          sender: this,
+          data: {
+            hostName: hostName,
+            componentName: componentName
+          },
+          beforeSend: 'onPutInMaintenanceModeBeforeSend',
+          success: 'onPutInMaintenanceModeSuccess',
+          error: 'onPutInMaintenanceModeError'
+        });
+      }, this);
+    }
+  },
+
+  onPutInMaintenanceModeBeforeSend: function () {
+    this.setTasksStatus(4, 'PENDING');
+  },
+
+  onPutInMaintenanceModeSuccess: function () {
     this.setTasksStatus(4, 'COMPLETED');
   },
 
+  onPutInMaintenanceModeError: function () {
+    this.setTasksStatus(4, 'FAILED');
+  },
+
   installComponent: function () {
-    var self = this;
-    var clusterName = this.get('content.cluster.name');
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/host_components?HostRoles/state=INIT';
-    var data = '{"HostRoles": {"state": "INSTALLED"}}';
-    var method = 'PUT';
-    $.ajax({
-      type: method,
-      url: url,
-      data: data,
-      dataType: 'text',
-      timeout: App.timeout,
+    this.set('currentRequestId', []);
+    var componentNames = [this.get('masterComponent.component_name')];
+    if (this.get('isCohosted')) {
+      componentNames = ['HIVE_SERVER', 'WEBHCAT_SERVER', 'MYSQL_SERVER'];
+    }
+    var hostName = this.get('content.masterComponentHosts').findProperty('component', this.get('content.reassign.component_name')).hostName;
+    componentNames.forEach(function (componentName) {
+      App.ajax.send({
+        name: 'reassign.install_component',
+        sender: this,
+        data: {
+          hostName: hostName,
+          componentName: componentName,
+          displayName: App.format.role(componentName)
+        },
+        beforeSend: 'onInstallComponentBeforeSend',
+        success: 'onInstallComponentSuccess',
+        error: 'onInstallComponentError'
+      });
+    }, this);
+  },
 
-      beforeSend: function () {
-        self.setTasksStatus(5, 'PENDING');
-      },
+  onInstallComponentBeforeSend: function () {
+    this.setTasksStatus(5, 'PENDING');
+  },
 
-      success: function (data) {
-        if (jQuery.parseJSON(data)) {
-          self.set('currentRequestId', jQuery.parseJSON(data).Requests.id);
-          self.getLogsByRequest();
-        } else {
-          self.setTasksStatus(5, 'FAILED');
-        }
-      },
+  onInstallComponentSuccess: function (data) {
+    if (data) {
+      var requestId = data.Requests.id;
+      this.get('currentRequestId').push(requestId);
+      this.saveClusterStatus(this.get('currentRequestId'), 'PENDING');
+      if ((this.get('isCohosted') && this.get('currentRequestId.length') == 3) || !this.get('isCohosted')) {
+        this.getLogsByRequest();
+      }
+    } else {
+      this.setTasksStatus(5, 'FAILED');
+    }
+  },
 
-      error: function () {
-        self.setTasksStatus(5, 'FAILED');
-      },
-
-      statusCode: require('data/statusCodes')
-    });
+  onInstallComponentError: function () {
+    this.setTasksStatus(5, 'FAILED');
   },
 
   startComponents: function () {
-    var self = this;
-    var clusterName = this.get('content.cluster.name');
-    var serviceName = this.get('masterComponent.service_id');
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/services/' + serviceName;
-    var data = '{"ServiceInfo": {"state": "STARTED"}}';
-    var method = 'PUT';
-    $.ajax({
-      type: method,
-      url: url,
-      data: data,
-      dataType: 'text',
-      timeout: App.timeout,
+    this.set('currentRequestId', []);
+    var serviceNames = [this.get('masterComponent.service_id')];
+    if (this.get('isCohosted')) {
+      serviceNames = ['HIVE', 'WEBHCAT'];
+    }
+    serviceNames.forEach(function (serviceName) {
+      App.ajax.send({
+        name: 'reassign.start_components',
+        sender: this,
+        data: {
+          serviceName: serviceName,
+          displayName: App.Service.find().findProperty('serviceName', serviceName).get('displayName')
+        },
+        beforeSend: 'onStartComponentsBeforeSend',
+        success: 'onStartComponentsSuccess',
+        error: 'onStartComponentsError'
+      });
+    }, this);
+  },
 
-      beforeSend: function () {
-        self.setTasksStatus(6, 'PENDING');
-      },
+  onStartComponentsBeforeSend: function () {
+    this.setTasksStatus(6, 'PENDING');
+  },
 
-      success: function (data) {
-        if (jQuery.parseJSON(data)) {
-          self.set('currentRequestId', jQuery.parseJSON(data).Requests.id);
-          self.getLogsByRequest();
-        }
-      },
+  onStartComponentsSuccess: function (data) {
+    if (data) {
+      var requestId = data.Requests.id;
+      this.get('currentRequestId').push(requestId);
+      this.saveClusterStatus(this.get('currentRequestId'), 'PENDING');
+      if ((this.get('isCohosted') && this.get('currentRequestId.length') == 2) || !this.get('isCohosted')) {
+        this.getLogsByRequest();
+      }
+    } else {
+      this.setTasksStatus(6, 'FAILED');
+    }
+  },
 
-      error: function () {
-        self.setTasksStatus(6, 'FAILED');
-      },
-
-      statusCode: require('data/statusCodes')
-    });
+  onStartComponentsError: function () {
+    this.setTasksStatus(6, 'FAILED');
   },
 
   /**
@@ -700,94 +742,222 @@ App.WizardStep14Controller = Em.Controller.extend({
     var self = this;
     var task;
     var stopPolling = false;
-    var starting = false;
-    var polledData = logs.tasks;
-    var status;
-    if ((this.get('tasks')[5].status != 'COMPLETED' && this.get('tasks')[6].status != 'COMPLETED' && this.get('tasks')[0].status != 'COMPLETED') ||
-        ((this.get('tasks')[5].status == 'COMPLETED') && this.get('tasks')[0].status == 'COMPLETED' && this.get('tasks')[6].status != 'COMPLETED')) {
-      //stopping or starting components
-      if (this.get('tasks')[0].status == 'COMPLETED') {
-        task = 6;
-        starting = true;
+    var polledData = [];
+    logs.forEach(function (item) {
+      polledData = polledData.concat(item.tasks);
+    }, this);
+    if (this.get('tasks')[0].status == 'COMPLETED') {
+      task = this.get('tasks')[5].status == 'COMPLETED' ? 6 : 5;
+    } else {
+      task = 0;
+    }
+    if (!polledData.someProperty('Tasks.status', 'PENDING') && !polledData.someProperty('Tasks.status', 'QUEUED') && !polledData.someProperty('Tasks.status', 'IN_PROGRESS')) {
+      if (polledData.someProperty('Tasks.status', 'FAILED')) {
+        this.setTasksStatus(task, 'FAILED');
       } else {
-        task = 0;
+        this.setTasksStatus(task, 'COMPLETED');
       }
-      if (!polledData.someProperty('Tasks.status', 'PENDING') && !polledData.someProperty('Tasks.status', 'QUEUED') && !polledData.someProperty('Tasks.status', 'IN_PROGRESS')) {
-        if (polledData.someProperty('Tasks.status', 'FAILED')) {
-          this.setTasksStatus(task, 'FAILED');
-          status = 'FAILED'
-        } else {
-          this.setTasksStatus(task, 'COMPLETED');
-          status = 'COMPLETED';
-        }
-        stopPolling = true;
-      } else if (polledData.someProperty('Tasks.status', 'IN_PROGRESS')) {
+      stopPolling = true;
+    } else {
+      if (polledData.length == 1) {
+        this.get('tasks')[task].set('progress', 50);
+      } else {
         var progress = polledData.filterProperty('Tasks.status', 'COMPLETED').length / polledData.length * 100;
-        this.setTasksStatus(task, 'IN_PROGRESS');
         this.get('tasks')[task].set('progress', Math.round(progress));
       }
-    } else {
-      //installing component
-      status = polledData[0].Tasks.status;
-      this.setTasksStatus(5, status);
-      if (status == 'IN_PROGRESS') {
-        this.get('tasks')[5].set('progress', '50');
-      }
-      if (status == 'COMPLETED' || status == 'FAILED') {
-        stopPolling = true;
-      }
+      this.setTasksStatus(task, 'IN_PROGRESS');
     }
     if (!stopPolling) {
       window.setTimeout(function () {
         self.getLogsByRequest()
       }, self.POLL_INTERVAL);
-    } else {
-      if (status == 'FAILED') {
-        //todo show retry
-      }
-      if (starting && status == 'COMPLETED') {
-        this.set('isSubmitDisabled', false);
-      }
     }
   },
 
   POLL_INTERVAL: 4000,
+  dataPollCounter: 1,
 
   getLogsByRequest: function () {
-    var self = this;
-    var clusterName = this.get('content.cluster.name');
-    var requestId = this.get('currentRequestId');
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/requests/' + requestId + '?fields=tasks/*';
-    $.ajax({
-      type: 'GET',
-      url: url,
-      timeout: App.timeout,
-      dataType: 'text',
-      success: function (data) {
-        self.parseLogs(jQuery.parseJSON(data));
-      },
+    this.set('logs', []);
+    if (App.testMode) {
+      var data = require('data/mock/step14PolledData/tasks_poll' + this.get('dataPollCounter'));
+      this.set('dataPollCounter', this.get('dataPollCounter') + 1);
+      if (this.get('dataPollCounter') == 6) {
+        this.set('dataPollCounter', 1);
+      }
+      this.onGetLogsByRequestSuccess(data);
+    } else {
+      var requestIds = this.get('currentRequestId');
+      requestIds.forEach(function (requestId) {
+        App.ajax.send({
+          name: 'reassign.get_logs',
+          sender: this,
+          data: {
+            requestId: requestId
+          },
+          success: 'onGetLogsByRequestSuccess',
+          error: 'onGetLogsByRequestError'
+        });
+      }, this);
+    }
+  },
 
-      error: function () {
-        this.set('status', 'FAILED');
-      },
+  logs: [],
 
-      statusCode: require('data/statusCodes')
-    }).retry({times: App.maxRetries, timeout: App.timeout}).then(null,
-        function () {
-          App.showReloadPopup();
-          console.log('Install services all retries FAILED');
-        }
-    );
+  onGetLogsByRequestSuccess: function (data) {
+    this.get('logs').push(data);
+    if (this.get('logs.length') == this.get('currentRequestId.length') || App.testMode) {
+      this.parseLogs(this.get('logs'))
+    }
+  },
+
+  onGetLogsByRequestError: function () {
+    this.set('status', 'FAILED');
   },
 
   removeComponent: function () {
-    //todo after API providing
+    if (App.testMode) {
+      this.setTasksStatus(7, 'COMPLETED');
+    } else {
+      var hostName = this.get('content.reassign.host_id');
+      var componentNames = [this.get('masterComponent.component_name')];
+      if (this.get('isCohosted')) {
+        componentNames = ['HIVE_SERVER', 'WEBHCAT_SERVER', 'MYSQL_SERVER'];
+        this.set('queueTasksCompleted', 0);
+      }
+      componentNames.forEach(function (componentName) {
+        App.ajax.send({
+          name: 'reassign.remove_component',
+          sender: this,
+          data: {
+            hostName: hostName,
+            componentName: componentName
+          },
+          beforeSend: 'onRemoveComponentBeforeSend',
+          success: 'onRemoveComponentSuccess',
+          error: 'onRemoveComponentError'
+        });
+      }, this);
+    }
+  },
+
+  onRemoveComponentBeforeSend: function () {
+    this.setTasksStatus(7, 'PENDING');
+  },
+
+  onRemoveComponentSuccess: function () {
     this.setTasksStatus(7, 'COMPLETED');
   },
 
-  submit: function () {
-    if (!this.get('isSubmitDisabled')) {
-      App.router.send('next');
+  onRemoveComponentError: function () {
+    this.setTasksStatus(7, 'FAILED');
+  },
+
+  retry: function () {
+    if (this.get('tasks')[5].status == 'FAILED') {
+      this.installComponent();
+    } else {
+      this.startComponents();
     }
+    this.set('showRetry', false);
+  },
+
+  abort: function () {
+    var hostName = this.get('content.masterComponentHosts').findProperty('component', this.get('content.reassign.component_name')).hostName;
+    var componentNames = [this.get('masterComponent.component_name')];
+    if (this.get('isCohosted')) {
+      componentNames = ['HIVE_SERVER', 'WEBHCAT_SERVER', 'MYSQL_SERVER'];
+      this.set('queueTasksCompleted', 0);
+    }
+    componentNames.forEach(function (componentName) {
+      App.ajax.send({
+        name: 'reassign.maintenance_mode',
+        sender: this,
+        data: {
+          hostName: hostName,
+          componentName: componentName
+        },
+        success: 'onAbortMaintenance',
+        error: 'onAbortError'
+      });
+    }, this);
+  },
+
+
+  onAbortMaintenance: function () {
+    if (this.get('isCohosted') && this.get('queueTasksCompleted') < 2) {
+      this.set('queueTasksCompleted', this.get('queueTasksCompleted') + 1);
+    } else {
+      var hostName = this.get('content.masterComponentHosts').findProperty('component', this.get('content.reassign.component_name')).hostName;
+      var componentNames = [this.get('masterComponent.component_name')];
+      if (this.get('isCohosted')) {
+        componentNames = ['HIVE_SERVER', 'WEBHCAT_SERVER', 'MYSQL_SERVER'];
+        this.set('queueTasksCompleted', 0);
+      }
+      componentNames.forEach(function (componentName) {
+        App.ajax.send({
+          name: 'reassign.remove_component',
+          sender: this,
+          data: {
+            hostName: hostName,
+            componentName: componentName
+          },
+          success: 'onAbortRemoveComponent',
+          error: 'onAbortError'
+        });
+      }, this);
+    }
+  },
+
+  onAbortRemoveComponent: function () {
+    if (this.get('isCohosted') && this.get('queueTasksCompleted') < 2) {
+      this.set('queueTasksCompleted', this.get('queueTasksCompleted') + 1);
+    } else {
+      var hostName = this.get('content.reassign.host_id');
+      var componentNames = [this.get('masterComponent.component_name')];
+      if (this.get('isCohosted')) {
+        componentNames = ['HIVE_SERVER', 'WEBHCAT_SERVER', 'MYSQL_SERVER'];
+        this.set('queueTasksCompleted', 0);
+      }
+      componentNames.forEach(function (componentName) {
+        App.ajax.send({
+          name: 'reassign.install_component',
+          sender: this,
+          data: {
+            hostName: hostName,
+            componentName: componentName
+          },
+          success: 'onAbortCompleted',
+          error: 'onAbortError'
+        });
+      }, this);
+    }
+  },
+
+  onAbortCompleted: function () {
+    if (this.get('isCohosted') && this.get('queueTasksCompleted') < 2) {
+      this.set('queueTasksCompleted', this.get('queueTasksCompleted') + 1);
+    } else {
+      App.clusterStatus.setClusterStatus({
+        clusterName: this.get('content.cluster.name'),
+        clusterState: 'REASSIGN_MASTER_ABORTED',
+        wizardControllerName: this.get('content.controllerName'),
+        localdb: App.db.data
+      });
+      App.router.send('back');
+    }
+  },
+
+  onAbortError: function () {
+    App.ModalPopup.show({
+      header: Em.I18n.translations['common.error'],
+      secondary: false,
+      onPrimary: function () {
+        this.hide();
+      },
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile('<p>{{t installer.step14.abortError}}</p>')
+      })
+    });
   }
 })

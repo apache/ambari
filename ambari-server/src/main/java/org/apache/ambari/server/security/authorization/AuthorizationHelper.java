@@ -19,8 +19,11 @@ package org.apache.ambari.server.security.authorization;
 
 import com.google.inject.Singleton;
 import org.apache.ambari.server.orm.entities.RoleEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,5 +46,27 @@ public class AuthorizationHelper {
     }
 
     return authorities;
+  }
+  
+  /**
+   * Gets the name of the logged in user.  Thread-safe due to use of thread-local.
+   * @return the name of the logged in user, or <code>null</code> if none set.
+   */
+  public static String getAuthenticatedName() {
+    return getAuthenticatedName(null);
+  }
+  
+  /**
+   * Gets the name of the logged-in user, if any.  Thread-safe due to use of
+   * thread-local.
+   * @param defaultUsername the value if there is no logged-in user
+   * @return the name of the logged-in user, or the default
+   */
+  public static String getAuthenticatedName(String defaultUsername) {
+    SecurityContext securityContext = SecurityContextHolder.getContext();
+    
+    Authentication auth = securityContext.getAuthentication();
+    
+    return (null == auth) ? defaultUsername : auth.getName();
   }
 }

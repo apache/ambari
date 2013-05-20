@@ -39,47 +39,75 @@ public class JsonRequestBodyParser implements RequestBodyParser {
   private final static Logger LOG = LoggerFactory.getLogger(JsonRequestBodyParser.class);
 
   @Override
-  public RequestBody parse(String s) throws BodyParseException {
-    RequestBody body = new RequestBody();
-    body.setBody(s);
+  public Set<RequestBody> parse(String body) throws BodyParseException {
 
-    if (s != null && s.length() != 0) {
-      s = ensureArrayFormat(s);
+    Set<RequestBody> requestBodySet = new HashSet<RequestBody>();
+    RequestBody      rootBody       = new RequestBody();
+    rootBody.setBody(body);
+
+    if (body != null && body.length() != 0) {
       ObjectMapper mapper = new ObjectMapper();
       try {
-        JsonNode root = mapper.readTree(s);
+        JsonNode root = mapper.readTree(ensureArrayFormat(body));
 
-        Iterator<JsonNode> iter = root.getElements();
-        while (iter.hasNext()) {
-          Map<String, Object> mapProperties = new HashMap<String, Object>();
-          NamedPropertySet propertySet = new NamedPropertySet("", mapProperties);
-          JsonNode node = iter.next();
-          processNode(node, "", propertySet, body);
+        Iterator<JsonNode> iterator = root.getElements();
+        while (iterator.hasNext()) {
+          JsonNode            node             = iterator.next();
+          Map<String, Object> mapProperties    = new HashMap<String, Object>();
+          Map<String, String> requestInfoProps = new HashMap<String, String>();
+          NamedPropertySet    propertySet      = new NamedPropertySet("", mapProperties);
 
-          String query = body.getRequestInfoProperties().get(QUERY_FIELD_NAME);
-          if (query != null) {
-            body.setQueryString(query);
-          }
-          if (propertySet.getProperties().size() != 0) {
-            body.addPropertySet(propertySet);
+          processNode(node, "", propertySet, requestInfoProps);
+
+          if (!requestInfoProps.isEmpty()) {
+            // If this node has request info properties then add it as a
+            // separate request body
+            RequestBody requestBody = new RequestBody();
+            requestBody.setBody(body);
+
+            for (Map.Entry<String, String> entry : requestInfoProps.entrySet()) {
+              String key   = entry.getKey();
+              String value = entry.getValue();
+
+              requestBody.addRequestInfoProperty(key, value);
+
+              if (key.equals(QUERY_FIELD_NAME)) {
+                requestBody.setQueryString(value);
+              }
+            }
+            if (!propertySet.getProperties().isEmpty()) {
+              requestBody.addPropertySet(propertySet);
+            }
+            requestBodySet.add(requestBody);
+          } else {
+            // If this node does not have request info properties then add it
+            // as a new property set to the root request body
+            if (!propertySet.getProperties().isEmpty()) {
+              rootBody.addPropertySet(propertySet);
+            }
+            requestBodySet.add(rootBody);
           }
         }
       } catch (IOException e) {
         if (LOG.isDebugEnabled()) {
           LOG.debug("Caught exception parsing msg body.");
-          LOG.debug("Message Body: " + s, e);
+          LOG.debug("Message Body: " + body, e);
         }
         throw new BodyParseException(e);
       }
     }
-    return body;
+    if (requestBodySet.isEmpty()) {
+      requestBodySet.add(rootBody);
+    }
+    return requestBodySet;
   }
 
-  private void processNode(JsonNode node, String path, NamedPropertySet propertySet, RequestBody body) {
-    Iterator<String> iter = node.getFieldNames();
-    String name;
-    while (iter.hasNext()) {
-      name = iter.next();
+  private void processNode(JsonNode node, String path, NamedPropertySet propertySet,
+                           Map<String, String> requestInfoProps) {
+
+    Iterator<String> iterator = node.getFieldNames();
+    while (iterator.hasNext()) {
+      String   name  = iterator.next();
       JsonNode child = node.get(name);
       if (child.isArray()) {
         //array
@@ -88,7 +116,7 @@ public class JsonRequestBodyParser implements RequestBodyParser {
 
         while (arrayIter.hasNext()) {
           NamedPropertySet arrayPropertySet = new NamedPropertySet(name, new HashMap<String, Object>());
-          processNode(arrayIter.next(), "", arrayPropertySet, body);
+          processNode(arrayIter.next(), "", arrayPropertySet, requestInfoProps);
           arraySet.add(arrayPropertySet.getProperties());
         }
         propertySet.getProperties().put(PropertyHelper.getPropertyId(path, name), arraySet);
@@ -97,18 +125,16 @@ public class JsonRequestBodyParser implements RequestBodyParser {
         if (name.equals(BODY_TITLE)) {
           name = "";
         }
-        processNode(child, path.isEmpty() ? name : path + '/' + name, propertySet, body);
+        processNode(child, path.isEmpty() ? name : path + '/' + name, propertySet, requestInfoProps);
       } else {
         // field
         if (path.startsWith(REQUEST_INFO_PATH)) {
-          body.addRequestInfoProperty(PropertyHelper.getPropertyId(
+          requestInfoProps.put(PropertyHelper.getPropertyId(
               path.substring(REQUEST_INFO_PATH.length()), name), child.asText());
-
-        }  else {
+        } else {
           propertySet.getProperties().put(PropertyHelper.getPropertyId(
               path.equals(BODY_TITLE) ? "" : path, name), child.asText());
         }
-
       }
     }
   }

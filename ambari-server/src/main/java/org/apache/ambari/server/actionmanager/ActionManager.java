@@ -20,6 +20,7 @@ package org.apache.ambari.server.actionmanager;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
+import com.google.inject.persist.UnitOfWork;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.controller.HostsMap;
@@ -31,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -50,11 +52,11 @@ public class ActionManager {
   public ActionManager(@Named("schedulerSleeptime") long schedulerSleepTime,
       @Named("actionTimeout") long actionTimeout,
       ActionQueue aq, Clusters fsm, ActionDBAccessor db, HostsMap hostsMap,
-      ServerActionManager serverActionManager) {
+      ServerActionManager serverActionManager, UnitOfWork unitOfWork) {
     this.actionQueue = aq;
     this.db = db;
     scheduler = new ActionScheduler(schedulerSleepTime, actionTimeout, db,
-        actionQueue, fsm, 2, hostsMap, serverActionManager);
+        actionQueue, fsm, 2, hostsMap, serverActionManager, unitOfWork);
     requestCounter = new AtomicLong(
         db.getLastPersistedRequestIdWhenInitialized());
   }
@@ -179,4 +181,11 @@ public class ActionManager {
     return db.getRequestsByStatus(status);
   }
 
+  public Map<Long, String> getRequestContext(List<Long> requestIds) {
+    return db.getRequestContext(requestIds);
+  }
+
+  public String getRequestContext(long requestId) {
+    return db.getRequestContext(requestId);
+  }
 }

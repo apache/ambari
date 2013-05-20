@@ -37,7 +37,20 @@ public class TestStreamProvider implements StreamProvider {
     FILE_MAPPING.put("60010", "hbase_hbasemaster_jmx.json");
   }
 
+  /**
+   * Delay to simulate response time.
+   */
+  protected final long delay;
+
   private String lastSpec;
+
+  public TestStreamProvider() {
+    delay = 0;
+  }
+
+  public TestStreamProvider(long delay) {
+    this.delay = delay;
+  }
 
   @Override
   public InputStream readFrom(String spec) throws IOException {
@@ -46,6 +59,14 @@ public class TestStreamProvider implements StreamProvider {
     if (filename == null) {
       throw new IOException("Can't find JMX source for " + spec);
     }
+    if (delay > 0) {
+      try {
+        Thread.sleep(delay);
+      } catch (InterruptedException e) {
+        // do nothing
+      }
+    }
+
     return ClassLoader.getSystemResourceAsStream(filename);
   }
 
@@ -57,6 +78,4 @@ public class TestStreamProvider implements StreamProvider {
     int n = spec.indexOf(":", 5);
     return spec.substring(n + 1, n + 6);
   }
-
-
 }

@@ -50,6 +50,9 @@ public class ClusterConfigMappingEntity {
 
   @Column(name = "selected", insertable = true, updatable = true, nullable = false)
   private int selectedInd = 0;
+  
+  @Column(name = "user_name", insertable = true, updatable = true, nullable = false)
+  private String user;
 
   @ManyToOne
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
@@ -76,7 +79,7 @@ public class ClusterConfigMappingEntity {
 
   public void setCreateTimestamp(Long timestamp) {
     createTimestamp = timestamp;
-  }  
+  }
   
   public String getVersion() {
     return versionTag;
@@ -92,6 +95,20 @@ public class ClusterConfigMappingEntity {
 
   public void setSelected(int selected) {
     selectedInd = selected;
+  }
+  
+  /**
+   * @return the user
+   */
+  public String getUser() {
+    return user;
+  }
+  
+  /**
+   * @param userName the user
+   */
+  public void setUser(String userName) {
+    user = userName;
   }
   
   public ClusterEntity getClusterEntity() {

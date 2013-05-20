@@ -70,6 +70,7 @@ ambari_provider_module = os.environ.get('AMBARI_PROVIDER_MODULE')
 
 # constants
 STACK_NAME_VER_SEP = "-"
+JAVA_SHARE_PATH="/usr/share/java"
 
 if ambari_provider_module is not None:
   ambari_provider_module_option = "-Dprovider.module.class=" +\
@@ -82,17 +83,15 @@ SERVER_START_CMD="{0}" + os.sep + "bin" + os.sep +\
                  ambari_provider_module_option +\
                  os.getenv('AMBARI_JVM_ARGS','-Xms512m -Xmx2048m') +\
                  " -cp {1}"+ os.pathsep + "{2}" +\
-                 "/* org.apache.ambari.server.controller.AmbariServer "\
+                 " org.apache.ambari.server.controller.AmbariServer "\
                  ">/var/log/ambari-server/ambari-server.out 2>&1"
 SERVER_START_CMD_DEBUG="{0}" + os.sep + "bin" + os.sep +\
                        "java -server -XX:NewRatio=2 -XX:+UseConcMarkSweepGC " +\
                        ambari_provider_module_option +\
                        os.getenv('AMBARI_JVM_ARGS','-Xms512m -Xmx2048m') +\
                        " -Xdebug -Xrunjdwp:transport=dt_socket,address=5005,"\
-                       "server=y,suspend=n -cp {1}"+ os.pathsep + ".." +\
-                       os.sep + "lib" + os.sep + "ambari-server" +\
-                       os.sep +\
-                       "* org.apache.ambari.server.controller.AmbariServer"
+                       "server=y,suspend=n -cp {1}"+ os.pathsep + "{2}" +\
+                       " org.apache.ambari.server.controller.AmbariServer"
 
 AMBARI_CONF_VAR="AMBARI_CONF_DIR"
 AMBARI_SERVER_LIB="AMBARI_SERVER_LIB"
@@ -452,6 +451,23 @@ def get_ambari_jars():
                  + default_jar_location)
     return default_jar_location
 
+
+def get_share_jars():
+  share_jars = ""
+  file_list = []
+  file_list.extend(glob.glob(JAVA_SHARE_PATH + os.sep + "*mysql*"))
+  file_list.extend(glob.glob(JAVA_SHARE_PATH + os.sep + "*oracle*"))
+  if len(file_list) > 0:
+    share_jars = string.join(file_list, os.pathsep)
+  return share_jars
+
+
+def get_ambari_classpath():
+  ambari_cp = get_ambari_jars() + os.sep + "*"
+  share_cp = get_share_jars()
+  if len(share_cp) > 0:
+    ambari_cp = ambari_cp + os.pathsep + share_cp
+  return ambari_cp
 
 
 def get_conf_dir():
@@ -900,24 +916,22 @@ def setup(args):
 #
 def reset(args):
   okToRun = False
-  choice = raw_input("**** WARNING **** You are about to reset and clear the "
+  choice = get_YN_input("**** WARNING **** You are about to reset and clear the "
                      "Ambari Server database. This will remove all cluster "
                      "host and configuration information from the database. "
                      "You will be required to re-configure the Ambari server "
                      "and re-run the cluster wizard. \n"
                      "Are you SURE you want to perform the reset "
-                     "[yes/no]? ").lower()
-  if choice in set(['yes']):
-    okToRun = True
+                     "[yes/no]? ", True)
+  okToRun = choice
 
   if not okToRun:
     print "Ambari Server 'reset' cancelled"
     return -1
 
   okToRun = False
-  choice = raw_input("Confirm server reset [yes/no]? ").lower()
-  if choice in set(['yes']):
-    okToRun = True
+  choice = get_YN_input("Confirm server reset [yes/no]? ", True)
+  okToRun = choice
 
   if not okToRun:
     print "Ambari Server 'reset' cancelled"
@@ -977,7 +991,7 @@ def start(args):
     print_error_msg ("Failed to stop iptables. Exiting")
     sys.exit(retcode)
 
-  command = SERVER_START_CMD.format(jdk_path, conf_dir, get_ambari_jars())
+  command = SERVER_START_CMD.format(jdk_path, conf_dir, get_ambari_classpath())
   print "Running server: " + command
   server_process = subprocess.Popen(["/bin/sh", "-c", command])
   f = open(PID_DIR + os.sep + PID_NAME, "w")

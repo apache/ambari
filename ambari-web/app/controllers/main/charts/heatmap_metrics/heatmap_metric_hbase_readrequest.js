@@ -25,5 +25,5 @@ App.MainChartHeatmapHbaseReadReqCount = App.MainChartHeatmapHbaseMetrics.extend(
   maximumValue: 200,
   defaultMetric: 'metrics.hbase.regionserver.readRequestsCount',
   units: '',
-  slotDefinitionLabelSuffix: ' '
+  slotDefinitionLabelSuffix: ''
 });

@@ -1548,7 +1548,7 @@ public class AmbariManagementControllerImplTest {
 //        gson.<Map<String, String>>fromJson("{\"nagios-global\": \"version2\" }", confType)
 //        , null));
 
-    amc.updateServices(serviceRequests, mapRequestProps, true);
+    amc.updateServices(serviceRequests, mapRequestProps, true, false);
 
 
     Set<ServiceComponentRequest> serviceComponentRequests = new HashSet<ServiceComponentRequest>();
@@ -1578,7 +1578,7 @@ public class AmbariManagementControllerImplTest {
 
     serviceRequests.clear();
     serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "INSTALLED"));
-    amc.updateServices(serviceRequests, mapRequestProps, true);
+    amc.updateServices(serviceRequests, mapRequestProps, true, false);
 
     Cluster cluster = clusters.getCluster("c1");
     Map<String, ServiceComponentHost> namenodes = cluster.getService("HDFS").getServiceComponent("NAMENODE").getServiceComponentHosts();
@@ -1646,7 +1646,8 @@ public class AmbariManagementControllerImplTest {
     serviceRequests.clear();
     serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "STARTED"));
 
-    RequestStatusResponse response = amc.updateServices(serviceRequests, mapRequestProps, true);
+    RequestStatusResponse response = amc.updateServices(serviceRequests,
+      mapRequestProps, true, false);
     for (ShortTaskStatus shortTaskStatus : response.getTasks()) {
       assertFalse("host1".equals(shortTaskStatus.getHostName()) && "NAMENODE".equals(shortTaskStatus.getRole()));
     }
@@ -1679,14 +1680,16 @@ public class AmbariManagementControllerImplTest {
     //Stopping HDFS service
     serviceRequests.clear();
     serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "INSTALLED"));
-    response = amc.updateServices(serviceRequests, mapRequestProps, false);
+    response = amc.updateServices(serviceRequests, mapRequestProps, false,
+      false);
 
     //Starting HDFS service. No run_smoke_test flag is set, smoke
     // test(HDFS_SERVICE_CHECK) won't run
     boolean runSmokeTest = false;
     serviceRequests.clear();
     serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "STARTED"));
-    response = amc.updateServices(serviceRequests, mapRequestProps, runSmokeTest);
+    response = amc.updateServices(serviceRequests, mapRequestProps,
+      runSmokeTest, false);
 
     List<ShortTaskStatus> taskStatuses = response.getTasks();
     boolean smokeTestRequired = false;
@@ -1700,14 +1703,16 @@ public class AmbariManagementControllerImplTest {
     //Stopping HDFS service
     serviceRequests.clear();
     serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "INSTALLED"));
-    response = amc.updateServices(serviceRequests, mapRequestProps, false);
+    response = amc.updateServices(serviceRequests, mapRequestProps, false,
+      false);
 
     //Starting HDFS service again.
     //run_smoke_test flag is set, smoke test will be run
     runSmokeTest = true;
     serviceRequests.clear();
     serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "STARTED"));
-    response = amc.updateServices(serviceRequests, mapRequestProps, runSmokeTest);
+    response = amc.updateServices(serviceRequests, mapRequestProps,
+      runSmokeTest, false);
 
     taskStatuses = response.getTasks();
     smokeTestRequired = false;

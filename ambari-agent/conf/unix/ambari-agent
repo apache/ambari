@@ -24,7 +24,8 @@ export AMBARI_CONF_DIR=/etc/ambari-server/conf:$PATH
 
 AMBARI_AGENT=ambari-agent
 PIDFILE=/var/run/ambari-agent/$AMBARI_AGENT.pid
-LOGFILE=/var/log/ambari-agent/ambari-agent.out
+OUTFILE=/var/log/ambari-agent/ambari-agent.out
+LOGFILE=/var/log/ambari-agent/ambari-agent.log
 AGENT_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/main.py
 OK=1
 NOTOK=0
@@ -46,6 +47,10 @@ fi
 # Reading the environment file
 if [ -a /var/lib/ambari-agent/ambari-env.sh ]; then
   . /var/lib/ambari-agent/ambari-env.sh
+fi
+
+if [ ! -z $AMBARI_LOG_DIR ]; then
+  LOGFILE=$AMBARI_LOG_DIR/ambari-agent.log
 fi
 
 if [ -z $RESOLVED_AMBARI_PASSPHRASE ] &&  [ ! -z $AMBARI_PASSPHRASE ]; then
@@ -96,7 +101,7 @@ case "$1" in
           fi
         fi
         echo "Starting ambari-agent"
-        nohup $PYTHON $AGENT_SCRIPT > $LOGFILE 2>&1 &
+        nohup $PYTHON $AGENT_SCRIPT > $OUTFILE 2>&1 &
         sleep 2
         PID=$!
         echo "Verifying $AMBARI_AGENT process status..."
@@ -108,6 +113,7 @@ case "$1" in
         echo "Ambari Agent successfully started"
         tput sgr0
         echo "Agent PID at: $PIDFILE"
+        echo "Agent outout at: $OUTFILE"
         echo "Agent log at: $LOGFILE"
         ;;
   status)
@@ -121,6 +127,7 @@ case "$1" in
             echo "$AMBARI_AGENT running."
             tput sgr0
             echo "Agent PID at: $PIDFILE"
+            echo "Agent outout at: $OUTFILE"
             echo "Agent log at: $LOGFILE"
           fi
         else
