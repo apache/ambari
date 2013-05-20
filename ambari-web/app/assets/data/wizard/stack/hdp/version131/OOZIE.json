@@ -1,0 +1,317 @@
+{
+  "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations?fields=*",
+  "items" : [
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.systemmode",
+      "StackConfigurations" : {
+        "property_description" : "\n     System mode for  Oozie at startup.\n     ",
+        "property_value" : "NORMAL",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.systemmode",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.authentication.kerberos.name.rules",
+      "StackConfigurations" : {
+        "property_description" : "The mapping from kerberos principal names to local OS user names.",
+        "property_value" : "\n        RULE:[2:$1@$0]([jt]t@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-MAPREDUSER/\n        RULE:[2:$1@$0]([nd]n@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HDFSUSER/\n        RULE:[2:$1@$0](hm@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HBASE-USER/\n        RULE:[2:$1@$0](rs@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HBASE-USER/\n        DEFAULT\n        ",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.authentication.kerberos.name.rules",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.service.AuthorizationService.security.enabled",
+      "StackConfigurations" : {
+        "property_description" : "\n     Specifies whether security (user name/admin role) is enabled or not.\n     If disabled any user can manage Oozie system and manage any job.\n     ",
+        "property_value" : "true",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.service.AuthorizationService.security.enabled",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.service.CallableQueueService.threads",
+      "StackConfigurations" : {
+        "property_description" : "Number of threads used for executing callables",
+        "property_value" : "10",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.service.CallableQueueService.threads",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.service.HadoopAccessorService.jobTracker.whitelist",
+      "StackConfigurations" : {
+        "property_description" : "\n      Whitelisted job tracker for Oozie service.\n      ",
+        "property_value" : " ",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.service.HadoopAccessorService.jobTracker.whitelist",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.service.JPAService.pool.max.active.conn",
+      "StackConfigurations" : {
+        "property_description" : "\n             Max number of connections.\n        ",
+        "property_value" : "10",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.service.JPAService.pool.max.active.conn",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.base.url",
+      "StackConfigurations" : {
+        "property_description" : "Base Oozie URL.",
+        "property_value" : "http://localhost:11000/oozie",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.base.url",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.service.SchemaService.wf.ext.schemas",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "shell-action-0.1.xsd,email-action-0.1.xsd,hive-action-0.2.xsd,sqoop-action-0.2.xsd,ssh-action-0.1.xsd,distcp-action-0.1.xsd",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.service.SchemaService.wf.ext.schemas",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.service.PurgeService.older.than",
+      "StackConfigurations" : {
+        "property_description" : "\n     Jobs older than this value, in days, will be purged by the PurgeService.\n     ",
+        "property_value" : "30",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.service.PurgeService.older.than",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.service.HadoopAccessorService.nameNode.whitelist",
+      "StackConfigurations" : {
+        "property_description" : "\n      ",
+        "property_value" : " ",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.service.HadoopAccessorService.nameNode.whitelist",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.service.coord.normal.default.timeout",
+      "StackConfigurations" : {
+        "property_description" : "Default timeout for a coordinator action input check (in minutes) for normal job.\n      -1 means infinite timeout",
+        "property_value" : "120",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.service.coord.normal.default.timeout",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/use.system.libpath.for.mapreduce.and.pig.jobs",
+      "StackConfigurations" : {
+        "property_description" : "\n      If set to true, submissions of MapReduce and Pig jobs will include\n      automatically the system library path, thus not requiring users to\n      specify where the Pig JAR files are. Instead, the ones from the system\n      library path are used.\n      ",
+        "property_value" : "false",
+        "stack_version" : "1.3.1",
+        "property_name" : "use.system.libpath.for.mapreduce.and.pig.jobs",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.service.CallableQueueService.queue.size",
+      "StackConfigurations" : {
+        "property_description" : "Max callable queue size",
+        "property_value" : "1000",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.service.CallableQueueService.queue.size",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.service.ActionService.executor.ext.classes",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "\n            org.apache.oozie.action.email.EmailActionExecutor,\n            org.apache.oozie.action.hadoop.HiveActionExecutor,\n            org.apache.oozie.action.hadoop.ShellActionExecutor,\n            org.apache.oozie.action.hadoop.SqoopActionExecutor,\n            org.apache.oozie.action.hadoop.DistcpActionExecutor\n        ",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.service.ActionService.executor.ext.classes",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.service.JPAService.jdbc.password",
+      "StackConfigurations" : {
+        "property_description" : "\n            DB user password.\n\n            IMPORTANT: if password is emtpy leave a 1 space string, the service trims the value,\n                       if empty Configuration assumes it is NULL.\n        ",
+        "property_value" : " ",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.service.JPAService.jdbc.password",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.service.WorkflowAppService.system.libpath",
+      "StackConfigurations" : {
+        "property_description" : "\n      System library path to use for workflow applications.\n      This path is added to workflow application if their job properties sets\n      the property 'oozie.use.system.libpath' to true.\n      ",
+        "property_value" : "/user/${user.name}/share/lib",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.service.WorkflowAppService.system.libpath",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.service.JPAService.jdbc.driver",
+      "StackConfigurations" : {
+        "property_description" : "\n            JDBC driver class.\n        ",
+        "property_value" : "org.apache.derby.jdbc.EmbeddedDriver",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.service.JPAService.jdbc.driver",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.service.HadoopAccessorService.hadoop.configurations",
+      "StackConfigurations" : {
+        "property_description" : "\n          Comma separated AUTHORITY=HADOOP_CONF_DIR, where AUTHORITY is the HOST:PORT of\n          the Hadoop service (JobTracker, HDFS). The wildcard '*' configuration is\n          used when there is no exact match for an authority. The HADOOP_CONF_DIR contains\n          the relevant Hadoop *-site.xml files. If the path is relative is looked within\n          the Oozie configuration directory; though the path can be absolute (i.e. to point\n          to Hadoop client conf/ directories in the local filesystem.\n      ",
+        "property_value" : "*=/etc/hadoop/conf",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.service.HadoopAccessorService.hadoop.configurations",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.service.PurgeService.purge.interval",
+      "StackConfigurations" : {
+        "property_description" : "\n     Interval at which the purge service will run, in seconds.\n     ",
+        "property_value" : "3600",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.service.PurgeService.purge.interval",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.service.JPAService.create.db.schema",
+      "StackConfigurations" : {
+        "property_description" : "\n            Creates Oozie DB.\n\n            If set to true, it creates the DB schema if it does not exist. If the DB schema exists is a NOP.\n            If set to false, it does not create the DB schema. If the DB schema does not exist it fails start up.\n        ",
+        "property_value" : "false",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.service.JPAService.create.db.schema",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.system.id",
+      "StackConfigurations" : {
+        "property_description" : "\n    The Oozie system ID.\n    ",
+        "property_value" : "oozie-${user.name}",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.system.id",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.service.JPAService.jdbc.username",
+      "StackConfigurations" : {
+        "property_description" : "\n            DB user name.\n        ",
+        "property_value" : "sa",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.service.JPAService.jdbc.username",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.db.schema.name",
+      "StackConfigurations" : {
+        "property_description" : "\n      Oozie DataBase Name\n     ",
+        "property_value" : "oozie",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.db.schema.name",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.authentication.type",
+      "StackConfigurations" : {
+        "property_description" : "\n      ",
+        "property_value" : "simple",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.authentication.type",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.service.JPAService.jdbc.url",
+      "StackConfigurations" : {
+        "property_description" : "\n            JDBC URL.\n        ",
+        "property_value" : "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.service.JPAService.jdbc.url",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.service.CallableQueueService.callable.concurrency",
+      "StackConfigurations" : {
+        "property_description" : "\n     Maximum concurrency for a given callable type.\n     Each command is a callable type (submit, start, run, signal, job, jobs, suspend,resume, etc).\n     Each action type is a callable type (Map-Reduce, Pig, SSH, FS, sub-workflow, etc).\n     All commands that use action executors (action-start, action-end, action-kill and action-check) use\n     the action type as the callable type.\n     ",
+        "property_value" : "3",
+        "stack_version" : "1.3.1",
+        "property_name" : "oozie.service.CallableQueueService.callable.concurrency",
+        "filename" : "oozie-site.xml",
+        "service_name" : "OOZIE",
+        "stack_name" : "HDP"
+      }
+    }
+  ]
+}

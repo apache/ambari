@@ -39,7 +39,7 @@ describe('App.MainAdminClusterController', function () {
     "items" : [
       {
         "Versions" : {
-          "stack_version" : "1.3.0",
+          "stack_version" : "1.3.1",
           "min_upgrade_version" : "1.2.0"
         }
       },

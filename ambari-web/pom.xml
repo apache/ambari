@@ -75,6 +75,9 @@
                   <arg value="-rf"/>
                   <arg value="public"/>
                 </exec>
+                <exec dir="${basedir}" executable="mkdir" failonerror="false">
+                  <arg value="public"/>
+                </exec>
               </target>
             </configuration>
           </execution>

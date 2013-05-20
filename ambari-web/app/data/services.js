@@ -22,10 +22,18 @@ module.exports = [
   {
     serviceName: 'HDFS',
     displayName: 'HDFS',
-    isDisabled: true,
+    isDisabled: false,
     isSelected: true,
     canBeSelected: true,
     description: Em.I18n.t('services.hdfs.description')
+  },
+  {
+    serviceName: 'HCFS',
+    displayName: 'HCFS',
+    isDisabled: false,
+    isSelected: false,
+    canBeSelected: true,
+    description: Em.I18n.t('services.hcfs.description')
   },
   {
     serviceName: 'MAPREDUCE',

@@ -200,10 +200,12 @@ App.WizardStep6Controller = Em.Controller.extend({
       }
     }
     else {
-      headers.pushObject(Ember.Object.create({
-        name: 'DATANODE',
-        label: self.getComponentDisplayName('DATANODE')
-      }));
+      if (this.isServiceSelected('HDFS')) {
+        headers.pushObject(Ember.Object.create({
+          name: 'DATANODE',
+          label: self.getComponentDisplayName('DATANODE')
+        }));
+      }
       if (this.isServiceSelected('MAPREDUCE')) {
         headers.pushObject(Em.Object.create({
           name: 'TASKTRACKER',
@@ -318,10 +320,12 @@ App.WizardStep6Controller = Em.Controller.extend({
         checkboxes.findProperty('title', headers.findProperty('name', 'CLIENT').get('label')).set('checked', false);
         // First not Master should have Client (only first!)
         if (!client_is_set) {
-          var checkboxDatanode = checkboxes.findProperty('title', headers.findProperty('name', 'DATANODE').get('label'));
-          if (checkboxDatanode && checkboxDatanode.get('checked')) {
-            checkboxes.findProperty('title', headers.findProperty('name', 'CLIENT').get('label')).set('checked', true);
-            client_is_set = true;
+          if (self.isServiceSelected("HDFS")) {
+            var checkboxDatanode = checkboxes.findProperty('title', headers.findProperty('name', 'DATANODE').get('label'));
+            if (checkboxDatanode && checkboxDatanode.get('checked')) {
+              checkboxes.findProperty('title', headers.findProperty('name', 'CLIENT').get('label')).set('checked', true);
+              client_is_set = true;
+            }
           }
         }
       });

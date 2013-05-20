@@ -265,5 +265,13 @@ module.exports = new Ember.Set([
     isMaster: true,
     isClient: false,
     description: ''
+  },
+  { 
+    service_name: 'HCFS',
+    component_name: 'HCFS_CLIENT',
+    display_name: 'HCFS Client', 
+    isMaster: false, 
+    isClient: true, 
+    description: 'Client component for HCFS'
   }
 ]);

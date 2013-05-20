@@ -378,13 +378,15 @@ App.WizardStep9Controller = Em.Controller.extend({
   launchStartServicesSuccessCallback: function (jsonData) {
     console.log("TRACE: Step9 -> In success function for the startService call");
     console.log("TRACE: Step9 -> value of the received data is: " + jsonData);
-    var requestId = jsonData.Requests.id;
+    var requestId = (jsonData && jsonData.Requests && jsonData.Requests.id) ? jsonData.Requests.id : this.get('content.cluster.requestId');
+    var status = (jsonData && jsonData.Requests) ? "INSTALLED" : "STARTED";
+    var completed = (jsonData && jsonData.Requests) ? false : true;
     console.log('requestId is: ' + requestId);
     var clusterStatus = {
-      status: 'INSTALLED',
+      status: status,
       requestId: requestId,
       isStartError: false,
-      isCompleted: false
+      isCompleted: completed
     };
 
     App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
@@ -394,8 +396,9 @@ App.WizardStep9Controller = Em.Controller.extend({
       clusterState: 'SERVICE_STARTING_3',
       localdb: App.db.data
     });
-
-    this.startPolling();
+    if (!completed) {
+      this.startPolling();
+    }
   },
 
   launchStartServicesErrorCallback: function () {
@@ -461,29 +464,35 @@ App.WizardStep9Controller = Em.Controller.extend({
   progressPerHost: function (actions, contentHost) {
     var progress = 0;
     var actionsPerHost = actions.length;
-    // TODO: consolidate to a single filter function for better performance
-    var completedActions = actions.filterProperty('Tasks.status', 'COMPLETED').length
+    
+    if (actionsPerHost != 0) {
+      // TODO: consolidate to a single filter function for better performance
+      var completedActions = actions.filterProperty('Tasks.status', 'COMPLETED').length
       + actions.filterProperty('Tasks.status', 'FAILED').length
       + actions.filterProperty('Tasks.status', 'ABORTED').length
       + actions.filterProperty('Tasks.status', 'TIMEDOUT').length;
-    var queuedActions = actions.filterProperty('Tasks.status', 'QUEUED').length;
-    var inProgressActions = actions.filterProperty('Tasks.status', 'IN_PROGRESS').length;
-    /** for the install phase (PENDING), % completed per host goes up to 33%; floor(100 / 3)
-     * for the start phase (INSTALLED), % completed starts from 34%
-     * when task in queued state means it's completed on 9%
-     * in progress - 35%
-     * completed - 100%
-     */
-    switch (this.get('content.cluster.status')) {
-      case 'PENDING':
-        progress = Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsPerHost * 33);
-        break;
-      case 'INSTALLED':
-        progress = 34 + Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsPerHost * 66);
-        break;
-      default:
-        progress = 100;
-        break;
+      var queuedActions = actions.filterProperty('Tasks.status', 'QUEUED').length;
+      var inProgressActions = actions.filterProperty('Tasks.status', 'IN_PROGRESS').length;
+      /** for the install phase (PENDING), % completed per host goes up to 33%; floor(100 / 3)
+       * for the start phase (INSTALLED), % completed starts from 34%
+       * when task in queued state means it's completed on 9%
+       * in progress - 35%
+       * completed - 100%
+       */
+      switch (this.get('content.cluster.status')) {
+        case 'PENDING':
+          progress = Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsPerHost * 33);
+          break;
+        case 'INSTALLED':
+          progress = 34 + Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsPerHost * 66);
+          break;
+        default:
+          progress = 100;
+          break;
+      }
+    } else {
+      progress = 100; // if there are no more actions for this host, it's done.
+      contentHost.set('status', 'success');
     }
     console.log('INFO: progressPerHost is: ' + progress);
     contentHost.set('progress', progress.toString());
@@ -645,16 +654,16 @@ App.WizardStep9Controller = Em.Controller.extend({
     this.hosts.forEach(function (_host) {
       var actionsPerHost = tasksData.filterProperty('Tasks.host_name', _host.name); // retrieved from polled Data
       if (actionsPerHost.length === 0) {
-        _host.set('message', this.t('installer.step9.host.status.nothingToInstall'));
+        if (_host.get('status') != "success") {
+          _host.set('message', this.t('installer.step9.host.status.nothingToInstall'));
+        }
         console.log("INFO: No task is hosted on the host");
       }
-      if (actionsPerHost !== null && actionsPerHost !== undefined && actionsPerHost.length !== 0) {
-        this.setLogTasksStatePerHost(actionsPerHost, _host);
-        this.onSuccessPerHost(actionsPerHost, _host);     // every action should be a success
-        this.onErrorPerHost(actionsPerHost, _host);     // any action should be a failure
-        this.onInProgressPerHost(actionsPerHost, _host);  // current running action for a host
-        totalProgress += self.progressPerHost(actionsPerHost, _host);
-      }
+      this.setLogTasksStatePerHost(actionsPerHost, _host);
+      this.onSuccessPerHost(actionsPerHost, _host);     // every action should be a success
+      this.onErrorPerHost(actionsPerHost, _host);     // any action should be a failure
+      this.onInProgressPerHost(actionsPerHost, _host);  // current running action for a host
+      totalProgress += self.progressPerHost(actionsPerHost, _host);
     }, this);
     totalProgress = Math.floor(totalProgress / this.hosts.length);
     this.set('progress', totalProgress.toString());

@@ -86,7 +86,7 @@ App.MainAdminClusterController = Em.Controller.extend({
             var myService = Em.Object.create({
               serviceName: entry.service_name,
               displayName: displayOrderConfig[i].displayName,
-              isDisabled: i === 0,
+              isDisabled: displayOrderConfig[i].isDisabled,
               isSelected: true,
               isInstalled: false,
               isHidden: displayOrderConfig[i].isHidden,

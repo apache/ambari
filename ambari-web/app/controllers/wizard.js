@@ -482,7 +482,7 @@ App.WizardController = Em.Controller.extend({
         var myService = Service.create({
           serviceName: entry.StackServices.service_name,
           displayName: displayOrderConfig[i].displayName,
-          isDisabled: i === 0,
+          isDisabled: displayOrderConfig[i].isDisabled,
           isSelected: displayOrderConfig[i].isSelected,
           canBeSelected: displayOrderConfig[i].canBeSelected,
           isInstalled: false,
@@ -511,9 +511,9 @@ App.WizardController = Em.Controller.extend({
 
   loadServicesFromServer: function() {
     var services = App.db.getService();
-    if (services) {
-      return;
-    }
+//    if (services) {
+//      return;
+//    }
     var apiService = this.loadServiceComponents();
     this.set('content.services', apiService);
     App.db.setService(apiService);

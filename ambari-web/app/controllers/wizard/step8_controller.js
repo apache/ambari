@@ -472,6 +472,9 @@ App.WizardStep8Controller = Em.Controller.extend({
           case 'HDFS':
             this.loadHDFS(serviceObj);
             break;
+          case 'HCFS':
+            this.loadHCFS(serviceObj);
+            break;
           case 'MAPREDUCE':
             this.loadMapReduce(serviceObj);
             break;
@@ -532,6 +535,28 @@ App.WizardStep8Controller = Em.Controller.extend({
     }, this);
     //var
     this.get('services').pushObject(hdfsObj);
+  },
+  
+  /**
+   * load all info about HCFS service
+   * @param hcfsObj
+   */
+  loadHCFS: function (hcfsObj) {
+    hcfsObj.get('service_components').forEach(function (_component) {
+      switch (_component.get('display_name')) {
+        case 'HCFS Client':
+          this.loadHCFSClientValue(_component);
+          break;
+        default:
+      }
+    }, this);
+    this.get('services').pushObject(hcfsObj);
+  },
+  
+  loadHCFSClientValue: function (hcfsComponent) {
+    var hcfsClientHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'Client');
+    var totalHCFSHosts = hcfsClientHosts.hosts.length;
+    hcfsComponent.set('component_value', totalHCFSHosts + ' hosts');  
   },
 
   loadNnValue: function (nnComponent) {
@@ -1500,6 +1525,8 @@ App.WizardStep8Controller = Em.Controller.extend({
     switch (serviceName) {
       case 'HDFS':
         return {config: {'global': 'version1', 'core-site': 'version1', 'hdfs-site': 'version1'}};
+      case 'HCFS':
+        return {config: {'global': 'version1', 'core-site': 'version1'}};        
       case 'MAPREDUCE':
         return {config: {'global': 'version1', 'core-site': 'version1', 'mapred-site': 'version1', 'capacity-scheduler': 'version1', 'mapred-queue-acls': 'version1'}};
       case 'HBASE':

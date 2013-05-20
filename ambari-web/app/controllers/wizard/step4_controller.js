@@ -88,6 +88,24 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     return false;
   },
 
+  /** 
+   * Check whether we should turn on <code>HDFS or HCFS</code> service
+   * @return {Boolean}
+   */
+  needToAddHDFS: function () {
+    return (this.findProperty('serviceName', 'HDFS').get('isSelected') === false &&
+    		(!this.findProperty('serviceName', 'HCFS') || this.findProperty('serviceName', 'HCFS').get('isSelected') === false));
+  },
+
+  /** 
+   * Check if multiple distributed file systems were selected
+   * @return {Boolean}
+   */
+  multipleDFSs: function () {
+	return (this.findProperty('serviceName', 'HDFS').get('isSelected') === true &&
+	    	(this.findProperty('serviceName', 'HCFS') && this.findProperty('serviceName', 'HCFS').get('isSelected') === true));
+  },
+
   /**
    * Check do we have any monitoring service turned on
    * @return {Boolean}
@@ -114,10 +132,48 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     if(!this.get("isSubmitDisabled")){
       if (this.needToAddMapReduce()) {
         this.mapReduceCheckPopup();
-      } else {
+      } else if (this.needToAddHDFS()) {
+        this.needToAddHDFSPopup();
+      } else if (this.multipleDFSs()) {
+        this.multipleDFSPopup();        
+      }
+       else {
         this.validateMonitoring();
       }
     }
+  },
+  
+  multipleDFSPopup: function() {
+    var self = this;
+    App.ModalPopup.show({
+      header: Em.I18n.t('installer.step4.multileDFS.popup.header'),
+      body: Em.I18n.t('installer.step4.multileDFS.popup.body'),
+      onPrimary: function () {
+        self.findProperty('serviceName', 'HDFS').set('isSelected', true);
+        self.findProperty('serviceName', 'HCFS').set('isSelected', false);
+        this.hide();
+        self.validateMonitoring();
+      },
+      onSecondary: function () {
+        this.hide();
+      }
+    });    
+  },
+  
+  needToAddHDFSPopup: function() {
+    var self = this;
+    App.ModalPopup.show({
+      header: Em.I18n.t('installer.step4.hdfsCheck.popup.header'),
+      body: Em.I18n.t('installer.step4.hdfsCheck.popup.body'),
+      onPrimary: function () {
+      self.findProperty('serviceName', 'HDFS').set('isSelected', true);
+      this.hide();
+        self.validateMonitoring();
+      },
+      onSecondary: function () {
+      this.hide();
+      }
+    });    
   },
 
   mapReduceCheckPopup: function () {

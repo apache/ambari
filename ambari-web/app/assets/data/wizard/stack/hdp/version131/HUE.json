@@ -1,0 +1,353 @@
+{
+  "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations?fields=*",
+  "items" : [
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/pig_shell_command",
+      "StackConfigurations" : {
+        "property_description" : "Define and configure a new shell type pig.",
+        "property_value" : "/usr/bin/pig -l /dev/null",
+        "stack_version" : "1.3.1",
+        "property_name" : "pig_shell_command",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/db_name",
+      "StackConfigurations" : {
+        "property_description" : "Configuration options for specifying the Desktop Database.",
+        "property_value" : "sandbox",
+        "stack_version" : "1.3.1",
+        "property_name" : "db_name",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/db_user",
+      "StackConfigurations" : {
+        "property_description" : "Configuration options for specifying the Desktop Database.",
+        "property_value" : "sandbox",
+        "stack_version" : "1.3.1",
+        "property_name" : "db_user",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/db_host",
+      "StackConfigurations" : {
+        "property_description" : "Configuration options for specifying the Desktop Database.",
+        "property_value" : "localhost",
+        "stack_version" : "1.3.1",
+        "property_name" : "db_host",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/db_password",
+      "StackConfigurations" : {
+        "property_description" : "Configuration options for specifying the Desktop Database.",
+        "property_value" : "1111",
+        "stack_version" : "1.3.1",
+        "property_name" : "db_password",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/time_zone",
+      "StackConfigurations" : {
+        "property_description" : "Time zone name",
+        "property_value" : "America/Los_Angeles",
+        "stack_version" : "1.3.1",
+        "property_name" : "time_zone",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/http_host",
+      "StackConfigurations" : {
+        "property_description" : "Webserver listens on this address and port",
+        "property_value" : "0.0.0.0",
+        "stack_version" : "1.3.1",
+        "property_name" : "http_host",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/hue_pid_dir",
+      "StackConfigurations" : {
+        "property_description" : "Hue Pid Dir.",
+        "property_value" : "/var/run/hue",
+        "stack_version" : "1.3.1",
+        "property_name" : "hue_pid_dir",
+        "service_name" : "HUE",
+        "type" : "global.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/tls",
+      "StackConfigurations" : {
+        "property_description" : "Whether to use a TLS (secure) connection when talking to the SMTP server.",
+        "property_value" : "no",
+        "stack_version" : "1.3.1",
+        "property_name" : "tls",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/hadoop_mapred_home",
+      "StackConfigurations" : {
+        "property_description" : "The SMTP server information for email notification delivery.",
+        "property_value" : "/usr/lib/hadoop/lib",
+        "stack_version" : "1.3.1",
+        "property_name" : "hadoop_mapred_home",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/default_from_email",
+      "StackConfigurations" : {
+        "property_description" : "The SMTP server information for email notification delivery.",
+        "property_value" : "sandbox@hortonworks.com",
+        "stack_version" : "1.3.1",
+        "property_name" : "default_from_email",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/backend_auth_policy",
+      "StackConfigurations" : {
+        "property_description" : "Authentication backend.",
+        "property_value" : "desktop.auth.backend.AllowAllBackend",
+        "stack_version" : "1.3.1",
+        "property_name" : "backend_auth_policy",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/hue_log_dir",
+      "StackConfigurations" : {
+        "property_description" : "Hue Log Dir.",
+        "property_value" : "/var/log/hue",
+        "stack_version" : "1.3.1",
+        "property_name" : "hue_log_dir",
+        "service_name" : "HUE",
+        "type" : "global.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/whitelist",
+      "StackConfigurations" : {
+        "property_description" : "proxy settings",
+        "property_value" : "(localhost|127\\.0\\.0\\.1):(50030|50070|50060|50075|50111)",
+        "stack_version" : "1.3.1",
+        "property_name" : "whitelist",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/jobtracker_port",
+      "StackConfigurations" : {
+        "property_description" : "The port where the JobTracker IPC listens on.",
+        "property_value" : "50030",
+        "stack_version" : "1.3.1",
+        "property_name" : "jobtracker_port",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/db_port",
+      "StackConfigurations" : {
+        "property_description" : "Configuration options for specifying the Desktop Database.",
+        "property_value" : "3306",
+        "stack_version" : "1.3.1",
+        "property_name" : "db_port",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/smtp_port",
+      "StackConfigurations" : {
+        "property_description" : "The SMTP server information for email notification delivery.",
+        "property_value" : "25",
+        "stack_version" : "1.3.1",
+        "property_name" : "smtp_port",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/database_logging",
+      "StackConfigurations" : {
+        "property_description" : "To show database transactions, set database_logging to 1.\n      default, database_logging=0",
+        "property_value" : "0",
+        "stack_version" : "1.3.1",
+        "property_name" : "database_logging",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/send_debug_messages",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "1",
+        "stack_version" : "1.3.1",
+        "property_name" : "send_debug_messages",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/smtp_password",
+      "StackConfigurations" : {
+        "property_description" : "The SMTP server information for email notification delivery.",
+        "property_value" : "25",
+        "stack_version" : "1.3.1",
+        "property_name" : "smtp_password",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/django_debug_mode",
+      "StackConfigurations" : {
+        "property_description" : "Turn off debug",
+        "property_value" : "1",
+        "stack_version" : "1.3.1",
+        "property_name" : "django_debug_mode",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/use_cherrypy_server",
+      "StackConfigurations" : {
+        "property_description" : "Set to true to use CherryPy as the webserver, set to false\n      to use Spawning as the webserver. Defaults to Spawning if\n      key is not specified.",
+        "property_value" : "false",
+        "stack_version" : "1.3.1",
+        "property_name" : "use_cherrypy_server",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/hbase_shell_command",
+      "StackConfigurations" : {
+        "property_description" : "Define and configure a new shell type hbase.",
+        "property_value" : "/usr/bin/hbase shell",
+        "stack_version" : "1.3.1",
+        "property_name" : "hbase_shell_command",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/bash_shell_command",
+      "StackConfigurations" : {
+        "property_description" : "Define and configure a new shell type bash for testing only\n      .",
+        "property_value" : "/bin/bash",
+        "stack_version" : "1.3.1",
+        "property_name" : "bash_shell_command",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/hbase_nice_name",
+      "StackConfigurations" : {
+        "property_description" : "Define and configure a new shell type hbase",
+        "property_value" : "HBase Shell",
+        "stack_version" : "1.3.1",
+        "property_name" : "hbase_nice_name",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/http_port",
+      "StackConfigurations" : {
+        "property_description" : "Webserver listens on this address and port",
+        "property_value" : "8000",
+        "stack_version" : "1.3.1",
+        "property_name" : "http_port",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/smtp_host",
+      "StackConfigurations" : {
+        "property_description" : "The SMTP server information for email notification delivery.",
+        "property_value" : "localhost",
+        "stack_version" : "1.3.1",
+        "property_name" : "smtp_host",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/db_engine",
+      "StackConfigurations" : {
+        "property_description" : "Configuration options for specifying the Desktop Database.",
+        "property_value" : "mysql",
+        "stack_version" : "1.3.1",
+        "property_name" : "db_engine",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://ec2-72-44-40-84.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/HUE/configurations/http_500_debug_mode",
+      "StackConfigurations" : {
+        "property_description" : "Turn off backtrace for server error",
+        "property_value" : "1",
+        "stack_version" : "1.3.1",
+        "property_name" : "http_500_debug_mode",
+        "service_name" : "HUE",
+        "type" : "hue-site.xml",
+        "stack_name" : "HDP"
+      }
+    }
+  ]
+}

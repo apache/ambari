@@ -38,7 +38,15 @@ module.exports = [
     sites: ['global', 'core-site', 'hdfs-site'],
     configs: configProperties.filterProperty('serviceName', 'HDFS')
   },
-
+  {
+    serviceName: 'HCFS',
+    displayName: 'HCFS',
+    filename: 'core-site',
+    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'})      
+    ],
+    configs: configProperties.filterProperty('serviceName', 'HCFS')
+  },  
   {
     serviceName: 'MAPREDUCE',
     displayName: 'MapReduce',
