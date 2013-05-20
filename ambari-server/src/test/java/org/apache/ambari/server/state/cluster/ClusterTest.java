@@ -310,14 +310,14 @@ public class ClusterTest {
     c1.addConfig(config2);
     c1.addConfig(config3);
     
-    c1.addDesiredConfig(config1);
+    c1.addDesiredConfig("_test", config1);
     Config res = c1.getDesiredConfigByType("global");
     Assert.assertNotNull("Expected non-null config", res);
     
     res = c1.getDesiredConfigByType("core-site");
     Assert.assertNull("Expected null config", res);
     
-    c1.addDesiredConfig(config2);
+    c1.addDesiredConfig("_test", config2);
     res = c1.getDesiredConfigByType("global");
     Assert.assertEquals("Expected version tag to be 'version2'", "version2", res.getVersionTag());
     
@@ -341,8 +341,16 @@ public class ClusterTest {
     c1.addConfig(config2);
     c1.addConfig(config3);
     
-    c1.addDesiredConfig(config1);
-    c1.addDesiredConfig(config3);
+    try {
+      c1.addDesiredConfig(null, config1);
+      fail("Cannot set a null user with config");
+    }
+    catch (Exception e) {
+      // test failure
+    }
+    
+    c1.addDesiredConfig("_test1", config1);
+    c1.addDesiredConfig("_test3", config3);
     
     Map<String, DesiredConfig> desiredConfigs = c1.getDesiredConfigs();
     Assert.assertFalse("Expect desired config not contain 'mapred-site'", desiredConfigs.containsKey("mapred-site"));
@@ -350,13 +358,20 @@ public class ClusterTest {
     Assert.assertTrue("Expect desired config contain " + config3.getType(), desiredConfigs.containsKey("core-site"));
     Assert.assertEquals("Expect desired config for global should be " + config1.getVersionTag(),
         config1.getVersionTag(), desiredConfigs.get(config1.getType()).getVersion());
+    Assert.assertEquals("_test1", desiredConfigs.get(config1.getType()).getUser());
+    Assert.assertEquals("_test3", desiredConfigs.get(config3.getType()).getUser());
     DesiredConfig dc = desiredConfigs.get(config1.getType());
     Assert.assertTrue("Expect no host-level overrides",
         (null == dc.getHostOverrides() || dc.getHostOverrides().size() == 0));
+    
+    c1.addDesiredConfig("_test2", config2);
+    Assert.assertEquals("_test2", c1.getDesiredConfigs().get(config2.getType()).getUser());
+    
+    c1.addDesiredConfig("_test1", config1);
 
     // setup a host that also has a config override
     Host host = clusters.getHost("h1");
-    host.addDesiredConfig(c1.getClusterId(), true, config2);
+    host.addDesiredConfig(c1.getClusterId(), true, "_test2", config2);
 
     desiredConfigs = c1.getDesiredConfigs();
     dc = desiredConfigs.get(config1.getType());

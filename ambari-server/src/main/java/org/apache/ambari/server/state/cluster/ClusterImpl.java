@@ -19,7 +19,6 @@
 package org.apache.ambari.server.state.cluster;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -53,7 +52,6 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.DesiredConfig;
-import org.apache.ambari.server.state.DesiredConfig.HostOverride;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -797,13 +795,16 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public void addDesiredConfig(Config config) {
-
+  @Transactional
+  public boolean addDesiredConfig(String user, Config config) {
+    if (null == user)
+      throw new NullPointerException("User must be specified.");
+    
     Config currentDesired = getDesiredConfigByType(config.getType());
 
     // do not set if it is already the current
     if (null != currentDesired && currentDesired.getVersionTag().equals(config.getVersionTag())) {
-      return;
+      return false;
     }
 
     Collection<ClusterConfigMappingEntity> entities = clusterEntity.getConfigMappingEntities();
@@ -817,16 +818,16 @@ public class ClusterImpl implements Cluster {
     ClusterConfigMappingEntity entity = new ClusterConfigMappingEntity();
     entity.setClusterEntity(clusterEntity);
     entity.setClusterId(clusterEntity.getClusterId());
-    entity.setCreateTimestamp(Long.valueOf (new java.util.Date().getTime()));
+    entity.setCreateTimestamp(Long.valueOf(System.currentTimeMillis()));
     entity.setSelected(1);
+    entity.setUser(user);
     entity.setType(config.getType());
     entity.setVersion(config.getVersionTag());
     entities.add(entity);
 
-    clusterEntity.setConfigMappingEntities(entities);
-
     clusterDAO.merge(clusterEntity);
-
+    
+    return true;
   }
   
   @Override
@@ -839,6 +840,7 @@ public class ClusterImpl implements Cluster {
           DesiredConfig c = new DesiredConfig();
           c.setServiceName(null);
           c.setVersion(e.getVersion());
+          c.setUser(e.getUser());
   
           List<HostConfigMappingEntity> hostMappings =
               hostConfigMappingDAO.findSelectedHostsByType(clusterEntity.getClusterId().longValue(),

@@ -45,7 +45,7 @@ public interface Host {
   public void setPublicHostName(String hostName);
   
   /**
-   * Sets the public-facing host name. 
+   * Sets the public-facing host name.
    */
   public String getPublicHostName();
   
@@ -83,12 +83,12 @@ public interface Host {
 
   /**
    * @return the physical cpu cores
-   */  
+   */
   public int getPhCpuCount();
 
   /**
    * @param phCpuCount the physical cpu cores to set
-   */  
+   */
   public void setPhCpuCount(int phCpuCount);
   
   /**
@@ -287,9 +287,12 @@ public interface Host {
    * @param clusterId the cluster id that the config applies to
    * @param selected <code>true</code> if the configuration is selected.  Applies
    *    only to remove the override, otherwise this value should always be <code>true</code>.
+   * @param user the user making the change for audit purposes
    * @param config the configuration object
+   * @return <code>true</code> if the config was added, or <code>false</code>
+   * if the config is already set as the current
    */
-  public void addDesiredConfig(long clusterId, boolean selected, Config config);
+  public boolean addDesiredConfig(long clusterId, boolean selected, String user, Config config);
   
   /**
    * Gets all the selected configurations for the host.

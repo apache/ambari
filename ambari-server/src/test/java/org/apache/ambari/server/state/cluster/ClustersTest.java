@@ -322,7 +322,7 @@ public class ClustersTest {
     config2.persist();
     
     // cluster desired config
-    cluster.addDesiredConfig(config1);
+    cluster.addDesiredConfig("_test", config1);
 
     clusters.addHost(h1);
     clusters.addHost(h2);
@@ -341,7 +341,7 @@ public class ClustersTest {
     }, c1);
 
     // host config override
-    host1.addDesiredConfig(cluster.getClusterId(), true, config2);
+    host1.addDesiredConfig(cluster.getClusterId(), true, "_test", config2);
     host1.persist();
 
     Service hdfs = cluster.addService("HDFS");

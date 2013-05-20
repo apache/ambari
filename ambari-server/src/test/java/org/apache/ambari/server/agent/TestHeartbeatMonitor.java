@@ -113,7 +113,7 @@ public class TestHeartbeatMonitor {
         new HashMap<String,String>() {{ put("a", "b"); }});
     config.setVersionTag("version1");
     cluster.addConfig(config);
-    cluster.addDesiredConfig(config);
+    cluster.addDesiredConfig("_test", config);
     
     
     clusters.mapHostsToCluster(hostNames, clusterName);
@@ -191,7 +191,7 @@ public class TestHeartbeatMonitor {
       }});
     config.setVersionTag("version1");
     cluster.addConfig(config);
-    cluster.addDesiredConfig(config);
+    cluster.addDesiredConfig("_test", config);
 
 
     clusters.mapHostsToCluster(hostNames, clusterName);

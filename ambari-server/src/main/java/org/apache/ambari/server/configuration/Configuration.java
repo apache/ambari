@@ -143,7 +143,7 @@ public class Configuration {
   public static final String OS_VERSION_KEY =
       "server.os_type";
 
-  public static final String SRVR_HOSTS_MAPPING = 
+  public static final String SRVR_HOSTS_MAPPING =
       "server.hosts.mapping";
 
   // Command parameter names
@@ -164,6 +164,8 @@ public class Configuration {
   private static final String RESOURCES_DIR_DEFAULT =
       "/var/share/ambari/resources/";
 
+  private static final String  ANONYMOUS_AUDIT_NAME_KEY = "anonymous.audit.name";
+      
   private static final String CLIENT_SECURITY_DEFAULT = "local";
   private static final int CLIENT_API_PORT_DEFAULT = 8080;
 
@@ -529,5 +531,13 @@ public class Configuration {
   public int getConnectionMaxIdleTime() {
     return Integer.parseInt(properties.getProperty
       (SERVER_CONNECTION_MAX_IDLE_TIME, String.valueOf("900000")));
+  }
+
+  /**
+   * @return the name to be used for audit information if there is no
+   * logged-in user.  Default is '_anonymous'.
+   */
+  public String getAnonymousAuditName() {
+    return properties.getProperty(ANONYMOUS_AUDIT_NAME_KEY, "_anonymous");
   }
 }

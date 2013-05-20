@@ -126,9 +126,12 @@ public interface Cluster {
   /**
    * Adds and sets a DESIRED configuration to be applied to a cluster.  There
    * can be only one selected config per type.
+   * @param user the user making the change for audit purposes
    * @param config  the {@link Config} object to set as desired
+   * @return <code>true</code> if the config was added, or <code>false</code>
+   * if the config is already set as the current
    */
-  public void addDesiredConfig(Config config);
+  public boolean addDesiredConfig(String user, Config config);
 
   /**
    * Gets the desired (and selected) config by type.

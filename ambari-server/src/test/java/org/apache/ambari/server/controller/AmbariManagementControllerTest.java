@@ -3454,8 +3454,8 @@ public class AmbariManagementControllerTest {
     
     cluster.addConfig(config1);
     cluster.addConfig(config2);
-    cluster.addDesiredConfig(config1);
-    cluster.addDesiredConfig(config2);
+    cluster.addDesiredConfig("_test", config1);
+    cluster.addDesiredConfig("_test", config2);
     
     Service hdfs = cluster.addService("HDFS");
     Service mapReduce = cluster.addService("MAPREDUCE");

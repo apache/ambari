@@ -55,6 +55,9 @@ public class HostConfigMappingEntity {
 
   @Column(name = "selected", insertable = true, updatable = true, nullable = false)
   private int selected = 0;
+  
+  @Column(name = "user_name", insertable = true, updatable = true, nullable = false)
+  private String user = null;
 
   public Long getClusterId() {
     return clusterId;
@@ -110,6 +113,20 @@ public class HostConfigMappingEntity {
 
   public void setServiceName(String name) {
     serviceName = name;
+  }
+  
+  /**
+   * @return the user
+   */
+  public String getUser() {
+    return user;
+  }
+  
+  /**
+   * @param userName the user
+   */
+  public void setUser(String userName) {
+    user = userName;
   }
 
 }

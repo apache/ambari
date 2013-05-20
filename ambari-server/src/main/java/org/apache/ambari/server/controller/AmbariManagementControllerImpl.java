@@ -31,7 +31,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
-import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -55,6 +54,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.serveraction.ServerAction;
@@ -98,6 +98,7 @@ import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 @Singleton
 public class AmbariManagementControllerImpl implements
@@ -988,7 +989,7 @@ public class AmbariManagementControllerImpl implements
           + ", clusterId=" + request.getClusterId()
           + ", stackInfo=" + request.getStackVersion());
     }
-
+    
     if (request.getClusterName() != null) {
       Cluster c = clusters.getCluster(request.getClusterName());
       ClusterResponse cr = c.convertToResponse();
@@ -1422,7 +1423,14 @@ public class AmbariManagementControllerImpl implements
 
       Config baseConfig = cluster.getConfig(cr.getType(), cr.getVersionTag());
       if (null != baseConfig) {
-        cluster.addDesiredConfig(baseConfig);
+        String authName = getAuthName();
+        if (cluster.addDesiredConfig(authName, baseConfig)) {
+          Logger logger = LoggerFactory.getLogger("configchange");
+          logger.info("cluster '" + request.getClusterName() + "' "
+              + "changed by: '" + authName + "'; "
+              + "type='" + baseConfig.getType() + "' "
+              + "tag='" + baseConfig.getVersionTag() + "'");
+        }
       }
     }
 
@@ -2990,9 +2998,18 @@ public class AmbariManagementControllerImpl implements
           }
 
           Config baseConfig = c.getConfig(cr.getType(), cr.getVersionTag());
-          if (null != baseConfig)
-            h.addDesiredConfig(c.getClusterId(), cr.isSelected(), baseConfig);
-
+          if (null != baseConfig) {
+            String authName = getAuthName();
+            if (h.addDesiredConfig(c.getClusterId(), cr.isSelected(), authName,  baseConfig)) {
+              Logger logger = LoggerFactory.getLogger("configchange");
+              logger.info("cluster '" + c.getClusterName() + "', "
+                  + "host '" + h.getHostName() + "' "
+                  + "changed by: '" + authName + "'; "
+                  + "type='" + baseConfig.getType() + "' "
+                  + "tag='" + baseConfig.getVersionTag() + "'");
+            }
+          }
+          
         }
       }
 
@@ -4437,5 +4454,12 @@ public class AmbariManagementControllerImpl implements
     }
 
     return response;
+  }
+  
+  /**
+   * @return the authenticated user's name
+   */
+  private String getAuthName() {
+    return AuthorizationHelper.getAuthenticatedName(configs.getAnonymousAuditName());
   }
 }

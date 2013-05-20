@@ -372,30 +372,40 @@ public class HostTest {
         new HashMap<String,String>() {{ put("a", "b"); put("x", "y"); }});
     
     try {
-      host.addDesiredConfig(c1.getClusterId(), true, config);
+      host.addDesiredConfig(c1.getClusterId(), true, "_test", config);
       Assert.fail("Expect failure when version is not specified.");
     }
     catch (Exception e) {
       // testing exception
     }
+
+    try {
+      host.addDesiredConfig(c1.getClusterId(), true, null, config);
+      Assert.fail("Expect failure when user is not specified.");
+    }
+    catch (Exception e) {
+      // testing exception
+    }
+    
     
     config.setVersionTag("v1");
-    host.addDesiredConfig(c1.getClusterId(), true, config);
+    host.addDesiredConfig(c1.getClusterId(), true, "_test", config);
     
     Map<String, DesiredConfig> map = host.getDesiredConfigs(c1.getClusterId());
     Assert.assertTrue("Expect desired config to contain global", map.containsKey("global"));
+    Assert.assertEquals("Expect global user to be '_test'", "_test", map.get("global").getUser());
     
     config = configFactory.createNew(c1, "global",
         new HashMap<String,String>() {{ put("c", "d"); }});
     config.setVersionTag("v2");
-    host.addDesiredConfig(c1.getClusterId(), true, config);
+    host.addDesiredConfig(c1.getClusterId(), true, "_test1", config);
     
     map = host.getDesiredConfigs(c1.getClusterId());
     Assert.assertTrue("Expect desired config to contain global", map.containsKey("global"));
-    Assert.assertEquals("Expect version to be 'v2'",
-        "v2", map.get("global").getVersion());
+    Assert.assertEquals("Expect version to be 'v2'", "v2", map.get("global").getVersion());
+    Assert.assertEquals("Expect user to be '_test1'", "_test1", map.get("global").getUser());
     
-    host.addDesiredConfig(c1.getClusterId(), false, config);
+    host.addDesiredConfig(c1.getClusterId(), false, "_test2", config);
     map = host.getDesiredConfigs(c1.getClusterId());
     Assert.assertEquals("Expect no mapping configs", 0, map.size());
     
