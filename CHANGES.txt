@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-2163. Add smoke tests as part of starting all services in
+ security wizard. (jaimin)
+
  AMBARI-2140. Improve Ambari-agent test coverage. (swagle)
 
  AMBARI-2133. Add Nagios alerts for Hadoop 2.0 in Ambari. (swagle)

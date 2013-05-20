@@ -84,10 +84,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
           currentStage.set('isCompleted', true);
           this.moveToNextStage();
         } else {
-          var self = this;
-          window.setTimeout(function () {
-            self.loadClusterConfigs();
-          }, 12000);
+          this.loadClusterConfigs();
         }
       }
     }
@@ -96,10 +93,9 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
   onCompleteStage: function () {
     var index = this.get('stages').filterProperty('isCompleted', true).length;
     if (index > 0) {
-      var self = this;
       var lastCompletedStageResult = this.get('stages').objectAt(index - 1).get('isSuccess');
       if (lastCompletedStageResult) {
-        self.moveToNextStage();
+        this.moveToNextStage();
       }
     }
   }.observes('stages.@each.isCompleted'),
@@ -127,7 +123,6 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
 
   addInfoToStages: function () {
     this.addInfoToStage2();
-    this.addInfoToStage3();
     this.addInfoToStage4();
   },
 
@@ -148,13 +143,9 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
     stage2.set('data', data);
   },
 
-  addInfoToStage3: function () {
-
-  },
-
   addInfoToStage4: function () {
     var stage4 = this.get('stages').findProperty('stage', 'stage4');
-    var url = (App.testMode) ? '/data/wizard/deploy/2_hosts/poll_1.json' : App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/services';
+    var url = (App.testMode) ? '/data/wizard/deploy/2_hosts/poll_1.json' : App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/services?params/run_smoke_test=true';
     var data = '{"RequestInfo": {"context": "' + Em.I18n.t('requestInfo.startAllServices') + '"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}';
     stage4.set('url', url);
     stage4.set('data', data);
@@ -277,7 +268,6 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
     if (this.get('noOfWaitingAjaxCalls') == 0) {
       var currentStage = this.get('stages').findProperty('stage', 'stage3');
       currentStage.set('isSuccess', true);
-      currentStage.set('isCompleted', true);
     }
   },
 
@@ -321,9 +311,6 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
                 break;
               case 'zookeeper.znode.parent':
                 _serviceConfigTags.configs[configName] = '/hbase-unsecure';
-                break;
-              case 'oozie.service.AuthorizationService.authorization.enabled':
-                _serviceConfigTags.configs[configName] = 'false';
                 break;
               default:
                 delete _serviceConfigTags.configs[configName];

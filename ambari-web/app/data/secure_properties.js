@@ -23,7 +23,7 @@ module.exports =
       "name": "security_enabled",
       "displayName": "Enable security",
       "value": "",
-      "defaultValue": "true",
+      "defaultValue":true,
       "description": "Enable kerberos security for the cluster",
       "isVisible": false,
       "isOverridable": false,
