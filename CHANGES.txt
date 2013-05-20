@@ -870,6 +870,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2166. Stack versions should be marked as active. (srimanth)
+
  AMBARI-2164. START_FAILED and STOP_FAILED no longer exist, the upgrade 
  script should repair hostcomponentstate table to convert these to i
  INSTALLED. (smohanty)
