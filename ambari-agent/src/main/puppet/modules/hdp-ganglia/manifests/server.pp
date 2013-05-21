@@ -76,7 +76,6 @@ class hdp-ganglia::server(
   if ($service_state == 'installed_and_configured') {
     $webserver_state = 'restart'
   } elsif ($service_state == 'running') {
-    class { 'hdp-ganglia::server::delete_default_gmond_process': }
     $webserver_state = 'running'
   } else {
     # We are never stopping httpd
@@ -209,6 +208,7 @@ class hdp-ganglia::server::gmetad(
 )
 {
   if ($ensure == 'running') {
+    class { 'hdp-ganglia::server::delete_default_gmetad_process': }
     $command = "service hdp-gmetad start >> /tmp/gmetad.log  2>&1 ; /bin/ps auwx | /bin/grep [g]metad  >> /tmp/gmetad.log  2>&1"
    } elsif  ($ensure == 'stopped') {
     $command = "service hdp-gmetad stop >> /tmp/gmetad.log  2>&1 ; /bin/ps auwx | /bin/grep [g]metad  >> /tmp/gmetad.log  2>&1"
@@ -221,10 +221,10 @@ class hdp-ganglia::server::gmetad(
   }
 }
 
-class hdp-ganglia::server::delete_default_gmond_process() {
-  hdp::exec { "delete_default_gmond_process" :
-    command => "chkconfig --del gmond",
+class hdp-ganglia::server::delete_default_gmetad_process() {
+  hdp::exec { "delete_default_gmetad_process" :
+    command => "chkconfig gmetad off",
     path => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-    require => Class['hdp-ganglia::server::packages']
+    require => Class['hdp-ganglia::server::gmetad']
   }
 }

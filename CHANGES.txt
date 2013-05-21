@@ -2064,6 +2064,8 @@ AMBARI-1.2.0 branch:
 
  BUG FIXES
 
+ AMBARI-2057. Gmond left in init after install, part-II. (smohanty)
+
  AMBARI-1613.  ConfigurationResourceProvider doesn't properly handle OR
                predicate. (jspeidel) 
 
