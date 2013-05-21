@@ -41,6 +41,7 @@ public class ActionMetadata {
 
   private void fillServiceClients() {
     serviceClients.put("hdfs"       , Role.HDFS_CLIENT.toString());
+    serviceClients.put("hcfs"       , Role.HCFS_CLIENT.toString());
     serviceClients.put("hbase"      , Role.HBASE_CLIENT.toString());
     serviceClients.put("mapreduce"  , Role.MAPREDUCE_CLIENT.toString());
     serviceClients.put("zookeeper"  , Role.ZOOKEEPER_CLIENT.toString());
@@ -53,6 +54,7 @@ public class ActionMetadata {
 
   private void fillServiceActions() {
     serviceActions.put("hdfs"       , Arrays.asList(Role.HDFS_SERVICE_CHECK.toString()));
+    serviceActions.put("hcfs"       , Arrays.asList(Role.HCFS_SERVICE_CHECK.toString()));
     serviceActions.put("hbase"      , Arrays.asList(Role.HBASE_SERVICE_CHECK.toString()));
     serviceActions.put("mapreduce"  , Arrays.asList(Role.MAPREDUCE_SERVICE_CHECK.toString()));
     serviceActions.put("zookeeper"  , Arrays.asList(Role.ZOOKEEPER_QUORUM_SERVICE_CHECK.toString()));
@@ -66,6 +68,7 @@ public class ActionMetadata {
 
   private void fillServiceCheckActions() {
     serviceCheckActions.put("hdfs", Role.HDFS_SERVICE_CHECK.toString());
+    serviceCheckActions.put("hcfs", Role.HCFS_SERVICE_CHECK.toString());
     serviceCheckActions.put("hbase", Role.HBASE_SERVICE_CHECK.toString());
     serviceCheckActions.put("mapreduce",
         Role.MAPREDUCE_SERVICE_CHECK.toString());

@@ -23,13 +23,14 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.stageplanner.RoleGraphNode;
 import org.junit.Test;
+import org.apache.ambari.server.state.StackId;
 
 public class RoleGraphTest {
 
   @Test
   public void testValidateOrder() {
     RoleCommandOrder rco = new RoleCommandOrder();
-    RoleCommandOrder.initialize();
+    rco.initialize(new StackId());
 
     RoleGraphNode datanode_upgrade = new RoleGraphNode(Role.DATANODE, RoleCommand.UPGRADE);
     RoleGraphNode hdfs_client_upgrade = new RoleGraphNode(Role.HDFS_CLIENT, RoleCommand.UPGRADE);

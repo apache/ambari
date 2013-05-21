@@ -28,6 +28,7 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.StageUtils;
 import org.junit.Test;
 
@@ -35,8 +36,8 @@ public class TestStagePlanner {
 
   @Test
   public void testSingleStagePlan() {
-    RoleCommandOrder.initialize();
     RoleCommandOrder rco = new RoleCommandOrder();
+    rco.initialize(new StackId());
     RoleGraph rg = new RoleGraph(rco);
     String hostname = "dummy";
     Stage stage = StageUtils.getATestStage(1, 1, hostname);
@@ -52,8 +53,8 @@ public class TestStagePlanner {
 
   @Test
   public void testMultiStagePlan() {
-    RoleCommandOrder.initialize();
     RoleCommandOrder rco = new RoleCommandOrder();
+    rco.initialize(new StackId());
     RoleGraph rg = new RoleGraph(rco);
     long now = System.currentTimeMillis();
     Stage stage = StageUtils.getATestStage(1, 1, "host1");
@@ -76,8 +77,8 @@ public class TestStagePlanner {
 
   @Test
   public void testManyStages() {
-    RoleCommandOrder.initialize();
     RoleCommandOrder rco = new RoleCommandOrder();
+    rco.initialize(new StackId());
     RoleGraph rg = new RoleGraph(rco);
     long now = System.currentTimeMillis();
     Stage stage = StageUtils.getATestStage(1, 1, "host1");
