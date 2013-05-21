@@ -20,6 +20,7 @@ import unittest
 import glob
 import os
 import sys
+from random import shuffle
 
 TEST_MASK = 'Test*.py'
 
@@ -31,6 +32,7 @@ def main():
     TEST_MASK = pwd + os.sep + TEST_MASK
 
   tests = glob.glob(TEST_MASK)
+  shuffle(tests)
   modules = [os.path.basename(s)[:-3] for s in tests]
   suites = [unittest.defaultTestLoader.loadTestsFromName(name) for name in
     modules]

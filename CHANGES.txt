@@ -870,6 +870,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2173. TEST BROKEN : FAIL: test_upgradeCommand_executeCommand
+ (TestActionQueue.TestActionQueue). (smohanty)
+
  AMBARI-2165. Ambari server upgrade fails when upgrading
  second time. (smohanty)
 

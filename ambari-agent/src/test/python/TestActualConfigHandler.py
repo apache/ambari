@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-
+import tempfile
 from unittest import TestCase
 from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.ActualConfigHandler import ActualConfigHandler
@@ -31,17 +31,20 @@ class TestActualConfigHandler(TestCase):
 
   def test_read_write(self):
     config = AmbariConfig().getConfig()
-    config.set('agent', 'prefix', "/tmp")
+    tmpdir = tempfile.gettempdir()
+    config.set('agent', 'prefix', tmpdir)
     handler = ActualConfigHandler(config)
     
     tags = { "global": "version1", "core-site": "version2" }
     handler.write_actual(tags)
     output = handler.read_actual()
     self.assertEquals(tags, output)
+    os.remove(os.path.join(tmpdir, ActualConfigHandler.CONFIG_NAME))
 
   def test_read_write_component(self):
     config = AmbariConfig().getConfig()
-    config.set('agent', 'prefix', "/tmp")
+    tmpdir = tempfile.gettempdir()
+    config.set('agent', 'prefix', tmpdir)
     handler = ActualConfigHandler(config)
 
     tags1 = { "global": "version1", "core-site": "version2" }
@@ -61,4 +64,4 @@ class TestActualConfigHandler(TestCase):
     output4 = handler.read_actual_component('FOO')
     self.assertEquals(tags2, output3)
     self.assertEquals(tags1, output4)
-
+    os.remove(os.path.join(tmpdir, "FOO_" + ActualConfigHandler.CONFIG_NAME))
