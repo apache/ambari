@@ -870,6 +870,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2175. Mark 2.0 stack to be active for testing purposes. (srimanth)
+
  AMBARI-2173. TEST BROKEN : FAIL: test_upgradeCommand_executeCommand
  (TestActionQueue.TestActionQueue). (smohanty)
 
