@@ -42,7 +42,7 @@
     <install.dir>/usr/lib/python2.6/site-packages/ambari_agent</install.dir>
     <ruby.tar>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/centos6/ruby-1.8.7-p370.tar.gz</ruby.tar>
     <lib.dir>/usr/lib/ambari-agent/lib</lib.dir>
-    <python.ver>python &gt;= 2.6</python.ver>
+    <python.ver>python >= 2.6</python.ver>
   </properties>
   <profiles>
     <profile>
@@ -89,7 +89,7 @@
         <executions>
           <execution>
             <configuration>
-              <executable>python2.6</executable>
+              <executable>python</executable>
               <workingDirectory>src/test/python</workingDirectory>
               <arguments>
                 <argument>unitTests.py</argument>
@@ -107,7 +107,7 @@
           </execution>
           <execution>
             <configuration>
-              <executable>python2.6</executable>
+              <executable>python</executable>
               <workingDirectory>target/ambari-agent-${project.version}</workingDirectory>
               <arguments>
                 <argument>${project.basedir}/src/main/python/setup.py</argument>
