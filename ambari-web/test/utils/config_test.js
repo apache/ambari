@@ -21,6 +21,8 @@ require('utils/config');
 
 describe('App.config', function () {
 
+  App.supports.capacitySchedulerUi = true;
+
   describe('#identifyCategory', function () {
     var data = {};
     it('should return null if config doesn\'t have category', function () {
@@ -88,8 +90,10 @@ describe('App.config', function () {
       App.config.calculateConfigProperties(config, isAdvanced, advancedConfigs);
       expect(config.isUserProperty).to.equal(true);
     });
+
     it('isUserProperty should be false if config from "capacity-scheduler.xml" or "mapred-queue-acls.xml" ', function () {
       config = {
+        name: 'test',
         serviceName: 'MAPREDUCE',
         filename: 'capacity-scheduler.xml',
         isUserProperty: false
@@ -98,6 +102,7 @@ describe('App.config', function () {
       App.config.calculateConfigProperties(config, isAdvanced, advancedConfigs);
       expect(config.isUserProperty).to.equal(false);
     });
+
     it('isRequired should be false if config is advanced"', function () {
       config = {
         name: 'test',
@@ -108,7 +113,7 @@ describe('App.config', function () {
       advancedConfigs = [{name:'test', filename: 'test.xml'}];
       App.config.calculateConfigProperties(config, isAdvanced, advancedConfigs);
       expect(config.category).to.equal('Advanced');
-      expect(config.isRequired).to.equal(false);
+      expect(config.isRequired).to.equal(true);
       expect(config.filename).to.equal('test.xml');
     });
   });

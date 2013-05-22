@@ -882,6 +882,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2172. Fix unit tests for Ambari Web. (yusaku)
+
  AMBARI-2171. Host status filter not restored on Hosts page when navigating
  back. (yusaku)
 

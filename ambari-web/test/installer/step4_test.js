@@ -29,7 +29,7 @@ describe('App.WizardStep4Controller', function () {
   var controller = App.WizardStep4Controller.create();
   services.forEach(function(serviceName, index){
     controller.pushObject(Ember.Object.create({
-      'serviceName':serviceName, 'isSelected': true, 'isInstalled': false, 'isDisabled': index == 0
+      'serviceName':serviceName, 'isSelected': true, 'canBeSelected': true, 'isInstalled': false, 'isDisabled': index == 0
     }));
   });
 
@@ -89,7 +89,7 @@ describe('App.WizardStep4Controller', function () {
     it('should select all services', function () {
       controller.setEach('isSelected', false);
       controller.selectAll();
-      expect(controller.everyProperty('isSelected', true)).to.equal(true);
+      expect(controller.filterProperty('canBeSelected', true).everyProperty('isSelected', true)).to.equal(true);
     })
   })
 

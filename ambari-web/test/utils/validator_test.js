@@ -208,7 +208,10 @@ describe('validator', function () {
       {m:'"abc12345679abc1234567890abc1234567890$" - invalid',i:'abc12345679abc1234567890abc1234567890$',e:false},
       {m:'"1abc123$$" - invalid',i:'1abc123$$',e:false},
       {m:'"a" - valid',i:'a',e:true},
-      {m:'"!" - invalid',i:'!',e:false}
+      {m:'"!" - invalid',i:'!',e:false},
+      {m:'"root$" - invalid',i:'root$',e:false},
+      {m:'"rootU" - invalid',i:'rootU',e:false},
+      {m:'"rUoot" - invalid',i:'rUoot',e:false}
     ];
     tests.forEach(function(test) {
       it(test.m + ' ', function () {
