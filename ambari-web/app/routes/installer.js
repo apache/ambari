@@ -133,6 +133,7 @@ module.exports = Em.Route.extend({
       var wizardStep1Controller = router.get('wizardStep1Controller');
       var installerController = router.get('installerController');
       installerController.saveStacks(wizardStep1Controller);
+      App.db.setService(undefined);
       installerController.clearInstallOptions();
       router.transitionTo('step2');
     }

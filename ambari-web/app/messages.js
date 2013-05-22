@@ -191,6 +191,9 @@ Em.I18n.translations = {
   'services.zookeeper.description':'ZooKeeper desc',
   'services.hbase.description':'Non-relational distributed database and centralized service for configuration management & synchronization',
   'services.hive.databaseComponent':'Database Server',
+  'services.mapreduce2.description':'Apache Hadoop NextGen MapReduce (client libraries)',
+  'services.yarn.description':'Apache Hadoop NextGen MapReduce (YARN)',
+  'services.tez.description':'Tez is the next generation Hadoop Query Processing framework written on top of YARN',
 
   'services.alerts.head':'You have {0} critical alert notification(s).',
   'services.alerts.OK.timePrefix': 'OK for ',
@@ -445,6 +448,8 @@ Em.I18n.translations = {
   'installer.step10.master.nameNode':'NameNode installed on ',
   'installer.step10.master.secondaryNameNode':'SecondaryNameNode installed on ',
   'installer.step10.master.jobTracker':'JobTracker installed on ',
+  'installer.step10.master.historyServer':'History Server installed on ',
+  'installer.step10.master.resourceManager':'Resource Manager installed on ',
   'installer.step10.master.zooKeeper':'ZooKeeper installed on ',
   'installer.step10.master.hbase':'HBase Master installed on ',
   'installer.step10.master.hiveMetastore':'Hive Metastore installed on ',

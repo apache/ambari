@@ -101,6 +101,7 @@ App.InstallerController = App.WizardController.extend({
       stacks.forEach(function (stack) {
         convertedStacks.pushObject(Ember.Object.create(stack));
       });
+      App.set('currentStackVersion', convertedStacks.findProperty('isSelected').get('name'));
       this.set('content.stacks', convertedStacks);
     } else {
       App.ajax.send({
@@ -133,7 +134,7 @@ App.InstallerController = App.WizardController.extend({
           if (version.Versions.active !== 'false') {
             result.push(
                 Ember.Object.create({
-                  name: version.Versions.stack_name + " " + version.Versions.stack_version,
+                  name: version.Versions.stack_name + "-" + version.Versions.stack_version,
                   isSelected: false
                 })
             );
@@ -141,7 +142,7 @@ App.InstallerController = App.WizardController.extend({
         }, this)
       }
     }, this);
-    var defaultStackVersion = result.findProperty('name', App.defaultStackVersion.replace('-', ' '));
+    var defaultStackVersion = result.findProperty('name', App.defaultStackVersion);
     if (defaultStackVersion) {
       defaultStackVersion.set('isSelected', true)
     } else {
@@ -264,6 +265,7 @@ App.InstallerController = App.WizardController.extend({
    */
   saveStacks: function (stepController) {
     var stacks = stepController.get('content.stacks');
+    App.set('currentStackVersion', stacks.findProperty('isSelected').get('name'));
     App.db.setStacks(stacks);
     this.set('content.stacks', stacks);
   },
@@ -303,6 +305,24 @@ App.InstallerController = App.WizardController.extend({
   finish: function () {
     this.setCurrentStep('0');
     this.clearStorageData();
+  },
+
+  setStepsEnable: function () {
+    for (var i = 0; i <= this.totalSteps; i++) {
+      var step = this.get('isStepDisabled').findProperty('step', i);
+      if (i <= this.get('currentStep')) {
+        step.set('value', false);
+      } else {
+        step.set('value', true);
+      }
+    }
+  }.observes('currentStep'),
+
+  setLowerStepsDisable: function (stepNo) {
+    for (var i = 0; i < stepNo; i++) {
+      var step = this.get('isStepDisabled').findProperty('step', i);
+      step.set('value', true);
+    }
   }
 
 });

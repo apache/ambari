@@ -271,7 +271,7 @@ App.WizardStep2Controller = Em.Controller.extend({
         this.hide();
       },
       bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile('<p>These hosts are already installed on the cluster and will be ignored:</p><p>' + self.get('inputtedAgainHostNames').join(', ') + '</p><p>Do you want to continue?</p>')
+        template: Ember.Handlebars.compile('<p>{{t installer.step2.evaluateStep.installedHosts}}</p><p>' + self.get('inputtedAgainHostNames').join(', ') + '</p><p>{{t installer.step2.evaluateStep.continueConfirm}}</p>')
       })
     });
   },

@@ -36,6 +36,30 @@ module.exports = [
     description: Em.I18n.t('services.mapreduce.description')
   },
   {
+    serviceName: 'MAPREDUCEv2',
+    displayName: 'MapReduce 2',
+    isDisabled: false,
+    isSelected: true,
+    canBeSelected: true,
+    description: Em.I18n.t('services.mapreduce2.description')
+  },
+  {
+    serviceName: 'YARN',
+    displayName: 'YARN',
+    isDisabled: false,
+    isSelected: true,
+    canBeSelected: true,
+    description: Em.I18n.t('services.yarn.description')
+  },
+  {
+    serviceName: 'TEZ',
+    displayName: 'TEZ',
+    isDisabled: false,
+    isSelected: true,
+    canBeSelected: true,
+    description: Em.I18n.t('services.tez.description')
+  },
+  {
     serviceName: 'NAGIOS',
     displayName: 'Nagios',
     isDisabled: false,

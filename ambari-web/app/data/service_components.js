@@ -75,6 +75,54 @@ module.exports = new Ember.Set([
     description: 'Client component for MapReduce'
   },
   {
+    service_name: 'MAPREDUCEv2',
+    component_name: 'MAPREDUCEv2_CLIENT',
+    display_name: 'MapReduce 2 Client',
+    isMaster: false,
+    isClient: true,
+    description: ''
+  },
+  {
+    service_name: 'MAPREDUCEv2',
+    component_name: 'HISTORYSERVER',
+    display_name: 'History Server',
+    isMaster: true,
+    isClient: false,
+    description: ''
+  },
+  {
+    service_name: 'TEZ',
+    component_name: 'TEZ_CLIENT',
+    display_name: 'TEZ Client',
+    isMaster: false,
+    isClient: true,
+    description: ''
+  },
+  {
+    service_name: 'YARN',
+    component_name: 'RESOURCEMANAGER',
+    display_name: 'Resource Manager',
+    isMaster: true,
+    isClient: false,
+    description: ''
+  },
+  {
+    service_name: 'YARN',
+    component_name: 'YARN_CLIENT',
+    display_name: 'YARN Client',
+    isMaster: false,
+    isClient: true,
+    description: ''
+  },
+  {
+    service_name: 'YARN',
+    component_name: 'NODEMANAGER',
+    display_name: 'Node Manager',
+    isMaster: false,
+    isClient: false,
+    description: ''
+  },
+  {
     service_name: 'ZOOKEEPER',
     component_name: 'ZOOKEEPER_SERVER',
     display_name: 'ZooKeeper',

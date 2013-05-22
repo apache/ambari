@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-2168. Integrate installing and starting Hadoop 2.0 Services.
+ (yusaku)
+
  AMBARI-2167. Support for displaying various stacks and having the user select
  which stack to install. (yusaku)
 

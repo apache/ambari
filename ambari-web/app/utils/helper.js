@@ -268,6 +268,18 @@ App.format = {
         return 'TaskTracker';
       case 'MAPREDUCE_CLIENT':
         return 'MapReduce Client';
+      case 'HISTORYSERVER':
+        return 'History Server';
+      case 'NODEMANAGER':
+        return 'Node Manager';
+      case 'RESOURCEMANAGER':
+        return 'Resource Manager';
+      case 'TEZ_CLIENT':
+        return 'Tez Client';
+      case 'MAPREDUCEv2_CLIENT':
+        return 'MapReduce2 Client';
+      case 'YARN_CLIENT':
+        return 'YARN Client';
       case 'JAVA_JCE':
         return 'Java JCE';
       case 'KERBEROS_SERVER':

@@ -78,7 +78,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @return {Boolean}
    */
   needToAddMapReduce: function () {
-    if (this.findProperty('serviceName', 'MAPREDUCE').get('isSelected') === false) {
+    if (this.findProperty('serviceName', 'MAPREDUCE') && this.findProperty('serviceName', 'MAPREDUCE').get('isSelected') === false) {
       var mapreduceDependentServices = this.filter(function (item) {
         return ['PIG', 'OOZIE', 'HIVE'].contains(item.get('serviceName')) && item.get('isSelected', true);
       });

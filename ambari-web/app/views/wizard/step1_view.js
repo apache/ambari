@@ -23,8 +23,15 @@ App.WizardStep1View = Em.View.extend({
   templateName: require('templates/wizard/step1'),
 
   stacks: function() {
-    return this.get('controller.content.stacks');
-  }.property('controller.content.stacks'),
+    var stacks = [];
+    this.get('controller.content.stacks').forEach(function(stack){
+      stacks.pushObject(Em.Object.create({
+        name: stack.get('name').replace('-', ' '),
+        isSelected: stack.get('isSelected')
+      }));
+    });
+    return stacks;
+  }.property('controller.content.stacks.@each.isSelected'),
 
   stackRadioButton: Ember.Checkbox.extend({
     tagName: 'input',
@@ -35,8 +42,8 @@ App.WizardStep1View = Em.View.extend({
     type: 'radio',
 
     click: function () {
-      this.get('parentView.stacks').setEach('isSelected', false);
-      this.get('parentView.stacks').findProperty('name', this.get('content.name')).set('isSelected', true);
+      this.get('controller.content.stacks').setEach('isSelected', false);
+      this.get('controller.content.stacks').findProperty('name', this.get('content.name').replace(' ', '-')).set('isSelected', true);
     }
   })
 });

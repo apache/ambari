@@ -392,6 +392,13 @@ App.WizardStep8Controller = Em.Controller.extend({
           domain: 'tasktracker-global'
         };
         break;
+      case 'NODEMANAGER':
+        serviceConfig = {
+          name: 'YARN',
+          siteName: 'yarn-site',
+          domain: 'nodemanager-global'
+        };
+        break;
       case 'HBASE_REGIONSERVER':
         serviceConfig = {
           name: 'HBASE',
@@ -475,6 +482,12 @@ App.WizardStep8Controller = Em.Controller.extend({
           case 'MAPREDUCE':
             this.loadMapReduce(serviceObj);
             break;
+          case 'MAPREDUCEv2':
+            this.loadMapReduce2(serviceObj);
+            break;
+          case 'YARN':
+            this.loadYARN(serviceObj);
+            break;
           case 'HIVE':
             this.loadHive(serviceObj);
             break;
@@ -496,7 +509,9 @@ App.WizardStep8Controller = Em.Controller.extend({
           case 'HUE':
             this.loadHue(serviceObj);
             break;
-          /* case 'PIG':
+          /* case 'TEZ':
+           break;
+           case 'PIG':
            this.loadPig(serviceObj);
            break;
            case 'SQOOP':
@@ -576,6 +591,36 @@ App.WizardStep8Controller = Em.Controller.extend({
       }
     }, this);
     this.get('services').pushObject(mrObj);
+  },
+
+  loadMapReduce2: function(mrObj){
+    mrObj.get('service_components').forEach(function (_component) {
+      switch (_component.get('display_name')) {
+        case 'History Server':
+          _component.set('component_value', this.get('content.masterComponentHosts').findProperty('component', 'HISTORYSERVER').hostName);
+          break;
+      }
+    }, this);
+    this.get('services').pushObject(mrObj);
+  },
+
+  loadYARN: function(mrObj){
+    mrObj.get('service_components').forEach(function (_component) {
+      switch (_component.get('display_name')) {
+        case 'Node Manager':
+          this.loadNMValue(_component);
+          break;
+        case 'Resource Manager':
+          _component.set('component_value', this.get('content.masterComponentHosts').findProperty('component', 'RESOURCEMANAGER').hostName);
+          break;
+      }
+    }, this);
+    this.get('services').pushObject(mrObj);
+  },
+
+  loadNMValue: function (nmComponent) {
+    var nmHosts = this.get('content.slaveComponentHosts').findProperty('componentName', 'NODEMANAGER');
+    nmComponent.set('component_value', nmHosts.hosts.length + Em.I18n.t('installer.step8.hosts'));
   },
 
   loadJtValue: function (jtComponent) {
@@ -990,7 +1035,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     var clusterName = this.get('clusterName');
     var url = App.apiPrefix + '/clusters/' + clusterName;
 
-    var stackVersion = (this.get('content.installOptions.localRepo')) ? App.defaultLocalStackVersion : App.defaultStackVersion;
+    var stackVersion = (this.get('content.installOptions.localRepo')) ? App.defaultLocalStackVersion : App.currentStackVersion;
 
     this.ajax({
       type: 'POST',
@@ -1273,6 +1318,18 @@ App.WizardStep8Controller = Em.Controller.extend({
         this.applyConfigurationToSite(this.createMapredQueueAcls());
       }
     }
+    if (selectedServices.someProperty('serviceName', 'MAPREDUCEv2')) {
+      this.applyConfigurationToSite(this.createMrSiteObj());
+      if (App.supports.capacitySchedulerUi) {
+        this.applyConfigurationToSite(this.createMapredQueueAcls());
+      }
+    }
+    if (selectedServices.someProperty('serviceName', 'YARN')) {
+      this.applyConfigurationToSite(this.createYarnSiteObj());
+      if (App.supports.capacitySchedulerUi) {
+        this.applyConfigurationToSite(this.createCapacityScheduler());
+      }
+    }
     if (selectedServices.someProperty('serviceName', 'HBASE')) {
       this.applyConfigurationToSite(this.createHbaseSiteObj());
     }
@@ -1391,6 +1448,18 @@ App.WizardStep8Controller = Em.Controller.extend({
     return {type: 'mapred-site', tag: 'version1', properties: mrProperties};
   },
 
+  createYarnSiteObj: function () {
+    var configs = this.get('configs').filterProperty('filename', 'yarn-site.xml');
+    var mrProperties = {};
+    configs.forEach(function (_configProperty) {
+      mrProperties[_configProperty.name] = _configProperty.value;
+      this._recordHostOverrideFromObj(_configProperty, 'mapred-site', 'version1', this);
+      console.log("STEP*: name of the property is: " + _configProperty.name);
+      console.log("STEP8: value of the property is: " + _configProperty.value);
+    }, this);
+    return {type: 'yarn-site', tag: 'version1', properties: mrProperties};
+  },
+
   createCapacityScheduler: function () {
     var configs = this.get('configs').filterProperty('filename', 'capacity-scheduler.xml');
     var csProperties = {};
@@ -1502,6 +1571,10 @@ App.WizardStep8Controller = Em.Controller.extend({
         return {config: {'global': 'version1', 'core-site': 'version1', 'hdfs-site': 'version1'}};
       case 'MAPREDUCE':
         return {config: {'global': 'version1', 'core-site': 'version1', 'mapred-site': 'version1', 'capacity-scheduler': 'version1', 'mapred-queue-acls': 'version1'}};
+      case 'MAPREDUCEv2':
+        return {config: {'global': 'version1', 'core-site': 'version1', 'mapred-site': 'version1', 'mapred-queue-acls': 'version1'}};
+      case 'YARN':
+        return {config: {'global': 'version1', 'yarn-site': 'version1', 'capacity-scheduler': 'version1'}};
       case 'HBASE':
         return {config: {'global': 'version1', 'hbase-site': 'version1'}};
       case 'OOZIE':

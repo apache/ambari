@@ -56,6 +56,28 @@ module.exports = [
   },
 
   {
+    serviceName: 'MAPREDUCEv2',
+    displayName: 'MapReduce 2',
+    filename: 'mapred-site',
+    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'})
+    ],
+    sites: ['global', 'core-site', 'mapred-site', 'mapred-queue-acls'],
+    configs: configProperties.filterProperty('serviceName', 'MAPREDUCEv2')
+  },
+
+  {
+    serviceName: 'YARN',
+    displayName: 'YARN',
+    filename: 'yarn-site',
+    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'})
+    ],
+    sites: ['global', 'yarn-site', 'capacity-scheduler'],
+    configs: configProperties.filterProperty('serviceName', 'MAPREDUCEv2')
+  },
+
+  {
     serviceName: 'HIVE',
     displayName: 'Hive/HCat',
     filename: 'hive-site',

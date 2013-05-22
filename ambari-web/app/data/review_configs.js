@@ -75,6 +75,30 @@ module.exports = [
         ]
       }),
       Ember.Object.create({
+        service_name: 'MAPREDUCEv2',
+        display_name: 'MapReduce 2',
+        service_components: [
+          Ember.Object.create({
+            display_name: 'History Server',
+            component_value: ''
+          })
+        ]
+      }),
+      Ember.Object.create({
+        service_name: 'YARN',
+        display_name: 'YARN',
+        service_components: [
+          Ember.Object.create({
+            display_name: 'Node Manager',
+            component_value: ''
+          }),
+          Ember.Object.create({
+            display_name: 'Resource Manager',
+            component_value: ''
+          })
+        ]
+      }),
+      Ember.Object.create({
         service_name: 'HIVE',
         display_name: 'Hive + HCatalog',
         service_components: [
@@ -150,6 +174,11 @@ module.exports = [
             component_value: ''
           })
         ]
+      }),
+      Ember.Object.create({
+        service_name: 'TEZ',
+        display_name: 'TEZ',
+        service_components: []
       }),
       Ember.Object.create({
         service_name: 'PIG',

@@ -167,6 +167,12 @@ App.WizardStep10Controller = Em.Controller.extend({
         case 'JOBTRACKER' :
           this.loadJt(component);
           break;
+        case 'HISTORYSERVER':
+          this.loadHS(component);
+          break;
+        case 'RESOURCEMANAGER':
+          this.loadRM(component);
+          break;
         case 'ZOOKEEPER_SERVER' :
           // TODO: Fix this; redundant entries and wrong number
           //this.loadZk(component);
@@ -189,6 +195,32 @@ App.WizardStep10Controller = Em.Controller.extend({
       }
     }, this);
     return true;
+  },
+
+  loadHS: function (component) {
+    if (component.get('hostName')) {
+      var statement = Em.I18n.t('installer.step10.master.historyServer') + component.get('hostName');
+      this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
+        id: 1,
+        color: 'text-info',
+        displayStatement: statement
+      }));
+    } else {
+      console.log('ERROR: no host name assigned to HistoryServer component');
+    }
+  },
+
+  loadRM: function (component) {
+    if (component.get('hostName')) {
+      var statement = Em.I18n.t('installer.step10.master.resourceManager') + component.get('hostName');
+      this.get('clusterInfo').findProperty('id', 2).get('status').pushObject(Ember.Object.create({
+        id: 1,
+        color: 'text-info',
+        displayStatement: statement
+      }));
+    } else {
+      console.log('ERROR: no host name assigned to ResourceManager component');
+    }
   },
 
   loadNn: function (component) {
