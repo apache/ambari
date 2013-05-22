@@ -483,7 +483,8 @@ App.config = Em.Object.create({
       sender: this,
       data: {
         serviceName: serviceName,
-        stack2VersionUrl: App.get('stack2VersionURL')
+        stack2VersionUrl: App.get('stack2VersionURL'),
+        stackVersion: App.currentStackVersion.replace(/HDP(Local)?-/, '')
       },
       success: 'loadAdvancedConfigSuccess'
     });

@@ -1,0 +1,149 @@
+{
+  "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HIVE/configurations?fields=*",
+  "items" : [
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HIVE/configurations/hive.metastore.client.socket.timeout",
+      "StackConfigurations" : {
+        "property_description" : "MetaStore Client socket timeout in seconds",
+        "property_value" : "60",
+        "stack_version" : "1.2.1",
+        "property_name" : "hive.metastore.client.socket.timeout",
+        "service_name" : "HIVE",
+        "stack_name" : "HDP",
+        "type" : "hive-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HIVE/configurations/hive.security.authorization.manager",
+      "StackConfigurations" : {
+        "property_description" : "the hive client authorization manager class name.\n    The user defined authorization class should implement interface org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider.  ",
+        "property_value" : "org.apache.hcatalog.security.HdfsAuthorizationProvider",
+        "stack_version" : "1.2.1",
+        "property_name" : "hive.security.authorization.manager",
+        "service_name" : "HIVE",
+        "stack_name" : "HDP",
+        "type" : "hive-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HIVE/configurations/hive.security.authorization.enabled",
+      "StackConfigurations" : {
+        "property_description" : "enable or disable the hive client authorization",
+        "property_value" : "true",
+        "stack_version" : "1.2.1",
+        "property_name" : "hive.security.authorization.enabled",
+        "service_name" : "HIVE",
+        "stack_name" : "HDP",
+        "type" : "hive-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HIVE/configurations/hive.metastore.cache.pinobjtypes",
+      "StackConfigurations" : {
+        "property_description" : "List of comma separated metastore object types that should be pinned in the cache",
+        "property_value" : "Table,Database,Type,FieldSchema,Order",
+        "stack_version" : "1.2.1",
+        "property_name" : "hive.metastore.cache.pinobjtypes",
+        "service_name" : "HIVE",
+        "stack_name" : "HDP",
+        "type" : "hive-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HIVE/configurations/hadoop.clientside.fs.operations",
+      "StackConfigurations" : {
+        "property_description" : "FS operations are owned by client",
+        "property_value" : "true",
+        "stack_version" : "1.2.1",
+        "property_name" : "hadoop.clientside.fs.operations",
+        "service_name" : "HIVE",
+        "stack_name" : "HDP",
+        "type" : "hive-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HIVE/configurations/fs.hdfs.impl.disable.cache",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "true",
+        "stack_version" : "1.2.1",
+        "property_name" : "fs.hdfs.impl.disable.cache",
+        "service_name" : "HIVE",
+        "stack_name" : "HDP",
+        "type" : "hive-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HIVE/configurations/hive.semantic.analyzer.factory.impl",
+      "StackConfigurations" : {
+        "property_description" : "controls which SemanticAnalyzerFactory implemenation class is used by CLI",
+        "property_value" : "org.apache.hivealog.cli.HCatSemanticAnalyzerFactory",
+        "stack_version" : "1.2.1",
+        "property_name" : "hive.semantic.analyzer.factory.impl",
+        "service_name" : "HIVE",
+        "stack_name" : "HDP",
+        "type" : "hive-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HIVE/configurations/hive.metastore.local",
+      "StackConfigurations" : {
+        "property_description" : "controls whether to connect to remove metastore server or\n    open a new metastore server in Hive Client JVM",
+        "property_value" : "false",
+        "stack_version" : "1.2.1",
+        "property_name" : "hive.metastore.local",
+        "service_name" : "HIVE",
+        "stack_name" : "HDP",
+        "type" : "hive-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HIVE/configurations/hive.metastore.execute.setugi",
+      "StackConfigurations" : {
+        "property_description" : "In unsecure mode, setting this property to true will cause the metastore to execute DFS operations using the client's reported user and group permissions. Note that this property must be set on both the client and     server sides. Further note that its best effort. If client sets its to true and server sets it to false, client setting will be ignored.",
+        "property_value" : "true",
+        "stack_version" : "1.2.1",
+        "property_name" : "hive.metastore.execute.setugi",
+        "service_name" : "HIVE",
+        "stack_name" : "HDP",
+        "type" : "hive-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HIVE/configurations/hive.metastore.warehouse.dir",
+      "StackConfigurations" : {
+        "property_description" : "location of default database for the warehouse",
+        "property_value" : "/apps/hive/warehouse",
+        "stack_version" : "1.2.1",
+        "property_name" : "hive.metastore.warehouse.dir",
+        "service_name" : "HIVE",
+        "stack_name" : "HDP",
+        "type" : "hive-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HIVE/configurations/javax.jdo.option.ConnectionDriverName",
+      "StackConfigurations" : {
+        "property_description" : "Driver class name for a JDBC metastore",
+        "property_value" : "com.mysql.jdbc.Driver",
+        "stack_version" : "1.2.1",
+        "property_name" : "javax.jdo.option.ConnectionDriverName",
+        "service_name" : "HIVE",
+        "stack_name" : "HDP",
+        "type" : "hive-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HIVE/configurations/hive.server2.enable.doAs",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "true",
+        "stack_version" : "1.2.1",
+        "property_name" : "hive.server2.enable.doAs",
+        "service_name" : "HIVE",
+        "stack_name" : "HDP",
+        "type" : "hive-site.xml"
+      }
+    }
+  ]
+}
