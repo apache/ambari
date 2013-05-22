@@ -26,7 +26,6 @@ App.MainController = Em.Controller.extend({
     var name = App.router.get('clusterController.clusterName');
     if (name) {
       name = name.length > 13 ? name.substr(0, 10) + "..." : name;
-      name = name.capitalize();
     } else {
       name = Em.I18n.t('common.loading');
     }

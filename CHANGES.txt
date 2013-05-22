@@ -873,6 +873,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2157. Page title and cluster name shown in the header are not the same
+ case. (yusaku)
+
  AMBARI-2183. Postgres setup failed. (smohanty)
 
  AMBARI-2182. Expose "active" attribute for Stack resource. (smohanty)
