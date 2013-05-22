@@ -25,7 +25,7 @@
             <category>MASTER</category>
         </component>
         <component>
-            <name>MAPREDUCEv2_CLIENT</name>
+            <name>MAPREDUCE2_CLIENT</name>
             <category>CLIENT</category>
         </component>
     </components>

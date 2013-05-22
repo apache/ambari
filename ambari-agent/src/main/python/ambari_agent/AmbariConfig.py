@@ -88,7 +88,7 @@ rolesToClass = {
   'YARN_CLIENT': 'hdp-yarn::yarn_client',
   'HDFS_CLIENT': 'hdp-hadoop::client',
   'MAPREDUCE_CLIENT': 'hdp-hadoop::client',
-  'MAPREDUCEv2_CLIENT': 'hdp-yarn::mapreducev2_client',
+  'MAPREDUCE2_CLIENT': 'hdp-yarn::mapreducev2_client',
   'ZOOKEEPER_SERVER': 'hdp-zookeeper',
   'ZOOKEEPER_CLIENT': 'hdp-zookeeper::client',
   'HBASE_MASTER': 'hdp-hbase::master',
