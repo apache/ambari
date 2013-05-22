@@ -24,9 +24,9 @@ class hdp-hadoop::hcfs_client(
 ) inherits hdp-hadoop::params
 {
   $hdp::params::service_exists['hdp-hadoop::hcfs_client'] = true
-  Hdp-hadoop::Common<||>{service_states > $service_state}
+  Hdp-hadoop::Common<||>{service_states +> $service_state}
   Hdp-hadoop::Package<||>{include_64_bit => true}
-  Hdp-hadoop::Configfile<||>{sizes > 64}
+  Hdp-hadoop::Configfile<||>{sizes +> 64}
   
   if ($service_state == 'no_op') {
   } elsif ($service_state in ['running','stopped','installed_and_configured','uninstalled']) {
