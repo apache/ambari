@@ -20,29 +20,23 @@
 var App = require('app');
 
 App.WizardStep1View = Em.View.extend({
-
-  tagName: "form", //todo: why form?
   templateName: require('templates/wizard/step1'),
 
-  //todo: create property for placeholder(go to template)
+  stacks: function() {
+    return this.get('controller.content.stacks');
+  }.property('controller.content.stacks'),
 
-  didInsertElement: function () {
-    $("[rel=popover]").popover({'placement': 'right', 'trigger': 'hover'});
-    this.get('controller').loadStep();
-  },
+  stackRadioButton: Ember.Checkbox.extend({
+    tagName: 'input',
+    attributeBindings: ['type', 'checked'],
+    checked: function () {
+      return this.get('content.isSelected');
+    }.property('content.isSelected'),
+    type: 'radio',
 
-  //todo: rename it to class or write comments
-  onError: function () {
-    return this.get('controller.clusterNameError') !== '';
-  }.property('controller.clusterNameError')
-
-});
-
-App.WizardStep1ViewClusterNameInput = Em.TextField.extend({
-  keyPress: function(event) {
-    if (event.keyCode == 13) {
-      this.get('parentView.controller').submit();
-      return false;
+    click: function () {
+      this.get('parentView.stacks').setEach('isSelected', false);
+      this.get('parentView.stacks').findProperty('name', this.get('content.name')).set('isSelected', true);
     }
-  }
+  })
 });

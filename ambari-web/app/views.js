@@ -133,6 +133,7 @@ require('views/main/mirroring/testConnection_view');
 require('views/main/mirroring/testConnectionResults_view');
 require('views/installer');
 require('views/wizard/controls_view');
+require('views/wizard/step0_view');
 require('views/wizard/step1_view');
 require('views/wizard/step2_view');
 require('views/wizard/step3_view');

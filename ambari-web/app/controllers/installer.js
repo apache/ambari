@@ -23,7 +23,7 @@ App.InstallerController = App.WizardController.extend({
 
   name: 'installerController',
 
-  totalSteps: 10,
+  totalSteps: 11,
 
   content: Em.Object.create({
     cluster: null,
@@ -37,6 +37,15 @@ App.InstallerController = App.WizardController.extend({
     slaveGroupProperties: null,
     controllerName: 'installerController'
   }),
+
+  init: function () {
+    this._super();
+    this.get('isStepDisabled').setEach('value', true);
+    this.get('isStepDisabled').pushObject(Ember.Object.create({
+      step: 0,
+      value: false
+    }));
+  },
 
   getCluster: function(){
     return jQuery.extend({}, this.get('clusterStatusTemplate'));
@@ -80,6 +89,73 @@ App.InstallerController = App.WizardController.extend({
     console.log('installerController.loadServices: loaded data ', JSON.stringify(servicesInfo));
     console.log("The type odf serviceInfo: " + typeof servicesInfo);
     console.log('selected services ', servicesInfo.filterProperty('isSelected', true).mapProperty('serviceName'));
+  },
+
+  /**
+   * Load stacks data from server or take exist data from local db
+   */
+  loadStacks: function () {
+    var stacks = App.db.getStacks();
+    if (stacks) {
+      var convertedStacks = [];
+      stacks.forEach(function (stack) {
+        convertedStacks.pushObject(Ember.Object.create(stack));
+      });
+      this.set('content.stacks', convertedStacks);
+    } else {
+      App.ajax.send({
+        name: 'wizard.stacks',
+        sender: this,
+        success: 'loadStacksSuccessCallback',
+        error: 'loadStacksErrorCallback'
+      });
+    }
+  },
+
+  /**
+   * Parse loaded data and create array of stacks objects
+   */
+  loadStacksSuccessCallback: function (data) {
+    var result = [];
+    var stacks = data.items;
+    stacks.forEach(function (stack) {
+      if (stack.Stacks.stack_name.indexOf('Local') === -1) {
+        stack.versions.sort(function (a, b) {
+          if (a.Versions.stack_version > b.Versions.stack_version) {
+            return -1;
+          }
+          if (a.Versions.stack_version < b.Versions.stack_version) {
+            return 1;
+          }
+          return 0;
+        });
+        stack.versions.forEach(function (version) {
+          if (version.Versions.active !== 'false') {
+            result.push(
+                Ember.Object.create({
+                  name: version.Versions.stack_name + " " + version.Versions.stack_version,
+                  isSelected: false
+                })
+            );
+          }
+        }, this)
+      }
+    }, this);
+    var defaultStackVersion = result.findProperty('name', App.defaultStackVersion.replace('-', ' '));
+    if (defaultStackVersion) {
+      defaultStackVersion.set('isSelected', true)
+    } else {
+      result.objectAt(0).set('isSelected', true);
+    }
+    App.db.setStacks(result);
+    this.set('content.stacks', result);
+  },
+
+  /**
+   * onError callback for loading stacks data
+   */
+  loadStacksErrorCallback: function () {
+    console.log('Error in loading stacks');
   },
 
   /**
@@ -183,6 +259,16 @@ App.InstallerController = App.WizardController.extend({
   },
 
   /**
+   * Save stacks data to local db
+   * @param stepController step1WizardController
+   */
+  saveStacks: function (stepController) {
+    var stacks = stepController.get('content.stacks');
+    App.db.setStacks(stacks);
+    this.set('content.stacks', stacks);
+  },
+
+  /**
    * Load data for all steps until <code>current step</code>
    */
   loadAllPriorSteps: function () {
@@ -206,6 +292,8 @@ App.InstallerController = App.WizardController.extend({
       case '2':
         this.load('installOptions');
       case '1':
+        this.loadStacks();
+      case '0':
         this.load('cluster');
     }
   },
@@ -213,7 +301,7 @@ App.InstallerController = App.WizardController.extend({
    * Clear all temporary data
    */
   finish: function () {
-    this.setCurrentStep('1');
+    this.setCurrentStep('0');
     this.clearStorageData();
   }
 

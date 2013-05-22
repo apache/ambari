@@ -73,7 +73,7 @@ App.Router = Em.Router.extend({
     var currentStep = App.db.getWizardCurrentStep(wizardType);
     console.log('getWizardCurrentStep: loginName=' + loginName + ", currentStep=" + currentStep);
     if (!currentStep) {
-      currentStep = '1';
+      currentStep = wizardType === 'installer' ? '0' : '1';
     }
     console.log('returning currentStep=' + currentStep);
     return currentStep;

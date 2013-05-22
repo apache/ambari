@@ -655,6 +655,15 @@ var urls = {
     'real': '/hosts',
     'mock': '/data/wizard/bootstrap/single_host_registration.json'
   },
+  'wizard.stacks': {
+    'real': '/stacks2?fields=versions',
+    'mock': '/data/wizard/stack/versions.json',
+    'format': function (data) {
+      return {
+        async: false
+      };
+    }
+  },
   'router.login': {
     'real': '/users/{loginName}',
     'mock': '/data/users/user_{usr}.json',

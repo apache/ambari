@@ -236,6 +236,12 @@ App.db.setReassignTasksStatuses = function (tasksStatuses) {
   localStorage.setObject('ambari', App.db.data);
 };
 
+App.db.setStacks = function (stacks) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.app.stacksVersions = stacks;
+  localStorage.setObject('ambari', App.db.data);
+};
+
 /**
  * Set current step value for specified Wizard Type
  * @param wizardType
@@ -423,6 +429,11 @@ App.db.getSecurityStage = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.AddSecurity.securityStage;
 
+};
+
+App.db.getStacks = function () {
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.app.stacksVersions;
 };
 
 module.exports = App.db;

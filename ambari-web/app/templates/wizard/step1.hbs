@@ -15,28 +15,15 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-
-<h2>{{t installer.step1.body.header}}</h2>
+<h2>{{t installer.step1.header}}</h2>
 <p class="alert alert-info">
   {{t installer.step1.body}}
 </p>
-<div {{bindAttr class="view.onError:error :control-group"}}>
-  <label class="control-label" for="cluster-name">{{t installer.step1.clusterName}}
-    <a href="javascript:void(null)"
-       rel="popover"
-      {{translateAttr title="installer.step1.clusterName.tooltip.title"
-       data-content="installer.step1.clusterName.tooltip.content"}}>{{t common.learnMore}}</a>
-  </label>
-
-  <div class="controls">
-    {{view App.WizardStep1ViewClusterNameInput valueBinding="content.cluster.name" placeholder="cluster name" target="controller"}}
-    <p class="help-inline">{{clusterNameError}}</p>
-  </div>
-</div>
-
-<div class="btn-area">
-  <a class="btn btn-success pull-right" {{bindAttr disabled="invalidClusterName"}} {{action "submit" target="controller"}}>{{t common.next}} &rarr;</a>
-</div>
-
-
-
+<p><b>{{t common.stacks}}</b></p>
+<form>
+  {{#each stack in view.stacks}}
+    <label class="radio">{{view view.stackRadioButton contentBinding="stack"}} {{stack.name}}</label>
+  {{/each}}
+</form>
+<a class="btn pull-left" {{action back}}>&larr; {{t common.back}}</a>
+<a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>

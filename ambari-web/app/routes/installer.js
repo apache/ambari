@@ -102,6 +102,23 @@ module.exports = Em.Route.extend({
     router.get('applicationController').connectOutlet('installer');
   },
 
+  step0: Em.Route.extend({
+    route: '/step0',
+    connectOutlets: function (router) {
+      console.log('in installer.step0:connectOutlets');
+      var controller = router.get('installerController');
+      controller.setCurrentStep('0');
+      controller.loadAllPriorSteps();
+      controller.connectOutlet('wizardStep0', controller.get('content'));
+    },
+
+    next: function (router) {
+      var installerController = router.get('installerController');
+      installerController.save('cluster');
+      router.transitionTo('step1');
+    }
+  }),
+
   step1: Em.Route.extend({
     route: '/step1',
     connectOutlets: function (router) {
@@ -111,10 +128,11 @@ module.exports = Em.Route.extend({
       controller.loadAllPriorSteps();
       controller.connectOutlet('wizardStep1', controller.get('content'));
     },
-
+    back: Em.Router.transitionTo('step0'),
     next: function (router) {
+      var wizardStep1Controller = router.get('wizardStep1Controller');
       var installerController = router.get('installerController');
-      installerController.save('cluster');
+      installerController.saveStacks(wizardStep1Controller);
       installerController.clearInstallOptions();
       router.transitionTo('step2');
     }
@@ -358,6 +376,8 @@ module.exports = Em.Route.extend({
       }
     }
   }),
+
+  gotoStep0: Em.Router.transitionTo('step0'),
 
   gotoStep1: Em.Router.transitionTo('step1'),
 
