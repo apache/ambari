@@ -20,11 +20,18 @@ package org.apache.ambari.server.utils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
 /**
  * Logs OpenSsl command exit code with description
  */
 public class ShellCommandUtil {
   private static final Log LOG = LogFactory.getLog(ShellCommandUtil.class);
+  private static Object WindowsProcessLaunchLock = new Object();
+
   /*
   public static String LogAndReturnOpenSslExitCode(String command, int exitCode) {
     logOpenSslExitCode(command, exitCode);
@@ -67,6 +74,145 @@ public class ShellCommandUtil {
       }
       default:
         return "unsupported code";
+    }
+  }
+
+
+  /** Set to true when run on Windows platforms */
+  public static final boolean WINDOWS
+          = System.getProperty("os.name").startsWith("Windows");
+
+  /** Set to true when run on Linux platforms */
+  public static final boolean LINUX
+          = System.getProperty("os.name").startsWith("Linux");
+
+  /** Set to true when run on Mac OS platforms */
+  public static final boolean MAC
+          = System.getProperty("os.name").startsWith("Mac");
+
+  /** Set to true when run if platform is detected to be UNIX compatible */
+  public static final boolean UNIX_LIKE = LINUX || MAC;
+
+  /**
+   * Permission mask 600 allows only owner to read and modify file.
+   * Other users (except root) can't read/modify file
+   */
+  public static final String MASK_OWNER_ONLY_RW = "600";
+
+  /**
+   * Permission mask 777 allows everybody to read/modify/execute file
+   */
+  public static final String MASK_EVERYBODY_RWX = "777";
+
+
+  /**
+   * Gets file permissions on Unix-like systems.
+   * Under Windows, command always returns MASK_EVERYBODY_RWX
+   * @param path
+   */
+  public static String getUnixFilePermissions(String path) {
+    String result = null;
+    if (UNIX_LIKE) {
+      try {
+        result = runCommand(new String[]{"stat", "-c", "%a", path}).getStdout();
+      } catch (IOException e) {
+        // Improbable
+        LOG.warn(String.format("Can not perform stat on %s", path), e);
+      } catch (InterruptedException e) {
+        LOG.warn(String.format("Can not perform stat on %s", path), e);
+      }
+    } else {
+      LOG.debug(String.format("Not performing stat -s \"%%a\" command on file %s " +
+              "because current OS is not Unix-like. Returning 777", path));
+      result = MASK_EVERYBODY_RWX;
+    }
+    return result.trim();
+  }
+
+  /**
+   * Sets file permissions to a given value on Unix-like systems.
+   * On Windows, command is silently ignored
+   * @param path
+   * @param mode
+   */
+  public static void setUnixFilePermissions(String mode, String path) {
+    if (UNIX_LIKE) {
+      try {
+        runCommand(new String[]{"chmod", mode, path});
+      } catch (IOException e) {
+        // Improbable
+        LOG.warn(String.format("Can not perform chmod %s %s", mode, path), e);
+      } catch (InterruptedException e) {
+        LOG.warn(String.format("Can not perform chmod %s %s", mode, path), e);
+      }
+    } else {
+      LOG.debug(String.format("Not performing chmod %s command for file %s " +
+              "because current OS is not Unix-like ", mode, path));
+    }
+  }
+
+  public static Result runCommand(String [] args) throws IOException,
+          InterruptedException {
+    ProcessBuilder builder = new ProcessBuilder(args);
+    Process process;
+    if (WINDOWS) {
+      synchronized (WindowsProcessLaunchLock) {
+        // To workaround the race condition issue with child processes
+        // inheriting unintended handles during process launch that can
+        // lead to hangs on reading output and error streams, we
+        // serialize process creation. More info available at:
+        // http://support.microsoft.com/kb/315939
+        process = builder.start();
+      }
+    } else {
+      process = builder.start();
+    }
+    //TODO: not sure whether output buffering will work properly
+    // if command output is too intensive
+    process.waitFor();
+    String stdout = streamToString(process.getInputStream());
+    String stderr = streamToString(process.getErrorStream());
+    int exitCode = process.exitValue();
+    return new Result(exitCode, stdout, stderr);
+  }
+
+  private static String streamToString(InputStream is) throws IOException {
+    InputStreamReader isr = new InputStreamReader(is);
+    BufferedReader reader = new BufferedReader(isr);
+    StringBuilder sb = new StringBuilder();
+    String line = null;
+    while ((line = reader.readLine()) != null) {
+      sb.append(line).append("\n");
+    }
+    return sb.toString();
+  }
+
+  static class Result {
+
+    Result(int exitCode, String stdout, String stderr) {
+      this.exitCode = exitCode;
+      this.stdout = stdout;
+      this.stderr = stderr;
+    }
+
+    private final int exitCode;
+    private final String stdout;
+    private final String stderr;
+
+    int getExitCode() {
+      return exitCode;
+    }
+
+    String getStdout() {
+      return stdout;
+    }
+
+    String getStderr() {
+      return stderr;
+    }
+
+    public boolean isSuccessful() {
+      return exitCode == 0;
     }
   }
 }
