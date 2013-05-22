@@ -882,6 +882,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2171. Host status filter not restored on Hosts page when navigating
+ back. (yusaku)
+
  AMBARI-2157. Page title and cluster name shown in the header are not the same
  case. (yusaku)
 

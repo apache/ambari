@@ -20,6 +20,8 @@
 
   <div class="box-header row">
     <div class="health-status-bar pull-left" >
+      {{view view.alertFilter}}
+      {{#view view.statusFilter categoriesBinding="view.categories"}}
       {{#each category in view.categories}}
         <span {{bindAttr class="category.itemClass"}}>
         {{#if category.alerts}}
@@ -33,6 +35,7 @@
         </span>
         {{#unless category.last}}|{{/unless}}
       {{/each}}
+      {{/view}}
     </div>
 
     {{#if App.isAdmin}}
