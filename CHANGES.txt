@@ -306,6 +306,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2169. Going from Hosts page to Host Details page and back should
+ preserve the filters, sort order, and pagination. (yusaku)
+
  AMBARI-2180. Remove "0.1" stack definition since its never been used and is
  redundant. (mahadev)
 
