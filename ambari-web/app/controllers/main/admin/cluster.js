@@ -40,7 +40,7 @@ App.MainAdminClusterController = Em.Controller.extend({
     var upgradeVersion = this.get('upgradeVersion') || App.defaultStackVersion;
     var currentStack = {};
     var upgradeStack = {};
-    var currentVersion = App.currentStackVersion.replace(/HDP-/, '');
+    var currentVersion = App.get('currentStackVersionNumber');
     var minUpgradeVersion = currentVersion;
     upgradeVersion = upgradeVersion.replace(/HDP-/, '');
     data.items.mapProperty('Versions.stack_version').forEach(function(version){

@@ -30,12 +30,15 @@ App.MainMenuView = Em.CollectionView.extend({
       { label:Em.I18n.t('menu.item.dashboard'), routing:'dashboard', active:'active'},
       { label:Em.I18n.t('menu.item.heatmaps'), routing:'charts'},
       { label:Em.I18n.t('menu.item.services'), routing:'services'},
-      { label:Em.I18n.t('menu.item.hosts'), routing:'hosts'},
-      { label:Em.I18n.t('menu.item.jobs'), routing:'apps'}
+      { label:Em.I18n.t('menu.item.hosts'), routing:'hosts'}
     ];
 
     if (App.supports.mirroring) {
       result.push({ label:Em.I18n.t('menu.item.mirroring'), routing:'mirroring'});
+    }
+
+    if (App.get('currentStackVersionNumber') < '2.0.0') {
+      result.push({ label:Em.I18n.t('menu.item.jobs'), routing:'apps'});
     }
 
     if (App.get('isAdmin')) {

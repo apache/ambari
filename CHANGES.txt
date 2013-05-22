@@ -306,6 +306,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2187. Hadoop2 Monitoring: Jobs page should be hidden when HDP 2.0.x 
+ stack is installed. (srimanth)
+
  AMBARI-2188. Update mock json data for Test mode. (srimanth) 
 
  AMBARI-2169. Going from Hosts page to Host Details page and back should

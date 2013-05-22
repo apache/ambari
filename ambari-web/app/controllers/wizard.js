@@ -458,7 +458,7 @@ App.WizardController = Em.Controller.extend({
       sender: this,
       data: {
         stackUrl: App.get('stack2VersionURL'),
-        stackVersion: App.currentStackVersion.replace(/HDP(Local)?-/, '')
+        stackVersion: App.get('currentStackVersionNumber')
       },
       success: 'loadServiceComponentsSuccessCallback',
       error: 'loadServiceComponentsErrorCallback'
