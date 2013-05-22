@@ -52,6 +52,7 @@ public class AmbariMetaInfo {
   private static final String STACK_METAINFO_FILE_NAME = "metainfo.xml";
   private static final String STACK_XML_MAIN_BLOCK_NAME = "metainfo";
   private static final String STACK_XML_PROPERTY_UPGRADE = "upgrade";
+  private static final String STACK_XML_PROPERTY_ACTIVE = "active";
   private static final String SERVICES_FOLDER_NAME = "services";
   private static final String SERVICE_METAINFO_FILE_NAME = "metainfo.xml";
   private static final String SERVICE_CONFIG_FOLDER_NAME = "configuration";
@@ -709,6 +710,9 @@ public class AmbariMetaInfo {
 
             stackInfo.setMinUpgradeVersion(getTagValue(
                 STACK_XML_PROPERTY_UPGRADE, property));
+
+            stackInfo.setActive(Boolean.parseBoolean(getTagValue(
+                STACK_XML_PROPERTY_ACTIVE, property)));
           }
         }
       } catch (Exception e) {

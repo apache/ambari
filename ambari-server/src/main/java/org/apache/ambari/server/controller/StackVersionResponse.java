@@ -26,11 +26,14 @@ public class StackVersionResponse {
 
   private String stackVersion;
   private String minUpgradeVersion;
+  private boolean active;
   private List<RepositoryInfo> repositories;
 
-  public StackVersionResponse(String stackVersion, String minUpgradeVersion) {
+  public StackVersionResponse(String stackVersion, String minUpgradeVersion,
+                              boolean active) {
     setStackVersion(stackVersion);
     setMinUpgradeVersion(minUpgradeVersion);
+    setActive(active);
   }
 
   public String getStackVersion() {
@@ -55,5 +58,13 @@ public class StackVersionResponse {
 
   public void setMinUpgradeVersion(String minUpgradeVersion) {
     this.minUpgradeVersion = minUpgradeVersion;
+  }
+
+  public boolean isActive() {
+    return active;
+  }
+
+  public void setActive(boolean active) {
+    this.active = active;
   }
 }

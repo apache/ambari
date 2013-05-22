@@ -873,6 +873,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2182. Expose "active" attribute for Stack resource. (smohanty)
+
  AMBARI-2181. keys/pass.txt file is readable by everyone. (smohanty)
 
  AMBARI-2177. HBase Smoke Test shows success even if it fails. (smohanty)

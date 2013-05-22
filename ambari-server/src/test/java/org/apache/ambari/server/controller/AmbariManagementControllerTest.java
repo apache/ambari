@@ -56,21 +56,7 @@ import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.serveraction.ServerActionManager;
 import org.apache.ambari.server.serveraction.ServerActionManagerImpl;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigFactory;
-import org.apache.ambari.server.state.ConfigImpl;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceComponentFactory;
-import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceComponentHostFactory;
-import org.apache.ambari.server.state.ServiceFactory;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.junit.After;
@@ -5290,6 +5276,22 @@ public class AmbariManagementControllerTest {
     }
   }
 
+  @Test
+  public void testGetStackVersionActiveAttr() throws Exception {
+
+    for (StackInfo stackInfo: ambariMetaInfo.getStackInfos(STACK_NAME)) {
+      if (stackInfo.getVersion().equalsIgnoreCase(STACK_VERSION)) {
+        stackInfo.setActive(true);
+      }
+    }
+
+    StackVersionRequest requestWithParams = new StackVersionRequest(STACK_NAME, STACK_VERSION);
+    Set<StackVersionResponse> responsesWithParams = controller.getStackVersions(Collections.singleton(requestWithParams));
+    Assert.assertEquals(1, responsesWithParams.size());
+    for (StackVersionResponse responseWithParams: responsesWithParams) {
+      Assert.assertTrue(responseWithParams.isActive());
+    }
+  }
 
   @Test
   public void testGetRepositories() throws Exception {
