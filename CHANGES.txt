@@ -882,6 +882,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2179. Fix JDBC URLs for Oozie connecting to MySQL server. (yusaku)
+
  AMBARI-2178. Fix JDBC URLs for connecting to Oracle from Hive Metastore and
  Oozie Server. (yusaku)
 
