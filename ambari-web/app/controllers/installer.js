@@ -91,12 +91,14 @@ App.InstallerController = App.WizardController.extend({
     console.log('selected services ', servicesInfo.filterProperty('isSelected', true).mapProperty('serviceName'));
   },
 
+  stacks: [],
+
   /**
    * Load stacks data from server or take exist data from local db
    */
   loadStacks: function () {
     var stacks = App.db.getStacks();
-    if (stacks) {
+    if (stacks && stacks.length) {
       var convertedStacks = [];
       stacks.forEach(function (stack) {
         convertedStacks.pushObject(Ember.Object.create(stack));
@@ -114,39 +116,33 @@ App.InstallerController = App.WizardController.extend({
   },
 
   /**
-   * Parse loaded data and create array of stacks objects
+   * Send queries to load versions for each stack
    */
   loadStacksSuccessCallback: function (data) {
-    var result = [];
     var stacks = data.items;
+    var result;
+    this.get('stacks').clear();
     stacks.forEach(function (stack) {
-      if (stack.Stacks.stack_name.indexOf('Local') === -1) {
-        stack.versions.sort(function (a, b) {
-          if (a.Versions.stack_version > b.Versions.stack_version) {
-            return -1;
-          }
-          if (a.Versions.stack_version < b.Versions.stack_version) {
-            return 1;
-          }
-          return 0;
-        });
-        stack.versions.forEach(function (version) {
-          if (version.Versions.active !== 'false') {
-            result.push(
-                Ember.Object.create({
-                  name: version.Versions.stack_name + "-" + version.Versions.stack_version,
-                  isSelected: false
-                })
-            );
-          }
-        }, this)
-      }
+      App.ajax.send({
+        name: 'wizard.stacks_versions',
+        sender: this,
+        data: {
+          stackName: stack.Stacks.stack_name
+        },
+        success: 'loadStacksVersionsSuccessCallback',
+        error: 'loadStacksVersionsErrorCallback'
+      });
     }, this);
-    var defaultStackVersion = result.findProperty('name', App.defaultStackVersion);
-    if (defaultStackVersion) {
-      defaultStackVersion.set('isSelected', true)
+    result = this.get('stacks');
+    if (!result.length) {
+      console.log('Error: therea are no active stacks');
     } else {
-      result.objectAt(0).set('isSelected', true);
+      var defaultStackVersion = result.findProperty('name', App.defaultStackVersion);
+      if (defaultStackVersion) {
+        defaultStackVersion.set('isSelected', true)
+      } else {
+        result.objectAt(0).set('isSelected', true);
+      }
     }
     App.db.setStacks(result);
     this.set('content.stacks', result);
@@ -156,6 +152,39 @@ App.InstallerController = App.WizardController.extend({
    * onError callback for loading stacks data
    */
   loadStacksErrorCallback: function () {
+    console.log('Error in loading stacks');
+  },
+
+  /**
+   * Parse loaded data and create array of stacks objects
+   */
+  loadStacksVersionsSuccessCallback: function (data) {
+    var result = [];
+    var stackVersions = data.items.filterProperty('Versions.active');
+    stackVersions.sort(function (a, b) {
+      if (a.Versions.stack_version > b.Versions.stack_version) {
+        return -1;
+      }
+      if (a.Versions.stack_version < b.Versions.stack_version) {
+        return 1;
+      }
+      return 0;
+    });
+    stackVersions.forEach(function (version) {
+          result.push(
+              Ember.Object.create({
+                name: version.Versions.stack_name + "-" + version.Versions.stack_version,
+                isSelected: false
+              })
+          );
+    }, this);
+    this.get('stacks').pushObjects(result);
+  },
+
+  /**
+   * onError callback for loading stacks data
+   */
+  loadStacksVersionsErrorCallback: function () {
     console.log('Error in loading stacks');
   },
 
@@ -265,7 +294,11 @@ App.InstallerController = App.WizardController.extend({
    */
   saveStacks: function (stepController) {
     var stacks = stepController.get('content.stacks');
-    App.set('currentStackVersion', stacks.findProperty('isSelected').get('name'));
+    if (stacks.length) {
+      App.set('currentStackVersion', stacks.findProperty('isSelected').get('name'));
+    } else {
+      App.set('currentStackVersion', App.defaultStackVersion);
+    }
     App.db.setStacks(stacks);
     this.set('content.stacks', stacks);
   },

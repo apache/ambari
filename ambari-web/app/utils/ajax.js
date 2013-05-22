@@ -656,8 +656,17 @@ var urls = {
     'mock': '/data/wizard/bootstrap/single_host_registration.json'
   },
   'wizard.stacks': {
-    'real': '/stacks2?fields=versions',
-    'mock': '/data/wizard/stack/versions.json',
+    'real': '/stacks2',
+    'mock': '/data/wizard/stack/stacks2.json',
+    'format': function (data) {
+      return {
+        async: false
+      };
+    }
+  },
+  'wizard.stacks_versions': {
+    'real': '/stacks2/{stackName}/versions?fields=Versions',
+    'mock': '/data/wizard/stack/{stackName}_versions.json',
     'format': function (data) {
       return {
         async: false
