@@ -300,6 +300,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2180. Remove "0.1" stack definition since its never been used and is
+ redundant. (mahadev)
+
  AMBARI-2158. Certain queries with metrics takes a long time (3 minutes on
  a 450-node cluster). (tbeerbower)
 
