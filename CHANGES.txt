@@ -882,6 +882,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2178. Fix JDBC URLs for connecting to Oracle from Hive Metastore and
+ Oozie Server. (yusaku)
+
  AMBARI-2172. Fix unit tests for Ambari Web. (yusaku)
 
  AMBARI-2171. Host status filter not restored on Hosts page when navigating

@@ -1518,8 +1518,8 @@ App.WizardStep8Controller = Em.Controller.extend({
       } else if (oozieDb.value === 'Existing MySQL Database'){
         oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:mysql://" + oozieHost + "/" + oozieDbName + "?createDatabaseIfNotExist=true";
         oozieProperties["oozie.service.JPAService.jdbc.driver"] = "com.mysql.jdbc.Driver";
-      } else{ //existing oracle database
-        oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:oracle://" + oozieHost + "/" + oozieDbName + "?createDatabaseIfNotExist=true";
+      } else { //existing oracle database
+        oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:oracle:thin:@//" + oozieHost + ":1521/" + oozieDbName;
         oozieProperties["oozie.service.JPAService.jdbc.driver"] = "oracle.jdbc.driver.OracleDriver";
       }
       //set oozie username and password
@@ -1547,8 +1547,8 @@ App.WizardStep8Controller = Em.Controller.extend({
       } else if (hiveDb.value === 'Existing MySQL Database'){
         hiveProperties["javax.jdo.option.ConnectionURL"] = "jdbc:mysql://"+ hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
         hiveProperties["javax.jdo.option.ConnectionDriverName"] = "com.mysql.jdbc.Driver";
-      } else{ //existing oracle database
-        hiveProperties["javax.jdo.option.ConnectionURL"] = "jdbc:oracle://"+ hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
+      } else { //existing oracle database
+        hiveProperties["javax.jdo.option.ConnectionURL"] = "jdbc:oracle:thin:@//"+ hiveHost + ":1521/" + hiveDbName;
         hiveProperties["javax.jdo.option.ConnectionDriverName"] = "oracle.jdbc.driver.OracleDriver";
       }
     }
