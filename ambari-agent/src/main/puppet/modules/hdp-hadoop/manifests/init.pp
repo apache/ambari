@@ -229,7 +229,7 @@ class hdp-hadoop(
     hdp::user{ $hdfs_user:
       groups => [$hdp::params::user_group]
     }
-    if ($hdfs_user != $mapred_user) {
+    if (($hdfs_user != $mapred_user) and (!defined hdp::user[$mapred_user])) {
       hdp::user { $mapred_user:
         groups => [$hdp::params::user_group]
       }
