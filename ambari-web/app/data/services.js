@@ -36,7 +36,7 @@ module.exports = [
     description: Em.I18n.t('services.mapreduce.description')
   },
   {
-    serviceName: 'MAPREDUCEv2',
+    serviceName: 'MAPREDUCE2',
     displayName: 'MapReduce 2',
     isDisabled: false,
     isSelected: true,

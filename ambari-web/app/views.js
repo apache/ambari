@@ -75,6 +75,7 @@ require('views/main/dashboard');
 require('views/main/dashboard/service');
 require('views/main/dashboard/service/hdfs');
 require('views/main/dashboard/service/mapreduce');
+require('views/main/dashboard/service/mapreduce2');
 require('views/main/dashboard/service/hbase');
 require('views/main/dashboard/service/hive');
 require('views/main/dashboard/service/zookeeper');

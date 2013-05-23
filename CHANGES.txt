@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-2189. Hadoop2 Monitoring: MapReduce2 does not have service 
+ page. (srimanth)
+
  AMBARI-2168. Integrate installing and starting Hadoop 2.0 Services.
  (yusaku)
 

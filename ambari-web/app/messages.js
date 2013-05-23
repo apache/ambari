@@ -795,6 +795,9 @@ Em.I18n.translations = {
   'services.zookeeper.title': '{0} ZooKeepers',
   'services.zookeeper.postfix': 'running',
 
+  'services.mapreduce2.history.running': 'History server is running',
+  'services.mapreduce2.history.stopped': 'History server is stopped',
+
   'services.mapReduce.config.addQueue':'Add Queue',
   'services.mapReduce.config.editQueue':'Edit Queue',
   'services.mapReduce.config.capacitySchedulerXml':'Custom capacity-scheduler.xml',

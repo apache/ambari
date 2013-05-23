@@ -75,7 +75,7 @@ module.exports = [
         ]
       }),
       Ember.Object.create({
-        service_name: 'MAPREDUCEv2',
+        service_name: 'MAPREDUCE2',
         display_name: 'MapReduce 2',
         service_components: [
           Ember.Object.create({

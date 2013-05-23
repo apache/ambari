@@ -482,7 +482,7 @@ App.WizardStep8Controller = Em.Controller.extend({
           case 'MAPREDUCE':
             this.loadMapReduce(serviceObj);
             break;
-          case 'MAPREDUCEv2':
+          case 'MAPREDUCE2':
             this.loadMapReduce2(serviceObj);
             break;
           case 'YARN':
@@ -1318,7 +1318,7 @@ App.WizardStep8Controller = Em.Controller.extend({
         this.applyConfigurationToSite(this.createMapredQueueAcls());
       }
     }
-    if (selectedServices.someProperty('serviceName', 'MAPREDUCEv2')) {
+    if (selectedServices.someProperty('serviceName', 'MAPREDUCE2')) {
       this.applyConfigurationToSite(this.createMrSiteObj());
       if (App.supports.capacitySchedulerUi) {
         this.applyConfigurationToSite(this.createMapredQueueAcls());
@@ -1580,7 +1580,7 @@ App.WizardStep8Controller = Em.Controller.extend({
         return {config: {'global': 'version1', 'core-site': 'version1', 'hdfs-site': 'version1'}};
       case 'MAPREDUCE':
         return {config: {'global': 'version1', 'core-site': 'version1', 'mapred-site': 'version1', 'capacity-scheduler': 'version1', 'mapred-queue-acls': 'version1'}};
-      case 'MAPREDUCEv2':
+      case 'MAPREDUCE2':
         return {config: {'global': 'version1', 'core-site': 'version1', 'mapred-site': 'version1', 'mapred-queue-acls': 'version1'}};
       case 'YARN':
         return {config: {'global': 'version1', 'yarn-site': 'version1', 'capacity-scheduler': 'version1'}};

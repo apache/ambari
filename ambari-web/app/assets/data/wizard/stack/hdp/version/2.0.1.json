@@ -2,11 +2,11 @@
   "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices?fields=StackServices",
   "items" : [
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCEv2",
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2",
       "StackServices" : {
         "user_name" : "mapred",
         "stack_version" : "2.0.1",
-        "service_name" : "MAPREDUCEv2",
+        "service_name" : "MAPREDUCE2",
         "stack_name" : "HDP",
         "comments" : "Apache Hadoop NextGen MapReduce (client libraries)",
         "service_version" : "2.0.3.22-1"

@@ -75,15 +75,15 @@ module.exports = new Ember.Set([
     description: 'Client component for MapReduce'
   },
   {
-    service_name: 'MAPREDUCEv2',
-    component_name: 'MAPREDUCEv2_CLIENT',
+    service_name: 'MAPREDUCE2',
+    component_name: 'MAPREDUCE2_CLIENT',
     display_name: 'MapReduce 2 Client',
     isMaster: false,
     isClient: true,
     description: ''
   },
   {
-    service_name: 'MAPREDUCEv2',
+    service_name: 'MAPREDUCE2',
     component_name: 'HISTORYSERVER',
     display_name: 'History Server',
     isMaster: true,

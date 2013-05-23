@@ -276,7 +276,7 @@ App.format = {
         return 'Resource Manager';
       case 'TEZ_CLIENT':
         return 'Tez Client';
-      case 'MAPREDUCEv2_CLIENT':
+      case 'MAPREDUCE2_CLIENT':
         return 'MapReduce2 Client';
       case 'YARN_CLIENT':
         return 'YARN Client';

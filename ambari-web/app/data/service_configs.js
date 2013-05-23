@@ -56,14 +56,14 @@ module.exports = [
   },
 
   {
-    serviceName: 'MAPREDUCEv2',
+    serviceName: 'MAPREDUCE2',
     displayName: 'MapReduce 2',
     filename: 'mapred-site',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'})
     ],
     sites: ['global', 'core-site', 'mapred-site', 'mapred-queue-acls'],
-    configs: configProperties.filterProperty('serviceName', 'MAPREDUCEv2')
+    configs: configProperties.filterProperty('serviceName', 'MAPREDUCE2')
   },
 
   {
@@ -74,7 +74,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'})
     ],
     sites: ['global', 'yarn-site', 'capacity-scheduler'],
-    configs: configProperties.filterProperty('serviceName', 'MAPREDUCEv2')
+    configs: configProperties.filterProperty('serviceName', 'MAPREDUCE2')
   },
 
   {
