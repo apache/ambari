@@ -188,7 +188,7 @@ Em.I18n.translations = {
   'services.pig.description':'Scripting platform for analyzing large datasets',
   'services.hive.description':'Data warehouse system for ad-hoc queries & analysis of large datasets and table & storage management service',
   'services.oozie.description':'System for workflow coordination and execution of Apache Hadoop jobs',
-  'services.zookeeper.description':'ZooKeeper desc',
+  'services.zookeeper.description':'Centralized service which provides highly reliable distributed coordination',
   'services.hbase.description':'Non-relational distributed database and centralized service for configuration management & synchronization',
   'services.hive.databaseComponent':'Database Server',
   'services.mapreduce2.description':'Apache Hadoop NextGen MapReduce (client libraries)',
