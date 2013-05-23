@@ -23,16 +23,8 @@
 export PATH=/usr/lib/ambari-server/*:$PATH
 export AMBARI_CONF_DIR=/etc/ambari-server/conf:$PATH
 
-if [ -a /usr/bin/python2.6 ]; then
-  PYTHON=/usr/bin/python2.6
-fi
-
 if [ -a /var/lib/ambari-server/ambari-env.sh ]; then
   . /var/lib/ambari-server/ambari-env.sh
-fi
-
-if [ "x$PYTHON" == "x" ]; then
-  PYTHON=/usr/bin/python
 fi
 
 if [ "x$AMBARI_PASSPHRASE" == "x" ]; then
@@ -45,28 +37,18 @@ fi
 
 export AMBARI_PASSPHRASE=$AMBARI_PASSPHRASE
 
-# check for version
-majversion=`$PYTHON -V 2>&1 | awk '{print $2}' | cut -d'.' -f1`
-minversion=`$PYTHON -V 2>&1 | awk '{print $2}' | cut -d'.' -f2`
-numversion=$(( 10 * $majversion + $minversion))
-if (( $numversion < 26 )); then
-  echo "Need python version > 2.6"
-  exit 1
-fi
-echo "Using python " $PYTHON
-
 case "$1" in
   start)
         echo -e "Starting ambari-server"
-        $PYTHON /usr/sbin/ambari-server.py $@
+        /usr/sbin/ambari-server.py $@
         ;;
   stop)
         echo -e "Stopping ambari-server"
-        $PYTHON /usr/sbin/ambari-server.py $@
+        /usr/sbin/ambari-server.py $@
         ;;
   reset)
         echo -e "Resetting ambari-server"
-        $PYTHON /usr/sbin/ambari-server.py $@
+        /usr/sbin/ambari-server.py $@
         ;;
   restart)
         echo -e "Restarting ambari-server"
@@ -94,7 +76,7 @@ case "$1" in
         echo -e "Run postgresql start"
         /sbin/service postgresql start
         echo -e "Setup ambari-server"
-        $PYTHON /usr/sbin/ambari-server.py $@
+        /usr/sbin/ambari-server.py $@
         ;;
   *)
         echo "Usage: /usr/sbin/ambari-server {start|stop|restart|setup|upgrade|status|upgradestack} [options]"

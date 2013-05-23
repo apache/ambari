@@ -48,7 +48,7 @@ public class Configuration {
   public static final String BOOTSTRAP_DIR_DEFAULT = "/var/run/ambari-server/bootstrap";
   public static final String WEBAPP_DIR = "webapp.dir";
   public static final String BOOTSTRAP_SCRIPT = "bootstrap.script";
-  public static final String BOOTSTRAP_SCRIPT_DEFAULT =  "/usr/bin/ambari_bootstrap";
+  public static final String BOOTSTRAP_SCRIPT_DEFAULT =  "/usr/lib/exec/ambari-server/bootstrap.py";
   public static final String BOOTSTRAP_SETUP_AGENT_SCRIPT = "bootstrap.setup_agent.script";
   public static final String BOOTSTRAP_SETUP_AGENT_PASSWORD = "bootstrap.setup_agent.password";
   public static final String BOOTSTRAP_MASTER_HOSTNAME = "bootstrap.master_host_name";
@@ -333,7 +333,7 @@ public class Configuration {
 
   public String getBootSetupAgentScript() {
     return properties.getProperty(BOOTSTRAP_SETUP_AGENT_SCRIPT,
-        "/usr/lib/python2.6/site-packages/ambari_server/setupAgent.py");
+        "/usr/lib/exec/ambari-server/setupAgent.py");
   }
 
   public String getBootSetupAgentPassword() {
