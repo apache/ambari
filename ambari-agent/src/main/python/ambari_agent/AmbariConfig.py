@@ -186,6 +186,10 @@ pidPathesVars = [
    'defaultValue' : '/var/run/mysqld'},
   {'var' : 'webhcat_pid_dir',
    'defaultValue' : '/var/run/webhcat'},                      
+  {'var' : 'yarn_pid_dir',
+   'defaultValue' : '/var/run/hadoop-yarn'},
+  {'var' : 'mapreduce2_pid_dir',
+   'defaultValue' : '/var/run/hadoop-mapreduce'},
 ]
 
 class AmbariConfig:

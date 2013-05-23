@@ -338,6 +338,8 @@ Trunk (unreleased changes):
 
  AMBARI-2111. Enable customization of smoke test user. (yusaku)
 
+ AMBARI-2191. Report status for YARN and MAPREDUCE2. (ncole)
+
  AMBARI-2147. Added config change auditing. (ncole)
 
  AMBARI-2110. Update hive-site.xml, set fs.file.impl.disable.cache=true.
