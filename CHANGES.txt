@@ -887,6 +887,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2159. After upgrading ambari from 1.2.2.5 to 1.2.3.6 the server
+ throws 500 error when starting/stopping any service. (smohanty)
+
  AMBARI-2186. Hadoop2 - Handle dfs include/exclude properties. (srimanth)
 
  AMBARI-2179. Fix JDBC URLs for Oozie connecting to MySQL server. (yusaku)
