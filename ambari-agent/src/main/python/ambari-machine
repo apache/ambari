@@ -1,0 +1,11 @@
+#!/usr/bin/env python2
+import sys
+from ambari_agent import machine as agent_machine
+
+def main():
+    # Not sure why machine.py passes sys.argv explicitly
+    # since it's globally available but we'll keep that convention
+    return agent_machine.main(sys.argv)
+
+if __name__ == "__main__":
+    main()
