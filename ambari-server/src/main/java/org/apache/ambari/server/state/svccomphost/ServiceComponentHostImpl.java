@@ -908,6 +908,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
             contains = true;
             mappingEntity.setVersionTag(entry.getValue());
             mappingEntity.setTimestamp(now);
+            hostComponentConfigMappingDAO.merge(mappingEntity);
             break;
           }
         }
@@ -934,7 +935,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           }
           stateEntity.getHostComponentConfigMappingEntities().add(newEntity);
           newEntity.setHostComponentStateEntity(stateEntity);
-
+          hostComponentConfigMappingDAO.create(newEntity);
         }
       }
 
@@ -1077,6 +1078,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
             contains = true;
             desiredConfigMappingEntity.setVersionTag(entry.getValue().getVersionTag());
             desiredConfigMappingEntity.setTimestamp(new Date().getTime());
+            hostComponentDesiredConfigMappingDAO.merge(desiredConfigMappingEntity);
             break;
           }
         }
@@ -1092,6 +1094,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           newEntity.setTimestamp(new Date().getTime());
           newEntity.setHostComponentDesiredStateEntity(desiredStateEntity);
           desiredStateEntity.getHostComponentDesiredConfigMappingEntities().add(newEntity);
+          hostComponentDesiredConfigMappingDAO.create(newEntity);
         }
 
         this.desiredConfigs.put(entry.getKey(), entry.getValue().getVersionTag());

@@ -887,6 +887,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2184. Install progress gets stuck at 33% and displays incorrect
+ status upon refresh. (smohanty)
+
  AMBARI-2159. After upgrading ambari from 1.2.2.5 to 1.2.3.6 the server
  throws 500 error when starting/stopping any service. (smohanty)
 
