@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var stringUtils = require('utils/string_utils');
 
 /**
  * this menu extended by other with modifying content and itemViewClass.template
@@ -37,7 +38,7 @@ App.MainMenuView = Em.CollectionView.extend({
       result.push({ label:Em.I18n.t('menu.item.mirroring'), routing:'mirroring'});
     }
 
-    if (App.get('currentStackVersionNumber') < '2.0.0') {
+    if (stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === -1) {
       result.push({ label:Em.I18n.t('menu.item.jobs'), routing:'apps'});
     }
 

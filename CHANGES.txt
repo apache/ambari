@@ -309,6 +309,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2194. Hadoop2 Installer: MapReduce2 shows only advanced section. 
+ (srimanth)
+
  AMBARI-2187. Hadoop2 Monitoring: Jobs page should be hidden when HDP 2.0.x 
  stack is installed. (srimanth)
 

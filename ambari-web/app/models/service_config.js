@@ -244,6 +244,15 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'datanode_hosts':
         this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'DATANODE').hosts.mapProperty('hostName'));
         break;
+      case 'historyserver_host':
+        this.set('value', masterComponentHostsInDB.filterProperty('component', 'HISTORYSERVER').mapProperty('hostName'));
+        break;
+      case 'resourcemanager_host':
+        this.set('value', masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName);
+        break;
+      case 'nodemanager_hosts':
+        this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'NODEMANAGER').hosts.mapProperty('hostName'));
+        break;
       case 'jobtracker_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'JOBTRACKER').hostName);
         break;
@@ -331,7 +340,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
         }, this);
         break;
       case 'mapred_local_dir':
-        temp = slaveComponentHostsInDB.findProperty('componentName', 'TASKTRACKER');
+        temp = slaveComponentHostsInDB.findProperty('componentName', 'TASKTRACKER') || slaveComponentHostsInDB.findProperty('componentName', 'NODEMANAGER');
         temp.hosts.forEach(function (host) {
           setOfHostNames.push(host.hostName);
         }, this);

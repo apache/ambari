@@ -1,0 +1,545 @@
+{
+  "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations?fields=*",
+  "items" : [
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.system.dir",
+      "StackConfigurations" : {
+        "property_description" : "No description",
+        "property_value" : "/mapred/system",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.system.dir",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.reduce.parallel.copies",
+      "StackConfigurations" : {
+        "property_description" : "No description",
+        "property_value" : "30",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.reduce.parallel.copies",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.job.tracker.persist.jobstatus.active",
+      "StackConfigurations" : {
+        "property_description" : "Indicates if persistency of job status information is\n  active or not.\n  ",
+        "property_value" : "false",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.job.tracker.persist.jobstatus.active",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.jobtracker.blacklist.fault-timeout-window",
+      "StackConfigurations" : {
+        "property_description" : "\n    3-hour sliding window (value is in minutes)\n  ",
+        "property_value" : "180",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.jobtracker.blacklist.fault-timeout-window",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapreduce.cluster.administrators",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : " hadoop",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapreduce.cluster.administrators",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapreduce.fileoutputcommitter.marksuccessfuljobs",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "false",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapreduce.fileoutputcommitter.marksuccessfuljobs",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapreduce.shuffle.port",
+      "StackConfigurations" : {
+        "property_description" : "Default port that the ShuffleHandler will run on. ShuffleHandler is a service run at the NodeManager to facilitate transfers of intermediate Map outputs to requesting Reducers.",
+        "property_value" : "8081",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapreduce.shuffle.port",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.tasktracker.tasks.sleeptime-before-sigkill",
+      "StackConfigurations" : {
+        "property_description" : "Normally, this is the amount of time before killing\n  processes, and the recommended-default is 5.000 seconds - a value of\n  5000 here.  In this case, we are using it solely to blast tasks before\n  killing them, and killing them very quickly (1/4 second) to guarantee\n  that we do not leave VMs around for later jobs.\n  ",
+        "property_value" : "250",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.tasktracker.tasks.sleeptime-before-sigkill",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapreduce.reduce.input.limit",
+      "StackConfigurations" : {
+        "property_description" : "The limit on the input size of the reduce. (This value\n  is 10 Gb.)  If the estimated input size of the reduce is greater than\n  this value, job is failed. A value of -1 means that there is no limit\n  set. ",
+        "property_value" : "10737418240",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapreduce.reduce.input.limit",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.reduce.tasks.speculative.execution",
+      "StackConfigurations" : {
+        "property_description" : "If true, then multiple instances of some reduce tasks\n               may be executed in parallel.",
+        "property_value" : "false",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.reduce.tasks.speculative.execution",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.jobtracker.blacklist.fault-bucket-width",
+      "StackConfigurations" : {
+        "property_description" : "\n    15-minute bucket size (value is in minutes)\n  ",
+        "property_value" : "15",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.jobtracker.blacklist.fault-bucket-width",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/io.sort.record.percent",
+      "StackConfigurations" : {
+        "property_description" : "No description",
+        "property_value" : ".2",
+        "stack_version" : "2.0.1",
+        "property_name" : "io.sort.record.percent",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapreduce.history.server.embedded",
+      "StackConfigurations" : {
+        "property_description" : "Should job history server be embedded within Job tracker\nprocess",
+        "property_value" : "false",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapreduce.history.server.embedded",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/hadoop.job.history.user.location",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "none",
+        "stack_version" : "2.0.1",
+        "property_name" : "hadoop.job.history.user.location",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.job.shuffle.input.buffer.percent",
+      "StackConfigurations" : {
+        "property_description" : "The percentage of memory to be allocated from the maximum heap\n  size to storing map outputs during the shuffle.\n  ",
+        "property_value" : "0.7",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.job.shuffle.input.buffer.percent",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.job.tracker.handler.count",
+      "StackConfigurations" : {
+        "property_description" : "\n    The number of server threads for the JobTracker. This should be roughly\n    4% of the number of tasktracker nodes.\n    ",
+        "property_value" : "50",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.job.tracker.handler.count",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapreduce.jobtracker.split.metainfo.maxsize",
+      "StackConfigurations" : {
+        "property_description" : "If the size of the split metainfo file is larger than this, the JobTracker will fail the job during\n    initialize.\n   ",
+        "property_value" : "50000000",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapreduce.jobtracker.split.metainfo.maxsize",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.healthChecker.interval",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "135000",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.healthChecker.interval",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.output.compression.type",
+      "StackConfigurations" : {
+        "property_description" : "If the job outputs are to compressed as SequenceFiles, how should\n               they be compressed? Should be one of NONE, RECORD or BLOCK.\n  ",
+        "property_value" : "BLOCK",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.output.compression.type",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapreduce.jobtracker.staging.root.dir",
+      "StackConfigurations" : {
+        "property_description" : "The Path prefix for where the staging directories should be placed. The next level is always the user's\n   name. It is a path in the default file system.",
+        "property_value" : "/user",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapreduce.jobtracker.staging.root.dir",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.queue.default.acl-administer-jobs",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "*",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.queue.default.acl-administer-jobs",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-queue-acls.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.child.root.logger",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "INFO,TLA",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.child.root.logger",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapreduce.jobhistory.done-dir",
+      "StackConfigurations" : {
+        "property_description" : "Directory where history files are managed by the MR JobHistory Server.",
+        "property_value" : "/mr-history/done",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapreduce.jobhistory.done-dir",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.map.tasks.speculative.execution",
+      "StackConfigurations" : {
+        "property_description" : "If true, then multiple instances of some map tasks\n               may be executed in parallel.",
+        "property_value" : "false",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.map.tasks.speculative.execution",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.task.timeout",
+      "StackConfigurations" : {
+        "property_description" : "The number of milliseconds before a task will be\n  terminated if it neither reads an input, writes an output, nor\n  updates its status string.\n  ",
+        "property_value" : "600000",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.task.timeout",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.queue.names",
+      "StackConfigurations" : {
+        "property_description" : " Comma separated list of queues configured for this jobtracker.",
+        "property_value" : "default",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.queue.names",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapreduce.tasktracker.group",
+      "StackConfigurations" : {
+        "property_description" : "The group that the task controller uses for accessing the task controller. The mapred user must be a member and users should *not* be members.",
+        "property_value" : "hadoop",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapreduce.tasktracker.group",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.job.shuffle.merge.percent",
+      "StackConfigurations" : {
+        "property_description" : "The usage threshold at which an in-memory merge will be\n  initiated, expressed as a percentage of the total memory allocated to\n  storing in-memory map outputs, as defined by\n  mapred.job.shuffle.input.buffer.percent.\n  ",
+        "property_value" : "0.66",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.job.shuffle.merge.percent",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.jobtracker.retirejob.check",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "10000",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.jobtracker.retirejob.check",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.jobtracker.retirejob.interval",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "21600000",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.jobtracker.retirejob.interval",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.jobtracker.completeuserjobs.maximum",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "5",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.jobtracker.completeuserjobs.maximum",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.job.reduce.input.buffer.percent",
+      "StackConfigurations" : {
+        "property_description" : "The percentage of memory- relative to the maximum heap size- to\n  retain map outputs during the reduce. When the shuffle is concluded, any\n  remaining map outputs in memory must consume less than this threshold before\n  the reduce can begin.\n  ",
+        "property_value" : "0.0",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.job.reduce.input.buffer.percent",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapreduce.jobhistory.intermediate-done-dir",
+      "StackConfigurations" : {
+        "property_description" : "Directory where history files are written by MapReduce jobs.",
+        "property_value" : "/mr-history/tmp",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapreduce.jobhistory.intermediate-done-dir",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.inmem.merge.threshold",
+      "StackConfigurations" : {
+        "property_description" : "The threshold, in terms of the number of files\n  for the in-memory merge process. When we accumulate threshold number of files\n  we initiate the in-memory merge and spill to disk. A value of 0 or less than\n  0 indicates we want to DON'T have any threshold and instead depend only on\n  the ramfs's memory consumption to trigger the merge.\n  ",
+        "property_value" : "1000",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.inmem.merge.threshold",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.job.reuse.jvm.num.tasks",
+      "StackConfigurations" : {
+        "property_description" : "\n    How many tasks to run per jvm. If set to -1, there is no limit\n  ",
+        "property_value" : "1",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.job.reuse.jvm.num.tasks",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.job.tracker.history.completed.location",
+      "StackConfigurations" : {
+        "property_description" : "No description",
+        "property_value" : "/mapred/history/done",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.job.tracker.history.completed.location",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/jetty.connector",
+      "StackConfigurations" : {
+        "property_description" : "No description",
+        "property_value" : "org.mortbay.jetty.nio.SelectChannelConnector",
+        "stack_version" : "2.0.1",
+        "property_name" : "jetty.connector",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.reduce.slowstart.completed.maps",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "0.05",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.reduce.slowstart.completed.maps",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/tasktracker.http.threads",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "50",
+        "stack_version" : "2.0.1",
+        "property_name" : "tasktracker.http.threads",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/io.sort.factor",
+      "StackConfigurations" : {
+        "property_description" : "No description",
+        "property_value" : "100",
+        "stack_version" : "2.0.1",
+        "property_name" : "io.sort.factor",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.job.tracker.persist.jobstatus.hours",
+      "StackConfigurations" : {
+        "property_description" : "The number of hours job status information is persisted in DFS.\n    The job status information will be available after it drops of the memory\n    queue and between jobtracker restarts. With a zero value the job status\n    information is not persisted at all in DFS.\n  ",
+        "property_value" : "1",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.job.tracker.persist.jobstatus.hours",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.jobtracker.restart.recover",
+      "StackConfigurations" : {
+        "property_description" : "\"true\" to enable (job) recovery upon restart,\n               \"false\" to start afresh\n    ",
+        "property_value" : "false",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.jobtracker.restart.recover",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.max.tracker.blacklists",
+      "StackConfigurations" : {
+        "property_description" : "\n    if node is reported blacklisted by 16 successful jobs within timeout-window, it will be graylisted\n  ",
+        "property_value" : "16",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.max.tracker.blacklists",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.healthChecker.script.timeout",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "60000",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.healthChecker.script.timeout",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/MAPREDUCE2/configurations/mapred.queue.default.acl-submit-job",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "*",
+        "stack_version" : "2.0.1",
+        "property_name" : "mapred.queue.default.acl-submit-job",
+        "service_name" : "MAPREDUCE2",
+        "stack_name" : "HDP",
+        "type" : "mapred-queue-acls.xml"
+      }
+    }
+  ]
+}
