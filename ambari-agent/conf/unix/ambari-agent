@@ -26,7 +26,7 @@ AMBARI_AGENT=ambari-agent
 PIDFILE=/var/run/ambari-agent/$AMBARI_AGENT.pid
 OUTFILE=/var/log/ambari-agent/ambari-agent.out
 LOGFILE=/var/log/ambari-agent/ambari-agent.log
-AGENT_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/main.py
+AGENT_SCRIPT=/usr/sbin/ambari-agent.py
 OK=1
 NOTOK=0
 
@@ -65,27 +65,8 @@ export AMBARI_PASSPHRASE=$RESOLVED_AMBARI_PASSPHRASE
 
 #echo $AMBARI_PASSPHRASE
 
-# check for version
-check_python_version ()
-{
-  echo "Verifying Python version compatibility..."
-  majversion=`$PYTHON -V 2>&1 | awk '{print $2}' | cut -d'.' -f1`
-  minversion=`$PYTHON -V 2>&1 | awk '{print $2}' | cut -d'.' -f2`
-  numversion=$(( 10 * $majversion + $minversion))
-  if (( $numversion < 26 )); then
-    echo "ERROR: Found Python version $majversion.$minversion. Ambari Agent requires Python version > 2.6"
-    return $NOTOK
-  fi
-  echo "Using python " $PYTHON
-  return $OK
-}
-
 case "$1" in
   start)
-        check_python_version
-        if [ "$?" -eq "$NOTOK" ]; then
-          exit -1
-        fi
         echo "Checking for previously running Ambari Agent..."
         if [ -f $PIDFILE ]; then
           PID=`cat $PIDFILE`
@@ -101,7 +82,7 @@ case "$1" in
           fi
         fi
         echo "Starting ambari-agent"
-        nohup $PYTHON $AGENT_SCRIPT > $OUTFILE 2>&1 &
+        nohup $AGENT_SCRIPT > $OUTFILE 2>&1 &
         sleep 2
         PID=$!
         echo "Verifying $AMBARI_AGENT process status..."
@@ -138,10 +119,6 @@ case "$1" in
         fi
         ;;
   stop)
-        check_python_version
-        if [ "$?" -eq "$NOTOK" ]; then
-          exit -1
-        fi
         if [ -f $PIDFILE ]; then
           PID=`cat $PIDFILE`
           echo "Found $AMBARI_AGENT PID: $PID"
@@ -151,7 +128,7 @@ case "$1" in
             tput sgr0
           else
             echo "Stopping $AMBARI_AGENT"
-            $PYTHON $AGENT_SCRIPT stop
+            $AGENT_SCRIPT stop
           fi
           echo "Removing PID file at $PIDFILE"
           rm -f $PIDFILE

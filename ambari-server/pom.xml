@@ -28,7 +28,9 @@
   <description>Ambari Server</description>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <python.ver>python &gt;= 2.6</python.ver>
+    <python.ver>2.6</python.ver>
+    <python.exec>python2</python.exec>
+    <python.requires>python &gt;= ${python.ver}</python.requires>
   </properties>
   <build>
     <plugins>
@@ -117,7 +119,7 @@
           <requires>
             <require>postgresql-server &gt;= 8.1</require>
             <require>openssl</require>
-            <require>${python.ver}</require>
+            <require>${python.requires}</require>
           </requires>
           <postinstallScriptlet>
             <scriptFile>src/main/package/rpm/postinstall.sh</scriptFile>
@@ -226,6 +228,23 @@
               </sources>
             </mapping>
             <mapping>
+              <directory>/usr/lib/exec/ambari-server</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>src/main/python/bootstrap.py</location>
+                </source>
+                <source>
+                  <location>src/main/python/setupAgent.py</location>
+                </source>
+                <source>
+                  <location>src/main/python/os_type_check.sh</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
               <directory>/var/lib/ambari-server/keys/db</directory>
               <filemode>755</filemode>
               <username>root</username>
@@ -320,23 +339,6 @@
               </sources>
             </mapping>
             <mapping>
-              <directory>/usr/lib/python2.6/site-packages/ambari_server</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
-                <source>
-                  <location>src/main/python/bootstrap.py</location>
-                </source>
-                <source>
-                  <location>src/main/python/setupAgent.py</location>
-                </source>
-                <source>
-                  <location>src/main/python/os_type_check.sh</location>
-                </source>
-              </sources>
-            </mapping>
-            <mapping>
               <directory>/var/run/ambari-server</directory>
               <filemode>755</filemode>
               <username>root</username>
@@ -390,7 +392,7 @@
         <executions>
           <execution>
             <configuration>
-              <executable>python2.6</executable>
+              <executable>${python.exec}</executable>
               <workingDirectory>src/test/python</workingDirectory>
               <arguments>
                 <argument>unitTests.py</argument>
