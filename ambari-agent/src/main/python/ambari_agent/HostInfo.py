@@ -88,22 +88,7 @@ class HostInfo:
       etcList.append(confinfo)
 
   def repos(self):
-    # centos, redhat
-    try:
-      osStat = subprocess.Popen(["yum", "-C", "repolist"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-      out, err = osStat.communicate()
-      return out
-    except:
-      pass
-    # suse, only if above failed
-    try:
-      osStat = subprocess.Popen(["zypper", "repos"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-      out, err = osStat.communicate()
-      return out
-    except:
-      pass
-
-    # default, never return empty
+    # future
     return "could_not_determine"
     
 

@@ -309,6 +309,36 @@ App.WizardStep5Controller = Em.Controller.extend({
     }
   },
 
+  getResourceManager: function (noOfHosts) {
+    var hosts = this.get('hosts');
+    if (noOfHosts === 1) {
+      return hosts[0];
+    } else if (noOfHosts < 3) {
+      return hosts[1];
+    } else if (noOfHosts <= 5) {
+      return hosts[1];
+    } else if (noOfHosts <= 30) {
+      return hosts[1];
+    } else {
+      return hosts[2];
+    }
+  },
+
+  getHistoryServer: function (noOfHosts) {
+    var hosts = this.get('hosts');
+    if (noOfHosts === 1) {
+      return hosts[0];
+    } else if (noOfHosts < 3) {
+      return hosts[1];
+    } else if (noOfHosts <= 5) {
+      return hosts[1];
+    } else if (noOfHosts <= 30) {
+      return hosts[1];
+    } else {
+      return hosts[2];
+    }
+  },
+
   getHBaseMaster:function (noOfHosts) {
     var hosts = this.get('hosts');
     if (noOfHosts === 1) {
@@ -436,6 +466,10 @@ App.WizardStep5Controller = Em.Controller.extend({
         return this.getSNameNode(noOfHosts).host_name;
       case 'JOBTRACKER':
         return this.getJobTracker(noOfHosts).host_name;
+      case 'HISTORYSERVER':
+        return this.getHistoryServer(noOfHosts).host_name;
+      case 'RESOURCEMANAGER':
+        return this.getResourceManager(noOfHosts).host_name;
       case 'HBASE_MASTER':
         return [this.getHBaseMaster(noOfHosts).host_name];
       case 'OOZIE_SERVER':

@@ -66,7 +66,7 @@ public class HostComponentDesiredStateEntity {
   @JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false)
   private HostEntity hostEntity;
 
-  @OneToMany(mappedBy = "hostComponentDesiredStateEntity", cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "hostComponentDesiredStateEntity", cascade = {CascadeType.REMOVE, CascadeType.REFRESH})
   private Collection<HostComponentDesiredConfigMappingEntity> desiredConfigMappingEntities;
 
   public Long getClusterId() {

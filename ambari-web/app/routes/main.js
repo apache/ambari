@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var stringUtils = require('utils/string_utils');
 
 module.exports = Em.Route.extend({
   route: '/main',
@@ -97,9 +98,15 @@ module.exports = Em.Route.extend({
   apps: Em.Route.extend({
     route: '/apps',
     connectOutlets: function (router) {
-      //router.get('clusterController').loadRuns();
-      router.get('mainAppsController').loadRuns();
-      router.get('mainController').connectOutlet('mainApps');
+      if (stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 1 ||
+        stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 0) {
+        Em.run.next(function () {
+          router.transitionTo('main.dashboard');
+        });
+      } else {
+        router.get('mainAppsController').loadRuns();
+        router.get('mainController').connectOutlet('mainApps');
+      }
     }
   }),
 

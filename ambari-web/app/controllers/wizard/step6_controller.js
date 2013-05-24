@@ -146,7 +146,8 @@ App.WizardStep6Controller = Em.Controller.extend({
    * @return {*}
    */
   isServiceSelected: function (name) {
-    return this.get('content.services').findProperty('serviceName', name).get('isSelected');
+    return this.get('content.services').findProperty('serviceName', name) &&
+      this.get('content.services').findProperty('serviceName', name).get('isSelected');
   },
 
   /**
@@ -210,6 +211,12 @@ App.WizardStep6Controller = Em.Controller.extend({
         headers.pushObject(Em.Object.create({
           name: 'TASKTRACKER',
           label: self.getComponentDisplayName('TASKTRACKER')
+        }));
+      }
+      if (this.isServiceSelected('YARN')) {
+        headers.pushObject(Em.Object.create({
+          name: 'NODEMANAGER',
+          label: self.getComponentDisplayName('NODEMANAGER')
         }));
       }
       if (this.isServiceSelected('HBASE')) {

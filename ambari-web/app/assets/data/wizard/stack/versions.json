@@ -1,0 +1,82 @@
+{
+  "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2?fields=versions",
+  "items" : [
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP",
+      "Stacks" : {
+        "stack_name" : "HDP"
+      },
+      "versions" : [
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/0.1",
+          "Versions" : {
+            "stack_version" : "0.1",
+            "stack_name" : "HDP",
+            "active" : "false"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/2.0.1",
+          "Versions" : {
+            "stack_version" : "2.0.1",
+            "stack_name" : "HDP",
+            "active" : "false"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0",
+          "Versions" : {
+            "stack_version" : "1.3.0",
+            "stack_name" : "HDP",
+            "active" : "true"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.1",
+          "Versions" : {
+            "stack_version" : "1.2.1",
+            "stack_name" : "HDP",
+            "active" : "true"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.2.0",
+          "Versions" : {
+            "stack_version" : "1.2.0",
+            "stack_name" : "HDP",
+            "active" : "false"
+          }
+        }
+      ]
+    },
+    {
+      "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDPLocal",
+      "Stacks" : {
+        "stack_name" : "HDPLocal"
+      },
+      "versions" : [
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDPLocal/versions/1.2.1",
+          "Versions" : {
+            "stack_version" : "1.2.1",
+            "stack_name" : "HDPLocal"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDPLocal/versions/1.3.0",
+          "Versions" : {
+            "stack_version" : "1.3.0",
+            "stack_name" : "HDPLocal"
+          }
+        },
+        {
+          "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDPLocal/versions/1.2.0",
+          "Versions" : {
+            "stack_version" : "1.2.0",
+            "stack_name" : "HDPLocal"
+          }
+        }
+      ]
+    }
+  ]
+}

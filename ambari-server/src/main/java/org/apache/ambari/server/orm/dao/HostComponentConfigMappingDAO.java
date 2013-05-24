@@ -39,6 +39,11 @@ public class HostComponentConfigMappingDAO {
   DaoUtils daoUtils;
 
   @Transactional
+  public void create(HostComponentConfigMappingEntity entity) {
+    entityManagerProvider.get().persist(entity);
+  }
+
+  @Transactional
   public List<HostComponentConfigMappingEntity> findByType(
       Collection<String> configTypes) {
     TypedQuery<HostComponentConfigMappingEntity> query =

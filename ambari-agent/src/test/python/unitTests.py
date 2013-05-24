@@ -23,6 +23,7 @@ import doctest
 from os.path import dirname, split, isdir
 import logging.handlers
 import logging
+from random import shuffle
 
 LOG_FILE_NAME='tests.log'
 SELECTED_PREFIX = "_"
@@ -51,6 +52,7 @@ def all_tests_suite():
 
   src_dir = os.getcwd()
   files_list=os.listdir(src_dir)
+  shuffle(files_list)
   tests_list = []
 
   logger.info('------------------------TESTS LIST:-------------------------------------')

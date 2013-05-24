@@ -118,7 +118,9 @@ App.Service = DS.Model.extend({
   isConfigurable: function () {
     var configurableServices = [
       "HDFS",
+      "YARN",
       "MAPREDUCE",
+      "MAPREDUCE2",
       "HBASE",
       "OOZIE",
       "HIVE",
@@ -136,8 +138,14 @@ App.Service = DS.Model.extend({
     switch (this.get('serviceName').toLowerCase()) {
       case 'hdfs':
         return 'HDFS';
+      case 'yarn':
+        return 'YARN';
       case 'mapreduce':
         return 'MapReduce';
+      case 'mapreduce2':
+        return 'MapReduce2';
+      case 'tez':
+        return 'Tez';
       case 'hbase':
         return 'HBase';
       case 'oozie':

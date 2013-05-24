@@ -119,50 +119,75 @@ App.MainHostView = App.TableView.extend({
     }.property('value', 'hostsCount')
   }),
 
-  getCategory: function(field, value){
-    return this.get('categories').find(function(item) {
-      return item.get(field) == value;
-    });
-  },
-
   categories: function () {
     var self = this;
     self.categoryObject.reopen({
       view: self,
-      isActive: function() {
-        return this.get('view.category') == this;
-      }.property('view.category'),
+      isActive: false,
       itemClass: function() {
         return this.get('isActive') ? 'active' : '';
       }.property('isActive')
     });
 
     var categories = [
-      self.categoryObject.create({value: Em.I18n.t('common.all'), healthStatusValue: ''}),
+      self.categoryObject.create({value: Em.I18n.t('common.all'), healthStatusValue: '', isActive: true}),
       self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.green'), healthStatusValue: 'health-status-LIVE'}),
       self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.red'), healthStatusValue: 'health-status-DEAD-RED'}),
       self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.orange'), healthStatusValue: 'health-status-DEAD-ORANGE'}),
       self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.yellow'), healthStatusValue: 'health-status-DEAD-YELLOW'}),
-      self.categoryObject.create({value: Em.I18n.t('hosts.host.alerts.label'), healthStatusValue: '', last: true, alerts: true })
+      self.categoryObject.create({value: Em.I18n.t('hosts.host.alerts.label'), healthStatusValue: 'health-status-WITH-ALERTS', last: true, alerts: true })
     ];
-
-    this.set('category', categories.get('firstObject'));
 
     return categories;
   }.property(),
 
-  category: false,
 
-  selectCategory: function(event, context){
-    this.set('category', event.context);
-    if(event.context.get('alerts')){
-      this.updateFilter(0, '', 'string');
-      this.updateFilter(7, '>0', 'number');
-    } else {
-      this.updateFilter(7, '', 'number');
-      this.updateFilter(0, event.context.get('healthStatusValue'), 'string');
+  statusFilter: Em.View.extend({
+    column: 0,
+    categories: [],
+    value: null,
+    /**
+     * switch active category label
+     */
+    onCategoryChange: function(){
+      this.get('categories').setEach('isActive', false);
+      this.get('categories').findProperty('healthStatusValue', this.get('value')).set('isActive', true);
+    }.observes('value'),
+    showClearFilter: function(){
+      var mockEvent = {
+        context: this.get('categories').findProperty('healthStatusValue', this.get('value'))
+      };
+      this.selectCategory(mockEvent);
+    },
+    selectCategory: function(event){
+      var category = event.context;
+      this.set('value', category.get('healthStatusValue'));
+      if(category.get('alerts')){
+        this.get('parentView').updateFilter(0, '', 'string');
+        this.get('parentView').updateFilter(7, '>0', 'number');
+      } else {
+        this.get('parentView').updateFilter(7, '', 'number');
+        this.get('parentView').updateFilter(0, category.get('healthStatusValue'), 'string');
+      }
     }
-  },
+  }),
+
+  /**
+   * view of the alert filter implemented as a category of host statuses
+   */
+  alertFilter: Em.View.extend({
+    column: 7,
+    value: null,
+    classNames: ['noDisplay'],
+    showClearFilter: function(){
+      var mockEvent = {
+        context: this.get('parentView.categories').findProperty('healthStatusValue', 'health-status-WITH-ALERTS')
+      };
+      if(this.get('value')) {
+        this.get('parentView.childViews').findProperty('column', 0).selectCategory(mockEvent);
+      }
+    }
+  }),
 
 
   /**

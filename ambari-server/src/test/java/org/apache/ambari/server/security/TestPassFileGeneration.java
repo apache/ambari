@@ -25,6 +25,7 @@ import java.util.Properties;
 import java.util.Random;
 
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.After;
@@ -122,6 +123,15 @@ public class TestPassFileGeneration extends TestCase {
 
     assertEquals(pass.length(), passLen);
 
+    if (ShellCommandUtil.UNIX_LIKE) {
+      String permissions = ShellCommandUtil.
+              getUnixFilePermissions(passFile.getAbsolutePath());
+      assertEquals(ShellCommandUtil.MASK_OWNER_ONLY_RW, permissions);
+    } else {
+      //Do nothing
+    }
+    // Cleanup
+    passFile.delete();
   }
 
 }

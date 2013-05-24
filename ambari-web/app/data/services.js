@@ -44,6 +44,30 @@ module.exports = [
     description: Em.I18n.t('services.mapreduce.description')
   },
   {
+    serviceName: 'MAPREDUCE2',
+    displayName: 'MapReduce 2',
+    isDisabled: false,
+    isSelected: true,
+    canBeSelected: true,
+    description: Em.I18n.t('services.mapreduce2.description')
+  },
+  {
+    serviceName: 'YARN',
+    displayName: 'YARN',
+    isDisabled: false,
+    isSelected: true,
+    canBeSelected: true,
+    description: Em.I18n.t('services.yarn.description')
+  },
+  {
+    serviceName: 'TEZ',
+    displayName: 'TEZ',
+    isDisabled: false,
+    isSelected: true,
+    canBeSelected: true,
+    description: Em.I18n.t('services.tez.description')
+  },
+  {
     serviceName: 'NAGIOS',
     displayName: 'Nagios',
     isDisabled: false,
@@ -61,7 +85,7 @@ module.exports = [
   },
   {
     serviceName: 'HIVE',
-    displayName: 'Hive + HCat + ZooKeeper',
+    displayName: 'Hive + HCat',
     isDisabled: false,
     isSelected: true,
     canBeSelected: true,
@@ -85,7 +109,7 @@ module.exports = [
   },
   {
     serviceName: 'HBASE',
-    displayName: 'HBase + ZooKeeper',
+    displayName: 'HBase',
     isDisabled: false,
     isSelected: true,
     canBeSelected: true,
@@ -121,7 +145,7 @@ module.exports = [
     isDisabled: false,
     isSelected: true,
     canBeSelected: true,
-    isHidden: true
+    description: Em.I18n.t('services.zookeeper.description')
   },
   {
     serviceName: 'HUE',

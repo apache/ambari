@@ -82,6 +82,10 @@ App.WizardController = Em.Controller.extend({
 
   clusters: null,
 
+  isStep0: function () {
+    return this.get('currentStep') == 0;
+  }.property('currentStep'),
+
   isStep1: function () {
     return this.get('currentStep') == 1;
   }.property('currentStep'),
@@ -148,6 +152,10 @@ App.WizardController = Em.Controller.extend({
     } else {
       App.router.send('gotoStep' + step);
     }
+  },
+
+  gotoStep0: function () {
+    this.gotoStep(0);
   },
 
   gotoStep1: function () {
@@ -449,7 +457,8 @@ App.WizardController = Em.Controller.extend({
       name: 'wizard.service_components',
       sender: this,
       data: {
-        stackUrl: App.get('stack2VersionURL')
+        stackUrl: App.get('stack2VersionURL'),
+        stackVersion: App.get('currentStackVersionNumber')
       },
       success: 'loadServiceComponentsSuccessCallback',
       error: 'loadServiceComponentsErrorCallback'

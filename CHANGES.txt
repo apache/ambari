@@ -12,6 +12,15 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-2189. Hadoop2 Monitoring: MapReduce2 does not have service 
+ page. (srimanth)
+
+ AMBARI-2168. Integrate installing and starting Hadoop 2.0 Services.
+ (yusaku)
+
+ AMBARI-2167. Support for displaying various stacks and having the user select
+ which stack to install. (yusaku)
+
  AMBARI-2163. Add smoke tests as part of starting all services in
  security wizard. (jaimin)
 
@@ -300,6 +309,20 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2194. Hadoop2 Installer: MapReduce2 shows only advanced section. 
+ (srimanth)
+
+ AMBARI-2187. Hadoop2 Monitoring: Jobs page should be hidden when HDP 2.0.x 
+ stack is installed. (srimanth)
+
+ AMBARI-2188. Update mock json data for Test mode. (srimanth) 
+
+ AMBARI-2169. Going from Hosts page to Host Details page and back should
+ preserve the filters, sort order, and pagination. (yusaku)
+
+ AMBARI-2180. Remove "0.1" stack definition since its never been used and is
+ redundant. (mahadev)
+
  AMBARI-2158. Certain queries with metrics takes a long time (3 minutes on
  a 450-node cluster). (tbeerbower)
 
@@ -317,6 +340,8 @@ Trunk (unreleased changes):
  AMBARI-2121. Allow Nagios user to be customized during install. (yusaku)
 
  AMBARI-2111. Enable customization of smoke test user. (yusaku)
+
+ AMBARI-2191. Report status for YARN and MAPREDUCE2. (ncole)
 
  AMBARI-2147. Added config change auditing. (ncole)
 
@@ -869,6 +894,52 @@ Trunk (unreleased changes):
  Farrellee via mahadev)
 
  BUG FIXES
+
+ AMBARI-2197. Jobs page usability issues - remove the "ramps". (srimanth)
+
+ AMBARI-2196. Install Wizard, Customize Services changes. (srimanth)
+
+ AMBARI-2193. Remove zookeeper dependency for HIVE and HCAT. (srimanth)
+
+ AMBARI-2184. Install progress gets stuck at 33% and displays incorrect
+ status upon refresh. (smohanty)
+
+ AMBARI-2159. After upgrading ambari from 1.2.2.5 to 1.2.3.6 the server
+ throws 500 error when starting/stopping any service. (smohanty)
+
+ AMBARI-2186. Hadoop2 - Handle dfs include/exclude properties. (srimanth)
+
+ AMBARI-2179. Fix JDBC URLs for Oozie connecting to MySQL server. (yusaku)
+
+ AMBARI-2178. Fix JDBC URLs for connecting to Oracle from Hive Metastore and
+ Oozie Server. (yusaku)
+
+ AMBARI-2172. Fix unit tests for Ambari Web. (yusaku)
+
+ AMBARI-2171. Host status filter not restored on Hosts page when navigating
+ back. (yusaku)
+
+ AMBARI-2157. Page title and cluster name shown in the header are not the same
+ case. (yusaku)
+
+ AMBARI-2183. Postgres setup failed. (smohanty)
+
+ AMBARI-2182. Expose "active" attribute for Stack resource. (smohanty)
+
+ AMBARI-2181. keys/pass.txt file is readable by everyone. (smohanty)
+
+ AMBARI-2177. HBase Smoke Test shows success even if it fails. (smohanty)
+
+ AMBARI-2176. Incorrect unit displayed for "dfs.datanode.du.reserved" and
+ "fs.checkpoint.size". (jaimin)
+
+ AMBARI-2175. Mark 2.0 stack to be active for testing purposes. (srimanth)
+
+ AMBARI-2173. TEST BROKEN : FAIL: test_upgradeCommand_executeCommand
+ (TestActionQueue.TestActionQueue). (smohanty)
+
+ AMBARI-2165. Ambari server upgrade fails when upgrading
+ second time. (smohanty)
 
  AMBARI-2166. Stack versions should be marked as active. (srimanth)
 
@@ -1616,6 +1687,8 @@ Trunk (unreleased changes):
  AMBARI-1657. User directories on HDFS do not get created with custom names 
  provided from Ambari UI. (swagle)
 
+ AMBARI-2192. Fix for agent hanging during install. (ncole)
+
  AMBARI-2125. Fix for UNKNOWN state failing retry on install. (ncole)
 
  AMBARI-2072. Fix to remove actual_configs from cluster response. (ncole)
@@ -2060,6 +2133,8 @@ AMBARI-1.2.0 branch:
  IMPROVEMENTS
 
  BUG FIXES
+
+ AMBARI-2057. Gmond left in init after install, part-II. (smohanty)
 
  AMBARI-1613.  ConfigurationResourceProvider doesn't properly handle OR
                predicate. (jspeidel) 

@@ -48,7 +48,7 @@ App.supports = {
   stackUpgrade: false,
   capacitySchedulerUi: false,
   startStopAllServices: false,
-  hiveOozieExtraDatabases: false,
+  hiveOozieExtraDatabases: true,
   multipleHBaseMasters: false,
   addMasters: false,
   customizeSmokeTestUser: true,

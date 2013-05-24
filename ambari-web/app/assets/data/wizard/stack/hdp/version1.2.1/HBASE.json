@@ -1,0 +1,113 @@
+{
+  "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HBASE/configurations?fields=*",
+  "items" : [
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HBASE/configurations/hbase.master.lease.thread.wakefrequency",
+      "StackConfigurations" : {
+        "property_description" : "The interval between checks for expired region server leases.\n    This value has been reduced due to the other reduced values above so that\n    the master will notice a dead region server sooner. The default is 15 seconds.\n    ",
+        "property_value" : "3000",
+        "stack_version" : "1.2.1",
+        "property_name" : "hbase.master.lease.thread.wakefrequency",
+        "service_name" : "HBASE",
+        "stack_name" : "HDP",
+        "type" : "hbase-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HBASE/configurations/hbase.superuser",
+      "StackConfigurations" : {
+        "property_description" : "List of users or groups (comma-separated), who are allowed\n    full privileges, regardless of stored ACLs, across the cluster.\n    Only used when HBase security is enabled.\n    ",
+        "property_value" : "hbase",
+        "stack_version" : "1.2.1",
+        "property_name" : "hbase.superuser",
+        "service_name" : "HBASE",
+        "stack_name" : "HDP",
+        "type" : "hbase-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HBASE/configurations/security.client.protocol.acl",
+      "StackConfigurations" : {
+        "property_description" : "ACL for HRegionInterface protocol implementations (ie. \n    clients talking to HRegionServers)\n    The ACL is a comma-separated list of user and group names. The user and \n    group list is separated by a blank. For e.g. \"alice,bob users,wheel\". \n    A special value of \"*\" means all users are allowed.",
+        "property_value" : "*",
+        "stack_version" : "1.2.1",
+        "property_name" : "security.client.protocol.acl",
+        "service_name" : "HBASE",
+        "stack_name" : "HDP",
+        "type" : "hbase-policy.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HBASE/configurations/security.admin.protocol.acl",
+      "StackConfigurations" : {
+        "property_description" : "ACL for HMasterInterface protocol implementation (ie. \n    clients talking to HMaster for admin operations).\n    The ACL is a comma-separated list of user and group names. The user and \n    group list is separated by a blank. For e.g. \"alice,bob users,wheel\". \n    A special value of \"*\" means all users are allowed.",
+        "property_value" : "*",
+        "stack_version" : "1.2.1",
+        "property_name" : "security.admin.protocol.acl",
+        "service_name" : "HBASE",
+        "stack_name" : "HDP",
+        "type" : "hbase-policy.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HBASE/configurations/security.masterregion.protocol.acl",
+      "StackConfigurations" : {
+        "property_description" : "ACL for HMasterRegionInterface protocol implementations\n    (for HRegionServers communicating with HMaster)\n    The ACL is a comma-separated list of user and group names. The user and \n    group list is separated by a blank. For e.g. \"alice,bob users,wheel\". \n    A special value of \"*\" means all users are allowed.",
+        "property_value" : "*",
+        "stack_version" : "1.2.1",
+        "property_name" : "security.masterregion.protocol.acl",
+        "service_name" : "HBASE",
+        "stack_name" : "HDP",
+        "type" : "hbase-policy.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HBASE/configurations/hbase.zookeeper.useMulti",
+      "StackConfigurations" : {
+        "property_description" : "Instructs HBase to make use of ZooKeeper's multi-update functionality.\n    This allows certain ZooKeeper operations to complete more quickly and prevents some issues\n    with rare Replication failure scenarios (see the release note of HBASE-2611 for an example).Â·\n    IMPORTANT: only set this to true if all ZooKeeper servers in the cluster are on version 3.4+\n    and will not be downgraded.  ZooKeeper versions before 3.4 do not support multi-update and will\n    not fail gracefully if multi-update is invoked (see ZOOKEEPER-1495).\n    ",
+        "property_value" : "true",
+        "stack_version" : "1.2.1",
+        "property_name" : "hbase.zookeeper.useMulti",
+        "service_name" : "HBASE",
+        "stack_name" : "HDP",
+        "type" : "hbase-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HBASE/configurations/hbase.zookeeper.property.clientPort",
+      "StackConfigurations" : {
+        "property_description" : "Property from ZooKeeper's config zoo.cfg.\n    The port at which the clients will connect.\n    ",
+        "property_value" : "2181",
+        "stack_version" : "1.2.1",
+        "property_name" : "hbase.zookeeper.property.clientPort",
+        "service_name" : "HBASE",
+        "stack_name" : "HDP",
+        "type" : "hbase-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HBASE/configurations/hbase.cluster.distributed",
+      "StackConfigurations" : {
+        "property_description" : "The mode the cluster will be in. Possible values are\n      false for standalone mode and true for distributed mode.  If\n      false, startup will run all HBase and ZooKeeper daemons together\n      in the one JVM.\n    ",
+        "property_value" : "true",
+        "stack_version" : "1.2.1",
+        "property_name" : "hbase.cluster.distributed",
+        "service_name" : "HBASE",
+        "stack_name" : "HDP",
+        "type" : "hbase-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HBASE/configurations/hbase.regionserver.optionalcacheflushinterval",
+      "StackConfigurations" : {
+        "property_description" : "\n      Amount of time to wait since the last time a region was flushed before\n      invoking an optional cache flush. Default 60,000.\n    ",
+        "property_value" : "10000",
+        "stack_version" : "1.2.1",
+        "property_name" : "hbase.regionserver.optionalcacheflushinterval",
+        "service_name" : "HBASE",
+        "stack_name" : "HDP",
+        "type" : "hbase-site.xml"
+      }
+    }
+  ]
+}

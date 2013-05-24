@@ -117,6 +117,7 @@ class hdp-ganglia::monitor::gmond(
   )
 {
   if ($ensure == 'running') {
+    class { 'hdp-ganglia::server::delete_default_gmond_process': }
     $command = "service hdp-gmond start >> /tmp/gmond.log  2>&1 ; /bin/ps auwx | /bin/grep [g]mond  >> /tmp/gmond.log  2>&1"
    } elsif  ($ensure == 'stopped') {
     $command = "service hdp-gmond stop >> /tmp/gmond.log  2>&1 ; /bin/ps auwx | /bin/grep [g]mond  >> /tmp/gmond.log  2>&1"
@@ -149,5 +150,13 @@ class hdp-ganglia::monitor::ownership() {
   file { "${hdp-ganglia::params::ganglia_dir}/gmond.conf":
     owner => 'root',
     group => $hdp::params::user_group
+  }
+}
+
+class hdp-ganglia::server::delete_default_gmond_process() {
+  hdp::exec { "delete_default_gmond_process" :
+    command => "chkconfig gmond off",
+    path => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+    require => Class['hdp-ganglia::monitor::gmond']
   }
 }

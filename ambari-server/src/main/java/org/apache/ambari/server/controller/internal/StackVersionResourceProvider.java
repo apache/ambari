@@ -57,6 +57,9 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
   private static final String STACK_MIN_VERSION_PROPERTY_ID = PropertyHelper
       .getPropertyId("Versions", "min_upgrade_version");
 
+  private static final String STACK_ACTIVE_PROPERTY_ID = PropertyHelper
+      .getPropertyId("Versions", "active");
+
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(new String[] { STACK_NAME_PROPERTY_ID,
           STACK_VERSION_PROPERTY_ID }));
@@ -92,6 +95,9 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
       
       setResourceProperty(resource, STACK_MIN_VERSION_PROPERTY_ID,
           response.getMinUpgradeVersion(), requestedIds);
+
+      setResourceProperty(resource, STACK_ACTIVE_PROPERTY_ID,
+          response.isActive(), requestedIds);
 
       resources.add(resource);
     }

@@ -64,6 +64,36 @@ module.exports = [
   },
 
   {
+    serviceName: 'MAPREDUCE2',
+    displayName: 'MapReduce 2',
+    filename: 'mapred-site',
+    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'HistoryServer', displayName : 'History Server', hostComponentNames : ['HISTORYSERVER']}),
+      App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedMapredSite', displayName : 'Custom mapred-site.xml', siteFileName: 'mapred-site.xml', canAddProperty: true})
+    ],
+    sites: ['core-site', 'mapred-site', 'mapred-queue-acls'],
+    configs: configProperties.filterProperty('serviceName', 'MAPREDUCE2')
+  },
+
+  {
+    serviceName: 'YARN',
+    displayName: 'YARN',
+    filename: 'yarn-site',
+    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
+      App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
+      App.ServiceConfigCategory.create({ name: 'ResourceManager', displayName : 'Resource Manager', hostComponentNames : ['RESOURCEMANAGER']}),
+      App.ServiceConfigCategory.create({ name: 'NodeManager', displayName : 'Node Manager', hostComponentNames : ['NODEMANAGER']}),
+      App.ServiceConfigCategory.create({ name: 'CapacityScheduler', displayName : 'Capacity Scheduler', isCapacityScheduler : true, isCustomView: true, siteFileName: 'capacity-scheduler.xml', siteFileNames: ['capacity-scheduler.xml', 'mapred-queue-acls.xml'], canAddProperty: true}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedYARNSite', displayName : 'Custom yarn-site.xml', siteFileName: 'yarn-site.xml', canAddProperty: true})
+    ],
+    sites: ['core-site', 'yarn-site', 'capacity-scheduler'],
+    configs: configProperties.filterProperty('serviceName', 'MAPREDUCE2')
+  },
+
+  {
     serviceName: 'HIVE',
     displayName: 'Hive/HCat',
     filename: 'hive-site',

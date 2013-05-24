@@ -1,0 +1,173 @@
+{
+  "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/WEBHCAT/configurations?fields=*",
+  "items" : [
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/WEBHCAT/configurations/templeton.override.enabled",
+      "StackConfigurations" : {
+        "property_description" : "\n     Enable the override path in templeton.override.jars\n   ",
+        "property_value" : "false",
+        "stack_version" : "1.2.1",
+        "property_name" : "templeton.override.enabled",
+        "service_name" : "WEBHCAT",
+        "stack_name" : "HDP",
+        "type" : "webhcat-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/WEBHCAT/configurations/templeton.hive.archive",
+      "StackConfigurations" : {
+        "property_description" : "The path to the Hive archive.",
+        "property_value" : "hdfs:///apps/webhcat/hive.tar.gz",
+        "stack_version" : "1.2.1",
+        "property_name" : "templeton.hive.archive",
+        "service_name" : "WEBHCAT",
+        "stack_name" : "HDP",
+        "type" : "webhcat-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/WEBHCAT/configurations/templeton.jar",
+      "StackConfigurations" : {
+        "property_description" : "The path to the Templeton jar file.",
+        "property_value" : "/usr/lib/hcatalog/share/webhcat/svr/webhcat.jar",
+        "stack_version" : "1.2.1",
+        "property_name" : "templeton.jar",
+        "service_name" : "WEBHCAT",
+        "stack_name" : "HDP",
+        "type" : "webhcat-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/WEBHCAT/configurations/templeton.streaming.jar",
+      "StackConfigurations" : {
+        "property_description" : "The hdfs path to the Hadoop streaming jar file.",
+        "property_value" : "hdfs:///apps/webhcat/hadoop-streaming.jar",
+        "stack_version" : "1.2.1",
+        "property_name" : "templeton.streaming.jar",
+        "service_name" : "WEBHCAT",
+        "stack_name" : "HDP",
+        "type" : "webhcat-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/WEBHCAT/configurations/templeton.hadoop",
+      "StackConfigurations" : {
+        "property_description" : "The path to the Hadoop executable.",
+        "property_value" : "/usr/bin/hadoop",
+        "stack_version" : "1.2.1",
+        "property_name" : "templeton.hadoop",
+        "service_name" : "WEBHCAT",
+        "stack_name" : "HDP",
+        "type" : "webhcat-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/WEBHCAT/configurations/templeton.pig.path",
+      "StackConfigurations" : {
+        "property_description" : "The path to the Pig executable.",
+        "property_value" : "pig.tar.gz/pig/bin/pig",
+        "stack_version" : "1.2.1",
+        "property_name" : "templeton.pig.path",
+        "service_name" : "WEBHCAT",
+        "stack_name" : "HDP",
+        "type" : "webhcat-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/WEBHCAT/configurations/templeton.libjars",
+      "StackConfigurations" : {
+        "property_description" : "Jars to add the the classpath.",
+        "property_value" : "/usr/lib/zookeeper/zookeeper.jar",
+        "stack_version" : "1.2.1",
+        "property_name" : "templeton.libjars",
+        "service_name" : "WEBHCAT",
+        "stack_name" : "HDP",
+        "type" : "webhcat-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/WEBHCAT/configurations/templeton.pig.archive",
+      "StackConfigurations" : {
+        "property_description" : "The path to the Pig archive.",
+        "property_value" : "hdfs:///apps/webhcat/pig.tar.gz",
+        "stack_version" : "1.2.1",
+        "property_name" : "templeton.pig.archive",
+        "service_name" : "WEBHCAT",
+        "stack_name" : "HDP",
+        "type" : "webhcat-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/WEBHCAT/configurations/templeton.hcat",
+      "StackConfigurations" : {
+        "property_description" : "The path to the hcatalog executable.",
+        "property_value" : "/usr/bin/hcat",
+        "stack_version" : "1.2.1",
+        "property_name" : "templeton.hcat",
+        "service_name" : "WEBHCAT",
+        "stack_name" : "HDP",
+        "type" : "webhcat-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/WEBHCAT/configurations/templeton.hive.path",
+      "StackConfigurations" : {
+        "property_description" : "The path to the Hive executable.",
+        "property_value" : "hive.tar.gz/hive/bin/hive",
+        "stack_version" : "1.2.1",
+        "property_name" : "templeton.hive.path",
+        "service_name" : "WEBHCAT",
+        "stack_name" : "HDP",
+        "type" : "webhcat-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/WEBHCAT/configurations/templeton.storage.class",
+      "StackConfigurations" : {
+        "property_description" : "The class to use as storage",
+        "property_value" : "org.apache.hcatalog.templeton.tool.ZooKeeperStorage",
+        "stack_version" : "1.2.1",
+        "property_name" : "templeton.storage.class",
+        "service_name" : "WEBHCAT",
+        "stack_name" : "HDP",
+        "type" : "webhcat-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/WEBHCAT/configurations/templeton.hadoop.conf.dir",
+      "StackConfigurations" : {
+        "property_description" : "The path to the Hadoop configuration.",
+        "property_value" : "/etc/hadoop/conf",
+        "stack_version" : "1.2.1",
+        "property_name" : "templeton.hadoop.conf.dir",
+        "service_name" : "WEBHCAT",
+        "stack_name" : "HDP",
+        "type" : "webhcat-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/WEBHCAT/configurations/templeton.port",
+      "StackConfigurations" : {
+        "property_description" : "The HTTP port for the main server.",
+        "property_value" : "50111",
+        "stack_version" : "1.2.1",
+        "property_name" : "templeton.port",
+        "service_name" : "WEBHCAT",
+        "stack_name" : "HDP",
+        "type" : "webhcat-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/WEBHCAT/configurations/templeton.exec.timeout",
+      "StackConfigurations" : {
+        "property_description" : "Time out for templeton api",
+        "property_value" : "60000",
+        "stack_version" : "1.2.1",
+        "property_name" : "templeton.exec.timeout",
+        "service_name" : "WEBHCAT",
+        "stack_name" : "HDP",
+        "type" : "webhcat-site.xml"
+      }
+    }
+  ]
+}

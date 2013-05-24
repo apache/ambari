@@ -82,36 +82,6 @@ describe('App.BackgroundOperationsController', function () {
       controller.set('isWorking', true);
     });
 
-    /*it('allOperations should be set  ', function(done){
-      this.timeout(App.bgOperationsUpdateInterval + 500);
+  });
 
-      sinon.stub(controller, 'updateBackgroundOperations', function(data){
-        controller.set('isWorking', false);
-        controller.updateBackgroundOperations.restore();
-        controller.updateBackgroundOperations(data);
-        expect(controller.get('executeTasks').length).to.be.equal(2);
-        expect(controller.get('allOperationsCount')).to.be.equal(1);
-
-        var bgOperation = controller.get('allOperations')[0];
-        expect(bgOperation).to.have.property('id');
-        expect(bgOperation).to.have.property('request_id');
-        expect(bgOperation).to.have.property('role');
-        expect(bgOperation).to.have.property('command');
-        expect(bgOperation).to.have.property('status');
-
-        done();
-      });
-
-      controller.set('isWorking', true);
-    });*/
-
-  })
-
-  /*describe('#showPopup', function () {
-    it('works without exceptions  ', function(){
-      var popup = controller.showPopup();
-      popup.onPrimary();
-    });
-  });*/
-
-})
+});

@@ -26,7 +26,7 @@ App.HostComponent = DS.Model.extend({
   service: DS.belongsTo('App.Service'),
   actualConfigs: null,
   isClient:function () {
-    if(['PIG', 'SQOOP', 'HCAT'].contains(this.get('componentName'))){
+    if(['PIG', 'SQOOP', 'HCAT', 'MAPREDUCE2_CLIENT'].contains(this.get('componentName'))){
       return true;
     }
 
@@ -54,6 +54,7 @@ App.HostComponent = DS.Model.extend({
       case 'OOZIE_SERVER':
       case 'WEBHCAT_SERVER':
       case 'HUE_SERVER':
+      case 'HISTORYSERVER':
         return true;
       default:
         return false;

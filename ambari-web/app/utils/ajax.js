@@ -201,7 +201,7 @@ var urls = {
   },
   'config.advanced': {
     'real': '{stack2VersionUrl}/stackServices/{serviceName}/configurations?fields=*',
-    'mock': '/data/wizard/stack/hdp/version130/{serviceName}.json',
+    'mock': '/data/wizard/stack/hdp/version{stackVersion}/{serviceName}.json',
     'format': function (data) {
       return {
         async: false
@@ -579,7 +579,7 @@ var urls = {
   },
   'wizard.service_components': {
     'real': '{stackUrl}/stackServices?fields=StackServices',
-    'mock': '/data/wizard/stack/hdp/version/1.3.0.json',
+    'mock': '/data/wizard/stack/hdp/version/{stackVersion}.json',
     'format': function (data, opt) {
       return {
         async: false
@@ -654,6 +654,24 @@ var urls = {
   'wizard.step3.is_hosts_registered': {
     'real': '/hosts',
     'mock': '/data/wizard/bootstrap/single_host_registration.json'
+  },
+  'wizard.stacks': {
+    'real': '/stacks2',
+    'mock': '/data/wizard/stack/stacks2.json',
+    'format': function (data) {
+      return {
+        async: false
+      };
+    }
+  },
+  'wizard.stacks_versions': {
+    'real': '/stacks2/{stackName}/versions?fields=Versions',
+    'mock': '/data/wizard/stack/{stackName}_versions.json',
+    'format': function (data) {
+      return {
+        async: false
+      };
+    }
   },
   'router.login': {
     'real': '/users/{loginName}',

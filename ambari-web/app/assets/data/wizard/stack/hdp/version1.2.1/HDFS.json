@@ -1,0 +1,533 @@
+{
+  "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations?fields=*",
+  "items" : [
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/security.client.protocol.acl",
+      "StackConfigurations" : {
+        "property_description" : "ACL for ClientProtocol, which is used by user code\n    via the DistributedFileSystem.\n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \"alice,bob users,wheel\".\n    A special value of \"*\" means all users are allowed.",
+        "property_value" : "*",
+        "stack_version" : "1.2.1",
+        "property_name" : "security.client.protocol.acl",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hadoop-policy.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/dfs.balance.bandwidthPerSec",
+      "StackConfigurations" : {
+        "property_description" : "\n        Specifies the maximum amount of bandwidth that each datanode\n        can utilize for the balancing purpose in term of\n        the number of bytes per second.\n  ",
+        "property_value" : "6250000",
+        "stack_version" : "1.2.1",
+        "property_name" : "dfs.balance.bandwidthPerSec",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/dfs.block.size",
+      "StackConfigurations" : {
+        "property_description" : "The default block size for new files.",
+        "property_value" : "134217728",
+        "stack_version" : "1.2.1",
+        "property_name" : "dfs.block.size",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/dfs.secondary.https.port",
+      "StackConfigurations" : {
+        "property_description" : "The https port where secondary-namenode binds",
+        "property_value" : "50490",
+        "stack_version" : "1.2.1",
+        "property_name" : "dfs.secondary.https.port",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/fs.checkpoint.size",
+      "StackConfigurations" : {
+        "property_description" : "The size of the current edit log (in bytes) that triggers\n       a periodic checkpoint even if the fs.checkpoint.period hasn't expired.\n  ",
+        "property_value" : "536870912",
+        "stack_version" : "1.2.1",
+        "property_name" : "fs.checkpoint.size",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "core-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/fs.checkpoint.period",
+      "StackConfigurations" : {
+        "property_description" : "The number of seconds between two periodic checkpoints.\n  ",
+        "property_value" : "21600",
+        "stack_version" : "1.2.1",
+        "property_name" : "fs.checkpoint.period",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "core-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/dfs.datanode.max.xcievers",
+      "StackConfigurations" : {
+        "property_description" : "PRIVATE CONFIG VARIABLE",
+        "property_value" : "4096",
+        "stack_version" : "1.2.1",
+        "property_name" : "dfs.datanode.max.xcievers",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/dfs.permissions.supergroup",
+      "StackConfigurations" : {
+        "property_description" : "The name of the group of super-users.",
+        "property_value" : "hdfs",
+        "stack_version" : "1.2.1",
+        "property_name" : "dfs.permissions.supergroup",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/dfs.access.time.precision",
+      "StackConfigurations" : {
+        "property_description" : "The access time for HDFS file is precise upto this value.\n               The default value is 1 hour. Setting a value of 0 disables\n               access times for HDFS.\n  ",
+        "property_value" : "0",
+        "stack_version" : "1.2.1",
+        "property_name" : "dfs.access.time.precision",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/webinterface.private.actions",
+      "StackConfigurations" : {
+        "property_description" : " If set to true, the web interfaces of JT and NN may contain\n                actions, such as kill job, delete file, etc., that should\n                not be exposed to public. Enable this option if the interfaces\n                are only reachable by those who have the right authorization.\n  ",
+        "property_value" : "false",
+        "stack_version" : "1.2.1",
+        "property_name" : "webinterface.private.actions",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "core-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/dfs.web.ugi",
+      "StackConfigurations" : {
+        "property_description" : "The user account used by the web interface.\nSyntax: USERNAME,GROUP1,GROUP2, ...\n",
+        "property_value" : "gopher,gopher",
+        "stack_version" : "1.2.1",
+        "property_name" : "dfs.web.ugi",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/dfs.umaskmode",
+      "StackConfigurations" : {
+        "property_description" : "\nThe octal umask used when creating files and directories.\n",
+        "property_value" : "077",
+        "stack_version" : "1.2.1",
+        "property_name" : "dfs.umaskmode",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/dfs.datanode.socket.write.timeout",
+      "StackConfigurations" : {
+        "property_description" : "DFS Client write socket timeout",
+        "property_value" : "0",
+        "stack_version" : "1.2.1",
+        "property_name" : "dfs.datanode.socket.write.timeout",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/dfs.block.access.token.enable",
+      "StackConfigurations" : {
+        "property_description" : "\nIf \"true\", access tokens are used as capabilities for accessing datanodes.\nIf \"false\", no access tokens are checked on accessing datanodes.\n",
+        "property_value" : "true",
+        "stack_version" : "1.2.1",
+        "property_name" : "dfs.block.access.token.enable",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/security.task.umbilical.protocol.acl",
+      "StackConfigurations" : {
+        "property_description" : "ACL for TaskUmbilicalProtocol, used by the map and reduce\n    tasks to communicate with the parent tasktracker.\n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \"alice,bob users,wheel\".\n    A special value of \"*\" means all users are allowed.",
+        "property_value" : "*",
+        "stack_version" : "1.2.1",
+        "property_name" : "security.task.umbilical.protocol.acl",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hadoop-policy.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/security.inter.tracker.protocol.acl",
+      "StackConfigurations" : {
+        "property_description" : "ACL for InterTrackerProtocol, used by the tasktrackers to\n    communicate with the jobtracker.\n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \"alice,bob users,wheel\".\n    A special value of \"*\" means all users are allowed.",
+        "property_value" : "*",
+        "stack_version" : "1.2.1",
+        "property_name" : "security.inter.tracker.protocol.acl",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hadoop-policy.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/dfs.datanode.du.pct",
+      "StackConfigurations" : {
+        "property_description" : "When calculating remaining space, only use this percentage of the real available space\n",
+        "property_value" : "0.85f",
+        "stack_version" : "1.2.1",
+        "property_name" : "dfs.datanode.du.pct",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/io.file.buffer.size",
+      "StackConfigurations" : {
+        "property_description" : "The size of buffer for use in sequence files.\n  The size of this buffer should probably be a multiple of hardware\n  page size (4096 on Intel x86), and it determines how much data is\n  buffered during read and write operations.",
+        "property_value" : "131072",
+        "stack_version" : "1.2.1",
+        "property_name" : "io.file.buffer.size",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "core-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/security.inter.datanode.protocol.acl",
+      "StackConfigurations" : {
+        "property_description" : "ACL for InterDatanodeProtocol, the inter-datanode protocol\n    for updating generation timestamp.\n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \"alice,bob users,wheel\".\n    A special value of \"*\" means all users are allowed.",
+        "property_value" : "*",
+        "stack_version" : "1.2.1",
+        "property_name" : "security.inter.datanode.protocol.acl",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hadoop-policy.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/dfs.permissions",
+      "StackConfigurations" : {
+        "property_description" : "\nIf \"true\", enable permission checking in HDFS.\nIf \"false\", permission checking is turned off,\nbut all other behavior is unchanged.\nSwitching from one parameter value to the other does not change the mode,\nowner or group of files or directories.\n",
+        "property_value" : "true",
+        "stack_version" : "1.2.1",
+        "property_name" : "dfs.permissions",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/ipc.client.connect.max.retries",
+      "StackConfigurations" : {
+        "property_description" : "Defines the maximum number of retries for IPC connections.",
+        "property_value" : "50",
+        "stack_version" : "1.2.1",
+        "property_name" : "ipc.client.connect.max.retries",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "core-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/dfs.namenode.handler.count",
+      "StackConfigurations" : {
+        "property_description" : "Added to grow Queue size so that more client connections are allowed",
+        "property_value" : "100",
+        "stack_version" : "1.2.1",
+        "property_name" : "dfs.namenode.handler.count",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/security.job.submission.protocol.acl",
+      "StackConfigurations" : {
+        "property_description" : "ACL for JobSubmissionProtocol, used by job clients to\n    communciate with the jobtracker for job submission, querying job status etc.\n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \"alice,bob users,wheel\".\n    A special value of \"*\" means all users are allowed.",
+        "property_value" : "*",
+        "stack_version" : "1.2.1",
+        "property_name" : "security.job.submission.protocol.acl",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hadoop-policy.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/dfs.blockreport.initialDelay",
+      "StackConfigurations" : {
+        "property_description" : "Delay for first block report in seconds.",
+        "property_value" : "120",
+        "stack_version" : "1.2.1",
+        "property_name" : "dfs.blockreport.initialDelay",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/dfs.heartbeat.interval",
+      "StackConfigurations" : {
+        "property_description" : "Determines datanode heartbeat interval in seconds.",
+        "property_value" : "3",
+        "stack_version" : "1.2.1",
+        "property_name" : "dfs.heartbeat.interval",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/ipc.client.connection.maxidletime",
+      "StackConfigurations" : {
+        "property_description" : "The maximum time after which a client will bring down the\n               connection to the server.\n  ",
+        "property_value" : "30000",
+        "stack_version" : "1.2.1",
+        "property_name" : "ipc.client.connection.maxidletime",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "core-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/io.compression.codecs",
+      "StackConfigurations" : {
+        "property_description" : "A list of the compression codec classes that can be used\n                 for compression/decompression.",
+        "property_value" : "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,com.hadoop.compression.lzo.LzoCodec,com.hadoop.compression.lzo.LzopCodec,org.apache.hadoop.io.compress.SnappyCodec",
+        "stack_version" : "1.2.1",
+        "property_name" : "io.compression.codecs",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "core-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/ipc.server.max.response.size",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "5242880",
+        "stack_version" : "1.2.1",
+        "property_name" : "ipc.server.max.response.size",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/security.namenode.protocol.acl",
+      "StackConfigurations" : {
+        "property_description" : "ACL for NamenodeProtocol, the protocol used by the secondary\n    namenode to communicate with the namenode.\n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \"alice,bob users,wheel\".\n    A special value of \"*\" means all users are allowed.",
+        "property_value" : "*",
+        "stack_version" : "1.2.1",
+        "property_name" : "security.namenode.protocol.acl",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hadoop-policy.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/ipc.server.read.threadpool.size",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "5",
+        "stack_version" : "1.2.1",
+        "property_name" : "ipc.server.read.threadpool.size",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/dfs.datanode.ipc.address",
+      "StackConfigurations" : {
+        "property_description" : "\nThe datanode ipc server address and port.\nIf the port is 0 then the server will start on a free port.\n",
+        "property_value" : "0.0.0.0:8010",
+        "stack_version" : "1.2.1",
+        "property_name" : "dfs.datanode.ipc.address",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/dfs.cluster.administrators",
+      "StackConfigurations" : {
+        "property_description" : "ACL for who all can view the default servlets in the HDFS",
+        "property_value" : " hdfs",
+        "stack_version" : "1.2.1",
+        "property_name" : "dfs.cluster.administrators",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/fs.trash.interval",
+      "StackConfigurations" : {
+        "property_description" : "Number of minutes between trash checkpoints.\n  If zero, the trash feature is disabled.\n  ",
+        "property_value" : "360",
+        "stack_version" : "1.2.1",
+        "property_name" : "fs.trash.interval",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "core-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/ipc.client.idlethreshold",
+      "StackConfigurations" : {
+        "property_description" : "Defines the threshold number of connections after which\n               connections will be inspected for idleness.\n  ",
+        "property_value" : "8000",
+        "stack_version" : "1.2.1",
+        "property_name" : "ipc.client.idlethreshold",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "core-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/security.datanode.protocol.acl",
+      "StackConfigurations" : {
+        "property_description" : "ACL for DatanodeProtocol, which is used by datanodes to\n    communicate with the namenode.\n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \"alice,bob users,wheel\".\n    A special value of \"*\" means all users are allowed.",
+        "property_value" : "*",
+        "stack_version" : "1.2.1",
+        "property_name" : "security.datanode.protocol.acl",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hadoop-policy.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/dfs.namenode.handler.count",
+      "StackConfigurations" : {
+        "property_description" : "The number of server threads for the namenode.",
+        "property_value" : "40",
+        "stack_version" : "1.2.1",
+        "property_name" : "dfs.namenode.handler.count",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/dfs.safemode.threshold.pct",
+      "StackConfigurations" : {
+        "property_description" : "\n        Specifies the percentage of blocks that should satisfy\n        the minimal replication requirement defined by dfs.replication.min.\n        Values less than or equal to 0 mean not to start in safe mode.\n        Values greater than 1 will make safe mode permanent.\n        ",
+        "property_value" : "1.0f",
+        "stack_version" : "1.2.1",
+        "property_name" : "dfs.safemode.threshold.pct",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/dfs.replication.max",
+      "StackConfigurations" : {
+        "property_description" : "Maximal block replication.\n  ",
+        "property_value" : "50",
+        "stack_version" : "1.2.1",
+        "property_name" : "dfs.replication.max",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/security.client.datanode.protocol.acl",
+      "StackConfigurations" : {
+        "property_description" : "ACL for ClientDatanodeProtocol, the client-to-datanode protocol\n    for block recovery.\n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \"alice,bob users,wheel\".\n    A special value of \"*\" means all users are allowed.",
+        "property_value" : "*",
+        "stack_version" : "1.2.1",
+        "property_name" : "security.client.datanode.protocol.acl",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hadoop-policy.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/io.serializations",
+      "StackConfigurations" : {
+        "property_description" : null,
+        "property_value" : "org.apache.hadoop.io.serializer.WritableSerialization",
+        "stack_version" : "1.2.1",
+        "property_name" : "io.serializations",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "core-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/io.compression.codec.lzo.class",
+      "StackConfigurations" : {
+        "property_description" : "The implementation for lzo codec.",
+        "property_value" : "com.hadoop.compression.lzo.LzoCodec",
+        "stack_version" : "1.2.1",
+        "property_name" : "io.compression.codec.lzo.class",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "core-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/dfs.https.port",
+      "StackConfigurations" : {
+        "property_description" : "The https port where namenode binds",
+        "property_value" : "50470",
+        "stack_version" : "1.2.1",
+        "property_name" : "dfs.https.port",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/fs.checkpoint.edits.dir",
+      "StackConfigurations" : {
+        "property_description" : "Determines where on the local filesystem the DFS secondary\n        name node should store the temporary edits to merge.\n        If this is a comma-delimited list of directoires then teh edits is\n        replicated in all of the directoires for redundancy.\n        Default value is same as fs.checkpoint.dir\n    ",
+        "property_value" : "${fs.checkpoint.dir}",
+        "stack_version" : "1.2.1",
+        "property_name" : "fs.checkpoint.edits.dir",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "core-site.xml"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.2.1/stackServices/HDFS/configurations/dfs.datanode.failed.volumes.tolerated",
+      "StackConfigurations" : {
+        "property_description" : "Number of failed disks datanode would tolerate",
+        "property_value" : "0",
+        "stack_version" : "1.2.1",
+        "property_name" : "dfs.datanode.failed.volumes.tolerated",
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "type" : "hdfs-site.xml"
+      }
+    }
+  ]
+}

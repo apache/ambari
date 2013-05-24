@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var stringUtils = require('utils/string_utils');
 
 App.WizardStep4Controller = Em.ArrayController.extend({
 
@@ -53,7 +54,13 @@ App.WizardStep4Controller = Em.ArrayController.extend({
 
     // prevent against getting error when not all elements have been loaded yet
     if (hbase && zookeeper && hive && hcatalog && webhcat) {
-      zookeeper.set('isSelected', hbase.get('isSelected') || hive.get('isSelected'));
+      if (stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === -1) {
+        zookeeper.set('isSelected', hbase.get('isSelected') || hive.get('isSelected'));
+      }else{
+        if (!zookeeper.get('isSelected')) {
+          zookeeper.set('isSelected', hbase.get('isSelected'));
+        }
+      }
       hcatalog.set('isSelected', hive.get('isSelected'));
       webhcat.set('isSelected', hive.get('isSelected'));
     }
@@ -78,7 +85,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @return {Boolean}
    */
   needToAddMapReduce: function () {
-    if (this.findProperty('serviceName', 'MAPREDUCE').get('isSelected') === false) {
+    if (this.findProperty('serviceName', 'MAPREDUCE') && this.findProperty('serviceName', 'MAPREDUCE').get('isSelected') === false) {
       var mapreduceDependentServices = this.filter(function (item) {
         return ['PIG', 'OOZIE', 'HIVE'].contains(item.get('serviceName')) && item.get('isSelected', true);
       });

@@ -100,7 +100,7 @@ PID_DIR="/var/run/ambari-server"
 PID_NAME="ambari-server.pid"
 AMBARI_PROPERTIES_FILE="ambari.properties"
 
-SETUP_DB_CMD = ['su', 'postgres',
+SETUP_DB_CMD = ['su', '-', 'postgres',
         '--command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'"']
 UPGRADE_STACK_CMD = ['su', 'postgres',
         '--command=psql -f {0} -v stack_name="\'{1}\'"  -v stack_version="\'{2}\'"']

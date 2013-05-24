@@ -22,6 +22,6 @@ App.MainAdminClusterView = Em.View.extend({
   templateName: require('templates/main/admin/cluster'),
 
   isUpgradeAvailable: function(){
-    return this.get('controller.upgradeVersion').replace(/HDP-/, '') > App.currentStackVersion.replace(/HDP-/, '');
+    return this.get('controller.upgradeVersion').replace(/HDP-/, '') > App.get('currentStackVersionNumber');
   }.property('controller.upgradeVersion', 'App.currentStackVersion')
 });

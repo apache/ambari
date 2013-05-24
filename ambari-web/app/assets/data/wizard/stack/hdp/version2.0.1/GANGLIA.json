@@ -1,0 +1,65 @@
+{
+  "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/GANGLIA/configurations?fields=*&_=1368459065278",
+  "items" : [
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/GANGLIA/configurations/ganglia_runtime_dir",
+      "StackConfigurations" : {
+        "property_description" : "Run directories for Ganglia",
+        "property_value" : "/var/run/ganglia/hdp",
+        "stack_version" : "1.3.0",
+        "property_name" : "ganglia_runtime_dir",
+        "service_name" : "GANGLIA",
+        "type" : "global.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/GANGLIA/configurations/gmetad_user",
+      "StackConfigurations" : {
+        "property_description" : "User ",
+        "property_value" : "nobody",
+        "stack_version" : "1.3.0",
+        "property_name" : "gmetad_user",
+        "service_name" : "GANGLIA",
+        "type" : "global.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/GANGLIA/configurations/rrdcached_base_dir",
+      "StackConfigurations" : {
+        "property_description" : "Default directory for saving the rrd files on ganglia server",
+        "property_value" : "/var/lib/ganglia/rrds",
+        "stack_version" : "1.3.0",
+        "property_name" : "rrdcached_base_dir",
+        "service_name" : "GANGLIA",
+        "type" : "global.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/GANGLIA/configurations/gmond_user",
+      "StackConfigurations" : {
+        "property_description" : "User ",
+        "property_value" : "nobody",
+        "stack_version" : "1.3.0",
+        "property_name" : "gmond_user",
+        "service_name" : "GANGLIA",
+        "type" : "global.xml",
+        "stack_name" : "HDP"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/GANGLIA/configurations/ganglia_conf_dir",
+      "StackConfigurations" : {
+        "property_description" : "Config directory for Ganglia",
+        "property_value" : "/etc/ganglia/hdp",
+        "stack_version" : "1.3.0",
+        "property_name" : "ganglia_conf_dir",
+        "service_name" : "GANGLIA",
+        "type" : "global.xml",
+        "stack_name" : "HDP"
+      }
+    }
+  ]
+}

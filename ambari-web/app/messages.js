@@ -131,6 +131,7 @@ Em.I18n.translations = {
   'common.install': 'Install',
   'common.errorPopup.header': 'An error has been encountered',
   'common.use': 'Use',
+  'common.stacks': 'Stacks',
 
   'requestInfo.installComponents':'Install Components',
   'requestInfo.installServices':'Install Services',
@@ -188,9 +189,12 @@ Em.I18n.translations = {
   'services.pig.description':'Scripting platform for analyzing large datasets',
   'services.hive.description':'Data warehouse system for ad-hoc queries & analysis of large datasets and table & storage management service',
   'services.oozie.description':'System for workflow coordination and execution of Apache Hadoop jobs',
-  'services.zookeeper.description':'ZooKeeper desc',
+  'services.zookeeper.description':'Centralized service which provides highly reliable distributed coordination',
   'services.hbase.description':'Non-relational distributed database and centralized service for configuration management & synchronization',
   'services.hive.databaseComponent':'Database Server',
+  'services.mapreduce2.description':'Apache Hadoop NextGen MapReduce (client libraries)',
+  'services.yarn.description':'Apache Hadoop NextGen MapReduce (YARN)',
+  'services.tez.description':'Tez is the next generation Hadoop Query Processing framework written on top of YARN',
 
   'services.alerts.head':'You have {0} critical alert notification(s).',
   'services.alerts.OK.timePrefix': 'OK for ',
@@ -222,16 +226,19 @@ Em.I18n.translations = {
   'installer.controls.addSlaveComponentGroupButton.content':'If you need different settings on certain {0}s, you can add a {1} group.<br>All {2}s within the same group will have the same set of settings.  You can create multiple groups.',
   'installer.controls.slaveComponentChangeGroupName.error':'group with this name already exist',
 
-  'installer.step1.header':'Welcome',
-  'installer.step1.body.header':'Welcome to Apache Ambari!',
-  'installer.step1.body':'Ambari makes it easy to install, manage, and monitor Hadoop clusters.<br>' +
+  'installer.step0.header':'Welcome',
+  'installer.step0.body.header':'Welcome to Apache Ambari!',
+  'installer.step0.body':'Ambari makes it easy to install, manage, and monitor Hadoop clusters.<br>' +
     'We will walk you through the cluster installation process with this step-by-step wizard.',
-  'installer.step1.clusterName':'Name your cluster',
-  'installer.step1.clusterName.tooltip.title':'Cluster Name',
-  'installer.step1.clusterName.tooltip.content':'Enter a unique cluster name. Cluster name cannot be changed later.',
-  'installer.step1.clusterName.error.required':'Cluster Name is required',
-  'installer.step1.clusterName.error.whitespaces':'Cluster Name cannot contain white spaces',
-  'installer.step1.clusterName.error.specialChar':'Cluster Name cannot contain special characters',
+  'installer.step0.clusterName':'Name your cluster',
+  'installer.step0.clusterName.tooltip.title':'Cluster Name',
+  'installer.step0.clusterName.tooltip.content':'Enter a unique cluster name. Cluster name cannot be changed later.',
+  'installer.step0.clusterName.error.required':'Cluster Name is required',
+  'installer.step0.clusterName.error.whitespaces':'Cluster Name cannot contain white spaces',
+  'installer.step0.clusterName.error.specialChar':'Cluster Name cannot contain special characters',
+
+  'installer.step1.header':'Select Stack',
+  'installer.step1.body':'Please select the service stack that you want to use to install your Hadoop cluster.',
 
   'installer.step2.header':'Install Options',
   'installer.step2.body':'Enter the list of hosts to be included in the cluster and provide your SSH key.',
@@ -446,6 +453,8 @@ Em.I18n.translations = {
   'installer.step10.master.nameNode':'NameNode installed on ',
   'installer.step10.master.secondaryNameNode':'SecondaryNameNode installed on ',
   'installer.step10.master.jobTracker':'JobTracker installed on ',
+  'installer.step10.master.historyServer':'History Server installed on ',
+  'installer.step10.master.resourceManager':'Resource Manager installed on ',
   'installer.step10.master.zooKeeper':'ZooKeeper installed on ',
   'installer.step10.master.hbase':'HBase Master installed on ',
   'installer.step10.master.hiveMetastore':'Hive Metastore installed on ',
@@ -790,6 +799,9 @@ Em.I18n.translations = {
   'services.zookeeper.prefix': '{0} of',
   'services.zookeeper.title': '{0} ZooKeepers',
   'services.zookeeper.postfix': 'running',
+
+  'services.mapreduce2.history.running': 'History server is running',
+  'services.mapreduce2.history.stopped': 'History server is stopped',
 
   'services.mapReduce.config.addQueue':'Add Queue',
   'services.mapReduce.config.editQueue':'Edit Queue',
