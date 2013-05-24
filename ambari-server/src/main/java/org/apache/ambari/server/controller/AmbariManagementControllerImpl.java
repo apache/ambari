@@ -123,8 +123,6 @@ public class AmbariManagementControllerImpl implements
 
   private final Gson gson;
 
-  HashMap<StackId, RoleCommandOrder> rcoList = new HashMap<StackId, RoleCommandOrder>(); 
-
   @Inject
   private ServiceFactory serviceFactory;
   @Inject
@@ -173,14 +171,10 @@ public class AmbariManagementControllerImpl implements
     }
   }
 
-  private RoleCommandOrder getRCO(StackId stackid) {
+  private RoleCommandOrder getRCO(Cluster cluster) {
       RoleCommandOrder rco;
-      rco = this.rcoList.get(stackid);
-      if (rco == null) {
-          rco = injector.getInstance(RoleCommandOrder.class);
-          rco.initialize(stackid);
-          this.rcoList.put(stackid, rco);    
-      }
+      rco = injector.getInstance(RoleCommandOrder.class);
+      rco.initialize(cluster);
       return rco;
   };
 
@@ -2210,7 +2204,7 @@ public class AmbariManagementControllerImpl implements
                 clusters.getHostsForCluster(cluster.getClusterName()), cluster, hostsMap, injector));
       }
 
-      RoleCommandOrder rco = this.getRCO(cluster.getDesiredStackVersion());
+      RoleCommandOrder rco = this.getRCO(cluster);
       RoleGraph rg = new RoleGraph(rco);
       rg.build(stage);
       return rg.getStages();
@@ -4172,7 +4166,7 @@ public class AmbariManagementControllerImpl implements
     }
 
     Cluster cluster = clusters.getCluster(clusterName);
-    RoleCommandOrder rco = this.getRCO(cluster.getDesiredStackVersion());
+    RoleCommandOrder rco = this.getRCO(cluster);
     RoleGraph rg = new RoleGraph(rco);
     rg.build(stage);
     List<Stage> stages = rg.getStages();

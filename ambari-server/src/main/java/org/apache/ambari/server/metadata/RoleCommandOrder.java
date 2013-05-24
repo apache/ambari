@@ -18,6 +18,7 @@
 package org.apache.ambari.server.metadata;
 
 import java.util.HashMap;
+
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -25,11 +26,10 @@ import java.util.Set;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.stageplanner.RoleGraphNode;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import com.google.inject.Inject;
+import org.apache.ambari.server.state.Cluster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.ambari.server.AmbariException;
 
 /**
  * This class is used to establish the order between two roles. This class
@@ -68,9 +68,6 @@ public class RoleCommandOrder {
     }
   }
 
-  @Inject
-  private AmbariMetaInfo ambariMetaInfo;
-
   /**
    * key -> blocked role command value -> set of blocker role commands.
    */
@@ -94,10 +91,18 @@ public class RoleCommandOrder {
     this.dependencies.get(rcp1).add(rcp2);
   }
 
-  public void initialize(StackId stackId) {
+  public void initialize(Cluster cluster) {
     Boolean hasHCFS = false;
-    // Installs
+    
+    try {
+      if (cluster != null && cluster.getService("HCFS") != null) {
+    	  hasHCFS = true;
+      } 
+    } catch (AmbariException e) {
+    }
+        
     if (hasHCFS) {
+      // Installs
       addDependency(Role.NAGIOS_SERVER, RoleCommand.INSTALL, Role.HIVE_CLIENT,
         RoleCommand.INSTALL);
       addDependency(Role.NAGIOS_SERVER, RoleCommand.INSTALL, Role.HCAT,
