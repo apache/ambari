@@ -895,6 +895,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2196. Install Wizard, Customize Services changes. (srimanth)
+
  AMBARI-2193. Remove zookeeper dependency for HIVE and HCAT. (srimanth)
 
  AMBARI-2184. Install progress gets stuck at 33% and displays incorrect

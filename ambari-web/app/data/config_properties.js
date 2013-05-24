@@ -1687,7 +1687,7 @@ module.exports =
       "index": 1
     },
     // for new MySQL
-    {
+    /*{
       "id": "puppet var",
       "name": "oozie_ambari_database",
       "displayName": "Database Type",
@@ -1701,7 +1701,7 @@ module.exports =
       "serviceName": "OOZIE",
       "category": "Oozie Server",
       "index": 1
-    },
+    },*/
     // for current derby
     {
       "id": "puppet var",
@@ -1745,13 +1745,13 @@ module.exports =
       "options": [
         {
           displayName: 'New Derby Database',
-          foreignKeys: ['oozie_derby_database']
+          foreignKeys: ['oozie_derby_database','oozie_ambari_host']
         },
-        {
+         /*{
           displayName: 'New MySQL Database',
           foreignKeys: ['oozie_ambari_database', 'oozie_ambari_host'],
           hidden: !App.supports.hiveOozieExtraDatabases
-        },
+        },*/
         {
           displayName: 'Existing MySQL Database',
           foreignKeys: ['oozie_existing_mysql_database', 'oozie_existing_mysql_host'],
@@ -1774,111 +1774,115 @@ module.exports =
       "category": "Oozie Server",
       "index": 2
     },
-    {
-      "id": "puppet var",
-      "name": "oozie_database_name",
-      "displayName": "Database Name",
-      "description": "Database name used for the Oozie",
-      "defaultValue": "oozie",
-      "isReconfigurable": false,
-      "isOverridable": false,
-      "displayType": "host",
-      "isVisible": true,
-      //"domain": "global",
-      "serviceName": "OOZIE",
-      "category": "Oozie Server",
-      "index": 3
-    },
-    {
-      "id": "puppet var",
-      "name": "oozie_metastore_user_name",
-      "displayName": "Database Username",
-      "description": "Database user name to use to connect to the database",
-      "defaultValue": "oozie",
-      "isReconfigurable": false,
-      "isOverridable": false,
-      "displayType": "user",
-      "isVisible": true,
-      //"domain": "global",
-      "serviceName": "OOZIE",
-      "category": "Oozie Server",
-      "index": 4
-    },
-    {
-      "id": "puppet var",
-      "name": "oozie_metastore_user_passwd",
-      "displayName": "Database Password",
-      "description": "Database password to use to connect to the database",
-      "defaultValue": "",
-      "isReconfigurable": false,
-      "isOverridable": false,
-      "displayType": "password",
-      "isVisible": true,
-      //"domain": "global",
-      "serviceName": "OOZIE",
-      "category": "Oozie Server",
-      "index": 5
-    },
-    {
-      "id": "puppet var",
-      "name": "oozie_data_dir",
-      "displayName": "Oozie Data Dir",
-      "description": "Data directory in which the Oozie DB exists",
-      "defaultValue": "",
-      "defaultDirectory": "/hadoop/oozie/data",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isOverridable": false,
-      "isVisible": true,
-      "isRequired": false,
-      "domain": "global",
-      "serviceName": "OOZIE",
-      "category": "Oozie Server",
-      "index": 6
-    },
-    {
-      "id": "puppet var",
-      "name": "oozie_existing_mysql_host",
-      "displayName": "Database Host",
-      "description": "Specify the host on which the existing database is hosted",
-      "defaultValue": "",
-      "isReconfigurable": false,
-      "isOverridable": false,
-      "displayType": "host",
-      "isVisible": false,
-      //"domain": "global",
-      "serviceName": "OOZIE",
-      "category": "Oozie Server"
-    },
-    {
-      "id": "puppet var",
-      "name": "oozie_existing_oracle_host",
-      "displayName": "Database Host",
-      "description": "Specify the host on which the existing database is hosted",
-      "defaultValue": "",
-      "isReconfigurable": false,
-      "isOverridable": false,
-      "displayType": "host",
-      "isVisible": false,
-      //"domain": "global",
-      "serviceName": "OOZIE",
-      "category": "Oozie Server"
-    },
-    {
-      "id": "puppet var",
-      "name": "oozie_ambari_host",
-      "value": "",
-      "defaultValue": "",
-      "displayName": "Database Host",
-      "description": "Host on which the database will be created by Ambari",
-      "isReconfigurable": false,
-      "isOverridable": false,
-      "displayType": "masterHost",
-      "isVisible": false,
-      //"domain": "global",
-      "serviceName": "OOZIE",
-      "category": "Oozie Server"
-    },
+      {
+          "id": "puppet var",
+          "name": "oozie_existing_mysql_host",
+          "displayName": "Database Host",
+          "description": "Specify the host on which the existing database is hosted",
+          "defaultValue": "",
+          "isReconfigurable": false,
+          "isOverridable": false,
+          "displayType": "host",
+          "isVisible": false,
+          "domain": "global",
+          "serviceName": "OOZIE",
+          "category": "Oozie Server",
+          "index": 3
+      },
+      {
+          "id": "puppet var",
+          "name": "oozie_existing_oracle_host",
+          "displayName": "Database Host",
+          "description": "Specify the host on which the existing database is hosted",
+          "defaultValue": "",
+          "isReconfigurable": false,
+          "isOverridable": false,
+          "displayType": "host",
+          "isVisible": false,
+          "domain": "global",
+          "serviceName": "OOZIE",
+          "category": "Oozie Server",
+          "index": 3
+      },
+      {
+          "id": "puppet var",
+          "name": "oozie_ambari_host",
+          "value": "",
+          "defaultValue": "",
+          "displayName": "Database Host",
+          "description": "Host on which the database will be created by Ambari",
+          "isReconfigurable": false,
+          "isOverridable": false,
+          "displayType": "masterHost",
+          "isVisible": false,
+          "domain": "global",
+          "serviceName": "OOZIE",
+          "category": "Oozie Server",
+          "index": 3
+      },
+      {
+          "id": "puppet var",
+          "name": "oozie_database_name",
+          "displayName": "Database Name",
+          "description": "Database name used for the Oozie",
+          "defaultValue": "oozie",
+          "isReconfigurable": false,
+          "isOverridable": false,
+          "displayType": "host",
+          "isVisible": true,
+          //"domain": "global",
+          "serviceName": "OOZIE",
+          "category": "Oozie Server",
+          "index": 4
+      },
+      {
+          "id": "puppet var",
+          "name": "oozie_metastore_user_name",
+          "displayName": "Database Username",
+          "description": "Database user name to use to connect to the database",
+          "defaultValue": "oozie",
+          "isReconfigurable": false,
+          "isOverridable": false,
+          "displayType": "user",
+          "isVisible": true,
+          //"domain": "global",
+          "serviceName": "OOZIE",
+          "category": "Oozie Server",
+          "index": 5
+      },
+      {
+          "id": "puppet var",
+          "name": "oozie_metastore_user_passwd",
+          "displayName": "Database Password",
+          "description": "Database password to use to connect to the database",
+          "defaultValue": "",
+          "isReconfigurable": false,
+          "isOverridable": false,
+          "displayType": "password",
+          "isVisible": true,
+          //"domain": "global",
+          "serviceName": "OOZIE",
+          "category": "Oozie Server",
+          "index": 6
+      },
+      {
+          "id": "puppet var",
+          "name": "oozie_data_dir",
+          "displayName": "Oozie Data Dir",
+          "description": "Data directory in which the Oozie DB exists",
+          "defaultValue": "",
+          "defaultDirectory": "/hadoop/oozie/data",
+          "isReconfigurable": false,
+          "displayType": "directory",
+          "isOverridable": false,
+          "isVisible": true,
+          "isRequired": false,
+          "domain": "global",
+          "serviceName": "OOZIE",
+          "category": "Oozie Server",
+          "index": 7
+      },
+
     {
       "id": "puppet var",
       "name": "oozie_log_dir",

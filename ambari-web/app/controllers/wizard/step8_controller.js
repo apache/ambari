@@ -34,10 +34,10 @@ App.WizardStep8Controller = Em.Controller.extend({
   servicesInstalled: false,
   /**
    * During page save time, we set the host overrides to the server.
-   * The new host -> site:tag map is stored below. This will be 
+   * The new host -> site:tag map is stored below. This will be
    * useful during save, to update the host's host components. Also,
    * it will be useful in deletion of overrides.
-   * 
+   *
    * Example:
    * {
    *  'hostname1': {
@@ -49,7 +49,7 @@ App.WizardStep8Controller = Em.Controller.extend({
    *    }
    *  }
    * }
-   * 
+   *
    * @see loadedHostToOverrideSiteToTagMap
    */
   savedHostToOverrideSiteToTagMap: {},
@@ -131,7 +131,7 @@ App.WizardStep8Controller = Em.Controller.extend({
         globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_database'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
-      }else if (oozieDb.value === 'New MySQL Database') {
+      }/*else if (oozieDb.value === 'New MySQL Database') {
         if (globals.someProperty('name', 'oozie_ambari_host')) {
           globals.findProperty('name', 'oozie_ambari_host').name = 'oozie_hostname';
           oozieDbType.value = 'mysql';
@@ -143,7 +143,7 @@ App.WizardStep8Controller = Em.Controller.extend({
         globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
         globals = globals.without(globals.findProperty('name', 'oozie_derby_database'));
-      } else if (oozieDb.value === 'Existing MySQL Database'){
+      } */ else if (oozieDb.value === 'Existing MySQL Database') {
         globals.findProperty('name', 'oozie_existing_mysql_host').name = 'oozie_hostname';
         oozieDbType.value = 'mysql';
         oozieJdbcDriver.value = 'com.mysql.jdbc.Driver';
@@ -275,7 +275,7 @@ App.WizardStep8Controller = Em.Controller.extend({
         value = null;
       }
     }, this);
-    
+
     var valueWithOverrides = {
         value: value,
         overrides: []
@@ -298,7 +298,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
     return valueWithOverrides;
   },
-  
+
   _replaceConfigValues: function (name, express, value, globValue) {
     if (name === "templeton.zookeeper.hosts" || name === 'hbase.zookeeper.quorum') {
       // globValue is an array of ZooKeeper Server hosts
@@ -316,7 +316,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
     return value;
   },
-  
+
   /**
    * Set all site property that are derived from other site-properties
    */
@@ -799,9 +799,9 @@ App.WizardStep8Controller = Em.Controller.extend({
     if (oozieDb.value === 'New Derby Database'){
       var db = App.db.getServiceConfigProperties().findProperty('name', 'oozie_derby_database');
       dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
-    } else if (oozieDb.value === 'New MySQL Database') {
+    }/* else if (oozieDb.value === 'New MySQL Database') {
       dbComponent.set('component_value', 'MySQL (New Database)');
-    } else if(oozieDb.value === 'Existing MySQL Database'){
+    } */else if(oozieDb.value === 'Existing MySQL Database'){
       var db = App.db.getServiceConfigProperties().findProperty('name', 'oozie_existing_mysql_database');
       dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
     } else { // existing oracle database
@@ -1521,10 +1521,10 @@ App.WizardStep8Controller = Em.Controller.extend({
       if (oozieDb.value === 'New Derby Database'){
         oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true";
         oozieProperties["oozie.service.JPAService.jdbc.driver"] = "org.apache.derby.jdbc.EmbeddedDriver";
-      }else if (oozieDb.value === 'New MySQL Database') {
+      }/*else if (oozieDb.value === 'New MySQL Database') {
         oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:mysql://" + oozieHost + "/" + oozieDbName;
         oozieProperties["oozie.service.JPAService.jdbc.driver"] = "com.mysql.jdbc.Driver";
-      } else if (oozieDb.value === 'Existing MySQL Database'){
+      } */ else if (oozieDb.value === 'Existing MySQL Database') {
         oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:mysql://" + oozieHost + "/" + oozieDbName;
         oozieProperties["oozie.service.JPAService.jdbc.driver"] = "com.mysql.jdbc.Driver";
       } else { //existing oracle database
@@ -1652,7 +1652,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   /**
    * Creates host level overrides for service configuration.
-   * 
+   *
    */
   createHostOverrideConfigurations: function () {
     var singlePUTHostData = [];
@@ -1697,7 +1697,7 @@ App.WizardStep8Controller = Em.Controller.extend({
    * We need to do a lot of ajax calls async in special order. To do this,
    * generate array of ajax objects and then send requests step by step. All
    * ajax objects are stored in <code>ajaxQueue</code>
-   * 
+   *
    * @param params
    */
 

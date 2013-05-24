@@ -215,7 +215,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
    * Don't show "Undo" for hosts on Installer Step7
    */
   cantBeUndone: function() {
-    var types = ["masterHost", "slaveHosts", "masterHosts", "slaveHost"];
+    var types = ["masterHost", "slaveHosts", "masterHosts", "slaveHost","radio button"];
     var displayType = this.get('displayType');
     var result = false;
     types.forEach(function(type) {
