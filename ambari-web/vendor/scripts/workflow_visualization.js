@@ -383,7 +383,7 @@ DagViewer.prototype.addTimeSeries = function (series, position, name) {
     .attr("class", function(d) { return d.name;})
     .attr("style", function(d) {
       if (d.name.substring(0,3)=="all")
-        return "stroke:"+d3.interpolateRgb(d.color, 'black')(0.125)+";fill:white"; 
+        return "";
       else
         return "stroke:"+d3.interpolateRgb(d.color, 'black')(0.125)+";fill:"+d.color; 
     })

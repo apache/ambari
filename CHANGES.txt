@@ -895,6 +895,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2197. Jobs page usability issues - remove the "ramps". (srimanth)
+
  AMBARI-2196. Install Wizard, Customize Services changes. (srimanth)
 
  AMBARI-2193. Remove zookeeper dependency for HIVE and HCAT. (srimanth)
