@@ -895,6 +895,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2201. Hbase master and regionserver should use same keytab. (jaimin)
+
  AMBARI-2162. HBase master stop fails while stopping all services in
  secure cluster. (jaimin)
 
