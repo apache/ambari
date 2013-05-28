@@ -895,6 +895,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2162. HBase master stop fails while stopping all services in
+ secure cluster. (jaimin)
+
  AMBARI-2197. Jobs page usability issues - remove the "ramps". (srimanth)
 
  AMBARI-2196. Install Wizard, Customize Services changes. (srimanth)
