@@ -55,6 +55,9 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
     GANGLIA_CLUSTER_NAME_MAP.put("DATANODE", "HDPSlaves");
     GANGLIA_CLUSTER_NAME_MAP.put("JOBTRACKER", "HDPJobTracker");
     GANGLIA_CLUSTER_NAME_MAP.put("TASKTRACKER", "HDPSlaves");
+    GANGLIA_CLUSTER_NAME_MAP.put("RESOURCEMANAGER", "HDPResourceManager");
+    GANGLIA_CLUSTER_NAME_MAP.put("NODEMANAGER", "HDPSlaves");
+    GANGLIA_CLUSTER_NAME_MAP.put("HISTORYSERVER", "HDPHistoryServer");
     GANGLIA_CLUSTER_NAME_MAP.put("HBASE_MASTER", "HDPHBaseMaster");
     GANGLIA_CLUSTER_NAME_MAP.put("HBASE_CLIENT", "HDPSlaves");
     GANGLIA_CLUSTER_NAME_MAP.put("HBASE_REGIONSERVER", "HDPSlaves");

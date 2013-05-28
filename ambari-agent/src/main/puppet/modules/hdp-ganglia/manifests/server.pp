@@ -59,7 +59,7 @@ class hdp-ganglia::server(
     }
   }
   
-  hdp-ganglia::config::generate_server { ['HDPJobTracker','HDPNameNode','HDPSlaves']:
+  hdp-ganglia::config::generate_server { ['HDPJobTracker','HDPNameNode','HDPSlaves','HDPResourceManager','HDPHistoryServer']:
     ganglia_service => 'gmond',
     role => 'server'
   }
