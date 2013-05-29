@@ -67,12 +67,12 @@ var urls = {
   'service.item.smoke': {
     'real': '/clusters/{clusterName}/services/{serviceName}/actions/{actionName}',
     'mock': '/data/wizard/deploy/poll_1.json',
-    'format': function () {
+    'format': function (data) {
       return {
         'type': 'POST',
         data: JSON.stringify({
           RequestInfo: {
-            "context": "Smoke Test"
+            "context": data.displayName + " Smoke Test"
           }
         })
       };

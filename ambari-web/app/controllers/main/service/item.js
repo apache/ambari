@@ -172,6 +172,7 @@ App.MainServiceItemController = Em.Controller.extend({
       'success':'runSmokeTestSuccessCallBack',
       'data': {
         'serviceName': this.get('content.serviceName'),
+        'displayName': this.get('content.displayName'),
         'actionName': this.get('content.serviceName') === 'ZOOKEEPER' ? 'ZOOKEEPER_QUORUM_SERVICE_CHECK' : this.get('content.serviceName') + '_SERVICE_CHECK'
       }
     });
