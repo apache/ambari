@@ -904,6 +904,10 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2198. Avoid using $::fqdn in puppet which uses the fqdn value from
+ puppet/facter, instead pass in the hostname from
+ python socket.getfqdn(). (smohanty)
+
  AMBARI-2223. Using an external MySQL / Oracle database for Oozie does not 
  work. (swagle)
 

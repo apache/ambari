@@ -696,9 +696,9 @@ class hdp::params()
   $component_exists = {} 
   $service_exists = {}
 
-  $is_namenode_master = $::fqdn in $namenode_host
-  $is_jtnode_master   = $::fqdn in $jtnode_host
-  $is_rmnode_master   = $::fqdn in $rm_host
-  $is_hsnode_master   = $::fqdn in $hs_host
-  $is_hbase_master    = $::fqdn in $hbase_master_hosts
+  $is_namenode_master = $hdp::params::hostname in $namenode_host
+  $is_jtnode_master   = $hdp::params::hostname in $jtnode_host
+  $is_rmnode_master   = $hdp::params::hostname in $rm_host
+  $is_hsnode_master   = $hdp::params::hostname in $hs_host
+  $is_hbase_master    = $hdp::params::hostname in $hbase_master_hosts
 }
