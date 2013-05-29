@@ -244,13 +244,13 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'datanode_hosts':
         this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'DATANODE').hosts.mapProperty('hostName'));
         break;
-      case 'historyserver_host':
+      case 'hs_host':
         this.set('value', masterComponentHostsInDB.filterProperty('component', 'HISTORYSERVER').mapProperty('hostName'));
         break;
-      case 'resourcemanager_host':
+      case 'rm_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName);
         break;
-      case 'nodemanager_hosts':
+      case 'nm_hosts':
         this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'NODEMANAGER').hosts.mapProperty('hostName'));
         break;
       case 'jobtracker_host':

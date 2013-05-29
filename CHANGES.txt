@@ -899,7 +899,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
- AMBARI-2210.  Hadoop 2 stack version check should be integer based instead of
+ AMBARI-2211. YARN does not show any configurations. (yusaku) 
+
+ AMBARI-2210. Hadoop 2 stack version check should be integer based instead of
  string. (yusaku)
 
  AMBARI-2208. Reassign Master Wizard: refreshing page on step 2, 3 or 4 breaks

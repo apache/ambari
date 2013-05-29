@@ -25,8 +25,22 @@ var globalPropertyToServicesMap = null;
 
 App.config = Em.Object.create({
 
-  preDefinedServiceConfigs: require('data/service_configs'),
-  configMapping: require('data/config_mapping'),
+  preDefinedServiceConfigs: function(){
+    var configs = this.get('preDefinedConfigProperties');
+    var services = [];
+    require('data/service_configs').forEach(function(service){
+      service.configs = configs.filterProperty('serviceName', service.serviceName);
+      services.push(service);
+    });
+    return services;
+  }.property('preDefinedConfigProperties'),
+  configMapping: function() {
+      if (stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 1 ||
+        stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 0) {
+        return require('data/config_mapping');
+      }
+      return require('data/HDP2/config_mapping');
+  }.property('App.currentStackVersionNumber'),
   preDefinedConfigProperties: function() {
     if (stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 1 ||
       stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 0) {
@@ -429,7 +443,7 @@ App.config = Em.Object.create({
    * @param serviceName
    */
   createServiceConfig: function (serviceName) {
-    var preDefinedServiceConfig = App.config.preDefinedServiceConfigs.findProperty('serviceName', serviceName);
+    var preDefinedServiceConfig = App.config.get('preDefinedServiceConfigs').findProperty('serviceName', serviceName);
     var serviceConfig = App.ServiceConfig.create({
       filename: preDefinedServiceConfig.filename,
       serviceName: preDefinedServiceConfig.serviceName,
