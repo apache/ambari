@@ -140,6 +140,12 @@ define hdp-hadoop::namenode::create_app_directories($service_state)
         owner         => $hdp::params::hbase_user,
         service_state => $service_state
       }
+     $hbase_staging_dir = $hdp::params::hbase_staging_dir
+     hdp-hadoop::hdfs::directory { $hbase_staging_dir:
+       owner         => $hdp::params::hbase_user,
+       service_state => $service_state,
+       mode             => '711',
+     }
     }
 
     if ($hdp::params::hive_server_host != "") {

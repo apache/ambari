@@ -904,6 +904,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2213. RegionServer gets  exception while accessing staging directory
+ in secure cluster. (jaimin) 
+
  AMBARI-2218. Unit test failures. (smohanty)
 
  AMBARI-2217. Increase ambari-agent test coverage. (smohanty)
