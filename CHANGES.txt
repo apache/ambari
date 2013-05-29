@@ -899,13 +899,16 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
- AMBARI-2205.  Reassign Master Wizard: Installing master with TIMEDOUT should
+ AMBARI-2208. Reassign Master Wizard: refreshing page on step 2, 3 or 4 breaks
+ wizard. (yusaku)
+
+ AMBARI-2205. Reassign Master Wizard: Installing master with TIMEDOUT should
  not be completed. (yusaku)
  
- AMBARI-2204.  Reassign Master Wizard: Review Config shouldn't show unchanged
+ AMBARI-2204. Reassign Master Wizard: Review Config shouldn't show unchanged
  values. (yusaku)
 
- AMBARI-2203.  Background operations popup does not automatically refresh the
+ AMBARI-2203. Background operations popup does not automatically refresh the
  task log. (yusaku)
 
  AMBARI-2202. Running the smoke test for a specific service should set the

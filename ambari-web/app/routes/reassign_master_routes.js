@@ -54,8 +54,6 @@ module.exports = Em.Route.extend({
         if (currentClusterStatus && currentClusterStatus.clusterState == 'REASSIGN_MASTER_INSTALLING') {
           reassignMasterController.setCurrentStep('5');
           App.db.data = currentClusterStatus.localdb;
-        } else {
-          reassignMasterController.setCurrentStep('1');
         }
         router.transitionTo('step' + reassignMasterController.get('currentStep'));
       });
