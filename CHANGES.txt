@@ -894,6 +894,9 @@ Trunk (unreleased changes):
  Farrellee via mahadev)
 
  BUG FIXES
+
+ AMBARI-2205.  Reassign Master Wizard: Installing master with TIMEDOUT should
+ not be completed. (yusaku)
  
  AMBARI-2204.  Reassign Master Wizard: Review Config shouldn't show unchanged
  values. (yusaku)
