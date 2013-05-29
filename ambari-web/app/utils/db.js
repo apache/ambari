@@ -186,12 +186,6 @@ App.db.setSlaveComponentHosts = function (slaveComponentHosts) {
   localStorage.setObject('ambari', App.db.data);
 };
 
-App.db.setSlaveProperties = function (slaveProperties) {
-  App.db.data = localStorage.getObject('ambari');
-  App.db.data.Installer.slaveProperties = slaveProperties;
-  localStorage.setObject('ambari', App.db.data);
-};
-
 App.db.setServiceConfigs = function (serviceConfigs) {
   App.db.data = localStorage.getObject('ambari');
   App.db.data.Installer.serviceConfigs = serviceConfigs;
@@ -388,11 +382,6 @@ App.db.getAdvancedServiceConfig = function () {
 App.db.getServiceConfigProperties = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.Installer.configProperties;
-};
-
-App.db.getSlaveProperties = function () {
-  App.db.data = localStorage.getObject('ambari');
-  return App.db.data.Installer.slaveProperties;
 };
 
 App.db.getCluster = function () {

@@ -21,7 +21,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
 
   name: 'mainAdminSecurityDisableController',
   secureMapping: require('data/secure_mapping'),
-  configMapping: require('data/config_mapping'),
+  configMapping: App.config.get('configMapping'),
   secureProperties: require('data/secure_properties').configProperties.slice(0),
   stages: [],
   configs: [],

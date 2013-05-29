@@ -19,7 +19,6 @@
 var App = require('app');
 require('models/service_config');
 
-var configProperties = App.ConfigProperties.create();
 
 module.exports = [
   {
@@ -36,7 +35,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'AdvancedHDFSSite', displayName : 'Custom hdfs-site.xml', siteFileName: 'hdfs-site.xml', canAddProperty: true})
     ],
     sites: ['global', 'core-site', 'hdfs-site'],
-    configs: configProperties.filterProperty('serviceName', 'HDFS')
+    configs: []
   },
 
   {
@@ -52,7 +51,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'AdvancedMapredSite', displayName : 'Custom mapred-site.xml', siteFileName: 'mapred-site.xml', canAddProperty: true})
     ],
     sites: ['global', 'core-site', 'mapred-site', 'capacity-scheduler', 'mapred-queue-acls'],
-    configs: configProperties.filterProperty('serviceName', 'MAPREDUCE')
+    configs: []
   },
 
   {
@@ -66,7 +65,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'AdvancedMapredSite', displayName : 'Custom mapred-site.xml', siteFileName: 'mapred-site.xml', canAddProperty: true})
     ],
     sites: ['core-site', 'mapred-site', 'mapred-queue-acls'],
-    configs: configProperties.filterProperty('serviceName', 'MAPREDUCE2')
+    configs: []
   },
 
   {
@@ -74,15 +73,15 @@ module.exports = [
     displayName: 'YARN',
     filename: 'yarn-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
-      App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
       App.ServiceConfigCategory.create({ name: 'ResourceManager', displayName : 'Resource Manager', hostComponentNames : ['RESOURCEMANAGER']}),
       App.ServiceConfigCategory.create({ name: 'NodeManager', displayName : 'Node Manager', hostComponentNames : ['NODEMANAGER']}),
+      App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
       App.ServiceConfigCategory.create({ name: 'CapacityScheduler', displayName : 'Capacity Scheduler', isCapacityScheduler : true, isCustomView: true, siteFileName: 'capacity-scheduler.xml', siteFileNames: ['capacity-scheduler.xml', 'mapred-queue-acls.xml'], canAddProperty: true}),
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
       App.ServiceConfigCategory.create({ name: 'AdvancedYARNSite', displayName : 'Custom yarn-site.xml', siteFileName: 'yarn-site.xml', canAddProperty: true})
     ],
-    sites: ['core-site', 'yarn-site', 'capacity-scheduler'],
-    configs: configProperties.filterProperty('serviceName', 'MAPREDUCE2')
+    sites: ['core-site', 'yarn-site', 'capacity-scheduler', 'mapred-queue-acls'],
+    configs: []
   },
 
   {
@@ -95,7 +94,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'AdvancedHiveSite', displayName : 'Custom hive-site.xml', siteFileName: 'hive-site.xml', canAddProperty: true})
     ],
     sites: ['global', 'hive-site'],
-    configs: configProperties.filterProperty('serviceName', 'HIVE')
+    configs: []
   },
 
   {
@@ -108,7 +107,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'AdvancedWebHCatSite', displayName : 'Custom webhcat-site.xml', siteFileName: 'webhcat-site.xml', canAddProperty: true})
     ],
     sites: ['global', 'webhcat-site'],
-    configs: configProperties.filterProperty('serviceName', 'WEBHCAT')
+    configs: []
   },
 
   {
@@ -123,7 +122,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'AdvancedHbaseSite', displayName : 'Custom hbase-site.xml', siteFileName: 'hbase-site.xml', canAddProperty: true})
     ],
     sites: ['global', 'hbase-site'],
-    configs: configProperties.filterProperty('serviceName', 'HBASE')
+    configs: []
   },
 
   {
@@ -134,7 +133,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'})
     ],
     sites: ['global'],
-    configs: configProperties.filterProperty('serviceName', 'ZOOKEEPER')
+    configs: []
   },
 
   {
@@ -147,7 +146,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'AdvancedOozieSite', displayName : 'Custom oozie-site.xml', siteFileName: 'oozie-site.xml', canAddProperty: true})
     ],
     sites: ['global', 'oozie-site'],
-    configs: configProperties.filterProperty('serviceName', 'OOZIE')
+    configs: []
   },
 
   {
@@ -157,7 +156,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'})
     ],
     sites: ['global'],
-    configs: configProperties.filterProperty('serviceName', 'NAGIOS')
+    configs: []
   },
 
   {
@@ -169,7 +168,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'})
     ],
     sites: ['hue-site'],
-    configs: configProperties.filterProperty('serviceName', 'HUE')
+    configs: []
   },
 
   {
@@ -180,7 +179,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'Users and Groups', displayName : 'Users and Groups'})
     ],
     sites: ['global'],
-    configs: configProperties.filterProperty('serviceName', 'MISC')
+    configs: []
   }
 
 ];

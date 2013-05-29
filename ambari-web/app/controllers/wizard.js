@@ -429,7 +429,6 @@ App.WizardController = Em.Controller.extend({
     App.db.setSlaveComponentHosts(undefined);
     App.db.setCluster(undefined);
     App.db.setAllHostNames(undefined);
-    App.db.setSlaveProperties(undefined);
     App.db.setInstallOptions(undefined);
     App.db.setAllHostNamesPattern(undefined);
   },

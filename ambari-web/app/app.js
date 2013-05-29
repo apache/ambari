@@ -51,7 +51,7 @@ module.exports = Em.Application.create({
     return '/stacks2/HDP/versions/' + stackVersion.replace(/HDP-/g, '');
   }.property('currentStackVersion'),
   clusterName: null,
-  currentStackVersion: null,
+  currentStackVersion: '',
   currentStackVersionNumber: function(){
     return this.get('currentStackVersion').replace(/HDP(Local)?-/, '');
   }.property('currentStackVersion')

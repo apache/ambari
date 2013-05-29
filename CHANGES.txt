@@ -309,6 +309,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2212. Change config loading mechanism to allow for different
+ stack versions. (yusaku)
+
  AMBARI-2207. Add unit tests for Utils. (yusaku)
 
  AMBARI-2206. Add unit tests for wizard steps 2, 5, and 6. (yusaku)

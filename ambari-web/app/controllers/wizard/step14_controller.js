@@ -70,7 +70,7 @@ App.WizardStep14Controller = Em.Controller.extend({
 
   configs: [],
   globals: [],
-  configMapping: require('data/config_mapping').all(),
+  configMapping: App.config.get('configMapping').all(),
   newConfigsTag: null,
   createdConfigs: [],
 

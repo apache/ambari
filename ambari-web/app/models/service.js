@@ -28,7 +28,7 @@ App.Service = DS.Model.extend({
   alerts: DS.hasMany('App.Alert'),
   quickLinks: DS.hasMany('App.QuickLinks'),
   hostComponents: DS.hasMany('App.HostComponent'),
-  serviceConfigsTemplate: require('data/service_configs'),
+  serviceConfigsTemplate: App.config.get('preDefinedServiceConfigs'),
   runningHostComponents: null,
   isStartDisabled: function () {
     return !(this.get('healthStatus') == 'red');

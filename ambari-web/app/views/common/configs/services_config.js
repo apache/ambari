@@ -213,7 +213,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
     serviceConfigObj.category = category.get('name');
 
     var serviceName = this.get('service.serviceName');
-    var serviceConfigsMetaData = require('data/service_configs');
+    var serviceConfigsMetaData = App.config.get('preDefinedServiceConfigs');
     var serviceConfigMetaData = serviceConfigsMetaData.findProperty('serviceName', serviceName);
     var categoryMetaData = serviceConfigMetaData == null ? null : serviceConfigMetaData.configCategories.findProperty('name', category.get('name'));
     if (categoryMetaData != null) {
