@@ -894,6 +894,9 @@ Trunk (unreleased changes):
  Farrellee via mahadev)
 
  BUG FIXES
+ 
+ AMBARI-2204.  Reassign Master Wizard: Review Config shouldn't show unchanged
+ values. (yusaku)
 
  AMBARI-2203.  Background operations popup does not automatically refresh the
  task log. (yusaku)

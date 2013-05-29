@@ -469,6 +469,8 @@ Em.I18n.translations = {
   'installer.step13.sourceHost':'Source Host:',
   'installer.step13.changes':'Configs to change:',
   'installer.step13.component':'Component name:',
+  'installer.step13.oldValue':'Old value',
+  'installer.step13.newValue':'New value',
   'installer.step14.task0':'{0} stop',
   'installer.step14.task1':'{0} create',
   'installer.step14.task2':'{0} configs create',
