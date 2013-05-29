@@ -21,7 +21,7 @@ limitations under the License.
 from unittest import TestCase
 from ambari_agent.RepoInstaller import RepoInstaller
 import tempfile
-import json
+import json, os
 import shutil
 from ambari_agent.AmbariConfig import AmbariConfig
 from mock.mock import patch, MagicMock, call
@@ -41,6 +41,31 @@ class TestRepoInstaller(TestCase):
     shutil.rmtree(self.dir)
     pass
 
+
+  def test_prepare_repos_info(self):
+    localParsedJson = json.loads('{"hostLevelParams" : {"repo_info" : {"test" : "test"}}}')
+    localRepoInstaller = RepoInstaller(localParsedJson, self.dir, '../../main/puppet/modules', 1, self.config)
+    localRepoInstaller.prepareReposInfo()
+    self.assertEquals(localRepoInstaller.repoInfoList['test'], "test")
+
+    localParsedJson = json.loads('{"hostLevelParams" : {"repo_info" : "1"}}')
+    localRepoInstaller = RepoInstaller(localParsedJson, self.dir, '../../main/puppet/modules', 1, self.config)
+    localRepoInstaller.prepareReposInfo()
+    self.assertEquals(localRepoInstaller.repoInfoList, 1)
+
+    localParsedJson = json.loads('{"hostLevelParams" : {"repo_info" : ""}}')
+    localRepoInstaller = RepoInstaller(localParsedJson, self.dir, '../../main/puppet/modules', 1, self.config)
+    localRepoInstaller.prepareReposInfo()
+    self.assertEquals(localRepoInstaller.repoInfoList, [])
+
+
+  def test_generate_files(self):
+    localParsedJson = json.loads('{"hostLevelParams": { "repo_info" : [{"baseUrl":"http://public-repo-1.hortonworks.com/HDP-1.1.1.16/repos/centos5"\
+           ,"osType":"centos5","repoId":"HDP-1.1.1.16_TEST","repoName":"HDP_TEST", "mirrorsList":"http://mirrors.fedoraproject.org/mirrorlist"}]}}')
+    localRepoInstaller = RepoInstaller(localParsedJson, self.dir, '../../main/puppet/modules', 1, self.config)
+    localRepoInstaller.prepareReposInfo()
+    result = localRepoInstaller.generateFiles()
+    self.assertTrue(result[0].endswith("HDP-1.1.1.16_TEST-1.pp"))
 
   @patch.object(RepoInstaller, 'prepareReposInfo')
   @patch.object(RepoInstaller, 'generateFiles')

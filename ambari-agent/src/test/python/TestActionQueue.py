@@ -20,9 +20,12 @@ limitations under the License.
 
 from unittest import TestCase
 from ambari_agent.ActionQueue import ActionQueue
+import ambari_agent.ActionQueue as AQM
 from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.UpgradeExecutor import UpgradeExecutor
+from ambari_agent.PuppetExecutor import PuppetExecutor
 from ambari_agent.StackVersionsFileHandler import StackVersionsFileHandler
+from ambari_agent.ActualConfigHandler import ActualConfigHandler
 import os, errno, time, pprint, tempfile, threading
 import TestStackVersionsFileHandler
 
@@ -35,12 +38,7 @@ class TestActionQueue(TestCase):
     actionQueue.start()
     actionQueue.stop()
     actionQueue.join()
-    self.assertEqual(actionQueue.stopped(), True, 'Action queue is not stopped.') 
-
-#This feature is not yet implemented in ActionQueue
-  def test_RetryAction(self):
-    pass
-
+    self.assertEqual(actionQueue.stopped(), True, 'Action queue is not stopped.')
 
   def test_command_in_progress(self):
     config = AmbariConfig().getConfig()
@@ -191,7 +189,10 @@ class TestActionQueue(TestCase):
 
 
   @patch.object(UpgradeExecutor, "perform_stack_upgrade")
-  def test_upgradeCommand_executeCommand(self, perform_stack_upgrade_method):
+  @patch.object(PuppetExecutor, "runCommand")
+  @patch.object(ActualConfigHandler, "findRunDir")
+  def test_upgradeCommand_executeCommand(self, action_conf_handler_findRunDir_method,
+                                         puppet_executor_run_command_method, perform_stack_upgrade_method):
     queue = ActionQueue(config = MagicMock())
     command = {
       'commandId': 17,
@@ -212,11 +213,13 @@ class TestActionQueue(TestCase):
         'target_stack_version' : 'HDP-1.3.0'
       }
     }
-    perform_stack_upgrade_method.return_value = {
-      'exitcode' : 0,
-      'stdout'   : 'abc',
-      'stderr'   : 'def'
-    }
+
+    upgrade_method_return_value = {'exitcode' : 0,
+                                    'stdout'   : 'abc',
+                                    'stderr'   : 'def'}
+
+    perform_stack_upgrade_method.return_value = upgrade_method_return_value
+
     result = queue.executeCommand(command)
     expected_result = [{'actionId': 17,
                         'clusterName': 'clusterName',
@@ -229,6 +232,55 @@ class TestActionQueue(TestCase):
                         'taskId': 'taskId',
                         'roleCommand': 'UPGRADE'}]
     self.assertEquals(result, expected_result)
+
+    puppet_executor_run_command_method.return_value = {'exitcode' : 0,
+                                                       'stdout'   : 'abc',
+                                                       'stderr'   : 'def'}
+
+    command['roleCommand'] = 'START'
+    action_conf_handler_findRunDir_method.return_value = AmbariConfig().getConfig().get("stack", "installprefix")
+    expected_result[0]['configurationTags'] = None
+    expected_result[0]['roleCommand'] = 'START'
+    result = queue.executeCommand(command)
+    self.assertEquals(result, expected_result)
+
+    #--------------------------------------------
+    command['roleCommand'] = 'UPGRADE'
+
+    upgrade_method_return_value['exitcode'] = 1
+    upgrade_method_return_value['stdout'] = ''
+    upgrade_method_return_value['stderr'] = ''
+
+    perform_stack_upgrade_method.return_value = upgrade_method_return_value
+    result = queue.executeCommand(command)
+
+    expected_result[0]['roleCommand'] = 'UPGRADE'
+    del expected_result[0]['configurationTags']
+    expected_result[0]['exitCode'] = 1
+    expected_result[0]['stderr'] = 'None'
+    expected_result[0]['stdout'] = 'None'
+    expected_result[0]['status'] = 'FAILED'
+    self.assertEquals(result, expected_result)
+
+
+  @patch.object(ActionQueue, "stopped")
+  @patch.object(AQM.logger, "warn")
+  def test_run_unrecognized_command(self, logger_method, stopped_method):
+    config = AmbariConfig().getConfig()
+    actionQueue = ActionQueue(config)
+    command = {
+        "serviceName" : 'HDFS',
+        "commandType" : "SOME_UNRECOGNIZED_COMMAND",
+        "clusterName" : "",
+        "componentName" : "DATANODE",
+        'configurations':{}
+    }
+    actionQueue.commandQueue.put(command)
+    actionQueue.stopped = stopped_method
+    stopped_method.side_effect = [False, False, True, True, True]
+    actionQueue.IDLE_SLEEP_TIME = 0.001
+    actionQueue.run()
+    self.assertTrue(logger_method.call_args[0][0].startswith('Unrecognized command'))
 
 
   @patch.object(StackVersionsFileHandler, "read_stack_version")

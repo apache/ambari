@@ -111,6 +111,19 @@ class TestPythonExecutor(TestCase):
     self.assertEquals(result, {'exitcode': 0, 'stderr': 'Dummy err', 'stdout': 'Dummy output'})
 
 
+  def test_is_successfull(self):
+    executor = PythonExecutor("/tmp", AmbariConfig().getConfig())
+
+    executor.python_process_has_been_killed = False
+    self.assertTrue(executor.isSuccessfull(0))
+    self.assertFalse(executor.isSuccessfull(1))
+
+    executor.python_process_has_been_killed = True
+    self.assertFalse(executor.isSuccessfull(0))
+    self.assertFalse(executor.isSuccessfull(1))
+
+
+
   class Subprocess_mockup():
     """
     It's not trivial to use PyMock instead of class here because we need state

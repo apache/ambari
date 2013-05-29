@@ -904,6 +904,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2217. Increase ambari-agent test coverage. (smohanty)
+
  AMBARI-2211. YARN does not show any configurations. (yusaku) 
 
  AMBARI-2210. Hadoop 2 stack version check should be integer based instead of

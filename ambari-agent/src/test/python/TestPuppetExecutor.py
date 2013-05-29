@@ -25,7 +25,9 @@ from pprint import pformat
 import socket, threading, tempfile
 import os, time
 import sys
+import json
 from AmbariConfig import AmbariConfig
+from mock.mock import patch, MagicMock, call
 from threading import Thread
 
 class TestPuppetExecutor(TestCase):
@@ -39,6 +41,46 @@ class TestPuppetExecutor(TestCase):
     self.assertEquals("--confdir=/tmp", command[2],"conf dir tmp")
     self.assertEquals("--detailed-exitcodes", command[3], "make sure output \
     correct")
+
+  @patch.object(PuppetExecutor, 'runPuppetFile')
+  def test_run_command(self, runPuppetFileMock):
+    tmpdir = AmbariConfig().getConfig().get("stack", "installprefix")
+    puppetInstance = PuppetExecutor("/tmp", "/x", "/y", tmpdir, AmbariConfig().getConfig())
+    jsonFile = open('../../main/python/ambari_agent/test.json', 'r')
+    jsonStr = jsonFile.read()
+    parsedJson = json.loads(jsonStr)
+    parsedJson["taskId"] = 1
+    def side_effect1(puppetFile, result, puppetEnv, tmpoutfile, tmperrfile):
+        result["exitcode"] = 0
+    runPuppetFileMock.side_effect = side_effect1
+    puppetInstance.reposInstalled = False
+    res = puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
+    self.assertEquals(res["exitcode"], 0)
+    self.assertTrue(puppetInstance.reposInstalled)
+
+    def side_effect2(puppetFile, result, puppetEnv, tmpoutfile, tmperrfile):
+        result["exitcode"] = 999
+    runPuppetFileMock.side_effect = side_effect2
+    puppetInstance.reposInstalled = False
+    res = puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
+    self.assertEquals(res["exitcode"], 999)
+    self.assertFalse(puppetInstance.reposInstalled)
+    os.unlink(tmpdir + os.sep + 'site-' + str(parsedJson["taskId"]) + '.pp')
+
+  @patch("os.path.exists")
+  def test_configure_environ(self, osPathExistsMock):
+    config = AmbariConfig().getConfig()
+    tmpdir = config.get("stack", "installprefix")
+    puppetInstance = PuppetExecutor("/tmp", "/x", "/y", tmpdir, config)
+    environ = puppetInstance.configureEnviron({})
+    self.assertEquals(environ, {})
+
+    config.set('puppet','ruby_home',"test/ruby_home")
+    puppetInstance = PuppetExecutor("/tmp", "/x", "/y", tmpdir, config)
+    osPathExistsMock.return_value = True
+    environ = puppetInstance.configureEnviron({"PATH" : "test_path"})
+    self.assertEquals(environ["PATH"], "test/ruby_home/bin:test_path")
+    self.assertEquals(environ["MY_RUBY_HOME"], "test/ruby_home")
 
   def test_condense_bad2(self):
     puppetexecutor = PuppetExecutor("/tmp", "/x", "/y", "/z", AmbariConfig().getConfig())
