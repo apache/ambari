@@ -20,6 +20,7 @@ var App = require('app');
 var Ember = require('ember');
 require('controllers/wizard/step2_controller');
 require('models/host');
+require('models/host_component');
 require('messages');
 
 describe('App.WizardStep2Controller', function () {

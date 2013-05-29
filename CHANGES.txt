@@ -309,6 +309,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2206. Add unit tests for wizard steps 2, 5, and 6. (yusaku)
+
  AMBARI-2194. Hadoop2 Installer: MapReduce2 shows only advanced section. 
  (srimanth)
 
