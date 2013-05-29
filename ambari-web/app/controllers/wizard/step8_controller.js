@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var stringUtils = require('utils/string_utils');
 
 App.WizardStep8Controller = Em.Controller.extend({
   name: 'wizardStep8Controller',
@@ -1417,7 +1418,8 @@ App.WizardStep8Controller = Em.Controller.extend({
     var hdfsProperties = {};
     hdfsSiteObj.forEach(function (_configProperty) {
 
-      if (App.get('currentStackVersionNumber') >= '2.0.0') {
+      if (stringUtils.compareVersions(App.get('currentStackVersionNumber'), '2.0.0') === 1 ||
+          stringUtils.compareVersions(App.get('currentStackVersionNumber'), '2.0.0') === 0) {
         // TODO Remove temporary hack. This was added to not set
         // dfs.hosts and dfs.hosts.exclude properties on HDP 2 stacks.
         if ("dfs.hosts"==_configProperty.name || "dfs.hosts.exclude"==_configProperty.name) {
