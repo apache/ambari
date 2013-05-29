@@ -24,8 +24,13 @@ class hdp-hive::jdbc-connector()
 
   $jdbc_jar_name = $hdp-hive::params::jdbc_jar_name
   
+  
+  $java_share_dir = "/usr/share/java"
+  $driver_curl_target = "${java_share_dir}/${jdbc_jar_name}"  
   $hive_lib = $hdp-hive::params::hive_lib
   $target = "${hive_lib}/${jdbc_jar_name}"
+  $jdk_location = $hdp::params::jdk_location
+  $driver_curl_source = "${jdk_location}${jdbc_jar_name}"
   
   anchor { 'hdp-hive::jdbc-connector::begin':}
 
@@ -41,18 +46,18 @@ class hdp-hive::jdbc-connector()
        creates => $target,
        path    => ["/bin","/usr/bin/"],
        require => Hdp::Package['mysql-connector-java'],
-       notify  =>  Anchor['hdp-hive::jdbc-connector::end'],
+       before  =>  Anchor['hdp-hive::jdbc-connector::end'],
    }
   } elsif ($hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver") {
-   hdp::exec { 'hive mkdir -p ${artifact_dir} ;  cp /usr/share/java/${jdbc_jar_name}  ${target}':
-       command => "mkdir -p ${artifact_dir} ;  cp /usr/share/java/${jdbc_jar_name}  ${target}",
+   hdp::exec { 'hive mkdir -p ${artifact_dir} ; curl -f --retry 10 ${driver_curl_source} -o ${driver_curl_target} &&  cp ${driver_curl_target} ${target}':
+       command => "mkdir -p ${artifact_dir} ; curl -f --retry 10 ${driver_curl_source} -o ${driver_curl_target} &&  cp ${driver_curl_target} ${target}",
        unless  => "test -f ${target}",
        path    => ["/bin","/usr/bin/"],
-       notify  =>  Anchor['hdp-hive::jdbc-connector::end'],
+       before  =>  Anchor['hdp-hive::jdbc-connector::end'],
      }  
   }
 
 
    anchor { 'hdp-hive::jdbc-connector::end':}
-
+   
 }

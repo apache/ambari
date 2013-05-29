@@ -904,6 +904,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2221. Simplify JDBC driver setup process. (swagle)
+
  AMBARI-2220. Update deployed log4j conf for Hbase deployments from Ambari. 
  (swagle)
 
