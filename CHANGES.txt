@@ -904,6 +904,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2220. Update deployed log4j conf for Hbase deployments from Ambari. 
+ (swagle)
+
  AMBARI-2213. RegionServer gets  exception while accessing staging directory
  in secure cluster. (jaimin) 
 
