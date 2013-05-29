@@ -2170,6 +2170,9 @@ AMBARI-1.2.0 branch:
 
  BUG FIXES
 
+ AMBARI-2159. After upgrading ambari from 1.2.2.5 to 1.2.3.6 the server
+ throws 500 error when starting/stopping any service. part-II (smohanty)
+
  AMBARI-2057. Gmond left in init after install, part-II. (smohanty)
 
  AMBARI-1613.  ConfigurationResourceProvider doesn't properly handle OR
