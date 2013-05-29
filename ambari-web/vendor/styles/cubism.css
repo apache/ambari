@@ -43,7 +43,7 @@
 #dag_viewer rect {
   fill: #ccc;
   stroke: #333;
-  stroke-width: 1.5px;
+  stroke-width: 1px;
 }
 
 #dag_viewer rect.finished {

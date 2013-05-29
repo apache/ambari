@@ -309,6 +309,8 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2199. Add a legend to Job Timeline. (billie via yusaku)
+
  AMBARI-2212. Change config loading mechanism to allow for different
  stack versions. (yusaku)
 
