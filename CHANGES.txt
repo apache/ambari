@@ -904,6 +904,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2223. Using an external MySQL / Oracle database for Oozie does not 
+ work. (swagle)
+
  AMBARI-2222. Analyze puppet scripts for potential dependency issues. (swagle)
 
  AMBARI-2221. Simplify JDBC driver setup process. (swagle)

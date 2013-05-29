@@ -43,6 +43,8 @@ class hdp-oozie::params() inherits hdp::params
 
   $oozie_lib_dir = hdp_default("oozie_lib_dir","/var/lib/oozie/")
   
+  $libext_dir = hdp_default("libext_dir","/usr/lib/oozie/libext")
+  
   $oozie_webapps_dir = hdp_default("oozie_webapps_dir","/var/lib/oozie/oozie-server/webapps/")
   
   ### oozie-site
