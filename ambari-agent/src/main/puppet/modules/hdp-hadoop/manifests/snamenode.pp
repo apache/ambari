@@ -79,8 +79,8 @@ class hdp-hadoop::snamenode(
     }
   
     #top level does not need anchors
-    Class['hdp-hadoop'] -> Hdp-hadoop::Service['secondarynamenode']
-    Hdp-hadoop::Namenode::Create_name_dirs<||> -> Hdp-hadoop::Service['secondarynamenode']
+    Class['hdp-hadoop'] -> Hdp-hadoop::Namenode::Create_name_dirs<||> ->
+      Hdp-hadoop::Service['secondarynamenode']
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
   }

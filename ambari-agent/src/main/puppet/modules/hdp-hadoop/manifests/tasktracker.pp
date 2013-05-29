@@ -73,8 +73,7 @@ class hdp-hadoop::tasktracker(
     }
   
     #top level does not need anchors
-    Class['hdp-hadoop'] -> Hdp-hadoop::Service['tasktracker']
-    Hdp-hadoop::Tasktracker::Create_local_dirs<||> -> Hdp-hadoop::Service['tasktracker']
+    Class['hdp-hadoop'] -> Hdp-hadoop::Tasktracker::Create_local_dirs<||> -> Hdp-hadoop::Service['tasktracker']
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
   }

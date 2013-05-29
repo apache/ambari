@@ -65,9 +65,11 @@ class hdp-ganglia::monitor(
 
     if ($hdp::params::service_exists['hdp-ganglia::server'] != true) {
       Class['hdp-ganglia'] -> Hdp::Package['ganglia-monitor'] -> Class['hdp-ganglia::config'] -> 
-      Class['hdp-ganglia::monitor::config-gen'] -> Class['hdp-ganglia::monitor::gmond'] -> Class['hdp-ganglia::monitor::ownership']
+        Class['hdp-ganglia::monitor::config-gen'] -> Class['hdp-ganglia::monitor::ownership'] ->
+        Class['hdp-ganglia::monitor::gmond']
     } else {
-      Hdp::Package['ganglia-monitor'] ->  Class['hdp-ganglia::monitor::config-gen'] -> Class['hdp-ganglia::monitor::gmond'] -> Class['hdp-ganglia::monitor::ownership']
+      Hdp::Package['ganglia-monitor'] ->  Class['hdp-ganglia::monitor::config-gen'] ->
+        Class['hdp-ganglia::monitor::ownership'] -> Class['hdp-ganglia::monitor::gmond']
     }
   }
 }

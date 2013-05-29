@@ -22,7 +22,7 @@ class hdp-ganglia(
   $service_state
 )
 {
-  if (($service_state != 'no_op') or ($service_state != 'uninstalled')) {
+  if ! ($service_state in ['no_op', 'uninstalled']) {
     include hdp-ganglia::params
     $gmetad_user = $hdp-ganglia::params::gmetad_user
     $gmond_user = $hdp-ganglia::params::gmond_user

@@ -95,8 +95,9 @@ class hdp-ganglia::server(
 
   #top level does not need anchors
   Class['hdp-ganglia'] -> Class['hdp-ganglia::server::packages'] -> Class['hdp-ganglia::config'] ->
- Hdp-ganglia::Config::Generate_server<||> ->
- Class['hdp-ganglia::server::gmetad'] -> File["${hdp-ganglia::params::ganglia_dir}/gmetad.conf"] -> Class['hdp-ganglia::service::change_permission'] -> Class['hdp-ganglia::server::files'] -> Class['hdp-monitor-webserver']
+    Hdp-ganglia::Config::Generate_server<||> ->
+    File["${hdp-ganglia::params::ganglia_dir}/gmetad.conf"] -> Class['hdp-ganglia::service::change_permission'] ->
+    Class['hdp-ganglia::server::files'] -> Class['hdp-ganglia::server::gmetad'] -> Class['hdp-monitor-webserver']
  }
 }
 
