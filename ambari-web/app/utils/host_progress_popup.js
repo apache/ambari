@@ -31,6 +31,7 @@ App.HostPopup = Em.Object.create({
   popupHeaderName: "",
   serviceController: null,
   showServices: false,
+  currentHostName: null,
 
   /**
    * Sort object array
@@ -53,12 +54,10 @@ App.HostPopup = Em.Object.create({
   initPopup: function (serviceName, controller, showServices) {
     this.set("serviceName", serviceName);
     this.set("serviceController", controller);
-    if (showServices) {
-      this.set("showServices", true);
-    } else {
-      this.set("showServices", false);
+    if (!showServices) {
       this.set("popupHeaderName", serviceName);
     }
+    this.set("showServices", showServices);
     this.set("hosts", null);
     this.set("servicesInfo", null);
     this.set("inputData", null);
@@ -165,7 +164,7 @@ App.HostPopup = Em.Object.create({
       if (this.get("serviceName") == "")
         this.setBackgroundOperationHeader();
     }
-  }.observes("this.inputData"),
+  }.observes("inputData"),
 
   /**
    * Create hosts and tasks data structure for popup
@@ -175,7 +174,7 @@ App.HostPopup = Em.Object.create({
     var self = this;
     if (this.get("inputData")) {
       var hostsArr = [];
-      var hostsData = this.get("inputData")
+      var hostsData = this.get("inputData");
       var hosts = [];
       if (this.get("showServices") && this.get("serviceName") == "") {
         hostsData.forEach(function (service) {
@@ -183,14 +182,16 @@ App.HostPopup = Em.Object.create({
           host.setEach("serviceName", service.name);
           hosts.push.apply(hosts, host);
         });
-      } else {
-        if(this.get("currentServiceId") != null){
+      }
+      else {
+        if(this.get("currentServiceId") != null) {
           hostsData = hostsData.filterProperty("id", this.get("currentServiceId")).objectAt(0);
-        }else{
+        }
+        else {
           hostsData = hostsData.filterProperty("name", this.get("serviceName")).objectAt(0);
         }
 
-        if(hostsData.hosts){
+        if(hostsData && hostsData.hosts) {
           hosts = hostsData.hosts;
         }
 
@@ -265,7 +266,7 @@ App.HostPopup = Em.Object.create({
     }
 
     self.set("hosts", hostsArr);
-  }.observes("this.inputData"),
+  }.observes("inputData"),
 
   /**
    * Sort tasks by it`s id
@@ -321,10 +322,16 @@ App.HostPopup = Em.Object.create({
         isHostEmptyList: true,
         isTasksEmptyList: true,
         controller: this,
-        hosts: hostsInfo,
-        services: servicesInfo,
+        hosts: self.get("hosts"),
+        services: self.get('servicesInfo'),
 
-        tasks: null,
+        tasks: function() {
+          if (!this.get('controller.currentHostName')) return [];
+          if (this.get('hosts')) {
+            return this.get('hosts').findProperty('name', this.get('controller.currentHostName')).get('tasks');
+          }
+          return [];
+        }.property('hosts.@each.tasks', 'hosts.@each.tasks.@each.status'),
 
         didInsertElement: function () {
           this.setOnStart();
@@ -346,12 +353,11 @@ App.HostPopup = Em.Object.create({
          * When popup is opened, and data after polling has changed, update this data in component
          */
         updateHostInfo: function () {
-          //debugger;
           this.get("controller").set("inputData", null);
           this.get("controller").set("inputData", this.get("controller.serviceController.services"));
           this.set("hosts", this.get("controller.hosts"));
           this.set("services", this.get("controller.servicesInfo"));
-        }.observes("this.controller.serviceController.serviceTimestamp"),
+        }.observes("controller.serviceController.serviceTimestamp"),
 
         /**
          * Depending on service filter, set which services should be shown
@@ -560,6 +566,7 @@ App.HostPopup = Em.Object.create({
           var taskInfo = event.context.tasks;
           if (taskInfo.length) {
             this.get("controller").set("popupHeaderName", taskInfo.objectAt(0).hostName);
+            this.get("controller").set("currentHostName", taskInfo.objectAt(0).hostName);
           }
           this.set('tasks', taskInfo);
           this.set("isHostListHidden", true);
@@ -588,7 +595,7 @@ App.HostPopup = Em.Object.create({
             return Ember.Object.create();
           }
           return this.get('tasks').findProperty('id', this.get('openedTaskId'));
-        }.property('tasks', 'openedTaskId'),
+        }.property('tasks', 'tasks.@each.stderr', 'tasks.@each.stdout', 'openedTaskId'),
 
         /**
          * Onclick event for show task detail info

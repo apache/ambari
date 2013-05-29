@@ -895,6 +895,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2203.  Background operations popup does not automatically refresh the
+ task log. (yusaku)
+
  AMBARI-2202. Running the smoke test for a specific service should set the
  appropriate request context showing the service name. (yusaku)
 
