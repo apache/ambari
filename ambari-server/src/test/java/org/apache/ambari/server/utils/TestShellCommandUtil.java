@@ -80,7 +80,7 @@ public class TestShellCommandUtil extends TestCase {
   public void testUnixFilePermissions() throws Exception {
     File dummyFile = new File(temp.getRoot() + File.separator + "dummy");
     new FileOutputStream(dummyFile).close();
-    if (ShellCommandUtil.UNIX_LIKE) {
+    if (ShellCommandUtil.LINUX) {
       ShellCommandUtil.setUnixFilePermissions("600",
               dummyFile.getAbsolutePath());
       String p = ShellCommandUtil.getUnixFilePermissions(
@@ -103,7 +103,7 @@ public class TestShellCommandUtil extends TestCase {
       // Next command is silently ignored, it's OK
       ShellCommandUtil.setUnixFilePermissions(ShellCommandUtil.MASK_OWNER_ONLY_RW,
               dummyFile.getAbsolutePath());
-      // On Windows, output is always MASK_EVERYBODY_RWX
+      // On Windows/Mac, output is always MASK_EVERYBODY_RWX
       String p = ShellCommandUtil.getUnixFilePermissions(
               dummyFile.getAbsolutePath());
       assertEquals(p, ShellCommandUtil.MASK_EVERYBODY_RWX);
@@ -114,7 +114,7 @@ public class TestShellCommandUtil extends TestCase {
   @Test
   public void testRunCommand() throws Exception {
     ShellCommandUtil.Result result = null;
-    if (ShellCommandUtil.UNIX_LIKE) {
+    if (ShellCommandUtil.LINUX) {
       result = ShellCommandUtil.
               runCommand(new String [] {"echo", "dummy"});
       assertEquals(0, result.getExitCode());
@@ -127,7 +127,7 @@ public class TestShellCommandUtil extends TestCase {
       assertEquals(1, result.getExitCode());
       assertFalse(result.isSuccessful());
     } else {
-      // Skipping this test under Windows
+      // Skipping this test under Windows/Mac
     }
   }
 }

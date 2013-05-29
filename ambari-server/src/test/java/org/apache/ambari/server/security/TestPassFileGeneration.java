@@ -123,7 +123,7 @@ public class TestPassFileGeneration extends TestCase {
 
     assertEquals(pass.length(), passLen);
 
-    if (ShellCommandUtil.UNIX_LIKE) {
+    if (ShellCommandUtil.LINUX) {
       String permissions = ShellCommandUtil.
               getUnixFilePermissions(passFile.getAbsolutePath());
       assertEquals(ShellCommandUtil.MASK_OWNER_ONLY_RW, permissions);

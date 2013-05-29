@@ -30,7 +30,7 @@ import java.io.InputStreamReader;
  */
 public class ShellCommandUtil {
   private static final Log LOG = LogFactory.getLog(ShellCommandUtil.class);
-  private static Object WindowsProcessLaunchLock = new Object();
+  private static final Object WindowsProcessLaunchLock = new Object();
 
   /*
   public static String LogAndReturnOpenSslExitCode(String command, int exitCode) {
@@ -106,13 +106,13 @@ public class ShellCommandUtil {
 
 
   /**
-   * Gets file permissions on Unix-like systems.
-   * Under Windows, command always returns MASK_EVERYBODY_RWX
+   * Gets file permissions on Linux systems.
+   * Under Windows/Mac, command always returns MASK_EVERYBODY_RWX
    * @param path
    */
   public static String getUnixFilePermissions(String path) {
-    String result = null;
-    if (UNIX_LIKE) {
+    String result = MASK_EVERYBODY_RWX;
+    if (LINUX) {
       try {
         result = runCommand(new String[]{"stat", "-c", "%a", path}).getStdout();
       } catch (IOException e) {
@@ -123,20 +123,19 @@ public class ShellCommandUtil {
       }
     } else {
       LOG.debug(String.format("Not performing stat -s \"%%a\" command on file %s " +
-              "because current OS is not Unix-like. Returning 777", path));
-      result = MASK_EVERYBODY_RWX;
+              "because current OS is not Linux. Returning 777", path));
     }
     return result.trim();
   }
 
   /**
-   * Sets file permissions to a given value on Unix-like systems.
-   * On Windows, command is silently ignored
-   * @param path
+   * Sets file permissions to a given value on Linux systems.
+   * On Windows/Mac, command is silently ignored
    * @param mode
+   * @param path
    */
   public static void setUnixFilePermissions(String mode, String path) {
-    if (UNIX_LIKE) {
+    if (LINUX) {
       try {
         runCommand(new String[]{"chmod", mode, path});
       } catch (IOException e) {
@@ -147,7 +146,7 @@ public class ShellCommandUtil {
       }
     } else {
       LOG.debug(String.format("Not performing chmod %s command for file %s " +
-              "because current OS is not Unix-like ", mode, path));
+              "because current OS is not Linux ", mode, path));
     }
   }
 
