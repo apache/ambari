@@ -50,7 +50,9 @@ App.MainHostDetailsController = Em.Controller.extend({
   /**
    * Send specific command to server
    * @param url
-   * @param data Object to send
+   * @param _method
+   * @param postData
+   * @param callback
    */
   sendCommandToServer : function(url, postData, _method, callback){
     var url =  (App.testMode) ?

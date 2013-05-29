@@ -106,6 +106,8 @@ class hdp-hadoop::params(
   $fs_checkpoint_dir = hdp_default("core-site/fs.checkpoint.dir","/tmp/hadoop-hdfs/dfs/namesecondary")
 
   $proxyuser_group = hdp_default("core-site/proxyuser.group","users")
+  
+  $hadoop_tmp_dir = hdp_default("core-site/hadoop.tmp.dir","/tmp/hadoop-$hdfs_user")
 
   ### hdfs-site
   $datanode_du_reserved = hdp_default("hdfs-site/datanode.du.reserved",1073741824)

@@ -24,7 +24,9 @@ class hdp-yarn::nodemanager(
 ) inherits hdp-yarn::params
 {
   $yarn_user = $hdp-yarn::params::yarn_user
-  
+  $nm_local_dirs = $hdp-yarn::params::nm_local_dirs
+  $nm_log_dirs = $hdp-yarn::params::nm_log_dirs
+
   if ($service_state == 'no_op') {
   } elsif ($service_state in 'installed_and_configured') {
   
@@ -36,11 +38,27 @@ class hdp-yarn::nodemanager(
   } elsif ($service_state in ['running','stopped']) {
 
     include hdp-yarn::initialize
- 
+
+    hdp::directory_recursive_create { $nm_local_dirs: 
+      owner       => $yarn_user,
+      context_tag => 'yarn_service',
+      service_state => $service_state,
+      force => true
+    }
+
+    hdp::directory_recursive_create { $nm_log_dirs: 
+      owner       => $yarn_user,
+      context_tag => 'yarn_service',
+      service_state => $service_state,
+      force => true
+    }
+
     hdp-yarn::service{ 'nodemanager':
       ensure       => $service_state,
       user         => $yarn_user
     }
+
+    anchor{"hdp-yarn::nodemanager::begin":} -> Hdp::Directory_recursive_create[$nm_local_dirs] -> Hdp-yarn::Service['nodemanager'] -> anchor{"hdp-yarn::nodemanager::end":}
 
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")

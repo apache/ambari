@@ -86,7 +86,8 @@ module.exports = [
     displayName: 'HBase',
     filename: 'hbase-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'HBase', displayName: 'HBase'})
+      App.ServiceConfigCategory.create({ name: 'HBase Master', displayName: 'HBase Master'}),
+      App.ServiceConfigCategory.create({ name: 'RegionServer', displayName: 'RegionServer'})
     ],
     sites: ['hbase-site'],
     configs: configProperties.filterProperty('serviceName', 'HBASE')
@@ -95,7 +96,7 @@ module.exports = [
     serviceName: 'ZOOKEEPER',
     displayName: 'ZooKeeper',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'ZooKeeper Server', displayName: 'ZooKeeper Server'})
+      App.ServiceConfigCategory.create({ name: 'ZooKeeper Server'})
     ],
     configs: configProperties.filterProperty('serviceName', 'ZOOKEEPER')
 
@@ -105,7 +106,7 @@ module.exports = [
     displayName: 'Oozie',
     filename: 'oozie-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'Oozie Server', displayName:  'Oozie Server'})
+      App.ServiceConfigCategory.create({ name: 'Oozie Server'})
     ],
     sites: ['oozie-site'],
     configs: configProperties.filterProperty('serviceName', 'OOZIE')

@@ -23,7 +23,6 @@ var componentHelper = require('utils/component');
 App.MainHostController = Em.ArrayController.extend({
   name:'mainHostController',
   content: App.Host.find(),
-  comeWithFilter: false,
 
   alerts: function () {
     return App.router.get('clusterController.alerts').filterProperty('isOk', false).filterProperty('ignoredForHosts', false);
@@ -56,27 +55,32 @@ App.MainHostController = Em.ArrayController.extend({
    */
   filterByComponent:function (component) {
     var id = component.get('componentName');
-
+    var column = 6;
     this.get('componentsForFilter').setEach('checkedForHostFilter', false);
-    this.get('componentsForFilter').filterProperty('id', id).setEach('checkedForHostFilter', true);
 
-    this.set('comeWithFilter', true);
+    var filterForComponent = {
+      iColumn: column,
+      value: id,
+      type: 'multiple'
+    };
+
+    var filterConditions = App.db.getFilterConditions(this.get('name'));
+    if (filterConditions) {
+      var component = filterConditions.findProperty('iColumn', column);
+      if (component) {
+        component.value = id;
+      }
+      else {
+        filterConditions.push(filterForComponent);
+      }
+      App.db.setFilterConditions(this.get('name'), filterConditions);
+    }
+    else {
+      App.db.setFilterConditions(this.get('name'), [filterForComponent]);
+    }
   },
-
-  /**
-   * On click callback for decommission button
-   * @param event
-   */
-  decommissionButtonPopup:function () {
-    var self = this;
-    App.showConfirmationPopup(function(){
-      alert('do');
-    });
-  },
-
   /**
    * On click callback for delete button
-   * @param event
    */
   deleteButtonPopup:function () {
     var self = this;

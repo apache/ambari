@@ -140,12 +140,6 @@ define hdp-hadoop::namenode::create_app_directories($service_state)
         owner         => $hdp::params::hbase_user,
         service_state => $service_state
       }
-     $hbase_staging_dir = $hdp::params::hbase_staging_dir
-     hdp-hadoop::hdfs::directory { $hbase_staging_dir:
-       owner         => $hdp::params::hbase_user,
-       service_state => $service_state,
-       mode             => '711',
-     }
     }
 
     if ($hdp::params::hive_server_host != "") {
@@ -181,7 +175,7 @@ define hdp-hadoop::namenode::create_app_directories($service_state)
           hdp-hadoop::hdfs::directory{ $yarn_nm_app_log_dir:
             service_state => $service_state,
             owner => $yarn_user,
-            mode  => '744',
+            mode  => '1777',
             recursive_chmod => true
           }
         }
@@ -196,14 +190,14 @@ define hdp-hadoop::namenode::create_app_directories($service_state)
         hdp-hadoop::hdfs::directory{ $mapreduce_jobhistory_intermediate_done_dir:
           service_state => $service_state,
           owner => $mapred_user,
-          mode  => '777',
+          mode  => '1777',
           recursive_chmod => true
         }
 
         hdp-hadoop::hdfs::directory{ $mapreduce_jobhistory_done_dir:
           service_state => $service_state,
           owner => $mapred_user,
-          mode  => '750',
+          mode  => '1777',
           recursive_chmod => true
         }
       }

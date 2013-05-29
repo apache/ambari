@@ -88,7 +88,43 @@ App.HostComponent = DS.Model.extend({
       }
     }
     return decommissioning;
-  }.property('componentName', 'host.hostName', 'App.router.mainServiceController.hdfsService.decommissionDataNodes.@each.hostName')
+  }.property('componentName', 'host.hostName', 'App.router.mainServiceController.hdfsService.decommissionDataNodes.@each.hostName'),
+  /**
+   * User friendly host component status
+   */
+  componentTextStatus: function () {
+    var value = this.get("workStatus");
+    if(this.get('isDecommissioning')){
+      if(value == "STARTED"){
+        value = "DECOMMISSIONING";
+      }else if(value == "INSTALLED"){
+        value = "DECOMMISSIONED";
+      }
+    }
+    switch(value){
+      case "INSTALLING":
+        return 'Installing...';
+      case "INSTALL_FAILED":
+        return 'Install Failed';
+      case "INSTALLED":
+        return 'Stopped';
+      case "STARTED":
+        return 'Started';
+      case "STARTING":
+        return 'Starting...';
+      case "STOPPING":
+        return 'Stopping...';
+      case "DECOMMISSIONING":
+        return 'Decommissioning...';
+      case "DECOMMISSIONED":
+        return 'Decommissioned';
+      case "UNKNOWN":
+        return 'Heartbeat lost...';
+      case "UPGRADE_FAILED":
+        return 'Upgrade Failed';
+    }
+    return 'Unknown';
+  }.property('workStatus')
 });
 
 App.HostComponent.FIXTURES = [];
@@ -98,8 +134,6 @@ App.HostComponentStatus = {
   starting: "STARTING",
   stopped: "INSTALLED",
   stopping: "STOPPING",
-  stop_failed: "STOP_FAILED",
-  start_failed: "START_FAILED",
   install_failed: "INSTALL_FAILED",
   installing: "INSTALLING",
   upgrade_failed: "UPGRADE_FAILED",
@@ -115,10 +149,6 @@ App.HostComponentStatus = {
         return 'installed';
       case this.stopping:
         return 'stopping';
-      case this.stop_failed:
-        return 'stop_failed';
-      case this.start_failed:
-        return 'start_failed';
       case this.install_failed:
         return 'install_failed';
       case this.installing:

@@ -752,10 +752,10 @@ App.WizardStep14Controller = Em.Controller.extend({
       task = 0;
     }
     if (!polledData.someProperty('Tasks.status', 'PENDING') && !polledData.someProperty('Tasks.status', 'QUEUED') && !polledData.someProperty('Tasks.status', 'IN_PROGRESS')) {
-      if (polledData.everyProperty('Tasks.status', 'COMPLETED')) {
-        this.setTasksStatus(task, 'COMPLETED');
-      } else {
+      if (polledData.someProperty('Tasks.status', 'FAILED')) {
         this.setTasksStatus(task, 'FAILED');
+      } else {
+        this.setTasksStatus(task, 'COMPLETED');
       }
       stopPolling = true;
     } else {

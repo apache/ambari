@@ -19,10 +19,6 @@
 var App = require('app');
 var validator = require('utils/validator');
 
-App.ConfigProperties = Ember.ArrayProxy.extend({
-  content: require('data/config_properties').configProperties
-});
-
 App.ServiceConfig = Ember.Object.extend({
   serviceName: '',
   configCategories: [],

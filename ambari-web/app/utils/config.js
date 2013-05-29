@@ -37,9 +37,9 @@ App.config = Em.Object.create({
   configMapping: function() {
       if (stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 1 ||
         stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 0) {
-        return require('data/config_mapping');
+        return require('data/HDP2/config_mapping');
       }
-      return require('data/HDP2/config_mapping');
+    return require('data/config_mapping');
   }.property('App.currentStackVersionNumber'),
   preDefinedConfigProperties: function() {
     if (stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 1 ||

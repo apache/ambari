@@ -45,7 +45,7 @@ App.supports = {
   secureCluster: false,
   reassignMaster: false,
   stackUpgrade: false,
-  capacitySchedulerUi: false,
+  capacitySchedulerUi: true,
   startStopAllServices: false,
   hiveOozieExtraDatabases: true,
   multipleHBaseMasters: false,

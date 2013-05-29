@@ -1,3 +1,4 @@
+
 <!---
 Licensed to the Apache Software Foundation (ASF) under one or more
 contributor license agreements. See the NOTICE file distributed with
@@ -22,38 +23,7 @@ Update Service
 
 **Summary**
 
-
-    PUT /clusters/c1/services/HDFS/
-
-**Body**
-
-Start the HDFS service (update the state of the HDFS service to be ‘STARTED’).
-
-
-    PUT /clusters/c1/services/HDFS
-    {
-      "ServiceInfo": {
-        "state" : "STARTED”
-      }
-    }
-
 Update the service identified by ":serviceName" of the cluster identified by ":clusterName".
-
-**Response**
-
-    202 Accepted
-    {
-      "href" : "http://your.ambari.server/api/v1/clusters/c1/requests/3",
-      "Requests" : {
-        "id" : 3,
-        "status" : "InProgress"
-      } 
-    }
-
-**Example 2**
-
-Stop the HDFS service (update the state of the HDFS service to be ‘INSTALLED’).
-
 
     PUT /clusters/:clusterName/services/:serviceName
 
@@ -94,6 +64,31 @@ Stop the HDFS service (update the state of the HDFS service to be ‘INSTALLED�
 
 **Example 1**
 
+Start the HDFS service (update the state of the HDFS service to be ‘STARTED’).
+
+
+    PUT /clusters/c1/services/HDFS
+    {
+      "ServiceInfo": {
+        "state" : "STARTED”
+      }
+    }
+
+    202 Accepted
+    {
+      "href" : "http://your.ambari.server/api/v1/clusters/c1/requests/3",
+      "Requests" : {
+        "id" : 3,
+        "status" : "InProgress"
+      } 
+    }
+
+**Example 2**
+
+Stop the HDFS service (update the state of the HDFS service to be ‘INSTALLED’).
+
+
+    PUT /clusters/c1/services/HDFS/
     {
       "ServiceInfo": {
         "state" : "INSTALLED”

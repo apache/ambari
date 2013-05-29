@@ -82,7 +82,10 @@ def generateManifest(parsedJson, fileName, modulesdir, ambariconfig):
     
   #writing imports from external static file
   writeImports(outputFile=manifest, modulesdir=modulesdir, importsList=AmbariConfig.imports)
-  
+
+  #writing hostname
+  writeHostnames(manifest)
+
   #writing nodes
   writeNodes(manifest, clusterHostInfo)
   
@@ -113,6 +116,12 @@ def generateManifest(parsedJson, fileName, modulesdir, ambariconfig):
      
   manifest.close()
     
+
+def writeHostnames(outputFile):
+  fqdn = hostname.hostname()
+  public_fqdn = hostname.public_hostname()
+  outputFile.write('$myhostname' + " = '" + fqdn + "'" + os.linesep)
+  outputFile.write('$public_hostname' + " = '" + public_fqdn + "'" + os.linesep)
 
   #write nodes
 def writeNodes(outputFile, clusterHostInfo):
@@ -167,16 +176,12 @@ def writeHostAttributes(outputFile, hostAttributes):
 #write flat configurations
 def writeFlatConfigurations(outputFile, flatConfigs):
   flatDict = {}
-  fqdn = hostname.hostname()
-  public_fqdn = hostname.public_hostname()
   logger.debug("Generating global configurations =>\n" + pprint.pformat(flatConfigs))
   for flatConfigName in flatConfigs.iterkeys():
     for flatConfig in flatConfigs[flatConfigName].iterkeys():
       flatDict[flatConfig] = flatConfigs[flatConfigName][flatConfig]
   for gconfigKey in flatDict.iterkeys():
     outputFile.write('$' + gconfigKey + " = '" + flatDict[gconfigKey] + "'" + os.linesep)
-  outputFile.write('$myhostname' + " = '" + fqdn + "'" + os.linesep)
-  outputFile.write('$public_hostname' + " = '" + public_fqdn + "'" + os.linesep)
 
 #write xml configurations
 def writeNonGlobalConfigurations(outputFile, xmlConfigs):

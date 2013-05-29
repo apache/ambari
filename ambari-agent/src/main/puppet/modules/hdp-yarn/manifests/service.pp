@@ -98,8 +98,7 @@ define hdp-yarn::service(
   anchor{"hdp-yarn::service::${name}::begin":}
   anchor{"hdp-yarn::service::${name}::end":}
   if ($daemon_cmd != undef) {
-    Anchor["hdp-yarn::service::${name}::begin"] -> Hdp::Directory_recursive_create<|context_tag == 'yarn_service'|> ->
-      Hdp::Exec[$daemon_cmd] -> Anchor["hdp-yarn::service::${name}::end"]
+    Anchor["hdp-yarn::service::${name}::begin"] -> Hdp::Directory_recursive_create<|title == $pid_dir or title == $log_dir|> -> Hdp::Exec[$daemon_cmd] -> Anchor["hdp-yarn::service::${name}::end"]
 
   }
   if ($ensure == 'running') {

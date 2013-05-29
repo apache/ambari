@@ -39,21 +39,11 @@ class hdp-oozie::service(
   $oozie_keytab = $hdp-oozie::params::oozie_service_keytab
   $oozie_principal = $configuration['oozie-site']['oozie.service.HadoopAccessorService.kerberos.principal']
   
-  $oracle_driver_jar_name = "ojdbc6.jar"
-  $java_share_dir = "/usr/share/java"
-  
-  $artifact_dir = $hdp::params::artifact_dir
-  $driver_location = $hdp::params::jdk_location
-  $driver_curl_target = "${java_share_dir}/${oracle_driver_jar_name}"
-  $curl_cmd = "curl -f --retry 10 ${driver_location}${oracle_driver_jar_name} -o ${driver_curl_target}"
-  
   $jdbc_driver_name = $configuration['oozie-site']['oozie.service.JPAService.jdbc.driver']
   if ($jdbc_driver_name == "com.mysql.jdbc.Driver"){
-    $jdbc_driver_jar = "${java_share_dir}/mysql-connector-java.jar"
-    $jdbc_driver_jar_target = "${libext_dir}/mysql-connector-java.jar"
+    $jdbc_driver_jar = "/usr/share/java/mysql-connector-java.jar"
   } elsif($jdbc_driver_name == "oracle.jdbc.driver.OracleDriver") {
-      $jdbc_driver_jar = "${java_share_dir}/${oracle_driver_jar_name}"
-      $jdbc_driver_jar_target = "${libext_dir}/${oracle_driver_jar_name}"
+      $jdbc_driver_jar = "/usr/share/java/ojdbc6.jar"
   }
   
   
@@ -82,16 +72,16 @@ class hdp-oozie::service(
     $jar_path = "${lzo_jar_suffix}${jdbc_driver_jar}"
   }
 
-              
+       
   $cmd1 = "cd /usr/lib/oozie && tar -xvf oozie-sharelib.tar.gz"
   $cmd2 =  "cd /usr/lib/oozie && mkdir -p ${oozie_tmp}"
   $cmd3 =  "cd /usr/lib/oozie && chown ${user}:${hdp::params::user_group} ${oozie_tmp}" 
      
   $cmd4 = $jdbc_driver_name ? {
-        /(com.mysql.jdbc.Driver|oracle.jdbc.driver.OracleDriver)/ => "cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 $jar_location -extjs $ext_js_path $jar_option $jar_path && cp $jdbc_driver_jar $jdbc_driver_jar_target",
+        /(com.mysql.jdbc.Driver|oracle.jdbc.driver.OracleDriver)/ => "cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 $jar_location -extjs $ext_js_path $jar_option $jar_path",
         default            => "cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 $jar_location -extjs $ext_js_path $jar_option $jar_path",
   }
-  $cmd5 =  "cd ${oozie_tmp} && /usr/lib/oozie/bin/ooziedb.sh create -sqlfile oozie.sql -run "
+  $cmd5 =  "cd ${oozie_tmp} && /usr/lib/oozie/bin/ooziedb.sh create -sqlfile oozie.sql -run ; echo 0"
   $cmd6 =  "su - ${user} -c '${kinit_if_needed}; hadoop dfs -put /usr/lib/oozie/share ${oozie_hdfs_user_dir} ; hadoop dfs -chmod -R 755 ${oozie_hdfs_user_dir}/share'"
   #$cmd7 = "/usr/lib/oozie/bin/oozie-start.sh"
 
@@ -114,15 +104,13 @@ class hdp-oozie::service(
   hdp-oozie::service::directory { $hdp-oozie::params::oozie_data_dir : }
   hdp-oozie::service::directory { $hdp-oozie::params::oozie_lib_dir : }
   hdp-oozie::service::directory { $hdp-oozie::params::oozie_webapps_dir : }
-  hdp-oozie::service::directory { $hdp-oozie::params::libext_dir : }
-  hdp-oozie::service::jdbc-connector-java { $hdp-oozie::params::libext_dir : }
 
   anchor{'hdp-oozie::service::begin':} -> Hdp-oozie::Service::Directory<||> -> anchor{'hdp-oozie::service::end':}
   
   if ($ensure == 'installed_and_configured') {
     hdp-oozie::service::exec_sh{$sh_cmds:}
     hdp-oozie::service::exec_user{$user_cmds:}
-    Anchor['hdp-oozie::service::begin'] -> Hdp-oozie::Service::Jdbc-connector-java[$hdp-oozie::params::libext_dir] -> Hdp-oozie::Service::Directory<||> -> Hdp-oozie::Service::Exec_sh[$cmd1] -> Hdp-oozie::Service::Exec_sh[$cmd2] ->Hdp-oozie::Service::Exec_sh[$cmd3] -> Hdp-oozie::Service::Exec_user[$cmd4] ->Hdp-oozie::Service::Exec_user[$cmd5] -> Anchor['hdp-oozie::service::end']
+    Hdp-oozie::Service::Directory<||> -> Hdp-oozie::Service::Exec_sh[$cmd1] -> Hdp-oozie::Service::Exec_sh[$cmd2] ->Hdp-oozie::Service::Exec_sh[$cmd3] -> Hdp-oozie::Service::Exec_user[$cmd4] ->Hdp-oozie::Service::Exec_user[$cmd5] -> Anchor['hdp-oozie::service::end']
   } elsif ($ensure == 'running') {
     hdp::exec { "exec $cmd6" :
       command => $cmd6,
@@ -144,19 +132,6 @@ class hdp-oozie::service(
   }
 }
 
-define hdp-oozie::service::jdbc-connector-java()
-{
-  if ($jdbc_driver_name == "com.mysql.jdbc.Driver"){
-   hdp::package { 'mysql-connector-java' : }
-  } elsif($jdbc_driver_name == "oracle.jdbc.driver.OracleDriver") {
-    exec{ "${curl_cmd} ${name}":
-      command => $curl_cmd,
-      path    => ["/bin","/usr/bin/"],
-      unless  => "test -e ${java_share_dir}/${oracle_driver_jar_name}",
-    } 
-  }                       
-}                      
-                      
 define hdp-oozie::service::directory()
 {
   hdp::directory_recursive_create { $name: 

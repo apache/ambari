@@ -49,7 +49,13 @@ App.db.cleanUp = function () {
   App.db.data = {
     'app': {
       'loginName': '',
-      'authenticated': false
+      'authenticated': false,
+      'tables': {
+        'filterConditions': {},
+        'displayLength': {},
+        'startIndex': {},
+        'sortingConditions': {}
+      }
     },
 
     'Installer' : {},
@@ -109,6 +115,46 @@ App.db.setAuthenticated = function (authenticated) {
   localStorage.setObject('ambari', App.db.data);
   App.db.data = localStorage.getObject('ambari');
   console.log('Now present value of authentication is: ' + App.db.data.app.authenticated);
+};
+
+App.db.setFilterConditions = function(name, filterConditions) {
+  console.log('TRACE: Entering db:setFilterConditions function');
+  App.db.data = localStorage.getObject('ambari');
+  if (!App.db.data.app.tables.filterConditions) {
+    App.db.data.app.tables.filterConditions = {};
+  }
+  App.db.data.app.tables.filterConditions[name] = filterConditions;
+  localStorage.setObject('ambari', App.db.data);
+};
+
+App.db.setDisplayLength = function(name, displayLength) {
+  console.log('TRACE: Entering db:setDisplayLength function');
+  App.db.data = localStorage.getObject('ambari');
+  if (!App.db.data.app.tables.displayLength) {
+    App.db.data.app.tables.displayLength = {};
+  }
+  App.db.data.app.tables.displayLength[name] = displayLength;
+  localStorage.setObject('ambari', App.db.data);
+};
+
+App.db.setStartIndex = function(name, startIndex) {
+  console.log('TRACE: Entering db:setStartIndex function');
+  App.db.data = localStorage.getObject('ambari');
+  if (!App.db.data.app.tables.startIndex) {
+    App.db.data.app.tables.startIndex = {};
+  }
+  App.db.data.app.tables.startIndex[name] = startIndex;
+  localStorage.setObject('ambari', App.db.data);
+};
+
+App.db.setSortingStatuses = function(name, sortingConditions) {
+  console.log('TRACE: Entering db:setSortingConditions function');
+  App.db.data = localStorage.getObject('ambari');
+  if (!App.db.data.app.tables.sortingConditions) {
+    App.db.data.app.tables.sortingConditions = {};
+  }
+  App.db.data.app.tables.sortingConditions[name] = sortingConditions;
+  localStorage.setObject('ambari', App.db.data);
 };
 
 App.db.setAllHostNames = function (hostNames) {
@@ -295,6 +341,42 @@ App.db.getAmbariStacks = function () {
   console.log('TRACE: Entering db:setAmbariStacks function');
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.app.stacks;
+};
+
+App.db.getFilterConditions = function(name) {
+  console.log('TRACE: Entering db:getFilterConditions function');
+  App.db.data = localStorage.getObject('ambari');
+  if (App.db.data.app.tables.filterConditions[name]) {
+    return App.db.data.app.tables.filterConditions[name];
+  }
+  return null;
+};
+
+App.db.getDisplayLength = function(name) {
+  console.log('TRACE: Entering db:getDisplayLength function');
+  App.db.data = localStorage.getObject('ambari');
+  if (App.db.data.app.tables.displayLength[name]) {
+    return App.db.data.app.tables.displayLength[name];
+  }
+  return null;
+};
+
+App.db.getStartIndex = function(name) {
+  console.log('TRACE: Entering db:getStartIndex function');
+  App.db.data = localStorage.getObject('ambari');
+  if (App.db.data.app.tables.startIndex[name]) {
+    return App.db.data.app.tables.startIndex[name];
+  }
+  return null;
+};
+
+App.db.getSortingStatuses = function(name) {
+  console.log('TRACE: Entering db:getSortingConditions function');
+  App.db.data = localStorage.getObject('ambari');
+  if (App.db.data.app.tables.sortingConditions[name]) {
+    return App.db.data.app.tables.sortingConditions[name];
+  }
+  return null;
 };
 
 /**

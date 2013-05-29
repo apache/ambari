@@ -47,7 +47,7 @@ public class JMXPropertyProviderTest {
     TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
 
     JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
-        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
+        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.JMXMetricsVersion.One),
         streamProvider,
         hostProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
@@ -234,7 +234,7 @@ public class JMXPropertyProviderTest {
     TestJMXHostProvider hostProvider = new TestJMXHostProvider(true);
 
     JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
-        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
+        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.JMXMetricsVersion.One),
         streamProvider,
         hostProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
@@ -271,7 +271,7 @@ public class JMXPropertyProviderTest {
     TestJMXHostProvider hostProvider = new TestJMXHostProvider(true);
 
     JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
-        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
+        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.JMXMetricsVersion.One),
         streamProvider,
         hostProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
@@ -304,7 +304,7 @@ public class JMXPropertyProviderTest {
     Set<Resource> resources = new HashSet<Resource>();
 
     JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
-        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
+        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.JMXMetricsVersion.One),
         streamProvider,
         hostProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),

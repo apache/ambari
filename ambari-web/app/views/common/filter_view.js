@@ -33,6 +33,11 @@ var wrapperView = Ember.View.extend({
   value: null,
 
   /**
+   * Column index
+   */
+  column: null,
+
+  /**
    * If this field is exists we dynamically create hidden input element and set value there.
    * Used for some cases, where this values will be used outside of component
    */

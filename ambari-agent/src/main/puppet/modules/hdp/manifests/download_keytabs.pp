@@ -27,7 +27,7 @@ define hdp::download_keytab(
   $hostnameInPrincipals = 'yes'
 )
 {
-  $hostname = $::fqdn
+  $hostname = $hdp::params::hostname
   if ($hostnameInPrincipals == 'yes') {
     $keytabsrc = "puppet://${masterhost}/modules/keytabs/${hostname}.${keytabfile}"
   } else {

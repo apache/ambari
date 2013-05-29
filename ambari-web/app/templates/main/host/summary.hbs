@@ -64,41 +64,46 @@
             <div class="span5">
               {{#if App.isAdmin}}
               <div class="btn-group">
-                <a {{ bindAttr class=":btn :dropdown-toggle view.disabledClass"}} data-toggle="dropdown">
+                <a {{ bindAttr class=":btn :dropdown-toggle"}} data-toggle="dropdown">
                   {{t common.action}}
                   <span class="caret pull-right"></span>
                 </a>
                 <ul class="dropdown-menu">
+                   <li>
+                      <div class="component-text-status">
+                       {{view.componentTextStatus}}
+                      </div>
+                    </li>
                   {{#if view.isDataNode}}
                   <li {{bindAttr class="view.isDataNodeDecommissionAvailable::hidden"}}>
                     <a href="javascript:void(null)" data-toggle="modal" {{action "decommission" view.content target="controller"}}>
                       {{t common.decommission}}
                     </a>
                   </li>
-                  <li {{bindAttr class="view.isDataNodeRecommissionAvailable::hidden"}}>
+                  <li {{bindAttr class="view.isDataNodeRecommissionAvailable::hidden view.noActionAvailable:hidden"}}>
                     <a href="javascript:void(null)" data-toggle="modal" {{action "recommission" view.content target="controller"}}>
                       {{t common.recommission}}
                     </a>
                   </li>
                   {{/if}}
-                  <li {{bindAttr class="view.isStart::hidden"}}>
+                  <li {{bindAttr class="view.isStart::hidden view.isDecommissioning:hidden view.noActionAvailable:hidden"}}>
                     <a href="javascript:void(null)" data-toggle="modal" {{action "stopComponent" view.content target="controller"}}>
                       {{t common.stop}}
                     </a>
                   </li>
-                  <li {{bindAttr class="view.isStart:hidden: view.isInstallFailed:hidden: view.isDataNodeRecommissionAvailable:hidden"}}>
+                  <li {{bindAttr class="view.isStart:hidden view.isUpgradeFailed:hidden view.isInstallFailed:hidden view.isDecommissioning:hidden view.noActionAvailable:hidden"}}>
                     <a href="javascript:void(null)" data-toggle="modal" {{action "startComponent" view.content target="controller"}}>
                       {{t common.start}}
                     </a>
                   </li>
                   <li {{bindAttr class="view.isUpgradeFailed::hidden"}}>
                     <a href="javascript:void(null)" data-toggle="modal" {{action "upgradeComponent" view.content target="controller"}}>
-                      {{t common.upgrade}}
+                      {{t common.reUpgrade}}
                     </a>
                   </li>
                   <li {{bindAttr class="view.isInstallFailed::hidden"}}>
                     <a href="javascript:void(null)" data-toggle="modal" {{action "installComponent" view.content target="controller"}}>
-                      {{t common.install}}
+                      {{t common.reinstall}}
                     </a>
                   </li>
                 </ul>

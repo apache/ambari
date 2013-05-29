@@ -21,7 +21,7 @@ var App = require('app');
 App.MainServiceMenuView = Em.CollectionView.extend({
   content:function () {
     var items = App.router.get('mainServiceController.content').filter(function(item){
-      if(['PIG', 'SQOOP', 'HCATALOG'].contains(item.get('id'))){
+      if(['PIG', 'SQOOP', 'HCATALOG', 'TEZ'].contains(item.get('id'))){
         return false;
       }
       return true;

@@ -155,6 +155,8 @@ public class RoleCommandOrder {
         RoleCommand.START);
     addDependency(Role.HDFS_SERVICE_CHECK, RoleCommand.EXECUTE, Role.DATANODE,
         RoleCommand.START);
+    addDependency(Role.HDFS_SERVICE_CHECK, RoleCommand.EXECUTE, Role.SECONDARY_NAMENODE,
+        RoleCommand.START);
     addDependency(Role.MAPREDUCE_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.JOBTRACKER, RoleCommand.START);
     addDependency(Role.MAPREDUCE_SERVICE_CHECK, RoleCommand.EXECUTE,
@@ -179,6 +181,10 @@ public class RoleCommandOrder {
         Role.JOBTRACKER, RoleCommand.START);
     addDependency(Role.PIG_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.TASKTRACKER, RoleCommand.START);
+    addDependency(Role.PIG_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.RESOURCEMANAGER, RoleCommand.START);
+    addDependency(Role.PIG_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.NODEMANAGER, RoleCommand.START);
     addDependency(Role.SQOOP_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.JOBTRACKER, RoleCommand.START);
     addDependency(Role.SQOOP_SERVICE_CHECK, RoleCommand.EXECUTE,

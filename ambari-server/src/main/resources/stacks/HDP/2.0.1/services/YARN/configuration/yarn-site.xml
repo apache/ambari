@@ -25,23 +25,23 @@
 
   <property>
     <name>yarn.resourcemanager.resource-tracker.address</name>
-    <value>TODO-RMNODE-HOSTNAME:8025</value>
+    <value>localhost:8025</value>
   </property>
 
   <property>
     <name>yarn.resourcemanager.scheduler.address</name>
-    <value>TODO-RMNODE-HOSTNAME:8030</value>
+    <value>localhost:8030</value>
   </property>
   
   <property>
     <name>yarn.resourcemanager.address</name>
-    <value>TODO-RMNODE-HOSTNAME:8050</value>
+    <value>localhost:8050</value>
   </property>
 
-	<property>
+  <property>
     <name>yarn.resourcemanager.admin.address</name>
-    <value>TODO-RMNODE-HOSTNAME:8141</value>
-	</property>
+    <value>localhost:8141</value>
+  </property>
 
   <property>
    <name>yarn.resourcemanager.scheduler.class</name>
@@ -63,11 +63,6 @@
   <property>
     <name>yarn.nodemanager.address</name>
     <value>0.0.0.0:45454</value>
-  </property>
-
-  <property>
-    <name>yarn.nodemanager.local-dirs</name>
-    <value>TODO-YARN-LOCAL-DIR</value>
   </property>
 
   <property>
@@ -111,8 +106,13 @@
   </property>
 
   <property>
+    <name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>
+    <value>org.apache.hadoop.mapred.ShuffleHandler</value>
+  </property>
+
+  <property>
     <name>yarn.nodemanager.log-dirs</name>
-    <value>TODO-YARN-LOG-DIR</value>
+    <value>/var/log/hadoop/yarn</value>
   </property>
 
   <property>

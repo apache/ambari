@@ -39,8 +39,8 @@
       <ul><em> <b>{{item.name}}</b></em>
 
         <div>
-          <ul>{{t installer.step13.oldValue}}: &nbsp;<span class="text text-info">{{item.oldValue}}</span></ul>
-          <ul>{{t installer.step13.newValue}}: <span class="text text-info">{{item.value}}</span></ul>
+          <ul>Old value: &nbsp;<span class="text text-info">{{item.oldValue}} {{#if item.unit}}{{item.unit}}{{/if}}</span></ul>
+          <ul>New value: <span class="text text-info">{{item.value}} {{#if item.unit}}{{item.unit}}{{/if}}</span></ul>
         </div>
 
       </ul>

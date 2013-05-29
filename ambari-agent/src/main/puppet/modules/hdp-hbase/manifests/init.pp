@@ -93,14 +93,14 @@ class hdp-hbase(
       override_owner => true
     }
 
-   hdp-hbase::configfile { ['hbase-env.sh','hadoop-metrics.properties']: 
+   hdp-hbase::configfile { ['hbase-env.sh','log4j.properties','hadoop-metrics.properties']: 
       type => $type
     }
 
     hdp-hbase::configfile { 'regionservers':}
 
     if ($security_enabled == true) {
-      if ($type == 'master' and $service_state == 'running') {
+      if ($type == 'master') {
         hdp-hbase::configfile { 'hbase_master_jaas.conf' : }
 
         $hbase_grant_premissions_file = '/tmp/hbase_grant_permissions.sh'
@@ -111,20 +111,18 @@ class hdp-hbase(
           mode => '0644',
           content => template('hdp-hbase/hbase_grant_permissions.erb')
         }
-        $hbase_principal = $hdp-hbase::params::hbase_master_principal
-        $hbase_user_keytab = $hdp-hbase::params::hbase_keytab_path
-        $kinit_cmd = "${hdp::params::kinit_path_local} -kt ${hbase_user_keytab} ${hbase_principal};"
+
         hdp::exec { '${smokeuser}_grant_privileges' :
-          command => "su - ${hbase_user} -c '$kinit_cmd hbase --config $conf_dir shell ${hbase_grant_premissions_file}'",
+          command => "su - ${smoke_test_user} -c 'hbase --config $conf_dir shell ${hbase_grant_premissions_file}'",
           require => File[$hbase_grant_premissions_file]
         }
 
         Hdp-hbase::Configfile<||> -> File[$hbase_grant_premissions_file] ->
         Hdp::Exec['${smokeuser}_grant_privileges'] -> Anchor['hdp-hbase::end']
 
-      } elsif ($type == 'regionserver' and $service_state == 'running') {
+      } elsif ($type == 'regionserver') {
         hdp-hbase::configfile { 'hbase_regionserver_jaas.conf' : }
-      } elsif ($type == 'client') {
+      } else {
         hdp-hbase::configfile { 'hbase_client_jaas.conf' : }
       }
     }

@@ -25,12 +25,14 @@ import org.apache.ambari.server.controller.ganglia.GangliaHostPropertyProvider;
 import org.apache.ambari.server.controller.ganglia.GangliaReportPropertyProvider;
 import org.apache.ambari.server.controller.ganglia.GangliaHostProvider;
 import org.apache.ambari.server.controller.jmx.JMXHostProvider;
+import org.apache.ambari.server.controller.jmx.JMXVersioningPropertyProvider;
 import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import com.google.inject.Inject;
+import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.ambari.server.state.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +48,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   private static final int PROPERTY_REQUEST_READ_TIMEOUT    = 10000;
 
   private static final String CLUSTER_NAME_PROPERTY_ID                  = PropertyHelper.getPropertyId("Clusters", "cluster_name");
+  private static final String CLUSTER_VERSION_PROPERTY_ID               = PropertyHelper.getPropertyId("Clusters", "version");
   private static final String HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID   = PropertyHelper.getPropertyId("HostRoles", "cluster_name");
   private static final String HOST_COMPONENT_HOST_NAME_PROPERTY_ID      = PropertyHelper.getPropertyId("HostRoles", "host_name");
   private static final String HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "component_name");
@@ -95,6 +98,12 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
 
   @Inject
   private AmbariManagementController managementController;
+
+  /**
+   * Cluster versions.
+   */
+  private final Map<String, PropertyHelper.JMXMetricsVersion> clusterVersionsMap =
+      new HashMap<String, PropertyHelper.JMXMetricsVersion>();
 
   /**
    * The map of host components.
@@ -156,8 +165,11 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   public void update(ResourceProviderEvent event) {
     Resource.Type type = event.getResourceType();
 
-    if (type == Resource.Type.Cluster ||
-        type == Resource.Type.Host ||
+    if (type == Resource.Type.Cluster) {
+      resetInit();
+      updateClusterVersion();
+    }
+    if (type == Resource.Type.Host ||
         type == Resource.Type.HostComponent) {
       resetInit();
     }
@@ -235,7 +247,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   }
 
   protected void putResourceProvider(Resource.Type type, ResourceProvider resourceProvider) {
-    resourceProviders.put( type , resourceProvider);
+    resourceProviders.put(type, resourceProvider);
   }
 
   protected void putPropertyProviders(Resource.Type type, List<PropertyProvider> providers) {
@@ -267,8 +279,8 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
         ));
         break;
       case Component :
-        providers.add(new JMXPropertyProvider(
-            PropertyHelper.getJMXPropertyIds(type),
+        providers.add(createJMXPropertyProvider(
+            type,
             streamProvider,
             this,
             PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
@@ -285,8 +297,8 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
             PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name")));
         break;
       case HostComponent:
-        providers.add(new JMXPropertyProvider(
-            PropertyHelper.getJMXPropertyIds(type),
+        providers.add(createJMXPropertyProvider(
+            type,
             streamProvider,
             this,
             PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
@@ -329,7 +341,39 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     }
   }
 
-  private void initProviderMaps() throws SystemException{
+  /**
+   * Update a map of known cluster names to version of JMX metrics.  The JMX metrics version is based on the
+   * HDP version of the cluster.
+   */
+  private void updateClusterVersion() {
+    synchronized (clusterVersionsMap) {
+      clusterVersionsMap.clear();
+
+      ResourceProvider provider = getResourceProvider(Resource.Type.Cluster);
+      Request request = PropertyHelper.getReadRequest(CLUSTER_NAME_PROPERTY_ID, CLUSTER_VERSION_PROPERTY_ID);
+
+      try {
+        Set<Resource> clusters = provider.getResources(request, null);
+
+        for (Resource cluster : clusters) {
+          String clusterVersion = (String) cluster.getPropertyValue(CLUSTER_VERSION_PROPERTY_ID);
+
+          PropertyHelper.JMXMetricsVersion version =  clusterVersion.startsWith("HDP-2") ?
+              PropertyHelper.JMXMetricsVersion.Two : PropertyHelper.JMXMetricsVersion.One;
+
+          clusterVersionsMap.put(
+              (String) cluster.getPropertyValue(CLUSTER_NAME_PROPERTY_ID),
+              version);
+        }
+      } catch (Exception e) {
+        if (LOG.isErrorEnabled()) {
+          LOG.error("Caught exception while trying to get the cluster versions.", e);
+        }
+      }
+    }
+  }
+
+  private void initProviderMaps() throws SystemException {
     ResourceProvider provider = getResourceProvider(Resource.Type.Cluster);
     Request          request  = PropertyHelper.getReadRequest(CLUSTER_NAME_PROPERTY_ID);
 
@@ -464,5 +508,29 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
       }
     }
     return mConfigs;
+  }
+
+  /**
+   * Create the JMX property provider for the given type.
+   */
+  private PropertyProvider createJMXPropertyProvider( Resource.Type type, StreamProvider streamProvider,
+                                                      JMXHostProvider jmxHostProvider,
+                                                      String clusterNamePropertyId,
+                                                      String hostNamePropertyId,
+                                                      String componentNamePropertyId,
+                                                      String statePropertyId,
+                                                      Set<String> healthyStates) {
+    updateClusterVersion();
+
+    Map<PropertyHelper.JMXMetricsVersion, JMXPropertyProvider> providers =
+        new HashMap<PropertyHelper.JMXMetricsVersion, JMXPropertyProvider>();
+
+    for (PropertyHelper.JMXMetricsVersion version : PropertyHelper.JMXMetricsVersion.values()) {
+
+      providers.put(version, new JMXPropertyProvider(PropertyHelper.getJMXPropertyIds(type, version), streamProvider,
+          jmxHostProvider, clusterNamePropertyId, hostNamePropertyId, componentNamePropertyId, statePropertyId, healthyStates));
+    }
+
+    return new JMXVersioningPropertyProvider(clusterVersionsMap, providers, clusterNamePropertyId);
   }
 }

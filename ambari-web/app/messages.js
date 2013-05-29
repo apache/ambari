@@ -115,6 +115,7 @@ Em.I18n.translations = {
   'common.search': 'Search',
   'common.confirm': 'Confirm',
   'common.upgrade': 'Upgrade',
+  'common.reUpgrade': 'Retry Upgrade',
   'common.security':'Security',
   'common.cluster':'Cluster',
   'common.add': 'Add',
@@ -128,7 +129,7 @@ Em.I18n.translations = {
   'common.abort': 'Abort',
   'common.misc': 'Misc',
   'common.operations': 'Operations',
-  'common.install': 'Install',
+  'common.reinstall': 'Re-Install',
   'common.errorPopup.header': 'An error has been encountered',
   'common.use': 'Use',
   'common.stacks': 'Stacks',
@@ -469,8 +470,6 @@ Em.I18n.translations = {
   'installer.step13.sourceHost':'Source Host:',
   'installer.step13.changes':'Configs to change:',
   'installer.step13.component':'Component name:',
-  'installer.step13.oldValue':'Old value',
-  'installer.step13.newValue':'New value',
   'installer.step14.task0':'{0} stop',
   'installer.step14.task1':'{0} create',
   'installer.step14.task2':'{0} configs create',
@@ -746,6 +745,9 @@ Em.I18n.translations = {
   'services.service.info.metrics.mapreduce.tasksRunningWaiting.displayNames.waitingMaps':'Waiting Map Tasks',
   'services.service.info.metrics.mapreduce.tasksRunningWaiting.displayNames.waitingReduces':'Waiting Reduce Tasks',
 
+  'services.service.info.metrics.yarn.gc': 'Garbage Collection',
+  'services.service.info.metrics.yarn.gc.displayNames.gcTimeMillis':'Time',
+  
   'services.service.info.menu.summary':'Summary',
   'services.service.info.menu.configs':'Configs',
   'services.service.info.summary.hostsRunningMonitor':'{0} hosts running monitor',
@@ -983,6 +985,12 @@ Em.I18n.translations = {
   'dashboard.services.hdfs.nodes.heapUsed':'{0} / {1} ({2}% used)',
   'dashboard.services.hdfs.chart.label':'Capacity (Used/Total)',
   'dashboard.services.hdfs.blockErrors':'{0} corrupt / {1} missing / {2} under replicated',
+
+  'dashboard.services.yarn.summary':'{0} of {1} nodes live',
+  'dashboard.services.yarn.resourceManager':'ResourceManager',
+  'dashboard.services.yarn.nodeManagers':'NodeManagers',
+  'dashboard.services.yarn.yarnClients':'YARN Clients',
+  'dashboard.services.yarn.resourceManagerWebUI':'ResourceManager Web UI',
 
   'dashboard.services.mapreduce.summary':'{0} of {1} trackers live, {2} jobs running, {3} jobs waiting',
   'dashboard.services.mapreduce.taskTrackers':'TaskTrackers',

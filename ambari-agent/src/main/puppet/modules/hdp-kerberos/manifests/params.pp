@@ -24,7 +24,7 @@ class hdp-kerberos::params(
 {
   $domain  = 'hadoop.com'
   $realm = inline_template('<%= @domain.upcase %>')
-  $kdc_server = $::fqdn
+  $kdc_server = $hdp::params::hostname
   $kdc_port = 88
   $keytab_export_base_dir = '/etc/security/'
   $keytab_export_dir = "${keytab_export_base_dir}/keytabs"

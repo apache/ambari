@@ -203,8 +203,6 @@ Number.prototype.long2ip = function () {
  * @param {String} testUrl  URL to be used if app is not in test mode (!App.testMode)
  * @return {String} Formatted URL
  */
-App = require('app');
-
 App.formatUrl = function (urlTemplate, substitutes, testUrl) {
   var formatted = urlTemplate;
   if (urlTemplate) {
@@ -363,4 +361,12 @@ App.format = {
   taskStatus:function (_taskStatus) {
     return _taskStatus.toLowerCase();
   }
+};
+
+Array.prototype.removeAll = function(array){
+  var temp = array;
+  for(var i = 0 ; i < array.length ; i++ ){
+    temp = temp.without(array[i]);
+  }
+  return temp;
 };

@@ -356,6 +356,15 @@ App.WizardStep3Controller = Em.Controller.extend({
     }
   },
 
+  /*
+   stopBootstrap: function () {
+   console.log('stopBootstrap() called');
+   Ember.run.later(this, function () {
+   this.startRegistration();
+   }, 1000);
+   },
+   */
+
   startRegistration: function () {
     if (this.get('registrationStartedAt') == null) {
       this.set('registrationStartedAt', new Date().getTime());

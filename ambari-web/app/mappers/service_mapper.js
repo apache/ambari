@@ -78,6 +78,11 @@ App.servicesMapper = App.QuickDataMapper.create({
     upgrade_status: 'nameNodeComponent.ServiceComponentInfo.UpgradeFinalized',
     safe_mode_status: 'nameNodeComponent.ServiceComponentInfo.Safemode'
   },
+  yarnConfig: {
+    resource_manager_node_id: 'resourceManagerComponent.host_components[0].HostRoles.host_name',
+    node_manager_nodes: 'node_manager_nodes',
+    yarn_client_nodes: 'yarn_client_nodes'
+  },
   mapReduceConfig: {
     version: 'jobTrackerComponent.ServiceComponentInfo.Version',
     job_tracker_id: 'jobTrackerComponent.host_components[0].HostRoles.host_name',
@@ -155,13 +160,20 @@ App.servicesMapper = App.QuickDataMapper.create({
           App.store.load(App.HDFSService, finalJson);
         }
         else
-          if (item && item.ServiceInfo && item.ServiceInfo.service_name == "MAPREDUCE") {
-            finalJson = this.mapreduceMapper(item);
+          if (item && item.ServiceInfo && item.ServiceInfo.service_name == "YARN") {
+            finalJson = this.yarnMapper(item);
             finalJson.rand = Math.random();
             result.push(finalJson);
-            App.store.load(App.MapReduceService, finalJson);
+            App.store.load(App.YARNService, finalJson);
           }
           else
+            if (item && item.ServiceInfo && item.ServiceInfo.service_name == "MAPREDUCE") {
+              finalJson = this.mapreduceMapper(item);
+              finalJson.rand = Math.random();
+              result.push(finalJson);
+              App.store.load(App.MapReduceService, finalJson);
+            }
+            else
             if (item && item.ServiceInfo && item.ServiceInfo.service_name == "HBASE") {
               finalJson = this.hbaseMapper(item);
               finalJson.rand = Math.random();
@@ -264,6 +276,43 @@ App.servicesMapper = App.QuickDataMapper.create({
         if (component.host_components) {
           component.host_components.forEach(function (hc) {
             item.data_nodes.push(hc.HostRoles.host_name);
+          });
+        }
+      }
+    });
+    // Map
+    var finalJson = this.parseIt(item, finalConfig);
+    finalJson.quick_links = [1, 2, 3, 4];
+
+    return finalJson;
+  },
+  yarnMapper: function (item) {
+    var result = [];
+    var finalConfig = jQuery.extend({}, this.config);
+    // Change the JSON so that it is easy to map
+    var yarnConfig = this.yarnConfig;
+    item.components.forEach(function (component) {
+      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "RESOURCEMANAGER") {
+        item.resourceManagerComponent = component;
+        finalConfig = jQuery.extend(finalConfig, yarnConfig);
+      }
+      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "NODEMANAGER") {
+        if (!item.node_manager_nodes) {
+          item.node_manager_nodes = [];
+        }
+        if (component.host_components) {
+          component.host_components.forEach(function (hc) {
+            item.node_manager_nodes.push(hc.HostRoles.host_name);
+          });
+        }
+      }
+      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "YARN_CLIENT") {
+        if (!item.yarn_client_nodes) {
+          item.yarn_client_nodes = [];
+        }
+        if (component.host_components) {
+          component.host_components.forEach(function (hc) {
+            item.yarn_client_nodes.push(hc.HostRoles.host_name);
           });
         }
       }

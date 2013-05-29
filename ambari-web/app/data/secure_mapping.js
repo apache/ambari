@@ -111,16 +111,16 @@ module.exports = [
   },
   {
     "name": "dfs.datanode.address",
-    "templateName": ["dfs_datanode_address"],
+    "templateName": [],
     "foreignKey": null,
-    "value": "0.0.0.0:<templateName[0]>",
+    "value": "0.0.0.0:1019",
     "filename": "hdfs-site.xml"
   },
   {
     "name": "dfs.datanode.http.address",
-    "templateName": ["dfs_datanode_http_address"],
+    "templateName": [],
     "foreignKey": null,
-    "value": "0.0.0.0:<templateName[0]>",
+    "value": "0.0.0.0:1022",
     "filename": "hdfs-site.xml"
   },
   {
@@ -160,7 +160,7 @@ module.exports = [
   },
   {
     "name": "hbase.master.keytab.file",
-    "templateName": ["hbase_service_keytab"],
+    "templateName": ["hbase_master_keytab"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "hbase-site.xml"
@@ -174,7 +174,7 @@ module.exports = [
   },
   {
     "name": "hbase.regionserver.keytab.file",
-    "templateName": ["hbase_service_keytab"],
+    "templateName": ["regionserver_keytab"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "hbase-site.xml"
@@ -346,6 +346,13 @@ module.exports = [
     "templateName": [],
     "foreignKey": null,
     "value": "true",
+    "filename": "hbase-site.xml"
+  },
+  {
+    "name": "hbase.coprocessor.region.classes",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.hadoop.hbase.security.access.AccessController",
     "filename": "hbase-site.xml"
   },
   {

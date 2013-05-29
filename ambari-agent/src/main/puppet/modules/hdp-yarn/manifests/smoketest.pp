@@ -22,16 +22,16 @@ class hdp-yarn::smoketest(
   $component_name = undef
 )
 {
-  $rm_webui_port = $hdp-yarn::params::rm_webui_port
-  $nm_webui_port = $hdp-yarn::params::nm_webui_port
-  $hs_webui_port = $hdp-yarn::params::hs_webui_port
+  $rm_webui_address = $hdp-yarn::params::rm_webui_address
+  $nm_webui_address = $hdp-yarn::params::nm_webui_address
+  $hs_webui_address = $hdp-yarn::params::hs_webui_address
 
   if ($component_name == 'resourcemanager') {
     $component_type = 'rm'
-    $component_port = $rm_webui_port
+    $component_address = $rm_webui_address
   } elsif ($component_name == 'historyserver') {
     $component_type = 'hs' 
-    $component_port = $hs_webui_port
+    $component_address = $hs_webui_address
   } else {
     hdp_fail("Unsupported component name: $component_name")
   }
@@ -41,7 +41,7 @@ class hdp-yarn::smoketest(
   $validateStatusFileName = "validateYarnComponentStatus.py"
   $validateStatusFilePath = "/tmp/$validateStatusFileName"
 
-  $validateStatusCmd = "su - ${smoke_test_user} -c 'python $validateStatusFilePath $component_type -p $component_port'"
+  $validateStatusCmd = "su - ${smoke_test_user} -c 'python $validateStatusFilePath $component_type -p $component_address'"
 
   file { $validateStatusFilePath:
     ensure => present,
