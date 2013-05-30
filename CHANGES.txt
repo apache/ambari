@@ -907,6 +907,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2228. Fix MySQL and Oracle DDL scripts according to last DB
+ changes. (smohanty)
+
  AMBARI-2198. Avoid using $::fqdn in puppet which uses the fqdn value from
  puppet/facter, instead pass in the hostname from
  python socket.getfqdn(). (smohanty)
