@@ -37,9 +37,9 @@ App.config = Em.Object.create({
   configMapping: function() {
       if (stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 1 ||
         stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 0) {
-        return require('data/config_mapping');
+        return require('data/HDP2/config_mapping');
       }
-      return require('data/HDP2/config_mapping');
+    return require('data/config_mapping');
   }.property('App.currentStackVersionNumber'),
   preDefinedConfigProperties: function() {
     if (stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 1 ||
@@ -154,15 +154,16 @@ App.config = Em.Object.create({
       properties = (properties.length) ? properties.objectAt(0).properties : {};
       for (var index in properties) {
         var configsPropertyDef = preDefinedConfigs.findProperty('name', index) || null;
-        var serviceConfigObj = {
+        var serviceConfigObj = App.ServiceConfig.create({
           name: index,
           value: properties[index],
           defaultValue: properties[index],
           filename: _tag.siteName + ".xml",
           isUserProperty: false,
           isOverridable: true,
-          serviceName: serviceName
-        };
+          serviceName: serviceName,
+          belongsToService: []
+        });
 
         if (configsPropertyDef) {
           serviceConfigObj.displayType = configsPropertyDef.displayType;
@@ -174,6 +175,7 @@ App.config = Em.Object.create({
           serviceConfigObj.isOverridable = configsPropertyDef.isOverridable === undefined ? true : configsPropertyDef.isOverridable;
           serviceConfigObj.serviceName = configsPropertyDef ? configsPropertyDef.serviceName : null;
           serviceConfigObj.index = configsPropertyDef.index;
+          serviceConfigObj.belongsToService = configsPropertyDef.belongsToService;
         }
         // MAPREDUCE contains core-site properties but doesn't show them
         if(serviceConfigObj.serviceName === 'MAPREDUCE' && serviceConfigObj.filename === 'core-site.xml'){
@@ -367,6 +369,14 @@ App.config = Em.Object.create({
         break;
     }
   },
+
+  miscConfigVisibleProperty: function (configs, serviceToShow) {
+    configs.forEach(function(item) {
+      item.set("isVisible", item.belongsToService.some(function(cur){return serviceToShow.contains(cur)}));
+    });
+    return configs;
+  },
+
   /**
    * render configs, distribute them by service
    * and wrap each in ServiceConfigProperty object

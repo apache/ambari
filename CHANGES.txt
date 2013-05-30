@@ -312,6 +312,9 @@ Trunk (unreleased changes):
 
  IMPROVEMENTS
 
+ AMBARI-2234. Host Details Page: Update host component actions and icons
+ depending on state. (yusaku)
+
  AMBARI-2199. Add a legend to Job Timeline. (billie via yusaku)
 
  AMBARI-2212. Change config loading mechanism to allow for different
@@ -906,6 +909,12 @@ Trunk (unreleased changes):
  Farrellee via mahadev)
 
  BUG FIXES
+ 
+ AMBARI-2230. Nagios user is presented in Admin > Misc page when Nagios
+ service was not installed. (yusaku)
+
+ AMBARI-2231. Service web UI links map to hostnames not resolvable by the
+ client. (yusaku)
 
  AMBARI-2239. secure cluster: Namenode and SNamenode should use same
  keytab. (jaimin)

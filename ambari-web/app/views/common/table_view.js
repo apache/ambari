@@ -22,13 +22,74 @@ var sort = require('views/common/sort_view');
 
 App.TableView = Em.View.extend({
 
-  didInsertElement: function () {
-    this.set('filterConditions', []);
-    this.filter();
+  /**
+   * Shows if all data is loaded and filtered
+   */
+  filteringComplete: false,
+
+  /**
+   * Loaded from local storage startIndex value
+   */
+  startIndexOnLoad: null,
+  /**
+   * Loaded from local storage displayLength value
+   */
+  displayLengthOnLoad: null,
+
+  /**
+   * Do filtering, using saved in the local storage filter conditions
+   */
+  willInsertElement:function () {
+    var self = this;
+    var name = this.get('controller.name');
+
+    this.set('startIndexOnLoad', App.db.getStartIndex(name));
+    this.set('displayLengthOnLoad', App.db.getDisplayLength(name));
+
+    var filterConditions = App.db.getFilterConditions(name);
+    if (filterConditions) {
+      this.set('filterConditions', filterConditions);
+
+      var childViews = this.get('childViews');
+
+      filterConditions.forEach(function(condition) {
+        var view = childViews.findProperty('column', condition.iColumn);
+        if (view) {
+          view.set('value', condition.value);
+          Em.run.next(function() {
+            view.showClearFilter();
+          });
+        }
+      });
+    }
+
+    Em.run.next(function() {
+      Em.run.next(function() {
+        self.set('filteringComplete', true);
+      });
+    });
   },
 
   /**
-   * return pagination information displayed on the mirroring page
+   * Do pagination after filtering and sorting
+   * Don't call this method! It's already used where it's need
+   */
+  showProperPage: function() {
+    var self = this;
+    Em.run.next(function() {
+      Em.run.next(function() {
+        if (self.get('displayLengthOnLoad')) {
+          self.set('displayLength', self.get('displayLengthOnLoad'));
+        }
+        if(self.get('startIndexOnLoad')) {
+          self.set('startIndex', self.get('startIndexOnLoad'));
+        }
+      });
+    });
+  },
+
+  /**
+   * return pagination information displayed on the page
    */
   paginationInfo: function () {
     return this.t('apps.filters.paginationInfo').format(this.get('startIndex'), this.get('endIndex'), this.get('filteredContent.length'));
@@ -70,16 +131,16 @@ App.TableView = Em.View.extend({
     content: ['10', '25', '50']
   }),
 
-  // start index for displayed content on the mirroring page
+  // start index for displayed content on the page
   startIndex: 1,
 
-  // calculate end index for displayed content on the mirroring page
+  // calculate end index for displayed content on the page
   endIndex: function () {
     return Math.min(this.get('filteredContent.length'), this.get('startIndex') + parseInt(this.get('displayLength')) - 1);
   }.property('startIndex', 'displayLength', 'filteredContent.length'),
 
   /**
-   * onclick handler for previous page button on the mirroring page
+   * onclick handler for previous page button on the page
    */
   previousPage: function () {
     var result = this.get('startIndex') - parseInt(this.get('displayLength'));
@@ -90,7 +151,7 @@ App.TableView = Em.View.extend({
   },
 
   /**
-   * onclick handler for next page button on the mirroring page
+   * onclick handler for next page button on the page
    */
   nextPage: function () {
     var result = this.get('startIndex') + parseInt(this.get('displayLength'));
@@ -99,7 +160,7 @@ App.TableView = Em.View.extend({
     }
   },
 
-  // the number of mirroring to show on every page of the mirroring page view
+  // the number of rows to show on every page
   displayLength: null,
 
   // calculates default value for startIndex property after applying filter or changing displayLength
@@ -112,20 +173,52 @@ App.TableView = Em.View.extend({
    *
    * @param iColumn number of column by which filter
    * @param value
+   * @param type
    */
   updateFilter: function (iColumn, value, type) {
     var filterCondition = this.get('filterConditions').findProperty('iColumn', iColumn);
     if (filterCondition) {
       filterCondition.value = value;
-    } else {
+    }
+    else {
       filterCondition = {
         iColumn: iColumn,
         value: value,
         type: type
-      }
+      };
       this.get('filterConditions').push(filterCondition);
     }
+    this.saveFilterConditions();
     this.filter();
+  },
+
+  saveFilterConditions: function() {
+    App.db.setFilterConditions(this.get('controller.name'), this.get('filterConditions'));
+  },
+
+  saveDisplayLength: function() {
+    var self = this;
+    Em.run.next(function() {
+      App.db.setDisplayLength(self.get('controller.name'), self.get('displayLength'));
+    });
+  }.observes('displayLength'),
+
+  saveStartIndex: function() {
+    if (this.get('filteringComplete')) {
+      App.db.setStartIndex(this.get('controller.name'), this.get('startIndex'));
+    }
+  }.observes('startIndex'),
+
+  clearFilterCondition: function() {
+    App.db.setFilterConditions(this.get('controller.name'), null);
+  },
+
+  clearDisplayLength: function() {
+    App.db.setDisplayLength(this.get('controller.name'), null);
+  },
+
+  clearStartIndex: function() {
+    App.db.setStartIndex(this.get('controller.name'), null);
   },
 
   /**
@@ -135,7 +228,7 @@ App.TableView = Em.View.extend({
 
   filteredContent: [],
 
-  // contain content to show on the current page of mirroring page view
+  // contain content to show on the current page of data page view
   pageContent: function () {
     return this.get('filteredContent').slice(this.get('startIndex') - 1, this.get('endIndex'));
   }.property('filteredContent.length', 'startIndex', 'endIndex'),

@@ -27,10 +27,10 @@ HISTORYSERVER ='hs'
 
 STARTED_STATE = 'STARTED'
 
-def validate(component, path, port):
+def validate(component, path, address):
 
   try:
-    url = 'http://localhost:' + str(port) + path
+    url = 'http://' + address + path
     opener = urllib2.build_opener()
     urllib2.install_opener(opener)
     request = urllib2.Request(url)
@@ -71,14 +71,14 @@ def validateResponse(component, response):
 #
 def main():
   parser = optparse.OptionParser(usage="usage: %prog [options] component ")
-  parser.add_option("-p", "--port", dest="port", help="Port for rest api of desired component")
+  parser.add_option("-p", "--port", dest="address", help="Host:Port for REST API of a desired component")
 
 
   (options, args) = parser.parse_args()
 
   component = args[0]
   
-  port = options.port
+  address = options.address
   
   if component == RESOURCEMANAGER:
     path = '/ws/v1/cluster/info'
@@ -87,7 +87,7 @@ def main():
   else:
     parser.error("Invalid component")
 
-  validate(component, path, port)
+  validate(component, path, address)
 
 if __name__ == "__main__":
   main()

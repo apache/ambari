@@ -91,14 +91,14 @@ App.MainHostSummaryView = Em.View.extend({
   didInsertElement: function () {
     this.loadDecommissionNodesList();
   },
-  sortedComponents: function() {
+  sortedComponents: function () {
     var slaveComponents = [];
     var masterComponents = [];
-    this.get('content.hostComponents').forEach(function(component){
-      if(component.get('workStatus') != 'INSTALLING'){
-        if(component.get('isMaster')){
+    this.get('content.hostComponents').forEach(function (component) {
+      if (component.get('workStatus') != 'INSTALLING') {
+        if (component.get('isMaster')) {
           masterComponents.push(component);
-        } else if(component.get('isSlave')) {
+        } else if (component.get('isSlave')) {
           slaveComponents.push(component);
         }
       }
@@ -106,16 +106,16 @@ App.MainHostSummaryView = Em.View.extend({
     }, this);
     return masterComponents.concat(slaveComponents);
   }.property('content', 'content.hostComponents.length'),
-  clients: function(){
+  clients: function () {
     var clients = [];
-    this.get('content.hostComponents').forEach(function(component){
-      if(!component.get('componentName')){
+    this.get('content.hostComponents').forEach(function (component) {
+      if (!component.get('componentName')) {
         //temporary fix because of different data in hostComponents and serviceComponents
         return;
       }
       if (!component.get('isSlave') && !component.get('isMaster')) {
         if (clients.length) {
-          clients[clients.length-1].set('isLast', false);
+          clients[clients.length - 1].set('isLast', false);
         }
         component.set('isLast', true);
         clients.push(component);
@@ -126,21 +126,21 @@ App.MainHostSummaryView = Em.View.extend({
 
   addableComponentObject: Em.Object.extend({
     componentName: '',
-    displayName: function(){
+    displayName: function () {
       return App.format.role(this.get('componentName'));
     }.property('componentName')
   }),
-  isAddComponent: function(){
+  isAddComponent: function () {
     return this.get('content.healthClass') !== 'health-status-DEAD-YELLOW';
   }.property('content.healthClass'),
-  addableComponents:function(){
+  addableComponents: function () {
     var components = [];
     var services = App.Service.find();
     var dataNodeExists = false;
     var taskTrackerExists = false;
     var regionServerExists = false;
 
-    this.get('content.hostComponents').forEach(function(component) {
+    this.get('content.hostComponents').forEach(function (component) {
       switch (component.get('componentName')) {
         case 'DATANODE':
           dataNodeExists = true;
@@ -173,74 +173,96 @@ App.MainHostSummaryView = Em.View.extend({
         this.doBlinking();
       }
     },
-    hostComponent: function(){
+    hostComponent: function () {
       var hostComponent = null;
       var serviceComponent = this.get('content');
       var host = App.router.get('mainHostDetailsController.content');
-      if(host){
+      if (host) {
         hostComponent = host.get('hostComponents').findProperty('componentName', serviceComponent.get('componentName'));
       }
       return hostComponent;
     }.property('content', 'App.router.mainHostDetailsController.content'),
-    workStatus: function(){
+    workStatus: function () {
       var workStatus = this.get('content.workStatus');
       var hostComponent = this.get('hostComponent');
-      if(hostComponent){
+      if (hostComponent) {
         workStatus = hostComponent.get('workStatus');
       }
       return workStatus;
-    }.property('content.workStatus','hostComponent.workStatus'),
-    statusClass: function(){
+    }.property('content.workStatus', 'hostComponent.workStatus'),
+
+    /**
+     * Return host component text status
+     */
+    componentTextStatus: function () {
+      var workStatus = this.get("workStatus");
+      var componentTextStatus = this.get('content.componentTextStatus');
+      var hostComponent = this.get('hostComponent');
+      if (hostComponent) {
+        componentTextStatus = hostComponent.get('componentTextStatus');
+        if(this.get("isDataNode"))
+          if(this.get('isDataNodeRecommissionAvailable')){
+            if(App.HostComponentStatus.started == workStatus){
+              componentTextStatus = "Decommissioning...";
+            }else if(App.HostComponentStatus.stopped == workStatus){
+              componentTextStatus = "Decommissioned";
+            }
+          }
+      }
+      return componentTextStatus;
+    }.property('workStatus','isDataNodeRecommissionAvailable'),
+
+    statusClass: function () {
       var statusClass = null;
-      if(this.get('isDataNode')){
-        if(this.get('isDataNodeRecommissionAvailable') && this.get('isStart')){
-          // Orange is shown only when service is started/starting and it is decommissioned.
+
+      //If the component is DataNode
+      if (this.get('isDataNode')) {
+        if (this.get('isDataNodeRecommissionAvailable') && (this.get('isStart') || this.get('workStatus') == 'INSTALLED')) {
           return 'health-status-DEAD-ORANGE';
         }
       }
-      if(this.get('workStatus') === App.HostComponentStatus.install_failed){
-        return 'icon-remove';
+
+      //Class when install failed
+      if (this.get('workStatus') === App.HostComponentStatus.install_failed) {
+        return 'health-status-color-red icon-cog';
       }
+
+      //Class when installing
+      if (this.get('workStatus') === App.HostComponentStatus.installing) {
+        return 'health-status-color-blue icon-cog';
+      }
+
+      //For all other cases
       return 'health-status-' + App.HostComponentStatus.getKeyName(this.get('workStatus'));
-    }.property('workStatus', 'isDataNodeRecommissionAvailable'),
+    }.property('workStatus', 'isDataNodeRecommissionAvailable', 'this.content.isDecommissioning'),
     /**
      * For Upgrade failed state
      */
-    isUpgradeFailed:function(){
+    isUpgradeFailed: function () {
       return App.HostComponentStatus.getKeyName(this.get('workStatus')) === "upgrade_failed";
     }.property("workStatus"),
     /**
      * For Install failed state
      */
-    isInstallFailed:function(){
+    isInstallFailed: function () {
       return App.HostComponentStatus.getKeyName(this.get('workStatus')) === "install_failed";
     }.property("workStatus"),
     /**
-     * Disable element while component is starting/stopping
-     */
-    disabledClass:function(){
-      var workStatus = this.get('workStatus');
-      if([App.HostComponentStatus.starting, App.HostComponentStatus.stopping, App.HostComponentStatus.unknown].contains(workStatus) ){
-        return 'disabled';
-      } else {
-        return '';
-      }
-    }.property('workStatus'),
-    /**
      * Do blinking for 1 minute
      */
-    doBlinking : function(){
+    doBlinking: function () {
       var workStatus = this.get('workStatus');
       var self = this;
       var pulsate = [ App.HostComponentStatus.starting, App.HostComponentStatus.stopping ].contains(workStatus);
       if (!pulsate && this.get('isDataNode')) {
         var dataNodeComponent = this.get('content');
-        if (dataNodeComponent)
-          pulsate = dataNodeComponent.get('isDecommissioning');
+        if (dataNodeComponent && workStatus != "INSTALLED") {
+          pulsate = this.get('isDataNodeRecommissionAvailable');
+        }
       }
       if (pulsate && !self.get('isBlinking')) {
         self.set('isBlinking', true);
-        uiEffects.pulsate(self.$('.components-health'), 1000, function(){
+        uiEffects.pulsate(self.$('.components-health'), 1000, function () {
           !self.get('isDestroyed') && self.set('isBlinking', false);
           self.doBlinking();
         });
@@ -249,25 +271,41 @@ App.MainHostSummaryView = Em.View.extend({
     /**
      * Start blinking when host component is starting/stopping
      */
-    startBlinking:function(){
+    startBlinking: function () {
       this.$('.components-health').stop(true, true);
       this.$('.components-health').css({opacity: 1.0});
       this.doBlinking();
-    }.observes('workStatus'),
+    }.observes('workStatus','isDataNodeRecommissionAvailable'),
 
-    isStart : function() {
-      return (this.get('workStatus') === App.HostComponentStatus.started || this.get('workStatus') === App.HostComponentStatus.starting);
+    isStart: function () {
+      return (this.get('workStatus') == App.HostComponentStatus.started || this.get('workStatus') == App.HostComponentStatus.starting);
     }.property('workStatus'),
 
-    isInProgress : function() {
-      return (this.get('workStatus') === App.HostComponentStatus.stopping || this.get('workStatus') === App.HostComponentStatus.starting);
+    /**
+     * No action available while component is starting/stopping/unknown
+     */
+    noActionAvailable: function () {
+      var workStatus = this.get('workStatus');
+      if ([App.HostComponentStatus.starting, App.HostComponentStatus.stopping, App.HostComponentStatus.unknown].contains(workStatus)) {
+        return "hidden";
+      }else{
+        return "";
+      }
     }.property('workStatus'),
+
+    isInProgress: function () {
+      return (this.get('workStatus') === App.HostComponentStatus.stopping || this.get('workStatus') === App.HostComponentStatus.starting) || this.get('isDataNodeRecommissionAvailable');
+    }.property('workStatus', 'isDataNodeRecommissionAvailable'),
     /**
      * Shows whether we need to show Decommision/Recomission buttons
      */
-    isDataNode: function() {
+    isDataNode: function () {
       return this.get('content.componentName') === 'DATANODE';
     }.property('content'),
+
+    isDecommissioning: function () {
+      return this.get('isDataNode') &&  this.get("isDataNodeRecommissionAvailable");
+    }.property("workStatus", "isDataNodeRecommissionAvailable"),
 
     /**
      * Set in template via binding from parent view
@@ -287,7 +325,7 @@ App.MainHostSummaryView = Em.View.extend({
     isDataNodeRecommissionAvailable: function () {
       var decommissionHostNames = this.get('decommissionDataNodeHostNames');
       var hostName = App.router.get('mainHostDetailsController.content.hostName');
-      return decommissionHostNames!=null && decommissionHostNames.contains(hostName);
+      return decommissionHostNames != null && decommissionHostNames.contains(hostName);
     }.property('App.router.mainHostDetailsController.content', 'decommissionDataNodeHostNames')
 
   }),

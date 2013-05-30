@@ -158,3 +158,4 @@ A component can be stopped through the API by setting its state to be INSTALLED 
 The user can update the desired state of a host component through the API to be MAINTENANCE (see [update host component](update-hostcomponent.md)).  When a host component is into maintenance state it is basically taken off line. This state can be used, for example, to move a component like NameNode.  The NameNode component can be put in MAINTENANCE mode and then a new NameNode can be created for the service. 
 
 
+

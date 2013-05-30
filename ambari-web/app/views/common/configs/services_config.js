@@ -189,7 +189,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
         var name = this.get('name');
         if(name.trim() != ""){
           if(validator.isValidConfigKey(name)){
-            var configMappingProperty = App.config.configMapping.all().findProperty('name', name);
+            var configMappingProperty = App.config.get('configMapping').all().findProperty('name', name);
             if((configMappingProperty == null) && (!serviceConfigNames.contains(name))){
               this.set("isKeyError", false);
               this.set("errorMessage", "");

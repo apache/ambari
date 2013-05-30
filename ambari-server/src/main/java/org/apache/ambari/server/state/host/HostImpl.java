@@ -355,6 +355,9 @@ public class HostImpl implements Host {
     }
   }
 
+  /**
+   * @param hostInfo
+   */
   @Override
   public void importHostInfo(HostInfo hostInfo) {
     try {
@@ -457,17 +460,26 @@ public class HostImpl implements Host {
     }
   }
 
-  /**
-   * @param hostInfo
-   */
   @Override
   public void setLastAgentEnv(AgentEnv env) {
-    lastAgentEnv = env;
+    writeLock.lock();
+    try {
+      lastAgentEnv = env;
+    } finally {
+      writeLock.unlock();
+    }
+
   }
   
   @Override
   public AgentEnv getLastAgentEnv() {
-    return lastAgentEnv;
+    readLock.lock();
+    try {
+      return lastAgentEnv;
+    } finally {
+      readLock.unlock();
+    }
+
   }
 
   @Override

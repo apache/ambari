@@ -174,7 +174,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   getServer: function(serviceName) {
     var service=this.get('controller.content');
     if(service.get("id") == serviceName) {
-      return service.get("hostComponents").findProperty('isMaster', true).get("host").get("publicHostName");
+      return (App.singleNodeInstall ? App.singleNodeAlias : service.get("hostComponents").findProperty('isMaster', true).get("host").get("publicHostName"));
     }
     else {
       return '';

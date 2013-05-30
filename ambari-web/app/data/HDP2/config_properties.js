@@ -58,7 +58,7 @@
  *
  *   serviceName:
  *     The service that the config property belongs to.
- *     E.g., "HDFS", "MAPREDUCE", "ZOOKEEPER", etc.
+ *     E.g., "HDFS", "MAPREDUCE2", "ZOOKEEPER", etc.
  *
  *   category: the category that the config property belongs to (used for grouping config properties in the UI).
  *     if unspecified, "General" is assumed.
@@ -493,6 +493,209 @@ module.exports =
       "serviceName": "MAPREDUCE2",
       "category": "HistoryServer",
       "index": 0
+    },
+    {
+      "id": "puppet var",
+      "name": "mapred_local_dir",
+      "displayName": "MapReduce local directories",
+      "description": "Directories for MapReduce to store intermediate data files",
+      "defaultValue": "",
+      "defaultDirectory": "/hadoop/mapred",
+      "displayType": "directories",
+      "isReconfigurable": true,
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "MAPREDUCE2"
+    },
+    {
+      "id": "puppet var",
+      "name": "mapred_cluster_red_mem_mb",
+      "displayName": "Cluster's Reduce slot size (virtual memory)",
+      "description": "The virtual memory size of a single Reduce slot in the MapReduce framework",
+      "defaultValue": "-1",
+      "displayType": "int",
+      "unit": "MB",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "MAPREDUCE2"
+    },
+    {
+      "id": "puppet var",
+      "name": "mapred_map_tasks_max",
+      "displayName": "Number of Map slots per node",
+      "description": "Number of slots that Map tasks that run simultaneously can occupy on a TaskTracker",
+      "defaultValue": "4",
+      "displayType": "int",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "MAPREDUCE2"
+    },
+    {
+      "id": "puppet var",
+      "name": "mapred_job_map_mem_mb",
+      "displayName": "Default virtual memory for a job's map-task",
+      "description": "Virtual memory for single Map task",
+      "defaultValue": "-1",
+      "displayType": "int",
+      "unit": "MB",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "MAPREDUCE2"
+    },
+    {
+      "id": "puppet var",
+      "name": "mapred_job_red_mem_mb",
+      "displayName": "Default virtual memory for a job's reduce-task",
+      "description": "Virtual memory for single Reduce task",
+      "defaultValue": "-1",
+      "displayType": "int",
+      "unit": "MB",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "MAPREDUCE2"
+    },
+    {
+      "id": "puppet var",
+      "name": "mapreduce_task_io_sort_mb",
+      "displayName": "Map-side sort buffer memory",
+      "description": "The total amount of Map-side buffer memory to use while sorting files (Expert-only configuration)",
+      "defaultValue": "200",
+      "displayType": "int",
+      "unit": "MB",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "MAPREDUCE2"
+    },
+    {
+      "id": "puppet var",
+      "name": "mapreduce_userlog_retainhours",
+      "displayName": "Job log retention (hours)",
+      "description": "The maximum time, in hours, for which the user-logs are to be retained after the job completion.",
+      "defaultValue": "24",
+      "displayType": "int",
+      "unit": "hours",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "MAPREDUCE2"
+    },
+    {
+      "id": "puppet var",
+      "name": "maxtasks_per_job",
+      "displayName": "Maximum number tasks for a Job",
+      "description": "Maximum number of tasks for a single Job",
+      "defaultValue": "-1",
+      "displayType": "int",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "MAPREDUCE2"
+    },
+    {
+      "id": "puppet var",
+      "name": "mapred_cluster_max_map_mem_mb",
+      "displayName": "Upper limit on virtual memory for single Map task",
+      "description": "Upper limit on virtual memory size for a single Map task of any MapReduce job",
+      "defaultValue": "-1",
+      "displayType": "int",
+      "unit": "MB",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "MAPREDUCE2"
+    },
+    {
+      "id": "puppet var",
+      "name": "mapred_cluster_max_red_mem_mb",
+      "displayName": "Upper limit on virtual memory for single Reduce task",
+      "description": "Upper limit on virtual memory size for a single Reduce task of any MapReduce job",
+      "defaultValue": "-1",
+      "displayType": "int",
+      "unit": "MB",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "MAPREDUCE2"
+    },
+    {
+      "id": "puppet var",
+      "name": "scheduler_name",
+      "displayName": "MapReduce Capacity Scheduler",
+      "description": "The scheduler to use for scheduling of MapReduce jobs",
+      "defaultValue": "org.apache.hadoop.mapred.CapacityTaskScheduler",
+      "displayType": "advanced",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "MAPREDUCE2"
+    },
+    {
+      "id": "puppet var",
+      "name": "mapred_cluster_map_mem_mb",
+      "displayName": "Cluster's Map slot size (virtual memory)",
+      "description": "The virtual memory size of a single Map slot in the MapReduce framework",
+      "defaultValue": "-1",
+      "displayType": "int",
+      "unit": "MB",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "MAPREDUCE2"
+    },
+    {
+      "id": "puppet var",
+      "name": "mapred_system_dir",
+      "displayName": "MapReduce system directories",
+      "description": "",
+      "defaultValue": "/mapred/system",
+      "displayType": "directories",
+      "isReconfigurable": true,
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "MAPREDUCE2",
+      "category": "Advanced"
+    },
+    {
+      "id": "puppet var",
+      "name": "mapred_hosts_include",
+      "displayName": "Include hosts",
+      "description": "Include enetered hosts",
+      "defaultValue": "mapred.include",
+      "displayType": "directories",
+      "isVisible": false,
+      "serviceName": "MAPREDUCE2",
+      "domain": "global",
+      "category": "Advanced"
+    },
+    {
+      "id": "puppet var",
+      "name": "task_controller",
+      "displayName": "task_controller",
+      "description": "",
+      "defaultValue": "org.apache.hadoop.mapred.DefaultTaskController",
+      "displayType": "advanced",
+      "isVisible": false,
+      "serviceName": "MAPREDUCE2",
+      "domain": "global",
+      "category": "Advanced"
+    },
+    {
+      "id": "puppet var",
+      "name": "mapred_hosts_exclude",
+      "displayName": "Exclude hosts",
+      "description": "Exclude entered hosts",
+      "defaultValue": "mapred.exclude",
+      "displayType": "directories",
+      "isVisible": false,
+      "serviceName": "MAPREDUCE2",
+      "domain": "global",
+      "category": "Advanced"
+    },
+    {
+      "id": "puppet var",
+      "name": "mapred_jobstatus_dir",
+      "displayName": "Job Status directory",
+      "description": "Directory path to view job status",
+      "defaultValue": "file:////mapred/jobstatus",
+      "displayType": "advanced",
+      "isVisible": false,
+      "serviceName": "MAPREDUCE2",
+      "domain": "global",
+      "category": "Advanced"
     },
   /**********************************************YARN***************************************/
     {
@@ -1695,7 +1898,8 @@ module.exports =
       "isVisible": false,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "General"
+      "category": "General",
+      "belongsToService":[]
     },
     {
       "id": "puppet var",
@@ -1710,7 +1914,8 @@ module.exports =
       "filename": "core-site.xml",
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["HIVE","WEBHCAT","OOZIE"]
     },
     {
       "id": "puppet var",
@@ -1724,7 +1929,8 @@ module.exports =
       "filename": "hdfs-site.xml",
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Advanced"
+      "category": "Advanced",
+      "belongsToService":[]
     },
     {
       "id": "puppet var",
@@ -1738,7 +1944,8 @@ module.exports =
       "filename": "hdfs-site.xml",
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Advanced"
+      "category": "Advanced",
+      "belongsToService":[]
     },
     {
       "id": "puppet var",
@@ -1751,7 +1958,8 @@ module.exports =
       "isVisible": false,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "General"
+      "category": "General",
+      "belongsToService":[]
     },
     {
       "id": "puppet var",
@@ -1764,7 +1972,8 @@ module.exports =
       "isVisible": false,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "General"
+      "category": "General",
+      "belongsToService":[]
     },
     {
       "id": "puppet var",
@@ -1777,7 +1986,8 @@ module.exports =
       "isVisible": false,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "General"
+      "category": "General",
+      "belongsToService":[]
     },
     {
       "id": "puppet var",
@@ -1790,7 +2000,8 @@ module.exports =
       "displayType": "directory",
       "isVisible": false,
       "domain": "global",
-      "serviceName": "MISC"
+      "serviceName": "MISC",
+      "belongsToService":[]
     },
     {
       "id": "puppet var",
@@ -1804,7 +2015,8 @@ module.exports =
       "isVisible": false,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Advanced"
+      "category": "Advanced",
+      "belongsToService":[]
     },
     {
       "id": "puppet var",
@@ -1818,7 +2030,8 @@ module.exports =
       "isVisible": false,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Advanced"
+      "category": "Advanced",
+      "belongsToService":[]
     },
     {
       "id": "puppet var",
@@ -1832,7 +2045,8 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC",
       "domain": "global",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["HDFS"]
     },
     {
       "id": "puppet var",
@@ -1846,7 +2060,8 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["MAPREDUCE"]
     },
     {
       "id": "puppet var",
@@ -1860,7 +2075,8 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["HBASE"]
     },
     {
       "id": "puppet var",
@@ -1874,7 +2090,8 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["HIVE"]
     },
     {
       "id": "puppet var",
@@ -1888,7 +2105,8 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["HCATALOG"]
     },
     {
       "id": "puppet var",
@@ -1902,7 +2120,8 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["WEBHCAT"]
     },
     {
       "id": "puppet var",
@@ -1916,7 +2135,8 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["OOZIE"]
     },
     {
       "id": "puppet var",
@@ -1930,7 +2150,8 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["ZOOKEEPER"]
     },
     {
       "id": "puppet var",
@@ -1944,7 +2165,8 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["GANGLIA"]
     },
     {
       "id": "puppet var",
@@ -1958,7 +2180,8 @@ module.exports =
       "isVisible": false,
       "domain": "global",
       "serviceName":"MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":[]
     },
     {
       "id": "puppet var",
@@ -1972,7 +2195,8 @@ module.exports =
       "domain": "global",
       "isVisible": true,
       "serviceName":"MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["NAGIOS"]
     },
     {
       "id": "puppet var",
@@ -1986,7 +2210,8 @@ module.exports =
       "isVisible": App.supports.customizeSmokeTestUser,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["HDFS"]
     },
     {
       "id": "puppet var",
@@ -2000,7 +2225,8 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["HDFS"]
     },
     {
       "id": "puppet var",
@@ -2012,7 +2238,8 @@ module.exports =
       "isOverridable": false,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "General"
+      "category": "General",
+      "belongsToService":["GANGLIA"]
     }
   ]
 };

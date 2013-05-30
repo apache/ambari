@@ -303,7 +303,7 @@ var configs = [
   },
 /**********************************************yarn-site***************************************/
   {
-    "name": "yarn.resourcemanager.resourcetracker.address",
+    "name": "yarn.resourcemanager.resource-tracker.address",
     "templateName": ["rm_host"],
     "foreignKey": null,
     "value": "hdfs://<templateName[0]>:8025",
@@ -317,7 +317,7 @@ var configs = [
     "filename": "yarn-site.xml"
   },
   {
-    "name": "yarn.resourcemanager.addresss",
+    "name": "yarn.resourcemanager.address",
     "templateName": ["rm_host"],
     "foreignKey": null,
     "value": "hdfs://<templateName[0]>:8050",
@@ -359,18 +359,75 @@ var configs = [
     "value": "<templateName[0]>",
     "filename": "mapred-site.xml"
   },
+  //io.sort.mb -> mapreduce.task.io.sort.mb
   {
-    "name": "io.sort.mb",
-    "templateName": ["io_sort_mb"],
+    "name": "mapreduce.task.io.sort.mb",
+    "templateName": ["mapreduce_task_io_sort_mb"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "mapred-site.xml"
   },
-  /*{
+  {
+    "name": "mapred.system.dir",
+    "templateName": ["mapred_system_dir"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "mapred-site.xml"
+  },
+  {
     "name": "mapred.cluster.reduce.memory.mb",
     "templateName": ["mapred_cluster_red_mem_mb"],
     "foreignKey": null,
     "value": "<templateName[0]>",
+    "filename": "mapred-site.xml"
+  },
+  {
+    "name": "mapred.hosts",
+    "templateName": ["hadoop_conf_dir", "mapred_hosts_include"],
+    "foreignKey": null,
+    "value": "<templateName[0]>/<templateName[1]>",
+    "filename": "mapred-site.xml"
+  },
+  {
+    "name": "mapred.jobtracker.maxtasks.per.job",
+    "templateName": ["maxtasks_per_job"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "mapred-site.xml"
+  },
+  {
+    "name": "mapred.userlog.retain.hours",
+    "templateName": ["mapreduce_userlog_retainhours"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "mapred-site.xml"
+  },
+  {
+    "name": "mapred.local.dir",
+    "templateName": ["mapred_local_dir"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "mapred-site.xml"
+  },
+  {
+    "name": "mapred.task.tracker.task-controller",
+    "templateName": ["task_controller"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "mapred-site.xml"
+  },
+  {
+    "name": "mapred.tasktracker.map.tasks.maximum",
+    "templateName": ["mapred_map_tasks_max"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "mapred-site.xml"
+  },
+  {
+    "name": "mapred.hosts.exclude",
+    "templateName": ["hadoop_conf_dir", "mapred_hosts_exclude"],
+    "foreignKey": null,
+    "value": "<templateName[0]>/<templateName[1]>",
     "filename": "mapred-site.xml"
   },
   {
@@ -388,17 +445,10 @@ var configs = [
     "filename": "mapred-site.xml"
   },
   {
-    "name": "mapred.hosts",
-    "templateName": ["hadoop_conf_dir", "mapred_hosts_include"],
+    "name": "mapred.jobtracker.taskScheduler",
+    "templateName": ["scheduler_name"],
     "foreignKey": null,
-    "value": "<templateName[0]>/<templateName[1]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapred.hosts.exclude",
-    "templateName": ["hadoop_conf_dir", "mapred_hosts_exclude"],
-    "foreignKey": null,
-    "value": "<templateName[0]>/<templateName[1]>",
+    "value": "<templateName[0]>",
     "filename": "mapred-site.xml"
   },
   {
@@ -409,131 +459,12 @@ var configs = [
     "filename": "mapred-site.xml"
   },
   {
-    "name": "mapred.job.tracker.persist.jobstatus.dir",
-    "templateName": ["hadoop_conf_dir"],
-    "foreignKey": null,
-    "value": "<templateName[0]>/health_check",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapred.child.java.opts",
-    "templateName": ["mapred_child_java_opts_sz"],
-    "foreignKey": null,
-    "value": "-server -Xmx<templateName[0]>m -Djava.net.preferIPv4Stack=true",
-    "filename": "mapred-site.xml"
-  },
-  {
     "name": "mapred.cluster.map.memory.mb",
     "templateName": ["mapred_cluster_map_mem_mb"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "mapred-site.xml"
   },
-  {
-    "name": "io.sort.spill.percent",
-    "templateName": ["io_sort_spill_percent"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapred.system.dir",
-    "templateName": ["mapred_system_dir"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapred.job.tracker",
-    "templateName": ["jobtracker_host"],
-    "foreignKey": null,
-    "value": "<templateName[0]>:50300",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapred.job.tracker.http.address",
-    "templateName": ["jobtracker_host"],
-    "foreignKey": null,
-    "value": "<templateName[0]>:50030",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapred.userlog.retain.hours",
-    "templateName": ["mapreduce_userlog_retainhours"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapred.jobtracker.maxtasks.per.job",
-    "templateName": ["maxtasks_per_job"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapred.task.tracker.task-controller",
-    "templateName": ["task_controller"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapreduce.jobtracker.kerberos.principal",
-    "templateName": ["kerberos_domain"],
-    "foreignKey": null,
-    "value": "jt/_HOST@<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapreduce.tasktracker.kerberos.principal",
-    "templateName": ["kerberos_domain"],
-    "foreignKey": null,
-    "value": "tt/_HOST@<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapreduce.jobtracker.keytab.file",
-    "templateName": ["keytab_path"],
-    "foreignKey": null,
-    "value": "<templateName[0]>/jt.service.keytab",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapreduce.tasktracker.keytab.file",
-    "templateName": ["keytab_path"],
-    "foreignKey": null,
-    "value": "<templateName[0]>/tt.service.keytab",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapreduce.history.server.embedded",
-    "templateName": [],
-    "foreignKey": null,
-    "value": "false",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapreduce.history.server.http.address",
-    "templateName": ["jobtracker_host"],
-    "foreignKey": null,
-    "value": "<templateName[0]>:51111",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapreduce.jobhistory.kerberos.principal",
-    "templateName": ["kerberos_domain"],
-    "foreignKey": null,
-    "value": "jt/_HOST@<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapreduce.jobhistory.keytab.file",
-    "templateName": ["keytab_path"],
-    "foreignKey": null,
-    "value": "<templateName[0]>/jt.service.keytab",
-    "filename": "mapred-site.xml"
-  },*/
   /**********************************************hbase-site***************************************/
   {
     "name": "hbase.rootdir",

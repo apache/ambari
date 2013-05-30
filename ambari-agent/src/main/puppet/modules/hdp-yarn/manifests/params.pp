@@ -36,8 +36,9 @@ class hdp-yarn::params(
   $yarn_pid_dir_prefix = hdp_default("hadoop/yarn-env/yarn_pid_dir_prefix","/var/run/hadoop-yarn")
   
   ## yarn-site
-  $rm_webui_port = hdp_default("yarn-site/yarn.resourcemanager.webapp.address", "8088")
-  $nm_webui_port = hdp_default("yarn-site/yarn.nodemanager.webapp.address", "8042")
-  $hs_webui_port = hdp_default("yarn-site/mapreduce.jobhistory.address", "19888")
-
+  $rm_webui_address = hdp_default("yarn-site/yarn.resourcemanager.webapp.address", "localhost:8088")
+  $nm_webui_address = hdp_default("yarn-site/yarn.nodemanager.webapp.address", "localhost:8042")
+  $hs_webui_address = hdp_default("mapred-site/mapreduce.jobhistory.webapp.address", "localhost:19888")
+  
+  $nm_local_dirs = hdp_default("yarn-site/yarn.nodemanager.local-dirs", "/yarn/loc/dir") 
 }

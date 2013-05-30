@@ -64,8 +64,9 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   // FIXME need more debug logs
 
-  private final Lock readLock;
-  private final Lock writeLock;
+  private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+  private final Lock readLock = readWriteLock.readLock();
+  private final Lock writeLock = readWriteLock.writeLock();
 
   private final ServiceComponent serviceComponent;
   private final Host host;
@@ -600,9 +601,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       this.stateMachine = daemonStateMachineFactory.make(this);
     }
 
-    ReadWriteLock rwLock = new ReentrantReadWriteLock();
-    this.readLock = rwLock.readLock();
-    this.writeLock = rwLock.writeLock();
     this.serviceComponent = serviceComponent;
 
     stateEntity = new HostComponentStateEntity();
@@ -641,9 +639,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
                                   @Assisted HostComponentDesiredStateEntity desiredStateEntity,
                                   Injector injector) {
     injector.injectMembers(this);
-    ReadWriteLock rwLock = new ReentrantReadWriteLock();
-    this.readLock = rwLock.readLock();
-    this.writeLock = rwLock.writeLock();
     this.serviceComponent = serviceComponent;
 
 
@@ -678,8 +673,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public State getState() {
+    readLock.lock();
     try {
-      readLock.lock();
       return stateMachine.getCurrentState();
     }
     finally {
@@ -689,8 +684,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public void setState(State state) {
+    writeLock.lock();
     try {
-      writeLock.lock();
       stateMachine.setCurrentState(state);
       stateEntity.setCurrentState(state);
       saveIfPersisted();
@@ -746,20 +741,32 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public String getServiceComponentName() {
-    return serviceComponent.getName();
+    readLock.lock();
+    try {
+      return serviceComponent.getName();
+    } finally {
+      readLock.unlock();
+    }
+
   }
 
   @Override
   public String getHostName() {
-    return host.getHostName();
+    readLock.lock();
+    try {
+      return host.getHostName();
+    } finally {
+      readLock.unlock();
+    }
+
   }
 
   /**
    * @return the lastOpStartTime
    */
   public long getLastOpStartTime() {
+    readLock.lock();
     try {
-      readLock.lock();
       return lastOpStartTime;
     }
     finally {
@@ -771,8 +778,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    * @param lastOpStartTime the lastOpStartTime to set
    */
   public void setLastOpStartTime(long lastOpStartTime) {
+    writeLock.lock();
     try {
-      writeLock.lock();
       this.lastOpStartTime = lastOpStartTime;
     }
     finally {
@@ -784,8 +791,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    * @return the lastOpEndTime
    */
   public long getLastOpEndTime() {
+    readLock.lock();
     try {
-      readLock.lock();
       return lastOpEndTime;
     }
     finally {
@@ -797,8 +804,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    * @param lastOpEndTime the lastOpEndTime to set
    */
   public void setLastOpEndTime(long lastOpEndTime) {
+    writeLock.lock();
     try {
-      writeLock.lock();
       this.lastOpEndTime = lastOpEndTime;
     }
     finally {
@@ -810,8 +817,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    * @return the lastOpLastUpdateTime
    */
   public long getLastOpLastUpdateTime() {
+    readLock.lock();
     try {
-      readLock.lock();
       return lastOpLastUpdateTime;
     }
     finally {
@@ -823,8 +830,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    * @param lastOpLastUpdateTime the lastOpLastUpdateTime to set
    */
   public void setLastOpLastUpdateTime(long lastOpLastUpdateTime) {
+    writeLock.lock();
     try {
-      writeLock.lock();
       this.lastOpLastUpdateTime = lastOpLastUpdateTime;
     }
     finally {
@@ -834,17 +841,29 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public long getClusterId() {
-    return serviceComponent.getClusterId();
+    readLock.lock();
+    try {
+      return serviceComponent.getClusterId();
+    } finally {
+      readLock.unlock();
+    }
+
   }
 
   @Override
   public String getServiceName() {
-    return serviceComponent.getServiceName();
+    readLock.lock();
+    try {
+      return serviceComponent.getServiceName();
+    } finally {
+      readLock.unlock();
+    }
+
   }
 
   Map<String, String> getConfigVersions() {
+    readLock.lock();
     try {
-      readLock.lock();
       if (this.configs != null) {
         return Collections.unmodifiableMap(configs);
       } else {
@@ -859,8 +878,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public Map<String, Config> getConfigs() throws AmbariException {
+    readLock.lock();
     try {
-      readLock.lock();
       Map<String, Config> map = new HashMap<String, Config>();
       Cluster cluster = clusters.getClusterById(getClusterId());
       for (Entry<String, String> entry : configs.entrySet()) {
@@ -879,8 +898,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Transactional
   void setConfigs(Map<String, String> configs) {
+    writeLock.lock();
     try {
-      writeLock.lock();
 
       Set<String> deletedTypes = new HashSet<String>();
       for (String type : this.configs.keySet()) {
@@ -971,8 +990,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public StackId getStackVersion() {
+    readLock.lock();
     try {
-      readLock.lock();
       return gson.fromJson(stateEntity.getCurrentStackVersion(), StackId.class);
     }
     finally {
@@ -982,8 +1001,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public void setStackVersion(StackId stackVersion) {
+    writeLock.lock();
     try {
-      writeLock.lock();
       stateEntity.setCurrentStackVersion(gson.toJson(stackVersion));
       saveIfPersisted();
     }
@@ -995,8 +1014,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public State getDesiredState() {
+    readLock.lock();
     try {
-      readLock.lock();
       return desiredStateEntity.getDesiredState();
     }
     finally {
@@ -1006,8 +1025,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public void setDesiredState(State state) {
+    writeLock.lock();
     try {
-      writeLock.lock();
       desiredStateEntity.setDesiredState(state);
       saveIfPersisted();
     }
@@ -1018,8 +1037,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public Map<String, String> getDesiredConfigVersionsRecursive() {
+    readLock.lock();
     try {
-      readLock.lock();
       Map<String, String> fullDesiredConfigVersions =
           new HashMap<String, String>();
       Map<String, Config> desiredConfs = getDesiredConfigs();
@@ -1037,8 +1056,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   @Override
   public Map<String, Config> getDesiredConfigs() {
     Map<String, Config> map = new HashMap<String, Config>();
+    readLock.lock();
     try {
-      readLock.lock();
       for (Entry<String, String> entry : desiredConfigs.entrySet()) {
         Config config = clusters.getClusterById(getClusterId()).getConfig(
             entry.getKey(), entry.getValue());
@@ -1067,8 +1086,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   @Override
   @Transactional
   public void updateDesiredConfigs(Map<String, Config> configs) {
+    writeLock.lock();
     try {
-      writeLock.lock();
 
       for (Entry<String,Config> entry : configs.entrySet()) {
 
@@ -1109,8 +1128,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public StackId getDesiredStackVersion() {
+    readLock.lock();
     try {
-      readLock.lock();
       return gson.fromJson(desiredStateEntity.getDesiredStackVersion(), StackId.class);
     }
     finally {
@@ -1120,8 +1139,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public void setDesiredStackVersion(StackId stackVersion) {
+    writeLock.lock();
     try {
-      writeLock.lock();
       desiredStateEntity.setDesiredStackVersion(gson.toJson(stackVersion));
       saveIfPersisted();
     }
@@ -1132,8 +1151,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public ServiceComponentHostResponse convertToResponse() {
+    readLock.lock();
     try {
-      readLock.lock();
       ServiceComponentHostResponse r = new ServiceComponentHostResponse(
           serviceComponent.getClusterName(),
           serviceComponent.getServiceName(),
@@ -1157,13 +1176,19 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public String getClusterName() {
-    return serviceComponent.getClusterName();
+    readLock.lock();
+    try {
+      return serviceComponent.getClusterName();
+    } finally {
+      readLock.unlock();
+    }
+
   }
 
   @Override
   public void debugDump(StringBuilder sb) {
+    readLock.lock();
     try {
-      readLock.lock();
       sb.append("ServiceComponentHost={ hostname=" + getHostName()
           + ", serviceComponentName=" + serviceComponent.getName()
           + ", clusterName=" + serviceComponent.getClusterName()
@@ -1181,8 +1206,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public boolean isPersisted() {
+    readLock.lock();
     try {
-      readLock.lock();
       return persisted;
     } finally {
       readLock.unlock();
@@ -1191,8 +1216,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public void persist() {
+    writeLock.lock();
     try {
-      writeLock.lock();
       if (!persisted) {
         persistEntities();
         refresh();
@@ -1235,23 +1260,29 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   @Transactional
-  public synchronized void refresh() {
-    if (isPersisted()) {
-      HostComponentStateEntityPK pk = new HostComponentStateEntityPK();
-      HostComponentDesiredStateEntityPK dpk = new HostComponentDesiredStateEntityPK();
-      pk.setClusterId(getClusterId());
-      pk.setComponentName(getServiceComponentName());
-      pk.setServiceName(getServiceName());
-      pk.setHostName(getHostName());
-      dpk.setClusterId(getClusterId());
-      dpk.setComponentName(getServiceComponentName());
-      dpk.setServiceName(getServiceName());
-      dpk.setHostName(getHostName());
-      stateEntity = hostComponentStateDAO.findByPK(pk);
-      desiredStateEntity = hostComponentDesiredStateDAO.findByPK(dpk);
-      hostComponentStateDAO.refresh(stateEntity);
-      hostComponentDesiredStateDAO.refresh(desiredStateEntity);
+  public void refresh() {
+    writeLock.lock();
+    try {
+      if (isPersisted()) {
+        HostComponentStateEntityPK pk = new HostComponentStateEntityPK();
+        HostComponentDesiredStateEntityPK dpk = new HostComponentDesiredStateEntityPK();
+        pk.setClusterId(getClusterId());
+        pk.setComponentName(getServiceComponentName());
+        pk.setServiceName(getServiceName());
+        pk.setHostName(getHostName());
+        dpk.setClusterId(getClusterId());
+        dpk.setComponentName(getServiceComponentName());
+        dpk.setServiceName(getServiceName());
+        dpk.setHostName(getHostName());
+        stateEntity = hostComponentStateDAO.findByPK(pk);
+        desiredStateEntity = hostComponentDesiredStateDAO.findByPK(dpk);
+        hostComponentStateDAO.refresh(stateEntity);
+        hostComponentDesiredStateDAO.refresh(desiredStateEntity);
+      }
+    } finally {
+      writeLock.unlock();
     }
+
   }
 
   @Transactional
@@ -1263,9 +1294,9 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
-  public synchronized boolean canBeRemoved() {
+  public boolean canBeRemoved() {
+    readLock.lock();
     try {
-      readLock.lock();
 
       return (getDesiredState().isRemovableState() &&
               getState().isRemovableState());
@@ -1277,8 +1308,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public void deleteDesiredConfigs(Set<String> configTypes) {
+    writeLock.lock();
     try {
-      writeLock.lock();
       hostComponentDesiredConfigMappingDAO.removeByType(configTypes);
       for (String configType : configTypes) {
         desiredConfigs.remove(configType);
@@ -1290,8 +1321,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Override
   public void delete() {
+    writeLock.lock();
     try {
-      writeLock.lock();
       if (persisted) {
         removeEntities();
         persisted = false;
@@ -1324,35 +1355,53 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   
   @Override
   public void updateActualConfigs(Map<String, Map<String, String>> configTags) {
-    actualConfigs = new HashMap<String, DesiredConfig>();
-    
-    String hostName = getHostName();
-    
-    for (Entry<String, Map<String,String>> entry : configTags.entrySet()) {
-      String type = entry.getKey();
-      Map<String, String> values = entry.getValue();
-      
-      String tag = values.get("tag");
-      String hostTag = values.get("host_override_tag");
-      
-      DesiredConfig dc = new DesiredConfig();
-      dc.setVersion(tag);
-      actualConfigs.put(type, dc);
-      if (null != hostTag && null != hostName) {
-        List<HostOverride> list = new ArrayList<HostOverride>();
-        list.add (new HostOverride(hostName, hostTag));
-        dc.setHostOverrides(list);
+    writeLock.lock();
+    try {
+      actualConfigs = new HashMap<String, DesiredConfig>();
+
+      String hostName = getHostName();
+
+      for (Entry<String, Map<String, String>> entry : configTags.entrySet()) {
+        String type = entry.getKey();
+        Map<String, String> values = entry.getValue();
+
+        String tag = values.get("tag");
+        String hostTag = values.get("host_override_tag");
+
+        DesiredConfig dc = new DesiredConfig();
+        dc.setVersion(tag);
+        actualConfigs.put(type, dc);
+        if (null != hostTag && null != hostName) {
+          List<HostOverride> list = new ArrayList<HostOverride>();
+          list.add(new HostOverride(hostName, hostTag));
+          dc.setHostOverrides(list);
+        }
       }
+    } finally {
+      writeLock.unlock();
     }
+
   }
   
   @Override
   public Map<String, DesiredConfig> getActualConfigs() {
-    return actualConfigs;
+    readLock.lock();
+    try {
+      return actualConfigs;
+    } finally {
+      readLock.unlock();
+    }
+
   }
 
   @Override
   public HostState getHostState() {
-    return host.getState();
+    readLock.lock();
+    try {
+      return host.getState();
+    } finally {
+      readLock.unlock();
+    }
+
   }
 }

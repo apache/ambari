@@ -27,7 +27,7 @@ App.MainHostView = App.TableView.extend({
     return this.get('controller.content');
   }.property('controller.content.length'),
 
-  didInsertElement:function () {
+  willInsertElement: function() {
     this._super();
   },
 
@@ -60,6 +60,7 @@ App.MainHostView = App.TableView.extend({
     displayName: Em.I18n.t('common.loadAvg'),
     type: 'number'
   }),
+
   HostView:Em.View.extend({
     content:null,
     tagName: 'tr',
@@ -203,8 +204,9 @@ App.MainHostView = App.TableView.extend({
    * Based on <code>filters</code> library
    */
   nameFilterView: filters.createTextView({
+    column: 1,
     onChangeValue: function(){
-      this.get('parentView').updateFilter(1, this.get('value'), 'string');
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
     }
   }),
 
@@ -213,8 +215,9 @@ App.MainHostView = App.TableView.extend({
    * Based on <code>filters</code> library
    */
   ipFilterView: filters.createTextView({
+    column: 2,
     onChangeValue: function(){
-      this.get('parentView').updateFilter(2, this.get('value'), 'string');
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
     }
   }),
 
@@ -225,8 +228,9 @@ App.MainHostView = App.TableView.extend({
   cpuFilterView: filters.createTextView({
     fieldType: 'input-mini',
     fieldId: 'cpu_filter',
+    column: 3,
     onChangeValue: function(){
-      this.get('parentView').updateFilter(3, this.get('value'), 'number');
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'number');
     }
   }),
 
@@ -237,8 +241,9 @@ App.MainHostView = App.TableView.extend({
   loadAvgFilterView: filters.createTextView({
     fieldType: 'input-mini',
     fieldId: 'load_avg_filter',
+    column: 5,
     onChangeValue: function(){
-      this.get('parentView').updateFilter(5, this.get('value'), 'number');
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'number');
     }
   }),
 
@@ -249,8 +254,9 @@ App.MainHostView = App.TableView.extend({
   ramFilterView: filters.createTextView({
     fieldType: 'input-mini',
     fieldId: 'ram_filter',
+    column: 4,
     onChangeValue: function(){
-      this.get('parentView').updateFilter(4, this.get('value'), 'ambari-bandwidth');
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'ambari-bandwidth');
     }
   }),
 
@@ -259,6 +265,9 @@ App.MainHostView = App.TableView.extend({
    * Based on <code>filters</code> library
    */
   componentsFilterView: filters.createComponentView({
+
+    column: 6,
+
     /**
      * Inner FilterView. Used just to render component. Value bind to <code>mainview.value</code> property
      * Base methods was implemented in <code>filters.componentFieldView</code>
@@ -318,7 +327,7 @@ App.MainHostView = App.TableView.extend({
        */
       applyFilter:function() {
         this._super();
-
+        var self = this;
         var chosenComponents = [];
 
         this.get('masterComponents').filterProperty('checkedForHostFilter', true).forEach(function(item){
@@ -330,21 +339,42 @@ App.MainHostView = App.TableView.extend({
         this.get('clientComponents').filterProperty('checkedForHostFilter', true).forEach(function(item){
           chosenComponents.push(item.get('id'));
         });
-        this.set('value', chosenComponents.toString());
+        Em.run.next(function() {
+          self.set('value', chosenComponents.toString());
+        });
       },
 
-      didInsertElement:function () {
-        if (this.get('controller.comeWithFilter')) {
-          this.applyFilter();
-          this.set('controller.comeWithFilter', false);
-        } else {
-          this.clearFilter();
+      /**
+       * Verify that checked checkboxes are equal to value stored in hidden field (components ids list)
+       */
+      checkComponents: function() {
+        var components = this.get('value').split(',');
+        var self = this;
+        if (components) {
+          components.forEach(function(componentId) {
+            if(!self.tryCheckComponent(self, 'masterComponents', componentId)) {
+              if(!self.tryCheckComponent(self, 'slaveComponents', componentId)) {
+                self.tryCheckComponent(self, 'clientComponents', componentId);
+              }
+            }
+          });
         }
+      }.observes('value'),
+
+      tryCheckComponent: function(self, category, componentId) {
+        var c = self.get(category).findProperty('id', componentId);
+        if (c) {
+          if (!c.get('checkedForHostFilter')) {
+            c.set('checkedForHostFilter', true);
+            return true;
+          }
+        }
+        return false;
       }
 
     }),
     onChangeValue: function(){
-      this.get('parentView').updateFilter(6, this.get('value'), 'multiple');
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'multiple');
     }
   }),
 
