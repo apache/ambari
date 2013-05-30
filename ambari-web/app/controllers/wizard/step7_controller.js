@@ -91,7 +91,20 @@ App.WizardStep7Controller = Em.Controller.extend({
    */
   activateSpecialConfigs: function () {
     var miscConfigs = this.get('stepConfigs').findProperty('serviceName', 'MISC').configs;
-    miscConfigs = App.config.miscConfigVisibleProperty(miscConfigs, this.get('selectedServiceNames'));
+    var showProxyGroup = this.get('selectedServiceNames').contains('HIVE') ||
+      this.get('selectedServiceNames').contains('HCATALOG') ||
+      this.get('selectedServiceNames').contains('OOZIE');
+    miscConfigs.findProperty('name', 'proxyuser_group').set('isVisible', showProxyGroup);
+    miscConfigs.findProperty('name', 'hbase_user').set('isVisible', this.get('selectedServiceNames').contains('HBASE'));
+    miscConfigs.findProperty('name', 'mapred_user').set('isVisible', this.get('selectedServiceNames').contains('MAPREDUCE'));
+    miscConfigs.findProperty('name', 'hive_user').set('isVisible', this.get('selectedServiceNames').contains('HIVE'));
+    miscConfigs.findProperty('name', 'hcat_user').set('isVisible', this.get('selectedServiceNames').contains('HCATALOG'));
+    miscConfigs.findProperty('name', 'webhcat_user').set('isVisible', this.get('selectedServiceNames').contains('WEBHCAT'));
+    miscConfigs.findProperty('name', 'oozie_user').set('isVisible', this.get('selectedServiceNames').contains('OOZIE'));
+    miscConfigs.findProperty('name', 'zk_user').set('isVisible', this.get('selectedServiceNames').contains('ZOOKEEPER'));
+    miscConfigs.findProperty('name', 'gmetad_user').set('isVisible', this.get('selectedServiceNames').contains('GANGLIA'));
+    miscConfigs.findProperty('name', 'rrdcached_base_dir').set('isVisible', this.get('selectedServiceNames').contains('GANGLIA'));
+    miscConfigs.findProperty('name', 'nagios_user').set('isVisible', this.get('selectedServiceNames').contains('NAGIOS'));
   },
 
   /**

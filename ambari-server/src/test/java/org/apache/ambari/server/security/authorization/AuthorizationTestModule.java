@@ -35,7 +35,7 @@ public class AuthorizationTestModule extends AbstractModule {
     properties.setProperty(Configuration.METADETA_DIR_PATH,
         "src/test/resources/stacks");
     properties.setProperty(Configuration.SERVER_VERSION_FILE,
-        "target/version");
+        "../version");
     properties.setProperty(Configuration.OS_VERSION_KEY,
         "centos5");
 

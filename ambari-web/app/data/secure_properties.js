@@ -23,7 +23,7 @@ module.exports =
       "name": "security_enabled",
       "displayName": "Enable security",
       "value": "",
-      "defaultValue":"true",
+      "defaultValue": "true",
       "description": "Enable kerberos security for the cluster",
       "isVisible": false,
       "isOverridable": false,
@@ -151,29 +151,16 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "dfs_datanode_address",
-      "displayName": "Datanode address",
+      "name": "snamenode_keytab",
+      "displayName": "Path to keytab file",
       "value": "",
-      "defaultValue": "1019",
-      "description": "Address for DataNode",
-      "displayType": "principal",
-      "isVisible": false,
+      "defaultValue": "/etc/security/keytabs/sn.service.keytab",
+      "description": "path to SecondaryNameNode keytab file",
+      "displayType": "directory",
+      "isVisible": true,
       "isOverridable": false,
       "serviceName": "HDFS",
-      "category": "DataNode"
-    },
-    {
-      "id": "puppet var",
-      "name": "dfs_datanode_http_address",
-      "displayName": "Datanode HTTP address",
-      "value": "",
-      "defaultValue": "1022",
-      "description": "Address for DataNode",
-      "displayType": "principal",
-      "isVisible": false,
-      "isOverridable": false,
-      "serviceName": "HDFS",
-      "category": "DataNode"
+      "category": "SNameNode"
     },
     {
       "id": "puppet var",
@@ -262,7 +249,7 @@ module.exports =
       "displayName": "Primary name",
       "value": "",
       "defaultValue": "hbase",
-      "description": "Primary name for HBase",
+      "description": "Primary name for HBase master",
       "displayType": "principal",
       "isVisible": true,
       "isOverridable": false,
@@ -271,16 +258,29 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "hbase_service_keytab",
+      "name": "hbase_master_keytab",
       "displayName": "Path to Keytab file",
       "value": "",
-      "defaultValue": "/etc/security/keytabs/hbase.service.keytab",
+      "defaultValue": "/etc/security/keytabs/hm.service.keytab",
       "description": "keytab for HBase master",
       "displayType": "directory",
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "HBASE",
-      "category": "HBase"
+      "category": "HBase Master"
+    },
+    {
+      "id": "puppet var",
+      "name": "regionserver_keytab",
+      "displayName": "Path to Keytab file",
+      "value": "",
+      "defaultValue": "/etc/security/keytabs/rs.service.keytab",
+      "description": "keytab for RegionServer",
+      "displayType": "directory",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "HBASE",
+      "category": "RegionServer"
     },
 
     //HIVE

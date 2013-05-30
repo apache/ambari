@@ -429,6 +429,7 @@ App.WizardController = Em.Controller.extend({
     App.db.setSlaveComponentHosts(undefined);
     App.db.setCluster(undefined);
     App.db.setAllHostNames(undefined);
+    App.db.setSlaveProperties(undefined);
     App.db.setInstallOptions(undefined);
     App.db.setAllHostNamesPattern(undefined);
   },
@@ -456,8 +457,7 @@ App.WizardController = Em.Controller.extend({
       name: 'wizard.service_components',
       sender: this,
       data: {
-        stackUrl: App.get('stack2VersionURL'),
-        stackVersion: App.get('currentStackVersionNumber')
+        stackUrl: App.get('stack2VersionURL')
       },
       success: 'loadServiceComponentsSuccessCallback',
       error: 'loadServiceComponentsErrorCallback'

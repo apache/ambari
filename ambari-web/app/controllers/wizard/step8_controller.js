@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var stringUtils = require('utils/string_utils');
 
 App.WizardStep8Controller = Em.Controller.extend({
   name: 'wizardStep8Controller',
@@ -28,7 +27,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   configs: [],
   globals: [],
   ajaxQueue: [],
-  configMapping: App.config.get('configMapping').all(),
+  configMapping: require('data/config_mapping').all(),
   slaveComponentConfig: null,
   isSubmitDisabled: false,
   hasErrorOccurred: false,
@@ -376,6 +375,43 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
   },
 
+  getServiceInfo: function (componentName) {
+    var serviceConfig;
+    switch (componentName) {
+      case 'DATANODE':
+        serviceConfig = {
+          name: 'HDFS',
+          siteName: 'hdfs-site',
+          domain: 'datanode-global'
+        };
+        break;
+      case 'TASKTRACKER':
+        serviceConfig = {
+          name: 'MAPREDUCE',
+          siteName: 'mapred-site',
+          domain: 'tasktracker-global'
+        };
+        break;
+      case 'NODEMANAGER':
+        serviceConfig = {
+          name: 'YARN',
+          siteName: 'yarn-site',
+          domain: 'nodemanager-global'
+        };
+        break;
+      case 'HBASE_REGIONSERVER':
+        serviceConfig = {
+          name: 'HBASE',
+          siteName: 'hbase-site',
+          domain: 'regionserver-global'
+        };
+        break;
+      default:
+        serviceConfig = {};
+    }
+    return serviceConfig;
+  },
+
   /**
    * Load all info about cluster to <code>clusterInfo</code> variable
    */
@@ -446,7 +482,7 @@ App.WizardStep8Controller = Em.Controller.extend({
           case 'MAPREDUCE':
             this.loadMapReduce(serviceObj);
             break;
-          case 'MAPREDUCE2':
+          case 'MAPREDUCEv2':
             this.loadMapReduce2(serviceObj);
             break;
           case 'YARN':
@@ -1282,7 +1318,7 @@ App.WizardStep8Controller = Em.Controller.extend({
         this.applyConfigurationToSite(this.createMapredQueueAcls());
       }
     }
-    if (selectedServices.someProperty('serviceName', 'MAPREDUCE2')) {
+    if (selectedServices.someProperty('serviceName', 'MAPREDUCEv2')) {
       this.applyConfigurationToSite(this.createMrSiteObj());
       if (App.supports.capacitySchedulerUi) {
         this.applyConfigurationToSite(this.createMapredQueueAcls());
@@ -1380,16 +1416,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     var hdfsSiteObj = this.get('configs').filterProperty('filename', 'hdfs-site.xml');
     var hdfsProperties = {};
     hdfsSiteObj.forEach(function (_configProperty) {
-
-      if (stringUtils.compareVersions(App.get('currentStackVersionNumber'), '2.0.0') === 1 ||
-          stringUtils.compareVersions(App.get('currentStackVersionNumber'), '2.0.0') === 0) {
-        // TODO Remove temporary hack. This was added to not set
-        // dfs.hosts and dfs.hosts.exclude properties on HDP 2 stacks.
-        if ("dfs.hosts"==_configProperty.name || "dfs.hosts.exclude"==_configProperty.name) {
-          _configProperty.value = "";
-        }
-      }
-
       hdfsProperties[_configProperty.name] = _configProperty.value;
       this._recordHostOverrideFromObj(_configProperty, 'hdfs-site', 'version1', this);
       console.log("STEP*: name of the property is: " + _configProperty.name);
@@ -1427,7 +1453,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     var mrProperties = {};
     configs.forEach(function (_configProperty) {
       mrProperties[_configProperty.name] = _configProperty.value;
-      this._recordHostOverrideFromObj(_configProperty, 'yarn-site', 'version1', this);
+      this._recordHostOverrideFromObj(_configProperty, 'mapred-site', 'version1', this);
       console.log("STEP*: name of the property is: " + _configProperty.name);
       console.log("STEP8: value of the property is: " + _configProperty.value);
     }, this);
@@ -1538,6 +1564,32 @@ App.WizardStep8Controller = Em.Controller.extend({
     }, this);
     return {type: 'webhcat-site', tag: 'version1', properties: webHCatProperties};
   },
+
+  getConfigForService: function (serviceName) {
+    switch (serviceName) {
+      case 'HDFS':
+        return {config: {'global': 'version1', 'core-site': 'version1', 'hdfs-site': 'version1'}};
+      case 'MAPREDUCE':
+        return {config: {'global': 'version1', 'core-site': 'version1', 'mapred-site': 'version1', 'capacity-scheduler': 'version1', 'mapred-queue-acls': 'version1'}};
+      case 'MAPREDUCEv2':
+        return {config: {'global': 'version1', 'core-site': 'version1', 'mapred-site': 'version1', 'mapred-queue-acls': 'version1'}};
+      case 'YARN':
+        return {config: {'global': 'version1', 'yarn-site': 'version1', 'capacity-scheduler': 'version1'}};
+      case 'HBASE':
+        return {config: {'global': 'version1', 'hbase-site': 'version1'}};
+      case 'OOZIE':
+        return {config: {'global': 'version1', 'oozie-site': 'version1'}};
+      case 'HIVE':
+        return {config: {'global': 'version1', 'hive-site': 'version1'}};
+      case 'WEBHCAT':
+        return {config: {'global': 'version1', 'webhcat-site': 'version1'}};
+      case 'HUE':
+        return {config: {'global': 'version1', 'hue-site': 'version1'}};
+      default:
+        return {config: {'global': 'version1'}};
+    }
+  },
+
 
   ajaxQueueFinished: function () {
     //do something

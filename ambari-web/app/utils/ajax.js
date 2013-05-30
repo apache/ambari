@@ -201,7 +201,7 @@ var urls = {
   },
   'config.advanced': {
     'real': '{stack2VersionUrl}/stackServices/{serviceName}/configurations?fields=*',
-    'mock': '/data/wizard/stack/hdp/version{stackVersion}/{serviceName}.json',
+    'mock': '/data/wizard/stack/hdp/version130/{serviceName}.json',
     'format': function (data) {
       return {
         async: false
@@ -579,7 +579,7 @@ var urls = {
   },
   'wizard.service_components': {
     'real': '{stackUrl}/stackServices?fields=StackServices',
-    'mock': '/data/wizard/stack/hdp/version/{stackVersion}.json',
+    'mock': '/data/wizard/stack/hdp/version/1.3.0.json',
     'format': function (data, opt) {
       return {
         async: false

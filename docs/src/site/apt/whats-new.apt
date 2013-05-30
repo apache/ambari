@@ -14,55 +14,28 @@
 ~~ limitations under the License.
 ~~
 
-What's New with Ambari?
+What's New?
 
- * Upcoming 1.2.3 release features the following:
+  There’s a lot of activity occurring in trunk. We’ve had a great response from the
+  community and received a lot of input into the direction. To date, we have added
+  many new features. To highlight a few...
 
-   * Improved general stability
+  * Added more options on provisioning so you can better target your cluster
+    setup for your needs
 
-   * Ability to update core-site.xml properties
+  * More service controls, including the ability to run ad hoc smoke tests
 
-   * Add + remove custom configuration properties
+  * Exposed a RESTful API for cluster metrics (with management and
+    provisioning to follow)
 
-   * New Heatmaps (Host > CPU WIO %, HBase > RegionServer Reads/Writes/Regions/QueueSize/MemstoreSize)
+  * Moved to a JavaScript front-end for Ambari Web and refreshed the entire UI
+    experience
 
-   * Add host components on existing hosts
+  * Used that RESTful API and added more charts and heatmaps to the dashboard
 
-   * Filter hosts by host health status
+  * Reduced the number of dependencies on the Ambari Server + Ambari Agent
 
-   * Mixed OS support
-
-   * init.d scripts
-
-   * Support for Oracle Enterprise Linux 5 and 6
-
-
- * Ambari 1.2.4 will feature:
-
-   * Ability to use a non-root, sudo user to install Ambari agents
-
-   * MySQL and Oracle database support for Ambari (in addition to Postgres)
-
-   * Oracle database support for Hive Metastore (in addition to MySQL)
-
-   * MySQL and Oracle database support for Oozie (in addition to Derby)
-
-   * Ability to select which stack to deploy
-
-
- * Ambari 1.2.5 will feature:
-
-   * A wizard to configure and manage a secure cluster via Kerberos
-
-   * Support for configuring and running Ambari Web Server https
-
-   * Run Ambari Server as a non-root user
-
-   * Audit capture of login and config changes
-
-
- * Ambari 1.4.0 will support Hadoop 2.0.  This work is going on under the {{{https://svn.apache.org/repos/asf/incubator/ambari/branches/branch-1.4.0} 1.4.0 branch}}.
-
+  * Added support for SLES 11
 
 Getting Ambari Source
 
@@ -74,14 +47,14 @@ $ svn checkout http://svn.apache.org/repos/asf/incubator/ambari/trunk ambari
 
 JIRA
 
-  You can follow all the work going on by watching the Ambari JIRA project. You can see the
-  JIRA details for Ambari here:
+  You can follow all the work going on by watching the Ambari JIRA project. The next release of Apache Ambari will be version 1.2.1. You can see the
+  JIRA details for this release here:
 
-  {{{https://issues.apache.org/jira/issues/?jql=project%20%3D%20AMBARI} https://issues.apache.org/jira/issues/?jql=project%20%3D%20AMBARI}}
+  {{{https://issues.apache.org/jira/issues/?jql=fixVersion%20%3D%20%221.2.1%22%20AND%20project%20%3D%20AMBARI} https://issues.apache.org/jira/issues/?jql=fixVersion%20%3D%20%221.2.1%22%20AND%20project%20%3D%20AMBARI}}
 
 User Guide
 
-  Take a look at {{{http://incubator.apache.org/ambari/1.2.3/installing-hadoop-using-ambari/content/index.html} how to install a Hadoop cluster using Ambari 1.2.3}}.
+  {{{http://incubator.apache.org/ambari/1.2.1/installing-hadoop-using-ambari/content/index.html} See how to install a Hadoop cluster using Ambari 1.2.1}}
 
 Stay Tuned
 

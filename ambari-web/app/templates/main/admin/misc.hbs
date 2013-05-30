@@ -31,12 +31,10 @@
           </thead>
           <tbody>
             {{#each user in controller.users}}
-              {{#if user.isVisible}}
-                <tr>
-                  <td>{{user.displayName}}</td>
-                  <td>{{user.value}}</td>
-                </tr>
-              {{/if}}
+              <tr>
+                <td>{{user.displayName}}</td>
+                <td>{{user.value}}</td>
+              </tr>
             {{/each}}
           </tbody>
         </table>

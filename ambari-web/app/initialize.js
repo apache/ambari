@@ -25,7 +25,6 @@ require('messages');
 require('utils/base64');
 require('utils/db');
 require('utils/helper');
-require('utils/config')
 require('models');
 require('controllers');
 require('templates');
@@ -33,7 +32,8 @@ require('views');
 require('router');
 
 require('utils/ajax');
-require('utils/updater');;
+require('utils/updater');
+require('utils/config');
 
 require('mappers/server_data_mapper');
 require('mappers/status_mapper');

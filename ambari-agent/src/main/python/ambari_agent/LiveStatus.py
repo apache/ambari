@@ -32,8 +32,7 @@ class LiveStatus:
   SERVICES = [
     "HDFS", "MAPREDUCE", "GANGLIA", "HBASE",
     "NAGIOS", "ZOOKEEPER", "OOZIE", "HCATALOG",
-    "KERBEROS", "TEMPLETON", "HIVE", "WEBHCAT",
-    "YARN", "MAPREDUCE2"
+    "KERBEROS", "TEMPLETON", "HIVE", "WEBHCAT"
   ]
 
   COMPONENTS = [
@@ -43,54 +42,50 @@ class LiveStatus:
        "componentName" : "NAMENODE"},
       {"serviceName" : "HDFS",
        "componentName" : "SECONDARY_NAMENODE"},
-
+#      {"serviceName" : "HDFS",
+#       "componentName" : "HDFS_CLIENT"},
       {"serviceName" : "MAPREDUCE",
        "componentName" : "JOBTRACKER"},
       {"serviceName" : "MAPREDUCE",
        "componentName" : "TASKTRACKER"},
-
-      {"serviceName" : "GANGLIA",
+#      {"serviceName" : "MAPREDUCE",
+#       "componentName" : "MAPREDUCE_CLIENT"},
+      {"serviceName" : "GANGLIA",             #!
        "componentName" : "GANGLIA_SERVER"},
-      {"serviceName" : "GANGLIA",
+      {"serviceName" : "GANGLIA",             #!
        "componentName" : "GANGLIA_MONITOR"},
-
-      {"serviceName" : "HBASE",
+      {"serviceName" : "HBASE",               #!
        "componentName" : "HBASE_MASTER"},
-      {"serviceName" : "HBASE",
+      {"serviceName" : "HBASE",              #!
        "componentName" : "HBASE_REGIONSERVER"},
-
-      {"serviceName" : "NAGIOS",
+#      {"serviceName" : "HBASE",
+#       "componentName" : "HBASE_CLIENT"},
+      {"serviceName" : "NAGIOS",             #!
        "componentName" : "NAGIOS_SERVER"},
-
       {"serviceName" : "ZOOKEEPER",
        "componentName" : "ZOOKEEPER_SERVER"},
-
+#      {"serviceName" : "ZOOKEEPER",
+#       "componentName" : "ZOOKEEPER_CLIENT"},
       {"serviceName" : "OOZIE",
        "componentName" : "OOZIE_SERVER"},
-
-      {"serviceName" : "HCATALOG",
+#      {"serviceName" : "OOZIE",
+#       "componentName" : "OOZIE_CLIENT"},
+      {"serviceName" : "HCATALOG",            #!
        "componentName" : "HCATALOG_SERVER"},
-
       {"serviceName" : "KERBEROS",
-       "componentName" : "KERBEROS_SERVER"},
-
-      {"serviceName" : "HIVE",
+       "componentName" : "KERBEROS_SERVER"}, #!
+#      {"serviceName" : "TEMPLETON",
+#       "componentName" : "TEMPLETON_SERVER"},
+#      {"serviceName" : "TEMPLETON",
+#       "componentName" : "TEMPLETON_CLIENT"},
+      {"serviceName" : "HIVE",               #!
        "componentName" : "HIVE_SERVER"},
-      {"serviceName" : "HIVE",
+      {"serviceName" : "HIVE",               #!
        "componentName" : "HIVE_METASTORE"},
-      {"serviceName" : "HIVE",
+      {"serviceName" : "HIVE",               #!
        "componentName" : "MYSQL_SERVER"},
-
       {"serviceName" : "WEBHCAT",
        "componentName" : "WEBHCAT_SERVER"},
-
-      {"serviceName" : "YARN",
-       "componentName" : "RESOURCEMANAGER"},
-      {"serviceName" : "YARN",
-       "componentName" : "NODEMANAGER"},
-
-      {"serviceName" : "MAPREDUCE2",
-       "componentName" : "HISTORYSERVER"},
   ]
 
   LIVE_STATUS = "STARTED"

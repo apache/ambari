@@ -20,10 +20,7 @@ var App = require('app');
 App.servicesMapper = App.QuickDataMapper.create({
   servicesSortOrder: [
     'HDFS',
-    'YARN',
     'MAPREDUCE',
-    'MAPREDUCE2',
-    'TEZ',
     'HBASE',
     'HIVE',
     'HCATALOG',

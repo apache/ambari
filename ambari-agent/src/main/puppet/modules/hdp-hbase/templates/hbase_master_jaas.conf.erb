@@ -3,6 +3,6 @@ com.sun.security.auth.module.Krb5LoginModule required
 useKeyTab=true
 storeKey=true
 useTicketCache=false
-keyTab="<%=scope.function_hdp_template_var("::hdp-hbase::params::hbase_keytab_path")%>"
+keyTab="<%=scope.function_hdp_template_var("::hdp-hbase::params::hbase_master_keytab_path")%>"
 principal="<%=scope.function_hdp_template_var("::hdp-hbase::params::hbase_jaas_princ")%>";
 };

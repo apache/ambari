@@ -88,7 +88,7 @@ rolesToClass = {
   'YARN_CLIENT': 'hdp-yarn::yarn_client',
   'HDFS_CLIENT': 'hdp-hadoop::client',
   'MAPREDUCE_CLIENT': 'hdp-hadoop::client',
-  'MAPREDUCE2_CLIENT': 'hdp-yarn::mapreducev2_client',
+  'MAPREDUCEv2_CLIENT': 'hdp-yarn::mapreducev2_client',
   'ZOOKEEPER_SERVER': 'hdp-zookeeper',
   'ZOOKEEPER_CLIENT': 'hdp-zookeeper::client',
   'HBASE_MASTER': 'hdp-hbase::master',
@@ -186,10 +186,6 @@ pidPathesVars = [
    'defaultValue' : '/var/run/mysqld'},
   {'var' : 'webhcat_pid_dir',
    'defaultValue' : '/var/run/webhcat'},                      
-  {'var' : 'yarn_pid_dir',
-   'defaultValue' : '/var/run/hadoop-yarn'},
-  {'var' : 'mapreduce2_pid_dir',
-   'defaultValue' : '/var/run/hadoop-mapreduce'},
 ]
 
 class AmbariConfig:

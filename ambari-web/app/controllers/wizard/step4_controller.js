@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var stringUtils = require('utils/string_utils');
 
 App.WizardStep4Controller = Em.ArrayController.extend({
 
@@ -54,13 +53,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
 
     // prevent against getting error when not all elements have been loaded yet
     if (hbase && zookeeper && hive && hcatalog && webhcat) {
-      if (stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === -1) {
-        zookeeper.set('isSelected', hbase.get('isSelected') || hive.get('isSelected'));
-      }else{
-        if (!zookeeper.get('isSelected')) {
-          zookeeper.set('isSelected', hbase.get('isSelected'));
-        }
-      }
+      zookeeper.set('isSelected', hbase.get('isSelected') || hive.get('isSelected'));
       hcatalog.set('isSelected', hive.get('isSelected'));
       webhcat.set('isSelected', hive.get('isSelected'));
     }

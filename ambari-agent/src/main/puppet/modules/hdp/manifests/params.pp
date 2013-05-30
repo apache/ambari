@@ -202,7 +202,6 @@ class hdp::params()
   $hive_apps_whs_dir = hdp_default("hive_apps_whs_dir", "/apps/hive/warehouse")
   $webhcat_apps_dir = hdp_default("webhcat_apps_dir", "/apps/webhcat")
   $hbase_hdfs_root_dir = hdp_default("hbase-site/hbase.hdfs.root.dir","/apps/hbase/data")
-  $hbase_staging_dir = hdp_default("hbase-site/hbase.bulkload.staging.dir","/apps/hbase/staging")
 
   $yarn_nm_app_log_dir = hdp_default("yarn-site/yarn.nodemanager.remote-app-log-dir","/app-logs")
 
@@ -698,7 +697,5 @@ class hdp::params()
 
   $is_namenode_master = $hdp::params::hostname in $namenode_host
   $is_jtnode_master   = $hdp::params::hostname in $jtnode_host
-  $is_rmnode_master   = $hdp::params::hostname in $rm_host
-  $is_hsnode_master   = $hdp::params::hostname in $hs_host
   $is_hbase_master    = $hdp::params::hostname in $hbase_master_hosts
 }

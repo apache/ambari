@@ -882,6 +882,114 @@ module.exports =
       "category": "CapacityScheduler",
       "filename": "capacity-scheduler.xml"
     },
+    /*{
+     "id": "site property",
+     "name": "mapred.cluster.map.memory.mb",
+     "displayName": "Map slot memory",
+     "displayType": "int",
+     "value": '-1',
+     "defaultValue": '-1',
+     "description": "The size, in terms of virtual memory, of a single map slot in the Map-Reduce framework, used by " +
+     "the scheduler. A job can ask for multiple slots for a single map task via \"Map task memory\", upto the limit " +
+     "specified by \"Max map task memory\", if the scheduler supports the feature. The value of -1 indicates that " +
+     "this feature is turned off.",
+     "isVisible": true,
+     "isRequired": true,
+     "serviceName": "MAPREDUCE",
+     "category": "CapacityScheduler",
+     "unit":"MB",
+     "filename": 'capacity-scheduler.xml'
+     },
+     {
+     "id": "site property",
+     "name": "mapred.cluster.reduce.memory.mb",
+     "displayName": "Reduce slot memory",
+     "displayType": "int",
+     "value": '-1',
+     "defaultValue": '-1',
+     "description": "The size, in terms of virtual memory, of a single reduce slot in the Map-Reduce framework, " +
+     "used by the scheduler. A job can ask for multiple slots for a single reduce task via \"Reduce task memory\", " +
+     "upto the limit specified by \"Max reduce task memory\", if the scheduler supports the feature.The value of " +
+     "-1 indicates that this feature is turned off.",
+     "isVisible": true,
+     "isRequired": true,
+     "serviceName": "MAPREDUCE",
+     "category": "CapacityScheduler",
+     "unit":"MB",
+     "filename": 'capacity-scheduler.xml'
+     },
+     {
+     "id": "site property",
+     "name": "mapred.cluster.max.map.memory.mb",
+     "displayName": "Max map task memory",
+     "displayType": "int",
+     "value": '-1',
+     "defaultValue": '-1',
+     "description": "The maximum size, in terms of virtual memory, of a single map task launched by the Map-Reduce " +
+     "framework, used by the scheduler. A job can ask for multiple slots for a single map task via " +
+     "\"Map task memory\", upto the limit specified by \"Max map task memory\", if the scheduler supports the " +
+     "feature. The value of -1 indicates that this feature is turned off.",
+     "isVisible": true,
+     "isRequired": true,
+     "serviceName": "MAPREDUCE",
+     "category": "CapacityScheduler",
+     "unit":"MB",
+     "filename": 'capacity-scheduler.xml'
+     },
+     {
+     "id": "site property",
+     "name": "mapred.cluster.max.reduce.memory.mb",
+     "displayName": "Max reduce task memory",
+     "displayType": "int",
+     "value": '-1',
+     "defaultValue": '-1',
+     "description": "The maximum size, in terms of virtual memory, of a single reduce task launched by the Map-Reduce " +
+     "framework, used by the scheduler. A job can ask for multiple slots for a single reduce task via \"Reduce task " +
+     "memory\", upto the limit specified by \"Max reduce task memory\", if the scheduler supports the feature. " +
+     "The value of -1 indicates that this feature is turned off.",
+     "isVisible": true,
+     "isRequired": true,
+     "serviceName": "MAPREDUCE",
+     "category": "CapacityScheduler",
+     "unit":"MB",
+     "filename": 'capacity-scheduler.xml'
+     },
+     {
+     "id": "site property",
+     "name": "mapred.job.map.memory.mb",
+     "displayName": "Map task memory",
+     "displayType": "int",
+     "value": '-1',
+     "defaultValue": '-1',
+     "description": "The size, in terms of virtual memory, of a single map task for the job. A job can ask for " +
+     "multiple slots for a single map task, rounded up to the next multiple of \"Map slot memory\" and upto " +
+     "the limit specified by \"Max map task memory\", if the scheduler supports the feature. The value of -1 " +
+     "indicates that this feature is turned off iff \"Map slot memory\" is also turned off.",
+     "isVisible": true,
+     "isRequired": true,
+     "serviceName": "MAPREDUCE",
+     "category": "CapacityScheduler",
+     "unit":"MB",
+     "filename": 'capacity-scheduler.xml'
+     },
+     {
+     "id": "site property",
+     "name": "mapred.job.reduce.memory.mb",
+     "displayName": "Reduce task memory",
+     "displayType": "int",
+     "value": '-1',
+     "defaultValue": '-1',
+     "description": "The size, in terms of virtual memory, of a single reduce task for the job. A job can ask for " +
+     "multiple slots for a single reduce task, rounded up to the next multiple of \"Reduce slot memory\" and upto " +
+     "the limit specified by \"Max reduce task memory\", if the scheduler supports the feature. The value of -1 " +
+     "indicates that this feature is turned off iff \"Task slot memory\" is also turned off.",
+     "isVisible": true,
+     "isRequired": true,
+     "serviceName": "MAPREDUCE",
+     "category": "CapacityScheduler",
+     "unit":"MB",
+     "filename": 'capacity-scheduler.xml'
+     },*/
   /**********************************************HBASE***************************************/
     {
       "id": "puppet var",
@@ -2132,8 +2240,7 @@ module.exports =
       "isVisible": false,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "General",
-      "belongsToService":[]
+      "category": "General"
     },
     {
       "id": "puppet var",
@@ -2148,8 +2255,7 @@ module.exports =
       "filename": "core-site.xml",
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups",
-      "belongsToService":["HIVE","WEBHCAT","OOZIE"]
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -2163,8 +2269,7 @@ module.exports =
       "filename": "hdfs-site.xml",
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Advanced",
-      "belongsToService":[]
+      "category": "Advanced"
     },
     {
       "id": "puppet var",
@@ -2178,8 +2283,7 @@ module.exports =
       "filename": "hdfs-site.xml",
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Advanced",
-      "belongsToService":[]
+      "category": "Advanced"
     },
     {
       "id": "puppet var",
@@ -2192,8 +2296,7 @@ module.exports =
       "isVisible": false,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "General",
-      "belongsToService":[]
+      "category": "General"
     },
     {
       "id": "puppet var",
@@ -2206,8 +2309,7 @@ module.exports =
       "isVisible": false,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "General",
-      "belongsToService":[]
+      "category": "General"
     },
     {
       "id": "puppet var",
@@ -2220,8 +2322,7 @@ module.exports =
       "isVisible": false,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "General",
-      "belongsToService":[]
+      "category": "General"
     },
     /*
     {
@@ -2276,8 +2377,7 @@ module.exports =
       "displayType": "directory",
       "isVisible": false,
       "domain": "global",
-      "serviceName": "MISC",
-      "belongsToService":[]
+      "serviceName": "MISC"
     },
     {
       "id": "puppet var",
@@ -2291,8 +2391,7 @@ module.exports =
       "isVisible": false,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Advanced",
-      "belongsToService":[]
+      "category": "Advanced"
     },
     {
       "id": "puppet var",
@@ -2306,8 +2405,7 @@ module.exports =
       "isVisible": false,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Advanced",
-      "belongsToService":[]
+      "category": "Advanced"
     },
     /*
     {
@@ -2423,8 +2521,7 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC",
       "domain": "global",
-      "category": "Users and Groups",
-      "belongsToService":["HDFS"]
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -2438,8 +2535,7 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups",
-      "belongsToService":["MAPREDUCE"]
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -2453,8 +2549,7 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups",
-      "belongsToService":["HBASE"]
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -2468,8 +2563,7 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups",
-      "belongsToService":["HIVE"]
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -2483,8 +2577,7 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups",
-      "belongsToService":["HCATALOG"]
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -2498,8 +2591,7 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups",
-      "belongsToService":["WEBHCAT"]
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -2513,8 +2605,7 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups",
-      "belongsToService":["OOZIE"]
+      "category": "Users and Groups"
     },
     /*
     {
@@ -2585,8 +2676,7 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups",
-      "belongsToService":["ZOOKEEPER"]
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -2600,8 +2690,7 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups",
-      "belongsToService":["GANGLIA"]
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -2615,8 +2704,7 @@ module.exports =
       "isVisible": false,
       "domain": "global",
       "serviceName":"MISC",
-      "category": "Users and Groups",
-      "belongsToService":[]
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -2630,8 +2718,7 @@ module.exports =
       "domain": "global",
       "isVisible": true,
       "serviceName":"MISC",
-      "category": "Users and Groups",
-      "belongsToService":["NAGIOS"]
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -2645,8 +2732,7 @@ module.exports =
       "isVisible": App.supports.customizeSmokeTestUser,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups",
-      "belongsToService":["HDFS"]
+      "category": "Users and Groups"
     },
     {
       "id": "puppet var",
@@ -2660,8 +2746,7 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups",
-      "belongsToService":["HDFS"]
+      "category": "Users and Groups"
     },
     /*
     {
@@ -2687,8 +2772,7 @@ module.exports =
       "isOverridable": false,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "General",
-      "belongsToService":["GANGLIA"]
+      "category": "General"
     }
   ]
 };

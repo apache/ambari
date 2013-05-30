@@ -26,7 +26,7 @@ App.HostComponent = DS.Model.extend({
   service: DS.belongsTo('App.Service'),
   actualConfigs: null,
   isClient:function () {
-    if(['PIG', 'SQOOP', 'HCAT', 'MAPREDUCE2_CLIENT'].contains(this.get('componentName'))){
+    if(['PIG', 'SQOOP', 'HCAT'].contains(this.get('componentName'))){
       return true;
     }
 
@@ -54,7 +54,6 @@ App.HostComponent = DS.Model.extend({
       case 'OOZIE_SERVER':
       case 'WEBHCAT_SERVER':
       case 'HUE_SERVER':
-      case 'HISTORYSERVER':
         return true;
       default:
         return false;
@@ -88,33 +87,7 @@ App.HostComponent = DS.Model.extend({
       }
     }
     return decommissioning;
-  }.property('componentName', 'host.hostName', 'App.router.mainServiceController.hdfsService.decommissionDataNodes.@each.hostName'),
-  /**
-   * User friendly host component status
-   */
-  componentTextStatus: function () {
-    var value = this.get("workStatus");
-
-    switch(value){
-      case "INSTALLING":
-        return 'Installing...';
-      case "INSTALL_FAILED":
-        return 'Install Failed';
-      case "INSTALLED":
-        return 'Stopped';
-      case "STARTED":
-        return 'Started';
-      case "STARTING":
-        return 'Starting...';
-      case "STOPPING":
-        return 'Stopping...';
-      case "UNKNOWN":
-        return 'Heartbeat lost...';
-      case "UPGRADE_FAILED":
-        return 'Upgrade Failed';
-    }
-    return 'Unknown';
-  }.property('workStatus','isDecommissioning')
+  }.property('componentName', 'host.hostName', 'App.router.mainServiceController.hdfsService.decommissionDataNodes.@each.hostName')
 });
 
 App.HostComponent.FIXTURES = [];

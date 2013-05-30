@@ -77,7 +77,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         newService.hosts.push({
           name: name,
           publicName: name,
-          logTasks: stages.polledData.filterProperty("Tasks.host_name", name)
+          logTasks: stages.polledData.filterProperty("Tasks.host_name",name)
         });
       });
       services.push(newService);
@@ -102,8 +102,13 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       } else if (currentStage && currentStage.get('stage') === 'stage3') {
         if (App.testMode) {
           currentStage.set('isSuccess', true);
+          currentStage.set('isCompleted', true);
+          this.moveToNextStage();
         } else {
-          this.loadClusterConfigs();
+          var self = this;
+          window.setTimeout(function () {
+            self.loadClusterConfigs();
+          }, 12000);
         }
       }
     }
@@ -112,9 +117,12 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   onCompleteStage: function () {
     var index = this.get('stages').filterProperty('isCompleted', true).length;
     if (index > 0) {
+      var self = this;
       var lastCompletedStageResult = this.get('stages').objectAt(index - 1).get('isSuccess');
       if (lastCompletedStageResult) {
-        this.moveToNextStage();
+        window.setTimeout(function () {
+          self.moveToNextStage();
+        }, 50);
       }
     }
   }.observes('stages.@each.isCompleted'),
@@ -128,6 +136,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
 
   addInfoToStages: function () {
     this.addInfoToStage2();
+    this.addInfoToStage3();
     this.addInfoToStage4();
   },
 
@@ -148,9 +157,13 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     stage2.set('data', data);
   },
 
+  addInfoToStage3: function () {
+
+  },
+
   addInfoToStage4: function () {
     var stage4 = this.get('stages').findProperty('stage', 'stage4');
-    var url = (App.testMode) ? '/data/wizard/deploy/2_hosts/poll_1.json' : App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/services?params/run_smoke_test=true';
+    var url = (App.testMode) ? '/data/wizard/deploy/2_hosts/poll_1.json' : App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/services';
     var data = '{"RequestInfo": {"context": "' + Em.I18n.t('requestInfo.startAllServices') + '"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}';
     stage4.set('url', url);
     stage4.set('data', data);
@@ -330,7 +343,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       serviceUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: 'hbase'});
       serviceUsers.pushObject({id: 'puppet var', name: 'hive_user', value: 'hive'});
     } else {
-      App.router.get('mainAdminSecurityController').setSecurityStatus();
+      App.router.get('mainAdminSecurityController').getSecurityStatusFromServer();
     }
   },
 
@@ -412,6 +425,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     if (this.get('noOfWaitingAjaxCalls') == 0) {
       var currentStage = this.get('stages').findProperty('stage', 'stage3');
       currentStage.set('isSuccess', true);
+      currentStage.set('isCompleted', true);
     }
   },
 

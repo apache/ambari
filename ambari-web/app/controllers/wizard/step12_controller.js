@@ -19,18 +19,11 @@
 App.WizardStep12Controller = App.MainServiceInfoConfigsController.extend({
 
   modifiedConfigs: [],
-  oldConfigs: [],
 
   afterLoad: function () {
     if (this.get('dataIsLoaded')) {
       this.get('stepConfigs').objectAt(0).get('configs').filterProperty('isEditable', false).setEach('isEditable', true);
       this.get('stepConfigs').objectAt(0).get('configs').filterProperty('displayType', 'masterHost').setEach('isVisible', false);
-      this.get('oldConfigs').clear();
-      this.get('modifiedConfigs').clear();
-      this.get('stepConfigs').objectAt(0).get('configs').forEach(function (config) {
-            this.get('oldConfigs').push(jQuery.extend({}, config));
-          }, this
-      );
     }
   }.observes('dataIsLoaded'),
 
@@ -50,16 +43,18 @@ App.WizardStep12Controller = App.MainServiceInfoConfigsController.extend({
     if (this.get('isSubmitDisabled')) {
       return false;
     }
+    var self = this;
+    this.get('modifiedConfigs').clear();
     this.get('stepConfigs').objectAt(0).get('configs').forEach(function (config) {
-      var oldConfig = this.get('oldConfigs').filterProperty('name', config.get('name')).findProperty('id', config.get('id'));
-      if (!oldConfig || oldConfig.get('value') !== config.get('value')) {
-        this.get('modifiedConfigs').push({
+      if (config.get('defaultValue') !== config.get('value')) {
+        self.get('modifiedConfigs').push({
           name: config.get('displayName'),
-          oldValue: !oldConfig ? 'null' : oldConfig.get('value') + ' ' + (oldConfig.get('unit') || ''),
-          value: config.get('value') + ' ' + (config.get('unit') || '')
+          oldValue: config.get('defaultValue'),
+          value: config.get('value'),
+          unit: config.get('unit') || false
         });
       }
-    }, this);
+    });
     App.router.send('next');
   }
 });

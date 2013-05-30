@@ -93,9 +93,6 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
     DEFAULT_JMX_PORTS.put("TASKTRACKER",        "50060");
     DEFAULT_JMX_PORTS.put("HBASE_MASTER",       "60010");
     DEFAULT_JMX_PORTS.put("HBASE_REGIONSERVER", "60030");
-    DEFAULT_JMX_PORTS.put("RESOURCEMANAGER",     "8088");
-    DEFAULT_JMX_PORTS.put("HISTORYSERVER",      "19888");
-    DEFAULT_JMX_PORTS.put("NODEMANAGER",         "8042");
 
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.configure(DeserializationConfig.Feature.USE_ANNOTATIONS, false);

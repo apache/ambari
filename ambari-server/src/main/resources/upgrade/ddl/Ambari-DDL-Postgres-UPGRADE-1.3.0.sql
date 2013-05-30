@@ -26,6 +26,8 @@ ALTER TABLE ambari.hosts
 ALTER TABLE ambari.clusterstate
   ADD COLUMN current_stack_version VARCHAR(255) NOT NULL;
 
+CREATE TABLE ambari.metainfo ("metainfo_key" VARCHAR(255), "metainfo_value" VARCHAR, PRIMARY KEY("metainfo_key"));
+GRANT ALL PRIVILEGES ON TABLE ambari.metainfo TO :username;
 
 CREATE TABLE ambari.hostconfigmapping (cluster_id bigint NOT NULL, host_name VARCHAR(255) NOT NULL, type_name VARCHAR(255) NOT NULL, version_tag VARCHAR(255) NOT NULL, service_name VARCHAR(255), create_timestamp BIGINT NOT NULL, selected INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL DEFAULT '_db', PRIMARY KEY (cluster_id, host_name, type_name, create_timestamp));
 GRANT ALL PRIVILEGES ON TABLE ambari.hostconfigmapping TO :username;
@@ -55,48 +57,10 @@ drop sequence ambari.host_role_command_task_id_seq;
 drop sequence ambari.users_user_id_seq;
 drop sequence ambari.clusters_cluster_id_seq;
 
-CREATE LANGUAGE plpgsql;
-
 BEGIN;
 
-CREATE OR REPLACE FUNCTION create_or_update_metainfo_table(ambariVersion VARCHAR, userName TEXT) RETURNS text AS
-$$
-DECLARE
-    version VARCHAR(255) := 'version';
-    fqtn text := 'ambari.metainfo';
-BEGIN
-    IF NOT EXISTS (SELECT * FROM pg_tables WHERE tablename = 'metainfo') THEN
-        EXECUTE 'CREATE TABLE '
-        || fqtn
-        || ' (metainfo_key VARCHAR(255), metainfo_value VARCHAR, PRIMARY KEY(metainfo_key));';
-        EXECUTE 'GRANT ALL PRIVILEGES ON TABLE '
-        || fqtn
-        || ' TO '
-        || $2
-        || ';';
-        EXECUTE 'INSERT INTO '
-        || fqtn
-        || '(metainfo_key, metainfo_value) select '
-        || quote_literal(version)
-        || ','
-        || quote_literal($1)
-        || ';';
-        RETURN 'INFO: metainfo was created';
-    ELSE
-        EXECUTE 'UPDATE '
-        || fqtn
-        || ' SET metainfo_value = '
-        || quote_literal($1)
-        || ' WHERE metainfo_key = '
-        || quote_literal(version)
-        || ';';
-        RETURN 'INFO: metainfo was updated';
-    END IF;
-END;
-$$
-LANGUAGE 'plpgsql';
-
-SELECT create_or_update_metainfo_table('${ambariVersion}',:username);
+insert into ambari.metainfo(metainfo_key, metainfo_value)
+select 'version','1.3.0';
 
 COMMIT;
 
@@ -104,6 +68,8 @@ UPDATE ambari.hostcomponentstate SET current_state = 'INSTALLED' WHERE current_s
 UPDATE ambari.hostcomponentstate SET current_state = 'INSTALLED' WHERE current_state like 'START_FAILED';
 
 -- service to cluster level config mappings move. idempotent update
+
+CREATE LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION update_clusterconfigmapping()
   RETURNS void AS

@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var stringUtils = require('utils/string_utils');
 
 App.MainAdminClusterController = Em.Controller.extend({
   name:'mainAdminClusterController',
@@ -41,16 +40,16 @@ App.MainAdminClusterController = Em.Controller.extend({
     var upgradeVersion = this.get('upgradeVersion') || App.defaultStackVersion;
     var currentStack = {};
     var upgradeStack = {};
-    var currentVersion = App.get('currentStackVersionNumber');
+    var currentVersion = App.currentStackVersion.replace(/HDP-/, '');
     var minUpgradeVersion = currentVersion;
     upgradeVersion = upgradeVersion.replace(/HDP-/, '');
     data.items.mapProperty('Versions.stack_version').forEach(function(version){
-      upgradeVersion = (stringUtils.compareVersions(upgradeVersion, version) === -1) ? version : upgradeVersion;
+      upgradeVersion = (upgradeVersion < version) ? version : upgradeVersion;
     });
     currentStack = data.items.findProperty('Versions.stack_version', currentVersion);
     upgradeStack = data.items.findProperty('Versions.stack_version', upgradeVersion);
     minUpgradeVersion = upgradeStack.Versions.min_upgrade_version;
-    if(minUpgradeVersion && (stringUtils.compareVersions(minUpgradeVersion, currentVersion) === 1)){
+    if(minUpgradeVersion && (minUpgradeVersion > currentVersion)){
       upgradeVersion = currentVersion;
       upgradeStack = currentStack;
     }

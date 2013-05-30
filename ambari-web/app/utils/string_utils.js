@@ -59,45 +59,5 @@ module.exports = {
       return str[1].toUpperCase();
     }
     return new_name;
-  },
-  /**
-   * Compare two versions by following rules:
-   * first higher than second then return 1
-   * first lower than second then return -1
-   * first equal to second then return 0
-   * @param first {string}
-   * @param second {string}
-   * @return {number}
-   */
-  compareVersions: function(first, second){
-    if (!(typeof first === 'string' && typeof second === 'string')) {
-      return false;
-    }
-    var firstNumbers = first.split('.');
-    var secondNumbers = second.split('.');
-    var length = 0;
-    var i = 0;
-    var result = false;
-    if(firstNumbers.length === secondNumbers.length) {
-      length = firstNumbers.length;
-    } else if(firstNumbers.length < secondNumbers.length){
-      length = secondNumbers.length;
-    } else {
-      length = firstNumbers.length;
-    }
-
-    while(i < length && !result){
-      firstNumbers[i] = (firstNumbers[i] === undefined) ? 0 : window.parseInt(firstNumbers[i]);
-      secondNumbers[i] = (secondNumbers[i] === undefined) ? 0 : window.parseInt(secondNumbers[i]);
-      if(firstNumbers[i] > secondNumbers[i]){
-        result = 1;
-      } else if(firstNumbers[i] === secondNumbers[i]){
-        result = 0;
-      } else if(firstNumbers[i] < secondNumbers[i]){
-        result = -1;
-      }
-      i++;
-    }
-    return result;
   }
 }

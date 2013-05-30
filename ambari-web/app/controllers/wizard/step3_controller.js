@@ -280,9 +280,8 @@ App.WizardStep3Controller = Em.Controller.extend({
       App.router.get('installerController').setLowerStepsDisable(3);
       this.set('isSubmitDisabled', true);
     } else {
-      App.router.get('installerController.isStepDisabled').filter(function(step){
-        if(step.step >= 0 && step.step <= 2) return true;
-      }).setEach('value', false);
+      App.router.get('installerController.isStepDisabled').findProperty('step', 1).set('value', false);
+      App.router.get('installerController.isStepDisabled').findProperty('step', 2).set('value', false);
     }
   }.observes('isInstallInProgress'),
 
@@ -355,6 +354,15 @@ App.WizardStep3Controller = Em.Controller.extend({
       }
     }
   },
+
+  /*
+   stopBootstrap: function () {
+   console.log('stopBootstrap() called');
+   Ember.run.later(this, function () {
+   this.startRegistration();
+   }, 1000);
+   },
+   */
 
   startRegistration: function () {
     if (this.get('registrationStartedAt') == null) {

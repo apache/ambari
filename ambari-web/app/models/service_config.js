@@ -19,6 +19,10 @@
 var App = require('app');
 var validator = require('utils/validator');
 
+App.ConfigProperties = Ember.ArrayProxy.extend({
+  content: require('data/config_properties').configProperties
+});
+
 App.ServiceConfig = Ember.Object.extend({
   serviceName: '',
   configCategories: [],
@@ -240,15 +244,6 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'datanode_hosts':
         this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'DATANODE').hosts.mapProperty('hostName'));
         break;
-      case 'hs_host':
-        this.set('value', masterComponentHostsInDB.filterProperty('component', 'HISTORYSERVER').mapProperty('hostName'));
-        break;
-      case 'rm_host':
-        this.set('value', masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName);
-        break;
-      case 'nm_hosts':
-        this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'NODEMANAGER').hosts.mapProperty('hostName'));
-        break;
       case 'jobtracker_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'JOBTRACKER').hostName);
         break;
@@ -336,7 +331,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
         }, this);
         break;
       case 'mapred_local_dir':
-        temp = slaveComponentHostsInDB.findProperty('componentName', 'TASKTRACKER') || slaveComponentHostsInDB.findProperty('componentName', 'NODEMANAGER');
+        temp = slaveComponentHostsInDB.findProperty('componentName', 'TASKTRACKER');
         temp.hosts.forEach(function (host) {
           setOfHostNames.push(host.hostName);
         }, this);

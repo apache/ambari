@@ -84,7 +84,7 @@ App.SlaveComponentGroupsController = Em.ArrayController.extend({
   // returns key-value pairs i.e. all fields for slave component for this specific service.
   componentProperties: function (serviceName) {
 
-    var serviceConfigs = App.config.get('preDefinedServiceConfigs').findProperty('serviceName', serviceName);
+    var serviceConfigs = require('data/service_configs').findProperty('serviceName', serviceName);
 
     var configs = [];
     var componentName = null;

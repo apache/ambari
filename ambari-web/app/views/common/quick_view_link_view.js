@@ -29,18 +29,13 @@ App.QuickViewLinks = Em.View.extend({
     var host;
 
     if (serviceName === 'HDFS') {
-      host = App.singleNodeInstall ? App.singleNodeAlias : components.findProperty('componentName', 'NAMENODE').get('host.publicHostName');
+      host = components.findProperty('componentName', 'NAMENODE').get('host.publicHostName');
     } else if (serviceName === 'MAPREDUCE') {
-      host = App.singleNodeInstall ? App.singleNodeAlias : components.findProperty('componentName', 'JOBTRACKER').get('host.publicHostName');
+      host = components.findProperty('componentName', 'JOBTRACKER').get('host.publicHostName');
     } else if (serviceName === 'HBASE') {
       var component = components.filterProperty('componentName', 'HBASE_MASTER').findProperty('haStatus', 'active');
       if(component){
-        if(App.singleNodeInstall){
-          host = App.singleNodeAlias;
-        }else{
-          host = component.get('host.publicHostName');
-        }
-
+        host = component.get('host.publicHostName');
       }
     }
     if (!host) {

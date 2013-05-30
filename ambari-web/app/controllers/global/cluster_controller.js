@@ -120,7 +120,7 @@ App.ClusterController = Em.Controller.extend({
               if (host) {
                 hostName = host.get('publicHostName');
               }
-              return "http://" + (App.singleNodeInstall ? App.singleNodeAlias : hostName) + "/ganglia";
+              return "http://" + hostName + "/ganglia";
             }
           }
         }
@@ -154,7 +154,7 @@ App.ClusterController = Em.Controller.extend({
               if (host) {
                 hostName = host.get('publicHostName');
               }
-              return "http://" + (App.singleNodeInstall ? App.singleNodeAlias : hostName) + "/nagios";
+              return "http://" + hostName + "/nagios";
             }
           }
         }

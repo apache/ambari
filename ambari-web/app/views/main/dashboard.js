@@ -60,9 +60,6 @@ App.MainDashboardView = Em.View.extend({
           vName = App.MainDashboardServiceMapreduceView;
           item2 = App.MapReduceService.find(item.get('id'));
           break;
-        case "MAPREDUCE2":
-          vName = App.MainDashboardServiceMapreduce2View;
-          break;
         case "HBASE":
           vName = App.MainDashboardServiceHbaseView;
           item2 = App.HBaseService.find(item.get('id'));

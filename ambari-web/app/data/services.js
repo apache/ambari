@@ -36,7 +36,7 @@ module.exports = [
     description: Em.I18n.t('services.mapreduce.description')
   },
   {
-    serviceName: 'MAPREDUCE2',
+    serviceName: 'MAPREDUCEv2',
     displayName: 'MapReduce 2',
     isDisabled: false,
     isSelected: true,
@@ -77,7 +77,7 @@ module.exports = [
   },
   {
     serviceName: 'HIVE',
-    displayName: 'Hive + HCat',
+    displayName: 'Hive + HCat + ZooKeeper',
     isDisabled: false,
     isSelected: true,
     canBeSelected: true,
@@ -101,7 +101,7 @@ module.exports = [
   },
   {
     serviceName: 'HBASE',
-    displayName: 'HBase',
+    displayName: 'HBase + ZooKeeper',
     isDisabled: false,
     isSelected: true,
     canBeSelected: true,
@@ -137,7 +137,7 @@ module.exports = [
     isDisabled: false,
     isSelected: true,
     canBeSelected: true,
-    description: Em.I18n.t('services.zookeeper.description')
+    isHidden: true
   },
   {
     serviceName: 'HUE',

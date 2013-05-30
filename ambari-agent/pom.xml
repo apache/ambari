@@ -61,33 +61,6 @@
   <build>
     <plugins>
       <plugin>
-         <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.8</version>
-        <executions>
-          <execution>
-            <id>parse-version</id>
-            <phase>validate</phase>
-            <goals>
-              <goal>parse-version</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>regex-property</id>
-            <goals>
-              <goal>regex-property</goal>
-            </goals>
-            <configuration>
-              <name>ambariVersion</name>
-              <value>${project.version}</value>
-              <regex>-SNAPSHOT</regex>
-              <replacement></replacement>
-              <failIfNoMatch>false</failIfNoMatch>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.0</version>
       </plugin>
@@ -325,7 +298,6 @@
               <sources>
                 <source>
                   <location>../version</location>
-                  <filter>true</filter>
                 </source>
               </sources>
             </mapping>

@@ -34,8 +34,6 @@ App.componentsUpdateInterval = 6000;
 App.contentUpdateInterval = 15000;
 App.maxRunsForAppBrowser = 500;
 App.pageReloadTime=3600000;
-App.singleNodeInstall = false;
-App.singleNodeAlias = document.location.hostname;
 
 // experimental features are automatically enabled if running on brunch server
 App.enableExperimental = false;

@@ -21,11 +21,11 @@
     {{#each stage in controller.stages}}
       {{#view App.StageStatusView}}
       <td>
-        {{#if stage.isPolling}}
+        {{#if controller.hasHostPopup}}
           <a  href="javascript:void(0)" {{action "showHostPopup" stage.label target="view"}}>
         {{/if}}
         <p {{bindAttr class="stage.hasStarted::faintText"}}>{{stage.label}}</p>
-        {{#if stage.isPolling}}
+        {{#if controller.hasHostPopup}}
           </a>
         {{/if}}
       </td>

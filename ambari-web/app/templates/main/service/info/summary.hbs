@@ -48,25 +48,23 @@
                 {{#unless view.serviceStatus.hbase}}
                   {{#unless view.serviceStatus.ganglia}}
                     {{#unless view.serviceStatus.hue}}
-                      {{#unless view.serviceStatus.mapreduce2}}
-	                      {{#each component in view.components}}
-	                        <tr>
-	                          {{#if component.isMaster}}
-	                            <td class="summary-label">{{component.displayName}}</td>
-	                            <td><a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.publicHostName}}</a></td>
-	                          {{else}}
-	                            <td class="summary-label">{{component.displayName}}s</td>
-	                            <td><a {{action filterHosts component}} href="javascript:void(null)">{{component.displayName}}s</a></td>
-	                          {{/if}}
-	                        </tr>
-	                      {{/each}}
-	                      {{#if view.serviceStatus.nagios}}
-	                        <tr>
-	                          <td class="summary-label">{{t services.service.info.summary.nagiosWebUI}}</td>
-	                          <td><a target=_blank href="http://{{unbound view.nagiosServer}}/nagios">{{view.nagiosServer}}/nagios</a></td>
-	                        </tr>
-	                      {{/if}}
-                      {{/unless}}
+                      {{#each component in view.components}}
+                        <tr>
+                          {{#if component.isMaster}}
+                            <td class="summary-label">{{component.displayName}}</td>
+                            <td><a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.publicHostName}}</a></td>
+                          {{else}}
+                            <td class="summary-label">{{component.displayName}}s</td>
+                            <td><a {{action filterHosts component}} href="javascript:void(null)">{{component.displayName}}s</a></td>
+                          {{/if}}
+                        </tr>
+                      {{/each}}
+                      {{#if view.serviceStatus.nagios}}
+                        <tr>
+                          <td class="summary-label">{{t services.service.info.summary.nagiosWebUI}}</td>
+                          <td><a target=_blank href="http://{{unbound view.nagiosServer}}/nagios">{{view.nagiosServer}}/nagios</a></td>
+                        </tr>
+                      {{/if}}
                     {{/unless}}
                   {{/unless}}
                 {{/unless}}
@@ -80,9 +78,6 @@
       {{/if}}
       {{#if view.serviceStatus.mapreduce}}
         {{view App.MainDashboardServiceMapreduceView showOnlyRows=true serviceBinding="view.service"}}
-      {{/if}}
-      {{#if view.serviceStatus.mapreduce2}}
-        {{template "templates/main/service/info/summary/mapreduce2"}}
       {{/if}}
       {{#if view.serviceStatus.hbase}}
         {{view App.MainDashboardServiceHbaseView showOnlyRows=true serviceBinding="view.service"}}

@@ -165,6 +165,7 @@ module.exports = Em.Route.extend({
         addServiceController.saveSlaveComponentHosts(wizardStep6Controller);
         addServiceController.get('content').set('serviceConfigProperties', null);
         App.db.setServiceConfigProperties(null);
+        App.db.setSlaveProperties(null);
         addServiceController.loadAdvancedConfigs();
         router.transitionTo('step4');
       }

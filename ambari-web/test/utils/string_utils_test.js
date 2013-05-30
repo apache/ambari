@@ -53,20 +53,4 @@ describe('string_utils', function () {
     });
   });
 
-  describe('#compareVersions', function () {
-    var tests = [
-      {m: '1.2 equal to 1.2', v1:'1.2', v2:'1.2', e: 0},
-      {m: '1.2 lower than 1.3', v1:'1.2', v2:'1.3', e: -1},
-      {m: '1.3 higher than 1.2', v1:'1.3', v2:'1.2', e: 1},
-      {m: '1.2.1 higher than 1.2', v1:'1.2.1', v2:'1.2', e: 1},
-      {m: '11.2 higher than 2.2', v1:'11.2', v2:'2.2', e: 1},
-      {m: '0.9 higher than 0.8', v1:'0.9', v2:'0.8', e: 1}
-    ];
-    tests.forEach(function(test) {
-      it(test.m + ' ', function () {
-        expect(string_utils.compareVersions(test.v1, test.v2)).to.equal(test.e);
-      });
-    });
-  });
-
 });

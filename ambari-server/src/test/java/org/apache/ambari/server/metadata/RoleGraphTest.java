@@ -63,13 +63,5 @@ public class RoleGraphTest {
     Assert.assertEquals(1, rco.order(nagios_server_install, mapred_client_install));
     Assert.assertEquals(1, rco.order(nagios_server_install, hcat_client_install));
     Assert.assertEquals(1, rco.order(nagios_server_install, oozie_client_install));
-
-    RoleGraphNode pig_service_check = new RoleGraphNode(Role.PIG_SERVICE_CHECK, RoleCommand.EXECUTE);
-    RoleGraphNode resourcemanager_start = new RoleGraphNode(Role.RESOURCEMANAGER, RoleCommand.START);
-    Assert.assertEquals(-1, rco.order(resourcemanager_start, pig_service_check));
-
-    RoleGraphNode hdfs_service_check = new RoleGraphNode(Role.HDFS_SERVICE_CHECK, RoleCommand.EXECUTE);
-    RoleGraphNode snamenode_start = new RoleGraphNode(Role.SECONDARY_NAMENODE, RoleCommand.START);
-    Assert.assertEquals(-1, rco.order(snamenode_start, hdfs_service_check));
   }
 }

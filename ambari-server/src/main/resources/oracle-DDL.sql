@@ -117,7 +117,7 @@ GRANT ALL ON metainfo TO &1;
 INSERT INTO ambari_sequences(sequence_name, value) values ('host_role_command_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, value) values ('user_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, value) values ('cluster_id_seq', 0);
-INSERT INTO metainfo("metainfo_key", "metainfo_value") values ('version', '${ambariVersion}');
+INSERT INTO metainfo("metainfo_key", "metainfo_value") values ('version', '1.3.0');
 
 insert into Roles(role_name)
 select 'admin' from dual

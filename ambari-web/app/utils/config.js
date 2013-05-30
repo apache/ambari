@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var stringUtils = require('utils/string_utils');
 
 var serviceComponents = {};
 var configGroupsByTag = [];
@@ -25,29 +24,9 @@ var globalPropertyToServicesMap = null;
 
 App.config = Em.Object.create({
 
-  preDefinedServiceConfigs: function(){
-    var configs = this.get('preDefinedConfigProperties');
-    var services = [];
-    require('data/service_configs').forEach(function(service){
-      service.configs = configs.filterProperty('serviceName', service.serviceName);
-      services.push(service);
-    });
-    return services;
-  }.property('preDefinedConfigProperties'),
-  configMapping: function() {
-      if (stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 1 ||
-        stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 0) {
-        return require('data/HDP2/config_mapping');
-      }
-    return require('data/config_mapping');
-  }.property('App.currentStackVersionNumber'),
-  preDefinedConfigProperties: function() {
-    if (stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 1 ||
-      stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 0) {
-      return require('data/HDP2/config_properties').configProperties;
-    }
-    return require('data/config_properties').configProperties;
-  }.property('App.currentStackVersionNumber'),
+  preDefinedServiceConfigs: require('data/service_configs'),
+  configMapping: require('data/config_mapping'),
+  preDefinedConfigProperties: require('data/config_properties').configProperties,
   preDefinedCustomConfigs: require('data/custom_configs'),
   //categories which contain custom configs
   categoriesWithCustom: ['CapacityScheduler'],
@@ -154,16 +133,15 @@ App.config = Em.Object.create({
       properties = (properties.length) ? properties.objectAt(0).properties : {};
       for (var index in properties) {
         var configsPropertyDef = preDefinedConfigs.findProperty('name', index) || null;
-        var serviceConfigObj = App.ServiceConfig.create({
+        var serviceConfigObj = {
           name: index,
           value: properties[index],
           defaultValue: properties[index],
           filename: _tag.siteName + ".xml",
           isUserProperty: false,
           isOverridable: true,
-          serviceName: serviceName,
-          belongsToService: []
-        });
+          serviceName: serviceName
+        };
 
         if (configsPropertyDef) {
           serviceConfigObj.displayType = configsPropertyDef.displayType;
@@ -175,7 +153,6 @@ App.config = Em.Object.create({
           serviceConfigObj.isOverridable = configsPropertyDef.isOverridable === undefined ? true : configsPropertyDef.isOverridable;
           serviceConfigObj.serviceName = configsPropertyDef ? configsPropertyDef.serviceName : null;
           serviceConfigObj.index = configsPropertyDef.index;
-          serviceConfigObj.belongsToService = configsPropertyDef.belongsToService;
         }
         // MAPREDUCE contains core-site properties but doesn't show them
         if(serviceConfigObj.serviceName === 'MAPREDUCE' && serviceConfigObj.filename === 'core-site.xml'){
@@ -271,13 +248,13 @@ App.config = Em.Object.create({
    * @param serviceName
    */
   addAdvancedConfigs: function (serviceConfigs, advancedConfigs, serviceName) {
-    var configsToVerifying = (serviceName) ? serviceConfigs.filterProperty('serviceName', serviceName) : serviceConfigs;
+    serviceConfigs = (serviceName) ? serviceConfigs.filterProperty('serviceName', serviceName) : serviceConfigs;
     advancedConfigs.forEach(function (_config) {
       var configCategory = 'Advanced';
       var categoryMetaData = null;
       if (_config) {
         if (this.get('configMapping').computed().someProperty('name', _config.name)) {
-        } else if (!(configsToVerifying.someProperty('name', _config.name))) {
+        } else if (!(serviceConfigs.someProperty('name', _config.name))) {
           if(this.get('customFileNames').contains(_config.filename)){
             categoryMetaData = this.identifyCategory(_config);
             if (categoryMetaData != null) {
@@ -369,14 +346,6 @@ App.config = Em.Object.create({
         break;
     }
   },
-
-  miscConfigVisibleProperty: function (configs, serviceToShow) {
-    configs.forEach(function(item) {
-      item.set("isVisible", item.belongsToService.some(function(cur){return serviceToShow.contains(cur)}));
-    });
-    return configs;
-  },
-
   /**
    * render configs, distribute them by service
    * and wrap each in ServiceConfigProperty object
@@ -453,7 +422,7 @@ App.config = Em.Object.create({
    * @param serviceName
    */
   createServiceConfig: function (serviceName) {
-    var preDefinedServiceConfig = App.config.get('preDefinedServiceConfigs').findProperty('serviceName', serviceName);
+    var preDefinedServiceConfig = App.config.preDefinedServiceConfigs.findProperty('serviceName', serviceName);
     var serviceConfig = App.ServiceConfig.create({
       filename: preDefinedServiceConfig.filename,
       serviceName: preDefinedServiceConfig.serviceName,
@@ -514,8 +483,7 @@ App.config = Em.Object.create({
       sender: this,
       data: {
         serviceName: serviceName,
-        stack2VersionUrl: App.get('stack2VersionURL'),
-        stackVersion: App.get('currentStackVersionNumber')
+        stack2VersionUrl: App.get('stack2VersionURL')
       },
       success: 'loadAdvancedConfigSuccess'
     });

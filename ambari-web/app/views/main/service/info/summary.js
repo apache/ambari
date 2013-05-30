@@ -37,7 +37,6 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   serviceStatus:{
     hdfs:false,
     mapreduce:false,
-    mapreduce2:false,
     hbase:false,
     zookeeper:false,
     oozie:false,
@@ -49,7 +48,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
 
   clients: function () {
     var service = this.get('controller.content');
-    if (["OOZIE", "ZOOKEEPER", "HIVE", "MAPREDUCE2"].contains(service.get("id"))) {
+    if (["OOZIE", "ZOOKEEPER", "HIVE"].contains(service.get("id"))) {
       return service.get('hostComponents').filterProperty('isClient');
     }
     return [];
@@ -150,7 +149,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
    */
   clientObj: function() {
     var service = this.get('controller.content');
-    if (["OOZIE", "ZOOKEEPER", "HIVE", "MAPREDUCE2"].contains(service.get("id"))) {
+    if (["OOZIE", "ZOOKEEPER", "HIVE"].contains(service.get("id"))) {
       var clients = service.get('hostComponents').filterProperty('isClient', true);
       if (clients.length > 0) {
         return clients[0];
@@ -174,7 +173,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   getServer: function(serviceName) {
     var service=this.get('controller.content');
     if(service.get("id") == serviceName) {
-      return (App.singleNodeInstall ? App.singleNodeAlias : service.get("hostComponents").findProperty('isMaster', true).get("host").get("publicHostName"));
+      return service.get("hostComponents").findProperty('isMaster', true).get("host").get("publicHostName");
     }
     else {
       return '';

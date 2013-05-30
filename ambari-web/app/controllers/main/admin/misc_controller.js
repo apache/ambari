@@ -42,7 +42,6 @@ App.MainAdminMiscController = App.MainServiceInfoConfigsController.extend({
     });
   },
   loadServiceTagSuccess: function(data, opt, params) {
-    var installedServices = App.Service.find().mapProperty("serviceName");
     var serviceConfigsDef = params.serviceConfigsDef;
     var serviceName = this.get('content.serviceName');
     var loadedClusterSiteToTagMap = {};
@@ -57,8 +56,6 @@ App.MainAdminMiscController = App.MainServiceInfoConfigsController.extend({
     var configSet = App.config.mergePreDefinedWithLoaded(configGroups, [], this.get('serviceConfigTags'), serviceName);
 
     var misc_configs = configSet.globalConfigs.filterProperty('serviceName', this.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true);
-
-    misc_configs = App.config.miscConfigVisibleProperty(misc_configs, installedServices);
 
     var sortOrder = this.get('configs').filterProperty('serviceName', this.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true).mapProperty('name');
 

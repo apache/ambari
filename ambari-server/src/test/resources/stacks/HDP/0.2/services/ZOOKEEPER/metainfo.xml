@@ -17,7 +17,7 @@
 -->
 <metainfo>
     <user>root</user>
-    <comment>Centralized service which provides highly reliable distributed coordination</comment>
+    <comment>This is comment for ZOOKEEPER service</comment>
     <version>1.0</version>
 
 
