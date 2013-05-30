@@ -14,9 +14,55 @@
 ~~ limitations under the License.
 ~~
 
-What's New in Ambari 1.3.0?
+What's New with Ambari?
 
- * Check back later for the new features in 1.3.0. 
+ * Upcoming 1.2.3 release features the following:
+
+   * Improved general stability
+
+   * Ability to update core-site.xml properties
+
+   * Add + remove custom configuration properties
+
+   * New Heatmaps (Host > CPU WIO %, HBase > RegionServer Reads/Writes/Regions/QueueSize/MemstoreSize)
+
+   * Add host components on existing hosts
+
+   * Filter hosts by host health status
+
+   * Mixed OS support
+
+   * init.d scripts
+
+   * Support for Oracle Enterprise Linux 5 and 6
+
+
+ * Ambari 1.2.4 will feature:
+
+   * Ability to use a non-root, sudo user to install Ambari agents
+
+   * MySQL and Oracle database support for Ambari (in addition to Postgres)
+
+   * Oracle database support for Hive Metastore (in addition to MySQL)
+
+   * MySQL and Oracle database support for Oozie (in addition to Derby)
+
+   * Ability to select which stack to deploy
+
+
+ * Ambari 1.2.5 will feature:
+
+   * A wizard to configure and manage a secure cluster via Kerberos
+
+   * Support for configuring and running Ambari Web Server https
+
+   * Run Ambari Server as a non-root user
+
+   * Audit capture of login and config changes
+
+
+ * Ambari 1.4.0 will support Hadoop 2.0.  This work is going on under the {{{https://svn.apache.org/repos/asf/incubator/ambari/branches/branch-1.4.0} 1.4.0 branch}}.
+
 
 Getting Ambari Source
 
@@ -29,13 +75,13 @@ $ svn checkout http://svn.apache.org/repos/asf/incubator/ambari/trunk ambari
 JIRA
 
   You can follow all the work going on by watching the Ambari JIRA project. You can see the
-  JIRA details for Ambari 1.3.0 here:
+  JIRA details for Ambari here:
 
-  {{{https://issues.apache.org/jira/issues/?jql=fixVersion%20%3D%20%221.3.0%22%20AND%20project%20%3D%20AMBARI} https://issues.apache.org/jira/issues/?jql=fixVersion%20%3D%20%221.3.0%22%20AND%20project%20%3D%20AMBARI}}
+  {{{https://issues.apache.org/jira/issues/?jql=project%20%3D%20AMBARI} https://issues.apache.org/jira/issues/?jql=project%20%3D%20AMBARI}}
 
 User Guide
 
-  Take a look at {{{http://incubator.apache.org/ambari/1.2.2/installing-hadoop-using-ambari/content/index.html} how to install a Hadoop cluster using Ambari 1.2.2}}.
+  Take a look at {{{http://incubator.apache.org/ambari/1.2.3/installing-hadoop-using-ambari/content/index.html} how to install a Hadoop cluster using Ambari 1.2.3}}.
 
 Stay Tuned
 

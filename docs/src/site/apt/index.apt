@@ -21,7 +21,7 @@ Introduction
   The set of Hadoop components that are currently supported by Ambari includes:
 
   {{{http://hadoop.apache.org/docs/hdfs} HDFS}},
-  {{{http://hadoop.apache.org/docs/mapreduce} MapReduce}}
+  {{{http://hadoop.apache.org/docs/mapreduce} MapReduce}},
   {{{http://hive.apache.org} Hive}},
   {{{http://incubator.apache.org/hcatalog} HCatalog}},
   {{{http://hbase.apache.org} HBase}},
@@ -66,17 +66,27 @@ Getting Started with Ambari
 
   Follow the {{{./1.2.2/installing-hadoop-using-ambari/content/index.html} installation guide for Ambari 1.2.2}}.
 
-  Note: Ambari currently supports 64-bit RHEL/CentOS 5 + 6 and SLES 11.
+  Note: Ambari currently supports the 64-bit version of the following Operating Systems:
+
+  * RHEL (Redhat Enterprise Linux) 5 and 6
+
+  * CentOS 5 and 6
+
+  * OEL (Oracle Enterprise Linux) 5 and 6
+
+  * SLES (SuSE Linux Enterprise Server) 11
 
 Get Involved
 
   Visit the {{{https://cwiki.apache.org/confluence/display/AMBARI/Ambari} Ambari Wiki}} for design documents, roadmap, development guidelines, etc.
 
-  The first {{{http://www.meetup.com/Apache-Ambari-User-Group} Ambari User Group Meetup}} took place on April 2 in Palo Alto, California, USA.  {{{http://www.meetup.com/Apache-Ambari-User-Group/events/109316812/} See the slides and WebEx session from the Meetup}}.  
+  {{{http://www.meetup.com/Apache-Ambari-User-Group} Join the Ambari User Meetup Group}}.  You can {{{http://www.meetup.com/Apache-Ambari-User-Group/events/109316812/} see the slides and WebEx session from the last Meetup}}.
+
+  On June 25, 2013, Ambari BoF session will be held at San Jose Convention Center. {{{http://www.meetup.com/Apache-Ambari-User-Group/events/119184782/} RSVP now to reserve your spot}}.
 
 What's New?
 
-  Check out the work going on for the {{{./whats-new.html} upcoming 1.3.0 release}}.
+  Check out the work going on for the {{{./whats-new.html} upcoming releases}}.
 
 Disclaimer
 
