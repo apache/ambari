@@ -795,6 +795,8 @@ Em.I18n.translations = {
   'services.ganglia.webUi': 'Ganglia Web UI',
   'services.ganglia.monitors': 'Ganglia Monitors',
 
+  'services.mapreduce2.webUi': 'History Server UI',
+
   'services.zookeeper.prefix': '{0} of',
   'services.zookeeper.title': '{0} ZooKeepers',
   'services.zookeeper.postfix': 'running',
@@ -991,6 +993,16 @@ Em.I18n.translations = {
   'dashboard.services.yarn.nodeManagers':'NodeManagers',
   'dashboard.services.yarn.yarnClients':'YARN Clients',
   'dashboard.services.yarn.resourceManagerWebUI':'ResourceManager Web UI',
+  'dashboard.services.yarn.resourceManager.uptime':'ResourceManager Uptime',
+  'dashboard.services.resourceManager.nodes.heap':'ResourceManager Heap',
+  'dashboard.services.yarn.nodeManagers.live': 'NodeManagers Alive',
+  'dashboard.services.yarn.nodeManagers.live.msg':'{0} live / {1} total',
+  'dashboard.services.yarn.nodeManagers.status': 'NodeManagers Status',
+  'dashboard.services.yarn.nodeManagers.status.msg': '{0} active / {1} lost / {2} unhealthy / {3} rebooted / {4} decommissioned',
+  'dashboard.services.yarn.containers': 'Containers',
+  'dashboard.services.yarn.containers.msg': '{0} allocated / {1} pending / {2} reserved',
+  'dashboard.services.yarn.apps': 'Applications',
+  'dashboard.services.yarn.apps.msg': '{0} submitted / {1} running / {2} pending / {3} completed / {4} killed / {5} failed',
 
   'dashboard.services.mapreduce.summary':'{0} of {1} trackers live, {2} jobs running, {3} jobs waiting',
   'dashboard.services.mapreduce.taskTrackers':'TaskTrackers',

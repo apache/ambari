@@ -23,7 +23,7 @@ App.MainDashboardServiceOozieView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/dashboard/service/oozie'),
 
   webUi: function () {
-    var hostName = this.get('service.hostComponents').findProperty('componentName', 'OOZIE_SERVER').get('host.publicHostName');
+    var hostName = App.singleNodeInstall ? App.singleNodeAlias : this.get('service.hostComponents').findProperty('componentName', 'OOZIE_SERVER').get('host.publicHostName');
     return "http://{0}:11000/oozie".format(hostName);
   }.property('service')
 });

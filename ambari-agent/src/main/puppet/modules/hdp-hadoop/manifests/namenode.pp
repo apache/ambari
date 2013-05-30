@@ -166,7 +166,7 @@ define hdp-hadoop::namenode::create_app_directories($service_state)
       }
     }
 
-    if $stack_version in ("2.0.1") {
+    if (hdp_get_major_stack_version($stack_version) >= 2) {
       if ($hdp::params::nm_hosts != "") {
         if ($hdp::params::yarn_log_aggregation_enabled == "true") {
           $yarn_user = $hdp::params::yarn_user

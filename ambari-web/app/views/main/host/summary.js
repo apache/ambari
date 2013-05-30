@@ -195,13 +195,22 @@ App.MainHostSummaryView = Em.View.extend({
      * Return host component text status
      */
     componentTextStatus: function () {
+      var workStatus = this.get("workStatus");
       var componentTextStatus = this.get('content.componentTextStatus');
       var hostComponent = this.get('hostComponent');
       if (hostComponent) {
         componentTextStatus = hostComponent.get('componentTextStatus');
+        if(this.get("isDataNode"))
+          if(this.get('isDataNodeRecommissionAvailable')){
+            if(App.HostComponentStatus.started == workStatus){
+              componentTextStatus = "Decommissioning...";
+            }else if(App.HostComponentStatus.stopped == workStatus){
+              componentTextStatus = "Decommissioned";
+            }
+          }
       }
       return componentTextStatus;
-    }.property('workStatus'),
+    }.property('workStatus','isDataNodeRecommissionAvailable'),
 
     statusClass: function () {
       var statusClass = null;
@@ -230,24 +239,14 @@ App.MainHostSummaryView = Em.View.extend({
      * For Upgrade failed state
      */
     isUpgradeFailed: function () {
-      return App.HostComponentStatus.getKeyName(this.get('workStatus')) === "upgrade_failed" && !this.get("noActionAvailable");
+      return App.HostComponentStatus.getKeyName(this.get('workStatus')) === "upgrade_failed";
     }.property("workStatus"),
     /**
      * For Install failed state
      */
     isInstallFailed: function () {
-      return App.HostComponentStatus.getKeyName(this.get('workStatus')) === "install_failed" && !this.get("noActionAvailable");
+      return App.HostComponentStatus.getKeyName(this.get('workStatus')) === "install_failed";
     }.property("workStatus"),
-    /**
-     * No action available while component is starting/stopping/unknown
-     */
-    noActionAvailable: function () {
-      var workStatus = this.get('workStatus');
-      if ([App.HostComponentStatus.starting, App.HostComponentStatus.stopping, App.HostComponentStatus.unknown].contains(workStatus)) {
-        return true;
-      }
-      return false;
-    }.property('workStatus'),
     /**
      * Do blinking for 1 minute
      */
@@ -276,15 +275,27 @@ App.MainHostSummaryView = Em.View.extend({
       this.$('.components-health').stop(true, true);
       this.$('.components-health').css({opacity: 1.0});
       this.doBlinking();
-    }.observes('workStatus'),
+    }.observes('workStatus','isDataNodeRecommissionAvailable'),
 
     isStart: function () {
-      return (this.get('workStatus') === App.HostComponentStatus.started || this.get('workStatus') === App.HostComponentStatus.starting);
+      return (this.get('workStatus') == App.HostComponentStatus.started || this.get('workStatus') == App.HostComponentStatus.starting);
+    }.property('workStatus'),
+
+    /**
+     * No action available while component is starting/stopping/unknown
+     */
+    noActionAvailable: function () {
+      var workStatus = this.get('workStatus');
+      if ([App.HostComponentStatus.starting, App.HostComponentStatus.stopping, App.HostComponentStatus.unknown].contains(workStatus)) {
+        return "hidden";
+      }else{
+        return "";
+      }
     }.property('workStatus'),
 
     isInProgress: function () {
       return (this.get('workStatus') === App.HostComponentStatus.stopping || this.get('workStatus') === App.HostComponentStatus.starting) || this.get('isDataNodeRecommissionAvailable');
-    }.property('workStatus'),
+    }.property('workStatus', 'isDataNodeRecommissionAvailable'),
     /**
      * Shows whether we need to show Decommision/Recomission buttons
      */
@@ -293,8 +304,8 @@ App.MainHostSummaryView = Em.View.extend({
     }.property('content'),
 
     isDecommissioning: function () {
-      return this.get('isDataNode') && (this.get('content.isDecommissioning') || this.get("isDataNodeRecommissionAvailable"));
-    }.property("workStatus", "content.isDecommissioning"),
+      return this.get('isDataNode') &&  this.get("isDataNodeRecommissionAvailable");
+    }.property("workStatus", "isDataNodeRecommissionAvailable"),
 
     /**
      * Set in template via binding from parent view
@@ -304,7 +315,7 @@ App.MainHostSummaryView = Em.View.extend({
      * Decommission is available whenever the service is started.
      */
     isDataNodeDecommissionAvailable: function () {
-      return this.get('isStart') && !this.get('isDataNodeRecommissionAvailable') && !this.get("noActionAvailable");
+      return this.get('isStart') && !this.get('isDataNodeRecommissionAvailable');
     }.property('isStart', 'isDataNodeRecommissionAvailable'),
 
     /**

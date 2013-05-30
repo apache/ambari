@@ -161,6 +161,12 @@ public class RoleCommandOrder {
         Role.JOBTRACKER, RoleCommand.START);
     addDependency(Role.MAPREDUCE_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.TASKTRACKER, RoleCommand.START);
+    addDependency(Role.MAPREDUCE2_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.NODEMANAGER, RoleCommand.START);
+    addDependency(Role.MAPREDUCE2_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.RESOURCEMANAGER, RoleCommand.START);
+    addDependency(Role.MAPREDUCE2_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.HISTORYSERVER, RoleCommand.START);
     addDependency(Role.RESOURCEMANAGER_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.RESOURCEMANAGER, RoleCommand.START);
     addDependency(Role.OOZIE_SERVICE_CHECK, RoleCommand.EXECUTE,

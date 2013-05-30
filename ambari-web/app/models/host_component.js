@@ -55,6 +55,7 @@ App.HostComponent = DS.Model.extend({
       case 'WEBHCAT_SERVER':
       case 'HUE_SERVER':
       case 'HISTORYSERVER':
+      case 'RESOURCEMANAGER':
         return true;
       default:
         return false;
@@ -66,6 +67,7 @@ App.HostComponent = DS.Model.extend({
       case 'TASKTRACKER':
       case 'HBASE_REGIONSERVER':
       case 'GANGLIA_MONITOR':
+      case 'NODEMANAGER':
         return true;
       default:
         return false;
@@ -94,13 +96,7 @@ App.HostComponent = DS.Model.extend({
    */
   componentTextStatus: function () {
     var value = this.get("workStatus");
-    if(this.get('isDecommissioning')){
-      if(value == "STARTED"){
-        value = "DECOMMISSIONING";
-      }else if(value == "INSTALLED"){
-        value = "DECOMMISSIONED";
-      }
-    }
+
     switch(value){
       case "INSTALLING":
         return 'Installing...';
@@ -114,17 +110,13 @@ App.HostComponent = DS.Model.extend({
         return 'Starting...';
       case "STOPPING":
         return 'Stopping...';
-      case "DECOMMISSIONING":
-        return 'Decommissioning...';
-      case "DECOMMISSIONED":
-        return 'Decommissioned';
       case "UNKNOWN":
         return 'Heartbeat lost...';
       case "UPGRADE_FAILED":
         return 'Upgrade Failed';
     }
     return 'Unknown';
-  }.property('workStatus')
+  }.property('workStatus','isDecommissioning')
 });
 
 App.HostComponent.FIXTURES = [];

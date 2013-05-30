@@ -79,9 +79,15 @@ App.servicesMapper = App.QuickDataMapper.create({
     safe_mode_status: 'nameNodeComponent.ServiceComponentInfo.Safemode'
   },
   yarnConfig: {
+    version: 'resourceManagerComponent.ServiceComponentInfo.Version',
     resource_manager_node_id: 'resourceManagerComponent.host_components[0].HostRoles.host_name',
     node_manager_nodes: 'node_manager_nodes',
     yarn_client_nodes: 'yarn_client_nodes'
+  },
+  mapReduce2Config: {
+    version: 'jobHistoryServerComponent.ServiceComponentInfo.Version',
+    job_history_server_id: 'jobHistoryServerComponent.host_components[0].HostRoles.host_name',
+    map_reduce2_clients: 'map_reduce2_clients',
   },
   mapReduceConfig: {
     version: 'jobTrackerComponent.ServiceComponentInfo.Version',
@@ -179,6 +185,11 @@ App.servicesMapper = App.QuickDataMapper.create({
               finalJson.rand = Math.random();
               result.push(finalJson);
               App.store.load(App.HBaseService, finalJson);
+            } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "MAPREDUCE2") {
+              finalJson = this.mapreduce2Mapper(item);
+              finalJson.rand = Math.random();
+              result.push(finalJson);
+              App.store.load(App.MapReduce2Service, finalJson);
             }
             else {
               finalJson = this.parseIt(item, this.config);
@@ -313,6 +324,33 @@ App.servicesMapper = App.QuickDataMapper.create({
         if (component.host_components) {
           component.host_components.forEach(function (hc) {
             item.yarn_client_nodes.push(hc.HostRoles.host_name);
+          });
+        }
+      }
+    });
+    // Map
+    var finalJson = this.parseIt(item, finalConfig);
+    finalJson.quick_links = [1, 2, 3, 4];
+
+    return finalJson;
+  },
+  mapreduce2Mapper: function (item) {
+    var result = [];
+    var finalConfig = jQuery.extend({}, this.config);
+    // Change the JSON so that it is easy to map
+    var mapReduce2Config = this.mapReduce2Config;
+    item.components.forEach(function (component) {
+      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "HISTORYSERVER") {
+        item.jobHistoryServerComponent = component;
+        finalConfig = jQuery.extend(finalConfig, mapReduce2Config);
+      }
+      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "MAPREDUCE2_CLIENT") {
+        if (!item.map_reduce2_clients) {
+          item.map_reduce2_clients = [];
+        }
+        if (component.host_components) {
+          component.host_components.forEach(function (hc) {
+            item.map_reduce2_clients.push(hc.HostRoles.host_name);
           });
         }
       }

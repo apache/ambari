@@ -275,7 +275,7 @@ var configs = [
     "name": "oozie.base.url",
     "templateName": ["oozieserver_host"],
     "foreignKey": null,
-    "value": "http://<templateName[0]>:11000/oozie",
+    "value": "http://<templateName[0]>:11000",
     "filename": "oozie-site.xml"
   },
   /**********************************************hive-site***************************************/
@@ -328,6 +328,13 @@ var configs = [
     "templateName": ["rm_host"],
     "foreignKey": null,
     "value": "hdfs://<templateName[0]>:8041",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "name": "yarn.log.server.url",
+    "templateName": ["hs_host"],
+    "foreignKey": null,
+    "value": "http://<templateName[0]>:19888/jobhistory/logs",
     "filename": "yarn-site.xml"
   },
 /**********************************************mapred-site***************************************/

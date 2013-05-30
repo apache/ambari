@@ -67,6 +67,36 @@
         <td><a {{bindAttr href="view.nodeWebUrl"}} target="_blank">{{view.service.resourceManagerNode.publicHostName}}:8088</a>
         </td>
       </tr>
+      <!-- Resource Manager Uptime -->
+      <tr>
+        <td>{{t dashboard.services.yarn.resourceManager.uptime}}</td>
+        <td>{{view.nodeUptime}}</td>
+      </tr>
+      <!-- Resource Manager Heap -->
+      <tr>
+        <td>{{t dashboard.services.resourceManager.nodes.heap}}</td>
+        <td>{{view.nodeHeap}}</td>
+      </tr>
+      <!-- NodeManagers live -->
+      <tr>
+        <td>{{t dashboard.services.yarn.nodeManagers.live}}</td>
+        <td>{{view.nodeManagersLive}}</td>
+      </tr>
+      <!-- NodeManagers status -->
+      <tr>
+        <td>{{t dashboard.services.yarn.nodeManagers.status}}</td>
+        <td>{{view.nodeManagersStatus}}</td>
+      </tr>
+      <!-- Containers -->
+      <tr>
+        <td>{{t dashboard.services.yarn.containers}}</td>
+        <td>{{view.containers}}</td>
+      </tr>
+      <!-- Applications -->
+      <tr>
+        <td>{{t dashboard.services.yarn.apps}}</td>
+        <td>{{view.apps}}</td>
+      </tr>
     {{#unless view.showOnlyRows}}
       </tbody>
     </table>

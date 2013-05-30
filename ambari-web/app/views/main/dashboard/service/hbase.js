@@ -80,7 +80,7 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
 
   hbaseMasterWebUrl: function () {
     if (this.get('activeMaster.host') && this.get('activeMaster.host').get('publicHostName')) {
-      return "http://" + this.get('activeMaster.host').get('publicHostName') + ":60010";
+      return "http://" + (App.singleNodeInstall ? App.singleNodeAlias : this.get('activeMaster.host').get('publicHostName')) + ":60010";
     }
   }.property('activeMaster'),
 

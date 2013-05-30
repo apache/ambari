@@ -1898,7 +1898,8 @@ module.exports =
       "isVisible": false,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "General"
+      "category": "General",
+      "belongsToService":[]
     },
     {
       "id": "puppet var",
@@ -1913,7 +1914,8 @@ module.exports =
       "filename": "core-site.xml",
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["HIVE","WEBHCAT","OOZIE"]
     },
     {
       "id": "puppet var",
@@ -1927,7 +1929,8 @@ module.exports =
       "filename": "hdfs-site.xml",
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Advanced"
+      "category": "Advanced",
+      "belongsToService":[]
     },
     {
       "id": "puppet var",
@@ -1941,7 +1944,8 @@ module.exports =
       "filename": "hdfs-site.xml",
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Advanced"
+      "category": "Advanced",
+      "belongsToService":[]
     },
     {
       "id": "puppet var",
@@ -1954,7 +1958,8 @@ module.exports =
       "isVisible": false,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "General"
+      "category": "General",
+      "belongsToService":[]
     },
     {
       "id": "puppet var",
@@ -1967,7 +1972,8 @@ module.exports =
       "isVisible": false,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "General"
+      "category": "General",
+      "belongsToService":[]
     },
     {
       "id": "puppet var",
@@ -1980,7 +1986,8 @@ module.exports =
       "isVisible": false,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "General"
+      "category": "General",
+      "belongsToService":[]
     },
     {
       "id": "puppet var",
@@ -1993,7 +2000,8 @@ module.exports =
       "displayType": "directory",
       "isVisible": false,
       "domain": "global",
-      "serviceName": "MISC"
+      "serviceName": "MISC",
+      "belongsToService":[]
     },
     {
       "id": "puppet var",
@@ -2007,7 +2015,8 @@ module.exports =
       "isVisible": false,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Advanced"
+      "category": "Advanced",
+      "belongsToService":[]
     },
     {
       "id": "puppet var",
@@ -2021,7 +2030,8 @@ module.exports =
       "isVisible": false,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Advanced"
+      "category": "Advanced",
+      "belongsToService":[]
     },
     {
       "id": "puppet var",
@@ -2035,7 +2045,8 @@ module.exports =
       "isVisible": true,
       "serviceName": "MISC",
       "domain": "global",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["HDFS"]
     },
     {
       "id": "puppet var",
@@ -2049,7 +2060,23 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["MAPREDUCE2"]
+    },
+    {
+      "id": "puppet var",
+      "name": "yarn_user",
+      "displayName": "YARN User",
+      "description": "User to run YARN as",
+      "defaultValue": "yarn",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "isOverridable": false,
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "MISC",
+      "category": "Users and Groups",
+      "belongsToService":["YARN"]
     },
     {
       "id": "puppet var",
@@ -2063,7 +2090,8 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["HBASE"]
     },
     {
       "id": "puppet var",
@@ -2077,7 +2105,8 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["HIVE"]
     },
     {
       "id": "puppet var",
@@ -2091,7 +2120,8 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["HCATALOG"]
     },
     {
       "id": "puppet var",
@@ -2105,7 +2135,8 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["WEBHCAT"]
     },
     {
       "id": "puppet var",
@@ -2119,7 +2150,8 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["OOZIE"]
     },
     {
       "id": "puppet var",
@@ -2133,7 +2165,8 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["ZOOKEEPER"]
     },
     {
       "id": "puppet var",
@@ -2147,7 +2180,8 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["GANGLIA"]
     },
     {
       "id": "puppet var",
@@ -2161,7 +2195,8 @@ module.exports =
       "isVisible": false,
       "domain": "global",
       "serviceName":"MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":[]
     },
     {
       "id": "puppet var",
@@ -2175,7 +2210,8 @@ module.exports =
       "domain": "global",
       "isVisible": true,
       "serviceName":"MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["NAGIOS"]
     },
     {
       "id": "puppet var",
@@ -2189,7 +2225,8 @@ module.exports =
       "isVisible": App.supports.customizeSmokeTestUser,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["HDFS"]
     },
     {
       "id": "puppet var",
@@ -2203,7 +2240,8 @@ module.exports =
       "isVisible": true,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "Users and Groups"
+      "category": "Users and Groups",
+      "belongsToService":["HDFS"]
     },
     {
       "id": "puppet var",
@@ -2215,7 +2253,8 @@ module.exports =
       "isOverridable": false,
       "domain": "global",
       "serviceName": "MISC",
-      "category": "General"
+      "category": "General",
+      "belongsToService":["GANGLIA"]
     }
   ]
 };

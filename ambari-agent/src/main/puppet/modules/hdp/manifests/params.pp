@@ -300,7 +300,7 @@ class hdp::params()
    
     $mapred_smoke_test_script = "/usr/lib/hadoop/sbin/hadoop-validate-setup.sh"
 
-    if $stack_version in ("2.0.1") {
+    if (hdp_get_major_stack_version($stack_version) >= 2) {
       $hadoop_bin = "/usr/lib/hadoop/sbin"
     } else {
       $hadoop_bin = "/usr/lib/hadoop/bin"

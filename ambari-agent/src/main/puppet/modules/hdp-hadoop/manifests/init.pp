@@ -190,7 +190,7 @@ debug('##Configs generation for hdp-hadoop')
     group => $hdp::params::user_group
   }
 
-  if $stack_version in ("2.0.1") {
+  if (hdp_get_major_stack_version($stack_version) >= 2) {
     if (hdp_is_empty($configuration) == false and hdp_is_empty($configuration['hdfs-site']) == false) {
       if (hdp_is_empty($configuration['hdfs-site']['dfs.hosts.exclude']) == false) {
         $exlude_file_path = $configuration['hdfs-site']['dfs.hosts.exclude']
@@ -302,7 +302,7 @@ class hdp-hadoop(
     }
 
 
-    if $stack_version in ("2.0.1") {
+    if (hdp_get_major_stack_version($stack_version) >= 2) {
       hdp::directory_recursive_create { "$hadoop_tmp_dir":
         service_state => $service_state,
         force => true,
@@ -310,7 +310,7 @@ class hdp-hadoop(
       }
     }
 
-    if $stack_version in ("2.0.1") {
+    if (hdp_get_major_stack_version($stack_version) >= 2) {
       Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Package<||> ->  Hdp::User<|title == $hdfs_user or title == $mapred_user|>  ->
       Hdp::Directory_recursive_create[$hadoop_config_dir] -> Hdp-hadoop::Configfile<|tag == 'common'|> ->
       Hdp::Directory_recursive_create[$logdirprefix] -> Hdp::Directory_recursive_create[$piddirprefix] -> Hdp::Directory_recursive_create["$hadoop_tmp_dir"] -> Anchor['hdp-hadoop::end']
