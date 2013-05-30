@@ -1479,7 +1479,7 @@ public class AmbariManagementControllerImplTest {
         properties.setProperty(Configuration.METADETA_DIR_PATH,
             "src/main/resources/stacks");
         properties.setProperty(Configuration.SERVER_VERSION_FILE,
-                "../version");
+                "target/version");
         properties.setProperty(Configuration.OS_VERSION_KEY,
             "centos5");
         try {

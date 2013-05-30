@@ -177,7 +177,7 @@ insert into ambari.user_roles(role_name, user_id)
 select 'admin',1;
 
 insert into ambari.metainfo(metainfo_key, metainfo_value)
-select 'version','1.3.0';
+select 'version','${ambariVersion}';
 
 COMMIT;
 

@@ -67,7 +67,7 @@ public class AmbariMetaServiceTest extends JerseyTest {
     AmbariMetaInfo ambariMetaInfo;
     
     public MockModule() throws Exception {
-      this.ambariMetaInfo = new AmbariMetaInfo(stackRoot, new File("../version"));
+      this.ambariMetaInfo = new AmbariMetaInfo(stackRoot, new File("target/version"));
     }
 
     @Override
