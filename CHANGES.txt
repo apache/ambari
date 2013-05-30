@@ -907,6 +907,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2235. NN enters safe mode upon HDFS restart. (smohanty)
+
  AMBARI-2225. Security fixes with HBase service check. (jaimin)
 
  AMBARI-2233. Ensure version values are used appropriately throughout
