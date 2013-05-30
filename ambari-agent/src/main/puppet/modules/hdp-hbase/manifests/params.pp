@@ -83,6 +83,7 @@ class hdp-hbase::params() inherits hdp::params
 
   $regionserver_memstore_upperlimit = hdp_default("hbase-site/regionserver.memstore.upperlimit","0.4")
 
+  $keytab_path = hdp_default("keytab_path","/etc/security/keytabs")
   $hbase_client_jaas_config_file = hdp_default("hbase_client_jaas_config_file", "${conf_dir}/hbase_client_jaas.conf")
   $hbase_master_jaas_config_file = hdp_default("hbase_master_jaas_config_file", "${conf_dir}/hbase_master_jaas.conf")
   $hbase_regionserver_jaas_config_file = hdp_default("hbase_regionserver_jaas_config_file", "${conf_dir}/hbase_regionserver_jaas.conf")

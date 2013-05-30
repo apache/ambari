@@ -18,15 +18,18 @@
 # under the License.
 #
 #
-class hdp-hbase::hbase::service_check()
+class hdp-hbase::hbase::service_check() inherits hdp-hbase::params
 {
   $smoke_test_user = $hdp::params::smokeuser
-
+  $security_enabled = $hdp::params::security_enabled
   $output_file = "/apps/hbase/data/ambarismoketest"
   $conf_dir = $hdp::params::hbase_conf_dir
-
+  $smoke_user_keytab = "${hdp-hbase::params::keytab_path}/${smoke_test_user}.headless.keytab"
+  $hbase_user = $hdp-hbase::params::hbase_user
+  $hbase_keytab = "${hdp-hbase::params::keytab_path}/${hbase_user}.headless.keytab"
   $test_cmd = "fs -test -e ${output_file}"
   $serviceCheckData = hdp_unique_id_and_date()
+  $kinit_cmd = "${hdp::params::kinit_path_local} -kt ${smoke_user_keytab} ${smoke_test_user};"
 
   anchor { 'hdp-hbase::hbase::service_check::begin':}
 
@@ -42,9 +45,16 @@ class hdp-hbase::hbase::service_check()
     mode => '0755',
     content => template('hdp-hbase/hbase-smoke.sh.erb'),
   }
+  if ($security_enabled == true) {
+    $servicecheckcmd = "su - ${smoke_test_user} -c '$kinit_cmd hbase --config $conf_dir  shell $hbase_servicecheck_file'"
+    $smokeverifycmd = "su - ${smoke_test_user} -c '$kinit_cmd /tmp/hbaseSmokeVerify.sh $conf_dir ${serviceCheckData}'"
+  } else {
+    $servicecheckcmd = "su - ${smoke_test_user} -c 'hbase --config $conf_dir  shell $hbase_servicecheck_file'"
+    $smokeverifycmd = "su - ${smoke_test_user} -c '/tmp/hbaseSmokeVerify.sh $conf_dir ${serviceCheckData}'"
+  }
 
   exec { $hbase_servicecheck_file:
-    command   => "su - ${smoke_test_user} -c 'hbase --config $conf_dir  shell $hbase_servicecheck_file'",
+    command   => $servicecheckcmd,
     tries     => 3,
     try_sleep => 5,
     path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
@@ -52,7 +62,7 @@ class hdp-hbase::hbase::service_check()
   }
 
   exec { '/tmp/hbaseSmokeVerify.sh':
-    command   => "su - ${smoke_test_user} -c '/tmp/hbaseSmokeVerify.sh $conf_dir ${serviceCheckData}'",
+    command   => $smokeverifycmd,
     tries     => 3,
     try_sleep => 5,
     path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
@@ -67,9 +77,30 @@ class hdp-hbase::hbase::service_check()
     before      => Anchor['hdp-hbase::hbase::service_check::end'] #TODO: remove after testing
   }
 
-  Anchor['hdp-hbase::hbase::service_check::begin'] ->  File['/tmp/hbaseSmokeVerify.sh']
-  File[$hbase_servicecheck_file] -> Exec[$hbase_servicecheck_file] -> Exec['/tmp/hbaseSmokeVerify.sh']
-  -> Anchor['hdp-hbase::hbase::service_check::end']
+  if ($security_enabled == true) {
+    $hbase_grant_premissions_file = '/tmp/hbase_grant_permissions.sh'
+    $hbase_kinit_cmd = "${hdp::params::kinit_path_local} -kt ${hbase_keytab} ${hbase_user};"
+    $grantprivelegecmd = "$hbase_kinit_cmd hbase shell ${hbase_grant_premissions_file}"
 
+    file { $hbase_grant_premissions_file:
+      owner   => $hbase_user,
+      group   => $hdp::params::user_group,
+      mode => '0644',
+      content => template('hdp-hbase/hbase_grant_permissions.erb')
+      }
+      hdp::exec { '${smokeuser}_grant_privileges' :
+        command => $grantprivelegecmd,
+        require => File[$hbase_grant_premissions_file],
+        user => $hbase_user
+      }
+     Anchor['hdp-hbase::hbase::service_check::begin'] ->  File['/tmp/hbaseSmokeVerify.sh']
+       File[$hbase_servicecheck_file] ->  File[$hbase_grant_premissions_file] ->
+       Hdp::Exec['${smokeuser}_grant_privileges'] -> Exec[$hbase_servicecheck_file] ->
+       Exec['/tmp/hbaseSmokeVerify.sh'] -> Anchor['hdp-hbase::hbase::service_check::end']
+  } else {
+    Anchor['hdp-hbase::hbase::service_check::begin'] ->  File['/tmp/hbaseSmokeVerify.sh']
+    File[$hbase_servicecheck_file] -> Exec[$hbase_servicecheck_file] -> Exec['/tmp/hbaseSmokeVerify.sh']
+    -> Anchor['hdp-hbase::hbase::service_check::end']
+  }
   anchor{ 'hdp-hbase::hbase::service_check::end':}
 }

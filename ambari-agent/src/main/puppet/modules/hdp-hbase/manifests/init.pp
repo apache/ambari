@@ -29,6 +29,7 @@ class hdp-hbase(
   
   $hdp::params::component_exists['hdp-hbase'] = true
   $smokeuser = $hdp::params::smokeuser
+  $security_enabled = $hdp::params::security_enabled
 
   #Configs generation  
 
@@ -102,26 +103,6 @@ class hdp-hbase(
     if ($security_enabled == true) {
       if ($type == 'master' and $service_state == 'running') {
         hdp-hbase::configfile { 'hbase_master_jaas.conf' : }
-
-        $hbase_grant_premissions_file = '/tmp/hbase_grant_permissions.sh'
-
-        file { $hbase_grant_premissions_file:
-          owner   => $hbase_user,
-          group   => $hdp::params::user_group,
-          mode => '0644',
-          content => template('hdp-hbase/hbase_grant_permissions.erb')
-        }
-        $hbase_principal = $hdp-hbase::params::hbase_master_principal
-        $hbase_user_keytab = $hdp-hbase::params::hbase_keytab_path
-        $kinit_cmd = "${hdp::params::kinit_path_local} -kt ${hbase_user_keytab} ${hbase_principal};"
-        hdp::exec { '${smokeuser}_grant_privileges' :
-          command => "su - ${hbase_user} -c '$kinit_cmd hbase --config $conf_dir shell ${hbase_grant_premissions_file}'",
-          require => File[$hbase_grant_premissions_file]
-        }
-
-        Hdp-hbase::Configfile<||> -> File[$hbase_grant_premissions_file] ->
-        Hdp::Exec['${smokeuser}_grant_privileges'] -> Anchor['hdp-hbase::end']
-
       } elsif ($type == 'regionserver' and $service_state == 'running') {
         hdp-hbase::configfile { 'hbase_regionserver_jaas.conf' : }
       } elsif ($type == 'client') {
