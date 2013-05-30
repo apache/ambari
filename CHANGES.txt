@@ -907,6 +907,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2229. Oracle driver loading broken on agent side. (smohanty)
+
  AMBARI-2228. Fix MySQL and Oracle DDL scripts according to last DB
  changes. (smohanty)
 

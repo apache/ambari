@@ -456,7 +456,7 @@ def get_share_jars():
   share_jars = ""
   file_list = []
   file_list.extend(glob.glob(JAVA_SHARE_PATH + os.sep + "*mysql*"))
-  file_list.extend(glob.glob(JAVA_SHARE_PATH + os.sep + "*oracle*"))
+  file_list.extend(glob.glob(JAVA_SHARE_PATH + os.sep + "*ojdbc*"))
   if len(file_list) > 0:
     share_jars = string.join(file_list, os.pathsep)
   return share_jars
