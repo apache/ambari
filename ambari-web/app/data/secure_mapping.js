@@ -62,7 +62,7 @@ module.exports = [
   },
   {
     "name": "dfs.secondary.namenode.keytab.file",
-    "templateName": ["snamenode_keytab"],
+    "templateName": ["namenode_keytab"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "hdfs-site.xml"

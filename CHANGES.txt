@@ -907,6 +907,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2239. secure cluster: Namenode and SNamenode should use same
+ keytab. (jaimin)
+
  AMBARI-2235. NN enters safe mode upon HDFS restart. (smohanty)
 
  AMBARI-2225. Security fixes with HBase service check. (jaimin)

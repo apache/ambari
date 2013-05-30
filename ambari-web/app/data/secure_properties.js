@@ -151,19 +151,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "snamenode_keytab",
-      "displayName": "Path to keytab file",
-      "value": "",
-      "defaultValue": "/etc/security/keytabs/sn.service.keytab",
-      "description": "path to SecondaryNameNode keytab file",
-      "displayType": "directory",
-      "isVisible": true,
-      "isOverridable": false,
-      "serviceName": "HDFS",
-      "category": "SNameNode"
-    },
-    {
-      "id": "puppet var",
       "name": "dfs_datanode_address",
       "displayName": "Datanode address",
       "value": "",
