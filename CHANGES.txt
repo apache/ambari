@@ -12,6 +12,9 @@ Trunk (unreleased changes):
 
  NEW FEATURES
 
+ AMBARI-1945. Ambar-client module to be added in the main pom.xml. (Subin via
+ mahadev)
+
  AMBARI-2189. Hadoop2 Monitoring: MapReduce2 does not have service 
  page. (srimanth)
 
