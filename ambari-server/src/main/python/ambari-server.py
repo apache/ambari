@@ -34,6 +34,8 @@ import fileinput
 import urllib2
 import time
 import getpass
+import datetime
+
 # debug settings
 VERBOSE = False
 SILENT = False
@@ -99,6 +101,7 @@ JAVA_HOME="JAVA_HOME"
 PID_DIR="/var/run/ambari-server"
 PID_NAME="ambari-server.pid"
 AMBARI_PROPERTIES_FILE="ambari.properties"
+AMBARI_PROPERTIES_RPMSAVE_FILE="ambari.properties.rpmsave"
 
 SETUP_DB_CMD = ['su', '-', 'postgres',
         '--command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'"']
@@ -148,6 +151,27 @@ JDK_DOWNLOAD_SIZE_CMD = "curl -I {0}"
 JCE_POLICY_FILENAME = "jce_policy-6.zip"
 JCE_DOWNLOAD_CMD = "curl -o {0} {1}"
 JCE_MIN_FILESIZE = 5000
+
+#Apache License Header
+ASF_LICENSE_HEADER = '''
+# Copyright 2011 The Apache Software Foundation
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+'''
 
 def configure_pg_hba_ambaridb_users():
   args = optparse.Values()
@@ -768,7 +792,49 @@ def check_postgre_up():
     retcode, out, err = run_os_command(PG_START_CMD)
     return retcode
 
+def update_ambari_properties():
+  prev_conf_file = search_file(AMBARI_PROPERTIES_RPMSAVE_FILE, get_conf_dir())
+  conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
+  old_properties = None
+  new_properties = None
 
+  prop_dict = {JDBC_USER_NAME_PROPERTY : None,
+               JDBC_PASSWORD_FILE_PROPERTY : None,
+               JAVA_HOME_PROPERTY : None,
+               OS_TYPE_PROPERTY : None}
+
+  try:
+    old_properties = Properties()
+    old_properties.load(open(prev_conf_file))
+  except (Exception), e:
+    print 'Could not read "%s": %s' % (prev_conf_file, e)
+    return -1
+
+  for prop_key in prop_dict.keys():
+    value = old_properties.get_property(prop_key)
+    if value:
+      prop_dict[prop_key] = value
+
+  try:
+    new_properties = Properties()
+    new_properties.load(open(conf_file))
+
+    for prop_key,prop_value in prop_dict.items():
+      if not prop_value is None:
+        new_properties.process_pair(prop_key,prop_value)
+
+    new_properties.store(open(conf_file,'w'))
+
+  except (Exception), e:
+    print 'Could not write "%s": %s' % (conf_file, e)
+    return -1
+
+  timestamp = datetime.datetime.now()
+  format = '%Y%m%d%H%M%S'
+  os.rename(AMBARI_PROPERTIES_RPMSAVE_FILE, AMBARI_PROPERTIES_RPMSAVE_FILE +
+    '.' + timestamp.strftime(format))
+
+  return 0
 
 #
 # Configures the OS settings in ambari properties.
@@ -1025,6 +1091,13 @@ def stop(args):
 # Upgrades the Ambari Server.
 #
 def upgrade(args):
+
+  print 'Updating properties in ' + AMBARI_PROPERTIES_FILE + ' ...'
+  retcode = update_ambari_properties()
+  if not retcode == 0:
+    printErrorMsg(AMBARI_PROPERTIES_FILE + ' file can\'t be updated. Exiting')
+    sys.exit(retcode)
+
   print 'Checking PostgreSQL...'
   retcode = check_postgre_up()
   if not retcode == 0:
@@ -1437,6 +1510,24 @@ class Properties(object):
       if hasattr(self._props, name):
         return getattr(self._props, name)
 
+  def store(self, out, header=""):
+    """ Write the properties list to the stream 'out' along
+    with the optional 'header' """
+    if out.mode[0] != 'w':
+      raise ValueError,'Steam should be opened in write mode!'
+    try:
+      out.write(''.join(('#', ASF_LICENSE_HEADER, '\n')))
+      out.write(''.join(('#',header,'\n')))
+      # Write timestamp
+      tstamp = time.strftime('%a %b %d %H:%M:%S %Z %Y', time.localtime())
+      out.write(''.join(('#',tstamp,'\n')))
+      # Write properties from the pristine dictionary
+      for prop, val in self._origprops.items():
+        if val is not None:
+          out.write(''.join((prop,'=',val,'\n')))
+      out.close()
+    except IOError, e:
+      raise
 
 if __name__ == "__main__":
   main()

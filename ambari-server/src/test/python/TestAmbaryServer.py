@@ -1188,7 +1188,36 @@ class TestAmbariServer(TestCase):
     self.assertTrue(get_choice_string_input_mock.called)
     self.assertEqual(4, len(get_choice_string_input_mock.call_args_list[0][0]))
 
+  @patch.object(ambari_server, "get_conf_dir")
+  def test_update_ambari_properties(self, get_conf_dir_mock):
 
+    properties = ["server.jdbc.user.name=ambari-server\n",
+      "server.jdbc.user.passwd=/etc/ambari-server/conf/password.dat\n",
+      "java.home=/usr/jdk64/jdk1.6.0_31\n",
+      "server.os_type=redhat6\n"]
+
+    get_conf_dir_mock.return_value = ""
+
+    tf1 = tempfile.NamedTemporaryFile()
+    tf2 = tempfile.NamedTemporaryFile()
+    ambari_server.AMBARI_PROPERTIES_RPMSAVE_FILE = tf1.name
+    ambari_server.AMBARI_PROPERTIES_FILE = tf2.name
+
+    with open(ambari_server.AMBARI_PROPERTIES_RPMSAVE_FILE, 'w') as f:
+      for line in properties:
+        f.write(line)
+
+    #Call tested method
+    ambari_server.update_ambari_properties()
+
+    with open(ambari_server.AMBARI_PROPERTIES_FILE, 'r') as f:
+      ambari_properties_content = f.readlines()
+
+    for line in properties:
+      if not line in ambari_properties_content:
+        self.fail()
+
+    pass
 
   def get_sample(self, sample):
     """
