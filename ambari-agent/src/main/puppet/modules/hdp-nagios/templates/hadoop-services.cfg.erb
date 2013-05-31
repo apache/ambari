@@ -440,7 +440,7 @@ define service {
 define service {
         hostgroup_name          historyserver2
         use                     hadoop-service
-        service_description     HISTORYSERVER2::History Server 2 Web UI down
+        service_description     HISTORYSERVER::History Server 2 Web UI down
         servicegroups           MAPREDUCE
         check_command           check_webui!historyserver2!<%=scope.function_hdp_template_var("hs_port")%>
         normal_check_interval   1
