@@ -991,7 +991,8 @@ def start(args):
     print_error_msg ("Failed to stop iptables. Exiting")
     sys.exit(retcode)
 
-  command = SERVER_START_CMD.format(jdk_path, conf_dir, get_ambari_classpath())
+  command_base = SERVER_START_CMD_DEBUG if (SERVER_DEBUG_MODE or SERVER_START_DEBUG) else SERVER_START_CMD
+  command = command_base.format(jdk_path, conf_dir, get_ambari_classpath())
   print "Running server: " + command
   server_process = subprocess.Popen(["/bin/sh", "-c", command])
   f = open(PID_DIR + os.sep + PID_NAME, "w")
@@ -1265,6 +1266,8 @@ def main():
   parser.add_option("-b", "--remote-database",
       action="store_true", dest="remote_database", default=False,
       help="Set up remote database instead of local")
+  parser.add_option('-g', '--debug', action="store_true", dest='debug', default=False,
+                  help="Start ambari-server in debug mode")
 
   (options, args) = parser.parse_args()
 
@@ -1280,6 +1283,9 @@ def main():
   global REMOTE_DATABASE
   REMOTE_DATABASE = options.remote_database
 
+  # debug mode
+  global SERVER_DEBUG_MODE
+  SERVER_DEBUG_MODE = options.debug
 
 
 

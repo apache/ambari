@@ -384,6 +384,52 @@ class TestAmbariServer(TestCase):
     self.assertFalse(False, ambari_server.SILENT)
 
 
+   
+  @patch.object(ambari_server, 'setup')
+  @patch.object(ambari_server, 'start')
+  @patch.object(ambari_server, 'stop')
+  @patch.object(ambari_server, 'reset')
+  @patch('optparse.OptionParser')
+  def test_main_test_start_debug_short(self, OptionParserMock, reset_method, stop_method,
+                           start_method, setup_method):
+    opm = OptionParserMock.return_value
+    options = MagicMock()
+    args = ["start", "-g"]
+    opm.parse_args.return_value = (options, args)
+
+    ambari_server.main()
+
+    self.assertFalse(setup_method.called)
+    self.assertTrue(start_method.called)
+    self.assertFalse(stop_method.called)
+    self.assertFalse(reset_method.called)
+
+    self.assertTrue(ambari_server.SERVER_DEBUG_MODE)  
+
+
+
+  @patch.object(ambari_server, 'setup')
+  @patch.object(ambari_server, 'start')
+  @patch.object(ambari_server, 'stop')
+  @patch.object(ambari_server, 'reset')
+  @patch('optparse.OptionParser')
+  def test_main_test_start_debug_long(self, OptionParserMock, reset_method, stop_method,
+                           start_method, setup_method):
+    opm = OptionParserMock.return_value
+    options = MagicMock()
+    args = ["start", "--debug"]
+    opm.parse_args.return_value = (options, args)
+
+    ambari_server.main()
+
+    self.assertFalse(setup_method.called)
+    self.assertTrue(start_method.called)
+    self.assertFalse(stop_method.called)
+    self.assertFalse(reset_method.called)
+
+    self.assertTrue(ambari_server.SERVER_DEBUG_MODE)        
+
+
 
   @patch.object(ambari_server, 'setup')
   @patch.object(ambari_server, 'start')
