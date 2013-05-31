@@ -78,8 +78,8 @@ public class RoleGraphTest {
     RoleGraphNode hs_start = new RoleGraphNode(Role.HISTORYSERVER, RoleCommand.START);
     Assert.assertEquals(-1, rco.order(rm_start, mapred2_service_check));
     Assert.assertEquals(-1, rco.order(nm_start, mapred2_service_check)); 
-    Assert.assertEquals(-1, rco.order(hs_start, mapred2_service_check)); 
-    Assert.assertEquals(-1, rco.order(hs_start, mapred2_service_check)); 
-    
+    Assert.assertEquals(-1, rco.order(hs_start, mapred2_service_check));
+    Assert.assertEquals(-1, rco.order(hs_start, mapred2_service_check));
+    Assert.assertEquals(1, rco.order(nm_start, rm_start));
   }
 }

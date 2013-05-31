@@ -23,6 +23,8 @@ Branch 1.4.0:
 
  BUG FIXES
 
+ AMBARI-2241. OOZIE support in hadoop 2.0. (smohanty)
+
  AMBARI-2238. Hadoop 2: Cannot stop/start YARN and MR2 services. (yusaku)
 
  AMBARI-2216. Hadoop2: Empty stack configuration values become 'null' on the

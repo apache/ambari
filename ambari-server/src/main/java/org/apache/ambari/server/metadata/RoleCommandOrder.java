@@ -105,6 +105,8 @@ public class RoleCommandOrder {
         RoleCommand.START);
     addDependency(Role.NODEMANAGER, RoleCommand.START, Role.DATANODE,
         RoleCommand.START);
+    addDependency(Role.NODEMANAGER, RoleCommand.START, Role.RESOURCEMANAGER,
+        RoleCommand.START);
     addDependency(Role.HISTORYSERVER, RoleCommand.START, Role.NAMENODE,
         RoleCommand.START);
     addDependency(Role.HISTORYSERVER, RoleCommand.START, Role.DATANODE,
