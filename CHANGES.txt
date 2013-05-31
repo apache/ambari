@@ -17,6 +17,8 @@ Branch 1.4.0:
 
  IMPROVEMENTS
 
+ AMBARI-2244. Hadoop 2: Added YARN metrics. (ncole)
+
  AMBARI-2237. Hadoop 2: Add user configs for MR2/YARN. (yusaku)
 
  AMBARI-2236. Hadoop 2: set appropriate non-default values. (yusaku)

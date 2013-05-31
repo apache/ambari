@@ -3440,6 +3440,124 @@
         "pointInTime":true,
         "temporal":false
       }
+    },
+    "RESOURCEMANAGER":{
+      "metrics/jvm/gcCount":{
+        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.GcCount",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/gcTimeMillis":{
+        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.GcTimeMillis",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/logError":{
+        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.LogError",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/logFatal":{
+        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.LogFatal",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/logInfo":{
+        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.LogInfo",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/logWarn":{
+        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.LogWarn",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/memHeapCommittedM":{
+        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.MemHeapCommittedM",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/memHeapUsedM":{
+        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.MemHeapUsedM",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/memNonHeapCommittedM":{
+        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.MemNonHeapCommittedM",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/memNonHeapUsedM":{
+        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.MemNonHeapUsedM",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/threadsBlocked":{
+        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.ThreadsBlocked",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/threadsNew":{
+        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.ThreadsNew",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/threadsRunnable":{
+        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.ThreadsRunnable",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/threadsTerminated":{
+        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.ThreadsTerminated",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/threadsTimedWaiting":{
+        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.ThreadsTimedWaiting",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/threadsWaiting":{
+        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.ThreadsWaiting",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/jvm/startTime":{
+        "metric" : "java.lang:type=Runtime.StartTime",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+
+      "ServiceComponentInfo/rm_metrics/cluster/activeNMcount":{
+        "metric" : "Hadoop:service=ResourceManager,name=ClusterMetrics.NumActiveNMs",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "ServiceComponentInfo/rm_metrics/cluster/decommissionedNMcount":{
+        "metric" : "Hadoop:service=ResourceManager,name=ClusterMetrics.NumDecommissionedNMs",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "ServiceComponentInfo/rm_metrics/cluster/lostNMcount":{
+        "metric" : "Hadoop:service=ResourceManager,name=ClusterMetrics.NumLostNMs",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "ServiceComponentInfo/rm_metrics/cluster/unhealthyNMcount":{
+        "metric" : "Hadoop:service=ResourceManager,name=ClusterMetrics.NumUnhealthyNMs",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "ServiceComponentInfo/rm_metrics/cluster/rebootedNMcount":{
+        "metric" : "Hadoop:service=ResourceManager,name=ClusterMetrics.NumRebootedNMs",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "ServiceComponentInfo/rm_metrics/cluster/nodeManagers":{
+        "metric" : "Hadoop:service=ResourceManager,name=RMNMInfo.LiveNodeManagers",
+        "pointInTime" : true,
+        "temporal" : false
+      }
     }
   },
   "HostComponent":{
@@ -7426,88 +7544,6 @@
         "metric":"hadoop:service=HBase,name=RPCStatistics.getHTableDescriptors.aboveOneSec.MaxTime",
         "pointInTime":true,
         "temporal":false
-      }
-    },
-    "RESOURCEMANAGER":{
-      "metrics/jvm/gcCount":{
-        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.GcCount",
-        "pointInTime" : true,
-        "temporal" : false
-      },
-      "metrics/jvm/gcTimeMillis":{
-        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.GcTimeMillis",
-        "pointInTime" : true,
-        "temporal" : false
-      },
-      "metrics/jvm/logError":{
-        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.LogError",
-        "pointInTime" : true,
-        "temporal" : false
-      },
-      "metrics/jvm/logFatal":{
-        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.LogFatal",
-        "pointInTime" : true,
-        "temporal" : false
-      },
-      "metrics/jvm/logInfo":{
-        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.LogInfo",
-        "pointInTime" : true,
-        "temporal" : false
-      },
-      "metrics/jvm/logWarn":{
-        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.LogWarn",
-        "pointInTime" : true,
-        "temporal" : false
-      },
-      "metrics/jvm/memHeapCommittedM":{
-        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.MemHeapCommittedM",
-        "pointInTime" : true,
-        "temporal" : false
-      },
-      "metrics/jvm/memHeapUsedM":{
-        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.MemHeapUsedM",
-        "pointInTime" : true,
-        "temporal" : false
-      },
-      "metrics/jvm/memNonHeapCommittedM":{
-        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.MemNonHeapCommittedM",
-        "pointInTime" : true,
-        "temporal" : false
-      },
-      "metrics/jvm/memNonHeapUsedM":{
-        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.MemNonHeapUsedM",
-        "pointInTime" : true,
-        "temporal" : false
-      },
-      "metrics/jvm/threadsBlocked":{
-        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.ThreadsBlocked",
-        "pointInTime" : true,
-        "temporal" : false
-      },
-      "metrics/jvm/threadsNew":{
-        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.ThreadsNew",
-        "pointInTime" : true,
-        "temporal" : false
-      },
-      "metrics/jvm/threadsRunnable":{
-        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.ThreadsRunnable",
-        "pointInTime" : true,
-        "temporal" : false
-      },
-      "metrics/jvm/threadsTerminated":{
-        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.ThreadsTerminated",
-        "pointInTime" : true,
-        "temporal" : false
-      },
-      "metrics/jvm/threadsTimedWaiting":{
-        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.ThreadsTimedWaiting",
-        "pointInTime" : true,
-        "temporal" : false
-      },
-      "metrics/jvm/threadsWaiting":{
-        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.ThreadsWaiting",
-        "pointInTime" : true,
-        "temporal" : false
       }
     },
     "NODEMANAGER":{
