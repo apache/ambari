@@ -25,6 +25,8 @@ Branch 1.4.0:
 
  BUG FIXES
 
+ AMBARI-2246. Fix for puppet to handle Hadoop 2.0.3 dependencies. (ncole)
+
  AMBARI-2245. Fix for nagios showing UNKNOWN for YARN and MR2. (ncole)
 
  AMBARI-2242. Add 2.0.1 stack definition as a test resources. (smohanty)

@@ -395,6 +395,11 @@ class hdp::params()
           64 => {
             'ALL' => ['hadoop','hadoop-libhdfs','hadoop-lzo', 'hadoop-lzo-native']
           }
+        },
+        '2.0.3' => {
+          64 => {
+            'ALL' => ['hadoop','hadoop-libhdfs','hadoop-lzo', 'hadoop-lzo-native']
+          }
         }
       },
 
