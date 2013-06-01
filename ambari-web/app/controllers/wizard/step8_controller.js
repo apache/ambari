@@ -85,7 +85,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
       if (hiveDb.value === 'New MySQL Database') {
         if (globals.someProperty('name', 'hive_ambari_host')) {
-          globals.findProperty('name', 'hive_ambari_host').name = 'hive_hostname';
+          globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_ambari_host').value;
           hiveDbType.value = 'mysql';
           hiveJdbcDriver.value = 'com.mysql.jdbc.Driver';
         }
@@ -94,15 +94,15 @@ App.WizardStep8Controller = Em.Controller.extend({
         globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
       } else if (hiveDb.value === 'Existing MySQL Database'){
-        globals.findProperty('name', 'hive_existing_mysql_host').name = 'hive_hostname';
+        globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_existing_mysql_host').value;
         hiveDbType.value = 'mysql';
         hiveJdbcDriver.value = 'com.mysql.jdbc.Driver';
         globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'hive_ambari_database'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
-      } else{ //existing oracle database
-        globals.findProperty('name', 'hive_existing_oracle_host').name = 'hive_hostname';
+      } else { //existing oracle database
+        globals.findProperty('name', 'hive_hostname').value = globals.findProperty('name', 'hive_existing_oracle_host').value;
         hiveDbType.value = 'oracle';
         hiveJdbcDriver.value = 'oracle.jdbc.driver.OracleDriver';
         globals = globals.without(globals.findProperty('name', 'hive_ambari_host'));
@@ -118,46 +118,30 @@ App.WizardStep8Controller = Em.Controller.extend({
       var oozieDb = globals.findProperty('name', 'oozie_database');
       var oozieDbType = {name:'oozie_database_type'};
       var oozieJdbcDriver = {name: 'oozie_jdbc_driver'};
-      var oozieJPAServcieURL = {name: 'oozie_JPAService_url'};
 
-      if (oozieDb.value === 'New Derby Database'){
+      if (oozieDb.value === 'New Derby Database') {
+        globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_ambari_host').value;
         oozieDbType.value = 'derby';
         oozieJdbcDriver.value = 'org.apache.derby.jdbc.EmbeddedDriver';
-        oozieJPAServcieURL.value = '${oozie.data.dir}/${oozie.db.schema.name}-db;create=true';
-
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_database'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
-      }/*else if (oozieDb.value === 'New MySQL Database') {
-        if (globals.someProperty('name', 'oozie_ambari_host')) {
-          globals.findProperty('name', 'oozie_ambari_host').name = 'oozie_hostname';
-          oozieDbType.value = 'mysql';
-          oozieJdbcDriver.value = 'com.mysql.jdbc.Driver';
-          oozieJPAServcieURL.value = '//'+ globals.findProperty('name','oozie_hostname').value +'/' + globals.findProperty('name','oozie_database_name').value +'?createDatabaseIfNotExist=true';
-        }
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
-        globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
-        globals = globals.without(globals.findProperty('name', 'oozie_derby_database'));
-      } */ else if (oozieDb.value === 'Existing MySQL Database') {
-        globals.findProperty('name', 'oozie_existing_mysql_host').name = 'oozie_hostname';
+      } else if (oozieDb.value === 'Existing MySQL Database') {
+        globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_existing_mysql_host').value;
         oozieDbType.value = 'mysql';
         oozieJdbcDriver.value = 'com.mysql.jdbc.Driver';
-        oozieJPAServcieURL.value = '//'+ globals.findProperty('name','oozie_hostname').value +'/' + globals.findProperty('name','oozie_database_name').value +'?createDatabaseIfNotExist=true';
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
         globals = globals.without(globals.findProperty('name', 'oozie_derby_database'));
-      } else{ //existing oracle database
-        globals.findProperty('name', 'oozie_existing_oracle_host').name = 'oozie_hostname';
+      } else { // existing oracle database
+        globals.findProperty('name', 'oozie_hostname').value = globals.findProperty('name', 'oozie_existing_oracle_host').value;
         oozieDbType.value = 'oracle';
         oozieJdbcDriver.value = 'oracle.jdbc.driver.OracleDriver';
-        oozieJPAServcieURL.value = '//'+ globals.findProperty('name','oozie_hostname').value +'/'+ globals.findProperty('name','oozie_database_name').value +'?createDatabaseIfNotExist=true';
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));
@@ -166,7 +150,6 @@ App.WizardStep8Controller = Em.Controller.extend({
       }
       globals.push(oozieDbType);
       globals.push(oozieJdbcDriver);
-      globals.push(oozieJPAServcieURL);
     }
 
     this.set('globals', globals);
@@ -1504,18 +1487,12 @@ App.WizardStep8Controller = Em.Controller.extend({
     var globals = this.get('content.serviceConfigProperties').filterProperty('id', 'puppet var');
     if (globals.someProperty('name', 'oozie_database')) {
       var oozieDb = globals.findProperty('name', 'oozie_database');
-      var oozieHost = null;
-      if(globals.someProperty('name', 'oozie_hostname')){
-        oozieHost = globals.findProperty('name', 'oozie_hostname').value;
-      }
+      var oozieHost = globals.findProperty('name', 'oozie_hostname').value;
       var oozieDbName = globals.findProperty('name', 'oozie_database_name').value;
-      if (oozieDb.value === 'New Derby Database'){
+      if (oozieDb.value === 'New Derby Database') {
         oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true";
         oozieProperties["oozie.service.JPAService.jdbc.driver"] = "org.apache.derby.jdbc.EmbeddedDriver";
-      }/*else if (oozieDb.value === 'New MySQL Database') {
-        oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:mysql://" + oozieHost + "/" + oozieDbName;
-        oozieProperties["oozie.service.JPAService.jdbc.driver"] = "com.mysql.jdbc.Driver";
-      } */ else if (oozieDb.value === 'Existing MySQL Database') {
+      } else if (oozieDb.value === 'Existing MySQL Database') {
         oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:mysql://" + oozieHost + "/" + oozieDbName;
         oozieProperties["oozie.service.JPAService.jdbc.driver"] = "com.mysql.jdbc.Driver";
       } else { //existing oracle database

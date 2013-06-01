@@ -1388,6 +1388,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   createSiteObj: function (siteName, tagName) {
     var siteObj = this.get('uiConfigs').filterProperty('filename', siteName + '.xml');
     var siteProperties = {};
+    if (siteName == 'oozie-site') {
+      siteObj = this.getOozieSiteObj(siteObj);
+    } else if (siteName == 'hive-site') {
+      siteObj = this.getHiveSiteObj(siteObj);
+    }
     siteObj.forEach(function (_siteObj) {
       siteProperties[_siteObj.name] = _siteObj.value;
       this.recordHostOverride(_siteObj, siteName, tagName, this);
@@ -1396,7 +1401,68 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   /**
-   * Set display names of the property tfrom he puppet/global names
+   * create site object for Oozie
+   * @param siteObj
+   * @return {Object}
+   */
+  getOozieSiteObj: function (siteObj) {
+    var jdbcUrl = siteObj.findProperty('name', 'oozie.service.JPAService.jdbc.url');
+    var jdbcDriver = siteObj.findProperty('name', 'oozie.service.JPAService.jdbc.driver');
+
+    var oozieDb = this.get('globalConfigs').findProperty('name', 'oozie_database').value;
+    // oozieHost is undefined if the database is oozie
+    var oozieHost = (oozieDb == 'New Derby Database') ? '' : this.get('globalConfigs').findProperty('name', 'oozie_hostname').value;
+    var oozieDbName = this.get('globalConfigs').findProperty('name', 'oozie_database_name').value;
+
+    switch (oozieDb) {
+      case 'New Derby Database':
+        jdbcUrl.value = "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true";
+        jdbcDriver.value = "org.apache.derby.jdbc.EmbeddedDriver";
+        break;
+      case 'Existing MySQL Database':
+        jdbcUrl.value = "jdbc:mysql://" + oozieHost + "/" + oozieDbName;
+        jdbcDriver.value = "com.mysql.jdbc.Driver";
+        break;
+      case 'Existing Oracle Database':
+        jdbcUrl.value = "jdbc:oracle:thin:@//" + oozieHost + ":1521/" + oozieDbName;
+        jdbcDriver.value = "oracle.jdbc.driver.OracleDriver";
+        break;
+    }
+    return siteObj;
+  },
+
+  /**
+   * create site object for Hive
+   * @param siteObj
+   * @return {Object}
+   */
+  getHiveSiteObj: function (siteObj) {
+    var jdbcUrl = siteObj.findProperty('name', 'javax.jdo.option.ConnectionURL');
+    var jdbcDriver = siteObj.findProperty('name', 'javax.jdo.option.ConnectionDriverName');
+
+    var hiveDb = this.get('globalConfigs').findProperty('name', 'hive_database').value;
+    var hiveHost = this.get('globalConfigs').findProperty('name', 'hive_hostname').value;
+    var hiveDbName = this.get('globalConfigs').findProperty('name', 'hive_database_name').value;
+
+    switch (hiveDb) {
+      case 'New MySQL Database':
+        jdbcUrl.value = "jdbc:mysql://"+ hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
+        jdbcDriver.value = "com.mysql.jdbc.Driver";
+        break;
+      case 'Existing MySQL Database':
+        jdbcUrl.value = "jdbc:mysql://"+ hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
+        jdbcDriver.value = "com.mysql.jdbc.Driver";
+        break;
+      case 'Existing Oracle Database':
+        jdbcUrl.value = "jdbc:oracle:thin:@//"+ hiveHost + ":1521/" + hiveDbName;
+        jdbcDriver.value = "oracle.jdbc.driver.OracleDriver";
+        break;
+    }
+    return siteObj;
+  },
+
+  /**
+   * Set display names of the property from the puppet/global names
    * @param: displayNames: a field to be set with displayNames
    * @param names: array of property puppet/global names
    */
@@ -1469,11 +1535,19 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         var hiveMetastoreHost = serviceConfigs.findProperty('name', 'hivemetastore_host');
         hiveMetastoreHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'HIVE_SERVER').get('host.hostName');
         globalConfigs.push(hiveMetastoreHost);
+        var hiveDb = globalConfigs.findProperty('name', 'hive_database').value;
+        if (['Existing MySQL Database', 'Existing Oracle Database'].contains(hiveDb)) {
+          globalConfigs.findProperty('name', 'hive_hostname').isVisible = true;
+        }
         break;
       case 'OOZIE':
         var oozieServerHost = serviceConfigs.findProperty('name', 'oozieserver_host');
         oozieServerHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
         globalConfigs.push(oozieServerHost);
+        var oozieDb = globalConfigs.findProperty('name', 'oozie_database').value;
+        if (['Existing MySQL Database', 'Existing Oracle Database'].contains(oozieDb)) {
+          globalConfigs.findProperty('name', 'oozie_hostname').isVisible = true;
+        }
         break;
       case 'HBASE':
         var hbaseMasterHost = serviceConfigs.findProperty('name', 'hbasemaster_host');
