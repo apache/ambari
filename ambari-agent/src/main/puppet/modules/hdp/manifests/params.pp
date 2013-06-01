@@ -267,7 +267,7 @@ class hdp::params()
   $dfs_data_dir = hdp_default("hdfs-site/dfs.data.dir","/tmp/hadoop-hdfs/dfs/data")
 
   ### artifact dir
-  $artifact_dir = hdp_default("artifact_dir","/tmp/HDP-artifacts/")
+  $artifact_dir = hdp_default("artifact_dir","/tmp/HDP-artifacts")
 
   ### artifacts download url ##
   $apache_artifacts_download_url = hdp_default("apache_artifacts_download_url","")
