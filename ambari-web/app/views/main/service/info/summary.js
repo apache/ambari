@@ -216,7 +216,12 @@ App.MainServiceInfoSummaryView = Em.View.extend({
           }
         }
         obj.displayName = component.get('displayName'); // this is computed property and wasn't copied in the top block of code
-        components.push(obj);
+        // suppressing MySQL server from being displayed, because Ambari always installs MySQL server no matter what
+        // database type is selected, and shows an incorrect link in the summary to point to the host that's hosting
+        // the MySQL server
+        if (component.get('componentName') !== 'MYSQL_SERVER') {
+          components.push(obj);
+        }
       });
       this.set('components', components);
   }.observes('controller.content.rand', 'controller.content.hostComponents.@each.isMaster', 'controller.content.hostComponents.@each.host'),
