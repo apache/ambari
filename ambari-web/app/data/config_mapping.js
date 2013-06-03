@@ -793,13 +793,6 @@ var configs = [
     "filename": "core-site.xml"
   },
   {
-    "name": "fs.default.name",
-    "templateName": ["fs_default_name"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "core-site.xml"
-  },
-  {
     "name": "fs.glusterfs.volname",
     "templateName": ["fs_glusterfs_volname"],
     "foreignKey": null,

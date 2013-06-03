@@ -512,7 +512,7 @@ module.exports =
       "description": "Gluster default filesystem name (glusterfs://{MasterFQDN}:9000)",
       "defaultValue": "glusterfs://{firstHost}:9000",
       "displayType": "string",
-      "isVisible": true,
+      "isVisible": false,
       "domain": "global",
       "serviceName": "HCFS",
       "category": "General",
