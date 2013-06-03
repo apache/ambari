@@ -34,7 +34,7 @@ The Ambari API facilitates the management and monitoring of the resources of an 
 
 Release Version
 ----
-_Last Updated June 3, 2013;  Note that this is the official release of Ambari V1 API_
+_Last Updated June 3, 2013;  Note that this is the official release of Ambari V1 API. No breaking changes will be introduced to this version of the API._
  
 
 Authentication
