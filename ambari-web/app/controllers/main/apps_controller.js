@@ -353,6 +353,7 @@ App.MainAppsController = Em.ArrayController.extend({
    */
   clearFilters: function () {
     var obj=this.get("filterObject");
+    obj.set("sSearch","");
     obj.set("sSearch_0","");
     obj.set("sSearch_1","");
     obj.set("sSearch_2","");
