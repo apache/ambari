@@ -910,6 +910,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
  
+ AMBARI-2266. Clients are not reconfigured on starting a service after each 
+ of the service components are stopped individually. (swagle)
+
  AMBARI-2230. Nagios user is presented in Admin > Misc page when Nagios
  service was not installed. (yusaku)
 

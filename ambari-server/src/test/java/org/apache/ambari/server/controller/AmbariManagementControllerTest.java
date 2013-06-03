@@ -211,6 +211,36 @@ public class AmbariManagementControllerTest {
     return resp.getRequestId();
   }
 
+  private long stopServiceComponentHosts(String clusterName,
+      String serviceName) throws AmbariException {
+    Cluster c = clusters.getCluster(clusterName);
+    Service s = c.getService(serviceName);
+    Set<ServiceComponentHostRequest> requests = new
+      HashSet<ServiceComponentHostRequest>();
+    for (ServiceComponent sc : s.getServiceComponents().values()) {
+      for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+        ServiceComponentHostRequest schr = new ServiceComponentHostRequest
+          (clusterName, serviceName, sc.getName(),
+            sch.getHostName(), null, State.INSTALLED.name());
+        requests.add(schr);
+      }
+    }
+    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    mapRequestProps.put("context", "Called from a test");
+    RequestStatusResponse resp = controller.updateHostComponents(requests,
+      mapRequestProps, false);
+
+    // manually change live state to started as no running action manager
+    for (ServiceComponent sc :
+      clusters.getCluster(clusterName).getService(serviceName)
+        .getServiceComponents().values()) {
+      for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+        sch.setState(State.INSTALLED);
+      }
+    }
+    return resp.getRequestId();
+  }
+
   private long startService(String clusterName, String serviceName,
       boolean runSmokeTests, boolean reconfigureClients) throws
     AmbariException {
@@ -4545,6 +4575,107 @@ public class AmbariManagementControllerTest {
       }
     }
     Assert.assertNull(clientWithHostDown);
+  }
+
+  @Test
+  public void testReconfigureClientWithServiceStarted() throws
+    AmbariException {
+    String clusterName = "foo1";
+    createCluster(clusterName);
+    clusters.getCluster(clusterName)
+      .setDesiredStackVersion(new StackId("HDP-0.1"));
+    String serviceName = "HDFS";
+    createService(clusterName, serviceName, null);
+    String componentName1 = "NAMENODE";
+    String componentName2 = "DATANODE";
+    String componentName3 = "HDFS_CLIENT";
+
+    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    mapRequestProps.put("context", "Called from a test");
+
+    createServiceComponent(clusterName, serviceName, componentName1,
+      State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName2,
+      State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName3,
+      State.INIT);
+
+    String host1 = "h1";
+    clusters.addHost(host1);
+    clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").persist();
+    String host2 = "h2";
+    clusters.addHost(host2);
+    clusters.getHost("h2").setOsType("centos6");
+    clusters.getHost("h2").persist();
+
+    clusters.mapHostToCluster(host1, clusterName);
+    clusters.mapHostToCluster(host2, clusterName);
+
+    createServiceComponentHost(clusterName, serviceName, componentName1,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+      host2, null);
+
+    // Create and attach config
+    Map<String, String> configs = new HashMap<String, String>();
+    configs.put("a", "b");
+
+    ConfigurationRequest cr1,cr2,cr3;
+    cr1 = new ConfigurationRequest(clusterName, "core-site","version1",
+      configs);
+    cr2 = new ConfigurationRequest(clusterName, "hdfs-site","version1",
+      configs);
+
+    ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
+    crReq.setDesiredConfig(cr1);
+    controller.updateCluster(crReq, null);
+    crReq = new ClusterRequest(null, clusterName, null, null);
+    crReq.setDesiredConfig(cr2);
+    controller.updateCluster(crReq, null);
+
+    installService(clusterName, serviceName, false, false);
+    startService(clusterName, serviceName, false, false);
+
+    Cluster c = clusters.getCluster(clusterName);
+    Service s = c.getService(serviceName);
+    // Stop Sch only
+    long id = stopServiceComponentHosts(clusterName, serviceName);
+    Assert.assertEquals(State.STARTED, s.getDesiredState());
+    for (ServiceComponent sc : s.getServiceComponents().values()) {
+      for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+        Assert.assertEquals(State.INSTALLED, sch.getDesiredState());
+      }
+    }
+
+    // Reconfigure
+    configs.clear();
+    configs.put("c", "d");
+    cr3 = new ConfigurationRequest(clusterName, "core-site","version122",
+      configs);
+    crReq = new ClusterRequest(null, clusterName, null, null);
+    crReq.setDesiredConfig(cr3);
+    controller.updateCluster(crReq, null);
+
+    id = startService(clusterName, serviceName, false, true);
+    List<Stage> stages = actionDB.getAllStages(id);
+    HostRoleCommand clientHrc = null;
+    for (Stage stage : stages) {
+      for (HostRoleCommand hrc : stage.getOrderedHostRoleCommands()) {
+        if (hrc.getHostName().equals(host2) && hrc.getRole().toString()
+          .equals("HDFS_CLIENT")) {
+          clientHrc = hrc;
+          Assert.assertEquals("version122", hrc.getExecutionCommandWrapper()
+            .getExecutionCommand().getConfigurationTags().get("core-site")
+            .get("tag"));
+        }
+      }
+    }
+    Assert.assertNotNull(clientHrc);
   }
 
   @Test

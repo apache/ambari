@@ -1845,38 +1845,30 @@ public class AmbariManagementControllerImpl implements
   }
 
   private void addClientSchForReinstall(Cluster cluster,
-            Map<State, List<Service>> changedServices,
             Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts)
             throws AmbariException {
 
     Set<String> services = new HashSet<String>();
-
-    if (changedServices != null) {
-      for (Entry<State, List<Service>> entry : changedServices.entrySet()) {
-        if (State.STARTED != entry.getKey()) {
-          continue;
-        }
-        for (Service s : entry.getValue()) {
-          if (State.INSTALLED == s.getDesiredState()) {
-            services.add(s.getName());
+    // Flatten changed Schs that are going to be Started
+    List<ServiceComponentHost> serviceComponentHosts = new
+      ArrayList<ServiceComponentHost>();
+    if (changedScHosts != null && !changedScHosts.isEmpty()) {
+      for (String sc : changedScHosts.keySet()) {
+        for (State s : changedScHosts.get(sc).keySet())
+          if (s == State.STARTED) {
+            serviceComponentHosts.addAll(changedScHosts.get(sc).get(s));
           }
-        }
+      }
+    }
+
+    if (!serviceComponentHosts.isEmpty()) {
+      for (ServiceComponentHost sch : serviceComponentHosts) {
+        services.add(sch.getServiceName());
       }
     }
 
     if (services == null || services.isEmpty())
       return;
-
-    // Flatten changed Schs that are going to be Started
-    List<ServiceComponentHost> existingSchs = new
-      ArrayList<ServiceComponentHost>();
-    if (changedScHosts != null && !changedScHosts.isEmpty()) {
-      for (String sc : changedScHosts.keySet()) {
-        for (State s : changedScHosts.get(sc).keySet())
-          if (s == State.STARTED)
-            existingSchs.addAll(changedScHosts.get(sc).get(s));
-      }
-    }
 
     Map<String, List<ServiceComponentHost>> clientSchs = new
       HashMap<String, List<ServiceComponentHost>>();
@@ -2005,7 +1997,7 @@ public class AmbariManagementControllerImpl implements
     if (reconfigureClients) {
       // Re-install client only hosts to reattach changed configs on service
       // restart
-      addClientSchForReinstall(cluster, changedServices, changedScHosts);
+      addClientSchForReinstall(cluster, changedScHosts);
     }
 
     if (!changedScHosts.isEmpty()
