@@ -909,6 +909,8 @@ Trunk (unreleased changes):
  Farrellee via mahadev)
 
  BUG FIXES
+
+ AMBARI-2263. Render appropriate default values for HBase java settings. (jaimin)
  
  AMBARI-2230. Nagios user is presented in Admin > Misc page when Nagios
  service was not installed. (yusaku)

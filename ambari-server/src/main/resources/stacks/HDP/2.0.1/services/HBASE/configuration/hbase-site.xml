@@ -44,7 +44,7 @@
   </property>
   <property>
     <name>hbase.tmp.dir</name>
-    <value>/var/log/hbase</value>
+    <value></value>
     <description>Temporary directory on the local filesystem.
     Change this setting to point to a location more permanent
     than '/tmp' (The '/tmp' directory is often cleared on
@@ -58,8 +58,18 @@
     </description>
   </property>
   <property>
+    <name>hbase.master.info.port</name>
+    <value></value>
+    <description>The port for the HBase Master web UI.</description>
+  </property>
+  <property>
+    <name>hbase.regionserver.info.port</name>
+    <value></value>
+    <description>The port for the HBase RegionServer web UI.</description>
+  </property>
+  <property>
     <name>hbase.regionserver.global.memstore.upperLimit</name>
-    <value>0.4</value>
+    <value></value>
     <description>Maximum size of all memstores in a region server before new
       updates are blocked and flushes are forced. Defaults to 40% of heap
     </description>
@@ -80,17 +90,10 @@
     Set to 0 to disable automated major compactions.
     </description>
   </property>
-  <property>
-    <name>hbase.master.lease.thread.wakefrequency</name>
-    <value>3000</value>
-    <description>The interval between checks for expired region server leases.
-    This value has been reduced due to the other reduced values above so that
-    the master will notice a dead region server sooner. The default is 15 seconds.
-    </description>
-  </property>
+  
   <property>
     <name>hbase.regionserver.global.memstore.lowerLimit</name>
-    <value>0.35</value>
+    <value></value>
     <description>When memstores are being forced to flush to make room in
       memory, keep flushing until we hit this mark. Defaults to 35% of heap.
       This value equal to hbase.regionserver.global.memstore.upperLimit causes
@@ -120,7 +123,7 @@
   </property>
   <property>
     <name>hbase.hregion.memstore.mslab.enabled</name>
-    <value>true</value>
+    <value></value>
     <description>
       Enables the MemStore-Local Allocation Buffer,
       a feature which works to prevent heap fragmentation under
@@ -130,7 +133,7 @@
   </property>
   <property>
     <name>hbase.hregion.max.filesize</name>
-    <value>268435456</value>
+    <value></value>
     <description>
     Maximum HStoreFile size. If any one of a column families' HStoreFiles has
     grown to exceed this value, the hosting HRegion is split in two.
@@ -150,7 +153,7 @@
   </property>
   <property>
     <name>zookeeper.session.timeout</name>
-    <value></value>
+    <value>30000</value>
     <description>ZooKeeper session timeout.
       HBase passes this to the zk quorum as suggested maximum time for a
       session (This setting becomes zookeeper's 'maxSessionTimeout').  See
@@ -172,7 +175,7 @@
   </property>
   <property>
     <name>hbase.hstore.compactionThreshold</name>
-    <value>3</value>
+    <value></value>
     <description>
     If more than this number of HStoreFiles in any one HStore
     (one HStoreFile is written per flush of memstore) then a compaction
@@ -182,7 +185,7 @@
   </property>
   <property>
     <name>hbase.hstore.blockingStoreFiles</name>
-    <value>7</value>
+    <value></value>
     <description>
     If more than this number of StoreFiles in any one Store
     (one StoreFile is written per flush of MemStore) then updates are
@@ -192,7 +195,7 @@
   </property>
   <property>
     <name>hfile.block.cache.size</name>
-    <value>0.25</value>
+    <value></value>
     <description>
         Percentage of maximum heap (-Xmx setting) to allocate to block cache
         used by HFile/StoreFile. Default of 0.25 means allocate 25%.
@@ -205,7 +208,7 @@
        values, included here for documentation purposes -->
   <property>
     <name>hbase.master.keytab.file</name>
-    <value>/etc/security/keytabs/hm.service.keytab</value>
+    <value></value>
     <description>Full path to the kerberos keytab file to use for logging in
     the configured HMaster server principal.
     </description>
@@ -222,7 +225,7 @@
   </property>
   <property>
     <name>hbase.regionserver.keytab.file</name>
-    <value>/etc/security/keytabs/rs.service.keytab</value>
+    <value></value>
     <description>Full path to the kerberos keytab file to use for logging in
     the configured HRegionServer server principal.
     </description>
@@ -242,7 +245,7 @@
   <!-- Additional configuration specific to HBase security -->
   <property>
     <name>hbase.superuser</name>
-    <value>hbase</value>
+    <value></value>
     <description>List of users or groups (comma-separated), who are allowed
     full privileges, regardless of stored ACLs, across the cluster.
     Only used when HBase security is enabled.
@@ -299,7 +302,7 @@
 
   <property>
     <name>dfs.support.append</name>
-    <value>true</value>
+    <value></value>
     <description>Does HDFS allow appends to files?
     This is an hdfs config. set in here so the hdfs client will do append support.
     You must ensure that this config. is true serverside too when running hbase
@@ -309,7 +312,7 @@
 
   <property>
     <name>dfs.client.read.shortcircuit</name>
-    <value>true</value>
+    <value></value>
     <description>Enable/Disable short circuit read for your client.
     Hadoop servers should be configured to allow short circuit read
     for the hbase user for this to take effect
@@ -318,17 +321,30 @@
 
   <property>
     <name>dfs.client.read.shortcircuit.skip.checksum</name>
-    <value>false</value>
+    <value></value>
     <description>Enable/disbale skipping the checksum check</description>
   </property>
-
+  
   <property>
-    <name>hbase.regionserver.optionalcacheflushinterval</name>
-    <value>10000</value>
-    <description>
-      Amount of time to wait since the last time a region was flushed before
-      invoking an optional cache flush. Default 60,000.
+    <name>hbase.zookeeper.useMulti</name>
+    <value>true</value>
+    <description>Instructs HBase to make use of ZooKeeper's multi-update functionality.
+    This allows certain ZooKeeper operations to complete more quickly and prevents some issues
+    with rare Replication failure scenarios (see the release note of HBASE-2611 for an example).·
+    IMPORTANT: only set this to true if all ZooKeeper servers in the cluster are on version 3.4+
+    and will not be downgraded.  ZooKeeper versions before 3.4 do not support multi-update and will
+    not fail gracefully if multi-update is invoked (see ZOOKEEPER-1495).
     </description>
   </property>
+  <property>
+    <name>zookeeper.znode.parent</name>
+    <value></value>
+    <description>Root ZNode for HBase in ZooKeeper. All of HBase's ZooKeeper
+      files that are configured with a relative path will go under this node.
+      By default, all of HBase's ZooKeeper file path are configured with a
+      relative path, so they will all go under this directory unless changed.
+    </description>
+  </property>
+
 
 </configuration>

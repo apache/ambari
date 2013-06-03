@@ -90,14 +90,7 @@
     Set to 0 to disable automated major compactions.
     </description>
   </property>
-  <property>
-    <name>hbase.master.lease.thread.wakefrequency</name>
-    <value>3000</value>
-    <description>The interval between checks for expired region server leases.
-    This value has been reduced due to the other reduced values above so that
-    the master will notice a dead region server sooner. The default is 15 seconds.
-    </description>
-  </property>
+  
   <property>
     <name>hbase.regionserver.global.memstore.lowerLimit</name>
     <value></value>
@@ -160,7 +153,7 @@
   </property>
   <property>
     <name>zookeeper.session.timeout</name>
-    <value>60000</value>
+    <value>30000</value>
     <description>ZooKeeper session timeout.
       HBase passes this to the zk quorum as suggested maximum time for a
       session (This setting becomes zookeeper's 'maxSessionTimeout').  See
@@ -331,15 +324,7 @@
     <value></value>
     <description>Enable/disbale skipping the checksum check</description>
   </property>
-
-  <property>
-    <name>hbase.regionserver.optionalcacheflushinterval</name>
-    <value>10000</value>
-    <description>
-      Amount of time to wait since the last time a region was flushed before
-      invoking an optional cache flush. Default 60,000.
-    </description>
-  </property>
+  
   <property>
     <name>hbase.zookeeper.useMulti</name>
     <value>true</value>
