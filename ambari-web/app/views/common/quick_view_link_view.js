@@ -30,6 +30,10 @@ App.QuickViewLinks = Em.View.extend({
 
     if (serviceName === 'HDFS') {
       host = App.singleNodeInstall ? App.singleNodeAlias : components.findProperty('componentName', 'NAMENODE').get('host.publicHostName');
+    } else if (serviceName === 'YARN') {
+      host = App.singleNodeInstall ? App.singleNodeAlias : components.findProperty('componentName', 'RESOURCEMANAGER').get('host.publicHostName');
+    } else if (serviceName === 'MAPREDUCE2') {
+      host = App.singleNodeInstall ? App.singleNodeAlias : components.findProperty('componentName', 'HISTORYSERVER').get('host.publicHostName');
     } else if (serviceName === 'MAPREDUCE') {
       host = App.singleNodeInstall ? App.singleNodeAlias : components.findProperty('componentName', 'JOBTRACKER').get('host.publicHostName');
     } else if (serviceName === 'HBASE') {
@@ -40,7 +44,6 @@ App.QuickViewLinks = Em.View.extend({
         }else{
           host = component.get('host.publicHostName');
         }
-
       }
     }
     if (!host) {
@@ -62,6 +65,8 @@ App.QuickViewLinks = Em.View.extend({
   linkTarget: function () {
     switch (this.get('content.serviceName').toLowerCase()) {
       case "hdfs":
+      case "yarn":
+      case "mapreduce2":
       case "mapreduce":
       case "hbase":
         return "_blank";

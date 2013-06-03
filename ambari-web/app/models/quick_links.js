@@ -132,5 +132,53 @@ App.QuickLinks.FIXTURES = [
     label:'Thread Stacks',
     url:'http://%@:60010/stacks',
     service_id: 'HBASE'
+  },
+  {
+    id:19,
+    label:'ResourceManager UI',
+    url:'http://%@:8088',
+    service_id: 'YARN'
+  },
+  {
+    id:20,
+    label:'ResourceManager logs',
+    url:'http://%@:8088/logs',
+    service_id: 'YARN'
+  },
+  {
+    id:21,
+    label:'ResourceManager JMX',
+    url:'http://%@:8088/jmx',
+    service_id: 'YARN'
+  },
+  {
+    id:22,
+    label:'Thread Stacks',
+    url:'http://%@:8088/stacks',
+    service_id: 'YARN'
+  },
+  {
+    id:23,
+    label:'JobHistory UI',
+    url:'http://%@:19888',
+    service_id: 'MAPREDUCE2'
+  },
+  {
+    id:24,
+    label:'JobHistory logs',
+    url:'http://%@:19888/logs',
+    service_id: 'MAPREDUCE2'
+  },
+  {
+    id:25,
+    label:'JobHistory JMX',
+    url:'http://%@:19888/jmx',
+    service_id: 'MAPREDUCE2'
+  },
+  {
+    id:26,
+    label:'Thread Stacks',
+    url:'http://%@:19888/stacks',
+    service_id: 'MAPREDUCE2'
   }
 ];
