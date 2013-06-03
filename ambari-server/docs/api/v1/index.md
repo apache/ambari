@@ -34,7 +34,8 @@ The Ambari API facilitates the management and monitoring of the resources of an 
 
 Release Version
 ----
-_Last Updated April 25, 2013_
+_Last Updated June 3, 2013;  Note that this is the official release of Ambari V1 API_
+ 
 
 Authentication
 ----
@@ -318,42 +319,312 @@ Used to control which fields are returned by a query.  Partial response can be u
 
     GET    /api/v1/clusters/c1/services/HDFS/components/NAMENODE?fields=metrics/disk/disk_total
 
-    200 OK	{    	“href”: “.../api/v1/clusters/c1/services/HDFS/components/NAMENODE?fields=metrics/disk/disk_total”,    	“ServiceComponentInfo” : {        	“cluster_name” : “c1”,        	“component_name” : NAMENODE”,        	“service_name” : “HDFS”    	},    	“metrics” : {        	"disk" : {                   	"disk_total" : 100000        	}    	}    }
-**Example: Using Partial Response to restrict response to specified category**
+    200 OK
+	{
+    	“href”: “.../api/v1/clusters/c1/services/HDFS/components/NAMENODE?fields=metrics/disk/disk_total”,
+    	“ServiceComponentInfo” : {
+        	“cluster_name” : “c1”,
+        	“component_name” : NAMENODE”,
+        	“service_name” : “HDFS”
+    	},
+    	“metrics” : {
+        	"disk" : {       
+            	"disk_total" : 100000
+        	}
+    	}
+    }
+
+**Example: Using Partial Response to restrict response to specified category**
 
     GET    /api/v1/clusters/c1/services/HDFS/components/NAMENODE?fields=metrics/disk
 
-    200 OK	{    	“href”: “.../api/v1/clusters/c1/services/HDFS/components/NAMENODE?fields=metrics/disk”,    	“ServiceComponentInfo” : {        	“cluster_name” : “c1”,        	“component_name” : NAMENODE”,        	“service_name” : “HDFS”    	},    	“metrics” : {        	"disk" : {                   	"disk_total" : 100000,            	“disk_free” : 50000,            	“part_max_used” : 1010        	}    	}	}
+    200 OK
+	{
+    	“href”: “.../api/v1/clusters/c1/services/HDFS/components/NAMENODE?fields=metrics/disk”,
+    	“ServiceComponentInfo” : {
+        	“cluster_name” : “c1”,
+        	“component_name” : NAMENODE”,
+        	“service_name” : “HDFS”
+    	},
+    	“metrics” : {
+        	"disk" : {       
+            	"disk_total" : 100000,
+            	“disk_free” : 50000,
+            	“part_max_used” : 1010
+        	}
+    	}
+	}
 
 **Example – Using Partial Response to restrict response to multiple fields/categories**
 
 	GET	/api/v1/clusters/c1/services/HDFS/components/NAMENODE?fields=metrics/disk/disk_total,metrics/cpu
 	
-	200 OK	{    	“href”: “.../api/v1/clusters/c1/services/HDFS/components/NAMENODE?fields=metrics/disk/disk_total,metrics/cpu”,    	“ServiceComponentInfo” : {        	“cluster_name” : “c1”,        	“component_name” : NAMENODE”,        	“service_name” : “HDFS”    	},    	“metrics” : {        	"disk" : {                   	"disk_total" : 100000        	},        	“cpu” : {            	“cpu_speed” : 10000000,            	“cpu_num” : 4,            	“cpu_idle” : 999999,            	...        	}    	}	}**Example – Using Partial Response to restrict response to a sub-resource**
-	GET	/api/v1/clusters/c1/hosts/host1?fields=host_components
-	200 OK	{    	“href”: “.../api/v1/clusters/c1/hosts/host1?fields=host_components”,    	“Hosts” : {        	“cluster_name” : “c1”,        	“host_name” : “host1”    	},    	“host_components”: [        	{            	“href”: “…/api/v1/clusters/c1/hosts/host1/host_components/NAMENODE”            	“HostRoles” : {                	“cluster_name” : “c1”,                	“component_name” : “NAMENODE”,                	“host_name” : “host1”            	}        	},        	{            	“href”: “…/api/v1/clusters/c1/hosts/host1/host_components/DATANODE”            	“HostRoles” : {                	“cluster_name” : “c1”,                	“component_name” : DATANODE”,                	“host_name” : “host1”            	}        	},
-            ...     	]	}**Example – Using Partial Response to expand a sub-resource one level deep**
-	GET	/api/v1/clusters/c1/hosts/host1?fields=host_components/*
-	200 OK	{    	“href”: “.../api/v1/clusters/c1/hosts/host1?fields=host_components/*”,    	“Hosts” : {        	“cluster_name” : “c1”,        	“host_name” : “host1”        },
-        “host_components”: [        	{            	“href”: “…/api/v1/clusters/c1/hosts/host1/host_components/DATANODE”            	“HostRoles” : {                	“cluster_name” : “c1”,               		“component_name” : DATANODE”,                	“host_name” : “host1”,                	“state” : “RUNNING”,                	...            	},                    	"host" : {                     	"href" : ".../api/v1/clusters/c1/hosts/host1"              	},            	“metrics” : {                	"disk" : {                           	"disk_total" : 100000000,                           	"disk_free" : 5000000,                           	"part_max_used" : 10101                     	},                	...            	},            	"component" : {                	"href" : "http://ambari.server/api/v1/clusters/c1/services/HDFS/components/NAMENODE",                 	“ServiceComponentInfo” : {                    	"cluster_name" : "c1",                             	"component_name" : "NAMENODE",                             	"service_name" : "HDFS"                       	}            	}          	},        	...    	]	}
+	200 OK
+	{
+    	“href”: “.../api/v1/clusters/c1/services/HDFS/components/NAMENODE?fields=metrics/disk/disk_total,metrics/cpu”,
+    	“ServiceComponentInfo” : {
+        	“cluster_name” : “c1”,
+        	“component_name” : NAMENODE”,
+        	“service_name” : “HDFS”
+    	},
+    	“metrics” : {
+        	"disk" : {       
+            	"disk_total" : 100000
+        	},
+        	“cpu” : {
+            	“cpu_speed” : 10000000,
+            	“cpu_num” : 4,
+            	“cpu_idle” : 999999,
+            	...
+        	}
+    	}
+	}
+
+**Example – Using Partial Response to restrict response to a sub-resource**
+
+	GET	/api/v1/clusters/c1/hosts/host1?fields=host_components
+
+	200 OK
+	{
+    	“href”: “.../api/v1/clusters/c1/hosts/host1?fields=host_components”,
+    	“Hosts” : {
+        	“cluster_name” : “c1”,
+        	“host_name” : “host1”
+    	},
+    	“host_components”: [
+        	{
+            	“href”: “…/api/v1/clusters/c1/hosts/host1/host_components/NAMENODE”
+            	“HostRoles” : {
+                	“cluster_name” : “c1”,
+                	“component_name” : “NAMENODE”,
+                	“host_name” : “host1”
+            	}
+        	},
+        	{
+            	“href”: “…/api/v1/clusters/c1/hosts/host1/host_components/DATANODE”
+            	“HostRoles” : {
+                	“cluster_name” : “c1”,
+                	“component_name” : DATANODE”,
+                	“host_name” : “host1”
+            	}
+        	},
+            ... 
+    	]
+	}
+
+**Example – Using Partial Response to expand a sub-resource one level deep**
+
+	GET	/api/v1/clusters/c1/hosts/host1?fields=host_components/*
+
+	200 OK
+	{
+    	“href”: “.../api/v1/clusters/c1/hosts/host1?fields=host_components/*”,
+    	“Hosts” : {
+        	“cluster_name” : “c1”,
+        	“host_name” : “host1”
+        },
+        “host_components”: [
+        	{
+            	“href”: “…/api/v1/clusters/c1/hosts/host1/host_components/DATANODE”
+            	“HostRoles” : {
+                	“cluster_name” : “c1”,
+               		“component_name” : DATANODE”,
+                	“host_name” : “host1”,
+                	“state” : “RUNNING”,
+                	...
+            	},        
+            	"host" : {     
+                	"href" : ".../api/v1/clusters/c1/hosts/host1"  
+            	},
+            	“metrics” : {
+                	"disk" : {       
+                    	"disk_total" : 100000000,       
+                    	"disk_free" : 5000000,       
+                    	"part_max_used" : 10101     
+                	},
+                	...
+            	},
+            	"component" : {
+                	"href" : "http://ambari.server/api/v1/clusters/c1/services/HDFS/components/NAMENODE", 
+                	“ServiceComponentInfo” : {
+                    	"cluster_name" : "c1",         
+                    	"component_name" : "NAMENODE",         
+                    	"service_name" : "HDFS"       
+                	}
+            	}  
+        	},
+        	...
+    	]
+	}
+
 **Example – Using Partial Response for multi-level expansion of sub-resources**
 	
 	GET /api/v1/clusters/c1/hosts/host1?fields=host_components/component/*
 	
-	200 OK	{    	“href”: “http://ambari.server/api/v1/clusters/c1/hosts/host1?fields=host_components/*”,    	“Hosts” : {        	“cluster_name” : “c1”,        	“host_name” : “host1”        	...    	},
+	200 OK
+	{
+    	“href”: “http://ambari.server/api/v1/clusters/c1/hosts/host1?fields=host_components/*”,
+    	“Hosts” : {
+        	“cluster_name” : “c1”,
+        	“host_name” : “host1”
+        	...
+    	},
     	“host_components”: [
-    		{            	“href”: “…/api/v1/clusters/c1/hosts/host1/host_components/DATANODE”,            	“HostRoles” : {                	“cluster_name” : “c1”,                	“component_name” : DATANODE”,                	“host_name” : “host1”            	},             	"component" : {                	"href" : "http://ambari.server/api/v1/clusters/c1/services/HDFS/components/DATANODE",                 	“ServiceComponentInfo” : {                   		"cluster_name" : "c1",                             	"component_name" : "DATANODE",                             	"service_name" : "HDFS"                      	...                     	},             		“metrics”: {                   		“dfs”: {                       		“datanode” : {          	                	“blocks_written " :  10000,          	                	“blocks_read" : 5000,                             	...                        	}                    	},                    	“disk”: {                       		"disk_total " :  1000000,                        	“disk_free" : 50000,                        	...                    	},                   		... 	
-					}            	}        	},        	{            	“href”: “…/api/v1/clusters/c1/hosts/host1/host_components/NAMENODE”,            	“HostRoles” : {                	“cluster_name” : “c1”,                	“component_name” : NAMENODE”,                	“host_name” : “host1”            	},             	"component" : {                	"href" : "http://ambari.server/api/v1/clusters/c1/services/HDFS/components/NAMENODE",                 	“ServiceComponentInfo” : {                   		"cluster_name" : "c1",                             	"component_name" : "NAMENODE",                             	"service_name" : "HDFS"                       	},             		“metrics”: {                    	“dfs”: {                       		“namenode” : {          	            		“FilesRenamed " :  10,          	            		“FilesDeleted" : 5                         		…                    		}
-						},	                    	“disk”: {                       		"disk_total " :  1000000,                       		“disk_free" : 50000,                        	...                    	}                	},                	...            	}        	},        	...    	]	}**Example: Using Partial Response to expand collection resource instances one level deep**
-	GET /api/v1/clusters/c1/hosts?fields=*
-	200 OK	{    	“href” : “http://ambari.server/api/v1/clusters/c1/hosts/?fields=*”,        	“items”: [         	{            	“href” : “http://ambari.server/api/v1/clusters/c1/hosts/host1”,            	“Hosts” : {                	“cluster_name” :  “c1”,                	“host_name” : “host1”            	},            	“metrics”: {                	“process”: {          	                       		"proc_total" : 1000,          	       		"proc_run" : 1000                	},                	...            	},            	“host_components”: [                	{                   		“href”: “…/api/v1/clusters/c1/hosts/host1/host_components/NAMENODE”                    	“HostRoles” : {                       		“cluster_name” : “c1”,                         	“component_name” : “NAMENODE”,                        	“host_name” : “host1”                    	}                	},                	{                    	“href”: “…/api/v1/clusters/c1/hosts/host1/host_components/DATANODE”                    	“HostRoles” : {                       		“cluster_name” : “c1”,                        	“component_name” : DATANODE”,                        	“host_name” : “host1”                    	}                	},                	...            	},            	...        	},        	{            	“href” : “http://ambari.server/api/v1/clusters/c1/hosts/host2”,            	“Hosts” : {                	“cluster_name” :  “c1”,                	“host_name” : “host2”            	},            	“metrics”: {               		“process”: {          	                       		"proc_total" : 555,          	     		"proc_run" : 55                	},                	...            	},            	“host_components”: [                	{                   		“href”: “…/api/v1/clusters/c1/hosts/host1/host_components/DATANODE”                    	“HostRoles” : {                       		“cluster_name” : “c1”,                        	“component_name” : “DATANODE”,                        	“host_name” : “host2”                    	}                	},                	...            	],            	...        	},        	...    	]	}### Additional Partial Response Examples
-**Example – For each cluster, get cluster name, all hostname’s and all service names**
-	GET   /api/v1/clusters?fields=Clusters/cluster_name,hosts/Hosts/host_name,services/ServiceInfo/service_name
-**Example - Get all hostname’s for a given component**
-	GET	/api/v1/clusters/c1/services/HDFS/components/DATANODE?fields=host_components/HostRoles/host_name
-**Example - Get all hostname’s and component names for a given service**
-	GET	/api/v1/clusters/c1/services/HDFS?fields=components/host_components/HostRoles/host_name,
-                                      	          components/host_components/HostRoles/component_name
+    		{
+            	“href”: “…/api/v1/clusters/c1/hosts/host1/host_components/DATANODE”,
+            	“HostRoles” : {
+                	“cluster_name” : “c1”,
+                	“component_name” : DATANODE”,
+                	“host_name” : “host1”
+            	}, 
+            	"component" : {
+                	"href" : "http://ambari.server/api/v1/clusters/c1/services/HDFS/components/DATANODE", 
+                	“ServiceComponentInfo” : {
+                   		"cluster_name" : "c1",         
+                    	"component_name" : "DATANODE",         
+                    	"service_name" : "HDFS"  
+                    	...     
+                	},
+             		“metrics”: {
+                   		“dfs”: {
+                       		“datanode” : {
+          	                	“blocks_written " :  10000,
+          	                	“blocks_read" : 5000,
+                             	...
+                        	}
+                    	},
+                    	“disk”: {
+                       		"disk_total " :  1000000,
+                        	“disk_free" : 50000,
+                        	...
+                    	},
+                   		... 	
+					}
+            	}
+        	},
+        	{
+            	“href”: “…/api/v1/clusters/c1/hosts/host1/host_components/NAMENODE”,
+            	“HostRoles” : {
+                	“cluster_name” : “c1”,
+                	“component_name” : NAMENODE”,
+                	“host_name” : “host1”
+            	}, 
+            	"component" : {
+                	"href" : "http://ambari.server/api/v1/clusters/c1/services/HDFS/components/NAMENODE", 
+                	“ServiceComponentInfo” : {
+                   		"cluster_name" : "c1",         
+                    	"component_name" : "NAMENODE",         
+                    	"service_name" : "HDFS"       
+                	},
+             		“metrics”: {
+                    	“dfs”: {
+                       		“namenode” : {
+          	            		“FilesRenamed " :  10,
+          	            		“FilesDeleted" : 5
+                         		…
+                    		}
+						},	
+                    	“disk”: {
+                       		"disk_total " :  1000000,
+                       		“disk_free" : 50000,
+                        	...
+                    	}
+                	},
+                	...
+            	}
+        	},
+        	...
+    	]
+	}
+
+**Example: Using Partial Response to expand collection resource instances one level deep**
+
+	GET /api/v1/clusters/c1/hosts?fields=*
+
+	200 OK
+	{
+    	“href” : “http://ambari.server/api/v1/clusters/c1/hosts/?fields=*”,    
+    	“items”: [ 
+        	{
+            	“href” : “http://ambari.server/api/v1/clusters/c1/hosts/host1”,
+            	“Hosts” : {
+                	“cluster_name” :  “c1”,
+                	“host_name” : “host1”
+            	},
+            	“metrics”: {
+                	“process”: {          	    
+                   		"proc_total" : 1000,
+          	       		"proc_run" : 1000
+                	},
+                	...
+            	},
+            	“host_components”: [
+                	{
+                   		“href”: “…/api/v1/clusters/c1/hosts/host1/host_components/NAMENODE”
+                    	“HostRoles” : {
+                       		“cluster_name” : “c1”,
+                         	“component_name” : “NAMENODE”,
+                        	“host_name” : “host1”
+                    	}
+                	},
+                	{
+                    	“href”: “…/api/v1/clusters/c1/hosts/host1/host_components/DATANODE”
+                    	“HostRoles” : {
+                       		“cluster_name” : “c1”,
+                        	“component_name” : DATANODE”,
+                        	“host_name” : “host1”
+                    	}
+                	},
+                	...
+            	},
+            	...
+        	},
+        	{
+            	“href” : “http://ambari.server/api/v1/clusters/c1/hosts/host2”,
+            	“Hosts” : {
+                	“cluster_name” :  “c1”,
+                	“host_name” : “host2”
+            	},
+            	“metrics”: {
+               		“process”: {          	    
+                   		"proc_total" : 555,
+          	     		"proc_run" : 55
+                	},
+                	...
+            	},
+            	“host_components”: [
+                	{
+                   		“href”: “…/api/v1/clusters/c1/hosts/host1/host_components/DATANODE”
+                    	“HostRoles” : {
+                       		“cluster_name” : “c1”,
+                        	“component_name” : “DATANODE”,
+                        	“host_name” : “host2”
+                    	}
+                	},
+                	...
+            	],
+            	...
+        	},
+        	...
+    	]
+	}
+
+### Additional Partial Response Examples
+
+**Example – For each cluster, get cluster name, all hostname’s and all service names**
+
+	GET   /api/v1/clusters?fields=Clusters/cluster_name,hosts/Hosts/host_name,services/ServiceInfo/service_name
+
+**Example - Get all hostname’s for a given component**
+
+	GET	/api/v1/clusters/c1/services/HDFS/components/DATANODE?fields=host_components/HostRoles/host_name
+
+**Example - Get all hostname’s and component names for a given service**
+
+	GET	/api/v1/clusters/c1/services/HDFS?fields=components/host_components/HostRoles/host_name,
+                                      	          components/host_components/HostRoles/component_name
+
+
 
 Query Predicates
 ----
@@ -476,20 +747,43 @@ Operator functions behave like relational operators and provide additional funct
 	
 	GET	/api/v1/clusters/c1/hosts?Hosts/host_status=HEALTHY&Hosts/cpu_count>=2
 	
-**Example – Get all hosts with less than 2 cpu or host status != HEALTHY**	
-	GET	/api/v1/clusters/c1/hosts?Hosts/cpu_count<2|Hosts/host_status!=HEALTHY**Example – Get all “rhel6” hosts with less than 2 cpu or “centos6” hosts with 3 or more cpu**  
-	GET	/api/v1/clusters/c1/hosts?Hosts/os_type=rhel6&Hosts/cpu_count<2|Hosts/os_type=centos6&Hosts/cpu_count>=3**Example – Get all hosts where either state != “HEALTHY” or last_heartbeat_time < 1360600135905 and rack_info=”default_rack”**	GET	/api/v1/clusters/c1/hosts?(Hosts/host_status!=HEALTHY|Hosts/last_heartbeat_time<1360600135905)
-                                  &Hosts/rack_info=default_rack**Example – Get hosts with host name of host1 or host2 or host3 using IN operator**	
-	GET	/api/v1/clusters/c1/hosts?Hosts/host_name.in(host1,host2,host3)**Example – Get and expand all HDFS components, which have at least 1 property in the “metrics/jvm” category (combines query and partial response syntax)**	GET	/api/v1/clusters/c1/services/HDFS/components?!metrics/jvm.isEmpty()&fields=***Example – Update the state of all ‘INSTALLED’ services to be ‘STARTED’**	PUT /api/v1/clusters/c1/services?ServiceInfo/state=INSTALLED 
+**Example – Get all hosts with less than 2 cpu or host status != HEALTHY**
+	
+
+	GET	/api/v1/clusters/c1/hosts?Hosts/cpu_count<2|Hosts/host_status!=HEALTHY
+
+**Example – Get all “rhel6” hosts with less than 2 cpu or “centos6” hosts with 3 or more cpu**  
+
+	GET	/api/v1/clusters/c1/hosts?Hosts/os_type=rhel6&Hosts/cpu_count<2|Hosts/os_type=centos6&Hosts/cpu_count>=3
+
+**Example – Get all hosts where either state != “HEALTHY” or last_heartbeat_time < 1360600135905 and rack_info=”default_rack”**
+
+	GET	/api/v1/clusters/c1/hosts?(Hosts/host_status!=HEALTHY|Hosts/last_heartbeat_time<1360600135905)
+                                  &Hosts/rack_info=default_rack
+
+**Example – Get hosts with host name of host1 or host2 or host3 using IN operator**
+	
+	GET	/api/v1/clusters/c1/hosts?Hosts/host_name.in(host1,host2,host3)
+
+**Example – Get and expand all HDFS components, which have at least 1 property in the “metrics/jvm” category (combines query and partial response syntax)**
+
+	GET	/api/v1/clusters/c1/services/HDFS/components?!metrics/jvm.isEmpty()&fields=*
+
+**Example – Update the state of all ‘INSTALLED’ services to be ‘STARTED’**
+
+	PUT /api/v1/clusters/c1/services?ServiceInfo/state=INSTALLED 
     {
       "ServiceInfo": {
         "state" : "STARTED”
       }
     }
-Batch Requests----
+
+Batch Requests
+----
 Requests can be batched.  This allows for multiple bodies to be specified as an array in a single request. 
 
-**Example – Creating multiple hosts in a single request**     
+**Example – Creating multiple hosts in a single request**
+     
     POST /api/v1/clusters/c1/hosts/         
 
     [
@@ -511,7 +805,11 @@ Requests can be batched.  This allows for multiple bodies to be specified as an 
           "host_name" : "host3"
         }
       }
-    ]RequestInfo----
+    ]
+
+
+RequestInfo
+----
 RequestInfo allows the user to specify additional properties in the body of a request.
 
 <table>
@@ -643,16 +941,82 @@ When the request resource returned in the above example is queried, the supplied
         …
       ]
     }
- Temporal Metrics
+ 
+
+Temporal Metrics
 ----
 
-Some metrics have values that are available across a range in time.  To query a metric for a range of values, the following partial response syntax is used.  To get temporal data for a single property:?fields=category/property[start-time,end-time,step]	To get temporal data for all properties in a category:?fields=category[start-time,end-time,step]start-time: Required field.  The start time for the query in Unix epoch time format.end-time: Optional field, defaults to now.  The end time for the query in Unix epoch time format.step: Optional field, defaults to the corresponding metrics system’s default value.  If provided, end-time must also be provided. The interval of time between returned data points specified in seconds. The larger the value provided, the fewer data points returned so this can be used to limit how much data is returned for the given time range.  This is only used as a suggestion so the result interval may differ from the one specified.The returned result is a list of data points over the specified time range.  Each data point is a value / timestamp pair.**Note**: It is important to understand that requesting large amounts of temporal data may result in severe performance degradation.  **Always** request the minimal amount of information necessary.  If large amounts of data are required, consider splitting the request up into multiple smaller requests.
-**Example – Temporal Query for a single property using only start-time**
-	GET	/api/v1/clusters/c1/hosts/host1?fields=metrics/jvm/gcCount[1360610225]
-	
-	200 OK	{    	“href” : …/api/v1/clusters/c1/hosts/host1?fields=metrics/jvm/gcCount[1360610225]”,    	...    	“metrics”: [        	{            	“jvm”: {          	    	"gcCount" : [                   		[10, 1360610165],                     	[12, 1360610180],                     	[13, 1360610195],                     	[14, 1360610210],                     	[15, 1360610225]                  	]             	}         	}    	]	}**Example – Temporal Query for a category using start-time, end-time and step**
-	GET	/api/v1/clusters/c1/hosts/host1?fields=metrics/jvm[1360610200,1360610500,100]
-	200 OK	{    	“href” : …/clusters/c1/hosts/host1?fields=metrics/jvm[1360610200,1360610500,100]”,    	...    	“metrics”: [        	{            	“jvm”: {          	    	"gcCount" : [                   		[10, 1360610200],                     	[12, 1360610300],                     	[13, 1360610400],                     	[14, 1360610500]                  	],                	"gcTimeMillis" : [                   		[1000, 1360610200],                     	[2000, 1360610300],                     	[5000, 1360610400],                     	[9500, 1360610500]                  	],                  	...             	}         	}    	]	}	
+Some metrics have values that are available across a range in time.  To query a metric for a range of values, the following partial response syntax is used.  
+
+To get temporal data for a single property:
+?fields=category/property[start-time,end-time,step]	
+
+To get temporal data for all properties in a category:
+?fields=category[start-time,end-time,step]
+
+start-time: Required field.  The start time for the query in Unix epoch time format.
+end-time: Optional field, defaults to now.  The end time for the query in Unix epoch time format.
+step: Optional field, defaults to the corresponding metrics system’s default value.  If provided, end-time must also be provided. The interval of time between returned data points specified in seconds. The larger the value provided, the fewer data points returned so this can be used to limit how much data is returned for the given time range.  This is only used as a suggestion so the result interval may differ from the one specified.
+
+The returned result is a list of data points over the specified time range.  Each data point is a value / timestamp pair.
+
+**Note**: It is important to understand that requesting large amounts of temporal data may result in severe performance degradation.  **Always** request the minimal amount of information necessary.  If large amounts of data are required, consider splitting the request up into multiple smaller requests.
+
+**Example – Temporal Query for a single property using only start-time**
+
+	GET	/api/v1/clusters/c1/hosts/host1?fields=metrics/jvm/gcCount[1360610225]
+
+	
+	200 OK
+	{
+    	“href” : …/api/v1/clusters/c1/hosts/host1?fields=metrics/jvm/gcCount[1360610225]”,
+    	...
+    	“metrics”: [
+        	{
+            	“jvm”: {
+          	    	"gcCount" : [
+                   		[10, 1360610165],
+                     	[12, 1360610180],
+                     	[13, 1360610195],
+                     	[14, 1360610210],
+                     	[15, 1360610225]
+                  	]
+             	}
+         	}
+    	]
+	}
+
+**Example – Temporal Query for a category using start-time, end-time and step**
+
+	GET	/api/v1/clusters/c1/hosts/host1?fields=metrics/jvm[1360610200,1360610500,100]
+
+	200 OK
+	{
+    	“href” : …/clusters/c1/hosts/host1?fields=metrics/jvm[1360610200,1360610500,100]”,
+    	...
+    	“metrics”: [
+        	{
+            	“jvm”: {
+          	    	"gcCount" : [
+                   		[10, 1360610200],
+                     	[12, 1360610300],
+                     	[13, 1360610400],
+                     	[14, 1360610500]
+                  	],
+                	"gcTimeMillis" : [
+                   		[1000, 1360610200],
+                     	[2000, 1360610300],
+                     	[5000, 1360610400],
+                     	[9500, 1360610500]
+                  	],
+                  	...
+             	}
+         	}
+    	]
+	}
+
+	
+
 
 HTTP Return Codes
 ----
@@ -695,7 +1059,19 @@ Errors
 
 **Example errors responses**
 
-    404 Not Found	{       	"status" : 404,       	"message" : "The requested resource doesn't exist: Cluster not found, clusterName=someInvalidCluster" 	} 
-&nbsp;	400 Bad Request	{       	"status" : 400,       	"message" : "The properties [foo] specified in the request or predicate are not supported for the 
-                	 resource type Cluster."	}
+    404 Not Found
+	{   
+    	"status" : 404,   
+    	"message" : "The requested resource doesn't exist: Cluster not found, clusterName=someInvalidCluster" 
+	} 
+
+&nbsp;
+
+	400 Bad Request
+	{   
+    	"status" : 400,   
+    	"message" : "The properties [foo] specified in the request or predicate are not supported for the 
+                	 resource type Cluster."
+	}
+
 

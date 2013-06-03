@@ -144,20 +144,21 @@ Get information for the cluster "c1".
           		}
         	} 
     	],
-    	"hosts" : [
-      		{
-      			"href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/host1",
-      			"Hosts" : {
-        			"cluster_name" : "c1",
-        			"host_name" : "some.cluster.host"
-        		}
-      		},
-      		{
-      			"href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/host2",
-      		"Hosts" : {
-        		"cluster_name" : "c1",
-        		"host_name" : "another.cluster.host"
-        	}
-        ]
+      "hosts" : [
+        {
+          "href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/some.host",
+          "Hosts" : {
+              "cluster_name" : "c1",
+              "host_name" : "some.host"
+          }
+        },
+        {
+          "href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/another.host",
+          "Hosts" : {
+              "cluster_name" : "c1",
+              "host_name" : "another.host"
+          }
+        }
+      ]
     }
 
