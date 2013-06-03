@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var service_components = require('data/service_components');
 
 App.MainServiceItemController = Em.Controller.extend({
   name: 'mainServiceItemController',
@@ -88,6 +89,7 @@ App.MainServiceItemController = Em.Controller.extend({
     }
     var self = this;
     App.showConfirmationPopup(function() {
+      self.set('content.isPending', true);
       self.startStopPopupPrimary(serviceHealth);
     });
   },
@@ -214,5 +216,33 @@ App.MainServiceItemController = Em.Controller.extend({
     if (methodName) {
       this[methodName](context);
     }
-  }
+    },
+
+
+    setStartStopState: function () {
+        var serviceName = this.get('content.serviceName');
+        var backgroundOperations = App.router.get('backgroundOperationsController.services');
+        if (backgroundOperations.length > 0) {
+            this.set('content.isPending', false);
+            backgroundOperations.forEach(function (services) {
+                services.hosts.forEach(function (hosts) {
+                    hosts.logTasks.forEach(function (logTasks) {
+                        var service = service_components.findProperty('component_name', logTasks.Tasks.role);
+                        if (service) {
+                            if (serviceName == service.service_name) {
+                                if (logTasks.Tasks.status == 'PENDING' || logTasks.Tasks.status == 'IN_PROGRESS') {
+                                    this.set('content.isPending', true);
+                                    return true;
+                                }
+                            }
+                        }
+                    }, this)
+                }, this)
+            }, this)
+        }
+        else {
+            this.set('content.isPending', true);
+        }
+    }.observes('App.router.backgroundOperationsController.serviceTimestamp')
+
 })

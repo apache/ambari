@@ -70,5 +70,9 @@ App.MainServiceItemView = Em.View.extend({
   }.property('maintenance'),
   hasConfigTab: function(){
     return this.get("controller.content.isConfigurable");
-  }.property('controller.content.isConfigurable')
+  }.property('controller.content.isConfigurable'),
+
+  didInsertElement: function () {
+    this.get('controller').setStartStopState();
+  }
 });
