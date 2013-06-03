@@ -20,5 +20,5 @@
 #
 class hdp-yarn::historyserver::service_check() inherits hdp-yarn::params
 {
-  class { 'hdp-yarn::smoketest': component_name => 'historyserver'}
+  hdp-yarn::smoketest{'hdp-yarn::smoketest:rm': component_name => 'historyserver'}
 }

@@ -127,6 +127,7 @@ rolesToClass = {
   'HUE_SERVICE_CHECK': 'hdp-hue::service_check',
   'RESOURCEMANAGER_SERVICE_CHECK': 'hdp-yarn::resourcemanager::service_check',
   'HISTORYSERVER_SERVICE_CHECK': 'hdp-yarn::historyserver::service_check',
+  'YARN_SERVICE_CHECK': 'hdp-yarn::yarn::service_check',
   'TEZ_CLIENT': 'hdp-tez::tez_client'
 }
 

@@ -23,11 +23,14 @@ import urllib2, urllib
 import json
 
 RESOURCEMANAGER = 'rm'
-HISTORYSERVER ='hs'
+NODEMANAGER = 'nm'
+HISTORYSERVER = 'hs'
 
 STARTED_STATE = 'STARTED'
+RUNNING_STATE = 'RUNNING'
 
-def validate(component, path, address):
+#Return reponse for given path and address
+def getResponse(path, address):
 
   try:
     url = 'http://' + address + path
@@ -36,21 +39,40 @@ def validate(component, path, address):
     request = urllib2.Request(url)
     handler = urllib2.urlopen(request)
     response = json.loads(handler.read())
-    is_valid = validateResponse(component, response)
-    if is_valid:
-      exit(0)
-    else:
+    if response == None:
+      print 'There is no response for url: ' + str(url)
       exit(1)
+    return response
   except Exception as e:
-    print 'Error checking status of component', e
+    print 'Error getting response for url:' + str(url), e
     exit(1)
 
+#Verify that REST api is available for given component
+def validateAvailability(component, path, address):
 
-def validateResponse(component, response):
+  try:
+    response = getResponse(path, address)
+    is_valid = validateAvailabilityResponse(component, response)
+    if not is_valid:
+      exit(1)
+  except Exception as e:
+    print 'Error checking availability status of component', e
+    exit(1)
+
+#Validate component-specific response
+def validateAvailabilityResponse(component, response):
   try:
     if component == RESOURCEMANAGER:
       rm_state = response['clusterInfo']['state']
       if rm_state == STARTED_STATE:
+        return True
+      else:
+        print 'Resourcemanager is not started'
+        return False
+
+    elif component == NODEMANAGER:
+      node_healthy = bool(response['nodeInfo']['nodeHealthy'])
+      if node_healthy:
         return True
       else:
         return False
@@ -63,7 +85,44 @@ def validateResponse(component, response):
     else:
       return False
   except Exception as e:
-    print 'Error validation of response', e
+    print 'Error validation of availability response for ' + str(component), e
+    return False
+
+#Verify that component has required resources to work
+def validateAbility(component, path, address):
+
+  try:
+    response = getResponse(path, address)
+    is_valid = validateAbilityResponse(component, response)
+    if not is_valid:
+      exit(1)
+  except Exception as e:
+    print 'Error checking ability of component', e
+    exit(1)
+
+#Validate component-specific response that it has required resources to work
+def validateAbilityResponse(component, response):
+  try:
+    if component == RESOURCEMANAGER:
+      nodes = []
+      if response.has_key('nodes') and not response['nodes'] == None and response['nodes'].has_key('node'):
+        nodes = response['nodes']['node']
+      connected_nodes_count = len(nodes)
+      if connected_nodes_count == 0:
+        print 'There is no connected nodemanagers to resourcemanager'
+        return False
+      active_nodes = filter(lambda x: x['state'] == RUNNING_STATE, nodes)
+      active_nodes_count = len(active_nodes)
+
+      if connected_nodes_count == 0:
+        print 'There is no connected active nodemanagers to resourcemanager'
+        return False
+      else:
+        return True
+    else:
+      return False
+  except Exception as e:
+    print 'Error validation of ability response', e
     return False
 
 #
@@ -73,21 +132,26 @@ def main():
   parser = optparse.OptionParser(usage="usage: %prog [options] component ")
   parser.add_option("-p", "--port", dest="address", help="Host:Port for REST API of a desired component")
 
-
   (options, args) = parser.parse_args()
 
   component = args[0]
-  
+
   address = options.address
-  
+
   if component == RESOURCEMANAGER:
     path = '/ws/v1/cluster/info'
+  elif component == NODEMANAGER:
+    path = '/ws/v1/node/info'
   elif component == HISTORYSERVER:
     path = '/ws/v1/history/info'
   else:
     parser.error("Invalid component")
 
-  validate(component, path, address)
+  validateAvailability(component, path, address)
+
+  if component == RESOURCEMANAGER:
+    path = '/ws/v1/cluster/nodes'
+    validateAbility(component, path, address)
 
 if __name__ == "__main__":
   main()

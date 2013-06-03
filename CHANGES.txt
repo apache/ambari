@@ -17,6 +17,8 @@ Branch 1.4.0:
 
  IMPROVEMENTS
 
+ AMBARI-2250. Hadoop 2: Create a service check for YARN. (Oleksandr Diachenko via ncole)
+
  AMBARI-2244. Hadoop 2: Added YARN metrics. (ncole)
 
  AMBARI-2237. Hadoop 2: Add user configs for MR2/YARN. (yusaku)

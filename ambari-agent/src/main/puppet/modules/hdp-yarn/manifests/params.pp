@@ -23,6 +23,7 @@ class hdp-yarn::params(
 {
 
   $conf_dir = $hdp::params::yarn_conf_dir 
+  $stack_version = $hdp::params::stack_version
     
   ## yarn-env 
   $hadoop_libexec_dir = hdp_default("yarn/yarn-env/hadoop_libexec_dir","/usr/lib/hadoop/libexec")
@@ -36,10 +37,19 @@ class hdp-yarn::params(
   $yarn_pid_dir_prefix = hdp_default("hadoop/yarn-env/yarn_pid_dir_prefix","/var/run/hadoop-yarn")
   
   ## yarn-site
-  $rm_webui_address = hdp_default("yarn-site/yarn.resourcemanager.webapp.address", "localhost:8088")
-  $nm_webui_address = hdp_default("yarn-site/yarn.nodemanager.webapp.address", "localhost:8042")
-  $hs_webui_address = hdp_default("mapred-site/mapreduce.jobhistory.webapp.address", "localhost:19888")
+  $rm_webui_address = hdp_default("yarn-site/yarn.resourcemanager.webapp.address", "0.0.0.0:8088")
+  $nm_webui_address = hdp_default("yarn-site/yarn.nodemanager.webapp.address", "0.0.0.0:8042")
+  $hs_webui_address = hdp_default("mapred-site/mapreduce.jobhistory.webapp.address", "0.0.0.0:19888")
   
   $nm_local_dirs = hdp_default("yarn-site/yarn.nodemanager.local-dirs", "$hadoop_tmp_dir/nm-local-dir")
   $nm_log_dirs = hdp_default("yarn-site/yarn.nodemanager.log-dirs", "/var/log/hadoop-yarn/yarn")
+
+  ##smoke test configs
+  $distrAppJarNameToStack = {'2.0.1' => "hadoop-yarn-applications-distributedshell-2.0.3.22-alpha.jar"}
+
+  $distrAppJarName = $distrAppJarNameToStack[$stack_version]
+  
+  if hdp_is_empty($distrAppJarName) {
+    hdp_fail("No yarn-applications-distributedshell jar for stack: $stack_version")
+  }
 }
