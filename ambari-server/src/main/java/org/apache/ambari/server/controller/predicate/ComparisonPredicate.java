@@ -105,4 +105,11 @@ public abstract class ComparisonPredicate<T> extends PropertyPredicate implement
   }
 
   public abstract String getOperator();
+
+  // ----- Object overrides --------------------------------------------------
+
+  @Override
+  public String toString() {
+    return getPropertyId() + getOperator() + getValue();
+  }
 }

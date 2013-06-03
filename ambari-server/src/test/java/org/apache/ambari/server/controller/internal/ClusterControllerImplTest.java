@@ -85,13 +85,16 @@ public class ClusterControllerImplTest {
   private static final Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
 
   static {
-    keyPropertyIds.put(Resource.Type.Cluster, PropertyHelper.getPropertyId("c1", "p1"));
-    keyPropertyIds.put(Resource.Type.Host, PropertyHelper.getPropertyId("c1", "p2"));
+    keyPropertyIds.put(Resource.Type.Cluster, PropertyHelper.getPropertyId("Hosts", "cluster_name"));
+    keyPropertyIds.put(Resource.Type.Host, PropertyHelper.getPropertyId("Hosts", "host_name"));
   }
 
   private static final Set<String> resourceProviderProperties = new HashSet<String>();
 
   static {
+    resourceProviderProperties.add(PropertyHelper.getPropertyId("Hosts", "cluster_name"));
+    resourceProviderProperties.add(PropertyHelper.getPropertyId("Hosts", "host_name"));
+    resourceProviderProperties.add(PropertyHelper.getPropertyId("c1", "p1"));
     resourceProviderProperties.add(PropertyHelper.getPropertyId("c1", "p1"));
     resourceProviderProperties.add(PropertyHelper.getPropertyId("c1", "p2"));
     resourceProviderProperties.add(PropertyHelper.getPropertyId("c1", "p3"));
@@ -431,15 +434,12 @@ public class ClusterControllerImplTest {
 //    }
 //  }
 
-  private static class TestProviderModule implements ProviderModule {
+  public static class TestProviderModule implements ProviderModule {
     private Map<Resource.Type, ResourceProvider> providers = new HashMap<Resource.Type, ResourceProvider>();
 
-    private TestProviderModule() {
-      providers.put(Resource.Type.Cluster, new TestResourceProvider());
-      providers.put(Resource.Type.Service, new TestResourceProvider());
-      providers.put(Resource.Type.Component, new TestResourceProvider());
+    public TestProviderModule() {
+      providers.put(Resource.Type.Cluster, new TestClusterResourceProvider());
       providers.put(Resource.Type.Host, new TestResourceProvider());
-      providers.put(Resource.Type.HostComponent, new TestResourceProvider());
     }
 
     @Override
@@ -450,6 +450,42 @@ public class ClusterControllerImplTest {
     @Override
     public List<PropertyProvider> getPropertyProviders(Resource.Type type) {
       return propertyProviders;
+    }
+  }
+
+  private static class TestClusterResourceProvider implements ResourceProvider {
+    @Override
+    public RequestStatus createResources(Request request) throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
+      throw new UnsupportedOperationException(); // not needed for testing
+    }
+
+    @Override
+    public Set<Resource> getResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      ResourceImpl resource = new ResourceImpl(Resource.Type.Cluster);
+
+      resource.setProperty(PropertyHelper.getPropertyId("Clusters", "cluster_name"), "cluster");
+
+      return Collections.<Resource>singleton(resource);
+    }
+
+    @Override
+    public RequestStatus updateResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      throw new UnsupportedOperationException(); // not needed for testing
+    }
+
+    @Override
+    public RequestStatus deleteResources(Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      throw new UnsupportedOperationException(); // not needed for testing
+    }
+
+    @Override
+    public Map<Resource.Type, String> getKeyPropertyIds() {
+      return Collections.singletonMap(Resource.Type.Cluster, PropertyHelper.getPropertyId("Clusters", "cluster_name"));
+    }
+
+    @Override
+    public Set<String> checkPropertyIds(Set<String> propertyIds) {
+      return Collections.emptySet();
     }
   }
 
@@ -465,6 +501,9 @@ public class ClusterControllerImplTest {
 
       for (int cnt = 0; cnt < 4; ++ cnt) {
         ResourceImpl resource = new ResourceImpl(Resource.Type.Host);
+
+        resource.setProperty(PropertyHelper.getPropertyId("Hosts", "cluster_name"), "cluster");
+        resource.setProperty(PropertyHelper.getPropertyId("Hosts", "host_name"), "host:" + cnt);
 
         resource.setProperty(PropertyHelper.getPropertyId("c1", "p1"), cnt);
         resource.setProperty(PropertyHelper.getPropertyId("c1", "p2"), cnt % 2);
@@ -532,7 +571,6 @@ public class ClusterControllerImplTest {
       Update,
       Delete
     }
-
   }
 
 }
