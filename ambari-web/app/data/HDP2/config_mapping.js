@@ -306,28 +306,28 @@ var configs = [
     "name": "yarn.resourcemanager.resource-tracker.address",
     "templateName": ["rm_host"],
     "foreignKey": null,
-    "value": "hdfs://<templateName[0]>:8025",
+    "value": "<templateName[0]>:8025",
     "filename": "yarn-site.xml"
   },
   {
     "name": "yarn.resourcemanager.scheduler.address",
     "templateName": ["rm_host"],
     "foreignKey": null,
-    "value": "hdfs://<templateName[0]>:8030",
+    "value": "<templateName[0]>:8030",
     "filename": "yarn-site.xml"
   },
   {
     "name": "yarn.resourcemanager.address",
     "templateName": ["rm_host"],
     "foreignKey": null,
-    "value": "hdfs://<templateName[0]>:8050",
+    "value": "<templateName[0]>:8050",
     "filename": "yarn-site.xml"
   },
   {
     "name": "yarn.resourcemanager.admin.address",
     "templateName": ["rm_host"],
     "foreignKey": null,
-    "value": "hdfs://<templateName[0]>:8041",
+    "value": "<templateName[0]>:8141",
     "filename": "yarn-site.xml"
   },
   {
@@ -342,14 +342,14 @@ var configs = [
     "name": "mapreduce.jobhistory.webapp.address",
     "templateName": ["hs_host"],
     "foreignKey": null,
-    "value": "hdfs://<templateName[0]>:19888",
+    "value": "<templateName[0]>:19888",
     "filename": "mapred-site.xml"
   },
   {
     "name": "mapreduce.jobhistory.address",
     "templateName": ["hs_host"],
     "foreignKey": null,
-    "value": "hdfs://<templateName[0]>:10020",
+    "value": "<templateName[0]>:10020",
     "filename": "mapred-site.xml"
   },
   {
