@@ -198,6 +198,20 @@ App.servicesMapper = App.QuickDataMapper.create({
         this.calculateState(hcJson);
       }, this);
 
+      var oldHostComponents = App.HostComponent.find();
+      var item;
+      for (var i = 0; i < oldHostComponents.content.length; i++) {
+        item = oldHostComponents.objectAt(i);
+        if (item && !result.findProperty('id', item.get('id'))) {
+          item.deleteRecord();
+        }
+      }
+      result.forEach(function (item) {
+        if (App.HostComponent.find(item.id).get('componentName') &&
+            !App.HostComponent.find().filterProperty('componentName', item.component_name).someProperty('host.hostName', item.host_id)) {
+          item.id = (new Date).getTime();
+        }
+      });
       App.store.loadMany(this.get('model3'), result);
       for(var hostComponentId in hostComponentToActualConfigsMap){
         var hostComponentObj = App.HostComponent.find(hostComponentId);
