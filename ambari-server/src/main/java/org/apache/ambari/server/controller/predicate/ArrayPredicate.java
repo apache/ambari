@@ -87,28 +87,4 @@ public abstract class ArrayPredicate implements BasePredicate {
   }
 
   public abstract String getOperator();
-
-
-  // ----- Object overrides --------------------------------------------------
-
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-
-    for (Predicate predicate : predicates) {
-
-      boolean arrayPredicate = predicate instanceof ArrayPredicate;
-
-      if (sb.length() > 0) {
-        sb.append(" ").append(getOperator()).append(" ");
-      }
-
-      if (arrayPredicate) {
-        sb.append("(").append(predicate).append(")");
-      } else {
-        sb.append(predicate);
-      }
-    }
-    return sb.toString();
-  }
 }
