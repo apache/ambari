@@ -31,12 +31,19 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
   @Override
   public ResourceInstance createResource(Resource.Type type, Map<Resource.Type, String> mapIds) {
 
-    /**
-     * The resource definition for the specified type.
-     */
-    ResourceDefinition resourceDefinition;
+    return new ResourceInstanceImpl(mapIds, createResourceDefinition(type, mapIds));
+  }
 
-    //todo: consider ResourceDependencyManager : Map<Resource.Type, ResourceDefinition>
+  /**
+   * Create a resource definition for the specified type.
+   *
+   * @param type    the resource type
+   * @param mapIds  the ids
+   *
+   * @return the resource definition
+   */
+  protected static ResourceDefinition createResourceDefinition(Resource.Type type, Map<Resource.Type, String> mapIds) {
+    ResourceDefinition resourceDefinition;//todo: consider ResourceDependencyManager : Map<Resource.Type, ResourceDefinition>
     switch (type) {
       case Cluster:
         resourceDefinition = new ClusterResourceDefinition();
@@ -52,7 +59,7 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         break;
 
       case Component:
-        resourceDefinition = new  ComponentResourceDefinition();
+        resourceDefinition = new ComponentResourceDefinition();
         break;
 
       case HostComponent:
@@ -82,27 +89,27 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
       case Stack:
         resourceDefinition = new StackResourceDefinition();
         break;
-        
+
       case StackVersion:
         resourceDefinition = new StackVersionResourceDefinition();
         break;
-        
+
       case StackService:
         resourceDefinition = new StackServiceResourceDefinition();
         break;
-        
+
       case StackServiceComponent:
         resourceDefinition = new StackServiceComponentResourceDefinition();
         break;
-        
+
       case StackConfiguration:
         resourceDefinition = new StackConfigurationResourceDefinition();
         break;
-        
+
       case OperatingSystem:
         resourceDefinition = new OperatingSystemResourceDefinition();
         break;
-        
+
       case Repository:
         resourceDefinition = new RepositoryResourceDefinition();
         break;
@@ -134,7 +141,6 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }
-
-    return new ResourceInstanceImpl(mapIds, resourceDefinition, this);
+    return resourceDefinition;
   }
 }

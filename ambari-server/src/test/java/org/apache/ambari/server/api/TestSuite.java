@@ -26,7 +26,6 @@ import org.apache.ambari.server.api.handlers.*;
 import org.apache.ambari.server.api.predicate.QueryLexerTest;
 import org.apache.ambari.server.api.predicate.QueryParserTest;
 import org.apache.ambari.server.api.predicate.operators.*;
-import org.apache.ambari.server.api.query.QueryImplTest;
 import org.apache.ambari.server.api.resources.ResourceInstanceImplTest;
 import org.apache.ambari.server.api.services.*;
 import org.apache.ambari.server.api.services.parsers.BodyParseExceptionTest;
@@ -37,7 +36,7 @@ import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({ClusterServiceTest.class, HostServiceTest.class, ServiceServiceTest.class,
-    ComponentServiceTest.class, HostComponentServiceTest.class, ReadHandlerTest.class, QueryImplTest.class,
+    ComponentServiceTest.class, HostComponentServiceTest.class, ReadHandlerTest.class,
     JsonRequestBodyParserTest.class, CreateHandlerTest.class, UpdateHandlerTest.class, DeleteHandlerTest.class,
     PersistenceManagerImplTest.class, GetRequestTest.class, PutRequestTest.class, PostRequestTest.class,
     DeleteRequestTest.class, QueryPostRequestTest.class, JsonSerializerTest.class, QueryCreateHandlerTest.class,
