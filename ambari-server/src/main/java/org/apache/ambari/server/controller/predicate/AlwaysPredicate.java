@@ -43,12 +43,4 @@ public class AlwaysPredicate implements BasePredicate {
   public void accept(PredicateVisitor visitor) {
     visitor.acceptAlwaysPredicate(this);
   }
-
-
-  // ----- Object overrides --------------------------------------------------
-
-  @Override
-  public String toString() {
-    return "TRUE";
-  }
 }
