@@ -41,6 +41,7 @@ import com.google.inject.persist.Transactional;
 
 
 public class ServiceImpl implements Service {
+  private final ReadWriteLock clusterGlobalLock;
   private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
   private ClusterServiceEntity serviceEntity;
@@ -83,6 +84,7 @@ public class ServiceImpl implements Service {
   public ServiceImpl(@Assisted Cluster cluster, @Assisted String serviceName,
       Injector injector) throws AmbariException {
     injector.injectMembers(this);
+    clusterGlobalLock = cluster.getClusterGlobalLock();
     serviceEntity = new ClusterServiceEntity();
     serviceEntity.setServiceName(serviceName);
     serviceDesiredStateEntity = new ServiceDesiredStateEntity();
@@ -109,6 +111,7 @@ public class ServiceImpl implements Service {
   public ServiceImpl(@Assisted Cluster cluster, @Assisted ClusterServiceEntity
       serviceEntity, Injector injector) throws AmbariException {
     injector.injectMembers(this);
+    clusterGlobalLock = cluster.getClusterGlobalLock();
     this.serviceEntity = serviceEntity;
     this.cluster = cluster;
 
@@ -143,254 +146,335 @@ public class ServiceImpl implements Service {
   }
 
   @Override
+  public ReadWriteLock getClusterGlobalLock() {
+    return clusterGlobalLock;
+  }
+
+  @Override
   public String getName() {
-    return serviceEntity.getServiceName();
+    clusterGlobalLock.readLock().lock();
+    try {
+      readWriteLock.readLock().lock();
+      try {
+        return serviceEntity.getServiceName();
+      } finally {
+        readWriteLock.readLock().unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
   }
 
   @Override
   public long getClusterId() {
-    return cluster.getClusterId();
+    clusterGlobalLock.readLock().lock();
+    try {
+      readWriteLock.readLock().lock();
+      try {
+        return cluster.getClusterId();
+      } finally {
+        readWriteLock.readLock().unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
   }
 
   @Override
   public Map<String, ServiceComponent> getServiceComponents() {
-    readWriteLock.readLock().lock();
+    clusterGlobalLock.readLock().lock();
     try {
-      return Collections.unmodifiableMap(components);
+      readWriteLock.readLock().lock();
+      try {
+        return Collections.unmodifiableMap(components);
+      } finally {
+        readWriteLock.readLock().unlock();
+      }
     } finally {
-      readWriteLock.readLock().unlock();
+      clusterGlobalLock.readLock().unlock();
     }
-
   }
 
   @Override
   public void addServiceComponents(
       Map<String, ServiceComponent> components) throws AmbariException {
-    readWriteLock.writeLock().lock();
+    clusterGlobalLock.writeLock().lock();
     try {
-      for (ServiceComponent sc : components.values()) {
-        addServiceComponent(sc);
+      readWriteLock.writeLock().lock();
+      try {
+        for (ServiceComponent sc : components.values()) {
+          addServiceComponent(sc);
+        }
+      } finally {
+        readWriteLock.writeLock().unlock();
       }
     } finally {
-      readWriteLock.writeLock().unlock();
+      clusterGlobalLock.writeLock().unlock();
     }
-
   }
 
   @Override
   public void addServiceComponent(ServiceComponent component)
       throws AmbariException {
-    readWriteLock.writeLock().lock();
+    clusterGlobalLock.writeLock().lock();
     try {
-      // TODO validation
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Adding a ServiceComponent to Service"
-            + ", clusterName=" + cluster.getClusterName()
-            + ", clusterId=" + cluster.getClusterId()
-            + ", serviceName=" + getName()
-            + ", serviceComponentName=" + component.getName());
+      readWriteLock.writeLock().lock();
+      try {
+        // TODO validation
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Adding a ServiceComponent to Service"
+              + ", clusterName=" + cluster.getClusterName()
+              + ", clusterId=" + cluster.getClusterId()
+              + ", serviceName=" + getName()
+              + ", serviceComponentName=" + component.getName());
+        }
+        if (components.containsKey(component.getName())) {
+          throw new AmbariException("Cannot add duplicate ServiceComponent"
+              + ", clusterName=" + cluster.getClusterName()
+              + ", clusterId=" + cluster.getClusterId()
+              + ", serviceName=" + getName()
+              + ", serviceComponentName=" + component.getName());
+        }
+        this.components.put(component.getName(), component);
+      } finally {
+        readWriteLock.writeLock().unlock();
       }
-      if (components.containsKey(component.getName())) {
-        throw new AmbariException("Cannot add duplicate ServiceComponent"
-            + ", clusterName=" + cluster.getClusterName()
-            + ", clusterId=" + cluster.getClusterId()
-            + ", serviceName=" + getName()
-            + ", serviceComponentName=" + component.getName());
-      }
-      this.components.put(component.getName(), component);
     } finally {
-      readWriteLock.writeLock().unlock();
+      clusterGlobalLock.writeLock().unlock();
     }
-
   }
 
   @Override
   public ServiceComponent addServiceComponent(
       String serviceComponentName) throws AmbariException {
-    readWriteLock.writeLock().lock();
+    clusterGlobalLock.writeLock().lock();
     try {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Adding a ServiceComponent to Service"
-            + ", clusterName=" + cluster.getClusterName()
-            + ", clusterId=" + cluster.getClusterId()
-            + ", serviceName=" + getName()
-            + ", serviceComponentName=" + serviceComponentName);
+      readWriteLock.writeLock().lock();
+      try {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Adding a ServiceComponent to Service"
+              + ", clusterName=" + cluster.getClusterName()
+              + ", clusterId=" + cluster.getClusterId()
+              + ", serviceName=" + getName()
+              + ", serviceComponentName=" + serviceComponentName);
+        }
+        if (components.containsKey(serviceComponentName)) {
+          throw new AmbariException("Cannot add duplicate ServiceComponent"
+              + ", clusterName=" + cluster.getClusterName()
+              + ", clusterId=" + cluster.getClusterId()
+              + ", serviceName=" + getName()
+              + ", serviceComponentName=" + serviceComponentName);
+        }
+        ServiceComponent component = serviceComponentFactory.createNew(this, serviceComponentName);
+        this.components.put(component.getName(), component);
+        return component;
+      } finally {
+        readWriteLock.writeLock().unlock();
       }
-      if (components.containsKey(serviceComponentName)) {
-        throw new AmbariException("Cannot add duplicate ServiceComponent"
-            + ", clusterName=" + cluster.getClusterName()
-            + ", clusterId=" + cluster.getClusterId()
-            + ", serviceName=" + getName()
-            + ", serviceComponentName=" + serviceComponentName);
-      }
-      ServiceComponent component = serviceComponentFactory.createNew(this, serviceComponentName);
-      this.components.put(component.getName(), component);
-      return component;
     } finally {
-      readWriteLock.writeLock().unlock();
+      clusterGlobalLock.writeLock().unlock();
     }
+
 
   }
 
   @Override
   public ServiceComponent getServiceComponent(String componentName)
       throws AmbariException {
-    readWriteLock.readLock().lock();
+    clusterGlobalLock.readLock().lock();
     try {
-      if (!components.containsKey(componentName)) {
-        throw new ServiceComponentNotFoundException(cluster.getClusterName(),
-            getName(),
-            componentName);
+      readWriteLock.readLock().lock();
+      try {
+        if (!components.containsKey(componentName)) {
+          throw new ServiceComponentNotFoundException(cluster.getClusterName(),
+              getName(),
+              componentName);
+        }
+        return this.components.get(componentName);
+      } finally {
+        readWriteLock.readLock().unlock();
       }
-      return this.components.get(componentName);
     } finally {
-      readWriteLock.readLock().unlock();
+      clusterGlobalLock.readLock().unlock();
     }
+
 
   }
 
   @Override
   public State getDesiredState() {
-    readWriteLock.readLock().lock();
+    clusterGlobalLock.readLock().lock();
     try {
-      return this.serviceDesiredStateEntity.getDesiredState();
+      readWriteLock.readLock().lock();
+      try {
+        return this.serviceDesiredStateEntity.getDesiredState();
+      } finally {
+        readWriteLock.readLock().unlock();
+      }
     } finally {
-      readWriteLock.readLock().unlock();
+      clusterGlobalLock.readLock().unlock();
     }
+
 
   }
 
   @Override
   public void setDesiredState(State state) {
-    readWriteLock.writeLock().lock();
+    clusterGlobalLock.readLock().lock();
     try {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Setting DesiredState of Service"
-            + ", clusterName=" + cluster.getClusterName()
-            + ", clusterId=" + cluster.getClusterId()
-            + ", serviceName=" + getName()
-            + ", oldDesiredState=" + this.getDesiredState()
-            + ", newDesiredState=" + state);
+      readWriteLock.writeLock().lock();
+      try {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Setting DesiredState of Service"
+              + ", clusterName=" + cluster.getClusterName()
+              + ", clusterId=" + cluster.getClusterId()
+              + ", serviceName=" + getName()
+              + ", oldDesiredState=" + this.getDesiredState()
+              + ", newDesiredState=" + state);
+        }
+        this.serviceDesiredStateEntity.setDesiredState(state);
+        saveIfPersisted();
+      } finally {
+        readWriteLock.writeLock().unlock();
       }
-      this.serviceDesiredStateEntity.setDesiredState(state);
-      saveIfPersisted();
     } finally {
-      readWriteLock.writeLock().unlock();
+      clusterGlobalLock.readLock().unlock();
     }
-
   }
 
   @Override
   public Map<String, Config> getDesiredConfigs() {
-    readWriteLock.readLock().lock();
+    clusterGlobalLock.readLock().lock();
     try {
-      Map<String, Config> map = new HashMap<String, Config>();
-      for (Entry<String, String> entry : desiredConfigs.entrySet()) {
-        Config config = cluster.getConfig(entry.getKey(), entry.getValue());
-        if (null != config) {
-          map.put(entry.getKey(), config);
-        } else {
-          // FIXME this is an error - should throw a proper exception
-          throw new RuntimeException("Found an invalid config"
-              + ", clusterName=" + getCluster().getClusterName()
-              + ", serviceName=" + getName()
-              + ", configType=" + entry.getKey()
-              + ", configVersionTag=" + entry.getValue());
+      readWriteLock.readLock().lock();
+      try {
+        Map<String, Config> map = new HashMap<String, Config>();
+        for (Entry<String, String> entry : desiredConfigs.entrySet()) {
+          Config config = cluster.getConfig(entry.getKey(), entry.getValue());
+          if (null != config) {
+            map.put(entry.getKey(), config);
+          } else {
+            // FIXME this is an error - should throw a proper exception
+            throw new RuntimeException("Found an invalid config"
+                + ", clusterName=" + getCluster().getClusterName()
+                + ", serviceName=" + getName()
+                + ", configType=" + entry.getKey()
+                + ", configVersionTag=" + entry.getValue());
+          }
         }
+        return Collections.unmodifiableMap(map);
+      } finally {
+        readWriteLock.readLock().unlock();
       }
-      return Collections.unmodifiableMap(map);
     } finally {
-      readWriteLock.readLock().unlock();
+      clusterGlobalLock.readLock().unlock();
     }
-
   }
 
   @Override
   public void updateDesiredConfigs(Map<String, Config> configs) {
-
-    readWriteLock.writeLock().lock();
+    clusterGlobalLock.readLock().lock();
     try {
-      for (Entry<String, Config> entry : configs.entrySet()) {
-        boolean contains = false;
+      readWriteLock.writeLock().lock();
+      try {
+        for (Entry<String, Config> entry : configs.entrySet()) {
+          boolean contains = false;
 
-        for (ServiceConfigMappingEntity serviceConfigMappingEntity : serviceEntity.getServiceConfigMappings()) {
-          if (entry.getKey().equals(serviceConfigMappingEntity.getConfigType())) {
-            contains = true;
-            serviceConfigMappingEntity.setTimestamp(new Date().getTime());
-            serviceConfigMappingEntity.setVersionTag(entry.getValue().getVersionTag());
+          for (ServiceConfigMappingEntity serviceConfigMappingEntity : serviceEntity.getServiceConfigMappings()) {
+            if (entry.getKey().equals(serviceConfigMappingEntity.getConfigType())) {
+              contains = true;
+              serviceConfigMappingEntity.setTimestamp(new Date().getTime());
+              serviceConfigMappingEntity.setVersionTag(entry.getValue().getVersionTag());
+            }
           }
+
+          if (!contains) {
+            ServiceConfigMappingEntity newEntity = new ServiceConfigMappingEntity();
+            newEntity.setClusterId(serviceEntity.getClusterId());
+            newEntity.setServiceName(serviceEntity.getServiceName());
+            newEntity.setConfigType(entry.getKey());
+            newEntity.setVersionTag(entry.getValue().getVersionTag());
+            newEntity.setTimestamp(new Date().getTime());
+            newEntity.setServiceEntity(serviceEntity);
+            serviceEntity.getServiceConfigMappings().add(newEntity);
+
+          }
+
+
+          this.desiredConfigs.put(entry.getKey(), entry.getValue().getVersionTag());
         }
 
-        if (!contains) {
-          ServiceConfigMappingEntity newEntity = new ServiceConfigMappingEntity();
-          newEntity.setClusterId(serviceEntity.getClusterId());
-          newEntity.setServiceName(serviceEntity.getServiceName());
-          newEntity.setConfigType(entry.getKey());
-          newEntity.setVersionTag(entry.getValue().getVersionTag());
-          newEntity.setTimestamp(new Date().getTime());
-          newEntity.setServiceEntity(serviceEntity);
-          serviceEntity.getServiceConfigMappings().add(newEntity);
-
-        }
-
-
-        this.desiredConfigs.put(entry.getKey(), entry.getValue().getVersionTag());
+        saveIfPersisted();
+      } finally {
+        readWriteLock.writeLock().unlock();
       }
-
-      saveIfPersisted();
     } finally {
-      readWriteLock.writeLock().unlock();
+      clusterGlobalLock.readLock().unlock();
     }
-
-
   }
 
   @Override
   public StackId getDesiredStackVersion() {
-    readWriteLock.readLock().lock();
+    clusterGlobalLock.readLock().lock();
     try {
-      return gson.fromJson(serviceDesiredStateEntity.getDesiredStackVersion(), StackId.class);
+      readWriteLock.readLock().lock();
+      try {
+        return gson.fromJson(serviceDesiredStateEntity.getDesiredStackVersion(), StackId.class);
+      } finally {
+        readWriteLock.readLock().unlock();
+      }
     } finally {
-      readWriteLock.readLock().unlock();
+      clusterGlobalLock.readLock().unlock();
     }
+
 
   }
 
   @Override
   public void setDesiredStackVersion(StackId stackVersion) {
-    readWriteLock.writeLock().lock();
+    clusterGlobalLock.readLock().lock();
     try {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Setting DesiredStackVersion of Service"
-            + ", clusterName=" + cluster.getClusterName()
-            + ", clusterId=" + cluster.getClusterId()
-            + ", serviceName=" + getName()
-            + ", oldDesiredStackVersion=" + getDesiredStackVersion()
-            + ", newDesiredStackVersion=" + stackVersion);
+      readWriteLock.writeLock().lock();
+      try {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Setting DesiredStackVersion of Service"
+              + ", clusterName=" + cluster.getClusterName()
+              + ", clusterId=" + cluster.getClusterId()
+              + ", serviceName=" + getName()
+              + ", oldDesiredStackVersion=" + getDesiredStackVersion()
+              + ", newDesiredStackVersion=" + stackVersion);
+        }
+        serviceDesiredStateEntity.setDesiredStackVersion(gson.toJson(stackVersion));
+        saveIfPersisted();
+      } finally {
+        readWriteLock.writeLock().unlock();
       }
-      serviceDesiredStateEntity.setDesiredStackVersion(gson.toJson(stackVersion));
-      saveIfPersisted();
     } finally {
-      readWriteLock.writeLock().unlock();
+      clusterGlobalLock.readLock().unlock();
     }
+
 
   }
 
   @Override
   public ServiceResponse convertToResponse() {
-    readWriteLock.readLock().lock();
+    clusterGlobalLock.readLock().lock();
     try {
-      ServiceResponse r = new ServiceResponse(cluster.getClusterId(),
-          cluster.getClusterName(),
-          getName(),
-          desiredConfigs,
-          getDesiredStackVersion().getStackId(),
-          getDesiredState().toString());
-      return r;
+      readWriteLock.readLock().lock();
+      try {
+        ServiceResponse r = new ServiceResponse(cluster.getClusterId(),
+            cluster.getClusterName(),
+            getName(),
+            desiredConfigs,
+            getDesiredStackVersion().getStackId(),
+            getDesiredState().toString());
+        return r;
+      } finally {
+        readWriteLock.readLock().unlock();
+      }
     } finally {
-      readWriteLock.readLock().unlock();
+      clusterGlobalLock.readLock().unlock();
     }
-
   }
 
   @Override
@@ -400,69 +484,83 @@ public class ServiceImpl implements Service {
 
   @Override
   public void debugDump(StringBuilder sb) {
-    readWriteLock.readLock().lock();
+    clusterGlobalLock.readLock().lock();
     try {
-      sb.append("Service={ serviceName=" + getName()
-          + ", clusterName=" + cluster.getClusterName()
-          + ", clusterId=" + cluster.getClusterId()
-          + ", desiredStackVersion=" + getDesiredStackVersion()
-          + ", desiredState=" + getDesiredState().toString()
-          + ", configs=[");
-      boolean first = true;
-      if (desiredConfigs != null) {
-        for (Entry<String, String> entry : desiredConfigs.entrySet()) {
+      readWriteLock.readLock().lock();
+      try {
+        sb.append("Service={ serviceName=" + getName()
+            + ", clusterName=" + cluster.getClusterName()
+            + ", clusterId=" + cluster.getClusterId()
+            + ", desiredStackVersion=" + getDesiredStackVersion()
+            + ", desiredState=" + getDesiredState().toString()
+            + ", configs=[");
+        boolean first = true;
+        if (desiredConfigs != null) {
+          for (Entry<String, String> entry : desiredConfigs.entrySet()) {
+            if (!first) {
+              sb.append(" , ");
+            }
+            first = false;
+            sb.append("{ Config type=" + entry.getKey()
+                + ", versionTag=" + entry.getValue() + "}");
+          }
+        }
+        sb.append("], components=[ ");
+
+        first = true;
+        for (ServiceComponent sc : components.values()) {
           if (!first) {
             sb.append(" , ");
           }
           first = false;
-          sb.append("{ Config type=" + entry.getKey()
-              + ", versionTag=" + entry.getValue() + "}");
+          sb.append("\n      ");
+          sc.debugDump(sb);
+          sb.append(" ");
         }
+        sb.append(" ] }");
+      } finally {
+        readWriteLock.readLock().unlock();
       }
-      sb.append("], components=[ ");
-
-      first = true;
-      for (ServiceComponent sc : components.values()) {
-        if (!first) {
-          sb.append(" , ");
-        }
-        first = false;
-        sb.append("\n      ");
-        sc.debugDump(sb);
-        sb.append(" ");
-      }
-      sb.append(" ] }");
     } finally {
-      readWriteLock.readLock().unlock();
+      clusterGlobalLock.readLock().unlock();
     }
-
   }
 
   @Override
   public boolean isPersisted() {
-    readWriteLock.readLock().lock();
+    clusterGlobalLock.readLock().lock();
     try {
-      return persisted;
+      readWriteLock.readLock().lock();
+      try {
+        return persisted;
+      } finally {
+        readWriteLock.readLock().unlock();
+      }
     } finally {
-      readWriteLock.readLock().unlock();
+      clusterGlobalLock.readLock().unlock();
     }
 
   }
 
   @Override
   public void persist() {
-    readWriteLock.writeLock().lock();
+    clusterGlobalLock.readLock().lock();
     try {
-      if (!persisted) {
-        persistEntities();
-        refresh();
-        cluster.refresh();
-        persisted = true;
-      } else {
-        saveIfPersisted();
+      readWriteLock.writeLock().lock();
+      try {
+        if (!persisted) {
+          persistEntities();
+          refresh();
+          cluster.refresh();
+          persisted = true;
+        } else {
+          saveIfPersisted();
+        }
+      } finally {
+        readWriteLock.writeLock().unlock();
       }
     } finally {
-      readWriteLock.writeLock().unlock();
+      clusterGlobalLock.readLock().unlock();
     }
 
   }
@@ -492,100 +590,122 @@ public class ServiceImpl implements Service {
   @Override
   @Transactional
   public void refresh() {
-    readWriteLock.writeLock().lock();
+    clusterGlobalLock.readLock().lock();
     try {
-      if (isPersisted()) {
-        ClusterServiceEntityPK pk = new ClusterServiceEntityPK();
-        pk.setClusterId(getClusterId());
-        pk.setServiceName(getName());
-        serviceEntity = clusterServiceDAO.findByPK(pk);
-        serviceDesiredStateEntity = serviceEntity.getServiceDesiredStateEntity();
-        clusterServiceDAO.refresh(serviceEntity);
-        serviceDesiredStateDAO.refresh(serviceDesiredStateEntity);
+      readWriteLock.writeLock().lock();
+      try {
+        if (isPersisted()) {
+          ClusterServiceEntityPK pk = new ClusterServiceEntityPK();
+          pk.setClusterId(getClusterId());
+          pk.setServiceName(getName());
+          serviceEntity = clusterServiceDAO.findByPK(pk);
+          serviceDesiredStateEntity = serviceEntity.getServiceDesiredStateEntity();
+          clusterServiceDAO.refresh(serviceEntity);
+          serviceDesiredStateDAO.refresh(serviceDesiredStateEntity);
+        }
+      } finally {
+        readWriteLock.writeLock().unlock();
       }
     } finally {
-      readWriteLock.writeLock().unlock();
+      clusterGlobalLock.readLock().unlock();
     }
+
 
   }
 
   @Override
   public boolean canBeRemoved() {
-    readWriteLock.readLock().lock();
+    clusterGlobalLock.readLock().lock();
     try {
-      if (!getDesiredState().isRemovableState()) {
-        return false;
-      }
-
-      for (ServiceComponent sc : components.values()) {
-        if (!sc.canBeRemoved()) {
-          LOG.warn("Found non removable component when trying to delete service"
-              + ", clusterName=" + cluster.getClusterName()
-              + ", serviceName=" + getName()
-              + ", componentName=" + sc.getName());
+      readWriteLock.readLock().lock();
+      try {
+        if (!getDesiredState().isRemovableState()) {
           return false;
         }
+
+        for (ServiceComponent sc : components.values()) {
+          if (!sc.canBeRemoved()) {
+            LOG.warn("Found non removable component when trying to delete service"
+                + ", clusterName=" + cluster.getClusterName()
+                + ", serviceName=" + getName()
+                + ", componentName=" + sc.getName());
+            return false;
+          }
+        }
+        return true;
+      } finally {
+        readWriteLock.readLock().unlock();
       }
-      return true;
     } finally {
-      readWriteLock.readLock().unlock();
+      clusterGlobalLock.readLock().unlock();
     }
+
 
   }
 
   @Override
   @Transactional
   public void deleteAllComponents() throws AmbariException {
-    readWriteLock.writeLock().lock();
+    clusterGlobalLock.writeLock().lock();
     try {
-      LOG.info("Deleting all components for service"
-          + ", clusterName=" + cluster.getClusterName()
-          + ", serviceName=" + getName());
-      // FIXME check dependencies from meta layer
-      for (ServiceComponent component : components.values()) {
-        if (!component.canBeRemoved()) {
-          throw new AmbariException("Found non removable component when trying to"
-              + " delete all components from service"
-              + ", clusterName=" + cluster.getClusterName()
-              + ", serviceName=" + getName()
-              + ", componentName=" + component.getName());
+      readWriteLock.writeLock().lock();
+      try {
+        LOG.info("Deleting all components for service"
+            + ", clusterName=" + cluster.getClusterName()
+            + ", serviceName=" + getName());
+        // FIXME check dependencies from meta layer
+        for (ServiceComponent component : components.values()) {
+          if (!component.canBeRemoved()) {
+            throw new AmbariException("Found non removable component when trying to"
+                + " delete all components from service"
+                + ", clusterName=" + cluster.getClusterName()
+                + ", serviceName=" + getName()
+                + ", componentName=" + component.getName());
+          }
         }
-      }
 
-      for (ServiceComponent serviceComponent : components.values()) {
-        serviceComponent.delete();
-      }
+        for (ServiceComponent serviceComponent : components.values()) {
+          serviceComponent.delete();
+        }
 
-      components.clear();
+        components.clear();
+      } finally {
+        readWriteLock.writeLock().unlock();
+      }
     } finally {
-      readWriteLock.writeLock().unlock();
+      clusterGlobalLock.writeLock().unlock();
     }
-
   }
 
   @Override
   public void deleteServiceComponent(String componentName)
       throws AmbariException {
-    readWriteLock.writeLock().lock();
+    clusterGlobalLock.writeLock().lock();
     try {
-      ServiceComponent component = getServiceComponent(componentName);
-      LOG.info("Deleting servicecomponent for cluster"
-          + ", clusterName=" + cluster.getClusterName()
-          + ", serviceName=" + getName()
-          + ", componentName=" + componentName);
-      // FIXME check dependencies from meta layer
-      if (!component.canBeRemoved()) {
-        throw new AmbariException("Could not delete component from cluster"
+      readWriteLock.writeLock().lock();
+      try {
+        ServiceComponent component = getServiceComponent(componentName);
+        LOG.info("Deleting servicecomponent for cluster"
             + ", clusterName=" + cluster.getClusterName()
             + ", serviceName=" + getName()
             + ", componentName=" + componentName);
-      }
+        // FIXME check dependencies from meta layer
+        if (!component.canBeRemoved()) {
+          throw new AmbariException("Could not delete component from cluster"
+              + ", clusterName=" + cluster.getClusterName()
+              + ", serviceName=" + getName()
+              + ", componentName=" + componentName);
+        }
 
-      component.delete();
-      components.remove(componentName);
+        component.delete();
+        components.remove(componentName);
+      } finally {
+        readWriteLock.writeLock().unlock();
+      }
     } finally {
-      readWriteLock.writeLock().unlock();
+      clusterGlobalLock.writeLock().unlock();
     }
+
 
   }
 
@@ -597,19 +717,25 @@ public class ServiceImpl implements Service {
   @Override
   @Transactional
   public void delete() throws AmbariException {
-    readWriteLock.writeLock().lock();
+    clusterGlobalLock.writeLock().lock();
     try {
-      deleteAllComponents();
+      readWriteLock.writeLock().lock();
+      try {
+        deleteAllComponents();
 
-      if (persisted) {
-        removeEntities();
-        persisted = false;
+        if (persisted) {
+          removeEntities();
+          persisted = false;
+        }
+
+        desiredConfigs.clear();
+      } finally {
+        readWriteLock.writeLock().unlock();
       }
-
-      desiredConfigs.clear();
     } finally {
-      readWriteLock.writeLock().unlock();
+      clusterGlobalLock.writeLock().unlock();
     }
+
 
   }
 
