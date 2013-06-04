@@ -154,7 +154,7 @@ App.Service = DS.Model.extend({
       case 'oozie':
         return 'Oozie';
       case 'hive':
-        return 'Hive/HCat';
+        return 'Hive';
       case 'hcatalog':
         return 'HCat';
       case 'zookeeper':

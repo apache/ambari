@@ -50,7 +50,7 @@ describe('App.HostPopup', function () {
       isRunning: false
     },
     {
-      displayName: "Start service Hive/HCat",
+      displayName: "Start service Hive",
       hosts: [
         {
           logTasks: [
@@ -65,7 +65,7 @@ describe('App.HostPopup', function () {
           ],
           name: "ip-10-12-123-90.ec2.internal",
           publicName: "ip-10-12-123-90.ec2.internal",
-          serviceName: "Start service Hive/HCat"
+          serviceName: "Start service Hive"
         },
         {
           logTasks: [
@@ -88,7 +88,7 @@ describe('App.HostPopup', function () {
           ],
           name: "ip-10-33-7-23.ec2.internal",
           publicName: "ip-10-33-7-23.ec2.internal",
-          serviceName: "Start service Hive/HCat"
+          serviceName: "Start service Hive"
         }
       ],
       isRunning: false

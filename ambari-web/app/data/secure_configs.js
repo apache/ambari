@@ -60,7 +60,7 @@ module.exports = [
 
   {
     serviceName: 'HIVE',
-    displayName: 'Hive/HCat',
+    displayName: 'Hive',
     filename: 'hive-site',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Hive Metastore', displayName: 'Hive Metastore'})
