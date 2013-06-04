@@ -76,7 +76,7 @@
               {{t installer.step2.sshUser.account}}
             </label>
           <div {{bindAttr class="sshUserError:error :control-group"}}>
-            {{view view.textFieldView valueBinding="content.installOptions.sshUser"}}
+            {{view view.textFieldView valueBinding="content.installOptions.sshUser" isEnabledBinding="content.installOptions.useSsh"}}
             {{#if sshUserError}}
                 <span class="help-inline">{{sshUserError}}</span>
             {{/if}}

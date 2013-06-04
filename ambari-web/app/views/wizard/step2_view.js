@@ -111,8 +111,8 @@ App.WizardStep2View = Em.View.extend({
 
   textFieldView: Ember.TextField.extend({
     disabled: function(){
-      return !this.get('controller.content.installOptions.useSsh');
-    }.property('controller.content.installOptions.useSsh')
+      return !this.get('isEnabled');
+    }.property('isEnabled')
   })
 });
 
