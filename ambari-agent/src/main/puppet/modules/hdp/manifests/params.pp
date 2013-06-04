@@ -302,8 +302,10 @@ class hdp::params()
 
     if (hdp_get_major_stack_version($stack_version) >= 2) {
       $hadoop_bin = "/usr/lib/hadoop/sbin"
+      $hadoop_deps = ['hadoop','hadoop-libhdfs','hadoop-lzo', 'hadoop-lzo-native']
     } else {
       $hadoop_bin = "/usr/lib/hadoop/bin"
+      $hadoop_deps = ['hadoop','hadoop-libhdfs','hadoop-native','hadoop-pipes','hadoop-sbin','hadoop-lzo', 'hadoop-lzo-native']
     }
     $yarn_bin = "/usr/lib/hadoop-yarn/sbin"
     $mapred_bin = "/usr/lib/hadoop-mapreduce/sbin"
@@ -353,7 +355,7 @@ class hdp::params()
      suse => 'htpasswd2'} 
 
     }
-    
+
     # StackId => Arch => Os
     $package_names = 
     {
@@ -388,17 +390,7 @@ class hdp::params()
             'ALL' => ['hadoop','hadoop-libhdfs.i386','hadoop-native.i386','hadoop-pipes.i386','hadoop-sbin.i386','hadoop-lzo', 'hadoop-lzo-native.i386']
           },
           64 => {
-            'ALL' => ['hadoop','hadoop-libhdfs','hadoop-native','hadoop-pipes','hadoop-sbin','hadoop-lzo', 'hadoop-lzo-native']
-          }
-        },
-        '2.0.1' => {
-          64 => {
-            'ALL' => ['hadoop','hadoop-libhdfs','hadoop-lzo', 'hadoop-lzo-native']
-          }
-        },
-        '2.0.3' => {
-          64 => {
-            'ALL' => ['hadoop','hadoop-libhdfs','hadoop-lzo', 'hadoop-lzo-native']
+            'ALL' => $hadoop_deps
           }
         }
       },
