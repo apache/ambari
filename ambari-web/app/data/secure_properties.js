@@ -315,19 +315,6 @@ module.exports =
     //OOZIE
     {
       "id": "puppet var",
-      "name": "oozie_server_name",
-      "displayName": "Oozie server host",
-      "value": "",
-      "defaultValue": "",
-      "description": "Oozie server host",
-      "displayType": "masterHosts",
-      "isVisible": false,
-      "isOverridable": false,
-      "serviceName": "OOZIE",
-      "category": "Oozie Server"
-    },
-    {
-      "id": "puppet var",
       "name": "oozie_primary_name",
       "displayName": "Primary name",
       "value": "",

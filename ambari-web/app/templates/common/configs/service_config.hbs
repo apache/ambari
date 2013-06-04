@@ -45,7 +45,7 @@
 	</div>
 	{{/if}}
 {{/if}}
-          
+
 <div class="accordion">
   {{#each category in selectedService.configCategories}}
     {{#if category.isCustomView}}
@@ -74,6 +74,11 @@
 		                            {{/if}}
 		                          {{/if}}
                               {{displayName}}
+                              {{#if App.supports.secureCluster}}
+                                {{#if isSecureConfig}}
+                                  <a href="#"><i class="icon-lock" rel="tooltip" data-toggle="tooltip" title="security knob"></i></a>
+                                {{/if}}
+                              {{/if}}
                             </label>
                           </span>
                           <div class="controls">

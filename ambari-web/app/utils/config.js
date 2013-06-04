@@ -175,6 +175,7 @@ App.config = Em.Object.create({
           serviceConfigObj.isOverridable = configsPropertyDef.isOverridable === undefined ? true : configsPropertyDef.isOverridable;
           serviceConfigObj.serviceName = configsPropertyDef ? configsPropertyDef.serviceName : null;
           serviceConfigObj.index = configsPropertyDef.index;
+          serviceConfigObj.isSecureConfig = configsPropertyDef.isSecureConfig === undefined ? false : configsPropertyDef.isSecureConfig;
           serviceConfigObj.belongsToService = configsPropertyDef.belongsToService;
         }
         // MAPREDUCE contains core-site properties but doesn't show them

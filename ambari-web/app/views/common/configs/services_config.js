@@ -40,6 +40,7 @@ App.ServiceConfigView = Em.View.extend({
   didInsertElement: function () {
     this.$('.service-body').hide();
     $(".restart-required-property").tooltip({html:true});
+    $(".icon-lock").tooltip({placement:'right'});
   }
 });
 
@@ -237,6 +238,11 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
           serviceConfigObj.id = 'site property';
           serviceConfigObj.serviceName = serviceName;
           var serviceConfigProperty = App.ServiceConfigProperty.create(serviceConfigObj);
+          self.get('controller.secureConfigs').filterProperty('filename',self.get('category.siteFileName')).forEach(function(_secureConfig){
+            if(_secureConfig.name === serviceConfigProperty.get('name')) {
+              serviceConfigProperty.set('isSecureConfig',true);
+            }
+          },this);
           self.get('serviceConfigs').pushObject(serviceConfigProperty);
           this.hide();
         }

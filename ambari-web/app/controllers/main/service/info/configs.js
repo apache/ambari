@@ -35,6 +35,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   configs: function() {
     return  App.config.get('preDefinedConfigProperties');
   }.property('App.config.preDefinedConfigProperties'),
+
+  secureConfigs: require('data/secure_mapping'),
+
   
   /**
    * During page load time, we get the host overrides from the server.
@@ -448,6 +451,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       this.get('stepConfigs').pushObject(serviceConfig);
     }
     this.set('selectedService', this.get('stepConfigs').objectAt(0));
+    this.checkForSecureConfig( this.get('selectedService'));
     this.set('dataIsLoaded', true);
   },
   /**
@@ -498,7 +502,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var restartHosts = Ember.A([]);
     if(restartData != null && restartData.hostAndHostComponents != null && !jQuery.isEmptyObject(restartData.hostAndHostComponents)){
       serviceConfig.set('restartRequired', true);
-      for(var host in restartData.hostAndHostComponents){
+      for(var host in restartData.hostAndHostComponents) {
         hostsCount++;
         var componentsArray = Ember.A([]);
         for(var component in restartData.hostAndHostComponents[host]){
@@ -511,6 +515,20 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       serviceConfig.set('restartRequiredHostsAndComponents', restartHosts);
       serviceConfig.set('restartRequiredMessage', 'Service needs '+hostComponentCount+' components on ' + hostsCount +' hosts to be restarted.')
     }
+  },
+
+  /**
+   * check whether the config property is a security related knob
+   * @param serviceConfig
+   */
+  checkForSecureConfig: function(serviceConfig) {
+    serviceConfig.get('configs').forEach(function(_config){
+     this.get('secureConfigs').forEach(function(_secureConfig){
+       if(_config.get('name')=== _secureConfig.name) {
+         _config.set('isSecureConfig',true);
+       }
+     },this)
+    },this)
   },
 
   /**
