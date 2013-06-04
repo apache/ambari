@@ -18,11 +18,11 @@
 # under the License.
 #
 #
-class hdp-yarn::mapred2::service_check()
+class hdp-yarn::mapred2::service_check() inherits hdp-yarn::params
 {
   $smoke_test_user = $hdp::params::smokeuser
-
-  $jar_location = $hdp::params::hadoop_mapred2_jar_location
+  $hadoopMapredExamplesJarName = $hdp-yarn::params::hadoopMapredExamplesJarName
+  $jar_path = "$hdp::params::hadoop_mapred2_jar_location/$hadoopMapredExamplesJarName"
   $input_file = "/user/${smoke_test_user}/mapredsmokeinput"
   $output_file = "/user/${smoke_test_user}/mapredsmokeoutput"
   $hadoop_conf_dir = $hdp::params::hadoop_conf_dir
@@ -30,7 +30,7 @@ class hdp-yarn::mapred2::service_check()
   $cleanup_cmd = "fs -rm -r -f ${output_file} ${input_file}"
   $create_file_cmd = "fs -put /etc/passwd ${input_file}"
   $test_cmd = "fs -test -e ${output_file}"
-  $run_wordcount_job = "jar ${jar_location}/hadoop-mapreduce-examples-2.0.3.22-alpha.jar wordcount ${input_file} ${output_file}"
+  $run_wordcount_job = "jar $jar_path wordcount ${input_file} ${output_file}"
 
   anchor { 'hdp-yarn::mapred2::service_check::begin':}
 

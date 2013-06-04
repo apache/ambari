@@ -45,11 +45,6 @@ class hdp-yarn::params(
   $nm_log_dirs = hdp_default("yarn-site/yarn.nodemanager.log-dirs", "/var/log/hadoop-yarn/yarn")
 
   ##smoke test configs
-  $distrAppJarNameToStack = {'2.0.1' => "hadoop-yarn-applications-distributedshell-2.0.3.22-alpha.jar"}
-
-  $distrAppJarName = $distrAppJarNameToStack[$stack_version]
-  
-  if hdp_is_empty($distrAppJarName) {
-    hdp_fail("No yarn-applications-distributedshell jar for stack: $stack_version")
-  }
+  $distrAppJarName = "hadoop-yarn-applications-distributedshell-2.*.jar"
+  $hadoopMapredExamplesJarName = "hadoop-mapreduce-examples-2.*.jar"
 }
