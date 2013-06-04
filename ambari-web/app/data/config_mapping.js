@@ -194,73 +194,10 @@ var configs = [
     "filename": "hdfs-site.xml"
   },
   {
-    "name": "dfs.namenode.kerberos.principal",
-    "templateName": ["kerberos_domain"],
-    "foreignKey": null,
-    "value": "nn\/_HOST@<templateName[0]>",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.secondary.namenode.kerberos.principal",
-    "templateName": ["kerberos_domain"],
-    "foreignKey": null,
-    "value": "nn\/_HOST@<templateName[0]>",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.namenode.kerberos.https.principal",
-    "templateName": ["kerberos_domain"],
-    "foreignKey": null,
-    "value": "host\/_HOST@<templateName[0]>",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.secondary.namenode.kerberos.https.principal",
-    "templateName": ["kerberos_domain"],
-    "foreignKey": null,
-    "value": "host\/_HOST@<templateName[0]>",
-    "filename": "hdfs-site.xml"
-  },
-  {
     "name": "dfs.secondary.http.address",
     "templateName": ["snamenode_host"],
     "foreignKey": null,
     "value": "<templateName[0]>:50090",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.web.authentication.kerberos.keytab",
-    "templateName": ["keytab_path"],
-    "foreignKey": null,
-    "value": "<templateName[0]>\/spnego.service.keytab",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.datanode.kerberos.principal",
-    "templateName": ["kerberos_domain"],
-    "foreignKey": null,
-    "value": "dn\/_HOST@<templateName[0]>",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.namenode.keytab.file",
-    "templateName": ["keytab_path"],
-    "foreignKey": null,
-    "value": "<templateName[0]>\/nn.service.keytab",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.secondary.namenode.keytab.file",
-    "templateName": ["keytab_path"],
-    "foreignKey": null,
-    "value": "<templateName[0]>\/nn.service.keytab",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.datanode.keytab.file",
-    "templateName": ["keytab_path"],
-    "foreignKey": null,
-    "value": "<templateName[0]>\/dn.service.keytab",
     "filename": "hdfs-site.xml"
   },
   {
@@ -277,22 +214,6 @@ var configs = [
     "value": "<templateName[0]>",
     "filename": "hdfs-site.xml"
   },
-  /*
-   {
-   "name": "dfs.namenode.kerberos.internal.spnego.principal",
-   "templateName": [],
-   "foreignKey": ["dfs.web.authentication.kerberos.principal"],
-   "value": "<foreignKey[0]>",
-   "filename": "hdfs-site.xml"
-   },
-   {
-   "name": "dfs.secondary.namenode.kerberos.internal.spnego.principal",
-   "templateName": [],
-   "foreignKey": ["dfs.web.authentication.kerberos.principal"],
-   "value": "<foreignKey[0]>",
-   "filename": "hdfs-site.xml"
-   },
-   */
   {
     "name": "mapred.local.dir",
     "templateName": ["mapred_local_dir"],
@@ -300,15 +221,6 @@ var configs = [
     "value": "<templateName[0]>",
     "filename": "mapred-site.xml"
   },
-  /*
-   {
-   "name": "oozie.service.StoreService.jdbc.url",
-   "templateName": ["oozie_data_dir"],
-   "foreignKey": ["oozie.db.schema.name"],
-   "value": "<templateName[0]>\/<foreignKey[0]>",
-   "filename": "oozie-site.xml"
-   },
-   */
   {
     "name": "oozie.base.url",
     "templateName": ["oozieserver_host"],
@@ -549,34 +461,6 @@ var configs = [
     "filename": "mapred-site.xml"
   },
   {
-    "name": "mapreduce.jobtracker.kerberos.principal",
-    "templateName": ["kerberos_domain"],
-    "foreignKey": null,
-    "value": "jt/_HOST@<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapreduce.tasktracker.kerberos.principal",
-    "templateName": ["kerberos_domain"],
-    "foreignKey": null,
-    "value": "tt/_HOST@<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapreduce.jobtracker.keytab.file",
-    "templateName": ["keytab_path"],
-    "foreignKey": null,
-    "value": "<templateName[0]>/jt.service.keytab",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapreduce.tasktracker.keytab.file",
-    "templateName": ["keytab_path"],
-    "foreignKey": null,
-    "value": "<templateName[0]>/tt.service.keytab",
-    "filename": "mapred-site.xml"
-  },
-  {
     "name": "mapreduce.history.server.embedded",
     "templateName": [],
     "foreignKey": null,
@@ -588,20 +472,6 @@ var configs = [
     "templateName": ["jobtracker_host"],
     "foreignKey": null,
     "value": "<templateName[0]>:51111",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapreduce.jobhistory.kerberos.principal",
-    "templateName": ["kerberos_domain"],
-    "foreignKey": null,
-    "value": "jt/_HOST@<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapreduce.jobhistory.keytab.file",
-    "templateName": ["keytab_path"],
-    "foreignKey": null,
-    "value": "<templateName[0]>/jt.service.keytab",
     "filename": "mapred-site.xml"
   },
   {
@@ -746,37 +616,6 @@ var configs = [
     "value": "<templateName[0]>",
     "filename": "hbase-site.xml"
   },
-  {
-    "name": "hbase.master.keytab.file",
-    "templateName": ["keytab_path"],
-    "foreignKey": null,
-    "value": "<templateName[0]>/hm.service.keytab",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.master.kerberos.principal",
-    "templateName": ["kerberos_domain"],
-    "foreignKey": null,
-    "value": "hm/_HOST@<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.regionserver.kerberos.principal",
-    "templateName": ["kerberos_domain"],
-    "foreignKey": null,
-    "value": "rs/_HOST@<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  /*
-  {
-    "name": "hbase.coprocessor.region.classes",
-    "templateName": ["preloaded_regioncoprocessor_classes"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  */
-
   {
     "name": "dfs.support.append",
     "templateName": ["hdfs_support_append"],

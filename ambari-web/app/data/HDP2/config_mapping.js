@@ -186,74 +186,12 @@ var configs = [
     "value": "<templateName[0]>",
     "filename": "hdfs-site.xml"
   },
-  {
-    "name": "dfs.namenode.kerberos.principal",
-    "templateName": ["kerberos_domain"],
-    "foreignKey": null,
-    "value": "nn\/_HOST@<templateName[0]>",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.secondary.namenode.kerberos.principal",
-    "templateName": ["kerberos_domain"],
-    "foreignKey": null,
-    "value": "nn\/_HOST@<templateName[0]>",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.namenode.kerberos.https.principal",
-    "templateName": ["kerberos_domain"],
-    "foreignKey": null,
-    "value": "host\/_HOST@<templateName[0]>",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.secondary.namenode.kerberos.https.principal",
-    "templateName": ["kerberos_domain"],
-    "foreignKey": null,
-    "value": "host\/_HOST@<templateName[0]>",
-    "filename": "hdfs-site.xml"
-  },
+
   {
     "name": "dfs.secondary.http.address",
     "templateName": ["snamenode_host"],
     "foreignKey": null,
     "value": "<templateName[0]>:50090",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.web.authentication.kerberos.keytab",
-    "templateName": ["keytab_path"],
-    "foreignKey": null,
-    "value": "<templateName[0]>\/spnego.service.keytab",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.datanode.kerberos.principal",
-    "templateName": ["kerberos_domain"],
-    "foreignKey": null,
-    "value": "dn\/_HOST@<templateName[0]>",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.namenode.keytab.file",
-    "templateName": ["keytab_path"],
-    "foreignKey": null,
-    "value": "<templateName[0]>\/nn.service.keytab",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.secondary.namenode.keytab.file",
-    "templateName": ["keytab_path"],
-    "foreignKey": null,
-    "value": "<templateName[0]>\/nn.service.keytab",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.datanode.keytab.file",
-    "templateName": ["keytab_path"],
-    "foreignKey": null,
-    "value": "<templateName[0]>\/dn.service.keytab",
     "filename": "hdfs-site.xml"
   },
   {
@@ -597,27 +535,6 @@ var configs = [
     "templateName": ["hfile_max_keyvalue_size"],
     "foreignKey": null,
     "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.master.keytab.file",
-    "templateName": ["keytab_path"],
-    "foreignKey": null,
-    "value": "<templateName[0]>/hm.service.keytab",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.master.kerberos.principal",
-    "templateName": ["kerberos_domain"],
-    "foreignKey": null,
-    "value": "hm/_HOST@<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.regionserver.kerberos.principal",
-    "templateName": ["kerberos_domain"],
-    "foreignKey": null,
-    "value": "rs/_HOST@<templateName[0]>",
     "filename": "hbase-site.xml"
   },
   {
