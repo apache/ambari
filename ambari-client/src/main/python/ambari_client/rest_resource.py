@@ -42,8 +42,8 @@ class RestResource(object):
     self._path = path.strip('/')
 
   @property
-  def base_url(self):
-    return self._client.base_url
+  def host_url(self):
+    return self._client.host_url
 
   def _join_uri(self, relpath):
     if relpath is None:
@@ -55,13 +55,16 @@ class RestResource(object):
       return { 'Content-Type': content_type }
     return None
 
+
+  def make_invoke(self, http_method, payload, headers, path):
+      return self._client.invoke(http_method, path, payload=payload, headers=headers)
+
   def invoke(self, http_method, url_path=None, payload=None, headers=None):
     """
     Invoke an API http_method.
     """
     path = self._join_uri(url_path)
-    resp ,code , content  = self._client.invoke(http_method, path,payload=payload,
-                                headers=headers)
+    resp ,code , content  = self.make_invoke(http_method, payload, headers, path)
 
     LOG.debug ("RESPONSE from the REST request >>>>>>> \n"+str(resp) )
     LOG.debug ("\n===========================================================")

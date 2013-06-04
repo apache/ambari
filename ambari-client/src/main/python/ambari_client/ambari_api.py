@@ -40,7 +40,7 @@ class AmbariClient(RestResource):
   """
 
   def __init__(self, host_name, port=None,user_name="admin", password="admin",
-               version=API_VERSION):
+               version=API_VERSION , client = None):
     """
     Creates a RestResource object.
 
@@ -57,7 +57,8 @@ class AmbariClient(RestResource):
     if port is None: 
       port = 8080
     host_url = "%s://%s:%s/api/v%s" %(protocol, host_name, port, version)
-    client = HttpClient(host_url, user_name , password )
+    if client is None:
+        client = HttpClient(host_url, user_name , password )
     RestResource.__init__(self, client)
 
 

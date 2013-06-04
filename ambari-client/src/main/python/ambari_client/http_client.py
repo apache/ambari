@@ -112,7 +112,7 @@ class HttpClient(object):
         self.c.setopt(pycurl.UPLOAD, 1)
     else:
         self.c.setopt(pycurl.CUSTOMREQUEST, http_method)
-        iri_to_uri
+        
     if http_method in ('POST','PUT'):
       LOG.debug( "data..........."+str(payload))
       data = json.dumps(payload)

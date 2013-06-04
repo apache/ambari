@@ -45,8 +45,6 @@ class BaseModel(object):
 
   
   def __init__(self, resource_root, **rw_attrs):
-    #print" ================== base_model\n"
-    #print locals()
     self._resource_root = resource_root
     for k, v in rw_attrs.items():
       if k not in self.RW_ATTR:

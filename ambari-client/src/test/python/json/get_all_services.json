@@ -1,0 +1,120 @@
+{
+  "href" : "http://localhost:8080/api/v1/clusters/test1/services?fields=*",
+  "items" : [
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/services/GANGLIA",
+      "ServiceInfo" : {
+        "cluster_name" : "test1",
+        "state" : "STARTED",
+        "service_name" : "GANGLIA",
+        "desired_configs" : {
+          "global" : "version1"
+        }
+      },
+      "components" : [
+        {
+          "href" : "http://localhost:8080/api/v1/clusters/test1/services/GANGLIA/components/GANGLIA_MONITOR",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "test1",
+            "component_name" : "GANGLIA_MONITOR",
+            "service_name" : "GANGLIA"
+          }
+        },
+        {
+          "href" : "http://localhost:8080/api/v1/clusters/test1/services/GANGLIA/components/GANGLIA_SERVER",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "test1",
+            "component_name" : "GANGLIA_SERVER",
+            "service_name" : "GANGLIA"
+          }
+        }
+      ]
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/services/MAPREDUCE",
+      "ServiceInfo" : {
+        "cluster_name" : "test1",
+        "state" : "STARTED",
+        "service_name" : "MAPREDUCE",
+        "desired_configs" : {
+          "mapred-site" : "version1",
+          "global" : "version1",
+          "core-site" : "version1"
+        }
+      },
+      "components" : [
+        {
+          "href" : "http://localhost:8080/api/v1/clusters/test1/services/MAPREDUCE/components/TASKTRACKER",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "test1",
+            "component_name" : "TASKTRACKER",
+            "service_name" : "MAPREDUCE"
+          }
+        },
+        {
+          "href" : "http://localhost:8080/api/v1/clusters/test1/services/MAPREDUCE/components/MAPREDUCE_CLIENT",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "test1",
+            "component_name" : "MAPREDUCE_CLIENT",
+            "service_name" : "MAPREDUCE"
+          }
+        },
+        {
+          "href" : "http://localhost:8080/api/v1/clusters/test1/services/MAPREDUCE/components/JOBTRACKER",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "test1",
+            "component_name" : "JOBTRACKER",
+            "service_name" : "MAPREDUCE"
+          }
+        }
+      ]
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/services/HDFS",
+      "ServiceInfo" : {
+        "cluster_name" : "test1",
+        "state" : "STARTED",
+        "service_name" : "HDFS",
+        "desired_configs" : {
+          "global" : "version1",
+          "hdfs-site" : "version1",
+          "core-site" : "version1"
+        }
+      },
+      "components" : [
+        {
+          "href" : "http://localhost:8080/api/v1/clusters/test1/services/HDFS/components/SECONDARY_NAMENODE",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "test1",
+            "component_name" : "SECONDARY_NAMENODE",
+            "service_name" : "HDFS"
+          }
+        },
+        {
+          "href" : "http://localhost:8080/api/v1/clusters/test1/services/HDFS/components/HDFS_CLIENT",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "test1",
+            "component_name" : "HDFS_CLIENT",
+            "service_name" : "HDFS"
+          }
+        },
+        {
+          "href" : "http://localhost:8080/api/v1/clusters/test1/services/HDFS/components/NAMENODE",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "test1",
+            "component_name" : "NAMENODE",
+            "service_name" : "HDFS"
+          }
+        },
+        {
+          "href" : "http://localhost:8080/api/v1/clusters/test1/services/HDFS/components/DATANODE",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "test1",
+            "component_name" : "DATANODE",
+            "service_name" : "HDFS"
+          }
+        }
+      ]
+    }
+  ]
+}

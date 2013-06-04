@@ -33,6 +33,8 @@ def uri_encoding(url):
         return url
     return urllib.quote(get_utf8_str(url), safe="/#%[]=:;$&()+,!?*@'~")
 
+
+
 def get_utf8_str(strr, encoding='utf-8'):
     """
     Returns a utf8 ecoded 'str'.
@@ -45,9 +47,10 @@ def get_utf8_str(strr, encoding='utf-8'):
             if isinstance(strr, Exception):
                 return ' '.join([get_utf8_str(arg, encoding) for arg in strr])
             return unicode(strr).encode(encoding, errors)
-    elif strr and encoding != 'utf-8':
-        return strr.decode('utf-8', errors).encode(encoding, errors)
     elif isinstance(strr, unicode):
         return strr.encode(encoding, errors)
+    elif strr and encoding != 'utf-8':
+        return strr.decode('utf-8', errors).encode(encoding, errors)
     else:
         return strr
+

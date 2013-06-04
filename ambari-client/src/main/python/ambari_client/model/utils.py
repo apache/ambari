@@ -120,7 +120,6 @@ def get_unicode( v):
   return v
   
 def retain_self_helper(self=None, **kwargs):
-    #print" ================== retain_self_helper\n"
     #print locals()
     from ambari_client.model.base_model import  BaseModel 
     BaseModel.__init__(self, **kwargs)
