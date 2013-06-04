@@ -1231,7 +1231,10 @@ App.WizardStep8Controller = Em.Controller.extend({
     // add MySQL Server if Hive is selected
     var hiveService = this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false).findProperty('serviceName', 'HIVE');
     if (hiveService) {
+      var hiveDb = this.get('content.serviceConfigProperties').findProperty('name', 'hive_database');
+        if(hiveDb.value == "New MySQL Database") {
       this.registerHostsToComponent(masterHosts.filterProperty('component', 'HIVE_SERVER').mapProperty('hostName'), 'MYSQL_SERVER');
+        }
     }
   },
 
