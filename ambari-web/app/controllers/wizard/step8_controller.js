@@ -28,7 +28,6 @@ App.WizardStep8Controller = Em.Controller.extend({
   configs: [],
   globals: [],
   ajaxQueue: [],
-  configMapping: App.config.get('configMapping').all(),
   slaveComponentConfig: null,
   isSubmitDisabled: false,
   hasErrorOccurred: false,
@@ -58,6 +57,10 @@ App.WizardStep8Controller = Em.Controller.extend({
   selectedServices: function () {
     return this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false);
   }.property('content.services').cacheable(),
+
+  configMapping: function() {
+    return App.config.get('configMapping').all();
+  }.property('App.config.configMapping'),
 
   clearStep: function () {
     this.get('services').clear();

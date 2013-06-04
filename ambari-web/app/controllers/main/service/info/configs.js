@@ -30,9 +30,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   customConfig: [],
   isApplyingChanges: false,
   serviceConfigs: App.config.get('preDefinedServiceConfigs'),
-  configs: App.config.get('preDefinedConfigProperties'),
   configMapping: App.config.get('configMapping'),
   customConfigs: require('data/custom_configs'),
+  configs: function() {
+    return  App.config.get('preDefinedConfigProperties');
+  }.property('App.config.preDefinedConfigProperties'),
   
   /**
    * During page load time, we get the host overrides from the server.
