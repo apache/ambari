@@ -30,6 +30,8 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Predicate;
 import org.easymock.Capture;
 import org.junit.Test;
 
@@ -44,6 +46,8 @@ import static org.easymock.EasyMock.*;
  * AmbariManagementControllerImpl unit tests
  */
 public class AmbariManagementControllerImplTest {
+
+
 
   @Test
   public void testGetClusters() throws Exception {
@@ -1722,6 +1726,129 @@ public class AmbariManagementControllerImplTest {
       }
     }
     assertTrue(smokeTestRequired);
+  }
+
+
+  @Test
+  public void testScheduleSmokeTest() throws Exception {
+
+    final String HOST1 = "host1";
+    final String OS_TYPE = "centos5";
+    final String STACK_ID = "HDP-2.0.3";
+    final String CLUSTER_NAME = "c1";
+    final String HDFS_SERVICE_CHECK_ROLE = "HDFS_SERVICE_CHECK";
+    final String MAPREDUCE2_SERVICE_CHECK_ROLE = "MAPREDUCE2_SERVICE_CHECK";
+
+    Map<String,String> mapRequestProps = Collections.<String,String>emptyMap();
+    Injector injector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        Properties properties = new Properties();
+        properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
+
+        properties.setProperty(Configuration.METADETA_DIR_PATH,
+            "src/main/resources/stacks");
+        properties.setProperty(Configuration.SERVER_VERSION_FILE,
+                "../version");
+        properties.setProperty(Configuration.OS_VERSION_KEY, OS_TYPE);
+        try {
+          install(new ControllerModule(properties));
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
+    injector.getInstance(GuiceJpaInitializer.class);
+    AmbariManagementController amc = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = injector.getInstance(Clusters.class);
+
+    clusters.addHost(HOST1);
+    Host host = clusters.getHost(HOST1);
+    host.setOsType(OS_TYPE);
+    host.persist();
+
+    ClusterRequest clusterRequest = new ClusterRequest(null, CLUSTER_NAME, STACK_ID, null);
+    amc.createCluster(clusterRequest);
+
+    Set<ServiceRequest> serviceRequests = new HashSet<ServiceRequest>();
+    serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "HDFS", null, null));
+    serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "MAPREDUCE2", null, null));
+
+    amc.createServices(serviceRequests);
+
+    Set<ServiceComponentRequest> serviceComponentRequests = new HashSet<ServiceComponentRequest>();
+    serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "HDFS", "NAMENODE", null, null));
+    serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "HDFS", "SECONDARY_NAMENODE", null, null));
+    serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "HDFS", "DATANODE", null, null));
+    serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "MAPREDUCE2", "HISTORYSERVER", null, null));
+
+    amc.createComponents(serviceComponentRequests);
+
+    Set<HostRequest> hostRequests = new HashSet<HostRequest>();
+    hostRequests.add(new HostRequest(HOST1, CLUSTER_NAME, null));
+
+    amc.createHosts(hostRequests);
+
+    Set<ServiceComponentHostRequest> componentHostRequests = new HashSet<ServiceComponentHostRequest>();
+    componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, null, "DATANODE", HOST1, null, null));
+    componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, null, "NAMENODE", HOST1, null, null));
+    componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, null, "SECONDARY_NAMENODE", HOST1, null, null));
+    componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, null, "HISTORYSERVER", HOST1, null, null));
+
+    amc.createHostComponents(componentHostRequests);
+
+    //Install services
+    serviceRequests.clear();
+    serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "HDFS", null, State.INSTALLED.name()));
+    serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "MAPREDUCE2", null, State.INSTALLED.name()));
+    amc.updateServices(serviceRequests, mapRequestProps, true, false);
+
+    Cluster cluster = clusters.getCluster(CLUSTER_NAME);
+
+    for (String serviceName : cluster.getServices().keySet() ) {
+
+      for(String componentName: cluster.getService(serviceName).getServiceComponents().keySet()) {
+
+        Map<String, ServiceComponentHost> serviceComponentHosts = cluster.getService(serviceName).getServiceComponent(componentName).getServiceComponentHosts();
+
+        for (Map.Entry<String, ServiceComponentHost> entry : serviceComponentHosts.entrySet()) {
+          ServiceComponentHost cHost = entry.getValue();
+          cHost.handleEvent(new ServiceComponentHostInstallEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis(), STACK_ID));
+          cHost.handleEvent(new ServiceComponentHostOpSucceededEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis()));
+        }
+      }
+    }
+
+    //Start services
+    serviceRequests.clear();
+    serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "HDFS", null, State.STARTED.name()));
+    serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "MAPREDUCE2", null, State.STARTED.name()));
+    RequestStatusResponse response = amc.updateServices(serviceRequests,
+      mapRequestProps, true, false);
+
+    Collection<?> hdfsSmokeTasks = CollectionUtils.select(response.getTasks(), new RolePredicate(HDFS_SERVICE_CHECK_ROLE));
+    //Ensure that smoke test task was created for HDFS
+    assertEquals(1, hdfsSmokeTasks.size());
+
+    Collection<?> mapreduce2SmokeTasks = CollectionUtils.select(response.getTasks(), new RolePredicate(MAPREDUCE2_SERVICE_CHECK_ROLE));
+    //Ensure that smoke test task was created for MAPREDUCE2
+    assertEquals(1, mapreduce2SmokeTasks.size());
+
+  }
+
+  private class RolePredicate implements Predicate {
+
+    private String role;
+
+    public RolePredicate(String role) {
+      this.role = role;
+    }
+
+    @Override
+    public boolean evaluate(Object obj) {
+      ShortTaskStatus task = (ShortTaskStatus)obj;
+      return task.getRole().equals(role);
+    }
   }
 
   //todo other resources
