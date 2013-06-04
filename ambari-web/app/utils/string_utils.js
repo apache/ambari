@@ -91,10 +91,12 @@ module.exports = {
       secondNumbers[i] = (secondNumbers[i] === undefined) ? 0 : window.parseInt(secondNumbers[i]);
       if(firstNumbers[i] > secondNumbers[i]){
         result = 1;
+        break;
       } else if(firstNumbers[i] === secondNumbers[i]){
         result = 0;
       } else if(firstNumbers[i] < secondNumbers[i]){
         result = -1;
+        break;
       }
       i++;
     }

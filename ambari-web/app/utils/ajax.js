@@ -630,7 +630,7 @@ var urls = {
     }
   },
   'wizard.step3.host_info': {
-    'real': '/hosts?fields=Hosts/total_mem,Hosts/cpu_count,Hosts/disk_info,Hosts/last_agent_env',
+    'real': '/hosts?fields=Hosts/total_mem,Hosts/cpu_count,Hosts/disk_info,Hosts/last_agent_env,Hosts/host_name',
     'mock': '/data/wizard/bootstrap/two_hosts_information.json',
     'format': function (data, opt) {
       return {
