@@ -69,6 +69,13 @@ App.MainAdminUserCreateView = Em.View.extend({
 
   userForm: App.CreateUserForm.create({}),
 
+  keyPress: function(event) {
+    if (event.keyCode === 13) {
+      this.create();
+      return false;
+    }
+  },
+
   didInsertElement: function(){
     this.get('userForm').propertyDidChange('object');
   }
