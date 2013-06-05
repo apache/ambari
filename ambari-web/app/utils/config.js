@@ -25,6 +25,10 @@ var globalPropertyToServicesMap = null;
 
 App.config = Em.Object.create({
 
+  isHDP2: function(){
+    return (stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 1 ||
+      stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 0)
+  }.property('App.currentStackVersionNumber'),
   preDefinedServiceConfigs: function(){
     var configs = this.get('preDefinedConfigProperties');
     var services = [];
@@ -35,30 +39,36 @@ App.config = Em.Object.create({
     return services;
   }.property('preDefinedConfigProperties'),
   configMapping: function() {
-      if (stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 1 ||
-        stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 0) {
+      if (this.get('isHDP2')) {
         return require('data/HDP2/config_mapping');
       }
     return require('data/config_mapping');
-  }.property('App.currentStackVersionNumber'),
+  }.property('isHDP2'),
   preDefinedConfigProperties: function() {
-    if (stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 1 ||
-      stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 0) {
+    if (this.get('isHDP2')) {
       return require('data/HDP2/config_properties').configProperties;
     }
     return require('data/config_properties').configProperties;
-  }.property('App.currentStackVersionNumber'),
-  preDefinedCustomConfigs: require('data/custom_configs'),
+  }.property('isHDP2'),
+  preDefinedCustomConfigs: function () {
+    if (this.get('isHDP2')) {
+      return require('data/HDP2/custom_configs');
+    }
+    return require('data/custom_configs');
+  }.property('isHDP2'),
   //categories which contain custom configs
   categoriesWithCustom: ['CapacityScheduler'],
   //configs with these filenames go to appropriate category not in Advanced
   customFileNames: function() {
     if (App.supports.capacitySchedulerUi) {
+      if(this.get('isHDP2')){
+        return ['capacity-scheduler.xml'];
+      }
       return ['capacity-scheduler.xml', 'mapred-queue-acls.xml'];
     } else {
       return [];
     }
-  }.property(''),
+  }.property('isHDP2'),
   /**
    * Cache of loaded configurations. This is useful in not loading
    * same configuration multiple times. It is populated in multiple
@@ -127,6 +137,20 @@ App.config = Em.Object.create({
       config.isRequired = true;
     }
   },
+  capacitySchedulerFilter: function () {
+    var yarnRegex = /^yarn\.scheduler\.capacity\.root\.(?!unfunded)([a-z]([\_\-a-z0-9]{0,50}))\.(acl_administer_jobs|acl_submit_jobs|state|user-limit-factor|maximum-capacity|capacity)$/i;
+    var self = this;
+    if(this.get('isHDP2')){
+      return function (_config) {
+        return (yarnRegex.test(_config.name));
+      }
+    } else {
+      return function (_config) {
+        return (_config.name.indexOf('mapred.capacity-scheduler.queue.') !== -1) ||
+          (/^mapred\.queue\.[a-z]([\_\-a-z0-9]{0,50})\.(acl-administer-jobs|acl-submit-job)$/i.test(_config.name));
+      }
+    }
+  }.property('isHDP2'),
   /**
    * return:
    *   configs,
@@ -309,64 +333,11 @@ App.config = Em.Object.create({
   addCustomConfigs: function (configs) {
     var preDefinedCustomConfigs = $.extend(true, [], this.get('preDefinedCustomConfigs'));
     var stored = configs.filter(function (_config) {
-      if (this.get('categoriesWithCustom').contains(_config.category)) return true;
+      return this.get('categoriesWithCustom').contains(_config.category);
     }, this);
-    var queueProperties = stored.filter(function (_config) {
-      if ((_config.name.indexOf('mapred.capacity-scheduler.queue.') !== -1) ||
-        (/mapred.queue.[a-z]([\_\-a-z0-9]{0,50}).acl-administer-jobs/i.test(_config.name)) ||
-        (/mapred.queue.[a-z]([\_\-a-z0-9]{0,50}).acl-submit-job/i.test(_config.name))) {
-        return true;
-      }
-    });
+    var queueProperties = stored.filter(this.get('capacitySchedulerFilter'));
     if (queueProperties.length) {
       queueProperties.setEach('isQueue', true);
-    } else {
-      queueProperties = preDefinedCustomConfigs.filterProperty('isQueue');
-      queueProperties.forEach(function (customConfig) {
-        this.setDefaultQueue(customConfig, 'default');
-        configs.push(customConfig);
-      }, this);
-    }
-  },
-  /**
-   * set values to properties of queue
-   * @param customConfig
-   * @param queueName
-   */
-  setDefaultQueue: function (customConfig, queueName) {
-    customConfig.name = customConfig.name.replace(/<queue-name>/, queueName);
-    //default values of queue
-    switch (customConfig.name) {
-      case 'mapred.capacity-scheduler.queue.' + queueName + '.capacity':
-        customConfig.value = '100';
-        break;
-      case 'mapred.capacity-scheduler.queue.' + queueName + '.maximum-capacity':
-        customConfig.value = '100';
-        break;
-      case 'mapred.capacity-scheduler.queue.' + queueName + '.minimum-user-limit-percent':
-        customConfig.value = '100';
-        break;
-      case 'mapred.capacity-scheduler.queue.' + queueName + '.user-limit-factor':
-        customConfig.value = '1';
-        break;
-      case 'mapred.capacity-scheduler.queue.' + queueName + '.maximum-initialized-active-tasks':
-        customConfig.value = '200000';
-        break;
-      case 'mapred.capacity-scheduler.queue.' + queueName + '.maximum-initialized-active-tasks-per-user':
-        customConfig.value = '100000';
-        break;
-      case 'mapred.capacity-scheduler.queue.' + queueName + '.init-accept-jobs-factor':
-        customConfig.value = '10';
-        break;
-      case 'mapred.capacity-scheduler.queue.' + queueName + '.supports-priority':
-        customConfig.value = 'false';
-        break;
-      case 'mapred.queue.' + queueName + '.acl-submit-job':
-        customConfig.value = '*';
-        break;
-      case 'mapred.queue.' + queueName + '.acl-administer-jobs':
-        customConfig.value = '*';
-        break;
     }
   },
 

@@ -24,7 +24,7 @@ module.exports =
       "name": "mapred.capacity-scheduler.queue.<queue-name>.capacity",
       "displayName": "Capacity",
       "value": '',
-      "defaultValue": '',
+      "defaultValue": '100',
       "description": "Percentage of the number of slots in the cluster that are made to be available for jobs in this queue. The sum of capacities for all queues should be less than or equal 100.",
       "isVisible": true,
       "isRequired": true,
@@ -33,6 +33,7 @@ module.exports =
       "unit": "%",
       "isQueue": true,
       "filename": 'capacity-scheduler.xml',
+      "inTable": true,
       "index": 1
     },
     {
@@ -40,7 +41,7 @@ module.exports =
       "name": "mapred.capacity-scheduler.queue.<queue-name>.maximum-capacity",
       "displayName": "Max Capacity",
       "value": '',
-      "defaultValue": 100,
+      "defaultValue": '100',
       "displayType": "int",
       "description": "Defines a limit beyond which a queue cannot use the capacity of the cluster." +
         "This provides a means to limit how much excess capacity a queue can use. By default, there is no limit." +
@@ -57,6 +58,7 @@ module.exports =
       "valueRange": [0, 100],
       "isQueue": true,
       "filename": 'capacity-scheduler.xml',
+      "inTable": true,
       "index": 2
     },
     {
@@ -64,7 +66,7 @@ module.exports =
       "name": "mapred.capacity-scheduler.queue.<queue-name>.minimum-user-limit-percent",
       "displayName": "Min User Limit",
       "value": '',
-      "defaultValue": 100,
+      "defaultValue": '100',
       "displayType": "int",
       "description": "Each queue enforces a limit on the percentage of resources allocated to a user at any given time, " +
         "if there is competition for them. This user limit can vary between a minimum and maximum value. " +
@@ -81,6 +83,7 @@ module.exports =
       "valueRange": [1, 100],
       "isQueue": true,
       "filename": 'capacity-scheduler.xml',
+      "inTable": true,
       "index": 9
     },
     {
@@ -88,7 +91,7 @@ module.exports =
       "name": "mapred.capacity-scheduler.queue.<queue-name>.user-limit-factor",
       "displayName": "User Limit Factor",
       "value": '',
-      "defaultValue": 1,
+      "defaultValue": '1',
       "displayType": "int",
       "description": "The multiple of the queue capacity which can be configured to allow a single user to acquire more slots. " +
         "By default this is set to 1 which ensure that a single user can never take more than the queue's configured capacity " +
@@ -99,6 +102,7 @@ module.exports =
       "category": "CapacityScheduler",
       "isQueue": true,
       "filename": 'capacity-scheduler.xml',
+      "inTable": true,
       "index": 8
     },
     {
@@ -106,7 +110,7 @@ module.exports =
       "name": "mapred.capacity-scheduler.queue.<queue-name>.supports-priority",
       "displayName": "Supports Priority",
       "value": 'false',
-      "defaultValue": false,
+      "defaultValue": 'false',
       "displayType": "checkbox",
       "description": "If true, priorities of jobs will be taken into account in scheduling decisions.",
       "isVisible": true,
@@ -115,6 +119,7 @@ module.exports =
       "category": "CapacityScheduler",
       "isQueue": true,
       "filename": 'capacity-scheduler.xml',
+      "inTable": true,
       "index": 7
     },
     {
@@ -122,37 +127,35 @@ module.exports =
       "name": "mapred.queue.<queue-name>.acl-submit-job",
       "displayName": "",
       "value": '',
-      "defaultValue": '',
+      "defaultValue": '*',
       "description": "",
       "isVisible": false,
       "isRequired": true,
       "serviceName": "MAPREDUCE",
       "category": "CapacityScheduler",
       "isQueue": true,
-      "filename": 'mapred-queue-acls.xml',
-      "index": 13
+      "filename": 'mapred-queue-acls.xml'
     },
     {
       "id": "site property",
       "name": "mapred.queue.<queue-name>.acl-administer-jobs",
       "displayName": "",
       "value": '',
-      "defaultValue": '',
+      "defaultValue": '*',
       "description": "",
       "isVisible": false,
       "isRequired": true,
       "serviceName": "MAPREDUCE",
       "category": "CapacityScheduler",
       "isQueue": true,
-      "filename": 'mapred-queue-acls.xml',
-      "index": 14
+      "filename": 'mapred-queue-acls.xml'
     },
     {
       "id": "site property",
       "name": "mapred.capacity-scheduler.queue.<queue-name>.maximum-initialized-active-tasks",
       "displayName": "Max initialized active tasks",
       "value": '',
-      "defaultValue": 200000,
+      "defaultValue": '200000',
       "displayType": "int",
       "description": "The maximum number of tasks, across all jobs in the queue, which can be initialized concurrently. " +
         "Once the queue's jobs exceed this limit they will be queued on disk.",
@@ -169,7 +172,7 @@ module.exports =
       "name": "mapred.capacity-scheduler.queue.<queue-name>.maximum-initialized-active-tasks-per-user",
       "displayName": "Max initialized active tasks per user",
       "value": '',
-      "defaultValue": 100000,
+      "defaultValue": '100000',
       "displayType": "int",
       "description": "The maximum number of tasks per-user, across all the of the user's jobs in the queue, which " +
         "can be initialized concurrently. Once the user's jobs exceed this limit they will be queued on disk.",
@@ -186,7 +189,7 @@ module.exports =
       "name": "mapred.capacity-scheduler.queue.<queue-name>.init-accept-jobs-factor",
       "displayName": "Init accept jobs factor",
       "value": '',
-      "defaultValue": 10,
+      "defaultValue": '10',
       "displayType": "int",
       "description": "The multiple of (maximum-system-jobs * queue-capacity) used to determine the number of " +
         "jobs which are accepted by the scheduler. The default value is 10. If number of jobs submitted to " +

@@ -1284,15 +1284,11 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
     if (selectedServices.someProperty('serviceName', 'MAPREDUCE2')) {
       this.applyConfigurationToSite(this.createMrSiteObj());
-      if (App.supports.capacitySchedulerUi) {
-        this.applyConfigurationToSite(this.createMapredQueueAcls());
-      }
+      this.applyConfigurationToSite(this.createMapredQueueAcls());
     }
     if (selectedServices.someProperty('serviceName', 'YARN')) {
       this.applyConfigurationToSite(this.createYarnSiteObj());
-      if (App.supports.capacitySchedulerUi) {
-        this.applyConfigurationToSite(this.createCapacityScheduler());
-      }
+      this.applyConfigurationToSite(this.createCapacityScheduler());
     }
     if (selectedServices.someProperty('serviceName', 'HBASE')) {
       this.applyConfigurationToSite(this.createHbaseSiteObj());
