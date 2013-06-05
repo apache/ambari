@@ -48,6 +48,11 @@ class hdp-oozie::service(
       $jdbc_driver_jar_target = "${libext_dir}/ojdbc6.jar"
   }
   
+  file { '/tmp/wrap_ooziedb.sh':
+    ensure => present,
+    source => "puppet:///modules/hdp-oozie/wrap_ooziedb.sh",
+    mode => '0755'
+  }
   
 
   if ($security == true) {
@@ -83,7 +88,7 @@ class hdp-oozie::service(
         /(com.mysql.jdbc.Driver|oracle.jdbc.driver.OracleDriver)/ => "cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 $jar_location -extjs $ext_js_path $jar_option $jar_path && cp $jdbc_driver_jar $jdbc_driver_jar_target",
         default            => "cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 0.20.200 $jar_location -extjs $ext_js_path $jar_option $jar_path",
   }
-  $cmd5 =  "cd ${oozie_tmp} && /usr/lib/oozie/bin/ooziedb.sh create -sqlfile oozie.sql -run "
+  $cmd5 =  "/tmp/wrap_ooziedb.sh create -sqlfile oozie.sql -run "
   $cmd6 =  "su - ${user} -c '${kinit_if_needed}; hadoop dfs -put /usr/lib/oozie/share ${oozie_hdfs_user_dir} ; hadoop dfs -chmod -R 755 ${oozie_hdfs_user_dir}/share'"
   #$cmd7 = "/usr/lib/oozie/bin/oozie-start.sh"
 
