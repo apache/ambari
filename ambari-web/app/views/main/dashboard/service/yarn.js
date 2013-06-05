@@ -73,7 +73,7 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
     var nodeManagers = this.get('service.nodeManagerNodes.length');
     var nodeManagersLive = this.get('service.nodeManagerLiveNodes.length');
     return this.t('dashboard.services.yarn.nodeManagers.live.msg').format(nodeManagersLive, nodeManagers);
-  }.property('service.jvmMemoryHeapUsed', 'service.jvmMemoryHeapCommitted'),
+  }.property('service.nodeManagerNodes', 'service.nodeManagerLiveNodes'),
 
   nodeManagersStatus: function () {
     var nmActive = this.get('service.nodeManagersCountActive');

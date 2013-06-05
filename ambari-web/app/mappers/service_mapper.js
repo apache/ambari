@@ -82,7 +82,25 @@ App.servicesMapper = App.QuickDataMapper.create({
     version: 'resourceManagerComponent.ServiceComponentInfo.Version',
     resource_manager_node_id: 'resourceManagerComponent.host_components[0].HostRoles.host_name',
     node_manager_nodes: 'node_manager_nodes',
-    yarn_client_nodes: 'yarn_client_nodes'
+    node_manager_live_nodes: 'node_manager_live_nodes',
+    yarn_client_nodes: 'yarn_client_nodes',
+    //resource_manager_start_time: 'resourceManagerComponent.ServiceComponentInfo.StartTime',
+    //jvm_memory_heap_used: 'resourceManagerComponent.host_components[0].metrics.jvm.memHeapUsedM',
+    //jvm_memory_heap_committed: 'resourceManagerComponent.host_components[0].metrics.jvm.memHeapCommittedM',
+    containers_allocated: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.yarn.Queue.AllocatedContainers',
+    containers_pending: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.yarn.Queue.PendingContainers',
+    //containers_reserved: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.yarn.Queue.ReservedContainers',
+    apps_submitted: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.yarn.Queue.AppsSubmitted',
+    apps_running: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.yarn.Queue.AppsRunning',
+    apps_pending: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.yarn.Queue.AppsPending',
+    apps_completed: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.yarn.Queue.AppsCompleted',
+    //apps_killed: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.yarn.Queue.AppsKilled',
+    //apps_failed: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.yarn.Queue.AppsFailed',
+    node_managers_count_active: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.activeNMcount',
+    node_managers_count_lost: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.lostNMcount',
+    node_managers_count_unhealthy: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.unhealthyNMcount',
+    node_managers_count_rebooted: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.rebootedNMcount',
+    node_managers_count_decommissioned: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.decommissionedNMcount'
   },
   mapReduce2Config: {
     version: 'jobHistoryServerComponent.ServiceComponentInfo.Version',
@@ -305,6 +323,17 @@ App.servicesMapper = App.QuickDataMapper.create({
     item.components.forEach(function (component) {
       if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "RESOURCEMANAGER") {
         item.resourceManagerComponent = component;
+        //live nodes calculation
+        var nmList = App.parseJSON(component.ServiceComponentInfo.rm_metrics.cluster.nodeManagers)
+        nmList.forEach(function (nm) {
+          if (nm.State === "RUNNING") {
+            if (!item.node_manager_live_nodes) {
+              item.node_manager_live_nodes = [];
+            }
+            item.node_manager_live_nodes.push(nm.HostName);
+          }
+        });
+        // extend config
         finalConfig = jQuery.extend(finalConfig, yarnConfig);
       }
       if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "NODEMANAGER") {
