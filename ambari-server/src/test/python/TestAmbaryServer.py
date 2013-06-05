@@ -1196,12 +1196,19 @@ class TestAmbariServer(TestCase):
       "java.home=/usr/jdk64/jdk1.6.0_31\n",
       "server.os_type=redhat6\n"]
 
+    NEW_PROPERTY = 'some_new_property=some_value\n'
+    CHANGED_VALUE_PROPERTY = 'server.os_type=should_not_overwrite_value\n'
+
     get_conf_dir_mock.return_value = ""
 
     tf1 = tempfile.NamedTemporaryFile()
     tf2 = tempfile.NamedTemporaryFile()
     ambari_server.AMBARI_PROPERTIES_RPMSAVE_FILE = tf1.name
     ambari_server.AMBARI_PROPERTIES_FILE = tf2.name
+
+    with open(ambari_server.AMBARI_PROPERTIES_FILE, "w") as f:
+      f.write(NEW_PROPERTY)
+      f.write(CHANGED_VALUE_PROPERTY)
 
     with open(ambari_server.AMBARI_PROPERTIES_RPMSAVE_FILE, 'w') as f:
       for line in properties:
@@ -1216,6 +1223,12 @@ class TestAmbariServer(TestCase):
     for line in properties:
       if not line in ambari_properties_content:
         self.fail()
+
+    if not NEW_PROPERTY in ambari_properties_content:
+      self.fail()
+
+    if CHANGED_VALUE_PROPERTY in ambari_properties_content:
+      self.fail()
 
     pass
 

@@ -798,11 +798,6 @@ def update_ambari_properties():
   old_properties = None
   new_properties = None
 
-  prop_dict = {JDBC_USER_NAME_PROPERTY : None,
-               JDBC_PASSWORD_FILE_PROPERTY : None,
-               JAVA_HOME_PROPERTY : None,
-               OS_TYPE_PROPERTY : None}
-
   try:
     old_properties = Properties()
     old_properties.load(open(prev_conf_file))
@@ -810,18 +805,12 @@ def update_ambari_properties():
     print 'Could not read "%s": %s' % (prev_conf_file, e)
     return -1
 
-  for prop_key in prop_dict.keys():
-    value = old_properties.get_property(prop_key)
-    if value:
-      prop_dict[prop_key] = value
-
   try:
     new_properties = Properties()
     new_properties.load(open(conf_file))
 
-    for prop_key,prop_value in prop_dict.items():
-      if not prop_value is None:
-        new_properties.process_pair(prop_key,prop_value)
+    for prop_key, prop_value in old_properties.getPropertyDict().items():
+      new_properties.process_pair(prop_key,prop_value)
 
     new_properties.store(open(conf_file,'w'))
 
