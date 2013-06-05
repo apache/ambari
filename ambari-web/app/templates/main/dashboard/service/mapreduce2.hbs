@@ -17,14 +17,9 @@
 }}
 
 
-{{#unless view.showOnlyRows}}
-<div class="clearfix like_pointer" {{action toggleInfoView target="view"}}>
+<div class="clearfix">
   <div class="name span2">
-   {{#if view.isCollapsed}}
-    <i class="icon-caret-down pull-left"></i>
-   {{else}}
-    <i class="icon-caret-right pull-left"></i>
-   {{/if}}
+    <i class="pull-left icon-empty"></i>
     {{view App.MainDashboardServiceHealthView serviceBinding="view.service"}}
     <a {{action selectService view.service href=true}}>{{view.service.displayName}}</a>
     {{#if view.criticalAlertsCount}}
@@ -37,25 +32,3 @@
     {{view.titleInfo}}
   </div>
 </div>
-<div class="service-body">
-    <div class="span4">
-      <div class="dashboard-mini-chart span2">
-        {{#if view.service.quickLinks.length}}
-        {{#view App.QuickViewLinks contentBinding="view.service"}}
-          <div class="btn-group">
-            <a class="btn btn-mini dropdown-toggle" data-toggle="dropdown" href="#">
-              {{t common.quickLinks}}
-              <span class="caret"></span>
-            </a>
-            <ul class="dropdown-menu">
-              {{#each view.quickLinks}}
-                <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
-              {{/each}}
-            </ul>
-          </div>
-        {{/view}}
-        {{/if}}
-      </div>
-  </div>
-</div>
-{{/unless}}
