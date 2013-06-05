@@ -437,7 +437,47 @@ public class TestHeartbeatHandler {
     assertEquals(hostObject.getLastHeartbeatTime(),
         hostObject.getLastRegistrationTime());
   }
-  
+
+  @Test
+  public void testRegistrationWithBadVersion() throws AmbariException,
+      InvalidStateTransitionException {
+
+    ActionManager am = getMockActionManager();
+    Clusters fsm = clusters;
+    HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am,
+        injector);
+    clusters.addHost(DummyHostname1);
+    Host hostObject = clusters.getHost(DummyHostname1);
+    hostObject.setIPv4("ipv4");
+    hostObject.setIPv6("ipv6");
+
+    Register reg = new Register();
+    HostInfo hi = new HostInfo();
+    hi.setHostName(DummyHostname1);
+    hi.setOS(DummyOsType);
+    reg.setHostname(DummyHostname1);
+    reg.setHardwareProfile(hi);
+    reg.setAgentVersion(""); // Invalid agent version
+    try {
+      handler.handleRegistration(reg);
+      fail ("Expected failure for non compatible agent version");
+    } catch (AmbariException e) {
+      log.debug("Error:" + e.getMessage());
+      Assert.assertTrue(e.getMessage().contains(
+          "Cannot register host with non compatible agent version"));
+    }
+
+    reg.setAgentVersion(null); // Invalid agent version
+    try {
+      handler.handleRegistration(reg);
+      fail ("Expected failure for non compatible agent version");
+    } catch (AmbariException e) {
+      log.debug("Error:" + e.getMessage());
+      Assert.assertTrue(e.getMessage().contains(
+          "Cannot register host with non compatible agent version"));
+    }
+  }
+
   @Test
   public void testRegistrationPublicHostname() throws AmbariException, InvalidStateTransitionException {
     ActionManager am = getMockActionManager();
@@ -523,7 +563,6 @@ public class TestHeartbeatHandler {
       // Expected
     }
   }
-
 
   @Test
   public void testRegisterNewNode()

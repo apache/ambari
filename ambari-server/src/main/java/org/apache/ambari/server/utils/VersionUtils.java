@@ -32,7 +32,8 @@ public class VersionUtils {
    *                           0 to compare the whole version strings
    * @return 0 if both are equal up to the length compared, -1 if first one is lower, +1 otherwise
    */
-  public static int compareVersions(String version1, String version2, int maxLengthToCompare) {
+  public static int compareVersions(String version1, String version2, int maxLengthToCompare)
+    throws IllegalArgumentException {
     if (version1 == null || version1.isEmpty()) {
       throw new IllegalArgumentException("version1 cannot be null or empty");
     }
@@ -69,6 +70,42 @@ public class VersionUtils {
    *
    * @param version1
    * @param version2
+   * @param allowEmptyVersions Allow one or both version values to be null or empty string
+   * @return 0 if both are equal up to the length compared, -1 if first one is lower, +1 otherwise
+   */
+  public static int compareVersions(String version1, String version2, boolean allowEmptyVersions) {
+    if (allowEmptyVersions) {
+      if (version1 == null && version2 == null) {
+        return 0;
+      } else {
+        if (version1 == null) {
+          return -1;
+        }
+        if (version2 == null) {
+          return 1;
+        }
+      }
+
+      if (version1.isEmpty() && version2.isEmpty()) {
+        return 0;
+      } else {
+        if (version1.isEmpty()) {
+          return -1;
+        }
+        if (version2.isEmpty()) {
+          return 1;
+        }
+      }
+    }
+
+    return compareVersions(version1, version2, 0);
+  }
+
+  /**
+   * Compares two versions strings of the form N.N.N.N
+   *
+   * @param version1
+   * @param version2
    * @return 0 if both are equal, -1 if first one is lower, +1 otherwise
    */
   public static int compareVersions(String version1, String version2) {
@@ -76,26 +113,14 @@ public class VersionUtils {
   }
 
   /**
-   * Compares two version for equality
+   * Compares two version for equality, allows empty versions
    *
    * @param version1
    * @param version2
+   * @param allowEmptyVersions Allow one or both version values to be null or empty string
    * @return true if versions are equal; false otherwise
    */
-  public static boolean areVersionsEqual(String version1, String version2) {
-    return 0 == compareVersions(version1, version2, 0);
-  }
-
-  /**
-   * Checks if the two versions are compatible.
-   * TODO A relaxed check can be implemented where a server version is compatible to
-   * TODO more than one versions of agent and store.
-   *
-   * @param serverVersion The version of the server
-   * @param versionToCheck The version of the agent or the store
-   * @return true if the versions are compatible
-   */
-  public static boolean areVersionsCompatible(String serverVersion, String versionToCheck) {
-    return areVersionsEqual(serverVersion, versionToCheck);
+  public static boolean areVersionsEqual(String version1, String version2, boolean allowEmptyVersions) {
+    return 0 == compareVersions(version1, version2, allowEmptyVersions);
   }
 }

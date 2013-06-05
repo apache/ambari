@@ -392,7 +392,7 @@ public class HeartBeatHandler {
 
     String agentVersion = register.getAgentVersion();
     String serverVersion = ambariMetaInfo.getServerVersion();
-    if (!VersionUtils.areVersionsCompatible(serverVersion, agentVersion)) {
+    if (!VersionUtils.areVersionsEqual(serverVersion, agentVersion, true)) {
       LOG.warn("Received registration request from host with non compatible"
           + " agent version"
           + ", hostname=" + hostname
