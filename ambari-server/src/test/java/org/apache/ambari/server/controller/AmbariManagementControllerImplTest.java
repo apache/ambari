@@ -1738,6 +1738,7 @@ public class AmbariManagementControllerImplTest {
     final String CLUSTER_NAME = "c1";
     final String HDFS_SERVICE_CHECK_ROLE = "HDFS_SERVICE_CHECK";
     final String MAPREDUCE2_SERVICE_CHECK_ROLE = "MAPREDUCE2_SERVICE_CHECK";
+    final String YARN_SERVICE_CHECK_ROLE = "YARN_SERVICE_CHECK";
 
     Map<String,String> mapRequestProps = Collections.<String,String>emptyMap();
     Injector injector = Guice.createInjector(new AbstractModule() {
@@ -1773,6 +1774,7 @@ public class AmbariManagementControllerImplTest {
     Set<ServiceRequest> serviceRequests = new HashSet<ServiceRequest>();
     serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "HDFS", null, null));
     serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "MAPREDUCE2", null, null));
+    serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "YARN", null, null));
 
     amc.createServices(serviceRequests);
 
@@ -1781,6 +1783,8 @@ public class AmbariManagementControllerImplTest {
     serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "HDFS", "SECONDARY_NAMENODE", null, null));
     serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "HDFS", "DATANODE", null, null));
     serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "MAPREDUCE2", "HISTORYSERVER", null, null));
+    serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "YARN", "RESOURCEMANAGER", null, null));
+    serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "YARN", "NODEMANAGER", null, null));
 
     amc.createComponents(serviceComponentRequests);
 
@@ -1794,6 +1798,8 @@ public class AmbariManagementControllerImplTest {
     componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, null, "NAMENODE", HOST1, null, null));
     componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, null, "SECONDARY_NAMENODE", HOST1, null, null));
     componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, null, "HISTORYSERVER", HOST1, null, null));
+    componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, null, "RESOURCEMANAGER", HOST1, null, null));
+    componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, null, "NODEMANAGER", HOST1, null, null));
 
     amc.createHostComponents(componentHostRequests);
 
@@ -1801,6 +1807,8 @@ public class AmbariManagementControllerImplTest {
     serviceRequests.clear();
     serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "HDFS", null, State.INSTALLED.name()));
     serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "MAPREDUCE2", null, State.INSTALLED.name()));
+    serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "YARN", null, State.INSTALLED.name()));
+
     amc.updateServices(serviceRequests, mapRequestProps, true, false);
 
     Cluster cluster = clusters.getCluster(CLUSTER_NAME);
@@ -1823,6 +1831,8 @@ public class AmbariManagementControllerImplTest {
     serviceRequests.clear();
     serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "HDFS", null, State.STARTED.name()));
     serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "MAPREDUCE2", null, State.STARTED.name()));
+  serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "YARN", null, State.STARTED.name()));
+
     RequestStatusResponse response = amc.updateServices(serviceRequests,
       mapRequestProps, true, false);
 
@@ -1834,6 +1844,9 @@ public class AmbariManagementControllerImplTest {
     //Ensure that smoke test task was created for MAPREDUCE2
     assertEquals(1, mapreduce2SmokeTasks.size());
 
+    Collection<?> yarnSmokeTasks = CollectionUtils.select(response.getTasks(), new RolePredicate(YARN_SERVICE_CHECK_ROLE));
+    //Ensure that smoke test task was created for YARN
+    assertEquals(1, yarnSmokeTasks.size());
   }
 
   private class RolePredicate implements Predicate {
