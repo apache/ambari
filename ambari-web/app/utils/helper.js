@@ -348,6 +348,10 @@ App.format = {
         return 'Update Exclude File';
       case 'HUE_SERVER':
         return 'Hue Server';
+      case 'HCFS_CLIENT':
+        return 'HCFS Client';
+      case 'HCFS_SERVICE_CHECK':
+        return 'HCFS Service Check';
     }
   },
 

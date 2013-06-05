@@ -490,7 +490,7 @@ App.WizardController = Em.Controller.extend({
         var myService = Service.create({
           serviceName: entry.StackServices.service_name,
           displayName: displayOrderConfig[i].displayName,
-          isDisabled: i === 0,
+          isDisabled: displayOrderConfig[i].isDisabled,
           isSelected: displayOrderConfig[i].isSelected,
           canBeSelected: displayOrderConfig[i].canBeSelected,
           isInstalled: false,

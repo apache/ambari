@@ -21,7 +21,7 @@ var configs = [
     "name": "fs.default.name",
     "templateName": ["namenode_host"],
     "foreignKey": null,
-    "value": "hdfs://<templateName[0]>:8020",
+    "value": "<templateName[0]>",
     "filename": "core-site.xml"
   },
   {
@@ -679,7 +679,42 @@ var configs = [
     "foreignKey": null,
     "value": "/hbase-unsecure",
     "filename": "hbase-site.xml"
-  }
+  },
+  {
+    "name": "fs.glusterfs.impl",
+    "templateName": ["fs_glusterfs_impl"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "core-site.xml"
+  },
+  {
+    "name": "fs.glusterfs.volname",
+    "templateName": ["fs_glusterfs_volname"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "core-site.xml"
+  },
+  {
+    "name": "fs.glusterfs.mount",
+    "templateName": ["fs_glusterfs_mount"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "core-site.xml"
+  },
+  {
+    "name": "fs.glusterfs.server",
+    "templateName": ["fs_glusterfs_server"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "core-site.xml"
+  },
+  {
+    "name": "fs.glusterfs.automount",
+    "templateName": ["fs_glusterfs_automount"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "core-site.xml"
+  }  
 ];
 
 /**

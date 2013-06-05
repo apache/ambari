@@ -61,6 +61,16 @@ module.exports = [
         ]
       }),
       Ember.Object.create({
+        service_name: 'HCFS',
+        display_name: 'HCFS',
+        service_components: [
+          Ember.Object.create({
+            display_name: 'HCFS Client',
+            component_value: ''
+          })
+        ]
+      }),
+      Ember.Object.create({
         service_name: 'MAPREDUCE',
         display_name: 'MapReduce',
         service_components: [

@@ -88,6 +88,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     this.activateSpecialConfigs();
     this.set('selectedService', this.get('stepConfigs').filterProperty('showConfig', true).objectAt(0));
   },
+  
    /**
    * make some configs visible depending on active services
    */

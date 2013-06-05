@@ -414,6 +414,7 @@ App.config = Em.Object.create({
         serviceConfigProperty = App.ServiceConfigProperty.create(_config);
         this.updateHostOverrides(serviceConfigProperty, _config);
         serviceConfigProperty.initialValue(localDB);
+        this.tweakDynamicDefaults(localDB, serviceConfigProperty, _config);
         serviceConfigProperty.validate();
         configsByService.pushObject(serviceConfigProperty);
       }, this);
@@ -424,6 +425,26 @@ App.config = Em.Object.create({
     }, this);
     return renderedServiceConfigs;
   },
+  /**
+  Takes care of the "dynamic defaults" for the HCFS configs.  Sets
+  some of the config defaults to previously user-entered data.
+  **/ 
+  tweakDynamicDefaults: function (localDB, serviceConfigProperty, config) {
+    console.log("Step7: Tweaking Dynamic defaults");
+    var firstHost = null;
+    for(var host in localDB.hosts) {
+      firstHost = host;
+      break;
+    }
+    try {
+      if (typeof(config == "string") && config.defaultValue.indexOf("{firstHost}") >= 0) {
+        serviceConfigProperty.set('value', serviceConfigProperty.value.replace(new RegExp("{firstHost}"), firstHost));
+        serviceConfigProperty.set('defaultValue', serviceConfigProperty.defaultValue.replace(new RegExp("{firstHost}"), firstHost));
+      } 
+    } catch (err) {
+      // Nothing to worry about here, most likely trying indexOf on a non-string
+    }
+  },  
   /**
    * create new child configs from overrides, attach them to parent config
    * override - value of config, related to particular host(s)

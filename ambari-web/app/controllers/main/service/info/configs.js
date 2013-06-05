@@ -1124,7 +1124,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         }
       } else if (_serviceTags.siteName === 'core-site') {
         console.log("TRACE: Inside core-site");
-        if (this.get('content.serviceName') === 'HDFS') {
+        if (this.get('content.serviceName') === 'HDFS' || this.get('content.serviceName') === 'HCFS') {
           var coreSiteConfigs = this.createCoreSiteObj(_serviceTags.newTagName);
           siteNameToServerDataMap['core-site'] = coreSiteConfigs;
           if(this.isConfigChanged(App.config.loadedConfigurationsCache['core-site_'+this.loadedClusterSiteToTagMap['core-site']], coreSiteConfigs.properties)){
@@ -1534,8 +1534,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var serviceConfigs = this.get('serviceConfigs').findProperty('serviceName', serviceName).configs;
     //namenode_host is required to derive "fs.default.name" a property of core-site
     var nameNodeHost = this.get('serviceConfigs').findProperty('serviceName', 'HDFS').configs.findProperty('name', 'namenode_host');
-    nameNodeHost.defaultValue = App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'NAMENODE').get('host.hostName');
-    globalConfigs.push(nameNodeHost);
+    try {
+      nameNodeHost.defaultValue = App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'NAMENODE').get('host.hostName');
+      globalConfigs.push(nameNodeHost);
+    } catch (err) {
+      console.log("No NameNode Host available.  This is expected if you're using HCFS rather than HDFS.");
+    }
 
     //zooKeeperserver_host
     var zooKeperHost = this.get('serviceConfigs').findProperty('serviceName', 'ZOOKEEPER').configs.findProperty('name', 'zookeeperserver_hosts');

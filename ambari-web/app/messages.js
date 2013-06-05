@@ -184,6 +184,7 @@ Em.I18n.translations = {
   'services.nagios.description':'Nagios Monitoring and Alerting system',
   'services.ganglia.description':'Ganglia Metrics Collection system',
   'services.hdfs.description':'Apache Hadoop Distributed File System',
+  'services.hcfs.description':'Apache Hadoop Compatible File System (must be installed manually)',
   'services.mapreduce.description':'Apache Hadoop Distributed Processing Framework',
   'services.sqoop.description':'Tool for transferring bulk data between Apache Hadoop and structured data stores such as relational databases',
   'services.pig.description':'Scripting platform for analyzing large datasets',
@@ -341,6 +342,10 @@ Em.I18n.translations = {
 
   'installer.step4.header':'Choose Services',
   'installer.step4.body':'Choose which services you want to install on your cluster.',
+  'installer.step4.hdfsCheck.popup.header':'Hadoop File System Needed',
+  'installer.step4.hdfsCheck.popup.body':'You did not select HDFS or HCFS, but one is required.  We will automatically add HDFS.  Is this OK?',
+  'installer.step4.multipleDFS.popup.header':'Multiple File Systems Selected',
+  'installer.step4.multipleDFS.popup.body':'You selected more than one file system.  We will automatically select only HDFS.  Is this OK?',
   'installer.step4.mapreduceCheck.popup.header':'MapReduce Needed',
   'installer.step4.mapreduceCheck.popup.body':'You did not select MapReduce, but it is needed by other services you selected.  We will automatically add MapReduce.  Is this OK?',
   'installer.step4.monitoringCheck.popup.header':'Limited Functionality Warning',
