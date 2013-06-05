@@ -16,10 +16,9 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.controller.jmx;
+package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.controller.internal.PropertyInfo;
-import org.apache.ambari.server.controller.internal.ResourceImpl;
+import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -35,43 +34,43 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * JMXVersioningPropertyProvider Tests
+ * VersioningPropertyProvider Tests
  */
-public class JMXVersioningPropertyProviderTest {
+public class VersioningPropertyProviderTest {
   @Test
   public void testPopulateResources() throws Exception {
 
-    Map<String, PropertyHelper.JMXMetricsVersion> clusterVersionsMap =
-        new HashMap<String, PropertyHelper.JMXMetricsVersion>();
+    Map<String, PropertyHelper.MetricsVersion> clusterVersionsMap =
+        new HashMap<String, PropertyHelper.MetricsVersion>();
 
-    clusterVersionsMap.put("c1", PropertyHelper.JMXMetricsVersion.One);
-    clusterVersionsMap.put("c2", PropertyHelper.JMXMetricsVersion.Two);
+    clusterVersionsMap.put("c1", PropertyHelper.MetricsVersion.HDP1);
+    clusterVersionsMap.put("c2", PropertyHelper.MetricsVersion.HDP2);
 
-    Map<PropertyHelper.JMXMetricsVersion, JMXPropertyProvider> providers =
-        new HashMap<PropertyHelper.JMXMetricsVersion, JMXPropertyProvider>();
+    Map<PropertyHelper.MetricsVersion, AbstractPropertyProvider> providers =
+        new HashMap<PropertyHelper.MetricsVersion, AbstractPropertyProvider>();
 
     TestJMXPropertyProvider propertyProvider1 = new TestJMXPropertyProvider(
-        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.JMXMetricsVersion.One),
+        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP1),
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         PropertyHelper.getPropertyId("HostRoles", "host_name"),
         PropertyHelper.getPropertyId("HostRoles", "component_name"),
         PropertyHelper.getPropertyId("HostRoles", "state"),
         Collections.singleton("STARTED"));
-    providers.put(PropertyHelper.JMXMetricsVersion.One, propertyProvider1);
+    providers.put(PropertyHelper.MetricsVersion.HDP1, propertyProvider1);
 
 
     TestJMXPropertyProvider propertyProvider2 = new TestJMXPropertyProvider(
-        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.JMXMetricsVersion.One),
+        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP2),
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
         PropertyHelper.getPropertyId("HostRoles", "host_name"),
         PropertyHelper.getPropertyId("HostRoles", "component_name"),
         PropertyHelper.getPropertyId("HostRoles", "state"),
         Collections.singleton("STARTED"));
 
-    providers.put(PropertyHelper.JMXMetricsVersion.Two, propertyProvider2);
+    providers.put(PropertyHelper.MetricsVersion.HDP2, propertyProvider2);
 
 
-    JMXVersioningPropertyProvider provider = new JMXVersioningPropertyProvider(clusterVersionsMap, providers, PropertyHelper.getPropertyId("HostRoles", "cluster_name"));
+    VersioningPropertyProvider provider = new VersioningPropertyProvider(clusterVersionsMap, providers, PropertyHelper.getPropertyId("HostRoles", "cluster_name"));
 
 
     Request request = PropertyHelper.getReadRequest();

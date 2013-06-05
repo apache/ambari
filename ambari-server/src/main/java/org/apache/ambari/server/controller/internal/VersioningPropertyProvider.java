@@ -16,9 +16,8 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.controller.jmx;
+package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.controller.internal.BaseProvider;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
@@ -32,21 +31,21 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A JMX property manager that delegates to other JMX Property managers based on the
- * JMX metrics version of the cluster associated with the resources being populated.
+ * A property provider that delegates to other Property providers based on the
+ * metrics version of the cluster associated with the resources being populated.
  */
-public class JMXVersioningPropertyProvider extends BaseProvider implements PropertyProvider {
+public class VersioningPropertyProvider extends BaseProvider implements PropertyProvider {
 
-  private final Map<String, PropertyHelper.JMXMetricsVersion> clusterVersions;
-  private final Map<PropertyHelper.JMXMetricsVersion, JMXPropertyProvider> providers;
+  private final Map<String, PropertyHelper.MetricsVersion> clusterVersions;
+  private final Map<PropertyHelper.MetricsVersion, AbstractPropertyProvider> providers;
   private final String clusterNamePropertyId;
 
   /**
-   * Create a version aware JMX property provider.
+   * Create a version aware property provider.
    */
-  public JMXVersioningPropertyProvider(Map<String, PropertyHelper.JMXMetricsVersion> clusterVersions,
-                                       Map<PropertyHelper.JMXMetricsVersion, JMXPropertyProvider> providers,
-                                       String clusterNamePropertyId) {
+  public VersioningPropertyProvider(Map<String, PropertyHelper.MetricsVersion> clusterVersions,
+                                    Map<PropertyHelper.MetricsVersion, AbstractPropertyProvider> providers,
+                                    String clusterNamePropertyId) {
     super(getComponentMetrics(providers));
 
     this.clusterVersions       = clusterVersions;
@@ -75,17 +74,17 @@ public class JMXVersioningPropertyProvider extends BaseProvider implements Prope
       resourceSet.add(resource);
     }
 
-    // give each set of resources to the underlying JMX provider that matches the
-    // JMX metrics version of the associated cluster
+    // give each set of resources to the underlying provider that matches the
+    // metrics version of the associated cluster
     for (Map.Entry<String, Set<Resource>> entry : resourcesByCluster.entrySet()) {
       String clusterName = entry.getKey();
       Set<Resource> resourceSet = entry.getValue();
 
-      PropertyHelper.JMXMetricsVersion version = clusterVersions.get(clusterName);
+      PropertyHelper.MetricsVersion version = clusterVersions.get(clusterName);
 
       if (version != null) {
 
-        JMXPropertyProvider provider = providers.get(version);
+        AbstractPropertyProvider provider = providers.get(version);
         if (provider != null) {
           keepers.addAll(provider.populateResources(resourceSet, request, predicate));
         }
@@ -96,11 +95,11 @@ public class JMXVersioningPropertyProvider extends BaseProvider implements Prope
 
   // ----- helper methods ----------------------------------------------------
 
-  private static Set<String> getComponentMetrics(Map<PropertyHelper.JMXMetricsVersion, JMXPropertyProvider> providers) {
+  private static Set<String> getComponentMetrics(Map<PropertyHelper.MetricsVersion, AbstractPropertyProvider> providers) {
 
     Set<String> propertyIds = new HashSet<String>();
 
-    for (JMXPropertyProvider provider : providers.values()) {
+    for (AbstractPropertyProvider provider : providers.values()) {
       propertyIds.addAll(provider.getPropertyIds());
     }
     return propertyIds;

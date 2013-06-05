@@ -49,7 +49,7 @@ public class PropertyHelperTest {
   public void testGetJMXPropertyIds() {
 
     //version 1
-    Map<String, Map<String, PropertyInfo>> metrics = PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.JMXMetricsVersion.One);
+    Map<String, Map<String, PropertyInfo>> metrics = PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP1);
     Map<String, PropertyInfo> componentMetrics = metrics.get("HISTORYSERVER");
     Assert.assertNull(componentMetrics);
     componentMetrics = metrics.get("NAMENODE");
@@ -59,7 +59,7 @@ public class PropertyHelperTest {
     Assert.assertEquals("Hadoop:service=NameNode,name=jvm.memHeapUsedM", info.getPropertyId());
 
     //version 2
-    metrics = PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.JMXMetricsVersion.Two);
+    metrics = PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP2);
     componentMetrics = metrics.get("HISTORYSERVER");
     Assert.assertNotNull(componentMetrics);
     componentMetrics = metrics.get("NAMENODE");
