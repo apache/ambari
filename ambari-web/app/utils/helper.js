@@ -324,6 +324,8 @@ App.format = {
         return 'Pig';
       case 'PIG_SERVICE_CHECK':
         return 'Pig Check';
+      case 'MAPREDUCE2_SERVICE_CHECK':
+        return 'MapReduce2 Check';
       case 'SQOOP':
         return 'Sqoop';
       case 'SQOOP_SERVICE_CHECK':
