@@ -55,8 +55,8 @@
       <span class="task-detail-log-rolename" >{{{view.openedTask.role}} {{view.openedTask.command}}</span>
     </div>
     <div class="task-detail-ico-wrap">
-      <div title="Click to Copy" {{action "textTrigger" taskInfo target="view"}} class="task-detail-copy"><i class="icon-copy"></i> {{t common.copy}}</div>
-      <div title="Open in New Window" {{action openTaskLogInDialog}} class="task-detail-open-dialog"><i class="icon-external-link"></i> {{t common.open}}</div>
+      <a title="Click to Copy" {{action "textTrigger" taskInfo target="view"}} class="task-detail-copy"><i class="icon-copy"></i> {{t common.copy}}</a>
+      <a title="Open in New Window" {{action openTaskLogInDialog}} class="task-detail-open-dialog"><i class="icon-external-link"></i> {{t common.open}}</a>
     </div>
   </div>
   <div class="task-detail-log-info">
