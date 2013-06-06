@@ -20,11 +20,6 @@
 #
 class hdp-nagios::params() inherits hdp::params
 {   
-  $nagios_default_user = "nagios"
-  $nagios_default_group = "nagios"
-  $nagios_user = hdp_default("nagios_user", $nagios_default_user)
-  $nagios_group = hdp_default("nagios_group",$nagios_default_group)
-  
   $conf_dir = hdp_default("nagios_conf_dir","/etc/nagios")
 
   if hdp_is_empty($hdp::params::services_names[httpd]) {

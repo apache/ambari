@@ -164,6 +164,11 @@ class hdp::params()
   ############ users
   $user_info = hdp_default("user_info",{})
 
+  $nagios_default_user = "nagios"
+  $nagios_default_group = "nagios"
+  $nagios_user = hdp_default("nagios_user", $nagios_default_user)
+  $nagios_group = hdp_default("nagios_group",$nagios_default_group)
+
   $hdfs_user = hdp_default("hdfs_user","hdfs")
   $mapred_user = hdp_default("mapred_user","mapred")
   $yarn_user = hdp_default("yarn_user","yarn")

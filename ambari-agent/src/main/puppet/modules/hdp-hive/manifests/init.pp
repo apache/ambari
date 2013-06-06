@@ -74,9 +74,7 @@ class hdp-hive(
     if ($server == true ) {
       class { 'hdp-hive::jdbc-connector': }
     }
-  
-    hdp::user{ $hive_user:}
-  
+
     hdp::directory_recursive_create { $hive_config_dir:
       service_state => $service_state,
       force => true,
@@ -90,11 +88,11 @@ class hdp-hive(
 
     hdp-hive::ownership { 'ownership': config_dir => $hive_config_dir }
   
-    Anchor['hdp-hive::begin'] -> Hdp::Package['hive'] -> Hdp::User[$hive_user] ->  
+    Anchor['hdp-hive::begin'] -> Hdp::Package['hive'] -> 
      Hdp::Directory_recursive_create[$hive_config_dir] -> Hdp-hive::Configfile<||> -> Hdp-hive::Ownership['ownership'] -> Anchor['hdp-hive::end']
 
      if ($server == true ) {
-       Hdp::Package['hive'] -> Hdp::User[$hive_user] -> Class['hdp-hive::jdbc-connector'] -> Anchor['hdp-hive::end']
+       Hdp::Package['hive'] -> Class['hdp-hive::jdbc-connector'] -> Anchor['hdp-hive::end']
     }
   }
 }
