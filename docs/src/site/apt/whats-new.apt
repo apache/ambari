@@ -16,7 +16,7 @@
 
 What's New with Ambari?
 
- * Upcoming 1.2.3 release features the following:
+ * The current 1.2.3 release features the following:
 
    * Improved general stability
 
@@ -54,7 +54,7 @@ What's New with Ambari?
 
    * A wizard to configure and manage a secure cluster via Kerberos
 
-   * Support for configuring and running Ambari Web Server https
+   * Support for configuring and running Ambari Web Server via https
 
    * Run Ambari Server as a non-root user
 
