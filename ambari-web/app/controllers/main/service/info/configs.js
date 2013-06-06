@@ -1473,6 +1473,22 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         jobTrackerHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'JOBTRACKER').get('host.hostName');
         globalConfigs.push(jobTrackerHost);
         break;
+      case 'MAPREDUCE2':
+        var historyServerHost = serviceConfigs.findProperty('name', 'hs_host');
+        historyServerHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'HISTORYSERVER').get('host.hostName');
+        globalConfigs.push(historyServerHost);
+        break;
+      case 'YARN':
+        var resourceManagerHost = serviceConfigs.findProperty('name', 'rm_host');
+        resourceManagerHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'RESOURCEMANAGER').get('host.hostName');
+        globalConfigs.push(resourceManagerHost);
+        //yarn.log.server.url config dependent on HistoryServer host
+        if(App.HostComponent.find().someProperty('componentName', 'HISTORYSERVER')){
+          historyServerHost = this.get('serviceConfigs').findProperty('serviceName', 'MAPREDUCE2').configs.findProperty('name', 'hs_host');
+          historyServerHost.defaultValue = App.HostComponent.find().findProperty('componentName', 'HISTORYSERVER').get('host.hostName');
+          globalConfigs.push(historyServerHost);
+        }
+        break;
       case 'HIVE':
         var hiveMetastoreHost = serviceConfigs.findProperty('name', 'hivemetastore_host');
         hiveMetastoreHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'HIVE_SERVER').get('host.hostName');
