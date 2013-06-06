@@ -31,7 +31,7 @@ App.ChartServiceMetricsYARN_RPC = App.ChartLinearTimeView.extend({
   title: Em.I18n.t('services.service.info.metrics.mapreduce.rpc'),
   yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
 
-  ajaxIndex: 'service.metrics.mapreduce.rpc',
+  ajaxIndex: 'service.metrics.yarn.rpc',
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

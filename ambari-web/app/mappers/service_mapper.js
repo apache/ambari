@@ -323,8 +323,11 @@ App.servicesMapper = App.QuickDataMapper.create({
     item.components.forEach(function (component) {
       if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "RESOURCEMANAGER") {
         item.resourceManagerComponent = component;
-        //live nodes calculation
-        var nmList = App.parseJSON(component.ServiceComponentInfo.rm_metrics.cluster.nodeManagers)
+        // live nodes calculation
+        var nmList = [];
+        if (component.ServiceComponentInfo.rm_metrics && component.ServiceComponentInfo.rm_metrics.cluster && component.ServiceComponentInfo.rm_metrics.cluster.nodeManagers) {
+          nmList = App.parseJSON(component.ServiceComponentInfo.rm_metrics.cluster.nodeManagers);
+        }
         nmList.forEach(function (nm) {
           if (nm.State === "RUNNING") {
             if (!item.node_manager_live_nodes) {
@@ -359,7 +362,7 @@ App.servicesMapper = App.QuickDataMapper.create({
     });
     // Map
     var finalJson = this.parseIt(item, finalConfig);
-    finalJson.quick_links = [19, 20, 21, 22];
+    finalJson.quick_links = [ 19, 20, 21, 22 ];
 
     return finalJson;
   },

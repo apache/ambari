@@ -31,7 +31,7 @@ App.ChartServiceMetricsYARN_JVMThreads = App.ChartLinearTimeView.extend({
   title: Em.I18n.t('services.service.info.metrics.mapreduce.jvmThreads'),
   renderer: 'line',
 
-  ajaxIndex: 'service.metrics.mapreduce.jobs_threads',
+  ajaxIndex: 'service.metrics.yarn.jobs_threads',
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

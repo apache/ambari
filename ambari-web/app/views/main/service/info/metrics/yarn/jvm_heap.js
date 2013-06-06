@@ -32,7 +32,7 @@ App.ChartServiceMetricsYARN_JVMHeap = App.ChartLinearTimeView.extend({
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
 
-  ajaxIndex: 'service.metrics.mapreduce.jobs_heap',
+  ajaxIndex: 'service.metrics.yarn.jobs_heap',
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];
