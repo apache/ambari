@@ -102,7 +102,8 @@ and then apply it to the cluster:
       "Clusters": {
         "desired_config": {
           "type": "core-site",
-          "tag": "version2",
+          "tag": "version2"
+        }
       }
     }
 
@@ -118,6 +119,7 @@ The other, more efficient way is to create and apply a configuration on a cluste
             "a": "b",
             /* etc */
           }
+        }
       }
     }
     
