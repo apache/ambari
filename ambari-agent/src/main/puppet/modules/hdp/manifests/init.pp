@@ -121,6 +121,52 @@ class hdp(
     lzo_needed   => false
   }
 
+    anchor{'hdp::begin':}
+    anchor{'hdp::end':}
+
+    ##Create all users for all components presents in cluster
+    if ($hdp::params::hbase_master_hosts != "") {
+      hdp::user{ $hdp::params::hbase_user:
+        groups => [$hdp::params::user_group]
+      }
+
+      Anchor['hdp::begin'] -> Group[$hdp::params::user_group] -> Hdp::User[$hdp::params::hbase_user] -> Anchor['hdp::end']       
+    }
+    
+    if ($hdp::params::nagios_server_host != "") {
+      group {$hdp::params::nagios_group:
+        ensure => present
+      }
+
+      hdp::user{ $hdp::params::nagios_user:
+        gid => $hdp::params::nagios_group
+      }
+
+      Anchor['hdp::begin'] -> Group[$hdp::params::nagios_group] -> Hdp::User[$hdp::params::nagios_user] -> Anchor['hdp::end']
+    }
+
+    if ($hdp::params::oozie_server != "") {
+      hdp::user{ $hdp::params::oozie_user:}
+
+      Anchor['hdp::begin'] -> Group[$hdp::params::user_group] -> Hdp::User[$hdp::params::oozie_user] -> Anchor['hdp::end']  
+    }
+
+    if ($hdp::params::hcat_server_host != "") {
+      hdp::user{ $hdp::params::webhcat_user:}
+
+      if ($hdp::params::webhcat_user != $hdp::params::hcat_user) {
+        hdp::user { $hdp::params::hcat_user:}
+      }
+
+      Anchor['hdp::begin'] -> Group[$hdp::params::user_group] -> Hdp::User<|title == $webhcat_user or title == $hcat_user|> -> Anchor['hdp::end'] 
+    }
+
+    if ($hdp::params::hive_server_host != "") {
+      hdp::user{ $hdp::params::hive_user:}
+
+      Anchor['hdp::begin'] -> Group[$hdp::params::user_group] -> Hdp::User[$hdp::params::hive_user] -> Anchor['hdp::end']  
+    }
+
 }
 
 class hdp::pre_install_pkgs

@@ -75,7 +75,7 @@ class hdp-oozie(
       class { 'hdp-oozie::download-ext-zip': }
     }
 
-     hdp::user{ $oozie_user:}
+     
 
      hdp::directory { $oozie_config_dir: 
        service_state => $service_state,
@@ -89,10 +89,10 @@ class hdp-oozie(
 
      hdp-oozie::ownership { 'ownership': }
 
-    anchor { 'hdp-oozie::begin': } -> Hdp::Package['oozie-client'] -> Hdp::User[$oozie_user] -> Hdp::Directory[$oozie_config_dir] -> Hdp-oozie::Configfile<||> -> Hdp-oozie::Ownership['ownership'] -> anchor { 'hdp-oozie::end': }
+    anchor { 'hdp-oozie::begin': } -> Hdp::Package['oozie-client'] -> Hdp::Directory[$oozie_config_dir] -> Hdp-oozie::Configfile<||> -> Hdp-oozie::Ownership['ownership'] -> anchor { 'hdp-oozie::end': }
 
      if ($server == true ) { 
-       Hdp::Package['oozie-server'] -> Hdp::Package['oozie-client'] -> Hdp::User[$oozie_user] ->   Class['hdp-oozie::download-ext-zip'] ->  Anchor['hdp-oozie::end']
+       Hdp::Package['oozie-server'] -> Hdp::Package['oozie-client'] -> Class['hdp-oozie::download-ext-zip'] ->  Anchor['hdp-oozie::end']
      }
  }
 }

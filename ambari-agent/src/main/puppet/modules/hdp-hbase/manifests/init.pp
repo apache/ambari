@@ -82,10 +82,6 @@ class hdp-hbase(
   } else {  
     hdp::package { 'hbase': }
   
-    hdp::user{ $hbase_user:
-      groups => [$hdp::params::user_group]
-    }
- 
     hdp::directory { $config_dir: 
       service_state => $service_state,
       force => true,
@@ -110,7 +106,7 @@ class hdp-hbase(
       }
     }
 
-    Anchor['hdp-hbase::begin'] -> Hdp::Package['hbase'] -> Hdp::User[$hbase_user] -> Hdp::Directory[$config_dir] -> 
+    Anchor['hdp-hbase::begin'] -> Hdp::Package['hbase'] -> Hdp::Directory[$config_dir] -> 
     Hdp-hbase::Configfile<||> ->  Anchor['hdp-hbase::end']
   }
 }
