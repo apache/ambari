@@ -427,6 +427,9 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'directories':
         return App.ServiceConfigTextArea;
         break;
+      case 'multiLine':
+        return App.ServiceConfigTextArea;
+        break;
       case 'custom':
         return App.ServiceConfigBigTextArea;
       case 'masterHost':

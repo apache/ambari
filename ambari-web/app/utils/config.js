@@ -194,7 +194,7 @@ App.config = Em.Object.create({
         } else if (!this.get('configMapping').computed().someProperty('name', index)) {
           isAdvanced = advancedConfigs.someProperty('name', index);
           serviceConfigObj.id = 'site property';
-          serviceConfigObj.displayType = 'advanced';
+          serviceConfigObj.displayType = stringUtils.isSingleLine(serviceConfigObj.value) ? 'advanced' : 'multiLine';
           serviceConfigObj.displayName = configsPropertyDef ? configsPropertyDef.displayName : index;
           this.calculateConfigProperties(serviceConfigObj, isAdvanced, advancedConfigs);
           configs.push(serviceConfigObj);
@@ -245,7 +245,7 @@ App.config = Em.Object.create({
           serviceName: stored.serviceName,
           value: stored.value,
           defaultValue: stored.defaultValue,
-          displayType: "advanced",
+          displayType: stringUtils.isSingleLine(stored.value) ? 'advanced' : 'multiLine',
           filename: stored.filename,
           category: 'Advanced',
           isUserProperty: stored.isUserProperty === true,

@@ -18,6 +18,7 @@
 
 var App = require('app');
 var validator = require('utils/validator');
+var stringUtils = require('utils/string_utils');
 
 App.ServicesConfigView = Em.View.extend({
   templateName: require('templates/common/configs/services_config'),
@@ -220,7 +221,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
     if (categoryMetaData != null) {
       serviceConfigObj.filename = categoryMetaData.siteFileName;
     }
-    
+
     var self = this;
     App.ModalPopup.show({
       // classNames: ['big-modal'],
@@ -237,6 +238,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
           serviceConfigObj.displayName = serviceConfigObj.name;
           serviceConfigObj.id = 'site property';
           serviceConfigObj.serviceName = serviceName;
+          serviceConfigObj.displayType = stringUtils.isSingleLine(serviceConfigObj.get('value')) ? 'advanced' : 'multiLine';
           var serviceConfigProperty = App.ServiceConfigProperty.create(serviceConfigObj);
           self.get('controller.secureConfigs').filterProperty('filename',self.get('category.siteFileName')).forEach(function(_secureConfig){
             if(_secureConfig.name === serviceConfigProperty.get('name')) {
@@ -258,7 +260,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
     });
 
   },
-  
+
   /**
    * Removes the top-level property from list of properties.
    * Should be only called on user properties.

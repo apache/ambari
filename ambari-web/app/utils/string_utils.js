@@ -101,5 +101,9 @@ module.exports = {
       i++;
     }
     return result;
+  },
+
+  isSingleLine: function(string){
+    return string.trim().indexOf("\n") == -1;
   }
 }
