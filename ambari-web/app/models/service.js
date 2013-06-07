@@ -30,17 +30,7 @@ App.Service = DS.Model.extend({
   hostComponents: DS.hasMany('App.HostComponent'),
   serviceConfigsTemplate: App.config.get('preDefinedServiceConfigs'),
   runningHostComponents: null,
-  isStartDisabled: function () {
-    if(this.get('isPending')) return true;
-    return !(this.get('healthStatus') == 'red');
-  }.property('healthStatus','isPending'),
 
-  isStopDisabled: function () {
-    if(this.get('isPending')) return true;
-    return !(this.get('healthStatus') == 'green');
-  }.property('healthStatus','isPending'),
-
-  isPending:true,
   // Instead of making healthStatus a computed property that listens on hostComponents.@each.workStatus,
   // we are creating a separate observer _updateHealthStatus.  This is so that healthStatus is updated
   // only once after the run loop.  This is because Ember invokes the computed property every time

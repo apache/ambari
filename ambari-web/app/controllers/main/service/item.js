@@ -89,7 +89,7 @@ App.MainServiceItemController = Em.Controller.extend({
     }
     var self = this;
     App.showConfirmationPopup(function() {
-      self.set('content.isPending', true);
+      self.set('isPending', true);
       self.startStopPopupPrimary(serviceHealth);
     });
   },
@@ -112,8 +112,8 @@ App.MainServiceItemController = Em.Controller.extend({
         'state': serviceHealth
       }
     });
-    this.set('content.isStopDisabled',true);
-    this.set('content.isStartDisabled',true);
+    this.set('isStopDisabled',true);
+    this.set('isStartDisabled',true);
   },
 
   /**
@@ -222,27 +222,40 @@ App.MainServiceItemController = Em.Controller.extend({
     setStartStopState: function () {
         var serviceName = this.get('content.serviceName');
         var backgroundOperations = App.router.get('backgroundOperationsController.services');
-        if (backgroundOperations.length > 0) {
-            this.set('content.isPending', false);
-            backgroundOperations.forEach(function (services) {
-                services.hosts.forEach(function (hosts) {
-                    hosts.logTasks.forEach(function (logTasks) {
-                        var service = service_components.findProperty('component_name', logTasks.Tasks.role);
-                        if (service) {
-                            if (serviceName == service.service_name) {
-                                if (logTasks.Tasks.status == 'PENDING' || logTasks.Tasks.status == 'IN_PROGRESS') {
-                                    this.set('content.isPending', true);
-                                    return true;
-                                }
+        if(backgroundOperations.length>0) {
+            for (var i = 0; i < backgroundOperations.length; i++) {
+                var hosts = backgroundOperations[i].hosts;
+                for (var j = 0; j < hosts.length; j++) {
+                    var logTasks = hosts[j].logTasks;
+                    for (var k = 0; k < logTasks.length; k++) {
+                        var service = service_components.findProperty('component_name', logTasks[k].Tasks.role);
+                        if (service && serviceName == service.service_name) {
+                            if (logTasks[k].Tasks.status == 'PENDING' || logTasks[k].Tasks.status == 'IN_PROGRESS' || logTasks[k].Tasks.status == 'QUEUED') {
+                                this.set('isPending', true);
+                                return;
                             }
                         }
-                    }, this)
-                }, this)
-            }, this)
+                    }
+                }
+            }
+            this.set('isPending', false);
         }
         else {
-            this.set('content.isPending', true);
+            this.set('isPending', true);
         }
-    }.observes('App.router.backgroundOperationsController.serviceTimestamp')
+
+    }.observes('App.router.backgroundOperationsController.serviceTimestamp'),
+
+  isStartDisabled: function () {
+    if(this.get('isPending')) return true;
+    return !(this.get('content.healthStatus') == 'red');
+  }.property('content.healthStatus','isPending'),
+
+  isStopDisabled: function () {
+    if(this.get('isPending')) return true;
+    return !(this.get('content.healthStatus') == 'green');
+  }.property('content.healthStatus','isPending'),
+
+  isPending:true
 
 })
