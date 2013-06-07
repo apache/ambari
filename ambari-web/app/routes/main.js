@@ -685,7 +685,7 @@ module.exports = Em.Route.extend({
       disableSecurity: Ember.Route.extend({
         route: '/disableSecurity',
         enter: function (router) {
-          if (router.get('mainAdminSecurityController').getAddSecurityWizardStatus() === 'RUNNING') {
+          if (router.get('mainAdminSecurityController').getDisableSecurityStatus() === 'RUNNING') {
           Ember.run.next(function () {
             App.router.get('updateController').set('isWorking', false);
             App.ModalPopup.show({
