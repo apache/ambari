@@ -6543,22 +6543,22 @@
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcQueueTimeNumOps":{
+      "metrics/rpc/RpcQueueTime_num_ops":{
         "metric":"rpc.rpc.RpcQueueTimeNumOps",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcQueueTimeAvgTime":{
+      "metrics/rpc/RpcQueueTime_avg_time":{
         "metric":"rpc.rpc.RpcQueueTimeAvgTime",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcProcessingTimeNumOps":{
+      "metrics/rpc/RpcProcessingTime_num_ops":{
         "metric":"rpc.rpc.RpcProcessingTimeNumOps",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcProcessingTimeAvgTime":{
+      "metrics/rpc/RpcProcessingTime_avg_time":{
         "metric":"rpc.rpc.RpcProcessingTimeAvgTime",
         "pointInTime":false,
         "temporal":true
@@ -6573,7 +6573,7 @@
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/CallQueueLength":{
+      "metrics/rpc/CallQueueLen":{
         "metric":"rpc.rpc.CallQueueLength",
         "pointInTime":false,
         "temporal":true
@@ -6987,22 +6987,22 @@
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcQueueTimeNumOps":{
+      "metrics/rpc/RpcQueueTime_num_ops":{
         "metric":"rpc.rpc.RpcQueueTimeNumOps",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcQueueTimeAvgTime":{
+      "metrics/rpc/RpcQueueTime_avg_time":{
         "metric":"rpc.rpc.RpcQueueTimeAvgTime",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcProcessingTimeNumOps":{
+      "metrics/rpc/RpcProcessingTime_num_ops":{
         "metric":"rpc.rpc.RpcProcessingTimeNumOps",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcProcessingTimeAvgTime":{
+      "metrics/rpc/RpcProcessingTime_avg_time":{
         "metric":"rpc.rpc.RpcProcessingTimeAvgTime",
         "pointInTime":false,
         "temporal":true
@@ -7032,7 +7032,7 @@
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/CallQueueLength":{
+      "metrics/rpc/CallQueueLen":{
         "metric":"rpc.rpc.CallQueueLength",
         "pointInTime":false,
         "temporal":true
@@ -7282,22 +7282,22 @@
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcQueueTimeNumOps":{
+      "metrics/rpc/RpcQueueTime_num_ops":{
         "metric":"rpc.rpc.RpcQueueTimeNumOps",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcQueueTimeAvgTime":{
+      "metrics/rpc/RpcQueueTime_avg_time":{
         "metric":"rpc.rpc.RpcQueueTimeAvgTime",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcProcessingTimeNumOps":{
+      "metrics/rpc/RpcProcessingTime_num_ops":{
         "metric":"rpc.rpc.RpcProcessingTimeNumOps",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcProcessingTimeAvgTime":{
+      "metrics/rpc/RpcProcessingTime_avg_time":{
         "metric":"rpc.rpc.RpcProcessingTimeAvgTime",
         "pointInTime":false,
         "temporal":true
@@ -7327,7 +7327,7 @@
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/CallQueueLength":{
+      "metrics/rpc/CallQueueLen":{
         "metric":"rpc.rpc.CallQueueLength",
         "pointInTime":false,
         "temporal":true
@@ -16663,22 +16663,22 @@
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcQueueTimeNumOps":{
+      "metrics/rpc/RpcQueueTime_num_ops":{
         "metric":"rpc.rpc.RpcQueueTimeNumOps",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcQueueTimeAvgTime":{
+      "metrics/rpc/RpcQueueTime_avg_time":{
         "metric":"rpc.rpc.RpcQueueTimeAvgTime",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcProcessingTimeNumOps":{
+      "metrics/rpc/RpcProcessingTime_num_ops":{
         "metric":"rpc.rpc.RpcProcessingTimeNumOps",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcProcessingTimeAvgTime":{
+      "metrics/rpc/RpcProcessingTime_avg_time":{
         "metric":"rpc.rpc.RpcProcessingTimeAvgTime",
         "pointInTime":false,
         "temporal":true
@@ -16693,7 +16693,7 @@
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/CallQueueLength":{
+      "metrics/rpc/CallQueueLen":{
         "metric":"rpc.rpc.CallQueueLength",
         "pointInTime":false,
         "temporal":true
@@ -17107,22 +17107,22 @@
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcQueueTimeNumOps":{
+      "metrics/rpc/RpcQueueTime_num_ops":{
         "metric":"rpc.rpc.RpcQueueTimeNumOps",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcQueueTimeAvgTime":{
+      "metrics/rpc/RpcQueueTime_avg_time":{
         "metric":"rpc.rpc.RpcQueueTimeAvgTime",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcProcessingTimeNumOps":{
+      "metrics/rpc/RpcProcessingTime_num_ops":{
         "metric":"rpc.rpc.RpcProcessingTimeNumOps",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcProcessingTimeAvgTime":{
+      "metrics/rpc/RpcProcessingTime_avg_time":{
         "metric":"rpc.rpc.RpcProcessingTimeAvgTime",
         "pointInTime":false,
         "temporal":true
@@ -17152,7 +17152,7 @@
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/CallQueueLength":{
+      "metrics/rpc/CallQueueLen":{
         "metric":"rpc.rpc.CallQueueLength",
         "pointInTime":false,
         "temporal":true
