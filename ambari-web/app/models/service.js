@@ -58,12 +58,12 @@ App.Service = DS.Model.extend({
 
     if (isGreen) {
       this.set('healthStatus', 'green');
+    } else if (components.someProperty('workStatus', App.HostComponentStatus.unknown)) {
+      this.set('healthStatus', 'yellow');
     } else if (components.someProperty('workStatus', App.HostComponentStatus.starting)) {
       this.set('healthStatus', 'green-blinking');
     } else if (components.someProperty('workStatus', App.HostComponentStatus.stopped)) {
       this.set('healthStatus', 'red');
-    } else if (components.someProperty('workStatus', App.HostComponentStatus.unknown)) {
-      this.set('healthStatus', 'yellow');
     } else {
       this.set('healthStatus', 'red-blinking');
     }
