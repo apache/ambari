@@ -275,7 +275,7 @@ var configs = [
     "name": "oozie.base.url",
     "templateName": ["oozieserver_host"],
     "foreignKey": null,
-    "value": "http://<templateName[0]>:11000",
+    "value": "http://<templateName[0]>:11000/oozie",
     "filename": "oozie-site.xml"
   },
   /**********************************************hive-site***************************************/
