@@ -50,7 +50,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'CapacityScheduler', displayName : 'Capacity Scheduler', isCapacityScheduler : true, isCustomView: true, siteFileName: 'capacity-scheduler.xml', siteFileNames: ['capacity-scheduler.xml', 'mapred-queue-acls.xml'], canAddProperty: true}),
       App.ServiceConfigCategory.create({ name: 'AdvancedMapredSite', displayName : 'Custom mapred-site.xml', siteFileName: 'mapred-site.xml', canAddProperty: true})
     ],
-    sites: ['global', 'core-site', 'mapred-site', 'capacity-scheduler', 'mapred-queue-acls'],
+    sites: ['global', 'mapred-site', 'capacity-scheduler', 'mapred-queue-acls'],
     configs: []
   },
 
@@ -64,7 +64,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
       App.ServiceConfigCategory.create({ name: 'AdvancedMapredSite', displayName : 'Custom mapred-site.xml', siteFileName: 'mapred-site.xml', canAddProperty: true})
     ],
-    sites: ['global', 'core-site', 'mapred-site', 'mapred-queue-acls'],
+    sites: ['global', 'mapred-site', 'mapred-queue-acls'],
     configs: []
   },
 
@@ -80,7 +80,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
       App.ServiceConfigCategory.create({ name: 'AdvancedYARNSite', displayName : 'Custom yarn-site.xml', siteFileName: 'yarn-site.xml', canAddProperty: true})
     ],
-    sites: ['global', 'core-site', 'yarn-site', 'capacity-scheduler'],
+    sites: ['global', 'yarn-site', 'capacity-scheduler'],
     configs: []
   },
 

@@ -201,10 +201,6 @@ App.config = Em.Object.create({
           serviceConfigObj.index = configsPropertyDef.index;
           serviceConfigObj.belongsToService = configsPropertyDef.belongsToService;
         }
-        // MAPREDUCE contains core-site properties but doesn't show them
-        if(serviceConfigObj.serviceName === 'MAPREDUCE' && serviceConfigObj.filename === 'core-site.xml'){
-          serviceConfigObj.isVisible = false;
-        }
         if (_tag.siteName === 'global') {
           if (configsPropertyDef) {
             this.handleSpecialProperties(serviceConfigObj);
