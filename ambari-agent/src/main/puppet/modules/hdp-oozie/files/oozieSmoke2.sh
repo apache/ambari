@@ -63,7 +63,7 @@ export JTHOST=$7
 export NNHOST=$8
 
 export OOZIE_EXIT_CODE=0
-export JOBTRACKER=`getValueFromField ${hadoop_conf_dir}/mapred-site.xml mapred.job.tracker`
+export JOBTRACKER=`getValueFromField ${hadoop_conf_dir}/yarn-site.xml yarn.resourcemanager.address`
 export NAMENODE=`getValueFromField ${hadoop_conf_dir}/core-site.xml fs.default.name`
 export OOZIE_SERVER=`getValueFromField ${oozie_conf_dir}/oozie-site.xml oozie.base.url`
 export OOZIE_EXAMPLES_DIR=`rpm -ql oozie-client | grep 'oozie-examples.tar.gz$' | xargs dirname`
@@ -84,12 +84,13 @@ else
   kinitcmd=""
 fi
 
-su - ${smoke_test_user} -c "hadoop dfs -rmr examples"
-su - ${smoke_test_user} -c "hadoop dfs -rmr input-data"
-su - ${smoke_test_user} -c "hadoop dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples examples"
-su - ${smoke_test_user} -c "hadoop dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples/input-data input-data"
+su - ${smoke_test_user} -c "hdfs dfs -rm -r examples"
+su - ${smoke_test_user} -c "hdfs dfs -rm -r input-data"
+su - ${smoke_test_user} -c "hdfs dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples examples"
+su - ${smoke_test_user} -c "hdfs dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples/input-data input-data"
 
-cmd="${kinitcmd}source ${oozie_conf_dir}/oozie-env.sh ; /usr/bin/oozie job -oozie $OOZIE_SERVER -config $OOZIE_EXAMPLES_DIR/examples/apps/map-reduce/job.properties  -run"
+cmd="${kinitcmd}source ${oozie_conf_dir}/oozie-env.sh ; /usr/bin/oozie -Doozie.auth.token.cache=false job -oozie $OOZIE_SERVER -config $OOZIE_EXAMPLES_DIR/examples/apps/map-reduce/job.properties  -run"
+echo $cmd
 job_info=`su - ${smoke_test_user} -c "$cmd" | grep "job:"`
 job_id="`echo $job_info | cut -d':' -f2`"
 checkOozieJobStatus "$job_id"
