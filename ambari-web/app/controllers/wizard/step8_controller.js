@@ -1376,16 +1376,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     var hdfsSiteObj = this.get('configs').filterProperty('filename', 'hdfs-site.xml');
     var hdfsProperties = {};
     hdfsSiteObj.forEach(function (_configProperty) {
-
-      if (stringUtils.compareVersions(App.get('currentStackVersionNumber'), '2.0.0') === 1 ||
-          stringUtils.compareVersions(App.get('currentStackVersionNumber'), '2.0.0') === 0) {
-        // TODO Remove temporary hack. This was added to not set
-        // dfs.hosts and dfs.hosts.exclude properties on HDP 2 stacks.
-        if ("dfs.hosts"==_configProperty.name || "dfs.hosts.exclude"==_configProperty.name) {
-          _configProperty.value = "";
-        }
-      }
-
       hdfsProperties[_configProperty.name] = _configProperty.value;
       this._recordHostOverrideFromObj(_configProperty, 'hdfs-site', 'version1', this);
       console.log("STEP*: name of the property is: " + _configProperty.name);
