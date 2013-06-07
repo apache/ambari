@@ -125,17 +125,10 @@
     </div>
   </div>
     {{#if isWarningsBoxVisible}}
-      {{#if isHostHaveWarnings}}
-      <div class="alert alert-warn">
-        {{t installer.step3.warnings.description}}<br>
-        <a href="javascript:void(0)" {{action hostWarningsPopup warnings target="controller"}}>{{t installer.step3.warnings.linkText}}</a>
+      <div {{bindAttr class=":alert view.status"}}>
+        {{view.message}}
+        <a href="#" {{action hostWarningsPopup warnings target="controller"}}>{{view.linkText}}</a>
       </div>
-      {{else}}
-      <div class="alert alert-success">
-        {{t installer.step3.warnings.noWarnings}}
-        <a href="javascript:void(0)" {{action hostWarningsPopup warnings target="controller"}}>{{t installer.step3.noWarnings.linkText}}</a>
-      </div>
-      {{/if}}
     {{/if}}
   <div class="btn-area">
     <a class="btn pull-left" {{bindAttr disabled="isInstallInProgress"}} {{action back target="controller"}}>&larr; {{t common.back}}</a>

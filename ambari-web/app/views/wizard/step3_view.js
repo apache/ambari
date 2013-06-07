@@ -26,7 +26,38 @@ App.WizardStep3View = Em.View.extend({
 
   didInsertElement: function () {
     this.get('controller').navigateStep();
-  }
+  },
+
+  message:'',
+  linkText: '',
+  status: '',
+
+  monitorStatuses: function() {
+    var failedHosts = 0;
+    var hosts = this.get('controller.bootHosts');
+    hosts.forEach(function(host) {
+      if (host.get('bootStatus') == 'FAILED') {
+        failedHosts++;
+      }
+    });
+    if (this.get('controller.isHostHaveWarnings')) {
+      this.set('status', 'alert-warn');
+      this.set('linkText', Em.I18n.t('installer.step3.warnings.linkText'));
+      this.set('message', Em.I18n.t('installer.step3.warnings.fails').format(hosts.length, failedHosts));
+    }
+    else {
+      this.set('status', 'alert-success');
+      this.set('linkText', Em.I18n.t('installer.step3.noWarnings.linkText'));
+      if (failedHosts == 0) {
+        // all are ok
+        this.set('message', Em.I18n.t('installer.step3.warnings.noWarnings').format(hosts.length));
+      }
+      else {
+          // some failed
+          this.set('message', Em.I18n.t('installer.step3.warnings.someWarnings').format(hosts.length, failedHosts));
+      }
+    }
+  }.observes('controller.isHostHaveWarnings', 'controller.bootHosts.@each.bootStatus')
 });
 
 //todo: move it inside WizardStep3View

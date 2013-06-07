@@ -458,6 +458,17 @@ App.WizardStep3Controller = Em.Controller.extend({
     }
   },
 
+  allHostsComplete: function() {
+    var result = true;
+    this.get('bootHosts').forEach(function(host) {
+      var status = host.get('bootStatus');
+      if (status != 'REGISTERED' && status != 'FAILED') {
+        result = false;
+      }
+    });
+    return result;
+  }.property('bootHosts.@each.bootStatus'),
+
   registerErrPopup: function (header, message) {
     App.ModalPopup.show({
       header: header,
@@ -643,9 +654,11 @@ App.WizardStep3Controller = Em.Controller.extend({
     }, this);
     return isWarning;
   }.property('warnings'),
+
   isWarningsBoxVisible: function(){
-    return (App.testMode) ? true : !this.get('isSubmitDisabled');
-  }.property('isSubmitDisabled'),
+    return (App.testMode) ? true : this.get('allHostsComplete');
+  }.property('allHostsComplete'),
+
   checksUpdateProgress:0,
   checksUpdateStatus: null,
   /**
@@ -954,7 +967,7 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   back: function () {
     if (this.get('isInstallInProgress')) {
-      return false;
+      return;
     }
     App.router.send('back');
   }
