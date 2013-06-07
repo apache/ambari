@@ -303,6 +303,13 @@ var configs = [
   },
 /**********************************************yarn-site***************************************/
   {
+    "name": "yarn.resourcemanager.webapp.address",
+    "templateName": ["rm_host"],
+    "foreignKey": null,
+    "value": "<templateName[0]>:8088",
+    "filename": "yarn-site.xml"
+  },
+  {
     "name": "yarn.resourcemanager.resource-tracker.address",
     "templateName": ["rm_host"],
     "foreignKey": null,
