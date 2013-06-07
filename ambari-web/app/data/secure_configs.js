@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 var App = require('app');
+require('models/service_config');
 App.SecureConfigProperties = Ember.ArrayProxy.extend({
   content: require('data/secure_properties').configProperties
 });
-require('models/service_config');
 
 var configProperties = App.SecureConfigProperties.create();
 
@@ -27,10 +27,10 @@ module.exports = [
   {
     serviceName: 'GENERAL',
     displayName: 'Kerberos',
-    filename: 'hdfs-site',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'KERBEROS', displayName: 'General'})
     ],
+    sites: ['global'],
     configs: configProperties.filterProperty('serviceName', 'GENERAL')
   },
   {

@@ -41,11 +41,28 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
   },
 
   loadStep: function () {
-    this.clearStep();
-    this.loadStages();
-    this.loadSecureServices();
-    this.addInfoToStages();
-    this.moveToNextStage();
+    var stages = App.db.getSecurityDeployStages();
+    if (stages === undefined) {
+      this.clearStep();
+      this.loadStages();
+      this.addInfoToStages();
+    } else {
+      stages.forEach(function(_stage,index){
+        stages[index] = App.Poll.create(_stage);
+      },this);
+      if (stages.someProperty('isError', true)) {
+        var failedStages = stages.filterProperty('isError', true);
+        failedStages.setEach('isError', false);
+        failedStages.setEach('isStarted', false);
+        failedStages.setEach('isCompleted', false);
+      } else if (stages.filterProperty('isStarted', true).someProperty('isCompleted', false)) {
+        var runningStage = stages.filterProperty('isStarted', true).findProperty('isCompleted', false);
+        runningStage.set('isStarted', false);
+      }
+      this.get('stages').pushObjects(stages);
+    }
+   this.loadSecureServices();
+   this.moveToNextStage();
   },
 
 
@@ -266,6 +283,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
   applyConfigurationToClusterSuccessCallback: function (data) {
     this.set('noOfWaitingAjaxCalls', this.get('noOfWaitingAjaxCalls') - 1);
     if (this.get('noOfWaitingAjaxCalls') == 0) {
+      App.router.get('mainAdminSecurityController').setDisableSecurityStatus(undefined);
       var currentStage = this.get('stages').findProperty('stage', 'stage3');
       currentStage.set('isSuccess', true);
     }
@@ -320,5 +338,25 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
         }, this);
       }
     }, this);
-  }
+  },
+
+  saveStages: function() {
+    var stages = [];
+    this.get('stages').forEach(function(_stage){
+      var stage = {
+        stage: _stage.get('stage'),
+        label: _stage.get('label'),
+        isPolling: _stage.get('isPolling'),
+        isStarted: _stage.get('isStarted'),
+        requestId: _stage.get('requestId'),
+        isSuccess: _stage.get('isSuccess'),
+        isError: _stage.get('isError'),
+        url: _stage.get('url'),
+        data: _stage.get('data')
+      };
+      stages.pushObject(stage);
+    },this);
+    App.db.setSecurityDeployStages(stages);
+  }.observes('stages.@each.requestId','stages.@each.isStarted','stages.@each.isCompleted')
+
 });

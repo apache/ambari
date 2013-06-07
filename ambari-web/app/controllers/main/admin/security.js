@@ -30,6 +30,14 @@ App.MainAdminSecurityController = Em.Controller.extend({
   setAddSecurityWizardStatus: function (status) {
     App.db.setSecurityWizardStatus(status);
   },
+
+  setDisableSecurityStatus: function (status) {
+    App.db.setDisableSecurityStatus(status);
+  },
+  getDisableSecurityStatus: function(status) {
+    return App.db.getDisableSecurityStatus();
+  },
+
   notifySecurityOff: false,
   notifySecurityAdd: false,
 
@@ -41,6 +49,8 @@ App.MainAdminSecurityController = Em.Controller.extend({
         primary: 'OK',
         secondary: null,
         onPrimary: function () {
+          App.db.setSecurityDeployStages(undefined);
+          self.setDisableSecurityStatus("RUNNING");
           App.router.transitionTo('disableSecurity');
           this.hide();
         },
@@ -50,7 +60,7 @@ App.MainAdminSecurityController = Em.Controller.extend({
       });
     }
   },
-  //
+
   /**
    * return true if security status is loaded and false otherwise
    */

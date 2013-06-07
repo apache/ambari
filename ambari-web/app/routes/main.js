@@ -128,7 +128,7 @@ module.exports = Em.Route.extend({
       }
     }),
 
-    gotoMirroringHome : function(router){
+    gotoMirroringHome: function (router) {
       router.transitionTo('mirroring/index');
     },
     addNewDataset: function (router) {
@@ -653,13 +653,17 @@ module.exports = Em.Route.extend({
       enter: function (router) {
         router.set('mainAdminController.category', "security");
         var controller = router.get('mainAdminSecurityController');
-        if (!(controller.getAddSecurityWizardStatus() === 'RUNNING')) {
+        if (!(controller.getAddSecurityWizardStatus() === 'RUNNING') && !(controller.getDisableSecurityStatus() === 'RUNNING')) {
           Em.run.next(function () {
             router.transitionTo('adminSecurity.index');
           });
-        } else {
+        } else if (controller.getAddSecurityWizardStatus() === 'RUNNING') {
           Em.run.next(function () {
             router.transitionTo('adminAddSecurity');
+          });
+        } else if (controller.getDisableSecurityStatus() === 'RUNNING') {
+          Em.run.next(function () {
+            router.transitionTo('disableSecurity');
           });
         }
       },
@@ -674,12 +678,14 @@ module.exports = Em.Route.extend({
       }),
 
       addSecurity: function (router, object) {
+        router.get('mainAdminSecurityController').setAddSecurityWizardStatus('RUNNING');
         router.transitionTo('adminAddSecurity');
       },
 
       disableSecurity: Ember.Route.extend({
-        route: '/',
+        route: '/disableSecurity',
         enter: function (router) {
+          if (router.get('mainAdminSecurityController').getAddSecurityWizardStatus() === 'RUNNING') {
           Ember.run.next(function () {
             App.router.get('updateController').set('isWorking', false);
             App.ModalPopup.show({
@@ -697,6 +703,8 @@ module.exports = Em.Route.extend({
                 App.router.get('updateController').set('isWorking', true);
               },
               onClose: function () {
+                App.db.setSecurityDeployStages(undefined);
+                router.get('mainAdminSecurityController').setDisableSecurityStatus(undefined);
                 if (router.get('mainAdminSecurityDisableController.isSubmitDisabled') === false) {
                   this.hide();
                   App.router.get('updateController').set('isWorking', true);
@@ -708,6 +716,9 @@ module.exports = Em.Route.extend({
               }
             });
           });
+          } else {
+            router.transitionTo('adminSecurity.index');
+          }
         },
 
         unroutePath: function () {
@@ -763,7 +774,7 @@ module.exports = Em.Route.extend({
       router.transitionTo('admin' + object.context.capitalize());
     },
 
-    //events
+//events
     goToAdmin: function (router, event) {
       router.transitionTo(event.context);
     }
@@ -787,16 +798,16 @@ module.exports = Em.Route.extend({
     index: Ember.Route.extend({
       route: '/',
       enter: function (router) {
-        Ember.run.next(function(){
-        var controller = router.get('mainController');
-        controller.dataLoading().done(function () {
-          var service = router.get('mainServiceItemController.content');
-          if (!service) {
-            service = App.Service.find().objectAt(0); // getting the first service to display
-          }
-          router.transitionTo('service.summary', service);
+        Ember.run.next(function () {
+          var controller = router.get('mainController');
+          controller.dataLoading().done(function () {
+            var service = router.get('mainServiceItemController.content');
+            if (!service) {
+              service = App.Service.find().objectAt(0); // getting the first service to display
+            }
+            router.transitionTo('service.summary', service);
+          });
         });
-      });
       }
     }),
     connectOutlets: function (router, context) {

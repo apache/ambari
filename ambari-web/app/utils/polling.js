@@ -23,7 +23,7 @@ App.Poll = Em.Object.extend({
   isStarted: false,
   isPolling: true,
   clusterName: null,
-  requestId: null,
+  requestId: undefined,
   temp: false,
   progress: 0,
   url: null,
@@ -46,19 +46,22 @@ App.Poll = Em.Object.extend({
   }.property('isError', 'isSuccess'),
 
   start: function () {
-    if (App.testMode) {
+    if (this.get('requestId') === undefined) {
+      this.setRequestId();
+    } else {
       this.startPolling();
+    }
+  },
+
+  setRequestId: function () {
+    if (App.testMode) {
+      this.set('requestId', '1');
       return;
     }
     var self = this;
     var url = this.get('url');
-    var method;
+    var method = 'PUT';
     var data = this.get('data');
-    if (App.testMode) {
-      method = 'GET';
-    } else {
-      method = 'PUT';
-    }
 
     $.ajax({
       type: method,
@@ -126,6 +129,7 @@ App.Poll = Em.Object.extend({
         console.log("TRACE: In error function for the GET data");
         console.log("TRACE: value of the url is: " + url);
         console.log("TRACE: error code status is: " + request.status);
+        self.set('requestId', undefined);
         self.set('isError', true);
       },
 

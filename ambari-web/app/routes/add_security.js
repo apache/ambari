@@ -23,8 +23,7 @@ module.exports = Em.Route.extend({
     console.log('in /security/add:enter');
 
     Ember.run.next(function () {
-      if (!router.get('mainAdminController.securityEnabled')) {
-        router.get('mainAdminSecurityController').setAddSecurityWizardStatus('RUNNING');
+      if (router.get('mainAdminSecurityController').getAddSecurityWizardStatus() === 'RUNNING') {
         var mainAdminSecurityController = router.get('mainAdminSecurityController');
         var addSecurityController = router.get('addSecurityController');
         var currentStep = router.get('addSecurityController').get('currentStep');
@@ -49,6 +48,7 @@ module.exports = Em.Route.extend({
               this.hide();
               App.router.get('updateController').set('isWorking', true);
               mainAdminSecurityController.setAddSecurityWizardStatus(null);
+              App.db.setSecurityDeployStages(undefined);
               router.get('addSecurityController').setCurrentStep(1);
               router.get('addSecurityController.content').saveCurrentStage(2);
               router.transitionTo('adminSecurity.index');
@@ -101,6 +101,7 @@ module.exports = Em.Route.extend({
       var addSecurityStep2Controller = router.get('mainAdminSecurityAddStep2Controller');
       addSecurityController.saveServiceConfigProperties(addSecurityStep2Controller);
       addSecurityController.get('content').saveCurrentStage('2');
+      App.db.setSecurityDeployStages(undefined);
       router.transitionTo('step3');
     }
   }),
@@ -122,7 +123,7 @@ module.exports = Em.Route.extend({
     },
     back: function (router, context) {
       var controller = router.get('mainAdminSecurityAddStep3Controller');
-      if (!controller.get('isSubmitDisabled')) {
+      if (!controller.get('isBackBtnDisabled')) {
         router.transitionTo('step2');
       }
     },

@@ -43,6 +43,19 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   services: [],
   serviceTimestamp: null,
 
+  isSecurityApplied: function () {
+    return this.get('stages').someProperty('stage', 'stage3') && this.get('stages').findProperty('stage', 'stage3').get('isSuccess');
+  }.property('stages.@each.isCompleted'),
+
+  isBackBtnDisabled: function () {
+    return  ((this.get('stages').someProperty('stage', 'stage3') &&
+      this.get('stages').findProperty('stage', 'stage3').get('isSuccess')) ||
+      (this.get('stages').someProperty('stage', 'stage2') &&
+        (!this.get('stages').findProperty('stage', 'stage2').get('isError')) ||
+        (this.get('stages').someProperty('stage', 'stage3') &&
+          (!this.get('stages').findProperty('stage', 'stage3').get('isError')))));
+  }.property('stages.@each.isCompleted'),
+
   clearStep: function () {
     this.get('stages').clear();
     this.set('isSubmitDisabled', true);
@@ -50,10 +63,28 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   },
 
   loadStep: function () {
-    this.clearStep();
-    this.loadStages();
-    this.addInfoToStages();
+    var stages = App.db.getSecurityDeployStages();
     this.prepareSecureConfigs();
+    if (stages === undefined) {
+      this.clearStep();
+      this.loadStages();
+      this.addInfoToStages();
+    } else {
+      stages.forEach(function (_stage, index) {
+        stages[index] = App.Poll.create(_stage);
+      }, this);
+      if (stages.someProperty('isError', true)) {
+        var failedStages = stages.filterProperty('isError', true);
+        failedStages.setEach('isError', false);
+        failedStages.setEach('isStarted', false);
+        failedStages.setEach('isCompleted', false)
+      } else if (stages.filterProperty('isStarted', true).someProperty('isCompleted', false)) {
+        var runningStage = stages.filterProperty('isStarted', true).findProperty('isCompleted', false);
+        runningStage.set('isStarted', false);
+      }
+      this.get('stages').pushObjects(stages);
+    }
+
     this.moveToNextStage();
   },
 
@@ -72,15 +103,17 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         name: stages.label,
         hosts: []
       });
-      var hostNames = stages.get("polledData").mapProperty('Tasks.host_name').uniq();
-      hostNames.forEach(function (name) {
-        newService.hosts.push({
-          name: name,
-          publicName: name,
-          logTasks: stages.polledData.filterProperty("Tasks.host_name", name)
+      if (stages && stages.get("polledData")) {
+        var hostNames = stages.get("polledData").mapProperty('Tasks.host_name').uniq();
+        hostNames.forEach(function (name) {
+          newService.hosts.push({
+            name: name,
+            publicName: name,
+            logTasks: stages.polledData.filterProperty("Tasks.host_name", name)
+          });
         });
-      });
-      services.push(newService);
+        services.push(newService);
+      }
     });
     this.set('serviceTimestamp', new Date().getTime());
   }.observes("stages.@each.polledData"),
@@ -102,8 +135,9 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       } else if (currentStage && currentStage.get('stage') === 'stage3') {
         if (App.testMode) {
           currentStage.set('isSuccess', true);
+          App.router.get('mainAdminSecurityController').setAddSecurityWizardStatus(null);
         } else {
-          this.loadClusterConfigs();
+          this.loadClusterConfigs()
         }
       }
     }
@@ -120,7 +154,8 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   }.observes('stages.@each.isCompleted'),
 
   moveToNextStage: function () {
-    var nextStage = this.get('stages').findProperty('isStarted', false);
+    var leftStages = this.get('stages').filterProperty('isStarted', false);
+    var nextStage = leftStages.findProperty('isCompleted', false);
     if (nextStage) {
       nextStage.set('isStarted', true);
     }
@@ -165,16 +200,6 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         "id": "site property",
         "name": _config.name,
         "value": value,
-        "filename": _config.filename
-      });
-    }, this);
-    var dependentConfig = this.get('configMapping').filterProperty('foreignKey');
-    dependentConfig.forEach(function (_config) {
-      this.setConfigValue(uiConfig, _config);
-      uiConfig.pushObject({
-        "id": "site property",
-        "name": _config.name,
-        "value": _config.value,
         "filename": _config.filename
       });
     }, this);
@@ -241,63 +266,6 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     }, this);
     return value;
   },
-  /**
-   * Set all site property that are derived from other site-properties
-   */
-  setConfigValue: function (uiConfig, config) {
-    if (config.value == null) {
-      return;
-    }
-    var fkValue = config.value.match(/<(foreignKey.*?)>/g);
-    if (fkValue) {
-      fkValue.forEach(function (_fkValue) {
-        var index = parseInt(_fkValue.match(/\[([\d]*)(?=\])/)[1]);
-        if (uiConfig.someProperty('name', config.foreignKey[index])) {
-          var globalValue = uiConfig.findProperty('name', config.foreignKey[index]).value;
-          config.value = config.value.replace(_fkValue, globalValue);
-        } else if (this.get('content.serviceConfigProperties').someProperty('name', config.foreignKey[index])) {
-          var globalValue;
-          if (this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).value === '') {
-            globalValue = this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).defaultValue;
-          } else {
-            globalValue = this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).value;
-          }
-          config.value = config.value.replace(_fkValue, globalValue);
-        }
-      }, this);
-    }
-    if (fkValue = config.name.match(/<(foreignKey.*?)>/g)) {
-      fkValue.forEach(function (_fkValue) {
-        var index = parseInt(_fkValue.match(/\[([\d]*)(?=\])/)[1]);
-        if (uiConfig.someProperty('name', config.foreignKey[index])) {
-          var globalValue = uiConfig.findProperty('name', config.foreignKey[index]).value;
-          config.name = config.name.replace(_fkValue, globalValue);
-        } else if (this.get('content.serviceConfigProperties').someProperty('name', config.foreignKey[index])) {
-          var globalValue;
-          if (this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).value === '') {
-            globalValue = this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).defaultValue;
-          } else {
-            globalValue = this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).value;
-          }
-          config.name = config.name.replace(_fkValue, globalValue);
-        }
-      }, this);
-    }
-    //For properties in the configMapping file having foreignKey and templateName properties.
-
-    var templateValue = config.value.match(/<(templateName.*?)>/g);
-    if (templateValue) {
-      templateValue.forEach(function (_value) {
-        var index = parseInt(_value.match(/\[([\d]*)(?=\])/)[1]);
-        if (this.get('globalProperties').someProperty('name', config.templateName[index])) {
-          var globValue = this.appendInstanceName(config.templateName[index]);
-          config.value = config.value.replace(_value, globValue);
-        } else {
-          config.value = null;
-        }
-      }, this);
-    }
-  },
 
   prepareSecureConfigs: function () {
     this.loadGlobals();
@@ -322,7 +290,6 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   },
 
   loadUsersFromServer: function () {
-    var self = this;
     if (App.testMode) {
       var serviceUsers = this.get('serviceUsers');
       serviceUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'hdfs'});
@@ -410,6 +377,8 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   applyConfigurationToClusterSuccessCallback: function (data) {
     this.set('noOfWaitingAjaxCalls', this.get('noOfWaitingAjaxCalls') - 1);
     if (this.get('noOfWaitingAjaxCalls') == 0) {
+      App.router.get('mainAdminSecurityController').setAddSecurityWizardStatus(null);
+      App.router.get('addSecurityController').setCurrentStep(1);
       var currentStage = this.get('stages').findProperty('stage', 'stage3');
       currentStage.set('isSuccess', true);
     }
@@ -471,6 +440,25 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         }, this);
       }
     }, this);
-  }
+  },
+
+  saveStages: function () {
+    var stages = [];
+    this.get('stages').forEach(function (_stage) {
+      var stage = {
+        stage: _stage.get('stage'),
+        label: _stage.get('label'),
+        isPolling: _stage.get('isPolling'),
+        isStarted: _stage.get('isStarted'),
+        requestId: _stage.get('requestId'),
+        isSuccess: _stage.get('isSuccess'),
+        isError: _stage.get('isError'),
+        url: _stage.get('url'),
+        data: _stage.get('data')
+      };
+      stages.pushObject(stage);
+    }, this);
+    App.db.setSecurityDeployStages(stages);
+  }.observes('stages.@each.requestId','stages.@each.isStarted','stages.@each.isCompleted')
 
 });

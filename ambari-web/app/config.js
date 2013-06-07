@@ -44,7 +44,7 @@ App.supports = {
   addServices: false,
   hostOverrides: false,
   mirroring: false,
-  secureCluster: false,
+  secureCluster: true,
   reassignMaster: false,
   stackUpgrade: false,
   capacitySchedulerUi: false,
