@@ -35,6 +35,7 @@ public class TestStreamProvider implements StreamProvider {
     FILE_MAPPING.put("50030", "mapreduce_jobtracker_jmx.json");
     FILE_MAPPING.put("50060", "mapreduce_tasktracker_jmx.json");
     FILE_MAPPING.put("60010", "hbase_hbasemaster_jmx.json");
+    FILE_MAPPING.put("8088",  "resourcemanager_jmx.json");
   }
 
   /**
@@ -75,7 +76,9 @@ public class TestStreamProvider implements StreamProvider {
   }
 
   private String getPort(String spec) {
-    int n = spec.indexOf(":", 5);
-    return spec.substring(n + 1, n + 6);
+    int colonIndex = spec.indexOf(":", 5);
+    int slashIndex = spec.indexOf("/", colonIndex);
+
+    return spec.substring(colonIndex + 1, slashIndex);
   }
 }

@@ -6580,102 +6580,102 @@
       },
       "metrics/yarn/Queue/AllocatedVCores":{
         "metric":"yarn.QueueMetrics.AllocatedVCores",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/AvailableVCores":{
         "metric":"yarn.QueueMetrics.AvailableVCores",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/PendingVCores":{
         "metric":"yarn.QueueMetrics.PendingVCores",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/running_0":{
         "metric":"yarn.QueueMetrics.running_0",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/running_60":{
         "metric":"yarn.QueueMetrics.running_60",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/running_300":{
         "metric":"yarn.QueueMetrics.running_300",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/running_1440":{
         "metric":"yarn.QueueMetrics.running_1440",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/AppsSubmitted":{
         "metric":"yarn.QueueMetrics.AppsSubmitted",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/AppsRunning":{
         "metric":"yarn.QueueMetrics.AppsRunning",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/AppsPending":{
         "metric":"yarn.QueueMetrics.AppsPending",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/AppsCompleted":{
         "metric":"yarn.QueueMetrics.AppsCompleted",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/AllocatedMB":{
         "metric":"yarn.QueueMetrics.AllocatedMB",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/AllocatedContainers":{
         "metric":"yarn.QueueMetrics.AllocatedContainers",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/AggregateContainersAllocated":{
         "metric":"yarn.QueueMetrics.AggregateContainersAllocated",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/AggregateContainersReleased":{
         "metric":"yarn.QueueMetrics.AggregateContainersReleased",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/AvailableMB":{
         "metric":"yarn.QueueMetrics.AvailableMB",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/PendingMB":{
         "metric":"yarn.QueueMetrics.PendingMB",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/PendingContainers":{
         "metric":"yarn.QueueMetrics.PendingContainers",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/ActiveUsers":{
         "metric":"yarn.QueueMetrics.ActiveUsers",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/ActiveApplications":{
         "metric":"yarn.QueueMetrics.ActiveApplications",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/LoginSuccessNumOps":{
@@ -16700,102 +16700,102 @@
       },
       "metrics/yarn/Queue/AllocatedVCores":{
         "metric":"yarn.QueueMetrics.AllocatedVCores",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/AvailableVCores":{
         "metric":"yarn.QueueMetrics.AvailableVCores",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/PendingVCores":{
         "metric":"yarn.QueueMetrics.PendingVCores",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/running_0":{
         "metric":"yarn.QueueMetrics.running_0",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/running_60":{
         "metric":"yarn.QueueMetrics.running_60",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/running_300":{
         "metric":"yarn.QueueMetrics.running_300",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/running_1440":{
         "metric":"yarn.QueueMetrics.running_1440",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/AppsSubmitted":{
         "metric":"yarn.QueueMetrics.AppsSubmitted",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/AppsRunning":{
         "metric":"yarn.QueueMetrics.AppsRunning",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/AppsPending":{
         "metric":"yarn.QueueMetrics.AppsPending",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/AppsCompleted":{
         "metric":"yarn.QueueMetrics.AppsCompleted",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/AllocatedMB":{
         "metric":"yarn.QueueMetrics.AllocatedMB",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/AllocatedContainers":{
         "metric":"yarn.QueueMetrics.AllocatedContainers",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/AggregateContainersAllocated":{
         "metric":"yarn.QueueMetrics.AggregateContainersAllocated",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/AggregateContainersReleased":{
         "metric":"yarn.QueueMetrics.AggregateContainersReleased",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/AvailableMB":{
         "metric":"yarn.QueueMetrics.AvailableMB",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/PendingMB":{
         "metric":"yarn.QueueMetrics.PendingMB",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/PendingContainers":{
         "metric":"yarn.QueueMetrics.PendingContainers",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/ActiveUsers":{
         "metric":"yarn.QueueMetrics.ActiveUsers",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/yarn/Queue/ActiveApplications":{
         "metric":"yarn.QueueMetrics.ActiveApplications",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/LoginSuccessNumOps":{
