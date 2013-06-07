@@ -220,15 +220,12 @@ class TestMain(unittest.TestCase):
   @patch.object(main, "killstaleprocesses")
   @patch.object(main, "update_log_level")
   @patch.object(NetUtil.NetUtil, "try_to_connect")
-  @patch.object(security.CertificateManager, "__init__")
-  @patch.object(security.CertificateManager, "initSecurity")
   @patch.object(Controller, "__init__")
   @patch.object(Controller, "start")
-  def test_main(self, start_mock, Controller_init_mock , initSecurity_mock,
-                CertificateManager_init_mock, try_to_connect_mock, update_log_level_mock,
+  @patch.object(Controller, "join")
+  def test_main(self, join_mock, start_mock, Controller_init_mock, try_to_connect_mock, update_log_level_mock,
                 killstaleprocesses_mock, daemonize_mock, perform_prestart_checks_mock,
                 resolve_ambari_config_mock, stop_mock, bind_signal_handlers_mock, setup_logging_mock):
-    CertificateManager_init_mock.return_value = None
     Controller_init_mock.return_value = None
 
     #testing call without command-line arguments
@@ -236,12 +233,11 @@ class TestMain(unittest.TestCase):
 
     self.assertTrue(setup_logging_mock.called)
     self.assertTrue(bind_signal_handlers_mock.called)
-    self.assertFalse(stop_mock.called)
+    self.assertTrue(stop_mock.called)
     self.assertTrue(resolve_ambari_config_mock.called)
     self.assertTrue(perform_prestart_checks_mock.called)
     self.assertTrue(daemonize_mock.called)
     self.assertTrue(killstaleprocesses_mock.called)
     self.assertTrue(update_log_level_mock.called)
     try_to_connect_mock.assert_called_once_with(ANY, -1, ANY)
-    self.assertTrue(initSecurity_mock.called)
     self.assertTrue(start_mock.called)

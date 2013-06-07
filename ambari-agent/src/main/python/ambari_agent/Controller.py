@@ -36,6 +36,7 @@ from Register import Register
 from ActionQueue import ActionQueue
 import security
 from NetUtil import NetUtil
+import ssl
 
 
 logger = logging.getLogger()
@@ -86,6 +87,9 @@ class Controller(threading.Thread):
           self.addToQueue(ret['statusCommands'])
           pass
         pass
+      except ssl.SSLError:
+        self.repeatRegistration=False
+        return
       except Exception, err:
         # try a reconnect only after a certain amount of random time
         delay = randint(0, self.range)
@@ -176,6 +180,9 @@ class Controller(threading.Thread):
         certVerifFailed = False
         self.DEBUG_SUCCESSFULL_HEARTBEATS += 1
         self.DEBUG_HEARTBEAT_RETRIES = 0
+      except ssl.SSLError:
+        self.repeatRegistration=False
+        return
       except Exception, err:
         #randomize the heartbeat
         delay = randint(0, self.range)

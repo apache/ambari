@@ -194,15 +194,11 @@ def main():
   netutil = NetUtil()
   netutil.try_to_connect(server_url, -1, logger)
 
-  #Initiate security
-  """ Check if security is enable if not then disable it"""
-  logger.info("Creating certs")
-  certMan = security.CertificateManager(config)
-  certMan.initSecurity()
-
   # Launch Controller communication
   controller = Controller(config)
   controller.start()
+  controller.join()
+  stop_agent()
   logger.info("finished")
 
 if __name__ == "__main__":

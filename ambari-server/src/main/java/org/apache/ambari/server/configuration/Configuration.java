@@ -55,6 +55,7 @@ public class Configuration {
   public static final String BOOTSTRAP_MASTER_HOSTNAME = "bootstrap.master_host_name";
   public static final String API_AUTHENTICATE = "api.authenticate";
   public static final String API_USE_SSL = "api.ssl";
+  public static final String SRVR_TWO_WAY_SSL_KEY = "security.server.two_way_ssl";
   public static final String SRVR_KSTR_DIR_KEY = "security.server.keys_dir";
   public static final String SRVR_CRT_NAME_KEY = "security.server.cert_name";
   public static final String SRVR_KEY_NAME_KEY = "security.server.key_name";
@@ -155,6 +156,7 @@ public class Configuration {
   public static final String SSL_TRUSTSTORE_PASSWORD_KEY = "ssl.trustStore.password";
   public static final String SSL_TRUSTSTORE_TYPE_KEY = "ssl.trustStore.type";
 
+  private static final String SRVR_TWO_WAY_SSL_DEFAULT = "false";
   private static final String SRVR_KSTR_DIR_DEFAULT = ".";
   public static final String SRVR_CRT_NAME_DEFAULT = "ca.crt";
   public static final String SRVR_KEY_NAME_DEFAULT = "ca.key";
@@ -219,8 +221,8 @@ public class Configuration {
     this.properties = properties;
 
     configsMap = new HashMap<String, String>();
-    configsMap.put(SRVR_KSTR_DIR_KEY, properties.getProperty(
-        SRVR_KSTR_DIR_KEY, SRVR_KSTR_DIR_DEFAULT));
+    configsMap.put(SRVR_TWO_WAY_SSL_KEY, properties.getProperty(
+        SRVR_TWO_WAY_SSL_KEY, SRVR_TWO_WAY_SSL_DEFAULT));
     configsMap.put(SRVR_KSTR_DIR_KEY, properties.getProperty(
         SRVR_KSTR_DIR_KEY, SRVR_KSTR_DIR_DEFAULT));
     configsMap.put(SRVR_CRT_NAME_KEY, properties.getProperty(
@@ -409,6 +411,17 @@ public class Configuration {
    */
   public boolean getApiSSLAuthentication() {
     return ("true".equals(properties.getProperty(API_USE_SSL, "false")));
+  }
+
+  /**
+   * Check to see if two-way SSL auth should be used between server and agents
+   * or not
+   *
+   * @return
+   */
+  public boolean getTwoWaySsl() {
+    return ("true".equals(properties.getProperty(SRVR_TWO_WAY_SSL_KEY,
+      SRVR_TWO_WAY_SSL_DEFAULT)));
   }
 
   /**

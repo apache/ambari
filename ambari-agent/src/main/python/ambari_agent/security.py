@@ -27,7 +27,6 @@ import json
 import pprint
 import traceback
 import hostname
-import AmbariConfig
 
 logger = logging.getLogger()
 
@@ -38,12 +37,48 @@ GEN_AGENT_KEY="openssl req -new -newkey rsa:1024 -nodes -keyout %(keysdir)s/%(ho
 
 class VerifiedHTTPSConnection(httplib.HTTPSConnection):
   """ Connecting using ssl wrapped sockets """
-  def __init__(self, host, port=None, key_file=None, cert_file=None,
-                     strict=None, timeout=socket._GLOBAL_DEFAULT_TIMEOUT):
+  def __init__(self, host, port=None, config=None):
     httplib.HTTPSConnection.__init__(self, host, port=port)
-    self.certMan = CertificateManager(AmbariConfig.config)
+    self.config=config
+    self.two_way_ssl_required=False
 
   def connect(self):
+
+    if not self.two_way_ssl_required:
+      try:
+        sock=self.create_connection()
+        self.sock = ssl.wrap_socket(sock, cert_reqs=ssl.CERT_NONE)
+        logger.info('SSL connection established. Two-way SSL authentication is '
+                    'turned off on the server.')
+      except (ssl.SSLError, AttributeError):
+        self.two_way_ssl_required=True
+        logger.info('Insecure connection to https://' + self.host + ':' + self.port +
+                    '/ failed. Reconnecting using two-way SSL authentication..')
+
+    if self.two_way_ssl_required:
+      self.certMan=CertificateManager(self.config)
+      self.certMan.initSecurity()
+      agent_key = self.certMan.getAgentKeyName()
+      agent_crt = self.certMan.getAgentCrtName()
+      server_crt = self.certMan.getSrvrCrtName()
+
+      sock=self.create_connection()
+
+      try:
+        self.sock = ssl.wrap_socket(sock,
+                                keyfile=agent_key,
+                                certfile=agent_crt,
+                                cert_reqs=ssl.CERT_REQUIRED,
+                                ca_certs=server_crt)
+        logger.info('SSL connection established. Two-way SSL authentication '
+                    'completed successfully.')
+      except ssl.SSLError as err:
+        logger.error('Two-way SSL authentication failed. Ensure that '
+                    'server and agent certificates were signed by the same CA '
+                    'and restart the agent.\nExiting..')
+        raise err
+
+  def create_connection(self):
     if self.sock:
       self.sock.close()
     logger.info("SSL Connect being called.. connecting to the server")
@@ -52,16 +87,8 @@ class VerifiedHTTPSConnection(httplib.HTTPSConnection):
     if self._tunnel_host:
       self.sock = sock
       self._tunnel()
-    agent_key = self.certMan.getAgentKeyName()
-    agent_crt = self.certMan.getAgentCrtName()
-    server_crt = self.certMan.getSrvrCrtName()
-    
-    self.sock = ssl.wrap_socket(sock,
-                                keyfile=agent_key,
-                                certfile=agent_crt,
-                                cert_reqs=ssl.CERT_REQUIRED,
-                                ca_certs=server_crt)
 
+    return sock
 
 class CachedHTTPSConnection:
   """ Caches a ssl socket and uses a single https connection to the server. """
@@ -75,7 +102,7 @@ class CachedHTTPSConnection:
   
   def connect(self):
     if  not self.connected:
-      self.httpsconn = VerifiedHTTPSConnection(self.server, self.port)
+      self.httpsconn = VerifiedHTTPSConnection(self.server, self.port, self.config)
       self.httpsconn.connect()
       self.connected = True
     # possible exceptions are caught and processed in Controller
@@ -83,7 +110,7 @@ class CachedHTTPSConnection:
 
   
   def forceClear(self):
-    self.httpsconn = VerifiedHTTPSConnection(self.server, self.port)
+    self.httpsconn = VerifiedHTTPSConnection(self.server, self.port, self.config)
     self.connect()
     
   def request(self, req): 

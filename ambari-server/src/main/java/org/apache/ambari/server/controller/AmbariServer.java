@@ -41,6 +41,7 @@ import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.resources.ResourceManager;
 import org.apache.ambari.server.resources.api.rest.GetResource;
 import org.apache.ambari.server.security.CertificateManager;
+import org.apache.ambari.server.security.SecurityFilter;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.AmbariLocalUserDetailsService;
 import org.apache.ambari.server.security.authorization.Users;
@@ -177,13 +178,15 @@ public class AmbariServer {
       root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/api/*", 1);
       agentroot.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/agent/*", 1);
 
+      agentroot.addFilter(SecurityFilter.class, "/*", 1);
+
       if (configs.getApiAuthentication()) {
         root.addFilter(new FilterHolder(springSecurityFilter), "/api/*", 1);
       }
 
 
       //Secured connector for 2-way auth
-      SslSelectChannelConnector sslConnectorTwoWay = new  
+      SslSelectChannelConnector sslConnectorTwoWay = new
           SslSelectChannelConnector();
       sslConnectorTwoWay.setPort(AGENT_TWO_WAY_AUTH);
 
@@ -198,7 +201,7 @@ public class AmbariServer {
       sslConnectorTwoWay.setTrustPassword(srvrCrtPass);
       sslConnectorTwoWay.setKeystoreType("PKCS12");
       sslConnectorTwoWay.setTruststoreType("PKCS12");
-      sslConnectorTwoWay.setNeedClientAuth(true);
+      sslConnectorTwoWay.setNeedClientAuth(configs.getTwoWaySsl());
 
       //Secured connector for 1-way auth
       //SslSelectChannelConnector sslConnectorOneWay = new SslSelectChannelConnector();

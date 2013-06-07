@@ -30,6 +30,7 @@ import logging
 import signal
 from ambari_agent.AmbariConfig import AmbariConfig
 import ConfigParser
+import ssl
 import os
 import tempfile
 from ambari_agent.Controller import Controller
@@ -56,16 +57,52 @@ class TestSecurity(unittest.TestCase):
 
   ### VerifiedHTTPSConnection ###
 
+  @patch.object(security.CertificateManager, "initSecurity")
   @patch("socket.create_connection")
   @patch("ssl.wrap_socket")
-  def test_VerifiedHTTPSConnection_connect(self, wrap_socket_mock, create_connection_mock):
+  def test_VerifiedHTTPSConnection_connect(self, wrap_socket_mock,
+                                           create_connection_mock,
+                                            init_security_mock):
+    init_security_mock.return_value = None
     self.config.set('security', 'keysdir', '/dummy-keysdir')
-    connection = security.VerifiedHTTPSConnection("example.com")
+    connection = security.VerifiedHTTPSConnection("example.com",
+      self.config.get('server', 'secured_url_port'), self.config)
     connection._tunnel_host = False
     connection.sock = None
     connection.connect()
     self.assertTrue(wrap_socket_mock.called)
 
+  ### VerifiedHTTPSConnection with no certificates creation
+  @patch.object(security.CertificateManager, "initSecurity")
+  @patch("socket.create_connection")
+  @patch("ssl.wrap_socket")
+  def test_Verified_HTTPSConnection_non_secure_connect(self, wrap_socket_mock,
+                                                    create_connection_mock,
+                                                    init_security_mock):
+    connection = security.VerifiedHTTPSConnection("example.com",
+      self.config.get('server', 'secured_url_port'), self.config)
+    connection._tunnel_host = False
+    connection.sock = None
+    connection.connect()
+    self.assertFalse(init_security_mock.called)
+
+  ### VerifiedHTTPSConnection with two-way SSL authentication enabled
+  @patch.object(security.CertificateManager, "initSecurity")
+  @patch("socket.create_connection")
+  @patch("ssl.wrap_socket")
+  def test_Verified_HTTPSConnection_two_way_ssl_connect(self, wrap_socket_mock,
+                                                    create_connection_mock,
+                                                    init_security_mock):
+    wrap_socket_mock.side_effect=ssl.SSLError()
+    connection = security.VerifiedHTTPSConnection("example.com",
+      self.config.get('server', 'secured_url_port'), self.config)
+    connection._tunnel_host = False
+    connection.sock = None
+    try:
+      connection.connect()
+    except ssl.SSLError:
+      pass
+    self.assertTrue(init_security_mock.called)
 
   ### CachedHTTPSConnection ###
 
