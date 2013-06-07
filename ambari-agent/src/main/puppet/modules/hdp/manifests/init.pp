@@ -69,7 +69,7 @@ class hdp(
   $ganglia_collector_jobtracker_port = hdp_default("ganglia_collector_jobtracker_port","8662")
   $ganglia_collector_hbase_port = hdp_default("ganglia_collector_hbase_port","8663")
   $ganglia_collector_rm_port = hdp_default("ganglia_collector_rm_port","8664")
-  $ganglia_collector_nm_port = hdp_default("ganglia_collector_nm_port","8665")
+  $ganglia_collector_nm_port = hdp_default("ganglia_collector_nm_port","8660")
   $ganglia_collector_hs_port = hdp_default("ganglia_collector_hs_port","8666")
 
   $oozie_server_port = hdp_default("oozie_server_port","11000")

@@ -178,7 +178,7 @@ define service {
 
 <%if scope.function_hdp_nagios_members_exist('resorcemanager')-%>
 define service {
-        hostgroup_name          resorcemanager
+        hostgroup_name          ganglia-server
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Collector [gmond] process down alert for Resource Manager
         servicegroups           GANGLIA
@@ -191,7 +191,7 @@ define service {
 
 <%if scope.function_hdp_nagios_members_exist('nodemanagers')-%>
 define service {
-        hostgroup_name          nodemanagers
+        hostgroup_name          ganglia-server
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Collector [gmond] process down alert for Node Manager
         servicegroups           GANGLIA
@@ -204,7 +204,7 @@ define service {
 
 <%if scope.function_hdp_nagios_members_exist('historyserver2')-%>
 define service {
-        hostgroup_name          historyserver2
+        hostgroup_name          ganglia-server
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Collector [gmond] process down alert for History Server 2
         servicegroups           GANGLIA
