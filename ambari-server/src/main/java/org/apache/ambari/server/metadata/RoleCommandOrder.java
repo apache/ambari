@@ -495,4 +495,33 @@ public class RoleCommandOrder {
     }
     return 0;
   }
+
+  public int compareDeps(RoleCommandOrder rco) {
+    Set<RoleCommandPair> v1 = null, v2 = null;
+    if (this == rco) {
+      return 0;
+    }
+
+    // Check for key set match
+    if (!this.dependencies.keySet().equals(rco.dependencies.keySet())){
+      LOG.debug("dependency keysets differ");
+      return 1;
+    }
+    LOG.debug("dependency keysets match");
+
+    // So far so good.  Since the keysets match, let's check the
+    // actual entries against each other
+    for (RoleCommandPair key: this.dependencies.keySet()) {
+      v1 = this.dependencies.get(key);
+      v2 = rco.dependencies.get(key);
+      if (!v1.equals(v2)) {
+        LOG.debug("different entry found for key (" + key.role.toString() + ", "
+                                                    + key.cmd.toString() + ")" );
+        return 1;
+      }
+    }
+    LOG.debug("dependency entries match");
+    return 0;
+  }
+
 }
