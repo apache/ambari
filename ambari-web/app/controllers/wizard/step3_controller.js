@@ -522,8 +522,19 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   submit: function () {
     if (!this.get('isSubmitDisabled')) {
-      this.set('content.hosts', this.get('bootHosts'));
-      App.router.send('next');
+        if(this.get('isHostHaveWarnings')) {
+            var self = this;
+            App.showConfirmationPopup(
+                function(){
+                    self.set('content.hosts', self.get('bootHosts'));
+                    App.router.send('next');
+                },
+                Em.I18n.t('installer.step3.hostWarningsPopup.hostHasWarnings'));
+        }
+        else {
+              this.set('content.hosts', this.get('bootHosts'));
+              App.router.send('next');
+        }
     }
   },
 
