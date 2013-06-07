@@ -29,6 +29,7 @@ define hdp-hadoop::hdfs::directory(
 ) 
 {
   $dir_exists = "hadoop fs -ls ${name} >/dev/null 2>&1"
+  $namenode_safe_mode_off = "hadoop dfsadmin -safemode get|grep 'Safe mode is OFF'"
   $tries = 30
   $try_sleep = 10
  
@@ -43,6 +44,7 @@ define hdp-hadoop::hdfs::directory(
     hdp-hadoop::exec-hadoop { $mkdir_cmd:
       command   => $mkdir_cmd,
       unless    => $dir_exists,
+      onlyif    => $namenode_safe_mode_off,
       try_sleep => $try_sleep,
       tries     => $tries
     }
@@ -65,7 +67,7 @@ define hdp-hadoop::hdfs::directory(
       }
       hdp-hadoop::exec-hadoop {$chown_cmd :
         command   => $chown_cmd,
-        onlyif    => $dir_exists,
+        onlyif    => "$namenode_safe_mode_off && $dir_exists",
         try_sleep => $try_sleep,
         tries     => $tries
       }
@@ -81,7 +83,7 @@ define hdp-hadoop::hdfs::directory(
       }
       hdp-hadoop::exec-hadoop {$chmod_cmd :
         command   => $chmod_cmd,
-        onlyif    => $dir_exists,
+        onlyif    => "$namenode_safe_mode_off && $dir_exists",
         try_sleep => $try_sleep,
         tries     => $tries
       }
