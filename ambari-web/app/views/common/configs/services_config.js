@@ -178,7 +178,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
     return category.indexOf("Advanced") != -1;
   },
   showAddPropertyWindow: function (event) {
-    var serviceConfigNames = this.get('categoryConfigs').mapProperty('name');
+    var allConfigs = this.get('service.configs').filterProperty('serviceName',this.get('service.serviceName'));
     var serviceConfigObj = Ember.Object.create({
       name: '',
       value: '',
@@ -192,7 +192,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
         if(name.trim() != ""){
           if(validator.isValidConfigKey(name)){
             var configMappingProperty = App.config.get('configMapping').all().findProperty('name', name);
-            if((configMappingProperty == null) && (!serviceConfigNames.contains(name))){
+            if((configMappingProperty == null) && (!allConfigs.findProperty('name',name))){
               this.set("isKeyError", false);
               this.set("errorMessage", "");
             } else {
