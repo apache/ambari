@@ -170,7 +170,7 @@ class PuppetExecutor:
     puppetEnv = self.configureEnviron(puppetEnv)
     logger.debug("Setting RUBYLIB as: " + rubyLib)
     logger.info("Running command " + pprint.pformat(puppetcommand))
-    puppet = self.lauch_puppet_subprocess(puppetcommand,tmpout, tmperr, puppetEnv)
+    puppet = self.lauch_puppet_subprocess(puppetcommand, tmpout, tmperr, puppetEnv)
     logger.debug("Launching watchdog thread")
     self.event.clear()
     self.last_puppet_has_been_killed = False

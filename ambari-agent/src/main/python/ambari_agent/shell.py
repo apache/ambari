@@ -61,13 +61,17 @@ def killstaleprocesses():
 def killprocessgrp(pid):
   try:
     os.killpg(pid, signal.SIGTERM)
-    time.sleep(5)
-    try:
-      os.killpg(pid, signal.SIGKILL)
-    except:
-      logger.warn("Failed to send SIGKILL to PID %d. Process exited?" % (pid))
-  except:
-    logger.warn("Failed to kill PID %d" % (pid))      
+  except Exception, e:
+    logger.warn("Failed to kill PID %d" % (pid))
+    logger.warn("Reported error: " + repr(e))
+
+  time.sleep(5)
+
+  try:
+    os.killpg(pid, signal.SIGKILL)
+  except Exception, e:
+    logger.error("Failed to send SIGKILL to PID %d. Process exited?" % (pid))
+    logger.error("Reported error: " + repr(e))
 
 def changeUid():
   try:
