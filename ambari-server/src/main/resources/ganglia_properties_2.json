@@ -6222,7 +6222,6 @@
         "temporal":true
       }
     },
-
     "RESOURCEMANAGER":{
       "metrics/boottime":{
         "metric":"boottime",
@@ -6284,195 +6283,6 @@
         "pointInTime":true,
         "temporal":true
       },
-
-      "ServiceComponentInfo/rm_metrics/yarn/Queue/running_0":{
-        "metric":"yarn.Queue.running_0",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "ServiceComponentInfo/rm_metrics/yarn/Queue/running_60":{
-        "metric":"yarn.QueueMetrics.running_60",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "ServiceComponentInfo/rm_metrics/yarn/Queue/running_300":{
-        "metric":"yarn.QueueMetrics.running_300",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "ServiceComponentInfo/rm_metrics/yarn/Queue/running_1440":{
-        "metric":"yarn.QueueMetrics.running_1440",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "ServiceComponentInfo/rm_metrics/yarn/Queue/AppsSubmitted":{
-        "metric":"yarn.QueueMetrics.AppsSubmitted",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "ServiceComponentInfo/rm_metrics/yarn/Queue/AppsRunning":{
-        "metric":"yarn.QueueMetrics.AppsRunning",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "ServiceComponentInfo/rm_metrics/yarn/Queue/AppsPending":{
-        "metric":"yarn.QueueMetrics.AppsPending",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "ServiceComponentInfo/rm_metrics/yarn/Queue/AppsCompleted":{
-        "metric":"yarn.QueueMetrics.AppsCompleted",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "ServiceComponentInfo/rm_metrics/yarn/Queue/AppsKilled":{
-        "metric":"yarn.QueueMetrics.AppsKilled",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "ServiceComponentInfo/rm_metrics/yarn/Queue/AppsFailed":{
-        "metric":"yarn.QueueMetrics.AppsFailed",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "ServiceComponentInfo/rm_metrics/yarn/Queue/AllocatedMB":{
-        "metric":"yarn.QueueMetrics.AllocatedMB",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "ServiceComponentInfo/rm_metrics/yarn/Queue/AllocatedContainers":{
-        "metric":"yarn.QueueMetrics.AllocatedContainers",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "ServiceComponentInfo/rm_metrics/yarn/Queue/AggregateContainersAllocated":{
-        "metric":"yarn.QueueMetrics.AggregateContainersAllocated",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "ServiceComponentInfo/rm_metrics/yarn/Queue/AggregateContainersReleased":{
-        "metric":"yarn.QueueMetrics.AggregateContainersReleased",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "ServiceComponentInfo/rm_metrics/yarn/Queue/AvailableMB":{
-        "metric":"yarn.QueueMetrics.AvailableMB",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "ServiceComponentInfo/rm_metrics/yarn/Queue/PendingMB":{
-        "metric":"yarn.QueueMetrics.PendingMB",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "ServiceComponentInfo/rm_metrics/yarn/Queue/PendingContainers":{
-        "metric":"yarn.QueueMetrics.PendingContainers",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "ServiceComponentInfo/rm_metrics/yarn/Queue/ReservedMB":{
-        "metric":"yarn.QueueMetrics.ReservedMB",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "ServiceComponentInfo/rm_metrics/yarn/Queue/ReservedContainers":{
-        "metric":"yarn.QueueMetrics.ReservedContainers",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "ServiceComponentInfo/rm_metrics/yarn/Queue/ActiveUsers":{
-        "metric":"yarn.QueueMetrics.ActiveUsers",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "ServiceComponentInfo/rm_metrics/yarn/Queue/ActiveApplications":{
-        "metric":"yarn.QueueMetrics.ActiveApplications",
-        "pointInTime":true,
-        "temporal":true
-      },
-
-      "metrics/ugi/LoginSuccessNumOps":{
-        "metric":"ugi.ugi.LoginSuccessNumOps",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/ugi/LoginSuccessAvgTime":{
-        "metric":"ugi.ugi.LoginSuccessAvgTime",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/ugi/LoginFailureNumOps":{
-        "metric":"ugi.ugi.LoginFailureNumOps",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/ugi/LoginFailureAvgTime":{
-        "metric":"ugi.ugi.LoginFailureAvgTime",
-        "pointInTime":false,
-        "temporal":true
-      },
-
-      "metrics/rpc/ReceivedBytes":{
-        "metric":"rpc.rpc.ReceivedBytes",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/rpc/SentBytes":{
-        "metric":"rpc.rpc.SentBytes",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/rpc/RpcQueueTimeNumOps":{
-        "metric":"rpc.rpc.RpcQueueTimeNumOps",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/rpc/RpcQueueTimeAvgTime":{
-        "metric":"rpc.rpc.RpcQueueTimeAvgTime",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/rpc/RpcProcessingTimeNumOps":{
-        "metric":"rpc.rpc.RpcProcessingTimeNumOps",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/rpc/RpcProcessingTimeAvgTime":{
-        "metric":"rpc.rpc.RpcProcessingTimeAvgTime",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/rpc/RpcAuthenticationFailures":{
-        "metric":"rpc.metrics.RpcAuthenticationFailures",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/rpc/RpcAuthenticationSuccesses":{
-        "metric":"rpc.metrics.RpcAuthenticationSuccesses",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/rpc/RpcAuthorizationFailures":{
-        "metric":"rpc.metrics.RpcAuthorizationFailures",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/rpc/RpcAuthorizationSuccesses":{
-        "metric":"rpc.rpc.RpcAuthorizationSuccesses",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/rpc/NumOpenConnections":{
-        "metric":"rpc.rpc.NumOpenConnections",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/rpc/CallQueueLength":{
-        "metric":"rpc.rpc.CallQueueLength",
-        "pointInTime":false,
-        "temporal":true
-      },
-
       "metrics/memory/mem_buffers":{
         "metric":"mem_buffers",
         "pointInTime":true,
@@ -6508,7 +6318,6 @@
         "pointInTime":true,
         "temporal":true
       },
-
       "metrics/network/bytes_in":{
         "metric":"bytes_in",
         "pointInTime":true,
@@ -6529,7 +6338,6 @@
         "pointInTime":true,
         "temporal":true
       },
-
       "metrics/process/proc_run":{
         "metric":"proc_run",
         "pointInTime":true,
@@ -6540,90 +6348,357 @@
         "pointInTime":true,
         "temporal":true
       },
-
-      "metrics/jvm/MemNonHeapUsedM":{
+      "metrics/load_fifteen":{
+        "metric":"load_fifteen",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/load_five":{
+        "metric":"load_five",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/load_one":{
+        "metric":"load_one",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/jvm/gcCountCopy":{
+        "metric":"jvm.JvmMetrics.GcCountCopy",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/gcCountMarkSweepCompact":{
+        "metric":"jvm.JvmMetrics.GcCountMarkSweepCompact",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/gcTimeMillisCopy":{
+        "metric":"jvm.JvmMetrics.GcTimeMillisCopy",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/gcTimeMillisMarkSweepCompact":{
+        "metric":"jvm.JvmMetrics.GcTimeMillisMarkSweepCompact",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/memMaxM":{
+        "metric":"jvm.JvmMetrics.MemMaxM",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/memNonHeapUsedM":{
         "metric":"jvm.JvmMetrics.MemNonHeapUsedM",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/MemNonHeapCommittedM":{
+      "metrics/jvm/memNonHeapCommittedM":{
         "metric":"jvm.JvmMetrics.MemNonHeapCommittedM",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/MemHeapUsedM":{
+      "metrics/jvm/memHeapUsedM":{
         "metric":"jvm.JvmMetrics.MemHeapUsedM",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/MemHeapCommittedM":{
+      "metrics/jvm/memHeapCommittedM":{
         "metric":"jvm.JvmMetrics.MemHeapCommittedM",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/GcCount":{
+      "metrics/jvm/gcCount":{
         "metric":"jvm.JvmMetrics.GcCount",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/GcTimeMillis":{
+      "metrics/jvm/gcTimeMillis":{
         "metric":"jvm.JvmMetrics.GcTimeMillis",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/LogFatal":{
+      "metrics/jvm/logFatal":{
         "metric":"jvm.JvmMetrics.LogFatal",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/LogError":{
+      "metrics/jvm/logError":{
         "metric":"jvm.JvmMetrics.LogError",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/LogWarn":{
+      "metrics/jvm/logWarn":{
         "metric":"jvm.JvmMetrics.LogWarn",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/LogInfo":{
+      "metrics/jvm/logInfo":{
         "metric":"jvm.JvmMetrics.LogInfo",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/ThreadsNew":{
+      "metrics/jvm/threadsNew":{
         "metric":"jvm.JvmMetrics.ThreadsNew",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/ThreadsRunnable":{
+      "metrics/jvm/threadsRunnable":{
         "metric":"jvm.JvmMetrics.ThreadsRunnable",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/ThreadsBlocked":{
+      "metrics/jvm/threadsBlocked":{
         "metric":"jvm.JvmMetrics.ThreadsBlocked",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/ThreadsWaiting":{
+      "metrics/jvm/threadsWaiting":{
         "metric":"jvm.JvmMetrics.ThreadsWaiting",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/ThreadsTimedWaiting":{
+      "metrics/jvm/threadsTimedWaiting":{
         "metric":"jvm.JvmMetrics.ThreadsTimedWaiting",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/ThreadsTerminated":{
+      "metrics/jvm/threadsTerminated":{
         "metric":"jvm.JvmMetrics.ThreadsTerminated",
         "pointInTime":false,
         "temporal":true
+      },
+      "metrics/rpcdetailed/AllocateAvgTime":{
+        "metric":"rpcdetailed.rpcdetailed.AllocateAvgTime",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/AllocateNumOps":{
+        "metric":"rpcdetailed.rpcdetailed.AllocateNumOps",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/FinishApplicationMasterAvgTime":{
+        "metric":"rpcdetailed.rpcdetailed.FinishApplicationMasterAvgTime",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/FinishApplicationMasterNumOps":{
+        "metric":"rpcdetailed.rpcdetailed.FinishApplicationMasterNumOps",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/GetApplicationReportAvgTime":{
+        "metric":"rpcdetailed.rpcdetailed.GetApplicationReportAvgTime",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/GetApplicationReportNumOps":{
+        "metric":"rpcdetailed.rpcdetailed.GetApplicationReportNumOps",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/GetNewApplicationAvgTime":{
+        "metric":"rpcdetailed.rpcdetailed.GetNewApplicationAvgTime",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/GetNewApplicationNumOps":{
+        "metric":"rpcdetailed.rpcdetailed.GetNewApplicationNumOps",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/NodeHeartbeatAvgTime":{
+        "metric":"rpcdetailed.rpcdetailed.NodeHeartbeatAvgTime",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/RegisterApplicationMasterAvgTime":{
+        "metric":"rpcdetailed.rpcdetailed.RegisterApplicationMasterAvgTime",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/RegisterApplicationMasterNumOps":{
+        "metric":"rpcdetailed.rpcdetailed.RegisterApplicationMasterNumOps",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/SubmitApplicationAvgTime":{
+        "metric":"rpcdetailed.rpcdetailed.SubmitApplicationAvgTime",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/SubmitApplicationNumOps":{
+        "metric":"rpcdetailed.rpcdetailed.SubmitApplicationNumOps",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpc/ReceivedBytes":{
+        "metric":"rpc.rpc.ReceivedBytes",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/SentBytes":{
+        "metric":"rpc.rpc.SentBytes",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/RpcQueueTimeNumOps":{
+        "metric":"rpc.rpc.RpcQueueTimeNumOps",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/RpcQueueTimeAvgTime":{
+        "metric":"rpc.rpc.RpcQueueTimeAvgTime",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/RpcProcessingTimeNumOps":{
+        "metric":"rpc.rpc.RpcProcessingTimeNumOps",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/RpcProcessingTimeAvgTime":{
+        "metric":"rpc.rpc.RpcProcessingTimeAvgTime",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/RpcAuthorizationSuccesses":{
+        "metric":"rpc.rpc.RpcAuthorizationSuccesses",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/NumOpenConnections":{
+        "metric":"rpc.rpc.NumOpenConnections",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/CallQueueLength":{
+        "metric":"rpc.rpc.CallQueueLength",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/AllocatedVCores":{
+        "metric":"yarn.QueueMetrics.AllocatedVCores",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/AvailableVCores":{
+        "metric":"yarn.QueueMetrics.AvailableVCores",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/PendingVCores":{
+        "metric":"yarn.QueueMetrics.PendingVCores",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/running_0":{
+        "metric":"yarn.QueueMetrics.running_0",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/running_60":{
+        "metric":"yarn.QueueMetrics.running_60",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/running_300":{
+        "metric":"yarn.QueueMetrics.running_300",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/running_1440":{
+        "metric":"yarn.QueueMetrics.running_1440",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/AppsSubmitted":{
+        "metric":"yarn.QueueMetrics.AppsSubmitted",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/AppsRunning":{
+        "metric":"yarn.QueueMetrics.AppsRunning",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/AppsPending":{
+        "metric":"yarn.QueueMetrics.AppsPending",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/AppsCompleted":{
+        "metric":"yarn.QueueMetrics.AppsCompleted",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/AllocatedMB":{
+        "metric":"yarn.QueueMetrics.AllocatedMB",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/AllocatedContainers":{
+        "metric":"yarn.QueueMetrics.AllocatedContainers",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/AggregateContainersAllocated":{
+        "metric":"yarn.QueueMetrics.AggregateContainersAllocated",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/AggregateContainersReleased":{
+        "metric":"yarn.QueueMetrics.AggregateContainersReleased",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/AvailableMB":{
+        "metric":"yarn.QueueMetrics.AvailableMB",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/PendingMB":{
+        "metric":"yarn.QueueMetrics.PendingMB",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/PendingContainers":{
+        "metric":"yarn.QueueMetrics.PendingContainers",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/ActiveUsers":{
+        "metric":"yarn.QueueMetrics.ActiveUsers",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/ActiveApplications":{
+        "metric":"yarn.QueueMetrics.ActiveApplications",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/ugi/LoginSuccessNumOps":{
+        "metric":"ugi.ugi.LoginSuccessNumOps",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/ugi/LoginSuccessAvgTime":{
+        "metric":"ugi.ugi.LoginSuccessAvgTime",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/ugi/LoginFailureNumOps":{
+        "metric":"ugi.ugi.LoginFailureNumOps",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/ugi/LoginFailureAvgTime":{
+        "metric":"ugi.ugi.LoginFailureAvgTime",
+        "pointInTime":false,
+        "temporal":true
       }
-
     },
-
     "NODEMANAGER":{
       "metrics/boottime":{
         "metric":"boottime",
@@ -6821,82 +6896,82 @@
         "temporal":true
       },
 
-      "metrics/jvm/MemNonHeapUsedM":{
+      "metrics/jvm/memNonHeapUsedM":{
         "metric":"jvm.JvmMetrics.MemNonHeapUsedM",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/MemNonHeapCommittedM":{
+      "metrics/jvm/memNonHeapCommittedM":{
         "metric":"jvm.JvmMetrics.MemNonHeapCommittedM",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/MemHeapUsedM":{
+      "metrics/jvm/memHeapUsedM":{
         "metric":"jvm.JvmMetrics.MemHeapUsedM",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/MemHeapCommittedM":{
+      "metrics/jvm/memHeapCommittedM":{
         "metric":"jvm.JvmMetrics.MemHeapCommittedM",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/GcCount":{
+      "metrics/jvm/gcCount":{
         "metric":"jvm.JvmMetrics.GcCount",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/GcTimeMillis":{
+      "metrics/jvm/gcTimeMillis":{
         "metric":"jvm.JvmMetrics.GcTimeMillis",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/LogFatal":{
+      "metrics/jvm/logFatal":{
         "metric":"jvm.JvmMetrics.LogFatal",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/LogError":{
+      "metrics/jvm/logError":{
         "metric":"jvm.JvmMetrics.LogError",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/LogWarn":{
+      "metrics/jvm/logWarn":{
         "metric":"jvm.JvmMetrics.LogWarn",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/LogInfo":{
+      "metrics/jvm/logInfo":{
         "metric":"jvm.JvmMetrics.LogInfo",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/ThreadsNew":{
+      "metrics/jvm/threadsNew":{
         "metric":"jvm.JvmMetrics.ThreadsNew",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/ThreadsRunnable":{
+      "metrics/jvm/threadsRunnable":{
         "metric":"jvm.JvmMetrics.ThreadsRunnable",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/ThreadsBlocked":{
+      "metrics/jvm/threadsBlocked":{
         "metric":"jvm.JvmMetrics.ThreadsBlocked",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/ThreadsWaiting":{
+      "metrics/jvm/threadsWaiting":{
         "metric":"jvm.JvmMetrics.ThreadsWaiting",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/ThreadsTimedWaiting":{
+      "metrics/jvm/threadsTimedWaiting":{
         "metric":"jvm.JvmMetrics.ThreadsTimedWaiting",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/ThreadsTerminated":{
+      "metrics/jvm/threadsTerminated":{
         "metric":"jvm.JvmMetrics.ThreadsTerminated",
         "pointInTime":false,
         "temporal":true
@@ -7116,82 +7191,82 @@
         "temporal":true
       },
 
-      "metrics/jvm/MemNonHeapUsedM":{
+      "metrics/jvm/memNonHeapUsedM":{
         "metric":"jvm.JvmMetrics.MemNonHeapUsedM",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/MemNonHeapCommittedM":{
+      "metrics/jvm/memNonHeapCommittedM":{
         "metric":"jvm.JvmMetrics.MemNonHeapCommittedM",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/MemHeapUsedM":{
+      "metrics/jvm/memHeapUsedM":{
         "metric":"jvm.JvmMetrics.MemHeapUsedM",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/MemHeapCommittedM":{
+      "metrics/jvm/memHeapCommittedM":{
         "metric":"jvm.JvmMetrics.MemHeapCommittedM",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/GcCount":{
+      "metrics/jvm/gcCount":{
         "metric":"jvm.JvmMetrics.GcCount",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/GcTimeMillis":{
+      "metrics/jvm/gcTimeMillis":{
         "metric":"jvm.JvmMetrics.GcTimeMillis",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/LogFatal":{
+      "metrics/jvm/logFatal":{
         "metric":"jvm.JvmMetrics.LogFatal",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/LogError":{
+      "metrics/jvm/logError":{
         "metric":"jvm.JvmMetrics.LogError",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/LogWarn":{
+      "metrics/jvm/logWarn":{
         "metric":"jvm.JvmMetrics.LogWarn",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/LogInfo":{
+      "metrics/jvm/logInfo":{
         "metric":"jvm.JvmMetrics.LogInfo",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/ThreadsNew":{
+      "metrics/jvm/threadsNew":{
         "metric":"jvm.JvmMetrics.ThreadsNew",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/ThreadsRunnable":{
+      "metrics/jvm/threadsRunnable":{
         "metric":"jvm.JvmMetrics.ThreadsRunnable",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/ThreadsBlocked":{
+      "metrics/jvm/threadsBlocked":{
         "metric":"jvm.JvmMetrics.ThreadsBlocked",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/ThreadsWaiting":{
+      "metrics/jvm/threadsWaiting":{
         "metric":"jvm.JvmMetrics.ThreadsWaiting",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/ThreadsTimedWaiting":{
+      "metrics/jvm/threadsTimedWaiting":{
         "metric":"jvm.JvmMetrics.ThreadsTimedWaiting",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/jvm/ThreadsTerminated":{
+      "metrics/jvm/threadsTerminated":{
         "metric":"jvm.JvmMetrics.ThreadsTerminated",
         "pointInTime":false,
         "temporal":true
@@ -16266,6 +16341,843 @@
         "pointInTime":false,
         "temporal":true
       }
+    },
+    "RESOURCEMANAGER":{
+      "metrics/boottime":{
+        "metric":"boottime",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/cpu/cpu_aidle":{
+        "metric":"cpu_aidle",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/cpu/cpu_idle":{
+        "metric":"cpu_idle",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/cpu/cpu_nice":{
+        "metric":"cpu_nice",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/cpu/cpu_num":{
+        "metric":"cpu_num",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/cpu/cpu_speed":{
+        "metric":"cpu_speed",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/cpu/cpu_system":{
+        "metric":"cpu_system",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/cpu/cpu_user":{
+        "metric":"cpu_user",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/cpu/cpu_wio":{
+        "metric":"cpu_wio",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/disk/disk_free":{
+        "metric":"disk_free",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/disk/disk_total":{
+        "metric":"disk_total",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/disk/part_max_used":{
+        "metric":"part_max_used",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/memory/mem_buffers":{
+        "metric":"mem_buffers",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/memory/mem_cached":{
+        "metric":"mem_cached",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/memory/mem_free":{
+        "metric":"mem_free",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/memory/mem_shared":{
+        "metric":"mem_shared",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/memory/mem_total":{
+        "metric":"mem_total",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/memory/swap_free":{
+        "metric":"swap_free",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/memory/swap_total":{
+        "metric":"swap_total",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/network/bytes_in":{
+        "metric":"bytes_in",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/network/bytes_out":{
+        "metric":"bytes_out",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/network/pkts_in":{
+        "metric":"pkts_in",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/network/pkts_out":{
+        "metric":"pkts_out",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/process/proc_run":{
+        "metric":"proc_run",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/process/proc_total":{
+        "metric":"proc_total",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/load_fifteen":{
+        "metric":"load_fifteen",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/load_five":{
+        "metric":"load_five",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/load_one":{
+        "metric":"load_one",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/jvm/gcCountCopy":{
+        "metric":"jvm.JvmMetrics.GcCountCopy",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/gcCountMarkSweepCompact":{
+        "metric":"jvm.JvmMetrics.GcCountMarkSweepCompact",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/gcTimeMillisCopy":{
+        "metric":"jvm.JvmMetrics.GcTimeMillisCopy",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/gcTimeMillisMarkSweepCompact":{
+        "metric":"jvm.JvmMetrics.GcTimeMillisMarkSweepCompact",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/memMaxM":{
+        "metric":"jvm.JvmMetrics.MemMaxM",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/memNonHeapUsedM":{
+        "metric":"jvm.JvmMetrics.MemNonHeapUsedM",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/memNonHeapCommittedM":{
+        "metric":"jvm.JvmMetrics.MemNonHeapCommittedM",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/memHeapUsedM":{
+        "metric":"jvm.JvmMetrics.MemHeapUsedM",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/memHeapCommittedM":{
+        "metric":"jvm.JvmMetrics.MemHeapCommittedM",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/gcCount":{
+        "metric":"jvm.JvmMetrics.GcCount",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/gcTimeMillis":{
+        "metric":"jvm.JvmMetrics.GcTimeMillis",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/logFatal":{
+        "metric":"jvm.JvmMetrics.LogFatal",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/logError":{
+        "metric":"jvm.JvmMetrics.LogError",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/logWarn":{
+        "metric":"jvm.JvmMetrics.LogWarn",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/logInfo":{
+        "metric":"jvm.JvmMetrics.LogInfo",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/threadsNew":{
+        "metric":"jvm.JvmMetrics.ThreadsNew",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/threadsRunnable":{
+        "metric":"jvm.JvmMetrics.ThreadsRunnable",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/threadsBlocked":{
+        "metric":"jvm.JvmMetrics.ThreadsBlocked",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/threadsWaiting":{
+        "metric":"jvm.JvmMetrics.ThreadsWaiting",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/threadsTimedWaiting":{
+        "metric":"jvm.JvmMetrics.ThreadsTimedWaiting",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/threadsTerminated":{
+        "metric":"jvm.JvmMetrics.ThreadsTerminated",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/AllocateAvgTime":{
+        "metric":"rpcdetailed.rpcdetailed.AllocateAvgTime",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/AllocateNumOps":{
+        "metric":"rpcdetailed.rpcdetailed.AllocateNumOps",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/FinishApplicationMasterAvgTime":{
+        "metric":"rpcdetailed.rpcdetailed.FinishApplicationMasterAvgTime",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/FinishApplicationMasterNumOps":{
+        "metric":"rpcdetailed.rpcdetailed.FinishApplicationMasterNumOps",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/GetApplicationReportAvgTime":{
+        "metric":"rpcdetailed.rpcdetailed.GetApplicationReportAvgTime",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/GetApplicationReportNumOps":{
+        "metric":"rpcdetailed.rpcdetailed.GetApplicationReportNumOps",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/GetNewApplicationAvgTime":{
+        "metric":"rpcdetailed.rpcdetailed.GetNewApplicationAvgTime",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/GetNewApplicationNumOps":{
+        "metric":"rpcdetailed.rpcdetailed.GetNewApplicationNumOps",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/NodeHeartbeatAvgTime":{
+        "metric":"rpcdetailed.rpcdetailed.NodeHeartbeatAvgTime",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/RegisterApplicationMasterAvgTime":{
+        "metric":"rpcdetailed.rpcdetailed.RegisterApplicationMasterAvgTime",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/RegisterApplicationMasterNumOps":{
+        "metric":"rpcdetailed.rpcdetailed.RegisterApplicationMasterNumOps",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/SubmitApplicationAvgTime":{
+        "metric":"rpcdetailed.rpcdetailed.SubmitApplicationAvgTime",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpcdetailed/SubmitApplicationNumOps":{
+        "metric":"rpcdetailed.rpcdetailed.SubmitApplicationNumOps",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/rpc/ReceivedBytes":{
+        "metric":"rpc.rpc.ReceivedBytes",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/SentBytes":{
+        "metric":"rpc.rpc.SentBytes",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/RpcQueueTimeNumOps":{
+        "metric":"rpc.rpc.RpcQueueTimeNumOps",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/RpcQueueTimeAvgTime":{
+        "metric":"rpc.rpc.RpcQueueTimeAvgTime",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/RpcProcessingTimeNumOps":{
+        "metric":"rpc.rpc.RpcProcessingTimeNumOps",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/RpcProcessingTimeAvgTime":{
+        "metric":"rpc.rpc.RpcProcessingTimeAvgTime",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/RpcAuthorizationSuccesses":{
+        "metric":"rpc.rpc.RpcAuthorizationSuccesses",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/NumOpenConnections":{
+        "metric":"rpc.rpc.NumOpenConnections",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/CallQueueLength":{
+        "metric":"rpc.rpc.CallQueueLength",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/AllocatedVCores":{
+        "metric":"yarn.QueueMetrics.AllocatedVCores",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/AvailableVCores":{
+        "metric":"yarn.QueueMetrics.AvailableVCores",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/PendingVCores":{
+        "metric":"yarn.QueueMetrics.PendingVCores",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/running_0":{
+        "metric":"yarn.QueueMetrics.running_0",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/running_60":{
+        "metric":"yarn.QueueMetrics.running_60",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/running_300":{
+        "metric":"yarn.QueueMetrics.running_300",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/running_1440":{
+        "metric":"yarn.QueueMetrics.running_1440",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/AppsSubmitted":{
+        "metric":"yarn.QueueMetrics.AppsSubmitted",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/AppsRunning":{
+        "metric":"yarn.QueueMetrics.AppsRunning",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/AppsPending":{
+        "metric":"yarn.QueueMetrics.AppsPending",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/AppsCompleted":{
+        "metric":"yarn.QueueMetrics.AppsCompleted",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/AllocatedMB":{
+        "metric":"yarn.QueueMetrics.AllocatedMB",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/AllocatedContainers":{
+        "metric":"yarn.QueueMetrics.AllocatedContainers",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/AggregateContainersAllocated":{
+        "metric":"yarn.QueueMetrics.AggregateContainersAllocated",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/AggregateContainersReleased":{
+        "metric":"yarn.QueueMetrics.AggregateContainersReleased",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/AvailableMB":{
+        "metric":"yarn.QueueMetrics.AvailableMB",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/PendingMB":{
+        "metric":"yarn.QueueMetrics.PendingMB",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/PendingContainers":{
+        "metric":"yarn.QueueMetrics.PendingContainers",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/ActiveUsers":{
+        "metric":"yarn.QueueMetrics.ActiveUsers",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/Queue/ActiveApplications":{
+        "metric":"yarn.QueueMetrics.ActiveApplications",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/ugi/LoginSuccessNumOps":{
+        "metric":"ugi.ugi.LoginSuccessNumOps",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/ugi/LoginSuccessAvgTime":{
+        "metric":"ugi.ugi.LoginSuccessAvgTime",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/ugi/LoginFailureNumOps":{
+        "metric":"ugi.ugi.LoginFailureNumOps",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/ugi/LoginFailureAvgTime":{
+        "metric":"ugi.ugi.LoginFailureAvgTime",
+        "pointInTime":false,
+        "temporal":true
+      }
+    },
+
+    "NODEMANAGER":{
+      "metrics/boottime":{
+        "metric":"boottime",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/cpu/cpu_aidle":{
+        "metric":"cpu_aidle",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/cpu/cpu_idle":{
+        "metric":"cpu_idle",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/cpu/cpu_nice":{
+        "metric":"cpu_nice",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/cpu/cpu_num":{
+        "metric":"cpu_num",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/cpu/cpu_speed":{
+        "metric":"cpu_speed",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/cpu/cpu_system":{
+        "metric":"cpu_system",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/cpu/cpu_user":{
+        "metric":"cpu_user",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/cpu/cpu_wio":{
+        "metric":"cpu_wio",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/disk/disk_free":{
+        "metric":"disk_free",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/disk/disk_total":{
+        "metric":"disk_total",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/disk/part_max_used":{
+        "metric":"part_max_used",
+        "pointInTime":true,
+        "temporal":true
+      },
+
+      "metrics/memory/mem_buffers":{
+        "metric":"mem_buffers",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/memory/mem_cached":{
+        "metric":"mem_cached",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/memory/mem_free":{
+        "metric":"mem_free",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/memory/mem_shared":{
+        "metric":"mem_shared",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/memory/mem_total":{
+        "metric":"mem_total",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/memory/swap_free":{
+        "metric":"swap_free",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/memory/swap_total":{
+        "metric":"swap_total",
+        "pointInTime":true,
+        "temporal":true
+      },
+
+      "metrics/network/bytes_in":{
+        "metric":"bytes_in",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/network/bytes_out":{
+        "metric":"bytes_out",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/network/pkts_in":{
+        "metric":"pkts_in",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/network/pkts_out":{
+        "metric":"pkts_out",
+        "pointInTime":true,
+        "temporal":true
+      },
+
+      "metrics/process/proc_run":{
+        "metric":"proc_run",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/process/proc_total":{
+        "metric":"proc_total",
+        "pointInTime":true,
+        "temporal":true
+      },
+
+      "metrics/mapred/ShuffleOutputBytes":{
+        "metric":"mapred.ShuffleOutputBytes",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/mapred/ShuffleOutputsFailed":{
+        "metric":"mapred.ShuffleOutputsFailed",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/mapred/ShuffleOutputsOK":{
+        "metric":"mapred.ShuffleOutputsOK",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/mapred/ShuffleConnections":{
+        "metric":"mapred.ShuffleConnections",
+        "pointInTime":true,
+        "temporal":true
+      },
+
+      "metrics/yarn/ContainersLaunched":{
+        "metric":"yarn.ContainersLaunched",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/ContainersCompleted":{
+        "metric":"yarn.ContainersCompleted",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/ContainersFailed":{
+        "metric":"yarn.ContainersFailed",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/ContainersKilled":{
+        "metric":"yarn.ContainersKilled",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/ContainersIniting":{
+        "metric":"yarn.ContainersIniting",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/ContainersRunning":{
+        "metric":"yarn.ContainersRunning",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/AllocatedGB":{
+        "metric":"yarn.AllocatedGB",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/AllocatedContainers":{
+        "metric":"yarn.AllocatedContainers",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/yarn/AvailableGB":{
+        "metric":"yarn.AvailableGB",
+        "pointInTime":true,
+        "temporal":true
+      },
+
+      "metrics/jvm/memNonHeapUsedM":{
+        "metric":"jvm.JvmMetrics.MemNonHeapUsedM",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/memNonHeapCommittedM":{
+        "metric":"jvm.JvmMetrics.MemNonHeapCommittedM",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/memHeapUsedM":{
+        "metric":"jvm.JvmMetrics.MemHeapUsedM",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/memHeapCommittedM":{
+        "metric":"jvm.JvmMetrics.MemHeapCommittedM",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/gcCount":{
+        "metric":"jvm.JvmMetrics.GcCount",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/gcTimeMillis":{
+        "metric":"jvm.JvmMetrics.GcTimeMillis",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/logFatal":{
+        "metric":"jvm.JvmMetrics.LogFatal",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/logError":{
+        "metric":"jvm.JvmMetrics.LogError",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/logWarn":{
+        "metric":"jvm.JvmMetrics.LogWarn",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/logInfo":{
+        "metric":"jvm.JvmMetrics.LogInfo",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/threadsNew":{
+        "metric":"jvm.JvmMetrics.ThreadsNew",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/threadsRunnable":{
+        "metric":"jvm.JvmMetrics.ThreadsRunnable",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/threadsBlocked":{
+        "metric":"jvm.JvmMetrics.ThreadsBlocked",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/threadsWaiting":{
+        "metric":"jvm.JvmMetrics.ThreadsWaiting",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/threadsTimedWaiting":{
+        "metric":"jvm.JvmMetrics.ThreadsTimedWaiting",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/jvm/threadsTerminated":{
+        "metric":"jvm.JvmMetrics.ThreadsTerminated",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/ReceivedBytes":{
+        "metric":"rpc.rpc.ReceivedBytes",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/SentBytes":{
+        "metric":"rpc.rpc.SentBytes",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/RpcQueueTimeNumOps":{
+        "metric":"rpc.rpc.RpcQueueTimeNumOps",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/RpcQueueTimeAvgTime":{
+        "metric":"rpc.rpc.RpcQueueTimeAvgTime",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/RpcProcessingTimeNumOps":{
+        "metric":"rpc.rpc.RpcProcessingTimeNumOps",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/RpcProcessingTimeAvgTime":{
+        "metric":"rpc.rpc.RpcProcessingTimeAvgTime",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/RpcAuthenticationFailures":{
+        "metric":"rpc.metrics.RpcAuthenticationFailures",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/RpcAuthenticationSuccesses":{
+        "metric":"rpc.metrics.RpcAuthenticationSuccesses",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/RpcAuthorizationFailures":{
+        "metric":"rpc.metrics.RpcAuthorizationFailures",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/RpcAuthorizationSuccesses":{
+        "metric":"rpc.rpc.RpcAuthorizationSuccesses",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/NumOpenConnections":{
+        "metric":"rpc.rpc.NumOpenConnections",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/rpc/CallQueueLength":{
+        "metric":"rpc.rpc.CallQueueLength",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/ugi/LoginSuccessNumOps":{
+        "metric":"ugi.ugi.LoginSuccessNumOps",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/ugi/LoginSuccessAvgTime":{
+        "metric":"ugi.ugi.LoginSuccessAvgTime",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/ugi/LoginFailureNumOps":{
+        "metric":"ugi.ugi.LoginFailureNumOps",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/ugi/LoginFailureAvgTime":{
+        "metric":"ugi.ugi.LoginFailureAvgTime",
+        "pointInTime":false,
+        "temporal":true
+      }
+
     },
 
     "HBASE_MASTER":{
