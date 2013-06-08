@@ -313,6 +313,27 @@
                 <source>
                   <location>src/main/resources/Ambari-DDL-Postgres-DROP.sql</location>
                 </source>
+                <source>
+                  <location>src/main/resources/Ambari-DDL-Postgres-REMOTE-CREATE.sql</location>
+                  <filter>true</filter>
+                </source>
+                <source>
+                  <location>src/main/resources/Ambari-DDL-Postgres-REMOTE-DROP.sql</location>
+                </source>
+                <source>
+                  <location>src/main/resources/Ambari-DDL-Oracle-CREATE.sql</location>
+                  <filter>true</filter>
+                </source>
+                <source>
+                  <location>src/main/resources/Ambari-DDL-MySQL-CREATE.sql</location>
+                  <filter>true</filter>
+                </source>
+                <source>
+                  <location>src/main/resources/Ambari-DDL-Oracle-DROP.sql</location>
+                </source>
+                <source>
+                  <location>src/main/resources/Ambari-DDL-MySQL-DROP.sql</location>
+                </source>
               </sources>
             </mapping>
             <mapping>

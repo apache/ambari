@@ -20,11 +20,11 @@
 
 delimiter ;
 
-CREATE DATABASE `ambari` /*!40100 DEFAULT CHARACTER SET utf8 */;
+# CREATE DATABASE `ambari` /*!40100 DEFAULT CHARACTER SET utf8 */;
+#
+# CREATE USER 'ambari' IDENTIFIED BY 'bigdata';
 
-CREATE USER 'ambari' IDENTIFIED BY 'bigdata';
-
-USE ambari;
+# USE @schema;
 
 CREATE TABLE clusters (cluster_id BIGINT NOT NULL, cluster_info VARCHAR(255) NOT NULL, cluster_name VARCHAR(100) NOT NULL UNIQUE, desired_cluster_state VARCHAR(255) NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id));
 CREATE TABLE clusterconfig (version_tag VARCHAR(255) NOT NULL, type_name VARCHAR(255) NOT NULL, cluster_id BIGINT NOT NULL, config_data LONGTEXT NOT NULL, create_timestamp BIGINT NOT NULL, PRIMARY KEY (version_tag, type_name, cluster_id));
@@ -179,8 +179,6 @@ CREATE TABLE clusterEvent (
   error TEXT, data TEXT ,
   host TEXT, rack TEXT
 );
-
-GRANT ALL ON ambari.* TO `ambari`;
 
 
 

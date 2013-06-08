@@ -31,23 +31,23 @@ ambari_server = __import__('ambari-server')
 
 class TestAmbariServer(TestCase):
 
-  @patch.object(ambari_server, 'configure_postgres_username_password')
+  @patch.object(ambari_server, 'configure_database_username_password')
   @patch.object(ambari_server, 'run_os_command')
   @patch('optparse.Values')
   def test_configure_pg_hba_ambaridb_users(self, OptParseValuesMock,
                                 run_os_command_method,
-                                configure_postgres_username_password_method):
+                                configure_database_username_password_method):
     # Prepare mocks
     run_os_command_method.return_value = (0, "", "")
     opvm = OptParseValuesMock.return_value
-    opvm.postgres_username = "ffdf"
+    opvm.database_username = "ffdf"
     tf1 = tempfile.NamedTemporaryFile()
     ambari_server.PG_HBA_CONF_FILE = tf1.name
     # Run test
     ambari_server.configure_pg_hba_ambaridb_users()
     # Check results
     self.assertTrue(run_os_command_method.called)
-    self.assertTrue(configure_postgres_username_password_method.called)
+    self.assertTrue(configure_database_username_password_method.called)
     string_expected = self.get_file_string(self
       .get_samples_dir("configure_pg_hba_ambaridb_users1"))
     string_actual = self.get_file_string(ambari_server.PG_HBA_CONF_FILE)
@@ -180,160 +180,6 @@ class TestAmbariServer(TestCase):
     pass
 
 
-  @patch('__builtin__.file')
-  @patch('__builtin__.open')
-  @patch.object(ambari_server, 'Properties')
-  @patch.object(ambari_server, 'search_file')
-  def test_configure_postgres_username_password_test_configured(self,
-                  search_file_message, properties_mock, open_method, file_obj):
-    """
-      Tests situation when database username + password are already configured
-    """
-
-    out = StringIO.StringIO()
-    sys.stdout = out
-
-    search_file_message.return_value = "blablabla-properties"
-    pm  = properties_mock.return_value
-    def tf(self, key):
-      return {
-               ambari_server.JDBC_USER_NAME_PROPERTY : "fake_username",
-               ambari_server.JDBC_PASSWORD_FILE_PROPERTY : "fake_passwd_file"
-             }[key]
-      pass
-    pm.__getitem__ = tf
-    options = MagicMock()
-    open_method.return_value = file_obj
-    file_obj.read.return_value = "fake_password"
-
-    ambari_server.configure_postgres_username_password(options)
-
-    self.assertTrue(pm.load.called)
-    self.assertTrue(file_obj.read.called)
-    self.assertEquals(options.postgres_username,
-      pm[ambari_server.JDBC_USER_NAME_PROPERTY])
-    self.assertEquals(options.postgres_password, file_obj.read.return_value)
-
-    sys.stdout = sys.__stdout__
-
-
-
-  @patch.object(ambari_server, 'get_pass_file_path', autospec=True)
-  @patch('os.chmod', autospec=True)
-  @patch.object(ambari_server, 'write_property', autospec=True)
-  @patch.object(ambari_server, 'configure_postgres_password')
-  @patch.object(ambari_server, 'get_validated_string_input')
-  @patch.object(ambari_server, 'get_YN_input')
-  @patch('__builtin__.file')
-  @patch('__builtin__.open')
-  @patch.object(ambari_server, 'Properties')
-  @patch.object(ambari_server, 'search_file')
-  def test_configure_postgres_username_password_test_full_setup(self,
-          search_file_message, properties_mock, open_method, file_obj,
-          get_YN_input_method, get_validated_string_input_method,
-          configure_postgres_password_method, write_property_method,
-          os_chmod_method, get_pass_file_path_method):
-    """
-      Tests situation when database username + password are not
-      already configured. Includes advanced DB configuration
-    """
-
-    out = StringIO.StringIO()
-    sys.stdout = out
-
-    search_file_message.return_value = "blablabla-properties"
-    pm  = properties_mock.return_value
-    def tf(self, key):
-      return {
-               ambari_server.JDBC_USER_NAME_PROPERTY : "fake_user",
-               ambari_server.JDBC_PASSWORD_FILE_PROPERTY : False
-             }[key]
-      pass
-    pm.__getitem__ = tf
-    options = MagicMock()
-    open_method.return_value = file_obj
-    file_obj.read.return_value = "fake_password"
-    file_obj.write.return_value = None
-    get_YN_input_method.return_value = False
-    get_validated_string_input_method.return_value = "blablabla-input"
-    get_pass_file_path_method.return_value = "blablabla-path"
-
-    ambari_server.configure_postgres_username_password(options)
-
-    self.assertTrue(get_YN_input_method.called)
-    self.assertEquals(write_property_method.call_args_list, [
-      ((ambari_server.JDBC_USER_NAME_PROPERTY,
-        'ambari-server'),),
-      ((ambari_server.JDBC_PASSWORD_FILE_PROPERTY,
-        get_pass_file_path_method.return_value),)
-    ])
-    get_pass_file_path_method.\
-        assert_called_once_with(search_file_message.return_value)
-    os_chmod_method.assert_called_once_with("blablabla-path", 384)
-    self.assertTrue(pm.load.called)
-    self.assertFalse(get_validated_string_input_method.called)
-    self.assertFalse(configure_postgres_password_method.called)
-
-    sys.stdout = sys.__stdout__
-
-
-  @patch.object(ambari_server, 'get_pass_file_path', autospec=True)
-  @patch('os.chmod', autospec=True)
-  @patch.object(ambari_server, 'write_property', autospec=True)
-  @patch.object(ambari_server, 'configure_postgres_password')
-  @patch.object(ambari_server, 'get_validated_string_input')
-  @patch.object(ambari_server, 'get_YN_input')
-  @patch('__builtin__.file')
-  @patch('__builtin__.open')
-  @patch.object(ambari_server, 'Properties')
-  @patch.object(ambari_server, 'search_file')
-  def test_configure_postgres_username_password_test_full_setup_advanced(self,
-          search_file_message, properties_mock, open_method, file_obj,
-          get_YN_input_method, get_validated_string_input_method,
-          configure_postgres_password_method, write_property_method,
-          os_chmod_method, get_pass_file_path_method):
-    """
-      Tests situation when database username + password are not
-      already configured. Includes advanced DB configuration
-    """
-
-    out = StringIO.StringIO()
-    sys.stdout = out
-
-    search_file_message.return_value = "blablabla-properties"
-    pm  = properties_mock.return_value
-    def tf(self, key):
-      return {
-               ambari_server.JDBC_USER_NAME_PROPERTY : "fake_user",
-               ambari_server.JDBC_PASSWORD_FILE_PROPERTY : False
-             }[key]
-      pass
-    pm.__getitem__ = tf
-    options = MagicMock()
-    open_method.return_value = file_obj
-    file_obj.read.return_value = "fake_password"
-    file_obj.write.return_value = None
-    get_YN_input_method.return_value = True
-    get_validated_string_input_method.return_value = "blablabla-input"
-    get_pass_file_path_method.return_value = "blablabla-path"
-
-    ambari_server.configure_postgres_username_password(options)
-
-    self.assertTrue(get_YN_input_method.called)
-    self.assertEquals(write_property_method.call_args_list, [
-      ((ambari_server.JDBC_USER_NAME_PROPERTY,
-        get_validated_string_input_method.return_value),),
-      ((ambari_server.JDBC_PASSWORD_FILE_PROPERTY,
-        get_pass_file_path_method.return_value),)
-    ])
-    get_pass_file_path_method.\
-        assert_called_once_with(search_file_message.return_value)
-    os_chmod_method.assert_called_once_with("blablabla-path", 384)
-    self.assertTrue(pm.load.called)
-    self.assertTrue(get_validated_string_input_method.called)
-    self.assertTrue(configure_postgres_password_method.called)
-
-    sys.stdout = sys.__stdout__
 
 
 
@@ -349,6 +195,7 @@ class TestAmbariServer(TestCase):
     args = ["setup"]
     opm.parse_args.return_value = (options, args)
 
+    options.database=None
     ambari_server.main()
 
     self.assertTrue(setup_method.called)
@@ -373,6 +220,7 @@ class TestAmbariServer(TestCase):
     args = ["setup"]
     opm.parse_args.return_value = (options, args)
 
+    options.database=None
     ambari_server.main()
 
     self.assertTrue(setup_method.called)
@@ -397,6 +245,8 @@ class TestAmbariServer(TestCase):
     args = ["start", "-g"]
     opm.parse_args.return_value = (options, args)
 
+    options.database=None
+
     ambari_server.main()
 
     self.assertFalse(setup_method.called)
@@ -419,6 +269,7 @@ class TestAmbariServer(TestCase):
     options = MagicMock()
     args = ["start", "--debug"]
     opm.parse_args.return_value = (options, args)
+    options.database=None
 
     ambari_server.main()
 
@@ -442,6 +293,8 @@ class TestAmbariServer(TestCase):
     options = MagicMock()
     args = ["stop"]
     opm.parse_args.return_value = (options, args)
+
+    options.database = None
 
     ambari_server.main()
 
@@ -467,6 +320,7 @@ class TestAmbariServer(TestCase):
     options = MagicMock()
     args = ["reset"]
     opm.parse_args.return_value = (options, args)
+    options.database=None
 
     ambari_server.main()
 
@@ -614,14 +468,14 @@ class TestAmbariServer(TestCase):
 
 
 
-  @patch.object(ambari_server, "configure_postgres_username_password")
+  @patch.object(ambari_server, "configure_database_username_password")
   @patch.object(ambari_server, "run_os_command")
   def test_setup_db(self, run_os_command_mock,
-                    configure_postgres_username_password_mock):
+                    configure_database_username_password_mock):
 
     run_os_command_mock.return_value = (0, None, None)
     result = ambari_server.setup_db(MagicMock())
-    self.assertTrue(configure_postgres_username_password_mock.called)
+    self.assertTrue(configure_database_username_password_mock.called)
     self.assertEqual(0, result)
 
 
@@ -983,7 +837,8 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "check_iptables")
   @patch.object(ambari_server, "check_selinux")
   @patch.object(ambari_server, "setup_remote_db")
-  def test_setup(self, setup_remote_db_mock, check_selinux_mock, check_iptables_mock,
+  @patch.object(ambari_server, "store_remote_properties")
+  def test_setup(self, store_remote_properties_mock, setup_remote_db_mock, check_selinux_mock, check_iptables_mock,
                  check_postgre_up_mock, setup_db_mock, configure_postgres_mock,
                  download_jdk_mock, configure_os_settings_mock, ):
 
@@ -1000,6 +855,7 @@ class TestAmbariServer(TestCase):
     configure_postgres_mock.return_value = 0
     download_jdk_mock.return_value = 0
     configure_os_settings_mock.return_value = 0
+    store_remote_properties_mock.return_value = 0
     result = ambari_server.setup(args)
     self.assertEqual(None, result)
 
@@ -1011,8 +867,8 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "setup_db")
   @patch.object(ambari_server, "print_info_msg")
   @patch.object(ambari_server, "run_os_command")
-  @patch.object(ambari_server, "configure_postgres_username_password")
-  def test_reset(self, configure_postgres_username_password_mock,
+  @patch.object(ambari_server, "configure_database_username_password")
+  def test_reset(self, configure_database_username_password_mock,
                  run_os_command_mock, print_info_msg_mock,
                  setup_db_mock, get_YN_inputMock):
 
@@ -1041,8 +897,8 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "setup_db")
   @patch.object(ambari_server, "print_info_msg")
   @patch.object(ambari_server, "run_os_command")
-  @patch.object(ambari_server, "configure_postgres_username_password")
-  def test_silent_reset(self, configure_postgres_username_password_mock,
+  @patch.object(ambari_server, "parse_properties")
+  def test_silent_reset(self, parse_properties_mock,
                  run_os_command_mock, print_info_msg_mock,
                  setup_db_mock):
 

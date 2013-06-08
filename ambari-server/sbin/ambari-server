@@ -86,13 +86,6 @@ case "$1" in
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
   setup)
-        echo -e "Run postgresql initdb"
-        initdb_res=`/sbin/service postgresql initdb`
-        if [ "0" == "$?" ]; then
-          echo -e "${initdb_res}"
-        fi
-        echo -e "Run postgresql start"
-        /sbin/service postgresql start
         echo -e "Setup ambari-server"
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
