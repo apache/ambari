@@ -15,15 +15,6 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 --
--- PL/SQL script
-DROP USER &1 CASCADE;
-CREATE USER &1 IDENTIFIED BY &2 DEFAULT TABLESPACE "USERS" TEMPORARY TABLESPACE "TEMP";
-
-GRANT UNLIMITED TABLESPACE TO &1;
-GRANT CREATE SESSION TO &1;
-GRANT CREATE TABLE TO &1;
-
-ALTER SESSION SET CURRENT_SCHEMA= &1;
 
 CREATE TABLE clusters (cluster_id NUMBER(19) NOT NULL, cluster_info VARCHAR2(255) NULL, cluster_name VARCHAR2(100) NOT NULL UNIQUE, desired_cluster_state VARCHAR2(255) NULL, desired_stack_version VARCHAR2(255) NULL, PRIMARY KEY (cluster_id));
 CREATE TABLE clusterconfig (version_tag VARCHAR2(255) NOT NULL, type_name VARCHAR2(255) NOT NULL, cluster_id NUMBER(19) NOT NULL, config_data CLOB NOT NULL, create_timestamp NUMBER(19) NOT NULL, PRIMARY KEY (version_tag, type_name, cluster_id));
@@ -85,34 +76,6 @@ ALTER TABLE user_roles ADD CONSTRAINT FK_user_roles_user_id FOREIGN KEY (user_id
 ALTER TABLE user_roles ADD CONSTRAINT FK_user_roles_role_name FOREIGN KEY (role_name) REFERENCES roles (role_name);
 
 
-GRANT ALL ON clusters TO &1;
-GRANT ALL ON clusterconfig TO &1;
-GRANT ALL ON clusterconfigmapping TO &1;
-GRANT ALL ON clusterservices TO &1;
-GRANT ALL ON clusterstate TO &1;
-GRANT ALL ON componentconfigmapping TO &1;
-GRANT ALL ON hostcomponentconfigmapping TO &1;
-GRANT ALL ON hcdesiredconfigmapping TO &1;
-GRANT ALL ON hostcomponentdesiredstate TO &1;
-GRANT ALL ON hostcomponentstate TO &1;
-GRANT ALL ON hosts TO &1;
-GRANT ALL ON hoststate TO &1;
-GRANT ALL ON servicecomponentdesiredstate TO &1;
-GRANT ALL ON serviceconfigmapping TO &1;
-GRANT ALL ON servicedesiredstate TO &1;
-GRANT ALL ON roles TO &1;
-GRANT ALL ON users TO &1;
-GRANT ALL ON execution_command TO &1;
-GRANT ALL ON host_role_command TO &1;
-GRANT ALL ON role_success_criteria TO &1;
-GRANT ALL ON stage TO &1;
-GRANT ALL ON ClusterHostMapping TO &1;
-GRANT ALL ON user_roles TO &1;
-GRANT ALL ON key_value_store TO &1;
-GRANT ALL ON hostconfigmapping TO &1;
-GRANT ALL ON ambari_sequences TO &1;
-GRANT ALL ON metainfo TO &1;
-
 
 INSERT INTO ambari_sequences(sequence_name, value) values ('host_role_command_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, value) values ('user_id_seq', 1);
@@ -148,8 +111,6 @@ CREATE TABLE workflow (
   FOREIGN KEY (parentWorkflowId) REFERENCES workflow(workflowId)
 );
 
-GRANT ALL ON workflow TO &1;
-
 CREATE TABLE job (
   jobId VARCHAR2(4000), workflowId VARCHAR2(4000), jobName VARCHAR2(4000), workflowEntityName VARCHAR2(4000),
   userName VARCHAR2(4000), queue CLOB, acls CLOB, confPath CLOB, 
@@ -164,8 +125,6 @@ CREATE TABLE job (
   FOREIGN KEY(workflowId) REFERENCES workflow(workflowId)
 );
 
-GRANT ALL ON job TO &1;
-
 CREATE TABLE task (
   taskId VARCHAR2(4000), jobId VARCHAR2(4000), taskType VARCHAR2(4000), splits VARCHAR2(4000), 
   startTime INTEGER, finishTime INTEGER, status VARCHAR2(4000), error CLOB, counters VARCHAR2(4000), 
@@ -173,8 +132,6 @@ CREATE TABLE task (
   PRIMARY KEY(taskId), 
   FOREIGN KEY(jobId) REFERENCES job(jobId)
 );
-
-GRANT ALL ON task TO &1;
 
 CREATE TABLE taskAttempt (
   taskAttemptId VARCHAR2(4000), taskId VARCHAR2(4000), jobId VARCHAR2(4000), taskType VARCHAR2(4000), taskTracker VARCHAR2(4000), 
@@ -188,8 +145,6 @@ CREATE TABLE taskAttempt (
   FOREIGN KEY(taskId) REFERENCES task(taskId)
 ); 
 
-GRANT ALL ON taskAttempt TO &1;
-
 CREATE TABLE hdfsEvent (
   timestamp INTEGER,
   userName VARCHAR2(4000),
@@ -199,8 +154,6 @@ CREATE TABLE hdfsEvent (
   dstPath CLOB,
   permissions VARCHAR2(4000)
 );
-
-GRANT ALL ON hdfsEvent TO &1;
 
 CREATE TABLE mapreduceEvent (
   timestamp INTEGER,
@@ -213,14 +166,10 @@ CREATE TABLE mapreduceEvent (
   permissions VARCHAR2(4000)
 );
 
-GRANT ALL ON mapreduceEvent TO &1;
-
 CREATE TABLE clusterEvent (
   timestamp INTEGER, 
   service VARCHAR2(4000), status VARCHAR2(4000), 
   error CLOB, data CLOB , 
   host VARCHAR2(4000), rack VARCHAR2(4000)
 );
-
-GRANT ALL ON clusterEvent TO &1;
 

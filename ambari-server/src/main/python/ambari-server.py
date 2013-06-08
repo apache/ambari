@@ -37,7 +37,6 @@ import getpass
 # debug settings
 VERBOSE = False
 SILENT = False
-REMOTE_DATABASE = False
 SERVER_START_DEBUG = False
 
 # action commands
@@ -99,12 +98,14 @@ JAVA_HOME="JAVA_HOME"
 PID_DIR="/var/run/ambari-server"
 PID_NAME="ambari-server.pid"
 AMBARI_PROPERTIES_FILE="ambari.properties"
+AMBARI_PROPERTIES_RPMSAVE_FILE="ambari.properties.rpmsave"
 
 SETUP_DB_CMD = ['su', '-', 'postgres',
         '--command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'"']
 UPGRADE_STACK_CMD = ['su', 'postgres',
         '--command=psql -f {0} -v stack_name="\'{1}\'"  -v stack_version="\'{2}\'"']
 PG_ST_CMD = "/sbin/service postgresql status"
+PG_INITDB_CMD = "/sbin/service postgresql initdb"
 PG_START_CMD = "/sbin/service postgresql start"
 PG_RESTART_CMD = "/sbin/service postgresql restart"
 PG_STATUS_RUNNING = "running"
@@ -114,6 +115,12 @@ PG_HBA_CONF_FILE_BACKUP = PG_HBA_DIR + "pg_hba_bak.conf.old"
 POSTGRESQL_CONF_FILE = PG_HBA_DIR + "postgresql.conf"
 PG_HBA_RELOAD_CMD = "su postgres --command='pg_ctl -D {0} reload'"
 PG_DEFAULT_PASSWORD = "bigdata"
+
+JDBC_DATABASE_PROPERTY = "server.jdbc.database"
+JDBC_HOSTNAME_PROPERTY = "server.jdbc.hostname"
+JDBC_PORT_PROPERTY = "server.jdbc.port"
+JDBC_SCHEMA_PROPERTY = "server.jdbc.schema"
+
 JDBC_USER_NAME_PROPERTY = "server.jdbc.user.name"
 JDBC_PASSWORD_FILE_PROPERTY = "server.jdbc.user.passwd"
 JDBC_PASSWORD_FILENAME = "password.dat"
@@ -123,13 +130,45 @@ PERSISTENCE_TYPE_PROPERTY = "server.persistence.type"
 JDBC_DRIVER_PROPERTY = "server.jdbc.driver"
 JDBC_URL_PROPERTY = "server.jdbc.url"
 
+JDBC_RCA_DATABASE_PROPERTY = "server.jdbc.database"
+JDBC_RCA_HOSTNAME_PROPERTY = "server.jdbc.hostname"
+JDBC_RCA_PORT_PROPERTY = "server.jdbc.port"
+JDBC_RCA_SCHEMA_PROPERTY = "server.jdbc.schema"
+
 JDBC_RCA_DRIVER_PROPERTY = "server.jdbc.rca.driver"
 JDBC_RCA_URL_PROPERTY = "server.jdbc.rca.url"
 JDBC_RCA_USER_NAME_PROPERTY = "server.jdbc.rca.user.name"
 JDBC_RCA_PASSWORD_FILE_PROPERTY = "server.jdbc.rca.user.passwd"
 
-DRIVER_NAMES = ["org.postgresql.Driver", "oracle.jdbc.driver.OracleDriver", "com.mysql.jdbc.Driver"]
-CONNECTION_STRINGS = ["jdbc:postgresql://{0}:{1}/{2}", "jdbc:oracle:thin:@{0}:{1}/{2}", "jdbc:mysql://{0}:{1}/{2}"]
+CHECK_COMMAND_EXIST_CMD = "type {0}"
+
+DATABASE_INDEX = 0
+PROMPT_DATABASE_OPTIONS = False
+USERNAME_PATTERN = "^[a-zA-Z_][a-zA-Z0-9_\-]*$"
+PASSWORD_PATTERN = "^[a-zA-Z0-9_-]*$"
+DATABASE_NAMES =["postgres", "oracle", "mysql"]
+DATABASE_STORAGE_NAMES =["database","service","schema"]
+DATABASE_PORTS =["5432", "1521", "3306"]
+DATABASE_DRIVER_NAMES = ["org.postgresql.Driver", "oracle.jdbc.driver.OracleDriver", "com.mysql.jdbc.Driver"]
+DATABASE_CONNECTION_STRINGS = ["jdbc:postgresql://{0}:{1}/{2}", "jdbc:oracle:thin:@{0}:{1}/{2}", "jdbc:mysql://{0}:{1}/{2}"]
+DATABASE_CLI_TOOLS = [["psql"], ["sqlplus", "sqlplus64"], ["mysql"]]
+DATABASE_INIT_SCRIPTS = ['/var/lib/ambari-server/resources/Ambari-DDL-Postgres-REMOTE-CREATE.sql',
+                         '/var/lib/ambari-server/resources/Ambari-DDL-Oracle-CREATE.sql',
+                         '/var/lib/ambari-server/resources/Ambari-DDL-MySQL-CREATE.sql']
+DATABASE_DROP_SCRIPTS = ['/var/lib/ambari-server/resources/Ambari-DDL-Postgres-REMOTE-DROP.sql',
+                         '/var/lib/ambari-server/resources/Ambari-DDL-Oracle-DROP.sql',
+                         '/var/lib/ambari-server/resources/Ambari-DDL-MySQL-DROP.sql']
+DATABASE_URL_REGEX = ["jdbc:postgresql://([a-zA-Z0-9._]+):(\d+)/(.+)",
+                     "jdbc:oracle:thin:@([a-zA-Z0-9._]+):(\d+)/(.+)",
+                     "jdbc:mysql://([a-zA-Z0-9._]+):(\d*)/(.+)"]
+
+REGEX_IP_ADDRESS = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
+REGEX_HOSTNAME = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
+
+POSTGRES_EXEC_ARGS = "-h {0} -p {1} -d {2} -U {3} -f {4} -v username='\"{3}\"'"
+ORACLE_EXEC_ARGS = "-S '{0}/{1}@(description=(address=(protocol=TCP)(host={2})(port={3}))(connect_data=(sid={4})))' @{5} {0}"
+MYSQL_EXEC_ARGS = "--host={0} --port={1} --user={2} --password={3} {4} " \
+                 "-e\"set @schema=\'{4}\'; set @username=\'{2}\'; source {5};\""
 
 
 # jdk commands
@@ -144,19 +183,45 @@ OS_TYPE_PROPERTY = "server.os_type"
 JDK_DOWNLOAD_CMD = "curl --create-dirs -o {0} {1}"
 JDK_DOWNLOAD_SIZE_CMD = "curl -I {0}"
 
+#JCE Policy files
+JCE_POLICY_FILENAME = "jce_policy-6.zip"
+JCE_DOWNLOAD_CMD = "curl -o {0} {1}"
+JCE_MIN_FILESIZE = 5000
+
+#Apache License Header
+ASF_LICENSE_HEADER = '''
+# Copyright 2011 The Apache Software Foundation
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+'''
+
 def configure_pg_hba_ambaridb_users():
   args = optparse.Values()
-  configure_postgres_username_password(args)
+  configure_database_username_password(args)
 
   with open(PG_HBA_CONF_FILE, "a") as pgHbaConf:
     pgHbaConf.write("\n")
-    pgHbaConf.write("local  all  " + args.postgres_username +
+    pgHbaConf.write("local  all  " + args.database_username +
                     ",mapred md5")
     pgHbaConf.write("\n")
-    pgHbaConf.write("host  all   " + args.postgres_username +
+    pgHbaConf.write("host  all   " + args.database_username +
                     ",mapred 0.0.0.0/0  md5")
     pgHbaConf.write("\n")
-    pgHbaConf.write("host  all   " + args.postgres_username +
+    pgHbaConf.write("host  all   " + args.database_username +
                     ",mapred ::/0 md5")
     pgHbaConf.write("\n")
   command = PG_HBA_RELOAD_CMD.format(PG_HBA_DIR)
@@ -252,39 +317,19 @@ def write_property(key, value):
 
 def setup_db(args):
   #password access to ambari-server and mapred
-  configure_postgres_username_password(args)
-  dbname = args.postgredbname
-  file = args.init_script_file
-  username = args.postgres_username
-  password = args.postgres_password
+  configure_database_username_password(args)
+  dbname = args.database_name
+  scriptFile = args.init_script_file
+  username = args.database_username
+  password = args.database_password
   command = SETUP_DB_CMD[:]
-  command[-1] = command[-1].format(file, username, password)
+  command[-1] = command[-1].format(scriptFile, username, password)
   retcode, outdata, errdata = run_os_command(command)
   if not retcode == 0:
     print errdata
   return retcode
 
-def setup_remote_db(args):
-  print "WARNING! To use MySQL/Oracle database place JDBC driver to "+ get_ambari_jars()
-  print "Table structure in remote database should be created manually in this mode."
-  (driver_name, conn_url, username, password) = get_connection_properties()
 
-  write_property(PERSISTENCE_TYPE_PROPERTY, "remote")
-  write_property(JDBC_DRIVER_PROPERTY, driver_name)
-  write_property(JDBC_URL_PROPERTY, conn_url)
-  write_property(JDBC_USER_NAME_PROPERTY, username)
-  write_property(JDBC_PASSWORD_FILE_PROPERTY, store_password_file(password, JDBC_PASSWORD_FILENAME))
-
-  ok = get_YN_input("Enter separate configuration for RCA database [y/n] (n)? ", False)
-  if ok:
-    (driver_name, conn_url, username, password) = get_connection_properties()
-
-  write_property(JDBC_RCA_DRIVER_PROPERTY, driver_name)
-  write_property(JDBC_RCA_URL_PROPERTY, conn_url)
-  write_property(JDBC_RCA_USER_NAME_PROPERTY, username)
-  write_property(JDBC_RCA_PASSWORD_FILE_PROPERTY, store_password_file(password, JDBC_RCA_PASSWORD_FILENAME))
-
-  return 0
 
 def store_password_file(password, filename):
   conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
@@ -298,68 +343,12 @@ def store_password_file(password, filename):
 
   return passFilePath
 
-def get_connection_properties():
-  default_db_num="1"
-  default_host = "localhost"
-  default_schema = "ambari"
-
-  database_num = get_validated_string_input("Select database:\n1 - Postgres\n2 - Oracle\n3 - MySQL) \n["+str(default_db_num)+"]:",
-    default_db_num,
-    "^[123]$",
-    "Invalid number.",
-    False
-  )
-
-  db_host = get_validated_string_input("Hostname ["+default_host+"]:",
-    default_host,
-    "^[a-zA-Z0-9.\-]*$",
-    "Invalid hostname.",
-    False
-  )
-
-  default_port = None
-  if database_num == "1":
-    default_port = "5432"
-  elif database_num == "2":
-    default_port = "1521"
-  elif database_num == "3":
-    default_port = "3306"
-
-  db_port = get_validated_string_input("Port ["+ str(default_port) + "]:",
-    default_port,
-    "^[0-9]{1,5}$",
-    "Invalid port.",
-    False
-  )
-
-  if database_num == "2":
-    default_schema = "xe"
-
-  db_schema = get_validated_string_input("Database/schema/service name ["+ str(default_schema) + "]:",
-    default_schema,
-    "^[a-zA-z\-\"]+$",
-    "Invalid schema name.",
-    False
-  )
-
-  usernameDefault = 'ambari'
-  usernamePrompt = 'Username [' + usernameDefault + ']: '
-  usernamePattern = "^[a-zA-Z_][a-zA-Z0-9_\-]*$"
-  usernameDescr = "Invalid characters in username. Start with _ or alpha "\
-                  "followed by alphanumeric or _ or - characters"
-
-  username = get_validated_string_input(usernamePrompt, usernameDefault,
-    usernamePattern, usernameDescr, False)
-  password = configure_postgres_password()
-
-  return DRIVER_NAMES[int(database_num)-1], CONNECTION_STRINGS[int(database_num)-1].format(db_host, db_port, db_schema), username, password
-
 def execute_db_script(args, file):
   #password access to ambari-server and mapred
-  configure_postgres_username_password(args)
-  dbname = args.postgredbname
-  username = args.postgres_username
-  password = args.postgres_password
+  configure_database_username_password(args)
+  dbname = args.database_name
+  username = args.database_username
+  password = args.database_password
   command = SETUP_DB_CMD[:]
   command[-1] = command[-1].format(file, username, password)
   retcode, outdata, errdata = run_os_command(command)
@@ -370,10 +359,10 @@ def execute_db_script(args, file):
 
 def check_db_consistency(args, file):
   #password access to ambari-server and mapred
-  configure_postgres_username_password(args)
-  dbname = args.postgredbname
-  username = args.postgres_username
-  password = args.postgres_password
+  configure_database_username_password(args)
+  dbname = args.database_name
+  username = args.database_username
+  password = args.database_password
   command = SETUP_DB_CMD[:]
   command[-1] = command[-1].format(file, username, password)
   retcode, outdata, errdata = run_os_command(command)
@@ -391,8 +380,8 @@ def check_db_consistency(args, file):
 
 def upgrade_stack(args, stack_id):
   #password access to ambari-server and mapred
-  configure_postgres_username_password(args)
-  dbname = args.postgredbname
+  configure_database_username_password(args)
+  dbname = args.database_name
   file = args.upgrade_stack_script_file
   stack_name, stack_version = stack_id.split(STACK_NAME_VER_SEP)
   command = UPGRADE_STACK_CMD[:]
@@ -688,6 +677,10 @@ def check_postgre_up():
     print_info_msg ("PostgreSQL is running")
     return 0
   else:
+    print "Run initdb"
+    retcode, out, err = run_os_command(PG_INITDB_CMD)
+    if retcode == 0:
+      print out
     print "About to start PostgreSQL"
     retcode, out, err = run_os_command(PG_START_CMD)
     return retcode
@@ -773,6 +766,16 @@ def find_jdk():
   print "Selected JDK {0}".format(jdkPath)
   return jdkPath
 
+#
+# Checks if options determine local DB configuration
+#
+def is_local_database(options):
+  if options.database == DATABASE_NAMES[0] \
+    and options.database_host == "localhost" \
+    and options.database_port == DATABASE_PORTS[0] \
+    and options.database_name == "ambari":
+    return True
+  return False
 
 #
 # Setup the Ambari Server.
@@ -791,7 +794,12 @@ def setup(args):
     print_error_msg ('Failed to stop iptables. Exiting.')
     sys.exit(retcode)
 
-  if not REMOTE_DATABASE:
+  print 'Configuring database...'
+  prompt_db_properties(args)
+
+  if is_local_database(args):
+    print 'Default properties detected. Using built-in database.'
+    store_local_properties(args)
 
     print 'Checking PostgreSQL...'
     retcode = check_postgre_up()
@@ -812,12 +820,21 @@ def setup(args):
       sys.exit(retcode)
 
   else:
-    print 'Configuring remote database connection properties'
+    retcode = store_remote_properties(args)
+    if retcode != 0:
+      print_error_msg('Unable to save config file')
+      sys.exit(retcode)
+
+    print_warning_msg('Before starting server JDBC driver for {0} should be placed to {1}.'.format(args.database, JAVA_SHARE_PATH))
+
+    print 'Configuring remote database connection properties...'
     retcode = setup_remote_db(args)
     if not retcode == 0:
       print_error_msg ('Error while configuring connection properties. Exiting')
       sys.exit(retcode)
-  
+
+
+
   print 'Checking JDK...'
   retcode = download_jdk(args)
   if not retcode == 0:
@@ -831,7 +848,12 @@ def setup(args):
                    'ambari.properties failed. Exiting.')
     sys.exit(retcode)
 
-  print "Ambari Server 'setup' finished successfully"
+  if args.warnings:
+    print "Ambari Server 'setup' finished with warnings:"
+    for warning in args.warnings:
+      print warning
+  else:
+    print "Ambari Server 'setup' finished successfully"
 
 
 
@@ -863,20 +885,39 @@ def reset(args):
 
   print "Reseting the Server database..."
 
-  configure_postgres_username_password(args)
-  dbname = args.postgredbname
-  filename = args.drop_script_file
-  username = args.postgres_username
-  password = args.postgres_password
-  command = SETUP_DB_CMD[:]
-  command[-1] = command[-1].format(filename, username, password)
-  retcode, outdata, errdata = run_os_command(command)
-  if not retcode == 0:
-    print errdata
-    return retcode
+  parse_properties(args)
 
-  print_info_msg ("About to run database setup")
-  setup_db(args)
+  # configure_database_username_password(args)
+  if args.persistence_type=="remote":
+    if get_db_cli_tool(args) != -1:
+      retcode, out, err = execute_remote_script(args, DATABASE_DROP_SCRIPTS[DATABASE_INDEX])
+      if not retcode == 0:
+        print err
+        return retcode
+
+      retcode, out, err = execute_remote_script(args, DATABASE_INIT_SCRIPTS[DATABASE_INDEX])
+      if not retcode == 0:
+        print err
+        return retcode
+
+    else:
+      print_error_msg(DATABASE_CLI_TOOLS[DATABASE_INDEX] + " not found. Unable to perform automatic reset.")
+      return -1
+
+  else:
+    dbname = args.database_name
+    filename = args.drop_script_file
+    username = args.database_username
+    password = args.database_password
+    command = SETUP_DB_CMD[:]
+    command[-1] = command[-1].format(filename, username, password)
+    retcode, outdata, errdata = run_os_command(command)
+    if not retcode == 0:
+      print errdata
+      return retcode
+
+    print_info_msg ("About to run database setup")
+    setup_db(args)
 
   print "Ambari Server 'reset' complete"
 
@@ -948,33 +989,41 @@ def stop(args):
 # Upgrades the Ambari Server.
 #
 def upgrade(args):
-  print 'Checking PostgreSQL...'
-  retcode = check_postgre_up()
-  if not retcode == 0:
-    printErrorMsg('PostgreSQL server not running. Exiting')
-    sys.exit(retcode)
+  parse_properties(args)
+  if args.persistence_type == "remote":
 
-  file = args.upgrade_script_file
-  print 'Upgrading database...'
-  retcode = execute_db_script(args, file)
-  if not retcode == 0:
-    printErrorMsg('Database upgrade script has failed. Exiting.')
-    sys.exit(retcode)
 
-  print 'Checking database integrity...'
-  check_file = file[:-3] + "Check" + file[-4:]
-  retcode = check_db_consistency(args, check_file)
+    pass
+  else:
+    print 'Checking PostgreSQL...'
+    retcode = check_postgre_up()
+    if not retcode == 0:
+      print_error_msg('PostgreSQL server not running. Exiting')
+      sys.exit(retcode)
 
-  if not retcode == 0:
-    print 'Found inconsistency. Trying to fix...'
-    fix_file = file[:-3] + "Fix" + file[-4:]
-    retcode = execute_db_script(args, fix_file)
+    file = args.upgrade_script_file
+    print 'Upgrading database...'
+    retcode = execute_db_script(args, file)
+    if not retcode == 0:
+      print_error_msg('Database upgrade script has failed. Exiting.')
+      sys.exit(retcode)
+
+    print 'Checking database integrity...'
+    check_file = file[:-3] + "Check" + file[-4:]
+    retcode = check_db_consistency(args, check_file)
 
     if not retcode == 0:
-      printErrorMsg('Database cannot be fixed. Exiting.')
-      sys.exit(retcode)
-  else:
-    print 'Database is consistent.'
+      print 'Found inconsistency. Trying to fix...'
+      fix_file = file[:-3] + "Fix" + file[-4:]
+      retcode = execute_db_script(args, fix_file)
+
+      if not retcode == 0:
+        print_error_msg('Database cannot be fixed. Exiting.')
+        sys.exit(retcode)
+    else:
+      print 'Database is consistent.'
+
+
   print "Ambari Server 'upgrade' finished successfully"
 
 
@@ -1073,11 +1122,10 @@ def get_validated_string_input(prompt, default, pattern, description, is_pass):
 
 
 
-def configure_postgres_password():
+def read_password(passwordDefault = PG_DEFAULT_PASSWORD):
   # setup password
-  passwordDefault = PG_DEFAULT_PASSWORD
   passwordPrompt = 'Password [' + passwordDefault + ']: '
-  passwordPattern = "^[a-zA-Z0-9_-]*$"
+  passwordPattern = PASSWORD_PATTERN
   passwordDescr = "Invalid characters in password. Use only alphanumeric or " \
                   "_ or - characters"
 
@@ -1088,7 +1136,7 @@ def configure_postgres_password():
       passwordDefault, passwordPattern, passwordDescr, True)
     if password != password1:
       print "Passwords do not match"
-      password = configure_postgres_password()
+      password = read_password()
 
   return password
 
@@ -1099,8 +1147,200 @@ def get_pass_file_path(conf_file):
     JDBC_PASSWORD_FILENAME)
 
 
+def load_default_db_properties(args):
+  args.database=DATABASE_NAMES[DATABASE_INDEX]
+  args.database_host = "localhost"
+  args.database_port = DATABASE_PORTS[DATABASE_INDEX]
+  args.database_name = "ambari"
+  args.database_username = "ambari"
+  args.database_password = "bigdata"
+  pass
 
-def configure_postgres_username_password(args):
+def prompt_db_properties(args):
+  global DATABASE_INDEX
+
+  if PROMPT_DATABASE_OPTIONS:
+    load_default_db_properties(args)
+    ok = get_YN_input("Enter advanced database configuration [y/n] (n)? ", False)
+    if ok:
+
+      database_num = str(DATABASE_INDEX + 1)
+      database_num = get_validated_string_input(
+        "Select database:\n1 - Postgres\n2 - Oracle\n3 - MySQL \n[" + database_num + "]:",
+        database_num,
+        "^[123]$",
+        "Invalid number.",
+        False
+      )
+
+      DATABASE_INDEX = int(database_num) - 1
+      args.database = DATABASE_NAMES[DATABASE_INDEX]
+
+      args.database_host = get_validated_string_input(
+        "Hostname [" + args.database_host + "]:",
+        args.database_host,
+        "^[a-zA-Z0-9.\-]*$",
+        "Invalid hostname.",
+        False
+      )
+
+      args.database_port=DATABASE_PORTS[DATABASE_INDEX]
+      args.database_port = get_validated_string_input(
+        "Port [" + args.database_port + "]:",
+        args.database_port,
+        "^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$",
+        "Invalid port.",
+        False
+      )
+
+      args.database_name = get_validated_string_input(
+        DATABASE_STORAGE_NAMES[DATABASE_INDEX] + " name [" + args.database_name + "]:",
+        args.database_name,
+        "^[a-zA-z\-\"]+$",
+        "Invalid " + DATABASE_STORAGE_NAMES[DATABASE_INDEX] + " name.",
+        False
+      )
+
+      args.database_username = get_validated_string_input(
+        'Username [' + args.database_username + ']: ',
+        args.database_username,
+        USERNAME_PATTERN,
+        "Invalid characters in username. Start with _ or alpha "
+        "followed by alphanumeric or _ or - characters",
+        False
+      )
+
+      args.database_password =  read_password(args.database_password)
+
+
+  print_info_msg('Using database options: {database},{host},{port},{schema},{user},{password}'.format(
+    database=args.database,
+    host=args.database_host,
+    port=args.database_port,
+    schema=args.database_name,
+    user=args.database_username,
+    password=args.database_password
+  ))
+
+
+
+def store_remote_properties(args):
+  conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
+  properties = Properties()
+
+  try:
+    properties.load(open(conf_file))
+  except Exception, e:
+    print 'Could not read ambari config file "%s": %s' % (conf_file, e)
+    return -1
+
+  properties.process_pair(PERSISTENCE_TYPE_PROPERTY, "remote")
+
+  properties.process_pair(JDBC_DATABASE_PROPERTY, args.database)
+  properties.process_pair(JDBC_HOSTNAME_PROPERTY, args.database_host)
+  properties.process_pair(JDBC_PORT_PROPERTY, args.database_port)
+  properties.process_pair(JDBC_SCHEMA_PROPERTY, args.database_name)
+
+  properties.process_pair(JDBC_DRIVER_PROPERTY, DATABASE_DRIVER_NAMES[DATABASE_INDEX])
+  properties.process_pair(JDBC_URL_PROPERTY, DATABASE_CONNECTION_STRINGS[DATABASE_INDEX].format(args.database_host, args.database_port, args.database_name))
+  properties.process_pair(JDBC_USER_NAME_PROPERTY, args.database_username)
+  properties.process_pair(JDBC_PASSWORD_FILE_PROPERTY, store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
+
+  properties.process_pair(JDBC_RCA_DRIVER_PROPERTY, DATABASE_DRIVER_NAMES[DATABASE_INDEX])
+  properties.process_pair(JDBC_RCA_URL_PROPERTY, DATABASE_CONNECTION_STRINGS[DATABASE_INDEX].format(args.database_host, args.database_port, args.database_name))
+  properties.process_pair(JDBC_RCA_USER_NAME_PROPERTY, args.database_username)
+  properties.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY, store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
+
+  try:
+    properties.store(open(conf_file, "w"))
+  except Exception, e:
+    print 'Could not write ambari config file "%s": %s' % (conf_file, e)
+    return -1
+
+  return 0
+
+def setup_remote_db(args):
+
+  retcode, out, err = execute_remote_script(args, DATABASE_INIT_SCRIPTS[DATABASE_INDEX])
+  if retcode != 0:
+    print err
+    print_error_msg('Database bootstrap failed. Please, provide correct connection properties.')
+    return retcode
+  pass
+
+  return 0
+
+def get_db_cli_tool(args):
+  for tool in DATABASE_CLI_TOOLS[DATABASE_INDEX]:
+    cmd =CHECK_COMMAND_EXIST_CMD.format(tool)
+    ret, out, err = run_in_shell(cmd)
+    if ret == 0:
+      return get_exec_path(tool)
+
+  return None
+
+def get_exec_path(cmd):
+  cmd = 'which {0}'.format(cmd)
+  ret, out, err = run_in_shell(cmd)
+  if ret == 0:
+    return out.strip()
+  else:
+    return None
+
+def run_in_shell(cmd):
+  print_info_msg('about to run command: ' + str(cmd))
+  process = subprocess.Popen(cmd,
+                             stdout=subprocess.PIPE,
+                             stdin=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             shell=True
+  )
+  (stdoutdata, stderrdata) = process.communicate()
+  return process.returncode, stdoutdata, stderrdata
+
+
+def execute_remote_script(args, scriptPath):
+  tool = get_db_cli_tool(args)
+  if not tool:
+    args.warnings.append('{0} not found. Please, run DDL script manually'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
+    print_warning_msg('{0} not found'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
+    return -1
+
+  if args.database == "postgres":
+
+    os.environ["PGPASSWORD"] = args.database_password
+    retcode, out, err = run_in_shell('{0} {1}'.format(tool,  POSTGRES_EXEC_ARGS.format(
+      args.database_host,
+      args.database_port,
+      args.database_name,
+      args.database_username,
+      scriptPath
+    )))
+    return retcode, out, err
+  elif args.database == "oracle":
+    retcode, out, err = run_in_shell('{0} {1}'.format(tool, ORACLE_EXEC_ARGS.format(
+      args.database_username,
+      args.database_password,
+      args.database_host,
+      args.database_port,
+      args.database_name,
+      scriptPath
+    )))
+    return retcode, out, err
+  elif args.database=="mysql":
+    retcode, out, err = run_in_shell('{0} {1}'.format(tool, MYSQL_EXEC_ARGS.format(
+      args.database_host,
+      args.database_port,
+      args.database_username,
+      args.database_password,
+      args.database_name,
+      scriptPath
+    )))
+    return retcode, out, err
+
+  return -1, "Wrong database", "Wrong database"
+
+def configure_database_username_password(args):
   conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
   properties = Properties()
 
@@ -1115,52 +1355,67 @@ def configure_postgres_username_password(args):
 
   if username and passFilePath:
     print_info_msg("Database username + password already configured - skipping")
-    args.postgres_username=username
-    args.postgres_password = open(passFilePath).read()
+    args.database_username=username
+    args.database_password = open(passFilePath).read()
     return 1
-
-  # setup username
-  usernameDefault = 'ambari-server'
-  usernamePrompt = 'Username [' + usernameDefault + ']: '
-  usernamePattern = "^[a-zA-Z_][a-zA-Z0-9_\-]*$"
-  usernameDescr = "Invalid characters in username. Start with _ or alpha " \
-                  "followed by alphanumeric or _ or - characters"
-  username = usernameDefault
-
-  # setup password
-  password = PG_DEFAULT_PASSWORD
-
-  ok = get_YN_input("Enter advanced database configuration [y/n] (n)? ", False)
-  if ok:
-    username = get_validated_string_input(usernamePrompt, usernameDefault,
-        usernamePattern, usernameDescr, False)
-    print "Database username set to: " + username
-    password = configure_postgres_password()
-        
-  passFilePath = get_pass_file_path(conf_file)
-  
-  print_info_msg ("Database username set to: " + username)
-  print_info_msg ("Database password set to: " + password)
-    
-  with open(passFilePath, 'w+') as passFile:
-    passFile.write(password)
-    pass
-  os.chmod(passFilePath, stat.S_IREAD | stat.S_IWRITE)
-
-  write_property(JDBC_USER_NAME_PROPERTY, username)
-  write_property(JDBC_PASSWORD_FILE_PROPERTY,passFilePath)
-  args.postgres_username=username
-  args.postgres_password=password
+  else:
+    print_error_msg("Connection properties not set in config file.")
 
 
+def store_local_properties(args):
+  conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
+  properties = Properties()
+
+  try:
+    properties.load(open(conf_file))
+  except Exception, e:
+    print 'Could not read ambari config file "%s": %s' % (conf_file, e)
+    return -1
+
+  properties.process_pair(PERSISTENCE_TYPE_PROPERTY, "local")
+  properties.process_pair(JDBC_USER_NAME_PROPERTY, args.database_username)
+  properties.process_pair(JDBC_PASSWORD_FILE_PROPERTY, store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
+
+
+  try:
+    properties.store(open(conf_file, "w"))
+  except Exception, e:
+    print 'Could not write ambari config file "%s": %s' % (conf_file, e)
+    return -1
+
+  return 0
+
+def parse_properties(args):
+  conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
+  properties = Properties()
+
+  try:
+    properties.load(open(conf_file))
+  except Exception, e:
+    print 'Could not read ambari config file "%s": %s' % (conf_file, e)
+    return -1
+
+  args.persistence_type = properties[PERSISTENCE_TYPE_PROPERTY]
+
+  if args.persistence_type == 'remote':
+    args.database = properties[JDBC_DATABASE_PROPERTY]
+    args.database_host = properties[JDBC_HOSTNAME_PROPERTY]
+    args.database_port = properties[JDBC_PORT_PROPERTY]
+    args.database_name = properties[JDBC_SCHEMA_PROPERTY]
+    global DATABASE_INDEX
+    DATABASE_INDEX = DATABASE_NAMES.index(args.database)
+
+  args.database_username = properties[JDBC_USER_NAME_PROPERTY]
+  args.database_password = open(properties[JDBC_PASSWORD_FILE_PROPERTY]).read()
+
+  return 0
 
 #
 # Main.
 #
 def main():
   parser = optparse.OptionParser(usage="usage: %prog [options] action [stack_id]",)
-  parser.add_option('-d', '--postgredbname', default='ambari',
-                      help="Database name in postgresql")
+
   parser.add_option('-f', '--init-script-file',
                       default='/var/lib/ambari-server/'
                               'resources/Ambari-DDL-Postgres-CREATE.sql',
@@ -1186,9 +1441,13 @@ def main():
                   action="store_true", dest="silent", default=False,
                   help="Silently accepts default prompt values")
 
-  parser.add_option("-b", "--remote-database",
-      action="store_true", dest="remote_database", default=False,
-      help="Set up remote database instead of local")
+
+  parser.add_option('--database', default=None, help ="Database to use postgres|oracle|mysql", dest="database")
+  parser.add_option('--databasehost', default=None, help="Hostname of database server", dest="database_host")
+  parser.add_option('--databaseport', default=None, help="Database port", dest="database_port")
+  parser.add_option('--databasename', default=None, help="Database/Schema/Service name", dest="database_name")
+  parser.add_option('--databaseusername', default=None, help="Database user login", dest="database_username")
+  parser.add_option('--databasepassword', default=None, help="Database user password", dest="database_password")
 
   (options, args) = parser.parse_args()
 
@@ -1200,13 +1459,53 @@ def main():
   global SILENT
   SILENT = options.silent
 
-  # skip local db setup
-  global REMOTE_DATABASE
-  REMOTE_DATABASE = options.remote_database
+  global DATABASE_INDEX
+  global PROMPT_DATABASE_OPTIONS
+  #perform checks
 
+  options.warnings = []
 
+  if options.database is None \
+    and options.database_host is None \
+    and options.database_port is None \
+    and options.database_name is None \
+    and options.database_username is None \
+    and options.database_password is None:
 
+    PROMPT_DATABASE_OPTIONS = True
 
+  elif not (options.database is not None
+    and options.database_host is not None
+    and options.database_port is not None
+    and options.database_name is not None
+    and options.database_username is not None
+    and options.database_password is not None):
+
+    parser.error('All database options should be set.')
+    pass
+
+  #correct database
+  if options.database is not None and options.database not in DATABASE_NAMES:
+    print "Incorrect database"
+    parser.print_help()
+    exit(-1)
+  elif options.database is not None:
+    options.database = options.database.lower()
+    DATABASE_INDEX = DATABASE_NAMES.index(options.database)
+
+  #correct port
+  if options.database_port is not None:
+    correct=False
+    try:
+      port = int(options.database_port)
+      if 65536 > port > 0:
+        correct = True
+    except ValueError:
+      pass
+    if not correct:
+      print "Incorrect database port " + options.database_port
+      parser.print_help()
+      exit(-1)
   
   if len(args) == 0:
     print parser.print_help()
@@ -1355,6 +1654,24 @@ class Properties(object):
       if hasattr(self._props, name):
         return getattr(self._props, name)
 
+  def store(self, out, header=""):
+    """ Write the properties list to the stream 'out' along
+    with the optional 'header' """
+    if out.mode[0] != 'w':
+      raise ValueError,'Steam should be opened in write mode!'
+    try:
+      out.write(''.join(('#', ASF_LICENSE_HEADER, '\n')))
+      out.write(''.join(('#',header,'\n')))
+      # Write timestamp
+      tstamp = time.strftime('%a %b %d %H:%M:%S %Z %Y', time.localtime())
+      out.write(''.join(('#',tstamp,'\n')))
+      # Write properties from the pristine dictionary
+      for prop, val in self._origprops.items():
+        if val is not None:
+          out.write(''.join((prop,'=',val,'\n')))
+      out.close()
+    except IOError, e:
+      raise
 
 if __name__ == "__main__":
   main()
