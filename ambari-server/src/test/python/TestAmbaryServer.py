@@ -372,6 +372,7 @@ class TestAmbariServer(TestCase):
     tf2 = tempfile.NamedTemporaryFile()
     ambari_server.PG_HBA_CONF_FILE = tf1.name
     ambari_server.PG_HBA_CONF_FILE_BACKUP = tf2.name
+    args = MagicMock()
 
     out = StringIO.StringIO()
     sys.stdout = out
@@ -868,14 +869,17 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "print_info_msg")
   @patch.object(ambari_server, "run_os_command")
   @patch.object(ambari_server, "configure_database_username_password")
-  def test_reset(self, configure_database_username_password_mock,
+  @patch.object(ambari_server, "parse_properties_file")
+  def test_reset(self, parse_properties_file_mock, configure_database_username_password_mock,
                  run_os_command_mock, print_info_msg_mock,
                  setup_db_mock, get_YN_inputMock):
 
     out = StringIO.StringIO()
     sys.stdout = out
+    parse_properties_file_mock.return_value = 0
 
     args = MagicMock()
+    args.persistence_type = "local"
     get_YN_inputMock.return_value = False
     rcode = ambari_server.reset(args)
     self.assertEqual(-1, rcode)
@@ -897,8 +901,8 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "setup_db")
   @patch.object(ambari_server, "print_info_msg")
   @patch.object(ambari_server, "run_os_command")
-  @patch.object(ambari_server, "parse_properties")
-  def test_silent_reset(self, parse_properties_mock,
+  @patch.object(ambari_server, "parse_properties_file")
+  def test_silent_reset(self, parse_properties_file_mock,
                  run_os_command_mock, print_info_msg_mock,
                  setup_db_mock):
 
@@ -934,7 +938,8 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "print_error_msg")
   @patch.object(ambari_server, "check_postgre_up")
   @patch.object(ambari_server, "check_iptables")
-  def test_start(self, check_iptables_mock, check_postgre_up_mock,
+  @patch.object(ambari_server, "parse_properties_file")
+  def test_start(self, parse_properties_file_mock, check_iptables_mock, check_postgre_up_mock,
                  print_error_msg_mock, find_jdk_mock, get_conf_dir_mock,
                  print_info_msg_mock, popenMock, openMock, pexistsMock,
                  killMock):
@@ -957,13 +962,20 @@ class TestAmbariServer(TestCase):
     self.assertEqual(-1, rcode)
 
     find_jdk_mock.return_value = "somewhere"
+    args.persistence_type="remote"
     check_postgre_up_mock.return_value = 0
     check_iptables_mock.return_value = (0, None)
     p = MagicMock()
     popenMock.return_value = p
     rcode = ambari_server.start(args)
     self.assertEqual(None, rcode)
+    self.assertFalse(check_postgre_up_mock.called)
     self.assertTrue(f.write.called)
+
+    args.persistence_type="local"
+    rcode = ambari_server.start(args)
+    self.assertEqual(None, rcode)
+    self.assertTrue(check_postgre_up_mock.called)
 
     sys.stdout = sys.__stdout__
 
@@ -1122,14 +1134,14 @@ class TestAmbariServer(TestCase):
 
     sys.stdout = sys.__stdout__
 
-  @patch.object(ambari_server, "parse_properties")
+  @patch.object(ambari_server, "parse_properties_file")
   @patch.object(ambari_server, "get_db_cli_tool")
   @patch.object(ambari_server, "print_error_msg")
   @patch.object(ambari_server, "get_YN_input")
   @patch.object(ambari_server, "setup_db")
   @patch.object(ambari_server, "run_os_command")
   def test_reset_remote_db_wo_client(self, run_os_command_mock, setup_db_mock,
-                                     get_YN_inputMock, print_error_msg_mock, get_db_cli_tool_mock, parse_properties_mock):
+                                     get_YN_inputMock, print_error_msg_mock, get_db_cli_tool_mock, parse_properties_file_mock):
 
     out = StringIO.StringIO()
     sys.stdout = out
@@ -1141,6 +1153,29 @@ class TestAmbariServer(TestCase):
     get_db_cli_tool_mock.return_value = None
     rcode = ambari_server.reset(args)
     self.assertEqual(-1, rcode)
+
+    sys.stdout = sys.__stdout__
+
+
+  @patch.object(ambari_server, "search_file")
+  def test_parse_properties_file(self, search_file_mock):
+
+    tf1 = tempfile.NamedTemporaryFile()
+    search_file_mock.return_value = tf1.name
+
+    args = MagicMock()
+    ambari_server.parse_properties_file(args)
+    self.assertEquals(args.persistence_type, "local")
+
+
+    with open(tf1.name, 'w') as fout:
+      fout.write("\n")
+      fout.write(ambari_server.PERSISTENCE_TYPE_PROPERTY+"=remote")
+
+    args = MagicMock()
+
+    ambari_server.parse_properties_file(args)
+    self.assertEquals(args.persistence_type, "remote")
 
     sys.stdout = sys.__stdout__
 
