@@ -1015,8 +1015,8 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "store_remote_properties")
   @patch.object(ambari_server, "is_local_database")
   @patch.object(ambari_server, "check_iptables")
-
-  def test_setup_remote_db_wo_client(self, check_iptables_mock, is_local_db_mock,
+  @patch.object(ambari_server, "check_jdbc_drivers")
+  def test_setup_remote_db_wo_client(self, check_jdbc_drivers_mock, check_iptables_mock, is_local_db_mock,
                                      store_remote_properties_mock, get_db_cli_tool_mock, exit_mock):
 
     out = StringIO.StringIO()
@@ -1028,6 +1028,7 @@ class TestAmbariServer(TestCase):
     check_iptables_mock.return_value = (0, "other")
     store_remote_properties_mock.return_value = 0
     get_db_cli_tool_mock.return_value = None
+    check_jdbc_drivers_mock.return_value=0
 
     failed = False
     result = None
