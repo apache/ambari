@@ -889,7 +889,7 @@ def reset(args):
 
   print "Reseting the Server database..."
 
-  parse_properties(args)
+  parse_properties_file(args)
 
   # configure_database_username_password(args)
   if args.persistence_type=="remote":
@@ -939,6 +939,7 @@ def reset(args):
 # Starts the Ambari Server.
 #
 def start(args):
+  parse_properties_file(args)
   if os.path.exists(PID_DIR + os.sep + PID_NAME):
     f = open(PID_DIR + os.sep + PID_NAME, "r")
     pid = int(f.readline())
@@ -957,10 +958,12 @@ def start(args):
                     "command to install a JDK automatically or install any "
                     "JDK manually to " + JDK_INSTALL_DIR)
     return -1
-  retcode = check_postgre_up()
-  if not retcode == 0:
-    print_error_msg("Unable to start PostgreSQL server. Exiting")
-    sys.exit(retcode)
+
+  if args.persistence_type == "local":
+    retcode = check_postgre_up()
+    if not retcode == 0:
+      print_error_msg("Unable to start PostgreSQL server. Exiting")
+      sys.exit(retcode)
 
   print 'Checking iptables...'
   retcode, out = check_iptables()
@@ -1001,7 +1004,7 @@ def stop(args):
 # Upgrades the Ambari Server.
 #
 def upgrade(args):
-  parse_properties(args)
+  parse_properties_file(args)
   if args.persistence_type == "remote":
 
 
@@ -1404,7 +1407,7 @@ def store_local_properties(args):
 
   return 0
 
-def parse_properties(args):
+def parse_properties_file(args):
   conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
   properties = Properties()
 
@@ -1416,16 +1419,25 @@ def parse_properties(args):
 
   args.persistence_type = properties[PERSISTENCE_TYPE_PROPERTY]
 
+  if not args.persistence_type:
+    args.persistence_type = "local"
+
   if args.persistence_type == 'remote':
     args.database = properties[JDBC_DATABASE_PROPERTY]
     args.database_host = properties[JDBC_HOSTNAME_PROPERTY]
     args.database_port = properties[JDBC_PORT_PROPERTY]
     args.database_name = properties[JDBC_SCHEMA_PROPERTY]
     global DATABASE_INDEX
-    DATABASE_INDEX = DATABASE_NAMES.index(args.database)
+    try:
+      DATABASE_INDEX = DATABASE_NAMES.index(args.database)
+    except ValueError:
+      pass
 
   args.database_username = properties[JDBC_USER_NAME_PROPERTY]
-  args.database_password = open(properties[JDBC_PASSWORD_FILE_PROPERTY]).read()
+
+  args.database_password_file = properties[JDBC_PASSWORD_FILE_PROPERTY]
+  if args.database_password_file:
+    args.database_password = open(properties[JDBC_PASSWORD_FILE_PROPERTY]).read()
 
   return 0
 
