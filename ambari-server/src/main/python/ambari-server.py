@@ -73,6 +73,10 @@ ambari_provider_module = os.environ.get('AMBARI_PROVIDER_MODULE')
 STACK_NAME_VER_SEP = "-"
 JAVA_SHARE_PATH="/usr/share/java"
 
+# terminal styles
+BOLD_ON='\033[1m'
+BOLD_OFF='\033[0m'
+
 if ambari_provider_module is not None:
   ambari_provider_module_option = "-Dprovider.module.class=" +\
                                   ambari_provider_module + " "
@@ -996,15 +1000,23 @@ def reset(args):
     if get_db_cli_tool(args) != -1:
       retcode, out, err = execute_remote_script(args, DATABASE_DROP_SCRIPTS[DATABASE_INDEX])
       if not retcode == 0:
+        if retcode == -1:
+          print_warning_msg('Cannot find ' + DATABASE_NAMES[DATABASE_INDEX] + ' client in the path, for reset please run the following DDL against the DB: ' +
+          DATABASE_DROP_SCRIPTS[DATABASE_INDEX] + ", then: " + DATABASE_INIT_SCRIPTS[DATABASE_INDEX], True)
         print err
         return retcode
 
       retcode, out, err = execute_remote_script(args, DATABASE_INIT_SCRIPTS[DATABASE_INDEX])
       if not retcode == 0:
+        if retcode == -1:
+          print_warning_msg('Cannot find ' + DATABASE_NAMES[DATABASE_INDEX] + ' client in the path, for reset please run the following DDL against the DB: ' +
+          DATABASE_DROP_SCRIPTS[DATABASE_INDEX] + ", then: " + DATABASE_INIT_SCRIPTS[DATABASE_INDEX], True)
         print err
         return retcode
 
     else:
+      print_warning_msg('Cannot find ' + DATABASE_NAMES[DATABASE_INDEX] + ' client in the path, for reset please run the following DDL against the DB: ' +
+      DATABASE_INIT_SCRIPTS[DATABASE_INDEX] + ", then: " + DATABASE_DROP_SCRIPTS[DATABASE_INDEX], True)
       print_error_msg(DATABASE_CLI_TOOLS[DATABASE_INDEX] + " not found. Unable to perform automatic reset.")
       return -1
 
@@ -1166,7 +1178,6 @@ def print_info_msg(msg):
     print("INFO: " + msg)
 
 
-
 #
 # Prints an "error" messsage.
 #
@@ -1178,9 +1189,11 @@ def print_error_msg(msg):
 #
 # Prints a "warning" messsage.
 #
-def print_warning_msg(msg):
-  print("WARNING: " + msg)
-
+def print_warning_msg(msg, bold=False):
+  if bold:
+    print(BOLD_ON + "WARNING: " + msg + BOLD_OFF)
+  else:
+    print("WARNING: " + msg)
 
 
 #
@@ -1374,6 +1387,12 @@ def setup_remote_db(args):
 
   retcode, out, err = execute_remote_script(args, DATABASE_INIT_SCRIPTS[DATABASE_INDEX])
   if retcode != 0:
+
+    if retcode == -1:
+      print_warning_msg('Cannot find ' + DATABASE_NAMES[DATABASE_INDEX] + 
+                        ' client in the path, for setup please run the following DDL against the DB: ' +
+                        DATABASE_INIT_SCRIPTS[DATABASE_INDEX], True)
+
     print err
     print_error_msg('Database bootstrap failed. Please, provide correct connection properties.')
     return retcode
@@ -1415,7 +1434,7 @@ def execute_remote_script(args, scriptPath):
   if not tool:
     args.warnings.append('{0} not found. Please, run DDL script manually'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
     print_warning_msg('{0} not found'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
-    return -1
+    return -1, "Client wasn't found", "Client wasn't found"
 
   if args.database == "postgres":
 
@@ -1449,7 +1468,7 @@ def execute_remote_script(args, scriptPath):
     )))
     return retcode, out, err
 
-  return -1, "Wrong database", "Wrong database"
+  return -2, "Wrong database", "Wrong database"
 
 def configure_database_username_password(args):
   conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
