@@ -910,6 +910,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
  
+ AMBARI-2336. Datanode start failed (with Oracle DB) due to RCA setup. 
+ (swagle)
+
  AMBARI-2266. Clients are not reconfigured on starting a service after each 
  of the service components are stopped individually. (swagle)
 
