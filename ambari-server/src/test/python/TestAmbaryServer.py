@@ -998,6 +998,61 @@ class TestAmbariServer(TestCase):
     self.assertTrue(get_choice_string_input_mock.called)
     self.assertEqual(4, len(get_choice_string_input_mock.call_args_list[0][0]))
 
+  @patch("sys.exit")
+  @patch.object(ambari_server, "get_db_cli_tool")
+  @patch.object(ambari_server, "store_remote_properties")
+  @patch.object(ambari_server, "is_local_database")
+  @patch.object(ambari_server, "check_iptables")
+
+  def test_setup_remote_db_wo_client(self, check_iptables_mock, is_local_db_mock,
+                                     store_remote_properties_mock, get_db_cli_tool_mock, exit_mock):
+
+    out = StringIO.StringIO()
+    sys.stdout = out
+
+    args = MagicMock()
+
+    is_local_db_mock.return_value = False
+    check_iptables_mock.return_value = (0, "other")
+    store_remote_properties_mock.return_value = 0
+    get_db_cli_tool_mock.return_value = None
+
+    failed = False
+    result = None
+
+    try:
+      result = ambari_server.setup(args)
+    except Exception:
+      failed = True
+
+    self.assertEqual(False, failed)
+    self.assertEqual(None, result)
+    self.assertEqual(True, exit_mock.called)
+
+    sys.stdout = sys.__stdout__
+
+  @patch.object(ambari_server, "parse_properties")
+  @patch.object(ambari_server, "get_db_cli_tool")
+  @patch.object(ambari_server, "print_error_msg")
+  @patch.object(ambari_server, "get_YN_input")
+  @patch.object(ambari_server, "setup_db")
+  @patch.object(ambari_server, "run_os_command")
+  def test_reset_remote_db_wo_client(self, run_os_command_mock, setup_db_mock,
+                                     get_YN_inputMock, print_error_msg_mock, get_db_cli_tool_mock, parse_properties_mock):
+
+    out = StringIO.StringIO()
+    sys.stdout = out
+
+    args = MagicMock()
+    get_YN_inputMock.return_value = True
+    run_os_command_mock.return_value = (0, None, None)
+    args.persistence_type="remote"
+    get_db_cli_tool_mock.return_value = None
+    rcode = ambari_server.reset(args)
+    self.assertEqual(-1, rcode)
+
+    sys.stdout = sys.__stdout__
+
 
 
   def get_sample(self, sample):
