@@ -105,6 +105,7 @@ PID_DIR="/var/run/ambari-server"
 PID_NAME="ambari-server.pid"
 AMBARI_PROPERTIES_FILE="ambari.properties"
 AMBARI_PROPERTIES_RPMSAVE_FILE="ambari.properties.rpmsave"
+RESOURCES_DIR="/var/lib/ambari-server/resources"
 
 SETUP_DB_CMD = ['su', '-', 'postgres',
         '--command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'"']
@@ -175,6 +176,9 @@ POSTGRES_EXEC_ARGS = "-h {0} -p {1} -d {2} -U {3} -f {4} -v username='\"{3}\"'"
 ORACLE_EXEC_ARGS = "-S '{0}/{1}@(description=(address=(protocol=TCP)(host={2})(port={3}))(connect_data=(sid={4})))' @{5} {0}"
 MYSQL_EXEC_ARGS = "--host={0} --port={1} --user={2} --password={3} {4} " \
                  "-e\"set @schema=\'{4}\'; set @username=\'{2}\'; source {5};\""
+
+JDBC_PATTERNS = {"oracle":"*ojdbc*.jar", "mysql":"*mysql*.jar"}
+DATABASE_FULL_NAMES = {"oracle":"Oracle", "mysql":"MySQL", "postgres":"PostgreSQL"}
 
 
 # jdk commands
@@ -885,7 +889,47 @@ def is_local_database(options):
     return True
   return False
 
+#Check if required jdbc drivers present
+def find_jdbc_driver(args):
+  if args.database in JDBC_PATTERNS.keys():
+    drivers = []
+    drivers.extend(glob.glob(JAVA_SHARE_PATH + os.sep + JDBC_PATTERNS[args.database]))
+    if drivers:
+      return drivers
+    return -1
+  return 0
+
+def copy_files(files, dest_dir):
+  if os.path.isdir(dest_dir):
+    for filepath in files:
+      shutil.copy(filepath, dest_dir)
+    return 0
+  else:
+    return -1
+
+def check_jdbc_drivers(args):
+  result = find_jdbc_driver(args)
+  if result == -1:
+    msg = 'WARNING: Before starting Ambari Server, ' \
+          'the {0} JDBC driver JAR file must be placed to {1}. Press enter to continue.'.format(
+      DATABASE_FULL_NAMES[args.database],
+      JAVA_SHARE_PATH
+    )
+    if not SILENT:
+      raw_input(msg)
+    else:
+      print_warning_msg(msg)
+
+  elif type(result) is not int:
+    print 'Copying JDBC drivers to server resources...'
+    copy_files(result, RESOURCES_DIR)
+    pass
+
+  return 0
+
+
 #
+
 # Setup the Ambari Server.
 #
 def setup(args):
@@ -940,6 +984,8 @@ def setup(args):
     if not retcode == 0:
       print_error_msg ('Error while configuring connection properties. Exiting')
       sys.exit(retcode)
+
+    check_jdbc_drivers(args)
 
 
 
@@ -1274,6 +1320,7 @@ def get_pass_file_path(conf_file):
     JDBC_PASSWORD_FILENAME)
 
 
+# Set database properties to default values
 def load_default_db_properties(args):
   args.database=DATABASE_NAMES[DATABASE_INDEX]
   args.database_host = "localhost"
@@ -1283,6 +1330,7 @@ def load_default_db_properties(args):
   args.database_password = "bigdata"
   pass
 
+# Ask user for database conenction properties
 def prompt_db_properties(args):
   global DATABASE_INDEX
 
@@ -1350,7 +1398,7 @@ def prompt_db_properties(args):
   ))
 
 
-
+# Store set of properties for remote database connection
 def store_remote_properties(args):
   conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
   properties = Properties()
@@ -1386,6 +1434,7 @@ def store_remote_properties(args):
 
   return 0
 
+# Initialize remote database schema
 def setup_remote_db(args):
 
   retcode, out, err = execute_remote_script(args, DATABASE_INIT_SCRIPTS[DATABASE_INDEX])
@@ -1403,6 +1452,7 @@ def setup_remote_db(args):
 
   return 0
 
+# Get database client executable path
 def get_db_cli_tool(args):
   for tool in DATABASE_CLI_TOOLS[DATABASE_INDEX]:
     cmd =CHECK_COMMAND_EXIST_CMD.format(tool)
@@ -1432,6 +1482,7 @@ def run_in_shell(cmd):
   return process.returncode, stdoutdata, stderrdata
 
 
+#execute SQL script on remote database
 def execute_remote_script(args, scriptPath):
   tool = get_db_cli_tool(args)
   if not tool:
@@ -1495,6 +1546,7 @@ def configure_database_username_password(args):
     print_error_msg("Connection properties not set in config file.")
 
 
+# Store local database connection properties
 def store_local_properties(args):
   conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
   properties = Properties()
@@ -1518,6 +1570,7 @@ def store_local_properties(args):
 
   return 0
 
+# Load database connection properties from conf file
 def parse_properties_file(args):
   conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
   properties = Properties()
