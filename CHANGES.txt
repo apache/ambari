@@ -630,6 +630,9 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2336. Datanode start failed (with Oracle DB) due to RCA setup.
+ (swagle)
+
  AMBARI-2124. Hive client is not getting reconfigured when it is co-hosted 
  with hive server/metastore. (swagle)
 

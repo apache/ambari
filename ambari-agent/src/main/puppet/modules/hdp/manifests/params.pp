@@ -213,6 +213,10 @@ class hdp::params()
 
   $jce_policy_zip = "jce_policy-6.zip"
   $jce_location = hdp_default("jce_location","http://download.oracle.com/otn-pub/java/jce_policy/6")
+  $server_db_name = hdp_default("db_name", "postgres")
+  $oracle_jdbc_url = hdp_default("oracle_jdbc_url", "")
+  $mysql_jdbc_url = hdp_default("mysql_jdbc_url", "")
+  $db_driver_file = hdp_default("db_driver_filename", "")
 
   #####
   $hadoop_home = hdp_default("hadoop_home","/usr")

@@ -38,10 +38,8 @@ class hdp-hadoop::initialize()
   hdp-hadoop::common { 'common':}
   anchor{'hdp-hadoop::initialize::begin':} -> Hdp-hadoop::Common['common'] -> anchor{'hdp-hadoop::initialize::end':}
 
-# Configs generation  
-
-debug('##Configs generation for hdp-hadoop')
-
+  # Configs generation
+  debug('##Configs generation for hdp-hadoop')
 
   if has_key($configuration, 'mapred-queue-acls') {
     configgenerator::configfile{'mapred-queue-acls': 
@@ -274,6 +272,29 @@ class hdp-hadoop(
     hdp-hadoop::configfile { 'hadoop-metrics2.properties' : 
       tag   => 'common', 
       owner => $hdfs_user,
+    }
+
+    # Copy database drivers for rca enablement
+    $server_db_name = $hdp::params::server_db_name
+    $hadoop_lib_home = $hdp::params::hadoop_lib_home
+    $db_driver_filename = $hdp::params::db_driver_file
+    $oracle_driver_url = $hdp::params::oracle_jdbc_url
+    $mysql_driver_url = $hdp::params::mysql_jdbc_url
+
+    if ($server_db_name == 'oracle' and $oracle_driver_url != "") {
+      $db_driver_dload_cmd = "curl -f --retry 5 $oracle_driver_url -o ${hadoop_lib_home}/${db_driver_filename}"
+    } elsif ($server_db_name == 'mysql' and $mysql_driver_url != "") {
+      $db_driver_dload_cmd = "curl -f --retry 5 $mysql_driver_url -o ${hadoop_lib_home}/${db_driver_filename}"
+    }
+    if ($db_driver_dload_cmd != undef) {
+      exec { '${db_driver_dload_cmd}':
+        command => $db_driver_dload_cmd,
+        unless  => "test -e ${hadoop_lib_home}/${db_driver_filename}",
+        creates => "${hadoop_lib_home}/${db_driver_filename}",
+        path    => ["/bin","/usr/bin/"],
+        require => Hdp-hadoop::Package['hadoop'],
+        before  => Anchor['hdp-hadoop::end']
+      }
     }
 
     Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Package<||> ->  Hdp::User<|title == $hdfs_user or title == $mapred_user|>  ->  Hdp::Directory_recursive_create[$hadoop_config_dir] 
