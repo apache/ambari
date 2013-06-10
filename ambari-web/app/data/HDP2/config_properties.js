@@ -403,7 +403,7 @@ module.exports =
       "name": "security_enabled",
       "displayName": "Hadoop Security",
       "description": "Enable hadoop security",
-      "defaultValue": false,
+      "defaultValue": 'false',
       "isRequired": false,
       "displayType": "checkbox",
       "isOverridable": false,

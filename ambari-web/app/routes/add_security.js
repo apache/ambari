@@ -50,7 +50,6 @@ module.exports = Em.Route.extend({
               mainAdminSecurityController.setAddSecurityWizardStatus(null);
               App.db.setSecurityDeployStages(undefined);
               router.get('addSecurityController').setCurrentStep(1);
-              router.get('addSecurityController.content').saveCurrentStage(2);
               router.transitionTo('adminSecurity.index');
             }
           },
@@ -100,7 +99,6 @@ module.exports = Em.Route.extend({
       var addSecurityController = router.get('addSecurityController');
       var addSecurityStep2Controller = router.get('mainAdminSecurityAddStep2Controller');
       addSecurityController.saveServiceConfigProperties(addSecurityStep2Controller);
-      addSecurityController.get('content').saveCurrentStage('2');
       App.db.setSecurityDeployStages(undefined);
       router.transitionTo('step3');
     }
@@ -113,8 +111,8 @@ module.exports = Em.Route.extend({
       var controller = router.get('addSecurityController');
       controller.dataLoading().done(function () {
         controller.setCurrentStep('3');
-        controller.setLowerStepsDisable(3);
         controller.loadAllPriorSteps();
+        controller.setLowerStepsDisable(3);
         controller.connectOutlet('mainAdminSecurityAddStep3', controller.get('content'));
       })
     },

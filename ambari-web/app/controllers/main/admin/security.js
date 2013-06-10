@@ -111,7 +111,7 @@ App.MainAdminSecurityController = Em.Controller.extend({
   getServiceConfigsFromServerSuccessCallback: function (data) {
     console.log("TRACE: In success function for the GET getServiceConfigsFromServer call");
     var configs = data.items.findProperty('tag', this.get('tag')).properties;
-    if (configs && configs['security_enabled'] === 'true') {
+    if (configs && (configs['security_enabled'] === 'true'  ||configs['security_enabled'] === true)) {
       this.set('securityEnabled', true);
     }
     else {

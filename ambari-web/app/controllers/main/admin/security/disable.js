@@ -42,14 +42,14 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
 
   loadStep: function () {
     var stages = App.db.getSecurityDeployStages();
+    this.clearStep();
     if (stages === undefined) {
-      this.clearStep();
       this.loadStages();
       this.addInfoToStages();
     } else {
-      stages.forEach(function(_stage,index){
+      stages.forEach(function (_stage, index) {
         stages[index] = App.Poll.create(_stage);
-      },this);
+      }, this);
       if (stages.someProperty('isError', true)) {
         var failedStages = stages.filterProperty('isError', true);
         failedStages.setEach('isError', false);
@@ -61,8 +61,8 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
       }
       this.get('stages').pushObjects(stages);
     }
-   this.loadSecureServices();
-   this.moveToNextStage();
+    this.loadSecureServices();
+    this.moveToNextStage();
   },
 
 
@@ -85,7 +85,6 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
   enableSubmit: function () {
     if (this.get('stages').someProperty('isError', true) || this.get('stages').everyProperty('isSuccess', true)) {
       this.set('isSubmitDisabled', false);
-      App.router.get('addSecurityController').setStepsEnable();
     }
   }.observes('stages.@each.isCompleted'),
 
@@ -120,23 +119,25 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
   updateServices: function () {
     this.services.clear();
     var services = this.get("services");
-    this.get("stages").forEach(function (stages) {
+    this.get("stages").forEach(function (stage) {
       var newService = Ember.Object.create({
-        name: stages.label,
+        name: stage.label,
         hosts: []
       });
-      var hostNames = stages.get("polledData").mapProperty('Tasks.host_name').uniq();
-      hostNames.forEach(function (name) {
-        newService.hosts.push({
-          name: name,
-          publicName: name,
-          logTasks: stages.polledData.filterProperty("Tasks.host_name", name)
+      if (stage && stage.get("polledData")) {
+        var hostNames = stage.get("polledData").mapProperty('Tasks.host_name').uniq();
+        hostNames.forEach(function (name) {
+          newService.hosts.push({
+            name: name,
+            publicName: name,
+            logTasks: stage.polledData.filterProperty("Tasks.host_name", name)
+          });
         });
-      });
-      services.push(newService);
+        services.push(newService);
+      }
     });
     this.set('serviceTimestamp', new Date().getTime());
-  }.observes("stages.@each.polledData"),
+  }.observes('stages.@each.polledData'),
 
   addInfoToStages: function () {
     this.addInfoToStage2();
@@ -303,7 +304,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
             delete _serviceConfigTags.configs[_config.name];
           }
         }, this);
-        _serviceConfigTags.configs.security_enabled = false;
+        _serviceConfigTags.configs.security_enabled = 'false';
       } else {
         this.get('secureMapping').filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
           var configName = _config.name;
@@ -340,9 +341,9 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
     }, this);
   },
 
-  saveStages: function() {
+  saveStages: function () {
     var stages = [];
-    this.get('stages').forEach(function(_stage){
+    this.get('stages').forEach(function (_stage) {
       var stage = {
         stage: _stage.get('stage'),
         label: _stage.get('label'),
@@ -355,8 +356,8 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
         data: _stage.get('data')
       };
       stages.pushObject(stage);
-    },this);
+    }, this);
     App.db.setSecurityDeployStages(stages);
-  }.observes('stages.@each.requestId','stages.@each.isStarted','stages.@each.isCompleted')
+  }.observes('stages.@each.requestId', 'stages.@each.isStarted', 'stages.@each.isCompleted')
 
 });

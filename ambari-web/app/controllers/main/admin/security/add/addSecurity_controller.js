@@ -27,15 +27,7 @@ App.AddSecurityController = App.WizardController.extend({
   content: Em.Object.create({
     services: [],
     serviceConfigProperties: null,
-    controllerName: 'addSecurityController',
-
-    saveCurrentStage: function (stage) {
-      App.db.setSecurityStage(stage);
-    },
-
-    loadCurrentStage: function () {
-      return App.db.getSecurityStage();
-    }
+    controllerName: 'addSecurityController'
   }),
 
   /**
@@ -45,7 +37,6 @@ App.AddSecurityController = App.WizardController.extend({
     var step = this.get('currentStep');
     switch (step) {
       case '3':
-        this.loadStages();
       case '2':
         this.loadServiceConfigs();
       case '1':
@@ -57,14 +48,6 @@ App.AddSecurityController = App.WizardController.extend({
     if (this.get('content.services')) {
       this.get('content.services').clear();
     }
-  },
-
-  /**
-   * loads the status of stages of step3 from localDb
-   */
-
-  loadStages: function () {
-
   },
 
   /**

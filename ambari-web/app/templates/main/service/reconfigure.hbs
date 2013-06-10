@@ -22,7 +22,7 @@
       {{#view App.StageStatusView}}
       <td>
         {{#if stage.isPolling}}
-          <a  href="javascript:void(0)" {{action "showHostPopup" stage.label target="view"}}>
+          <a href="javascript:void(0)" {{action "showHostPopup" stage.label target="view"}}>
         {{/if}}
         <p {{bindAttr class="stage.hasStarted::faintText"}}>{{stage.label}}</p>
         {{#if stage.isPolling}}
@@ -34,7 +34,9 @@
           {{#if stage.isSuccess}}
             {{view App.StageSuccessView}}
           {{else}}
-            {{view App.StageFailureView}}
+            {{#if stage.isError}}
+              {{view App.StageFailureView}}
+            {{/if}}
           {{/if}}
         {{else}}
           {{#if stage.isStarted}}

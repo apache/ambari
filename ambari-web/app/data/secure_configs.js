@@ -30,7 +30,6 @@ module.exports = [
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'KERBEROS', displayName: 'General'})
     ],
-    sites: ['global'],
     configs: configProperties.filterProperty('serviceName', 'GENERAL')
   },
   {

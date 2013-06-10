@@ -20,7 +20,7 @@ var App = require('app');
 App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
 
   name: 'mainAdminSecurityAddStep3Controller',
-  configMapping: require('data/secure_mapping'),
+  secureMapping: require('data/secure_mapping'),
   stages: [],
   configs: [],
   noOfWaitingAjaxCalls: 0,
@@ -63,10 +63,11 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   },
 
   loadStep: function () {
+    this.set('secureMapping',require('data/secure_mapping').slice(0));
     var stages = App.db.getSecurityDeployStages();
     this.prepareSecureConfigs();
+    this.clearStep();
     if (stages === undefined) {
-      this.clearStep();
       this.loadStages();
       this.addInfoToStages();
     } else {
@@ -91,32 +92,31 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   enableSubmit: function () {
     if (this.get('stages').someProperty('isError', true) || this.get('stages').everyProperty('isSuccess', true)) {
       this.set('isSubmitDisabled', false);
-      App.router.get('addSecurityController').setStepsEnable();
     }
   }.observes('stages.@each.isCompleted'),
 
   updateServices: function () {
     this.services.clear();
     var services = this.get("services");
-    this.get("stages").forEach(function (stages) {
+    this.get("stages").forEach(function (stage) {
       var newService = Ember.Object.create({
-        name: stages.label,
+        name: stage.label,
         hosts: []
       });
-      if (stages && stages.get("polledData")) {
-        var hostNames = stages.get("polledData").mapProperty('Tasks.host_name').uniq();
+      if (stage && stage.get("polledData")) {
+        var hostNames = stage.get("polledData").mapProperty('Tasks.host_name').uniq();
         hostNames.forEach(function (name) {
           newService.hosts.push({
             name: name,
             publicName: name,
-            logTasks: stages.polledData.filterProperty("Tasks.host_name", name)
+            logTasks: stage.polledData.filterProperty("Tasks.host_name", name)
           });
         });
         services.push(newService);
       }
     });
     this.set('serviceTimestamp', new Date().getTime());
-  }.observes("stages.@each.polledData"),
+  }.observes('stages.@each.polledData'),
 
   loadStages: function () {
     this.get('stages').pushObjects([
@@ -193,7 +193,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
 
   loadUiSideConfigs: function () {
     var uiConfig = [];
-    var configs = this.get('configMapping').filterProperty('foreignKey', null);
+    var configs = this.get('secureMapping').filterProperty('foreignKey', null);
     configs.forEach(function (_config) {
       var value = this.getGlobConfigValue(_config.templateName, _config.value, _config.name);
       uiConfig.pushObject({
@@ -212,7 +212,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       var globalProperty = this.get('globalProperties').findProperty('name', name);
       newValue = globalProperty.value;
       var isInstanceName = this.get('globalProperties').findProperty('name', 'instance_name');
-      if (isInstanceName) {
+      if (isInstanceName === true || isInstanceName === 'true') {
         if (/primary_name?$/.test(globalProperty.name) && property !== 'hadoop.security.auth_to_local' && property !== 'oozie.authentication.kerberos.name.rules') {
           if (this.get('isOozieSelected') && (property === 'oozie.service.HadoopAccessorService.kerberos.principal' || property === 'oozie.authentication.kerberos.principal')) {
             var oozieServerName = App.Service.find('OOZIE').get('hostComponents').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
@@ -257,7 +257,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       } else {
         /*
          console.log("ERROR: The variable name is: " + templateName[index]);
-         console.log("ERROR: mapped config from configMapping file has no corresponding variable in " +
+         console.log("ERROR: mapped config from secureMapping file has no corresponding variable in " +
          "content.serviceConfigProperties. Two possible reasons for the error could be: 1) The service is not selected. " +
          "and/OR 2) The service_config metadata file has no corresponding global var for the site property variable");
          */
@@ -378,7 +378,6 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     this.set('noOfWaitingAjaxCalls', this.get('noOfWaitingAjaxCalls') - 1);
     if (this.get('noOfWaitingAjaxCalls') == 0) {
       App.router.get('mainAdminSecurityController').setAddSecurityWizardStatus(null);
-      App.router.get('addSecurityController').setCurrentStep(1);
       var currentStage = this.get('stages').findProperty('stage', 'stage3');
       currentStage.set('isSuccess', true);
     }
