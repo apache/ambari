@@ -34,6 +34,9 @@ import fileinput
 import urllib2
 import time
 import getpass
+import datetime
+import socket
+
 # debug settings
 VERBOSE = False
 SILENT = False
@@ -151,7 +154,7 @@ DATABASE_INDEX = 0
 PROMPT_DATABASE_OPTIONS = False
 USERNAME_PATTERN = "^[a-zA-Z_][a-zA-Z0-9_\-]*$"
 PASSWORD_PATTERN = "^[a-zA-Z0-9_-]*$"
-DATABASE_NAMES =["postgres", "oracle", "mysql"]
+DATABASE_NAMES =["postgres", "oracle"]
 DATABASE_STORAGE_NAMES =["database","service","schema"]
 DATABASE_PORTS =["5432", "1521", "3306"]
 DATABASE_DRIVER_NAMES = ["org.postgresql.Driver", "oracle.jdbc.driver.OracleDriver", "com.mysql.jdbc.Driver"]
@@ -873,15 +876,18 @@ def setup(args):
       print_error_msg('Unable to save config file')
       sys.exit(retcode)
 
-    print_warning_msg('Before starting server JDBC driver for {0} should be placed to {1}.'.format(args.database, JAVA_SHARE_PATH))
+    
+    check_jdbc_drivers(args)
 
     print 'Configuring remote database connection properties...'
     retcode = setup_remote_db(args)
+    if retcode == -1:
+      # means the cli was not found
+      sys.exit(retcode)
+      
     if not retcode == 0:
       print_error_msg ('Error while configuring connection properties. Exiting')
       sys.exit(retcode)
-
-    check_jdbc_drivers(args)
 
 
 
@@ -933,7 +939,7 @@ def reset(args):
     print "Ambari Server 'reset' cancelled"
     return -1
 
-  print "Reseting the Server database..."
+  print "Resetting the Server database..."
 
   parse_properties_file(args)
 
@@ -1230,32 +1236,38 @@ def prompt_db_properties(args):
 
       database_num = str(DATABASE_INDEX + 1)
       database_num = get_validated_string_input(
-        "Select database:\n1 - Postgres\n2 - Oracle\n3 - MySQL \n[" + database_num + "]:",
+        "Select database:\n1 - Postgres(Embedded)\n2 - Oracle\n[" + database_num + "]:",
         database_num,
-        "^[123]$",
+        "^[12]$",
         "Invalid number.",
         False
       )
 
       DATABASE_INDEX = int(database_num) - 1
       args.database = DATABASE_NAMES[DATABASE_INDEX]
-
-      args.database_host = get_validated_string_input(
-        "Hostname [" + args.database_host + "]:",
-        args.database_host,
-        "^[a-zA-Z0-9.\-]*$",
-        "Invalid hostname.",
-        False
-      )
-
-      args.database_port=DATABASE_PORTS[DATABASE_INDEX]
-      args.database_port = get_validated_string_input(
-        "Port [" + args.database_port + "]:",
-        args.database_port,
-        "^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$",
-        "Invalid port.",
-        False
-      )
+      
+      if args.database != "postgres" :
+        args.database_host = get_validated_string_input(
+          "Hostname [" + args.database_host + "]:",
+          args.database_host,
+          "^[a-zA-Z0-9.\-]*$",
+          "Invalid hostname.",
+          False
+        )
+  
+        args.database_port=DATABASE_PORTS[DATABASE_INDEX]
+        args.database_port = get_validated_string_input(
+          "Port [" + args.database_port + "]:",
+          args.database_port,
+          "^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$",
+          "Invalid port.",
+          False
+        )
+        pass
+      else:
+        args.database_host = "localhost"
+        args.database_port = DATABASE_PORTS[DATABASE_INDEX]
+        pass
 
       args.database_name = get_validated_string_input(
         DATABASE_STORAGE_NAMES[DATABASE_INDEX] + " name [" + args.database_name + "]:",
@@ -1306,12 +1318,18 @@ def store_remote_properties(args):
   properties.process_pair(JDBC_SCHEMA_PROPERTY, args.database_name)
 
   properties.process_pair(JDBC_DRIVER_PROPERTY, DATABASE_DRIVER_NAMES[DATABASE_INDEX])
-  properties.process_pair(JDBC_URL_PROPERTY, DATABASE_CONNECTION_STRINGS[DATABASE_INDEX].format(args.database_host, args.database_port, args.database_name))
+  # fully qualify the hostname to make sure all the other hosts can connect
+  # to the jdbc hostname since its passed onto the agents for RCA
+  jdbc_hostname = args.database_host
+  if (args.database_host == "localhost"):
+    jdbc_hostname = socket.getfqdn();
+    
+  properties.process_pair(JDBC_URL_PROPERTY, DATABASE_CONNECTION_STRINGS[DATABASE_INDEX].format(jdbc_hostname, args.database_port, args.database_name))
   properties.process_pair(JDBC_USER_NAME_PROPERTY, args.database_username)
   properties.process_pair(JDBC_PASSWORD_FILE_PROPERTY, store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
 
   properties.process_pair(JDBC_RCA_DRIVER_PROPERTY, DATABASE_DRIVER_NAMES[DATABASE_INDEX])
-  properties.process_pair(JDBC_RCA_URL_PROPERTY, DATABASE_CONNECTION_STRINGS[DATABASE_INDEX].format(args.database_host, args.database_port, args.database_name))
+  properties.process_pair(JDBC_RCA_URL_PROPERTY, DATABASE_CONNECTION_STRINGS[DATABASE_INDEX].format(jdbc_hostname, args.database_port, args.database_name))
   properties.process_pair(JDBC_RCA_USER_NAME_PROPERTY, args.database_username)
   properties.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY, store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
 
@@ -1333,6 +1351,7 @@ def setup_remote_db(args):
       print_warning_msg('Cannot find ' + DATABASE_NAMES[DATABASE_INDEX] + 
                         ' client in the path, for setup please run the following DDL against the DB: ' +
                         DATABASE_INIT_SCRIPTS[DATABASE_INDEX], True)
+      return retcode
 
     print err
     print_error_msg('Database bootstrap failed. Please, provide correct connection properties.')
@@ -1445,11 +1464,17 @@ def store_local_properties(args):
   except Exception, e:
     print 'Could not read ambari config file "%s": %s' % (conf_file, e)
     return -1
-
+  properties.removeOldProp(JDBC_DATABASE_PROPERTY)
+  properties.removeOldProp(JDBC_RCA_DRIVER_PROPERTY)
+  properties.removeOldProp(JDBC_RCA_URL_PROPERTY)
+  properties.removeOldProp(JDBC_PORT_PROPERTY)
+  properties.removeOldProp(JDBC_PORT_PROPERTY)
+  properties.removeOldProp(JDBC_DRIVER_PROPERTY)
+  properties.removeOldProp(JDBC_URL_PROPERTY)
+  properties.removeOldProp(JDBC_DATABASE_PROPERTY)
   properties.process_pair(PERSISTENCE_TYPE_PROPERTY, "local")
   properties.process_pair(JDBC_USER_NAME_PROPERTY, args.database_username)
   properties.process_pair(JDBC_PASSWORD_FILE_PROPERTY, store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
-
 
   try:
     properties.store(open(conf_file, "w"))
@@ -1526,7 +1551,7 @@ def main():
                   help="Silently accepts default prompt values")
 
 
-  parser.add_option('--database', default=None, help ="Database to use postgres|oracle|mysql", dest="database")
+  parser.add_option('--database', default=None, help ="Database to use postgres|oracle", dest="database")
   parser.add_option('--databasehost', default=None, help="Hostname of database server", dest="database_host")
   parser.add_option('--databaseport', default=None, help="Database port", dest="database_port")
   parser.add_option('--databasename', default=None, help="Database/Schema/Service name", dest="database_name")
@@ -1565,12 +1590,12 @@ def main():
     and options.database_username is not None
     and options.database_password is not None):
 
-    parser.error('All database options should be set.')
+    parser.error('All database options should be set. Please see help for the options.')
     pass
 
   #correct database
   if options.database is not None and options.database not in DATABASE_NAMES:
-    print "Incorrect database"
+    print "Unsupported Database " + options.database
     parser.print_help()
     exit(-1)
   elif options.database is not None:
@@ -1590,7 +1615,12 @@ def main():
       print "Incorrect database port " + options.database_port
       parser.print_help()
       exit(-1)
-  
+      
+  if options.database is not None and options.database == "postgres":
+    print "WARNING: HostName for postgres server " + options.database_host + \
+     " will be ignored: using localhost."
+    options.database_host = "localhost"
+
   if len(args) == 0:
     print parser.print_help()
     parser.error("No action entered")
@@ -1703,11 +1733,17 @@ class Properties(object):
       self._origprops[oldkey] = oldvalue.strip()
       self._keymap[key] = oldkey
 
+  
   def unescape(self, value):
     newvalue = value.replace('\:', ':')
     newvalue = newvalue.replace('\=', '=')
     return newvalue
 
+  def removeOldProp(self, key):
+    if self._origprops.has_key(key):
+      del self._origprops[key]
+    pass
+  
   def load(self, stream):
     if type(stream) is not file:
       raise TypeError, 'Argument should be a file object!'

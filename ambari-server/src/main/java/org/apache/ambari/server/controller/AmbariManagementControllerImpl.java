@@ -175,16 +175,20 @@ public class AmbariManagementControllerImpl implements
       this.jdkResourceUrl = "http://" + masterHostname + ":"
           + configs.getClientApiPort()
           + JDK_RESOURCE_LOCATION;
+      this.ojdbcUrl = "http://" + masterHostname + ":" + 
+          + configs.getClientApiPort() + JDK_RESOURCE_LOCATION + "/" + configs.getOjdbcJarName();
+
+      this.mysqljdbcUrl = "http://" + masterHostname + ":" + 
+          + configs.getClientApiPort() + JDK_RESOURCE_LOCATION + "/" + configs.getMySQLJarName();
+      this.serverDB = configs.getServerDBName();
     } else {
-    		this.jdkResourceUrl = null;
+      this.jdkResourceUrl = null;
+      this.ojdbcUrl = null;
+      this.mysqljdbcUrl = null;
+      this.serverDB = null;
     }
     
-    this.ojdbcUrl = "http://" + masterHostname + ":" + 
-    	 + configs.getClientApiPort() + JDK_RESOURCE_LOCATION + "/" + configs.getOjdbcJarName();
-    
-    this.mysqljdbcUrl = "http://" + masterHostname + ":" + 
-       	 + configs.getClientApiPort() + JDK_RESOURCE_LOCATION + "/" + configs.getMySQLJarName();
-    this.serverDB = configs.getServerDBName();
+   
   }
 
   @Override
