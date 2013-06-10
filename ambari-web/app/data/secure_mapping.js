@@ -265,14 +265,14 @@ module.exports = [
   },
   {
     "name": "oozie.authentication.kerberos.principal",
-    "templateName": ["oozie_http_primary_name", "kerberos_domain"],
+    "templateName": ["hadoop_http_primary_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "oozie-site.xml"
   },
   {
     "name": "oozie.authentication.kerberos.keytab",
-    "templateName": ["oozie_http_keytab"],
+    "templateName": ["hadoop_http_keytab"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "oozie-site.xml"
@@ -286,14 +286,14 @@ module.exports = [
   },
   {
     "name": "templeton.kerberos.principal",
-    "templateName": ["webhcat_http_primary_name", "kerberos_domain"],
+    "templateName": ["hadoop_http_primary_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "webhcat-site.xml"
   },
   {
     "name": "templeton.kerberos.keytab",
-    "templateName": ["webhcat_http_keytab"],
+    "templateName": ["hadoop_http_keytab"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "webhcat-site.xml"

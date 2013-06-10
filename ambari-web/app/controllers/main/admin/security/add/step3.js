@@ -317,9 +317,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     var self = this;
     //prepare tags to fetch all configuration for a service
     this.get('content.services').forEach(function (_secureService) {
-      if (_secureService.serviceName !== 'GENERAL') {
         self.setServiceTagNames(_secureService, data.Clusters.desired_configs);
-      }
     });
     this.getAllConfigurations();
   },
@@ -333,7 +331,6 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
    * set tagnames for configuration of the *-site.xml
    */
   setServiceTagNames: function (secureService, configs) {
-    console.log("TRACE: In setServiceTagNames function:");
     //var serviceConfigTags = this.get('serviceConfigTags');
     for (var index in configs) {
       if (secureService.sites && secureService.sites.contains(index)) {

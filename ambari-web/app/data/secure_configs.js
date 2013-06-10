@@ -30,6 +30,7 @@ module.exports = [
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'KERBEROS', displayName: 'General'})
     ],
+    sites: ['global','webhcat-site'],
     configs: configProperties.filterProperty('serviceName', 'GENERAL')
   },
   {
@@ -41,7 +42,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'NameNode', displayName: 'NameNode'}),
       App.ServiceConfigCategory.create({ name: 'DataNode', displayName: 'DataNode'})
     ],
-    sites: ['global', 'core-site', 'hdfs-site'],
+    sites: ['core-site', 'hdfs-site'],
     configs: configProperties.filterProperty('serviceName', 'HDFS')
   },
 
@@ -67,18 +68,6 @@ module.exports = [
     sites: ['hive-site'],
     configs: configProperties.filterProperty('serviceName', 'HIVE')
   },
-
-  {
-    serviceName: 'WEBHCAT',
-    displayName: 'WebHCat',
-    filename: 'webhcat-site',
-    configCategories: [
-      App.ServiceConfigCategory.create({ name: 'WebHCat', displayName: 'WebHCat'})
-    ],
-    sites: ['webhcat-site'],
-    configs: configProperties.filterProperty('serviceName', 'WEBHCAT')
-  },
-
   {
     serviceName: 'HBASE',
     displayName: 'HBase',

@@ -94,6 +94,33 @@ module.exports =
       "serviceName": "GENERAL",
       "category": "KERBEROS"
     },
+    {
+      "id": "puppet var",
+      "name": "hadoop_http_primary_name",
+      "displayName": "HTTP Primary name",
+      "value": "",
+      "defaultValue": "HTTP",
+      "isReconfigurable": false,
+      "description": "Primary name for spnego access for NameNode, SNameNode, Oozie and WebHCat",
+      "displayType": "principal",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "GENERAL",
+      "category": "KERBEROS"
+    },
+    {
+      "id": "puppet var",
+      "name": "hadoop_http_keytab",
+      "displayName": "Path to HTTP keytab file",
+      "value": "",
+      "defaultValue": "/etc/security/keytabs/spnego.service.keytab",
+      "description": "Path to HTTP keytab file for NameNode, SNameNode, Oozie and WebHCat",
+      "displayType": "directory",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "GENERAL",
+      "category": "KERBEROS"
+    },
 
     //HDFS
     {
@@ -102,7 +129,7 @@ module.exports =
       "displayName": "Primary name",
       "value": "",
       "defaultValue": "nn",
-      "description": "Primary name for NameNode",
+      "description": "Primary name for NameNode and SNameNode",
       "displayType": "principal",
       "isVisible": true,
       "isOverridable": false,
@@ -115,39 +142,12 @@ module.exports =
       "displayName": "Path to Keytab File",
       "value": "",
       "defaultValue": "/etc/security/keytabs/nn.service.keytab",
-      "description": "Keytab for NameNode",
+      "description": "Path to NameNode and SNameNode keytab file",
       "displayType": "directory",
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "HDFS",
       "category": "NameNode"
-    },
-    {
-      "id": "puppet var",
-      "name": "hadoop_http_primary_name",
-      "displayName": "HTTP Primary name",
-      "value": "",
-      "defaultValue": "HTTP",
-      "isReconfigurable": false,
-      "description": "Primary name for spnego access for NameNode",
-      "displayType": "principal",
-      "isVisible": true,
-      "isOverridable": false,
-      "serviceName": "HDFS",
-      "category": "General"
-    },
-    {
-      "id": "puppet var",
-      "name": "hadoop_http_keytab",
-      "displayName": "Path to HTTP keytab file",
-      "value": "",
-      "defaultValue": "/etc/security/keytabs/spnego.service.keytab",
-      "description": "Keytab for http NameNode and SNameNode",
-      "displayType": "directory",
-      "isVisible": true,
-      "isOverridable": false,
-      "serviceName": "HDFS",
-      "category": "General"
     },
     {
       "id": "puppet var",
@@ -247,7 +247,7 @@ module.exports =
       "displayName": "Path to keytab file",
       "value": "",
       "defaultValue": "/etc/security/keytabs/tt.service.keytab",
-      "description": "keytab for TaskTracker",
+      "description": "Path to TaskTracker keytab file",
       "displayType": "directory",
       "isVisible": true,
       "isOverridable": false,
@@ -262,12 +262,12 @@ module.exports =
       "displayName": "Primary name",
       "value": "",
       "defaultValue": "hbase",
-      "description": "Primary name for HBase",
+      "description": "Primary name for HBase master and RegionServer",
       "displayType": "principal",
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "HBASE",
-      "category": "HBase Master"
+      "category": "HBase"
     },
     {
       "id": "puppet var",
@@ -275,7 +275,7 @@ module.exports =
       "displayName": "Path to Keytab file",
       "value": "",
       "defaultValue": "/etc/security/keytabs/hbase.service.keytab",
-      "description": "keytab for HBase master",
+      "description": "Path to HBase master and RegionServer keytab file",
       "displayType": "directory",
       "isVisible": true,
       "isOverridable": false,
@@ -303,7 +303,7 @@ module.exports =
       "displayName": "Path to Keytab file",
       "value": "",
       "defaultValue": "/etc/security/keytabs/hive.service.keytab",
-      "description": "keytab for Hive Metastore",
+      "description": "Path to Hive Metastore keytab file",
       "displayType": "directory",
       "isVisible": true,
       "isOverridable": false,
@@ -332,72 +332,13 @@ module.exports =
       "displayName": "Path to keytab file",
       "value": "",
       "defaultValue": "/etc/security/keytabs/oozie.service.keytab",
-      "description": "Keytab for Oozie server",
+      "description": "Path to Oozie server keytab file",
       "displayType": "directory",
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
-    {
-      "id": "puppet var",
-      "name": "oozie_http_primary_name",
-      "displayName": "HTTP Primary name",
-      "value": "",
-      "defaultValue": "HTTP",
-      "description": "Primary name for spnego access for Oozie server",
-      "isReconfigurable": false,
-      "displayType": "principal",
-      "isVisible": true,
-      "isOverridable": false,
-      "serviceName": "OOZIE",
-      "category": "Oozie Server"
-    },
-    {
-      "id": "puppet var",
-      "name": "oozie_http_keytab",
-      "displayName": "Path to HTTP Keytab file",
-      "value": "",
-      "defaultValue": "/etc/security/keytabs/spnego.service.keytab",
-      "description": "Keytab for http Oozie server",
-      "displayType": "directory",
-      "isVisible": true,
-      "isOverridable": false,
-      "serviceName": "OOZIE",
-      "category": "Oozie Server"
-    },
-
-
-    //WEBHCAT
-    {
-      "id": "puppet var",
-      "name": "webhcat_http_primary_name",
-      "displayName": "HTTP Primary name",
-      "value": "",
-      "defaultValue": "HTTP",
-      "description": "Primary name for spnego access for webHCat",
-      "displayType": "principal",
-      "isReconfigurable": false,
-      "isVisible": true,
-      "isOverridable": false,
-      "serviceName": "WEBHCAT",
-      "category": "WebHCat"
-    },
-    {
-      "id": "puppet var",
-      "name": "webhcat_http_keytab",
-      "displayName": "Path to HTTP Keytab file",
-      "value": "",
-      "defaultValue": "/etc/security/keytabs/spnego.service.keytab",
-      "description": "Keytab for http webHCat",
-      "displayType": "directory",
-      "isVisible": true,
-      "isOverridable": false,
-      "serviceName": "WEBHCAT",
-      "category": "WebHCat"
-    },
-    //HUE
-
 
     //NAGIOS
     {
@@ -432,7 +373,7 @@ module.exports =
       "displayName": " Path to keytab file",
       "value": "",
       "defaultValue": "/etc/security/keytabs",
-      "description": "Keytab for nagios",
+      "description": "Path to the directory that contains nagios keytab",
       "displayType": "directory",
       "isVisible": true,
       "isOverridable": false,
@@ -461,7 +402,7 @@ module.exports =
       "displayName": "Path to keytab file",
       "value": "",
       "defaultValue": "/etc/security/keytabs/zk.service.keytab",
-      "description": "Keytab for ZooKeeper",
+      "description": "Path to ZooKeeper keytab file",
       "displayType": "directory",
       "isVisible": true,
       "isOverridable": false,
