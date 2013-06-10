@@ -18,7 +18,7 @@
 <metainfo>
     <user>root</user>
     <comment>Scripting platform for analyzing large datasets</comment>
-    <version>0.10.1.22-1</version>
+    <version>0.11.2.0.3.0</version>
 
     <components>
         <component>
