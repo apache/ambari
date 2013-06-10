@@ -105,7 +105,7 @@ App.servicesMapper = App.QuickDataMapper.create({
   mapReduce2Config: {
     version: 'jobHistoryServerComponent.ServiceComponentInfo.Version',
     job_history_server_id: 'jobHistoryServerComponent.host_components[0].HostRoles.host_name',
-    map_reduce2_clients: 'map_reduce2_clients',
+    map_reduce2_clients: 'map_reduce2_clients'
   },
   mapReduceConfig: {
     version: 'jobTrackerComponent.ServiceComponentInfo.Version',

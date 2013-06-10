@@ -102,6 +102,11 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     return result;
   }.property('controller.content'),
 
+  historyServerUI: function(){
+    var service=this.get('controller.content');
+    return (App.singleNodeInstall ? "http://" + App.singleNodeAlias + ":19888" : "http://" + service.get("hostComponents").findProperty('isMaster', true).get("host").get("publicHostName")+":19888");
+  }.property('controller.content'),
+
   monitors: function () {
     var result = '';
     var service = this.get('controller.content');

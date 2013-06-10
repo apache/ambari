@@ -659,6 +659,7 @@ Em.I18n.translations = {
   'services.service.summary.masterHeap':'Master Heap',
   'services.service.summary.moreStats':'more stats here',
   'services.service.summary.clientCount': '{0} Client Hosts',
+  'services.service.summary.historyServer': 'History Server Web UI',
   'services.service.actions.run.rebalancer':'Run Rebalancer',
   'services.service.actions.run.compaction':'Run Compaction',
   'services.service.actions.run.smoke':'Run Smoke Test',
