@@ -85,13 +85,15 @@ public class ClusterControllerImplTest {
   private static final Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
 
   static {
-    keyPropertyIds.put(Resource.Type.Cluster, PropertyHelper.getPropertyId("c1", "p1"));
-    keyPropertyIds.put(Resource.Type.Host, PropertyHelper.getPropertyId("c1", "p2"));
+    keyPropertyIds.put(Resource.Type.Cluster, PropertyHelper.getPropertyId("Hosts", "cluster_name"));
+    keyPropertyIds.put(Resource.Type.Host, PropertyHelper.getPropertyId("Hosts", "host_name"));
   }
 
   private static final Set<String> resourceProviderProperties = new HashSet<String>();
 
   static {
+    resourceProviderProperties.add(PropertyHelper.getPropertyId("Hosts", "cluster_name"));
+    resourceProviderProperties.add(PropertyHelper.getPropertyId("Hosts", "host_name"));
     resourceProviderProperties.add(PropertyHelper.getPropertyId("c1", "p1"));
     resourceProviderProperties.add(PropertyHelper.getPropertyId("c1", "p2"));
     resourceProviderProperties.add(PropertyHelper.getPropertyId("c1", "p3"));
@@ -132,6 +134,32 @@ public class ClusterControllerImplTest {
     int cnt = 0;
     for (Resource resource : iterable) {
       Assert.assertEquals(Resource.Type.Host, resource.getType());
+      ++cnt;
+    }
+    Assert.assertEquals(4, cnt);
+  }
+
+  @Test
+  public void testGetResourcesCheckOrder() throws Exception{
+    ClusterController controller = new ClusterControllerImpl(new TestProviderModule());
+
+    Set<String> propertyIds = new HashSet<String>();
+
+    Request request = PropertyHelper.getReadRequest(propertyIds);
+
+    Iterable<Resource> iterable = controller.getResources(Resource.Type.Host, request, null);
+
+    String lastHostName = null;
+    int cnt = 0;
+    for (Resource resource : iterable) {
+      Assert.assertEquals(Resource.Type.Host, resource.getType());
+
+      String hostName = (String) resource.getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name"));
+
+      if (lastHostName != null) {
+        Assert.assertTrue(hostName.compareTo(lastHostName) > 0);
+      }
+      lastHostName = hostName;
       ++cnt;
     }
     Assert.assertEquals(4, cnt);
@@ -436,10 +464,7 @@ public class ClusterControllerImplTest {
 
     private TestProviderModule() {
       providers.put(Resource.Type.Cluster, new TestResourceProvider());
-      providers.put(Resource.Type.Service, new TestResourceProvider());
-      providers.put(Resource.Type.Component, new TestResourceProvider());
       providers.put(Resource.Type.Host, new TestResourceProvider());
-      providers.put(Resource.Type.HostComponent, new TestResourceProvider());
     }
 
     @Override
@@ -465,6 +490,9 @@ public class ClusterControllerImplTest {
 
       for (int cnt = 0; cnt < 4; ++ cnt) {
         ResourceImpl resource = new ResourceImpl(Resource.Type.Host);
+
+        resource.setProperty(PropertyHelper.getPropertyId("Hosts", "cluster_name"), "cluster");
+        resource.setProperty(PropertyHelper.getPropertyId("Hosts", "host_name"), "host:" + (4 - cnt));
 
         resource.setProperty(PropertyHelper.getPropertyId("c1", "p1"), cnt);
         resource.setProperty(PropertyHelper.getPropertyId("c1", "p2"), cnt % 2);
@@ -532,9 +560,7 @@ public class ClusterControllerImplTest {
       Update,
       Delete
     }
-
   }
-
 }
 
 

@@ -23,6 +23,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Simple resource implementation.
@@ -37,7 +38,7 @@ public class ResourceImpl implements Resource {
   /**
    * The map of property maps keyed by property category.
    */
-  private final Map<String, Map<String, Object>> propertiesMap = new HashMap<String, Map<String, Object>>();
+  private final Map<String, Map<String, Object>> propertiesMap = new TreeMap<String, Map<String, Object>>();
 
 
   // ----- Constructors ------------------------------------------------------
@@ -64,7 +65,7 @@ public class ResourceImpl implements Resource {
       Map<String, Object> propertyMap = categoryEntry.getValue();
       if (propertyMap != null) {
         for (Map.Entry<String, Object> propertyEntry : propertyMap.entrySet()) {
-          String propertyId    = (category == null ? "" : category + "/") + propertyEntry.getKey();
+          String propertyId    = PropertyHelper.getPropertyId(category, propertyEntry.getKey());
           Object propertyValue = propertyEntry.getValue();
           setProperty(propertyId, propertyValue);
         }
@@ -87,27 +88,30 @@ public class ResourceImpl implements Resource {
 
   @Override
   public void setProperty(String id, Object value) {
-    String category = PropertyHelper.getPropertyCategory(id);
+    String categoryKey = getCategoryKey(PropertyHelper.getPropertyCategory(id));
 
-    Map<String, Object> properties = propertiesMap.get(category);
+    Map<String, Object> properties = propertiesMap.get(categoryKey);
     if (properties == null) {
-      properties = new HashMap<String, Object>();
-      propertiesMap.put(category, properties);
+      properties = new TreeMap<String, Object>();
+      propertiesMap.put(categoryKey, properties);
     }
     properties.put(PropertyHelper.getPropertyName(id), value);
   }
 
   @Override
   public void addCategory(String id) {
-    if (!propertiesMap.containsKey(id)) {
-      propertiesMap.put(id, new HashMap<String, Object>());
+    String categoryKey = getCategoryKey(id);
+
+    if (!propertiesMap.containsKey(categoryKey)) {
+      propertiesMap.put(categoryKey, new HashMap<String, Object>());
     }
   }
 
   @Override
   public Object getPropertyValue(String id) {
-    Map<String, Object> properties =
-        propertiesMap.get(PropertyHelper.getPropertyCategory(id));
+    String categoryKey = getCategoryKey(PropertyHelper.getPropertyCategory(id));
+
+    Map<String, Object> properties = propertiesMap.get(categoryKey);
 
     return properties == null ?
         null : properties.get(PropertyHelper.getPropertyName(id));
@@ -125,5 +129,12 @@ public class ResourceImpl implements Resource {
     sb.append(propertiesMap);
 
     return sb.toString();
+  }
+
+
+  // ----- utility methods ---------------------------------------------------
+
+  private String getCategoryKey(String category) {
+    return category == null ? "" : category;
   }
 }

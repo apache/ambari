@@ -30,7 +30,7 @@ import org.codehaus.jackson.util.DefaultPrettyPrinter;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -137,12 +137,12 @@ public class JsonSerializer implements ResultSerializer {
 
   private TreeNode<Map<String, Object>> getTreeProperties (Map<String, Map<String, Object>> propertiesMap) {
     TreeNode<Map<String, Object>> treeProperties =
-        new TreeNodeImpl<Map<String, Object>>(null, new HashMap<String, Object>(), null);
+        new TreeNodeImpl<Map<String, Object>>(null, new LinkedHashMap<String, Object>(), null);
 
     for (Map.Entry<String, Map<String, Object>> entry : propertiesMap.entrySet()) {
       String category = entry.getKey();
       TreeNode<Map<String, Object>> node;
-      if (category == null) {
+      if (category == null || category.isEmpty()) {
         node = treeProperties;
       } else {
         node = treeProperties.getChild(category);
@@ -152,7 +152,7 @@ public class JsonSerializer implements ResultSerializer {
           for (String t : tokens) {
             TreeNode<Map<String, Object>> child = node.getChild(t);
             if (child == null) {
-              child = node.addChild(new HashMap<String, Object>(), t);
+              child = node.addChild(new LinkedHashMap<String, Object>(), t);
             }
             node = child;
           }

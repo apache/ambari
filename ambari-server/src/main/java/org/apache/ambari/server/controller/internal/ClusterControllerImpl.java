@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Default cluster controller implementation.
@@ -41,7 +43,7 @@ import java.util.Set;
 public class ClusterControllerImpl implements ClusterController {
   private final static Logger LOG =
       LoggerFactory.getLogger(ClusterControllerImpl.class);
-  
+
   /**
    * Module of providers for this controller.
    */
@@ -64,6 +66,11 @@ public class ClusterControllerImpl implements ClusterController {
    */
   private final Map<Resource.Type, Schema> schemas =
       new HashMap<Resource.Type, Schema>();
+
+  /**
+   * Resource comparator.
+   */
+  private final ResourceComparator comparator = new ResourceComparator();
 
 
   // ----- Constructors ------------------------------------------------------
@@ -90,7 +97,6 @@ public class ClusterControllerImpl implements ClusterController {
       resources = Collections.emptySet();
     } else {
 
-
       if (LOG.isDebugEnabled()) {
         LOG.debug("Using resource provider "
           + provider.getClass().getName()
@@ -98,8 +104,11 @@ public class ClusterControllerImpl implements ClusterController {
       }
       checkProperties(type, request, predicate);
 
-      resources = provider.getResources(request, predicate);
-      resources = populateResources(type, resources, request, predicate);
+      Set<Resource> providerResources = provider.getResources(request, predicate);
+      providerResources               = populateResources(type, providerResources, request, predicate);
+
+      resources = new TreeSet<Resource>(comparator);
+      resources.addAll(providerResources);
     }
     
     return new ResourceIterable(resources, predicate);
@@ -477,6 +486,51 @@ public class ClusterControllerImpl implements ClusterController {
         }
       }
       return null;
+    }
+  }
+
+  // ----- ResourceComparator inner class ------------------------------------
+
+  private class ResourceComparator implements Comparator<Resource> {
+
+    @Override
+    public int compare(Resource resource1, Resource resource2) {
+
+      int compVal = resource1.getType().compareTo(resource2.getType());
+
+      if (compVal == 0) {
+
+        Schema schema = getSchema(resource1.getType());
+
+        for (Resource.Type type : Resource.Type.values()) {
+          String keyPropertyId = schema.getKeyPropertyId(type);
+          if (keyPropertyId != null) {
+            compVal = compareValues(resource1.getPropertyValue(keyPropertyId),
+                                    resource2.getPropertyValue(keyPropertyId));
+            if (compVal != 0 ) {
+              return compVal;
+            }
+          }
+        }
+      }
+      return compVal;
+    }
+
+    // compare and account for null values
+    private int compareValues(Object val1, Object val2) {
+
+      if (val1 == null || val2 == null) {
+        return val1 == null && val2 == null ? 0 : val1 == null ? -1 : 1;
+      }
+
+      if (val1 instanceof Comparable) {
+        try {
+          return ((Comparable)val1).compareTo(val2);
+        } catch (ClassCastException e) {
+          return 0;
+        }
+      }
+      return 0;
     }
   }
 }

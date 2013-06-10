@@ -23,6 +23,8 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Test;
 
+import java.util.Map;
+
 /**
  *
  */
@@ -113,4 +115,50 @@ public class ResourceImplTest {
     Assert.assertEquals(1.99, copy.getPropertyValue(p4));
     Assert.assertEquals(65L, copy.getPropertyValue(p5));
   }
+
+  @Test
+  public void testGetPropertiesMap() {
+    Resource resource = new ResourceImpl(Resource.Type.Cluster);
+
+    String p1 = PropertyHelper.getPropertyId(null, "p1");
+    String p2 = PropertyHelper.getPropertyId("c1", "p2");
+    String p3 = PropertyHelper.getPropertyId("c1/c2", "p3");
+    String p4 = PropertyHelper.getPropertyId("c1/c2/c3", "p4");
+    String p5 = PropertyHelper.getPropertyId("c1", "p5");
+
+    resource.setProperty(p1, "foo");
+    resource.setProperty(p2, 1);
+    resource.setProperty(p3, (float) 1.99);
+    resource.setProperty(p4, 1.99);
+    resource.setProperty(p5, 65L);
+
+    Map<String, Map<String, Object>> map = resource.getPropertiesMap();
+
+    Assert.assertEquals(4, map.keySet().size());
+    Assert.assertTrue(map.containsKey(""));
+    Assert.assertTrue(map.containsKey("c1"));
+    Assert.assertTrue(map.containsKey("c1/c2"));
+    Assert.assertTrue(map.containsKey("c1/c2/c3"));
+
+    // Check order of categories and properties ...
+    String lastCategory = null;
+
+    for (Map.Entry<String, Map<String, Object>> entry : map.entrySet()) {
+      String category = entry.getKey();
+
+      if (lastCategory != null) {
+        Assert.assertTrue(category.compareTo(lastCategory) > 0);
+      }
+      lastCategory = category;
+
+      String lastProperty = null;
+      for (String property : entry.getValue().keySet()) {
+        if (lastProperty != null) {
+          Assert.assertTrue(property.compareTo(lastProperty) > 0);
+        }
+        lastProperty = property;
+      }
+    }
+  }
 }
+
