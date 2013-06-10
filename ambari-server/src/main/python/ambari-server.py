@@ -810,7 +810,7 @@ def check_jdbc_drivers(args):
   result = find_jdbc_driver(args)
   if result == -1:
     msg = 'WARNING: Before starting Ambari Server, ' \
-          'the {0} JDBC driver JAR file must be placed to {1}. Press enter to continue.'.format(
+          'the {0} JDBC driver JAR file must be copied to {1}. Press enter to continue.'.format(
       DATABASE_FULL_NAMES[args.database],
       JAVA_SHARE_PATH
     )
@@ -848,6 +848,21 @@ def setup(args):
   print 'Configuring database...'
   prompt_db_properties(args)
 
+  print 'Checking JDK...'
+  retcode = download_jdk(args)
+  if not retcode == 0:
+    print_error_msg ('Downloading or installing JDK failed. Exiting.')
+    sys.exit(retcode)
+
+  print 'Completing setup...'
+  retcode = configure_os_settings()
+  if not retcode == 0:
+    print_error_msg ('Configure of OS settings in '
+                   'ambari.properties failed. Exiting.')
+    sys.exit(retcode)
+  
+  #DB setup should be done last after doing any setup.
+  
   if is_local_database(args):
     print 'Default properties detected. Using built-in database.'
     store_local_properties(args)
@@ -882,27 +897,13 @@ def setup(args):
     print 'Configuring remote database connection properties...'
     retcode = setup_remote_db(args)
     if retcode == -1:
-      # means the cli was not found
+      #means the cli was not found
       sys.exit(retcode)
       
     if not retcode == 0:
       print_error_msg ('Error while configuring connection properties. Exiting')
       sys.exit(retcode)
 
-
-
-  print 'Checking JDK...'
-  retcode = download_jdk(args)
-  if not retcode == 0:
-    print_error_msg ('Downloading or installing JDK failed. Exiting.')
-    sys.exit(retcode)
-
-  print 'Completing setup...'
-  retcode = configure_os_settings()
-  if not retcode == 0:
-    print_error_msg ('Configure of OS settings in '
-                   'ambari.properties failed. Exiting.')
-    sys.exit(retcode)
 
   if args.warnings:
     print "Ambari Server 'setup' finished with warnings:"
@@ -1464,6 +1465,8 @@ def store_local_properties(args):
   except Exception, e:
     print 'Could not read ambari config file "%s": %s' % (conf_file, e)
     return -1
+  properties.removeOldProp(JDBC_SCHEMA_PROPERTY)
+  properties.removeOldProp(JDBC_HOSTNAME_PROPERTY)
   properties.removeOldProp(JDBC_DATABASE_PROPERTY)
   properties.removeOldProp(JDBC_RCA_DRIVER_PROPERTY)
   properties.removeOldProp(JDBC_RCA_URL_PROPERTY)
