@@ -5310,7 +5310,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testStackVersionAsHostLevelParams() throws AmbariException {
+  public void testHostLevelParamsSentWithCommands() throws AmbariException {
     String clusterName = "foo1";
     createCluster(clusterName);
     clusters.getCluster(clusterName)
@@ -5342,6 +5342,8 @@ public class AmbariManagementControllerTest {
     createServiceComponentHost(clusterName, null, componentName1,
       host2, null);
 
+
+
     ServiceRequest r = new ServiceRequest(clusterName, serviceName, null,
       State.INSTALLED.toString());
     Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
@@ -5354,9 +5356,15 @@ public class AmbariManagementControllerTest {
         .getDesiredState());
 
     List<Stage> stages = actionDB.getAllStages(trackAction.getRequestId());
-    Assert.assertEquals("0.1", stages.get(0).getOrderedHostRoleCommands().get
+    Map<String, String> params = stages.get(0).getOrderedHostRoleCommands().get
       (0).getExecutionCommandWrapper().getExecutionCommand()
-      .getHostLevelParams().get("stack_version"));
+      .getHostLevelParams();
+    Assert.assertEquals("0.1", params.get("stack_version"));
+    Assert.assertNotNull(params.get("jdk_location"));
+    Assert.assertNotNull(params.get("repo_info"));
+    Assert.assertNotNull(params.get("db_name"));
+    Assert.assertNotNull(params.get("mysql_jdbc_url"));
+    Assert.assertNotNull(params.get("oracle_jdbc_url"));
   }
 
   @Test
