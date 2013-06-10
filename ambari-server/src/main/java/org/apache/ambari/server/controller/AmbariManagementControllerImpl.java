@@ -156,7 +156,10 @@ public class AmbariManagementControllerImpl implements
       "/resources/";
 
   final private String jdkResourceUrl;
-
+  final private String ojdbcUrl;
+  final private String serverDB;
+  final private String mysqljdbcUrl;
+  
   @Inject
   public AmbariManagementControllerImpl(ActionManager actionManager,
       Clusters clusters, Injector injector) throws Exception {
@@ -175,6 +178,13 @@ public class AmbariManagementControllerImpl implements
     } else {
     		this.jdkResourceUrl = null;
     }
+    
+    this.ojdbcUrl = "http://" + masterHostname + ":" + 
+    	 + configs.getClientApiPort() + JDK_RESOURCE_LOCATION + "/" + configs.getOjdbcJarName();
+    
+    this.mysqljdbcUrl = "http://" + masterHostname + ":" + 
+       	 + configs.getClientApiPort() + JDK_RESOURCE_LOCATION + "/" + configs.getMySQLJarName();
+    this.serverDB = configs.getServerDBName();
   }
 
   @Override
@@ -970,6 +980,16 @@ public class AmbariManagementControllerImpl implements
     params.put("repo_info", repoInfo);
     params.put("jdk_location", this.jdkResourceUrl);
     params.put("stack_version", stackId.getStackVersion());
+    params.put("db_name", this.serverDB);
+    params.put("mysql_jdbc_url" , this.mysqljdbcUrl);
+    params.put("oracle_jdbc_url", this.ojdbcUrl);
+    if (configs.getServerDBName().equalsIgnoreCase(Configuration
+      .ORACLE_DB_NAME)) {
+      params.put("db_driver_filename", configs.getOjdbcJarName());
+    } else if (configs.getServerDBName().equalsIgnoreCase(Configuration
+      .MYSQL_DB_NAME)) {
+      params.put("db_driver_filename", configs.getMySQLJarName());
+    }
     execCmd.setHostLevelParams(params);
 
     Map<String, String> roleParams = new TreeMap<String, String>();

@@ -75,6 +75,15 @@ public class Configuration {
 
   public static final String CLIENT_SECURITY_KEY = "client.security";
   public static final String CLIENT_API_PORT_KEY = "client.api.port";
+  public static final String SERVER_DB_NAME_KEY = "server.jdbc.database";
+  public static final String SERVER_DB_NAME_DEFAULT = "postgres";
+  public static final String ORACLE_DB_NAME = "oracle";
+  public static final String MYSQL_DB_NAME = "mysql";
+
+  public static final String OJDBC_JAR_NAME_KEY = "db.oracle.jdbc.name";
+  public static final String OJDBC_JAR_NAME_DEFAULT = "ojdbc6.jar";
+  public static final String MYSQL_JAR_NAME_KEY = "db.mysql.jdbc.name";
+  public static final String MYSQL_JAR_NAME_DEFAULT = "mysql-connector-java.jar";
   public static final String LDAP_USE_SSL_KEY = "authentication.ldap.useSSL";
   public static final String LDAP_PRIMARY_URL_KEY =
       "authentication.ldap.primaryUrl";
@@ -526,6 +535,18 @@ public class Configuration {
     return Integer.parseInt(properties.getProperty(CLIENT_API_PORT_KEY, String.valueOf(CLIENT_API_PORT_DEFAULT)));
   }
 
+  public String getOjdbcJarName() {
+	  return properties.getProperty(OJDBC_JAR_NAME_KEY, OJDBC_JAR_NAME_DEFAULT);
+  }
+  
+  public String getServerDBName() {
+	  return properties.getProperty(SERVER_DB_NAME_KEY, SERVER_DB_NAME_DEFAULT);
+  }
+  
+  public String getMySQLJarName() {
+	  return properties.getProperty(MYSQL_JAR_NAME_KEY, MYSQL_JAR_NAME_DEFAULT);
+  }
+  
   public JPATableGenerationStrategy getJPATableGenerationStrategy() {
     return JPATableGenerationStrategy.fromString(System.getProperty(SERVER_JDBC_GENERATE_TABLES_KEY));
   }
