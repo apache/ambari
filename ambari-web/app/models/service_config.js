@@ -190,6 +190,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
   init: function () {
     if(this.get("displayType")=="password"){
       this.set('retypedPassword', this.get('defaultValue'));
+      this.set('value', this.get('defaultValue'));
     }
     if ((this.get('id') === 'puppet var') && this.get('value') == '') {
       this.set('value', this.get('defaultValue'));
