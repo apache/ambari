@@ -168,5 +168,29 @@
     <value>36000</value>
   </property>
 
+	<property>
+		<name>yarn.resourcemanager.history-store.class</name>
+		<value>org.apache.hadoop.yarn.server.resourcemanager.history.db.RMHistoryDBStore</value>
+	</property>
 
+	<property>
+		<name>yarn.resourcemanager.history-store.db.user</name>
+		<value>mapred</value>
+	</property>
+	
+	<property>
+		<name>yarn.resourcemanager.history-store.db.password</name>
+		<value>mapred</value>
+	</property>
+	
+	<property>
+		<name>yarn.resourcemanager.history-store.db.database</name>
+		<value>jdbc:postgresql:ambarirca</value>
+	</property>
+	
+	<property>
+		<name>yarn.resourcemanager.history-store.db.driver</name>
+		<value>org.postgresql.Driver</value>
+	</property>
+	
 </configuration>
