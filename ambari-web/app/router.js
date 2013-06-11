@@ -268,11 +268,19 @@ App.Router = Em.Router.extend({
     }
     App.clusterStatus.updateFromServer();
     var clusterStatusOnServer = App.clusterStatus.get('value');
-    if (!localStorage.getObject('ambari').app.user.admin || clusterStatusOnServer && (clusterStatusOnServer.clusterState === 'CLUSTER_STARTED_5' || clusterStatusOnServer.clusterState === 'ADD_HOSTS_COMPLETED_5' || clusterStatusOnServer.clusterState === 'STACK_UPGRADE_COMPLETED' || clusterStatusOnServer.clusterState === 'REASSIGN_MASTER_COMPLETED')) {
+    if (!localStorage.getObject('ambari').app.user.admin || clusterStatusOnServer && (clusterStatusOnServer.clusterState === 'CLUSTER_STARTED_5' ||
+      clusterStatusOnServer.clusterState === 'ADD_HOSTS_COMPLETED_5' || clusterStatusOnServer.clusterState === 'STACK_UPGRADE_COMPLETED' ||
+      clusterStatusOnServer.clusterState === 'REASSIGN_MASTER_COMPLETED') ||clusterStatusOnServer.clusterState === 'SECURITY_COMPLETED' ) {
       return 'main.index';
     } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('addHostController.name')) {
       // if wizardControllerName == "addHostController", then it means someone closed the browser or the browser was crashed when we were last in Add Hosts wizard
       return 'main.hostAdd';
+    } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('addSecurityController.name')) {
+      // if wizardControllerName == "addSecurityController", then it means someone closed the browser or the browser was crashed when we were last in Add Security wizard
+      return 'main.admin.adminSecurity.adminAddSecurity';
+    } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('mainAdminSecurityDisableController.name')) {
+      // if wizardControllerName == "disableSecurityController", then it means someone closed the browser or the browser was crashed when we were last in disable Security pop-up.
+      return 'main.admin.adminSecurity.disableSecurity';
     } else if (clusterStatusOnServer && clusterStatusOnServer.wizardControllerName === App.router.get('addServiceController.name')) {
       // if wizardControllerName == "addHostController", then it means someone closed the browser or the browser was crashed when we were last in Add Hosts wizard
       return 'main.serviceAdd';

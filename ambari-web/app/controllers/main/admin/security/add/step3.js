@@ -29,6 +29,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   globalProperties: [],
 
   isSubmitDisabled: true,
+  isBackBtnDisabled: true,
 
   isOozieSelected: function () {
     return this.get('content.services').someProperty('serviceName', 'OOZIE');
@@ -47,23 +48,15 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     return this.get('stages').someProperty('stage', 'stage3') && this.get('stages').findProperty('stage', 'stage3').get('isSuccess');
   }.property('stages.@each.isCompleted'),
 
-  isBackBtnDisabled: function () {
-    return  ((this.get('stages').someProperty('stage', 'stage3') &&
-      this.get('stages').findProperty('stage', 'stage3').get('isSuccess')) ||
-      (this.get('stages').someProperty('stage', 'stage2') &&
-        (!this.get('stages').findProperty('stage', 'stage2').get('isError')) ||
-        (this.get('stages').someProperty('stage', 'stage3') &&
-          (!this.get('stages').findProperty('stage', 'stage3').get('isError')))));
-  }.property('stages.@each.isCompleted'),
-
   clearStep: function () {
     this.get('stages').clear();
     this.set('isSubmitDisabled', true);
+    this.set('isBackBtnDisabled', true);
     this.get('serviceConfigTags').clear();
   },
 
   loadStep: function () {
-    this.set('secureMapping',require('data/secure_mapping').slice(0));
+    this.set('secureMapping', require('data/secure_mapping').slice(0));
     var stages = App.db.getSecurityDeployStages();
     this.prepareSecureConfigs();
     this.clearStep();
@@ -92,6 +85,10 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   enableSubmit: function () {
     if (this.get('stages').someProperty('isError', true) || this.get('stages').everyProperty('isSuccess', true)) {
       this.set('isSubmitDisabled', false);
+      if (this.get('stages').someProperty('isError', true)) {
+        this.set('isBackBtnDisabled', false);
+        App.router.get('addSecurityController').setStepsEnable();
+      }
     }
   }.observes('stages.@each.isCompleted'),
 
@@ -317,7 +314,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     var self = this;
     //prepare tags to fetch all configuration for a service
     this.get('content.services').forEach(function (_secureService) {
-        self.setServiceTagNames(_secureService, data.Clusters.desired_configs);
+      self.setServiceTagNames(_secureService, data.Clusters.desired_configs);
     });
     this.getAllConfigurations();
   },
@@ -374,7 +371,6 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   applyConfigurationToClusterSuccessCallback: function (data) {
     this.set('noOfWaitingAjaxCalls', this.get('noOfWaitingAjaxCalls') - 1);
     if (this.get('noOfWaitingAjaxCalls') == 0) {
-      App.router.get('mainAdminSecurityController').setAddSecurityWizardStatus(null);
       var currentStage = this.get('stages').findProperty('stage', 'stage3');
       currentStage.set('isSuccess', true);
     }
@@ -410,8 +406,12 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   getAllConfigurationsSuccessCallback: function (data) {
     console.log("TRACE: In success function for the GET getServiceConfigsFromServer call");
     this.get('serviceConfigTags').forEach(function (_tag) {
+      if (!data.items.someProperty('type', _tag.siteName)) {
+        console.log("Error: Metadata for secure services (secure_configs.js) is having config tags that are not being retrieved from server");
+        this.get('stages').findProperty('stage', 'stage3').set('isError', true);
+      }
       _tag.configs = data.items.findProperty('type', _tag.siteName).properties;
-    });
+    }, this);
     this.addSecureConfigs();
     this.applyConfigurationsToCluster();
   },
@@ -455,6 +455,11 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       stages.pushObject(stage);
     }, this);
     App.db.setSecurityDeployStages(stages);
-  }.observes('stages.@each.requestId','stages.@each.isStarted','stages.@each.isCompleted')
-
+    App.clusterStatus.setClusterStatus({
+      clusterName: this.get('clusterName'),
+      clusterState: 'ADD_SECURITY_STEP_3',
+      wizardControllerName: App.router.get('addSecurityController.name'),
+      localdb: App.db.data
+    });
+  }.observes('stages.@each.requestId', 'stages.@each.isStarted', 'stages.@each.isCompleted')
 });

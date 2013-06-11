@@ -686,36 +686,51 @@ module.exports = Em.Route.extend({
         route: '/disableSecurity',
         enter: function (router) {
           if (router.get('mainAdminSecurityController').getDisableSecurityStatus() === 'RUNNING') {
-          Ember.run.next(function () {
-            App.router.get('updateController').set('isWorking', false);
-            App.ModalPopup.show({
-              classNames: ['full-width-modal'],
-              header: Em.I18n.t('admin.removeSecurity.header'),
-              bodyClass: App.MainAdminSecurityDisableView.extend({
-                controllerBinding: 'App.router.mainAdminSecurityDisableController'
-              }),
-              primary: Em.I18n.t('form.cancel'),
-              secondary: null,
-              showFooter: false,
-
-              onPrimary: function () {
-                this.hide();
-                App.router.get('updateController').set('isWorking', true);
-              },
-              onClose: function () {
-                App.db.setSecurityDeployStages(undefined);
-                router.get('mainAdminSecurityController').setDisableSecurityStatus(undefined);
-                if (router.get('mainAdminSecurityDisableController.isSubmitDisabled') === false) {
-                  this.hide();
-                  App.router.get('updateController').set('isWorking', true);
-                  router.transitionTo('adminSecurity.index');
-                }
-              },
-              didInsertElement: function () {
-                this.fitHeight();
-              }
+            App.clusterStatus.setClusterStatus({
+              clusterName: this.get('clusterName'),
+              clusterState: 'DISABLE_SECURITY',
+              wizardControllerName: router.get('mainAdminSecurityDisableController.name'),
+              localdb: App.db.data
             });
-          });
+            Ember.run.next(function () {
+              App.router.get('updateController').set('isWorking', false);
+              App.ModalPopup.show({
+                classNames: ['full-width-modal'],
+                header: Em.I18n.t('admin.removeSecurity.header'),
+                bodyClass: App.MainAdminSecurityDisableView.extend({
+                  controllerBinding: 'App.router.mainAdminSecurityDisableController'
+                }),
+                primary: Em.I18n.t('form.cancel'),
+                secondary: null,
+                showFooter: false,
+
+                onClose: function () {
+                  var applyingConfigStage = router.get('mainAdminSecurityDisableController.stages').findProperty('stage', 'stage3');
+                  if (applyingConfigStage) {
+                    var applyingConfig = (applyingConfigStage.get('isStarted')) && (!applyingConfigStage.get('isCompleted'));
+                    if (applyingConfig) {
+                      return;
+                    } else {
+                      router.get('mainAdminSecurityDisableController').clearStep();
+                    }
+                  }
+                  this.hide();
+                  App.db.setSecurityDeployStages(undefined);
+                  router.get('mainAdminSecurityController').setDisableSecurityStatus(undefined);
+                  App.router.get('updateController').set('isWorking', true);
+                  App.clusterStatus.setClusterStatus({
+                    clusterName: router.get('content.cluster.name'),
+                    clusterState: 'SECURITY_COMPLETED',
+                    wizardControllerName: router.get('mainAdminSecurityDisableController.name'),
+                    localdb: App.db.data
+                  });
+                  router.transitionTo('adminSecurity.index');
+                },
+                didInsertElement: function () {
+                  this.fitHeight();
+                }
+              });
+            });
           } else {
             router.transitionTo('adminSecurity.index');
           }
@@ -726,7 +741,10 @@ module.exports = Em.Route.extend({
         },
 
         done: function (router, context) {
-          $(context.currentTarget).parents("#modal").find(".close").trigger('click');
+          var controller = router.get('mainAdminSecurityDisableController');
+          if (!controller.get('isSubmitDisabled')) {
+            $(context.currentTarget).parents("#modal").find(".close").trigger('click');
+          }
         }
       }),
 

@@ -232,8 +232,12 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
   getAllConfigurationsSuccessCallback: function (data) {
     console.log("TRACE: In success function for the GET getServiceConfigsFromServer call");
     this.get('serviceConfigTags').forEach(function (_tag) {
+      if (!data.items.someProperty('type', _tag.siteName)) {
+        console.log("Error: Metadata for secure services (secure_configs.js) is having config tags that are not being retrieved from server");
+        this.get('stages').findProperty('stage', 'stage3').set('isError', true);
+      }
       _tag.configs = data.items.findProperty('type', _tag.siteName).properties;
-    });
+    }, this);
     this.removeSecureConfigs();
     this.applyConfigurationsToCluster();
   },
@@ -358,6 +362,12 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
       stages.pushObject(stage);
     }, this);
     App.db.setSecurityDeployStages(stages);
+    App.clusterStatus.setClusterStatus({
+      clusterName: this.get('clusterName'),
+      clusterState: 'DISABLE_SECURITY',
+      wizardControllerName: this.get('name'),
+      localdb: App.db.data
+    });
   }.observes('stages.@each.requestId', 'stages.@each.isStarted', 'stages.@each.isCompleted')
 
 });
