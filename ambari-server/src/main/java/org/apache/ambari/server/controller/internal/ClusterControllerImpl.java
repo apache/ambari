@@ -375,8 +375,16 @@ public class ClusterControllerImpl implements ClusterController {
     return propertyProviders.get(type);
   }
 
+  /**
+   * Get the associated resource comparator.
+   *
+   * @return the resource comparator
+   */
+  protected Comparator<Resource> getComparator() {
+    return comparator;
+  }
 
-  // ----- ResourceIterable inner class --------------------------------------
+// ----- ResourceIterable inner class --------------------------------------
 
   private static class ResourceIterable implements Iterable<Resource> {
 
@@ -491,17 +499,19 @@ public class ClusterControllerImpl implements ClusterController {
 
   // ----- ResourceComparator inner class ------------------------------------
 
-  private class ResourceComparator implements Comparator<Resource> {
+  protected class ResourceComparator implements Comparator<Resource> {
 
     @Override
     public int compare(Resource resource1, Resource resource2) {
+      Resource.Type resourceType = resource1.getType();
 
-      int compVal = resource1.getType().compareTo(resource2.getType());
+      // compare based on resource type
+      int compVal = resourceType.compareTo(resource2.getType());
 
       if (compVal == 0) {
+        Schema schema = getSchema(resourceType);
 
-        Schema schema = getSchema(resource1.getType());
-
+        // compare based on resource key properties
         for (Resource.Type type : Resource.Type.values()) {
           String keyPropertyId = schema.getKeyPropertyId(type);
           if (keyPropertyId != null) {
@@ -513,10 +523,12 @@ public class ClusterControllerImpl implements ClusterController {
           }
         }
       }
-      return compVal;
+
+      // compare based on the resource strings
+      return resource1.toString().compareTo(resource2.toString());
     }
 
-    // compare and account for null values
+    // compare two values and account for null
     private int compareValues(Object val1, Object val2) {
 
       if (val1 == null || val2 == null) {

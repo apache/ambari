@@ -319,6 +319,7 @@ public class JMXPropertyProviderTest {
 
       resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-14-ee-b3.compute-1.internal");
       resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "DATANODE");
+      resource.setProperty("unique_id", i);
 
       resources.add(resource);
     }

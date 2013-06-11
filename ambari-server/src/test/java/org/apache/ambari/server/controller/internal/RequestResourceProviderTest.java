@@ -132,14 +132,17 @@ public class RequestResourceProviderTest {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
-    Set<RequestStatusResponse> allResponse = new HashSet<RequestStatusResponse>();
-    allResponse.add(new RequestStatusResponse(100L));
+    Set<RequestStatusResponse> response1 = new HashSet<RequestStatusResponse>();
+    response1.add(new RequestStatusResponse(100L));
+
+    Set<RequestStatusResponse> response2 = new HashSet<RequestStatusResponse>();
+    response2.add(new RequestStatusResponse(101L));
 
     // set expectations
     expect(managementController.getRequestStatus(AbstractResourceProviderTest.Matcher.getRequestRequest(100L))).
-        andReturn(allResponse).once();
+        andReturn(response1).once();
     expect(managementController.getRequestStatus(AbstractResourceProviderTest.Matcher.getRequestRequest(101L))).
-        andReturn(allResponse).once();
+        andReturn(response2).once();
 
     // replay
     replay(managementController);

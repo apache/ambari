@@ -27,6 +27,7 @@ import org.junit.Test;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -425,39 +426,50 @@ public class ClusterControllerImplTest {
     Assert.assertTrue(keyPropertyIds.containsAll(predicatePropertyIds));
   }
 
-//  @Test
-//  public void testGetSchema() {
-//    ProviderModule module = new TestProviderModule();
-//
-//    ClusterController controller = new ClusterControllerImpl(module);
-//    Schema schema = controller.getSchema(Resource.Type.Host);
-//
-//    ResourceProvider resourceProvider = module.getResourceProvider(Resource.Type.Host);
-//
-//    Map<Resource.Type, String> keyPropertyIds = resourceProvider.getKeyPropertyIds();
-//    for (Map.Entry<Resource.Type, String> entry : keyPropertyIds.entrySet()) {
-//      Assert.assertEquals(entry.getValue(), schema.getKeyPropertyId(entry.getKey()));
-//    }
-//
-//    Map<String, Set<String>> categories = schema.getCategoryProperties();
-//    for (String propertyId : resourceProvider.getPropertyIdsForSchema()) {
-//      String category = PropertyHelper.getPropertyCategory(propertyId);
-//      Set<String> properties = categories.get(category);
-//      Assert.assertNotNull(properties);
-//      Assert.assertTrue(properties.contains(PropertyHelper.getPropertyName(propertyId)));
-//    }
-//
-//    List<PropertyProvider> propertyProviders = module.getPropertyProviders(Resource.Type.Host);
-//
-//    for (PropertyProvider propertyProvider : propertyProviders) {
-//      for (String propertyId : propertyProvider.getPropertyIds()) {
-//        String category = PropertyHelper.getPropertyCategory(propertyId);
-//        Set<String> properties = categories.get(category);
-//        Assert.assertNotNull(properties);
-//        Assert.assertTrue(properties.contains(PropertyHelper.getPropertyName(propertyId)));
-//      }
-//    }
-//  }
+  @Test
+  public void testComparator() {
+
+    TestProviderModule providerModule = new TestProviderModule();
+    ClusterControllerImpl controller = new ClusterControllerImpl(providerModule);
+
+    Comparator<Resource> comparator = controller.getComparator();
+
+    Resource resource1 = new ResourceImpl(Resource.Type.Host);
+    Resource resource2 = new ResourceImpl(Resource.Type.Host);
+    Resource resource3 = new ResourceImpl(Resource.Type.Service);
+
+    Assert.assertEquals(0, comparator.compare(resource1, resource2));
+    Assert.assertEquals(0, comparator.compare(resource2, resource1));
+    Assert.assertTrue(comparator.compare(resource1, resource3) < 0);
+    Assert.assertTrue(comparator.compare(resource3, resource1) > 0);
+
+    resource1.setProperty(PropertyHelper.getPropertyId("Hosts", "cluster_name"), "c1");
+    resource1.setProperty(PropertyHelper.getPropertyId("Hosts", "host_name"), "h1");
+
+    resource2.setProperty(PropertyHelper.getPropertyId("Hosts", "cluster_name"), "c1");
+    resource2.setProperty(PropertyHelper.getPropertyId("Hosts", "host_name"), "h1");
+
+    Assert.assertEquals(0, comparator.compare(resource1, resource2));
+    Assert.assertEquals(0, comparator.compare(resource2, resource1));
+
+    resource2.setProperty(PropertyHelper.getPropertyId("Hosts", "host_name"), "h2");
+
+    Assert.assertTrue(comparator.compare(resource1, resource2) < 0);
+    Assert.assertTrue(comparator.compare(resource2, resource1) > 0);
+
+    resource2.setProperty(PropertyHelper.getPropertyId("Hosts", "host_name"), "h1");
+
+    resource1.setProperty("p1", "foo");
+    resource2.setProperty("p1", "foo");
+
+    Assert.assertEquals(0, comparator.compare(resource1, resource2));
+    Assert.assertEquals(0, comparator.compare(resource2, resource1));
+
+    resource2.setProperty("p1", "bar");
+
+    Assert.assertFalse(comparator.compare(resource1, resource2) == 0);
+    Assert.assertFalse(comparator.compare(resource2, resource1) == 0);
+  }
 
   private static class TestProviderModule implements ProviderModule {
     private Map<Resource.Type, ResourceProvider> providers = new HashMap<Resource.Type, ResourceProvider>();

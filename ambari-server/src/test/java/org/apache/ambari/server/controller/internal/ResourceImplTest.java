@@ -160,5 +160,28 @@ public class ResourceImplTest {
       }
     }
   }
+
+  @Test
+  public void testEquals() {
+    Resource resource1 = new ResourceImpl(Resource.Type.Cluster);
+    Resource resource2 = new ResourceImpl(Resource.Type.Cluster);
+    Resource resource3 = new ResourceImpl(Resource.Type.Host);
+
+    Assert.assertTrue(resource1.equals(resource2));
+    Assert.assertTrue(resource2.equals(resource1));
+    Assert.assertFalse(resource1.equals(resource3));
+    Assert.assertFalse(resource3.equals(resource1));
+    Assert.assertFalse(resource2.equals(resource3));
+    Assert.assertFalse(resource3.equals(resource2));
+
+    resource1.setProperty("p1", "foo");
+    resource2.setProperty("p1", "bar");
+    Assert.assertFalse(resource1.equals(resource2));
+    Assert.assertFalse(resource2.equals(resource1));
+
+    resource2.setProperty("p1", "foo");
+    Assert.assertTrue(resource1.equals(resource2));
+    Assert.assertTrue(resource2.equals(resource1));
+  }
 }
 

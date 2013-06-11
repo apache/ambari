@@ -131,8 +131,24 @@ public class ResourceImpl implements Resource {
     return sb.toString();
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
 
-  // ----- utility methods ---------------------------------------------------
+    ResourceImpl resource = (ResourceImpl) o;
+
+    return type == resource.type &&
+        !(propertiesMap != null ? !propertiesMap.equals(resource.propertiesMap) : resource.propertiesMap != null);
+  }
+
+  @Override
+  public int hashCode() {
+    int result =  31 * type.hashCode() + (propertiesMap != null ? propertiesMap.hashCode() : 0);
+    return result;
+  }
+
+// ----- utility methods ---------------------------------------------------
 
   private String getCategoryKey(String category) {
     return category == null ? "" : category;
