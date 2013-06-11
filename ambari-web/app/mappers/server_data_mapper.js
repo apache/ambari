@@ -50,9 +50,8 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
 
       json.items.forEach(function (item) {
         result.push(this.parseIt(item, this.config));
-      }, this)
+      }, this);
 
-      //console.log(this.get('model'), result);
       App.store.loadMany(this.get('model'), result);
     }
   },

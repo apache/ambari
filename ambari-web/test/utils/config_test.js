@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+require('config');
 require('utils/config');
 
 describe('App.config', function () {

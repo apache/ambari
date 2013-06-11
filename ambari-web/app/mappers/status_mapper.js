@@ -15,6 +15,8 @@
  * the License.
  */
 
+var App = require('app');
+
 App.statusMapper = App.QuickDataMapper.create({
 
   config:{
@@ -48,15 +50,7 @@ App.statusMapper = App.QuickDataMapper.create({
       });
 
       //host_components
-      result = {};
-      json.items.forEach(function (item) {
-        item.components.forEach(function (component) {
-          component.host_components.forEach(function (host_component) {
-            host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
-            result[host_component.id] = this.parseIt(host_component, this.config3);
-          }, this)
-        }, this)
-      }, this);
+      result = this.parse_host_components(json);
 
       // console.profile("App.statusMapper.map() profile");
 
@@ -73,5 +67,19 @@ App.statusMapper = App.QuickDataMapper.create({
 
       console.log('out status mapper.  Took ' + (new Date().getTime() - start) + 'ms');
     }
+  },
+
+  parse_host_components: function(json) {
+    var result = {};
+    json.items.forEach(function (item) {
+      item.components.forEach(function (component) {
+        component.host_components.forEach(function (host_component) {
+          host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
+          result[host_component.id] = this.parseIt(host_component, this.config3);
+        }, this)
+      }, this)
+    }, this);
+    return result;
   }
+
 });

@@ -16,12 +16,15 @@
  * limitations under the License.
  */
 
-require('test/utils/ajax_test');
 require('test/controllers/global/background_operations_test');
 require('test/controllers/global/cluster_controller_test');
 require('test/controllers/main/app_contoller_test');
-require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_test');
 require('test/controllers/main/admin/cluster_test');
+require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_test');
+require('test/controllers/main/host/details_test');
+require('test/controllers/main/dashboard_test');
+require('test/controllers/main/host_test');
+require('test/controllers/main/item_test');
 require('test/installer/step0_test');
 require('test/installer/step2_test');
 require('test/installer/step3_test');
@@ -29,13 +32,16 @@ require('test/installer/step4_test');
 require('test/installer/step5_test');
 require('test/installer/step6_test');
 require('test/installer/step7_test');
-require('test/installer/step9_test');
 require('test/login_test');
-require('test/main/app/app_contoller_test');
-require('test/main/dashboard_test');
-require('test/main/host/details_test');
-require('test/main/host_test');
-require('test/main/item_test');
+require('test/mappers/server_data_mapper_test');
+require('test/mappers/dataset_mapper_test');
+require('test/mappers/hosts_mapper_test');
+require('test/mappers/jobs_mapper_test');
+require('test/mappers/runs_mapper_test');
+require('test/mappers/status_mapper_test');
+require('test/mappers/users_mapper_test');
+require('test/utils/config_test');
+require('test/utils/date_test');
 require('test/utils/config_test');
 require('test/utils/date_test');
 require('test/utils/form_field_test');

@@ -39,6 +39,10 @@ describe('App.WizardStep6Controller', function () {
       Em.Object.create({
         serviceName: 'HBASE',
         isSelected: true
+      }),
+      Em.Object.create({
+        serviceName: 'HDFS',
+        isSelected: true
       })
     ]
   });

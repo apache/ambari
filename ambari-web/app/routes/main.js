@@ -705,15 +705,18 @@ module.exports = Em.Route.extend({
                 showFooter: false,
 
                 onClose: function () {
+                  var self = this;
                   var applyingConfigStage = router.get('mainAdminSecurityDisableController.stages').findProperty('stage', 'stage3');
-                  if (applyingConfigStage) {
-                    var applyingConfig = (applyingConfigStage.get('isStarted')) && (!applyingConfigStage.get('isCompleted'));
-                    if (applyingConfig) {
-                      return;
-                    } else {
-                      router.get('mainAdminSecurityDisableController').clearStep();
-                    }
+                  if (applyingConfigStage && !applyingConfigStage.get('isCompleted')) {
+                    App.showConfirmationPopup(function () {
+                      router.get('mainAdminSecurityAddStep3Controller').clearStep();
+                      self.proceedOnClose();
+                    }, Em.I18n.t('admin.addSecurity.disable.onClose'));
+                    return;
                   }
+                  this.proceedOnClose();
+                },
+                proceedOnClose: function(){
                   this.hide();
                   App.db.setSecurityDeployStages(undefined);
                   router.get('mainAdminSecurityController').setDisableSecurityStatus(undefined);

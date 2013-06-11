@@ -59,17 +59,20 @@ module.exports = Em.Route.extend({
           showFooter: false,
 
           onClose: function () {
+            var self = this;
             if (router.get('addSecurityController.currentStep') == 3) {
               var applyingConfigStage = router.get('mainAdminSecurityAddStep3Controller.stages').findProperty('stage', 'stage3');
-              if (applyingConfigStage) {
-                var applyingConfig = (applyingConfigStage.get('isStarted')) && (!applyingConfigStage.get('isCompleted'));
-                if (applyingConfig) {
-                  return;
-                } else {
+              if (applyingConfigStage && !applyingConfigStage.get('isCompleted')) {
+                App.showConfirmationPopup(function () {
                   router.get('mainAdminSecurityAddStep3Controller').clearStep();
-                }
+                  self.proceedOnClose();
+                }, Em.I18n.t('admin.addSecurity.enable.onClose'));
+                return;
               }
             }
+            this.proceedOnClose();
+          },
+          proceedOnClose: function(){
             this.hide();
             App.router.get('updateController').set('isWorking', true);
             mainAdminSecurityController.setAddSecurityWizardStatus(null);

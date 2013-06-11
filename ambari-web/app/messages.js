@@ -606,6 +606,12 @@ Em.I18n.translations = {
   'admin.addSecurity.apply.stage3': '2. Save Configurations',
   'admin.addSecurity.apply.stage4': '3. Start Services',
   'admin.addSecurity.apply.stage5': '5. Smoke Test',
+  'admin.addSecurity.enable.onClose': 'You are in the process of enabling security on your cluster. ' +
+    'Are you sure you want to navigate away? If you navigate away, ' +
+    'you may have to re-run the security wizard from the beginning to enable security.',
+  'admin.addSecurity.disable.onClose': 'You are in the process of disabling security on your cluster. ' +
+    'Are you sure you want to navigate away? If you navigate away, ' +
+    'you may have to re-run the security wizard from the beginning to disable security.',
   'admin.removeSecurity.header': 'Disable Security',
   'admin.security.status.error' : 'Error in retrieving cluster security status from Ambari server',
   'admin.users.ldapAuthUsed':'LDAP Authentication is being used to authenticate users',

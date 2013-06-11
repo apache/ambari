@@ -17,14 +17,10 @@
  */
 
 
- var App = require('app');
-  require('controllers/main/apps_controller');
-/* require('models/cluster');
- require('models/service');
- require('models/pagination');
- require('controllers/main/host');*/
+var App = require('app');
+require('controllers/main/apps_controller');
 
- describe('MainAppsController', function () {
+describe('MainAppsController', function () {
 
 
    describe('#iTotalDisplayRecordsObserver()', function () {
@@ -139,8 +135,9 @@
    });
 
    describe('#filterObject.createAppLink(), #filterObject.valueObserver()', function () {
+     var mainAppsController = App.MainAppsController.create();
+     mainAppsController.set('content.length', 20);
      it('should set runUrl of filterObject when changing value for any filter', function () {
-       var mainAppsController = App.MainAppsController.create();
        mainAppsController.set("filterObject.sSearch_0", "0");
        mainAppsController.set("filterObject.sSearch_1", "workflowName");
        mainAppsController.set("filterObject.sSearch_2", "pig");

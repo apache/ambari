@@ -16,29 +16,38 @@
  * limitations under the License.
  */
 
+var Ember = require('ember');
 var App = require('app');
 
-App.usersMapper = App.QuickDataMapper.create({
-  model : App.User,
-  config : {
-    id : 'Users.user_name',
-    user_name : 'Users.user_name',
-    roles : 'Users.roles',
-    is_ldap: 'Users.ldap_user',
-    admin: 'Users.admin'
-  },
-  map: function (json) {
-    var self = this;
-    json.items.forEach(function (item) {
-      var result= [];
-      if(!App.User.find().someProperty("userName", item.Users.user_name)) {
-        item.Users.admin = self.isAdmin(item.Users.roles);
-        result.push(self.parseIt(item, self.config));
-        App.store.loadMany(self.get('model'), result);
-      }
+require('mappers/server_data_mapper');
+require('mappers/status_mapper');
+
+describe('App.statusMapper', function () {
+
+  describe('#parse_host_components', function() {
+    var test_data = {
+      items: [
+        {
+          components: [
+            {
+              host_components: [
+                {
+                  HostRoles : {
+                    component_name: "OOZIE_CLIENT",
+                    host_name: "ip-10-40-35-199.ec2.internal"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    };
+    var result = App.statusMapper.parse_host_components(test_data);
+    var e = 'OOZIE_CLIENT_ip-10-40-35-199.ec2.internal';
+    it('get host_component id', function() {
+      expect(result[e].id).to.equal(e);
     });
-  },
-  isAdmin: function(roles) {
-    return (roles.indexOf("admin") >= 0);
-  }
+  });
+
 });

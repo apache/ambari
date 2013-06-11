@@ -19,8 +19,8 @@
 var Ember = require('ember');
 var App = require('app');
 
-require('views/common/modal_popup');
 require('controllers/global/background_operations_controller');
+require('views/common/modal_popup');
 require('utils/helper');
 require('utils/host_progress_popup');
 
@@ -50,7 +50,7 @@ describe('App.HostPopup', function () {
       isRunning: false
     },
     {
-      displayName: "Start service Hive",
+      displayName: "Start service Hive/HCat",
       hosts: [
         {
           logTasks: [
@@ -65,7 +65,7 @@ describe('App.HostPopup', function () {
           ],
           name: "ip-10-12-123-90.ec2.internal",
           publicName: "ip-10-12-123-90.ec2.internal",
-          serviceName: "Start service Hive"
+          serviceName: "Start service Hive/HCat"
         },
         {
           logTasks: [
@@ -88,7 +88,7 @@ describe('App.HostPopup', function () {
           ],
           name: "ip-10-33-7-23.ec2.internal",
           publicName: "ip-10-33-7-23.ec2.internal",
-          serviceName: "Start service Hive"
+          serviceName: "Start service Hive/HCat"
         }
       ],
       isRunning: false

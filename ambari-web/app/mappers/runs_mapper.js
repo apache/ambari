@@ -35,29 +35,7 @@ App.runsMapper = App.QuickDataMapper.create({
       }
 
       json.aaData.forEach(function(item, index) {
-        var o = this.parseIt(item, this.config);
-
-        var r = '{dag: {';
-        item.workflowContext.workflowDag.entries.forEach(function(item) {
-          r += '"' + item.source + '": [';
-          // if a standalone MapReduce job, there won't be any targets
-          if (item.targets) {
-            item.targets.forEach(function(target) {
-              r += '"' + target + '",';
-            });
-            if(item.targets.length){
-              r = r.substr(0, r.length - 1);
-            }
-          } else {
-            r += item.source;
-          }
-          r += '],';
-        });
-        r = r.substr(0, r.length - 1);
-        r += '}}';
-        o.workflowContext = r;
-        o.index = index + 1;
-        result.push(o);
+        result.push(this.generateWorkflow(item, index));
       }, this);
 
       var r = [];
@@ -72,6 +50,34 @@ App.runsMapper = App.QuickDataMapper.create({
 
 
   },
+
+  generateWorkflow: function(item, index) {
+    var o = this.parseIt(item, this.config);
+
+    var r = '{dag: {';
+    item.workflowContext.workflowDag.entries.forEach(function(item) {
+      r += '"' + item.source + '": [';
+      // if a standalone MapReduce job, there won't be any targets
+      if (item.targets) {
+        item.targets.forEach(function(target) {
+          r += '"' + target + '",';
+        });
+        if(item.targets.length){
+          r = r.substr(0, r.length - 1);
+        }
+      }
+      else {
+        r += item.source;
+      }
+      r += '],';
+    });
+    r = r.substr(0, r.length - 1);
+    r += '}}';
+    o.workflowContext = r;
+    o.index = index + 1;
+    return o;
+  },
+
   config : {
     id: 'workflowId',
     appName: 'workflowName',

@@ -5,9 +5,9 @@
  * licenses this file to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -45,42 +45,46 @@ App.hostsMapper = App.QuickDataMapper.create({
     last_heart_beat_time: "Hosts.last_heartbeat_time",
     os_arch: 'Hosts.os_arch',
     os_type: 'Hosts.os_type',
-    ip: 'Hosts.ip'
+    ip: 'Hosts.ip',
+    disk_usage: 'disk_usage'
   },
   map: function (json) {
-
     if (json.items) {
-
-      var result = [];
-      json.items.forEach(function (item) {
-
-        // Disk Usage
-        if (item.metrics && item.metrics.disk && item.metrics.disk.disk_total && item.metrics.disk.disk_free) {
-          var diskUsed = item.metrics.disk.disk_total - item.metrics.disk.disk_free;
-          var diskUsedPercent = (100 * diskUsed) / item.metrics.disk.disk_total;
-          item.disk_usage = diskUsedPercent.toFixed(1);
-        }
-        // CPU Usage
-        if (item.metrics && item.metrics.cpu && item.metrics.cpu.cpu_system && item.metrics.cpu.cpu_user) {
-          var cpuUsedPercent = item.metrics.cpu.cpu_system + item.metrics.cpu.cpu_user;
-          item.cpu_usage = cpuUsedPercent.toFixed(1);
-        }
-        // Memory Usage
-        if (item.metrics && item.metrics.memory && item.metrics.memory.mem_free && item.metrics.memory.mem_total) {
-          var memUsed = item.metrics.memory.mem_total - item.metrics.memory.mem_free;
-          var memUsedPercent = (100 * memUsed) / item.metrics.memory.mem_total;
-          item.memory_usage = memUsedPercent.toFixed(1);
-        }
-
-        item.host_components.forEach(function (host_component) {
-          host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
-        }, this);
-        result.push(this.parseIt(item, this.config));
-
-      }, this);
-      result = this.sortByPublicHostName(result);
+      var result = this.parse(json.items);
       App.store.loadMany(this.get('model'), result);
     }
+  },
+
+  parse: function(items) {
+    var result = [];
+    items.forEach(function (item) {
+
+      // Disk Usage
+      if (item.metrics && item.metrics.disk && item.metrics.disk.disk_total && item.metrics.disk.disk_free) {
+        var diskUsed = item.metrics.disk.disk_total - item.metrics.disk.disk_free;
+        var diskUsedPercent = (100 * diskUsed) / item.metrics.disk.disk_total;
+        item.disk_usage = diskUsedPercent.toFixed(1);
+      }
+      // CPU Usage
+      if (item.metrics && item.metrics.cpu && item.metrics.cpu.cpu_system && item.metrics.cpu.cpu_user) {
+        var cpuUsedPercent = item.metrics.cpu.cpu_system + item.metrics.cpu.cpu_user;
+        item.cpu_usage = cpuUsedPercent.toFixed(1);
+      }
+      // Memory Usage
+      if (item.metrics && item.metrics.memory && item.metrics.memory.mem_free && item.metrics.memory.mem_total) {
+        var memUsed = item.metrics.memory.mem_total - item.metrics.memory.mem_free;
+        var memUsedPercent = (100 * memUsed) / item.metrics.memory.mem_total;
+        item.memory_usage = memUsedPercent.toFixed(1);
+      }
+
+      item.host_components.forEach(function (host_component) {
+        host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
+      }, this);
+      result.push(this.parseIt(item, this.config));
+
+    }, this);
+    result = this.sortByPublicHostName(result);
+    return result;
   },
   /**
    * Default data sorting by public_host_name field

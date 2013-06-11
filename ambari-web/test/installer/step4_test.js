@@ -79,7 +79,6 @@ describe('App.WizardStep4Controller', function () {
       controller.setEach('isSelected', false);
       controller.findProperty('serviceName', 'HIVE').set('isSelected', true);
       controller.checkDependencies();
-      expect(controller.findProperty('serviceName', 'ZOOKEEPER').get('isSelected')).to.equal(true);
       expect(controller.findProperty('serviceName', 'HCATALOG').get('isSelected')).to.equal(true);
       expect(controller.findProperty('serviceName', 'WEBHCAT').get('isSelected')).to.equal(true);
     })

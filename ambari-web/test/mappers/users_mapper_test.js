@@ -16,7 +16,25 @@
  * limitations under the License.
  */
 
-/**
- * Here is fix for ajax support
- * @type {*}
- */
+var Ember = require('ember');
+var App = require('app');
+
+require('mappers/server_data_mapper');
+require('mappers/users_mapper');
+
+describe('App.usersMapper', function () {
+
+  describe('#isAdmin', function() {
+    var tests = [
+      {i:'user,admin',e:true,m:'has admin role'},
+      {i:'admin,user',e:true,m:'has admin role'},
+      {i:'user',e:false,m:'doesn\'t have admin role'}
+    ];
+    tests.forEach(function(test) {
+      it(test.m, function() {
+        expect(App.usersMapper.isAdmin(test.i)).to.equal(test.e);
+      });
+    });
+  });
+
+});

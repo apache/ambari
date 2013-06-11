@@ -23,12 +23,9 @@ require('utils/http_client');
 
 describe('App.clusterController', function () {
 
-  /**
-   * Test object
-   */
-  var controller = App.ClusterController.create();
   describe('#updateLoadStatus()', function () {
     it('all items are loaded', function(){
+      var controller = App.ClusterController.create();
       controller.set('dataLoadList', Em.Object.create({
         'item1':true,
         'item2':false
@@ -38,6 +35,7 @@ describe('App.clusterController', function () {
       expect(controller.get('clusterDataLoadedPercent')).to.equal('width:100%');
     })
     it('one item of two is loaded', function(){
+      var controller = App.ClusterController.create();
       controller.set('dataLoadList', Em.Object.create({
         'item1':false,
         'item2':false
@@ -45,6 +43,6 @@ describe('App.clusterController', function () {
       controller.updateLoadStatus.call(controller, 'item1');
       expect(controller.get('isLoaded')).to.equal(false);
       expect(controller.get('clusterDataLoadedPercent')).to.equal('width:50%');
-    })
-  })
-})
+    });
+  });
+});

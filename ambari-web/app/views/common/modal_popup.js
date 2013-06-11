@@ -134,10 +134,10 @@ App.showConfirmationPopup = function(primary, body, template) {
     return false;
   }
   return App.ModalPopup.show({
-    primary: Em.I18n.t('yes'),
-    secondary: Em.I18n.t('no'),
+    primary: Em.I18n.t('ok'),
+    secondary: Em.I18n.t('common.cancel'),
     header: Em.I18n.t('popup.confirmation.commonHeader'),
-    body: body || 'Are you sure?',
+    body: body || Em.I18n.t('question.sure'),
     onPrimary: function() {
       this.hide();
       primary();

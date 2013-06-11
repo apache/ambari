@@ -249,7 +249,6 @@ App.servicesMapper = App.QuickDataMapper.create({
   },
 
   hdfsMapper: function (item) {
-    var result = [];
     var finalConfig = jQuery.extend({}, this.config);
     // Change the JSON so that it is easy to map
     var hdfsConfig = this.hdfsConfig;

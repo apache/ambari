@@ -23,13 +23,11 @@ require('config');
 require('utils/updater');
 require('utils/ajax');
 
+require('models/host_component');
+
 require('controllers/global/background_operations_controller');
 require('views/common/modal_popup');
 require('utils/host_progress_popup');
-
-/*window.console.log = function(text){
-  console.log(text);
-}*/
 
 describe('App.BackgroundOperationsController', function () {
 

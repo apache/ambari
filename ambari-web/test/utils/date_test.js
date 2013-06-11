@@ -22,20 +22,12 @@ var App = require('app');
 var validator = require('utils/validator');
 var date = require('utils/date');
 
-require('views/common/modal_popup');
-require('controllers/global/background_operations_controller');
-require('utils/helper');
-require('utils/host_progress_popup');
-
 describe('date', function () {
 
   var correct_tests = [
-    {t: 1349752195000, e: 'Tue, Oct 09, 2012 07:09', e2: 'Tue Oct 09 2012'},
-    {t: 1367752195000, e: 'Sun, May 05, 2013 15:09', e2: 'Sun May 05 2013'},
-    {t: 1369952195000, e: 'Fri, May 31, 2013 02:16', e2: 'Fri May 31 2013'},
-    {t: 1369052195000, e: 'Mon, May 20, 2013 16:16', e2: 'Mon May 20 2013'},
-    {t: 1369792195000, e: 'Wed, May 29, 2013 05:49', e2: 'Wed May 29 2013'},
-    {t: 1389752195000, e: 'Wed, Jan 15, 2014 05:16', e2: 'Wed Jan 15 2014'}
+    {t: 1349752195000, e: 'Tue, Oct 09, 2012 06:09', e2: 'Tue Oct 09 2012'},
+    {t: 1367752195000, e: 'Sun, May 05, 2013 14:09', e2: 'Sun May 05 2013'},
+    {t: 1369952195000, e: 'Fri, May 31, 2013 01:16', e2: 'Fri May 31 2013'}
   ];
 
   var incorrect_tests = [
