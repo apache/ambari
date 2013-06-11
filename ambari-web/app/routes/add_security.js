@@ -180,13 +180,13 @@ module.exports = Em.Route.extend({
     },
     back: function (router, context) {
       var controller = router.get('mainAdminSecurityAddStep3Controller');
-      if (!controller.get('isSubmitDisabled')) {
+      if (!controller.get('isBackBtnDisabled')) {
         router.transitionTo('step2');
       }
     },
     done: function (router, context) {
       var controller = router.get('mainAdminSecurityAddStep3Controller');
-      if (!controller.get('isBackBtnDisabled')) {
+      if (!controller.get('isSubmitDisabled')) {
         $(context.currentTarget).parents("#modal").find(".close").trigger('click');
       }
     }

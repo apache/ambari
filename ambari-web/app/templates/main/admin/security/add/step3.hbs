@@ -17,9 +17,10 @@
 }}
 
 <h2>{{t admin.security.step3.header}}</h2>
-<p class="alert alert-info">
-  {{t admin.security.step3.body.header}}
-</p>
+
+{{#if view.message}}
+  <p {{bindAttr class="view.msgColor :alert"}}>{{view.message}}</p>
+{{/if}}
 
 {{view App.MainServiceReconfigureView}}
 

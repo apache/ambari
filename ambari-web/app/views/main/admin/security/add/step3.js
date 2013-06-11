@@ -23,7 +23,24 @@ App.MainAdminSecurityAddStep3View = Em.View.extend({
   templateName: require('templates/main/admin/security/add/step3'),
   didInsertElement: function () {
     this.get('controller').loadStep();
-  }
+  },
+  msgColor: 'alert-info',
+  message: Em.I18n.t('admin.security.step3.body.header'),
+  onResult: function () {
+    var stage1 = this.get('controller.stages').findProperty('stage', 'stage2');
+    var stage2 = this.get('controller.stages').findProperty('stage', 'stage3');
+    var stage3 = this.get('controller.stages').findProperty('stage', 'stage4');
+      if (stage2 && stage2.get('isSuccess') === true ) {
+        this.set('message', Em.I18n.t('admin.security.step3.body.success.header'));
+        this.set('msgColor','alert-success');
+      } else if ((stage1 && stage1.get('isError') === true) || (stage2 && stage2.get('isError') === true)) {
+        this.set('message', Em.I18n.t('admin.security.step3.body.failure.header'));
+        this.set('msgColor','alert-error');
+      } else {
+        this.set('message', Em.I18n.t('admin.security.step3.body.header'));
+        this.set('msgColor','alert-info');
+      }
+  }.observes('controller.stages.@each.isCompleted')
 
 });
 
