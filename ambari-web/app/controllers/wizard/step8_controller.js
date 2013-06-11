@@ -1433,7 +1433,7 @@ App.WizardStep8Controller = Em.Controller.extend({
         this._recordHostOverrideFromObj(_coreSiteObj, 'core-site', 'version1', this);
       }
       if (isHCFSSelected && _coreSiteObj.name == "fs.default.name") {
-        coreSiteProperties[_coreSiteObj.name] = this.globals.filterProperty("name", "fs_default_name")[0].value;
+        coreSiteProperties[_coreSiteObj.name] = this.get('globals').someProperty('name', 'fs_default_name') ? this.get('globals').findProperty('name', 'fs_default_name').value : null;
       }
       console.log("STEP*: name of the property is: " + _coreSiteObj.name);
       console.log("STEP8: value of the property is: " + _coreSiteObj.value);
