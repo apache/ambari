@@ -19,6 +19,7 @@
 var App = require('app');
 var misc = require('utils/misc');
 var date = require('utils/date');
+var stringUtils = require('utils/string_utils');
 
 App.MainAppsController = Em.ArrayController.extend({
 
@@ -48,7 +49,7 @@ App.MainAppsController = Em.ArrayController.extend({
     var self = this;
 
     //var runsUrl = App.testMode ? "/data/apps/runs.json" : App.apiPrefix + "/jobhistory/workflow?orderBy=startTime&sortDir=DESC&limit=" + App.maxRunsForAppBrowser;
-    var runsUrl = App.testMode ? "/data/apps/runs.json" : App.apiPrefix + this.get("runUrl");
+    var runsUrl = App.testMode ? "/data/apps/runs2.json" : App.apiPrefix + this.get("runUrl");
 
     App.HttpClient.get(runsUrl, App.runsMapper, {
       complete:function (jqXHR, textStatus) {
@@ -101,6 +102,7 @@ App.MainAppsController = Em.ArrayController.extend({
     iDisplayStart:"",
     iSortCol_0:"",
     sSortDir_0:"",
+    tagSearch:"",
 
     allFilterActivated:false,
     filteredDisplayRecords:null,
@@ -114,7 +116,10 @@ App.MainAppsController = Em.ArrayController.extend({
     runType:"",
     onRunTypeChange:function(){
       if(this.runType == "MapReduce"){
-        this.set("sSearch_2","mr");
+        if (!App.testMode && stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === -1)
+          this.set("sSearch_2","mr");
+        else
+          this.set("sSearch_2","mapreduce");
       }else if(this.runType == "Hive"){
         this.set("sSearch_2","hive");
       }else if(this.runType == "Pig"){
@@ -323,7 +328,7 @@ App.MainAppsController = Em.ArrayController.extend({
         "maxJobs", "minInputBytes", "maxInputBytes", "minOutputBytes",
         "maxOutputBytes", "minDuration", "maxDuration", "minStartTime",
         "maxStartTime", "sSearch", "iDisplayLength", "iDisplayStart",
-        "iSortCol_0", "sSortDir_0"
+        "iSortCol_0", "sSortDir_0", "tagSearch"
       ];
 
       for (var n=0; n<arr.length;n++) {
@@ -363,6 +368,7 @@ App.MainAppsController = Em.ArrayController.extend({
     obj.set("output","");
     obj.set("duration","");
     obj.set("runDate","Any");
+    obj.set("tagSearch","");
   },
 
 
@@ -409,7 +415,8 @@ App.MainAppsController = Em.ArrayController.extend({
       'filterObject.iDisplayStart',
       'filterObject.iSortCol_0',
       'filterObject.sSortDir_0',
-      'filterObject.viewType'
+      'filterObject.viewType',
+      'filterObject.tagSearch'
   ),
 
   serverData: "",
@@ -486,11 +493,12 @@ App.MainAppsController = Em.ArrayController.extend({
       { name: Em.I18n.t('common.name'), index: 1 },
       { name: Em.I18n.t('common.type'), index: 2 },
       { name: Em.I18n.t('common.user'), index: 3 },
-      { name: Em.I18n.t('apps.avgTable.jobs'), index: 4 },
-      { name: Em.I18n.t('apps.avgTable.input'), index: 5 },
-      { name: Em.I18n.t('apps.avgTable.output'), index: 6 },
-      { name: Em.I18n.t('apps.avgTable.duration'), index: 7 },
-      { name: Em.I18n.t('apps.table.column.runDate'), index: 8 }
+      { name: Em.I18n.t('common.tags'), index: 4 },
+      { name: Em.I18n.t('apps.avgTable.jobs'), index: 5 },
+      { name: Em.I18n.t('apps.avgTable.input'), index: 6 },
+      { name: Em.I18n.t('apps.avgTable.output'), index: 7 },
+      { name: Em.I18n.t('apps.avgTable.duration'), index: 8 },
+      { name: Em.I18n.t('apps.table.column.runDate'), index: 9 }
     ]
   })
 

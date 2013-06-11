@@ -98,15 +98,7 @@ module.exports = Em.Route.extend({
   apps: Em.Route.extend({
     route: '/apps',
     connectOutlets: function (router) {
-      if (stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 1 ||
-        stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 0) {
-        Em.run.next(function () {
-          router.transitionTo('main.dashboard');
-        });
-      } else {
-        router.get('mainAppsController').loadRuns();
-        router.get('mainController').connectOutlet('mainApps');
-      }
+      router.get('mainController').connectOutlet('mainApps');
     }
   }),
 

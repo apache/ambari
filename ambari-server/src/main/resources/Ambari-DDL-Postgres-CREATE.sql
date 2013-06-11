@@ -198,12 +198,27 @@ CREATE TABLE workflow (
   startTime BIGINT, lastUpdateTime BIGINT,
   numJobsTotal INTEGER, numJobsCompleted INTEGER,
   inputBytes BIGINT, outputBytes BIGINT,
-  duration BIGINT,
+  duration BIGINT, workflowTags TEXT,
   PRIMARY KEY (workflowId),
   FOREIGN KEY (parentWorkflowId) REFERENCES workflow(workflowId)
 );
 
 GRANT ALL PRIVILEGES ON TABLE workflow TO "mapred";
+
+CREATE TABLE application (
+  appId TEXT,
+  workflowId TEXT,
+  appName TEXT,
+  workflowEntityName TEXT,
+  userName TEXT, queue TEXT,
+  submitTime BIGINT, launchTime BIGINT, finishTime BIGINT,
+  appType TEXT,
+  status TEXT,
+  appInfo TEXT,
+  PRIMARY KEY(appId), FOREIGN KEY(workflowId) REFERENCES workflow(workflowId)
+);
+
+GRANT ALL PRIVILEGES ON TABLE application TO "mapred";
 
 CREATE TABLE job (
   jobId TEXT, workflowId TEXT, jobName TEXT, workflowEntityName TEXT,

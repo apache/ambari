@@ -133,6 +133,7 @@ Em.I18n.translations = {
   'common.errorPopup.header': 'An error has been encountered',
   'common.use': 'Use',
   'common.stacks': 'Stacks',
+  'common.tags': 'Tags',
 
   'requestInfo.installComponents':'Install Components',
   'requestInfo.installServices':'Install Services',
@@ -1068,7 +1069,10 @@ Em.I18n.translations = {
 
   'apps.item.dag.job': 'Job',
   'apps.item.dag.jobId': 'Job Id',
+  'apps.item.dag.type': 'Job Type',
   'apps.item.dag.status': 'Status',
+  'apps.item.dag.num_stages': 'Total Stages',
+  'apps.item.dag.stages': 'Tasks per Stage',
   'apps.item.dag.maps': 'Maps',
   'apps.item.dag.reduces': 'Reduces',
   'apps.item.dag.input': 'Input',

@@ -48,4 +48,4 @@ require('models/dataset');
 require('models/dataset_job');
 require('classes/run_class');
 require('classes/job_class');
-require('classes/job_class');
+require('classes/app_class');

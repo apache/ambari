@@ -32,6 +32,7 @@ App.Run = DS.Model.extend({
   workflowContext:DS.attr('string'),
   input: DS.attr('number'),
   output: DS.attr('number'),
+  tags: DS.attr('string'),
 
   loadAllJobs : false,
 
@@ -107,7 +108,7 @@ App.Run = DS.Model.extend({
     if (this.get('id').indexOf('hive_') === 0) {
       return 'Hive';
     }
-    if (this.get('id').indexOf('mr_') === 0) {
+    if (this.get('id').indexOf('mr_') === 0 || this.get('id').indexOf('mapreduce_') === 0) {
       return 'MapReduce';
     }
   }.property('id')

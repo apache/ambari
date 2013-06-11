@@ -36,15 +36,10 @@ import javax.ws.rs.core.MediaType;
 import org.apache.ambari.eventdb.db.MySQLConnector;
 import org.apache.ambari.eventdb.db.OracleConnector;
 import org.apache.ambari.eventdb.db.PostgresConnector;
-import org.apache.ambari.eventdb.model.DataTable;
-import org.apache.ambari.eventdb.model.Jobs;
+import org.apache.ambari.eventdb.model.*;
 import org.apache.ambari.eventdb.model.Jobs.JobDBEntry;
-import org.apache.ambari.eventdb.model.TaskAttempt;
-import org.apache.ambari.eventdb.model.TaskData;
 import org.apache.ambari.eventdb.model.TaskData.Point;
-import org.apache.ambari.eventdb.model.TaskLocalityData;
 import org.apache.ambari.eventdb.model.TaskLocalityData.DataPoint;
-import org.apache.ambari.eventdb.model.Workflows;
 import org.apache.ambari.eventdb.model.Workflows.WorkflowDBEntry;
 import org.apache.ambari.eventdb.model.Workflows.WorkflowDBEntry.WorkflowFields;
 import org.apache.ambari.server.configuration.Configuration;
@@ -67,6 +62,7 @@ public class WorkflowJsonService {
   
   private static final Workflows EMPTY_WORKFLOWS = new Workflows();
   private static final List<JobDBEntry> EMPTY_JOBS = Collections.emptyList();
+  private static final List<Apps.AppDBEntry> EMPTY_APPS = Collections.emptyList();
   {
     List<WorkflowDBEntry> emptyWorkflows = Collections.emptyList();
     EMPTY_WORKFLOWS.setWorkflows(emptyWorkflows);
@@ -138,7 +134,8 @@ public class WorkflowJsonService {
       @DefaultValue("-1") @QueryParam("minOutputBytes") long minOutputBytes, @DefaultValue("-1") @QueryParam("maxOutputBytes") long maxOutputBytes,
       @DefaultValue("-1") @QueryParam("minDuration") long minDuration, @DefaultValue("-1") @QueryParam("maxDuration") long maxDuration,
       @DefaultValue("-1") @QueryParam("minStartTime") long minStartTime, @DefaultValue("-1") @QueryParam("maxStartTime") long maxStartTime,
-      @DefaultValue("-1") @QueryParam("minFinishTime") long minFinishTime, @DefaultValue("-1") @QueryParam("maxFinishTime") long maxFinishTime) {
+      @DefaultValue("-1") @QueryParam("minFinishTime") long minFinishTime, @DefaultValue("-1") @QueryParam("maxFinishTime") long maxFinishTime,
+      @QueryParam("tagSearch") String tagSearchTerm) {
     
     if (start < 0)
       start = 0;
@@ -163,22 +160,25 @@ public class WorkflowJsonService {
       case 3: // userName
         field = WorkflowFields.USERNAME;
         break;
-      case 4: // numJobsTotal
+      case 4: // tags
+        field = WorkflowFields.WORKFLOWTAGS;
+        break;
+      case 5: // numJobsTotal
         field = WorkflowFields.NUMJOBSTOTAL;
         break;
-      case 5: // inputBytes
+      case 6: // inputBytes
         field = WorkflowFields.INPUTBYTES;
         break;
-      case 6: // outputBytes
+      case 7: // outputBytes
         field = WorkflowFields.OUTPUTBYTES;
         break;
-      case 7: // duration
+      case 8: // duration
         field = WorkflowFields.DURATION;
         break;
-      case 8: // startTime
+      case 9: // startTime
         field = WorkflowFields.STARTTIME;
         break;
-      case 9: // lastUpdateTime
+      case 10: // lastUpdateTime
         field = WorkflowFields.LASTUPDATETIME;
         break;
       default:
@@ -190,7 +190,8 @@ public class WorkflowJsonService {
     try {
       conn = getConnector();
       table = conn.fetchWorkflows(start, amount, searchTerm, echo, field, sortAscending, workflowId, workflowName, workflowType, userName, minJobs, maxJobs,
-          minInputBytes, maxInputBytes, minOutputBytes, maxOutputBytes, minDuration, maxDuration, minStartTime, maxStartTime, minFinishTime, maxFinishTime);
+          minInputBytes, maxInputBytes, minOutputBytes, maxOutputBytes, minDuration, maxDuration, minStartTime, maxStartTime, minFinishTime, maxFinishTime,
+          tagSearchTerm);
     } catch (IOException e) {
       LOG.error("Error interacting with RCA database ", e);
     } finally {
@@ -200,7 +201,28 @@ public class WorkflowJsonService {
     }
     return table;
   }
-  
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path("/app")
+  public Apps getApps(@QueryParam("workflowId") String workflowId) {
+    Apps apps = new Apps();
+    apps.setApps(EMPTY_APPS);
+    PostgresConnector conn = null;
+    try {
+      conn = getConnector();
+      if (workflowId != null)
+        apps.setApps(conn.fetchAppDetails(workflowId));
+    } catch (IOException e) {
+      LOG.error("Error interacting with RCA database ", e);
+    } finally {
+      if (conn != null) {
+        conn.close();
+      }
+    }
+    return apps;
+  }
+
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/job")
@@ -224,7 +246,7 @@ public class WorkflowJsonService {
     }
     return jobs;
   }
-  
+
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("/task")

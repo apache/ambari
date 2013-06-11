@@ -103,7 +103,7 @@ App.MainAppsView = Em.View.extend({
     class: "sorting",
     widthClass: "",
     content: null,
-    defaultColumn: 8,
+    defaultColumn: 9,
 
     didInsertElement: function () {
       this.set("widthClass", "col" + this.content.index);
@@ -159,6 +159,14 @@ App.MainAppsView = Em.View.extend({
   nameFilterView: filters.createTextView({
     valueBinding: "controller.filterObject.sSearch_1",
     fieldType: 'input-small'
+  }),
+  /**
+   * Filter-field for tags.
+   * Based on <code>filters</code> library
+   */
+  tagFilterView: filters.createTextView({
+    valueBinding: "controller.filterObject.tagSearch",
+    fieldType: 'input-super-mini'
   }),
   /**
    * Filter-field for type.
