@@ -2195,12 +2195,20 @@ public class AmbariManagementControllerImpl implements
         stage.getExecutionCommandWrapper(clientHost,
           smokeTestRole).getExecutionCommand()
           .setConfigurationTags(configTags);
-
+        
         // Generate cluster host info
         stage.getExecutionCommandWrapper(clientHost, smokeTestRole)
             .getExecutionCommand()
             .setClusterHostInfo(StageUtils.getClusterHostInfo(
                 clusters.getHostsForCluster(cluster.getClusterName()), cluster, hostsMap, injector));
+
+        Map<String,String> hostParams = new HashMap<String, String>();
+        hostParams.put("stack_version", cluster.getDesiredStackVersion().getStackVersion());
+        // smoke tests need stack version
+        stage.getExecutionCommandWrapper(clientHost,
+            smokeTestRole).getExecutionCommand()
+            .setHostLevelParams(hostParams);
+
       }
 
       RoleGraph rg = new RoleGraph(rco);

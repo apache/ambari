@@ -2607,6 +2607,20 @@ public class AmbariManagementControllerTest {
     Assert.assertNull(stage1.getExecutionCommandWrapper(host2, "DATANODE"));
     Assert.assertNotNull(stage3.getExecutionCommandWrapper(host1, "HBASE_SERVICE_CHECK"));
     Assert.assertNotNull(stage2.getExecutionCommandWrapper(host2, "HDFS_SERVICE_CHECK"));
+    
+    for (Stage s : stages) {
+      for (List<ExecutionCommandWrapper> list : s.getExecutionCommands().values()) {
+        for (ExecutionCommandWrapper ecw : list) {
+          if (ecw.getExecutionCommand().getRole().name().contains("SERVICE_CHECK")) {
+            Map<String, String> hostParams = ecw.getExecutionCommand().getHostLevelParams();
+            Assert.assertNotNull(hostParams);
+            Assert.assertTrue(hostParams.size() > 0);
+            Assert.assertTrue(hostParams.containsKey("stack_version"));
+            Assert.assertEquals(hostParams.get("stack_version"), c1.getDesiredStackVersion().getStackVersion());
+          }
+        }
+      }
+    }
 
     // manually set live state
     sch1.setState(State.STARTED);
