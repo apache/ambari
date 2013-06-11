@@ -23,15 +23,42 @@ App.MainServiceReconfigureView = Em.View.extend({
 
 });
 
-App.StageStatusView = Em.View.extend({
-  tagName: 'tr',
-  hasStarted: null,
-  classNameBindings: ['faintText'],
-  showHostPopup:function(event){
-    var serviceName = event.contexts[0];
+App.StageLabelView = Em.View.extend({
+  tagName: 'a',
+  classNameBindings: ['removeLink'],
+  attributeBindings: ['href'],
+  href: '#',
+  removeLink: null,
+  didInsertElement: function() {
+   this.onLink();
+  },
+  onLink: function() {
+   if (this.get('showLink') === true) {
+     this.set('removeLink',null);
+   } else {
+     this.set('removeLink','remove-link');
+   }
+  }.observes('showLink'),
+  stage: null,
+  click: function () {
+    if (this.get('stage') && this.get('showLink')) {
+      this.showHostPopup(this.get('stage.label'));
+    }
+  },
+
+  showHostPopup: function (label) {
+    var serviceName = label;
     var controller = this.get("controller");
     App.HostPopup.initPopup(serviceName, controller);
-  }
+  },
+
+  isStarted: function () {
+    return  (this.get('stage') && this.get('stage.isStarted'));
+  }.property('stage.isStarted'),
+
+  showLink: function () {
+    return (this.get('stage') && this.get('stage.showLink'));
+  }.property('stage.showLink')
 });
 
 App.StageSuccessView = Em.View.extend({

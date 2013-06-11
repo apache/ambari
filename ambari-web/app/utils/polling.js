@@ -45,6 +45,10 @@ App.Poll = Em.Object.extend({
     return (this.get('isError') || this.get('isSuccess'));
   }.property('isError', 'isSuccess'),
 
+  showLink: function () {
+    return (this.get('isPolling') === true && this.get('isStarted') === true);
+  }.property('isPolling','isStarted'),
+
   start: function () {
     if (this.get('requestId') === undefined) {
       this.setRequestId();

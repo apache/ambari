@@ -19,37 +19,33 @@
 <table id="security-stages" class="table no-borders">
   <tbody>
     {{#each stage in controller.stages}}
-      {{#view App.StageStatusView}}
+    <tr>
       <td>
-        {{#if stage.isPolling}}
-          <a href="javascript:void(0)" {{action "showHostPopup" stage.label target="view"}}>
-        {{/if}}
-        <p {{bindAttr class="stage.hasStarted::faintText"}}>{{stage.label}}</p>
-        {{#if stage.isPolling}}
-          </a>
-        {{/if}}
-      </td>
-      <td>
-        {{#if stage.isCompleted}}
-          {{#if stage.isSuccess}}
-            {{view App.StageSuccessView}}
-          {{else}}
-            {{#if stage.isError}}
-              {{view App.StageFailureView}}
-            {{/if}}
-          {{/if}}
-        {{else}}
-          {{#if stage.isStarted}}
-            {{#if stage.isPolling}}
-              <div class="progress-bar pull-left">
-                {{view App.StageInProgressView stageBinding=stage}}
-              </div>
-              <div class="progress-percentage pull-left">{{stage.progress}}%</div>
-            {{/if}}
-          {{/if}}
-        {{/if}}
-      </td>
+      {{#view App.StageLabelView stageBinding="stage"}}
+          <p {{bindAttr class="view.isStarted::faintText"}}>{{stage.label}}</p>
       {{/view}}
+      </td>
+      <td>
+          {{#if stage.isCompleted}}
+            {{#if stage.isSuccess}}
+              {{view App.StageSuccessView}}
+            {{else}}
+              {{#if stage.isError}}
+                {{view App.StageFailureView}}
+              {{/if}}
+            {{/if}}
+          {{else}}
+            {{#if stage.isStarted}}
+              {{#if stage.isPolling}}
+                <div class="progress-bar pull-left">
+                  {{view App.StageInProgressView stageBinding=stage}}
+                </div>
+                <div class="progress-percentage pull-left">{{stage.progress}}%</div>
+              {{/if}}
+            {{/if}}
+          {{/if}}
+      </td>
+    </tr>
     {{/each}}
   </tbody>
 </table>
