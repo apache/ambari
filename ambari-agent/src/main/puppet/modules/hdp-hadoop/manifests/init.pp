@@ -200,9 +200,9 @@ debug('##Configs generation for hdp-hadoop')
         group => $hdp::params::user_group
         }
       }
-      if (hdp_is_empty($slave_hosts) == false and hdp_is_empty($configuration['hdfs-site']['dfs.hosts']) == false) {
+      if (hdp_is_empty($hdp::params::slave_hosts) == false and hdp_is_empty($configuration['hdfs-site']['dfs.hosts']) == false) {
         $include_file_path = $configuration['hdfs-site']['dfs.hosts']
-        $include_hosts_list = $slave_hosts
+        $include_hosts_list = $hdp::params::slave_hosts
         file { $include_file_path :
         ensure => present,
         owner => $hdp-hadoop::params::hdfs_user,
