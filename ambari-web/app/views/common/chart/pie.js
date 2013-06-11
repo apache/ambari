@@ -22,10 +22,13 @@ App.ChartPieView = Em.View.extend({
   w:90,
   h:90,
   data:[300, 500],
+  id:null,
   palette: new Rickshaw.Color.Palette({ scheme: 'munin'}),
   stroke: 'black',
   strokeWidth: 2,
   donut:d3.layout.pie().sort(null),
+  existCenterText: false,
+  centerTextColor: 'black',
 
   r:function () {
     return Math.min(this.get('w'), this.get('h')) / 2 - this.get('strokeWidth');
@@ -53,22 +56,45 @@ App.ChartPieView = Em.View.extend({
   }.property('elementId'),
 
   appendSvg:function () {
-    var thisChart = this;
 
-    this.set('svg', d3.select(this.get('selector')).append("svg:svg")
+    var thisChart = this;
+    var svg = d3.select(thisChart.get('selector')).append("svg:svg")
+      .attr("id", thisChart.get('id'))
       .attr("width", thisChart.get('w'))
       .attr("height", thisChart.get('h'))
-      .attr("stroke", this.get('stroke'))
-      .attr("stroke-width", this.get('strokeWidth'))
+      .attr("stroke", thisChart.get('stroke'))
+      .attr("stroke-width", thisChart.get('strokeWidth'));
+
+    // set percentage data in center if there exist a center text
+    if(thisChart.get('existCenterText')){
+      this.set('svg', svg
+        .append("svg:g")
+        .attr("render-order", 1)
+        .append("svg:text")
+        .attr("stroke", thisChart.get('centerTextColor'))
+        .attr("font-size", 17)
+        .attr("transform", "translate(" + thisChart.get('w') / 2 + "," + ((thisChart.get('h') / 2) + 3) + ")")
+        .attr("text-anchor", "middle")
+        .text(function(d) {
+                 return thisChart.get('data')[0] + '%';
+              })
+         );
+    }
+
+    this.set('svg', svg
       .append("svg:g")
       .attr("transform", "translate(" + thisChart.get('w') / 2 + "," + thisChart.get('h') / 2 + ")"));
 
-    this.set('arcs', this.get('svg').selectAll("path")
+    this.set('arcs', thisChart.get('svg').selectAll("path")
       .data(thisChart.donut(thisChart.get('data')))
       .enter().append("svg:path")
       .attr("fill", function (d, i) {
         return thisChart.palette.color(i);
       })
-      .attr("d", this.get('arc')));
+      .attr("d", thisChart.get('arc'))
+
+    );
+
   }
+
 });

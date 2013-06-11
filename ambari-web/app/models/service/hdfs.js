@@ -37,7 +37,9 @@ App.HDFSService = App.Service.extend({
   dfsUnderReplicatedBlocks: DS.attr('number'),
   dfsTotalFiles: DS.attr('number'),
   upgradeStatus: DS.attr('boolean'),
-  safeModeStatus: DS.attr('string')
+  safeModeStatus: DS.attr('string'),
+  nameNodeCpu: DS.attr('number'),
+  nameNodeRpc: DS.attr('number')
 });
 
 App.HDFSService.FIXTURES = [];

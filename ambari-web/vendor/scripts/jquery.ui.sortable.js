@@ -979,9 +979,10 @@ $.widget("ui.sortable", $.ui.mouse, {
 		this.counter = this.counter ? ++this.counter : 1;
 		var counter = this.counter;
 
-		this._delay(function() {
-			if(counter == this.counter) this.refreshPositions(!hardRefresh); //Precompute after each DOM insertion, NOT on mousemove
-		});
+    // Cause error when sort widgets on dashboard. Error: Object has no _delay method
+    //this._delay(function() {
+    //if(counter == this.counter) this.refreshPositions(!hardRefresh); //Precompute after each DOM insertion, NOT on mousemove
+    //});
 
 	},
 

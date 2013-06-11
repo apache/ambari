@@ -508,6 +508,11 @@ App.ChartLinearTimeView = Ember.View.extend({
     }
 
     var height = 150;
+    var diff = 32;
+    if(this.get('id').indexOf('cluster-metrics') != -1){
+      height = 105; // for widgets view
+      diff = 22;
+    }
     var width = 400;
     if (isPopup) {
       height = 180;
@@ -518,8 +523,8 @@ App.ChartLinearTimeView = Ember.View.extend({
       var thisElement = this.get('element');
       if (thisElement!=null) {
         var calculatedWidth = $(thisElement).width();
-        if (calculatedWidth > 32) {
-          width = calculatedWidth-32;
+        if (calculatedWidth > diff) {
+          width = calculatedWidth - diff;
         }
       }
     }

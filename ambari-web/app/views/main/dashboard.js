@@ -17,13 +17,286 @@
  */
 
 var App = require('app');
+var filters = require('views/common/filter_view');
 
 App.MainDashboardView = Em.View.extend({
   templateName:require('templates/main/dashboard'),
   didInsertElement:function () {
     this.services();
+    this.set('isDataLoaded',true);
+    this.setWidgetsDataModel();
+    this.setOnLoadVisibleWidgets();
+    Ember.run.next(this, 'makeSortable');
   },
   content:[],
+  isDataLoaded: false,
+
+  makeSortable: function() {
+    var self = this;
+    $( "#sortable" ).sortable({
+      items: "> div",
+      //placeholder: "sortable-placeholder",
+      cursor: "move",
+
+      update: function (event, ui) {
+        if (!App.testMode) {
+          // update persist then translate to real
+          var widgetsArray = $('div[viewid]'); // get all in DOM
+          self.getUserPref(self.get('persistKey'));
+          var oldValue = self.get('currentPrefObject');
+          var newValue = Em.Object.create({
+            visible: [],
+            hidden: oldValue.hidden,
+            threshold: oldValue.threshold
+          });
+          var size = oldValue.visible.length;
+          for(var j = 0; j <= size -1; j++){
+            var viewID = widgetsArray.get(j).getAttribute('viewid');
+            var id = viewID.split("-").get(1);
+            newValue.visible.push(id);
+          }
+          self.postUserPref(self.get('persistKey'), newValue);
+          // self.translateToReal(newValue);
+        }
+
+      }
+    });
+    $( "#sortable" ).disableSelection();
+  },
+
+  setWidgetsDataModel: function () {
+    var services = App.Service.find();
+    var self = this;
+    services.forEach(function (item) {
+      switch (item.get('serviceName')) {
+        case "HDFS":
+          self.set('hdfs_model',  App.HDFSService.find(item.get('id')) || item);
+          break;
+        case "MAPREDUCE":
+          self.set('mapreduce_model', App.MapReduceService.find(item.get('id')) || item);
+          break;
+        case "HBASE":
+          self.set('hbase_model', App.HBaseService.find(item.get('id')) || item);
+          break;
+      }
+    }, this);
+  },
+  hdfs_model: null,
+  mapreduce_model:null,
+  hbase_model: null,
+  visibleWidgets: [],
+  hiddenWidgets: [], // widget child view will push object in this array if deleted
+
+  plusButtonFilterView: filters.createComponentView({
+    /**
+     * Base methods was implemented in <code>filters.componentFieldView</code>
+     */
+    hiddenWidgetsBinding: 'parentView.hiddenWidgets',
+    visibleWidgetsBinding: 'parentView.visibleWidgets',
+    layout: null,
+
+    filterView: filters.componentFieldView.extend({
+      templateName:require('templates/main/dashboard/plus_button_filter'),
+      hiddenWidgetsBinding: 'parentView.hiddenWidgets',
+      visibleWidgetsBinding: 'parentView.visibleWidgets',
+      valueBinding: '',
+      applyFilter:function() {
+        this._super();
+        var parent = this.get('parentView').get('parentView');
+        var hiddenWidgets = this.get('hiddenWidgets');
+        var checkedWidgets = hiddenWidgets.filterProperty('checked', true);
+
+        if (App.testMode) {
+          var visibleWidgets = this.get('visibleWidgets');
+          checkedWidgets.forEach(function(item){
+            var new_obj = parent.widgetsMapper(item.id);
+            visibleWidgets.pushObject(new_obj);
+            hiddenWidgets.removeObject(item);
+          }, this);
+
+        } else {
+          //save in persist
+          parent.getUserPref(parent.get('persistKey'));
+          var oldValue = parent.get('currentPrefObject');
+          var newValue = Em.Object.create({
+            visible: oldValue.visible,
+            hidden: [],
+            threshold: oldValue.threshold
+          });
+          checkedWidgets.forEach(function(item){
+            newValue.visible.push(item.id);
+            hiddenWidgets.removeObject(item);
+          }, this);
+          hiddenWidgets.forEach(function(item){
+            newValue.hidden.push([item.id, item.displayName]);
+          },this);
+          parent.postUserPref(parent.get('persistKey'), newValue);
+          parent.translateToReal(newValue);
+        }
+
+      }
+    })
+  }),
+
+  /**
+   * translate from Json value got from persist to real widgets view
+   */
+  translateToReal: function (value) {
+    var visible = value.visible;
+    var hidden = value.hidden;
+    var threshold = value.threshold;
+
+    // clear current visible and hiddenWidgets
+    var visibleWidgets = this.get('visibleWidgets');
+    var size = visibleWidgets.length;
+    for (var i = 1; i <= size; i++) {
+      visibleWidgets.removeAt(0);
+    }
+    var hiddenWidgets = this.get('hiddenWidgets');
+    var size = hiddenWidgets.length;
+    for (var i = 1; i <= size; i++) {
+      hiddenWidgets.removeAt(0);
+    }
+    // re-construct visibleWidgets and hiddenWidgets
+    for (var j = 0; j <= visible.length -1; j++){
+      var cur_id = visible[j];
+      var widgetClass = this.widgetsMapper(cur_id);
+      //override with new threshold
+      if (threshold[cur_id].length > 0) {
+        widgetClass.reopen({
+          thresh1: threshold[cur_id][0],
+          thresh2: threshold[cur_id][1]
+        });
+      }
+      visibleWidgets.pushObject(widgetClass);
+    }
+    for (var j = 0; j <= hidden.length -1; j++){
+      var cur_id = hidden[j][0];
+      var cur_title = hidden[j][1];
+      hiddenWidgets.pushObject(Em.Object.create({displayName:cur_title , id: cur_id, checked: false}));
+    }
+  },
+
+  setOnLoadVisibleWidgets: function () {
+    if (App.testMode) {
+      this.translateToReal(this.get('initPrefObject'));
+    } else {
+      // called when first load/refresh/jump back page
+      this.getUserPref(this.get('persistKey'));
+      var currentPrefObject = this.get('currentPrefObject');
+      if (currentPrefObject) {
+        this.translateToReal(currentPrefObject);
+      } else {
+        // post persist then translate init object
+        this.postUserPref(this.get('persistKey'), this.get('initPrefObject'));
+        this.translateToReal(this.get('initPrefObject'));
+      }
+    }
+  },
+
+  widgetsMapper: function(id){
+    switch(id){
+      case '1': return App.NameNodeHeapPieChartView;
+      case '2': return App.NameNodeCapacityPieChartView;
+      case '3': return App.NameNodeCpuPieChartView;
+      case '4': return App.DataNodeUpView;
+      case '5': return App.NameNodeRpcView;
+      case '6': return App.JobTrackerHeapPieChartView;
+      case '7': return App.JobTrackerCpuPieChartView;
+      case '8': return App.TaskTrackerUpView;
+      case '9': return App.JobTrackerRpcView;
+      case '10': return App.MapReduceSlotsView;
+      case '11': return App.ChartClusterMetricsMemoryWidgetView;
+      case '12': return App.ChartClusterMetricsNetworkWidgetView;
+      case '13': return App.ChartClusterMetricsCPUWidgetView;
+      case '14': return App.ChartClusterMetricsLoadWidgetView;
+      case '15': return App.NameNodeUptimeView;
+      case '16': return App.JobTrackerUptimeView;
+      case '17': return App.HDFSLinksView;
+      case '18': return App.MapReduceLinksView;
+      case '19': return App.HBaseLinksView;
+      case '20': return App.HBaseMasterHeapPieChartView;
+      case '21': return App.HBaseAverageLoadView;
+      case '22': return App.HBaseRegionsInTransitionView;
+    }
+
+  },
+
+  currentPrefObject: null,
+  initPrefObject: Em.Object.create({
+    visible: [
+      '11', '12', '13', '14', //cluster-metrics
+      '1', '2', '3', '4', '5', '15', '17', //hdfs
+      '6', '7', '8', '9', '10', '18', '16',//map reduce
+      '20', '21', '19', '22' //hbase
+    ], // all in order
+    hidden:[],
+    threshold:{1: [40,70], 2: [40,70], 3: [40,70], 4: [40,70], 5: [0.5, 2], 6: [40,70], 7: [40,70], 8: [40,70], 9: [0.5, 2],
+      10:[], 11:[], 12:[], 13:[], 14:[], 15:[], 16:[], 17:[], 18:[], 19:[], 20:[40,70], 21:[10,19.2], 22: [3, 10]} // id:[thresh1, thresh2]
+  }),
+  persistKey: function(){
+    var loginName = App.router.get('loginName');
+    return 'user-pref-' + loginName + '-dashboard';
+  }.property(''),
+
+  /**
+   * get persist value from server with persistKey
+   */
+  getUserPref: function(key){
+    var self = this;
+    var url = App.apiPrefix + '/persist/' + key;
+    jQuery.ajax(
+      {
+        url: url,
+        context: this,
+        async: false,
+        success: function (response) {
+          if (response) {
+            var value = jQuery.parseJSON(response);
+            console.log('Persist value with key ' + key + '. JSON Value is: ' + response);
+            self.set('currentPrefObject', value);
+            return value;
+           }
+        },
+        error: function (xhr) {
+          // this user is first time login
+          if (xhr.status == 404) {
+            console.log('Persist did NOT find the key '+ key);
+            return null;
+          }
+        },
+        statusCode: require('data/statusCodes')
+      }
+    );
+  },
+
+  /**
+   * post persist key/value to server, value is object
+   */
+  postUserPref: function(key, value){
+    var url = App.apiPrefix + '/persist/';
+    var keyValuePair = {};
+    keyValuePair[key] = JSON.stringify(value);
+
+    jQuery.ajax({
+      async: false,
+      context: this,
+      type: "POST",
+      url: url,
+      data: JSON.stringify(keyValuePair),
+      beforeSend: function () {
+        console.log('BeforeSend: persistKeyValues', keyValuePair);
+      }
+    });
+  },
+
+  resetAllWidgets: function(){
+    if(!App.testMode){
+      this.postUserPref(this.get('persistKey'), this.get('initPrefObject'));
+    }
+    this.translateToReal(this.get('initPrefObject'));
+  },
+
   updateServices: function(){
     var services = App.Service.find();
     services.forEach(function (item) {
