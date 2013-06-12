@@ -81,6 +81,7 @@ public class DesiredConfig {
   /**
    * Gets the user that set the desired config.
    */
+  @JsonSerialize(include = Inclusion.NON_EMPTY)
   public String getUser() {
     return user;
   }
