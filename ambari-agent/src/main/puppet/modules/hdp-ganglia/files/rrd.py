@@ -139,14 +139,6 @@ if "pt" in queryString:
 else:
   pointInTime = False
 
-
-host_metrics = ["boottime", "bytes_in", "bytes_out", "cpu_aidle", "cpu_idle",
-                "cpu_nice", "cpu_num", "cpu_speed", "cpu_system", "cpu_user",
-                "cpu_wio", "disk_free", "disk_total", "load_fifteen", "load_five",
-                "load_one", "mem_buffers", "mem_cached", "mem_free", "mem_shared",
-                "mem_total", "part_max_used", "pkts_in", "pkts_out", "proc_run",
-                "proc_total", "swap_free", "swap_total"]
-
 for cluster in clusterParts:
   for path, dirs, files in os.walk(rrdPath + cluster):
     pathParts = path.split("/")
@@ -154,14 +146,10 @@ for cluster in clusterParts:
       for file in files:
         for metric in metricParts:
           if file.endswith(metric + ".rrd"):
-            if not (metric in host_metrics):
-              printMetric(pathParts[-2], pathParts[-1], file[:-4],
-                    os.path.join(path, file), cf, start, end, resolution, pointInTime)
-            else:
-              if (cluster == "HDPSlaves"):
-                 printMetric(pathParts[-2], pathParts[-1], file[:-4],
-                    os.path.join(path, file), cf, start, end, resolution, pointInTime)
-                
+
+            printMetric(pathParts[-2], pathParts[-1], file[:-4],
+                os.path.join(path, file), cf, start, end, resolution, pointInTime)
+
 sys.stdout.write("[AMBARI_END]\n")
 # write end time
 sys.stdout.write(str(time.mktime(time.gmtime())))
