@@ -910,6 +910,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
 
+ AMBARI-2369. B6 setup stops on Postgresql start on SLES11. (swagle)
+
  AMBARI-2263. Render appropriate default values for HBase java settings. (jaimin)
  
  AMBARI-2230. Nagios user is presented in Admin > Misc page when Nagios
