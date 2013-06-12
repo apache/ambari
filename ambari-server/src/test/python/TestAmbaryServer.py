@@ -1158,10 +1158,69 @@ class TestAmbariServer(TestCase):
     sys.stdout = sys.__stdout__
 
 
+  @patch.object(ambari_server, "get_ambari_properties")
+  @patch.object(ambari_server, "find_jdbc_driver")
+  @patch.object(ambari_server, "copy_files")
+  @patch('__builtin__.raw_input')
+  def test_check_jdbc_drivers(self, raw_input_mock, copy_files_mock, find_jdbc_driver_mock, get_ambari_properties_mock):
+
+    out = StringIO.StringIO()
+    sys.stdout = out
+
+    args = MagicMock()
+    
+    # Check positive scenario
+    drivers_list = ['driver_file']
+    resources_dir = '/tmp'
+    
+    get_ambari_properties_mock.return_value = {ambari_server.RESOURCES_DIR_KEY : resources_dir}
+    find_jdbc_driver_mock.return_value = drivers_list
+    
+    rcode = ambari_server.check_jdbc_drivers(args)
+    
+    self.assertEqual(0, rcode)
+    copy_files_mock.assert_called_with(drivers_list, resources_dir)
+    
+    #Check negative scenario
+    find_jdbc_driver_mock.return_value = -1
+    
+    args.database = "oracle"
+    
+    rcode = ambari_server.check_jdbc_drivers(args)
+    
+    self.assertEqual(0, rcode)
+    #Ensure user was asked to provide drivers
+    self.assertTrue(raw_input_mock.called)
+    
+    sys.stdout = sys.__stdout__
+    
+    
+  @patch.object(ambari_server, "search_file")
+  def test_get_ambari_properties(self, search_file_mock):
+
+    search_file_mock.return_value = None
+    rcode = ambari_server.get_ambari_properties()
+    self.assertEqual(rcode, -1)
+  
+    tf1 = tempfile.NamedTemporaryFile()
+    search_file_mock.return_value = tf1.name
+    prop_name='name'
+    prop_value='val'
+    
+    with open(tf1.name, 'w') as fout:
+      fout.write(prop_name + '=' + prop_value)
+    fout.close()
+
+    properties = ambari_server.get_ambari_properties()
+    
+    self.assertEqual(properties[prop_name], prop_value)
+    
+    sys.stdout = sys.__stdout__
+
   @patch.object(ambari_server, "search_file")
   def test_parse_properties_file(self, search_file_mock):
 
-    tf1 = tempfile.NamedTemporaryFile()
+    tf1 = tempfile.NamedTemporaryFile(mode='r')
     search_file_mock.return_value = tf1.name
 
     args = MagicMock()

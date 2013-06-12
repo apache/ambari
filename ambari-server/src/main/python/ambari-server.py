@@ -106,7 +106,7 @@ PID_DIR="/var/run/ambari-server"
 PID_NAME="ambari-server.pid"
 AMBARI_PROPERTIES_FILE="ambari.properties"
 AMBARI_PROPERTIES_RPMSAVE_FILE="ambari.properties.rpmsave"
-RESOURCES_DIR="/var/lib/ambari-server/resources"
+RESOURCES_DIR_KEY="resources.dir"
 
 SETUP_DB_CMD = ['su', '-', 'postgres',
         '--command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'"']
@@ -909,25 +909,36 @@ def copy_files(files, dest_dir):
     return -1
 
 def check_jdbc_drivers(args):
-  result = find_jdbc_driver(args)
-  if result == -1:
-    msg = 'WARNING: Before starting Ambari Server, ' \
-          'the {0} JDBC driver JAR file must be copied to {1}. Press enter to continue.'.format(
-      DATABASE_FULL_NAMES[args.database],
-      JAVA_SHARE_PATH
-    )
-    if not SILENT:
-      raw_input(msg)
-    else:
-      print_warning_msg(msg)
+  properties = get_ambari_properties()
+  
+  ## ask user twice
+  for i in range(0,2):
+    result = find_jdbc_driver(args)
+    if result == -1:
+      msg = 'WARNING: Before starting Ambari Server, ' \
+            'the {0} JDBC driver JAR file must be copied to {1}. Press enter to continue.'.format(
+        DATABASE_FULL_NAMES[args.database],
+        JAVA_SHARE_PATH
+      )
+      if not SILENT:
+        raw_input(msg)
+      else:
+        print_warning_msg(msg)
 
-  elif type(result) is not int:
-    print 'Copying JDBC drivers to server resources...'
-    copy_files(result, RESOURCES_DIR)
-    pass
+    # check if user provided drivers
+    result = find_jdbc_driver(args)
+
+    if type(result) is not int:
+      print 'Copying JDBC drivers to server resources...'
+      try:
+        resources_dir = properties[RESOURCES_DIR_KEY]
+      except KeyError:
+        print_error_msg("There is no value for " + RESOURCES_DIR_KEY + "in " + AMBARI_PROPERTIES_FILE)
+        return -1
+      copy_files(result, resources_dir)
+      break
 
   return 0
-
 
 #
 
@@ -1595,6 +1606,24 @@ def store_local_properties(args):
     return -1
 
   return 0
+  
+# Load ambari properties and return dict with values
+def get_ambari_properties():
+  conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
+  if conf_file is None:
+    print 'File %s not found in search path $%s: %s' %\
+          (AMBARI_PROPERTIES_FILE, AMBARI_CONF_VAR, get_conf_dir())
+    return -1
+  print_info_msg('Loading properties from ' + conf_file)
+
+  properties = None
+  try:
+    properties = Properties()
+    properties.load(open(conf_file))
+  except (Exception), e:
+    print 'Could not read "%s": %s' % (conf_file, e)
+    return -1
+  return properties
 
 # Load database connection properties from conf file
 def parse_properties_file(args):
