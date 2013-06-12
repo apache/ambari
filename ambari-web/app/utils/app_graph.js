@@ -41,7 +41,7 @@ module.exports = {
         "startTime:"+(new Date(jobData[i].submitTime).toUTCString())+"  \n"+
         "duration:"+formatDuration(jobData[i].finishTime - jobData[i].submitTime);
 console.log("info "+jobData[i].info);
-      jobData[i].state = jobData[i].status.substr(0,4)=="SUCC";
+      jobData[i].state = jobData[i].status==="FINISHED";
       minStartTime = Math.min(minStartTime, jobData[i].submitTime);
       maxFinishTime = Math.max(maxFinishTime, jobData[i].finishTime);
       // add a node to the nodes array and to a provided map of entity names to nodes

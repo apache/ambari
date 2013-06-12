@@ -1,10 +1,10 @@
 {
   "apps": [
     {
-      "appId": "job_201301280808_0002",
+      "appId": "application_201301280808_0002",
       "appName": "oozie:action:T\\=map-reduce:W\\=map-reduce-wf:A\\=mr-node:ID\\=0000000-130128081151371-oozie-oozi-W",
       "appType": "MAPREDUCE",
-      "status": "SUCCESS",
+      "status": "FINISHED",
       "userName": "ambari_qa",
       "submitTime": 1359378922503,
       "finishTime": 1359378949583,
@@ -13,10 +13,10 @@
       "workflowEntityName": "2"
     },
     {
-      "appId": "job_201301280808_0004",
+      "appId": "application_201301280808_0004",
       "appName": "oozie:action:T\\=map-reduce:W\\=map-reduce-wf:A\\=mr-node:ID\\=0000000-130128081151371-oozie-oozi-W",
       "appType": "MAPREDUCE",
-      "status": "SUCCESS",
+      "status": "FINISHED",
       "userName": "ambari_qa",
       "submitTime": 1359378922503,
       "finishTime": 1359378949583,
@@ -25,10 +25,10 @@
       "workflowEntityName": "4"
     },
     {
-      "appId": "job_201301280808_0003",
+      "appId": "application_201301280808_0003",
       "appName": "oozie:action:T\\=map-reduce:W\\=map-reduce-wf:A\\=mr-node:ID\\=0000000-130128081151371-oozie-oozi-W",
       "appType": "MAPREDUCE",
-      "status": "SUCCESS",
+      "status": "FINISHED",
       "userName": "ambari_qa",
       "submitTime": 1359378922503,
       "finishTime": 1359378949583,

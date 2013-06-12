@@ -1,10 +1,10 @@
 {
   "apps": [
     {
-      "appId": "job_201301280808_0003",
+      "appId": "application_201301280808_0003",
       "appName": "oozie:launcher:T\\=map-reduce:W\\=map-reduce-wf:A\\=mr-node:ID\\=0000000-130128081151371-oozie-oozi-W",
       "appType": "MAPREDUCE",
-      "status": "SUCCESS",
+      "status": "FINISHED",
       "userName": "ambari_qa",
       "submitTime": 1359378907927,
       "finishTime": 1359378927213,
