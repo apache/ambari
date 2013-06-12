@@ -20,29 +20,38 @@
 var App = require('app');
 require('controllers/global/cluster_controller');
 require('utils/http_client');
+require('models/service');
 
 describe('App.clusterController', function () {
+  var controller = App.ClusterController.create();
+  App.Service.FIXTURES = [{service_name: 'NAGIOS'}];
 
   describe('#updateLoadStatus()', function () {
-    it('all items are loaded', function(){
-      var controller = App.ClusterController.create();
-      controller.set('dataLoadList', Em.Object.create({
-        'item1':true,
-        'item2':false
-      }));
-      controller.updateLoadStatus.call(controller, 'item2');
-      expect(controller.get('isLoaded')).to.equal(true);
-      expect(controller.get('clusterDataLoadedPercent')).to.equal('width:100%');
-    })
-    it('one item of two is loaded', function(){
-      var controller = App.ClusterController.create();
-      controller.set('dataLoadList', Em.Object.create({
-        'item1':false,
-        'item2':false
-      }));
+
+    controller.set('dataLoadList', Em.Object.create({
+      'item1':false,
+      'item2':false
+    }));
+
+    it('when none item is loaded then width should be "width:0"', function(){
+      expect(controller.get('clusterDataLoadedPercent')).to.equal('width:0');
+    });
+    it('when first item is loaded then isLoaded should be false', function(){
       controller.updateLoadStatus.call(controller, 'item1');
       expect(controller.get('isLoaded')).to.equal(false);
+    });
+    it('when first item is loaded then width should be "width:50%"', function(){
+      controller.updateLoadStatus.call(controller, 'item1');
       expect(controller.get('clusterDataLoadedPercent')).to.equal('width:50%');
+    });
+
+    it('when all items are loaded then isLoaded should be true', function(){
+      controller.updateLoadStatus.call(controller, 'item2');
+      expect(controller.get('isLoaded')).to.equal(true);
+    });
+    it('when all items are loaded then width should be "width:100%"', function(){
+      controller.updateLoadStatus.call(controller, 'item2');
+      expect(controller.get('clusterDataLoadedPercent')).to.equal('width:100%');
     });
   });
 });

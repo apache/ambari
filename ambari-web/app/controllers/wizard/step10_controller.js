@@ -375,16 +375,14 @@ App.WizardStep10Controller = Em.Controller.extend({
   },
 
   loadInstallTime: function () {
-    var secondsPerMinute = 60;
     var statement;
+    var time;
     if (this.get('content.cluster.installTime')) {
-      var minutes = Math.floor(this.get('content.cluster.installTime'));
-      var seconds = Math.floor((this.get('content.cluster.installTime') - minutes) * secondsPerMinute);
-      var statement;
-      if (minutes !== 0) {
-        statement = Em.I18n.t('installer.step10.installTime.minutes').format(minutes, seconds);
+      time = this.calculateInstallTime(this.get('content.cluster.installTime'));
+      if (time.minutes !== 0) {
+        statement = Em.I18n.t('installer.step10.installTime.minutes').format(time.minutes, time.seconds);
       } else {
-        statement = Em.I18n.t('installer.step10.installTime.seconds').format(seconds);
+        statement = Em.I18n.t('installer.step10.installTime.seconds').format(time.seconds);
       }
       this.get('clusterInfo').pushObject(Ember.Object.create({
         id: 5,
@@ -392,6 +390,15 @@ App.WizardStep10Controller = Em.Controller.extend({
         displayStatement: statement,
         status: []
       }));
+    }
+  },
+  calculateInstallTime: function(installTime){
+    var secondsPerMinute = 60;
+    var minutes = Math.floor(installTime);
+    var seconds = Math.floor((installTime - minutes) * secondsPerMinute);
+    return {
+      minutes: minutes,
+      seconds: seconds
     }
   }
 });

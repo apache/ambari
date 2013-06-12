@@ -18,6 +18,7 @@
 
 
 var App = require('app');
+require('utils/config');
 
 App.Service = DS.Model.extend({
 

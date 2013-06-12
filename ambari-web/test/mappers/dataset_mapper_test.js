@@ -58,8 +58,8 @@ describe('App.dataSetMapper', function () {
           }
         },
         "results": {
-          start_time: '3:0:AM',
-          end_time: '5:0:AM',
+          start_time: '2:0:AM',
+          end_time: '4:0:AM',
           frequency: 'minutes(1)',
           timezone: 'UTC',
           start_date: '1/5/2010',
@@ -84,8 +84,8 @@ describe('App.dataSetMapper', function () {
           }
         },
         "results": {
-          start_time: '6:0:PM',
-          end_time: '3:0:PM',
+          start_time: '5:0:PM',
+          end_time: '2:0:PM',
           frequency: 'minutes(5)',
           timezone: 'UTC',
           start_date: '1/2/2013',

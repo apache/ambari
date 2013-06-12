@@ -265,147 +265,30 @@ App.WizardStep5Controller = Em.Controller.extend({
     }
   }.observes('selectedServicesMasters.@each.selectedHost'),
 
-  getKerberosServer:function (noOfHosts) {
+  /**
+   * select and return host for component by scheme
+   * Scheme is an object that has keys which compared to number of hosts,
+   * if key more that number of hosts, then return value of that key.
+   * Value is index of host in hosts array.
+   *
+   * @param noOfHosts
+   * @param selectionScheme
+   * @return {*}
+   */
+  getHostForComponent: function(noOfHosts, selectionScheme){
     var hosts = this.get('hosts');
-    if (noOfHosts === 1) {
-      return hosts[0];
-    } else if (noOfHosts < 3) {
-      return hosts[1];
-    } else if (noOfHosts <= 5) {
-      return hosts[1];
-    } else if (noOfHosts <= 30) {
-      return hosts[3];
-    } else {
-      return hosts[5];
-    }
-  },
-
-  getNameNode:function (noOfHosts) {
-    var hosts = this.get('hosts');
-    return hosts[0];
-  },
-
-  getSNameNode:function (noOfHosts) {
-    var hosts = this.get('hosts');
-    if (noOfHosts === 1) {
+    if(hosts.length === 1 || $.isEmptyObject(selectionScheme)){
       return hosts[0];
     } else {
-      return hosts[1];
+      for(var i in selectionScheme){
+        if(window.isFinite(i)){
+          if(noOfHosts < window.parseInt(i)){
+            return hosts[selectionScheme[i]];
+          }
+        }
+      }
+      return hosts[selectionScheme['else']]
     }
-  },
-
-  getJobTracker:function (noOfHosts) {
-    var hosts = this.get('hosts');
-    if (noOfHosts === 1) {
-      return hosts[0];
-    } else if (noOfHosts < 3) {
-      return hosts[1];
-    } else if (noOfHosts <= 5) {
-      return hosts[1];
-    } else if (noOfHosts <= 30) {
-      return hosts[1];
-    } else {
-      return hosts[2];
-    }
-  },
-
-  getResourceManager: function (noOfHosts) {
-    var hosts = this.get('hosts');
-    if (noOfHosts === 1) {
-      return hosts[0];
-    } else if (noOfHosts < 3) {
-      return hosts[1];
-    } else if (noOfHosts <= 5) {
-      return hosts[1];
-    } else if (noOfHosts <= 30) {
-      return hosts[1];
-    } else {
-      return hosts[2];
-    }
-  },
-
-  getHistoryServer: function (noOfHosts) {
-    var hosts = this.get('hosts');
-    if (noOfHosts === 1) {
-      return hosts[0];
-    } else if (noOfHosts < 3) {
-      return hosts[1];
-    } else if (noOfHosts <= 5) {
-      return hosts[1];
-    } else if (noOfHosts <= 30) {
-      return hosts[1];
-    } else {
-      return hosts[2];
-    }
-  },
-
-  getHBaseMaster:function (noOfHosts) {
-    var hosts = this.get('hosts');
-    if (noOfHosts === 1) {
-      return hosts[0];
-    } else if (noOfHosts < 3) {
-      return hosts[0];
-    } else if (noOfHosts <= 5) {
-      return hosts[0];
-    } else if (noOfHosts <= 30) {
-      return hosts[2];
-    } else {
-      return hosts[3];
-    }
-  },
-
-  getOozieServer:function (noOfHosts) {
-    var hosts = this.get('hosts');
-    if (noOfHosts === 1) {
-      return hosts[0];
-    } else if (noOfHosts < 3) {
-      return hosts[1];
-    } else if (noOfHosts <= 5) {
-      return hosts[1];
-    } else if (noOfHosts <= 30) {
-      return hosts[2];
-    } else {
-      return hosts[3];
-    }
-  },
-
-  getHiveServer:function (noOfHosts) {
-    var hosts = this.get('hosts');
-    if (noOfHosts === 1) {
-      return hosts[0];
-    } else if (noOfHosts < 3) {
-      return hosts[1];
-    } else if (noOfHosts <= 5) {
-      return hosts[1];
-    } else if (noOfHosts <= 30) {
-      return hosts[2];
-    } else {
-      return hosts[4];
-    }
-  },
-
-  getHueServer:function (noOfHosts) {
-    var hosts = this.get('hosts');
-    var hostnames = [];
-    var inc = 0;
-    hosts.forEach(function (_hostname) {
-      hostnames[inc] = _hostname.host_name;
-      inc++;
-    });
-    var hostExcAmbari = hostnames.without(location.hostname);
-    if (noOfHosts > 1) {
-      return hostExcAmbari[0];
-    } else {
-      return hostnames[0];
-    }
-  },
-
-  getHiveMetastore:function (noOfHosts) {
-    return this.getHiveServer(noOfHosts);
-  },
-
-  getWebHCatServer:function (noOfHosts) {
-    return this.getHiveServer(noOfHosts);
   },
 
   getZooKeeperServer:function (noOfHosts) {
@@ -418,38 +301,22 @@ App.WizardStep5Controller = Em.Controller.extend({
   },
 
   getGangliaServer:function (noOfHosts) {
-    var hosts = this.get('hosts');
-    var hostnames = [];
-    var inc = 0;
-    hosts.forEach(function (_hostname) {
-      hostnames[inc] = _hostname.host_name;
-      inc++;
-    });
-    var hostExcAmbari = hostnames.without(location.hostname);
+    var hostNames = this.get('hosts').mapProperty('host_name');
+    var hostExcAmbari = hostNames.without(location.hostname);
     if (noOfHosts > 1) {
       return hostExcAmbari[0];
     } else {
-      return hostnames[0];
+      return hostNames[0];
     }
   },
 
   getNagiosServer:function (noOfHosts) {
-    var hosts = this.get('hosts');
-    var hostnames = [];
-    var inc = 0;
-    hosts.forEach(function (_hostname) {
-      hostnames[inc] = _hostname.host_name;
-      inc++;
-    });
-    var hostExcAmbari = hostnames.without(location.hostname);
-    if (noOfHosts > 1) {
-      return hostExcAmbari[0];
-    } else {
-      return hostnames[0];
-    }
+    return this.getGangliaServer(noOfHosts);
   },
 
-
+  getHueServer:function (noOfHosts) {
+    return this.getGangliaServer(noOfHosts);
+  },
   /**
    * Return hostName of masterNode for specified service
    * @param componentName
@@ -459,27 +326,76 @@ App.WizardStep5Controller = Em.Controller.extend({
     var noOfHosts = this.get('hosts').length;
     switch (componentName) {
       case 'KERBEROS_SERVER':
-        return this.getKerberosServer(noOfHosts).host_name;
+        return this.getHostForComponent(noOfHosts, {
+          "3" : 1,
+          "6" : 1,
+          "31" : 3,
+          "else" : 5
+        }).host_name;
       case 'NAMENODE':
-        return this.getNameNode(noOfHosts).host_name;
+        return this.getHostForComponent(noOfHosts, {
+          "else" : 1
+        }).host_name;
       case 'SECONDARY_NAMENODE':
-        return this.getSNameNode(noOfHosts).host_name;
+        return this.getHostForComponent(noOfHosts, {
+          "else" : 1
+        }).host_name;
       case 'JOBTRACKER':
-        return this.getJobTracker(noOfHosts).host_name;
+        return this.getHostForComponent(noOfHosts, {
+          "3" : 1,
+          "6" : 1,
+          "31" : 1,
+          "else" : 2
+        }).host_name;
       case 'HISTORYSERVER':
-        return this.getHistoryServer(noOfHosts).host_name;
+        return this.getHostForComponent(noOfHosts, {
+          "3" : 1,
+          "6" : 1,
+          "31" : 1,
+          "else" : 2
+        }).host_name;
       case 'RESOURCEMANAGER':
-        return this.getResourceManager(noOfHosts).host_name;
+        return this.getHostForComponent(noOfHosts, {
+          "3" : 1,
+          "6" : 1,
+          "31" : 1,
+          "else" : 2
+        }).host_name;
       case 'HBASE_MASTER':
-        return [this.getHBaseMaster(noOfHosts).host_name];
+        return [this.getHostForComponent(noOfHosts, {
+          "3" : 0,
+          "6" : 0,
+          "31" : 2,
+          "else" : 3
+        }).host_name];
       case 'OOZIE_SERVER':
-        return this.getOozieServer(noOfHosts).host_name;
+        return this.getHostForComponent(noOfHosts, {
+          "3" : 1,
+          "6" : 1,
+          "31" : 2,
+          "else" : 3
+        }).host_name;
       case 'HIVE_SERVER':
-        return this.getHiveServer(noOfHosts).host_name;
+        return this.getHostForComponent(noOfHosts, {
+          "3" : 1,
+          "6" : 1,
+          "31" : 2,
+          "else" : 4
+        }).host_name;
       case 'HIVE_METASTORE':
-        return this.getHiveMetastore(noOfHosts).host_name;
+        return this.getHostForComponent(noOfHosts, {
+          "3" : 1,
+          "6" : 1,
+          "31" : 2,
+          "else" : 4
+        }).host_name;
       case 'WEBHCAT_SERVER':
-        return this.getWebHCatServer(noOfHosts).host_name;
+        return this.getHostForComponent(noOfHosts, {
+          "3" : 1,
+          "6" : 1,
+          "31" : 2,
+          "else" : 4
+        }).host_name;
       case 'ZOOKEEPER_SERVER':
         return this.getZooKeeperServer(noOfHosts);
       case 'GANGLIA_SERVER':

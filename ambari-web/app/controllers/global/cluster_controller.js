@@ -58,7 +58,6 @@ App.ClusterController = Em.Controller.extend({
     'users':false,
     'datasets':false,
     'targetclusters':false
-
   }),
 
   /**
@@ -164,13 +163,7 @@ App.ClusterController = Em.Controller.extend({
   }.property('App.router.updateController.isUpdated', 'dataLoadList.services', 'dataLoadList.hosts'),
 
   isNagiosInstalled:function () {
-    if (App.testMode) {
-      return true;
-    } else {
-      var svcs = App.Service.find();
-      var nagiosSvc = svcs.findProperty("serviceName", "NAGIOS");
-      return nagiosSvc != null;
-    }
+    return !!App.Service.find().findProperty('serviceName', 'NAGIOS');
   }.property('App.router.updateController.isUpdated', 'dataLoadList.services'),
 
   /**
