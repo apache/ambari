@@ -42,10 +42,11 @@ import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.ambari.server.state.svccomphost.HBaseMasterPortScanner;
 
 
@@ -72,8 +73,8 @@ public class HeartBeatHandler {
   private HeartbeatMonitor heartbeatMonitor;
   @Inject
   private Gson gson;
-  private Map<String, Long> hostResponseIds = new HashMap<String, Long>();
-  private Map<String, HeartBeatResponse> hostResponses = new HashMap<String, HeartBeatResponse>();
+  private Map<String, Long> hostResponseIds = new ConcurrentHashMap<String, Long>();
+  private Map<String, HeartBeatResponse> hostResponses = new ConcurrentHashMap<String, HeartBeatResponse>();
 
   @Inject
   public HeartBeatHandler(Clusters fsm, ActionQueue aq, ActionManager am,
@@ -101,7 +102,7 @@ public class HeartBeatHandler {
     HeartBeatResponse response;
     if (currentResponseId == null) {
       //Server restarted, or unknown host.
-      LOG.error("CurrentResponseId unknown - send register command");
+      LOG.error("CurrentResponseId unknown for " + hostname + " - send register command");
       return createRegisterCommand();
     }
 
