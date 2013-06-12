@@ -40,7 +40,6 @@ module.exports = {
         "status:"+jobData[i].status+"  \n"+
         "startTime:"+(new Date(jobData[i].submitTime).toUTCString())+"  \n"+
         "duration:"+formatDuration(jobData[i].finishTime - jobData[i].submitTime);
-console.log("info "+jobData[i].info);
       jobData[i].state = jobData[i].status==="FINISHED";
       minStartTime = Math.min(minStartTime, jobData[i].submitTime);
       maxFinishTime = Math.max(maxFinishTime, jobData[i].finishTime);
@@ -350,77 +349,61 @@ console.log("info "+jobData[i].info);
 
     // add node stage information
     var topstageg = svgg.append("svg:g");
-    var mouseg = svgg.append("svg:g");
-    var allstageg = topstageg.selectAll("g")
-      .data(nodes)
-      .enter().append("svg:g");
-    var stageg = allstageg.selectAll("g")
-      .data(function(d,i) { 
-        var stagedata = new Array(d.stages.length);
-        var cr = d.h / 2 - 2;
-        var cy = d.y + cr + 2;
-        var cxSpacing = d.w / stagedata.length;
-        if (cxSpacing < 2*cr)
-          cxSpacing = 2*cr;
-        var cxBase = d.x + cxSpacing / 2;
-        for (var j = 0; j < stagedata.length; j++)
-          stagedata[j] = {"data": d.stages[j],
-            "index": i,
-            "num": stagedata.length,
-            "cr": cr,
-            "cy": cy,
-            "cx":cxBase+j*cxSpacing,
-            "cxSpacing":cxSpacing};
-        return stagedata;
-      })
-      .enter().append("svg:g");
-    var path = stageg.append("svg:path")
-      .attr("class", function(d,i) {
-        if (i==d.num-1 || d.cxSpacing==2*d.cr) {
-          return "nopath";
-        } else {
-          return "link stage";
-        }
-      });
-    stageg.selectAll(".nopath").remove();
-    path.attr("d", function(d,i) {
-        var x1 = d.cx + d.cr;
-        var x2 = d.cx + d.cxSpacing - d.cr;
-        return "M "+x1+" "+d.cy+" L "+((x1+x2)/2)+" "+d.cy+" L "+x2+" "+d.cy;
-      } )
-      .attr("marker-end", function (d) {
-        return "url(#stage)";
-      });
-    stageg.append("svg:circle")
-      .attr("class", function(d,i) { return (i==0) ? "stage first" : "stage" })
-      .attr("r", function(d) { return d.cr })
-      .attr("cx", function(d) { return d.cx })
-      .attr("cy", function(d) { return d.cy })
-      .append("title")
-      .text(function(d,i) {
-        var t = "stage with "+d.data+" task";
-        if (d.data!=1)
-          t = t+"s";
-        if (i==0) 
-          t = "Map "+t;
-        else
-          t = "Reduce "+t;
-        return t;
-      });
+    for (var i = 0; i < numNodes; i++) {
+      var parentg = topstageg.append("svg:g")
+        .attr("class", "parent");
+      var d = nodes[i];
+      var cr = d.h / 2 - 2;
+      var cy = d.y + cr + 2;
+      var cxSpacing = d.w / d.stages.length;
+      if (cxSpacing < 2*cr)
+        cxSpacing = 2*cr;
+      var cxBase = d.x + cxSpacing / 2;
 
-    stageg.append("svg:text")
-      .attr("class", "stagelabel")
-      .attr("x", function(d) { return d.cx })
-      .attr("y", function(d) { return d.cy })
-      .text(function(d) { return d.data })
-      .attr("style", function(d) {
+      for (var j = 0; j < d.stages.length; j++) {
+        var data = d.stages[j];
+        var stageg = parentg.append("svg:g")
+          .attr("id", "child"+j);
+        var cx = cxBase + j*cxSpacing;
+        var x1 = cx + cr;
+        var x2 = cx + cxSpacing - cr;
+        if (cxSpacing!=2*cr && j!=d.stages.length-1) {
+          var path = stageg.append("svg:path")
+            .attr("class", "link stage")
+            .attr("d", "M "+x1+" "+cy+" L "+((x1+x2)/2)+" "+cy+" L "+x2+" "+cy)
+            .attr("marker-end", "url(#stage)");
+        }
+        if (j==0) {
+          stageg.append("svg:rect")
+            .attr("class", "stage")
+            .attr("x", cx - cr)
+            .attr("y", cy - cr)
+            .attr("width", 2*cr)
+            .attr("height", 2*cr)
+            .append("title")
+            .text("Map stage with "+data+" task"+(data != 1 ? "s" : ""));
+        } else {
+          stageg.append("svg:circle")
+            .attr("class", "stage")
+            .attr("r", cr)
+            .attr("cx", cx)
+            .attr("cy", cy)
+            .append("title")
+            .text("Reduce stage with "+data+" task"+(data != 1 ? "s" : ""));
+        }
         var fontSize = stageFontSize;
-        if (d.data > 9) fontSize = fontSize - 2;
-        if (d.data > 99) fontSize = fontSize - 4;
-        if (d.data > 999) fontSize = fontSize - 2;
-        if (d.data > 9999) fontSize = fontSize - 1;
-        return "font: "+fontSize+"px sans-serif";
-      });
+        if (data > 9) fontSize = fontSize - 2;
+        if (data > 99) fontSize = fontSize - 4;
+        if (data > 999) fontSize = fontSize - 2;
+        if (data > 9999) fontSize = fontSize - 1;
+        stageg.append("svg:text")
+          .attr("class", "stagelabel")
+          .attr("x", cx)
+          .attr("y", cy)
+          .text(data)
+          .attr("style", "font: "+fontSize+"px sans-serif");
+      }
+    }
 
     svg.call(d3.behavior.zoom().on("zoom", function() {
       var left = Math.min(Math.max(d3.event.translate[0]+margin.horizontal, margin.horizontal-w*d3.event.scale*scale), margin.horizontal+w);

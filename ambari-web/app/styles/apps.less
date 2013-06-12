@@ -570,14 +570,11 @@
   font-size: 10px;
 }
 
-#app_graph circle.stage {
+#app_graph circle.stage,
+#app_graph rect.stage,
+#app_graph_legend circle.stage {
   fill: lightblue;
   stroke: black;
-}
-
-#app_graph circle.stage.first {
-  fill: lightblue;
-  stroke: white;
 }
 
 #app_graph text.stagelabel {
@@ -619,21 +616,17 @@
     border: 1px solid #333;
     background: #ccc;
   }
-  svg rect.jobdone {
-    stroke: 1px solid #333;
-    fill: rgba(0,128,0,0.8);
-  }
   .jobdone {
     border: 1px solid #333;
     background: rgba(0,128,0,0.8);
   }
-  #map {
-    stroke: white;
-    fill: lightblue;
+  .map {
+    border: 1px solid black;
+    background: lightblue;
   }
-  #reduce {
-    stroke: black;
-    fill: lightblue;
+  .reduce {
+    stroke: white;
+    fill: white;
   }
 }
 
