@@ -430,7 +430,10 @@ console.log("info "+jobData[i].info);
   },
   formatDuration:function(d) {
     if (d==0) { return "0" }
-    var seconds = Math.floor(parseInt(d) / 1000);
+    var subseconds = parseInt(d) / 1000;
+    if (subseconds < 1)
+      return subseconds + "s";
+    var seconds = Math.floor(subseconds);
     if ( seconds < 60 )
       return seconds + "s";
     var minutes = Math.floor(seconds / 60);

@@ -28,6 +28,9 @@ App.appsMapper = App.QuickDataMapper.create({
       var result = [];
       json.apps.forEach(function (item) {
         var a = this.parseIt(item, this.config);
+        // assume a nonzero elapsed time (otherwise axis labels are blank)
+        if (a.finish_time < a.submit_time)
+          a.finish_time = a.submit_time + 1000;
         a.elapsed_time = a.finish_time - a.submit_time;
         a.num_stages = a.stages.length;
         result.push(a);
