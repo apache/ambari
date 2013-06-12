@@ -910,6 +910,8 @@ Trunk (unreleased changes):
 
  BUG FIXES
  
+ AMBARI-2369. B6 setup stops on Postgresql start on SLES11. (swagle) 
+
  AMBARI-2336. Datanode start failed (with Oracle DB) due to RCA setup. 
  (swagle)
 

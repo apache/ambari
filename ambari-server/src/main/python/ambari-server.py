@@ -155,7 +155,7 @@ PROMPT_DATABASE_OPTIONS = False
 USERNAME_PATTERN = "^[a-zA-Z_][a-zA-Z0-9_\-]*$"
 PASSWORD_PATTERN = "^[a-zA-Z0-9_-]*$"
 DATABASE_NAMES =["postgres", "oracle"]
-DATABASE_STORAGE_NAMES =["database","service","schema"]
+DATABASE_STORAGE_NAMES =["Database","Service","Schema"]
 DATABASE_PORTS =["5432", "1521", "3306"]
 DATABASE_DRIVER_NAMES = ["org.postgresql.Driver", "oracle.jdbc.driver.OracleDriver", "com.mysql.jdbc.Driver"]
 DATABASE_CONNECTION_STRINGS = ["jdbc:postgresql://{0}:{1}/{2}", "jdbc:oracle:thin:@{0}:{1}/{2}", "jdbc:mysql://{0}:{1}/{2}"]
@@ -752,7 +752,6 @@ def get_postgre_status():
   return pg_status 
 
 
-
 def check_postgre_up():
   pg_status = get_postgre_status()
   if pg_status == PG_STATUS_RUNNING:
@@ -764,8 +763,33 @@ def check_postgre_up():
     if retcode == 0:
       print out
     print "About to start PostgreSQL"
-    retcode, out, err = run_os_command(PG_START_CMD)
+    try:
+      process = subprocess.Popen(PG_START_CMD.split(' '),
+        stdout=subprocess.PIPE,
+        stdin=subprocess.PIPE,
+        stderr=subprocess.PIPE
+      )
+      time.sleep(5)
+      result = process.poll()
+      print_info_msg("Result of postgres start cmd: " + str(result))
+      if result is None:
+        process.kill()
+        pg_status = get_postgre_status()
+        if pg_status == PG_STATUS_RUNNING:
+          print_info_msg("Postgres process is running. Returning...")
+          return 0
+      else:
+        retcode = result
+    except (Exception), e:
+      pg_status = get_postgre_status()
+      if pg_status == PG_STATUS_RUNNING:
+        return 0
+      else:
+        print_error_msg("Postgres start failed. " + str(e))
+        return 1
+
     return retcode
+
 
 def update_ambari_properties():
   prev_conf_file = search_file(AMBARI_PROPERTIES_RPMSAVE_FILE, get_conf_dir())
@@ -1391,7 +1415,7 @@ def prompt_db_properties(args):
         pass
 
       args.database_name = get_validated_string_input(
-        DATABASE_STORAGE_NAMES[DATABASE_INDEX] + " name [" + args.database_name + "]:",
+        DATABASE_STORAGE_NAMES[DATABASE_INDEX] + " Name [" + args.database_name + "]:",
         args.database_name,
         "^[a-zA-z\-\"]+$",
         "Invalid " + DATABASE_STORAGE_NAMES[DATABASE_INDEX] + " name.",
