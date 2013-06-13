@@ -386,6 +386,8 @@ Em.I18n.translations = {
   'installer.step8.hosts':' hosts',
   'installer.step8.host':' host',
   'installer.step8.other':' and {0} other hosts',
+  'installer.step8.securityWarning':'You are running your cluster in secure mode. You must set up the keytabs for all the hosts you are adding before you proceed.',
+  'installer.step8.securityConfirmationPopupBody':'Before you proceed, please make sure that the keytabs have been set up on the hosts you are adding per the instructions on the Review page. Otherwise, the assigned components will not be able to start properly on the hosts being added.',
 
   'installer.step9.header':'Install, Start and Test',
   'installer.step9.body':'Please wait while the selected services are installed and started.',
@@ -900,6 +902,7 @@ Em.I18n.translations = {
   'host.host.componentFilter.slave':'Slave Components',
   'host.host.componentFilter.client':'Client Components',
   'hosts.host.addComponent.note':'Note: After this component is installed, go to Services -> Nagios to restart the Nagios service.  This is required for the alerts and notifications to work properly.',
+  'hosts.host.addComponent.securityNote':'You are running your cluster in secure mode. You must set up the keytab for {0} on {1} before you proceed. Otherwise, the component will not be able to start properly.',
   'hosts.host.datanode.decommission':'Decommission DataNode',
   'hosts.host.datanode.recommission':'Recommission DataNode',
 

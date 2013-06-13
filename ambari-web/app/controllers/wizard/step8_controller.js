@@ -32,6 +32,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   isSubmitDisabled: false,
   hasErrorOccurred: false,
   servicesInstalled: false,
+  securityEnabled: false,
   /**
    * During page save time, we set the host overrides to the server.
    * The new host -> site:tag map is stored below. This will be
@@ -72,6 +73,9 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   loadStep: function () {
     console.log("TRACE: Loading step8: Review Page");
+    if (this.get('content.controllerName') != 'installerController') {
+      this.set('securityEnabled', App.router.get('mainAdminSecurityController').getUpdatedSecurityStatus());
+    }
     this.clearStep();
     this.loadGlobals();
     this.loadConfigs();
@@ -851,11 +855,21 @@ App.WizardStep8Controller = Em.Controller.extend({
    * Onclick handler for <code>next</code> button
    */
   submit: function () {
-
     if (this.get('isSubmitDisabled')) {
       return;
     }
+    if ((this.get('content.controllerName') == 'addHostController') && this.get('securityEnabled')) {
+      var self = this;
+      App.showConfirmationPopup(function() {
+        self.submitProceed();
+      }, Em.I18n.t('installer.step8.securityConfirmationPopupBody'));
+    }
+    else {
+      this.submitProceed();
+    }
+  },
 
+  submitProceed: function() {
     this.set('isSubmitDisabled', true);
 
     // checkpoint the cluster status on the server so that the user can resume from where they left off
@@ -907,7 +921,6 @@ App.WizardStep8Controller = Em.Controller.extend({
       App.router.send('next');
     };
     this.doNextAjaxCall();
-
   },
 
   /**

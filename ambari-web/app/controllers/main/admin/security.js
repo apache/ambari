@@ -46,7 +46,6 @@ App.MainAdminSecurityController = Em.Controller.extend({
     if (!this.get('isSubmitDisabled')) {
       App.ModalPopup.show({
         header: Em.I18n.t('admin.security.disable.popup.header'),
-        primary: 'OK',
         secondary: null,
         onPrimary: function () {
           App.db.setSecurityDeployStages(undefined);
@@ -61,9 +60,11 @@ App.MainAdminSecurityController = Em.Controller.extend({
     }
   },
 
-  /**
-   * return true if security status is loaded and false otherwise
-   */
+  getUpdatedSecurityStatus: function() {
+    this.setSecurityStatus();
+    return this.get('securityEnabled');
+  },
+
   setSecurityStatus: function () {
     if (App.testMode) {
       this.set('securityEnabled', !App.testEnableSecurity);
@@ -147,7 +148,7 @@ App.MainAdminSecurityController = Em.Controller.extend({
 
   showSecurityErrorPopup: function () {
     App.ModalPopup.show({
-      header: Em.I18n.translations['common.error'],
+      header: Em.I18n.t('common.error'),
       secondary: false,
       onPrimary: function () {
         this.hide();
