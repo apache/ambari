@@ -79,9 +79,9 @@ App.UpdateController = Em.Controller.extend({
     var self = this;
     self.set('isUpdated', false);
     var servicesUrl = isInitialLoad ? 
-      this.getUrl('/data/dashboard/services.json', '/services?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles') :
-      // this.getUrl('/data/dashboard/services.json', '/services?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles,components/host_components/metrics/jvm/memHeapUsedM,components/host_components/metrics/jvm/memHeapCommittedM,components/host_components/metrics/mapred/jobtracker/trackers_decommissioned,components/host_components/metrics/cpu,components/host_components/metrics/rpc/RpcQueueTime_avg_time');
-      this.getUrl('/data/dashboard/services.json', '/services?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles,components/host_components/metrics');
+      //this.getUrl('/data/dashboard/services.json', '/services?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles') :
+      this.getUrl('/data/dashboard/services.json', '/services?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles,components/host_components/metrics/jvm/memHeapUsedM,components/host_components/metrics/jvm/memHeapCommittedM,components/host_components/metrics/mapred/jobtracker/trackers_decommissioned,components/host_components/metrics/cpu/cpu_wio,components/host_components/metrics/rpc/RpcQueueTime_avg_time'):
+      this.getUrl('/data/dashboard/services.json', '/services?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles,components/host_components/metrics/jvm/memHeapUsedM,components/host_components/metrics/jvm/memHeapCommittedM,components/host_components/metrics/mapred/jobtracker/trackers_decommissioned,components/host_components/metrics/cpu/cpu_wio,components/host_components/metrics/rpc/RpcQueueTime_avg_time');
     var callback = callback || function (jqXHR, textStatus) {
       self.set('isUpdated', true);
     };
