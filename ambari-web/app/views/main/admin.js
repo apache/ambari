@@ -33,14 +33,12 @@ App.MainAdminView = Em.View.extend({
         url: 'adminSecurity.index',
         label: Em.I18n.t('common.security')
       });
-    }
-    if (App.supports.stackUpgrade) {
-      items.push({
-        name: 'cluster',
-        url: 'adminCluster',
-        label: Em.I18n.t('common.cluster')
-      });
-    }
+    };
+    items.push({
+      name: 'cluster',
+      url: 'adminCluster',
+      label: Em.I18n.t('common.cluster')
+    });
     items.push({
       name: 'misc',
       url: 'adminMisc',
