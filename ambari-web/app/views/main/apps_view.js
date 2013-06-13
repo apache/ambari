@@ -175,7 +175,7 @@ App.MainAppsView = Em.View.extend({
   typeFilterView: filters.createSelectView({
     fieldType: 'input-small',
     valueBinding: "controller.filterObject.runType",
-    content: ['Any', 'Pig', 'Hive', 'MapReduce']
+    content: ['Any', 'Pig', 'Hive', 'MapReduce', 'Yarn']
   }),
 
   /**

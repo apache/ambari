@@ -91,8 +91,8 @@ module.exports = {
     //                 nodeHeight = 40, labelFontSize = 20, maxLabelWidth = 260
     //                 nodeHeight = 30, labelFontSize = 16
     var nodeHeight = nodeHeight || 26;
-    var labelFontSize = labelFontSize || 14;
-    var maxLabelWidth = maxLabelWidth || 165;
+    var labelFontSize = labelFontSize || 12;
+    var maxLabelWidth = maxLabelWidth || 180;
     var axisPadding = axisPadding || 30;
     var stageFontSize = stageFontSize || 16;
 

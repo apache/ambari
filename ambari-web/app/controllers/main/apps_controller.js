@@ -124,6 +124,8 @@ App.MainAppsController = Em.ArrayController.extend({
         this.set("sSearch_2","hive");
       }else if(this.runType == "Pig"){
         this.set("sSearch_2","pig");
+      }else if(this.runType == "Yarn"){
+        this.set("sSearch_2","yarn");
       }else{
         this.set("sSearch_2","");
       }

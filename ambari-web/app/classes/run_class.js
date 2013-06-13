@@ -99,6 +99,9 @@ App.Run2 = Ember.Object.extend({
     if (this.get('id').indexOf('mr_') === 0 || this.get('id').indexOf('mapreduce_') === 0) {
       return 'MapReduce';
     }
+    if (this.get('id').indexOf('yarn_') === 0) {
+      return 'Yarn';
+    }
     return 'Undefined';
   }.property('id')
 });

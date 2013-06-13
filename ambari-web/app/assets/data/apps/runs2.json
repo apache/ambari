@@ -1,9 +1,9 @@
 {
   "sEcho": 0,
-  "iTotalRecords": 4,
-  "iTotalDisplayRecords": 4,
+  "iTotalRecords": 6,
+  "iTotalDisplayRecords": 6,
   "startIndex": 0,
-  "endIndex": 3,
+  "endIndex": 5,
   "aaData": [
     {
       "workflowId": "mapreduce_201301280808_0001",
@@ -98,10 +98,51 @@
           ]
         }
       }
+    },
+    {
+      "workflowId": "pig_c1af4446-64d2-46fb-be69-6363e7ec89fe",
+      "workflowName": "script1-hadoop.pig",
+      "userName": "ambari-qa",
+      "startTime": 1371141211530,
+      "elapsedTime": 272214,
+      "inputBytes": 0,
+      "outputBytes": 0,
+      "numJobsTotal": 5,
+      "numJobsCompleted": 5,
+      "workflowContext": {
+        "workflowDag": {
+          "entries": [
+            { "source": "scope-103", "targets": [] },
+            { "source": "scope-72", "targets": [ "scope-80" ] },
+            { "source": "scope-80", "targets": [ "scope-83" ] },
+            { "source": "scope-83", "targets": [ "scope-86" ] },
+            { "source": "scope-86", "targets": [ "scope-103" ] }
+          ]
+        }
+      },
+      "workflowTags": ""
+    },
+    {
+      "workflowId": "yarn_1371140159837_0001",
+      "workflowName": "yarnservicecheck",
+      "userName": "hdfs",
+      "startTime": 1371140224391,
+      "elapsedTime": 9523,
+      "inputBytes": 0,
+      "outputBytes": 0,
+      "numJobsTotal": 1,
+      "numJobsCompleted": 1,
+      "workflowContext": {
+        "workflowDag": {
+          "entries": [
+            { "source": "1", "targets": [] }
+          ]
+        }
+      }
     }
   ],
   "summary": {
-    "numRows": 4,
+    "numRows": 6,
     "jobs": {
       "avg": 1,
       "min": 1,
