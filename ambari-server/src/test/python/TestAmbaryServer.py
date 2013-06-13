@@ -663,20 +663,26 @@ class TestAmbariServer(TestCase):
     self.assertEqual(None, result)
 
 
-
-  @patch.object(ambari_server, "run_os_command")
+  @patch("subprocess.Popen")
+  @patch.object(ambari_server, 'run_os_command')
   @patch.object(ambari_server, "get_postgre_status")
-  def test_check_postgre_up(self, get_postgre_status_mock, run_os_command_mock):
+  def test_check_postgre_up(self, get_postgre_status_mock,
+                            run_os_command_method, popen_mock):
 
     out = StringIO.StringIO()
     sys.stdout = out
 
+    p = MagicMock()
+    p.poll.return_value = 0
+    popen_mock.return_value = p
     get_postgre_status_mock.return_value = ambari_server.PG_STATUS_RUNNING
+    run_os_command_method.return_value = (0, None, None)
+
     rcode = ambari_server.check_postgre_up()
     self.assertEqual(0, rcode)
 
-    run_os_command_mock.return_value = (4, None, None)
     get_postgre_status_mock.return_value = None
+    p.poll.return_value = 4
     rcode = ambari_server.check_postgre_up()
     self.assertEqual(4, rcode)
 
