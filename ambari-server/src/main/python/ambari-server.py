@@ -685,7 +685,7 @@ def check_postgre_up():
     print_info_msg ("PostgreSQL is running")
     return 0
   else:
-    print "Run initdb"
+    print "Running initdb: This may take upto a minute."
     retcode, out, err = run_os_command(PG_INITDB_CMD)
     if retcode == 0:
       print out
