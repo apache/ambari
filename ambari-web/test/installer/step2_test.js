@@ -49,14 +49,25 @@ describe('App.WizardStep2Controller', function () {
     });
 
     it('should return true if all host names are valid', function(){
-      controller.set('hostNames', 'amache ambari');
+      controller.set('hostNames', 'amache.org ambari.com');
       expect(controller.isAllHostNamesValid()).to.equal(true);
     })
 
-    /*it('should return false if there is invalid host names', function(){
-      controller.set('hostNames', 'amache #@$ ambari');
-      expect(controller.isAllHostNamesValid()).to.equal(false);
-    })*/
+    var tests = [
+      'hostname',
+      '-hostname.com',
+      'hostname-.com',
+      'host_name.com',
+      '123.123.123.123',
+      'hostnamehostnamehostnamehostnamehostnamehostnamehostnamehostname.hostnamehostnamehostnamehostnamehostnamehostnamehostnamehostname.hostnamehostnamehostnamehostnamehostnamehostnamehostnamehostname.hostnamehostnamehostnamehostnamehostnamehostnamehostnamehostname',
+      'hostnamehostnamehostnamehostnamehostnamehostnamehostnamehostnamehostname.hostname'
+    ];
+    tests.forEach(function (test) {
+      it('should return false for invalid host names ' + test + ' ', function () {
+        controller.set('hostNames', test);
+        expect(controller.isAllHostNamesValid()).to.equal(false);
+      });
+    });
   })
 
   describe('#checkHostError()', function () {
@@ -214,12 +225,13 @@ describe('App.WizardStep2Controller', function () {
 
     it('should call manualInstallPopup if manualInstall is true', function (done) {
       var controller = App.WizardStep2Controller.create({
+        hostNames: '',
         manualInstall: true,
         manualInstallPopup: function () {
           done();
         }
       });
-      controller.proceedNext();
+      controller.proceedNext(true);
     })
   })
 

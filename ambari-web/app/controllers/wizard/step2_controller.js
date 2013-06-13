@@ -52,10 +52,7 @@ App.WizardStep2Controller = Em.Controller.extend({
   }.property('manualInstall'),
 
   isHostNameValid: function (hostname) {
-    // disabling hostname validation as we don't want to be too restrictive and disallow
-    // user's hostnames
-    // return validator.isHostname(hostname) && (!(/^\-/.test(hostname) || /\-$/.test(hostname)));
-    return true;
+    return validator.isHostname(hostname);
   },
   /**
    * set not installed hosts to the hostNameArr
@@ -75,20 +72,23 @@ App.WizardStep2Controller = Em.Controller.extend({
     }
     this.set('hostNameArr', tempArr);
   },
+
+  invalidHostNames: [],
+
   /**
    * validate host names
    * @return {Boolean}
    */
   isAllHostNamesValid: function () {
-    var self = this;
     var result = true;
     this.updateHostNameArr();
-
+    this.get('invalidHostNames').clear();
     this.hostNameArr.forEach(function(hostName){
-      if (!self.isHostNameValid(hostName)) {
+      if (!this.isHostNameValid(hostName)) {
+        this.get('invalidHostNames').push(hostName);
         result = false;
       }
-    });
+    }, this);
 
     return result;
   },
@@ -102,12 +102,7 @@ App.WizardStep2Controller = Em.Controller.extend({
       this.set('hostsError', Em.I18n.t('installer.step2.hostName.error.required'));
     }
     else {
-      if (this.isAllHostNamesValid() === false) {
-        this.set('hostsError', Em.I18n.t('installer.step2.hostName.error.invalid'));
-      }
-      else {
-        this.set('hostsError', null);
-      }
+      this.set('hostsError', null);
     }
   },
 
@@ -236,7 +231,12 @@ App.WizardStep2Controller = Em.Controller.extend({
    * and save already registered hosts
    * @return {Boolean}
    */
-  proceedNext: function(){
+  proceedNext: function(warningConfirmed){
+    if (this.isAllHostNamesValid() !== true && !warningConfirmed) {
+      this.warningPopup();
+      return false;
+    }
+
     if (this.get('manualInstall') === true) {
       this.manualInstallPopup();
       return false;
@@ -257,6 +257,23 @@ App.WizardStep2Controller = Em.Controller.extend({
       this.set('content.installOptions.bootRequestId', requestId);
       this.saveHosts();
     }
+  },
+
+  /**
+   * show warning for host names without dots or IP addresses
+   */
+  warningPopup: function () {
+    var self = this;
+    App.ModalPopup.show({
+      header: Em.I18n.t('common.warning'),
+      onPrimary: function () {
+        this.hide();
+        self.proceedNext(true);
+      },
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile(Em.I18n.t('installer.step2.warning.popup.body').format(self.get('invalidHostNames').join(', ')))
+      })
+    });
   },
 
   /**

@@ -41,4 +41,19 @@ describe('misc', function () {
     });
   });
 
+  describe('#ipToInt', function () {
+    var tests = [
+      {m:'0.0.0.0 to 0',i:'0.0.0.0',e:0},
+      {m:'255.255.255.255 to 4294967295',i:'255.255.255.255',e:4294967295},
+      {m:'"" to false',i:'',e:false},
+      {m:'255.255.255.256 to false',i:'255.255.255.256',e:false},
+      {m:'255.255.255 to false',i:'255.255.255',e:false}
+    ];
+    tests.forEach(function(test) {
+      it(test.m + ' ', function () {
+        expect(misc.ipToInt(test.i)).to.equal(test.e);
+      });
+    });
+  });
+
 });

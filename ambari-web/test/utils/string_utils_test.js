@@ -69,4 +69,17 @@ describe('string_utils', function () {
     });
   });
 
+  describe('#isSingleLine', function () {
+    var tests = [
+      {m: 'is single line text', t: 'a b', e: true},
+      {m: 'is single line text', t: 'a b\n', e: true},
+      {m: 'is single line text', t: '\na b', e: true},
+      {m: 'is not single line text', t: 'a\nb', e: false}
+    ];
+    tests.forEach(function(test) {
+      it(test.t + ' ' + test.m + ' ', function () {
+        expect(string_utils.isSingleLine(test.t)).to.equal(test.e);
+      });
+    });
+  });
 });

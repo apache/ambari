@@ -286,6 +286,7 @@ Em.I18n.translations = {
   'installer.step2.manualInstall.tooltip.content':'Manually registering the Ambari Agent on each host eliminates the need for SSH and should be performed prior to continuing cluster installation.',
   'installer.step2.manualInstall.popup.header':'Before You Proceed',
   'installer.step2.manualInstall.popup.body':'You must install Ambari Agents on each host you want to manage before you proceed.',
+  'installer.step2.warning.popup.body':'<p>The following hostnames are not valid FQDNs:</p><p> {0} </p><p>This may cause problems during installation. Do you want to continue?</p>',
   'installer.step2.orUse':'Or use',
   'installer.step2.registerAndConfirm':'Register and Confirm',
   'installer.step2.evaluateStep.installedHosts':'These hosts are already installed on the cluster and will be ignored:',
