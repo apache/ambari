@@ -1427,6 +1427,16 @@ App.WizardStep8Controller = Em.Controller.extend({
     var isHcatSelected = this.get('selectedServices').someProperty('serviceName', 'WEBHCAT');
     var hcatUser = this.get('globals').someProperty('name', 'hcat_user') ? this.get('globals').findProperty('name', 'hcat_user').value : null;
     var isHCFSSelected = this.get('selectedServices').someProperty('serviceName', 'HCFS');
+    if (!isHCFSSelected) {
+      // screen out the HCFS-specific core-site.xml entries
+      HCFSOnly = ["fs.glusterfs.automount", "fs.glusterfs.impl", "fs.glusterfs.volname", "fs.glusterfs.mount", "fs.glusterfs.server"];
+      HCFSOnly.forEach(function (_HCFSOnly) {
+        configToRemove = coreSiteObj.findProperty("name", _HCFSOnly);
+        if(configToRemove) {
+          coreSiteObj.removeObject(configToRemove);
+        }        
+      }, this);      
+    }
     coreSiteObj.forEach(function (_coreSiteObj) {
       if ((isOozieSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.groups')) && (isHiveSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.groups')) && (isHcatSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.groups'))) {
         coreSiteProperties[_coreSiteObj.name] = _coreSiteObj.value;
