@@ -584,21 +584,17 @@ class TestAmbariServer(TestCase):
   @patch("os.stat")
   @patch("os.path.isfile")
   @patch("os.path.exists")
-  @patch("__builtin__.open")
   @patch.object(ambari_server, "track_jdk")
   @patch.object(ambari_server, "get_YN_input")
   @patch.object(ambari_server, "run_os_command")
-  @patch.object(ambari_server, "Properties")
   @patch.object(ambari_server, "write_property")
   @patch.object(ambari_server, "print_info_msg")
   @patch.object(ambari_server, "get_JAVA_HOME")
-  @patch.object(ambari_server, "get_conf_dir")
-  @patch.object(ambari_server, "search_file")
-  def test_download_jdk(self, search_file_mock, get_conf_dir_mock,
+  @patch.object(ambari_server, "get_ambari_properties")
+  def test_download_jdk(self, get_ambari_properties_mock,
                         get_JAVA_HOME_mock, print_info_msg_mock,
-                        write_property_mock, Properties_mock,
-                        run_os_command_mock, get_YN_input_mock, track_jdk_mock,
-                        openMock, path_existsMock,
+                        write_property_mock, run_os_command_mock,
+                        get_YN_input_mock, track_jdk_mock, path_existsMock,
                         path_isfileMock, statMock):
 
     out = StringIO.StringIO()
@@ -606,15 +602,16 @@ class TestAmbariServer(TestCase):
 
     args = MagicMock()
     args.java_home = "somewhere"
-    search_file_mock.return_value = None
+    path_existsMock.return_value = False
+    get_JAVA_HOME_mock.return_value = False
+    get_ambari_properties_mock.return_value = -1
 
     rcode = ambari_server.download_jdk(args)
 
     self.assertEqual(-1, rcode)
-    self.assertTrue(search_file_mock.called)
-    self.assertTrue(get_conf_dir_mock.called)
+    self.assertTrue(get_ambari_properties_mock.called)
 
-    search_file_mock.return_value = "something"
+    #search_file_mock.return_value = "something"
     get_JAVA_HOME_mock.return_value = True
     path_existsMock.return_value = True
     rcode = ambari_server.download_jdk(args)
@@ -625,14 +622,9 @@ class TestAmbariServer(TestCase):
     self.assertEqual(0, rcode)
     self.assertTrue(write_property_mock.called)
 
-    p = MagicMock()
-    Properties_mock.return_value = p
-    openMock.side_effect = Exception("test exception")
     path_existsMock.return_value = False
-    rcode = ambari_server.download_jdk(args)
-    self.assertEqual(-1, rcode)
-
-    openMock.side_effect = None
+    p = MagicMock()
+    get_ambari_properties_mock.return_value = p
     p.__getitem__.side_effect = KeyError("test exception")
     rcode = ambari_server.download_jdk(args)
     self.assertEqual(-1, rcode)
@@ -694,30 +686,21 @@ class TestAmbariServer(TestCase):
 
   @patch("platform.linux_distribution")
   @patch("platform.system")
-  @patch("__builtin__.open")
-  @patch.object(ambari_server, "Properties")
   @patch.object(ambari_server, "print_info_msg")
   @patch.object(ambari_server, "print_error_msg")
-  @patch.object(ambari_server, "search_file")
+  @patch.object(ambari_server, "get_ambari_properties")
+  @patch.object(ambari_server, "write_property")
   @patch.object(ambari_server, "get_conf_dir")
-  def test_configure_os_settings(self, get_conf_dir_mock, search_file_mock,
-                                 print_error_msg_mock, print_info_msg_mock,
-                                 Properties_mock, openMock, systemMock,
-                                 distMock):
+  def test_configure_os_settings(self, get_conf_dir_mock, write_property_mock, get_ambari_properties_mock, print_error_msg_mock,
+                                 print_info_msg_mock, systemMock, distMock):
 
-    search_file_mock.return_value = None
+    get_ambari_properties_mock.return_value = -1
     rcode = ambari_server.configure_os_settings()
     self.assertEqual(-1, rcode)
-
-    search_file_mock.return_value = "something"
+    
     p = MagicMock()
-    Properties_mock.return_value = p
-    openMock.side_effect = Exception("exception")
-    rcode = ambari_server.configure_os_settings()
-    self.assertEqual(-1, rcode)
-
-    p.__getitem__.return_value = "something"
-    openMock.side_effect = None
+    p[ambari_server.OS_TYPE_PROPERTY] = 'somevalue'
+    get_ambari_properties_mock.return_value = p
     rcode = ambari_server.configure_os_settings()
     self.assertEqual(0, rcode)
 
@@ -728,10 +711,9 @@ class TestAmbariServer(TestCase):
 
     systemMock.return_value = "Linux"
     distMock.return_value = ("CentOS", "6.3", None)
-    f = MagicMock()
-    openMock.return_value = f
     rcode = ambari_server.configure_os_settings()
     self.assertEqual(0, rcode)
+    self.assertTrue(write_property_mock.called)
 
 
 
@@ -1011,13 +993,14 @@ class TestAmbariServer(TestCase):
     self.assertEqual(4, len(get_choice_string_input_mock.call_args_list[0][0]))
 
   @patch("sys.exit")
+  @patch.object(ambari_server, "download_jdk")
   @patch.object(ambari_server, "get_db_cli_tool")
   @patch.object(ambari_server, "store_remote_properties")
   @patch.object(ambari_server, "is_local_database")
   @patch.object(ambari_server, "check_iptables")
   @patch.object(ambari_server, "check_jdbc_drivers")
   def test_setup_remote_db_wo_client(self, check_jdbc_drivers_mock, check_iptables_mock, is_local_db_mock,
-                                     store_remote_properties_mock, get_db_cli_tool_mock, exit_mock):
+                                     store_remote_properties_mock, get_db_cli_tool_mock, download_jdk_mock, exit_mock):
 
     out = StringIO.StringIO()
     sys.stdout = out
@@ -1066,6 +1049,101 @@ class TestAmbariServer(TestCase):
 
     sys.stdout = sys.__stdout__
 
+
+  @patch.object(ambari_server, "get_ambari_properties")
+  @patch.object(ambari_server, "find_jdbc_driver")
+  @patch.object(ambari_server, "copy_files")
+  @patch.object(ambari_server, "print_error_msg")
+  @patch.object(ambari_server, "print_warning_msg")
+  @patch('__builtin__.raw_input')
+  @patch("sys.exit")
+  def test_check_jdbc_drivers(self, exit_mock, raw_input_mock, print_warning_msg, print_error_msg_mock, copy_files_mock,
+                              find_jdbc_driver_mock, get_ambari_properties_mock):
+
+    out = StringIO.StringIO()
+    sys.stdout = out
+
+    args = MagicMock()
+    
+    # Check positive scenario
+    drivers_list = ['driver_file']
+    resources_dir = '/tmp'
+    
+    get_ambari_properties_mock.return_value = {ambari_server.RESOURCES_DIR_KEY : resources_dir}
+    find_jdbc_driver_mock.return_value = drivers_list
+    
+    args.database = "oracle"
+    
+    rcode = ambari_server.check_jdbc_drivers(args)
+    
+    self.assertEqual(0, rcode)
+    copy_files_mock.assert_called_with(drivers_list, resources_dir)
+    
+    # Check negative scenarios
+    # Silent option, no drivers
+    ambari_server.SILENT = True
+    
+    find_jdbc_driver_mock.return_value = -1
+    
+    rcode = ambari_server.check_jdbc_drivers(args)
+    
+    self.assertTrue(print_error_msg_mock.called)
+    self.assertTrue(exit_mock.called)
+    
+    # Non-Silent option, no drivers
+    ambari_server.SILENT = False
+    
+    find_jdbc_driver_mock.return_value = -1
+    
+    rcode = ambari_server.check_jdbc_drivers(args)
+    
+    self.assertTrue(exit_mock.called)
+    self.assertTrue(print_error_msg_mock.called)
+    
+    # Non-Silent option, no drivers at first ask, present drivers after that
+    
+    find_jdbc_driver_mock.side_effect = [-1, drivers_list]
+    
+    rcode = ambari_server.check_jdbc_drivers(args)
+    
+    self.assertEqual(0, rcode)
+    copy_files_mock.assert_called_with(drivers_list, resources_dir)
+    
+    # Non-Silent option, no drivers at first ask, present drivers after that
+    find_jdbc_driver_mock.reset()
+    find_jdbc_driver_mock.side_effect = [-1, -1]
+    
+    rcode = ambari_server.check_jdbc_drivers(args)
+    
+    self.assertTrue(exit_mock.called)
+    self.assertTrue(print_error_msg_mock.called)
+    
+    
+    sys.stdout = sys.__stdout__
+    
+    
+  @patch.object(ambari_server, "search_file")
+  def test_get_ambari_properties(self, search_file_mock):
+
+    search_file_mock.return_value = None
+    rcode = ambari_server.get_ambari_properties()
+    self.assertEqual(rcode, -1)
+  
+    tf1 = tempfile.NamedTemporaryFile()
+    search_file_mock.return_value = tf1.name
+    prop_name='name'
+    prop_value='val'
+    
+    with open(tf1.name, 'w') as fout:
+      fout.write(prop_name + '=' + prop_value)
+    fout.close()
+
+    properties = ambari_server.get_ambari_properties()
+    
+    self.assertEqual(properties[prop_name], prop_value)
+    self.assertEqual(properties.fileName, os.path.abspath(tf1.name))
+    
+    sys.stdout = sys.__stdout__
 
   @patch.object(ambari_server, "search_file")
   def test_parse_properties_file(self, search_file_mock):
