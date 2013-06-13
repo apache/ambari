@@ -36,8 +36,9 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   }.property('content.services'),
 
   isWebHcatSelected: function () {
-    return this.get('content.services').someProperty('serviceName', 'WEBHCAT');
-  }.property('content.services'),
+    var installedServices = App.Service.find().mapProperty('serviceName');
+    return installedServices.contains('WEBHCAT');
+  },
 
   serviceUsersBinding: 'App.router.mainAdminSecurityController.serviceUsers',
   hasHostPopup: true,
@@ -77,6 +78,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         runningStage.set('isStarted', false);
       }
       this.get('stages').pushObjects(stages);
+      this.updateServices();
     }
 
     this.moveToNextStage();
@@ -208,13 +210,13 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     if (this.get('globalProperties').someProperty('name', name)) {
       var globalProperty = this.get('globalProperties').findProperty('name', name);
       newValue = globalProperty.value;
-      var isInstanceName = this.get('globalProperties').findProperty('name', 'instance_name');
+      var isInstanceName = this.get('globalProperties').findProperty('name', 'instance_name').value;
       if (isInstanceName === true || isInstanceName === 'true') {
         if (/primary_name?$/.test(globalProperty.name) && property !== 'hadoop.security.auth_to_local' && property !== 'oozie.authentication.kerberos.name.rules') {
           if (this.get('isOozieSelected') && (property === 'oozie.service.HadoopAccessorService.kerberos.principal' || property === 'oozie.authentication.kerberos.principal')) {
             var oozieServerName = App.Service.find('OOZIE').get('hostComponents').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
             newValue = newValue + '/' + oozieServerName;
-          } else if (this.get('isWebHcatSelected') && property === 'templeton.kerberos.principal') {
+          } else if (this.isWebHcatSelected() && (property === 'templeton.kerberos.principal')) {
             var webHcatName = App.Service.find('WEBHCAT').get('hostComponents').findProperty('componentName', 'WEBHCAT_SERVER').get('host.hostName');
             newValue = newValue + '/' + webHcatName;
           } else {
@@ -429,6 +431,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         this.get('globalProperties').forEach(function (_globalProperty) {
           _serviceConfigTags.configs[_globalProperty.name] = _globalProperty.value;
         }, this);
+        _serviceConfigTags.configs.security_enabled = 'true';
       }
       else {
         this.get('configs').filterProperty('id', 'site property').filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
@@ -450,6 +453,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         isSuccess: _stage.get('isSuccess'),
         isError: _stage.get('isError'),
         url: _stage.get('url'),
+        polledData: _stage.get('polledData'),
         data: _stage.get('data')
       };
       stages.pushObject(stage);

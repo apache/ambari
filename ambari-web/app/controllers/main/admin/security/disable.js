@@ -60,6 +60,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
         runningStage.set('isStarted', false);
       }
       this.get('stages').pushObjects(stages);
+      this.updateServices();
     }
     this.loadSecureServices();
     this.moveToNextStage();
@@ -252,6 +253,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
   loadSecureServices: function () {
     var secureServices = require('data/secure_configs');
     var installedServices = App.Service.find().mapProperty('serviceName');
+    this.get('secureServices').push(secureServices.findProperty('serviceName', 'GENERAL'));
     //General (only non service tab) tab is always displayed
     installedServices.forEach(function (_service) {
       var secureService = secureServices.findProperty('serviceName', _service);
@@ -288,7 +290,6 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
   applyConfigurationToClusterSuccessCallback: function (data) {
     this.set('noOfWaitingAjaxCalls', this.get('noOfWaitingAjaxCalls') - 1);
     if (this.get('noOfWaitingAjaxCalls') == 0) {
-      App.router.get('mainAdminSecurityController').setDisableSecurityStatus(undefined);
       var currentStage = this.get('stages').findProperty('stage', 'stage3');
       currentStage.set('isSuccess', true);
     }
@@ -309,6 +310,8 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
           }
         }, this);
         _serviceConfigTags.configs.security_enabled = 'false';
+        _serviceConfigTags.configs.dfs_datanode_address = '50010';
+        _serviceConfigTags.configs.dfs_datanode_http_address = '50075';
       } else {
         this.get('secureMapping').filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
           var configName = _config.name;
@@ -357,6 +360,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
         isSuccess: _stage.get('isSuccess'),
         isError: _stage.get('isError'),
         url: _stage.get('url'),
+        polledData: _stage.get('polledData'),
         data: _stage.get('data')
       };
       stages.pushObject(stage);
