@@ -334,6 +334,9 @@
                 <source>
                   <location>src/main/resources/Ambari-DDL-MySQL-DROP.sql</location>
                 </source>
+                 <source>
+                  <location>src/main/resources/hive-schema-0.10.0.oracle.sql</location>
+                </source>
               </sources>
             </mapping>
             <mapping>
