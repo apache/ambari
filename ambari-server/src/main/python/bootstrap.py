@@ -250,6 +250,10 @@ class PSCP:
 pass    
     
 class BootStrap:
+  TEMP_FOLDER = "/tmp"
+  OS_CHECK_SCRIPT_FILE_TEMPLATE = "os_type_check{0}.sh"
+
+  
   """ BootStrapping the agents on a list of hosts"""
   def __init__(self, hosts, user, sshkeyFile, scriptDir, boottmpdir, setupAgentFile, ambariServer, cluster_os_type, ambariVersion, passwordFile = None):
     self.hostlist = hosts
@@ -265,7 +269,15 @@ class BootStrap:
     self.ambariVersion = ambariVersion
     self.passwordFile = passwordFile
     self.statuses = None
+    """Prepare temp file names"""
+    self.osCheckScriptRemoteLocation = os.path.join(self.TEMP_FOLDER, self.generateRandomFileName(self.OS_CHECK_SCRIPT_FILE_TEMPLATE))
     pass
+
+  def generateRandomFileName(self, fileNameTemplate):
+    if fileNameTemplate == None:
+      return self.getUtime()
+    else:
+      return fileNameTemplate.format(self.getUtime())
 
   # This method is needed  to implement the descriptor protocol (make object  to pass self reference to mockups)
   def __get__(self, obj, objtype):
@@ -293,8 +305,14 @@ class BootStrap:
   def getOsCheckScript(self):
     return os.path.join(self.scriptDir, "os_type_check.sh")
 
+  def getOsCheckScriptRemoteLocation(self):
+    return self.osCheckScriptRemoteLocation
+
   def getSetupScript(self):
     return os.path.join(self.scriptDir, "setupAgent.py")
+
+  def getUtime(self):
+    return int(time.time())
 
   def getPasswordFile(self):
     return "/tmp/host_pass"
@@ -314,13 +332,13 @@ class BootStrap:
     else:
       return self.getMoveRepoFileWithoutPasswordCommand(targetDir)
 
-  OS_CHECK_SCRIPT_REMOTE_LOCATION = "/tmp/os_type_check.sh"
+
 
   def copyOsCheckScript(self):
     try:
       # Copying the os check script file
       fileToCopy = self.getOsCheckScript()
-      target = self.OS_CHECK_SCRIPT_REMOTE_LOCATION
+      target = self.getOsCheckScriptRemoteLocation()
       pscp = PSCP(self.successive_hostlist, self.user, self.sshkeyFile, fileToCopy, target, self.bootdir)
       pscp.run()
       out = pscp.getstatus()
@@ -422,8 +440,8 @@ class BootStrap:
   def runOsCheckScript(self):
     logging.info("Running os type check...")
     command = "chmod a+x %s && %s %s" % \
-           (self.OS_CHECK_SCRIPT_REMOTE_LOCATION,
-            self.OS_CHECK_SCRIPT_REMOTE_LOCATION,  self.cluster_os_type)
+           (self.getOsCheckScriptRemoteLocation(),
+            self.getOsCheckScriptRemoteLocation(),  self.cluster_os_type)
 
     pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, command, self.bootdir)
     pssh.run()
