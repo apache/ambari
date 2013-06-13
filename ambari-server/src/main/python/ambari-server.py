@@ -78,6 +78,9 @@ JAVA_SHARE_PATH="/usr/share/java"
 BOLD_ON='\033[1m'
 BOLD_OFF='\033[0m'
 
+#Common messages
+PRESS_ENTER_MSG="Press <enter> to continue."
+
 if ambari_provider_module is not None:
   ambari_provider_module_option = "-Dprovider.module.class=" +\
                                   ambari_provider_module + " "
@@ -160,6 +163,11 @@ DATABASE_PORTS =["5432", "1521", "3306"]
 DATABASE_DRIVER_NAMES = ["org.postgresql.Driver", "oracle.jdbc.driver.OracleDriver", "com.mysql.jdbc.Driver"]
 DATABASE_CONNECTION_STRINGS = ["jdbc:postgresql://{0}:{1}/{2}", "jdbc:oracle:thin:@{0}:{1}/{2}", "jdbc:mysql://{0}:{1}/{2}"]
 DATABASE_CLI_TOOLS = [["psql"], ["sqlplus", "sqlplus64"], ["mysql"]]
+DATABASE_CLI_TOOLS_DESC = ["psql", "sqlplus", "mysql"]
+DATABASE_CLI_TOOLS_USAGE = ['su -postgres --command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'"',
+                            'sqlplus {1}/{2} < {0} ',
+                            'mysql --user={1} --password={2} {3}<{0}']
+
 DATABASE_INIT_SCRIPTS = ['/var/lib/ambari-server/resources/Ambari-DDL-Postgres-REMOTE-CREATE.sql',
                          '/var/lib/ambari-server/resources/Ambari-DDL-Oracle-CREATE.sql',
                          '/var/lib/ambari-server/resources/Ambari-DDL-MySQL-CREATE.sql']
@@ -551,13 +559,6 @@ def track_jdk(base_name, url, local_name):
 # Downloads the JDK
 #
 def download_jdk(args):
-  conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
-  if conf_file is None:
-    print 'File %s not found in search path $%s: %s' %\
-          (AMBARI_PROPERTIES_FILE, AMBARI_CONF_VAR, get_conf_dir())
-    return -1
-  print_info_msg('Loading properties from ' + conf_file)
-
   if get_JAVA_HOME():
     return 0
 
@@ -571,14 +572,11 @@ def download_jdk(args):
     write_property(JAVA_HOME_PROPERTY, args.java_home)
     return 0
 
-  properties = None
-  try:
-    properties = Properties()
-    properties.load(open(conf_file))
-  except (Exception), e:
-    print 'Could not read "%s": %s' % (conf_file, e)
+  properties = get_ambari_properties()
+  if properties == -1:
+    print_error_msg ("Error getting ambari properties")
     return -1
-
+  conf_file = properties.fileName
   try:
     jdk_url = properties['jdk.url']
     resources_dir = properties['resources.dir']  
@@ -828,19 +826,11 @@ def update_ambari_properties():
 # Configures the OS settings in ambari properties.
 #
 def configure_os_settings():
-  conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
-  if conf_file is None:
-    print_error_msg ('File %s not found in search path $%s: %s'
-                   % (AMBARI_PROPERTIES_FILE, AMBARI_CONF_VAR, get_conf_dir()))
+  properties = get_ambari_properties()
+  if properties == -1:
+    print_error_msg ("Error getting ambari properties")
     return -1
-  print_info_msg ('Loading properties from ' + conf_file)
-  properties = None
-  try:
-    properties = Properties()
-    properties.load(open(conf_file))
-  except (Exception), e:
-    print_error_msg ('Could not read "%s": %s' % (conf_file, e))
-    return -1
+    
   try:
     conf_os_type = properties[OS_TYPE_PROPERTY]
     if conf_os_type != '':
@@ -861,30 +851,23 @@ def configure_os_settings():
   if os_name == 'suse':
     os_name = 'sles'
   os_version = os_info[1].split('.', 1)[0]
-  master_os_type = os_name + os_version
-  with open(conf_file, "a") as ambariConf:
-    ambariConf.write(OS_TYPE_PROPERTY + "=" + master_os_type)
-    ambariConf.write("\n")
-    ambariConf.closed
+  master_os_type = os_name + os_version    
+  write_property(OS_TYPE_PROPERTY, master_os_type)
   return 0
 
 
 
 def get_JAVA_HOME():
-  conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
-  properties = Properties()
-  
-  try:
-    properties.load(open(conf_file))
-    java_home = properties[JAVA_HOME_PROPERTY]
-    if (not 0 == len(java_home)) and (os.path.exists(java_home)):
-      return java_home
-  except (Exception), e:
-    print 'Could not read "%s": %s' % (conf_file, e)
-  
+  properties = get_ambari_properties()
+  if properties == -1:
+    print_error_msg ("Error getting ambari properties")
+    return None
+    
+  java_home = properties[JAVA_HOME_PROPERTY]
+  if (not 0 == len(java_home)) and (os.path.exists(java_home)):
+    return java_home
+
   return None
-
-
 
 #
 # Finds the available JDKs.
@@ -982,9 +965,6 @@ def setup(args):
     print_error_msg ('Failed to stop iptables. Exiting.')
     sys.exit(retcode)
 
-  print 'Configuring database...'
-  prompt_db_properties(args)
-
   print 'Checking JDK...'
   retcode = download_jdk(args)
   if not retcode == 0:
@@ -997,6 +977,9 @@ def setup(args):
     print_error_msg ('Configure of OS settings in '
                    'ambari.properties failed. Exiting.')
     sys.exit(retcode)
+    
+  print 'Configuring database...'
+  prompt_db_properties(args)
   
   #DB setup should be done last after doing any setup.
   
@@ -1080,30 +1063,36 @@ def reset(args):
   print "Resetting the Server database..."
 
   parse_properties_file(args)
-
   # configure_database_username_password(args)
   if args.persistence_type=="remote":
+    client_desc = DATABASE_NAMES[DATABASE_INDEX] + ' ' + DATABASE_CLI_TOOLS_DESC[DATABASE_INDEX]
+    client_usage_cmd_drop = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_DROP_SCRIPTS[DATABASE_INDEX], args.database_username,
+                                                     args.database_password, args.database_name)
+    client_usage_cmd_init = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_INIT_SCRIPTS[DATABASE_INDEX], args.database_username,
+                                                     args.database_password, args.database_name)
     if get_db_cli_tool(args) != -1:
       retcode, out, err = execute_remote_script(args, DATABASE_DROP_SCRIPTS[DATABASE_INDEX])
       if not retcode == 0:
         if retcode == -1:
-          print_warning_msg('Cannot find ' + DATABASE_NAMES[DATABASE_INDEX] + ' client in the path, for reset please run the following DDL against the DB: ' +
-          DATABASE_DROP_SCRIPTS[DATABASE_INDEX] + ", then: " + DATABASE_INIT_SCRIPTS[DATABASE_INDEX], True)
+          print_warning_msg('Cannot find ' + client_desc + ' client in the path to reset the Ambari Server schema. To reset Ambari Server schema ' +
+          'you must run the following DDL against the database to drop the schema:' + os.linesep + client_usage_cmd_drop + os.linesep +
+          ', then you must run the following DDL against the database to create the schema ' + os.linesep + client_usage_cmd_init + os.linesep )
         print err
         return retcode
 
       retcode, out, err = execute_remote_script(args, DATABASE_INIT_SCRIPTS[DATABASE_INDEX])
       if not retcode == 0:
         if retcode == -1:
-          print_warning_msg('Cannot find ' + DATABASE_NAMES[DATABASE_INDEX] + ' client in the path, for reset please run the following DDL against the DB: ' +
-          DATABASE_DROP_SCRIPTS[DATABASE_INDEX] + ", then: " + DATABASE_INIT_SCRIPTS[DATABASE_INDEX], True)
+          print_warning_msg('Cannot find ' + client_desc + ' client in the path to reset the Ambari Server schema. To reset Ambari Server schema ' +
+          'you must run the following DDL against the database to drop the schema:' + os.linesep + client_usage_cmd_drop + os.linesep +
+          ', then you must run the following DDL against the database to create the schema ' + os.linesep + client_usage_cmd_init + os.linesep )
         print err
         return retcode
 
     else:
-      print_warning_msg('Cannot find ' + DATABASE_NAMES[DATABASE_INDEX] + ' client in the path, for reset please run the following DDL against the DB: ' +
-      DATABASE_INIT_SCRIPTS[DATABASE_INDEX] + ", then: " + DATABASE_DROP_SCRIPTS[DATABASE_INDEX], True)
-      print_error_msg(DATABASE_CLI_TOOLS[DATABASE_INDEX] + " not found. Unable to perform automatic reset.")
+      print_warning_msg('Cannot find ' + client_desc + ' client in the path to reset the Ambari Server schema. To reset Ambari Server schema ' +
+      'you must run the following DDL against the database to drop the schema:' + os.linesep + client_usage_cmd_drop + os.linesep +
+      ', then you must run the following DDL against the database to create the schema ' + os.linesep + client_usage_cmd_init + os.linesep )
       return -1
 
   else:
@@ -1446,13 +1435,9 @@ def prompt_db_properties(args):
 
 # Store set of properties for remote database connection
 def store_remote_properties(args):
-  conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
-  properties = Properties()
-
-  try:
-    properties.load(open(conf_file))
-  except Exception, e:
-    print 'Could not read ambari config file "%s": %s' % (conf_file, e)
+  properties = get_ambari_properties()
+  if properties == -1:
+    print_error_msg ("Error getting ambari properties")
     return -1
 
   properties.process_pair(PERSISTENCE_TYPE_PROPERTY, "remote")
@@ -1478,6 +1463,9 @@ def store_remote_properties(args):
   properties.process_pair(JDBC_RCA_USER_NAME_PROPERTY, args.database_username)
   properties.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY, store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
 
+
+  conf_file = properties.fileName
+
   try:
     properties.store(open(conf_file, "w"))
   except Exception, e:
@@ -1488,14 +1476,21 @@ def store_remote_properties(args):
 
 # Initialize remote database schema
 def setup_remote_db(args):
+    
+  not_found_msg = "Cannot find {0} {1} client in the path to load the Ambari Server schema.\
+ Before starting Ambari Server, you must run the following DDL against the database to create \
+the schema ".format(DATABASE_NAMES[DATABASE_INDEX], str(DATABASE_CLI_TOOLS_DESC[DATABASE_INDEX]))
 
+  client_usage_cmd = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_INIT_SCRIPTS[DATABASE_INDEX], args.database_username,
+                                                     args.database_password, args.database_name)
+  
   retcode, out, err = execute_remote_script(args, DATABASE_INIT_SCRIPTS[DATABASE_INDEX])
   if retcode != 0:
 
     if retcode == -1:
-      print_warning_msg('Cannot find ' + DATABASE_NAMES[DATABASE_INDEX] + 
-                        ' client in the path, for setup please run the following DDL against the DB: ' +
-                        DATABASE_INIT_SCRIPTS[DATABASE_INDEX], True)
+      print_warning_msg(not_found_msg + os.linesep + client_usage_cmd)
+      if not SILENT:
+        raw_input(PRESS_ENTER_MSG)
       return retcode
 
     print err
@@ -1540,7 +1535,8 @@ def execute_remote_script(args, scriptPath):
   tool = get_db_cli_tool(args)
   if not tool:
     args.warnings.append('{0} not found. Please, run DDL script manually'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
-    print_warning_msg('{0} not found'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
+    if VERBOSE:
+      print_warning_msg('{0} not found'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
     return -1, "Client wasn't found", "Client wasn't found"
 
   if args.database == "postgres":
@@ -1578,13 +1574,9 @@ def execute_remote_script(args, scriptPath):
   return -2, "Wrong database", "Wrong database"
 
 def configure_database_username_password(args):
-  conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
-  properties = Properties()
-
-  try:
-    properties.load(open(conf_file))
-  except Exception, e:
-    print 'Could not read ambari config file "%s": %s' % (conf_file, e)
+  properties = get_ambari_properties()
+  if properties == -1:
+    print_error_msg ("Error getting ambari properties")
     return -1
 
   username = properties[JDBC_USER_NAME_PROPERTY]
@@ -1601,14 +1593,11 @@ def configure_database_username_password(args):
 
 # Store local database connection properties
 def store_local_properties(args):
-  conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
-  properties = Properties()
-
-  try:
-    properties.load(open(conf_file))
-  except Exception, e:
-    print 'Could not read ambari config file "%s": %s' % (conf_file, e)
+  properties = get_ambari_properties()
+  if properties == -1:
+    print_error_msg ("Error getting ambari properties")
     return -1
+
   properties.removeOldProp(JDBC_SCHEMA_PROPERTY)
   properties.removeOldProp(JDBC_HOSTNAME_PROPERTY)
   properties.removeOldProp(JDBC_DATABASE_PROPERTY)
@@ -1622,6 +1611,8 @@ def store_local_properties(args):
   properties.process_pair(PERSISTENCE_TYPE_PROPERTY, "local")
   properties.process_pair(JDBC_USER_NAME_PROPERTY, args.database_username)
   properties.process_pair(JDBC_PASSWORD_FILE_PROPERTY, store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
+  
+  conf_file = properties.fileName
 
   try:
     properties.store(open(conf_file, "w"))
@@ -1921,6 +1912,7 @@ class Properties(object):
     if stream.mode != 'r':
       raise ValueError, 'Stream should be opened in read-only mode!'
     try:
+      self.fileName = os.path.abspath(stream.name)
       lines = stream.readlines()
       self.__parse(lines)
     except IOError, e:
