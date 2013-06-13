@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# chkconfig: 345 20 80
 # description: ambari-server daemon
 # processname: ambari-server
 
@@ -31,15 +32,15 @@ if [ -a /var/lib/ambari-server/ambari-env.sh ]; then
   . /var/lib/ambari-server/ambari-env.sh
 fi
 
-if [ "x$PYTHON" == "x" ]; then
+if [ -z "$PYTHON" ]; then
   PYTHON=/usr/bin/python
 fi
 
-if [ "x$AMBARI_PASSPHRASE" == "x" ]; then
+if [ -z "$AMBARI_PASSPHRASE" ]; then
   AMBARI_PASSPHRASE="DEV"
 fi
 
-if [ "x$JAVA_HOME" != "x" ]; then
+if [ -n "$JAVA_HOME" ]; then
   export JAVA_HOME=$JAVA_HOME
 fi
 

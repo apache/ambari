@@ -27,9 +27,19 @@ import signal
 import stat
 # We have to use this import HACK because the filename contains a dash
 ambari_server = __import__('ambari-server')
+FatalException = ambari_server.FatalException
 
 
 class TestAmbariServer(TestCase):
+
+  def setUp(self):
+    out = StringIO.StringIO()
+    sys.stdout = out
+
+
+  def tearDown(self):
+    sys.stdout = sys.__stdout__
+
 
   @patch.object(ambari_server, 'configure_database_username_password')
   @patch.object(ambari_server, 'run_os_command')
@@ -82,10 +92,6 @@ class TestAmbariServer(TestCase):
 
   @patch('__builtin__.raw_input')
   def test_get_choice_string_input(self, raw_input_method):
-    out = StringIO.StringIO()
-    sys.stdout = out
-
-
     prompt = "blablabla"
     default = "default blablabla"
     firstChoice = set(['yes','ye', 'y'])
@@ -128,8 +134,6 @@ class TestAmbariServer(TestCase):
     self.assertEquals(result, True)
     self.assertEquals(raw_input_method.call_count, 3)
 
-    sys.stdout = sys.__stdout__
-
     pass
 
 
@@ -139,14 +143,12 @@ class TestAmbariServer(TestCase):
   @patch('getpass.getpass')
   def test_get_validated_string_input(self, get_pass_method,
       raw_input_method, re_search_method):
-    out = StringIO.StringIO()
-    sys.stdout = out
-
     prompt = "blabla"
     default = "default_pass"
     pattern = "pattern_pp"
     description = "blabla2"
     # check password input
+    self.assertFalse(False, ambari_server.SILENT)
     is_pass = True
     get_pass_method.return_value = "dfdsfdsfds"
 
@@ -170,17 +172,12 @@ class TestAmbariServer(TestCase):
     self.assertFalse(get_pass_method.called)
     raw_input_method.assure_called_once(prompt)
 
-    sys.stdout = sys.__stdout__
-
 
 
   def test_get_pass_file_path(self):
     result = ambari_server.get_pass_file_path("/etc/ambari/conf_file")
     self.assertEquals("/etc/ambari/password.dat", result)
     pass
-
-
-
 
 
   @patch.object(ambari_server, 'setup')
@@ -232,7 +229,7 @@ class TestAmbariServer(TestCase):
     self.assertFalse(False, ambari_server.SILENT)
 
 
-   
+
   @patch.object(ambari_server, 'setup')
   @patch.object(ambari_server, 'start')
   @patch.object(ambari_server, 'stop')
@@ -278,8 +275,7 @@ class TestAmbariServer(TestCase):
     self.assertFalse(stop_method.called)
     self.assertFalse(reset_method.called)
 
-    self.assertTrue(ambari_server.SERVER_DEBUG_MODE)        
-
+    self.assertTrue(ambari_server.SERVER_DEBUG_MODE)
 
 
   @patch.object(ambari_server, 'setup')
@@ -307,7 +303,6 @@ class TestAmbariServer(TestCase):
     self.assertFalse(False, ambari_server.SILENT)
 
 
-
   @patch.object(ambari_server, 'setup')
   @patch.object(ambari_server, 'start')
   @patch.object(ambari_server, 'stop')
@@ -333,9 +328,7 @@ class TestAmbariServer(TestCase):
     self.assertFalse(False, ambari_server.SILENT)
 
 
-
   def test_configure_postgresql_conf(self):
-
     tf1 = tempfile.NamedTemporaryFile()
     ambari_server.POSTGRESQL_CONF_FILE = tf1.name
 
@@ -355,7 +348,6 @@ class TestAmbariServer(TestCase):
     self.assertEqual("0644", str_mode, "Wrong file permissions")
 
 
-
   @patch.object(ambari_server, "restart_postgres")
   @patch.object(ambari_server, "get_postgre_status")
   @patch.object(ambari_server, "configure_postgresql_conf")
@@ -366,8 +358,6 @@ class TestAmbariServer(TestCase):
                               configure_postgresql_conf_mock,
                               get_postgre_status_mock,
                               restart_postgres_mock):
-
-
     tf1 = tempfile.NamedTemporaryFile()
     tf2 = tempfile.NamedTemporaryFile()
     ambari_server.PG_HBA_CONF_FILE = tf1.name
@@ -414,10 +404,6 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "print_info_msg")
   def test_restart_postgres(self, printInfoMsg_mock, get_postgre_status_mock,
                             run_os_command_mock, popenMock, sleepMock):
-
-    out = StringIO.StringIO()
-    sys.stdout = out
-
     p = MagicMock()
     p.poll.return_value = 0
     popenMock.return_value = p
@@ -429,7 +415,6 @@ class TestAmbariServer(TestCase):
     run_os_command_mock.return_value = (1, None, None)
     rcode = ambari_server.restart_postgres()
     self.assertEqual(1, rcode)
-    sys.stdout = sys.__stdout__
 
 
 
@@ -465,7 +450,7 @@ class TestAmbariServer(TestCase):
     search_file_mock.return_value = tf1.name
     ambari_server.write_property("key1", "val1")
     result = tf1.read()
-    self.assertEqual(expected_content, result)
+    self.assertTrue(expected_content in result)
 
 
 
@@ -484,10 +469,6 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "get_YN_input")
   @patch.object(ambari_server, "run_os_command")
   def test_check_selinux(self, run_os_command_mock, getYNInput_mock):
-
-    out = StringIO.StringIO()
-    sys.stdout = out
-
     run_os_command_mock.return_value = (0, ambari_server.SE_STATUS_DISABLED,
                                         None)
     rcode = ambari_server.check_selinux()
@@ -501,7 +482,6 @@ class TestAmbariServer(TestCase):
     self.assertEqual(0, rcode)
     self.assertTrue(run_os_command_mock.called)
     self.assertTrue(getYNInput_mock.called)
-    sys.stdout = sys.__stdout__
 
 
 
@@ -537,20 +517,17 @@ class TestAmbariServer(TestCase):
   def test_get_ambari_classpath(self, printInfoMsg_mock, globMock):
     globMock.return_value = ["one"]
     result = ambari_server.get_ambari_classpath()
-    print result
     self.assertTrue(ambari_server.get_ambari_jars() in result)
     self.assertTrue(ambari_server.get_share_jars() in result)
     globMock.return_value = []
     result = ambari_server.get_ambari_classpath()
-    print result
     self.assertTrue(ambari_server.get_ambari_jars() in result)
     self.assertFalse(":" in result)
 
 
   @patch.object(ambari_server, "print_info_msg")
   def test_get_conf_dir(self, printInfoMsg_mock):
-
-    env = "/ambari/conf"
+    env = "/dummy/ambari/conf"
     os.environ[ambari_server.AMBARI_CONF_VAR] = env
     result = ambari_server.get_conf_dir()
     self.assertEqual(env, result)
@@ -558,8 +535,6 @@ class TestAmbariServer(TestCase):
     del os.environ[ambari_server.AMBARI_CONF_VAR]
     result = ambari_server.get_conf_dir()
     self.assertEqual("/etc/ambari-server/conf", result)
-    self.assertTrue(printInfoMsg_mock.called)
-
 
 
   def test_search_file(self):
@@ -573,12 +548,211 @@ class TestAmbariServer(TestCase):
     self.assertEqual(None, result)
 
 
+  @patch.object(ambari_server, "search_file")
+  def test_find_properties_file(self, search_file_mock):
+    # Testing case when file is not found
+    search_file_mock.return_value = None
+    try:
+      ambari_server.find_properties_file()
+      self.fail("File not found'")
+    except FatalException:
+      # Expected
+      pass
+    self.assertTrue(search_file_mock.called)
+
+    # Testing case when file is found
+    value = MagicMock()
+    search_file_mock.return_value = value
+    result = ambari_server.find_properties_file()
+    self.assertTrue(result is value)
+
+
+  @patch.object(ambari_server, "find_properties_file")
+  @patch("__builtin__.open")
+  @patch("ambari-server.Properties")
+  def test_read_ambari_user(self, properties_mock, open_mock, find_properties_file_mock):
+    open_mock.return_value = "dummy"
+    find_properties_file_mock.return_value = "dummy"
+    # Testing with defined user
+    properties_mock.return_value.__getitem__.return_value = "dummy_user"
+    user = ambari_server.read_ambari_user()
+    self.assertEquals(user, "dummy_user")
+    # Testing with undefined user
+    properties_mock.return_value.__getitem__.return_value = None
+    user = ambari_server.read_ambari_user()
+    self.assertEquals(user, None)
+
+  @patch.object(ambari_server, "set_file_permissions")
+  def test_adjust_directory_permissions(self, set_file_permissions_mock):
+    ambari_server.adjust_directory_permissions("user")
+    self.assertTrue(len(set_file_permissions_mock.call_args_list) ==
+                    len(ambari_server.NR_ADJUST_OWNERSHIP_LIST))
+
+
+  @patch("os.path.exists")
+  @patch.object(ambari_server, "run_os_command")
+  @patch.object(ambari_server, "print_warning_msg")
+  def test_set_file_permissions(self, print_warning_msg_mock,
+                                run_os_command_mock, exists_mock):
+
+    # Testing not existent file scenario
+    exists_mock.return_value = False
+    ambari_server.set_file_permissions("dummy-file", "dummy-mod",
+                                       "dummy-user", "dummy-group")
+    self.assertFalse(run_os_command_mock.called)
+    self.assertTrue(print_warning_msg_mock.called)
+
+    run_os_command_mock.reset_mock()
+    print_warning_msg_mock.reset_mock()
+
+    # Testing OK scenario
+    exists_mock.return_value = True
+    run_os_command_mock.side_effect = [(0, "", ""), (0, "", "")]
+    ambari_server.set_file_permissions("dummy-file", "dummy-mod",
+                                       "dummy-user", "dummy-group")
+    self.assertTrue(len(run_os_command_mock.call_args_list) == 2)
+    self.assertFalse(print_warning_msg_mock.called)
+
+    run_os_command_mock.reset_mock()
+    print_warning_msg_mock.reset_mock()
+
+    # Testing first command fail
+    run_os_command_mock.side_effect = [(1, "", ""), (0, "", "")]
+    ambari_server.set_file_permissions("dummy-file", "dummy-mod",
+                                       "dummy-user", "dummy-group")
+    self.assertTrue(len(run_os_command_mock.call_args_list) == 2)
+    self.assertTrue(print_warning_msg_mock.called)
+
+    run_os_command_mock.reset_mock()
+    print_warning_msg_mock.reset_mock()
+
+    # Testing second command fail
+    run_os_command_mock.side_effect = [(0, "", ""), (1, "", "")]
+    ambari_server.set_file_permissions("dummy-file", "dummy-mod",
+                                       "dummy-user", "dummy-group")
+    self.assertTrue(len(run_os_command_mock.call_args_list) == 2)
+    self.assertTrue(print_warning_msg_mock.called)
+
+    run_os_command_mock.reset_mock()
+    print_warning_msg_mock.reset_mock()
+
+
+  @patch.object(ambari_server, "get_validated_string_input")
+  @patch.object(ambari_server, "print_info_msg")
+  @patch.object(ambari_server, "print_warning_msg")
+  @patch.object(ambari_server, "run_os_command")
+  def test_create_custom_user(self, run_os_command_mock, print_warning_msg_mock,
+          print_info_msg_mock, get_validated_string_input_mock):
+    user = "dummy-user"
+    get_validated_string_input_mock.return_value = user
+
+    # Testing scenario: existing group, existing user
+    run_os_command_mock.side_effect = [(9, "", ""), (9, "", ""), (0, "", "")]
+    result = ambari_server.create_custom_user()
+    self.assertTrue(len(run_os_command_mock.call_args_list) == 3)
+    self.assertEquals(result, (0, user))
+
+    run_os_command_mock.reset_mock()
+
+    # Testing scenario: absent group, absent user
+    run_os_command_mock.side_effect = [(0, "", ""), (0, "", "")]
+    result = ambari_server.create_custom_user()
+    self.assertTrue(len(run_os_command_mock.call_args_list) == 2)
+    self.assertEquals(result, (0, user))
+
+    run_os_command_mock.reset_mock()
+
+    # Testing scenario: os command fail
+    run_os_command_mock.side_effect = [(1, "", "")]
+    result = ambari_server.create_custom_user()
+    self.assertTrue(len(run_os_command_mock.call_args_list) == 1)
+    self.assertEquals(result, (1, None))
+
+    run_os_command_mock.reset_mock()
+
+
+  @patch.object(ambari_server, "read_ambari_user")
+  @patch.object(ambari_server, "get_YN_input")
+  @patch.object(ambari_server, "create_custom_user")
+  @patch.object(ambari_server, "write_property")
+  @patch.object(ambari_server, "adjust_directory_permissions")
+  @patch.object(ambari_server, "print_error_msg")
+  def test_check_ambari_user(self, print_error_msg_mock,
+            adjust_directory_permissions_mock, write_property_mock,
+            create_custom_user_mock, get_YN_input_mock, read_ambari_user_mock):
+
+    # Scenario: user is already defined
+    read_ambari_user_mock.return_value = "dummy-user"
+    result = ambari_server.check_ambari_user()
+    self.assertFalse(get_YN_input_mock.called)
+    self.assertFalse(write_property_mock.called)
+    self.assertTrue(adjust_directory_permissions_mock.called)
+    self.assertEqual(result, 0)
+
+    get_YN_input_mock.reset_mock()
+    write_property_mock.reset_mock()
+    adjust_directory_permissions_mock.reset_mock()
+
+    # Scenario: user is not defined (setup process)
+    read_ambari_user_mock.return_value = None
+    get_YN_input_mock.return_value = True
+    create_custom_user_mock.return_value = (0, "dummy-user")
+    result = ambari_server.check_ambari_user()
+    self.assertTrue(get_YN_input_mock.called)
+    self.assertTrue(create_custom_user_mock.called)
+    self.assertTrue(write_property_mock.called)
+    self.assertTrue(write_property_mock.call_args[0][1] == "dummy-user")
+    self.assertTrue(adjust_directory_permissions_mock.called)
+    self.assertEqual(result, 0)
+
+    get_YN_input_mock.reset_mock()
+    create_custom_user_mock.reset_mock()
+    write_property_mock.reset_mock()
+    adjust_directory_permissions_mock.reset_mock()
+
+    # Scenario: user is not defined (setup process), user creation failed
+
+    read_ambari_user_mock.return_value = None
+    get_YN_input_mock.return_value = True
+    create_custom_user_mock.return_value = (1, None)
+    result = ambari_server.check_ambari_user()
+    self.assertTrue(get_YN_input_mock.called)
+    self.assertTrue(create_custom_user_mock.called)
+    self.assertFalse(write_property_mock.called)
+    self.assertFalse(adjust_directory_permissions_mock.called)
+    self.assertEqual(result, 1)
+
+    get_YN_input_mock.reset_mock()
+    create_custom_user_mock.reset_mock()
+    write_property_mock.reset_mock()
+    adjust_directory_permissions_mock.reset_mock()
+
+    # Scenario: user is not defined and left to be root
+    read_ambari_user_mock.return_value = None
+    get_YN_input_mock.return_value = False
+    result = ambari_server.check_ambari_user()
+    self.assertTrue(get_YN_input_mock.called)
+    self.assertFalse(create_custom_user_mock.called)
+    self.assertTrue(write_property_mock.called)
+    self.assertTrue(write_property_mock.call_args[0][1] == "root")
+    self.assertTrue(adjust_directory_permissions_mock.called)
+    self.assertEqual(result, 0)
+
+
+  @patch.object(ambari_server, "search_file")
+  @patch("__builtin__.open")
+  @patch.object(ambari_server, "read_ambari_user")
+  @patch.object(ambari_server, "set_file_permissions")
+  def test_store_password_file(self, set_file_permissions_mock,
+                    read_ambari_user_mock, open_mock, search_file_mock):
+    search_file_mock.return_value = "/etc/ambari-server/conf/ambari.properties"
+    open_mock.return_value = MagicMock()
+    ambari_server.store_password_file("password", "passfile")
+    self.assertTrue(set_file_permissions_mock.called)
+
+
   @patch.object(ambari_server, "run_os_command")
   def test_check_iptables(self, run_os_command_mock):
-
-    out = StringIO.StringIO()
-    sys.stdout = out
-
     run_os_command_mock.return_value = (1, "test", "")
     rcode, info = ambari_server.check_iptables()
     self.assertEqual(1, rcode)
@@ -588,8 +762,6 @@ class TestAmbariServer(TestCase):
                                         ambari_server.IP_TBLS_SRVC_NT_FND)
     rcode = ambari_server.check_iptables()
     self.assertEqual(0, rcode)
-
-    sys.stdout = sys.__stdout__
 
 
   def test_dlprogress(self):
@@ -637,27 +809,24 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "print_info_msg")
   @patch.object(ambari_server, "get_JAVA_HOME")
   @patch.object(ambari_server, "get_ambari_properties")
-  def test_download_jdk(self, get_ambari_properties_mock,
-                        get_JAVA_HOME_mock, print_info_msg_mock,
-                        write_property_mock, run_os_command_mock,
-                        get_YN_input_mock, track_jdk_mock, path_existsMock,
+  def test_download_jdk(self, get_ambari_properties_mock, get_JAVA_HOME_mock, print_info_msg_mock,
+                        write_property_mock, run_os_command_mock, get_YN_input_mock, track_jdk_mock,
+                        path_existsMock,
                         path_isfileMock, statMock):
-
-    out = StringIO.StringIO()
-    sys.stdout = out
-
     args = MagicMock()
     args.java_home = "somewhere"
     path_existsMock.return_value = False
     get_JAVA_HOME_mock.return_value = False
     get_ambari_properties_mock.return_value = -1
 
-    rcode = ambari_server.download_jdk(args)
+    try:
+      ambari_server.download_jdk(args)
+      self.fail("Should throw exception because of not found ambari.properties")
+    except FatalException:
+      # Expected
+      self.assertTrue(get_ambari_properties_mock.called)
+      pass
 
-    self.assertEqual(-1, rcode)
-    self.assertTrue(get_ambari_properties_mock.called)
-
-    #search_file_mock.return_value = "something"
     get_JAVA_HOME_mock.return_value = True
     path_existsMock.return_value = True
     rcode = ambari_server.download_jdk(args)
@@ -672,15 +841,23 @@ class TestAmbariServer(TestCase):
     p = MagicMock()
     get_ambari_properties_mock.return_value = p
     p.__getitem__.side_effect = KeyError("test exception")
-    rcode = ambari_server.download_jdk(args)
-    self.assertEqual(-1, rcode)
+    try:
+      ambari_server.download_jdk(args)
+      self.fail("Should throw exception")
+    except FatalException:
+      # Expected
+      pass
 
     p.__getitem__.return_value = "somewhere"
     p.__getitem__.side_effect = None
     path_existsMock.return_value = False
     run_os_command_mock.return_value = (0, "Wrong out", None)
-    rcode = ambari_server.download_jdk(args)
-    self.assertEqual(-1, rcode)
+    try:
+      ambari_server.download_jdk(args)
+      self.fail("Should throw exception")
+    except FatalException:
+      # Expected
+      pass
 
     ambari_server.JDK_INSTALL_DIR = os.getcwd()
     get_YN_input_mock.return_value = True
@@ -692,9 +869,6 @@ class TestAmbariServer(TestCase):
     statMock.return_value = statResult
     rcode = ambari_server.download_jdk(args)
     self.assertEqual(0, rcode)
-
-    sys.stdout = sys.__stdout__
-
 
 
   @patch.object(ambari_server, "run_os_command")
@@ -709,30 +883,23 @@ class TestAmbariServer(TestCase):
     self.assertEqual(None, result)
 
 
+  @patch("time.sleep")
   @patch("subprocess.Popen")
-  @patch.object(ambari_server, 'run_os_command')
+  @patch.object(ambari_server, "run_os_command")
   @patch.object(ambari_server, "get_postgre_status")
-  def test_check_postgre_up(self, get_postgre_status_mock,
-                            run_os_command_method, popen_mock):
-
-    out = StringIO.StringIO()
-    sys.stdout = out
-
+  def test_check_postgre_up(self, get_postgre_status_mock, run_os_command_mock,
+                            popen_mock, sleep_mock):
     p = MagicMock()
     p.poll.return_value = 0
     popen_mock.return_value = p
-    get_postgre_status_mock.return_value = ambari_server.PG_STATUS_RUNNING
-    run_os_command_method.return_value = (0, None, None)
-
+    run_os_command_mock.return_value = (0, None, None)
     rcode = ambari_server.check_postgre_up()
     self.assertEqual(0, rcode)
 
-    get_postgre_status_mock.return_value = None
     p.poll.return_value = 4
+    get_postgre_status_mock.return_value = None
     rcode = ambari_server.check_postgre_up()
     self.assertEqual(4, rcode)
-
-    sys.stdout = sys.__stdout__
 
 
 
@@ -743,13 +910,13 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "get_ambari_properties")
   @patch.object(ambari_server, "write_property")
   @patch.object(ambari_server, "get_conf_dir")
-  def test_configure_os_settings(self, get_conf_dir_mock, write_property_mock, get_ambari_properties_mock, print_error_msg_mock,
-                                 print_info_msg_mock, systemMock, distMock):
-
+  def test_configure_os_settings(self, get_conf_dir_mock, write_property_mock, get_ambari_properties_mock,
+                                 print_error_msg_mock, print_info_msg_mock,
+                                 systemMock, distMock):
     get_ambari_properties_mock.return_value = -1
     rcode = ambari_server.configure_os_settings()
     self.assertEqual(-1, rcode)
-    
+
     p = MagicMock()
     p[ambari_server.OS_TYPE_PROPERTY] = 'somevalue'
     get_ambari_properties_mock.return_value = p
@@ -775,10 +942,6 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "get_conf_dir")
   def test_get_JAVA_HOME(self, get_conf_dir_mock, search_file_mock,
                          Properties_mock, openMock):
-
-    out = StringIO.StringIO()
-    sys.stdout = out
-
     openMock.side_effect = Exception("exception")
     result = ambari_server.get_JAVA_HOME()
     self.assertEqual(None, result)
@@ -791,17 +954,10 @@ class TestAmbariServer(TestCase):
     result = ambari_server.get_JAVA_HOME()
     self.assertEqual(expected, result)
 
-    sys.stdout = sys.__stdout__
-
-
 
   @patch("glob.glob")
   @patch.object(ambari_server, "get_JAVA_HOME")
   def test_find_jdk(self, get_JAVA_HOME_mock, globMock):
-
-    out = StringIO.StringIO()
-    sys.stdout = out
-
     get_JAVA_HOME_mock.return_value = "somewhere"
     result = ambari_server.find_jdk()
     self.assertEqual("somewhere", result)
@@ -815,8 +971,6 @@ class TestAmbariServer(TestCase):
     result = ambari_server.find_jdk()
     self.assertNotEqual(None, result)
 
-    sys.stdout = sys.__stdout__
-
 
   @patch.object(ambari_server, "configure_os_settings")
   @patch.object(ambari_server, "download_jdk")
@@ -824,19 +978,33 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "setup_db")
   @patch.object(ambari_server, "check_postgre_up")
   @patch.object(ambari_server, "check_iptables")
+  @patch.object(ambari_server, "check_ambari_user")
+  @patch.object(ambari_server, "check_jdbc_drivers")
   @patch.object(ambari_server, "check_selinux")
   @patch.object(ambari_server, "setup_remote_db")
   @patch.object(ambari_server, "store_remote_properties")
-  def test_setup(self, store_remote_properties_mock, setup_remote_db_mock, check_selinux_mock, check_iptables_mock,
+  @patch.object(ambari_server, "is_root")
+  def test_setup(self, is_root_mock, store_remote_properties_mock, setup_remote_db_mock, check_selinux_mock,
+                 check_jdbc_drivers_mock, check_ambari_user_mock, check_iptables_mock,
                  check_postgre_up_mock, setup_db_mock, configure_postgres_mock,
                  download_jdk_mock, configure_os_settings_mock, ):
-
-    out = StringIO.StringIO()
-    sys.stdout = out
-
     args = MagicMock()
 
+    # Testing call under non-root
+    is_root_mock.return_value = False
+    try:
+      ambari_server.setup(args)
+      self.fail("Should throw exception")
+    except FatalException as fe:
+      # Expected
+      self.assertTrue("root-level" in fe.reason)
+      pass
+
+    # Testing calls under root
+    is_root_mock.return_value = True
     check_selinux_mock.return_value = 0
+    check_ambari_user_mock.return_value = 0
+    check_jdbc_drivers_mock.return_value = 0
     check_iptables_mock.return_value = (0, "other")
     check_postgre_up_mock.return_value = 0
     setup_db_mock.return_value = 0
@@ -846,10 +1014,9 @@ class TestAmbariServer(TestCase):
     configure_os_settings_mock.return_value = 0
     store_remote_properties_mock.return_value = 0
     result = ambari_server.setup(args)
+
     self.assertEqual(None, result)
-
-    sys.stdout = sys.__stdout__
-
+    self.assertTrue(check_ambari_user_mock.called)
 
 
   @patch.object(ambari_server, "get_YN_input")
@@ -858,44 +1025,59 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "run_os_command")
   @patch.object(ambari_server, "configure_database_username_password")
   @patch.object(ambari_server, "parse_properties_file")
-  def test_reset(self, parse_properties_file_mock, configure_database_username_password_mock,
+  @patch.object(ambari_server, "is_root")
+  def test_reset(self, is_root_mock, parse_properties_file_mock, configure_database_username_password_mock,
                  run_os_command_mock, print_info_msg_mock,
                  setup_db_mock, get_YN_inputMock):
 
-    out = StringIO.StringIO()
-    sys.stdout = out
     parse_properties_file_mock.return_value = 0
-
     args = MagicMock()
     args.persistence_type = "local"
     get_YN_inputMock.return_value = False
-    rcode = ambari_server.reset(args)
-    self.assertEqual(-1, rcode)
+
+    # Testing call under non-root
+    is_root_mock.return_value = False
+    try:
+      ambari_server.reset(args)
+      self.fail("Should throw exception")
+    except FatalException as fe:
+      # Expected
+      self.assertTrue("root-level" in fe.reason)
+      pass
+
+    # Testing calls under root
+    is_root_mock.return_value = True
+    try:
+      ambari_server.reset(args)
+      self.fail("Should throw exception")
+    except FatalException as fe:
+      # Expected
+      self.assertFalse("root-level" in fe.reason)
+      pass
 
     get_YN_inputMock.return_value = True
     run_os_command_mock.return_value = (1, None, None)
-    rcode = ambari_server.reset(args)
-    self.assertEqual(1, rcode)
+    try:
+      ambari_server.reset(args)
+      self.fail("Should throw exception")
+    except FatalException:
+      # Expected
+      pass
 
     run_os_command_mock.return_value = (0, None, None)
-    rcode = ambari_server.reset(args)
-    self.assertEqual(None, rcode)
+    ambari_server.reset(args)
     self.assertTrue(setup_db_mock.called)
-
-    sys.stdout = sys.__stdout__
-
 
 
   @patch.object(ambari_server, "setup_db")
   @patch.object(ambari_server, "print_info_msg")
   @patch.object(ambari_server, "run_os_command")
   @patch.object(ambari_server, "parse_properties_file")
-  def test_silent_reset(self, parse_properties_file_mock,
+  @patch.object(ambari_server, "is_root")
+  def test_silent_reset(self, is_root_mock, parse_properties_file_mock,
                  run_os_command_mock, print_info_msg_mock,
                  setup_db_mock):
-
-    out = StringIO.StringIO()
-    sys.stdout = out
+    is_root_mock.return_value = True
 
     args = MagicMock()
     ambari_server.SILENT = True
@@ -912,8 +1094,6 @@ class TestAmbariServer(TestCase):
     self.assertEqual(None, rcode)
     self.assertTrue(setup_db_mock.called)
     
-    sys.stdout = sys.__stdout__
-
 
 
   @patch("os.kill")
@@ -927,45 +1107,162 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "check_postgre_up")
   @patch.object(ambari_server, "check_iptables")
   @patch.object(ambari_server, "parse_properties_file")
-  def test_start(self, parse_properties_file_mock, check_iptables_mock, check_postgre_up_mock,
+  @patch.object(ambari_server, "read_ambari_user")
+  @patch.object(ambari_server, "is_root")
+  @patch("getpass.getuser")
+  @patch("os.chdir")
+  def test_start(self, chdir_mock, getuser_mock, is_root_mock, read_ambari_user_mock,
+                 parse_properties_file_mock, check_iptables_mock, check_postgre_up_mock,
                  print_error_msg_mock, find_jdk_mock, get_conf_dir_mock,
                  print_info_msg_mock, popenMock, openMock, pexistsMock,
                  killMock):
-
-    out = StringIO.StringIO()
-    sys.stdout = out
-
     args = MagicMock()
+
     f = MagicMock()
     f.readline.return_value = 42
     openMock.return_value = f
+
+    # Checking "server is running"
     pexistsMock.return_value = True
-    rcode = ambari_server.start(args)
+    try:
+      ambari_server.start(args)
+      self.fail("Should fail with 'Server is running'")
+    except FatalException:
+      # Expected
+      pass
     self.assertTrue(killMock.called)
-    self.assertEqual(None, rcode)
 
     pexistsMock.return_value = False
+
+    # Checking situation when ambari user is not set up
+    read_ambari_user_mock.return_value = None
+    try:
+      ambari_server.start(args)
+      self.fail("Should fail with 'Can not detect a system user for Ambari'")
+    except FatalException as e:
+      # Expected
+      self.assertTrue('Can not detect a system user' in e.reason)
+
+    # Checking start from non-root when current user is not the same as a
+    # custom user
+    read_ambari_user_mock.return_value = "dummy-user"
+    getuser_mock.return_value = "non_custom_user"
+    is_root_mock.return_value = False
+    try:
+      ambari_server.start(args)
+      self.fail("Should fail with 'Can not start ambari-server as user...'")
+    except FatalException as e:
+      # Expected
+      self.assertTrue('Can not start ambari-server as user' in e.reason)
+
+    # Checking "jdk not found"
+    is_root_mock.return_value = True
     find_jdk_mock.return_value = None
-    rcode = ambari_server.start(args)
-    self.assertEqual(-1, rcode)
+    try:
+      ambari_server.start(args)
+      self.fail("Should fail with 'No JDK found'")
+    except FatalException as e:
+      # Expected
+      self.assertTrue('No JDK found' in e.reason)
 
     find_jdk_mock.return_value = "somewhere"
+
+
+    ## Testing workflow under root
+    is_root_mock.return_value = True
+
+    # Remote DB
     args.persistence_type="remote"
-    check_postgre_up_mock.return_value = 0
     check_iptables_mock.return_value = (0, None)
-    p = MagicMock()
-    popenMock.return_value = p
-    rcode = ambari_server.start(args)
-    self.assertEqual(None, rcode)
+    try:
+      ambari_server.start(args)
+    except FatalException as e:
+      # Ignored
+      pass
+
+    self.assertFalse('Unable to start PostgreSQL server' in e.reason)
     self.assertFalse(check_postgre_up_mock.called)
-    self.assertTrue(f.write.called)
 
+    check_postgre_up_mock.reset_mock()
+
+    # Local DB
     args.persistence_type="local"
-    rcode = ambari_server.start(args)
-    self.assertEqual(None, rcode)
-    self.assertTrue(check_postgre_up_mock.called)
 
-    sys.stdout = sys.__stdout__
+    # case: postgres failed to start
+    check_postgre_up_mock.return_value = 1
+    try:
+      ambari_server.start(args)
+      self.fail("Should fail with 'Unable to start PostgreSQL server'")
+    except FatalException as e:
+      # Expected
+      self.assertTrue('Unable to start PostgreSQL server' in e.reason)
+      self.assertTrue(check_postgre_up_mock.called)
+
+    # case: iptables failed to stop
+    check_postgre_up_mock.return_value = 0
+    check_iptables_mock.return_value = (1, ambari_server.IP_TBLS_ENABLED)
+    try:
+      ambari_server.start(args)
+      self.fail("Should fail with 'Failed to stop iptables'")
+    except FatalException as e:
+      # Expected
+      self.assertTrue('Failed to stop iptables' in e.reason)
+
+    check_iptables_mock.return_value = (0, None)
+    # Case: custom user is "root"
+    read_ambari_user_mock.return_value = "root"
+    ambari_server.start(args)
+    self.assertTrue(popenMock.called)
+    popen_arg = popenMock.call_args[0][0]
+    self.assertTrue(popen_arg[0] == "/bin/sh")
+    popenMock.reset_mock()
+    # Case: custom user is  not "root"
+    read_ambari_user_mock.return_value = "not-root-user"
+    ambari_server.start(args)
+    self.assertTrue(chdir_mock.called)
+    self.assertTrue(popenMock.called)
+    popen_arg = popenMock.call_args[0][0]
+    self.assertTrue(popen_arg[0] == "/bin/su")
+    check_postgre_up_mock.reset_mock()
+
+    popenMock.reset_mock()
+
+    ## Testing workflow under non-root
+    is_root_mock.return_value = False
+    read_ambari_user_mock.return_value = "not-root-user"
+    getuser_mock.return_value = read_ambari_user_mock.return_value
+    # Local DB
+    args.persistence_type="local"
+
+    ambari_server.start(args)
+
+    self.assertFalse(check_postgre_up_mock.called)
+
+    # Remote DB
+    args.persistence_type="remote"
+
+    ambari_server.start(args)
+
+    self.assertFalse(check_postgre_up_mock.called)
+
+    # Checking call
+    check_iptables_mock.reset_mock()
+    check_iptables_mock.return_value = (0, None)
+    ambari_server.start(args)
+    self.assertTrue(popenMock.called)
+    popen_arg = popenMock.call_args[0][0]
+    self.assertTrue(popen_arg[0] == "/bin/sh")
+    self.assertFalse(check_iptables_mock.called)
+
+    # Test start under wrong user
+    read_ambari_user_mock.return_value = "not-root-user"
+    getuser_mock.return_value = "non_custom_user"
+    try:
+      ambari_server.start(args)
+      self.fail("Can not start ambari-server as user non_custom_user.")
+    except FatalException as e:
+      # Expected
+      self.assertTrue('Can not start ambari-server as user' in e.reason)
 
 
 
@@ -977,14 +1274,10 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "print_info_msg")
   def test_stop(self, print_info_msg_mock, gpidMock, removeMock,
                 killMock, pexistsMock, openMock):
-
     pexistsMock.return_value = True
     f = MagicMock()
     f.readline.return_value = "42"
     openMock.return_value = f
-
-    out = StringIO.StringIO()
-    sys.stdout = out
 
     ambari_server.stop(None)
 
@@ -994,12 +1287,83 @@ class TestAmbariServer(TestCase):
     self.assertTrue(f.close.called)
     self.assertTrue(removeMock.called)
 
-    sys.stdout = sys.__stdout__
 
+  @patch.object(ambari_server, "configure_database_username_password")
+  @patch.object(ambari_server, "run_os_command")
+  @patch.object(ambari_server, "is_root")
+  def test_upgrade_stack(self, is_root_mock, run_os_command_mock,
+                         configure_postgres_username_password_mock):
+    args = MagicMock()
+
+     # Testing call under non-root
+    is_root_mock.return_value = False
+    try:
+      ambari_server.upgrade_stack(args, 'HDP-2.0')
+      self.fail("Should throw exception")
+    except FatalException as fe:
+      # Expected
+      self.assertTrue("root-level" in fe.reason)
+      pass
+
+    # Testing calls under root
+    is_root_mock.return_value = True
+    run_os_command_mock.return_value = (0, '', '')
+    ambari_server.upgrade_stack(args, 'HDP-2.0')
+
+    self.assertTrue(configure_postgres_username_password_mock.called)
+    self.assertTrue(run_os_command_mock.called)
+
+
+  @patch.object(ambari_server, "adjust_directory_permissions")
+  @patch.object(ambari_server, "print_warning_msg")
+  @patch.object(ambari_server, "read_ambari_user")
+  @patch.object(ambari_server, "check_db_consistency")
+  @patch.object(ambari_server, "execute_db_script")
+  @patch.object(ambari_server, "check_postgre_up")
+  @patch.object(ambari_server, "update_ambari_properties")
+  @patch.object(ambari_server, "parse_properties_file")
+  @patch.object(ambari_server, "is_root")
+  def test_upgrade(self, is_root_mock, parse_properties_file_mock, update_ambari_properties_mock,
+                   check_postgre_up_mock, execute_db_script_mock,
+                   check_db_consistency_mock, read_ambari_user_mock,
+                   print_warning_msg_mock, adjust_directory_permissions_mock):
+
+    args = MagicMock()
+    args.upgrade_script_file = "/var/lib/"\
+      "ambari-server/resources/upgrade/ddl/"\
+      "Ambari-DDL-Postgres-UPGRADE-1.3.0.sql"
+    update_ambari_properties_mock.return_value = 0
+    check_postgre_up_mock.return_value = 0
+    execute_db_script_mock.return_value = 0
+    check_db_consistency_mock.return_value = 0
+
+    # Testing call under non-root
+    is_root_mock.return_value = False
+    try:
+      ambari_server.upgrade(args)
+      self.fail("Should throw exception")
+    except FatalException as fe:
+      # Expected
+      self.assertTrue("root-level" in fe.reason)
+      pass
+
+    # Testing calls under root
+    is_root_mock.return_value = True
+
+    # Testing with undefined custom user
+    read_ambari_user_mock.return_value = None
+    ambari_server.upgrade(args)
+    self.assertTrue(print_warning_msg_mock.called)
+    warning_args = print_warning_msg_mock.call_args[0][0]
+    self.assertTrue("custom ambari user" in warning_args)
+
+    # Testing with defined custom user
+    read_ambari_user_mock.return_value = "ambari-custom-user"
+    ambari_server.upgrade(args)
+    self.assertTrue(adjust_directory_permissions_mock.called)
 
 
   def test_print_info_msg(self):
-
     out = StringIO.StringIO()
     sys.stdout = out
 
@@ -1044,23 +1408,26 @@ class TestAmbariServer(TestCase):
     self.assertTrue(get_choice_string_input_mock.called)
     self.assertEqual(4, len(get_choice_string_input_mock.call_args_list[0][0]))
 
+
   @patch.object(ambari_server, "get_conf_dir")
-  def test_update_ambari_properties(self, get_conf_dir_mock):
+  @patch("os.rename") # We want to remove temp file after test
+  def test_update_ambari_properties(self, rename_mock, get_conf_dir_mock):
 
     properties = ["server.jdbc.user.name=ambari-server\n",
       "server.jdbc.user.passwd=/etc/ambari-server/conf/password.dat\n",
       "java.home=/usr/jdk64/jdk1.6.0_31\n",
-      "server.os_type=redhat6\n"]
+      "server.os_type=redhat6\n",
+      "ambari.user=ambari\n"]
 
     NEW_PROPERTY = 'some_new_property=some_value\n'
     CHANGED_VALUE_PROPERTY = 'server.os_type=should_not_overwrite_value\n'
 
     get_conf_dir_mock.return_value = ""
 
-    tf1 = tempfile.NamedTemporaryFile()
-    tf2 = tempfile.NamedTemporaryFile()
-    ambari_server.AMBARI_PROPERTIES_RPMSAVE_FILE = tf1.name
-    ambari_server.AMBARI_PROPERTIES_FILE = tf2.name
+    (tf1, fn1) = tempfile.mkstemp()
+    (tf2, fn2) = tempfile.mkstemp()
+    ambari_server.AMBARI_PROPERTIES_RPMSAVE_FILE = fn1
+    ambari_server.AMBARI_PROPERTIES_FILE = fn2
 
     with open(ambari_server.AMBARI_PROPERTIES_FILE, "w") as f:
       f.write(NEW_PROPERTY)
@@ -1086,43 +1453,47 @@ class TestAmbariServer(TestCase):
     if CHANGED_VALUE_PROPERTY in ambari_properties_content:
       self.fail()
 
-    pass
+    self.assertTrue(rename_mock.called)
+
+
+    os.unlink(fn1)
+    # Command should not fail if *.rpmsave file is missing
+    result = ambari_server.update_ambari_properties()
+    self.assertEquals(result, 0)
+
+    os.unlink(fn2)
 
 
   @patch("sys.exit")
-  @patch.object(ambari_server, "download_jdk")
   @patch.object(ambari_server, "get_db_cli_tool")
   @patch.object(ambari_server, "store_remote_properties")
   @patch.object(ambari_server, "is_local_database")
   @patch.object(ambari_server, "check_iptables")
   @patch.object(ambari_server, "check_jdbc_drivers")
-  def test_setup_remote_db_wo_client(self, check_jdbc_drivers_mock, check_iptables_mock, is_local_db_mock,
-                                     store_remote_properties_mock, get_db_cli_tool_mock, download_jdk_mock, exit_mock):
-
-    out = StringIO.StringIO()
-    sys.stdout = out
-
+  @patch.object(ambari_server, "is_root")
+  @patch.object(ambari_server, "check_ambari_user")
+  @patch.object(ambari_server, "download_jdk")
+  @patch.object(ambari_server, "configure_os_settings")
+  def test_setup_remote_db_wo_client(self, configure_os_settings_mock, download_jdk_mock, check_ambari_user_mock, is_root_mock, check_jdbc_drivers_mock, check_iptables_mock, is_local_db_mock,
+                                     store_remote_properties_mock, get_db_cli_tool_mock, exit_mock):
     args = MagicMock()
-
+    is_root_mock.return_value = True
     is_local_db_mock.return_value = False
     check_iptables_mock.return_value = (0, "other")
     store_remote_properties_mock.return_value = 0
     get_db_cli_tool_mock.return_value = None
     check_jdbc_drivers_mock.return_value=0
-
-    failed = False
-    result = None
+    check_ambari_user_mock.return_value = 0
+    download_jdk_mock.return_value = 0
+    configure_os_settings_mock.return_value = 0
 
     try:
-      result = ambari_server.setup(args)
-    except Exception:
-      failed = True
+      ambari_server.setup(args)
+      self.fail("Should throw exception")
+    except FatalException as fe:
+      # Expected
+      self.assertTrue("The cli was not found" in fe.reason)
 
-    self.assertEqual(False, failed)
-    self.assertEqual(None, result)
-    self.assertEqual(True, exit_mock.called)
-
-    sys.stdout = sys.__stdout__
 
   @patch.object(ambari_server, "parse_properties_file")
   @patch.object(ambari_server, "get_db_cli_tool")
@@ -1130,21 +1501,22 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "get_YN_input")
   @patch.object(ambari_server, "setup_db")
   @patch.object(ambari_server, "run_os_command")
-  def test_reset_remote_db_wo_client(self, run_os_command_mock, setup_db_mock,
+  @patch.object(ambari_server, "is_root")
+  def test_reset_remote_db_wo_client(self, is_root_mock, run_os_command_mock, setup_db_mock,
                                      get_YN_inputMock, print_error_msg_mock, get_db_cli_tool_mock, parse_properties_file_mock):
-
-    out = StringIO.StringIO()
-    sys.stdout = out
-
     args = MagicMock()
     get_YN_inputMock.return_value = True
     run_os_command_mock.return_value = (0, None, None)
     args.persistence_type="remote"
     get_db_cli_tool_mock.return_value = None
-    rcode = ambari_server.reset(args)
-    self.assertEqual(-1, rcode)
-
-    sys.stdout = sys.__stdout__
+    is_root_mock.return_value = True
+    try:
+      ambari_server.reset(args)
+      self.fail("Should throw exception")
+    except FatalException as fe:
+      # Expected
+      self.assertTrue("Client wasn't found" in fe.reason)
+      pass
 
 
   @patch.object(ambari_server, "get_ambari_properties")
@@ -1152,17 +1524,13 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "copy_files")
   @patch('__builtin__.raw_input')
   def test_check_jdbc_drivers(self, raw_input_mock, copy_files_mock, find_jdbc_driver_mock, get_ambari_properties_mock):
-
-    out = StringIO.StringIO()
-    sys.stdout = out
-
     args = MagicMock()
     
     # Check positive scenario
     drivers_list = ['driver_file']
     resources_dir = '/tmp'
     
-    get_ambari_properties_mock.return_value = {ambari_server.RESOURCES_DIR_KEY : resources_dir}
+    get_ambari_properties_mock.return_value = {ambari_server.RESOURCES_DIR_PROPERTY : resources_dir}
     find_jdbc_driver_mock.return_value = drivers_list
     
     rcode = ambari_server.check_jdbc_drivers(args)
@@ -1181,18 +1549,16 @@ class TestAmbariServer(TestCase):
     #Ensure user was asked to provide drivers
     self.assertTrue(raw_input_mock.called)
     
-    sys.stdout = sys.__stdout__
-    
-    
-  @patch.object(ambari_server, "search_file")
-  def test_get_ambari_properties(self, search_file_mock):
 
-    search_file_mock.return_value = None
+  @patch.object(ambari_server, "find_properties_file")
+  def test_get_ambari_properties(self, find_properties_file_mock):
+
+    find_properties_file_mock.return_value = None
     rcode = ambari_server.get_ambari_properties()
     self.assertEqual(rcode, -1)
   
     tf1 = tempfile.NamedTemporaryFile()
-    search_file_mock.return_value = tf1.name
+    find_properties_file_mock.return_value = tf1.name
     prop_name='name'
     prop_value='val'
     
@@ -1203,8 +1569,7 @@ class TestAmbariServer(TestCase):
     properties = ambari_server.get_ambari_properties()
     
     self.assertEqual(properties[prop_name], prop_value)
-    
-    sys.stdout = sys.__stdout__
+
 
   @patch.object(ambari_server, "get_ambari_properties")
   @patch.object(ambari_server, "find_jdbc_driver")
@@ -1220,86 +1585,87 @@ class TestAmbariServer(TestCase):
     sys.stdout = out
 
     args = MagicMock()
-    
+
     # Check positive scenario
     drivers_list = ['driver_file']
     resources_dir = '/tmp'
-    
-    get_ambari_properties_mock.return_value = {ambari_server.RESOURCES_DIR_KEY : resources_dir}
+
+    get_ambari_properties_mock.return_value = {ambari_server.RESOURCES_DIR_PROPERTY : resources_dir}
     find_jdbc_driver_mock.return_value = drivers_list
-    
+
     args.database = "oracle"
-    
+
     rcode = ambari_server.check_jdbc_drivers(args)
-    
+
     self.assertEqual(0, rcode)
     copy_files_mock.assert_called_with(drivers_list, resources_dir)
-    
+
     # Check negative scenarios
     # Silent option, no drivers
     ambari_server.SILENT = True
-    
+
     find_jdbc_driver_mock.return_value = -1
-    
+
     rcode = ambari_server.check_jdbc_drivers(args)
-    
+
     self.assertTrue(print_error_msg_mock.called)
     self.assertTrue(exit_mock.called)
-    
+
     # Non-Silent option, no drivers
     ambari_server.SILENT = False
-    
+
     find_jdbc_driver_mock.return_value = -1
-    
+
     rcode = ambari_server.check_jdbc_drivers(args)
-    
+
     self.assertTrue(exit_mock.called)
     self.assertTrue(print_error_msg_mock.called)
-    
+
     # Non-Silent option, no drivers at first ask, present drivers after that
-    
+
     find_jdbc_driver_mock.side_effect = [-1, drivers_list]
-    
+
     rcode = ambari_server.check_jdbc_drivers(args)
-    
+
     self.assertEqual(0, rcode)
     copy_files_mock.assert_called_with(drivers_list, resources_dir)
-    
+
     # Non-Silent option, no drivers at first ask, present drivers after that
     find_jdbc_driver_mock.reset()
     find_jdbc_driver_mock.side_effect = [-1, -1]
-    
+
     rcode = ambari_server.check_jdbc_drivers(args)
-    
+
     self.assertTrue(exit_mock.called)
     self.assertTrue(print_error_msg_mock.called)
-    
-    
-    sys.stdout = sys.__stdout__
-    
-    
-  @patch.object(ambari_server, "search_file")
-  def test_get_ambari_properties(self, search_file_mock):
 
-    search_file_mock.return_value = None
+
+    sys.stdout = sys.__stdout__
+
+
+  @patch.object(ambari_server, "find_properties_file")
+  def test_get_ambari_properties(self, find_properties_file):
+
+    find_properties_file.return_value = None
     rcode = ambari_server.get_ambari_properties()
     self.assertEqual(rcode, -1)
-  
+
     tf1 = tempfile.NamedTemporaryFile()
-    search_file_mock.return_value = tf1.name
+    find_properties_file.return_value = tf1.name
     prop_name='name'
     prop_value='val'
-    
+
     with open(tf1.name, 'w') as fout:
       fout.write(prop_name + '=' + prop_value)
     fout.close()
 
     properties = ambari_server.get_ambari_properties()
-    
+
     self.assertEqual(properties[prop_name], prop_value)
     self.assertEqual(properties.fileName, os.path.abspath(tf1.name))
-    
+
     sys.stdout = sys.__stdout__
+
 
   @patch.object(ambari_server, "search_file")
   def test_parse_properties_file(self, search_file_mock):
@@ -1320,8 +1686,6 @@ class TestAmbariServer(TestCase):
 
     ambari_server.parse_properties_file(args)
     self.assertEquals(args.persistence_type, "remote")
-
-    sys.stdout = sys.__stdout__
 
 
   def get_sample(self, sample):

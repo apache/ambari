@@ -183,21 +183,18 @@
             <scriptFile>src/main/package/rpm/preremove.sh</scriptFile>
             <fileEncoding>utf-8</fileEncoding>
           </preremoveScriptlet>
-
+          <defaultFilemode>644</defaultFilemode>
+          <defaultDirmode>755</defaultDirmode>
+          <defaultUsername>root</defaultUsername>
+          <defaultGroupname>root</defaultGroupname>
           <mappings>
             <mapping>
               <directory>/usr/lib/ambari-server</directory>
               <dependency>
               </dependency>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
             </mapping>
             <mapping>
               <directory>/usr/lib/ambari-server/web</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
               <sources>
                 <source>
                   <location>${basedir}/../ambari-web/public</location>
@@ -209,9 +206,6 @@
             </mapping>
             <mapping>
               <directory>/usr/lib/ambari-server</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
               <sources>
                 <source>
                   <location>${project.build.directory}/${project.artifactId}-${project.version}.jar</location>
@@ -227,14 +221,6 @@
                 <source>
                   <location>src/main/python/ambari-server.py</location>
                 </source>
-              </sources>
-            </mapping>
-            <mapping>
-              <directory>/usr/sbin</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
                 <source>
                   <location>sbin/ambari-server</location>
                 </source>
@@ -242,9 +228,6 @@
             </mapping>
             <mapping>
               <directory>/etc/ambari-server/conf</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
               <configuration>true</configuration>
               <sources>
                 <source>
@@ -268,9 +251,6 @@
             </mapping>
             <mapping>
               <directory>/var/lib/ambari-server/keys</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
               <sources>
                 <source>
                   <location>conf/unix/ca.config</location>
@@ -279,7 +259,7 @@
             </mapping>
             <mapping>
               <directory>/var/lib/ambari-server/keys/db</directory>
-              <filemode>755</filemode>
+              <filemode>700</filemode>
               <username>root</username>
               <groupname>root</groupname>
               <sources>
@@ -290,21 +270,12 @@
             </mapping>
             <mapping>
               <directory>/var/run/ambari-server/bootstrap</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
             </mapping>
             <mapping>
               <directory>/var/log/ambari-server</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
             </mapping>
             <mapping>
               <directory>/var/lib/ambari-server/resources</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
               <sources>
                 <source>
                   <location>src/main/resources/Ambari-DDL-Postgres-CREATE.sql</location>
@@ -341,15 +312,9 @@
             </mapping>
             <mapping>
               <directory>/var/lib/ambari-server/resources/upgrade</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
             </mapping>
             <mapping>
               <directory>/var/lib/ambari-server/resources/upgrade/ddl</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
               <sources>
                 <source>
                   <location>src/main/resources/upgrade/ddl/Ambari-DDL-Postgres-UPGRADE-1.3.0.sql</location>
@@ -365,9 +330,6 @@
             </mapping>
             <mapping>
               <directory>/var/lib/ambari-server/resources/upgrade/dml</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
               <sources>
                 <source>
                   <location>src/main/resources/upgrade/dml/Ambari-DML-Postgres-UPGRADE_STACK.sql</location>
@@ -376,9 +338,6 @@
             </mapping>
             <mapping>
               <directory>/var/lib/ambari-server/resources/stacks/HDP</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
               <sources>
                 <source>
                   <location>src/main/resources/stacks/HDP</location>
@@ -387,9 +346,6 @@
             </mapping>
             <mapping>
               <directory>/var/lib/ambari-server/resources/stacks/HDPLocal</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
               <configuration>noreplace</configuration>
               <sources>
                 <source>
@@ -416,26 +372,9 @@
             </mapping>
             <mapping>
               <directory>/var/run/ambari-server</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-            </mapping>
-            <mapping>
-              <directory>/etc/rc.d/init.d</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
-                <source>
-                  <location>etc/init.d/ambari-server</location>
-                </source>
-              </sources>
             </mapping>
             <mapping>
               <directory>/var/lib/ambari-server/resources</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
               <sources>
                 <source>
                   <location>../version</location>
