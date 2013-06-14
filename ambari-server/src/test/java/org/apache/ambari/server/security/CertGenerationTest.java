@@ -18,9 +18,9 @@
 
 package org.apache.ambari.server.security;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Constructor;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.ambari.server.configuration.Configuration;
@@ -123,4 +123,30 @@ public class CertGenerationTest extends TestCase {
     						  File.separator + Configuration.KSTR_NAME_DEFAULT);
     assertTrue(serverKeyStrore.exists());
   }
+
+  @Test
+  public void testRevokeExistingAgentCert() throws Exception {
+
+    Map<String,String> config = certMan.configs.getConfigsMap();
+    config.put(Configuration.PASSPHRASE_KEY,"passphrase");
+
+    String agentHostname = "agent_hostname1";
+    SignCertResponse scr = certMan.signAgentCrt(agentHostname,
+      "incorrect_agentCrtReqContent", "passphrase");
+    //Revoke command wasn't executed
+    assertFalse(scr.getMessage().contains("-revoke"));
+
+    //Emulate existing agent certificate
+    File fakeAgentCertFile = new File(temp.getRoot().getAbsoluteFile() +
+      File.separator + agentHostname + ".crt");
+    assertFalse(fakeAgentCertFile.exists());
+    fakeAgentCertFile.createNewFile();
+    assertTrue(fakeAgentCertFile.exists());
+
+    //Revoke command was executed
+    scr = certMan.signAgentCrt(agentHostname,
+      "incorrect_agentCrtReqContent", "passphrase");
+    assertTrue(scr.getMessage().contains("-revoke"));
+  }
+
 }
