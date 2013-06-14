@@ -78,3 +78,9 @@ class TestManifestGenerator(TestCase):
     print file(tmpFileName).read()
 
     pass
+
+  def testEscape(self):
+    shouldBe = '\\\'\\\\'
+    result = manifestGenerator.escape('\'\\')
+    self.assertEqual(result, shouldBe)
+
