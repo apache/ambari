@@ -423,7 +423,14 @@ public interface AmbariManagementController {
    * @throws  AmbariException if the resources cannot be read
    */
   public Set<StackResponse> getStacks(Set<StackRequest> requests) throws AmbariException;
-  
+
+  /**
+   * Update stacks from the files at stackRoot.
+   *
+   * @return a track action response
+   * @throws AmbariException if
+   */
+  public RequestStatusResponse updateStacks() throws AmbariException;
   
   /**
    * Get supported stacks versions.

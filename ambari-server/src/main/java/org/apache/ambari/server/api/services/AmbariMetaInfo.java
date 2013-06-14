@@ -118,6 +118,7 @@ public class AmbariMetaInfo {
    */
   @Inject
   public void init() throws Exception {
+    stacksResult = new ArrayList<StackInfo>();
     readServerVersion();
     getConfigurationInformation(stackRoot);
   }

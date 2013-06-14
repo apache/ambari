@@ -18,10 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -70,6 +66,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 
+import static org.junit.Assert.*;
 
 public class AmbariManagementControllerTest {
 
@@ -92,6 +89,7 @@ public class AmbariManagementControllerTest {
   private static final int OS_CNT = 2;
 
   private static final String NON_EXT_VALUE = "XXX";
+  private static final String INCORRECT_BASE_URL = "http://incorrect.url";
 
   private static final String COMPONENT_NAME = "NAMENODE";
   
@@ -6479,6 +6477,26 @@ public class AmbariManagementControllerTest {
     ServiceRequest req = new ServiceRequest(clusterName, serviceName1, null,
         State.INSTALLED.toString());
     controller.updateServices(Collections.singleton(req), Collections.<String, String>emptyMap(), true, false);
+  }
+
+  @Test
+  public void testUpdateStacks() throws Exception {
+
+    StackInfo stackInfo = ambariMetaInfo.getStackInfo(STACK_NAME, STACK_VERSION);
+
+    for (RepositoryInfo repositoryInfo: stackInfo.getRepositories()) {
+      assertFalse(INCORRECT_BASE_URL.equals(repositoryInfo.getBaseUrl()));
+      repositoryInfo.setBaseUrl(INCORRECT_BASE_URL);
+      assertTrue(INCORRECT_BASE_URL.equals(repositoryInfo.getBaseUrl()));
+    }
+
+    controller.updateStacks();
+
+    stackInfo = ambariMetaInfo.getStackInfo(STACK_NAME, STACK_VERSION);
+
+    for (RepositoryInfo repositoryInfo: stackInfo.getRepositories()) {
+      assertFalse(INCORRECT_BASE_URL.equals(repositoryInfo.getBaseUrl()));
+    }
   }
   
 }

@@ -22,10 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -45,7 +42,15 @@ public class StacksService extends BaseService {
   public Response getStacks(@Context HttpHeaders headers, @Context UriInfo ui) {
 
     return handleRequest(headers, null, ui, Request.Type.GET,
-        createStackResource(null));
+      createStackResource(null));
+  }
+
+  @PUT
+  @Produces("text/plain")
+  public Response updateStacks(@Context HttpHeaders headers, @Context UriInfo ui) {
+
+    return handleRequest(headers, null, ui, Request.Type.PUT,
+      createStackResource(null));
   }
 
   @GET

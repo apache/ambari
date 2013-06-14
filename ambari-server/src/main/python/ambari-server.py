@@ -35,6 +35,7 @@ import fileinput
 import urllib2
 import time
 import getpass
+import socket
 import datetime
 import socket
 import tempfile
@@ -51,6 +52,7 @@ STOP_ACTION = "stop"
 RESET_ACTION = "reset"
 UPGRADE_ACTION = "upgrade"
 UPGRADE_STACK_ACTION = "upgradestack"
+UPDATE_METAINFO_ACTION = "update-metainfo"
 STATUS_ACTION = "status"
 LDAP_SETUP_ACTION = "setupldap"
 RESET_MASTER_KEY_ACTION = "resetmasterkey"
@@ -162,6 +164,7 @@ SETUP_DB_CMD = ['su', '-', 'postgres',
         '--command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'"']
 UPGRADE_STACK_CMD = ['su', 'postgres',
         '--command=psql -f {0} -v stack_name="\'{1}\'"  -v stack_version="\'{2}\'"']
+UPDATE_METAINFO_CMD = 'curl -X PUT "http://{0}:{1}/api/v1/stacks2" -u "{2}":"{3}"'
 PG_ST_CMD = "/sbin/service postgresql status"
 PG_INITDB_CMD = "/sbin/service postgresql initdb"
 PG_START_CMD = "/sbin/service postgresql start"
@@ -183,6 +186,9 @@ JDBC_USER_NAME_PROPERTY = "server.jdbc.user.name"
 JDBC_PASSWORD_PROPERTY = "server.jdbc.user.passwd"
 JDBC_PASSWORD_FILENAME = "password.dat"
 JDBC_RCA_PASSWORD_FILENAME = "rca_password.dat"
+
+CLIENT_API_PORT_PROPERTY = "client.api.port"
+CLIENT_API_PORT = "8080"
 
 PERSISTENCE_TYPE_PROPERTY = "server.persistence.type"
 JDBC_DRIVER_PROPERTY = "server.jdbc.driver"
@@ -415,6 +421,65 @@ def run_os_command(cmd):
   (stdoutdata, stderrdata) = process.communicate()
   return process.returncode, stdoutdata, stderrdata
 
+#
+# Updates metainfo information from stack root. Re-cache information from
+# repoinfo.xml , metainfo.xml files , etc.
+#
+def update_metainfo(args):
+  configure_update_metainfo_args(args)
+
+  hostname = args.hostname
+  port = args.port
+  username = args.username
+  password = args.password
+
+  command = UPDATE_METAINFO_CMD
+  command = command.format(hostname, port, username, password)
+  retcode, outdata, errdata = run_os_command(command)
+
+  if outdata.find("Bad credentials") > 0:
+    print 'Incorrect credential provided. Please try again.'
+
+  if not retcode == 0:
+    print errdata
+  return retcode
+
+def configure_update_metainfo_args(args):
+  conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
+  properties = Properties()
+
+  try:
+    properties.load(open(conf_file))
+  except Exception, e:
+    print 'Could not read ambari config file "%s": %s' % (conf_file, e)
+    return -1
+
+
+  default_username = "admin"
+
+  username_prompt = 'Username [' + default_username + ']: '
+  password_prompt = 'Password: '
+  input_pattern = "^[a-zA-Z_][a-zA-Z0-9_\-]*$"
+
+  hostname = socket.gethostname()
+  port = properties[CLIENT_API_PORT_PROPERTY]
+
+  if not port:
+    port = CLIENT_API_PORT
+
+  input_descr = "Invalid characters in received. Start with _ or alpha "\
+                  "followed by alphanumeric or _ or - characters"
+
+  print 'Full authentication is required to access the Ambari API'
+  username = get_validated_string_input(username_prompt, default_username,
+      input_pattern, input_descr, False)
+  password = get_validated_string_input(password_prompt, "", input_pattern,
+      input_descr, True)
+
+  args.hostname = hostname
+  args.port = port
+  args.username = username
+  args.password = password
 
 #
 # Checks SELinux
@@ -2543,6 +2608,8 @@ def main():
       setup_ldap()
     elif action == RESET_MASTER_KEY_ACTION:
       reset_master_key()
+    elif action == UPDATE_METAINFO_ACTION:
+      update_metainfo(options)
     else:
       parser.error("Invalid action")
   except FatalException as e:

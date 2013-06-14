@@ -20,16 +20,8 @@ package org.apache.ambari.server.controller;
 
 import java.io.File;
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
@@ -4225,6 +4217,19 @@ public class AmbariManagementControllerImpl implements
       }
     }
     return response;
+  }
+
+  @Override
+  public synchronized RequestStatusResponse updateStacks() throws AmbariException {
+
+    try {
+      ambariMetaInfo.init();
+    } catch (Exception e) {
+      throw new AmbariException(
+        "Ambari metainormation can't be read from the stack root directory");
+    }
+
+    return null;
   }
 
   @Override

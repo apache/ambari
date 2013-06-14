@@ -20,6 +20,7 @@ limitations under the License.
 
 from unittest import TestCase
 from PuppetExecutor import PuppetExecutor
+from RepoInstaller import RepoInstaller
 from Grep import Grep
 from pprint import pformat
 import socket, threading, tempfile
@@ -66,6 +67,39 @@ class TestPuppetExecutor(TestCase):
     self.assertEquals(res["exitcode"], 999)
     self.assertFalse(puppetInstance.reposInstalled)
     os.unlink(tmpdir + os.sep + 'site-' + str(parsedJson["taskId"]) + '.pp')
+
+  @patch.object(RepoInstaller, 'generate_repo_manifests')
+  @patch.object(PuppetExecutor, 'runPuppetFile')
+  def test_overwrite_repos(self, runPuppetFileMock, generateRepoManifestMock):
+    tmpdir = AmbariConfig().getConfig().get("stack", "installprefix")
+    puppetInstance = PuppetExecutor("/tmp", "/x", "/y", tmpdir, AmbariConfig().getConfig())
+    jsonFile = open('../../main/python/ambari_agent/test.json', 'r')
+    jsonStr = jsonFile.read()
+    parsedJson = json.loads(jsonStr)
+    parsedJson["taskId"] = 77
+    def side_effect(puppetFile, result, puppetEnv, tmpoutfile, tmperrfile):
+      result["exitcode"] = 0
+    runPuppetFileMock.side_effect = side_effect
+
+    #If ambari-agent has been just started and no any commands were executed by
+    # PuppetExecutor.runCommand, then no repo files were updated by
+    # RepoInstaller.generate_repo_manifests
+    self.assertEquals(0, generateRepoManifestMock.call_count)
+    self.assertFalse(puppetInstance.reposInstalled)
+
+    # After executing of the first command, RepoInstaller.generate_repo_manifests
+    # generates a .pp file for updating repo files
+    puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
+    self.assertTrue(puppetInstance.reposInstalled)
+    self.assertEquals(1, generateRepoManifestMock.call_count)
+
+    # After executing of the next commands, repo manifest aren't generated again
+    puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
+    self.assertTrue(puppetInstance.reposInstalled)
+    self.assertEquals(1, generateRepoManifestMock.call_count)
+    puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
+    self.assertTrue(puppetInstance.reposInstalled)
+    self.assertEquals(1, generateRepoManifestMock.call_count)
 
   @patch("os.path.exists")
   def test_configure_environ(self, osPathExistsMock):
