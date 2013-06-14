@@ -98,9 +98,9 @@ App.HostPopup = Em.Object.create({
     var progress = 0;
     var actionsNumber = tasks.length;
     var completedActions = tasks.filterProperty('Tasks.status', 'COMPLETED').length
-        + tasks.filterProperty('Tasks.status', 'FAILED').length
-        + tasks.filterProperty('Tasks.status', 'ABORTED').length
-        + tasks.filterProperty('Tasks.status', 'TIMEDOUT').length;
+      + tasks.filterProperty('Tasks.status', 'FAILED').length
+      + tasks.filterProperty('Tasks.status', 'ABORTED').length
+      + tasks.filterProperty('Tasks.status', 'TIMEDOUT').length;
     var queuedActions = tasks.filterProperty('Tasks.status', 'QUEUED').length;
     var inProgressActions = tasks.filterProperty('Tasks.status', 'IN_PROGRESS').length;
     progress = Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsNumber * 100);
@@ -142,7 +142,7 @@ App.HostPopup = Em.Object.create({
           barColor: 'progress-info',
           barWidth: 'width:0%;'
         });
-        var allTasks = []
+        var allTasks = [];
         service.hosts.forEach(function (tasks) {
           tasks.logTasks.forEach(function (task) {
             allTasks.push(task);
@@ -159,7 +159,7 @@ App.HostPopup = Em.Object.create({
           newService.set('barWidth', "width:" + progress + "%;");
         }
         allNewServices.push(newService);
-      })
+      });
       self.set('servicesInfo', allNewServices);
       if (this.get("serviceName") == "")
         this.setBackgroundOperationHeader();
@@ -184,14 +184,14 @@ App.HostPopup = Em.Object.create({
         });
       }
       else {
-        if(this.get("currentServiceId") != null) {
+        if (this.get("currentServiceId") != null) {
           hostsData = hostsData.filterProperty("id", this.get("currentServiceId")).objectAt(0);
         }
         else {
           hostsData = hostsData.filterProperty("name", this.get("serviceName")).objectAt(0);
         }
 
-        if(hostsData && hostsData.hosts) {
+        if (hostsData && hostsData.hosts) {
           hosts = hostsData.hosts;
         }
 
@@ -325,10 +325,13 @@ App.HostPopup = Em.Object.create({
         hosts: self.get("hosts"),
         services: self.get('servicesInfo'),
 
-        tasks: function() {
+        tasks: function () {
           if (!this.get('controller.currentHostName')) return [];
-          if (this.get('hosts')) {
-            return this.get('hosts').findProperty('name', this.get('controller.currentHostName')).get('tasks');
+          if (this.get('hosts') && this.get('hosts').length) {
+            var currentHost = this.get('hosts').findProperty('name', this.get('controller.currentHostName'));
+            if (currentHost) {
+              return currentHost.get('tasks');
+            }
           }
           return [];
         }.property('hosts.@each.tasks', 'hosts.@each.tasks.@each.status'),
@@ -630,11 +633,11 @@ App.HostPopup = Em.Object.create({
         createClipBoard: function () {
           $(".task-detail-log-clipboard-wrap").html('<textarea class="task-detail-log-clipboard"></textarea>');
           $(".task-detail-log-clipboard")
-              .html("stderr: \n" + $(".stderr").html() + "\n stdout:\n" + $(".stdout").html())
-              .css("display", "block")
-              .width($(".task-detail-log-maintext").width())
-              .height($(".task-detail-log-maintext").height())
-              .select();
+            .html("stderr: \n" + $(".stderr").html() + "\n stdout:\n" + $(".stdout").html())
+            .css("display", "block")
+            .width($(".task-detail-log-maintext").width())
+            .height($(".task-detail-log-maintext").height())
+            .select();
           $(".task-detail-log-maintext").css("display", "none")
         },
 
