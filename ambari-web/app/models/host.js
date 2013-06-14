@@ -20,16 +20,6 @@
 var App = require('app');
 var misc = require('utils/misc');
 
-DS.attr.transforms.object = {
-  from: function(serialized) {
-    return Ember.none(serialized) ? null : Object(serialized);
-  },
-
-  to: function(deserialized) {
-    return Ember.none(deserialized) ? null : Object(deserialized);
-  }
-};
-
 App.Host = DS.Model.extend({
   hostName: DS.attr('string'),
   publicHostName: DS.attr('string'),
@@ -101,7 +91,8 @@ App.Host = DS.Model.extend({
     if (isNaN(this.get('diskUsage')) || this.get('diskUsage') < 0) {
       return this.get('diskUsageFormatted');
     }
-    return this.get('diskUsedFormatted') + '/' + this.get('diskTotalFormatted') + ' (' + this.get('diskUsageFormatted') + ' used)';
+    return this.get('diskUsedFormatted') + '/' + this.get('diskTotalFormatted') + ' (' + this.get('diskUsageFormatted')
+      + ' ' + Em.I18n.t('services.service.summary.diskInfoBar.used') + ')';
   }.property('diskUsedFormatted', 'diskTotalFormatted'),
   /**
    * formatted bytes to appropriate value

@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 var App = require('app');
-var validator = require('utils/validator');
 
 // move this to models cause some errors
 App.Form = Em.View.extend({
@@ -170,8 +169,6 @@ App.FormField = Em.Object.extend({ // try to realize this as view
   }.property('displayType'),
 
   validate:function () {
-    var digitsRegex = /^\d+$/;
-    var numberRegex = /^[-,+]?(?:\d+|\d{1,3}(?:,\d{3})+)?(?:\.\d+)?$/;
     var value = this.get('value');
     var isError = false;
     this.set('errorMessage', '');
@@ -186,47 +183,16 @@ App.FormField = Em.Object.extend({ // try to realize this as view
     }
 
     if (!isError) {
-      switch (this.get('validator')) {
-        case 'ipaddress':
-          if (!validator.isIpAddress(value) && !validator.isDomainName(value)) {
-            isError = true;
-            this.set('errorMessage', Em.I18n.t("form.validator.invalidIp"));
-          }
-          break;
-        case 'passwordRetype':
-          var form = this.get('form');
-          var passwordField = form.getField('password');
-          if (passwordField.get('isValid')
-            && (passwordField.get('value') != this.get('value'))
-            && passwordField.get('value') && this.get('value')
-            ) {
-            this.set('errorMessage', "Passwords are different");
-            isError = true;
-          }
-          break;
-        default:
-          break;
-      }
-
-      switch (this.get('displayType')) {
-        case 'digits':
-          if (!digitsRegex.test(value)) {
-            this.set('errorMessage', 'Must contain digits only');
-            isError = true;
-          }
-          break;
-        case 'number':
-          if (!numberRegex.test(value)) {
-            this.set('errorMessage', 'Must be a valid number');
-            isError = true;
-          }
-          break;
-        case 'directories':
-          break;
-        case 'custom':
-          break;
-        case 'password':
-          break;
+      if(this.get('validator') === 'passwordRetype'){
+        var form = this.get('form');
+        var passwordField = form.getField('password');
+        if (passwordField.get('isValid')
+          && (passwordField.get('value') != this.get('value'))
+          && passwordField.get('value') && this.get('value')
+          ) {
+          this.set('errorMessage', "Passwords are different");
+          isError = true;
+        }
       }
     }
     if (!isError) {

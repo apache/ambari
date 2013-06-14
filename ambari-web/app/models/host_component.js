@@ -79,16 +79,14 @@ App.HostComponent = DS.Model.extend({
     var decommissioning = false;
     var hostName = this.get('host.hostName');
     var componentName = this.get('componentName');
-    if (componentName == 'DATANODE') {
-      var hdfsSvc = App.router.get('mainServiceController.hdfsService');
-      if (hdfsSvc) {
-        var decomNodes = hdfsSvc.get('decommissionDataNodes');
-        var decomNode = decomNodes != null ? decomNodes.findProperty("hostName", hostName) : null;
-        decommissioning = decomNode != null;
-      }
+    var hdfsSvc = App.HDFSService.find().objectAt(0);
+    if (componentName === 'DATANODE' && hdfsSvc) {
+      var decomNodes = hdfsSvc.get('decommissionDataNodes');
+      var decomNode = decomNodes != null ? decomNodes.findProperty("hostName", hostName) : null;
+      decommissioning = decomNode != null;
     }
     return decommissioning;
-  }.property('componentName', 'host.hostName', 'App.router.mainServiceController.hdfsService.decommissionDataNodes.@each.hostName'),
+  }.property('componentName', 'host.hostName', 'App.router.clusterController.isLoaded', 'App.router.updateController.isUpdated'),
   /**
    * User friendly host component status
    */

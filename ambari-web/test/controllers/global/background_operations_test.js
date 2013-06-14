@@ -36,7 +36,6 @@ describe('App.BackgroundOperationsController', function () {
    *
    */
   App.set('clusterName', 'testName');
-  App.set('testMode', 'true');
   App.bgOperationsUpdateInterval = 100;
 
   /**
@@ -60,6 +59,7 @@ describe('App.BackgroundOperationsController', function () {
       this.timeout(App.bgOperationsUpdateInterval + 500);
 
       sinon.stub(controller, 'requestMostRecent', function(){
+        App.set('testMode', true);
         controller.set('isWorking', false);
         controller.requestMostRecent.restore();
         done();

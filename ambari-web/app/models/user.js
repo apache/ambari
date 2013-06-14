@@ -19,11 +19,6 @@
 var App = require('app');
 var validator = require('utils/validator');
 
-App.UserModel = Em.Object.extend({
-  userName:null,
-  id:0
-});
-
 App.User = DS.Model.extend({
   userName:DS.attr('string'),
   id:function(){

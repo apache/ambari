@@ -34,14 +34,6 @@ App.MainServiceController = Em.ArrayController.extend({
     return App.Cluster.find().objectAt(0);
   }.property('App.router.clusterController.isLoaded'),
 
-  hdfsService: function () {
-    var hdfsSvcs = App.HDFSService.find();
-    if (hdfsSvcs && hdfsSvcs.get('length') > 0) {
-      return hdfsSvcs.objectAt(0);
-    }
-    return null;
-  }.property('App.router.clusterController.isLoaded', 'App.router.updateController.isUpdated'),
-
   isStartAllDisabled: function(){
     if(this.get('isStartStopAllClicked') == true) {
       return true;

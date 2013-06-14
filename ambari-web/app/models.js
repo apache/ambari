@@ -33,7 +33,6 @@ require('models/service/mapreduce');
 require('models/service/hbase');
 require('models/alert');
 require('models/user');
-require('models/pagination');
 require('models/host');
 require('models/rack');
 require('models/job');

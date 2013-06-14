@@ -697,6 +697,7 @@ Em.I18n.translations = {
   'services.service.summary.unknown':'unknown',
   'services.service.summary.notRunning':'Not Running',
   'services.service.summary.notAvailable':'n/a',
+  'services.service.summary.diskInfoBar.used':'used',
 
   'services.service.info.metrics.hbase.clusterRequests':'Cluster Requests',
   'services.service.info.metrics.hbase.clusterRequests.displayNames.requestCount':'Request Count',
