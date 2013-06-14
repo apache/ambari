@@ -90,8 +90,16 @@ case "$1" in
         echo -e "Setup ambari-server"
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
+  setupldap)
+        echo -e "Setting up ldap properties"
+        $PYTHON /usr/sbin/ambari-server.py $@
+        ;;
+  resetmasterkey)
+        echo -e "Reseting master key for credential store"
+        $PYTHON /usr/sbin/ambari-server.py $@
+        ;;
   *)
-        echo "Usage: /usr/sbin/ambari-server {start|stop|restart|setup|upgrade|status|upgradestack} [options]"
+        echo "Usage: /usr/sbin/ambari-server {start|stop|restart|setup|upgrade|status|upgradestack|setupldap|resetmasterkey} [options]"
         exit 1
 esac
 

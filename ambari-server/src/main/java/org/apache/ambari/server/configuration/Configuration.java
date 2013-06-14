@@ -18,16 +18,17 @@
 package org.apache.ambari.server.configuration;
 
 import com.google.inject.Singleton;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.JPATableGenerationStrategy;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.security.ClientSecurityType;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
+import org.apache.ambari.server.security.encryption.CredentialProvider;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -72,7 +73,6 @@ public class Configuration {
   public static final String METADETA_DIR_PATH = "metadata.path";
   public static final String SERVER_VERSION_FILE = "server.version.file";
   public static final String SERVER_VERSION_KEY = "version";
-
 
   public static final String CLIENT_SECURITY_KEY = "client.security";
   public static final String CLIENT_API_PORT_KEY = "client.api.port";
@@ -129,7 +129,6 @@ public class Configuration {
   public static final String SERVER_JDBC_RCA_USER_PASSWD_KEY = "server.jdbc.rca.user.passwd";
   public static final String SERVER_JDBC_RCA_DRIVER_KEY = "server.jdbc.rca.driver";
   public static final String SERVER_JDBC_RCA_URL_KEY = "server.jdbc.rca.url";
-
 
   public static final String SERVER_JDBC_GENERATE_TABLES_KEY = "server.jdbc.generateTables";
 
@@ -208,14 +207,22 @@ public class Configuration {
   public static final String HIVE_METASTORE_PASSWORD_PROPERTY =
     "javax.jdo.option.ConnectionPassword";
 
+  public static final String MASTER_KEY_PERSISTED = "security.master" +
+    ".key.ispersisted";
+  public static final String MASTER_KEY_LOCATION = "security.master.key" +
+    ".location";
+  public static final String MASTER_KEY_ENV_PROP = "ambari.security.master" +
+    ".key";
+  public static final String MASTER_KEY_FILENAME_DEFAULT = "master";
+
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
 
   private Properties properties;
 
-
   private Map<String, String> configsMap;
 
+  private CredentialProvider credentialProvider = null;
 
   public Configuration() {
     this(readConfigFile());
@@ -283,6 +290,7 @@ public class Configuration {
     configsMap.put(SRVR_CRT_PASS_KEY, randStr);
 
     loadSSLParams();
+    loadCredentialProvider();
   }
 
   /**
@@ -300,6 +308,12 @@ public class Configuration {
     }
   }
 
+  private void loadCredentialProvider() {
+    if (credentialProvider == null) {
+      this.credentialProvider = new CredentialProvider(null,
+        getMasterKeyLocation(), isMasterKeyPersisted());
+    }
+  }
 
   /**
    * Find, read, and parse the configuration file.
@@ -313,7 +327,6 @@ public class Configuration {
 
     if (inputStream == null)
       throw new RuntimeException(CONFIG_FILE + " not found in classpath");
-
 
     // load the properties
     try {
@@ -457,8 +470,12 @@ public class Configuration {
   }
 
   public String getDatabasePassword() {
-    String filePath = properties.getProperty(SERVER_JDBC_USER_PASSWD_KEY);
-    return readPassword(filePath, SERVER_JDBC_USER_PASSWD_DEFAULT);
+    String passwdProp = properties.getProperty(SERVER_JDBC_USER_PASSWD_KEY);
+    String dbpasswd = readPasswordFromStore(passwdProp);
+    if (dbpasswd != null)
+      return dbpasswd;
+    else
+      return readPasswordFromFile(passwdProp, SERVER_JDBC_USER_PASSWD_DEFAULT);
   }
 
   public String getRcaDatabaseDriver() {
@@ -474,11 +491,15 @@ public class Configuration {
   }
 
   public String getRcaDatabasePassword() {
-    String filePath = properties.getProperty(SERVER_JDBC_RCA_USER_PASSWD_KEY);
-    return readPassword(filePath, SERVER_JDBC_RCA_USER_PASSWD_DEFAULT);
+    String passwdProp = properties.getProperty(SERVER_JDBC_RCA_USER_PASSWD_KEY);
+    String dbpasswd = readPasswordFromStore(passwdProp);
+    if (dbpasswd != null)
+      return dbpasswd;
+    else
+      return readPasswordFromFile(passwdProp, SERVER_JDBC_RCA_USER_PASSWD_DEFAULT);
   }
 
-  private String readPassword(String filePath, String defaultPassword) {
+  private String readPasswordFromFile(String filePath, String defaultPassword) {
     if (filePath == null) {
       LOG.debug("DB password file not specified - using default");
       return defaultPassword;
@@ -494,6 +515,25 @@ public class Configuration {
     }
   }
 
+  private String readPasswordFromStore(String aliasStr) {
+    String password = null;
+    loadCredentialProvider();
+    if (credentialProvider != null) {
+      char[] result = null;
+      try {
+        result = credentialProvider.getPasswordForAlias(aliasStr);
+      } catch (AmbariException e) {
+        LOG.error("Error reading from credential store.");
+        e.printStackTrace();
+      }
+      if (result != null) {
+        password = new String(result);
+      } else {
+        LOG.error("Cannot read password for alias = " + aliasStr);
+      }
+    }
+    return password;
+  }
 
   /**
    * Gets parameters of LDAP server to connect to
@@ -513,8 +553,14 @@ public class Configuration {
             LDAP_BIND_ANONYMOUSLY_DEFAULT)));
     ldapServerProperties.setManagerDn(properties.getProperty(
         LDAP_MANAGER_DN_KEY));
-    ldapServerProperties.setManagerPassword(properties.getProperty(
-        LDAP_MANAGER_PASSWORD_KEY));
+    String ldapPasswd = readPasswordFromStore(properties
+      .getProperty(LDAP_MANAGER_PASSWORD_KEY));
+    if (ldapPasswd != null) {
+      ldapServerProperties.setManagerPassword(ldapPasswd);
+    } else {
+      ldapServerProperties.setManagerPassword(properties.getProperty
+        (LDAP_MANAGER_PASSWORD_KEY));
+    }
     ldapServerProperties.setBaseDN(properties.getProperty
         (LDAP_BASE_DN_KEY, LDAP_BASE_DN_DEFAULT));
     ldapServerProperties.setUsernameAttribute(properties.
@@ -542,7 +588,6 @@ public class Configuration {
   public String getMasterHostname(String defaultValue) {
     return properties.getProperty(BOOTSTRAP_MASTER_HOSTNAME, defaultValue);
   }
-
 
   public int getClientApiPort() {
     return Integer.parseInt(properties.getProperty(CLIENT_API_PORT_KEY, String.valueOf(CLIENT_API_PORT_DEFAULT)));
@@ -575,5 +620,16 @@ public class Configuration {
    */
   public String getAnonymousAuditName() {
     return properties.getProperty(ANONYMOUS_AUDIT_NAME_KEY, "_anonymous");
+  }
+
+  public boolean isMasterKeyPersisted() {
+    String isPersisted = properties.getProperty(MASTER_KEY_PERSISTED, "true");
+    return isPersisted.toLowerCase().equals("true");
+  }
+
+  public String getMasterKeyLocation() {
+    String defaultDir = properties.getProperty(MASTER_KEY_LOCATION,
+      properties.getProperty(SRVR_KSTR_DIR_KEY, SRVR_KSTR_DIR_DEFAULT));
+    return defaultDir + File.separator + MASTER_KEY_FILENAME_DEFAULT;
   }
 }

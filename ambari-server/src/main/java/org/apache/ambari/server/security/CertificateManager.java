@@ -63,9 +63,7 @@ public class CertificateManager {
        */
   public void initRootCert() {
     LOG.info("Initialization of root certificate");
-
     boolean certExists = isCertExists();
-
     LOG.info("Certificate exists:" + certExists);
 
     if (!certExists) {

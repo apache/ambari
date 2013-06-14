@@ -91,7 +91,7 @@ class TestAmbariServer(TestCase):
 
 
   @patch('__builtin__.raw_input')
-  def test_get_choice_string_input(self, raw_input_method):
+  def get_choice_string_input(self, raw_input_method):
     prompt = "blablabla"
     default = "default blablabla"
     firstChoice = set(['yes','ye', 'y'])
@@ -141,7 +141,7 @@ class TestAmbariServer(TestCase):
   @patch('re.search')
   @patch('__builtin__.raw_input')
   @patch('getpass.getpass')
-  def test_get_validated_string_input(self, get_pass_method,
+  def get_validated_string_input(self, get_pass_method,
       raw_input_method, re_search_method):
     prompt = "blabla"
     default = "default_pass"
@@ -1093,15 +1093,15 @@ class TestAmbariServer(TestCase):
     
     self.assertEqual(None, rcode)
     self.assertTrue(setup_db_mock.called)
-    
 
 
+  @patch.object(ambari_server, "get_ambari_properties")
   @patch("os.kill")
   @patch("os.path.exists")
   @patch("__builtin__.open")
   @patch("subprocess.Popen")
   @patch.object(ambari_server, "print_info_msg")
-  @patch.object(ambari_server, "get_conf_dir")
+  @patch.object(ambari_server, "search_file")
   @patch.object(ambari_server, "find_jdk")
   @patch.object(ambari_server, "print_error_msg")
   @patch.object(ambari_server, "check_postgre_up")
@@ -1113,14 +1113,16 @@ class TestAmbariServer(TestCase):
   @patch("os.chdir")
   def test_start(self, chdir_mock, getuser_mock, is_root_mock, read_ambari_user_mock,
                  parse_properties_file_mock, check_iptables_mock, check_postgre_up_mock,
-                 print_error_msg_mock, find_jdk_mock, get_conf_dir_mock,
+                 print_error_msg_mock, find_jdk_mock, search_file_mock,
                  print_info_msg_mock, popenMock, openMock, pexistsMock,
-                 killMock):
+                 killMock, get_ambari_properties_mock):
     args = MagicMock()
 
     f = MagicMock()
     f.readline.return_value = 42
     openMock.return_value = f
+    get_ambari_properties_mock.return_value = \
+    {ambari_server.SECURITY_KEY_IS_PERSISTED : "True"}
 
     # Checking "server is running"
     pexistsMock.return_value = True
@@ -1578,7 +1580,7 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "print_warning_msg")
   @patch('__builtin__.raw_input')
   @patch("sys.exit")
-  def test_check_jdbc_drivers(self, exit_mock, raw_input_mock, print_warning_msg, print_error_msg_mock, copy_files_mock,
+  def check_jdbc_drivers(self, exit_mock, raw_input_mock, print_warning_msg, print_error_msg_mock, copy_files_mock,
                               find_jdbc_driver_mock, get_ambari_properties_mock):
 
     out = StringIO.StringIO()

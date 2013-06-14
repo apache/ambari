@@ -37,6 +37,7 @@ import time
 import getpass
 import datetime
 import socket
+import tempfile
 
 # debug settings
 VERBOSE = False
@@ -51,6 +52,8 @@ RESET_ACTION = "reset"
 UPGRADE_ACTION = "upgrade"
 UPGRADE_STACK_ACTION = "upgradestack"
 STATUS_ACTION = "status"
+LDAP_SETUP_ACTION = "setupldap"
+RESET_MASTER_KEY_ACTION = "resetmasterkey"
 
 # selinux commands
 GET_SE_LINUX_ST_CMD = "/usr/sbin/sestatus"
@@ -117,6 +120,35 @@ SERVER_START_CMD_DEBUG="{0}" + os.sep + "bin" + os.sep +\
                        " org.apache.ambari.server.controller.AmbariServer &" \
                        " echo $! > {3}" # Writing pidfile
 
+SECURITY_PROVIDER_GET_CMD="{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
+                          os.pathsep + "{2} " +\
+                          "org.apache.ambari.server.security.encryption" +\
+                          ".CredentialProvider GET {3} {4} {5} " +\
+                          "> /var/log/ambari-server/ambari-server.out 2>&1"
+
+SECURITY_PROVIDER_PUT_CMD="{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
+                          os.pathsep + "{2} " +\
+                          "org.apache.ambari.server.security.encryption" +\
+                          ".CredentialProvider PUT {3} {4} {5} " +\
+                          "> /var/log/ambari-server/ambari-server.out 2>&1"
+
+SECURITY_PROVIDER_KEY_CMD="{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
+                          os.pathsep + "{2} " +\
+                          "org.apache.ambari.server.security.encryption" +\
+                          ".MasterKeyServiceImpl {3} {4} {5} " +\
+                          "> /var/log/ambari-server/ambari-server.out 2>&1"
+
+SECURITY_KEYS_DIR = "security.server.keys_dir"
+SECURITY_MASTER_KEY_LOCATION = "security.master.key.location"
+SECURITY_KEY_IS_PERSISTED = "security.master.key.ispersisted"
+SECURITY_KEY_ENV_VAR_NAME = "ambari.security.master.key"
+SECURITY_MASTER_KEY_FILENAME = "master"
+
+JDBC_RCA_PASSWORD_ALIAS = "ambari.db.password"
+LDAP_MGR_PASSWORD_ALIAS = "ambari.ldap.manager.password"
+LDAP_MGR_PASSWORD_PROPERTY = "authentication.ldap.managerPassword"
+
+
 AMBARI_CONF_VAR="AMBARI_CONF_DIR"
 AMBARI_SERVER_LIB="AMBARI_SERVER_LIB"
 JAVA_HOME="JAVA_HOME"
@@ -148,7 +180,7 @@ JDBC_PORT_PROPERTY = "server.jdbc.port"
 JDBC_SCHEMA_PROPERTY = "server.jdbc.schema"
 
 JDBC_USER_NAME_PROPERTY = "server.jdbc.user.name"
-JDBC_PASSWORD_FILE_PROPERTY = "server.jdbc.user.passwd"
+JDBC_PASSWORD_PROPERTY = "server.jdbc.user.passwd"
 JDBC_PASSWORD_FILENAME = "password.dat"
 JDBC_RCA_PASSWORD_FILENAME = "rca_password.dat"
 
@@ -773,12 +805,17 @@ def check_postgre_up():
 
 
 
-def read_password(passwordDefault = PG_DEFAULT_PASSWORD):
+def read_password(passwordDefault=PG_DEFAULT_PASSWORD,
+                  passwordPattern=PASSWORD_PATTERN,
+                  passwordPrompt=None,
+                  passwordDescr=None):
   # setup password
-  passwordPrompt = 'Password [' + passwordDefault + ']: '
-  passwordPattern = PASSWORD_PATTERN
-  passwordDescr = "Invalid characters in password. Use only alphanumeric or " \
-                  "_ or - characters"
+  if passwordPrompt is None:
+    passwordPrompt = 'Password [' + passwordDefault + ']: '
+
+  if passwordDescr is None:
+    passwordDescr = "Invalid characters in password. Use only alphanumeric or " \
+                    "_ or - characters"
 
   password = get_validated_string_input(passwordPrompt, passwordDefault,
                                         passwordPattern, passwordDescr, True)
@@ -869,8 +906,12 @@ def prompt_db_properties(args):
         "followed by alphanumeric or _ or - characters",
         False
       )
-
-      args.database_password =  read_password(args.database_password)
+      (masterKey, isSecure, isPersisted) = setup_master_key()
+      (password, passwordAlias) = configure_database_password(isSecure,
+        masterKey, True)
+      args.database_password =  password
+      if passwordAlias:
+        setattr(args, 'database_password_alias', passwordAlias) # Store alias if present
 
 
   print_info_msg('Using database options: {database},{host},{port},{schema},{user},{password}'.format(
@@ -906,12 +947,21 @@ def store_remote_properties(args):
     
   properties.process_pair(JDBC_URL_PROPERTY, DATABASE_CONNECTION_STRINGS[DATABASE_INDEX].format(jdbc_hostname, args.database_port, args.database_name))
   properties.process_pair(JDBC_USER_NAME_PROPERTY, args.database_username)
-  properties.process_pair(JDBC_PASSWORD_FILE_PROPERTY, store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
+  if not args.database_password_alias:
+    properties.process_pair(JDBC_PASSWORD_PROPERTY,
+      store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
+  else:
+    properties.process_pair(JDBC_PASSWORD_PROPERTY, args.database_password_alias)
 
   properties.process_pair(JDBC_RCA_DRIVER_PROPERTY, DATABASE_DRIVER_NAMES[DATABASE_INDEX])
   properties.process_pair(JDBC_RCA_URL_PROPERTY, DATABASE_CONNECTION_STRINGS[DATABASE_INDEX].format(jdbc_hostname, args.database_port, args.database_name))
   properties.process_pair(JDBC_RCA_USER_NAME_PROPERTY, args.database_username)
-  properties.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY, store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
+  if not args.database_password_alias:
+    properties.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY,
+      store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
+  else:
+    properties.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY,
+      args.database_password_alias)
 
 
   conf_file = properties.fileName
@@ -1003,6 +1053,30 @@ def execute_remote_script(args, scriptPath):
   return -2, "Wrong database", "Wrong database"
 
 
+def configure_database_password(isSecure=False, masterKey=None, showDefault=True):
+  passwordDefault = PG_DEFAULT_PASSWORD
+  if showDefault:
+    passwordPrompt = 'Enter Database Password [' + passwordDefault + ']: '
+  else:
+    passwordPrompt = 'Enter Database Password: '
+  passwordPattern = "^[a-zA-Z0-9_-]*$"
+  passwordDescr = "Invalid characters in password. Use only alphanumeric or "\
+                  "_ or - characters"
+
+  password = read_password(passwordDefault, passwordPattern, passwordPrompt,
+    passwordDescr)
+
+  aliasStr = None
+  if isSecure:
+    retCode = save_passwd_for_alias(JDBC_RCA_PASSWORD_ALIAS, password, masterKey)
+    if retCode != 0:
+      print 'Saving secure database password failed.'
+      return password, aliasStr
+    return password, get_alias_string(JDBC_RCA_PASSWORD_ALIAS)
+
+  return password, aliasStr
+
+
 def configure_database_username_password(args):
   properties = get_ambari_properties()
   if properties == -1:
@@ -1010,12 +1084,31 @@ def configure_database_username_password(args):
     return -1
 
   username = properties[JDBC_USER_NAME_PROPERTY]
-  passFilePath = properties[JDBC_PASSWORD_FILE_PROPERTY]
+  passwordProp = properties[JDBC_PASSWORD_PROPERTY]
+  isPersisted = get_master_key_ispersisted(properties)
 
-  if username and passFilePath:
-    print_info_msg("Database username + password already configured - skipping")
+  if username and passwordProp:
+    print_info_msg("Database username + password already configured")
     args.database_username=username
-    args.database_password = open(passFilePath).read()
+    if is_alias_string(passwordProp):
+      if isPersisted:
+        # No need to prompt for key
+        args.postgres_password = read_passwd_for_alias(JDBC_RCA_PASSWORD_ALIAS)
+      else:
+        (masterKey, isSecure, isPersisted) = setup_master_key()
+        args.postgres_password = read_passwd_for_alias(
+          JDBC_RCA_PASSWORD_ALIAS, masterKey)
+    else:
+      # User might want to encrypt this time around
+      (masterKey, isSecure, isPersisted) = setup_master_key()
+      if isSecure:
+        (password, passwordAlias) = configure_database_password(isSecure,
+          masterKey, False)
+        update_properties({JDBC_PASSWORD_PROPERTY : passwordAlias})
+        args.postgres_password = password
+      else:
+        args.postgres_password = open(passwordProp).read()
+
     return 1
   else:
     print_error_msg("Connection properties not set in config file.")
@@ -1040,7 +1133,12 @@ def store_local_properties(args):
   properties.removeOldProp(JDBC_DATABASE_PROPERTY)
   properties.process_pair(PERSISTENCE_TYPE_PROPERTY, "local")
   properties.process_pair(JDBC_USER_NAME_PROPERTY, args.database_username)
-  properties.process_pair(JDBC_PASSWORD_FILE_PROPERTY, store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
+  if not args.database_password_alias:
+    properties.process_pair(JDBC_PASSWORD_PROPERTY,
+      store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
+  else:
+    properties.process_pair(JDBC_PASSWORD_PROPERTY,
+      args.database_password_alias)
 
   conf_file = properties.fileName
 
@@ -1095,9 +1193,12 @@ def parse_properties_file(args):
 
   args.database_username = properties[JDBC_USER_NAME_PROPERTY]
 
-  args.database_password_file = properties[JDBC_PASSWORD_FILE_PROPERTY]
+  args.database_password_file = properties[JDBC_PASSWORD_PROPERTY]
   if args.database_password_file:
-    args.database_password = open(properties[JDBC_PASSWORD_FILE_PROPERTY]).read()
+    if not is_alias_string(args.database_password_file):
+      args.database_password = open(properties[JDBC_PASSWORD_PROPERTY]).read()
+    else:
+      args.database_password = args.database_password_file
 
   return 0
 
@@ -1744,6 +1845,40 @@ def start(args):
             "without root privileges."
       print "Please don't forget to start PostgreSQL server."
 
+
+  properties = get_ambari_properties()
+  persist = get_master_key_ispersisted(properties)
+  environ = os.environ.copy()
+  # Need to handle master key not persisted scenario
+  if persist is not None and not persist:
+    prompt = False
+    masterKey = environ[SECURITY_KEY_ENV_VAR_NAME]
+    if masterKey is not None and masterKey != "":
+      pass
+    else:
+      keyLocation = environ[SECURITY_MASTER_KEY_LOCATION]
+      if keyLocation is not None:
+        try:
+          # Verify master key can be read by the java process
+          with open(keyLocation, 'r') : pass
+        except IOError:
+          print_warning_msg("Cannot read Master key from path specified in "
+                            "environemnt.")
+          prompt = True
+
+    if prompt:
+      masterKey = get_validated_string_input("Please provide master key " +\
+                    "for unlocking credential store: ", "", ".*", "", False)
+      tempDir = tempfile.gettempdir()
+      tempFilePath = tempDir + os.sep + "ambari.passwd"
+      with open(tempFilePath, 'w+') as file:
+        file.write(masterKey)
+      os.chmod(tempFilePath, stat.S_IREAD | stat.S_IWRITE)
+
+      if tempFilePath is not None:
+        environ[SECURITY_MASTER_KEY_LOCATION] = tempFilePath
+
+
   pidfile = PID_DIR + os.sep + PID_NAME
   command_base = SERVER_START_CMD_DEBUG if (SERVER_DEBUG_MODE or SERVER_START_DEBUG) else SERVER_START_CMD
   command = command_base.format(jdk_path, conf_dir, get_ambari_classpath(), pidfile)
@@ -1757,7 +1892,7 @@ def start(args):
   else:
     param_list = ["/bin/sh", "-c", command]
   print "Running server: " + str(param_list)
-  server_process = subprocess.Popen(param_list)
+  server_process = subprocess.Popen(param_list, env=environ)
   print "done."
 
 
@@ -1955,6 +2090,319 @@ def get_validated_string_input(prompt, default, pattern, description, is_pass):
   return input
 
 
+def get_value_from_properties(properties, key):
+  try:
+    value = properties[key]
+  except KeyError:
+    return ""
+  return value
+
+def setup_ldap():
+  properties = get_ambari_properties()
+
+  # Setup secure key
+  (masterKey, isSecure, isPersisted) = setup_master_key(False)
+
+  LDAP_PRIMARY_URL_DEFAULT = get_value_from_properties(properties,
+    "authentication.ldap.primaryUrl")
+  LDAP_SECONDARY_URL_DEFAULT = get_value_from_properties(properties,
+    "authentication.ldap.secondaryUrl")
+  LDAP_BASE_DN_DEFAULT = get_value_from_properties(properties,
+    "authentication.ldap.baseDn")
+  LDAP_BIND_DEFAULT = get_value_from_properties(properties,
+    "authentication.ldap.bindAnonymously")
+  LDAP_USER_ATT_DEFAULT = get_value_from_properties(properties,
+    "authentication.ldap.usernameAttribute")
+  LDAP_GROUP_BASE_DEFAULT = get_value_from_properties(properties,
+    "authorization.ldap.groupBase")
+  LDAP_GROUP_OBJ_DEFAULT = get_value_from_properties(properties,
+    "authorization.ldap.groupObjectClass")
+  LDAP_GROUP_NAME_DEFAULT = get_value_from_properties(properties,
+    "authorization.ldap.groupNamingAttr")
+  LDAP_GROUP_MEM_DEFAULT = get_value_from_properties(properties,
+    "authorization.ldap.groupMembershipAttr")
+  LDAP_GROUP_MAP_DEFAULT = get_value_from_properties(properties,
+    "authorization.ldap.adminGroupMappingRules")
+  LDAP_GROUP_SEARCH_DEFAULT = get_value_from_properties(properties,
+    "authorization.ldap.groupSearchFilter")
+  LDAP_USER_ROLE_DEFAULT = get_value_from_properties(properties,
+    "authorization.userRoleName")
+  LDAP_ADMIN_ROLE_DEFAULT = get_value_from_properties(properties,
+    "authorization.adminRoleName")
+  LDAP_MGR_DN_DEFAULT = get_value_from_properties(properties,
+    "authentication.ldap.managerDn")
+
+  ldap_properties_map =\
+  {
+    "authentication.ldap.primaryUrl":(LDAP_PRIMARY_URL_DEFAULT, "Primary URL: "),\
+    "authentication.ldap.secondaryUrl":(LDAP_SECONDARY_URL_DEFAULT, "Secondary URL: "),\
+    "authentication.ldap.baseDn":(LDAP_BASE_DN_DEFAULT, "Base DN: "),\
+    "authentication.ldap.bindAnonymously":(LDAP_BIND_DEFAULT, "Bind anonymously? [true/alse]?: "),\
+    "authentication.ldap.usernameAttribute":(LDAP_USER_ATT_DEFAULT, "User name attribute uid): "),\
+    "authorization.ldap.groupBase":(LDAP_GROUP_BASE_DEFAULT, "Group base ou=groups,dc=ambari): "),\
+    "authorization.ldap.groupObjectClass":(LDAP_GROUP_OBJ_DEFAULT, "Group object class group): "),\
+    "authorization.ldap.groupNamingAttr":(LDAP_GROUP_NAME_DEFAULT, "Group name attribute cn): "),\
+    "authorization.ldap.groupMembershipAttr":(LDAP_GROUP_MEM_DEFAULT, "Group membership ttribute (member): "),\
+    "authorization.ldap.adminGroupMappingRules":(LDAP_GROUP_MAP_DEFAULT, "Admin group apping rules: "),\
+    "authorization.ldap.groupSearchFilter":(LDAP_GROUP_SEARCH_DEFAULT, "Group search filter: "),\
+    "authorization.userRoleName":(LDAP_USER_ROLE_DEFAULT, "User role name (user): "),\
+    "authorization.adminRoleName":(LDAP_ADMIN_ROLE_DEFAULT, "Admin role name (admin): "),
+    "authentication.ldap.managerDn":(LDAP_MGR_DN_DEFAULT, "Manager DN: ")
+  }
+  print "Input LDAP properties. Hit [Enter] to skip property."
+  ldap_property_value_map = {}
+  for key in ldap_properties_map.keys():
+    input = get_validated_string_input(ldap_properties_map[key][1],
+      ldap_properties_map[key][0], ".*", "", False)
+    if input is not None and input != "":
+      ldap_property_value_map[key] = input
+
+  ldap_property_value_map[LDAP_MGR_PASSWORD_PROPERTY] =\
+  configure_ldap_password(isSecure, masterKey)
+  # Persisting values
+  update_properties(ldap_property_value_map)
+  return 0
+
+def reset_master_key():
+  setup_master_key(resetKey=True)
+
+def setup_master_key(resetKey=False):
+  properties = get_ambari_properties()
+  passwordPattern = "^[a-zA-Z0-9_-]*$"
+  passwordDescr = "Invalid characters in password. Use only alphanumeric or "\
+                  "_ or - characters"
+  passwordDefault = "hadooprocks!"
+  # check configuration for location of master key
+  keyLocation = get_master_key_location(properties)
+  persist = get_master_key_ispersisted(properties)
+  masterKeyFile = search_file(SECURITY_MASTER_KEY_FILENAME, keyLocation)
+
+  if persist is not None:
+    if persist and masterKeyFile is not None and not resetKey:
+      return None, True, True       # setup is secure and key persisted
+    elif not persist and not resetKey:
+      masterKey = get_validated_string_input("Please provide master key " +\
+                                             "for unlocking credential store: ", "", ".*", "", False)
+      return masterKey, True, False # return master key for saving passwords
+  else:
+    if masterKeyFile is not None:
+      print_info_msg("Master key file exists. Updating property...")
+      update_properties({SECURITY_KEY_IS_PERSISTED : True})
+      return None, True, True
+
+  enable_ok = True
+  if not resetKey:
+    enable_ok = get_YN_input("Do you want encryption enabled for saving " +\
+                             "passwords [y/n] (n)? ", False)
+  if not enable_ok:
+    return None, False, None
+
+  key = None
+  if masterKeyFile is None or resetKey:
+    key = get_validated_string_input(
+      "Please provide master key for the credential store: ",
+      passwordDefault, passwordPattern, passwordDescr, True)
+    if key != passwordDefault:
+      key = get_validated_string_input("Please re-enter master key: ",
+        passwordDefault, passwordPattern, passwordDescr, True)
+
+    persist = get_YN_input("Do you want to persist master key. If you choose "\
+                           "not to persist, you need to provide the master "\
+                           "key while starting the ambari server as a env "\
+                           "variable named " + SECURITY_KEY_ENV_VAR_NAME +\
+                           " or the start will prompt for the master key."
+                           " Persist [y/n] (y)? ", True)
+    if persist:
+      save_master_key(key, keyLocation + os.sep + SECURITY_MASTER_KEY_FILENAME,
+        persist)
+    elif not persist and masterKeyFile is not None:
+      try:
+        #os.remove(masterKeyFile)
+        print_warning_msg("Master key exists although security " +\
+                          "is disabled. location: " + str(masterKeyFile))
+      except Exception, e:
+        print 'Could not remove master key file. %s' % e
+
+  if persist is not None:
+    update_properties({SECURITY_KEY_IS_PERSISTED : persist})
+
+  if resetKey:
+    # Encrypt the passwords with new key
+    try:
+      db_password_alias = args.database_password
+      ldap_password_alias = args.ldap_mgr_password
+    except (KeyError), e:
+      print_warning_msg("KeyError: " + str(e))
+
+    if db_password_alias is not None and is_alias_string(db_password_alias):
+      configure_database_password(True, False)
+
+    if ldap_password_alias is not None and is_alias_string(ldap_password_alias):
+      configure_ldap_password(True)
+
+  return key, True, persist
+
+def get_master_key_location(properties):
+  keyLocation = properties[SECURITY_MASTER_KEY_LOCATION]
+  if keyLocation is None or keyLocation == "":
+    keyLocation = properties[SECURITY_KEYS_DIR]
+  return keyLocation
+
+def get_master_key_ispersisted(properties):
+  try:
+    isPersisted = properties[SECURITY_KEY_IS_PERSISTED]
+  except (KeyError), e:
+    return None
+
+  if isPersisted is not None and isPersisted != "":
+    return isPersisted == 'true' or isPersisted == 'TRUE' or\
+           isPersisted == 'True'
+
+  return None
+
+
+def is_alias_string(passwdStr):
+  regex = re.compile("\$\{alias=[\w\.]+\}")
+  # Match implies string at beginning of word
+  r = regex.match(passwdStr)
+  if r is not None:
+    return True
+  else:
+    return False
+
+def get_alias_string(alias):
+  return "${alias=" + alias + "}"
+
+def read_passwd_for_alias(alias, masterKey=""):
+  if alias:
+    jdk_path = find_jdk()
+    if jdk_path is None:
+      print_error_msg("No JDK found, please run the \"setup\" "
+                      "command to install a JDK automatically or install any "
+                      "JDK manually to " + JDK_INSTALL_DIR)
+      return 1
+
+    tempFileName = "ambari.passwd"
+    passwd = ""
+    tempDir = tempfile.gettempdir()
+    #create temporary file for writing
+    tempFilePath = tempDir + os.sep + tempFileName
+    file = open(tempFilePath, 'w+')
+    os.chmod(tempFilePath, stat.S_IREAD | stat.S_IWRITE)
+    file.close()
+
+    if masterKey is None:
+      masterKey = "None"
+
+    command = SECURITY_PROVIDER_GET_CMD.format(jdk_path,
+      get_conf_dir(), get_ambari_classpath(), alias, tempFilePath, masterKey)
+    (retcode, stdout, stderr) = run_os_command(command)
+    print_info_msg("Return code from credential provider get passwd: " +
+                   str(retcode))
+    if retcode != 0:
+      print 'Unable to read password from store. alias = ' + alias
+    else:
+      passwd = open(tempFilePath, 'r').read()
+      # Remove temporary file
+    os.remove(tempFilePath)
+    return passwd
+  else:
+    print_error_msg("Alias is unreadable.")
+
+def save_passwd_for_alias(alias, passwd, masterKey=""):
+  if alias and passwd:
+    jdk_path = find_jdk()
+    if jdk_path is None:
+      print_error_msg("No JDK found, please run the \"setup\" "
+                      "command to install a JDK automatically or install any "
+                      "JDK manually to " + JDK_INSTALL_DIR)
+      return 1
+
+    if masterKey is None:
+      masterKey = "None"
+
+    command = SECURITY_PROVIDER_PUT_CMD.format(jdk_path, get_conf_dir(),
+      get_ambari_classpath(), alias, passwd, masterKey)
+    (retcode, stdout, stderr) = run_os_command(command)
+    print_info_msg("Return code from credential provider save passwd: " +
+                   str(retcode))
+    return retcode
+  else:
+    print_error_msg("Alias or password is unreadable.")
+
+def save_master_key(master_key, key_location, persist=True):
+  if master_key:
+    jdk_path = find_jdk()
+    if jdk_path is None:
+      print_error_msg("No JDK found, please run the \"setup\" "
+                      "command to install a JDK automatically or install any "
+                      "JDK manually to " + JDK_INSTALL_DIR)
+      return 1
+    command = SECURITY_PROVIDER_KEY_CMD.format(jdk_path,
+      get_ambari_classpath(), get_conf_dir(), master_key, key_location, persist)
+    (retcode, stdout, stderr) = run_os_command(command)
+    print_info_msg("Return code from credential provider save KEY: " +
+                   str(retcode))
+  else:
+    print_error_msg("Master key cannot be None.")
+
+
+def configure_ldap_password(isSecure=False, masterKey=None):
+  passwordDefault = ""
+  passwordPrompt = 'Enter LDAP Password: '
+  passwordPattern = ".*"
+  passwordDescr = "Invalid characters in password."
+
+  password = read_password(passwordDefault, passwordPattern, passwordPrompt,
+    passwordDescr)
+
+  if isSecure:
+    retCode = save_passwd_for_alias(LDAP_MGR_PASSWORD_ALIAS, password, masterKey)
+    if retCode != 0:
+      print 'Saving secure ldap password failed.'
+      return password
+    return get_alias_string(LDAP_MGR_PASSWORD_ALIAS)
+
+  return password
+
+# Copy file to /tmp and save with file.# (largest # is latest file)
+def backup_file_in_temp(filePath):
+  if filePath is not None:
+    tmpDir = tempfile.gettempdir()
+    back_up_file_count = len(glob.glob1(tmpDir, AMBARI_PROPERTIES_FILE + "*"))
+    try:
+      shutil.copyfile(filePath, tmpDir + os.sep +
+                                AMBARI_PROPERTIES_FILE + "." + str(back_up_file_count + 1))
+    except (Exception), e:
+      print_error_msg('Could not backup file in temp "%s": %s' % (str(
+        back_up_file_count, e)))
+  return 0
+
+# update properties in a section-less properties file
+# Cannot use ConfigParser due to bugs in version 2.6
+def update_properties(propertyMap):
+  conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
+  backup_file_in_temp(conf_file)
+  if propertyMap is not None and conf_file is not None:
+    properties = Properties()
+    try:
+      with open(conf_file, 'r') as file:
+        properties.load(file)
+    except (Exception), e:
+      print_error_msg ('Could not read "%s": %s' % (conf_file, e))
+      return -1
+
+    #for key in propertyMap.keys():
+      #properties[key] = propertyMap[key]
+    for key in propertyMap.keys():
+      properties.removeOldProp(key)
+      properties.process_pair(key, str(propertyMap[key]))
+
+    with open(conf_file, 'w') as file:
+      properties.store(file)
+
+  return 0
+
 
 #
 # Main.
@@ -2090,6 +2538,10 @@ def main():
     elif action == UPGRADE_STACK_ACTION:
       stack_id = args[1]
       upgrade_stack(options, stack_id)
+    elif action == LDAP_SETUP_ACTION:
+      setup_ldap()
+    elif action == RESET_MASTER_KEY_ACTION:
+      reset_master_key()
     else:
       parser.error("Invalid action")
   except FatalException as e:
