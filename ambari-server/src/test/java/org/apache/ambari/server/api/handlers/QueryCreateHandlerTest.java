@@ -46,6 +46,7 @@ public class QueryCreateHandlerTest {
 
   @Test
   public void testHandleRequest() throws Exception {
+    final String BODY_STRING = "Body string";
     Request request = createNiceMock(Request.class);
     RequestBody body = createNiceMock(RequestBody.class);
     ResourceInstance resourceInstance = createNiceMock(ResourceInstance.class);
@@ -141,6 +142,8 @@ public class QueryCreateHandlerTest {
     expect(resultStatus.isErrorState()).andReturn(false);
     expect(result.getResultTree()).andReturn(resultTree);
 
+    expect(body.getBody()).andReturn(BODY_STRING).anyTimes();
+    
     expect(request.getResource()).andReturn(resourceInstance).anyTimes();
     expect(request.getBody()).andReturn(body).anyTimes();
     expect(body.getNamedPropertySets()).andReturn(setRequestProps).anyTimes();
@@ -200,6 +203,7 @@ public class QueryCreateHandlerTest {
     assertEquals(ResultStatus.STATUS.CREATED, testResult.getStatus().getStatus());
 
     RequestBody createBody = bodyCapture.getValue();
+    assertEquals(BODY_STRING, createBody.getBody());        
     assertEquals(4, createBody.getPropertySets().size());
     assertEquals(setCreateProps, createBody.getPropertySets());
     verify(request, body, resourceInstance, resourceDefinition, query, predicate, result, subResource,
