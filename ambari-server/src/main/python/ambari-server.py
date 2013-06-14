@@ -947,21 +947,21 @@ def store_remote_properties(args):
     
   properties.process_pair(JDBC_URL_PROPERTY, DATABASE_CONNECTION_STRINGS[DATABASE_INDEX].format(jdbc_hostname, args.database_port, args.database_name))
   properties.process_pair(JDBC_USER_NAME_PROPERTY, args.database_username)
-  if not args.database_password_alias:
+  if hasattr(args, 'database_password_alias') and args.database_password_alias:
+    properties.process_pair(JDBC_PASSWORD_PROPERTY, args.database_password_alias)
+  else:
     properties.process_pair(JDBC_PASSWORD_PROPERTY,
       store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
-  else:
-    properties.process_pair(JDBC_PASSWORD_PROPERTY, args.database_password_alias)
 
   properties.process_pair(JDBC_RCA_DRIVER_PROPERTY, DATABASE_DRIVER_NAMES[DATABASE_INDEX])
   properties.process_pair(JDBC_RCA_URL_PROPERTY, DATABASE_CONNECTION_STRINGS[DATABASE_INDEX].format(jdbc_hostname, args.database_port, args.database_name))
   properties.process_pair(JDBC_RCA_USER_NAME_PROPERTY, args.database_username)
-  if not args.database_password_alias:
-    properties.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY,
-      store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
-  else:
+  if hasattr(args, 'database_password_alias') and args.database_password_alias:
     properties.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY,
       args.database_password_alias)
+  else:
+    properties.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY,
+      store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
 
 
   conf_file = properties.fileName
@@ -1133,12 +1133,12 @@ def store_local_properties(args):
   properties.removeOldProp(JDBC_DATABASE_PROPERTY)
   properties.process_pair(PERSISTENCE_TYPE_PROPERTY, "local")
   properties.process_pair(JDBC_USER_NAME_PROPERTY, args.database_username)
-  if not args.database_password_alias:
-    properties.process_pair(JDBC_PASSWORD_PROPERTY,
-      store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
-  else:
+  if hasattr(args, 'database_password_alias') and args.database_password_alias:
     properties.process_pair(JDBC_PASSWORD_PROPERTY,
       args.database_password_alias)
+  else:
+    properties.process_pair(JDBC_PASSWORD_PROPERTY,
+      store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
 
   conf_file = properties.fileName
 
