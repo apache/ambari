@@ -1273,21 +1273,30 @@ def track_jdk(base_name, url, local_name):
   fp.flush()
   fp.close()
 
-
+def install_jce_manualy(args):
+  properties = get_ambari_properties()
+  if properties == -1:
+    err = "Error getting ambari properties"
+    raise FatalException(-1, err)
+  if args.jce_policy and os.path.exists(args.jce_policy):
+    jce_destination = os.path.join(properties[RESOURCES_DIR_PROPERTY], JCE_POLICY_FILENAME)
+    shutil.copy(args.jce_policy, jce_destination)
+    print "JCE policy copied from " + args.jce_policy + " to " + jce_destination
+  else:
+    err = "Error getting ambari properties"
+    print_error_msg( err )
+    raise FatalException(-1, err)
 
 #
 # Downloads the JDK
 #
 def download_jdk(args):
+  install_jce_manualy(args)
   if get_JAVA_HOME():
     return 0
   if args.java_home and os.path.exists(args.java_home):
     print_warning_msg("JAVA_HOME " + args.java_home
                     + " must be valid on ALL hosts")
-    print_warning_msg("Please make sure the JCE Unlimited Strength "
-                      "Jurisdiction Policy Files 6, "
-                      "are downloaded on all "
-                      "hosts")
     write_property(JAVA_HOME_PROPERTY, args.java_home)
     return 0
 
@@ -2418,6 +2427,8 @@ def main():
                       help="File with stack upgrade script")
   parser.add_option('-j', '--java-home', default=None,
                   help="Use specified java_home.  Must be valid on all hosts")
+  parser.add_option('-c', '--jce-policy', default=None,
+                  help="Use specified jce_policy.  Must be valid on all hosts", dest="jce_policy") 
   parser.add_option("-v", "--verbose",
                   action="store_true", dest="verbose", default=False,
                   help="Print verbose status messages")

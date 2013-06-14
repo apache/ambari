@@ -798,7 +798,35 @@ class TestAmbariServer(TestCase):
     self.assertEqual(2, len(dlprogress_mock.call_args_list))
 
 
+  @patch("shutil.copy")
+  @patch("os.path.join")
+  @patch("os.path.exists")
+  @patch.object(ambari_server, "get_ambari_properties")
+  def test_install_jce_manualy(self, get_ambari_properties_mock, os_path_exists_mock, os_path_join_mock, shutil_copy_mock):
+    args = MagicMock()
+    args.jce_policy = "somewhere"
+    p = MagicMock()
+    get_ambari_properties_mock.return_value = p
+    p.__getitem__.side_effect = None
+    p.__getitem__.return_value = "somewhere"
+    os_path_exists_mock.return_value = True
+    os_path_join_mock.return_value = "/var/lib/ambari-server/resources/jce_policy-6.zip" 
+    ambari_server.install_jce_manualy(args)	
+    self.assertTrue(shutil_copy_mock.called)
 
+    os_path_exists_mock.return_value = False
+    args.jce_policy = None
+
+    try:
+      ambari_server.install_jce_manualy(args)
+      self.fail("Should throw exception because of not found jce_policy-6.zip")
+    except FatalException:
+      # Expected
+      self.assertTrue(shutil_copy_mock.called)
+      pass  	
+
+
+  @patch.object(ambari_server, "install_jce_manualy")
   @patch("os.stat")
   @patch("os.path.isfile")
   @patch("os.path.exists")
@@ -812,7 +840,7 @@ class TestAmbariServer(TestCase):
   def test_download_jdk(self, get_ambari_properties_mock, get_JAVA_HOME_mock, print_info_msg_mock,
                         write_property_mock, run_os_command_mock, get_YN_input_mock, track_jdk_mock,
                         path_existsMock,
-                        path_isfileMock, statMock):
+                        path_isfileMock, statMock, install_jce_manualy_mock):
     args = MagicMock()
     args.java_home = "somewhere"
     path_existsMock.return_value = False
