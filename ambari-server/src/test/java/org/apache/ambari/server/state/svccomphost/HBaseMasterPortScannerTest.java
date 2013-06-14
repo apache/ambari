@@ -16,14 +16,16 @@
  */
 package org.apache.ambari.server.state.svccomphost;
 
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import java.io.IOException;
-import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Timer;
 import org.apache.ambari.server.AmbariException;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DATANODE;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyCluster;
@@ -41,7 +43,6 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -57,9 +58,8 @@ public class HBaseMasterPortScannerTest {
 
   private static final Logger log = LoggerFactory.getLogger(HBaseMasterPortScannerTest.class);
   private static List<String> hostnames;
-  private static ServerSocket serverSocket;
   private static Injector injector;
-  private static HBaseMasterPortScanner scaner;
+  private static HBaseMasterPortScannerMock scaner;
   private static ServiceFactory serviceFactory;
   private static AmbariMetaInfo metaInfo;
   private static Clusters clusters;
@@ -67,40 +67,12 @@ public class HBaseMasterPortScannerTest {
   private static Host host;
   private static ServiceComponentHost serviceComponentHost;
   private static int scanTimeOut = 100; 
-  private static int reScanTimeOut = 3000;
+  private static int reScanTimeOut = 1000;
   private static int maxAttempts = 2;
+  private static Timer timerMock = mock(Timer.class);
 
   public HBaseMasterPortScannerTest() {
   }
-
-  private static void setUpPortState(boolean open) {
-    if (open) {
-      if (serverSocket == null || serverSocket.isClosed()) {
-        try {
-          serverSocket = new ServerSocket(60010);
-        } catch (IOException e) {
-          try {
-            serverSocket.close();
-          } catch (IOException ex) {
-            log.debug("Could not close on port: 60010");
-            log.error(ex.getMessage());
-          }
-          log.error("Could not listen on port: 60010");
-        }
-      }
-    } else {
-      if (serverSocket != null && !serverSocket.isClosed()) {
-        try {
-          serverSocket.close();
-          serverSocket = null;
-        } catch (IOException ex) {
-          log.debug("Could not close on port: 60010");
-          log.error(ex.getMessage());
-        }
-      }
-    }
-  }
-  
   
   @BeforeClass
   public static void setUpClass() throws Exception {
@@ -111,8 +83,8 @@ public class HBaseMasterPortScannerTest {
     hostnames.add("host1");
     hostnames.add("host2");
     hostnames.add("host3");
-    scaner = injector.getInstance(HBaseMasterPortScanner.class);
     clusters = injector.getInstance(Clusters.class);
+    scaner = new HBaseMasterPortScannerMock(clusters);
     metaInfo = injector.getInstance(AmbariMetaInfo.class);
     serviceFactory = injector.getInstance(ServiceFactory.class);
     metaInfo.init();
@@ -151,17 +123,9 @@ public class HBaseMasterPortScannerTest {
         serviceComponentHost = service.getServiceComponent(HBASE_MASTER).getServiceComponentHost(hostname);
       }
     }
+    when(timerMock.purge()).thenReturn(0);
   }
 
-  @AfterClass
-  public static void tearDownUpClass() {
-    try {
-      if(serverSocket!=null) serverSocket.close();
-    } catch (IOException ex) {
-      log.debug("Could not close on port: 60010");
-      log.error(ex.getMessage());
-    }
-  }
 
   @Before
   public void setUp() throws AmbariException, Exception {
@@ -173,13 +137,12 @@ public class HBaseMasterPortScannerTest {
    */
   @Test
   public void testUpdateHBaseMaster_Cluster() throws InterruptedException {
-    setUpPortState(true);
     scaner.setDefaultScanTimeoutMsc(scanTimeOut);
     scaner.setMaxAttempts(maxAttempts);
     scaner.setRescanTimeoutMsc(reScanTimeOut);
     log.debug("updateHBaseMaster - pass Cluster");
     scaner.updateHBaseMaster(cluster);
-    Thread.sleep(1000);
+    scaner.execute();
     assertEquals("active", serviceComponentHost.convertToResponse().getHa_status());
   }
 
@@ -188,13 +151,12 @@ public class HBaseMasterPortScannerTest {
    */
   @Test
   public void testUpdateHBaseMaster_Host() throws InterruptedException {
-    setUpPortState(true);
     scaner.setDefaultScanTimeoutMsc(scanTimeOut);
     scaner.setMaxAttempts(maxAttempts);
     scaner.setRescanTimeoutMsc(reScanTimeOut);
     log.debug("updateHBaseMaster - pass Host");
     scaner.updateHBaseMaster(host);
-    Thread.sleep(1000);
+    scaner.execute();
     assertEquals("active", serviceComponentHost.convertToResponse().getHa_status());
   }
 
@@ -203,58 +165,78 @@ public class HBaseMasterPortScannerTest {
    */
   @Test
   public void testUpdateHBaseMaster_ServiceComponentHost() throws InterruptedException {
-    setUpPortState(true);
     scaner.setDefaultScanTimeoutMsc(scanTimeOut);
     scaner.setMaxAttempts(maxAttempts);
     scaner.setRescanTimeoutMsc(reScanTimeOut);    
     log.debug("updateHBaseMaster - pass ServiceComponentHost");
     scaner.updateHBaseMaster(serviceComponentHost);
-    Thread.sleep(1000);
+    scaner.execute();
     assertEquals("active", serviceComponentHost.convertToResponse().getHa_status());
   }
 
-  /**
-   * Test of multiple call of updateHBaseMaster method.
-   */
-  @Test
-  public void testMultipleCall() throws InterruptedException {
-    setUpPortState(true);
-    scaner.setDefaultScanTimeoutMsc(scanTimeOut);
-    scaner.setMaxAttempts(maxAttempts);
-    scaner.setRescanTimeoutMsc(reScanTimeOut);    
-    log.debug("updateHBaseMaster - pass ServiceComponentHost");
-    //Test if some call of updateHBaseMaster in short time
-    scaner.updateHBaseMaster(cluster);
-    scaner.updateHBaseMaster(host);
-    scaner.updateHBaseMaster(serviceComponentHost);
-    Thread.sleep(1000);
-    assertEquals("active", serviceComponentHost.convertToResponse().getHa_status());
-  }  
-  
+
   /**
    * Test case of if port is closed or not enough scan timeout.
    */
   @Test
   public void testOfBrokenMasterScenario() throws InterruptedException {
-    setUpPortState(false);
+    scaner.setLiveHBaseHost("");
     scaner.setDefaultScanTimeoutMsc(scanTimeOut);
     scaner.setMaxAttempts(maxAttempts);
     scaner.setRescanTimeoutMsc(reScanTimeOut);
     log.debug("testOfBrokenMasterScenario start");
     scaner.updateHBaseMaster(cluster);
-    Thread.sleep(2000);
+    scaner.execute(3);
     //Should not be active masters
     assertEquals("passive", serviceComponentHost.convertToResponse().getHa_status());
     serviceComponentHost.setHAState("passive");
     //Scanner should try to scan maxAttempts times
     assertEquals(maxAttempts, scaner.getCountAttempts()-1);
-    //Timeout for scan shoul be scanTimeOut * scaner.getCountAttempts()
+    //Timeout for scan should be scanTimeOut * scaner.getCountAttempts()
     assertEquals(scanTimeOut * scaner.getCountAttempts(), scaner.getTestScanTimeoutMsc());
     //Task for latter scan shoul be created
     assertNotNull(scaner.getRescanSchedulerTask());
-    setUpPortState(true);
-    Thread.sleep(3500);
+    scaner.setLiveHBaseHost("127.0.0.1");
+    scaner.execute(3);
     //Test active masters after latter rescan
     assertEquals("active", serviceComponentHost.convertToResponse().getHa_status());
-  }  
+  }
+  
+
+  public static class HBaseMasterPortScannerMock extends HBaseMasterPortScanner {
+
+    private String liveHBaseHost = "127.0.0.1";
+
+    public void setLiveHBaseHost(String liveHBaseHost) {
+      this.liveHBaseHost = liveHBaseHost;
+    }
+    
+    @Override
+    protected boolean scan(String hostname) {
+      return (hostname.equals(liveHBaseHost)) ? true : false;
+    }
+
+    public int getCountAttempts() {
+      return countAttempts;
+    }
+
+        
+    public HBaseMasterPortScannerMock(Clusters c) {
+      super(timerMock);
+      clusters = c;
+    }
+
+    @Override
+    public void execute() {
+      super.execute();
+    }
+    
+    public void execute(int count) {
+      for (int i = 0; i < count; i++) {
+        execute();
+      }
+    }    
+    
+  }
+  
 }
