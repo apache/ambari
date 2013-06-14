@@ -310,8 +310,16 @@ public class Configuration {
 
   private void loadCredentialProvider() {
     if (credentialProvider == null) {
-      this.credentialProvider = new CredentialProvider(null,
-        getMasterKeyLocation(), isMasterKeyPersisted());
+      try {
+        this.credentialProvider = new CredentialProvider(null,
+          getMasterKeyLocation(), isMasterKeyPersisted());
+      } catch (Exception e) {
+        LOG.info("Credential provider creation failed.\n" + e.getMessage());
+        if (LOG.isDebugEnabled()) {
+          e.printStackTrace();
+        }
+        this.credentialProvider = null;
+      }
     }
   }
 

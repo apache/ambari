@@ -43,7 +43,7 @@ public class CredentialProvider {
   static final Logger LOG = LoggerFactory.getLogger(CredentialProvider.class);
 
   public CredentialProvider(String masterKey, String masterKeyLocation,
-                            boolean isMasterKeyPersisted) {
+              boolean isMasterKeyPersisted) throws AmbariException {
     if (masterKeyLocation == null)
       throw new IllegalArgumentException("Master key location needed for " +
         "Credential Provider initialization.");
@@ -54,6 +54,9 @@ public class CredentialProvider {
     } else {
       masterKeyService = new MasterKeyServiceImpl(masterKeyLocation,
         isMasterKeyPersisted);
+    }
+    if (!masterKeyService.isMasterKeyInitialized()) {
+      throw new AmbariException("Master key initialization failed.");
     }
     String storeDir = masterKeyLocation.substring(0,
       masterKeyLocation.indexOf(Configuration.MASTER_KEY_FILENAME_DEFAULT));
