@@ -610,12 +610,15 @@ Em.I18n.translations = {
   'admin.addSecurity.apply.stage4': '3. Start Services',
   'admin.addSecurity.apply.stage5': '5. Smoke Test',
   'admin.addSecurity.enable.onClose': 'You are in the process of enabling security on your cluster. ' +
-    'Are you sure you want to navigate away? If you navigate away, ' +
+    'Are you sure you want to quit? If you quit, ' +
     'you may have to re-run the security wizard from the beginning to enable security.',
+  'admin.addSecurity.enable.after.stage2.onClose': 'Services are being started with the Kerberos settings you specified.'+
+    'It is recommended that you wait until all the services are started to ensure that they are set up properly.',
   'admin.addSecurity.disable.onClose': 'You are in the process of disabling security on your cluster. ' +
-    'Are you sure you want to navigate away? If you navigate away, ' +
-    'you may have to re-run the security wizard from the beginning to disable security.',
+    'Are you sure you want to quit?',
   'admin.removeSecurity.header': 'Disable Security',
+  'admin.security.applying.config.header': 'Applying Configurations',
+  'admin.security.applying.config.body':'You cannot quit wizard while configurations are being applied',
   'admin.security.status.error' : 'Error in retrieving cluster security status from Ambari server',
   'admin.users.ldapAuthUsed':'LDAP Authentication is being used to authenticate users',
   'admin.users.delete.yourself.message':'You can\'t delete yourself',

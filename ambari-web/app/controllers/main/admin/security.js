@@ -44,19 +44,11 @@ App.MainAdminSecurityController = Em.Controller.extend({
   notifySecurityOffPopup: function () {
     var self = this;
     if (!this.get('isSubmitDisabled')) {
-      App.ModalPopup.show({
-        header: Em.I18n.t('admin.security.disable.popup.header'),
-        secondary: null,
-        onPrimary: function () {
-          App.db.setSecurityDeployStages(undefined);
-          self.setDisableSecurityStatus("RUNNING");
-          App.router.transitionTo('disableSecurity');
-          this.hide();
-        },
-        bodyClass: Ember.View.extend({
-          template: Ember.Handlebars.compile('<h5>{{t admin.security.disable.popup.body}}</h5>')
-        })
-      });
+      App.showConfirmationPopup(function () {
+        App.db.setSecurityDeployStages(undefined);
+        self.setDisableSecurityStatus("RUNNING");
+        App.router.transitionTo('disableSecurity');
+      }, Em.I18n.t('admin.security.disable.popup.body'));
     }
   },
 

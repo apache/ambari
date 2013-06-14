@@ -653,6 +653,9 @@ module.exports = Em.Route.extend({
       enter: function (router) {
         router.set('mainAdminController.category', "security");
         var controller = router.get('mainAdminSecurityController');
+        App.clusterStatus.updateFromServer();
+        var currentClusterStatus = App.clusterStatus.get('value');
+        App.db.data = currentClusterStatus.localdb;
         if (!(controller.getAddSecurityWizardStatus() === 'RUNNING') && !(controller.getDisableSecurityStatus() === 'RUNNING')) {
           Em.run.next(function () {
             router.transitionTo('adminSecurity.index');
@@ -708,25 +711,31 @@ module.exports = Em.Route.extend({
                   var self = this;
                   var applyingConfigStage = router.get('mainAdminSecurityDisableController.stages').findProperty('stage', 'stage3');
                   if (applyingConfigStage && !applyingConfigStage.get('isCompleted')) {
-                    App.showConfirmationPopup(function () {
-                      router.get('mainAdminSecurityAddStep3Controller').clearStep();
-                      self.proceedOnClose();
-                    }, Em.I18n.t('admin.addSecurity.disable.onClose'));
-                    return;
+                    if (applyingConfigStage.get('isStarted')) {
+                      App.showAlertPopup(Em.I18n.t('admin.security.applying.config.header'), Em.I18n.t('admin.security.applying.config.body'));
+                      return;
+                    } else {
+                      App.showConfirmationPopup(function () {
+                        self.proceedOnClose();
+                      }, Em.I18n.t('admin.addSecurity.disable.onClose'));
+                      return;
+                    }
                   }
-                  this.proceedOnClose();
+                  self.proceedOnClose();
+
                 },
-                proceedOnClose: function(){
-                  this.hide();
+                proceedOnClose: function () {
+                  router.get('mainAdminSecurityDisableController').clearStep();
                   App.db.setSecurityDeployStages(undefined);
-                  router.get('mainAdminSecurityController').setDisableSecurityStatus(undefined);
                   App.router.get('updateController').set('isWorking', true);
+                  router.get('mainAdminSecurityController').setDisableSecurityStatus(undefined);
                   App.clusterStatus.setClusterStatus({
                     clusterName: router.get('content.cluster.name'),
                     clusterState: 'SECURITY_COMPLETED',
                     wizardControllerName: router.get('mainAdminSecurityDisableController.name'),
                     localdb: App.db.data
                   });
+                  this.hide();
                   router.transitionTo('adminSecurity.index');
                 },
                 didInsertElement: function () {

@@ -60,7 +60,6 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
         runningStage.set('isStarted', false);
       }
       this.get('stages').pushObjects(stages);
-      this.updateServices();
     }
     this.loadSecureServices();
     this.moveToNextStage();
@@ -199,11 +198,10 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
   },
 
   loadClusterConfigsSuccessCallback: function (jsonData) {
-    var self = this;
     //prepare tags to fetch all configuration for a service
     this.get('secureServices').forEach(function (_secureService) {
-      self.setServiceTagNames(_secureService, jsonData.Clusters.desired_configs);
-    });
+      this.setServiceTagNames(_secureService, jsonData.Clusters.desired_configs);
+    },this);
     this.getAllConfigurations();
   },
 
@@ -253,12 +251,12 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
   loadSecureServices: function () {
     var secureServices = require('data/secure_configs');
     var installedServices = App.Service.find().mapProperty('serviceName');
-    this.get('secureServices').push(secureServices.findProperty('serviceName', 'GENERAL'));
+    this.get('secureServices').pushObject(secureServices.findProperty('serviceName', 'GENERAL'));
     //General (only non service tab) tab is always displayed
     installedServices.forEach(function (_service) {
       var secureService = secureServices.findProperty('serviceName', _service);
       if (secureService) {
-        this.get('secureServices').push(secureService);
+        this.get('secureServices').pushObject(secureService);
       }
     }, this);
   },

@@ -23,73 +23,67 @@ module.exports = Em.Route.extend({
     console.log('in /security/add:enter');
 
     Ember.run.next(function () {
-      App.clusterStatus.updateFromServer();
-      var currentClusterStatus = App.clusterStatus.get('value');
-      if (currentClusterStatus) {
-        switch (currentClusterStatus.clusterState) {
-          case 'ADD_SECURITY_STEP_1' :
-            router.set('addSecurityController.currentStep', 1);
-            App.db.data = currentClusterStatus.localdb;
-            break;
-          case 'ADD_SECURITY_STEP_2' :
-            router.set('addSecurityController.currentStep', 2);
-            App.db.data = currentClusterStatus.localdb;
-            break;
-          case 'ADD_SECURITY_STEP_3' :
-            router.set('addSecurityController.currentStep', 3);
-            App.db.data = currentClusterStatus.localdb;
-            break;
-          default:
-            break;
-        }
-      }
       if (router.get('mainAdminSecurityController').getAddSecurityWizardStatus() === 'RUNNING') {
         var mainAdminSecurityController = router.get('mainAdminSecurityController');
         var addSecurityController = router.get('addSecurityController');
         var currentStep = router.get('addSecurityController').get('currentStep');
         App.router.get('updateController').set('isWorking', false);
         App.ModalPopup.show({
-          classNames: ['full-width-modal'],
-          header: Em.I18n.t('admin.addSecurity.header'),
-          bodyClass: App.MainAdminSecurityAddMenuView.extend({
-            controllerBinding: 'App.router.addSecurityController'
-          }),
-          primary: Em.I18n.t('form.cancel'),
-          secondary: null,
-          showFooter: false,
+            classNames: ['full-width-modal'],
+            header: Em.I18n.t('admin.addSecurity.header'),
+            bodyClass: App.MainAdminSecurityAddMenuView.extend({
+              controllerBinding: 'App.router.addSecurityController'
+            }),
+            primary: Em.I18n.t('form.cancel'),
+            secondary: null,
+            showFooter: false,
 
-          onClose: function () {
-            var self = this;
-            if (router.get('addSecurityController.currentStep') == 3) {
-              var applyingConfigStage = router.get('mainAdminSecurityAddStep3Controller.stages').findProperty('stage', 'stage3');
-              if (applyingConfigStage && !applyingConfigStage.get('isCompleted')) {
-                App.showConfirmationPopup(function () {
-                  router.get('mainAdminSecurityAddStep3Controller').clearStep();
-                  self.proceedOnClose();
-                }, Em.I18n.t('admin.addSecurity.enable.onClose'));
-                return;
+            onClose: function () {
+              var self = this;
+              if (router.get('addSecurityController.currentStep') == 3) {
+                var applyingConfigStage = router.get('mainAdminSecurityAddStep3Controller.stages').findProperty('stage', 'stage3');
+                if (applyingConfigStage && !applyingConfigStage.get('isCompleted')) {
+                  if (applyingConfigStage.get('isStarted')) {
+                    App.showAlertPopup(Em.I18n.t('admin.security.applying.config.header'), Em.I18n.t('admin.security.applying.config.body'));
+                    return;
+                  } else {
+                    App.showConfirmationPopup(function () {
+                      self.proceedOnClose();
+                    }, Em.I18n.t('admin.addSecurity.enable.onClose'));
+                    return;
+                  }
+                } else {
+                  App.showConfirmationPopup(function () {
+                    self.proceedOnClose();
+                  }, Em.I18n.t('admin.addSecurity.enable.after.stage2.onClose'));
+                  return;
+                }
               }
+              self.proceedOnClose();
+            },
+            proceedOnClose: function () {
+              this.hide();
+              router.get('mainAdminSecurityAddStep3Controller').clearStep();
+              router.get('addSecurityController.content.services').clear();
+              router.set('addSecurityController.content.serviceConfigProperties', null);
+              App.router.get('updateController').set('isWorking', true);
+              mainAdminSecurityController.setAddSecurityWizardStatus(null);
+              App.db.setSecurityDeployStages(undefined);
+              router.get('addSecurityController').setCurrentStep(1);
+              App.clusterStatus.setClusterStatus({
+                clusterName: router.get('content.cluster.name'),
+                clusterState: 'SECURITY_COMPLETED',
+                wizardControllerName: router.get('addSecurityController.name'),
+                localdb: App.db.data
+              });
+              router.transitionTo('adminSecurity.index');
+            },
+            didInsertElement: function () {
+              this.fitHeight();
             }
-            this.proceedOnClose();
-          },
-          proceedOnClose: function(){
-            this.hide();
-            App.router.get('updateController').set('isWorking', true);
-            mainAdminSecurityController.setAddSecurityWizardStatus(null);
-            App.db.setSecurityDeployStages(undefined);
-            router.get('addSecurityController').setCurrentStep(1);
-            App.clusterStatus.setClusterStatus({
-              clusterName: router.get('content.cluster.name'),
-              clusterState: 'SECURITY_COMPLETED',
-              wizardControllerName: router.get('addSecurityController.name'),
-              localdb: App.db.data
-            });
-            router.transitionTo('adminSecurity.index');
-          },
-          didInsertElement: function () {
-            this.fitHeight();
           }
-        });
+        )
+        ;
 
         App.router.transitionTo('step' + currentStep);
       } else {

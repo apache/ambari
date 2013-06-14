@@ -78,7 +78,6 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         runningStage.set('isStarted', false);
       }
       this.get('stages').pushObjects(stages);
-      this.updateServices();
     }
 
     this.moveToNextStage();
