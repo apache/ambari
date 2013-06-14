@@ -305,7 +305,12 @@ class TestSecurity(unittest.TestCase):
       'signedCa': 'fail-crt'
     }
 
-    man.reqSignCrt()
+    # If certificate signing failed, then exception must be raised
+    try:
+      man.reqSignCrt()
+      self.fail()
+    except ssl.SSLError:
+      pass
     self.assertFalse(open_mock.return_value.write.called)
 
     # Test connection fail

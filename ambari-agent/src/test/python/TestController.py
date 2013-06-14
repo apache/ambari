@@ -20,6 +20,7 @@ limitations under the License.
 '''
 
 import StringIO
+import ssl
 import unittest
 from ambari_agent import Controller, ActionQueue
 from ambari_agent import hostname
@@ -345,6 +346,26 @@ class TestController(unittest.TestCase):
     sys.stdout = sys.__stdout__
     self.controller.sendRequest = Controller.Controller.sendRequest
     self.controller.sendRequest = Controller.Controller.addToQueue
+
+  @patch("pprint.pformat")
+  @patch("time.sleep")
+  @patch("json.loads")
+  @patch("json.dumps")
+  def test_certSigningFailed(self, dumpsMock, loadsMock, sleepMock, pformatMock):
+    register = MagicMock()
+    self.controller.register = register
+
+    dumpsMock.return_value = "request"
+    response = {"responseId":1,}
+    loadsMock.return_value = response
+
+    self.controller.sendRequest = Mock(side_effect=ssl.SSLError())
+
+    self.controller.repeatRegistration=True
+    self.controller.registerWithServer()
+
+    #Conroller thread and the agent stop if the repeatRegistration flag is False
+    self.assertFalse(self.controller.repeatRegistration)
 
 if __name__ == "__main__":
   unittest.main(verbosity=2)

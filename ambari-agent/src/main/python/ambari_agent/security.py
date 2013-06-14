@@ -75,7 +75,12 @@ class VerifiedHTTPSConnection(httplib.HTTPSConnection):
       except ssl.SSLError as err:
         logger.error('Two-way SSL authentication failed. Ensure that '
                     'server and agent certificates were signed by the same CA '
-                    'and restart the agent.\nExiting..')
+                    'and restart the agent. '
+                    '\nIn order to receive a new agent certificate, remove '
+                    'existing certificate file from keys directory. As a '
+                    'workaround you can turn off two-way SSL authentication in '
+                    'server configuration(ambari.properties) '
+                    '\nExiting..')
         raise err
 
   def create_connection(self):
@@ -212,7 +217,13 @@ class CertificateManager():
       agentCrtF.write(agentCrtContent)
     else:
       # Possible exception is catched higher at Controller
-      logger.error("Certificate signing failed")
+      logger.error('Certificate signing failed.'
+                   '\nIn order to receive a new agent'
+                   ' certificate, remove existing certificate file from keys '
+                   'directory. As a workaround you can turn off two-way SSL '
+                   'authentication in server configuration(ambari.properties) '
+                   '\nExiting..')
+      raise ssl.SSLError
 
   def genAgentCrtReq(self):
     generate_script = GEN_AGENT_KEY % {'hostname': hostname.hostname(),
