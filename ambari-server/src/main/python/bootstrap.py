@@ -251,7 +251,7 @@ pass
     
 class BootStrap:
   TEMP_FOLDER = "/tmp"
-  OS_CHECK_SCRIPT_FILE_TEMPLATE = "os_type_check{0}.sh"
+  OS_CHECK_SCRIPT_FILE_TEMPLATE = "os_type_check%(f)s.sh"
 
   
   """ BootStrapping the agents on a list of hosts"""
@@ -277,7 +277,7 @@ class BootStrap:
     if fileNameTemplate == None:
       return self.getUtime()
     else:
-      return fileNameTemplate.format(self.getUtime())
+      return fileNameTemplate% {'f': self.getUtime()}
 
   # This method is needed  to implement the descriptor protocol (make object  to pass self reference to mockups)
   def __get__(self, obj, objtype):
