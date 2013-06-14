@@ -1098,16 +1098,6 @@ def configure_database_username_password(args):
         (masterKey, isSecure, isPersisted) = setup_master_key()
         args.postgres_password = read_passwd_for_alias(
           JDBC_RCA_PASSWORD_ALIAS, masterKey)
-    else:
-      # User might want to encrypt this time around
-      (masterKey, isSecure, isPersisted) = setup_master_key()
-      if isSecure:
-        (password, passwordAlias) = configure_database_password(isSecure,
-          masterKey, False)
-        update_properties({JDBC_PASSWORD_PROPERTY : passwordAlias})
-        args.postgres_password = password
-      else:
-        args.postgres_password = open(passwordProp).read()
 
     return 1
   else:
@@ -2182,7 +2172,7 @@ def setup_master_key(resetKey=False):
       return None, True, True       # setup is secure and key persisted
     elif not persist and not resetKey:
       masterKey = get_validated_string_input("Please provide master key " +\
-                                             "for unlocking credential store: ", "", ".*", "", False)
+                    "for unlocking credential store: ", "", ".*", "", False)
       return masterKey, True, False # return master key for saving passwords
   else:
     if masterKeyFile is not None:
