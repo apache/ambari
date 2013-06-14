@@ -79,7 +79,7 @@ class TestBootstrap(TestCase):
     SSH_writeLogToFile_method.return_value = None
     SSH_writeDoneToFile_method.return_value = None
     communicate_method.return_value = ("", "")
-    bootstrap = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None)
+    bootstrap = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None, "8440")
     bootstrap.statuses = {
       "hostname" : {
         "exitstatus" : 0,
@@ -115,7 +115,7 @@ class TestBootstrap(TestCase):
     changePasswordFileModeOnHost_method.return_value = 0
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
-    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None, "passwordFile")
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None, "8440", "passwordFile")
     def side_effect():
       bootstrap.copyPasswordFile_called = True
       bootstrap.hostlist_to_remove_password_file = ["hostname"]
@@ -151,7 +151,7 @@ class TestBootstrap(TestCase):
     changePasswordFileModeOnHost_method.return_value = 0
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
-    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None)
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None, "8440")
     bootstrap.copyPasswordFile_called = False
     def side_effect():
       bootstrap.copyPasswordFile_called = True
@@ -187,7 +187,7 @@ class TestBootstrap(TestCase):
     getMoveRepoFileWithPasswordCommand_method.return_value = ""
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
-    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None, "passwordFile")
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None, "8440", "passwordFile")
     ret = bootstrap.run()
     self.assertTrue(getRunSetupWithPasswordCommand_method.called)
     self.assertTrue(getMoveRepoFileWithPasswordCommand_method.called)
@@ -216,7 +216,7 @@ class TestBootstrap(TestCase):
     getMoveRepoFileWithoutPasswordCommand_method.return_value = ""
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
-    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None)
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None, "8440")
     ret = bootstrap.run()
     self.assertTrue(getRunSetupWithoutPasswordCommand_method.called)
     self.assertTrue(getMoveRepoFileWithoutPasswordCommand_method.called)
@@ -241,7 +241,7 @@ class TestBootstrap(TestCase):
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
     bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir",
                           "bootdir", "setupAgentFile", "ambariServer",
-                          "centos6", None)
+                          "centos6", None, "8440")
     ret = bootstrap.run()
     self.assertTrue(copyOsCheckScript_method.called)
     self.assertTrue(runOsCheckScript_method.called)
@@ -259,7 +259,7 @@ class TestBootstrap(TestCase):
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
     bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir",
                           "bootdir", "setupAgentFile", "ambariServer",
-                          "centos6", None)
+                          "centos6", None, "8440")
     res = bootstrap.copyOsCheckScript()
     self.assertTrue(run_method.called)
     self.assertTrue(getstatus_method.called)
@@ -279,7 +279,7 @@ class TestBootstrap(TestCase):
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
     bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir",
                           "bootdir", "setupAgentFile", "ambariServer",
-                          "centos6", None)
+                          "centos6", None, "8440")
     bootstrap.statuses = good_stats
     bootstrap.runOsCheckScript()
 
@@ -301,7 +301,7 @@ class TestBootstrap(TestCase):
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
     bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir",
                           "bootdir", "setupAgentFile", "ambariServer",
-                          "centos6", None)
+                          "centos6", None, "8440")
     bootstrap.statuses = good_stats
     bootstrap.runOsCheckScript()
 
@@ -328,9 +328,9 @@ class TestBootstrap(TestCase):
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
     version = "1.1.1"
-    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", version)
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", version, "8440")
     runSetupCommand = bootstrap.getRunSetupCommand()
-    self.assertTrue(runSetupCommand.endswith(version))
+    self.assertTrue(runSetupCommand.endswith(version + " 8440"))
 
   @patch.object(SCP, "writeLogToFile")
   @patch.object(SSH, "writeLogToFile")
@@ -350,9 +350,9 @@ class TestBootstrap(TestCase):
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
     version = None
-    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", version)
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", version, "8440")
     runSetupCommand = bootstrap.getRunSetupCommand()
-    self.assertTrue(runSetupCommand.endswith("ambariServer "))
+    self.assertTrue(runSetupCommand.endswith(" 8440"))
 
 
   @patch.object(BootStrap, "createDoneFiles")
@@ -414,7 +414,7 @@ class TestBootstrap(TestCase):
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
     bootstrap = BootStrap([c6hstr, c5hstr], "user", "sshKeyFile", "scriptDir",
                           "bootdir", "setupAgentFile", "ambariServer",
-                          "centos6", None)
+                          "centos6", None, "8440")
     ret = bootstrap.run()
 
     self.assertTrue(c5hstr not in bootstrap.successive_hostlist)

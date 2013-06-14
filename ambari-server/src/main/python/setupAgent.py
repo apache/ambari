@@ -136,6 +136,19 @@ def findNearestAgentPackageVersion(projectVersion):
   yumCommand = ["bash", "-c", "yum list available ambari-agent | grep ' " + projectVersion + "' | sed -re 's/\s+/ /g' | cut -d ' ' -f 2 | head -n1"]
   return execOsCommand(yumCommand)
 
+def checkServerReachability(host, port):
+  ret = {}
+  s = socket.socket() 
+  try: 
+   s.connect((host, port)) 
+   return
+  except socket.error, e: 
+   ret["exitstatus"] = 1
+   ret["log"] = "Host registration aborted. Ambari Agent host cannot reach Ambari Server '" + host+":"+str(port) + "'. "+\
+  		        "Please check the network connectivity between the Ambari Agent host and the Ambari Server"
+   sys.exit(ret)
+  pass
+
 def main(argv=None):
   scriptDir = os.path.realpath(os.path.dirname(argv[0]))
   # Parse the input
@@ -143,11 +156,21 @@ def main(argv=None):
   passPhrase = onlyargs[0]
   hostName = onlyargs[1]
   projectVersion = None
+  server_port = 8080
   if len(onlyargs) > 2:
     projectVersion = onlyargs[2]
+  if len(onlyargs) > 3:
+    server_port = onlyargs[3]
+  try:
+    server_port = int(server_port)
+  except (Exception), e:
+    server_port = 8080	 
+      
 
   if projectVersion is None or projectVersion == "null":
     projectVersion = ""
+
+  checkServerReachability(hostName, server_port)
 
   projectVersion = getOptimalVersion(projectVersion)
   if projectVersion != "":

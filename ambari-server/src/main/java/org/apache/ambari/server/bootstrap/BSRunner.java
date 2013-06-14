@@ -54,11 +54,12 @@ class BSRunner extends Thread {
   private BootStrapImpl bsImpl;
   private final String clusterOsType;
   private String projectVersion;
+  private int serverPort;
 
   public BSRunner(BootStrapImpl impl, SshHostInfo sshHostInfo, String bootDir,
       String bsScript, String agentSetupScript, String agentSetupPassword,
       int requestId, long timeout, String hostName, boolean isVerbose, String clusterOsType,
-      String projectVersion)
+      String projectVersion, int serverPort)
   {
     this.requestId = requestId;
     this.sshHostInfo = sshHostInfo;
@@ -73,6 +74,7 @@ class BSRunner extends Thread {
     this.clusterOsType = clusterOsType;
     this.projectVersion = projectVersion;
     this.bsImpl = impl;
+    this.serverPort = serverPort;
     BootStrapStatus status = new BootStrapStatus();
     status.setLog("RUNNING");
     status.setStatus(BSStat.RUNNING);
@@ -151,7 +153,7 @@ class BSRunner extends Thread {
     if (user == null || user.isEmpty()) {
       user = DEFAULT_USER;
     }
-    String commands[] = new String[10];
+    String commands[] = new String[11];
     String shellCommand[] = new String[3];
     BSStat stat = BSStat.RUNNING;
     String scriptlog = "";
@@ -190,13 +192,14 @@ class BSRunner extends Thread {
       commands[6] = this.ambariHostname;
       commands[7] = this.clusterOsType;
       commands[8] = this.projectVersion;
+      commands[9] = this.serverPort+"";
       if (this.passwordFile != null) {
-        commands[9] = this.passwordFile.toString();
+        commands[10] = this.passwordFile.toString();
       }
       LOG.info("Host= " + hostString + " bs=" + this.bsScript + " requestDir=" +
           requestIdDir + " user=" + user + " keyfile=" + this.sshKeyFile +
           " passwordFile " + this.passwordFile + " server=" + this.ambariHostname +
-          " version=" + projectVersion);
+          " version=" + projectVersion + " serverPort=" + this.serverPort);
 
       String[] env = new String[] { "AMBARI_PASSPHRASE=" + agentSetupPassword };
       if (this.verbose)

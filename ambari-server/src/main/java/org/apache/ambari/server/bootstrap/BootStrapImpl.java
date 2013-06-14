@@ -32,6 +32,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import org.apache.ambari.server.controller.AmbariServer;
 
 @Singleton
 public class BootStrapImpl {
@@ -50,6 +51,7 @@ public class BootStrapImpl {
   private FifoLinkedHashMap<Long, BootStrapStatus> bsStatus;
   private final String clusterOsType;
   private String projectVersion;
+  private int serverPort;
 
   @Inject
   public BootStrapImpl(Configuration conf, AmbariMetaInfo ambariMetaInfo) throws IOException {
@@ -62,6 +64,7 @@ public class BootStrapImpl {
         InetAddress.getLocalHost().getCanonicalHostName());
     this.clusterOsType = conf.getServerOsType();
     this.projectVersion = ambariMetaInfo.getServerVersion();
+    this.serverPort = conf.getClientApiPort();
   }
 
   /**
@@ -109,7 +112,7 @@ public class BootStrapImpl {
 
     bsRunner = new BSRunner(this, info, bootStrapDir.toString(),
         bootScript, bootSetupAgentScript, bootSetupAgentPassword, requestId, 0L,
-        this.masterHostname, info.isVerbose(), this.clusterOsType, this.projectVersion);
+        this.masterHostname, info.isVerbose(), this.clusterOsType, this.projectVersion, this.serverPort);
     bsRunner.start();
     response.setStatus(BSRunStat.OK);
     response.setLog("Running Bootstrap now.");

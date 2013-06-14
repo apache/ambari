@@ -19,9 +19,54 @@ limitations under the License.
 from unittest import TestCase
 from mock.mock import patch
 from subprocess import Popen
+import sys
 setup_agent = __import__('setupAgent')
 
 class TestSetupAgent(TestCase):
+
+  @patch("sys.exit")
+  @patch.object(setup_agent, 'is_suse')
+  @patch.object(setup_agent, 'runAgent')
+  @patch.object(setup_agent, 'configureAgent')
+  @patch.object(setup_agent, 'installAgentSuse')
+  @patch.object(setup_agent, 'checkServerReachability')
+  @patch.object(setup_agent, 'checkAgentPackageAvailabilitySuse')
+  @patch.object(setup_agent, 'checkAgentPackageAvailability')
+  @patch.object(setup_agent, 'findNearestAgentPackageVersionSuse')
+  @patch.object(setup_agent, 'findNearestAgentPackageVersion')
+  def test_checkServerReachability(self, findNearestAgentPackageVersion_method,
+                                                       findNearestAgentPackageVersionSuse_method,
+                                                       checkAgentPackageAvailability_method,
+                                                       checkAgentPackageAvailabilitySuse_method,
+                                                       checkServerReachability_method,
+                                                       installAgentSuse_method,
+                                                       configureAgent_method,
+                                                       runAgent_method,
+                                                       is_suse_method,
+                                                       exit_mock):
+    
+    checkServerReachability_method.return_value = {
+
+    }
+    
+    checkAgentPackageAvailabilitySuse_method.return_value = {
+     "exitstatus" : 0
+    }
+    
+    findNearestAgentPackageVersionSuse_method.return_value = {
+     "exitstatus" : 0,
+     "log": ["1.1.1", ""]
+    }
+     
+    installAgentSuse_method.return_value = {}
+    configureAgent_method.return_value = {}
+    runAgent_method.return_value = 0
+    
+        
+    setup_agent.main(("/root/","password","1.1.1","8080"))
+    self.assertTrue(checkServerReachability_method.called)
+    pass
+
 
   @patch.object(setup_agent, 'is_suse')
   @patch.object(setup_agent, 'checkAgentPackageAvailabilitySuse')
