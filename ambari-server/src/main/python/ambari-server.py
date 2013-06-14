@@ -1347,16 +1347,14 @@ def install_jce_manualy(args):
     jce_destination = os.path.join(properties[RESOURCES_DIR_PROPERTY], JCE_POLICY_FILENAME)
     shutil.copy(args.jce_policy, jce_destination)
     print "JCE policy copied from " + args.jce_policy + " to " + jce_destination
+    return 0
   else:
-    err = "Error getting ambari properties"
-    print_error_msg( err )
-    raise FatalException(-1, err)
-
+    return 1
 #
 # Downloads the JDK
 #
 def download_jdk(args):
-  install_jce_manualy(args)
+  jce_installed = install_jce_manualy(args)
   if get_JAVA_HOME():
     return 0
   if args.java_home and os.path.exists(args.java_home):
@@ -1445,15 +1443,17 @@ def download_jdk(args):
       format(JDK_INSTALL_DIR, jdk_version)
   write_property(JAVA_HOME_PROPERTY, "{0}/{1}".
       format(JDK_INSTALL_DIR, jdk_version))
-  try:
-    download_jce_policy(properties, ok)
-  except FatalException as e:
-    print "JCE Policy files are required for secure HDP setup. Please ensure " \
-            " all hosts have the JCE unlimited strength policy 6, files."
-    print_error_msg("Failed to download JCE policy files:")
-    if e.reason is not None:
-      print_error_msg("Reason: {0}".format(e.reason))
-    # TODO: We don't fail installation if download_jce_policy fails. Is it OK?
+
+  if jce_installed != 0:
+    try:
+      download_jce_policy(properties, ok)
+    except FatalException as e:
+      print "JCE Policy files are required for secure HDP setup. Please ensure " \
+              " all hosts have the JCE unlimited strength policy 6, files."
+      print_error_msg("Failed to download JCE policy files:")
+      if e.reason is not None:
+        print_error_msg("Reason: {0}".format(e.reason))
+      # TODO: We don't fail installation if download_jce_policy fails. Is it OK?
   return 0
 
 
