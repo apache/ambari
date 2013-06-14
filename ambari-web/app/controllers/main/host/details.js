@@ -219,71 +219,86 @@ App.MainHostDetailsController = Em.Controller.extend({
     var componentName = component.get('componentName').toUpperCase().toString();
     var displayName = component.get('displayName');
 
-    App.ModalPopup.show({
-      primary: Em.I18n.t('yes'),
-      secondary: Em.I18n.t('no'),
-      header: Em.I18n.t('popup.confirmation.commonHeader'),
-      bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile([
-          '{{t hosts.delete.popup.body}}<br><br>',
-          '{{t hosts.host.addComponent.note}}'
-        ].join(''))
-      }),
-      onPrimary: function () {
-        this.hide();
-        self.sendCommandToServer('/hosts?Hosts/host_name=' + self.get('content.hostName'), {
+    var securityEnabled = App.router.get('mainAdminSecurityController').getUpdatedSecurityStatus();
+
+    if (securityEnabled) {
+      App.showConfirmationPopup(function() {
+        self.primary(component);
+      }, Em.I18n.t('hosts.host.addComponent.securityNote').format(componentName,self.get('content.hostName')));
+    }
+    else {
+      App.ModalPopup.show({
+        primary: Em.I18n.t('yes'),
+        secondary: Em.I18n.t('no'),
+        header: Em.I18n.t('popup.confirmation.commonHeader'),
+        bodyClass: Ember.View.extend({
+          template: Ember.Handlebars.compile([
+            '{{t hosts.delete.popup.body}}<br><br>',
+            '{{t hosts.host.addComponent.note}}'
+          ].join(''))
+        }),
+        onPrimary: function () {
+          this.hide();
+          this.primary(component);
+        }
+      });
+    }
+  },
+  primary: function(component) {
+    var self = this;
+    var componentName = component.get('componentName').toUpperCase().toString();
+    var displayName = component.get('displayName');
+
+    self.sendCommandToServer('/hosts?Hosts/host_name=' + self.get('content.hostName'), {
+        RequestInfo: {
+          "context": Em.I18n.t('requestInfo.installHostComponent') + " " + displayName
+        },
+        Body: {
+          host_components: [
+            {
+              HostRoles: {
+                component_name: componentName
+              }
+            }
+          ]
+        }
+      },
+      'POST',
+      function (requestId) {
+
+        console.log('Send request for ADDING NEW COMPONENT successfully');
+
+        self.sendCommandToServer('/host_components?HostRoles/host_name=' + self.get('content.hostName') + '\&HostRoles/component_name=' + componentName + '\&HostRoles/state=INIT', {
             RequestInfo: {
-              "context": Em.I18n.t('requestInfo.installHostComponent') + " " + displayName
+              "context": Em.I18n.t('requestInfo.installNewHostComponent') + " " + displayName
             },
             Body: {
-              host_components: [
-                {
-                  HostRoles: {
-                    component_name: componentName
-                  }
-                }
-              ]
+              HostRoles: {
+                state: 'INSTALLED'
+              }
             }
           },
-          'POST',
+          'PUT',
           function (requestId) {
+            if (!requestId) {
+              return;
+            }
 
-            console.log('Send request for ADDING NEW COMPONENT successfully');
+            console.log('Send request for INSTALLING NEW COMPONENT successfully');
 
-            self.sendCommandToServer('/host_components?HostRoles/host_name=' + self.get('content.hostName') + '\&HostRoles/component_name=' + componentName + '\&HostRoles/state=INIT', {
-                RequestInfo: {
-                  "context": Em.I18n.t('requestInfo.installNewHostComponent') + " " + displayName
-                },
-                Body: {
-                  HostRoles: {
-                    state: 'INSTALLED'
-                  }
-                }
-              },
-              'PUT',
-              function (requestId) {
-                if (!requestId) {
-                  return;
-                }
+            if (App.testMode) {
+              component.set('workStatus', App.HostComponentStatus.installing);
+              setTimeout(function () {
+                component.set('workStatus', App.HostComponentStatus.stopped);
+              }, App.testModeDelayForActions);
+            } else {
+              App.router.get('clusterController').loadUpdatedStatusDelayed(500);
+            }
 
-                console.log('Send request for INSTALLING NEW COMPONENT successfully');
+            App.router.get('backgroundOperationsController').showPopup();
 
-                if (App.testMode) {
-                  component.set('workStatus', App.HostComponentStatus.installing);
-                  setTimeout(function () {
-                    component.set('workStatus', App.HostComponentStatus.stopped);
-                  }, App.testModeDelayForActions);
-                } else {
-                  App.router.get('clusterController').loadUpdatedStatusDelayed(500);
-                }
-
-                App.router.get('backgroundOperationsController').showPopup();
-
-              });
-            return;
           });
-      }
-    });
+      });
   },
   /**
    * send command to server to install selected host component
