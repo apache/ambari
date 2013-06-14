@@ -78,6 +78,7 @@ class hdp-mysql::server(
 
     $mysqld_state = $service_state ? {
      'running' => 'running',
+     'installed_and_configured' => 'running',
       default =>  'stopped',
     }
 
