@@ -783,7 +783,7 @@ def check_postgre_up():
         stdin=subprocess.PIPE,
         stderr=subprocess.PIPE
       )
-      time.sleep(5)
+      time.sleep(20)
       result = process.poll()
       print_info_msg("Result of postgres start cmd: " + str(result))
       if result is None:

@@ -87,6 +87,9 @@ case "$1" in
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
   setup)
+        initdb_res=`/sbin/service postgresql initdb 2>&1 > /dev/null`
+        initdb_res=`/sbin/service postgresql start 2>&1 > /dev/null`
+        initdb_res=`/sbin/service postgresql stop 2>&1 > /dev/null`
         echo -e "Setup ambari-server"
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
