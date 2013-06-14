@@ -435,7 +435,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.set('globalConfigs', configSet.globalConfigs);
 
     //STEP 6: add advanced configs
-    App.config.addAdvancedConfigs(configs, advancedConfigs, serviceName);
+    //App.config.addAdvancedConfigs(configs, advancedConfigs, serviceName);
     //STEP 7: add custom configs
     App.config.addCustomConfigs(configs);
     //STEP 8: add configs as names of host components
