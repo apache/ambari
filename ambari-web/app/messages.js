@@ -999,8 +999,8 @@ Em.I18n.translations = {
   'dashboard.widgets.JobTrackerHeap': 'JobTracker Heap',
   'dashboard.widgets.JobTrackerCpu': 'JobTracker CPU WIO',
   'dashboard.widgets.JobTrackerCapacity': 'JobTracker Capacity',
-  'dashboard.widgets.DataNodeUp': 'DataNode Live',
-  'dashboard.widgets.TaskTrackerUp': 'TaskTracker Live',
+  'dashboard.widgets.DataNodeUp': 'DataNodes Live',
+  'dashboard.widgets.TaskTrackerUp': 'TaskTrackers Live',
   'dashboard.widgets.NameNodeRpc': 'NameNode RPC',
   'dashboard.widgets.JobTrackerRpc': 'JobTracker RPC',
   'dashboard.widgets.MapReduceSlots': 'MapReduce Slots',
@@ -1013,9 +1013,9 @@ Em.I18n.translations = {
   'dashboard.widgets.MapReduceLinks': 'MapReduce Links',
   'dashboard.widgets.HBaseLinks': 'HBase Links',
   'dashboard.widgets.HBaseAverageLoad': 'HBase Ave Load',
-  'dashboard.widgets.HBaseMasterHeap': 'HBase MasterHeap',
-  'dashboard.widgets.HBaseRegionsInTransition': 'Region InTransition',
-
+  'dashboard.widgets.HBaseMasterHeap': 'HBase Master Heap',
+  'dashboard.widgets.HBaseRegionsInTransition': 'Region In Transition',
+  'dashboard.widgets.HBaseMasterUptime': 'HBase Master Uptime',
 
   'dashboard.services':'Services',
   'dashboard.services.hosts':'Hosts',

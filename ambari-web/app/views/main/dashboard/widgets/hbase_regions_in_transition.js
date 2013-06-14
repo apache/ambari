@@ -20,6 +20,7 @@ var App = require('app');
 
 App.HBaseRegionsInTransitionView = App.DashboardWidgetView.extend({
 
+  templateName: require('templates/main/dashboard/widgets/simple_text'),
   title: Em.I18n.t('dashboard.widgets.HBaseRegionsInTransition'),
   id: '22',
 

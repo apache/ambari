@@ -21,6 +21,7 @@ var date = require('utils/date');
 
 App.NameNodeUptimeView = App.DashboardWidgetView.extend({
 
+  templateName: require('templates/main/dashboard/widgets/uptime'),
   title: Em.I18n.t('dashboard.widgets.NameNodeUptime'),
   id: '15',
 
@@ -82,7 +83,7 @@ App.NameNodeUptimeView = App.DashboardWidgetView.extend({
       return parseFloat(formatted.split(" ")[0]);
     }
     this.set('hiddenInfo', []);
-    this.set('hiddenInfo', ['NameNode','Not running']);
+    this.set('hiddenInfo', ['NameNode','Not Running']);
     return null;
   }.property('model.nameNodeStartTime'),
 
@@ -96,19 +97,6 @@ App.NameNodeUptimeView = App.DashboardWidgetView.extend({
       return this.t('services.service.summary.notAvailable');
     }
   }.property('model.nameNodeStartTime'),
-
-
-  template: Ember.Handlebars.compile([
-
-    '<div class="has-hidden-info">',
-    '<li class="thumbnail row" >',
-    '<a class="corner-icon" href="#" {{action deleteWidget target="view"}}>','<i class="icon-remove-sign icon-large"></i>','</a>',
-    '<div class="caption span10">', '{{view.title}}','</div>',
-    '<div class="hidden-info-three-line">', '<table align="center">{{#each line in view.hiddenInfo}}', '<tr><td>{{line}}</td></tr>','{{/each}}</table>','</div>',
-    '<div class="widget-content">{{view.content}}</div>',
-    '</li>',
-    '</div>'
-  ].join('\n')),
 
   timeConverter: function (timestamp){
     var origin = new Date(timestamp);

@@ -20,6 +20,7 @@ var App = require('app');
 
 App.JobTrackerRpcView = App.DashboardWidgetView.extend({
 
+  templateName: require('templates/main/dashboard/widgets/simple_text'),
   title: Em.I18n.t('dashboard.widgets.JobTrackerRpc'),
   id:'9',
 

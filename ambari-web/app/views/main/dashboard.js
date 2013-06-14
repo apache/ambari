@@ -218,6 +218,7 @@ App.MainDashboardView = Em.View.extend({
       case '20': return App.HBaseMasterHeapPieChartView;
       case '21': return App.HBaseAverageLoadView;
       case '22': return App.HBaseRegionsInTransitionView;
+      case '23': return App.HBaseMasterUptimeView;
     }
 
   },
@@ -228,11 +229,11 @@ App.MainDashboardView = Em.View.extend({
       '11', '12', '13', '14', //cluster-metrics
       '1', '2', '3', '4', '5', '15', '17', //hdfs
       '6', '7', '8', '9', '10', '18', '16',//map reduce
-      '20', '21', '19', '22' //hbase
+      '20', '21', '19', '23' //hbase
     ], // all in order
-    hidden:[],
+    hidden:[['22','Region In Transition']],
     threshold:{1: [40,70], 2: [40,70], 3: [40,70], 4: [40,70], 5: [0.5, 2], 6: [40,70], 7: [40,70], 8: [40,70], 9: [0.5, 2],
-      10:[], 11:[], 12:[], 13:[], 14:[], 15:[], 16:[], 17:[], 18:[], 19:[], 20:[40,70], 21:[10,19.2], 22: [3, 10]} // id:[thresh1, thresh2]
+      10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: [], 17: [], 18: [], 19: [], 20: [40,70], 21: [10,19.2], 22: [3, 10], 23: []} // id:[thresh1, thresh2]
   }),
   persistKey: function(){
     var loginName = App.router.get('loginName');
@@ -253,7 +254,7 @@ App.MainDashboardView = Em.View.extend({
         success: function (response) {
           if (response) {
             var value = jQuery.parseJSON(response);
-            console.log('Persist value with key ' + key + '. JSON Value is: ' + response);
+            console.log('Got persist value from server with key ' + key + '. Value is: ' + response);
             self.set('currentPrefObject', value);
             return value;
            }
@@ -285,16 +286,19 @@ App.MainDashboardView = Em.View.extend({
       url: url,
       data: JSON.stringify(keyValuePair),
       beforeSend: function () {
-        console.log('BeforeSend: persistKeyValues', keyValuePair);
+        console.log('BeforeSend to persist: persistKeyValues', keyValuePair);
       }
     });
   },
 
   resetAllWidgets: function(){
-    if(!App.testMode){
-      this.postUserPref(this.get('persistKey'), this.get('initPrefObject'));
-    }
-    this.translateToReal(this.get('initPrefObject'));
+    var self = this;
+    App.showConfirmationPopup(function() {
+      if(!App.testMode){
+        self.postUserPref(self.get('persistKey'), self.get('initPrefObject'));
+      }
+      self.translateToReal(self.get('initPrefObject'));
+    });
   },
 
   updateServices: function(){

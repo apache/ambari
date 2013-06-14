@@ -21,6 +21,7 @@ var App = require('app');
 App.DashboardWidgetView = Em.View.extend({
 
   title: null,
+  templateName: null, // each has specific template
 
   model : function () {
     if (this.get('model_type') == 'hdfs') {
@@ -35,14 +36,14 @@ App.DashboardWidgetView = Em.View.extend({
   id: null, // id 1-10 used to identify
   viewID: function(){ // used by re-sort
     return 'widget-' + this.id;
-  }.property('id'),  //html id bind to view-class: widget-(1-10)
+  }.property('id'),  //html id bind to view-class: widget-(1)
   attributeBindings: ['viewID'],
 
   isPieChart: false,
   isText: false,
   isProgressBar: false,
   isLinks: false,
-  content: null, // widget content pieChart/ text/ progress bar. etc
+  content: null, // widget content pieChart/ text/ progress bar/links/ metrics. etc
   hiddenInfo: null, // more info details
 
   thresh1: null, //num not string
@@ -54,83 +55,14 @@ App.DashboardWidgetView = Em.View.extend({
     });
   },
 
-  template: Ember.Handlebars.compile([
-
-    '{{#if view.isPieChart}}',
-    '<div class="has-hidden-info">',
-    '<li class="thumbnail row">',
-    '<a class="corner-icon" href="#" {{action deleteWidget target="view"}}>','<i class="icon-remove-sign icon-large"></i>','</a>',
-    '<div class="caption span10">', '{{view.title}}','</div>',
-    '<a class="corner-icon span1" href="#" {{action editWidget target="view"}}>','<i class="icon-edit"></i>','</a>',
-    '<div class="hidden-info">', '<table align="center">{{#each line in view.hiddenInfo}}', '<tr><td>{{line}}</td></tr>','{{/each}}</table>','</div>',
-
-    '<div class="widget-content" >','{{view view.content modelBinding="view.model" thresh1Binding="view.thresh1" thresh2Binding="view.thresh2"}}','</div>',
-    '</li>',
-    '</div>',
-    '{{/if}}',
-
-    '{{#if view.isText }}',
-    '<div class="has-hidden-info">',
-    '<li class="thumbnail row" >',
-    '<a class="corner-icon" href="#" {{action deleteWidget target="view"}}>','<i class="icon-remove-sign icon-large"></i>','</a>',
-    '<div class="caption span10">', '{{view.title}}','</div>',
-    '<a class="corner-icon span1" href="#" {{action editWidget target="view"}}>','<i class="icon-edit"></i>','</a>',
-    '<div class="hidden-info">', '<table align="center">{{#each line in view.hiddenInfo}}', '<tr><td>{{line}}</td></tr>','{{/each}}</table>','</div>',
-
-    '<div class="widget-content">{{view.content}}</div>',
-    '</li>',
-    '</div>',
-    '{{/if}}',
-
-    '{{#if view.isProgressBar}}',
-    '<div class="has-hidden-info">',
-    '<li class="thumbnail row" >',
-    '<a class="corner-icon" href="#" {{action deleteWidget target="view"}}>','<i class="icon-remove-sign icon-large"></i>','</a>',
-    '<div class="caption span10">', '{{view.title}}','</div>',
-    '<a class="span1">', '</a>',
-    '<div class="hidden-info">', '<table align="center">{{#each line in view.hiddenInfo}}', '<tr><td>{{line}}</td></tr>','{{/each}}</table>','</div>',
-
-    '<div class="widget-content row-fluid" id="map-reduce-slots-text" >',
-
-      '<ul class="span12">',
-        '<div class="span3"> {{t dashboard.widgets.mapSlots}}</div>',
-        '<div class="progress span5" id="map-reduce-slots-bar1">',
-          '<div class="bar bar-success" {{bindAttr style="view.map_occupied"}}></div>',
-        '<div class="bar bar-warning" {{bindAttr style="view.map_reserved"}}></div>',
-        ' </div>',
-        '<div class="span3" id="map-reduce-slots-num1"> {{view.map_display_text}}</div>',
-      '</ul>',
-      '<ul class="span12">',
-        '<div class="span3"> {{t dashboard.widgets.reduceSlots}}</div>',
-        '<div class="progress span5" id="map-reduce-slots-bar2">',
-          '<div class="bar bar-success" {{bindAttr style="view.reduce_occupied"}}></div>',
-          '<div class="bar bar-warning" {{bindAttr style="view.reduce_reserved"}}></div>',
-        '</div>',
-        '<div class="span3" id="map-reduce-slots-num2"> {{view.reduce_display_text}}</div>',
-      '</ul>',
-
-    '</div>',
-    '</li>',
-    '</div>',
-    '{{/if}}',
-
-    '{{#if view.isClusterMetrics}}',
-    '<div class="cluster-metrics">',
-    '<li class="thumbnail row">',
-    '<a class="corner-icon" href="#" {{action deleteWidget target="view"}}>','<i class="icon-remove-sign icon-large"></i>','</a>',
-    '<div class="caption span10">', '{{view.title}}','</div>',
-    '<div class="widget-content" >','{{view view.content}}','</div>',
-    //'<p class="hidden-info">', '{{view.hiddenInfo}}', '</p>',
-    '</li>',
-    '</div>',
-    '{{/if}}'
-
-  ].join('\n')),
-
   deleteWidget: function (event) {
     var parent = this.get('parentView');
-
-    if (!App.testMode) {
+    if(App.testMode) {
+      //update view on dashboard
+      var obj_class = parent.widgetsMapper(this.id);
+      parent.get('visibleWidgets').removeObject(obj_class);
+      parent.get('hiddenWidgets').pushObject(Em.Object.create({displayName: this.title, id: this.id, checked: false}));
+    }else{
       //reconstruct new persist value then post in persist
       parent.getUserPref(parent.get('persistKey'));
       var oldValue = parent.get('currentPrefObject');
@@ -147,11 +79,9 @@ App.DashboardWidgetView = Em.View.extend({
       }
       newValue.hidden.push([deletedId, this.title]);
       parent.postUserPref(parent.get('persistKey'), newValue);
+      parent.translateToReal(newValue);
     }
-    //update view on dashboard
-    var obj_class = parent.widgetsMapper(this.id);
-    parent.get('visibleWidgets').removeObject(obj_class);
-    parent.get('hiddenWidgets').pushObject(Em.Object.create({displayName: this.title, id: this.id, checked: false}));
+
   },
 
   editWidget: function (event) {

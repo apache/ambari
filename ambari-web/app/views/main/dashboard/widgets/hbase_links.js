@@ -20,6 +20,7 @@ var App = require('app');
 
 App.HBaseLinksView = App.DashboardWidgetView.extend({
 
+  templateName: require('templates/main/dashboard/widgets/hbase_links'),
   title: Em.I18n.t('dashboard.widgets.HBaseLinks'),
   id: '19',
 
@@ -28,71 +29,6 @@ App.HBaseLinksView = App.DashboardWidgetView.extend({
   isProgressBar: false,
   isLinks: true,
   model_type: 'hbase',
-
-  template: Ember.Handlebars.compile([
-    '<div class="links">',
-    '<li class="thumbnail row">',
-      '<a class="corner-icon" href="#" {{action deleteWidget target="view"}}>','<i class="icon-remove-sign icon-large"></i>','</a>',
-    '<div class="caption span8">', '{{view.title}}','</div>',
-    '<div class="span3 link-button">',
-    '{{#if view.model.quickLinks.length}}',
-      '{{#view App.QuickViewLinks contentBinding="view.model"}}',
-        '<div class="btn-group">',
-          '<a class="btn btn-mini dropdown-toggle" data-toggle="dropdown" href="#">',
-            '{{t common.more}}',
-            '<span class="caret"></span>',
-          '</a>',
-          '<ul class="dropdown-menu">',
-            '{{#each view.quickLinks}}',
-              '<li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>',
-            '{{/each}}',
-          '</ul>',
-        '</div>',
-      '{{/view}}',
-    '{{/if}}',
-
-    '</div>',
-    '<div class="widget-content" >',
-    '<table>',
-    //hbase master server
-    '<tr>',
-    '<td>{{t dashboard.services.hbase.masterServer}}</td>',
-    '<td>',
-    '{{#if view.activeMaster}}',
-      '<a href="#" {{action showDetails view.activeMaster.host}}>{{view.activeMasterTitle}}</a>',
-      '{{#if view.passiveMasters.length}}',
-        '{{view.passiveMasterOutput}}',
-      '{{/if}}',
-    '{{else}}',
-      '{{t dashboard.services.hbase.noMasterServer}}',
-    '{{/if}}',
-    '</td>',
-    '</tr>',
-    //region servers
-    '<tr>',
-    '<td>{{t dashboard.services.hbase.regionServers}}</td>',
-    '<td><a href="#" {{action filterHosts view.regionServerComponent}}>{{view.model.regionServers.length}} {{t dashboard.services.hbase.regionServers}}</a></td>',
-    '</tr>',
-
-    // hbase master Web UI
-    '<tr>',
-    '<td>{{t dashboard.services.hbase.masterWebUI}}</td>',
-    '<td>' +
-    '{{#if view.activeMaster}}',
-      '<a {{bindAttr href="view.hbaseMasterWebUrl"}} target="_blank">{{view.activeMaster.host.publicHostName}}:60010</a>',
-    '{{else}}',
-      '{{t services.service.summary.notAvailable}}',
-    '{{/if}}',
-    '</td>',
-    '</tr>',
-    '</table>',
-
-    '</div>',
-    '</li>',
-    '</div>'
-
-
-  ].join('\n')),
 
   /**
    * All master components

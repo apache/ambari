@@ -20,8 +20,8 @@ var App = require('app');
 
 App.HBaseMasterHeapPieChartView = App.DashboardWidgetView.extend({
 
+  templateName: require('templates/main/dashboard/widgets/pie_chart'),
   title: Em.I18n.t('dashboard.widgets.HBaseMasterHeap'),
-
   id: '20',
 
   isPieChart: true,
@@ -34,8 +34,8 @@ App.HBaseMasterHeapPieChartView = App.DashboardWidgetView.extend({
     var heapMax = this.get('model').get('heapMemoryMax') || 0;
     var percent = heapMax > 0 ? 100 * heapUsed / heapMax : 0;
     var result = [];
-    result.pushObject(heapUsed.bytesToSize(1, "parseFloat") + ' of ' + heapMax.bytesToSize(1, "parseFloat"));
     result.pushObject(percent.toFixed(1) + '% used');
+    result.pushObject(heapUsed.bytesToSize(1, "parseFloat") + ' of ' + heapMax.bytesToSize(1, "parseFloat"));
     return result;
   }.property('model.heapMemoryUsed', 'model.heapMemoryMax'),
 
@@ -47,24 +47,6 @@ App.HBaseMasterHeapPieChartView = App.DashboardWidgetView.extend({
     var total = this.get('model.heapMemoryMax') * 1000000;
     return total > 0 ;
   }.property('model.heapMemoryMax'),
-
-  template: Ember.Handlebars.compile([
-
-    '<div class="has-hidden-info">',
-    '<li class="thumbnail row">',
-      '<a class="corner-icon" href="#" {{action deleteWidget target="view"}}>','<i class="icon-remove-sign icon-large"></i>','</a>',
-    '<div class="caption span10">', '{{view.title}}','</div>',
-    '<a class="corner-icon span1" href="#" {{action editWidget target="view"}}>','<i class="icon-edit"></i>','</a>',
-    '<div class="hidden-info">', '<table align="center">{{#each line in view.hiddenInfo}}', '<tr><td>{{line}}</td></tr>','{{/each}}</table>','</div>',
-
-    '{{#if view.isPieExist}}' +
-      '<div class="widget-content" >','{{view view.content modelBinding="view.model" thresh1Binding="view.thresh1" thresh2Binding="view.thresh2"}}','</div>',
-    '{{else}}',
-    '<div class="widget-content-isNA" >','{{t services.service.summary.notAvailable}}','</div>',
-    '{{/if}}',
-    '</li>',
-    '</div>'
-  ].join('\n')),
 
   content: App.ChartPieView.extend({
 

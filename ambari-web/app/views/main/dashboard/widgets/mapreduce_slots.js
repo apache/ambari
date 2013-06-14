@@ -20,6 +20,7 @@ var App = require('app');
 
 App.MapReduceSlotsView = App.DashboardWidgetView.extend({
 
+  templateName: require('templates/main/dashboard/widgets/mapreduce_slots'),
   title: Em.I18n.t('dashboard.widgets.MapReduceSlots'),
   id:'10',
 
@@ -29,9 +30,16 @@ App.MapReduceSlotsView = App.DashboardWidgetView.extend({
   model_type: 'mapreduce',
   hiddenInfo: function (){
     var result = [];
-    result.pushObject('Occupied Slots/ Reserved Slots/ Total Slots');
+    if(this.get('isViewExist')){
+      result.pushObject('Occupied Slots/ Reserved Slots/ Total Slots');
+    }else{
+      result.pushObject('MapReduce Not Started');
+    }
     return result;
-  }.property(),
+  }.property('isViewExist'),
+  isViewExist: function () {
+    return this.get('model.mapSlotsOccupied') != null && this.get('model.mapSlotsReserved') != null && this.get('model.reduceSlotsOccupied') != null && this.get('model.reduceSlotsReserved') != null;
+  }.property('model.mapSlotsReserved', 'model.mapSlotsOccupied', 'model.reduceSlotsReserved', 'model.reduceSlotsOccupied'),
 
   map_occupied: function () {
     if (this.get('model.mapSlotsOccupied')) {

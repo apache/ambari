@@ -108,6 +108,7 @@ require('views/main/dashboard/widgets/hbase_links');
 require('views/main/dashboard/widgets/hbase_master_heap');
 require('views/main/dashboard/widgets/hbase_average_load');
 require('views/main/dashboard/widgets/hbase_regions_in_transition');
+require('views/main/dashboard/widgets/hbase_master_uptime');
 
 require('views/main/service');
 require('views/main/service/menu');

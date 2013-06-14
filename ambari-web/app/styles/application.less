@@ -1963,6 +1963,7 @@ table.graphs {
       margin-right: 3px;
       margin-top: 5px;
       margin-bottom: 7px;
+      height: 163px;
     }
     .thumbnails  li {
       height:150px;
@@ -2044,6 +2045,7 @@ table.graphs {
     }
     .cluster-metrics .thumbnail:hover{
       background-color: #909090;
+      cursor: move;
       .corner-icon{
         display:block;
         text-decoration: none;
@@ -2080,23 +2082,28 @@ table.graphs {
       }
       .link-button{
         padding-top: 7px;
-        padding-left: 20px;
+        padding-left: 70px;
       }
       .widget-content{
-        text-align: left;
+        text-align: center;
         font-weight: none;
-        font-size: 10px;
+        font-size: 11px;
         color: #555555;
-        padding-top: 35px;
-        padding-left: 10px;
+        padding-top: 40px;
+        table{
+          vertical-position: center;
+          text-align: center;
+          margin-left:auto;
+          margin-right:auto;
+        }
         td{
           padding-top: 2px;
-          padding-left:5px ;
         }
       }
     }
     .links .thumbnail:hover{
       background-color: #909090;
+      cursor: move;
       .corner-icon{
         display:block;
         text-decoration: none;
@@ -2122,6 +2129,7 @@ table.graphs {
     }
     .has-hidden-info .thumbnail:hover {
       background-color: #909090;
+      cursor: move;
       text-shadow: #000 0px 0px 15px;
       .corner-icon{
         display:block;
@@ -4248,8 +4256,10 @@ i.icon-asterisks {
     }
     .links .thumbnail .widget-content{
         font-weight: bold;
-        font-size: 11px;
-        padding-left: 18px;
+        font-size: 12px;
+    }
+    .links .thumbnail .link-button{
+      padding-left: 100px;
     }
     #map-reduce-slots-text{
       font-size: 12px;

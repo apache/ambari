@@ -20,6 +20,7 @@ var App = require('app');
 
 App.JobTrackerCpuPieChartView = App.DashboardWidgetView.extend({
 
+  templateName: require('templates/main/dashboard/widgets/pie_chart'),
   title: Em.I18n.t('dashboard.widgets.JobTrackerCpu'),
   id: '7',
 
@@ -29,16 +30,27 @@ App.JobTrackerCpuPieChartView = App.DashboardWidgetView.extend({
   model_type: 'mapreduce',
   hiddenInfo: function () {
     var value = this.get('model.jobTrackerCpu');
-    value = value >= 100 ? 100: value;
+    var obj1;
+    if( value == null) {
+      obj1 = Em.I18n.t('services.service.summary.notAvailable');
+    }else{
+      value = value >= 100 ? 100: value;
+      obj1 = (value + 0).toFixed(2) + '%';
+    }
     var result = [];
-    result.pushObject((value + 0).toFixed(2) + '%');
-    result.pushObject(' CPU wait I/O');
+    result.pushObject(obj1);
+    result.pushObject('CPU wait I/O');
     return result;
   }.property('model.jobTrackerCpu'),
 
   thresh1: 40,// can be customized
   thresh2: 70,
   maxValue: 100,
+
+  isPieExist: function () {
+    var total = this.get('model.jobTrackerCpu');
+    return total !== null ;
+  }.property('model.jobTrackerCpu'),
 
   content: App.ChartPieView.extend({
 
@@ -60,9 +72,8 @@ App.JobTrackerCpuPieChartView = App.DashboardWidgetView.extend({
 
     data: function () {
       var value = this.get('model.jobTrackerCpu');
-      //console.log('JT Cpu ' + value);
       value = value >= 100 ? 100: value;
-      var percent = (value + 0).toFixed();
+      var percent = (value + 0).toFixed(1);
       return [ percent, 100 - percent];
     }.property('model.jobTrackerCpu'),
 

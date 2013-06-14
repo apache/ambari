@@ -43,15 +43,9 @@
                   {{view widgetClass }}
                 </div>
               {{else}}
-                {{#if widgetClass.isLinks}}
-                  <div class="span4p8">
-                    {{view widgetClass }}
-                  </div>
-                {{else}}
-                  <div class="span2p4">
-                    {{view widgetClass }}
-                  </div>
-                {{/if}}
+                <div class="span2p4">
+                  {{view widgetClass }}
+                </div>
               {{/if}}
             {{/each}}
           {{/if}}

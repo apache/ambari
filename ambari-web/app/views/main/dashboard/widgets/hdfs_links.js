@@ -20,6 +20,7 @@ var App = require('app');
 
 App.HDFSLinksView = App.DashboardWidgetView.extend({
 
+  templateName: require('templates/main/dashboard/widgets/hdfs_links'),
   title: Em.I18n.t('dashboard.widgets.HDFSLinks'),
   id: '17',
 
@@ -28,63 +29,6 @@ App.HDFSLinksView = App.DashboardWidgetView.extend({
   isProgressBar: false,
   isLinks: true,
   model_type: 'hdfs',
-
-  template: Ember.Handlebars.compile([
-    '<div class="links">',
-    '<li class="thumbnail row">',
-    '<a class="corner-icon" href="#" {{action deleteWidget target="view"}}>','<i class="icon-remove-sign icon-large"></i>','</a>',
-    '<div class="caption span8">', '{{view.title}}','</div>',
-    '<div class="span3 link-button">',
-     '{{#if view.model.quickLinks.length}}',
-        '{{#view App.QuickViewLinks contentBinding="view.model"}}',
-        '<div class="btn-group">',
-          '<a class="btn btn-mini dropdown-toggle" data-toggle="dropdown" href="#">',
-            '{{t common.more}}',
-            '<span class="caret"></span>',
-          '</a>',
-          '<ul class="dropdown-menu">',
-            '{{#each view.quickLinks}}',
-            '<li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>',
-            '{{/each}}',
-          '</ul>',
-        '</div>',
-        '{{/view}}',
-     '{{/if}}',
-
-    '</div>',
-    '<div class="widget-content" >',
-    '<table>',
-    //NameNode
-    '<tr>',
-    '<td>{{t dashboard.services.hdfs.nanmenode}}</td>',
-    '<td><a href="#" {{action showDetails view.model.nameNode}}>{{view.model.nameNode.publicHostName}}</a></td>',
-    '</tr>',
-    //SecondaryNameNode
-    '<tr>',
-    '<td>{{t dashboard.services.hdfs.snanmenode}}</td>',
-    '<td><a href="#" {{action showDetails view.model.snameNode}}>{{view.model.snameNode.publicHostName}}</a></td>',
-    '</tr>',
-    //Data Nodes
-    '<tr>',
-    '<td>{{t dashboard.services.hdfs.datanodes}}</td>',
-    '<td>',
-    '<a href="#" {{action filterHosts view.dataNodeComponent}}>{{view.model.dataNodes.length}} {{t dashboard.services.hdfs.datanodes}}</a>',
-    '</td>',
-    '</tr>',
-    // NameNode Web UI
-    //    '<tr>',
-    //    '<td>{{t dashboard.services.hdfs.nameNodeWebUI}}</td>',
-    //    '<td><a {{bindAttr href="view.nodeWebUrl"}} target="_blank">{{view.model.nameNode.publicHostName}}:50070</a>',
-    //    '</td>',
-    //    '</tr>',
-    '</table>',
-
-    '</div>',
-    '</li>',
-    '</div>'
-
-
-  ].join('\n')),
 
   dataNodeComponent: function () {
     return App.HostComponent.find().findProperty('componentName', 'DATANODE');

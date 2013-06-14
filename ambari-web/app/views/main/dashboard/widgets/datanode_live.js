@@ -20,6 +20,7 @@ var App = require('app');
 
 App.DataNodeUpView = App.DashboardWidgetView.extend({
 
+  templateName: require('templates/main/dashboard/widgets/simple_text'),
   title: Em.I18n.t('dashboard.widgets.DataNodeUp'),
   id: '4',
 

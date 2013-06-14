@@ -20,6 +20,7 @@ var App = require('app');
 
 App.NameNodeHeapPieChartView = App.DashboardWidgetView.extend({
 
+  templateName: require('templates/main/dashboard/widgets/pie_chart'),
   title: Em.I18n.t('dashboard.widgets.NameNodeHeap'),
   id: '1',
 
@@ -33,8 +34,8 @@ App.NameNodeHeapPieChartView = App.DashboardWidgetView.extend({
   var memCommitted = this.get('model').get('jvmMemoryHeapCommitted') * 1000000;
   var percent = memCommitted > 0 ? ((100 * memUsed) / memCommitted) : 0;
   var result = [];
-  result.pushObject(memUsed.bytesToSize(1, 'parseFloat') + ' of ' + memCommitted.bytesToSize(1, 'parseFloat'));
   result.pushObject(percent.toFixed(1) + '% used');
+  result.pushObject(memUsed.bytesToSize(1, 'parseFloat') + ' of ' + memCommitted.bytesToSize(1, 'parseFloat'));
   return result;
   }.property('model.jvmMemoryHeapUsed', 'model.jvmMemoryHeapCommitted'),
 
@@ -46,24 +47,6 @@ App.NameNodeHeapPieChartView = App.DashboardWidgetView.extend({
     var total = this.get('model.jvmMemoryHeapCommitted') * 1000000;
     return total > 0 ;
   }.property('model.jvmMemoryHeapCommitted'),
-
-  template: Ember.Handlebars.compile([
-
-    '<div class="has-hidden-info">',
-    '<li class="thumbnail row">',
-    '<a class="corner-icon" href="#" {{action deleteWidget target="view"}}>','<i class="icon-remove-sign icon-large"></i>','</a>',
-    '<div class="caption span10">', '{{view.title}}','</div>',
-    '<a class="corner-icon span1" href="#" {{action editWidget target="view"}}>','<i class="icon-edit"></i>','</a>',
-    '<div class="hidden-info">', '<table align="center">{{#each line in view.hiddenInfo}}', '<tr><td>{{line}}</td></tr>','{{/each}}</table>','</div>',
-
-    '{{#if view.isPieExist}}',
-      '<div class="widget-content" >','{{view view.content modelBinding="view.model" thresh1Binding="view.thresh1" thresh2Binding="view.thresh2"}}','</div>',
-    '{{else}}',
-      '<div class="widget-content-isNA" >','{{t services.service.summary.notAvailable}}','</div>',
-    '{{/if}}',
-    '</li>',
-    '</div>'
-  ].join('\n')),
 
   content: App.ChartPieView.extend({
 

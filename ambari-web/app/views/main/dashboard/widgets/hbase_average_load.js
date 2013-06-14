@@ -20,6 +20,7 @@ var App = require('app');
 
 App.HBaseAverageLoadView = App.DashboardWidgetView.extend({
 
+  templateName: require('templates/main/dashboard/widgets/simple_text'),
   title: Em.I18n.t('dashboard.widgets.HBaseAverageLoad'),
   id: '21',
 

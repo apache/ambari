@@ -19,16 +19,16 @@
 var App = require('app');
 var date = require('utils/date');
 
-App.JobTrackerUptimeView = App.DashboardWidgetView.extend({
+App.HBaseMasterUptimeView = App.DashboardWidgetView.extend({
 
   templateName: require('templates/main/dashboard/widgets/uptime'),
-  title: Em.I18n.t('dashboard.widgets.JobTrackerUptime'),
-  id: '16',
+  title: Em.I18n.t('dashboard.widgets.HBaseMasterUptime'),
+  id: '23',
 
   isPieChart: false,
   isText: true,
   isProgressBar: false,
-  model_type: 'mapreduce',
+  model_type: 'hbase',
   hiddenInfo: [],
 
   classNameBindings: ['isRed', 'isOrange', 'isGreen', 'isNA'],
@@ -36,7 +36,7 @@ App.JobTrackerUptimeView = App.DashboardWidgetView.extend({
     return this.get('data') != null;
   }.property('data'),
   isOrange: function () {
-   return false;
+    return false;
   }.property('data'),
   isRed: function () {
     return false;
@@ -49,8 +49,8 @@ App.JobTrackerUptimeView = App.DashboardWidgetView.extend({
   thresh2: 10,
   maxValue: 'infinity',
 
-  data: function(){
-    var uptime = this.get('model.jobTrackerStartTime');
+  data: function () {
+    var uptime = this.get('model.masterStartTime');
     if (uptime && uptime > 0) {
       var uptimeString = this.timeConverter(uptime);
       var diff = (new Date()).getTime() - uptime;
@@ -59,7 +59,7 @@ App.JobTrackerUptimeView = App.DashboardWidgetView.extend({
       }
       var formatted = date.timingFormat(diff); //17.67 days
       var timeUnit = null;
-      switch (formatted.split(" ")[1]){
+      switch (formatted.split(" ")[1]) {
         case 'secs':
           timeUnit = 's';
           break;
@@ -82,9 +82,10 @@ App.JobTrackerUptimeView = App.DashboardWidgetView.extend({
       this.get('hiddenInfo').pushObject(uptimeString[1]);
       return parseFloat(formatted.split(" ")[0]);
     }
-    this.set('hiddenInfo', ['JobTracker','Not Running']);
+    this.set('hiddenInfo', []);
+    this.set('hiddenInfo', ['Hbase Master','Not Running']);
     return null;
-  }.property('model.jobTrackerStartTime'),
+  }.property('model.masterStartTime'),
 
   timeUnit: null,
 
@@ -95,22 +96,22 @@ App.JobTrackerUptimeView = App.DashboardWidgetView.extend({
     } else {
       return this.t('services.service.summary.notAvailable');
     }
-  }.property('model.jobTrackerStartTime'),
+  }.property('model.masterStartTime'),
 
-  timeConverter: function (timestamp) {
+  timeConverter: function (timestamp){
     var origin = new Date(timestamp);
     origin = origin.toString();
     var result = [];
     var start = origin.indexOf('GMT');
-    if(start == -1){ // ie
+    if (start == -1) { // ie
       var arr = origin.split(" ");
       result.pushObject(arr[0] + " " + arr[1] + " " + arr[2] + " " + arr[3]);
       var second = '';
-      for(var i = 4; i < arr.length; i++){
+      for (var i = 4; i < arr.length; i++) {
         second = second + " " + arr[i];
       }
       result.pushObject(second);
-    }else{ // other browsers
+    } else { // other browsers
       var end = origin.indexOf(" ", start);
       result.pushObject(origin.slice(0, start-10));
       result.pushObject(origin.slice(start-9));

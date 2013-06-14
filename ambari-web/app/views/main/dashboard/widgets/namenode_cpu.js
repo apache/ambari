@@ -20,6 +20,7 @@ var App = require('app');
 
 App.NameNodeCpuPieChartView = App.DashboardWidgetView.extend({
 
+  templateName: require('templates/main/dashboard/widgets/pie_chart'),
   title: Em.I18n.t('dashboard.widgets.NameNodeCpu'),
   id: '3',
 
@@ -29,16 +30,27 @@ App.NameNodeCpuPieChartView = App.DashboardWidgetView.extend({
   model_type: 'hdfs',
   hiddenInfo: function () {
     var value = this.get('model.nameNodeCpu');
-    value = value >= 100 ? 100: value;
+    var obj1;
+    if( value == null) {
+      obj1 = Em.I18n.t('services.service.summary.notAvailable');
+    }else{
+      value = value >= 100 ? 100: value;
+      obj1 = (value + 0).toFixed(2) + '%';
+    }
     var result = [];
-    result.pushObject((value + 0).toFixed(2) + '%');
-    result.pushObject(' CPU wait I/O');
+    result.pushObject(obj1);
+    result.pushObject('CPU wait I/O');
     return result;
   }.property('model.nameNodeCpu'),
 
   thresh1: 40,// can be customized
   thresh2: 70,
   maxValue: 100,
+
+  isPieExist: function () {
+    var total = this.get('model.nameNodeCpu');
+    return total !== null ;
+  }.property('model.nameNodeCpu'),
 
   content: App.ChartPieView.extend({
 
@@ -61,7 +73,7 @@ App.NameNodeCpuPieChartView = App.DashboardWidgetView.extend({
     data: function () {
       var value = this.get('model.nameNodeCpu');
       value = value >= 100 ? 100: value;
-      var percent = (value + 0).toFixed();
+      var percent = (value + 0).toFixed(1);
       return [ percent, 100 - percent];
     }.property('model.nameNodeCpu'),
 

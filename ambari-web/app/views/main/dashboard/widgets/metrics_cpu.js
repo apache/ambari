@@ -20,6 +20,7 @@ var App = require('app');
 
 App.ChartClusterMetricsCPUWidgetView = App.DashboardWidgetView.extend({
 
+  templateName: require('templates/main/dashboard/widgets/cluster_metrics'),
   title: Em.I18n.t('dashboard.clusterMetrics.cpu'),
   id: '13',
 
