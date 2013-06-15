@@ -29,8 +29,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Abstract property provider implementation for a Ganglia source.
@@ -53,17 +51,16 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
   public static final Map<String, String> GANGLIA_CLUSTER_NAME_MAP = new HashMap<String, String>();
 
   static {
-    GANGLIA_CLUSTER_NAME_MAP.put("NAMENODE",           "HDPNameNode");
-    GANGLIA_CLUSTER_NAME_MAP.put("DATANODE",           "HDPSlaves");
-    GANGLIA_CLUSTER_NAME_MAP.put("JOBTRACKER",         "HDPJobTracker");
-    GANGLIA_CLUSTER_NAME_MAP.put("TASKTRACKER",        "HDPSlaves");
-    GANGLIA_CLUSTER_NAME_MAP.put("RESOURCEMANAGER",    "HDPResourceManager");
-    GANGLIA_CLUSTER_NAME_MAP.put("NODEMANAGER",        "HDPSlaves");
-    GANGLIA_CLUSTER_NAME_MAP.put("HISTORYSERVER",      "HDPHistoryServer");
-    GANGLIA_CLUSTER_NAME_MAP.put("HBASE_MASTER",       "HDPHBaseMaster");
-    GANGLIA_CLUSTER_NAME_MAP.put("HBASE_CLIENT",       "HDPSlaves");
+    GANGLIA_CLUSTER_NAME_MAP.put("NAMENODE", "HDPNameNode");
+    GANGLIA_CLUSTER_NAME_MAP.put("DATANODE", "HDPSlaves");
+    GANGLIA_CLUSTER_NAME_MAP.put("JOBTRACKER", "HDPJobTracker");
+    GANGLIA_CLUSTER_NAME_MAP.put("TASKTRACKER", "HDPSlaves");
+    GANGLIA_CLUSTER_NAME_MAP.put("RESOURCEMANAGER", "HDPResourceManager");
+    GANGLIA_CLUSTER_NAME_MAP.put("NODEMANAGER", "HDPSlaves");
+    GANGLIA_CLUSTER_NAME_MAP.put("HISTORYSERVER", "HDPHistoryServer");
+    GANGLIA_CLUSTER_NAME_MAP.put("HBASE_MASTER", "HDPHBaseMaster");
+    GANGLIA_CLUSTER_NAME_MAP.put("HBASE_CLIENT", "HDPSlaves");
     GANGLIA_CLUSTER_NAME_MAP.put("HBASE_REGIONSERVER", "HDPSlaves");
-    GANGLIA_CLUSTER_NAME_MAP.put("FLUME_SERVER",       "HDPSlaves");
   }
 
   protected final static Logger LOG =
@@ -211,9 +208,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
             new ResourceKey(getHostName(resource), gangliaClusterName);
 
         for (String id : ids) {
-          Map<String, PropertyInfo> propertyInfoMap = new HashMap<String, PropertyInfo>();
-
-          boolean containsRegExp = getPropertyInfoMap(getComponentName(resource), id, propertyInfoMap);
+          Map<String, PropertyInfo> propertyInfoMap = getPropertyInfoMap(getComponentName(resource), id);
 
           for (Map.Entry<String, PropertyInfo> entry : propertyInfoMap.entrySet()) {
             String propertyId = entry.getKey();
@@ -224,7 +219,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
             if ((temporalInfo == null && propertyInfo.isPointInTime()) || (temporalInfo != null && propertyInfo.isTemporal())) {
               RRDRequest rrdRequest = requests.get(temporalInfo);
               if (rrdRequest == null) {
-                rrdRequest = new RRDRequest(clusterName, temporalInfo, containsRegExp);
+                rrdRequest = new RRDRequest(clusterName, temporalInfo);
                 requests.put(temporalInfo, rrdRequest);
               }
               rrdRequest.putResource(key, resource);
@@ -360,13 +355,11 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
     private final Map<String, Set<String>> metrics = new HashMap<String, Set<String>>();
     private final Set<String> clusterSet = new HashSet<String>();
     private final Set<String> hostSet = new HashSet<String>();
-    private final boolean containsRegExp;
 
 
-    private RRDRequest(String clusterName, TemporalInfo temporalInfo, boolean containsRegExp) {
+    private RRDRequest(String clusterName, TemporalInfo temporalInfo) {
       this.clusterName  = clusterName;
       this.temporalInfo = temporalInfo;
-      this.containsRegExp = containsRegExp;
     }
 
     public void putResource(ResourceKey key, Resource resource) {
@@ -399,8 +392,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
      */
     public Collection<Resource> populateResources() throws SystemException {
 
-      String spec = getSpec(clusterName, clusterSet, hostSet,
-          containsRegExp ? Collections.<String>emptySet() : metrics.keySet(), temporalInfo);
+      String spec = getSpec(clusterName, clusterSet, hostSet, metrics.keySet(), temporalInfo);
       BufferedReader reader = null;
       try {
         reader = new BufferedReader(new InputStreamReader(
@@ -473,42 +465,13 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
      * @param gangliaMetric  the Ganglia metrics
      */
     private void populateResource(Resource resource, GangliaMetric gangliaMetric) {
-      String metric_name = gangliaMetric.getMetric_name();
-
-      Set<String> propertyIdSet = metrics.get(metric_name);
-      List<String> parameterList  = new LinkedList<String>();
-
-      if (propertyIdSet == null) {
-        for (Map.Entry<String, Set<String>> entry : metrics.entrySet()) {
-
-          String key = entry.getKey();
-
-          Pattern pattern = Pattern.compile(key);
-          Matcher matcher = pattern.matcher(metric_name);
-
-          if (matcher.matches()) {
-            propertyIdSet = entry.getValue();
-            // get parameters
-            for (int i = 0; i < matcher.groupCount(); ++i) {
-              parameterList.add(matcher.group(i + 1));
-            }
-            break;
-          }
-        }
-      }
+      Set<String> propertyIdSet = metrics.get(gangliaMetric.getMetric_name());
       if (propertyIdSet != null) {
         Map<String, PropertyInfo> metricsMap = getComponentMetrics().get(getComponentName(resource));
         if (metricsMap != null) {
           for (String propertyId : propertyIdSet) {
             if (propertyId != null) {
               if (metricsMap.containsKey(propertyId)){
-                if (propertyId.matches(".*\\$\\d+.*")) {
-                  int i = 1;
-                  for (String param : parameterList) {
-                    propertyId = propertyId.replace("$" + i, param);
-                    ++i;
-                  }
-                }
                 resource.setProperty(propertyId, getValue(gangliaMetric, temporalInfo != null));
               }
             }
