@@ -21,7 +21,6 @@ package org.apache.ambari.server.controller.internal;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -73,25 +72,68 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
    * @return a map of metrics
    */
   protected Map<String, PropertyInfo> getPropertyInfoMap(String componentName, String propertyId) {
+    Map<String, PropertyInfo> propertyInfoMap = new HashMap<String, PropertyInfo>();
+
+    getPropertyInfoMap(componentName, propertyId, propertyInfoMap);
+
+    return propertyInfoMap;
+  }
+
+  // TODO : added for flume and reg exp property ids... revisit.
+  protected boolean getPropertyInfoMap(String componentName, String propertyId, Map<String, PropertyInfo> propertyInfoMap) {
     Map<String, PropertyInfo> componentMetricMap = componentMetrics.get(componentName);
+
+    propertyInfoMap.clear();
+
     if (componentMetricMap == null) {
-      return Collections.emptyMap();
+      return false;
     }
 
     PropertyInfo propertyInfo = componentMetricMap.get(propertyId);
     if (propertyInfo != null) {
-      return Collections.singletonMap(propertyId, propertyInfo);
+      propertyInfoMap.put(propertyId, propertyInfo);
+      return false;
     }
+
+    String regExpKey = getRegExpKey(propertyId);
+
+    if (regExpKey != null) {
+      propertyInfo = componentMetricMap.get(regExpKey);
+      if (propertyInfo != null) {
+        propertyInfoMap.put(regExpKey, propertyInfo);
+        return true;
+      }
+    }
+
+    boolean containsRegExp = false;
 
     if (!propertyId.endsWith("/")){
       propertyId += "/";
     }
-    Map<String, PropertyInfo> propertyInfoMap = new HashMap<String, PropertyInfo>();
+
     for (Map.Entry<String, PropertyInfo> entry : componentMetricMap.entrySet()) {
       if (entry.getKey().startsWith(propertyId)) {
-        propertyInfoMap.put(entry.getKey(), entry.getValue());
+        String key = entry.getKey();
+        containsRegExp = isPatternKey(key);
+        propertyInfoMap.put(key, entry.getValue());
       }
     }
-    return propertyInfoMap;
+
+    if (regExpKey != null) {
+      if (!regExpKey.endsWith("/")){
+        regExpKey += "/";
+      }
+
+      for (Map.Entry<String, PropertyInfo> entry : componentMetricMap.entrySet()) {
+        if (entry.getKey().startsWith(regExpKey)) {
+          containsRegExp = true;
+          propertyInfoMap.put(entry.getKey(), entry.getValue());
+        }
+      }
+    }
+
+    return containsRegExp;
   }
+
+
 }
