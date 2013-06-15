@@ -1158,10 +1158,10 @@ def configure_database_username_password(args):
     if is_alias_string(passwordProp):
       if isPersisted:
         # No need to prompt for key
-        args.postgres_password = read_passwd_for_alias(JDBC_RCA_PASSWORD_ALIAS)
+        args.database_password = read_passwd_for_alias(JDBC_RCA_PASSWORD_ALIAS)
       else:
         (masterKey, isSecure, isPersisted) = setup_master_key()
-        args.postgres_password = read_passwd_for_alias(
+        args.database_password = read_passwd_for_alias(
           JDBC_RCA_PASSWORD_ALIAS, masterKey)
 
     return 1
@@ -1916,11 +1916,19 @@ def start(args):
   # Need to handle master key not persisted scenario
   if persist is not None and not persist:
     prompt = False
-    masterKey = environ[SECURITY_KEY_ENV_VAR_NAME]
+    try:
+      masterKey = environ[SECURITY_KEY_ENV_VAR_NAME]
+    except KeyError:
+      masterKey = None
+
     if masterKey is not None and masterKey != "":
       pass
     else:
-      keyLocation = environ[SECURITY_MASTER_KEY_LOCATION]
+      try:
+        keyLocation = environ[SECURITY_MASTER_KEY_LOCATION]
+      except KeyError:
+        keyLocation = None
+
       if keyLocation is not None:
         try:
           # Verify master key can be read by the java process
@@ -1929,6 +1937,9 @@ def start(args):
           print_warning_msg("Cannot read Master key from path specified in "
                             "environemnt.")
           prompt = True
+      else:
+        # Key not provided in the environment
+        prompt = True
 
     if prompt:
       masterKey = get_validated_string_input("Please provide master key " +\
@@ -2293,8 +2304,8 @@ def setup_master_key(resetKey=False):
   if resetKey:
     # Encrypt the passwords with new key
     try:
-      db_password_alias = args.database_password
-      ldap_password_alias = args.ldap_mgr_password
+      db_password_alias = properties[JDBC_PASSWORD_PROPERTY]
+      ldap_password_alias = properties[LDAP_MGR_PASSWORD_PROPERTY]
     except (KeyError), e:
       print_warning_msg("KeyError: " + str(e))
 
