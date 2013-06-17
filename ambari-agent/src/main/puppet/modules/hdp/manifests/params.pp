@@ -54,7 +54,7 @@ class hdp::params()
   ## $smoketest_user_secure_uid = 1012
   $kinit_path_local = hdp_default("kinit_path_local","/usr/bin/kinit")
   $keytab_path = hdp_default("keytab_path", "/etc/security/keytabs")
-  $use_hostname_in_principal = hdp_default("instance_name", false)
+  $use_hostname_in_principal = hdp_default("instance_name", true)
 
   ###### hostnames
   $namenode_host = hdp_default("namenode_host")

@@ -89,7 +89,7 @@ module.exports =
       "defaultValue": true,
       "description": "Whether to use instance name for creating principals across cluster",
       "displayType": "checkbox",
-      "isVisible": true,
+      "isVisible": false,
       "isOverridable": false,
       "serviceName": "GENERAL",
       "category": "KERBEROS"
