@@ -378,12 +378,15 @@ App.MainAppsController = Em.ArrayController.extend({
   runTimeout : null,
 
   valueObserver: function(){
+    if(this.get('filterObject.iDisplayLength') > this.get('content.length')) {
+      this.set('filterObject.iDisplayStart', 0);
+    }
     var link = this.get('filterObject').createAppLink();
 
     if(this.get("filterObject.viewType") == "filtered"){
       this.set("runUrl", link);
     }else{
-      this.set("runUrl",  "/jobhistory/datatable?iDisplayLength="+this.get('filterObject.iDisplayLength'));
+      this.set("runUrl",  "/jobhistory/datatable?iDisplayStart="+this.get('filterObject.iDisplayStart')+"&iDisplayLength="+this.get('filterObject.iDisplayLength'));
     }
 
     var timeout = this.get('runTimeout');
