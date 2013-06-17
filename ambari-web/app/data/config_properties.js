@@ -468,7 +468,7 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "fs_default_name",
+      "name": "fs_glusterfs_default_name",
       "displayName": "Gluster default fs name",
       "description": "Gluster default filesystem name (glusterfs://{MasterFQDN}:9000)",
       "defaultValue": "glusterfs://{firstHost}:9000",
