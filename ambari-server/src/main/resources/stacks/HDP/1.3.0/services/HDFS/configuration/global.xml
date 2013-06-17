@@ -172,12 +172,7 @@
     <value>/etc/security/keytabs</value>
     <description>Kerberos keytab path.</description>
   </property>
-  
-  <property>
-    <name>keytab_path</name>
-    <value>/etc/security/keytabs</value>
-    <description>KeyTab Directory.</description>
-  </property>
+
     <property>
     <name>namenode_formatted_mark_dir</name>
     <value>/var/run/hadoop/hdfs/namenode/formatted/</value>

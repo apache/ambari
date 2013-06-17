@@ -297,7 +297,6 @@ App.config = Em.Object.create({
            * (/^\s+$/.test(_config.value)) { _config.isRequired = false; }
            */
           _config.isRequired = true;
-          _config.isVisible = true;
           _config.displayType = 'advanced';
           serviceConfigs.push(_config);
         }
@@ -551,11 +550,13 @@ App.config = Em.Object.create({
     if (data.items.length) {
       data.items.forEach(function (item) {
         item = item.StackConfigurations;
+        item.isVisible = item.type !== 'global.xml';
         properties.push({
           serviceName: item.service_name,
           name: item.property_name,
           value: item.property_value,
           description: item.property_description,
+          isVisible: item.isVisible,
           filename: item.filename || item.type
         });
       }, this);
