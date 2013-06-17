@@ -41,12 +41,10 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
   },
 
   loadStep: function () {
-    var stages = App.db.getSecurityDeployStages();
+
     this.clearStep();
-    if (stages === undefined) {
-      this.loadStages();
-      this.addInfoToStages();
-    } else {
+    var stages = App.db.getSecurityDeployStages();
+    if (stages && stages.length > 0) {
       stages.forEach(function (_stage, index) {
         stages[index] = App.Poll.create(_stage);
       }, this);
@@ -60,6 +58,9 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
         runningStage.set('isStarted', false);
       }
       this.get('stages').pushObjects(stages);
+    } else {
+      this.loadStages();
+      this.addInfoToStages();
     }
     this.loadSecureServices();
     this.moveToNextStage();
@@ -85,6 +86,8 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
   enableSubmit: function () {
     if (this.get('stages').someProperty('isError', true) || this.get('stages').everyProperty('isSuccess', true)) {
       this.set('isSubmitDisabled', false);
+    } else {
+      this.set('isSubmitDisabled', true);
     }
   }.observes('stages.@each.isCompleted'),
 
@@ -201,7 +204,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
     //prepare tags to fetch all configuration for a service
     this.get('secureServices').forEach(function (_secureService) {
       this.setServiceTagNames(_secureService, jsonData.Clusters.desired_configs);
-    },this);
+    }, this);
     this.getAllConfigurations();
   },
 
@@ -364,12 +367,6 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
       stages.pushObject(stage);
     }, this);
     App.db.setSecurityDeployStages(stages);
-    App.clusterStatus.setClusterStatus({
-      clusterName: this.get('clusterName'),
-      clusterState: 'DISABLE_SECURITY',
-      wizardControllerName: this.get('name'),
-      localdb: App.db.data
-    });
   }.observes('stages.@each.requestId', 'stages.@each.isStarted', 'stages.@each.isCompleted')
 
 });

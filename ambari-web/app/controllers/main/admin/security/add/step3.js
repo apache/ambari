@@ -58,13 +58,10 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
 
   loadStep: function () {
     this.set('secureMapping', require('data/secure_mapping').slice(0));
+    this.clearStep();
     var stages = App.db.getSecurityDeployStages();
     this.prepareSecureConfigs();
-    this.clearStep();
-    if (stages === undefined) {
-      this.loadStages();
-      this.addInfoToStages();
-    } else {
+    if (stages && stages.length > 0) {
       stages.forEach(function (_stage, index) {
         stages[index] = App.Poll.create(_stage);
       }, this);
@@ -72,14 +69,16 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         var failedStages = stages.filterProperty('isError', true);
         failedStages.setEach('isError', false);
         failedStages.setEach('isStarted', false);
-        failedStages.setEach('isCompleted', false)
+        failedStages.setEach('isCompleted', false);
       } else if (stages.filterProperty('isStarted', true).someProperty('isCompleted', false)) {
         var runningStage = stages.filterProperty('isStarted', true).findProperty('isCompleted', false);
         runningStage.set('isStarted', false);
       }
       this.get('stages').pushObjects(stages);
+    } else {
+      this.loadStages();
+      this.addInfoToStages();
     }
-
     this.moveToNextStage();
   },
 
@@ -90,6 +89,8 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         this.set('isBackBtnDisabled', false);
         App.router.get('addSecurityController').setStepsEnable();
       }
+    } else {
+      this.set('isSubmitDisabled', true);
     }
   }.observes('stages.@each.isCompleted'),
 
@@ -275,6 +276,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   loadGlobals: function () {
     var globals = this.get('content.serviceConfigProperties').filterProperty('id', 'puppet var');
     this.set('globalProperties', globals);
+    this.loadStaticGlobal(); //Hack for properties which are declared in config_properties.js and not able to retrieve values declared in secure_properties.js
     this.loadUsersToGlobal();
   },
 
@@ -285,6 +287,23 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     App.router.get('mainAdminSecurityController.serviceUsers').forEach(function (_user) {
       this.get('globalProperties').pushObject(_user);
     }, this);
+  },
+
+  loadStaticGlobal: function() {
+    var globalProperties = this.get('globalProperties');
+    this.get('globalProperties').forEach(function(_property){
+      switch (_property.name) {
+        case 'security_enabled':
+          _property.value = 'true';
+          break;
+        case 'dfs_datanode_address':
+          _property.value = '1019';
+          break;
+        case 'dfs_datanode_http_address':
+          _property.value = '1022';
+          break;
+      }
+    },this);
   },
 
   loadUsersFromServer: function () {
@@ -430,7 +449,6 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         this.get('globalProperties').forEach(function (_globalProperty) {
           _serviceConfigTags.configs[_globalProperty.name] = _globalProperty.value;
         }, this);
-        _serviceConfigTags.configs.security_enabled = 'true';
       }
       else {
         this.get('configs').filterProperty('id', 'site property').filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
@@ -458,11 +476,5 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       stages.pushObject(stage);
     }, this);
     App.db.setSecurityDeployStages(stages);
-    App.clusterStatus.setClusterStatus({
-      clusterName: this.get('clusterName'),
-      clusterState: 'ADD_SECURITY_STEP_3',
-      wizardControllerName: App.router.get('addSecurityController.name'),
-      localdb: App.db.data
-    });
   }.observes('stages.@each.requestId', 'stages.@each.isStarted', 'stages.@each.isCompleted')
 });

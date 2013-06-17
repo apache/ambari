@@ -709,7 +709,12 @@ module.exports = Em.Route.extend({
 
                 onClose: function () {
                   var self = this;
-                  var applyingConfigStage = router.get('mainAdminSecurityDisableController.stages').findProperty('stage', 'stage3');
+                  var controller = router.get('mainAdminSecurityDisableController');
+                  if (!controller.get('isSubmitDisabled')) {
+                    self.proceedOnClose();
+                    return;
+                  }
+                  var applyingConfigStage = controller.get('stages').findProperty('stage', 'stage3');
                   if (applyingConfigStage && !applyingConfigStage.get('isCompleted')) {
                     if (applyingConfigStage.get('isStarted')) {
                       App.showAlertPopup(Em.I18n.t('admin.security.applying.config.header'), Em.I18n.t('admin.security.applying.config.body'));
@@ -720,9 +725,9 @@ module.exports = Em.Route.extend({
                       }, Em.I18n.t('admin.addSecurity.disable.onClose'));
                       return;
                     }
+                  } else {
+                    self.proceedOnClose();
                   }
-                  self.proceedOnClose();
-
                 },
                 proceedOnClose: function () {
                   router.get('mainAdminSecurityDisableController').clearStep();

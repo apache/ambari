@@ -56,19 +56,19 @@ App.ModalPopup = Ember.View.extend({
   secondary: Em.I18n.t('common.cancel'),
   autoHeight: true,
 
-  onPrimary: function() {
+  onPrimary: function () {
     this.hide();
   },
 
-  onSecondary: function() {
+  onSecondary: function () {
     this.hide();
   },
 
-  onClose: function() {
+  onClose: function () {
     this.hide();
   },
 
-  hide: function() {
+  hide: function () {
     this.destroy();
   },
 
@@ -79,31 +79,31 @@ App.ModalPopup = Ember.View.extend({
    */
   showCloseButton: true,
 
-  didInsertElement: function(){
-    if(this.autoHeight){
+  didInsertElement: function () {
+    if (this.autoHeight) {
       var block = this.$().find('#modal > .modal-body').first();
       block.css('max-height', $(window).height() - block.offset().top - 300 + $(window).scrollTop()); // fix popup height
     }
   },
 
-  fitHeight: function(){
+  fitHeight: function () {
     var popup = this.$().find('#modal');
     var block = this.$().find('#modal > .modal-body');
     var wh = $(window).height();
 
     var top = wh * .05;
     popup.css({
-      'top' : top + 'px',
-      'marginTop' : 0
+      'top': top + 'px',
+      'marginTop': 0
     });
 
-    block.css('max-height', $(window).height()- top * 2 - 100);
+    block.css('max-height', $(window).height() - top * 2 - 100);
   }
 });
 
 App.ModalPopup.reopenClass({
 
-  show: function(options) {
+  show: function (options) {
     var popup = this.create(options);
     popup.appendTo('#wrapper');
     return popup;
@@ -111,7 +111,7 @@ App.ModalPopup.reopenClass({
 
 })
 
-App.showReloadPopup = function(){
+App.showReloadPopup = function () {
   return App.ModalPopup.show({
     primary: null,
     secondary: null,
@@ -129,7 +129,7 @@ App.showReloadPopup = function(){
  * @param {String} body - additional text constant. Will be placed in the popup-body
  * @return {*}
  */
-App.showConfirmationPopup = function(primary, body, template) {
+App.showConfirmationPopup = function (primary, body, secondary) {
   if (!primary) {
     return false;
   }
@@ -138,12 +138,18 @@ App.showConfirmationPopup = function(primary, body, template) {
     secondary: Em.I18n.t('common.cancel'),
     header: Em.I18n.t('popup.confirmation.commonHeader'),
     body: body || Em.I18n.t('question.sure'),
-    onPrimary: function() {
+    onPrimary: function () {
       this.hide();
       primary();
+    },
+    onSecondary: function () {
+      this.hide();
+      if (secondary) {
+        secondary();
+      }
     }
   });
-}
+};
 
 /**
  * Show alert popup
@@ -153,13 +159,13 @@ App.showConfirmationPopup = function(primary, body, template) {
  * @param {Function} primary - function to call upon clicking the OK button
  * @return {*}
  */
-App.showAlertPopup = function(header, body, primary) {
+App.showAlertPopup = function (header, body, primary) {
   return App.ModalPopup.show({
     primary: Em.I18n.t('ok'),
     secondary: null,
     header: header,
     body: body,
-    onPrimary: function() {
+    onPrimary: function () {
       this.hide();
       if (primary) {
         primary();

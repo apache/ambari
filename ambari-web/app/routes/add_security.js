@@ -41,22 +41,32 @@ module.exports = Em.Route.extend({
             onClose: function () {
               var self = this;
               if (router.get('addSecurityController.currentStep') == 3) {
+                var controller = router.get('mainAdminSecurityAddStep3Controller');
+                if (!controller.get('isSubmitDisabled')) {
+                  self.proceedOnClose();
+                  return;
+                }
                 var applyingConfigStage = router.get('mainAdminSecurityAddStep3Controller.stages').findProperty('stage', 'stage3');
-                if (applyingConfigStage && !applyingConfigStage.get('isCompleted')) {
-                  if (applyingConfigStage.get('isStarted')) {
-                    App.showAlertPopup(Em.I18n.t('admin.security.applying.config.header'), Em.I18n.t('admin.security.applying.config.body'));
-                    return;
+                if (applyingConfigStage) {
+                  if (!applyingConfigStage.get('isCompleted')) {
+                    if (applyingConfigStage.get('isStarted')) {
+                      App.showAlertPopup(Em.I18n.t('admin.security.applying.config.header'), Em.I18n.t('admin.security.applying.config.body'));
+                      return;
+                    } else {
+                      App.showConfirmationPopup(function () {
+                        self.proceedOnClose();
+                      }, Em.I18n.t('admin.addSecurity.enable.onClose'));
+                      return;
+                    }
                   } else {
                     App.showConfirmationPopup(function () {
-                      self.proceedOnClose();
-                    }, Em.I18n.t('admin.addSecurity.enable.onClose'));
+                        this.hide();
+                      }, Em.I18n.t('admin.addSecurity.enable.after.stage2.onClose'),
+                      function () {
+                        self.proceedOnClose();
+                      });
                     return;
                   }
-                } else {
-                  App.showConfirmationPopup(function () {
-                    self.proceedOnClose();
-                  }, Em.I18n.t('admin.addSecurity.enable.after.stage2.onClose'));
-                  return;
                 }
               }
               self.proceedOnClose();

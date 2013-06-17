@@ -108,9 +108,9 @@ App.MainAdminSecurityController = Em.Controller.extend({
       this.set('securityEnabled', true);
     }
     else {
-      this.loadUsers(configs);
       this.set('securityEnabled', false);
     }
+    this.loadUsers(configs);
     this.set('dataIsLoaded', true);
   },
 
