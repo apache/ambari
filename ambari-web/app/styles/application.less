@@ -1905,6 +1905,8 @@ table.graphs {
     line-height: 30px;
   }
   .filter-components{
+    right: 0;
+    left: auto;
     li {
       ul{
         margin-left: 0px;
@@ -1928,20 +1930,39 @@ table.graphs {
       }
     }
   }
-  .reset-widgets-button{
-    color: #ffffff;
-    margin-top: 5px;
-    margin-left: -15px;
-    width: 68px;
-    padding-left: 0px;
-    padding-right: 0px;
-  }
   .add-widget-button{
     color: #000000;
     margin-top: 5px;
-    margin-left: 12px;
-    width: 60px;
+    margin-left: -22px;
+    width: 70px;
   }
+  .more-options-button{
+    margin-top: 5px;
+    margin-left: 0px;
+    margin-right: 6px;
+    padding: 1px;
+    width: 70px;
+    .icon-cog{
+      font-size: 18px;
+      position: relative;
+      left: 3px;
+      top: 2px;
+    }
+    .caret{
+      position: relative;
+      left: 5px;
+      top: 2px;
+    }
+  }
+  .right-align-dropdown{
+    right: 0;
+    left: auto;
+    padding-top: 9px;
+    padding-bottom: 9px;
+    margin-right: 4px;
+  }
+
+
 
   #dashboard-widgets{
     .thumbnails {
@@ -4220,17 +4241,9 @@ i.icon-asterisks {
 
 
 #dashboard-widgets-container{
-  .reset-widgets-button{
-    margin-top: 5px;
-    margin-left: 0px;
-    width: 70px;
-    padding-left: 1px;
-    padding-right: 1px;
-  }
+
   .add-widget-button{
-    margin-top: 5px;
-    margin-left: 5px;
-    width: 70px;
+    margin-left: 9px; //3px for 3 buttons view
   }
 
   #dashboard-widgets{

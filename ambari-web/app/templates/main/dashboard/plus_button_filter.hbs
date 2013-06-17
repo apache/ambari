@@ -16,8 +16,8 @@
 * limitations under the License.
 }}
 
-<button class="btn btn-info single-btn-group" {{action "clickFilterButton" target="view"}} >
-    <i class="icon-plus"></i> {{t common.add}}
+<button class="btn single-btn-group" {{action "clickFilterButton" target="view"}} >
+    <i class="icon-plus"></i> <span style="font-weight: bold">{{t common.add}}</span>
 </button>
 <ul class="dropdown-menu filter-components" >
   {{#if view.hiddenWidgets.length}}

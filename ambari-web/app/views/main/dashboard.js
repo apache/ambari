@@ -30,8 +30,9 @@ App.MainDashboardView = Em.View.extend({
   },
   content:[],
   isDataLoaded: false,
+  isClassicDashboard: false,
 
-  makeSortable: function() {
+  makeSortable: function () {
     var self = this;
     $( "#sortable" ).sortable({
       items: "> div",
@@ -45,6 +46,7 @@ App.MainDashboardView = Em.View.extend({
           self.getUserPref(self.get('persistKey'));
           var oldValue = self.get('currentPrefObject');
           var newValue = Em.Object.create({
+            dashboardVersion: oldValue.dashboardVersion,
             visible: [],
             hidden: oldValue.hidden,
             threshold: oldValue.threshold
@@ -58,7 +60,6 @@ App.MainDashboardView = Em.View.extend({
           self.postUserPref(self.get('persistKey'), newValue);
           // self.translateToReal(newValue);
         }
-
       }
     });
     $( "#sortable" ).disableSelection();
@@ -82,7 +83,7 @@ App.MainDashboardView = Em.View.extend({
     }, this);
   },
   hdfs_model: null,
-  mapreduce_model:null,
+  mapreduce_model: null,
   hbase_model: null,
   visibleWidgets: [],
   hiddenWidgets: [], // widget child view will push object in this array if deleted
@@ -119,6 +120,7 @@ App.MainDashboardView = Em.View.extend({
           parent.getUserPref(parent.get('persistKey'));
           var oldValue = parent.get('currentPrefObject');
           var newValue = Em.Object.create({
+            dashboardVersion: oldValue.dashboardVersion,
             visible: oldValue.visible,
             hidden: [],
             threshold: oldValue.threshold
@@ -130,6 +132,7 @@ App.MainDashboardView = Em.View.extend({
           hiddenWidgets.forEach(function(item){
             newValue.hidden.push([item.id, item.displayName]);
           },this);
+
           parent.postUserPref(parent.get('persistKey'), newValue);
           parent.translateToReal(newValue);
         }
@@ -142,39 +145,46 @@ App.MainDashboardView = Em.View.extend({
    * translate from Json value got from persist to real widgets view
    */
   translateToReal: function (value) {
+    var version = value.dashboardVersion;
     var visible = value.visible;
     var hidden = value.hidden;
     var threshold = value.threshold;
 
-    // clear current visible and hiddenWidgets
-    var visibleWidgets = this.get('visibleWidgets');
-    var size = visibleWidgets.length;
-    for (var i = 1; i <= size; i++) {
-      visibleWidgets.removeAt(0);
-    }
-    var hiddenWidgets = this.get('hiddenWidgets');
-    var size = hiddenWidgets.length;
-    for (var i = 1; i <= size; i++) {
-      hiddenWidgets.removeAt(0);
-    }
-    // re-construct visibleWidgets and hiddenWidgets
-    for (var j = 0; j <= visible.length -1; j++){
-      var cur_id = visible[j];
-      var widgetClass = this.widgetsMapper(cur_id);
-      //override with new threshold
-      if (threshold[cur_id].length > 0) {
-        widgetClass.reopen({
-          thresh1: threshold[cur_id][0],
-          thresh2: threshold[cur_id][1]
-        });
+    if(version == 'classic'){
+      this.set('isClassicDashboard', true);
+    }else if(version == 'new'){
+      this.set('isClassicDashboard', false);
+      // clear current visible and hiddenWidgets
+      var visibleWidgets = this.get('visibleWidgets');
+      var size = visibleWidgets.length;
+      for (var i = 1; i <= size; i++) {
+        visibleWidgets.removeAt(0);
       }
-      visibleWidgets.pushObject(widgetClass);
+      var hiddenWidgets = this.get('hiddenWidgets');
+      var size = hiddenWidgets.length;
+      for (var i = 1; i <= size; i++) {
+        hiddenWidgets.removeAt(0);
+      }
+      // re-construct visibleWidgets and hiddenWidgets
+      for (var j = 0; j <= visible.length -1; j++){
+        var cur_id = visible[j];
+        var widgetClass = this.widgetsMapper(cur_id);
+        //override with new threshold
+        if (threshold[cur_id].length > 0) {
+          widgetClass.reopen({
+            thresh1: threshold[cur_id][0],
+            thresh2: threshold[cur_id][1]
+          });
+        }
+        visibleWidgets.pushObject(widgetClass);
+      }
+      for (var j = 0; j <= hidden.length -1; j++){
+        var cur_id = hidden[j][0];
+        var cur_title = hidden[j][1];
+        hiddenWidgets.pushObject(Em.Object.create({displayName:cur_title , id: cur_id, checked: false}));
+      }
     }
-    for (var j = 0; j <= hidden.length -1; j++){
-      var cur_id = hidden[j][0];
-      var cur_title = hidden[j][1];
-      hiddenWidgets.pushObject(Em.Object.create({displayName:cur_title , id: cur_id, checked: false}));
-    }
+
   },
 
   setOnLoadVisibleWidgets: function () {
@@ -194,7 +204,7 @@ App.MainDashboardView = Em.View.extend({
     }
   },
 
-  widgetsMapper: function(id){
+  widgetsMapper: function (id) {
     switch(id){
       case '1': return App.NameNodeHeapPieChartView;
       case '2': return App.NameNodeCapacityPieChartView;
@@ -225,6 +235,7 @@ App.MainDashboardView = Em.View.extend({
 
   currentPrefObject: null,
   initPrefObject: Em.Object.create({
+    dashboardVersion: 'new',
     visible: [
       '11', '12', '13', '14', //cluster-metrics
       '1', '2', '3', '4', '5', '15', '17', //hdfs
@@ -235,7 +246,7 @@ App.MainDashboardView = Em.View.extend({
     threshold:{1: [40,70], 2: [40,70], 3: [40,70], 4: [40,70], 5: [0.5, 2], 6: [40,70], 7: [40,70], 8: [40,70], 9: [0.5, 2],
       10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: [], 17: [], 18: [], 19: [], 20: [40,70], 21: [10,19.2], 22: [3, 10], 23: []} // id:[thresh1, thresh2]
   }),
-  persistKey: function(){
+  persistKey: function () {
     var loginName = App.router.get('loginName');
     return 'user-pref-' + loginName + '-dashboard';
   }.property(''),
@@ -243,7 +254,7 @@ App.MainDashboardView = Em.View.extend({
   /**
    * get persist value from server with persistKey
    */
-  getUserPref: function(key){
+  getUserPref: function (key) {
     var self = this;
     var url = App.apiPrefix + '/persist/' + key;
     jQuery.ajax(
@@ -274,7 +285,7 @@ App.MainDashboardView = Em.View.extend({
   /**
    * post persist key/value to server, value is object
    */
-  postUserPref: function(key, value){
+  postUserPref: function (key, value) {
     var url = App.apiPrefix + '/persist/';
     var keyValuePair = {};
     keyValuePair[key] = JSON.stringify(value);
@@ -299,6 +310,31 @@ App.MainDashboardView = Em.View.extend({
       }
       self.translateToReal(self.get('initPrefObject'));
     });
+  },
+
+  switchToClassic: function () {
+    if(!App.testMode){
+      this.getUserPref(this.get('persistKey'));
+      var oldValue = this.get('currentPrefObject');
+      oldValue.dashboardVersion = 'classic';
+      this.postUserPref(this.get('persistKey'), oldValue);
+    }else{
+      var oldValue = this.get('initPrefObject');
+      oldValue.dashboardVersion = 'classic';
+    }
+    this.translateToReal(oldValue);
+  },
+  switchToNew: function () {
+    if(!App.testMode){
+      this.getUserPref(this.get('persistKey'));
+      var oldValue = this.get('currentPrefObject');
+      oldValue.dashboardVersion = 'new';
+      this.postUserPref(this.get('persistKey'), oldValue);
+    }else{
+      var oldValue = this.get('initPrefObject');
+      oldValue.dashboardVersion = 'new';
+    }
+    this.translateToReal(oldValue);
   },
 
   updateServices: function(){

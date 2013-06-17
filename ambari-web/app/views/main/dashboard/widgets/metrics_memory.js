@@ -30,6 +30,7 @@ App.ChartClusterMetricsMemoryWidgetView = App.DashboardWidgetView.extend({
   isProgressBar: false,
 
   content: App.ChartClusterMetricsMemory.extend({
-    noTitleUnderGraph: true
+    noTitleUnderGraph: true,
+    inWidget: true
   })
 })

@@ -509,7 +509,7 @@ App.ChartLinearTimeView = Ember.View.extend({
 
     var height = 150;
     var diff = 32;
-    if(this.get('id').indexOf('cluster-metrics') != -1){
+    if(this.get('inWidget')){
       height = 105; // for widgets view
       diff = 22;
     }

@@ -68,6 +68,7 @@ App.DashboardWidgetView = Em.View.extend({
       var oldValue = parent.get('currentPrefObject');
       var deletedId = this.id;
       var newValue = Em.Object.create({
+        dashboardVersion: oldValue.dashboardVersion,
         visible: [],
         hidden: oldValue.hidden,
         threshold: oldValue.threshold

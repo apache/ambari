@@ -30,6 +30,7 @@ App.ChartClusterMetricsCPUWidgetView = App.DashboardWidgetView.extend({
   isProgressBar: false,
 
   content: App.ChartClusterMetricsCPU.extend({
-    noTitleUnderGraph: true
+    noTitleUnderGraph: true,
+    inWidget: true
   })
 })

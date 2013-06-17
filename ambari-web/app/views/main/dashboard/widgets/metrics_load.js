@@ -30,6 +30,7 @@ App.ChartClusterMetricsLoadWidgetView = App.DashboardWidgetView.extend({
   isProgressBar: false,
 
   content: App.ChartClusterMetricsLoad.extend({
-    noTitleUnderGraph: true
+    noTitleUnderGraph: true,
+    inWidget: true
   })
 })

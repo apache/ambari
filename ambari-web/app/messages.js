@@ -992,6 +992,9 @@ Em.I18n.translations = {
   'dashboard.clusterMetrics.network':'Network Usage',
 
   'dashboard.widgets': 'Cluster Status and Metrics',
+  'dashboard.button.switch': 'Switch to classic dashboard',
+  'dashboard.button.switchShort': 'Switch',
+  'dashboard.button.reset': 'Reset all widgets to default ',
 
   'dashboard.widgets.NameNodeHeap': 'NameNode Heap',
   'dashboard.widgets.NameNodeCpu': 'NameNode CPU WIO',
