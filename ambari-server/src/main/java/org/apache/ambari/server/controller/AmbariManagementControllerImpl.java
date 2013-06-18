@@ -4249,7 +4249,7 @@ public class AmbariManagementControllerImpl implements
     }
     return response;
   }
-
+  
   private Set<RepositoryResponse> getRepositories(RepositoryRequest request) throws AmbariException {
 
     String stackName = request.getStackName();
@@ -4274,6 +4274,31 @@ public class AmbariManagementControllerImpl implements
 
     return response;
   }
+  
+  @Override
+  public void updateRespositories(Set<RepositoryRequest> requests) throws AmbariException {
+    for (RepositoryRequest rr : requests) {
+      if (null == rr.getStackName() || rr.getStackName().isEmpty())
+        throw new AmbariException("Stack name must be specified.");
+      
+      if (null == rr.getStackVersion() || rr.getStackVersion().isEmpty())
+        throw new AmbariException("Stack version must be specified.");
+      
+      if (null == rr.getOsType() || rr.getOsType().isEmpty())
+        throw new AmbariException("OS type must be specified.");
+      
+      if (null == rr.getRepoId() || rr.getRepoId().isEmpty())
+        throw new AmbariException("Repo ID must be specified.");
+      
+      if (null != rr.getBaseUrl()) {
+        // verify url is accessible
+        ambariMetaInfo.updateRepository(rr.getStackName(),
+            rr.getStackVersion(), rr.getOsType(), rr.getRepoId(),
+            rr.getBaseUrl());
+      }
+    }
+  }
+  
 
   @Override
   public Set<StackVersionResponse> getStackVersions(

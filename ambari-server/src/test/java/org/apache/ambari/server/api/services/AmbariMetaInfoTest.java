@@ -240,7 +240,7 @@ public class AmbariMetaInfoTest {
     assertEquals(3, redhat6cnt.size());
     assertEquals(3, centos6Cnt.size());
   }
-
+  
   
   @Test
   /**
@@ -428,4 +428,55 @@ public class AmbariMetaInfoTest {
     Assert.assertTrue(metaInfo.isOsSupported("sles11"));
     Assert.assertFalse(metaInfo.isOsSupported("windows"));
   }
+  
+  @Test
+  public void testRepoBaseUrl() throws Exception {
+    File stackRoot = new File("src/test/resources/stacks");
+    
+    File tmp = new File(FileUtils.getTempDirectoryPath() + "stacks" + System.currentTimeMillis());
+    FileUtils.copyDirectory(stackRoot, tmp);
+
+    AmbariMetaInfo metaInfo = new AmbariMetaInfo(tmp, new File("target/version"));
+    metaInfo.init();
+
+    String TMP_URL1 = "http://foo.com";
+    String TMP_URL2 = "http://bar.com";
+    
+    try {
+      RepositoryInfo repository = metaInfo.getRepository(STACK_NAME_HDP, STACK_VERSION_HDP, OS_TYPE, REPO_ID);
+      
+      metaInfo.updateRepository(STACK_NAME_HDP, STACK_VERSION_HDP, OS_TYPE, REPO_ID, TMP_URL1);
+      repository = metaInfo.getRepository(STACK_NAME_HDP, STACK_VERSION_HDP, OS_TYPE, REPO_ID);
+      Assert.assertEquals(TMP_URL1, repository.getBaseUrl());
+      
+      // reload from disk
+      AmbariMetaInfo metaInfo1 = new AmbariMetaInfo(tmp, new File("target/version"));
+      metaInfo1.init();
+      
+      RepositoryInfo repository1 = metaInfo.getRepository(STACK_NAME_HDP, STACK_VERSION_HDP, OS_TYPE, REPO_ID);
+      Assert.assertEquals(TMP_URL1, repository1.getBaseUrl());
+      
+      try {
+        metaInfo1.updateRepository(NON_EXT_VALUE, STACK_VERSION_HDP, OS_TYPE, REPO_ID, TMP_URL2);
+        Assert.fail("Expect StackAccessException on name");
+
+        metaInfo1.updateRepository(STACK_NAME_HDP, NON_EXT_VALUE, OS_TYPE, REPO_ID, TMP_URL2);
+        Assert.fail("Expect StackAccessException on version");
+        
+        metaInfo1.updateRepository(STACK_NAME_HDP, STACK_VERSION_HDP, NON_EXT_VALUE, REPO_ID, TMP_URL2);
+        Assert.fail("Expect StackAccessException on OS");
+        
+        metaInfo1.updateRepository(STACK_NAME_HDP, STACK_VERSION_HDP, OS_TYPE, NON_EXT_VALUE, TMP_URL2);
+        Assert.fail("Expect StackAccessException on repo id");
+        
+      } catch (Exception e) {
+        // expecting failure
+      }
+      
+    } finally {
+      FileUtils.deleteDirectory(tmp);
+    }
+  }
+
+  
 }

@@ -18,28 +18,49 @@
 
 package org.apache.ambari.server.api.services;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.Set;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.resources.ResourceManager;
-import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.OperatingSystemInfo;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.Stack;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.util.*;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * ServiceInfo responsible getting information about cluster.
@@ -248,6 +269,117 @@ public class AmbariMetaInfo {
           + ", osType=" + osType
           + ", repoId= " + repoId);
     return repoResult;
+  }
+  
+  public synchronized void updateRepository(String stackName, String stackVersion,
+      String osType, String repoId, String baseUrl) throws AmbariException {
+    
+    // validate existing
+    RepositoryInfo ri = getRepository(stackName, stackVersion, osType, repoId);
+    
+    if (!stackRoot.exists())
+      throw new StackAccessException("Stack root does not exist.");
+    
+    String repoFileName = stackRoot.getAbsolutePath() + File.separator +
+        stackName + File.separator + stackVersion + File.separator +
+        REPOSITORY_FOLDER_NAME + File.separator + REPOSITORY_FILE_NAME;
+    
+    File repoFile = new File(repoFileName);
+    if (!repoFile.exists())
+      throw new StackAccessException("Stack repo file does not exist.");
+    
+    try {
+      // backup
+      File newFile = new File(repoFileName + "." + System.currentTimeMillis());
+      FileUtils.copyFile(repoFile, newFile, false);
+
+      // read/update/persist
+      DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+      DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+      Document doc = dBuilder.parse(repoFile);
+      
+      NodeList osNodes = doc.getElementsByTagName(REPOSITORY_XML_MAIN_BLOCK_NAME);
+
+      List<Node> newOsNodes = new ArrayList<Node>();
+      
+      for (int i = 0; i < osNodes.getLength(); i++) {
+        Node osNode = osNodes.item(i);
+        if (osNode.getNodeType() != Node.ELEMENT_NODE) {
+          continue;
+        }
+        
+        NamedNodeMap attrs = osNode.getAttributes();
+        Node osAttr = attrs.getNamedItem(REPOSITORY_XML_ATTRIBUTE_OS_TYPE);
+        if (osAttr == null) {
+          continue;
+        }
+        
+        String xmlOsValue = osAttr.getNodeValue();
+        
+        if (-1 == xmlOsValue.indexOf(osType)) {
+          continue;
+        }
+        
+        Node template = osNode.cloneNode(true);
+        
+        // many os'es can be defined
+        String[] allOsTypes = osAttr.getNodeValue().split(",");
+        
+        for (String xmlOsType : allOsTypes) {
+          Node newOsNode = template.cloneNode(true);
+          NamedNodeMap newAttrs = newOsNode.getAttributes();
+          Node newOsAttr = newAttrs.getNamedItem(REPOSITORY_XML_ATTRIBUTE_OS_TYPE);
+          newOsAttr.setTextContent(xmlOsType);
+
+          if (xmlOsType.equals(osType)) {
+            NodeList newOsNodeChildren = newOsNode.getChildNodes();
+            
+            for (int j = 0; j < newOsNodeChildren.getLength(); j++) {
+              Node repoNode = newOsNodeChildren.item(j);
+              if (repoNode.getNodeName().equals(REPOSITORY_XML_REPO_BLOCK_NAME)) {
+
+                Element property = (Element) repoNode;
+                String xmlRepoId = getTagValue(REPOSITORY_XML_PROPERTY_REPOID, property);
+                
+                if (xmlRepoId.equals(repoId)) {
+                  NodeList nl = property.getElementsByTagName(REPOSITORY_XML_PROPERTY_BASEURL);
+                  for (int k = 0; k < nl.getLength(); k++) {
+                    nl.item(k).setTextContent(baseUrl);
+                  }
+                }
+              }
+            }
+            doc.getDocumentElement().replaceChild(newOsNode, osNode);
+          } else {
+            newOsNodes.add(newOsNode);
+          }
+        }
+      }
+      
+      for (Node n : newOsNodes) {
+        doc.getDocumentElement().appendChild(n);
+      }
+
+      TransformerFactory tf = TransformerFactory.newInstance();
+      Transformer t = tf.newTransformer();
+      t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+      t.setOutputProperty(OutputKeys.METHOD, "xml");
+      t.setOutputProperty(OutputKeys.INDENT, "yes");
+      t.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+      t.setOutputProperty("{http://xml.apache.org/xslt}indent-amount",  "2");
+      doc.setXmlStandalone(true);
+      
+      t.transform(new DOMSource(doc), new StreamResult(repoFile));      
+    }
+    catch (Exception e) {
+      throw new AmbariException (e.getMessage(), e);
+    }
+    
+    // modify existing definition currently in-memory (must be valid to get here)
+    if (null != ri) {
+      ri.setBaseUrl(baseUrl);
+    }
+    
   }
 
   /*
@@ -914,34 +1046,6 @@ public class AmbariMetaInfo {
     return result;
   }
 
-  //TODO: Method is unused as of now
-/*  public boolean areOsTypesCompatible(String type1, String type2) {
-    if (type1 == null || type2 == null) {
-      return false;
-    }
-    if (type1.equals(type2)) {
-      return true;
-    }
-    if (type1.equals("redhat5") || type1.equals("centos5") ||
-        type1.equals("oraclelinux5")) {
-      if (type2.equals("centos5") || type2.equals("redhat5") ||
-          type2.equals("oraclelinux5")) {
-        return true;
-      }
-    } else if (type1.equals("redhat6") || type1.equals("centos6") ||
-        type1.equals("oraclelinux6")) {
-      if (type2.equals("centos6") || type2.equals("redhat6") ||
-          type2.equals("oraclelinux6")) {
-        return true;
-      }
-    } else if (type1.equals("suse11") || type1.equals("sles11")) {
-      if (type2.equals("suse11") || type2.equals("sles11")) {
-        return true;
-      }
-    }
-    return false;
-  }*/
-
   public boolean isOsSupported(String osType) {
     return osType.equals("redhat5") || osType.equals("centos5") ||
             osType.equals("oraclelinux5") ||
@@ -949,4 +1053,5 @@ public class AmbariMetaInfo {
             osType.equals("oraclelinux6") ||
             osType.equals("suse11") || osType.equals("sles11");
   }
+ 
 }
