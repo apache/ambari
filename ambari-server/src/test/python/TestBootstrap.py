@@ -44,7 +44,7 @@ class TestBootstrap(TestCase):
     bootstrap.HOST_BOOTSTRAP_TIMEOUT = 1
     forever_hanging_timeout = 5
     SSH.run = lambda self: time.sleep(forever_hanging_timeout)
-    pssh = PSSH(["hostname"], "root", "sshKeyFile", "command", "bootdir")
+    pssh = PSSH(["hostname"], "root", "sshKeyFile", "bootdir", command="command")
     self.assertTrue(pssh.ret == {})
     starttime = time.time()
     pssh.run()
@@ -69,15 +69,12 @@ class TestBootstrap(TestCase):
 
   @patch.object(SCP, "writeLogToFile")
   @patch.object(SSH, "writeLogToFile")
-  @patch.object(SSH, "writeDoneToFile")
   @patch.object(Popen, "communicate")
   def test_return_error_message_for_missing_sudo_package(self, communicate_method,
-                                                         SSH_writeDoneToFile_method,
                                                          SSH_writeLogToFile_method,
                                                          SCP_writeLogToFile_method):
     SCP_writeLogToFile_method.return_value = None
     SSH_writeLogToFile_method.return_value = None
-    SSH_writeDoneToFile_method.return_value = None
     communicate_method.return_value = ("", "")
     bootstrap = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None, "8440")
     bootstrap.statuses = {
@@ -91,7 +88,6 @@ class TestBootstrap(TestCase):
 
   @patch.object(SCP, "writeLogToFile")
   @patch.object(SSH, "writeLogToFile")
-  @patch.object(SSH, "writeDoneToFile")
   @patch.object(Popen, "communicate")
   @patch.object(BootStrap, "createDoneFiles")
   @patch.object(BootStrap, "deletePasswordFile")
@@ -101,12 +97,10 @@ class TestBootstrap(TestCase):
                                                                                    deletePasswordFile_method,
                                                                                    createDoneFiles_method,
                                                                                    communicate_method,
-                                                                                   SSH_writeDoneToFile_method,
                                                                                    SSH_writeLogToFile_method,
                                                                                    SCP_writeLogToFile_method):
     SCP_writeLogToFile_method.return_value = None
     SSH_writeLogToFile_method.return_value = None
-    SSH_writeDoneToFile_method.return_value = None
     communicate_method.return_value = ("", "")
     createDoneFiles_method.return_value = None
 
@@ -128,7 +122,6 @@ class TestBootstrap(TestCase):
 
   @patch.object(SCP, "writeLogToFile")
   @patch.object(SSH, "writeLogToFile")
-  @patch.object(SSH, "writeDoneToFile")
   @patch.object(Popen, "communicate")
   @patch.object(BootStrap, "createDoneFiles")
   @patch.object(BootStrap, "deletePasswordFile")
@@ -138,12 +131,10 @@ class TestBootstrap(TestCase):
                                                                                       deletePasswordFile_method,
                                                                                       createDoneFiles_method,
                                                                                       communicate_method,
-                                                                                      SSH_writeDoneToFile_method,
                                                                                       SSH_writeLogToFile_method,
                                                                                       SCP_writeLogToFile_method):
     SCP_writeLogToFile_method.return_value = None
     SSH_writeLogToFile_method.return_value = None
-    SSH_writeDoneToFile_method.return_value = None
     communicate_method.return_value = ("", "")
     createDoneFiles_method.return_value = None
 
@@ -165,7 +156,6 @@ class TestBootstrap(TestCase):
 
   @patch.object(SCP, "writeLogToFile")
   @patch.object(SSH, "writeLogToFile")
-  @patch.object(SSH, "writeDoneToFile")
   @patch.object(Popen, "communicate")
   @patch.object(BootStrap, "createDoneFiles")
   @patch.object(BootStrap, "getRunSetupWithPasswordCommand")
@@ -174,12 +164,10 @@ class TestBootstrap(TestCase):
                                                                     getRunSetupWithPasswordCommand_method,
                                                                     createDoneFiles_method,
                                                                     communicate_method,
-                                                                    SSH_writeDoneToFile_method,
                                                                     SSH_writeLogToFile_method,
                                                                     SCP_writeLogToFile_method):
     SCP_writeLogToFile_method.return_value = None
     SSH_writeLogToFile_method.return_value = None
-    SSH_writeDoneToFile_method.return_value = None
     communicate_method.return_value = ("", "")
     createDoneFiles_method.return_value = None
 
@@ -187,14 +175,19 @@ class TestBootstrap(TestCase):
     getMoveRepoFileWithPasswordCommand_method.return_value = ""
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
+    hosts = ["hostname"]
     bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None, "8440", "passwordFile")
-    ret = bootstrap.run()
+    bootstrap.successive_hostlist = hosts
+    bootstrap.copyOsCheckScript()
+    bootstrap.successive_hostlist = hosts
+    bootstrap.copyNeededFiles()
+    bootstrap.successive_hostlist = hosts
+    bootstrap.runSetupAgent()
     self.assertTrue(getRunSetupWithPasswordCommand_method.called)
     self.assertTrue(getMoveRepoFileWithPasswordCommand_method.called)
 
   @patch.object(SCP, "writeLogToFile")
   @patch.object(SSH, "writeLogToFile")
-  @patch.object(SSH, "writeDoneToFile")
   @patch.object(Popen, "communicate")
   @patch.object(BootStrap, "createDoneFiles")
   @patch.object(BootStrap, "getRunSetupWithoutPasswordCommand")
@@ -203,12 +196,10 @@ class TestBootstrap(TestCase):
                                                                       getRunSetupWithoutPasswordCommand_method,
                                                                       createDoneFiles_method,
                                                                       communicate_method,
-                                                                      SSH_writeDoneToFile_method,
                                                                       SSH_writeLogToFile_method,
                                                                       SCP_writeLogToFile_method):
     SCP_writeLogToFile_method.return_value = None
     SSH_writeLogToFile_method.return_value = None
-    SSH_writeDoneToFile_method.return_value = None
     communicate_method.return_value = ("", "")
     createDoneFiles_method.return_value = None
 
@@ -216,10 +207,17 @@ class TestBootstrap(TestCase):
     getMoveRepoFileWithoutPasswordCommand_method.return_value = ""
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
+    hosts = ["hostname"]
     bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None, "8440")
-    ret = bootstrap.run()
+    bootstrap.successive_hostlist = hosts
+    bootstrap.copyOsCheckScript()
+    bootstrap.successive_hostlist = hosts
+    bootstrap.copyNeededFiles()
+    bootstrap.successive_hostlist = hosts
+    bootstrap.runSetupAgent()
     self.assertTrue(getRunSetupWithoutPasswordCommand_method.called)
     self.assertTrue(getMoveRepoFileWithoutPasswordCommand_method.called)
+
 
   @patch.object(BootStrap, "runSetupAgent")
   @patch.object(BootStrap, "copyNeededFiles")
@@ -312,47 +310,43 @@ class TestBootstrap(TestCase):
 
   @patch.object(SCP, "writeLogToFile")
   @patch.object(SSH, "writeLogToFile")
-  @patch.object(SSH, "writeDoneToFile")
   @patch.object(Popen, "communicate")
   @patch.object(BootStrap, "createDoneFiles")
   def test_run_setup_agent_command_ends_with_project_version(self, createDoneFiles_method,
                                                              communicate_method,
-                                                             SSH_writeDoneToFile_method,
                                                              SSH_writeLogToFile_method,
                                                              SCP_writeLogToFile_method):
     SCP_writeLogToFile_method.return_value = None
     SSH_writeLogToFile_method.return_value = None
-    SSH_writeDoneToFile_method.return_value = None
     communicate_method.return_value = ("", "")
     createDoneFiles_method.return_value = None
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
     version = "1.1.1"
     bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", version, "8440")
-    runSetupCommand = bootstrap.getRunSetupCommand()
+    runSetupCommand = bootstrap.getRunSetupCommand("hostname")
     self.assertTrue(runSetupCommand.endswith(version + " 8440"))
+
 
   @patch.object(SCP, "writeLogToFile")
   @patch.object(SSH, "writeLogToFile")
-  @patch.object(SSH, "writeDoneToFile")
   @patch.object(Popen, "communicate")
   @patch.object(BootStrap, "createDoneFiles")
   def test_agent_setup_command_without_project_version(self, createDoneFiles_method,
                                                        communicate_method,
-                                                       SSH_writeDoneToFile_method,
                                                        SSH_writeLogToFile_method,
                                                        SCP_writeLogToFile_method):
     SCP_writeLogToFile_method.return_value = None
     SSH_writeLogToFile_method.return_value = None
-    SSH_writeDoneToFile_method.return_value = None
     communicate_method.return_value = ("", "")
     createDoneFiles_method.return_value = None
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
     version = None
     bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", version, "8440")
-    runSetupCommand = bootstrap.getRunSetupCommand()
-    self.assertTrue(runSetupCommand.endswith(" 8440"))
+    runSetupCommand = bootstrap.getRunSetupCommand("hostname")
+    self.assertTrue(runSetupCommand.endswith("8440"))
+
 
 
   @patch.object(BootStrap, "createDoneFiles")
@@ -422,3 +416,62 @@ class TestBootstrap(TestCase):
     self.assertTrue(pssh_run_method.call_count >= 2)
     self.assertTrue(pssh_getstatus_method.call_count >= 2)
     self.assertTrue(ret == 1)
+
+
+  def test_PSSH_constructor_argument_validation(self):
+    dummy_command = "command"
+    dummy_dict = {
+      'hostname1' : 'c1',
+      'hostname2' : 'c2',
+      'hostname3' : 'c3'
+    }
+
+    # No any command arguments defined
+    try:
+      pssh = PSSH(["hostname"], "root", "sshKeyFile", "bootdir")
+      self.fail("Should raise exception")
+    except Exception, err:
+      # Expected
+      pass
+
+    # Both command arguments defined
+    try:
+      pssh = PSSH(["hostname"], "root", "sshKeyFile", "bootdir", command = dummy_command, perHostCommands = dummy_dict)
+      self.fail("Should raise exception")
+    except Exception, err:
+      # Expected
+      pass
+
+    # Invalid arguments: command dictionary has commands not for all hosts
+    inv_dict = dict(dummy_dict)
+    del inv_dict["hostname1"]
+    try:
+      pssh = PSSH(["hostname1", "hostname2", "hostname3"], "root", "sshKeyFile", "bootdir", perHostCommands=inv_dict)
+      self.fail("Should raise exception")
+    except Exception, err:
+      # Expected
+      pass
+
+    # Invalid arguments:  command dictionary instead of command
+    try:
+      pssh = PSSH(["hostname"], "root", "sshKeyFile", "bootdir", command = dummy_dict)
+      self.fail("Should raise exception")
+    except Exception, err:
+      # Expected
+      pass
+
+    # Invalid arguments: single command instead of command dictionary
+    try:
+      pssh = PSSH(["hostname"], "root", "sshKeyFile", "bootdir", perHostCommands = dummy_command)
+      self.fail("Should raise exception")
+    except Exception, err:
+      # Expected
+      pass
+
+    # Valid arguments: command passed
+    pssh = PSSH(["hostname"], "root", "sshKeyFile", "bootdir", command = dummy_command)
+
+    # Valid arguments: command dictionary passed
+    pssh = PSSH(["hostname1", "hostname2", "hostname3"], "root", "sshKeyFile", "bootdir", perHostCommands=dummy_dict)
+
+

@@ -34,6 +34,7 @@ import AmbariConfig
 from security import CertificateManager
 from NetUtil import NetUtil
 import security
+import hostname
 
 
 logger = logging.getLogger()
@@ -119,7 +120,20 @@ def resolve_ambari_config():
   return config
 
 
-def perform_prestart_checks():
+def perform_prestart_checks(expected_hostname):
+  # Check if current hostname is equal to expected one (got from the server
+  # during bootstrap.
+  if expected_hostname is not None:
+    current_hostname = hostname.hostname()
+    if current_hostname != expected_hostname:
+      print("Determined hostname does not match expected. Please check agent "
+            "log for details")
+      msg = "Ambari agent machine hostname ({0}) does not match expected ambari " \
+            "server hostname ({1}). Aborting registration. Please check hostname, " \
+            "hostname -f and /etc/hosts file to confirm your " \
+            "hostname is setup correctly".format(current_hostname, expected_hostname)
+      logger.error(msg)
+      sys.exit(1)
   # Check if there is another instance running
   if os.path.isfile(ProcessHelper.pidfile):
     print("%s already exists, exiting" % ProcessHelper.pidfile)
@@ -166,7 +180,11 @@ def main():
   global config
   parser = OptionParser()
   parser.add_option("-v", "--verbose", dest="verbose", action="store_true", help="verbose log output", default=False)
+  parser.add_option("-e", "--expected-hostname", dest="expected_hostname", action="store",
+                    help="expected hostname of current host. If hostname differs, agent will fail", default=None)
   (options, args) = parser.parse_args()
+
+  expected_hostname = options.expected_hostname
 
   setup_logging(options.verbose)
 
@@ -179,7 +197,7 @@ def main():
 
   # Check for ambari configuration file.
   config = resolve_ambari_config()
-  perform_prestart_checks()
+  perform_prestart_checks(expected_hostname)
   daemonize()
 
   killstaleprocesses()

@@ -101,7 +101,7 @@ case "$1" in
           fi
         fi
         echo "Starting ambari-agent"
-        nohup $PYTHON $AGENT_SCRIPT > $OUTFILE 2>&1 &
+        nohup $PYTHON $AGENT_SCRIPT "$@" > $OUTFILE 2>&1 &
         sleep 2
         PID=$!
         echo "Verifying $AMBARI_AGENT process status..."

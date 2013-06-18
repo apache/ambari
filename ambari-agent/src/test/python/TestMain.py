@@ -32,6 +32,7 @@ import ConfigParser
 import os
 import tempfile
 from ambari_agent.Controller import Controller
+from optparse import OptionParser
 
 
 class TestMain(unittest.TestCase):
@@ -144,12 +145,22 @@ class TestMain(unittest.TestCase):
   @patch("sys.exit")
   @patch("os.path.isfile")
   @patch("os.path.isdir")
-  def test_perform_prestart_checks(self, isdir_mock, isfile_mock, exit_mock):
+  @patch("hostname.hostname")
+  def test_perform_prestart_checks(self, hostname_mock, isdir_mock, isfile_mock, exit_mock):
     main.config = AmbariConfig().getConfig()
+
+    # Check expected hostname test
+    hostname_mock.return_value = "test.hst"
+
+    main.perform_prestart_checks("another.hst")
+    self.assertTrue(exit_mock.called)
+
+    exit_mock.reset_mock()
+
     # Trying case if there is another instance running
     isfile_mock.return_value = True
     isdir_mock.return_value = True
-    main.perform_prestart_checks()
+    main.perform_prestart_checks(None)
     self.assertTrue(exit_mock.called)
 
     isfile_mock.reset_mock()
@@ -159,7 +170,7 @@ class TestMain(unittest.TestCase):
     # Trying case if agent prefix dir does not exist
     isfile_mock.return_value = False
     isdir_mock.return_value = False
-    main.perform_prestart_checks()
+    main.perform_prestart_checks(None)
     self.assertTrue(exit_mock.called)
 
     isfile_mock.reset_mock()
@@ -169,7 +180,7 @@ class TestMain(unittest.TestCase):
     # Trying normal case
     isfile_mock.return_value = False
     isdir_mock.return_value = True
-    main.perform_prestart_checks()
+    main.perform_prestart_checks(None)
     self.assertFalse(exit_mock.called)
 
 
@@ -223,10 +234,13 @@ class TestMain(unittest.TestCase):
   @patch.object(Controller, "__init__")
   @patch.object(Controller, "start")
   @patch.object(Controller, "join")
-  def test_main(self, join_mock, start_mock, Controller_init_mock, try_to_connect_mock, update_log_level_mock,
+  @patch("optparse.OptionParser.parse_args")
+  def test_main(self, parse_args_mock, join_mock, start_mock, Controller_init_mock, try_to_connect_mock, update_log_level_mock,
                 killstaleprocesses_mock, daemonize_mock, perform_prestart_checks_mock,
                 resolve_ambari_config_mock, stop_mock, bind_signal_handlers_mock, setup_logging_mock):
     Controller_init_mock.return_value = None
+    options = MagicMock()
+    parse_args_mock.return_value = (options, MagicMock)
 
     #testing call without command-line arguments
     main.main()
@@ -241,3 +255,10 @@ class TestMain(unittest.TestCase):
     self.assertTrue(update_log_level_mock.called)
     try_to_connect_mock.assert_called_once_with(ANY, -1, ANY)
     self.assertTrue(start_mock.called)
+
+    perform_prestart_checks_mock.reset_mock()
+
+    # Testing call with --expected-hostname parameter
+    options.expected_hostname = "test.hst"
+    main.main()
+    perform_prestart_checks_mock.assert_called_once_with(options.expected_hostname)

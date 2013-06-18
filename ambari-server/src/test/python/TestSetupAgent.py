@@ -68,6 +68,33 @@ class TestSetupAgent(TestCase):
     pass
 
 
+  @patch.object(setup_agent, 'execOsCommand')
+  def test_configureAgent(self, execOsCommand_mock):
+    # Test if expected_hostname is passed
+    hostname = "test.hst"
+    setup_agent.configureAgent(hostname)
+    cmdStr = str(execOsCommand_mock.call_args_list[0][0])
+    self.assertTrue(hostname in cmdStr)
+
+
+  @patch.object(setup_agent, 'execOsCommand')
+  @patch("os.environ")
+  @patch("subprocess.call")
+  def test_runAgent(self, call_mock, environ_mock, execOsCommand_mock):
+    expected_hostname = "test.hst"
+    passphrase = "passphrase"
+    call_mock.return_value = 0
+    execOsCommand_mock.return_value = {'log': 'log', 'exitstatus': 0}
+
+    # Test if expected_hostname is passed
+    ret = setup_agent.runAgent(passphrase, expected_hostname)
+    cmdStr = str(call_mock.call_args_list[0][0])
+    self.assertTrue(expected_hostname in cmdStr)
+    self.assertEqual(ret, 0)
+
+
+
+
   @patch.object(setup_agent, 'is_suse')
   @patch.object(setup_agent, 'checkAgentPackageAvailabilitySuse')
   @patch.object(setup_agent, 'checkAgentPackageAvailability')

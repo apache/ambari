@@ -118,10 +118,7 @@ class SSH(threading.Thread):
     logFilePath = os.path.join(self.bootdir, self.host + ".log")
     self.writeLogToFile(logFilePath)
 
-    doneFilePath = os.path.join(self.bootdir, self.host + ".done")
-    self.writeDoneToFile(doneFilePath, str(sshstat.returncode))
-
-    logging.info("Setup agent done for host " + self.host + ", exitcode=" + str(sshstat.returncode))
+    logging.info("SSH command execution finished for host " + self.host + ", exitcode=" + str(sshstat.returncode))
     pass
 
   def writeLogToFile(self, logFilePath):
@@ -130,11 +127,6 @@ class SSH(threading.Thread):
     logFile.close
     pass
 
-  def writeDoneToFile(self, doneFilePath, returncode):
-    doneFile = open(doneFilePath, "w+")
-    doneFile.write(str(returncode))
-    doneFile.close()
-    pass
 pass
 
 
@@ -172,11 +164,31 @@ def get_difference(list1, list2):
 
 class PSSH:
   """Run SSH in parallel for a given list of hosts"""
-  def __init__(self, hosts, user, sshKeyFile, command, bootdir, errorMessage = None):
+  def __init__(self, hosts, user, sshKeyFile, bootdir, errorMessage = None, command=None, perHostCommands=None):
+    '''
+      Executes some command on all hosts via ssh. If command is equal for all
+      hosts, it should be passed as a "command" argument to PSSH constructor.
+      If command differs for different hosts, it should be passed as a
+      "perHostCommands" argument to PSSH constructor. "perHostCommands" is
+      expected to be a dictionary "hostname" -> "command", containing as many
+      entries as "hosts" list contains.
+    '''
+
+    # Checking arguments
+    # Had to include this check because wrong usage may be hard to notice without
+    # multinode cluster
+    if ((command is None) == (perHostCommands is None) or  # No any or both arguments are defined
+          (not isinstance(command, basestring)) and # "command" argument is not a string
+            (not isinstance(perHostCommands, dict) # "perHostCommands" argument is not a dictionary
+              or len(perHostCommands) != len(hosts))): # or does not contain commands for all hosts
+      raise "PSSH constructor received invalid parameters. Please " \
+            "read PSSH constructor docstring"
     self.hosts = hosts
     self.user = user
     self.sshKeyFile = sshKeyFile
+
     self.command = command
+    self.perHostCommands = perHostCommands
     self.bootdir = bootdir
     self.errorMessage = errorMessage
     self.ret = {}
@@ -191,7 +203,10 @@ class PSSH:
     for chunk in splitlist(self.hosts, 20):
       chunkstats = []
       for host in chunk:
-        ssh = SSH(self.user, self.sshKeyFile, host, self.command, self.bootdir, self.errorMessage)
+        if self.command is not None:
+          ssh = SSH(self.user, self.sshKeyFile, host, self.command, self.bootdir, self.errorMessage)
+        else:
+          ssh = SSH(self.user, self.sshKeyFile, host, self.perHostCommands[host], self.bootdir, self.errorMessage)
         ssh.start()
         chunkstats.append(ssh)
         pass
@@ -245,7 +260,6 @@ class PSCP:
         chunkstat.join(timeout)
         self.ret[chunkstat.getHost()] = chunkstat.getStatus()
       pass
-    
     pass
 pass    
     
@@ -382,7 +396,7 @@ class BootStrap:
       logging.info("Moving repo file...")
       targetDir = self.getRepoDir()
       command = self.getMoveRepoFileCommand(targetDir)
-      pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, command, self.bootdir)
+      pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, self.bootdir, command=command)
       pssh.run()
       out = pssh.getstatus()
       # Preparing report about failed hosts
@@ -430,19 +444,21 @@ class BootStrap:
     else:
       return self.server_port    
     
-  def getRunSetupWithPasswordCommand(self):
-    return "sudo -S python /tmp/setupAgent.py " + os.environ[AMBARI_PASSPHRASE_VAR_NAME] + " " + self.ambariServer +\
+  def getRunSetupWithPasswordCommand(self, expected_hostname):
+    return "sudo -S python /tmp/setupAgent.py " + expected_hostname + " " + \
+           os.environ[AMBARI_PASSPHRASE_VAR_NAME] + " " + self.ambariServer +\
            " " + self.getAmbariVersion() + " " + self.getAmbariPort() + " < " + self.getPasswordFile()
 
-  def getRunSetupWithoutPasswordCommand(self):
-    return "sudo python /tmp/setupAgent.py " + os.environ[AMBARI_PASSPHRASE_VAR_NAME] + " " + self.ambariServer +\
-           " " + self.getAmbariVersion() + " " + self.getAmbariPort()
+  def getRunSetupWithoutPasswordCommand(self, expected_hostname):
+    return "sudo python /tmp/setupAgent.py " + expected_hostname + " " + \
+           os.environ[AMBARI_PASSPHRASE_VAR_NAME] + " " + self.ambariServer +\
+            " " + self.getAmbariVersion()  + " " + self.getAmbariPort()
 
-  def getRunSetupCommand(self):
+  def getRunSetupCommand(self, expected_hostname):
     if self.hasPassword():
-      return self.getRunSetupWithPasswordCommand()
+      return self.getRunSetupWithPasswordCommand(expected_hostname)
     else:
-      return self.getRunSetupWithoutPasswordCommand()
+      return self.getRunSetupWithoutPasswordCommand(expected_hostname)
 
   def runOsCheckScript(self):
     logging.info("Running os type check...")
@@ -450,7 +466,7 @@ class BootStrap:
            (self.getOsCheckScriptRemoteLocation(),
             self.getOsCheckScriptRemoteLocation(),  self.cluster_os_type)
 
-    pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, command, self.bootdir)
+    pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, self.bootdir, command=command)
     pssh.run()
     out = pssh.getstatus()
 
@@ -458,7 +474,7 @@ class BootStrap:
     failed_current = get_difference(self.successive_hostlist, skip_failed_hosts(out))
     self.successive_hostlist = skip_failed_hosts(out)
     failed = get_difference(self.hostlist, self.successive_hostlist)
-    logging.info("Parallel ssh returns for setup agent. All failed hosts are: " + str(failed) +
+    logging.info("Parallel ssh returns for OS check. All failed hosts are: " + str(failed) +
                  ". Failed on last step: " + str(failed_current))
 
     #updating statuses
@@ -468,12 +484,14 @@ class BootStrap:
       retstatus = 0
     else:
       retstatus = 1
-    pass
+    return retstatus
 
   def runSetupAgent(self):
     logging.info("Running setup agent...")
-    command = self.getRunSetupCommand()
-    pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, command, self.bootdir)
+    perHostCommands = {}
+    for expected_hostname in self.successive_hostlist:
+      perHostCommands[expected_hostname] = self.getRunSetupCommand(expected_hostname)
+    pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, self.bootdir, perHostCommands=perHostCommands)
     pssh.run()
     out = pssh.getstatus()
 
@@ -491,7 +509,7 @@ class BootStrap:
       retstatus = 0
     else:
       retstatus = 1
-    pass
+    return retstatus
 
   def createDoneFiles(self):
     """ Creates .done files for every host. These files are later read from Java code.
@@ -508,7 +526,7 @@ class BootStrap:
     try:
       """ Checking 'sudo' package on remote hosts """
       command = "rpm -qa | grep sudo"
-      pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, command, self.bootdir, "Error: Sudo command is not available. Please install the sudo command.")
+      pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, self.bootdir, errorMessage="Error: Sudo command is not available. Please install the sudo command.", command=command)
       pssh.run()
       out = pssh.getstatus()
       # Preparing report about failed hosts
@@ -552,7 +570,7 @@ class BootStrap:
       logging.info("Changing password file mode...")
       targetDir = self.getRepoDir()
       command = "chmod 600 " + self.getPasswordFile()
-      pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, command, self.bootdir)
+      pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, self.bootdir, command=command)
       pssh.run()
       out = pssh.getstatus()
       # Preparing report about failed hosts
@@ -581,7 +599,7 @@ class BootStrap:
       logging.info("Changing password file mode...")
       targetDir = self.getRepoDir()
       command = "chmod 600 " + self.getPasswordFile()
-      pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, command, self.bootdir)
+      pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, self.bootdir, command=command)
       pssh.run()
       out = pssh.getstatus()
       # Preparing report about failed hosts
@@ -610,7 +628,7 @@ class BootStrap:
       logging.info("Deleting password file...")
       targetDir = self.getRepoDir()
       command = "rm " + self.getPasswordFile()
-      pssh = PSSH(self.hostlist_to_remove_password_file, self.user, self.sshkeyFile, command, self.bootdir)
+      pssh = PSSH(self.hostlist_to_remove_password_file, self.user, self.sshkeyFile, self.bootdir, command=command)
       pssh.run()
       out = pssh.getstatus()
       # Preparing report about failed hosts
@@ -634,7 +652,7 @@ class BootStrap:
     pass
 
   def run(self):
-    """ Copy files and run commands on remote hosts """
+    """ Copyfiles and run commands on remote hosts """
     ret1 = self.copyOsCheckScript()
     logging.info("Copying os type check script finished")
     ret2 = self.runOsCheckScript()
@@ -651,7 +669,7 @@ class BootStrap:
     ret6 = self.copyNeededFiles()
     logging.info("Copying files finished")
     ret7 = self.runSetupAgent()
-    logging.info("Running ssh command finished")
+    logging.info("Setting up agent finished")
     ret8 = 0
     if self.hasPassword() and self.hostlist_to_remove_password_file is not None:
       ret8 = self.deletePasswordFile()
@@ -659,10 +677,8 @@ class BootStrap:
     retcode = max(ret1, ret2, ret3, ret4, ret5, ret6, ret7, ret8)
     self.createDoneFiles()
     return retcode
-    pass
-  pass
-  
-  
+
+
 def main(argv=None):
   scriptDir = os.path.realpath(os.path.dirname(argv[0]))
   onlyargs = argv[1:]
