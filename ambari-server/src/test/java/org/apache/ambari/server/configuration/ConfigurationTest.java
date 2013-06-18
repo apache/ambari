@@ -80,5 +80,14 @@ public class ConfigurationTest {
     Assert.assertFalse(conf.getTwoWaySsl());
   }
 
+  @Test
+  public void testGetClientSSLApiPort() throws Exception {
+    Properties ambariProperties = new Properties();
+    ambariProperties.setProperty(Configuration.CLIENT_API_SSL_PORT_KEY, "6666");
+    Configuration conf = new Configuration(ambariProperties);
+    Assert.assertEquals(6666, conf.getClientSSLApiPort());
+    conf = new Configuration();
+    Assert.assertEquals(8443, conf.getClientSSLApiPort());
+  }  
 
 }

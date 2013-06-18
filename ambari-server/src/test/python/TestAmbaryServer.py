@@ -802,7 +802,9 @@ class TestAmbariServer(TestCase):
   @patch("os.path.join")
   @patch("os.path.exists")
   @patch.object(ambari_server, "get_ambari_properties")
-  def test_install_jce_manualy(self, get_ambari_properties_mock, os_path_exists_mock, os_path_join_mock, shutil_copy_mock):
+  def test_install_jce_manualy(self, get_ambari_properties_mock,\
+                               os_path_exists_mock, os_path_join_mock,\
+                               shutil_copy_mock):
     args = MagicMock()
     args.jce_policy = "somewhere"
     p = MagicMock()
@@ -810,14 +812,195 @@ class TestAmbariServer(TestCase):
     p.__getitem__.side_effect = None
     p.__getitem__.return_value = "somewhere"
     os_path_exists_mock.return_value = True
-    os_path_join_mock.return_value = "/var/lib/ambari-server/resources/jce_policy-6.zip" 
+    os_path_join_mock.return_value = \
+                            "/var/lib/ambari-server/resources/jce_policy-6.zip" 
     ambari_server.install_jce_manualy(args)	
     self.assertTrue(shutil_copy_mock.called)
 
-    os_path_exists_mock.return_value = False
+    shutil_copy_mock.side_effect = Exception("exception")
+    try:
+      ambari_server.install_jce_manualy(args)
+      self.fail("Should throw exception because of not found jce_policy-6.zip")
+    except Exception:
+       # Expected
+      self.assertTrue(shutil_copy_mock.called)
+      pass  
+
+    shutil_copy_mock.side_effect = None
     args.jce_policy = None
+    ambari_server.install_jce_manualy(args)
 
+  
+  @patch.object(ambari_server, "get_validated_string_input")
+  @patch.object(ambari_server, "find_properties_file")
+  @patch.object(ambari_server, "get_ambari_properties")
+  @patch.object(ambari_server, "is_server_runing")
+  @patch.object(ambari_server, "import_cert_and_key_action")  
+  @patch.object(ambari_server, "get_YN_input")  
+  @patch("__builtin__.open")
+  @patch("ambari-server.Properties")
+  def test_setup_https(self, Properties_mock, open_Mock, get_YN_input_mock,\
+                       import_cert_and_key_action_mock,
+                       is_server_runing_mock, get_ambari_properties_mock,\
+                       find_properties_file_mock,\
+                       get_validated_string_input_mock):
+    args = MagicMock()
+    open_Mock.return_value = file
+    p = get_ambari_properties_mock.return_value
+    #Case #1: if client ssl is on and user didnt choose 
+    #disable ssl option and choose import certs and keys
+    p.get_property.side_effect = ["key_dir","5555","6666", "true"]
+    get_YN_input_mock.side_effect = [False,True]
+    get_validated_string_input_mock.side_effect = ["4444"]
+    get_property_expected = "[call('security.server.keys_dir'),\n"+\
+                            " call('client.api.ssl.port'),\n"+\
+                            " call('client.api.ssl.port'),\n call('api.ssl')]"
+    process_pair_expected = "[call('client.api.ssl.port', '4444')]"
+    ambari_server.SILENT = False
+    ambari_server.setup_https(args)
+    
+    self.assertTrue(p.process_pair.called)
+    self.assertTrue(p.get_property.call_count == 4)
+    self.assertEqual(str(p.get_property.call_args_list), get_property_expected)
+    self.assertEqual(str(p.process_pair.call_args_list), process_pair_expected)
+    self.assertTrue(p.store.called)
+    self.assertTrue(import_cert_and_key_action_mock.called)
 
+    p.process_pair.reset_mock()
+    p.get_property.reset_mock()
+    p.store.reset_mock()
+    import_cert_and_key_action_mock.reset_mock()
+
+    #Case #2: if client ssl is on and user choose to disable ssl option
+    p.get_property.side_effect = ["key_dir","", "true"]
+    get_YN_input_mock.side_effect = [True]
+    get_validated_string_input_mock.side_effect = ["4444"]
+    get_property_expected = "[call('security.server.keys_dir'),\n"+\
+                            " call('client.api.ssl.port'),\n call('api.ssl')]"
+    process_pair_expected = "[call('api.ssl', 'false')]"
+    ambari_server.setup_https(args)
+    
+    self.assertTrue(p.process_pair.called)
+    self.assertTrue(p.get_property.call_count == 3)
+    self.assertEqual(str(p.get_property.call_args_list), get_property_expected)
+    self.assertEqual(str(p.process_pair.call_args_list), process_pair_expected)
+    self.assertTrue(p.store.called)
+    self.assertFalse(import_cert_and_key_action_mock.called)
+
+    p.process_pair.reset_mock()
+    p.get_property.reset_mock()
+    p.store.reset_mock()
+    import_cert_and_key_action_mock.reset_mock()
+
+    #Case #3: if client ssl is off and user choose option 
+    #to import cert and keys
+    p.get_property.side_effect = ["key_dir","", None]
+    get_YN_input_mock.side_effect = [True, True]
+    get_validated_string_input_mock.side_effect = ["4444"]
+    get_property_expected = "[call('security.server.keys_dir'),\n"+\
+                            " call('client.api.ssl.port'),\n call('api.ssl')]"
+    process_pair_expected = "[call('client.api.ssl.port', '4444')]"
+    ambari_server.setup_https(args)
+
+    self.assertTrue(p.process_pair.called)
+    self.assertTrue(p.get_property.call_count == 3)
+    self.assertEqual(str(p.get_property.call_args_list), get_property_expected)
+    self.assertEqual(str(p.process_pair.call_args_list), process_pair_expected)
+    self.assertTrue(p.store.called)
+    self.assertTrue(import_cert_and_key_action_mock.called)
+
+    p.process_pair.reset_mock()
+    p.get_property.reset_mock()
+    p.store.reset_mock()
+    import_cert_and_key_action_mock.reset_mock()
+    
+    #Case #4: if client ssl is off and 
+    #user did not choose option to import cert and keys
+    p.get_property.side_effect = ["key_dir","", None]
+    get_YN_input_mock.side_effect = [False]
+    get_validated_string_input_mock.side_effect = ["4444"]
+    get_property_expected = "[call('security.server.keys_dir'),\n"+\
+    " call('client.api.ssl.port'),\n call('api.ssl')]"
+    process_pair_expected = "[]"
+    ambari_server.setup_https(args)
+
+    self.assertFalse(p.process_pair.called)
+    self.assertTrue(p.get_property.call_count == 3)
+    self.assertEqual(str(p.get_property.call_args_list), get_property_expected)
+    self.assertEqual(str(p.process_pair.call_args_list), process_pair_expected)
+    self.assertFalse(p.store.called)
+    self.assertFalse(import_cert_and_key_action_mock.called)
+
+    p.process_pair.reset_mock()
+    p.get_property.reset_mock()
+    p.store.reset_mock()
+    import_cert_and_key_action_mock.reset_mock() 
+    ambari_server.SILENT = True
+    
+  @patch.object(ambari_server, "import_cert_and_key")
+  def test_import_cert_and_key_action(self, import_cert_and_key_mock):
+    import_cert_and_key_mock.return_value = True
+    properties = MagicMock()
+    properties.get_property.side_effect = ["key_dir","5555","6666", "true"]
+    properties.process_pair = MagicMock()
+    expect_process_pair = "[call('security.server.cert_name', 'ca.crt'),\n"+\
+                          " call('security.server.key_name', 'ca.key'),\n"+\
+                          " call('api.ssl', 'true')]"
+    ambari_server.import_cert_and_key_action("key_dir", properties)
+  	
+    self.assertEqual(str(properties.process_pair.call_args_list),\
+                     expect_process_pair)
+    
+  @patch.object(ambari_server, "read_ambari_user")
+  @patch.object(ambari_server, "set_file_permissions")
+  @patch.object(ambari_server, "import_file_to_keystore")
+  @patch("__builtin__.open")
+  @patch.object(ambari_server, "run_os_command")
+  @patch("os.path.join")
+  @patch.object(ambari_server, "get_validated_filepath_input")
+  @patch.object(ambari_server, "get_validated_string_input")  
+  def test_import_cert_and_key(self, get_validated_string_input_mock,\
+                               get_validated_filepath_input_mock,\
+                               os_path_join_mock, run_os_command_mock,\
+                               open_mock, import_file_to_keystore_mock,\
+                               set_file_permissions_mock, read_ambari_user_mock):
+  	get_validated_string_input_mock.return_value = "password"
+  	get_validated_filepath_input_mock.side_effect = \
+                                            ["cert_file_path","key_file_path"]
+  	os_path_join_mock.side_effect = ["cert_file_path","key_file_path",\
+                                        "keystore_cert_file_path",\
+                                        "keystore_cert_key_file_path",]
+  	run_os_command_mock.return_value = (0, "",	"") 
+  	om = open_mock.return_value
+  	expect_import_file_to_keystore = "[call('cert_file_path',"+\
+                                          " 'keystore_cert_file_path'),\n"+\
+                                          " call('key_file_path',"+\
+                                          " 'keystore_cert_key_file_path')]"
+
+  	ambari_server.import_cert_and_key("key_dir")
+  	self.assertTrue(get_validated_filepath_input_mock.call_count == 2)
+  	self.assertTrue(get_validated_string_input_mock.called)
+  	self.assertTrue(os_path_join_mock.call_count == 4)
+  	self.assertTrue(set_file_permissions_mock.call_count == 2)
+  	self.assertEqual(str(import_file_to_keystore_mock.call_args_list),\
+                         expect_import_file_to_keystore)      
+
+  @patch.object(ambari_server, "run_os_command")
+  @patch("__builtin__.open")
+  @patch("os.path.exists")
+  def test_is_server_runing(self, os_path_exists_mock, open_mock,\
+                            run_os_command_mock):
+    os_path_exists_mock.return_value = True
+    f = open_mock.return_value
+    f.readline.return_value = "111"
+    run_os_command_mock.return_value = 0, "", ""
+    status, pid = ambari_server.is_server_runing()
+    self.assertTrue(status)
+    self.assertEqual(111, pid)
+    os_path_exists_mock.return_value = False
+    status, pid = ambari_server.is_server_runing()
+    self.assertFalse(status)
+  
   @patch.object(ambari_server, "install_jce_manualy")
   @patch("os.stat")
   @patch("os.path.isfile")
@@ -829,10 +1012,11 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "print_info_msg")
   @patch.object(ambari_server, "get_JAVA_HOME")
   @patch.object(ambari_server, "get_ambari_properties")
-  def test_download_jdk(self, get_ambari_properties_mock, get_JAVA_HOME_mock, print_info_msg_mock,
-                        write_property_mock, run_os_command_mock, get_YN_input_mock, track_jdk_mock,
-                        path_existsMock,
-                        path_isfileMock, statMock, install_jce_manualy_mock):
+  def test_download_jdk(self, get_ambari_properties_mock, get_JAVA_HOME_mock,\
+                        print_info_msg_mock, write_property_mock,\
+                        run_os_command_mock, get_YN_input_mock, track_jdk_mock,
+                        path_existsMock, path_isfileMock, statMock,\
+                        install_jce_manualy_mock):
     args = MagicMock()
     args.java_home = "somewhere"
     path_existsMock.return_value = False

@@ -76,6 +76,7 @@ public class Configuration {
 
   public static final String CLIENT_SECURITY_KEY = "client.security";
   public static final String CLIENT_API_PORT_KEY = "client.api.port";
+  public static final String CLIENT_API_SSL_PORT_KEY = "client.api.ssl.port";
   public static final String SERVER_DB_NAME_KEY = "server.jdbc.database";
   public static final String SERVER_DB_NAME_DEFAULT = "postgres";
   public static final String ORACLE_DB_NAME = "oracle";
@@ -179,6 +180,7 @@ public class Configuration {
       
   private static final String CLIENT_SECURITY_DEFAULT = "local";
   private static final int CLIENT_API_PORT_DEFAULT = 8080;
+  private static final int CLIENT_API_SSL_PORT_DEFAULT = 8443;
 
   private static final String USER_ROLE_NAME_DEFAULT = "user";
   private static final String ADMIN_ROLE_NAME_DEFAULT = "admin";
@@ -283,6 +285,7 @@ public class Configuration {
       LOG.info("Reading password from existing file");
       try {
         randStr = FileUtils.readFileToString(passFile);
+        randStr = randStr.replaceAll("\\p{Cntrl}", "");
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -433,6 +436,14 @@ public class Configuration {
    */
   public boolean getApiAuthentication() {
     return ("true".equals(properties.getProperty(API_AUTHENTICATE, "false")));
+  }
+
+  /**
+   * Gets ssl api port
+   * @return int
+   */
+  public int getClientSSLApiPort() {
+    return Integer.parseInt(properties.getProperty(CLIENT_API_SSL_PORT_KEY, String.valueOf(CLIENT_API_SSL_PORT_DEFAULT)));
   }
 
   /**

@@ -54,6 +54,7 @@ UPGRADE_ACTION = "upgrade"
 UPGRADE_STACK_ACTION = "upgradestack"
 UPDATE_METAINFO_ACTION = "update-metainfo"
 STATUS_ACTION = "status"
+SETUP_HTTPS_ACTION = "setup-https"
 LDAP_SETUP_ACTION = "setupldap"
 RESET_MASTER_KEY_ACTION = "resetmasterkey"
 
@@ -87,6 +88,9 @@ NR_GROUPADD_CMD = 'groupadd {0}'
 NR_ADD_USER_TO_GROUP = 'usermod -G {0} {0}'
 NR_CHMOD_CMD = 'chmod {0} {1}'
 NR_CHOWN_CMD = 'chown {0}:{1} {2}'
+
+# openssl command
+EXPRT_KSTR_CMD = "openssl pkcs12 -export -in {0} -inkey {1} -certfile {0} -out {3} -password pass:{2} -passin pass:{2}"
 
 # constants
 STACK_NAME_VER_SEP = "-"
@@ -145,6 +149,17 @@ SECURITY_MASTER_KEY_LOCATION = "security.master.key.location"
 SECURITY_KEY_IS_PERSISTED = "security.master.key.ispersisted"
 SECURITY_KEY_ENV_VAR_NAME = "ambari.security.master.key"
 SECURITY_MASTER_KEY_FILENAME = "master"
+
+SSL_KEY_DIR = 'security.server.keys_dir'
+SSL_API_PORT = 'client.api.ssl.port'
+SSL_API = 'api.ssl'
+SSL_SERVER_CERT_NAME = 'security.server.cert_name'
+SSL_SERVER_KEY_NAME = 'security.server.key_name'
+SSL_CERT_FILE_NAME = "ca.crt"
+SSL_KEY_FILE_NAME = "ca.key"
+SSL_KEYSTORE_FILE_NAME = "keystore.p12"
+SSL_KEY_PASSWORD_FILE_NAME = "pass.txt"
+DEFAULT_SSL_API_PORT = 8443
 
 JDBC_RCA_PASSWORD_ALIAS = "ambari.db.password"
 LDAP_MGR_PASSWORD_ALIAS = "ambari.ldap.manager.password"
@@ -2074,19 +2089,12 @@ def upgrade(args):
 # The Ambari Server status.
 #
 def status(args):
-  if os.path.exists(PID_DIR + os.sep + PID_NAME):
-    f = open(PID_DIR + os.sep + PID_NAME, "r")
-    pid = int(f.readline())
-    print "Found Ambari Server PID: '" + str(pid) + "'"
-    f.close()
-    retcode, out, err = run_os_command("ps -p " + str(pid))
-    if retcode == 0:
-      print "Ambari Server running"
-      print "Ambari Server PID at: " + PID_DIR + os.sep + PID_NAME
-    else:
-      print "Ambari Server not running. Stale PID File at: " + PID_DIR + os.sep + PID_NAME
+  status, pid = is_server_runing()
+  if status:
+    print "Ambari Server running"
+    print "Found Ambari Server PID: '" + str(pid) + " at: " + PID_DIR + os.sep + PID_NAME
   else:
-    print "Ambari Server not running"
+    print "Ambari Server not running. Stale PID File at: " + PID_DIR + os.sep + PID_NAME
 
 
 
@@ -2159,7 +2167,7 @@ def get_validated_string_input(prompt, default, pattern, description, is_pass):
       input = default
       break #done here and picking up default
     else:
-      if not re.search(pattern,input.strip()):
+      if not pattern==None and not re.search(pattern,input.strip()):
         print description
         input=""
   return input
@@ -2478,6 +2486,128 @@ def update_properties(propertyMap):
 
   return 0
 
+def setup_https(args):
+  if not SILENT:
+    properties = get_ambari_properties()
+    try:
+      security_server_keys_dir = properties.get_property(SSL_KEY_DIR)
+      client_api_ssl_port = DEFAULT_SSL_API_PORT if properties.get_property(SSL_API_PORT) in ("")\
+                            else properties.get_property(SSL_API_PORT)
+      api_ssl = properties.get_property(SSL_API) in ['true']
+      cert_was_imported = False
+      if api_ssl:
+       if get_YN_input("Do you want to disable SSL (y/n) n? ", False):
+        properties.process_pair(SSL_API, "false")
+       else:
+        properties.process_pair(SSL_API_PORT, \
+                                get_validated_string_input(\
+                                "SSL port ["+str(client_api_ssl_port)+"] ? ",\
+                                str(client_api_ssl_port),\
+                                "^[0-9]{1,5}$", "Invalid port.", False))   
+        if get_YN_input(\
+              "Do you want to import trusted certificate and private key (y/n) y? ",\
+              True):
+         import_cert_and_key_action(security_server_keys_dir, properties)
+         cert_was_imported = True  
+      else:
+       if get_YN_input("Do you want to configure HTTPS (y/n) y? ", True):
+        properties.process_pair(SSL_API_PORT,\
+        get_validated_string_input("SSL port ["+str(client_api_ssl_port)+"] ? ",\
+        str(client_api_ssl_port), "^[0-9]{1,5}$", "Invalid port.", False))   
+        if get_YN_input(\
+              "Do you want to import trusted certificate and private key (y/n) y? ",\
+              True):
+         import_cert_and_key_action(security_server_keys_dir, properties)
+         cert_was_imported = True        
+       else:
+        return
+
+      conf_file = find_properties_file()
+      f = open(conf_file, 'w')
+      properties.store(f, "Changed by 'ambari-server setup-https' command")
+      if cert_was_imported: 
+       print "NOTE: If cluster have been already created,"+\
+             " agent's keystors should be cleared manually!"
+      if is_server_runing():
+        print "To apply changes server should be restarted"+\
+              " by command: ambari-server restart|(stop|start)"
+    except (KeyError), e:
+      err = 'Property ' + str(e) + ' is not defined at ' + conf_file
+      raise FatalException(1, err)
+  else:
+    print "setup-https is not enabled in silent mode."
+  
+def is_server_runing():
+  if os.path.exists(PID_DIR + os.sep + PID_NAME):
+    f = open(PID_DIR + os.sep + PID_NAME, "r")
+    pid = int(f.readline())
+    f.close()
+    retcode, out, err = run_os_command("ps -p " + str(pid))
+    if retcode == 0:
+      return True, pid
+    else:
+      return False, None
+  else:
+    return False, None
+ 
+
+def import_cert_and_key_action(security_server_keys_dir, properties):
+  if import_cert_and_key(security_server_keys_dir):
+   properties.process_pair(SSL_SERVER_CERT_NAME, SSL_CERT_FILE_NAME)
+   properties.process_pair(SSL_SERVER_KEY_NAME, SSL_KEY_FILE_NAME)
+   properties.process_pair(SSL_API, "true")
+   
+def import_cert_and_key(security_server_keys_dir):
+  import_cert_path = get_validated_filepath_input(\
+                    "Please enter path to certificate: ",\
+                    "Certificate not found")
+  import_key_path  =  get_validated_filepath_input(\
+                      "Please enter path to key: ", "Key not found")
+  pem_password = get_validated_string_input("Please enter password for private key: ", "", None, None, True)
+  keystoreFilePath = os.path.join(security_server_keys_dir,\
+                                  SSL_KEYSTORE_FILE_NAME)
+  passFilePath = os.path.join(security_server_keys_dir,\
+                              SSL_KEY_PASSWORD_FILE_NAME)
+  retcode, out, err = run_os_command(EXPRT_KSTR_CMD.format(import_cert_path,\
+  import_key_path, pem_password, keystoreFilePath))
+
+  if retcode == 0:
+   print 'Successfully imported trusted cerificate and private key'
+   set_file_permissions(keystoreFilePath, "660", read_ambari_user(), "root")
+   with open(passFilePath, 'w+') as passFile:
+    passFile.write(pem_password)
+    pass
+   set_file_permissions(passFilePath, "660", read_ambari_user(), "root")
+   import_file_to_keystore(import_cert_path, os.path.join(\
+                          security_server_keys_dir, SSL_CERT_FILE_NAME))
+   import_file_to_keystore(import_key_path, os.path.join(\
+                          security_server_keys_dir, SSL_KEY_FILE_NAME))
+   return True
+  else:
+   print 'Could not import trusted cerificate and private key:'
+   print err
+   return False
+ 
+def import_file_to_keystore(source, destination):
+  shutil.copy(source, destination)
+  set_file_permissions(destination, "660", read_ambari_user(), "root")
+ 
+ 
+def get_validated_filepath_input(prompt, description, default=None):
+  input = False
+  while not input:
+    if SILENT:
+      print (prompt)
+      return default
+    else:
+      input = raw_input(prompt)
+      if not input==None:
+        input = input.strip()
+      if not input==None and not ""==input and os.path.exists(input):
+        return input
+      else:
+        print description
+        input=False
 
 #
 # Main.
@@ -2621,6 +2751,8 @@ def main():
       reset_master_key()
     elif action == UPDATE_METAINFO_ACTION:
       update_metainfo(options)
+    elif action == SETUP_HTTPS_ACTION:
+      setup_https(options)     
     else:
       parser.error("Invalid action")
   except FatalException as e:
@@ -2698,18 +2830,20 @@ class Properties(object):
       oldkey = oldkey.strip()
     oldvalue = self.unescape(oldvalue)
     value = self.unescape(value)
-    self._props[key] = value.strip()
+    self._props[key] = None if value is None else value.strip()
     if self._keymap.has_key(key):
       oldkey = self._keymap.get(key)
-      self._origprops[oldkey] = oldvalue.strip()
+      self._origprops[oldkey] = None if oldvalue is None else oldvalue.strip()
     else:
-      self._origprops[oldkey] = oldvalue.strip()
+      self._origprops[oldkey] = None if oldvalue is None else oldvalue.strip()
       self._keymap[key] = oldkey
 
   
   def unescape(self, value):
-    newvalue = value.replace('\:', ':')
-    newvalue = newvalue.replace('\=', '=')
+    newvalue = value
+    if not value is None:
+     newvalue = value.replace('\:', ':')
+     newvalue = newvalue.replace('\=', '=')
     return newvalue
 
   def removeOldProp(self, key):

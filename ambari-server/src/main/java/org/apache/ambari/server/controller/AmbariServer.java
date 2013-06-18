@@ -80,7 +80,7 @@ public class AmbariServer {
   private static Logger LOG = LoggerFactory.getLogger(AmbariServer.class);
   public static final int AGENT_ONE_WAY_AUTH = 8440;
   public static final int AGENT_TWO_WAY_AUTH = 8441;
-  public static final int CLIENT_SSL_API_PORT = 8443;
+
 
   private Server server = null;
   private Server serverForAgent = null;
@@ -287,7 +287,7 @@ public class AmbariServer {
 
       if (configs.getApiSSLAuthentication()) {
         SslSelectChannelConnector sapiConnector = new SslSelectChannelConnector();
-        sapiConnector.setPort(CLIENT_SSL_API_PORT);
+        sapiConnector.setPort(configs.getClientSSLApiPort());
         sapiConnector.setKeystore(keystore);
         sapiConnector.setTruststore(keystore);
         sapiConnector.setPassword(srvrCrtPass);

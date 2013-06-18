@@ -105,8 +105,12 @@ case "$1" in
         echo -e "Reseting master key for credential store"
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
+  setup-https)
+        echo -e "Ambari-server setup-https"
+        $PYTHON /usr/sbin/ambari-server.py $@
+        ;;
   *)
-        echo "Usage: /usr/sbin/ambari-server {start|stop|restart|setup|upgrade|status|upgradestack|setupldap|resetmasterkey} [options]"
+        echo "Usage: /usr/sbin/ambari-server {start|stop|restart|setup|upgrade|status|upgradestack|setupldap|resetmasterkey|setup-https} [options]"
         exit 1
 esac
 
