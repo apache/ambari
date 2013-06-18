@@ -19,6 +19,8 @@ CREATE DATABASE ambari;
 
 \connect ambari;
 
+ALTER USER :username WITH ENCRYPTED PASSWORD :password;
+
 CREATE ROLE :username LOGIN ENCRYPTED PASSWORD :password;
 
 CREATE SCHEMA ambari
