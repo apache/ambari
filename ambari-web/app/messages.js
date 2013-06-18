@@ -379,6 +379,8 @@ Em.I18n.translations = {
   'installer.step7.config.addProperty':'Add Property',
   'installer.step7.ConfigErrMsg.header':'Custom configuration error: ',
   'installer.step7.ConfigErrMsg.message':'Error in custom configuration. Some properties entered in the box are already exposed on this page',
+  'installer.step7.popup.currentValue':'Current Value',
+  'installer.step7.popup.adjustedValue':'Adjusted Value',
 
   'installer.step8.header':'Review',
   'installer.step8.body':'Please review the configuration before installation',

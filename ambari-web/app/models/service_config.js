@@ -160,6 +160,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
   isRestartRequired: false,
   restartRequiredMessage: 'Restart required',
   index: null, //sequence number in category
+  editDone: false, //Text field: on focusOut: true, on focusIn: false
 
   /**
    * On Overridable property error message, change overrideErrorTrigger value to recount number of errors service have

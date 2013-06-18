@@ -52,7 +52,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
   classNameBindings: ['category.name', 'isShowBlock::hidden'],
 
   content: null,
-
+  miscModalVisible: false, //If miscConfigChange Modal is shown
   category: null,
   service: null,
   canEdit: true, // View is editable or read-only?
@@ -77,14 +77,149 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
   }.property('serviceConfigs.@each').cacheable(),
 
   /**
+   * Warn/prompt user to adjust Service props when changing user/groups in Misc
+   * Is triggered when user ended editing text field
+   */
+  miscConfigChange: function () {
+    var changedProperty = this.get("serviceConfigs").filterProperty("editDone", true);
+    if (changedProperty.length > 0) {
+      changedProperty = changedProperty.objectAt(0);
+    } else {
+      return;
+    }
+    if (this.get('controller.selectedService.serviceName') == 'MISC') {
+      var newValue = changedProperty.get("value");
+      var stepConfigs = this.get("controller.stepConfigs");
+      this.affectedProperties = [];
+      var curConfigs = "";
+      if (changedProperty.get("name") == "hdfs_user") {
+        curConfigs = stepConfigs.findProperty("serviceName", "HDFS").get("configs");
+        if (newValue != curConfigs.findProperty("name", "dfs.permissions.supergroup").get("value")) {
+          this.affectedProperties.push(
+            {
+              serviceName: "HDFS",
+              propertyName: "dfs.permissions.supergroup",
+              propertyDisplayName: "dfs.permissions.supergroup",
+              newValue: newValue,
+              curValue: curConfigs.findProperty("name", "dfs.permissions.supergroup").get("value"),
+              changedPropertyName: "hdfs_user"
+            }
+          );
+        }
+        if ($.trim(newValue) != $.trim(curConfigs.findProperty("name", "dfs.cluster.administrators").get("value"))) {
+          this.affectedProperties.push(
+            {
+              serviceName: "HDFS",
+              propertyName: "dfs.cluster.administrators",
+              propertyDisplayName: "dfs.cluster.administrators",
+              newValue: " " + $.trim(newValue),
+              curValue: curConfigs.findProperty("name", "dfs.cluster.administrators").get("value"),
+              changedPropertyName: "hdfs_user"
+            }
+          );
+        }
+      } else if (changedProperty.get("name") == "hbase_user") {
+        curConfigs = stepConfigs.findProperty("serviceName", "HDFS").get("configs");
+        if (newValue != curConfigs.findProperty("name", "dfs_block_local_path_access_user").get("value")) {
+          this.affectedProperties.push(
+            {
+              serviceName: "HDFS",
+              propertyName: "dfs_block_local_path_access_user",
+              propertyDisplayName: "dfs.block.local-path-access.user",
+              newValue: newValue,
+              curValue: curConfigs.findProperty("name", "dfs_block_local_path_access_user").get("value"),
+              changedPropertyName: "hbase_user"
+            }
+          );
+        }
+      } else if (changedProperty.get("name") == "user_group") {
+        if (!(this.get("controller.selectedServiceNames").indexOf("MAPREDUCE") >= 0)) {
+          return;
+        }
+        curConfigs = stepConfigs.findProperty("serviceName", "MAPREDUCE").get("configs");
+        if (newValue != curConfigs.findProperty("name", "mapreduce.tasktracker.group").get("value")) {
+          this.affectedProperties.push(
+            {
+              serviceName: "MAPREDUCE",
+              propertyName: "mapreduce.tasktracker.group",
+              propertyDisplayName: "mapreduce.tasktracker.group",
+              newValue: newValue,
+              curValue: curConfigs.findProperty("name", "mapreduce.tasktracker.group").get("value"),
+              changedPropertyName: "user_group"
+            }
+          )
+        }
+        if ($.trim(newValue) != $.trim(curConfigs.findProperty("name", "mapreduce.cluster.administrators").get("value"))) {
+          this.affectedProperties.push(
+            {
+              serviceName: "MAPREDUCE",
+              propertyName: "mapreduce.cluster.administrators",
+              propertyDisplayName: "mapreduce.cluster.administrators",
+              newValue: " " + $.trim(newValue),
+              curValue: curConfigs.findProperty("name", "mapreduce.cluster.administrators").get("value"),
+              changedPropertyName: "user_group"
+            }
+          );
+        }
+      }
+      if (this.affectedProperties.length > 0 && !this.get("miscModalVisible")) {
+        this.newAffectedProperties = this.affectedProperties;
+        var self = this;
+        return App.ModalPopup.show({
+          classNames: ['modal-690px-width'],
+          showCloseButton: false,
+          header: "Warning: you must also change these Service properties",
+          onApply: function () {
+            self.get("newAffectedProperties").forEach(function (item) {
+              self.get("controller.stepConfigs").findProperty("serviceName", item.serviceName).get("configs")
+                .findProperty("name", item.propertyName).set("value", item.newValue);
+            });
+            self.set("miscModalVisible", false);
+            this.hide();
+          },
+          onIgnore: function () {
+            self.set("miscModalVisible", false);
+            this.hide();
+          },
+          onUndo: function () {
+            var affected = self.get("newAffectedProperties").objectAt(0);
+            self.get("controller.stepConfigs").findProperty("serviceName", "MISC").get("configs")
+              .findProperty("name", affected.changedPropertyName).set("value", $.trim(affected.curValue));
+            self.set("miscModalVisible", false);
+            this.hide();
+          },
+          footerClass: Ember.View.extend({
+            classNames: ['modal-footer'],
+            template: Ember.Handlebars.compile([
+              '<div class="pull-right">',
+              '<button class="btn" {{action onUndo target="view.parentView"}}>Undo</button>',
+              '<button class="btn btn-warning" {{action onIgnore target="view.parentView"}}>Ignore</button>',
+              '<button class="btn btn-success" {{action onApply target="view.parentView"}}>Apply</button>',
+              '</div>'
+            ].join(''))
+          }),
+          bodyClass: Ember.View.extend({
+            templateName: require('templates/common/configs/propertyDependence'),
+            controller: this,
+            propertyChange: self.get("newAffectedProperties"),
+            didInsertElement: function () {
+              self.set("miscModalVisible", true);
+            }
+          })
+        });
+      }
+    }
+  }.observes('categoryConfigs.@each.editDone'),
+
+  /**
    * When the view is in read-only mode, it marks
    * the properties as read-only.
    */
-  updateReadOnlyFlags: function(){
+  updateReadOnlyFlags: function () {
     var configs = this.get('serviceConfigs');
     var canEdit = this.get('canEdit');
-    if(!canEdit && configs){
-      configs.forEach(function(config){
+    if (!canEdit && configs) {
+      configs.forEach(function (config) {
         config.set('isEditable', false);
       });
     }
@@ -93,22 +228,22 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
   /**
    * Filtered <code>categoryConfigs</code> array. Used to show filtered result
    */
-  filteredCategoryConfigs: function() {
+  filteredCategoryConfigs: function () {
     var filter = this.get('parentView.filter').toLowerCase();
     var isOnlyModified = this.get('parentView.columns').length && this.get('parentView.columns')[1].get('selected');
     var isOnlyOverridden = this.get('parentView.columns').length && this.get('parentView.columns')[0].get('selected');
     var isOnlyRestartRequired = this.get('parentView.columns').length && this.get('parentView.columns')[2].get('selected');
-    var filteredResult = this.get('categoryConfigs').filter(function(config){
+    var filteredResult = this.get('categoryConfigs').filter(function (config) {
 
-      if(isOnlyModified && !config.get('isNotDefaultValue')){
-        return false;
-      }
-      
-      if(isOnlyOverridden && !config.get('isOverridden')){
+      if (isOnlyModified && !config.get('isNotDefaultValue')) {
         return false;
       }
 
-      if(isOnlyRestartRequired && !config.get('isRestartRequired')){
+      if (isOnlyOverridden && !config.get('isOverridden')) {
+        return false;
+      }
+
+      if (isOnlyRestartRequired && !config.get('isRestartRequired')) {
         return false;
       }
 
@@ -119,14 +254,14 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
     });
     filteredResult = this.sortByIndex(filteredResult);
     return filteredResult;
-  }.property('categoryConfigs','parentView.filter', 'parentView.columns.@each.selected'),
+  }.property('categoryConfigs', 'parentView.filter', 'parentView.columns.@each.selected'),
 
   /**
    * sort configs in current category by index
    * @param configs
    * @return {*}
    */
-  sortByIndex: function(configs){
+  sortByIndex: function (configs) {
     var sortedConfigs = [];
     var unSorted = [];
     if (!configs.someProperty('index')) {
@@ -135,14 +270,14 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
     configs.forEach(function (config) {
       var index = config.get('index');
       if ((index !== null) && isFinite(index)) {
-        sortedConfigs[index] ? sortedConfigs.splice(index, 0 ,config) : sortedConfigs[index] = config;
+        sortedConfigs[index] ? sortedConfigs.splice(index, 0, config) : sortedConfigs[index] = config;
       } else {
         unSorted.push(config);
       }
     });
     // remove undefined elements from array
-    sortedConfigs = sortedConfigs.filter(function(config){
-      if(config !== undefined) return true;
+    sortedConfigs = sortedConfigs.filter(function (config) {
+      if (config !== undefined) return true;
     });
     return sortedConfigs.concat(unSorted);
   },
@@ -157,14 +292,14 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
   /**
    * Should we show config group or not
    */
-  isShowBlock: function(){
+  isShowBlock: function () {
     return this.get('category.canAddProperty') || this.get('filteredCategoryConfigs').length > 0;
   }.property('category.canAddProperty', 'filteredCategoryConfigs.length'),
 
   didInsertElement: function () {
     var isCollapsed = (this.get('category.name').indexOf('Advanced') != -1);
     this.set('category.isCollapsed', isCollapsed);
-    if(isCollapsed){
+    if (isCollapsed) {
       this.$('.accordion-body').hide();
     }
     this.updateReadOnlyFlags();
@@ -269,7 +404,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
     var serviceConfigProperty = event.contexts[0];
     this.get('serviceConfigs').removeObject(serviceConfigProperty);
   },
-  
+
   /**
    * Restores given property's value to be its default value.
    * Does not update if there is no default value.
@@ -279,21 +414,21 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
     var value = serviceConfigProperty.get('value');
     var dValue = serviceConfigProperty.get('defaultValue');
     if (dValue != null) {
-      if(serviceConfigProperty.get('displayType') === 'password'){
+      if (serviceConfigProperty.get('displayType') === 'password') {
         serviceConfigProperty.set('retypedPassword', dValue);
       }
       serviceConfigProperty.set('value', dValue);
     }
   },
-  
+
   createOverrideProperty: function (event) {
     var serviceConfigProperty = event.contexts[0];
     var overrides = serviceConfigProperty.get('overrides');
     if (!overrides) {
-      overrides = []; 
+      overrides = [];
       serviceConfigProperty.set('overrides', overrides);
     }
-    
+
     // create new override with new value
     var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty);
     newSCP.set('value', '');
@@ -302,7 +437,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
     newSCP.set('selectedHostOptions', Ember.A([]));
     console.debug("createOverrideProperty(): Added:", newSCP, " to main-property:", serviceConfigProperty);
     overrides.pushObject(newSCP);
-    
+
     // Launch override window
     var dummyEvent = {contexts: [newSCP]};
     this.showOverrideWindow(dummyEvent);
@@ -313,8 +448,8 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
     var serviceConfigProperty = event.contexts[0];
     var parentServiceConfigProperty = serviceConfigProperty.get('parentSCP');
     var alreadyOverriddenHosts = [];
-    parentServiceConfigProperty.get('overrides').forEach(function(override){
-      if (override!=null && override!=serviceConfigProperty && override.get('selectedHostOptions')!=null){
+    parentServiceConfigProperty.get('overrides').forEach(function (override) {
+      if (override != null && override != serviceConfigProperty && override.get('selectedHostOptions') != null) {
         alreadyOverriddenHosts = alreadyOverriddenHosts.concat(override.get('selectedHostOptions'))
       }
     });
@@ -326,11 +461,11 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
      */
     var allHosts = this.get('controller.getAllHosts');
     var availableHosts = Ember.A([]);
-    allHosts.forEach(function(host){
+    allHosts.forEach(function (host) {
       var hostId = host.get('id');
-      if(alreadyOverriddenHosts.indexOf(hostId)<0){
+      if (alreadyOverriddenHosts.indexOf(hostId) < 0) {
         availableHosts.pushObject(Ember.Object.create({
-          selected: selectedHosts.indexOf(hostId)>-1,
+          selected: selectedHosts.indexOf(hostId) > -1,
           host: host
         }));
       }
@@ -352,23 +487,23 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
         console.debug('serviceConfigProperty.(old-selectedHosts)=' + serviceConfigProperty.get('selectedHosts'));
         var arrayOfSelectedHosts = [];
         var selectedHosts = availableHosts.filterProperty('selected', true);
-        selectedHosts.forEach(function(host){
+        selectedHosts.forEach(function (host) {
           arrayOfSelectedHosts.push(host.get('host.id'));
         });
-        if(arrayOfSelectedHosts.length>0){
+        if (arrayOfSelectedHosts.length > 0) {
           this.set('warningMessage', null);
           serviceConfigProperty.set('selectedHostOptions', arrayOfSelectedHosts);
           serviceConfigProperty.validate();
           console.debug('serviceConfigProperty.(new-selectedHosts)=', arrayOfSelectedHosts);
           this.hide();
-        }else{
+        } else {
           this.set('warningMessage', 'Atleast one host needs to be selected.');
         }
       },
       onSecondary: function () {
         // If property has no hosts already, then remove it from the parent.
         var hostCount = serviceConfigProperty.get('selectedHostOptions.length');
-        if( hostCount < 1 ){
+        if (hostCount < 1) {
           var parentSCP = serviceConfigProperty.get('parentSCP');
           var overrides = parentSCP.get('overrides');
           overrides.removeObject(serviceConfigProperty);
@@ -382,15 +517,15 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
         filterText: '',
         filterTextPlaceholder: Em.I18n.t('hosts.selectHostsDialog.filter.placeHolder'),
         availableHosts: availableHosts,
-        filterColumn: Ember.Object.create({id:'ip', name:'IP Address', selected:false}),
+        filterColumn: Ember.Object.create({id: 'ip', name: 'IP Address', selected: false}),
         filterColumns: Ember.A([
-           Ember.Object.create({id:'ip', name:'IP Address', selected:false}),
-           Ember.Object.create({id:'cpu', name:'CPU', selected:false}),
-           Ember.Object.create({id:'memory', name:'RAM', selected:false}),
-           Ember.Object.create({id:'diskUsage', name:'Disk Usage', selected:false}),
-           Ember.Object.create({id:'loadAvg', name:'Load Average', selected:false}),
-           Ember.Object.create({id:'osArch', name:'OS Architecture', selected:false}),
-           Ember.Object.create({id:'osType', name:'OS Type', selected:false})
+          Ember.Object.create({id: 'ip', name: 'IP Address', selected: false}),
+          Ember.Object.create({id: 'cpu', name: 'CPU', selected: false}),
+          Ember.Object.create({id: 'memory', name: 'RAM', selected: false}),
+          Ember.Object.create({id: 'diskUsage', name: 'Disk Usage', selected: false}),
+          Ember.Object.create({id: 'loadAvg', name: 'Load Average', selected: false}),
+          Ember.Object.create({id: 'osArch', name: 'OS Architecture', selected: false}),
+          Ember.Object.create({id: 'osType', name: 'OS Type', selected: false})
         ]),
         showOnlySelectedHosts: false,
         filterComponents: validComponents,
@@ -411,7 +546,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
             var value = ahost.get(filterColumn.id);
             host.set('filterColumnValue', value);
             if (filterText != null && filterText.length > 0) {
-              if ((value==null || !value.match(filterText)) && !host.get('host.publicHostName').match(filterText)) {
+              if ((value == null || !value.match(filterText)) && !host.get('host.publicHostName').match(filterText)) {
                 skip = true;
               }
             }
@@ -431,7 +566,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
                 skip = true;
               }
             }
-            if (!skip && showOnlySelectedHosts && !host.get('selected')){
+            if (!skip && showOnlySelectedHosts && !host.get('selected')) {
               skip = true;
             }
             if (!skip) {
@@ -440,45 +575,45 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
           });
           return filteredHosts;
         }.property('availableHosts', 'filterText', 'filterColumn', 'filterComponent', 'filterComponent.componentName', 'showOnlySelectedHosts'),
-        hostColumnValue: function(host, column){
+        hostColumnValue: function (host, column) {
           return host.get(column.id);
         },
         hostSelectMessage: function () {
           var hosts = this.get('availableHosts');
           var selectedHosts = hosts.filterProperty('selected', true);
           return this.t('hosts.selectHostsDialog.selectedHostsLink').format(selectedHosts.get('length'), hosts.get('length'))
-        }.property('availableHosts.@each.selected'), 
-        selectFilterColumn: function(event){
-          if(event!=null && event.context!=null && event.context.id!=null){
+        }.property('availableHosts.@each.selected'),
+        selectFilterColumn: function (event) {
+          if (event != null && event.context != null && event.context.id != null) {
             var filterColumn = this.get('filterColumn');
-            if(filterColumn!=null){
+            if (filterColumn != null) {
               filterColumn.set('selected', false);
             }
             event.context.set('selected', true);
             this.set('filterColumn', event.context);
           }
         },
-        selectFilterComponent: function(event){
-          if(event!=null && event.context!=null && event.context.componentName!=null){
+        selectFilterComponent: function (event) {
+          if (event != null && event.context != null && event.context.componentName != null) {
             var currentFilter = this.get('filterComponent');
-            if(currentFilter!=null){
+            if (currentFilter != null) {
               currentFilter.set('selected', false);
             }
-            if(currentFilter!=null && currentFilter.componentName===event.context.componentName){
+            if (currentFilter != null && currentFilter.componentName === event.context.componentName) {
               // selecting the same filter deselects it.
               this.set('filterComponent', null);
-            }else{
+            } else {
               this.set('filterComponent', event.context);
               event.context.set('selected', true);
             }
           }
         },
         allHostsSelected: false,
-        toggleSelectAllHosts: function(event){
-          if(this.get('allHostsSelected')){
+        toggleSelectAllHosts: function (event) {
+          if (this.get('allHostsSelected')) {
             // Select all hosts
             this.get('availableHosts').setEach('selected', true);
-          }else{
+          } else {
             // Deselect all hosts
             this.get('availableHosts').setEach('selected', false);
           }
@@ -530,13 +665,13 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
   /**
    * rewrote method to avoid incompatibility with parent
    */
-  filteredCategoryConfigs: function(){
+  filteredCategoryConfigs: function () {
     return this.get('categoryConfigs');
   }.property(),
-  advancedConfigs: function(){
+  advancedConfigs: function () {
     return this.get('categoryConfigs').filterProperty('isQueue', undefined) || [];
   }.property('categoryConfigs.@each'),
-  didInsertElement: function(){
+  didInsertElement: function () {
     this._super();
     this.createEmptyQueue(this.get('customConfigs').filterProperty('isQueue'));
   },
@@ -554,15 +689,15 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
    * take some queue then copy it and set all config values to null
    * @param customConfigs
    */
-  createEmptyQueue: function(customConfigs){
+  createEmptyQueue: function (customConfigs) {
     var emptyQueue = {
       name: '<queue-name>',
       configs: []
     };
     var fieldsToPopulate = this.get('fieldsToPopulate');
-    customConfigs.forEach(function(config){
+    customConfigs.forEach(function (config) {
       var newConfig = $.extend({}, config);
-      if(fieldsToPopulate.contains(config.name)){
+      if (fieldsToPopulate.contains(config.name)) {
         App.config.setDefaultQueue(newConfig, emptyQueue.name);
       }
       newConfig = App.ServiceConfigProperty.create(newConfig);
@@ -571,18 +706,18 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
     });
     this.set('emptyQueue', emptyQueue);
   },
-  queues: function(){
+  queues: function () {
     var configs = this.get('categoryConfigs').filterProperty('isQueue', true);
     var queueNames = [];
     var queues = [];
-    configs.mapProperty('name').forEach(function(name){
+    configs.mapProperty('name').forEach(function (name) {
       var queueName = /^mapred\.capacity-scheduler\.queue\.(.*?)\./.exec(name);
-      if(queueName){
+      if (queueName) {
         queueNames.push(queueName[1]);
       }
     });
     queueNames = queueNames.uniq();
-    queueNames.forEach(function(queueName){
+    queueNames.forEach(function (queueName) {
       queues.push({
         name: queueName,
         color: this.generateColor(queueName),
@@ -617,7 +752,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
       }
     });
     //each queue consists of 10 properties if less then add missing properties
-    if(queue.length < 10){
+    if (queue.length < 10) {
       this.addMissingProperties(queue, queueName);
     }
     return queue;
@@ -627,12 +762,12 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
    * @param queue
    * @param queueName
    */
-  addMissingProperties: function(queue, queueName){
+  addMissingProperties: function (queue, queueName) {
     var customConfigs = this.get('customConfigs');
-    customConfigs.forEach(function(_config){
+    customConfigs.forEach(function (_config) {
       var serviceConfigProperty = $.extend({}, _config);
       serviceConfigProperty.name = serviceConfigProperty.name.replace(/<queue-name>/, queueName);
-      if(!queue.someProperty('name', serviceConfigProperty.name)){
+      if (!queue.someProperty('name', serviceConfigProperty.name)) {
         App.config.setDefaultQueue(serviceConfigProperty, queueName);
         serviceConfigProperty = App.ServiceConfigProperty.create(serviceConfigProperty);
         serviceConfigProperty.validate();
@@ -643,12 +778,12 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
   /**
    * format table content from queues
    */
-  tableContent: function(){
+  tableContent: function () {
     var result = [];
-    this.get('queues').forEach(function(queue){
+    this.get('queues').forEach(function (queue) {
       var usersAndGroups = queue.configs.findProperty('name', 'mapred.queue.' + queue.name + '.acl-submit-job').get('value');
       usersAndGroups = (usersAndGroups) ? usersAndGroups.split(' ') : [''];
-      if(usersAndGroups.length == 1){
+      if (usersAndGroups.length == 1) {
         usersAndGroups.push('');
       }
       var queueObject = {
@@ -671,7 +806,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
    * uses as template for adding new queue
    */
   emptyQueue: [],
-  generateColor: function(str){
+  generateColor: function (str) {
     var hash = 0;
     for (var i = 0; i < str.length; i++) {
       hash = str.charCodeAt(i) + ((hash << 5) - hash);
@@ -683,39 +818,39 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
    * add created configs to serviceConfigs with current queue name
    * @param queue
    */
-  addQueue: function(queue){
+  addQueue: function (queue) {
     var serviceConfigs = this.get('serviceConfigs');
     var admin = [];
     var submit = [];
     var submitConfig;
     var adminConfig;
     queue.name = queue.configs.findProperty('name', 'queueName').get('value');
-    queue.configs.forEach(function(config){
-      if(config.name == 'mapred.queue.<queue-name>.acl-administer-jobs'){
-        if(config.type == 'USERS'){
+    queue.configs.forEach(function (config) {
+      if (config.name == 'mapred.queue.<queue-name>.acl-administer-jobs') {
+        if (config.type == 'USERS') {
           admin[0] = config.value;
         }
-        if(config.type == 'GROUPS'){
+        if (config.type == 'GROUPS') {
           admin[1] = config.value;
         }
-        if(config.isQueue){
+        if (config.isQueue) {
           adminConfig = config;
         }
       }
-      if(config.name == 'mapred.queue.<queue-name>.acl-submit-job'){
-        if(config.type == 'USERS'){
+      if (config.name == 'mapred.queue.<queue-name>.acl-submit-job') {
+        if (config.type == 'USERS') {
           submit[0] = config.value;
         }
-        if(config.type == 'GROUPS'){
+        if (config.type == 'GROUPS') {
           submit[1] = config.value;
         }
-        if(config.isQueue){
+        if (config.isQueue) {
           submitConfig = config;
         }
       }
       config.set('name', config.get('name').replace('<queue-name>', queue.name));
       config.set('value', config.get('value').toString());
-      if(config.isQueue){
+      if (config.isQueue) {
         serviceConfigs.push(config);
       }
     });
@@ -728,11 +863,11 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
    * delete configs from serviceConfigs which have current queue name
    * @param queue
    */
-  deleteQueue: function(queue){
+  deleteQueue: function (queue) {
     var serviceConfigs = this.get('serviceConfigs');
     var configNames = queue.configs.filterProperty('isQueue').mapProperty('name');
-    for(var i = 0, l = serviceConfigs.length; i < l; i++){
-      if(configNames.contains(serviceConfigs[i].name)){
+    for (var i = 0, l = serviceConfigs.length; i < l; i++) {
+      if (configNames.contains(serviceConfigs[i].name)) {
         serviceConfigs.splice(i, 1);
         l--;
         i--;
@@ -745,19 +880,19 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
    * edit configs from serviceConfigs which have current queue name
    * @param queue
    */
-  editQueue: function(queue){
+  editQueue: function (queue) {
     var serviceConfigs = this.get('serviceConfigs');
     var configNames = queue.configs.filterProperty('isQueue').mapProperty('name');
-    serviceConfigs.forEach(function(_config){
+    serviceConfigs.forEach(function (_config) {
       var configName = _config.get('name');
       var admin = [];
       var submit = [];
-      if(configNames.contains(_config.get('name'))){
-        if(configName == 'mapred.queue.' + queue.name + '.acl-submit-job'){
+      if (configNames.contains(_config.get('name'))) {
+        if (configName == 'mapred.queue.' + queue.name + '.acl-submit-job') {
           submit = queue.configs.filterProperty('name', configName);
           submit = submit.findProperty('type', 'USERS').get('value') + ' ' + submit.findProperty('type', 'GROUPS').get('value');
           _config.set('value', submit);
-        } else if(configName == 'mapred.queue.' + queue.name + '.acl-administer-jobs'){
+        } else if (configName == 'mapred.queue.' + queue.name + '.acl-administer-jobs') {
           admin = queue.configs.filterProperty('name', configName);
           admin = admin.findProperty('type', 'USERS').get('value') + ' ' + admin.findProperty('type', 'GROUPS').get('value');
           _config.set('value', admin);
@@ -774,16 +909,18 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
     w: 200,
     h: 200,
     queues: null,
-    didInsertElement: function(){
+    didInsertElement: function () {
       this.update();
     },
-    data: [{"label":"default", "value":100}],
-    update: function(){
+    data: [
+      {"label": "default", "value": 100}
+    ],
+    update: function () {
       var self = this;
       var data = [];
       var queues = this.get('queues');
       var capacitiesSum = 0;
-      queues.forEach(function(queue){
+      queues.forEach(function (queue) {
         data.push({
           label: queue.name,
           value: parseInt(queue.configs.findProperty('name', 'mapred.capacity-scheduler.queue.' + queue.name + '.capacity').get('value')),
@@ -791,10 +928,10 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
         })
       });
 
-      data.mapProperty('value').forEach(function(capacity){
+      data.mapProperty('value').forEach(function (capacity) {
         capacitiesSum += capacity;
       });
-      if(capacitiesSum < 100){
+      if (capacitiesSum < 100) {
         data.push({
           label: Em.I18n.t('common.empty'),
           value: (100 - capacitiesSum),
@@ -810,10 +947,10 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
       this.appendSvg();
 
       this.get('arcs')
-        .on("click", function(d,i) {
+        .on("click",function (d, i) {
           var event = {context: d.data.label};
           if (d.data.isEmpty !== true) self.get('parentView').queuePopup(event);
-        }).on('mouseover', function(d, i){
+        }).on('mouseover', function (d, i) {
           var position = d3.svg.mouse(this);
           var label = $('#section_label');
           label.css('left', position[0] + 100);
@@ -821,27 +958,29 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
           label.text(d.data.label);
           label.show();
         })
-        .on('mouseout', function(d, i){
+        .on('mouseout', function (d, i) {
           $('#section_label').hide();
         })
 
     }.observes('queues'),
-    donut:d3.layout.pie().sort(null).value(function(d) {return d.value;})
+    donut: d3.layout.pie().sort(null).value(function (d) {
+      return d.value;
+    })
   }),
   /**
    * open popup with chosen queue
    * @param event
    */
-  queuePopup: function(event){
+  queuePopup: function (event) {
     //if queueName was handed that means "Edit" mode, otherwise "Add" mode
     var queueName = event.context || null;
     var self = this;
     App.ModalPopup.show({
-      didInsertElement: function(){
-        if(queueName){
+      didInsertElement: function () {
+        if (queueName) {
           this.set('header', Em.I18n.t('services.mapReduce.config.editQueue'));
           this.set('secondary', Em.I18n.t('common.save'));
-          if(self.get('queues').length > 1 && self.get('canEdit')){
+          if (self.get('queues').length > 1 && self.get('canEdit')) {
             this.set('delete', Em.I18n.t('common.delete'));
           }
         }
@@ -850,36 +989,36 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
       secondary: Em.I18n.t('common.add'),
       primary: Em.I18n.t('common.cancel'),
       delete: null,
-      isError: function(){
-        if(!self.get('canEdit')){
+      isError: function () {
+        if (!self.get('canEdit')) {
           return true;
         }
         var content = this.get('content');
-        var configs = content.configs.filter(function(config){
-          if((config.name == 'mapred.queue.' + content.name + '.acl-submit-job' ||
-             config.name == 'mapred.queue.' + content.name + '.acl-administer-jobs') &&
-             (config.isQueue)){
+        var configs = content.configs.filter(function (config) {
+          if ((config.name == 'mapred.queue.' + content.name + '.acl-submit-job' ||
+            config.name == 'mapred.queue.' + content.name + '.acl-administer-jobs') &&
+            (config.isQueue)) {
             return false;
           }
           return true;
         });
         return configs.someProperty('isValid', false);
       }.property('content.configs.@each.isValid'),
-      onDelete: function(){
+      onDelete: function () {
         var view = this;
         App.ModalPopup.show({
           header: Em.I18n.t('popup.confirmation.commonHeader'),
           body: Em.I18n.t('hosts.delete.popup.body'),
           primary: Em.I18n.t('yes'),
-          onPrimary: function(){
+          onPrimary: function () {
             self.deleteQueue(view.get('content'));
             view.hide();
             this.hide();
           }
         });
       },
-      onSecondary: function() {
-        if(queueName){
+      onSecondary: function () {
+        if (queueName) {
           self.editQueue(this.get('content'));
         } else {
           self.addQueue(this.get('content'));
@@ -898,7 +1037,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
        * 8. Support Priority
        * ...
        */
-      content: function(){
+      content: function () {
         var content = (queueName) ? self.get('queues').findProperty('name', queueName) : self.get('emptyQueue');
         var configs = [];
         var tableContent = self.get('tableContent');
@@ -911,7 +1050,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
                 var isError = false;
                 var capacities = [];
                 var capacitySum = 0;
-                if(tableContent){
+                if (tableContent) {
                   capacities = tableContent.mapProperty('capacity');
                   for (var i = 0, l = capacities.length; i < l; i++) {
                     capacitySum += parseInt(capacities[i]);
@@ -946,8 +1085,8 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
               }.observes('value')
             });
           }
-          if(config.name == 'mapred.capacity-scheduler.queue.' + content.name + '.supports-priority'){
-            if(config.get('value') == 'true' || config.get('value') === true){
+          if (config.name == 'mapred.capacity-scheduler.queue.' + content.name + '.supports-priority') {
+            if (config.get('value') == 'true' || config.get('value') === true) {
               config.set('value', true);
             } else {
               config.set('value', false);
@@ -1006,16 +1145,16 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
        * @param content
        * @return {*}
        */
-      insertExtraConfigs: function(content){
+      insertExtraConfigs: function (content) {
         var that = this;
         var admin = content.configs.findProperty('name', 'mapred.queue.' + content.name + '.acl-administer-jobs').get('value');
         var submit = content.configs.findProperty('name', 'mapred.queue.' + content.name + '.acl-submit-job').get('value');
         admin = (admin) ? admin.split(' ') : [''];
         submit = (submit) ? submit.split(' ') : [''];
-        if(admin.length < 2){
+        if (admin.length < 2) {
           admin.push('');
         }
-        if(submit.length < 2){
+        if (submit.length < 2) {
           submit.push('');
         }
         var newField = App.ServiceConfigProperty.create({
@@ -1023,12 +1162,12 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
           displayName: Em.I18n.t('services.mapReduce.extraConfig.queue.name'),
           description: Em.I18n.t('services.mapReduce.description.queue.name'),
           value: (content.name == '<queue-name>') ? '' : content.name,
-          validate: function(){
+          validate: function () {
             var queueNames = self.get('queues').mapProperty('name');
             var value = this.get('value');
             var isError = false;
             var regExp = /^[a-z]([\_\-a-z0-9]{0,50})\$?$/i;
-            if(value == ''){
+            if (value == '') {
               if (this.get('isRequired')) {
                 this.set('errorMessage', 'This is required');
                 isError = true;
@@ -1036,14 +1175,14 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
                 return;
               }
             }
-            if(!isError){
-              if((queueNames.indexOf(value) !== -1) && (value != content.name)){
+            if (!isError) {
+              if ((queueNames.indexOf(value) !== -1) && (value != content.name)) {
                 this.set('errorMessage', 'Queue name is already used');
                 isError = true;
               }
             }
-            if(!isError){
-              if(!regExp.test(value)){
+            if (!isError) {
+              if (!regExp.test(value)) {
                 this.set('errorMessage', 'Incorrect input');
                 isError = true;
               }
@@ -1113,22 +1252,22 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
         });
 
         submitUser.reopen({
-          validate: function(){
+          validate: function () {
             that.userGroupValidation(this, submitGroup);
           }.observes('value')
         });
         submitGroup.reopen({
-          validate: function(){
+          validate: function () {
             that.userGroupValidation(this, submitUser);
           }.observes('value')
         });
         adminUser.reopen({
-          validate: function(){
+          validate: function () {
             that.userGroupValidation(this, adminGroup);
           }.observes('value')
         });
         adminGroup.reopen({
-          validate: function(){
+          validate: function () {
             that.userGroupValidation(this, adminUser);
           }.observes('value')
         });
@@ -1149,15 +1288,15 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
        * @param context
        * @param boundConfig
        */
-      userGroupValidation:  function(context, boundConfig){
-        if(context.get('value') == ''){
-          if(boundConfig.get('value') == ''){
+      userGroupValidation: function (context, boundConfig) {
+        if (context.get('value') == '') {
+          if (boundConfig.get('value') == '') {
             context._super();
           } else {
             boundConfig.validate();
           }
         } else {
-          if(boundConfig.get('value') == ''){
+          if (boundConfig.get('value') == '') {
             boundConfig.set('errorMessage', '');
           }
           context._super();

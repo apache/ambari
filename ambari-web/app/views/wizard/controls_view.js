@@ -58,6 +58,14 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
       return false;
     }
   },
+  //Set editDone true for last edited config text field parameter
+  focusOut: function(event){
+    this.get('_parentView').get("content").set("editDone", true);
+  },
+  //Set editDone false for all current category config text field parameter
+  focusIn: function(event){
+    this.get("categoryConfigsAll").setEach("editDone", false);
+  },
 
   textFieldClassName: function () {
     // sets the width of the field depending on display type
