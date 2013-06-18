@@ -268,6 +268,7 @@ App.MainAppsView = Em.View.extend({
    */
   didInsertElement: function(){
     App.router.get('mainAppsItemController').set('lastJobId', null);
+    this.onChangeViewType();
   },
   /**
    *
