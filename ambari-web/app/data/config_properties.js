@@ -569,7 +569,19 @@ module.exports =
       "serviceName": "HCFS",
       "category": "General",
       "filename": "core-site.xml",
-    },     
+    },
+    {
+      "id": "puppet var",
+      "name": "fs_glusterfs_getfattrcmd",
+      "displayName": "Gluster getfattr command",
+      "description": "Gluster getfattr command",
+      "defaultValue": "sudo getfattr -m . -n trusted.glusterfs.pathinfo",
+      "displayType": "string",
+      "isVisible": false,
+      "domain": "global",
+      "serviceName": "HCFS",
+      "category": "General"
+    },
   /**********************************************MAPREDUCE***************************************/
     {
       "id": "puppet var",
