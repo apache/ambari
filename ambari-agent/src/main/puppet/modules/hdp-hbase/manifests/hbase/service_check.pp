@@ -24,7 +24,7 @@ class hdp-hbase::hbase::service_check() inherits hdp-hbase::params
   $security_enabled = $hdp::params::security_enabled
   $output_file = "/apps/hbase/data/ambarismoketest"
   $conf_dir = $hdp::params::hbase_conf_dir
-  $smoke_user_keytab = "${hdp-hbase::params::keytab_path}/${smoke_test_user}.headless.keytab"
+  $smoke_user_keytab = $hdp::params::smokeuser_keytab
   $hbase_user = $hdp-hbase::params::hbase_user
   $hbase_keytab = "${hdp-hbase::params::keytab_path}/${hbase_user}.headless.keytab"
   $test_cmd = "fs -test -e ${output_file}"

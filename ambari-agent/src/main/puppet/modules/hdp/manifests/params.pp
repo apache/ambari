@@ -55,6 +55,7 @@ class hdp::params()
   $kinit_path_local = hdp_default("kinit_path_local","/usr/bin/kinit")
   $keytab_path = hdp_default("keytab_path", "/etc/security/keytabs")
   $use_hostname_in_principal = hdp_default("instance_name", true)
+  $smokeuser_keytab = hdp_default("smokeuser_keytab", "/etc/security/keytabs/smokeuser.headless.keytab")
 
   ###### hostnames
   $namenode_host = hdp_default("namenode_host")

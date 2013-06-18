@@ -121,6 +121,19 @@ module.exports =
       "serviceName": "GENERAL",
       "category": "KERBEROS"
     },
+    {
+      "id": "puppet var",
+      "name": "smokeuser_keytab",
+      "displayName": "Path to smoke test user keytab file",
+      "value": "",
+      "defaultValue": "/etc/security/keytabs/smokeuser.headless.keytab",
+      "description": "Path to keytab file for smoke test user",
+      "displayType": "directory",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "GENERAL",
+      "category": "KERBEROS"
+    },
 
     //HDFS
     {

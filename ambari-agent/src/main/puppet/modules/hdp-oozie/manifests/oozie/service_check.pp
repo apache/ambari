@@ -43,7 +43,7 @@ define hdp-oozie::smoke_shell_file()
   } else {
     $security = "false"
   }
-  $smoke_user_keytab = "${hdp-oozie::params::keytab_path}/${smoke_test_user}.headless.keytab"
+  $smoke_user_keytab = $hdp::params::smokeuser_keytab
   $realm=$hdp::params::kerberos_domain
 
   file { '/tmp/oozieSmoke.sh':

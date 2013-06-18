@@ -24,7 +24,7 @@ class hdp-hive::hive::service_check() inherits hdp-hive::params
   $smoke_test_sql = "/tmp/$smoke_test_sql_file"
   $smoke_test_path = "/tmp/$smoke_test_script"
   $security_enabled = $hdp::params::security_enabled
-  $smoke_user_keytab = "${hdp-hive::params::keytab_path}/${smoke_test_user}.headless.keytab"
+  $smoke_user_keytab = $hdp::params::smokeuser_keytab
 
   if ($security_enabled == true) {
     $kinit_cmd = "${hdp::params::kinit_path_local} -kt ${smoke_user_keytab} ${smoke_test_user};"
