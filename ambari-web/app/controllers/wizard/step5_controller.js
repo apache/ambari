@@ -334,7 +334,7 @@ App.WizardStep5Controller = Em.Controller.extend({
         }).host_name;
       case 'NAMENODE':
         return this.getHostForComponent(noOfHosts, {
-          "else" : 1
+          "else" : 0
         }).host_name;
       case 'SECONDARY_NAMENODE':
         return this.getHostForComponent(noOfHosts, {
