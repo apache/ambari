@@ -210,7 +210,7 @@ var urls = {
   },
   'config.advanced.global': {
     'real': '{stack2VersionUrl}/stackServices?fields=configurations/StackConfigurations/type',
-    'mock': '/data/wizard/stack/hdp/version130/global.json',
+    'mock': '/data/wizard/stack/hdp/version1.3.0/global.json',
     'format': function (data) {
       return {
         async: false
