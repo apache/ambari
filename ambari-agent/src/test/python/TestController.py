@@ -25,7 +25,7 @@ import unittest
 from ambari_agent import Controller, ActionQueue
 from ambari_agent import hostname
 import sys
-from mock.mock import patch, MagicMock, call
+from mock.mock import patch, MagicMock, call, Mock
 import logging
 
 class TestController(unittest.TestCase):
