@@ -185,20 +185,21 @@ define hdp-hadoop::namenode::create_app_directories($service_state)
       if ($hdp::params::hs_host != "") {
         $mapred_user = $hdp::params::mapred_user
         $mapreduce_jobhistory_intermediate_done_dir = $hdp::params::mapreduce_jobhistory_intermediate_done_dir
+        $group = $hdp::params::user_group
         $mapreduce_jobhistory_done_dir = $hdp::params::mapreduce_jobhistory_done_dir
 
         hdp-hadoop::hdfs::directory{ $mapreduce_jobhistory_intermediate_done_dir:
           service_state => $service_state,
           owner => $mapred_user,
-          mode  => '1777',
-          recursive_chmod => true
+          group => $group,
+          mode  => '1777'
         }
 
         hdp-hadoop::hdfs::directory{ $mapreduce_jobhistory_done_dir:
           service_state => $service_state,
           owner => $mapred_user,
-          mode  => '1777',
-          recursive_chmod => true
+          group => $group,
+          mode  => '1777'
         }
       }
     }
