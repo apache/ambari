@@ -89,10 +89,6 @@ App.MainAppsController = Em.ArrayController.extend({
     sSearch_3:"",
     minJobs:"",
     maxJobs:"",
-    minInputBytes:"",
-    maxInputBytes:"",
-    minOutputBytes:"",
-    maxOutputBytes:"",
     minDuration:"",
     maxDuration:"",
     minStartTime:"",
@@ -140,26 +136,6 @@ App.MainAppsController = Em.ArrayController.extend({
       this.set("minJobs", minMaxTmp.min);
       this.set("maxJobs", minMaxTmp.max);
     }.observes("jobs"),
-
-    /**
-     * Direct binding to Input filter field
-     */
-    input:"",
-    onInputChange:function(){
-      var minMaxTmp = this.parseBandWidth(this.input);
-      this.set("minInputBytes", minMaxTmp.min);
-      this.set("maxInputBytes", minMaxTmp.max);
-    }.observes("input"),
-
-    /**
-     * Direct binding to Output filter field
-     */
-    output:"",
-    onOutputChange:function(){
-      var minMaxTmp = this.parseBandWidth(this.output);
-      this.set("minOutputBytes", minMaxTmp.min);
-      this.set("maxOutputBytes", minMaxTmp.max);
-    }.observes("output"),
 
     /**
      * Direct binding to Duration filter field
@@ -327,8 +303,7 @@ App.MainAppsController = Em.ArrayController.extend({
 
       var arr = [
         "sSearch_0", "sSearch_1", "sSearch_2", "sSearch_3", "minJobs",
-        "maxJobs", "minInputBytes", "maxInputBytes", "minOutputBytes",
-        "maxOutputBytes", "minDuration", "maxDuration", "minStartTime",
+        "maxJobs", "minDuration", "maxDuration", "minStartTime",
         "maxStartTime", "sSearch", "iDisplayLength", "iDisplayStart",
         "iSortCol_0", "sSortDir_0", "tagSearch"
       ];
@@ -366,8 +341,6 @@ App.MainAppsController = Em.ArrayController.extend({
     obj.set("sSearch_3","");
     obj.set("runType","Any");
     obj.set("jobs","");
-    obj.set("input","");
-    obj.set("output","");
     obj.set("duration","");
     obj.set("runDate","Any");
     obj.set("tagSearch","");
@@ -407,10 +380,6 @@ App.MainAppsController = Em.ArrayController.extend({
       'filterObject.sSearch_3',
       'filterObject.minJobs',
       'filterObject.maxJobs',
-      'filterObject.minInputBytes',
-      'filterObject.maxInputBytes',
-      'filterObject.minOutputBytes',
-      'filterObject.maxOutputBytes',
       'filterObject.minDuration',
       'filterObject.maxDuration',
       'filterObject.minStartTime',
@@ -440,16 +409,6 @@ App.MainAppsController = Em.ArrayController.extend({
           'min': '-',
           'max': '-'
         },
-        'input': {
-          'avg': '-',
-          'min': '-',
-          'max': '-'
-        },
-        'output': {
-          'avg': '-',
-          'min': '-',
-          'max': '-'
-        },
         'duration': {
           'avg': '-',
           'min': '-',
@@ -466,16 +425,6 @@ App.MainAppsController = Em.ArrayController.extend({
           'avg': summary.jobs.avg.toFixed(2),
           'min': summary.jobs.min,
           'max': summary.jobs.max
-        },
-        'input': {
-          'avg': misc.formatBandwidth(summary.input.avg),
-          'min': misc.formatBandwidth(summary.input.min),
-          'max': misc.formatBandwidth(summary.input.max)
-        },
-        'output': {
-          'avg': misc.formatBandwidth(summary.output.avg),
-          'min': misc.formatBandwidth(summary.output.min),
-          'max': misc.formatBandwidth(summary.output.max)
         },
         'duration': {
           'avg': date.timingFormat(Math.round(summary.duration.avg)),
@@ -500,10 +449,8 @@ App.MainAppsController = Em.ArrayController.extend({
       { name: Em.I18n.t('common.user'), index: 3 },
       { name: Em.I18n.t('common.tags'), index: 4 },
       { name: Em.I18n.t('apps.avgTable.jobs'), index: 5 },
-      { name: Em.I18n.t('apps.avgTable.input'), index: 6 },
-      { name: Em.I18n.t('apps.avgTable.output'), index: 7 },
-      { name: Em.I18n.t('apps.avgTable.duration'), index: 8 },
-      { name: Em.I18n.t('apps.table.column.runDate'), index: 9 }
+      { name: Em.I18n.t('apps.avgTable.duration'), index: 6 },
+      { name: Em.I18n.t('apps.table.column.runDate'), index: 7 }
     ]
   })
 

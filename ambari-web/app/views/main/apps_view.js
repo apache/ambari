@@ -225,22 +225,6 @@ App.MainAppsView = Em.View.extend({
     valueBinding: "controller.filterObject.jobs"
   }),
   /**
-   * Filter-field for Input.
-   * Based on <code>filters</code> library
-   */
-  inputFilterView: filters.createTextView({
-    fieldType: 'input-super-mini',
-    valueBinding: "controller.filterObject.input"
-  }),
-  /**
-   * Filter-field for Output.
-   * Based on <code>filters</code> library
-   */
-  outputFilterView: filters.createTextView({
-    fieldType: 'input-super-mini',
-    valueBinding: "controller.filterObject.output"
-  }),
-  /**
    * Filter-field for Duration.
    * Based on <code>filters</code> library
    */

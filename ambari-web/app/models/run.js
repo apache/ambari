@@ -30,8 +30,6 @@ App.Run = DS.Model.extend({
   startTime:DS.attr('string'),
   elapsedTime:DS.attr('string'),
   workflowContext:DS.attr('string'),
-  input: DS.attr('number'),
-  output: DS.attr('number'),
   tags: DS.attr('string'),
 
   loadAllJobs : false,
@@ -65,23 +63,6 @@ App.Run = DS.Model.extend({
   isRunning: function () {
     return !this.get('numJobsTotal') == this.get('numJobsCompleted');
   }.property('numJobsTotal', 'numJobsCompleted'),
-  /**
-   * Sum of input bandwidth for all jobs with appropriate measure
-   */
-  inputFormatted: function () {
-    var input = this.get('input');
-    input = misc.formatBandwidth(input);
-    return input;
-  }.property('input'),
-
-  /**
-   *  Sum of output bandwidth for all jobs with appropriate measure
-   */
-  outputFormatted: function () {
-    var output = this.get('output');
-    output = misc.formatBandwidth(output);
-    return output;
-  }.property('output'),
 
   /**
    *

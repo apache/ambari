@@ -33,28 +33,12 @@ App.Job = DS.Model.extend({
   maps: DS.attr('number'),
   reduces: DS.attr('number'),
   status: DS.attr('string'),
-  input: DS.attr('number'),
-  output: DS.attr('number'),
   elapsedTime: DS.attr('number'),
   duration: function () {
     return date.timingFormat(parseInt(this.get('elapsedTime')));
   }.property('elapsedTime'),
   jobTimeLine: DS.attr('string'),
-  jobTaskView: DS.attr('string'),
-  /**
-   *  Sum of input bandwidth for all jobs with appropriate measure
-   */
-  inputFormatted: function () {
-    var input = this.get('input');
-    return misc.formatBandwidth(input);
-  }.property('input'),
-  /**
-   *  Sum of output bandwidth for all jobs with appropriate measure
-   */
-  outputFormatted: function () {
-    var output = this.get('output');
-    return misc.formatBandwidth(output);
-  }.property('output')
+  jobTaskView: DS.attr('string')
 
 });
 
