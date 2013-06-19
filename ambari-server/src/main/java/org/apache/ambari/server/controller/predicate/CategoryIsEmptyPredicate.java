@@ -46,11 +46,4 @@ public class CategoryIsEmptyPredicate extends CategoryPredicate {
     Map<String, Object> properties = resource.getPropertiesMap().get(propertyId);
     return properties == null ? true : properties.isEmpty();
   }
-
-  // ----- Object overrides --------------------------------------------------
-
-  @Override
-  public String toString() {
-    return "isEmpty(" + getPropertyId() + ")";
-  }
 }

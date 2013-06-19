@@ -63,12 +63,4 @@ public abstract class UnaryPredicate implements BasePredicate {
   }
 
   public abstract String getOperator();
-
-
-  // ----- Object overrides --------------------------------------------------
-
-  @Override
-  public String toString() {
-    return getOperator() + "(" + getPredicate() + ")";
-  }
 }
