@@ -187,10 +187,10 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     }
   },
   gangliaServer:function() {
-    return this.getServer("GANGLIA");
+    return (App.singleNodeInstall ? this.getServer("GANGLIA") + ":42080" : this.getServer("GANGLIA"));
   }.property('controller.content'),
   nagiosServer:function(){
-    return this.getServer("NAGIOS");
+    return (App.singleNodeInstall ? this.getServer("NAGIOS") + ":42080" : this.getServer("NAGIOS"));
   }.property('controller.content'),
   oozieServer:function(){
     return this.getServer("OOZIE");

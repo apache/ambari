@@ -23,7 +23,8 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
   serviceName: 'YARN',
 
   nodeWebUrl: function () {
-    return "http://" + this.get('service.resourceManagerNode').get('publicHostName') + ":8088";
+    var hostName = this.get('service.resourceManagerNode').get('publicHostName');
+    return "http://" + (App.singleNodeInstall ? App.singleNodeAlias : hostName)  + ":8088";
   }.property('service.resourceManagerNode'),
 
   nodeHeap: function () {
