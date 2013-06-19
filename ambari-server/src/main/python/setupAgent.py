@@ -77,7 +77,7 @@ def configureAgent(server_hostname):
 
 def runAgent(passPhrase, expected_hostname):
   os.environ[AMBARI_PASSPHRASE_VAR] = passPhrase
-  agent_retcode = subprocess.call("/usr/sbin/ambari-agent start --expected-hostname={0}".format(expected_hostname), shell=True)
+  agent_retcode = subprocess.call("/usr/sbin/ambari-agent start --expected-hostname=" + expected_hostname, shell=True)
   try:
 
     ret = execOsCommand(["tail", "-20", "/var/log/ambari-agent/ambari-agent.log"])
