@@ -36,7 +36,7 @@ App.MapReduceLinksView = App.DashboardWidgetView.extend({
 
   jobTrackerWebUrl: function () {
     return "http://" + this.get('model').get('jobTracker').get('publicHostName') + ":50030";
-  }.property('model.nameNode')
+  }.property('model.jobTracker')
 
 })
 

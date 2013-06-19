@@ -23,7 +23,7 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
   serviceName: 'MAPREDUCE',
   jobTrackerWebUrl: function () {
     return "http://" + (App.singleNodeInstall ? App.singleNodeAlias : this.get('service').get('jobTracker').get('publicHostName')) + ":50030";
-  }.property('service.nameNode'),
+  }.property('service.jobTracker'),
 
   Chart: App.ChartLinearView.extend({
     data: function () {

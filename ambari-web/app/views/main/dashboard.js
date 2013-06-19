@@ -23,9 +23,10 @@ App.MainDashboardView = Em.View.extend({
   templateName:require('templates/main/dashboard'),
   didInsertElement:function () {
     this.services();
-    this.set('isDataLoaded',true);
     this.setWidgetsDataModel();
+    this.setInitPrefObject();
     this.setOnLoadVisibleWidgets();
+    this.set('isDataLoaded',true);
     Ember.run.next(this, 'makeSortable');
   },
   content:[],
@@ -38,7 +39,6 @@ App.MainDashboardView = Em.View.extend({
       items: "> div",
       //placeholder: "sortable-placeholder",
       cursor: "move",
-
       update: function (event, ui) {
         if (!App.testMode) {
           // update persist then translate to real
@@ -82,6 +82,43 @@ App.MainDashboardView = Em.View.extend({
       }
     }, this);
   },
+  setInitPrefObject: function() {
+    //in case of some service not installed
+    var visible_full = [
+      '2', '4', '8', '10',
+      '17', '11', '12', '13', '14',
+      '18', '1', '6', '5', '9',
+      '3', '7', '15', '16', '20',
+      '19', '21', '23'
+    ]; // all in order
+    var hidden_full = [['22','Region In Transition']];
+    if (this.get('hdfs_model') == null) {
+      var hdfs_arr = ['1', '2', '3', '4', '5', '15', '17'];
+      hdfs_arr.forEach ( function (item) {
+        var index = visible_full.indexOf(item);
+        visible_full.splice(index, 1);
+      }, this);
+    }
+    if (this.get('mapreduce_model') == null) {
+      var map_arr = ['6', '7', '8', '9', '10', '16', '18'];
+      map_arr.forEach ( function (item) {
+        var index = visible_full.indexOf(item);
+        visible_full.splice(index, 1);
+      }, this);
+    }
+    if (this.get('hbase_model') == null) {
+      var hbase_arr = ['19', '20', '21', '23'];
+      hbase_arr.forEach ( function (item) {
+        var index = visible_full.indexOf(item);
+        visible_full.splice(index, 1);
+      }, this);
+      hidden_full = [];
+    }
+    var obj = this.get('initPrefObject');
+    obj.visible = visible_full;
+    obj.hidden = hidden_full;
+  },
+  
   hdfs_model: null,
   mapreduce_model: null,
   hbase_model: null,
@@ -234,20 +271,13 @@ App.MainDashboardView = Em.View.extend({
       case '22': return App.HBaseRegionsInTransitionView;
       case '23': return App.HBaseMasterUptimeView;
     }
-
   },
 
   currentPrefObject: null,
   initPrefObject: Em.Object.create({
     dashboardVersion: 'new',
-    visible: [
-      '2', '4', '8', '10',
-      '17', '11', '12', '13', '14',
-      '18', '1', '6', '5', '9',
-      '3', '7', '15', '16', '20',
-      '19', '21', '23'
-    ], // all in order
-    hidden: [['22','Region In Transition']],
+    visible: [],
+    hidden: [],
     threshold: {1: [80, 90], 2: [85, 95], 3: [90, 95], 4: [80, 90], 5: [1000, 3000], 6: [70, 90], 7: [90, 95], 8: [50, 75], 9: [30000, 120000],
       10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: [], 17: [], 18: [], 19: [], 20: [70, 90], 21: [10, 19.2], 22: [3, 10], 23: []} // id:[thresh1, thresh2]
   }),
