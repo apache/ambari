@@ -107,7 +107,7 @@ App.HBaseMasterHeapPieChartView = App.DashboardWidgetView.extend({
       }
       // draw new svg
       this.appendSvg();
-    }.observes('model.heapMemoryUsed', 'model.heapMemoryMax', 'this.thresh1', 'this.thresh2')
+    }.observes('this.data', 'this.thresh1', 'this.thresh2')
 
   })
 

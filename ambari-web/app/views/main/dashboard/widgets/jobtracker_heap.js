@@ -58,7 +58,7 @@ App.JobTrackerHeapPieChartView = App.DashboardWidgetView.extend({
     innerR: 25,
 
     existCenterText: true,
-    centerTextColor: function (){
+    centerTextColor: function () {
       return this.get('contentColor');
     }.property('contentColor'),
 
@@ -105,7 +105,7 @@ App.JobTrackerHeapPieChartView = App.DashboardWidgetView.extend({
 
       // draw new svg
       this.appendSvg();
-    }.observes('model.jobTrackerHeapUsed', 'model.jobTrackerHeapMax', 'this.thresh1', 'this.thresh2')
+    }.observes('this.data', 'this.thresh1', 'this.thresh2')
   })
 
 })

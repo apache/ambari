@@ -107,7 +107,7 @@ App.NameNodeHeapPieChartView = App.DashboardWidgetView.extend({
       }
       // draw new svg
       this.appendSvg();
-    }.observes('model.jvmMemoryHeapUsed', 'model.jvmMemoryHeapCommitted', 'this.thresh1', 'this.thresh2')
+    }.observes('this.data', 'this.thresh1', 'this.thresh2')
   })
 
 })

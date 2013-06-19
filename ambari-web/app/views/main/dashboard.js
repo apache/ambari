@@ -150,7 +150,7 @@ App.MainDashboardView = Em.View.extend({
     var hidden = value.hidden;
     var threshold = value.threshold;
 
-    if(version == 'classic'){
+    if (version == 'classic') {
       this.set('isClassicDashboard', true);
     }else if(version == 'new'){
       this.set('isClassicDashboard', false);
@@ -242,9 +242,9 @@ App.MainDashboardView = Em.View.extend({
       '6', '7', '8', '9', '10', '18', '16',//map reduce
       '20', '21', '19', '23' //hbase
     ], // all in order
-    hidden:[['22','Region In Transition']],
-    threshold:{1: [40,70], 2: [40,70], 3: [40,70], 4: [40,70], 5: [0.5, 2], 6: [40,70], 7: [40,70], 8: [40,70], 9: [0.5, 2],
-      10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: [], 17: [], 18: [], 19: [], 20: [40,70], 21: [10,19.2], 22: [3, 10], 23: []} // id:[thresh1, thresh2]
+    hidden: [['22','Region In Transition']],
+    threshold: {1: [80, 90], 2: [85, 95], 3: [90, 95], 4: [80, 90], 5: [1000, 3000], 6: [70, 90], 7: [90, 95], 8: [50, 75], 9: [30000, 120000],
+      10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: [], 17: [], 18: [], 19: [], 20: [70, 90], 21: [10, 19.2], 22: [3, 10], 23: []} // id:[thresh1, thresh2]
   }),
   persistKey: function () {
     var loginName = App.router.get('loginName');

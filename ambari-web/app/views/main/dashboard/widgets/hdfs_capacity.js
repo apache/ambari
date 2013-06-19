@@ -121,7 +121,7 @@ App.NameNodeCapacityPieChartView = App.DashboardWidgetView.extend({
 
       // draw new svg
       this.appendSvg();
-    }.observes('model.capacityUsed', 'model.capacityTotal', 'this.thresh1', 'this.thresh2')
+    }.observes('this.data', 'this.thresh1', 'this.thresh2')
   })
 
 })
