@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var service_components = require('data/service_components');
 
 App.MainServiceItemController = Em.Controller.extend({
   name: 'mainServiceItemController',
@@ -88,6 +89,7 @@ App.MainServiceItemController = Em.Controller.extend({
     }
     var self = this;
     App.showConfirmationPopup(function() {
+      self.set('isPending', true);
       self.startStopPopupPrimary(serviceHealth);
     });
   },
@@ -110,8 +112,8 @@ App.MainServiceItemController = Em.Controller.extend({
         'state': serviceHealth
       }
     });
-    this.set('content.isStopDisabled',true);
-    this.set('content.isStartDisabled',true);
+    this.set('isStopDisabled',true);
+    this.set('isStartDisabled',true);
   },
 
   /**
@@ -211,5 +213,46 @@ App.MainServiceItemController = Em.Controller.extend({
     if (methodName) {
       this[methodName](context);
     }
-  }
+    },
+
+
+    setStartStopState: function () {
+        var serviceName = this.get('content.serviceName');
+        var backgroundOperations = App.router.get('backgroundOperationsController.services');
+        if(backgroundOperations.length>0) {
+            for (var i = 0; i < backgroundOperations.length; i++) {
+                var hosts = backgroundOperations[i].hosts;
+                for (var j = 0; j < hosts.length; j++) {
+                    var logTasks = hosts[j].logTasks;
+                    for (var k = 0; k < logTasks.length; k++) {
+                        var service = service_components.findProperty('component_name', logTasks[k].Tasks.role);
+                        if (service && serviceName == service.service_name) {
+                            if (logTasks[k].Tasks.status == 'PENDING' || logTasks[k].Tasks.status == 'IN_PROGRESS' || logTasks[k].Tasks.status == 'QUEUED') {
+                                this.set('isPending', true);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+            this.set('isPending', false);
+        }
+        else {
+            this.set('isPending', true);
+        }
+
+    }.observes('App.router.backgroundOperationsController.serviceTimestamp'),
+
+  isStartDisabled: function () {
+    if(this.get('isPending')) return true;
+    return !(this.get('content.healthStatus') == 'red');
+  }.property('content.healthStatus','isPending'),
+
+  isStopDisabled: function () {
+    if(this.get('isPending')) return true;
+    return !(this.get('content.healthStatus') == 'green');
+  }.property('content.healthStatus','isPending'),
+
+  isPending:true
+
 })

@@ -28,19 +28,19 @@
       <ul class="dropdown-menu">
         <!-- dropdown menu links -->
         {{#each option in view.maintenance}}
-        <li {{bindAttr class="controller.content.isStopDisabled:disabled"}}>
+        <li {{bindAttr class="controller.isStopDisabled:disabled"}}>
           <a {{action "doAction" option target="controller" href=true}}>{{option.label}}</a>
         </li>
         {{/each}}
       </ul>
     </div>
   {{/if}}
-  <a href="javascript:void(null)" {{bindAttr class=":btn controller.content.isStartDisabled:disabled:btn-success" }}
+  <a href="javascript:void(null)" {{bindAttr class=":btn controller.isStartDisabled:disabled:btn-success" }}
      data-toggle="modal" {{action "startService" target="controller"}}>
     <i class="icon-play"></i>
     {{t services.service.start}}
   </a>
-  <a href="javascript:void(null)" {{bindAttr class=":btn controller.content.isStopDisabled:disabled:btn-danger" }}
+  <a href="javascript:void(null)" {{bindAttr class=":btn controller.isStopDisabled:disabled:btn-danger" }}
      data-toggle="modal" {{action "stopService" target="controller"}}>
     <i class="icon-stop icon-white"></i>
     {{t services.service.stop}}

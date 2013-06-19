@@ -39,6 +39,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
    */
   startPolling: function(){
     if(this.get('isWorking')){
+      this.requestMostRecent();
       App.updater.run(this, 'requestMostRecent', 'isWorking', App.bgOperationsUpdateInterval);
     }
   }.observes('isWorking'),
