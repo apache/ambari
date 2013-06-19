@@ -185,6 +185,8 @@ App.config = Em.Object.create({
         if (_tag.siteName === 'global') {
           if (configsPropertyDef) {
             this.handleSpecialProperties(serviceConfigObj);
+          } else {
+            serviceConfigObj.isVisible = false;  // if the global property is not defined on ui metadata config_properties.js then it shouldn't be a part of errorCount
           }
           serviceConfigObj.id = 'puppet var';
           serviceConfigObj.displayName = configsPropertyDef ? configsPropertyDef.displayName : null;
