@@ -63,6 +63,13 @@ App.MainAdminUserEditView = Em.View.extend({
     }
   },
 
+  keyPress: function(event) {
+    if (event.keyCode === 13) {
+      this.edit();
+      return false;
+    }
+  },
+
   userForm: App.EditUserForm.create({}),
 
   didInsertElement: function() {
