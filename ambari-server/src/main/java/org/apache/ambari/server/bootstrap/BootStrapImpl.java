@@ -64,7 +64,7 @@ public class BootStrapImpl {
         InetAddress.getLocalHost().getCanonicalHostName());
     this.clusterOsType = conf.getServerOsType();
     this.projectVersion = ambariMetaInfo.getServerVersion();
-    this.serverPort = conf.getClientApiPort();
+    this.serverPort = (conf.getApiSSLAuthentication())? conf.getClientSSLApiPort() : conf.getClientApiPort();
   }
 
   /**
