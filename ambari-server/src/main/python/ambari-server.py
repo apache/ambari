@@ -1960,9 +1960,8 @@ def start(args):
       masterKey = get_validated_string_input("Please provide master key " +\
                     "for unlocking credential store: ", "", ".*", "", False)
       tempDir = tempfile.gettempdir()
-      tempFilePath = tempDir + os.sep + "ambari.passwd"
-      with open(tempFilePath, 'w+') as file:
-        file.write(masterKey)
+      tempFilePath = tempDir + os.sep + "masterkey"
+      save_master_key(masterKey, tempFilePath, True)
       os.chmod(tempFilePath, stat.S_IREAD | stat.S_IWRITE)
 
       if tempFilePath is not None:
@@ -2300,7 +2299,7 @@ def setup_master_key(resetKey=False):
         persist)
     elif not persist and masterKeyFile is not None:
       try:
-        #os.remove(masterKeyFile)
+        os.remove(masterKeyFile)
         print_warning_msg("Master key exists although security " +\
                           "is disabled. location: " + str(masterKeyFile))
       except Exception, e:
@@ -2310,6 +2309,11 @@ def setup_master_key(resetKey=False):
     update_properties({SECURITY_KEY_IS_PERSISTED : persist})
 
   if resetKey:
+    # Blow up the credential store made with previous key
+    store_file = get_credential_store_location(properties)
+    if os.path.exists(store_file):
+      os.remove(store_file)
+
     # Encrypt the passwords with new key
     try:
       db_password_alias = properties[JDBC_PASSWORD_PROPERTY]
@@ -2318,12 +2322,20 @@ def setup_master_key(resetKey=False):
       print_warning_msg("KeyError: " + str(e))
 
     if db_password_alias is not None and is_alias_string(db_password_alias):
-      configure_database_password(True, False)
+      configure_database_password(True, key, True)
 
     if ldap_password_alias is not None and is_alias_string(ldap_password_alias):
       configure_ldap_password(True)
 
   return key, True, persist
+
+def get_credential_store_location(properties):
+  store_loc = properties[SECURITY_KEYS_DIR]
+  if store_loc is None or store_loc == "":
+    store_loc = "/var/lib/ambari-server/keys/credentials.jceks"
+  else:
+    store_loc += os.sep + "credentials.jceks"
+  return store_loc
 
 def get_master_key_location(properties):
   keyLocation = properties[SECURITY_MASTER_KEY_LOCATION]
@@ -2374,7 +2386,7 @@ def read_passwd_for_alias(alias, masterKey=""):
     os.chmod(tempFilePath, stat.S_IREAD | stat.S_IWRITE)
     file.close()
 
-    if masterKey is None:
+    if masterKey is None or masterKey == "":
       masterKey = "None"
 
     command = SECURITY_PROVIDER_GET_CMD.format(jdk_path,
@@ -2401,7 +2413,7 @@ def save_passwd_for_alias(alias, passwd, masterKey=""):
                       "JDK manually to " + JDK_INSTALL_DIR)
       return 1
 
-    if masterKey is None:
+    if masterKey is None or masterKey == "":
       masterKey = "None"
 
     command = SECURITY_PROVIDER_PUT_CMD.format(jdk_path, get_conf_dir(),

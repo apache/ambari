@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,10 +45,6 @@ public class CredentialProvider {
 
   public CredentialProvider(String masterKey, String masterKeyLocation,
               boolean isMasterKeyPersisted) throws AmbariException {
-    if (masterKeyLocation == null)
-      throw new IllegalArgumentException("Master key location needed for " +
-        "Credential Provider initialization.");
-
     MasterKeyService masterKeyService;
     if (masterKey != null) {
       masterKeyService = new MasterKeyServiceImpl(masterKey);
@@ -75,8 +72,13 @@ public class CredentialProvider {
     addAliasToCredentialStore(alias, passwordString);
   }
 
-  private void addAliasToCredentialStore(String alias, String passwordString)
+  public void addAliasToCredentialStore(String alias, String passwordString)
     throws AmbariException {
+    if (alias == null || alias.isEmpty())
+      throw new IllegalArgumentException("Alias cannot be null or empty.");
+    if (passwordString == null || passwordString.isEmpty())
+      throw new IllegalArgumentException("Empty or null password not allowed" +
+        ".");
     keystoreService.addCredential(alias, passwordString);
   }
 
@@ -99,6 +101,10 @@ public class CredentialProvider {
   private String getAliasFromString(String strPasswd) {
     return strPasswd.substring(strPasswd.indexOf("=") + 1,
       strPasswd.length() - 1);
+  }
+
+  protected CredentialStoreService getKeystoreService() {
+    return keystoreService;
   }
 
   /**
@@ -124,9 +130,10 @@ public class CredentialProvider {
         System.exit(1);
       }
       // None - To avoid incorrectly assuming redirection as argument
-      if (args.length > 3 && !args[2].isEmpty() && !args[2].equalsIgnoreCase
+      if (args.length > 3 && !args[3].isEmpty() && !args[3].equalsIgnoreCase
         ("None")) {
         masterKey = args[3];
+        LOG.debug("Master key provided as an argument.");
       }
       try {
         credentialProvider = new CredentialProvider(masterKey,
@@ -136,7 +143,7 @@ public class CredentialProvider {
         ex.printStackTrace();
         System.exit(1);
       }
-      LOG.info("action => " + action + ", alias =>" + alias);
+      LOG.info("action => " + action + ", alias => " + alias);
       if (action.equalsIgnoreCase("PUT")) {
         String password = null;
         if (args.length > 2 && !args[2].isEmpty()) {

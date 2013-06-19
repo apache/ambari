@@ -114,6 +114,10 @@ public class AmbariServer {
   }
 
   public void run() throws Exception {
+    // Initialize meta info before heartbeat monitor
+    ambariMetaInfo.init();
+    LOG.info("********* Meta Info initialized **********");
+
     performStaticInjection();
     addInMemoryUsers();
     server = new Server();
@@ -309,9 +313,6 @@ public class AmbariServer {
       server.setStopAtShutdown(true);
       serverForAgent.setStopAtShutdown(true);
       springAppContext.start();
-
-      LOG.info("********* Initializing Meta Info **********");
-      ambariMetaInfo.init();
 
       String osType = getServerOsType();
       if (osType == null || osType.isEmpty()) {

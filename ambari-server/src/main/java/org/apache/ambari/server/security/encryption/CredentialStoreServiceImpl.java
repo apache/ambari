@@ -59,6 +59,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
 
     final File keyStoreFile = new File(keyStoreDir + File.separator +
       CREDENTIALS_SUFFIX);
+    LOG.debug("keystoreFile => " + keyStoreFile.getAbsolutePath());
     if (!isCredentialStoreCreated) {
       createCredentialStore();
     }
@@ -95,8 +96,6 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
     if (ks != null && alias != null && !alias.isEmpty()) {
       try {
         LOG.debug("keystore = " + ks.aliases());
-        LOG.debug("masterkey = " + new String(masterService.getMasterSecret()
-        ));
         Key key = ks.getKey(alias, masterService.getMasterSecret());
         if (key == null) {
           throw new AmbariException("Credential not found for alias: " +

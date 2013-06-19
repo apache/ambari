@@ -38,14 +38,14 @@ import static org.powermock.api.easymock.PowerMock.replayAll;
 import static org.powermock.api.easymock.PowerMock.verifyAll;
 
 @RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.crypto.*")
+@PowerMockIgnore({"javax.crypto.*", "org.apache.log4j.*"})
 @PrepareForTest({ MasterKeyServiceImpl.class })
 public class MasterKeyServiceTest extends TestCase {
   @Rule
   public TemporaryFolder tmpFolder = new TemporaryFolder();
   private String fileDir;
   private static final Log LOG = LogFactory.getLog
-    (CredentialStoreServiceTest.class);
+    (MasterKeyServiceTest.class);
 
   @Override
   protected void setUp() throws Exception {
@@ -70,7 +70,7 @@ public class MasterKeyServiceTest extends TestCase {
   }
 
   @Test
-  public void testReadFromEnv() throws Exception {
+  public void testReadFromEnvAsKey() throws Exception {
     Map<String, String> mapRet = new HashMap<String, String>();
     mapRet.put(Configuration.MASTER_KEY_ENV_PROP, "ThisisSomePassPhrase");
     mockStatic(System.class);
@@ -82,6 +82,29 @@ public class MasterKeyServiceTest extends TestCase {
     Assert.assertNotNull(ms.getMasterSecret());
     Assert.assertEquals("ThisisSomePassPhrase",
       new String(ms.getMasterSecret()));
+  }
+
+  @Test
+  public void testReadFromEnvAsPath() throws Exception {
+    // Create a master key
+    MasterKeyService ms = new MasterKeyServiceImpl("ThisisSomePassPhrase",
+      fileDir + File.separator + "master", true);
+    Assert.assertTrue(ms.isMasterKeyInitialized());
+    File f = new File(fileDir + File.separator + "master");
+    Assert.assertTrue(f.exists());
+
+    Map<String, String> mapRet = new HashMap<String, String>();
+    mapRet.put(Configuration.MASTER_KEY_LOCATION, f.getAbsolutePath());
+    mockStatic(System.class);
+    expect(System.getenv()).andReturn(mapRet);
+    replayAll();
+    ms = new MasterKeyServiceImpl();
+    verifyAll();
+    Assert.assertTrue(ms.isMasterKeyInitialized());
+    Assert.assertNotNull(ms.getMasterSecret());
+    Assert.assertEquals("ThisisSomePassPhrase",
+      new String(ms.getMasterSecret()));
+    Assert.assertFalse(f.exists());
   }
 
   @Override

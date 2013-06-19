@@ -85,6 +85,8 @@ public class MasterKeyServiceImpl implements MasterKeyService {
    * @param isPersisted
    */
   public MasterKeyServiceImpl(String masterFileLocation, boolean isPersisted) {
+    if (masterFileLocation == null || masterFileLocation.isEmpty())
+      throw new IllegalArgumentException("Master Key location not provided.");
     if (isPersisted) {
       File masterFile = new File(masterFileLocation);
       if (masterFile.exists()) {
@@ -104,8 +106,8 @@ public class MasterKeyServiceImpl implements MasterKeyService {
       if (key != null) {
         this.master = key.toCharArray();
       } else {
-        LOG.error("Master key: " + Configuration.MASTER_KEY_ENV_PROP + " is" +
-          " not provided as a System property or an environment varialble.");
+        LOG.error("Master key is not provided as a System property or an " +
+          "environment varialble.");
       }
     }
   }
@@ -146,9 +148,14 @@ public class MasterKeyServiceImpl implements MasterKeyService {
           File keyFile = new File(keyPath);
           if (keyFile.exists()) {
             try {
-              key = FileUtils.readFileToString(keyFile);
+              initializeFromFile(keyFile);
+              if (this.master != null)
+                key = new String(this.master);
               FileUtils.deleteQuietly(keyFile);
             } catch (IOException e) {
+              LOG.error("Cannot read master key from file: " + keyPath);
+              e.printStackTrace();
+            } catch (Exception e) {
               LOG.error("Cannot read master key from file: " + keyPath);
               e.printStackTrace();
             }
@@ -205,10 +212,6 @@ public class MasterKeyServiceImpl implements MasterKeyService {
       this.master = new String(aes.decrypt(Base64.decodeBase64(parts[0]),
         Base64.decodeBase64(parts[1]), Base64.decodeBase64(parts[2])),
         "UTF8").toCharArray();
-      LOG.info("key: " + line);
-      LOG.info("master: " + new String(aes.decrypt(Base64.decodeBase64(parts[0]),
-        Base64.decodeBase64(parts[1]), Base64.decodeBase64(parts[2])),
-        "UTF8"));
     } catch (IOException e) {
       e.printStackTrace();
       throw e;

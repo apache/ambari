@@ -36,6 +36,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
@@ -225,6 +226,7 @@ public class Configuration {
   private Map<String, String> configsMap;
 
   private CredentialProvider credentialProvider = null;
+  private volatile boolean credentialProviderInitialized = false;
 
   public Configuration() {
     this(readConfigFile());
@@ -311,8 +313,11 @@ public class Configuration {
     }
   }
 
-  private void loadCredentialProvider() {
-    if (credentialProvider == null) {
+  private synchronized void loadCredentialProvider() {
+    if (credentialProviderInitialized) {
+      return;
+    }
+    else {
       try {
         this.credentialProvider = new CredentialProvider(null,
           getMasterKeyLocation(), isMasterKeyPersisted());
@@ -323,6 +328,7 @@ public class Configuration {
         }
         this.credentialProvider = null;
       }
+      credentialProviderInitialized = true;
     }
   }
 
@@ -491,6 +497,7 @@ public class Configuration {
   public String getDatabasePassword() {
     String passwdProp = properties.getProperty(SERVER_JDBC_USER_PASSWD_KEY);
     String dbpasswd = readPasswordFromStore(passwdProp);
+
     if (dbpasswd != null)
       return dbpasswd;
     else

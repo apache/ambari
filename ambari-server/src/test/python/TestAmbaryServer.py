@@ -1299,6 +1299,7 @@ class TestAmbariServer(TestCase):
     self.assertTrue(setup_db_mock.called)
 
 
+  @patch.object(ambari_server, 'save_master_key')
   @patch('os.chmod', autospec=True)
   @patch.object(ambari_server, 'get_validated_string_input')
   @patch("os.environ")
@@ -1323,7 +1324,8 @@ class TestAmbariServer(TestCase):
                  print_error_msg_mock, find_jdk_mock, search_file_mock,
                  print_info_msg_mock, popenMock, openMock, pexistsMock,
                  killMock, get_ambari_properties_mock, os_environ_mock,
-                 get_validated_string_input_method, os_chmod_method):
+                 get_validated_string_input_method, os_chmod_method,
+                 save_master_key_method):
     args = MagicMock()
 
     f = MagicMock()
@@ -1487,6 +1489,7 @@ class TestAmbariServer(TestCase):
     ambari_server.start(args)
 
     self.assertFalse(get_validated_string_input_method.called)
+    self.assertFalse(save_master_key_method.called)
     popen_arg = popenMock.call_args[1]['env']
     self.assertEquals(os_environ_mock.copy.return_value, popen_arg)
 
@@ -1505,6 +1508,7 @@ class TestAmbariServer(TestCase):
     ambari_server.start(args)
 
     self.assertTrue(get_validated_string_input_method.called)
+    self.assertTrue(save_master_key_method.called)
     popen_arg = popenMock.call_args[1]['env']
     self.assertEquals(os_environ_mock.copy.return_value, popen_arg)
 
