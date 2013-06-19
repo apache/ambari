@@ -83,20 +83,26 @@
                 <a class="add-widget-button span1">{{view view.plusButtonFilterView}}</a>
                 <div class="btn-group">
                   <button class="btn dropdown-toggle span1 more-options-button"  data-toggle="dropdown">
-                      <i class="icon-cog"></i> &nbsp;
-                      <span class= "caret"></span>
+                    <i class="icon-cog"></i> &nbsp;
+                    <span class= "caret"></span>
                   </button>
                   <ul class="dropdown-menu right-align-dropdown">
                     <li>
-                      <a class="" {{action "resetAllWidgets" target="view"}}>
+                      <a {{action "resetAllWidgets" target="view"}}>
                         <i class="icon-refresh"></i>
                         {{t dashboard.button.reset}}
                       </a>
                     </li>
                     <li>
-                      <a class="" {{action "switchToClassic" target="view"}}>
+                      <a {{action "switchToClassic" target="view"}}>
                         <i class="icon-backward"></i>
                         {{t dashboard.button.switch}}
+                      </a>
+                    </li>
+                    <li>
+                      <a target="_blank" {{bindAttr href="view.gangliaUrl"}}>
+                        <i class="icon-share"></i>
+                        {{t dashboard.button.gangliaLink}}
                       </a>
                     </li>
                   </ul>

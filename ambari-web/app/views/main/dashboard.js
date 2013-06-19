@@ -194,7 +194,11 @@ App.MainDashboardView = Em.View.extend({
       // called when first load/refresh/jump back page
       this.getUserPref(this.get('persistKey'));
       var currentPrefObject = this.get('currentPrefObject');
-      if (currentPrefObject) {
+      if (currentPrefObject) { // fit for no dashboard version
+        if (!currentPrefObject.dashboardVersion) {
+          currentPrefObject.dashboardVersion = 'new';
+          this.postUserPref(this.get('persistKey'), currentPrefObject);
+        }
         this.translateToReal(currentPrefObject);
       } else {
         // post persist then translate init object
@@ -237,10 +241,11 @@ App.MainDashboardView = Em.View.extend({
   initPrefObject: Em.Object.create({
     dashboardVersion: 'new',
     visible: [
-      '11', '12', '13', '14', //cluster-metrics
-      '1', '2', '3', '4', '5', '15', '17', //hdfs
-      '6', '7', '8', '9', '10', '18', '16',//map reduce
-      '20', '21', '19', '23' //hbase
+      '2', '4', '8', '10',
+      '17', '11', '12', '13', '14',
+      '18', '1', '6', '5', '9',
+      '3', '7', '15', '16', '20',
+      '19', '21', '23'
     ], // all in order
     hidden: [['22','Region In Transition']],
     threshold: {1: [80, 90], 2: [85, 95], 3: [90, 95], 4: [80, 90], 5: [1000, 3000], 6: [70, 90], 7: [90, 95], 8: [50, 75], 9: [30000, 120000],

@@ -997,6 +997,7 @@ Em.I18n.translations = {
   'dashboard.button.switch': 'Switch to classic dashboard',
   'dashboard.button.switchShort': 'Switch',
   'dashboard.button.reset': 'Reset all widgets to default ',
+  'dashboard.button.gangliaLink': 'View metrics in Ganglia',
 
   'dashboard.widgets.NameNodeHeap': 'NameNode Heap',
   'dashboard.widgets.NameNodeCpu': 'NameNode CPU WIO',
