@@ -295,7 +295,6 @@ public class Configuration {
     configsMap.put(SRVR_CRT_PASS_KEY, randStr);
 
     loadSSLParams();
-    loadCredentialProvider();
   }
 
   /**
