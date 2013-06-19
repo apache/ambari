@@ -1387,18 +1387,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   createCoreSiteObj: function (tagName) {
     var coreSiteObj = this.get('uiConfigs').filterProperty('filename', 'core-site.xml');
     var coreSiteProperties = {};
-    // hadoop.proxyuser.oozie.hosts needs to be skipped if oozie is not selected
-    var isOozieSelected = App.Service.find().someProperty('serviceName', 'OOZIE');
-    var oozieUser = this.get('globalConfigs').someProperty('name', 'oozie_user') ? this.get('globalConfigs').findProperty('name', 'oozie_user').value : null;
-    var isHiveSelected = App.Service.find().someProperty('serviceName', 'HIVE');
-    var hiveUser = this.get('globalConfigs').someProperty('name', 'hive_user') ? this.get('globalConfigs').findProperty('name', 'hive_user').value : null;
-    var isHcatSelected = App.Service.find().someProperty('serviceName', 'WEBHCAT');
-    var hcatUser = this.get('globalConfigs').someProperty('name', 'hcat_user') ? this.get('globalConfigs').findProperty('name', 'hcat_user').value : null;
     coreSiteObj.forEach(function (_coreSiteObj) {
-      if ((isOozieSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + oozieUser + '.groups')) && (isHiveSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hiveUser + '.groups')) && (isHcatSelected || (_coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.hosts' && _coreSiteObj.name != 'hadoop.proxyuser.' + hcatUser + '.groups'))) {
-        coreSiteProperties[_coreSiteObj.name] = _coreSiteObj.value;
-        this.recordHostOverride(_coreSiteObj, 'core-site', tagName, this);
-      }
+      coreSiteProperties[_coreSiteObj.name] = _coreSiteObj.value;
+      this.recordHostOverride(_coreSiteObj, 'core-site', tagName, this);
     }, this);
     return {"type": "core-site", "tag": tagName, "properties": coreSiteProperties};
   },
