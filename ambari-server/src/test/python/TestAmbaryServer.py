@@ -25,6 +25,7 @@ from mock.mock import create_autospec
 import os, errno, tempfile
 import signal
 import stat
+import datetime
 # We have to use this import HACK because the filename contains a dash
 ambari_server = __import__('ambari-server')
 FatalException = ambari_server.FatalException
@@ -1713,8 +1714,7 @@ class TestAmbariServer(TestCase):
 
 
   @patch.object(ambari_server, "get_conf_dir")
-  @patch("os.rename") # We want to remove temp file after test
-  def test_update_ambari_properties(self, rename_mock, get_conf_dir_mock):
+  def test_update_ambari_properties(self, get_conf_dir_mock):
 
     properties = ["server.jdbc.user.name=ambari-server\n",
       "server.jdbc.user.passwd=/etc/ambari-server/conf/password.dat\n",
@@ -1725,7 +1725,7 @@ class TestAmbariServer(TestCase):
     NEW_PROPERTY = 'some_new_property=some_value\n'
     CHANGED_VALUE_PROPERTY = 'server.os_type=should_not_overwrite_value\n'
 
-    get_conf_dir_mock.return_value = ""
+    get_conf_dir_mock.return_value = '/etc/ambari-server/conf'
 
     (tf1, fn1) = tempfile.mkstemp()
     (tf2, fn2) = tempfile.mkstemp()
@@ -1743,6 +1743,13 @@ class TestAmbariServer(TestCase):
     #Call tested method
     ambari_server.update_ambari_properties()
 
+    timestamp = datetime.datetime.now()
+    #RPMSAVE_FILE wasn't found
+    self.assertFalse(os.path.exists(ambari_server.AMBARI_PROPERTIES_RPMSAVE_FILE))
+    #Renamed RPMSAVE_FILE exists
+    self.assertTrue(os.path.exists(ambari_server.AMBARI_PROPERTIES_RPMSAVE_FILE
+                                   + '.' + timestamp.strftime('%Y%m%d%H%M%S')))
+
     with open(ambari_server.AMBARI_PROPERTIES_FILE, 'r') as f:
       ambari_properties_content = f.readlines()
 
@@ -1756,16 +1763,19 @@ class TestAmbariServer(TestCase):
     if CHANGED_VALUE_PROPERTY in ambari_properties_content:
       self.fail()
 
-    self.assertTrue(rename_mock.called)
-
-
-    os.unlink(fn1)
     # Command should not fail if *.rpmsave file is missing
     result = ambari_server.update_ambari_properties()
     self.assertEquals(result, 0)
 
     os.unlink(fn2)
 
+    #if ambari.properties file is absent then "ambari-server upgrade" should
+    # fail
+    (tf, fn) = tempfile.mkstemp()
+    ambari_server.AMBARI_PROPERTIES_RPMSAVE_FILE = fn
+
+    result = ambari_server.update_ambari_properties()
+    self.assertNotEquals(result, 0)
 
   @patch("sys.exit")
   @patch.object(ambari_server, "get_db_cli_tool")

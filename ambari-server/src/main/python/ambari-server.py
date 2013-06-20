@@ -354,8 +354,7 @@ def update_ambari_properties():
 
   timestamp = datetime.datetime.now()
   format = '%Y%m%d%H%M%S'
-  os.rename(AMBARI_PROPERTIES_RPMSAVE_FILE, AMBARI_PROPERTIES_RPMSAVE_FILE +
-                                            '.' + timestamp.strftime(format))
+  os.rename(prev_conf_file, prev_conf_file + '.' + timestamp.strftime(format))
 
   return 0
 
