@@ -47,7 +47,7 @@ App.Host = DS.Model.extend({
   }.property('App.router.clusterController.alerts.length'),
 
   publicHostNameFormatted: function() {
-    return this.get('publicHostName').substr(0, 20) + ' ...';
+    return this.get('publicHostName').length < 23 ? this.get('publicHostName') : this.get('publicHostName').substr(0, 20) + '...';
   }.property('publicHostName'),
   /**
    * API return diskTotal and diskFree. Need to save their different
