@@ -232,14 +232,7 @@ DATABASE_NAMES =["postgres", "oracle"]
 DATABASE_STORAGE_NAMES =["Database","Service","Schema"]
 DATABASE_PORTS =["5432", "1521", "3306"]
 DATABASE_DRIVER_NAMES = ["org.postgresql.Driver", "oracle.jdbc.driver.OracleDriver", "com.mysql.jdbc.Driver"]
-DATABASE_CONNECTION_STRINGS = [
-                  "jdbc:postgresql://{0}:{1}/{2}",
-                  "jdbc:oracle:thin:@{0}:{1}/{2}",
-                  "jdbc:mysql://{0}:{1}/{2}"]
-DATABASE_CONNECTION_STRINGS_ALT = [
-                  "jdbc:postgresql://{0}:{1}/{2}",
-                  "jdbc:oracle:thin:@{0}:{1}:{2}",
-                  "jdbc:mysql://{0}:{1}/{2}"]
+DATABASE_CONNECTION_STRINGS = ["jdbc:postgresql://{0}:{1}/{2}", "jdbc:oracle:thin:@{0}:{1}/{2}", "jdbc:mysql://{0}:{1}/{2}"]
 DATABASE_CLI_TOOLS = [["psql"], ["sqlplus", "sqlplus64"], ["mysql"]]
 DATABASE_CLI_TOOLS_DESC = ["psql", "sqlplus", "mysql"]
 DATABASE_CLI_TOOLS_USAGE = ['su -postgres --command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'"',
@@ -252,6 +245,9 @@ DATABASE_INIT_SCRIPTS = ['/var/lib/ambari-server/resources/Ambari-DDL-Postgres-R
 DATABASE_DROP_SCRIPTS = ['/var/lib/ambari-server/resources/Ambari-DDL-Postgres-REMOTE-DROP.sql',
                          '/var/lib/ambari-server/resources/Ambari-DDL-Oracle-DROP.sql',
                          '/var/lib/ambari-server/resources/Ambari-DDL-MySQL-DROP.sql']
+DATABASE_URL_REGEX = ["jdbc:postgresql://([a-zA-Z0-9._]+):(\d+)/(.+)",
+                     "jdbc:oracle:thin:@([a-zA-Z0-9._]+):(\d+)/(.+)",
+                     "jdbc:mysql://([a-zA-Z0-9._]+):(\d*)/(.+)"]
 
 REGEX_IP_ADDRESS = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
 REGEX_HOSTNAME = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
@@ -263,7 +259,6 @@ MYSQL_EXEC_ARGS = "--host={0} --port={1} --user={2} --password={3} {4} " \
 
 JDBC_PATTERNS = {"oracle":"*ojdbc*.jar", "mysql":"*mysql*.jar"}
 DATABASE_FULL_NAMES = {"oracle":"Oracle", "mysql":"MySQL", "postgres":"PostgreSQL"}
-ORACLE_DB_ID_TYPES = ["Service Name", "Service ID"]
 
 
 # jdk commands
@@ -946,7 +941,6 @@ def load_default_db_properties(args):
   args.database_name = "ambari"
   args.database_username = "ambari"
   args.database_password = "bigdata"
-  args.sid_or_sname = "sname"
   pass
 
 
@@ -988,46 +982,19 @@ def prompt_db_properties(args):
           "Invalid port.",
           False
         )
-
-        if args.database == "oracle":
-          # Oracle uses service name or service id
-          idType = "1"
-          idType = get_validated_string_input(
-            "Select type of id to use:\n1 - " + ORACLE_DB_ID_TYPES[0] +
-            "\n2 - " + ORACLE_DB_ID_TYPES[1] + "\n[" + idType + "]:",
-            idType,
-            "^[12]$",
-            "Invalid number.",
-            False
-          )
-
-          if idType == "2":
-            args.sid_or_sname = "sid"
-
-          IDTYPE_INDEX = int(idType) - 1
-          args.database_name = get_validated_string_input(
-            ORACLE_DB_ID_TYPES[IDTYPE_INDEX] + " [" + args.database_name + "]:",
-            args.database_name,
-            "^[a-zA-Z0-9.\-]*$",
-            "Invalid " + ORACLE_DB_ID_TYPES[IDTYPE_INDEX] + ".",
-            False
-          )
-        else:
-          # MySQL and other DB types
-          pass
         pass
       else:
         args.database_host = "localhost"
         args.database_port = DATABASE_PORTS[DATABASE_INDEX]
+        pass
 
-        args.database_name = get_validated_string_input(
-          DATABASE_STORAGE_NAMES[DATABASE_INDEX] + " Name [" + args.database_name + "]:",
-          args.database_name,
-          "^[a-zA-z\-\"]+$",
-          "Invalid " + DATABASE_STORAGE_NAMES[DATABASE_INDEX] + " name.",
-          False
-        )
-      pass
+      args.database_name = get_validated_string_input(
+        DATABASE_STORAGE_NAMES[DATABASE_INDEX] + " Name [" + args.database_name + "]:",
+        args.database_name,
+        "^[a-zA-z\-\"]+$",
+        "Invalid " + DATABASE_STORAGE_NAMES[DATABASE_INDEX] + " name.",
+        False
+      )
 
       args.database_username = get_validated_string_input(
         'Username [' + args.database_username + ']: ',
@@ -1076,10 +1043,7 @@ def store_remote_properties(args):
   if (args.database_host == "localhost"):
     jdbc_hostname = socket.getfqdn();
     
-  connectionStringFormat = DATABASE_CONNECTION_STRINGS
-  if args.sid_or_sname == "sid":
-    connectionStringFormat = DATABASE_CONNECTION_STRINGS_ALT
-  properties.process_pair(JDBC_URL_PROPERTY, connectionStringFormat[DATABASE_INDEX].format(jdbc_hostname, args.database_port, args.database_name))
+  properties.process_pair(JDBC_URL_PROPERTY, DATABASE_CONNECTION_STRINGS[DATABASE_INDEX].format(jdbc_hostname, args.database_port, args.database_name))
   properties.process_pair(JDBC_USER_NAME_PROPERTY, args.database_username)
   if hasattr(args, 'database_password_alias') and args.database_password_alias:
     properties.process_pair(JDBC_PASSWORD_PROPERTY, args.database_password_alias)
@@ -1088,7 +1052,7 @@ def store_remote_properties(args):
       store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
 
   properties.process_pair(JDBC_RCA_DRIVER_PROPERTY, DATABASE_DRIVER_NAMES[DATABASE_INDEX])
-  properties.process_pair(JDBC_RCA_URL_PROPERTY, connectionStringFormat[DATABASE_INDEX].format(jdbc_hostname, args.database_port, args.database_name))
+  properties.process_pair(JDBC_RCA_URL_PROPERTY, DATABASE_CONNECTION_STRINGS[DATABASE_INDEX].format(jdbc_hostname, args.database_port, args.database_name))
   properties.process_pair(JDBC_RCA_USER_NAME_PROPERTY, args.database_username)
   if hasattr(args, 'database_password_alias') and args.database_password_alias:
     properties.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY,
@@ -2713,12 +2677,9 @@ def main():
   parser.add_option('--database', default=None, help ="Database to use postgres|oracle", dest="database")
   parser.add_option('--databasehost', default=None, help="Hostname of database server", dest="database_host")
   parser.add_option('--databaseport', default=None, help="Database port", dest="database_port")
-  parser.add_option('--databasename', default=None, help="Database/Schema/Service name or ServiceID",
-                    dest="database_name")
+  parser.add_option('--databasename', default=None, help="Database/Schema/Service name", dest="database_name")
   parser.add_option('--databaseusername', default=None, help="Database user login", dest="database_username")
   parser.add_option('--databasepassword', default=None, help="Database user password", dest="database_password")
-  parser.add_option('--sidorsname', default="sname", help="Oracle database identifier type, Service ID/Service "
-                                                         "Name sid|sname", dest="sid_or_sname")
 
   (options, args) = parser.parse_args()
 
@@ -2782,14 +2743,6 @@ def main():
     print "WARNING: HostName for postgres server " + options.database_host + \
      " will be ignored: using localhost."
     options.database_host = "localhost"
-
-  if options.sid_or_sname.lower() not in ["sid", "sname"]:
-    print "WARNING: Valid values for sid_or_sname are 'sid' or 'sname'. Use 'sid' if the db identifier type is " \
-          "Service ID. Use 'sname' if the db identifier type is Service Name"
-    parser.print_help()
-    exit(-1)
-  else:
-    options.sid_or_sname = options.sid_or_sname.lower()
 
   if len(args) == 0:
     print parser.print_help()
