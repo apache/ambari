@@ -2720,7 +2720,7 @@ def main():
   #correct database
   if options.database is not None and options.database not in DATABASE_NAMES:
     parser.print_help()
-    print "Unsupported Database " + options.database
+    parser.error("Unsupported Database " + options.database)
   elif options.database is not None:
     options.database = options.database.lower()
     DATABASE_INDEX = DATABASE_NAMES.index(options.database)

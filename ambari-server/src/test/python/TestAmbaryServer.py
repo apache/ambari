@@ -588,14 +588,14 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "run_os_command")
   @patch.object(ambari_server, "get_ambari_properties")
   @patch.object(ambari_server, "get_value_from_properties")
-  @patch.object(ambari_server, "os.mkdir")
+  @patch("os.mkdir")
   def test_adjust_directory_permissions(self, mkdir_mock, get_value_from_properties_mock, get_ambari_properties_mock,
                                         run_os_command_mock, set_file_permissions_mock):
     # Testing boostrap dir wipe
     properties_mock = MagicMock()
     get_value_from_properties_mock.return_value = "dummy_bootstrap_dir"
     ambari_server.adjust_directory_permissions("user")
-    self.assertEquals(run_os_command_mock.call_args_list[0][0][0], "rm -rf dummy_bootstrap_dir/*")
+    self.assertEquals(run_os_command_mock.call_args_list[0][0][0], "rm -rf dummy_bootstrap_dir")
     self.assertTrue(mkdir_mock.called)
 
     set_file_permissions_mock.reset_mock()
@@ -1244,12 +1244,33 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "check_selinux")
   @patch.object(ambari_server, "setup_remote_db")
   @patch.object(ambari_server, "store_remote_properties")
+  @patch.object(ambari_server, "is_local_database")
+  @patch.object(ambari_server, "store_local_properties")
   @patch.object(ambari_server, "is_root")
-  def test_setup(self, is_root_mock, store_remote_properties_mock, setup_remote_db_mock, check_selinux_mock,
-                 check_jdbc_drivers_mock, check_ambari_user_mock, check_iptables_mock,
-                 check_postgre_up_mock, setup_db_mock, configure_postgres_mock,
+  def test_setup(self, is_root_mock, store_local_properties_mock, is_local_database_mock, store_remote_properties_mock,
+                 setup_remote_db_mock, check_selinux_mock, check_jdbc_drivers_mock, check_ambari_user_mock,
+                 check_iptables_mock, check_postgre_up_mock, setup_db_mock, configure_postgres_mock,
                  download_jdk_mock, configure_os_settings_mock, ):
     args = MagicMock()
+    failed = False
+
+    def reset_mocks():
+      is_root_mock.reset_mock()
+      store_local_properties_mock.reset_mock()
+      store_remote_properties_mock.reset_mock()
+      is_local_database_mock.reset_mock()
+      setup_remote_db_mock.reset_mock()
+      check_selinux_mock.reset_mock()
+      check_jdbc_drivers_mock.reset_mock()
+      check_ambari_user_mock.reset_mock()
+      check_iptables_mock.reset_mock()
+      check_postgre_up_mock.reset_mock()
+      setup_db_mock.reset_mock()
+      configure_postgres_mock.reset_mock()
+      download_jdk_mock.reset_mock()
+      configure_os_settings_mock.reset_mock()
+      pass
+
 
     # Testing call under non-root
     is_root_mock.return_value = False
@@ -1262,6 +1283,7 @@ class TestAmbariServer(TestCase):
       pass
 
     # Testing calls under root
+    # remote case
     is_root_mock.return_value = True
     check_selinux_mock.return_value = 0
     check_ambari_user_mock.return_value = 0
@@ -1270,14 +1292,47 @@ class TestAmbariServer(TestCase):
     check_postgre_up_mock.return_value = 0
     setup_db_mock.return_value = 0
     setup_remote_db_mock.return_value = 0
+    is_local_database_mock.return_value = False
     configure_postgres_mock.return_value = 0
     download_jdk_mock.return_value = 0
     configure_os_settings_mock.return_value = 0
     store_remote_properties_mock.return_value = 0
+    store_local_properties_mock.return_value = 0
+
     result = ambari_server.setup(args)
 
     self.assertEqual(None, result)
     self.assertTrue(check_ambari_user_mock.called)
+    self.assertEquals(True, store_remote_properties_mock.called)
+    self.assertEquals(False, store_local_properties_mock.called)
+
+
+    #Local case
+    reset_mocks()
+    is_local_database_mock.return_value = True
+
+    try:
+      result = ambari_server.setup(args)
+    except FatalException:
+      self.fail("Setup should be successful")
+
+
+    self.assertEqual(None, result)
+    self.assertEquals(True, store_local_properties_mock.called)
+    self.assertEquals(False, store_remote_properties_mock.called)
+
+    #negative case
+    reset_mocks()
+    is_local_database_mock.return_value = False
+    setup_remote_db_mock.return_value = -1
+
+    try:
+      result = ambari_server.setup(args)
+      self.fail("Should throw exception")
+    except FatalException as fe:
+      self.assertEquals(-1, fe.code)
+
+
 
 
   @patch.object(ambari_server, "get_YN_input")
@@ -1286,8 +1341,9 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "run_os_command")
   @patch.object(ambari_server, "configure_database_username_password")
   @patch.object(ambari_server, "parse_properties_file")
+  @patch.object(ambari_server, "execute_remote_script")
   @patch.object(ambari_server, "is_root")
-  def test_reset(self, is_root_mock, parse_properties_file_mock, configure_database_username_password_mock,
+  def test_reset(self, is_root_mock, execute_remote_script_mock, parse_properties_file_mock, configure_database_username_password_mock,
                  run_os_command_mock, print_info_msg_mock,
                  setup_db_mock, get_YN_inputMock):
 
@@ -1328,6 +1384,13 @@ class TestAmbariServer(TestCase):
     run_os_command_mock.return_value = (0, None, None)
     ambari_server.reset(args)
     self.assertTrue(setup_db_mock.called)
+    
+    #remote db case
+    args.persistence_type = "remote"
+    execute_remote_script_mock.return_value=(0, None, None)
+    rcode = ambari_server.reset(args)
+    self.assertEqual(None, rcode)
+    self.assertTrue(execute_remote_script_mock.called)
 
 
   @patch.object(ambari_server, "setup_db")
@@ -1351,7 +1414,7 @@ class TestAmbariServer(TestCase):
     signal.signal(signal.SIGALRM, signal_handler)
     signal.alarm(5)
     rcode = ambari_server.reset(args)
-    
+
     self.assertEqual(None, rcode)
     self.assertTrue(setup_db_mock.called)
 
@@ -1713,6 +1776,238 @@ class TestAmbariServer(TestCase):
     self.assertEqual(4, len(get_choice_string_input_mock.call_args_list[0][0]))
 
 
+
+  def test_load_default_db_properties(self):
+    args = MagicMock()
+
+    ambari_server.load_default_db_properties(args)
+
+    self.assertEquals(args.database, "postgres")
+    self.assertEquals(args.database_host, "localhost")
+    self.assertEquals(args.database_port, "5432")
+    self.assertEquals(args.database_name, "ambari")
+    self.assertEquals(args.database_username, "ambari")
+    self.assertEquals(args.database_password, "bigdata")
+
+    args = MagicMock()
+    ambari_server.DATABASE_INDEX=1
+    ambari_server.load_default_db_properties(args)
+    self.assertEquals(args.database, "oracle")
+    self.assertEquals(args.database_port, "1521")
+
+    failed = False
+    args = MagicMock()
+    ambari_server.DATABASE_INDEX=2
+    try:
+      ambari_server.load_default_db_properties(args)
+    except:
+      failed = True
+    self.assertTrue(failed)
+
+  pass
+
+  @patch.object(ambari_server, 'setup')
+  def test_main_db_options(self, setup_mock):
+    base_args = ["ambari-server.py", "setup"]
+    db_args = ["--database", "postgres", "--databasehost", "somehost.net", "--databaseport", "12345",
+               "--databasename", "ambari", "--databaseusername", "ambari", "--databasepassword", "bigdata"]
+
+    #test no args
+    failed = False
+    sys.argv = list(base_args)
+
+
+    try:
+      ambari_server.main()
+    except SystemExit:
+      failed = True
+      pass
+
+
+    self.assertFalse(failed)
+    self.assertTrue(setup_mock.called)
+
+    setup_mock.reset_mock()
+
+    #test full args
+    sys.argv = list(base_args)
+    sys.argv.extend(db_args)
+
+    try:
+      ambari_server.main()
+    except SystemExit:
+      failed = True
+      pass
+
+    self.assertTrue(ambari_server.PROMPT_DATABASE_OPTIONS)
+    self.assertFalse(failed)
+    self.assertTrue(setup_mock.called)
+
+    setup_mock.reset_mock()
+
+    #test not full args
+    sys.argv = list(base_args)
+    sys.argv.extend(["--database", "postgres"])
+
+    try:
+      ambari_server.main()
+    except SystemExit:
+      failed = True
+      pass
+
+    self.assertFalse(setup_mock.called)
+    self.assertTrue(failed)
+
+    setup_mock.reset_mock()
+
+    #test wrong database
+    failed = False
+    sys.argv = list(base_args)
+    sys.argv.extend(["--database", "unknown"])
+    sys.argv.extend(db_args[2:])
+
+    try:
+      ambari_server.main()
+    except SystemExit:
+      failed = True
+      pass
+
+    self.assertTrue(failed)
+    self.assertFalse(setup_mock.called)
+
+    setup_mock.reset_mock()
+
+    #test wrong port check
+    failed = False
+    sys.argv = list(base_args)
+    sys.argv.extend(["--databaseport", "unknown"])
+    sys.argv.extend(db_args[:4])
+    sys.argv.extend(db_args[6:])
+
+    try:
+      ambari_server.main()
+    except SystemExit:
+      failed = True
+      pass
+
+    self.assertTrue(failed)
+    self.assertFalse(setup_mock.called)
+
+    setup_mock.reset_mock()
+    pass
+
+
+
+  @patch.object(ambari_server, "load_default_db_properties")
+  @patch.object(ambari_server, "get_YN_input")
+  @patch.object(ambari_server, "get_validated_string_input")
+  @patch.object(ambari_server, "setup_master_key")
+  @patch.object(ambari_server, "configure_database_password")
+  def test_prompt_db_properties(self, configure_database_password_mock, setup_master_key_mock,
+                                get_validated_string_input_mock, get_YN_input_mock, load_default_db_properties_mock):
+    args = MagicMock()
+
+    #test not prompt
+    ambari_server.PROMPT_DATABASE_OPTIONS = False
+    ambari_server.prompt_db_properties(args)
+
+
+    self.assertFalse(load_default_db_properties_mock.called)
+    self.assertFalse(get_validated_string_input_mock.called)
+    self.assertFalse(get_YN_input_mock.called)
+
+    load_default_db_properties_mock.reset_mock()
+    get_validated_string_input_mock.reset_mock()
+    get_YN_input_mock.reset_mock()
+
+    #test prompt
+    get_YN_input_mock.return_value = False
+
+    ambari_server.PROMPT_DATABASE_OPTIONS = True
+    ambari_server.prompt_db_properties(args)
+    self.assertTrue(get_YN_input_mock.called)
+    self.assertFalse(get_validated_string_input_mock.called)
+    self.assertTrue(load_default_db_properties_mock.called)
+
+    load_default_db_properties_mock.reset_mock()
+    get_validated_string_input_mock.reset_mock()
+    get_YN_input_mock.reset_mock()
+
+    #test prompt advanced
+    get_YN_input_mock.return_value = True
+
+    ambari_server.PROMPT_DATABASE_OPTIONS = True
+    setup_master_key_mock.return_value = (None, False, True)
+    configure_database_password_mock.return_value = ("test", None)
+
+    ambari_server.prompt_db_properties(args)
+    self.assertTrue(get_YN_input_mock.called)
+    self.assertTrue(get_validated_string_input_mock.called)
+    self.assertTrue(load_default_db_properties_mock.called)
+
+    self.assertEquals(args.database, "postgres")
+
+    load_default_db_properties_mock.reset_mock()
+    get_validated_string_input_mock.reset_mock()
+    get_YN_input_mock.reset_mock()
+
+
+
+  pass
+
+  @patch.object(ambari_server, "get_db_cli_tool")
+  @patch.object(ambari_server, "run_in_shell")
+  def test_execute_remote_script(self, run_in_shell_mock, get_db_cli_tool_mock):
+    args = MagicMock()
+    script = "script"
+
+
+    #success
+    run_in_shell_mock.return_value=(0, None, None)
+    get_db_cli_tool_mock.return_value="tool"
+    args.database = "postgres"
+    args.database_password = "some_password"
+
+    retcode, out, err = ambari_server.execute_remote_script(args, script)
+    self.assertEquals(retcode, 0)
+    self.assertTrue(get_db_cli_tool_mock.called)
+    self.assertTrue(run_in_shell_mock.called)
+
+    #fail no cli tool
+    get_db_cli_tool_mock.return_value = None
+    get_db_cli_tool_mock.called = False
+    run_in_shell_mock.called = False
+
+    retcode, out, err = ambari_server.execute_remote_script(args, script)
+    self.assertEquals(retcode, -1)
+    self.assertTrue(get_db_cli_tool_mock.called)
+    self.assertFalse(run_in_shell_mock.called)
+
+    #fail execute
+    errcode = 1
+    get_db_cli_tool_mock.return_value = "tool"
+    run_in_shell_mock.return_value=(errcode, None, None)
+    get_db_cli_tool_mock.called = False
+    run_in_shell_mock.called = False
+
+    retcode, out, err = ambari_server.execute_remote_script(args, script)
+    self.assertEquals(retcode, errcode)
+    self.assertTrue(get_db_cli_tool_mock.called)
+    self.assertTrue(run_in_shell_mock.called)
+
+    #fail wrong database - case should be completely impossible
+    get_db_cli_tool_mock.return_value = "tool"
+    run_in_shell_mock.return_value=(0, None, None)
+    get_db_cli_tool_mock.called = False
+    run_in_shell_mock.called = False
+    args.database = "unknown"
+
+    retcode, out, err = ambari_server.execute_remote_script(args, script)
+    self.assertEquals(retcode, -2)
+    self.assertTrue(get_db_cli_tool_mock.called)
+    self.assertFalse(run_in_shell_mock.called)
+    pass
+
   @patch.object(ambari_server, "get_conf_dir")
   def test_update_ambari_properties(self, get_conf_dir_mock):
 
@@ -1880,7 +2175,7 @@ class TestAmbariServer(TestCase):
     fout.close()
 
     properties = ambari_server.get_ambari_properties()
-    
+
     self.assertEqual(properties[prop_name], prop_value)
 
 
