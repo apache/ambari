@@ -91,3 +91,8 @@ define command{
         command_name    check_hue_status
         command_line    $USER1$/check_hue_status.sh
        }
+
+define command{
+       command_name    check_mapred_local_dir_used_space
+       command_line    $USER1$/check_mapred_local_dir_used.sh $ARG1$ $ARG2$
+       }
