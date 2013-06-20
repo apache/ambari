@@ -196,6 +196,7 @@ class TestAmbariServer(TestCase):
     opm.parse_args.return_value = (options, args)
 
     options.database=None
+    options.sid_or_sname = "sid"
     ambari_server.main()
 
     self.assertTrue(setup_method.called)
@@ -205,7 +206,6 @@ class TestAmbariServer(TestCase):
 
     self.assertFalse(False, ambari_server.VERBOSE)
     self.assertFalse(False, ambari_server.SILENT)
-
 
 
   @patch.object(ambari_server, 'setup')
@@ -220,8 +220,8 @@ class TestAmbariServer(TestCase):
     args = ["setup"]
     opm.parse_args.return_value = (options, args)
     options.database=None
+    options.sid_or_sname = "sid"
 
-    options.database=None
     ambari_server.main()
 
     self.assertTrue(setup_method.called)
@@ -247,8 +247,7 @@ class TestAmbariServer(TestCase):
     opm.parse_args.return_value = (options, args)
 
     options.database = None
-
-    options.database=None
+    options.sid_or_sname = "sname"
 
     ambari_server.main()
 
@@ -275,6 +274,7 @@ class TestAmbariServer(TestCase):
     args = ["reset"]
     opm.parse_args.return_value = (options, args)
     options.database=None
+    options.sid_or_sname = "sid"
 
     ambari_server.main()
 
@@ -1173,6 +1173,80 @@ class TestAmbariServer(TestCase):
 
     sys.stdout = sys.__stdout__
 
+  def test_prompt_db_properties_default(self):
+    args = MagicMock()
+    ambari_server.load_default_db_properties(args)
+    ambari_server.prompt_db_properties(args)
+    self.assertEqual(args.database, "postgres")
+    self.assertEqual(args.database_host, "localhost")
+    self.assertEqual(args.database_name, "ambari")
+    self.assertEqual(args.database_port, "5432")
+
+  @patch.object(ambari_server, "read_password")
+  @patch.object(ambari_server, "get_validated_string_input")
+  @patch.object(ambari_server, "get_YN_input")
+  def test_prompt_db_properties_oracle_sname(self, gyni_mock, gvsi_mock, rp_mock):
+    ambari_server.PROMPT_DATABASE_OPTIONS = True
+    gyni_mock.return_value = True
+    list_of_return_values= ["ambari-server", "ambari", "1", "1521", "localhost", "2"]
+    def side_effect(*args, **kwargs):
+      return list_of_return_values.pop()
+    gvsi_mock.side_effect = side_effect
+    rp_mock.return_value = "password"
+
+    args = MagicMock()
+    ambari_server.load_default_db_properties(args)
+    ambari_server.prompt_db_properties(args)
+    self.assertEqual(args.database, "oracle")
+    self.assertEqual(args.database_port, "1521")
+    self.assertEqual(args.database_host, "localhost")
+    self.assertEqual(args.database_name, "ambari")
+    self.assertEqual(args.database_username, "ambari-server")
+    self.assertEqual(args.sid_or_sname, "sname")
+
+  @patch.object(ambari_server, "read_password")
+  @patch.object(ambari_server, "get_validated_string_input")
+  @patch.object(ambari_server, "get_YN_input")
+  def test_prompt_db_properties_oracle_sid(self, gyni_mock, gvsi_mock, rp_mock):
+    ambari_server.PROMPT_DATABASE_OPTIONS = True
+    gyni_mock.return_value = True
+    list_of_return_values= ["ambari-server", "ambari", "2", "1521", "localhost", "2"]
+    def side_effect(*args, **kwargs):
+      return list_of_return_values.pop()
+    gvsi_mock.side_effect = side_effect
+    rp_mock.return_value = "password"
+
+    args = MagicMock()
+    ambari_server.load_default_db_properties(args)
+    ambari_server.prompt_db_properties(args)
+    self.assertEqual(args.database, "oracle")
+    self.assertEqual(args.database_port, "1521")
+    self.assertEqual(args.database_host, "localhost")
+    self.assertEqual(args.database_name, "ambari")
+    self.assertEqual(args.database_username, "ambari-server")
+    self.assertEqual(args.sid_or_sname, "sid")
+
+  @patch.object(ambari_server, "read_password")
+  @patch.object(ambari_server, "get_validated_string_input")
+  @patch.object(ambari_server, "get_YN_input")
+  def test_prompt_db_properties_postgre_adv(self, gyni_mock, gvsi_mock, rp_mock):
+    ambari_server.PROMPT_DATABASE_OPTIONS = True
+    gyni_mock.return_value = True
+    list_of_return_values= ["ambari-server", "ambari", "1"]
+    def side_effect(*args, **kwargs):
+      return list_of_return_values.pop()
+    gvsi_mock.side_effect = side_effect
+    rp_mock.return_value = "password"
+
+    args = MagicMock()
+    ambari_server.load_default_db_properties(args)
+    ambari_server.prompt_db_properties(args)
+    self.assertEqual(args.database, "postgres")
+    self.assertEqual(args.database_port, "5432")
+    self.assertEqual(args.database_host, "localhost")
+    self.assertEqual(args.database_name, "ambari")
+    self.assertEqual(args.database_username, "ambari-server")
+    self.assertEqual(args.sid_or_sname, "sname")
 
   def get_sample(self, sample):
     """
@@ -1180,8 +1254,6 @@ class TestAmbariServer(TestCase):
     """
     path = self.get_samples_dir(sample)
     return self.get_file_string(path)
-
-
 
   def get_file_string(self, file):
     """
