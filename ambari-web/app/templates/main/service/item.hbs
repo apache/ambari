@@ -35,16 +35,21 @@
       </ul>
     </div>
   {{/if}}
-  <a href="javascript:void(null)" {{bindAttr class=":btn controller.isStartDisabled:disabled:btn-success" }}
-     data-toggle="modal" {{action "startService" target="controller"}}>
-    <i class="icon-play"></i>
-    {{t services.service.start}}
-  </a>
-  <a href="javascript:void(null)" {{bindAttr class=":btn controller.isStopDisabled:disabled:btn-danger" }}
-     data-toggle="modal" {{action "stopService" target="controller"}}>
-    <i class="icon-stop icon-white"></i>
-    {{t services.service.stop}}
-  </a>
+  {{#if controller.isServiceRestartable}}
+	  <a href="javascript:void(null)" {{bindAttr class=":btn controller.isStartDisabled:disabled:btn-success" }}
+	     data-toggle="modal" {{action "startService" target="controller"}}>
+	    <i class="icon-play"></i>
+	    {{t services.service.start}}
+	  </a>
+	  <a href="javascript:void(null)" {{bindAttr class=":btn controller.isStopDisabled:disabled:btn-danger" }}
+	     data-toggle="modal" {{action "stopService" target="controller"}}>
+	    <i class="icon-stop icon-white"></i>
+	    {{t services.service.stop}}
+	  </a>
+	{{else}}
+	  <span>&nbsp;</span>
+	{{/if}}
+  </span>
 </div>
 {{/if}}
 {{outlet}}

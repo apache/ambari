@@ -44,7 +44,8 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     hive:false,
     ganglia:false,
     nagios:false,
-    hue: false
+    hue: false,
+    flume: false
   },
 
   clients: function () {
@@ -72,7 +73,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   servers: function () {
     var result = [];
     var service = this.get('controller.content');
-    if (service.get("id") == "ZOOKEEPER") {
+    if (service.get("id") == "ZOOKEEPER" || service.get("id") == "FLUME") {
       var servers = service.get('hostComponents').filterProperty('isMaster');
       if (servers.length > 0) {
         result = [{
@@ -134,7 +135,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
    */
   serversHost: function() {
     var service = this.get('controller.content');
-    if (service.get("id") == "ZOOKEEPER") {
+    if (service.get("id") == "ZOOKEEPER" || service.get("id") == "FLUME") {
       var servers = service.get('hostComponents').filterProperty('isMaster');
       if (servers.length > 0) {
         return servers[0];
@@ -253,6 +254,9 @@ App.MainServiceInfoSummaryView = Em.View.extend({
         case 'hbase':
           svc = App.HBaseService.find().objectAt(0);
           break;
+        case 'flume':
+          svc = App.FlumeService.find().objectAt(0);
+          break;
         default:
           break;
       }
@@ -314,6 +318,17 @@ App.MainServiceInfoSummaryView = Em.View.extend({
             App.ChartServiceMetricsHBASE_RegionServerQueueSize.extend()],
             [App.ChartServiceMetricsHBASE_HlogSplitTime.extend(),
             App.ChartServiceMetricsHBASE_HlogSplitSize.extend()]];
+          break;
+        case 'flume':
+          graphs = [[App.ChartServiceMetricsFlume_ChannelFillPercent.extend(),
+             App.ChartServiceMetricsFlume_ChannelSize.extend(),
+             App.ChartServiceMetricsFlume_SourceAcceptedCount.extend(),
+             App.ChartServiceMetricsFlume_SinkDrainSuccessCount.extend()],
+             [App.ChartServiceMetricsFlume_SinkConnectionFailedCount.extend(),
+              //App.ChartServiceMetricsFlume_GarbageCollection.extend(),
+              //App.ChartServiceMetricsFlume_JVMHeapUsed.extend(),
+              //App.ChartServiceMetricsFlume_JVMThreadsRunnable.extend(),
+              App.ChartServiceMetricsFlume_CPUUser.extend()]];
           break;
         default:
           break;

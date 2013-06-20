@@ -28,6 +28,7 @@ App.servicesMapper = App.QuickDataMapper.create({
     'HIVE',
     'HCATALOG',
     'WEBHCAT',
+    'FLUME',
     'OOZIE',
     'GANGLIA',
     'NAGIOS',
@@ -173,12 +174,23 @@ App.servicesMapper = App.QuickDataMapper.create({
               finalJson.rand = Math.random();
               result.push(finalJson);
               App.store.load(App.HBaseService, finalJson);
-            }
-            else {
-              finalJson = this.parseIt(item, this.config);
-              finalJson.rand = Math.random();
-              result.push(finalJson);
-            }
+            } else
+              if (item && item.ServiceInfo && item.ServiceInfo.service_name == "FLUME") {
+                finalJson = this.flumeMapper(item);
+                finalJson.rand = Math.random();
+                result.push(finalJson);
+                if(finalJson.nodeObjs){
+                  finalJson.nodeObjs.forEach(function(no){
+                    App.store.load(App.FlumeNode, no);
+                  });
+                }
+                App.store.load(App.FlumeService, finalJson);
+              }
+              else {
+                finalJson = this.parseIt(item, this.config);
+                finalJson.rand = Math.random();
+                result.push(finalJson);
+              }
       }, this);
 
 
@@ -353,7 +365,6 @@ App.servicesMapper = App.QuickDataMapper.create({
   },
   hbaseMapper: function (item) {
     // Change the JSON so that it is easy to map
-    var result = [];
     var finalConfig = jQuery.extend({}, this.config);
     var hbaseConfig = this.hbaseConfig;
     item.components.forEach(function (component) {
@@ -377,6 +388,69 @@ App.servicesMapper = App.QuickDataMapper.create({
     // Map
     finalJson = this.parseIt(item, finalConfig);
     finalJson.quick_links = [13, 14, 15, 16, 17, 18];
+    return finalJson;
+  },
+  
+  /**
+   * Flume is different from other services, in that the important
+   * data is in customizeable channels. Hence we directly transfer 
+   * data into the JSON object.
+   */
+  flumeMapper: function (item) {
+    var finalConfig = jQuery.extend({}, this.config);
+    var finalJson = this.parseIt(item, finalConfig);
+    ;
+    item.components.forEach(function (component) {
+      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "FLUME_SERVER") {
+        if (!finalJson.nodes) {
+          finalJson.nodes = [];
+        }
+        if (!finalJson.nodeObjs) {
+          finalJson.nodeObjs = [];
+        }
+        if (component.host_components) {
+          component.host_components.forEach(function (hc) {
+            var fnode = {};
+            fnode.id = hc.HostRoles.host_name;
+            fnode.host_id = hc.HostRoles.host_name;
+            fnode.channels = "";
+            fnode.sources = "";
+            fnode.sinks = "";
+            if (hc.metrics != null && hc.metrics.flume && hc.metrics.flume.flume && hc.metrics.flume.flume) {
+              if (hc.metrics.flume.flume.CHANNEL) {
+                for ( var c in hc.metrics.flume.flume.CHANNEL) {
+                  if (fnode.channels.length < 1) {
+                    fnode.channels += c;
+                  } else {
+                    fnode.channels += ("," + c);
+                  }
+                }
+              }
+              if (hc.metrics.flume.flume.SINK) {
+                for ( var c in hc.metrics.flume.flume.SINK) {
+                  if (fnode.sinks.length < 1) {
+                    fnode.sinks += c;
+                  } else {
+                    fnode.sinks += ("," + c);
+                  }
+                }
+              }
+              if (hc.metrics.flume.flume.SOURCE) {
+                for ( var c in hc.metrics.flume.flume.SOURCE) {
+                  if (fnode.sources.length < 1) {
+                    fnode.sources += c;
+                  } else {
+                    fnode.sources += ("," + c);
+                  }
+                }
+              }
+            }
+            finalJson.nodeObjs.push(fnode);
+            finalJson.nodes.push(hc.HostRoles.host_name);
+          });
+        }
+      }
+    });
     return finalJson;
   }
 });

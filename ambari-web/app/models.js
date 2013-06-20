@@ -31,6 +31,7 @@ require('models/service_audit');
 require('models/service/hdfs');
 require('models/service/mapreduce');
 require('models/service/hbase');
+require('models/service/flume');
 require('models/alert');
 require('models/user');
 require('models/host');

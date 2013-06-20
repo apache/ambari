@@ -701,6 +701,20 @@ Em.I18n.translations = {
   'services.service.summary.notAvailable':'n/a',
   'services.service.summary.diskInfoBar.used':'used',
 
+  'services.service.info.metrics.flume.channelFillPercent':'Channel Fill Percentage',
+  'services.service.info.metrics.flume.channelSize':'Channel Size',
+  'services.service.info.metrics.flume.sinkDrainSuccess':'Sink Event Drain Count',
+  'services.service.info.metrics.flume.sourceAccepted':'Source Event Accepted Count',
+  'services.service.info.metrics.flume.sinkConnectionFailed':'Sink Connection Failed Count',
+  'services.service.info.metrics.flume.gc':'Garbage Collection Time',
+  'services.service.info.metrics.flume.cpu.user':'CPU (User)',
+  'services.service.info.metrics.flume.jvmThreadsRunnable':'JVM Runnable Threads',
+  'services.service.info.metrics.flume.jvmHeapUsed':'JVM Heap Memory Used',
+  'services.service.info.metrics.flume.channelName':'Channel {0}',
+  'services.service.info.metrics.flume.sinkName':'Sink {0}',
+  'services.service.info.metrics.flume.sourceName':'Source {0}',
+  'services.service.info.metrics.flume.hostName':'Host: {0}',
+
   'services.service.info.metrics.hbase.clusterRequests':'Cluster Requests',
   'services.service.info.metrics.hbase.clusterRequests.displayNames.requestCount':'Request Count',
   'services.service.info.metrics.hbase.hlogSplitSize':'HLog Split Size',
@@ -1068,6 +1082,14 @@ Em.I18n.translations = {
   'dashboard.services.mapreduce.jobTrackerUptime':'Job Trackers Uptime',
   'dashboard.services.mapreduce.chart.label':'Jobs Running',
 
+  'dashboard.services.flume.summary.single':'{0} Flume Agent',
+  'dashboard.services.flume.summary.multiple':'{0} Flume Agents',
+  'dashboard.services.flume.agentsLabel': 'Flume Agents',
+  'dashboard.services.flume.channels': 'Channels',
+  'dashboard.services.flume.sources': 'Sources',
+  'dashboard.services.flume.sinks': 'Sinks',
+  
+  
   'dashboard.services.hbase.summary':'{0} region servers with {1} average load',
   'dashboard.services.hbase.masterServer':'HBase Master',
   'dashboard.services.hbase.noMasterServer':'No Active Master',

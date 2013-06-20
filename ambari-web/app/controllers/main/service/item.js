@@ -245,6 +245,10 @@ App.MainServiceItemController = Em.Controller.extend({
         }
 
     }.observes('App.router.backgroundOperationsController.serviceTimestamp'),
+    
+  isServiceRestartable: function() {
+    return this.get('content.serviceName') !== "FLUME";
+  }.property('content.serviceName'),
 
   isStartDisabled: function () {
     if(this.get('isPending')) return true;

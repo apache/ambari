@@ -352,6 +352,8 @@ App.format = {
         return 'HCFS Client';
       case 'HCFS_SERVICE_CHECK':
         return 'HCFS Service Check';
+      case 'FLUME_SERVER':
+        return 'Flume Agent';
     }
   },
 

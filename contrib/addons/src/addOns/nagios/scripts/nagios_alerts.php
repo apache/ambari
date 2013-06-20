@@ -385,6 +385,9 @@ function hdp_mon_generate_response( $response_data )
         break;
       case "AMBARI":
 	    $pieces[0] = "AMBARI";
+      break;
+      case "FLUME":
+            $pieces[0] = "FLUME";
       break;      
       case "NAGIOS":
       case "HDFS":

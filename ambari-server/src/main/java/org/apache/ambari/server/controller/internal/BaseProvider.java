@@ -27,9 +27,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Base provider implementation for both property and resource providers.
@@ -51,6 +54,9 @@ public abstract class BaseProvider {
    */
   private final Set<String> combinedIds;
 
+
+  private final Map<String, Pattern> patterns;
+
   /**
    * The logger.
    */
@@ -70,6 +76,13 @@ public abstract class BaseProvider {
     this.categoryIds = PropertyHelper.getCategories(propertyIds);
     this.combinedIds = new HashSet<String>(propertyIds);
     this.combinedIds.addAll(this.categoryIds);
+    this.patterns = new HashMap<String, Pattern>();
+    for (String id : this.combinedIds) {
+      if (id.matches(".*\\$\\d+.*")) {
+        String pattern = id.replaceAll("\\$\\d+", "\\\\S+");
+        patterns.put(id, Pattern.compile(pattern));
+      }
+    }
   }
 
 
@@ -106,12 +119,8 @@ public abstract class BaseProvider {
       // we want to treat property as a category and the entries as individual properties.
       Set<String> categoryProperties = new HashSet<String>();
       for (String unsupportedPropertyId : unsupportedPropertyIds) {
-        String category = PropertyHelper.getPropertyCategory(unsupportedPropertyId);
-        while (category != null) {
-          if (this.propertyIds.contains(category)) {
-            categoryProperties.add(unsupportedPropertyId);
-          }
-          category = PropertyHelper.getPropertyCategory(category);
+        if (checkCategory(unsupportedPropertyId) || checkRegExp(unsupportedPropertyId)) {
+          categoryProperties.add(unsupportedPropertyId);
         }
       }
       unsupportedPropertyIds.removeAll(categoryProperties);
@@ -148,16 +157,9 @@ public abstract class BaseProvider {
       Set<String> unsupportedPropertyIds = new HashSet<String>(propertyIds);
       unsupportedPropertyIds.removeAll(this.combinedIds);
 
-      // Add the categories to account for map properties where the entries will not be
-      // in the provider property list ids but the map (category) might be.
       for (String unsupportedPropertyId : unsupportedPropertyIds) {
-        String category = PropertyHelper.getPropertyCategory(unsupportedPropertyId);
-        while (category != null) {
-          if (this.propertyIds.contains(category)) {
-            keepers.add(unsupportedPropertyId);
-            break;
-          }
-          category = PropertyHelper.getPropertyCategory(category);
+        if (checkCategory(unsupportedPropertyId) || checkRegExp(unsupportedPropertyId)) {
+          keepers.add(unsupportedPropertyId);
         }
       }
       propertyIds.retainAll(this.combinedIds);
@@ -165,6 +167,51 @@ public abstract class BaseProvider {
     }
     return propertyIds;
   }
+
+  /**
+   * Check the categories to account for map properties where the entries will not be
+   * in the provider property list ids but the map (category) might be.
+   */
+  private boolean checkCategory(String unsupportedPropertyId) {
+    String category = PropertyHelper.getPropertyCategory(unsupportedPropertyId);
+    while (category != null) {
+      if( this.propertyIds.contains(category)) {
+        return true;
+      }
+      category = PropertyHelper.getPropertyCategory(category);
+    }
+    return false;
+  }
+
+  private boolean checkRegExp(String unsupportedPropertyId) {
+    for (Pattern pattern : patterns.values()) {
+      Matcher matcher = pattern.matcher(unsupportedPropertyId);
+      if (matcher.matches()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  protected String getRegExpKey(String id) {
+    for (Map.Entry<String, Pattern> entry : patterns.entrySet()) {
+      Pattern pattern = entry.getValue();
+
+      Matcher matcher = pattern.matcher(id);
+
+      if (matcher.matches()) {
+        return entry.getKey();
+      }
+    }
+    return null;
+  }
+
+  protected boolean isPatternKey(String id) {
+    return patterns.containsKey(id);
+  }
+
+
+  /**
 
   /**
    * Set a property value on the given resource for the given id and value.

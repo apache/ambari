@@ -148,7 +148,9 @@ public class RoleCommandOrder {
     addDependency(Role.HUE_SERVER, RoleCommand.START, Role.HCAT,
       RoleCommand.START);
     addDependency(Role.HUE_SERVER, RoleCommand.START, Role.OOZIE_SERVER,
-      RoleCommand.START);
+        RoleCommand.START);
+    addDependency(Role.FLUME_SERVER, RoleCommand.START, Role.OOZIE_SERVER,
+        RoleCommand.START);
 
     // Service checks
     addDependency(Role.HDFS_SERVICE_CHECK, RoleCommand.EXECUTE, Role.NAMENODE,

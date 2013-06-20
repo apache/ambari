@@ -162,6 +162,8 @@ App.Service = DS.Model.extend({
         return 'Nagios';
       case 'hue':
         return 'Hue';
+      case 'flume':
+        return 'Flume';
     }
     return this.get('serviceName');
   }.property('serviceName'),

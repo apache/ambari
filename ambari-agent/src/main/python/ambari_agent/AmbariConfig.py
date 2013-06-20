@@ -129,7 +129,8 @@ rolesToClass = {
   'HUE_SERVICE_CHECK': 'hdp-hue::service_check',
   'RESOURCEMANAGER_SERVICE_CHECK': 'hdp-yarn::resourcemanager::service_check',
   'HISTORYSERVER_SERVICE_CHECK': 'hdp-yarn::historyserver::service_check',
-  'TEZ_CLIENT': 'hdp-tez::tez_client'
+  'TEZ_CLIENT': 'hdp-tez::tez_client',
+  'FLUME_SERVER': 'hdp-flume'
 }
 
 serviceStates = {
@@ -150,6 +151,7 @@ servicesToPidNames = {
   'HISTORYSERVER': 'mapred-{USER}-historyserver.pid$',
   'OOZIE_SERVER': 'oozie.pid',
   'ZOOKEEPER_SERVER': 'zookeeper_server.pid',
+  'FLUME_SERVER': 'flume-node.pid',
   'TEMPLETON_SERVER': 'templeton.pid',
   'NAGIOS_SERVER': 'nagios.pid',
   'GANGLIA_SERVER': 'gmetad.pid',

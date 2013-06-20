@@ -55,6 +55,7 @@ App.HostComponent = DS.Model.extend({
       case 'WEBHCAT_SERVER':
       case 'HUE_SERVER':
       case 'HISTORYSERVER':
+      case 'FLUME_SERVER':
         return true;
       default:
         return false;

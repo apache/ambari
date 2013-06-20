@@ -75,6 +75,7 @@ class hdp-nagios::params() inherits hdp::params
     nagios-server => {host_member_info => 'nagios_server_host'},
     jobtracker  => {host_member_info => 'jtnode_host'},
     ganglia-server => {host_member_info => 'ganglia_server_host'},
+    flume-servers => {host_member_info => 'flume_hosts'},
     zookeeper-servers => {host_member_info => 'zookeeper_hosts'},
     hbasemasters => {host_member_info => 'hbase_master_hosts'},
     hiveserver => {host_member_info => 'hive_server_host'},

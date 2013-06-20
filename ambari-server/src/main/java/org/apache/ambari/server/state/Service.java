@@ -104,6 +104,7 @@ public interface Service {
     GANGLIA,
     ZOOKEEPER,
     PIG,
-    HCATALOG
+    HCATALOG,
+    FLUME
   }
 }

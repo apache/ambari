@@ -69,6 +69,10 @@ class hdp::params()
 
   $zookeeper_hosts = hdp_default("zookeeper_hosts")
 
+  $flume_hosts = hdp_default("flume_hosts")
+
+  $flume_port = hdp_default("flume_port", "4159")
+
   $hbase_master_hosts = hdp_default("hbase_master_hosts", "")
 
   #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
