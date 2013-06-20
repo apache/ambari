@@ -251,8 +251,8 @@ class hdp-nagios::server::web_permisssions()
   }
 
   file { "/etc/nagios/htpasswd.users" :
-    owner => $hdp-nagios::params::nagios_default_user,
-    group => $hdp-nagios::params::nagios_default_group,
+    owner => $hdp-nagios::params::nagios_user,
+    group => $hdp-nagios::params::nagios_group,
     mode  => '0644'
   }
 
