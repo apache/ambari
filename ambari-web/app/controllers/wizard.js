@@ -128,7 +128,7 @@ App.WizardController = Em.Controller.extend({
 
   gotoStep: function (step) {
     if (this.get('isStepDisabled').findProperty('step', step).get('value') !== false) {
-      return;
+      return false;
     }
     // if going back from Step 9 in Install Wizard, delete the checkpoint so that the user is not redirected
     // to Step 9
@@ -152,6 +152,7 @@ App.WizardController = Em.Controller.extend({
     } else {
       App.router.send('gotoStep' + step);
     }
+    return true;
   },
 
   gotoStep0: function () {
