@@ -86,8 +86,10 @@ NR_USERADD_CMD = 'useradd -M -g {0} --comment "{1}" ' \
 NR_SET_USER_COMMENT_CMD = 'usermod -c "{0}" {1}'
 NR_GROUPADD_CMD = 'groupadd {0}'
 NR_ADD_USER_TO_GROUP = 'usermod -G {0} {0}'
-NR_CHMOD_CMD = 'chmod {0} {1}'
-NR_CHOWN_CMD = 'chown {0}:{1} {2}'
+NR_CHMOD_CMD = 'chmod {0} {1} {2}'
+NR_CHOWN_CMD = 'chown {0} {1}:{2} {3}'
+
+RECURSIVE_RM_CMD = 'rm -rf {0}'
 
 # openssl command
 EXPRT_KSTR_CMD = "openssl pkcs12 -export -in {0} -inkey {1} -certfile {0} -out {3} -password pass:{2} -passin pass:{2}"
@@ -170,6 +172,7 @@ AMBARI_CONF_VAR="AMBARI_CONF_DIR"
 AMBARI_SERVER_LIB="AMBARI_SERVER_LIB"
 JAVA_HOME="JAVA_HOME"
 PID_DIR="/var/run/ambari-server"
+BOOTSTRAP_DIR_PROPERTY="bootstrap.dir"
 PID_NAME="ambari-server.pid"
 AMBARI_PROPERTIES_FILE="ambari.properties"
 AMBARI_PROPERTIES_RPMSAVE_FILE="ambari.properties.rpmsave"
@@ -357,24 +360,28 @@ def update_ambari_properties():
   return 0
 
 
+NR_CONF_DIR = get_conf_dir()
 
 # ownership/permissions mapping
-# path - permissions - user - group
+# path - permissions - user - group - recursive
+# Rules are executed in the same order as they are listed
 # {0} in user/group will be replaced by customized ambari-server username
-NR_CONF_DIR = get_conf_dir()
 NR_ADJUST_OWNERSHIP_LIST =[
-  ( "/etc/ambari-server/conf", "755", "{0}", "{0}" ),
-  ( "/etc/ambari-server/conf/ambari.properties", "644", "{0}", "{0}" ),
-  ( "/etc/ambari-server/conf/log4j.properties", "644", "root", "root" ),
-  ( "/var/lib/ambari-server/keys", "700", "{0}", "{0}" ),
-  ( "/var/lib/ambari-server/keys/db", "700", "{0}", "{0}" ),
-  ( "/var/lib/ambari-server/keys/db/index.txt", "700", "{0}", "{0}" ),
-  ( "/var/lib/ambari-server/keys/db/serial", "700", "{0}", "{0}" ),
-  ( "/var/lib/ambari-server/keys/db/newcerts", "700", "{0}", "{0}" ),
-  ( "/var/run/ambari-server", "755", "{0}", "{0}" ),
-  ( "/var/run/ambari-server/bootstrap", "755", "{0}", "{0}" ),
-  ( "/var/log/ambari-server", "755", "{0}", "{0}" ),
-  ( "/var/lib/ambari-server/ambari-env.sh", "770", "{0}", "root" ),
+
+  ( "/var/log/ambari-server", "644", "{0}", "{0}", True ),
+  ( "/var/log/ambari-server", "755", "{0}", "{0}", False ),
+  ( "/var/run/ambari-server", "644", "{0}", "{0}" , True),
+  ( "/var/run/ambari-server", "755", "{0}", "{0}" , False),
+  ( "/var/run/ambari-server/bootstrap", "755", "{0}", "{0}", False ),
+  ( "/var/lib/ambari-server/keys", "600", "{0}", "{0}", True ),
+  ( "/var/lib/ambari-server/keys", "700", "{0}", "{0}", False ),
+  ( "/var/lib/ambari-server/keys/db", "700", "{0}", "{0}", False ),
+  ( "/var/lib/ambari-server/keys/db/newcerts", "700", "{0}", "{0}", False ),
+  ( "/var/lib/ambari-server/keys/.ssh", "700", "{0}", "{0}", False ),
+  ( "/etc/ambari-server/conf", "644", "{0}", "{0}", True ),
+  ( "/etc/ambari-server/conf", "755", "{0}", "{0}", False ),
+  ( "/etc/ambari-server/conf/password.dat", "640", "{0}", "{0}", False ),
+
   # Also, /etc/ambari-server/conf/password.dat
   # is generated later at store_password_file
 ]
@@ -547,28 +554,39 @@ def read_ambari_user():
 
 
 def adjust_directory_permissions(ambari_user):
-  print "adjusting directory permissions..."
+  properties = get_ambari_properties()
+  bootstrap_dir = get_value_from_properties(properties, BOOTSTRAP_DIR_PROPERTY)
+  print "Wiping bootstrap dir ({0}) contents...".format(bootstrap_dir)
+  cmd = RECURSIVE_RM_CMD.format(bootstrap_dir)
+  run_os_command(cmd)
+  os.mkdir(bootstrap_dir)
+  print "adjusting permissions and ownership..."
   for pack in NR_ADJUST_OWNERSHIP_LIST:
     file = pack[0]
     mod = pack[1]
     user = pack[2].format(ambari_user)
     group = pack[3].format(ambari_user)
-    set_file_permissions(file, mod, user, group)
+    recursive = pack[4]
+    set_file_permissions(file, mod, user, group, recursive)
 
 
-def set_file_permissions(file, mod, user, group):
+def set_file_permissions(file, mod, user, group, recursive):
   WARN_MSG = "Command {0} returned exit code {1} with message: {2}"
+  if recursive:
+    params = " -R "
+  else:
+    params = ""
   if os.path.exists(file):
-    command = NR_CHMOD_CMD.format(mod, file)
+    command = NR_CHMOD_CMD.format(params, mod, file)
     retcode, out, err = run_os_command(command)
     if retcode != 0 :
       print_warning_msg(WARN_MSG.format(command, file, err))
-    command = NR_CHOWN_CMD.format(user, group, file)
+    command = NR_CHOWN_CMD.format(params, user, group, file)
     retcode, out, err = run_os_command(command)
     if retcode != 0 :
       print_warning_msg(WARN_MSG.format(command, file, err))
   else:
-    print_warning_msg("File %s does not exist" % file)
+    print_info_msg("File %s does not exist" % file)
 
 
 def create_custom_user():
@@ -795,7 +813,7 @@ def store_password_file(password, filename):
     passFile.write(password)
   print_info_msg("Adjusting filesystem permissions")  
   ambari_user = read_ambari_user()
-  set_file_permissions(passFilePath, "660", ambari_user, "root")
+  set_file_permissions(passFilePath, "660", ambari_user, "root", False)
 
   return passFilePath
 
@@ -2585,11 +2603,11 @@ def import_cert_and_key(security_server_keys_dir):
 
   if retcode == 0:
    print 'Successfully imported trusted cerificate and private key'
-   set_file_permissions(keystoreFilePath, "660", read_ambari_user(), "root")
+   set_file_permissions(keystoreFilePath, "660", read_ambari_user(), "root", False)
    with open(passFilePath, 'w+') as passFile:
     passFile.write(pem_password)
     pass
-   set_file_permissions(passFilePath, "660", read_ambari_user(), "root")
+   set_file_permissions(passFilePath, "660", read_ambari_user(), "root", False)
    import_file_to_keystore(import_cert_path, os.path.join(\
                           security_server_keys_dir, SSL_CERT_FILE_NAME))
    import_file_to_keystore(import_key_path, os.path.join(\
@@ -2602,7 +2620,7 @@ def import_cert_and_key(security_server_keys_dir):
  
 def import_file_to_keystore(source, destination):
   shutil.copy(source, destination)
-  set_file_permissions(destination, "660", read_ambari_user(), "root")
+  set_file_permissions(destination, "660", read_ambari_user(), "root", False)
  
  
 def get_validated_filepath_input(prompt, description, default=None):

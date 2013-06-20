@@ -582,25 +582,52 @@ class TestAmbariServer(TestCase):
     user = ambari_server.read_ambari_user()
     self.assertEquals(user, None)
 
+
   @patch.object(ambari_server, "set_file_permissions")
-  def test_adjust_directory_permissions(self, set_file_permissions_mock):
+  @patch.object(ambari_server, "run_os_command")
+  @patch.object(ambari_server, "get_ambari_properties")
+  @patch.object(ambari_server, "get_value_from_properties")
+  @patch.object(ambari_server, "os.mkdir")
+  def test_adjust_directory_permissions(self, mkdir_mock, get_value_from_properties_mock, get_ambari_properties_mock,
+                                        run_os_command_mock, set_file_permissions_mock):
+    # Testing boostrap dir wipe
+    properties_mock = MagicMock()
+    get_value_from_properties_mock.return_value = "dummy_bootstrap_dir"
+    ambari_server.adjust_directory_permissions("user")
+    self.assertEquals(run_os_command_mock.call_args_list[0][0][0], "rm -rf dummy_bootstrap_dir/*")
+    self.assertTrue(mkdir_mock.called)
+
+    set_file_permissions_mock.reset_mock()
+    # Test recursive calls
+    old_list = ambari_server.NR_ADJUST_OWNERSHIP_LIST
+
+    ambari_server.NR_ADJUST_OWNERSHIP_LIST = [
+      ( "/etc/ambari-server/conf", "755", "{0}", "{0}", True ),
+      ( "/etc/ambari-server/conf/ambari.properties", "644", "{0}", "{0}", False )
+    ]
+
     ambari_server.adjust_directory_permissions("user")
     self.assertTrue(len(set_file_permissions_mock.call_args_list) ==
                     len(ambari_server.NR_ADJUST_OWNERSHIP_LIST))
+    self.assertEquals(set_file_permissions_mock.call_args_list[0][0][4], True)
+    self.assertEquals(set_file_permissions_mock.call_args_list[1][0][4], False)
+
+    ambari_server.NR_ADJUST_OWNERSHIP_LIST = old_list
 
 
   @patch("os.path.exists")
   @patch.object(ambari_server, "run_os_command")
   @patch.object(ambari_server, "print_warning_msg")
-  def test_set_file_permissions(self, print_warning_msg_mock,
+  @patch.object(ambari_server, "print_info_msg")
+  def test_set_file_permissions(self, print_info_msg_mock, print_warning_msg_mock,
                                 run_os_command_mock, exists_mock):
 
     # Testing not existent file scenario
     exists_mock.return_value = False
     ambari_server.set_file_permissions("dummy-file", "dummy-mod",
-                                       "dummy-user", "dummy-group")
+                                       "dummy-user", "dummy-group", False)
     self.assertFalse(run_os_command_mock.called)
-    self.assertTrue(print_warning_msg_mock.called)
+    self.assertTrue(print_info_msg_mock.called)
 
     run_os_command_mock.reset_mock()
     print_warning_msg_mock.reset_mock()
@@ -609,7 +636,7 @@ class TestAmbariServer(TestCase):
     exists_mock.return_value = True
     run_os_command_mock.side_effect = [(0, "", ""), (0, "", "")]
     ambari_server.set_file_permissions("dummy-file", "dummy-mod",
-                                       "dummy-user", "dummy-group")
+                                       "dummy-user", "dummy-group", False)
     self.assertTrue(len(run_os_command_mock.call_args_list) == 2)
     self.assertFalse(print_warning_msg_mock.called)
 
@@ -619,7 +646,7 @@ class TestAmbariServer(TestCase):
     # Testing first command fail
     run_os_command_mock.side_effect = [(1, "", ""), (0, "", "")]
     ambari_server.set_file_permissions("dummy-file", "dummy-mod",
-                                       "dummy-user", "dummy-group")
+                                       "dummy-user", "dummy-group", False)
     self.assertTrue(len(run_os_command_mock.call_args_list) == 2)
     self.assertTrue(print_warning_msg_mock.called)
 
@@ -629,12 +656,41 @@ class TestAmbariServer(TestCase):
     # Testing second command fail
     run_os_command_mock.side_effect = [(0, "", ""), (1, "", "")]
     ambari_server.set_file_permissions("dummy-file", "dummy-mod",
-                                       "dummy-user", "dummy-group")
+                                       "dummy-user", "dummy-group", False)
     self.assertTrue(len(run_os_command_mock.call_args_list) == 2)
     self.assertTrue(print_warning_msg_mock.called)
 
     run_os_command_mock.reset_mock()
     print_warning_msg_mock.reset_mock()
+
+    # Testing recursive operation
+
+    exists_mock.return_value = True
+    run_os_command_mock.side_effect = [(0, "", ""), (0, "", "")]
+    ambari_server.set_file_permissions("dummy-file", "dummy-mod",
+                                       "dummy-user", "dummy-group", True)
+    self.assertTrue(len(run_os_command_mock.call_args_list) == 2)
+    self.assertTrue("-R" in run_os_command_mock.call_args_list[0][0][0])
+    self.assertTrue("-R" in run_os_command_mock.call_args_list[1][0][0])
+    self.assertFalse(print_warning_msg_mock.called)
+
+    run_os_command_mock.reset_mock()
+    print_warning_msg_mock.reset_mock()
+
+    # Testing non-recursive operation
+
+    exists_mock.return_value = True
+    run_os_command_mock.side_effect = [(0, "", ""), (0, "", "")]
+    ambari_server.set_file_permissions("dummy-file", "dummy-mod",
+                                       "dummy-user", "dummy-group", False)
+    self.assertTrue(len(run_os_command_mock.call_args_list) == 2)
+    self.assertFalse("-R" in run_os_command_mock.call_args_list[0][0][0])
+    self.assertFalse("-R" in run_os_command_mock.call_args_list[1][0][0])
+    self.assertFalse(print_warning_msg_mock.called)
+
+    run_os_command_mock.reset_mock()
+    print_warning_msg_mock.reset_mock()
+
 
 
   @patch.object(ambari_server, "get_validated_string_input")
