@@ -30,6 +30,7 @@ App.JobTrackerUptimeView = App.DashboardWidgetView.extend({
   isProgressBar: false,
   model_type: 'mapreduce',
   hiddenInfo: [],
+  hiddenInfoClass: "hidden-info-three-line",
 
   classNameBindings: ['isRed', 'isOrange', 'isGreen', 'isNA'],
   isGreen: function () {

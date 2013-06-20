@@ -30,6 +30,7 @@ App.HBaseMasterUptimeView = App.DashboardWidgetView.extend({
   isProgressBar: false,
   model_type: 'hbase',
   hiddenInfo: [],
+  hiddenInfoClass: "hidden-info-three-line",
 
   classNameBindings: ['isRed', 'isOrange', 'isGreen', 'isNA'],
   isGreen: function () {

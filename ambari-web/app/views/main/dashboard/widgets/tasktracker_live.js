@@ -33,9 +33,9 @@ App.TaskTrackerUpView = App.DashboardWidgetView.extend({
     var svc = this.get('model');
     var liveCount = svc.get('aliveTrackers').get('length');
     var totalCount = svc.get('taskTrackers').get('length');
-    var template = this.t('dashboard.services.mapreduce.trackersSummary');
     var result = [];
-    result.pushObject(template.format(liveCount, totalCount));
+    result.pushObject(liveCount + " live");
+    result.pushObject(totalCount + " total");
     return result;
   }.property('model.aliveTrackers.length', 'model.taskTrackers.length'),
 

@@ -45,6 +45,7 @@ App.DashboardWidgetView = Em.View.extend({
   isLinks: false,
   content: null, // widget content pieChart/ text/ progress bar/links/ metrics. etc
   hiddenInfo: null, // more info details
+  hiddenInfoClass: "hidden-info",
 
   thresh1: null, //num not string
   thresh2: null,

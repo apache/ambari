@@ -22,7 +22,7 @@
       <i class="icon-remove-sign icon-large"></i>
     </a>
     <div class="caption span11"> {{view.title}} </div>
-    <div class="hidden-info-three-line">
+    <div {{bindAttr class="view.hiddenInfoClass"}}>
       <table align="center">
         {{#each line in view.hiddenInfo}}
           <tr>

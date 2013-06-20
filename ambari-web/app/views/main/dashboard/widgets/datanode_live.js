@@ -31,11 +31,12 @@ App.DataNodeUpView = App.DashboardWidgetView.extend({
 
   hiddenInfo: function () {
     var result = [];
-    result.pushObject(this.get('model.liveDataNodes.length') + ' ' + this.t('dashboard.services.hdfs.nodes.live') + '/ ' +
-      this.get('model.deadDataNodes.length') + ' ' + this.t('dashboard.services.hdfs.nodes.dead') + '/ ' +
-      this.get('model.decommissionDataNodes.length')+ ' ' + this.t('dashboard.services.hdfs.nodes.decom'));
+    result.pushObject(this.get('model.liveDataNodes.length') + ' ' + this.t('dashboard.services.hdfs.nodes.live'));
+    result.pushObject(this.get('model.deadDataNodes.length') + ' ' + this.t('dashboard.services.hdfs.nodes.dead'));
+    result.pushObject(this.get('model.decommissionDataNodes.length')+ ' ' + this.t('dashboard.services.hdfs.nodes.decom'));
     return result;
   }.property('model.liveDataNodes.length','model.deadDataNodes.length','model.decommissionDataNodes.length'),
+  hiddenInfoClass: "hidden-info-three-line",
 
   classNameBindings: ['isRed', 'isOrange', 'isGreen'],
   isRed: function () {

@@ -31,12 +31,15 @@ App.MapReduceSlotsView = App.DashboardWidgetView.extend({
   hiddenInfo: function (){
     var result = [];
     if(this.get('isViewExist')){
-      result.pushObject('Occupied Slots/ Reserved Slots/ Total Slots');
+      var line1 = "Map: " + this.get('model.mapSlotsOccupied') + " Occupied / " + this.get('model.mapSlotsReserved') + " Reserved / " + this.get('model.mapSlots') + " Total";
+      result.pushObject(line1);
+      var line2 = "Reduce: " + this.get('model.reduceSlotsOccupied') + " Occupied / " + this.get('model.reduceSlotsReserved') + " Reserved / " + this.get('model.reduceSlots') + " Total";
+      result.pushObject(line2);
     }else{
       result.pushObject('MapReduce Not Started');
     }
     return result;
-  }.property('isViewExist'),
+  }.property('isViewExist', 'map_display_text', 'reduce_display_text'),
   isViewExist: function () {
     return this.get('model.mapSlotsOccupied') != null && this.get('model.mapSlotsReserved') != null && this.get('model.reduceSlotsOccupied') != null && this.get('model.reduceSlotsReserved') != null;
   }.property('model.mapSlotsReserved', 'model.mapSlotsOccupied', 'model.reduceSlotsReserved', 'model.reduceSlotsOccupied'),
