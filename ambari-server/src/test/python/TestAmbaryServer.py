@@ -743,15 +743,54 @@ class TestAmbariServer(TestCase):
             adjust_directory_permissions_mock, write_property_mock,
             create_custom_user_mock, get_YN_input_mock, read_ambari_user_mock):
 
-    # Scenario: user is already defined
+    # Scenario: user is already defined, user does not want to reconfigure it
     read_ambari_user_mock.return_value = "dummy-user"
+    get_YN_input_mock.return_value = False
     result = ambari_server.check_ambari_user()
-    self.assertFalse(get_YN_input_mock.called)
+    self.assertTrue(get_YN_input_mock.called)
     self.assertFalse(write_property_mock.called)
+    self.assertFalse(create_custom_user_mock.called)
     self.assertTrue(adjust_directory_permissions_mock.called)
     self.assertEqual(result, 0)
 
     get_YN_input_mock.reset_mock()
+    write_property_mock.reset_mock()
+    adjust_directory_permissions_mock.reset_mock()
+    create_custom_user_mock.reset_mock()
+
+    # Scenario: user is already defined, but user wants to reconfigure it
+
+    read_ambari_user_mock.return_value = "dummy-user"
+    create_custom_user_mock.return_value = (0, "new-dummy-user")
+    get_YN_input_mock.return_value = True
+    result = ambari_server.check_ambari_user()
+    self.assertTrue(get_YN_input_mock.called)
+    self.assertTrue(write_property_mock.called)
+    self.assertTrue(write_property_mock.call_args[0][1] == "new-dummy-user")
+    self.assertTrue(create_custom_user_mock.called)
+    self.assertTrue(adjust_directory_permissions_mock.called)
+    self.assertEqual(result, 0)
+
+    get_YN_input_mock.reset_mock()
+    write_property_mock.reset_mock()
+    adjust_directory_permissions_mock.reset_mock()
+    create_custom_user_mock.reset_mock()
+
+    # Negative scenario: user is already defined, but user wants
+    # to reconfigure it, user creation failed
+
+    read_ambari_user_mock.return_value = "dummy-user"
+    create_custom_user_mock.return_value = (1, None)
+    get_YN_input_mock.return_value = True
+    result = ambari_server.check_ambari_user()
+    self.assertTrue(get_YN_input_mock.called)
+    self.assertTrue(create_custom_user_mock.called)
+    self.assertFalse(write_property_mock.called)
+    self.assertFalse(adjust_directory_permissions_mock.called)
+    self.assertEqual(result, 1)
+
+    get_YN_input_mock.reset_mock()
+    create_custom_user_mock.reset_mock()
     write_property_mock.reset_mock()
     adjust_directory_permissions_mock.reset_mock()
 
@@ -773,6 +812,23 @@ class TestAmbariServer(TestCase):
     adjust_directory_permissions_mock.reset_mock()
 
     # Scenario: user is not defined (setup process), user creation failed
+
+    read_ambari_user_mock.return_value = None
+    get_YN_input_mock.return_value = True
+    create_custom_user_mock.return_value = (1, None)
+    result = ambari_server.check_ambari_user()
+    self.assertTrue(get_YN_input_mock.called)
+    self.assertTrue(create_custom_user_mock.called)
+    self.assertFalse(write_property_mock.called)
+    self.assertFalse(adjust_directory_permissions_mock.called)
+    self.assertEqual(result, 1)
+
+    get_YN_input_mock.reset_mock()
+    create_custom_user_mock.reset_mock()
+    write_property_mock.reset_mock()
+    adjust_directory_permissions_mock.reset_mock()
+
+    # negative scenario: user is not defined (setup process), user creation failed
 
     read_ambari_user_mock.return_value = None
     get_YN_input_mock.return_value = True
@@ -1549,6 +1605,9 @@ class TestAmbariServer(TestCase):
       pass
     self.assertTrue(killMock.called)
 
+    killMock.reset_mock()
+    parse_properties_file_mock.reset_mock()
+
     pexistsMock.return_value = False
 
     # Checking situation when ambari user is not set up
@@ -1559,6 +1618,8 @@ class TestAmbariServer(TestCase):
     except FatalException as e:
       # Expected
       self.assertTrue('Can not detect a system user' in e.reason)
+
+    parse_properties_file_mock.reset_mock()
 
     # Checking start from non-root when current user is not the same as a
     # custom user
@@ -1571,6 +1632,9 @@ class TestAmbariServer(TestCase):
     except FatalException as e:
       # Expected
       self.assertTrue('Can not start ambari-server as user' in e.reason)
+      self.assertFalse(parse_properties_file_mock.called)
+
+    parse_properties_file_mock.reset_mock()
 
     # Checking "jdk not found"
     is_root_mock.return_value = True
@@ -1584,6 +1648,7 @@ class TestAmbariServer(TestCase):
 
     find_jdk_mock.return_value = "somewhere"
 
+    parse_properties_file_mock.reset_mock()
 
     ## Testing workflow under root
     is_root_mock.return_value = True
@@ -1601,6 +1666,7 @@ class TestAmbariServer(TestCase):
     self.assertFalse(check_postgre_up_mock.called)
 
     check_postgre_up_mock.reset_mock()
+    parse_properties_file_mock.reset_mock()
 
     # Local DB
     args.persistence_type="local"
@@ -1615,6 +1681,8 @@ class TestAmbariServer(TestCase):
       self.assertTrue('Unable to start PostgreSQL server' in e.reason)
       self.assertTrue(check_postgre_up_mock.called)
 
+    parse_properties_file_mock.reset_mock()
+
     # case: iptables failed to stop
     check_postgre_up_mock.return_value = 0
     check_iptables_mock.return_value = (1, ambari_server.IP_TBLS_ENABLED)
@@ -1625,6 +1693,8 @@ class TestAmbariServer(TestCase):
       # Expected
       self.assertTrue('Failed to stop iptables' in e.reason)
 
+    parse_properties_file_mock.reset_mock()
+
     check_iptables_mock.return_value = (0, None)
     # Case: custom user is "root"
     read_ambari_user_mock.return_value = "root"
@@ -1633,6 +1703,9 @@ class TestAmbariServer(TestCase):
     popen_arg = popenMock.call_args[0][0]
     self.assertTrue(popen_arg[0] == "/bin/sh")
     popenMock.reset_mock()
+
+    parse_properties_file_mock.reset_mock()
+
     # Case: custom user is  not "root"
     read_ambari_user_mock.return_value = "not-root-user"
     ambari_server.start(args)
@@ -1643,11 +1716,15 @@ class TestAmbariServer(TestCase):
     check_postgre_up_mock.reset_mock()
 
     popenMock.reset_mock()
+    parse_properties_file_mock.reset_mock()
 
     ## Testing workflow under non-root
     is_root_mock.return_value = False
     read_ambari_user_mock.return_value = "not-root-user"
     getuser_mock.return_value = read_ambari_user_mock.return_value
+
+    parse_properties_file_mock.reset_mock()
+
     # Local DB
     args.persistence_type="local"
 
@@ -1655,12 +1732,16 @@ class TestAmbariServer(TestCase):
 
     self.assertFalse(check_postgre_up_mock.called)
 
+    parse_properties_file_mock.reset_mock()
+
     # Remote DB
     args.persistence_type="remote"
 
     ambari_server.start(args)
 
     self.assertFalse(check_postgre_up_mock.called)
+
+    parse_properties_file_mock.reset_mock()
 
     # Checking call
     check_iptables_mock.reset_mock()
@@ -1671,6 +1752,8 @@ class TestAmbariServer(TestCase):
     self.assertTrue(popen_arg[0] == "/bin/sh")
     self.assertFalse(check_iptables_mock.called)
 
+    parse_properties_file_mock.reset_mock()
+
     # Test start under wrong user
     read_ambari_user_mock.return_value = "not-root-user"
     getuser_mock.return_value = "non_custom_user"
@@ -1680,6 +1763,8 @@ class TestAmbariServer(TestCase):
     except FatalException as e:
       # Expected
       self.assertTrue('Can not start ambari-server as user' in e.reason)
+
+    parse_properties_file_mock.reset_mock()
 
     # Check environ master key is set
     popenMock.reset_mock()
@@ -1697,6 +1782,8 @@ class TestAmbariServer(TestCase):
     self.assertFalse(save_master_key_method.called)
     popen_arg = popenMock.call_args[1]['env']
     self.assertEquals(os_environ_mock.copy.return_value, popen_arg)
+
+    parse_properties_file_mock.reset_mock()
 
     # Check environ master key is not set
     popenMock.reset_mock()
@@ -2100,7 +2187,7 @@ class TestAmbariServer(TestCase):
       "server.jdbc.user.passwd=/etc/ambari-server/conf/password.dat\n",
       "java.home=/usr/jdk64/jdk1.6.0_31\n",
       "server.os_type=redhat6\n",
-      "ambari.user=ambari\n"]
+      "ambari-server.user=ambari\n"]
 
     NEW_PROPERTY = 'some_new_property=some_value\n'
     CHANGED_VALUE_PROPERTY = 'server.os_type=should_not_overwrite_value\n'

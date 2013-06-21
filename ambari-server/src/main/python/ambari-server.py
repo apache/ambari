@@ -78,7 +78,7 @@ ambari_provider_module_option = ""
 ambari_provider_module = os.environ.get('AMBARI_PROVIDER_MODULE')
 
 # Non-root user setup commands
-NR_USER_PROPERTY = "ambari.user"
+NR_USER_PROPERTY = "ambari-server.user"
 NR_USER_COMMENT =  "Ambari user"
 NR_GET_OWNER_CMD = 'stat -c "%U" {0}'
 NR_USERADD_CMD = 'useradd -M -g {0} --comment "{1}" ' \
@@ -634,8 +634,6 @@ def create_custom_user():
                       "finished with {2}: \n{3}".format(user, command, retcode, err))
     return retcode, None
 
-
-
   print_info_msg("User/group configuration is done.")
   return 0, user
 
@@ -643,18 +641,27 @@ def create_custom_user():
 def check_ambari_user():
   try:
     user = read_ambari_user()
+    create_user = False
+    update_user_setting = False
     if user is not None:
-      print_info_msg("Detected custom user {0}".format(user))
-    else: # user is not configured yet or server is running under root
-      ok = get_YN_input("Create a separate user for ambari-server "
+      create_user = get_YN_input("Ambari-server process is configured run under user {0}."
+                        " Change this setting [y/n] (n)? ".format(user), False)
+      update_user_setting = create_user # Only if we will create another user
+    else: # user is not configured yet
+      update_user_setting = True # Write configuration anyway
+      create_user = get_YN_input("Create a separate user for ambari-server "
                    "daemon [y/n] (n)? ", False)
-      if ok:
-        (retcode, user) = create_custom_user()
-        if retcode != 0:
-          return retcode
-      else:
+      if not create_user:
         user = "root"
+
+    if create_user:
+      (retcode, user) = create_custom_user()
+      if retcode != 0:
+        return retcode
+
+    if update_user_setting:
       write_property(NR_USER_PROPERTY, user)
+
     adjust_directory_permissions(user)
   except OSError:
     print_error_msg("Failed: %s" % OSError.message)
@@ -663,8 +670,6 @@ def check_ambari_user():
     print_error_msg("Unexpected error %s" % e.message)
     return 1
   return 0
-
-
 
 
 
@@ -1922,6 +1927,17 @@ def reset(args):
 # Starts the Ambari Server.
 #
 def start(args):
+  current_user = getpass.getuser()
+  ambari_user = read_ambari_user()
+  if ambari_user is None:
+    err = "Can not detect a system user for Ambari. " \
+          "Please run \"setup\" command to create such user "
+    raise FatalException(1, err)
+  if current_user != ambari_user and not is_root():
+    err = "Can not start ambari-server as user {0}. Please either run \"start\" " \
+          "command as root or as user {1}".format(current_user, ambari_user)
+    raise FatalException(1, err)
+
   parse_properties_file(args)
   if os.path.exists(PID_DIR + os.sep + PID_NAME):
     f = open(PID_DIR + os.sep + PID_NAME, "r")
@@ -1933,17 +1949,6 @@ def start(args):
       raise FatalException(1, err)
     except OSError as e:
       print_info_msg("Server is not running...")
-
-  current_user = getpass.getuser()
-  ambari_user = read_ambari_user()
-  if ambari_user is None:
-    err = "Can not detect a system user for Ambari. " \
-                    "Please run \"setup\" command to create such user "
-    raise FatalException(1, err)
-  if current_user != ambari_user and not is_root():
-    err = "Can not start ambari-server as user {0}. Please either run \"start\" " \
-          "command as root or as user {1}".format(current_user, ambari_user)
-    raise FatalException(1, err)
 
   conf_dir = get_conf_dir()
   jdk_path = find_jdk()
