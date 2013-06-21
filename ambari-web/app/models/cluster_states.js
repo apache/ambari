@@ -73,6 +73,7 @@ App.clusterStatus = Ember.Object.create({
    * @return {*}
    */
   setClusterStatus: function(newValue){
+    if(App.testMode) return false;
     if (newValue) {
       //setter
       if (newValue.clusterState) {

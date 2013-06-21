@@ -214,8 +214,6 @@ Em.I18n.translations = {
   'installer.header':'Cluster Install Wizard',
   'installer.navigation.warning.header':'Navigation Warning',
 
-  'installer.mockData':'mockData',
-  'installer.pollData':'pollData',
   'installer.noHostsAssigned':'No host assigned',
   'installer.slaveComponentHosts.selectHosts':'select hosts for this group',
   'installer.slaveComponentHostsPopup.header':'Select which hosts should belong to which {0} group',

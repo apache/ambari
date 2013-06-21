@@ -173,6 +173,7 @@ var urls = {
   },
   'reassign.get_logs': {
     'real': '/clusters/{clusterName}/requests/{requestId}?fields=tasks/*',
+    'mock': '/data/wizard/reassign/step14PolledData/tasks_poll{pollCounter}.json',
     'type': 'GET'
 
   },
@@ -603,9 +604,9 @@ var urls = {
   'wizard.install_services.installer_controller.is_retry': {
     'real': '/clusters/{cluster}/host_components?HostRoles/state=INSTALLED',
     'mock': '/data/wizard/deploy/2_hosts/poll_1.json',
+    'type': 'PUT',
     'format': function (data, opt) {
       return {
-        type: 'PUT',
         async: false,
         data: data.data
       };
@@ -614,9 +615,9 @@ var urls = {
   'wizard.install_services.installer_controller.not_is_retry': {
     'real': '/clusters/{cluster}/services?ServiceInfo/state=INIT',
     'mock': '/data/wizard/deploy/2_hosts/poll_1.json',
+    'type': 'PUT',
     'format': function (data, opt) {
       return {
-        type: 'PUT',
         async: false,
         data: data.data
       };

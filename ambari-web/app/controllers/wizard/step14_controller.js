@@ -775,38 +775,37 @@ App.WizardStep14Controller = Em.Controller.extend({
   },
 
   POLL_INTERVAL: 4000,
-  dataPollCounter: 1,
+  dataPollCounter: 0,
 
   getLogsByRequest: function () {
     this.set('logs', []);
-    if (App.testMode) {
-      var data = require('data/mock/step14PolledData/tasks_poll' + this.get('dataPollCounter'));
-      this.set('dataPollCounter', this.get('dataPollCounter') + 1);
-      if (this.get('dataPollCounter') == 6) {
-        this.set('dataPollCounter', 1);
-      }
-      this.onGetLogsByRequestSuccess(data);
-    } else {
-      var requestIds = this.get('currentRequestId');
-      requestIds.forEach(function (requestId) {
-        App.ajax.send({
-          name: 'reassign.get_logs',
-          sender: this,
-          data: {
-            requestId: requestId
-          },
-          success: 'onGetLogsByRequestSuccess',
-          error: 'onGetLogsByRequestError'
-        });
-      }, this);
+    var requestIds = this.get('currentRequestId');
+
+    if (this.get('dataPollCounter') == 5) {
+      this.set('dataPollCounter', 0);
     }
+    this.set('dataPollCounter', this.get('dataPollCounter') + 1);
+
+    requestIds.forEach(function (requestId) {
+      App.ajax.send({
+        name: 'reassign.get_logs',
+        sender: this,
+        data: {
+          requestId: requestId,
+          pollCounter: this.get('dataPollCounter')
+        },
+        success: 'onGetLogsByRequestSuccess',
+        error: 'onGetLogsByRequestError'
+      });
+    }, this);
+
   },
 
   logs: [],
 
   onGetLogsByRequestSuccess: function (data) {
     this.get('logs').push(data);
-    if (this.get('logs.length') == this.get('currentRequestId.length') || App.testMode) {
+    if (this.get('logs.length') == this.get('currentRequestId.length')) {
       this.parseLogs(this.get('logs'))
     }
   },

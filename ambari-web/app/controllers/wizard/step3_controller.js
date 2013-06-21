@@ -94,9 +94,6 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   isRetryDisabled: true,
 
-  mockData: require('data/mock/step3_hosts'),
-  mockRetryData: require('data/mock/step3_pollData'),
-
   navigateStep: function () {
     this.loadStep();
     if (this.get('content.installOptions.manualInstall') !== true) {
@@ -936,33 +933,6 @@ App.WizardStep3Controller = Em.Controller.extend({
         }
       })
     })
-  },
-
-  // TODO: dummy button. Remove this after the hook up with actual REST API.
-  mockBtn: function () {
-    this.set('isSubmitDisabled', false);
-    this.hosts.clear();
-    var hostInfo = this.mockData;
-    this.renderHosts(hostInfo);
-  },
-
-  pollBtn: function () {
-    if (this.get('isSubmitDisabled')) {
-      return;
-    }
-    var hosts = this.get('visibleHosts');
-    var selectedHosts = hosts.filterProperty('isChecked', true);
-    selectedHosts.forEach(function (_host) {
-      console.log('Retrying:  ' + _host.name);
-    });
-
-    var mockHosts = this.mockRetryData;
-    mockHosts.forEach(function (_host) {
-      console.log('Retrying:  ' + _host.name);
-    });
-    if (this.parseHostInfo(mockHosts, selectedHosts)) {
-      // this.saveHostInfoToDb();
-    }
   },
 
   back: function () {

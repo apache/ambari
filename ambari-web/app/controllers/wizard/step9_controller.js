@@ -38,7 +38,6 @@ App.WizardStep9Controller = Em.Controller.extend({
     }
   }.observes('content.cluster.status', 'content.controllerName'),
 
-  mockHostData: require('data/mock/step9_hosts'),
   mockDataPrefix: '/data/wizard/deploy/5_hosts',
   pollDataCounter: 0,
   polledData: [],
@@ -186,7 +185,7 @@ App.WizardStep9Controller = Em.Controller.extend({
     this.set('status', 'info');
     this.set('progress', '0');
     this.set('isStepCompleted', false);
-    this.numPolls = 0;
+    this.numPolls = 1;
   },
 
   loadStep: function () {
@@ -667,7 +666,7 @@ App.WizardStep9Controller = Em.Controller.extend({
     this.doPolling();
   },
 
-  numPolls: 0,
+  numPolls: 1,
 
   getUrl: function (requestId) {
     var clusterName = this.get('content.cluster.name');
