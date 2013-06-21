@@ -98,7 +98,7 @@ case "$1" in
         echo -e "Setup ambari-server"
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
-  setupldap)
+  setup-ldap)
         echo -e "Setting up ldap properties"
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
@@ -111,7 +111,7 @@ case "$1" in
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
   *)
-        echo "Usage: /usr/sbin/ambari-server {start|stop|restart|setup|upgrade|status|upgradestack|setupldap|resetmasterkey|setup-https} [options]"
+        echo "Usage: /usr/sbin/ambari-server {start|stop|restart|setup|upgrade|status|upgradestack|setup-ldap|setup-https|resetmasterkey} [options]"
         exit 1
 esac
 

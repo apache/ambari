@@ -55,7 +55,7 @@ UPGRADE_STACK_ACTION = "upgradestack"
 UPDATE_METAINFO_ACTION = "update-metainfo"
 STATUS_ACTION = "status"
 SETUP_HTTPS_ACTION = "setup-https"
-LDAP_SETUP_ACTION = "setupldap"
+LDAP_SETUP_ACTION = "setup-ldap"
 RESET_MASTER_KEY_ACTION = "resetmasterkey"
 
 # selinux commands
@@ -164,9 +164,11 @@ SSL_KEY_PASSWORD_FILE_NAME = "pass.txt"
 DEFAULT_SSL_API_PORT = 8443
 
 JDBC_RCA_PASSWORD_ALIAS = "ambari.db.password"
+CLIENT_SECURITY_KEY = "client.security"
+
 LDAP_MGR_PASSWORD_ALIAS = "ambari.ldap.manager.password"
 LDAP_MGR_PASSWORD_PROPERTY = "authentication.ldap.managerPassword"
-
+LDAP_MGR_USERNAME_PROPERTY = "authentication.ldap.managerDn"
 
 AMBARI_CONF_VAR="AMBARI_CONF_DIR"
 AMBARI_SERVER_LIB="AMBARI_SERVER_LIB"
@@ -927,12 +929,17 @@ def read_password(passwordDefault=PG_DEFAULT_PASSWORD,
 
   password = get_validated_string_input(passwordPrompt, passwordDefault,
                                         passwordPattern, passwordDescr, True)
+
+  if not password:
+    print 'Password cannot be blank.'
+    read_password(passwordDefault, passwordPattern, passwordPrompt, passwordDescr)
+
   if password != passwordDefault:
     password1 = get_validated_string_input("Re-enter password: ",
                                            passwordDefault, passwordPattern, passwordDescr, True)
     if password != password1:
       print "Passwords do not match"
-      password = read_password()
+      password = read_password(passwordDefault, passwordPattern, passwordPrompt, passwordDescr)
 
   return password
 
@@ -2218,8 +2225,9 @@ def get_choice_string_input(prompt,default,firstChoice,secondChoice):
 
 
 
-def get_validated_string_input(prompt, default, pattern, description, is_pass):
-  input =""
+def get_validated_string_input(prompt, default, pattern, description,
+                               is_pass, allowEmpty=True):
+  input = ""
   while not input:
     if SILENT:
       print (prompt)
@@ -2229,21 +2237,36 @@ def get_validated_string_input(prompt, default, pattern, description, is_pass):
     else:
       input = raw_input(prompt)
     if not input.strip():
-      input = default
-      break #done here and picking up default
+      # Empty input - if default available use default
+      if not allowEmpty and not default:
+        print 'Property cannot be blank.'
+        input = ""
+        continue
+      else:
+        input = default
+        break #done here and picking up default
     else:
       if not pattern==None and not re.search(pattern,input.strip()):
         print description
-        input=""
+        input= ""
+
   return input
 
 
-def get_value_from_properties(properties, key):
+def get_value_from_properties(properties, key, default=""):
   try:
-    value = properties[key]
-  except KeyError:
-    return ""
+    value = properties.get_property(key)
+    if not value:
+      value = default
+  except:
+    return default
   return value
+
+def get_prompt_default(defaultStr=None):
+  if not defaultStr or defaultStr == "":
+    return ""
+  else:
+    return '(' + defaultStr + ')'
 
 def setup_ldap():
   properties = get_ambari_properties()
@@ -2251,65 +2274,94 @@ def setup_ldap():
   # Setup secure key
   (masterKey, isSecure, isPersisted) = setup_master_key(False)
 
-  LDAP_PRIMARY_URL_DEFAULT = get_value_from_properties(properties,
-    "authentication.ldap.primaryUrl")
-  LDAP_SECONDARY_URL_DEFAULT = get_value_from_properties(properties,
-    "authentication.ldap.secondaryUrl")
-  LDAP_BASE_DN_DEFAULT = get_value_from_properties(properties,
-    "authentication.ldap.baseDn")
-  LDAP_BIND_DEFAULT = get_value_from_properties(properties,
-    "authentication.ldap.bindAnonymously")
-  LDAP_USER_ATT_DEFAULT = get_value_from_properties(properties,
-    "authentication.ldap.usernameAttribute")
-  LDAP_GROUP_BASE_DEFAULT = get_value_from_properties(properties,
-    "authorization.ldap.groupBase")
-  LDAP_GROUP_OBJ_DEFAULT = get_value_from_properties(properties,
-    "authorization.ldap.groupObjectClass")
-  LDAP_GROUP_NAME_DEFAULT = get_value_from_properties(properties,
-    "authorization.ldap.groupNamingAttr")
-  LDAP_GROUP_MEM_DEFAULT = get_value_from_properties(properties,
-    "authorization.ldap.groupMembershipAttr")
-  LDAP_GROUP_MAP_DEFAULT = get_value_from_properties(properties,
-    "authorization.ldap.adminGroupMappingRules")
-  LDAP_GROUP_SEARCH_DEFAULT = get_value_from_properties(properties,
-    "authorization.ldap.groupSearchFilter")
-  LDAP_USER_ROLE_DEFAULT = get_value_from_properties(properties,
-    "authorization.userRoleName")
-  LDAP_ADMIN_ROLE_DEFAULT = get_value_from_properties(properties,
-    "authorization.adminRoleName")
-  LDAP_MGR_DN_DEFAULT = get_value_from_properties(properties,
-    "authentication.ldap.managerDn")
+  # python2.x dict is not ordered
+  ldap_property_list_reqd = ["authentication.ldap.primaryUrl",
+                        "authentication.ldap.secondaryUrl",
+                        "authentication.ldap.useSSL",
+                        "authentication.ldap.usernameAttribute",
+                        "authentication.ldap.baseDn",
+                        "authorization.userRoleName",
+                        "authorization.adminRoleName",
+                        "authentication.ldap.bindAnonymously" ]
 
-  ldap_properties_map =\
+  ldap_property_list_opt = [ "authentication.ldap.managerDn",
+                             LDAP_MGR_PASSWORD_PROPERTY ]
+
+  LDAP_PRIMARY_URL_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[0])
+  LDAP_SECONDARY_URL_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[1])
+  LDAP_USE_SSL_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[2], "false")
+  LDAP_USER_ATT_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[3], "uid")
+  LDAP_BASE_DN_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[4])
+  LDAP_USER_ROLE_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[5], "user")
+  LDAP_ADMIN_ROLE_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[6], "admin")
+  LDAP_BIND_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[7], "false")
+  LDAP_MGR_DN_DEFAULT = get_value_from_properties(properties, ldap_property_list_opt[0])
+
+
+  ldap_properties_map_reqd =\
   {
-    "authentication.ldap.primaryUrl":(LDAP_PRIMARY_URL_DEFAULT, "Primary URL: "),\
-    "authentication.ldap.secondaryUrl":(LDAP_SECONDARY_URL_DEFAULT, "Secondary URL: "),\
-    "authentication.ldap.baseDn":(LDAP_BASE_DN_DEFAULT, "Base DN: "),\
-    "authentication.ldap.bindAnonymously":(LDAP_BIND_DEFAULT, "Bind anonymously? [true/alse]?: "),\
-    "authentication.ldap.usernameAttribute":(LDAP_USER_ATT_DEFAULT, "User name attribute uid): "),\
-    "authorization.ldap.groupBase":(LDAP_GROUP_BASE_DEFAULT, "Group base ou=groups,dc=ambari): "),\
-    "authorization.ldap.groupObjectClass":(LDAP_GROUP_OBJ_DEFAULT, "Group object class group): "),\
-    "authorization.ldap.groupNamingAttr":(LDAP_GROUP_NAME_DEFAULT, "Group name attribute cn): "),\
-    "authorization.ldap.groupMembershipAttr":(LDAP_GROUP_MEM_DEFAULT, "Group membership ttribute (member): "),\
-    "authorization.ldap.adminGroupMappingRules":(LDAP_GROUP_MAP_DEFAULT, "Admin group apping rules: "),\
-    "authorization.ldap.groupSearchFilter":(LDAP_GROUP_SEARCH_DEFAULT, "Group search filter: "),\
-    "authorization.userRoleName":(LDAP_USER_ROLE_DEFAULT, "User role name (user): "),\
-    "authorization.adminRoleName":(LDAP_ADMIN_ROLE_DEFAULT, "Admin role name (admin): "),
-    "authentication.ldap.managerDn":(LDAP_MGR_DN_DEFAULT, "Manager DN: ")
+    ldap_property_list_reqd[0]:(LDAP_PRIMARY_URL_DEFAULT, "Primary URL {0}: ".format(get_prompt_default(LDAP_PRIMARY_URL_DEFAULT))),\
+    ldap_property_list_reqd[1]:(LDAP_SECONDARY_URL_DEFAULT, "Secondary URL {0}: ".format(get_prompt_default(LDAP_SECONDARY_URL_DEFAULT))),\
+    ldap_property_list_reqd[2]:(LDAP_USE_SSL_DEFAULT, "Use SSL [true/false] {0}: ".format(get_prompt_default(LDAP_USE_SSL_DEFAULT))),\
+    ldap_property_list_reqd[3]:(LDAP_USER_ATT_DEFAULT, "User name attribute {0}: ".format(get_prompt_default(LDAP_USER_ATT_DEFAULT))),\
+    ldap_property_list_reqd[4]:(LDAP_BASE_DN_DEFAULT, "Base DN {0}: ".format(get_prompt_default(LDAP_BASE_DN_DEFAULT))),\
+    ldap_property_list_reqd[5]:(LDAP_USER_ROLE_DEFAULT, "User role name {0}: ".format(get_prompt_default(LDAP_USER_ROLE_DEFAULT))),\
+    ldap_property_list_reqd[6]:(LDAP_ADMIN_ROLE_DEFAULT, "Admin role name {0}: ".format(get_prompt_default(LDAP_ADMIN_ROLE_DEFAULT))),\
+    ldap_property_list_reqd[7]:(LDAP_BIND_DEFAULT, "Bind anonymously [true/false] {0}: ".format(get_prompt_default(LDAP_BIND_DEFAULT))),\
   }
+
   print "Input LDAP properties. Hit [Enter] to skip property."
   ldap_property_value_map = {}
-  for key in ldap_properties_map.keys():
-    input = get_validated_string_input(ldap_properties_map[key][1],
-      ldap_properties_map[key][0], ".*", "", False)
+  for key in ldap_property_list_reqd:
+    input = get_validated_string_input(ldap_properties_map_reqd[key][1],
+      ldap_properties_map_reqd[key][0], ".*", "", False, False)
     if input is not None and input != "":
       ldap_property_value_map[key] = input
 
-  ldap_property_value_map[LDAP_MGR_PASSWORD_PROPERTY] =\
-  configure_ldap_password(isSecure, masterKey)
-  # Persisting values
-  update_properties(ldap_property_value_map)
+  bindAnonymously = ldap_property_value_map["authentication.ldap.bindAnonymously"]
+  # Ask for manager credentials only if bindAnonymously is true
+  if bindAnonymously and bindAnonymously == 'true' or \
+        bindAnonymously == 'TRUE' or bindAnonymously == 'True':
+    username = get_validated_string_input("Manager DN {0}:".format(
+      get_prompt_default(LDAP_MGR_DN_DEFAULT)), LDAP_MGR_DN_DEFAULT, ".*", "", False, False)
+    ldap_property_value_map[LDAP_MGR_USERNAME_PROPERTY] = username
+    password = configure_ldap_password()
+    if isSecure:
+      ldap_property_value_map[LDAP_MGR_PASSWORD_PROPERTY] = get_alias_string(
+        LDAP_MGR_PASSWORD_ALIAS)
+    else:
+      ldap_property_value_map[LDAP_MGR_PASSWORD_PROPERTY] = password
+
+
+  print '=' * 20
+  print 'Review Settings'
+  print '=' * 20
+  for property in ldap_property_list_reqd:
+    if property in ldap_property_value_map:
+      print("%s: %s" % (property, ldap_property_value_map[property]))
+
+  for property in ldap_property_list_opt:
+    if property != LDAP_MGR_PASSWORD_PROPERTY:
+      print("%s: %s" % (property, ldap_property_value_map[property]))
+    else:
+      print("%s: %s" % (property, "****"))
+
+  save_settings = get_YN_input("Save settings [y/n] (y)? ", True)
+
+  if save_settings:
+    if isSecure:
+      retCode = save_passwd_for_alias(LDAP_MGR_PASSWORD_ALIAS, password, masterKey)
+      if retCode != 0:
+        print 'Saving secure ldap password failed.'
+        return retCode
+    ldap_property_value_map[CLIENT_SECURITY_KEY] = 'ldap'
+    # Persisting values
+    update_properties(ldap_property_value_map)
+    print 'Saving...done'
+
+  print "Ambari Server 'LDAP setup' completed successfully. Exiting."
   return 0
+
 
 def reset_master_key():
   setup_master_key(resetKey=True)
@@ -2508,7 +2560,7 @@ def save_master_key(master_key, key_location, persist=True):
     print_error_msg("Master key cannot be None.")
 
 
-def configure_ldap_password(isSecure=False, masterKey=None):
+def configure_ldap_password():
   passwordDefault = ""
   passwordPrompt = 'Enter LDAP Password: '
   passwordPattern = ".*"
@@ -2516,13 +2568,6 @@ def configure_ldap_password(isSecure=False, masterKey=None):
 
   password = read_password(passwordDefault, passwordPattern, passwordPrompt,
     passwordDescr)
-
-  if isSecure:
-    retCode = save_passwd_for_alias(LDAP_MGR_PASSWORD_ALIAS, password, masterKey)
-    if retCode != 0:
-      print 'Saving secure ldap password failed.'
-      return password
-    return get_alias_string(LDAP_MGR_PASSWORD_ALIAS)
 
   return password
 

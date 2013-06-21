@@ -2872,6 +2872,8 @@ class TestAmbariServer(TestCase):
     sys.stdout = sys.__stdout__
 
 
+  @patch.object(ambari_server, 'save_passwd_for_alias')
+  @patch.object(ambari_server, 'get_YN_input')
   @patch.object(ambari_server, 'update_properties')
   @patch.object(ambari_server, 'configure_ldap_password')
   @patch.object(ambari_server, 'get_validated_string_input')
@@ -2881,19 +2883,32 @@ class TestAmbariServer(TestCase):
   def test_setup_ldap(self, get_ambari_properties_method,
                 search_file_message, setup_master_key_method,
                 get_validated_string_input_method,
-                configure_ldap_password_method, update_properties_method):
+                configure_ldap_password_method, update_properties_method,
+                get_YN_input_method, save_passwd_for_alias_method):
     out = StringIO.StringIO()
     sys.stdout = out
     search_file_message.return_value = "filepath"
 
     configs = { ambari_server.SECURITY_MASTER_KEY_LOCATION : "filepath",
                 ambari_server.SECURITY_KEYS_DIR : tempfile.gettempdir(),
-                ambari_server.SECURITY_KEY_IS_PERSISTED : "true" }
+                ambari_server.SECURITY_KEY_IS_PERSISTED : "true"
+              }
 
     get_ambari_properties_method.return_value = configs
-    get_validated_string_input_method.return_value = "test"
-    configure_ldap_password_method.return_value = "${alias=fake}"
+    configure_ldap_password_method.return_value = "password"
     setup_master_key_method.return_value = (None, True, True)
+    get_YN_input_method.return_value = True
+    save_passwd_for_alias_method.return_value = 0
+
+    def side_effect(*args, **kwargs):
+      if 'Bind anonymously' in args[0]:
+        return 'true'
+      if args[1] == "true" or args[1] == "false":
+        return args[1]
+      else:
+        return "test"
+
+    get_validated_string_input_method.side_effect = side_effect
 
     ambari_server.setup_ldap()
 
@@ -2901,49 +2916,36 @@ class TestAmbariServer(TestCase):
     {
       "authentication.ldap.primaryUrl" : "test",
       "authentication.ldap.secondaryUrl" : "test",
-      "authentication.ldap.baseDn" : "test",
-      "authentication.ldap.bindAnonymously" : "test",
+      "authentication.ldap.useSSL" : "true",
       "authentication.ldap.usernameAttribute" : "test",
-      "authorization.ldap.groupBase" : "test",
-      "authorization.ldap.groupObjectClass" : "test",
-      "authorization.ldap.groupNamingAttr" : "test",
-      "authorization.ldap.groupMembershipAttr" : "test",
-      "authorization.ldap.adminGroupMappingRules" : "test",
-      "authorization.ldap.groupSearchFilter" : "test",
+      "authentication.ldap.baseDn" : "test",
       "authorization.userRoleName" : "test",
       "authorization.adminRoleName" : "test",
+      "authentication.ldap.bindAnonymously" : "true",
       "authentication.ldap.managerDn" : "test",
       "authentication.ldap.managerPassword" : \
-        configure_ldap_password_method.return_value
+        '${alias=ambari.ldap.manager.password}'
     }
 
-    self.assertEquals(update_properties_method.call_args[0][0],
-      ldap_properties_map)
+    self.assertEquals(sorted(update_properties_method.call_args[0][0]),
+      sorted(ldap_properties_map))
     self.assertTrue(update_properties_method.called)
     self.assertTrue(configure_ldap_password_method.called)
     self.assertTrue(get_validated_string_input_method.called)
+    self.assertTrue(get_YN_input_method.called)
 
     sys.stdout = sys.__stdout__
 
 
-  @patch.object(ambari_server, 'get_alias_string')
-  @patch.object(ambari_server, 'save_passwd_for_alias')
   @patch.object(ambari_server, 'read_password')
-  def test_configure_ldap_password(self, read_password_method,
-           save_passwd_for_alias_method, get_alias_string_method):
+  def test_configure_ldap_password(self, read_password_method):
     out = StringIO.StringIO()
     sys.stdout = out
     read_password_method.return_value = "blah"
-    save_passwd_for_alias_method.return_value = 0
-    get_alias_string_method.return_value = "${alias=somefake}"
 
-    ambari_server.configure_ldap_password(True, "aaa")
+    ambari_server.configure_ldap_password()
 
-    self.assertTrue(save_passwd_for_alias_method.called)
     self.assertTrue(read_password_method.called)
-    self.assertTrue(get_alias_string_method.called)
-    save_passwd_for_alias_method.assert_called_once_with(
-      ambari_server.LDAP_MGR_PASSWORD_ALIAS, "blah", "aaa")
 
     sys.stdout = sys.__stdout__
 
