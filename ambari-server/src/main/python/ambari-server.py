@@ -1295,13 +1295,9 @@ def get_ambari_properties():
 
 # Load database connection properties from conf file
 def parse_properties_file(args):
-  conf_file = find_properties_file()
-  properties = Properties()
-
-  try:
-    properties.load(open(conf_file))
-  except Exception, e:
-    print 'Could not read ambari config file "%s": %s' % (conf_file, e)
+  properties = get_ambari_properties()
+  if properties == -1:
+    print_error_msg ("Error getting ambari properties")
     return -1
 
   args.persistence_type = properties[PERSISTENCE_TYPE_PROPERTY]
@@ -1717,33 +1713,44 @@ def copy_files(files, dest_dir):
 
 def check_jdbc_drivers(args):
   properties = get_ambari_properties()
+  if properties == -1:
+    print_error_msg ("Error getting ambari properties")
+    return -1
   
-  ## ask user twice
-  for i in range(0,2):
-    result = find_jdbc_driver(args)
-    if result == -1:
-      msg = 'WARNING: Before starting Ambari Server, ' \
-            'the {0} JDBC driver JAR file must be copied to {1}. Press enter to continue.'.format(
+  result = find_jdbc_driver(args)
+  
+  msg = 'Before starting Ambari Server, ' \
+        'you must copy the {0} JDBC driver JAR file to {1}.'.format(
         DATABASE_FULL_NAMES[args.database],
-        JAVA_SHARE_PATH
-      )
-      if not SILENT:
-        raw_input(msg)
-      else:
-        print_warning_msg(msg)
+        JAVA_SHARE_PATH)
 
-    # check if user provided drivers
-    result = find_jdbc_driver(args)
+  
+  if result == -1:
+  
+    if SILENT:
+      print_error_msg(msg)
+      raise FatalException(-1, msg)
+    else:
+      print_warning_msg(msg)
+      raw_input(PRESS_ENTER_MSG)
+      result = find_jdbc_driver(args)
+      if result == -1:
+        print_error_msg(msg)
+        raise FatalException(-1, msg)
+        
+  # Check if selected RDBMS requires drivers to copy
+  if type(result) is not int:
+    print 'Copying JDBC drivers to server resources...'
+    try:
+      resources_dir = properties[RESOURCES_DIR_PROPERTY]
+    except KeyError:
+      print_error_msg("There is no value for " + RESOURCES_DIR_PROPERTY + "in " + AMBARI_PROPERTIES_FILE)
+      return -1
 
-    if type(result) is not int:
-      print 'Copying JDBC drivers to server resources...'
-      try:
-        resources_dir = properties[RESOURCES_DIR_PROPERTY]
-      except KeyError:
-        print_error_msg("There is no value for " + RESOURCES_DIR_PROPERTY + "in " + AMBARI_PROPERTIES_FILE)
-        return -1
-      copy_files(result, resources_dir)
-      break
+    copy_status = copy_files(result, resources_dir)
+    
+    if not copy_status == 0:
+      raise FatalException(-1, "Failed to copy JDBC drivers to server resources")
 
   return 0
 

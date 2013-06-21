@@ -2316,38 +2316,6 @@ class TestAmbariServer(TestCase):
       self.assertTrue("Client wasn't found" in fe.reason)
       pass
 
-
-  @patch.object(ambari_server, "get_ambari_properties")
-  @patch.object(ambari_server, "find_jdbc_driver")
-  @patch.object(ambari_server, "copy_files")
-  @patch('__builtin__.raw_input')
-  def test_check_jdbc_drivers(self, raw_input_mock, copy_files_mock, find_jdbc_driver_mock, get_ambari_properties_mock):
-    args = MagicMock()
-    
-    # Check positive scenario
-    drivers_list = ['driver_file']
-    resources_dir = '/tmp'
-    
-    get_ambari_properties_mock.return_value = {ambari_server.RESOURCES_DIR_PROPERTY : resources_dir}
-    find_jdbc_driver_mock.return_value = drivers_list
-    
-    rcode = ambari_server.check_jdbc_drivers(args)
-    
-    self.assertEqual(0, rcode)
-    copy_files_mock.assert_called_with(drivers_list, resources_dir)
-    
-    #Check negative scenario
-    find_jdbc_driver_mock.return_value = -1
-    
-    args.database = "oracle"
-    
-    rcode = ambari_server.check_jdbc_drivers(args)
-    
-    self.assertEqual(0, rcode)
-    #Ensure user was asked to provide drivers
-    self.assertTrue(raw_input_mock.called)
-    
-
   @patch.object(ambari_server, "find_properties_file")
   def test_get_ambari_properties(self, find_properties_file_mock):
 
@@ -2465,11 +2433,169 @@ class TestAmbariServer(TestCase):
     sys.stdout = sys.__stdout__
 
 
-  @patch.object(ambari_server, "search_file")
-  def test_parse_properties_file(self, search_file_mock):
+  @patch.object(ambari_server, "get_ambari_properties")
+  @patch.object(ambari_server, "find_jdbc_driver")
+  @patch.object(ambari_server, "copy_files")
+  @patch.object(ambari_server, "print_error_msg")
+  @patch.object(ambari_server, "print_warning_msg")
+  @patch('__builtin__.raw_input')
+  def test_check_jdbc_drivers(self, raw_input_mock, print_warning_msg, print_error_msg_mock, copy_files_mock,
+                              find_jdbc_driver_mock, get_ambari_properties_mock):
+
+    out = StringIO.StringIO()
+    sys.stdout = out
+
+    args = MagicMock()
+    
+    # Check positive scenario
+    drivers_list = ['driver_file']
+    resources_dir = '/tmp'
+    
+    get_ambari_properties_mock.return_value = {ambari_server.RESOURCES_DIR_PROPERTY : resources_dir}
+    find_jdbc_driver_mock.return_value = drivers_list
+    copy_files_mock.return_value = 0
+    
+    args.database = "oracle"
+    
+    rcode = ambari_server.check_jdbc_drivers(args)
+    
+    self.assertEqual(0, rcode)
+    copy_files_mock.assert_called_with(drivers_list, resources_dir)
+    
+    get_ambari_properties_mock.reset_mock()
+    find_jdbc_driver_mock.reset_mock()
+    copy_files_mock.reset_mock()
+    print_error_msg_mock.reset_mock()
+    print_warning_msg.reset_mock()
+    raw_input_mock.reset_mock()
+    
+    
+    
+    # Check negative scenarios
+    # Silent option, no drivers
+    ambari_server.SILENT = True
+    
+    find_jdbc_driver_mock.return_value = -1
+    
+    failed = False
+    
+    try:
+      rcode = ambari_server.check_jdbc_drivers(args)
+    except FatalException:
+      failed = True
+    
+    self.assertTrue(print_error_msg_mock.called)
+    self.assertTrue(failed)
+    
+    get_ambari_properties_mock.reset_mock()
+    find_jdbc_driver_mock.reset_mock()
+    copy_files_mock.reset_mock()
+    print_error_msg_mock.reset_mock()
+    print_warning_msg.reset_mock()
+    raw_input_mock.reset_mock()
+    
+    # Non-Silent option, no drivers
+    ambari_server.SILENT = False
+    
+    find_jdbc_driver_mock.return_value = -1
+    
+    failed = False
+    
+    try:
+      rcode = ambari_server.check_jdbc_drivers(args)
+    except FatalException:
+      failed = True
+
+    self.assertTrue(failed)
+    self.assertTrue(print_error_msg_mock.called)
+    
+    get_ambari_properties_mock.reset_mock()
+    find_jdbc_driver_mock.reset_mock()
+    copy_files_mock.reset_mock()
+    print_error_msg_mock.reset_mock()
+    print_warning_msg.reset_mock()
+    raw_input_mock.reset_mock()
+    
+    # Non-Silent option, no drivers at first ask, present drivers after that
+    
+    find_jdbc_driver_mock.side_effect = [-1, drivers_list]
+    
+    rcode = ambari_server.check_jdbc_drivers(args)
+    
+    self.assertEqual(0, rcode)
+    copy_files_mock.assert_called_with(drivers_list, resources_dir)
+    
+    get_ambari_properties_mock.reset_mock()
+    find_jdbc_driver_mock.reset_mock()
+    copy_files_mock.reset_mock()
+    print_error_msg_mock.reset_mock()
+    print_warning_msg.reset_mock()
+    raw_input_mock.reset_mock()
+    
+    # Non-Silent option, no drivers at first ask, no drivers after that
+    find_jdbc_driver_mock.side_effect = [-1, -1]
+    
+    failed = False
+    
+    try:
+      rcode = ambari_server.check_jdbc_drivers(args)
+    except FatalException:
+      failed = True
+    
+    self.assertTrue(failed)
+    self.assertTrue(print_error_msg_mock.called)
+    
+    get_ambari_properties_mock.reset_mock()
+    find_jdbc_driver_mock.reset_mock()
+    copy_files_mock.reset_mock()
+    print_error_msg_mock.reset_mock()
+    print_warning_msg.reset_mock()
+    raw_input_mock.reset_mock()
+    
+    
+    
+    
+    # Failed to copy_files    
+    
+    find_jdbc_driver_mock.side_effect = [drivers_list]
+    try:
+      rcode = ambari_server.check_jdbc_drivers(args)
+    except FatalException:
+      failed = True
+    
+    self.assertTrue(failed)
+    
+    sys.stdout = sys.__stdout__
+    
+    
+  @patch.object(ambari_server, "find_properties_file")
+  def test_get_ambari_properties(self, find_properties_file_mock):
+
+    find_properties_file_mock.return_value = None
+    rcode = ambari_server.get_ambari_properties()
+    self.assertEqual(rcode, -1)
+  
+    tf1 = tempfile.NamedTemporaryFile()
+    find_properties_file_mock.return_value = tf1.name
+    prop_name='name'
+    prop_value='val'
+    
+    with open(tf1.name, 'w') as fout:
+      fout.write(prop_name + '=' + prop_value)
+    fout.close()
+
+    properties = ambari_server.get_ambari_properties()
+    
+    self.assertEqual(properties[prop_name], prop_value)
+    self.assertEqual(properties.fileName, os.path.abspath(tf1.name))
+    
+    sys.stdout = sys.__stdout__
+
+  @patch.object(ambari_server, "find_properties_file")
+  def test_parse_properties_file(self, find_properties_file_mock):
 
     tf1 = tempfile.NamedTemporaryFile(mode='r')
-    search_file_mock.return_value = tf1.name
+    find_properties_file_mock.return_value = tf1.name
 
     args = MagicMock()
     ambari_server.parse_properties_file(args)
