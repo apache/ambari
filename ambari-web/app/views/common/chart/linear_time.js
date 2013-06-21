@@ -612,7 +612,7 @@ App.ChartLinearTimeView = Ember.View.extend({
       var self = this;
       // In popup save selected metrics and show only them after data update
       _graph.series.forEach(function(series, index) {
-        if (self.get('_seriesProperties') !== null && self.get('_seriesProperties')[index] !== null) {
+        if (self.get('_seriesProperties') !== null && self.get('_seriesProperties')[index] !== null && self.get('_seriesProperties')[index] !== undefined ) {
           if(self.get('_seriesProperties')[self.get('_seriesProperties').length - index - 1].length > 1) {
             $('#'+self.get('id')+'-container'+self.get('popupSuffix')+' a.action:eq('+(self.get('_seriesProperties').length - index - 1)+')').parent('li').addClass('disabled');
             series.disable();
