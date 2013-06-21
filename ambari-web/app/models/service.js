@@ -65,7 +65,7 @@ App.Service = DS.Model.extend({
       this.set('healthStatus', 'red-blinking');
     }
 
-    if (this.get('serviceName') === 'HBASE') {
+    if (this.get('serviceName') === 'HBASE' && App.supports.multipleHBaseMasters) {
       var active = this.get('hostComponents').findProperty('haStatus', 'active');
       if (!active) {
         this.set('healthStatus', 'red');
