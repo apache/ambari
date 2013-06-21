@@ -26,7 +26,7 @@ class hdp-hbase::hbase::service_check() inherits hdp-hbase::params
   $conf_dir = $hdp::params::hbase_conf_dir
   $smoke_user_keytab = $hdp::params::smokeuser_keytab
   $hbase_user = $hdp-hbase::params::hbase_user
-  $hbase_keytab = "${hdp-hbase::params::keytab_path}/${hbase_user}.headless.keytab"
+  $hbase_keytab = "${hdp-hbase::params::keytab_path}/hbase.headless.keytab"
   $test_cmd = "fs -test -e ${output_file}"
   $serviceCheckData = hdp_unique_id_and_date()
   $kinit_cmd = "${hdp::params::kinit_path_local} -kt ${smoke_user_keytab} ${smoke_test_user};"

@@ -376,13 +376,12 @@ define hdp-hadoop::exec-hadoop(
   }
 
   if (($security_enabled == true) and ($kinit_override == false)) {
-    #TODO: may figure out so dont need to call kinit if auth in caceh already
     if ($run_user in [$hdfs_user,'root']) {
-      $keytab = "${hdp-hadoop::params::keytab_path}/${hdfs_user}.headless.keytab"
+      $keytab = "${hdp::params::keytab_path}/hdfs.headless.keytab"
       $principal = $hdfs_user
-    } else {
-      $keytab = "${hdp-hadoop::params::keytab_path}/${user}.headless.keytab" 
-      $principal = $user
+    }  else {
+      $keytab = $hdp::params::smokeuser_keytab
+      $principal = $hdp::params::smokeuser
     }
     $kinit_if_needed = "${kinit_path_local} -kt ${keytab} ${principal}; "
   } else {

@@ -63,6 +63,7 @@ class hdp-hive::params() inherits hdp::params
   }
 
   $keytab_path = hdp_default("keytab_path","/etc/security/keytabs")
+  $hive_metatore_keytab_path = hdp_default("hive-site/hive.metastore.kerberos.keytab.file","/etc/security/keytabs/hive.service.keytab")
 
   #TODO: using instead hive_server_host in hdp::params 
   #$hive_metastore_server_host = hdp_default("hive-site/hive.metastore.server.host")

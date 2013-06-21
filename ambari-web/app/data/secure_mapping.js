@@ -361,6 +361,34 @@ module.exports = [
     "foreignKey": null,
     "value": "/hbase-secure",
     "filename": "hbase-site.xml"
+  },
+  {
+    "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
+    "templateName": ["proxyuser_group"],
+    "foreignKey": ["hive_metastore_primary_name"],
+    "value": "<templateName[0]>",
+    "filename": "core-site.xml"
+  },
+  {
+    "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
+    "templateName": ["hivemetastore_host"],
+    "foreignKey": ["hive_metastore_primary_name"],
+    "value": "<templateName[0]>",
+    "filename": "core-site.xml"
+  },
+  {
+    "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
+    "templateName": ["proxyuser_group"],
+    "foreignKey": ["oozie_primary_name"],
+    "value": "<templateName[0]>",
+    "filename": "core-site.xml"
+  },
+  {
+    "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
+    "templateName": ["oozieserver_host"],
+    "foreignKey": ["oozie_primary_name"],
+    "value": "<templateName[0]>",
+    "filename": "core-site.xml"
   }
 ];
 

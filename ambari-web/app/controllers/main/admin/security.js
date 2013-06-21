@@ -136,6 +136,11 @@ App.MainAdminSecurityController = Em.Controller.extend({
       name: 'hive_user',
       value: configs['hive_user'] ? configs['hive_user'] : 'hive'
     });
+    serviceUsers.pushObject({
+      id: 'puppet var',
+      name: 'proxyuser_group',
+      value: configs['proxyuser_group'] ? configs['proxyuser_group'] : 'users'
+    });
   },
 
   showSecurityErrorPopup: function () {

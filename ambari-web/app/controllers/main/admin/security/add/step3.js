@@ -202,6 +202,16 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         "filename": _config.filename
       });
     }, this);
+    var dependentConfig = this.get('secureMapping').filterProperty('foreignKey');
+    dependentConfig.forEach(function (_config) {
+      this.setConfigValue(uiConfig, _config);
+      uiConfig.pushObject({
+        "id": "site property",
+        "name": _config._name || _config.name,
+        "value": _config.value,
+        "filename": _config.filename
+      });
+    }, this);
     return uiConfig;
   },
 
@@ -266,6 +276,47 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     return value;
   },
 
+  /**
+   * Set all site property that are derived from other site-properties
+   */
+  setConfigValue: function (uiConfig, config) {
+    if (config.value == null) {
+      return;
+    }
+    var fkValue = config.name.match(/<(foreignKey.*?)>/g);
+    if (fkValue) {
+      fkValue.forEach(function (_fkValue) {
+        var index = parseInt(_fkValue.match(/\[([\d]*)(?=\])/)[1]);
+        var globalValue
+        if (uiConfig.someProperty('name', config.foreignKey[index])) {
+          globalValue = uiConfig.findProperty('name', config.foreignKey[index]).value;
+          config._name = config.name.replace(_fkValue, globalValue);
+        } else if (this.get('content.serviceConfigProperties').someProperty('name', config.foreignKey[index])) {
+          if (this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).value === '') {
+            globalValue = this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).defaultValue;
+          } else {
+            globalValue = this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).value;
+          }
+          config._name = config.name.replace(_fkValue, globalValue);
+        }
+      }, this);
+    }
+    //For properties in the configMapping file having foreignKey and templateName properties.
+
+    var templateValue = config.value.match(/<(templateName.*?)>/g);
+    if (templateValue) {
+      templateValue.forEach(function (_value) {
+        var index = parseInt(_value.match(/\[([\d]*)(?=\])/)[1]);
+        if (this.get('globalProperties').someProperty('name', config.templateName[index])) {
+          var globValue = this.appendInstanceName(config.templateName[index]);
+          config.value = config.value.replace(_value, globValue);
+        } else {
+          config.value = null;
+        }
+      }, this);
+    }
+  },
+
   prepareSecureConfigs: function () {
     this.loadGlobals();
     var storedConfigs = this.get('content.serviceConfigProperties').filterProperty('id', 'site property');
@@ -278,6 +329,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     this.set('globalProperties', globals);
     this.loadStaticGlobal(); //Hack for properties which are declared in config_properties.js and not able to retrieve values declared in secure_properties.js
     this.loadUsersToGlobal();
+    this.loadHostNamesToGlobal();
   },
 
   loadUsersToGlobal: function () {
@@ -289,9 +341,28 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     }, this);
   },
 
-  loadStaticGlobal: function() {
+  loadHostNamesToGlobal: function () {
+    if (this.get('isOozieSelected')) {
+      var oozieHostName = App.Service.find('OOZIE').get('hostComponents').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
+      this.get('globalProperties').pushObject({
+        id: 'puppet var',
+        name: 'oozieserver_host',
+        value: oozieHostName
+      });
+    }
+    if (App.Service.find('HIVE')) {
+      var hiveHostName = App.Service.find('HIVE').get('hostComponents').findProperty('componentName', 'HIVE_METASTORE').get('host.hostName');
+      this.get('globalProperties').pushObject({
+        id: 'puppet var',
+        name: 'hivemetastore_host',
+        value: hiveHostName
+      });
+    }
+  },
+
+  loadStaticGlobal: function () {
     var globalProperties = this.get('globalProperties');
-    this.get('globalProperties').forEach(function(_property){
+    this.get('globalProperties').forEach(function (_property) {
       switch (_property.name) {
         case 'security_enabled':
           _property.value = 'true';
@@ -303,7 +374,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
           _property.value = '1022';
           break;
       }
-    },this);
+    }, this);
   },
 
   loadUsersFromServer: function () {
@@ -452,7 +523,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       }
       else {
         this.get('configs').filterProperty('id', 'site property').filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
-          _serviceConfigTags.configs[_config.name] = _config.value;
+            _serviceConfigTags.configs[_config.name] = _config.value;
         }, this);
       }
     }, this);
