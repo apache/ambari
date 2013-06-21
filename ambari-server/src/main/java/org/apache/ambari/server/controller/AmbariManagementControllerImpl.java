@@ -2041,6 +2041,7 @@ public class AmbariManagementControllerImpl implements
                     || oldSchState == State.UNINSTALLED
                     || oldSchState == State.INSTALLED
                     || oldSchState == State.INSTALLING
+                    || oldSchState == State.UNKNOWN
                     || oldSchState == State.INSTALL_FAILED) {
                   roleCommand = RoleCommand.INSTALL;
                   event = new ServiceComponentHostInstallEvent(
@@ -2283,6 +2284,7 @@ public class AmbariManagementControllerImpl implements
             || oldState == State.INSTALL_FAILED
             || oldState == State.UPGRADING
             || oldState == State.STOPPING
+            || oldState == State.UNKNOWN
             || oldState == State.MAINTENANCE) {
           return true;
         }
@@ -2307,7 +2309,8 @@ public class AmbariManagementControllerImpl implements
           return true;
         }
       case MAINTENANCE:
-        if (oldState == State.INSTALLED) {
+        if (oldState == State.INSTALLED
+            || oldState == State.UNKNOWN) {
           return true;
         }
     }
@@ -3138,7 +3141,7 @@ public class AmbariManagementControllerImpl implements
       // If upgrade request comes without state information then its an error
       boolean upgradeRequest = checkIfUpgradeRequestAndValidate(request, cluster, s, sc, sch);
 
-      if (newState == null || oldState.equals(State.UNKNOWN)) {
+      if (newState == null) {
         if (LOG.isDebugEnabled()) {
           LOG.debug("Nothing to do for new updateServiceComponentHost request"
               + ", clusterName=" + request.getClusterName()
@@ -3373,9 +3376,12 @@ public class AmbariManagementControllerImpl implements
         }
         break;
       case MAINTENANCE:
-        if (oldState == State.INSTALLED) {
+        if (oldState == State.INSTALLED ||
+          oldState == State.UNKNOWN) {
           return true;
         }
+        break;
+      default:
         break;
     }
     return false;

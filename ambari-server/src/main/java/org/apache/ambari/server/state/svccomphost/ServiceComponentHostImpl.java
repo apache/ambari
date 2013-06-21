@@ -332,6 +332,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           State.INSTALLED,
           ServiceComponentHostEventType.HOST_SVCCOMP_RESTORE,
           new ServiceComponentHostOpCompletedTransition())
+      
+      .addTransition(State.UNKNOWN,
+          State.MAINTENANCE,
+          ServiceComponentHostEventType.HOST_SVCCOMP_MAINTENANCE,
+          new ServiceComponentHostOpCompletedTransition())
 
      .installTopology();
 

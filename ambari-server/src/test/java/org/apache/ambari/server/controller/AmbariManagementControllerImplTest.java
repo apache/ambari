@@ -1669,6 +1669,37 @@ public class AmbariManagementControllerImplTest {
     amc.createHostComponents(componentHostRequests);
     namenodes = cluster.getService("HDFS").getServiceComponent("NAMENODE").getServiceComponentHosts();
     assertEquals(2, namenodes.size());
+    
+    
+    // make unknown
+    ServiceComponentHost sch = null;
+    for (ServiceComponentHost tmp : cluster.getServiceComponentHosts("host2")) {
+      if (tmp.getServiceComponentName().equals("DATANODE")) {
+        tmp.setState(State.UNKNOWN);
+        sch = tmp;
+      }
+    }
+    assertNotNull(sch);
+
+    // make maintenance
+    componentHostRequests.clear();
+    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host2", null, "MAINTENANCE"));
+    amc.updateHostComponents(componentHostRequests, mapRequestProps, false);
+    assertEquals(State.MAINTENANCE, sch.getState ());
+    
+    // confirm delete
+    componentHostRequests.clear();
+    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host2", null, null));
+    amc.deleteHostComponents(componentHostRequests);
+    
+    sch = null;
+    for (ServiceComponentHost tmp : cluster.getServiceComponentHosts("host2")) {
+      if (tmp.getServiceComponentName().equals("DATANODE")) {
+        sch = tmp;
+      }
+    }
+    assertNull(sch);
+    
   }
 
   private void testRunSmokeTestFlag(Map<String, String> mapRequestProps,
