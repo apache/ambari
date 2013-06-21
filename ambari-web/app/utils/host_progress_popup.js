@@ -327,7 +327,10 @@ App.HostPopup = Em.Object.create({
 
         tasks: function() {
           if (!this.get('controller.currentHostName')) return [];
-          return this.get('hosts').findProperty('name', this.get('controller.currentHostName')).get('tasks');
+          if (this.get('hosts')) {
+            return this.get('hosts').findProperty('name', this.get('controller.currentHostName')).get('tasks');
+          }
+          return [];
         }.property('hosts.@each.tasks', 'hosts.@each.tasks.@each.status'),
 
         didInsertElement: function () {
