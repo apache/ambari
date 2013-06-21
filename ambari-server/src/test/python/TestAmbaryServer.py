@@ -2157,6 +2157,24 @@ class TestAmbariServer(TestCase):
     result = ambari_server.update_ambari_properties()
     self.assertNotEquals(result, 0)
 
+  @patch.object(ambari_server.Properties, '__init__')
+  @patch.object(ambari_server, 'search_file')
+  def test_update_ambari_properties_negative_case(self, search_file_mock, properties_mock):
+    search_file_mock.return_value = None
+    #Call tested method
+    self.assertEquals(0, ambari_server.update_ambari_properties())
+    self.assertFalse(properties_mock.called)
+
+    search_file_mock.return_value = False
+    #Call tested method
+    self.assertEquals(0, ambari_server.update_ambari_properties())
+    self.assertFalse(properties_mock.called)
+
+    search_file_mock.return_value = ''
+    #Call tested method
+    self.assertEquals(0, ambari_server.update_ambari_properties())
+    self.assertFalse(properties_mock.called)
+
   @patch("sys.exit")
   @patch.object(ambari_server, "get_db_cli_tool")
   @patch.object(ambari_server, "store_remote_properties")

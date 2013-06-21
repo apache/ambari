@@ -333,7 +333,8 @@ def update_ambari_properties():
   prev_conf_file = search_file(AMBARI_PROPERTIES_RPMSAVE_FILE, get_conf_dir())
   conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
 
-  if not prev_conf_file: # Previous config file does not exist
+  # Previous config file does not exist
+  if (not prev_conf_file) or (prev_conf_file is None):
     print_warning_msg("Can not find ambari.properties.rpmsave file from previous version, skipping import of settings")
     return 0
 
