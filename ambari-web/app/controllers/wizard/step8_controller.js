@@ -1528,13 +1528,13 @@ App.WizardStep8Controller = Em.Controller.extend({
       var oozieHost = globals.findProperty('name', 'oozie_hostname').value;
       var oozieDbName = globals.findProperty('name', 'oozie_database_name').value;
       if (oozieDb.value === 'New Derby Database') {
-        oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true";
+        // oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true";
         oozieProperties["oozie.service.JPAService.jdbc.driver"] = "org.apache.derby.jdbc.EmbeddedDriver";
       } else if (oozieDb.value === 'Existing MySQL Database') {
-        oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:mysql://" + oozieHost + "/" + oozieDbName;
+        // oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:mysql://" + oozieHost + "/" + oozieDbName;
         oozieProperties["oozie.service.JPAService.jdbc.driver"] = "com.mysql.jdbc.Driver";
       } else { //existing oracle database
-        oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:oracle:thin:@//" + oozieHost + ":1521/" + oozieDbName;
+        // oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:oracle:thin:@//" + oozieHost + ":1521/" + oozieDbName;
         oozieProperties["oozie.service.JPAService.jdbc.driver"] = "oracle.jdbc.driver.OracleDriver";
       }
       //set oozie username and password
@@ -1557,13 +1557,13 @@ App.WizardStep8Controller = Em.Controller.extend({
       var hiveHost = globals.findProperty('name', 'hive_hostname').value;
       var hiveDbName = globals.findProperty('name', 'hive_database_name').value;
       if (hiveDb.value === 'New MySQL Database') {
-        hiveProperties["javax.jdo.option.ConnectionURL"] = "jdbc:mysql://"+ hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
+        // hiveProperties["javax.jdo.option.ConnectionURL"] = "jdbc:mysql://"+ hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
         hiveProperties["javax.jdo.option.ConnectionDriverName"] = "com.mysql.jdbc.Driver";
       } else if (hiveDb.value === 'Existing MySQL Database'){
-        hiveProperties["javax.jdo.option.ConnectionURL"] = "jdbc:mysql://"+ hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
+        // hiveProperties["javax.jdo.option.ConnectionURL"] = "jdbc:mysql://"+ hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
         hiveProperties["javax.jdo.option.ConnectionDriverName"] = "com.mysql.jdbc.Driver";
       } else { //existing oracle database
-        hiveProperties["javax.jdo.option.ConnectionURL"] = "jdbc:oracle:thin:@//"+ hiveHost + ":1521/" + hiveDbName;
+        // hiveProperties["javax.jdo.option.ConnectionURL"] = "jdbc:oracle:thin:@//"+ hiveHost + ":1521/" + hiveDbName;
         hiveProperties["javax.jdo.option.ConnectionDriverName"] = "oracle.jdbc.driver.OracleDriver";
       }
     }

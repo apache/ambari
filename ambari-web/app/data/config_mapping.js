@@ -263,12 +263,11 @@ var configs = [
     "value": "<templateName[0]>",
     "filename": "oozie-site.xml"
   },
-  // oozie.service.JPAService.jdbc.url value is set in code
   {
     "name": "oozie.service.JPAService.jdbc.url",
-    "templateName": [],
+    "templateName": ["oozie_jdbc_connection_url"],
     "foreignKey": null,
-    "value": "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true",  // this value is overwritten in code
+    "value": "<templateName[0]>",
     "filename": "oozie-site.xml"
   },
   {
@@ -294,9 +293,9 @@ var configs = [
   },
   {
     "name": "javax.jdo.option.ConnectionURL",
-    "templateName": [],
+    "templateName": ["hive_jdbc_connection_url"],
     "foreignKey": null,
-    "value": "",  // this value is overwritten in code
+    "value": "<templateName[0]>",
     "filename": "hive-site.xml"
   },
   {

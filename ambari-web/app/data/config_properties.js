@@ -1265,6 +1265,7 @@ module.exports =
       "displayType": "masterHost",
       "isOverridable": false,
       "isVisible": true,
+      "isObserved": true,
       "serviceName": "HIVE",
       "category": "Hive Metastore",
       "index": 0
@@ -1361,6 +1362,7 @@ module.exports =
       "displayType": "host",
       "isOverridable": false,
       "isVisible": false,
+      "isObserved": true,
       "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore",
@@ -1376,6 +1378,7 @@ module.exports =
       "displayType": "host",
       "isOverridable": false,
       "isVisible": false,
+      "isObserved": true,
       "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore",
@@ -1391,6 +1394,7 @@ module.exports =
       "displayType": "host",
       "isOverridable": false,
       "isVisible": false,
+      "isObserved": true,
       "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore",
@@ -1422,6 +1426,7 @@ module.exports =
       "displayType": "host",
       "isOverridable": false,
       "isVisible": true,
+      "isObserved": true,
       "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore",
@@ -1434,7 +1439,7 @@ module.exports =
       "description": "Database user name to use to connect to the database",
       "defaultValue": "hive",
       "isReconfigurable": true,
-      "displayType": "user",
+      "displayType": "host",  // don't apply user validation
       "isOverridable": false,
       "isVisible": true,
       "domain": "global",
@@ -1456,6 +1461,20 @@ module.exports =
       "serviceName": "HIVE",
       "category": "Hive Metastore",
       "index": 6
+    },
+    {
+      "id": "puppet var",
+      "name": "hive_jdbc_connection_url",
+      "displayName": "Database URL",
+      "value": "",
+      "defaultValue": " ", // set to a space to not include this in initial error count
+      "description": "The JDBC connection URL to the database",
+      "displayType": "advanced",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "HIVE",
+      "category": "Hive Metastore",
+      "index": 7
     },
     {
       "id": "puppet var",
@@ -1633,6 +1652,7 @@ module.exports =
       "description": "Using an existing Oracle database for Oozie Metastore",
       "displayType": "masterHost",
       "isVisible": false,
+      "isObserved": true,
       "isReconfigurable": false,
       "isOverridable": false,
       //"domain": "global",
@@ -1753,6 +1773,7 @@ module.exports =
           "isOverridable": false,
           "displayType": "host",
           "isVisible": false,
+          "isObserved": true,
           "domain": "global",
           "serviceName": "OOZIE",
           "category": "Oozie Server",
@@ -1768,6 +1789,7 @@ module.exports =
           "isOverridable": false,
           "displayType": "host",
           "isVisible": false,
+          "isObserved": true,
           "domain": "global",
           "serviceName": "OOZIE",
           "category": "Oozie Server",
@@ -1799,6 +1821,7 @@ module.exports =
           "isOverridable": false,
           "displayType": "host",
           "isVisible": true,
+          "isObserved": true,
           //"domain": "global",
           "serviceName": "OOZIE",
           "category": "Oozie Server",
@@ -1812,7 +1835,7 @@ module.exports =
           "defaultValue": "oozie",
           "isReconfigurable": true,
           "isOverridable": false,
-          "displayType": "user",
+          "displayType": "host",  // don't apply user validation
           "isVisible": true,
           //"domain": "global",
           "serviceName": "OOZIE",
@@ -1834,7 +1857,21 @@ module.exports =
           "category": "Oozie Server",
           "index": 6
       },
-      {
+    {
+      "id": "puppet var",
+      "name": "oozie_jdbc_connection_url",
+      "displayName": "Database URL",
+      "description": "The JDBC connection URL to the database",
+      "defaultValue": " ",  // set to a space to not include this in initial error count
+      "isReconfigurable": true,
+      "isOverridable": false,
+      "displayType": "advanced",
+      "isVisible": true,
+      "serviceName": "OOZIE",
+      "category": "Oozie Server",
+      "index": 7
+    },
+    {
           "id": "puppet var",
           "name": "oozie_data_dir",
           "displayName": "Oozie Data Dir",
@@ -1849,7 +1886,7 @@ module.exports =
           "domain": "global",
           "serviceName": "OOZIE",
           "category": "Oozie Server",
-          "index": 7
+          "index": 8
       },
 
     {
