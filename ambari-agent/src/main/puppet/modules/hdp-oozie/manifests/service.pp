@@ -143,7 +143,7 @@ class hdp-oozie::service(
   } elsif ($ensure == 'stopped') {
     hdp::exec { "exec $stop_cmd":
       command => $stop_cmd,
-      $onlyif  => $no_op_test,
+      onlyif  => $no_op_test,
       initial_wait => $initial_wait
    }
   }
