@@ -53,6 +53,7 @@ App.ClusterController = Em.Controller.extend({
     'hosts':false,
     'services':false,
     'cluster':false,
+    'clusterStatus':false,
     'racks':false,
     'alerts':false,
     'users':false,
@@ -331,6 +332,14 @@ App.ClusterController = Em.Controller.extend({
         self.updateLoadStatus('cluster');
     });
 
+    if (App.testMode) {
+      self.updateLoadStatus('clusterStatus');
+    } else {
+      App.clusterStatus.updateFromServer(true).complete(function() {
+        self.updateLoadStatus('clusterStatus');
+      });
+    }
+    
     App.HttpClient.get(hostsUrl, App.hostsMapper, {
       complete:function (jqXHR, textStatus) {
         self.updateLoadStatus('hosts');

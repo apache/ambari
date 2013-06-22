@@ -1018,7 +1018,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           value = this._replaceConfigValues(name, _express, value, globValue);
         }
         if(globalObj.overrides!=null){
-          for(ov in globalObj.overrides){
+          for(var ov in globalObj.overrides){
             var hostsArray = globalObj.overrides[ov];
             hostsArray.forEach(function(host){
               if(!(host in overrideHostToValue)){
@@ -1410,24 +1410,28 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var jdbcDriver = siteObj.findProperty('name', 'oozie.service.JPAService.jdbc.driver');
 
     var oozieDb = this.get('globalConfigs').findProperty('name', 'oozie_database').value;
-    // oozieHost is undefined if the database is oozie
+    // oozieHost is undefined if the database is derby
     var oozieHost = (oozieDb == 'New Derby Database') ? '' : this.get('globalConfigs').findProperty('name', 'oozie_hostname').value;
     var oozieDbName = this.get('globalConfigs').findProperty('name', 'oozie_database_name').value;
+    var defaultJdbcUrl;
 
     switch (oozieDb) {
       case 'New Derby Database':
-        jdbcUrl.value = "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true";
+        defaultJdbcUrl = "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true";
         jdbcDriver.value = "org.apache.derby.jdbc.EmbeddedDriver";
         break;
       case 'Existing MySQL Database':
-        jdbcUrl.value = "jdbc:mysql://" + oozieHost + "/" + oozieDbName;
+        defaultJdbcUrl = "jdbc:mysql://" + oozieHost + "/" + oozieDbName;
         jdbcDriver.value = "com.mysql.jdbc.Driver";
         break;
       case 'Existing Oracle Database':
-        jdbcUrl.value = "jdbc:oracle:thin:@//" + oozieHost + ":1521/" + oozieDbName;
+        defaultJdbcUrl = "jdbc:oracle:thin:@//" + oozieHost + ":1521/" + oozieDbName;
         jdbcDriver.value = "oracle.jdbc.driver.OracleDriver";
         break;
     }
+    // in case the user upgraded from Ambari version <= 1.2.3, they will not have oozie_jdbc_connection_url global
+    var jdbcUrlInGlobal = this.get('globalConfigs').findProperty('name', 'oozie_jdbc_connection_url');
+    jdbcUrl.value = jdbcUrlInGlobal ? jdbcUrlInGlobal.value : defaultJdbcUrl;
     return siteObj;
   },
 
@@ -1443,21 +1447,25 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var hiveDb = this.get('globalConfigs').findProperty('name', 'hive_database').value;
     var hiveHost = this.get('globalConfigs').findProperty('name', 'hive_hostname').value;
     var hiveDbName = this.get('globalConfigs').findProperty('name', 'hive_database_name').value;
+    var defaultJdbcUrl;
 
     switch (hiveDb) {
       case 'New MySQL Database':
-        jdbcUrl.value = "jdbc:mysql://"+ hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
+        defaultJdbcUrl = "jdbc:mysql://"+ hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
         jdbcDriver.value = "com.mysql.jdbc.Driver";
         break;
       case 'Existing MySQL Database':
-        jdbcUrl.value = "jdbc:mysql://"+ hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
+        defaultJdbcUrl = "jdbc:mysql://"+ hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
         jdbcDriver.value = "com.mysql.jdbc.Driver";
         break;
       case 'Existing Oracle Database':
-        jdbcUrl.value = "jdbc:oracle:thin:@//"+ hiveHost + ":1521/" + hiveDbName;
+        defaultJdbcUrl = "jdbc:oracle:thin:@//"+ hiveHost + ":1521/" + hiveDbName;
         jdbcDriver.value = "oracle.jdbc.driver.OracleDriver";
         break;
     }
+    // in case the user upgraded from Ambari <= 1.2.3, they will not have hive_jdbc_connection_url global
+    var jdbcUrlInGlobal = this.get('globalConfigs').findProperty('name', 'hive_jdbc_connection_url');
+    jdbcUrl.value = jdbcUrlInGlobal ? jdbcUrlInGlobal.value : defaultJdbcUrl;
     return siteObj;
   },
 

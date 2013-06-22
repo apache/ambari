@@ -29,14 +29,18 @@ App.clusterStatus = Ember.Object.create({
   key: 'CLUSTER_CURRENT_STATUS',
   /**
    * get cluster data from server and update cluster status
+   * @param isAsync: set this to true if the call is to be made asynchronously.  if unspecified, false is assumed
+   * @return promise object for the get call
    */
-  updateFromServer: function(){
+  updateFromServer: function(isAsync) {
+    // if isAsync is undefined, set it to false
+    isAsync = isAsync || false;
     var url = App.apiPrefix + '/persist/' + this.get('key');
-    jQuery.ajax(
+    return jQuery.ajax(
       {
         url: url,
         context: this,
-        async: false,
+        async: isAsync,
         success: function (response) {
           if (response) {
             var newValue = jQuery.parseJSON(response);
