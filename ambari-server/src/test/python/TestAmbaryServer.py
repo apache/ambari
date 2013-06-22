@@ -57,7 +57,6 @@ class TestAmbariServer(TestCase):
 
 
   def test_configure_pg_hba_postgres_user(self):
-
     tf1 = tempfile.NamedTemporaryFile()
     ambari_server.PG_HBA_CONF_FILE = tf1.name
 
@@ -82,9 +81,10 @@ class TestAmbariServer(TestCase):
 
   @patch('__builtin__.raw_input')
   def test_get_choice_string_input(self, raw_input_method):
+
     out = StringIO.StringIO()
     sys.stdout = out
-
+   
 
     prompt = "blablabla"
     default = "default blablabla"
@@ -131,7 +131,25 @@ class TestAmbariServer(TestCase):
     sys.stdout = sys.__stdout__
 
     pass
+  
+  @patch('__builtin__.raw_input')
+  def test_servicename_regex(self, raw_input_method):
 
+    ''' Test to make sure the service name can contain digits '''
+    ambari_server.SILENT = False
+    raw_input_method.return_value = "OT100"
+    result = ambari_server.get_validated_service_name("ambari", 1)
+    self.assertEqual("OT100", result, "Not accepting digits")
+    pass
+    
+  @patch('__builtin__.raw_input')
+  def test_dbname_regex(self, raw_input_method):
+
+    ''' Test to make sure the service name can contain digits '''
+    ambari_server.SILENT = False
+    raw_input_method.return_value = "OT100"
+    result = ambari_server.get_validated_db_name("ambari")
+    self.assertEqual("OT100", result, "Not accepting digits")
 
 
   @patch('re.search')
@@ -139,9 +157,10 @@ class TestAmbariServer(TestCase):
   @patch('getpass.getpass')
   def test_get_validated_string_input(self, get_pass_method,
       raw_input_method, re_search_method):
+
+  
     out = StringIO.StringIO()
     sys.stdout = out
-
     prompt = "blabla"
     default = "default_pass"
     pattern = "pattern_pp"
@@ -149,7 +168,7 @@ class TestAmbariServer(TestCase):
     # check password input
     is_pass = True
     get_pass_method.return_value = "dfdsfdsfds"
-
+    
     result = ambari_server.get_validated_string_input(prompt, default,
         pattern, description, is_pass)
 
@@ -175,6 +194,7 @@ class TestAmbariServer(TestCase):
 
 
   def test_get_pass_file_path(self):
+
     result = ambari_server.get_pass_file_path("/etc/ambari/conf_file")
     self.assertEquals("/etc/ambari/password.dat", result)
     pass
@@ -190,6 +210,7 @@ class TestAmbariServer(TestCase):
   @patch('optparse.OptionParser')
   def test_main_test_setup(self, OptionParserMock, reset_method, stop_method,
                            start_method, setup_method):
+
     opm = OptionParserMock.return_value
     options = MagicMock()
     args = ["setup"]
@@ -215,6 +236,7 @@ class TestAmbariServer(TestCase):
   @patch('optparse.OptionParser')
   def test_main_test_start(self, OptionParserMock, reset_method, stop_method,
                            start_method, setup_method):
+
     opm = OptionParserMock.return_value
     options = MagicMock()
     args = ["setup"]
@@ -241,6 +263,7 @@ class TestAmbariServer(TestCase):
   @patch('optparse.OptionParser')
   def test_main_test_stop(self, OptionParserMock, reset_method, stop_method,
                           start_method, setup_method):
+
     opm = OptionParserMock.return_value
     options = MagicMock()
     args = ["stop"]
@@ -268,6 +291,7 @@ class TestAmbariServer(TestCase):
   @patch('optparse.OptionParser')
   def test_main_test_reset(self, OptionParserMock, reset_method, stop_method,
                            start_method, setup_method):
+
     opm = OptionParserMock.return_value
 
     options = MagicMock()
@@ -371,7 +395,6 @@ class TestAmbariServer(TestCase):
 
     out = StringIO.StringIO()
     sys.stdout = out
-
     p = MagicMock()
     p.poll.return_value = 0
     popenMock.return_value = p
@@ -413,8 +436,8 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "search_file")
   def test_write_property(self, search_file_mock, get_conf_dir_mock):
 
-    expected_content = "key1=val1\n"
 
+    expected_content = "key1=val1\n"
     tf1 = tempfile.NamedTemporaryFile()
     search_file_mock.return_value = tf1.name
     ambari_server.write_property("key1", "val1")
@@ -439,9 +462,9 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "run_os_command")
   def test_check_selinux(self, run_os_command_mock, getYNInput_mock):
 
+
     out = StringIO.StringIO()
     sys.stdout = out
-
     run_os_command_mock.return_value = (0, ambari_server.SE_STATUS_DISABLED,
                                         None)
     rcode = ambari_server.check_selinux()
@@ -476,6 +499,7 @@ class TestAmbariServer(TestCase):
   @patch("glob.glob")
   @patch.object(ambari_server, "print_info_msg")
   def test_get_share_jars(self, printInfoMsg_mock, globMock):
+
     globMock.return_value = ["one", "two"]
     expected = "one:two:one:two"
     result = ambari_server.get_share_jars()
@@ -489,6 +513,7 @@ class TestAmbariServer(TestCase):
   @patch("glob.glob")
   @patch.object(ambari_server, "print_info_msg")
   def test_get_ambari_classpath(self, printInfoMsg_mock, globMock):
+
     globMock.return_value = ["one"]
     result = ambari_server.get_ambari_classpath()
     print result
@@ -560,6 +585,7 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "dlprogress")
   def test_track_jdk(self, dlprogress_mock, openMock, urlopenMock):
 
+
     u = MagicMock()
     u.info.return_value = {"Content-Length":"24576"}
     chunks = [None, "second", "first"]
@@ -596,6 +622,7 @@ class TestAmbariServer(TestCase):
                         write_property_mock, run_os_command_mock,
                         get_YN_input_mock, track_jdk_mock, path_existsMock,
                         path_isfileMock, statMock):
+
 
     out = StringIO.StringIO()
     sys.stdout = out
@@ -700,6 +727,7 @@ class TestAmbariServer(TestCase):
   def test_configure_os_settings(self, get_conf_dir_mock, write_property_mock, get_ambari_properties_mock, print_error_msg_mock,
                                  print_info_msg_mock, systemMock, distMock):
 
+
     get_ambari_properties_mock.return_value = -1
     rcode = ambari_server.configure_os_settings()
     self.assertEqual(-1, rcode)
@@ -730,6 +758,7 @@ class TestAmbariServer(TestCase):
   def test_get_JAVA_HOME(self, get_conf_dir_mock, search_file_mock,
                          Properties_mock, openMock):
 
+
     out = StringIO.StringIO()
     sys.stdout = out
 
@@ -753,6 +782,7 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "get_JAVA_HOME")
   def test_find_jdk(self, get_JAVA_HOME_mock, globMock):
 
+
     out = StringIO.StringIO()
     sys.stdout = out
 
@@ -771,7 +801,7 @@ class TestAmbariServer(TestCase):
 
     sys.stdout = sys.__stdout__
 
-
+  @patch.object(ambari_server, "get_YN_input")
   @patch.object(ambari_server, "configure_os_settings")
   @patch.object(ambari_server, "download_jdk")
   @patch.object(ambari_server, "configure_postgres")
@@ -783,17 +813,19 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "store_remote_properties")
   def test_setup(self, store_remote_properties_mock, setup_remote_db_mock, check_selinux_mock, check_iptables_mock,
                  check_postgre_up_mock, setup_db_mock, configure_postgres_mock,
-                 download_jdk_mock, configure_os_settings_mock, ):
+                 download_jdk_mock, configure_os_settings_mock, get_YN_input ):
 
+
+    
     out = StringIO.StringIO()
     sys.stdout = out
-
     args = MagicMock()
 
     check_selinux_mock.return_value = 0
     check_iptables_mock.return_value = (0, "other")
     check_postgre_up_mock.return_value = 0
     setup_db_mock.return_value = 0
+    get_YN_input.return_value = False
     setup_remote_db_mock.return_value = 0
     configure_postgres_mock.return_value = 0
     download_jdk_mock.return_value = 0
@@ -803,8 +835,7 @@ class TestAmbariServer(TestCase):
     self.assertEqual(None, result)
 
     sys.stdout = sys.__stdout__
-
-
+    
 
   @patch.object(ambari_server, "get_YN_input")
   @patch.object(ambari_server, "setup_db")
@@ -815,6 +846,7 @@ class TestAmbariServer(TestCase):
   def test_reset(self, parse_properties_file_mock, configure_database_username_password_mock,
                  run_os_command_mock, print_info_msg_mock,
                  setup_db_mock, get_YN_inputMock):
+
 
     out = StringIO.StringIO()
     sys.stdout = out
@@ -886,9 +918,10 @@ class TestAmbariServer(TestCase):
                  print_info_msg_mock, popenMock, openMock, pexistsMock,
                  killMock):
 
+
+    
     out = StringIO.StringIO()
     sys.stdout = out
-
     args = MagicMock()
     f = MagicMock()
     f.readline.return_value = 42
@@ -932,6 +965,7 @@ class TestAmbariServer(TestCase):
   def test_stop(self, print_info_msg_mock, gpidMock, removeMock,
                 killMock, pexistsMock, openMock):
 
+
     pexistsMock.return_value = True
     f = MagicMock()
     f.readline.return_value = "42"
@@ -954,6 +988,7 @@ class TestAmbariServer(TestCase):
 
   def test_print_info_msg(self):
 
+
     out = StringIO.StringIO()
     sys.stdout = out
 
@@ -967,6 +1002,7 @@ class TestAmbariServer(TestCase):
 
   def test_print_error_msg(self):
 
+
     out = StringIO.StringIO()
     sys.stdout = out
 
@@ -979,6 +1015,7 @@ class TestAmbariServer(TestCase):
 
 
   def test_print_warning_msg(self):
+
 
     out = StringIO.StringIO()
     sys.stdout = out
@@ -994,25 +1031,30 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "get_choice_string_input")
   def test_get_YN_input(self, get_choice_string_input_mock):
 
+
     ambari_server.get_YN_input("prompt", "default")
     self.assertTrue(get_choice_string_input_mock.called)
     self.assertEqual(4, len(get_choice_string_input_mock.call_args_list[0][0]))
 
   @patch("sys.exit")
+  @patch.object(ambari_server, "get_YN_input")
   @patch.object(ambari_server, "download_jdk")
   @patch.object(ambari_server, "get_db_cli_tool")
   @patch.object(ambari_server, "store_remote_properties")
   @patch.object(ambari_server, "is_local_database")
   @patch.object(ambari_server, "check_iptables")
   @patch.object(ambari_server, "check_jdbc_drivers")
-  def test_setup_remote_db_wo_client(self, check_jdbc_drivers_mock, check_iptables_mock, is_local_db_mock,
-                                     store_remote_properties_mock, get_db_cli_tool_mock, download_jdk_mock, exit_mock):
+  @patch('__builtin__.raw_input') 
+  def test_setup_remote_db_wo_client(self, raw_input, check_jdbc_drivers_mock, check_iptables_mock, is_local_db_mock,
+                                     store_remote_properties_mock, get_db_cli_tool_mock, download_jdk_mock, 
+                                     get_YN_input, exit_mock):
 
+    
     out = StringIO.StringIO()
     sys.stdout = out
-
+    raw_input.return_value =""
     args = MagicMock()
-
+    get_YN_input.return_value = False
     is_local_db_mock.return_value = False
     check_iptables_mock.return_value = (0, "other")
     store_remote_properties_mock.return_value = 0
@@ -1065,6 +1107,7 @@ class TestAmbariServer(TestCase):
   @patch("sys.exit")
   def test_check_jdbc_drivers(self, exit_mock, raw_input_mock, print_warning_msg, print_error_msg_mock, copy_files_mock,
                               find_jdbc_driver_mock, get_ambari_properties_mock):
+
 
     out = StringIO.StringIO()
     sys.stdout = out
@@ -1131,6 +1174,7 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "search_file")
   def test_get_ambari_properties(self, search_file_mock):
 
+
     search_file_mock.return_value = None
     rcode = ambari_server.get_ambari_properties()
     self.assertEqual(rcode, -1)
@@ -1154,6 +1198,7 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "search_file")
   def test_parse_properties_file(self, search_file_mock):
 
+    
     tf1 = tempfile.NamedTemporaryFile()
     search_file_mock.return_value = tf1.name
 
@@ -1174,6 +1219,7 @@ class TestAmbariServer(TestCase):
     sys.stdout = sys.__stdout__
 
   def test_prompt_db_properties_default(self):
+
     args = MagicMock()
     ambari_server.load_default_db_properties(args)
     ambari_server.prompt_db_properties(args)
@@ -1186,6 +1232,7 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "get_validated_string_input")
   @patch.object(ambari_server, "get_YN_input")
   def test_prompt_db_properties_oracle_sname(self, gyni_mock, gvsi_mock, rp_mock):
+
     ambari_server.PROMPT_DATABASE_OPTIONS = True
     gyni_mock.return_value = True
     list_of_return_values= ["ambari-server", "ambari", "1", "1521", "localhost", "2"]
@@ -1208,6 +1255,7 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "get_validated_string_input")
   @patch.object(ambari_server, "get_YN_input")
   def test_prompt_db_properties_oracle_sid(self, gyni_mock, gvsi_mock, rp_mock):
+
     ambari_server.PROMPT_DATABASE_OPTIONS = True
     gyni_mock.return_value = True
     list_of_return_values= ["ambari-server", "ambari", "2", "1521", "localhost", "2"]
@@ -1230,6 +1278,7 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "get_validated_string_input")
   @patch.object(ambari_server, "get_YN_input")
   def test_prompt_db_properties_postgre_adv(self, gyni_mock, gvsi_mock, rp_mock):
+
     ambari_server.PROMPT_DATABASE_OPTIONS = True
     gyni_mock.return_value = True
     list_of_return_values= ["ambari-server", "ambari", "1"]
