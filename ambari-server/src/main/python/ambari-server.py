@@ -914,6 +914,24 @@ def check_postgre_up():
     return retcode
 
 
+def get_validated_db_name(database_name):
+  return get_validated_string_input(
+        DATABASE_STORAGE_NAMES[DATABASE_INDEX] + " Name [" 
+        + database_name + "]:",
+        database_name,
+        ".*",
+        "Invalid " + DATABASE_STORAGE_NAMES[DATABASE_INDEX] + " name.",
+        False
+        )
+  
+def get_validated_service_name(service_name, index):
+  return get_validated_string_input(
+            ORACLE_DB_ID_TYPES[index] + " [" + service_name + "]:",
+            service_name,
+            ".*",
+            "Invalid " + ORACLE_DB_ID_TYPES[index] + ".",
+            False
+            )
 
 def read_password(passwordDefault=PG_DEFAULT_PASSWORD,
                   passwordPattern=PASSWORD_PATTERN,
@@ -1017,13 +1035,8 @@ def prompt_db_properties(args):
             args.sid_or_sname = "sid"
 
           IDTYPE_INDEX = int(idType) - 1
-          args.database_name = get_validated_string_input(
-            ORACLE_DB_ID_TYPES[IDTYPE_INDEX] + " [" + args.database_name + "]:",
-            args.database_name,
-            "^[a-zA-Z0-9.\-]*$",
-            "Invalid " + ORACLE_DB_ID_TYPES[IDTYPE_INDEX] + ".",
-            False
-          )
+          args.database_name = get_validated_service_name(args.database_name, 
+                                                          IDTYPE_INDEX)
         else:
           # MySQL and other DB types
           pass
@@ -1032,15 +1045,10 @@ def prompt_db_properties(args):
         args.database_host = "localhost"
         args.database_port = DATABASE_PORTS[DATABASE_INDEX]
 
-        args.database_name = get_validated_string_input(
-          DATABASE_STORAGE_NAMES[DATABASE_INDEX] + " Name [" + args.database_name + "]:",
-          args.database_name,
-          "^[a-zA-z\-\"]+$",
-          "Invalid " + DATABASE_STORAGE_NAMES[DATABASE_INDEX] + " name.",
-          False
-        )
-      pass
-
+        args.database_name = get_validated_db_name(args.database_name)
+        pass
+      
+      # Username is common for Oracle/MySQL/Postgres
       args.database_username = get_validated_string_input(
         'Username [' + args.database_username + ']: ',
         args.database_username,

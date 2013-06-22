@@ -65,7 +65,25 @@ class TestAmbariServer(TestCase):
     self.assertEquals(string_expected, string_actual)
     pass
 
+  @patch('__builtin__.raw_input')
+  def test_servicename_regex(self, raw_input_method):
 
+    ''' Test to make sure the service name can contain digits '''
+    ambari_server.SILENT = False
+    raw_input_method.return_value = "OT100"
+    result = ambari_server.get_validated_service_name("ambari", 1)
+    self.assertEqual("OT100", result, "Not accepting digits")
+    pass
+    
+  @patch('__builtin__.raw_input')
+  def test_dbname_regex(self, raw_input_method):
+
+    ''' Test to make sure the service name can contain digits '''
+    ambari_server.SILENT = False
+    raw_input_method.return_value = "OT100"
+    result = ambari_server.get_validated_db_name("ambari")
+    self.assertEqual("OT100", result, "Not accepting digits")
+ 
 
   def test_configure_pg_hba_postgres_user(self):
 
@@ -1373,7 +1391,7 @@ class TestAmbariServer(TestCase):
     result = ambari_server.find_jdk()
     self.assertNotEqual(None, result)
 
-
+  @patch.object(ambari_server, "get_YN_input")
   @patch.object(ambari_server, "configure_os_settings")
   @patch.object(ambari_server, "download_jdk")
   @patch.object(ambari_server, "configure_postgres")
@@ -1391,10 +1409,10 @@ class TestAmbariServer(TestCase):
   def test_setup(self, is_root_mock, store_local_properties_mock, is_local_database_mock, store_remote_properties_mock,
                  setup_remote_db_mock, check_selinux_mock, check_jdbc_drivers_mock, check_ambari_user_mock,
                  check_iptables_mock, check_postgre_up_mock, setup_db_mock, configure_postgres_mock,
-                 download_jdk_mock, configure_os_settings_mock, ):
+                 download_jdk_mock, configure_os_settings_mock,get_YN_input  ):
     args = MagicMock()
     failed = False
-
+    get_YN_input.return_value = False
     def reset_mocks():
       is_root_mock.reset_mock()
       store_local_properties_mock.reset_mock()
@@ -2263,6 +2281,7 @@ class TestAmbariServer(TestCase):
     self.assertFalse(properties_mock.called)
 
   @patch("sys.exit")
+  @patch.object(ambari_server, "get_YN_input")
   @patch.object(ambari_server, "get_db_cli_tool")
   @patch.object(ambari_server, "store_remote_properties")
   @patch.object(ambari_server, "is_local_database")
@@ -2272,11 +2291,14 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "check_ambari_user")
   @patch.object(ambari_server, "download_jdk")
   @patch.object(ambari_server, "configure_os_settings")
-  def test_setup_remote_db_wo_client(self, configure_os_settings_mock, download_jdk_mock, check_ambari_user_mock, is_root_mock, check_jdbc_drivers_mock, check_iptables_mock, is_local_db_mock,
-                                     store_remote_properties_mock, get_db_cli_tool_mock, exit_mock):
+  @patch('__builtin__.raw_input')
+  def test_setup_remote_db_wo_client(self,raw_input, configure_os_settings_mock, download_jdk_mock, check_ambari_user_mock, is_root_mock, check_jdbc_drivers_mock, check_iptables_mock, is_local_db_mock,
+                                     store_remote_properties_mock, get_db_cli_tool_mock, get_YN_input, exit_mock):
     args = MagicMock()
+    raw_input.return_value =""
     is_root_mock.return_value = True
     is_local_db_mock.return_value = False
+    get_YN_input.return_value = False
     check_iptables_mock.return_value = (0, "other")
     store_remote_properties_mock.return_value = 0
     get_db_cli_tool_mock.return_value = None
