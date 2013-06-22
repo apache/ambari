@@ -310,12 +310,6 @@ App.db.setDisableSecurityStatus = function (status) {
   localStorage.setObject('ambari', App.db.data);
 };
 
-App.db.setSecurityStage = function (securityStage) {
-  App.db.data = localStorage.getObject('ambari');
-  App.db.data.AddSecurity.securityStage = securityStage;
-  localStorage.setObject('ambari', App.db.data);
-};
-
 App.db.setSecurityDeployStages = function (securityStages) {
   App.db.data = localStorage.getObject('ambari');
   if (!App.db.data.AddSecurity) {
@@ -514,11 +508,6 @@ App.db.getSecurityWizardStatus = function () {
 App.db.getDisableSecurityStatus = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.disableSecurityStatus;
-};
-
-App.db.getSecurityStage = function () {
-  App.db.data = localStorage.getObject('ambari');
-  return App.db.data.AddSecurity.securityStage;
 };
 
 App.db.getSecurityDeployStages = function () {

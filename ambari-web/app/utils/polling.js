@@ -18,6 +18,7 @@
 
 var App = require('app');
 App.Poll = Em.Object.extend({
+  name: '',
   stage: '',
   label: '',
   isStarted: false,
@@ -126,6 +127,8 @@ App.Poll = Em.Object.extend({
           window.setTimeout(function () {
             self.startPolling();
           }, self.POLL_INTERVAL);
+        } else {
+          self.set('requestId', undefined);
         }
       },
 
@@ -156,13 +159,13 @@ App.Poll = Em.Object.extend({
   },
 
 
-  getExecutedTasks: function (tasksData) {
-    var succededTasks = tasksData.filterProperty('Tasks.status', 'COMPLETED');
-    var failedTasks = tasksData.filterProperty('Tasks.status', 'FAILED');
-    var abortedTasks = tasksData.filterProperty('Tasks.status', 'ABORTED');
-    var timedoutTasks = tasksData.filterProperty('Tasks.status', 'TIMEDOUT');
-    var inProgressTasks = tasksData.filterProperty('Tasks.status', 'IN_PROGRESS');
-    return (succededTasks.length + failedTasks.length + abortedTasks.length + timedoutTasks.length + inProgressTasks.length);
+  calculateProgressByTasks: function (tasksData) {
+    var queuedTasks = tasksData.filterProperty('Tasks.status', 'QUEUED').length;
+    var completedTasks = tasksData.filter(function(task){
+      return ['COMPLETED', 'FAILED', 'ABORTED', 'TIMEDOUT'].contains(task.Tasks.status);
+    }).length;
+    var inProgressTasks = tasksData.filterProperty('Tasks.status', 'IN_PROGRESS').length;
+    return Math.ceil(((queuedTasks * 0.09) + (inProgressTasks * 0.35) + completedTasks ) / tasksData.length * 100)
   },
 
   isPollingFinished: function (polledData) {
@@ -188,7 +191,7 @@ App.Poll = Em.Object.extend({
       console.log("ERROR: NO tasks available to process");
     }
     var requestId = this.get('requestId');
-    if (!App.testMode && polledData.Requests && polledData.Requests.id && polledData.Requests.id != requestId) {
+    if (polledData.Requests && polledData.Requests.id && polledData.Requests.id != requestId) {
       // We dont want to use non-current requestId's tasks data to
       // determine the current install status.
       // Also, we dont want to keep polling if it is not the
@@ -210,8 +213,7 @@ App.Poll = Em.Object.extend({
      totalProgress += self.progressPerHost(actionsPerHost, _host);
      }
      }, this); */
-    var executedTasks = this.getExecutedTasks(tasksData);
-    totalProgress = Math.floor((executedTasks / tasksData.length) * 100);
+    var totalProgress = this.calculateProgressByTasks(tasksData);
     this.set('progress', totalProgress.toString());
     console.log("INFO: right now the progress is: " + this.get('progress'));
     return this.isPollingFinished(tasksData);

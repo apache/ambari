@@ -22,7 +22,6 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
   name: 'mainAdminSecurityAddStep2Controller',
   stepConfigs: [],
   installedServices: [],
-  serviceConfigs: require('data/secure_configs'),
   selectedService: null,
 
   isSubmitDisabled: function () {
@@ -40,7 +39,6 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
   loadStep: function () {
     console.log("TRACE: Loading addSecurity step2: Configure Services");
     this.clearStep();
-    var serviceConfigs = this.get('serviceConfigs');
     this.renderServiceConfigs(this.get('content.services'));
     var storedServices = this.get('content.serviceConfigProperties');
     if (storedServices) {
@@ -55,7 +53,7 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
           //if we have config for specified component
           if (componentVal) {
             //set it
-            _config.set('value', componentVal.value)
+            _config.set('value', componentVal.value);
           }
 
         }, this);
@@ -73,19 +71,16 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
    * @param serviceConfigs
    */
   renderServiceConfigs: function (serviceConfigs) {
-    this.get('serviceConfigs').forEach(function (_serviceConfig) {
+    serviceConfigs.forEach(function (_serviceConfig) {
 
       var serviceConfig = App.ServiceConfig.create({
         filename: _serviceConfig.filename,
         serviceName: _serviceConfig.serviceName,
         displayName: _serviceConfig.displayName,
         configCategories: _serviceConfig.configCategories,
-        showConfig: false,
+        showConfig: true,
         configs: []
       });
-      if (serviceConfigs.someProperty('serviceName', serviceConfig.serviceName)) {
-        serviceConfig.showConfig = true;
-      }
 
       this.loadComponentConfigs(_serviceConfig, serviceConfig);
 

@@ -23,6 +23,7 @@ module.exports = Em.Route.extend({
     console.log('in /security/add:enter');
 
     Ember.run.next(function () {
+      //after refresh check if the wizard is open then restore it
       if (router.get('mainAdminSecurityController').getAddSecurityWizardStatus() === 'RUNNING') {
         var mainAdminSecurityController = router.get('mainAdminSecurityController');
         var addSecurityController = router.get('addSecurityController');
@@ -51,24 +52,23 @@ module.exports = Em.Route.extend({
                   if (!applyingConfigStage.get('isCompleted')) {
                     if (applyingConfigStage.get('isStarted')) {
                       App.showAlertPopup(Em.I18n.t('admin.security.applying.config.header'), Em.I18n.t('admin.security.applying.config.body'));
-                      return;
                     } else {
                       App.showConfirmationPopup(function () {
                         self.proceedOnClose();
                       }, Em.I18n.t('admin.addSecurity.enable.onClose'));
-                      return;
                     }
                   } else {
-                    App.showConfirmationPopup(function () {
-                        this.hide();
-                      }, Em.I18n.t('admin.addSecurity.enable.after.stage2.onClose'),
+                    App.showConfirmationPopup(function () {},
+                      Em.I18n.t('admin.addSecurity.enable.after.stage2.onClose'),
                       function () {
                         self.proceedOnClose();
                       });
-                    return;
                   }
+                  return;
                 }
               }
+              router.get('mainAdminSecurityAddStep3Controller').clearStep();
+              App.db.setSecurityDeployStages(undefined);
               self.proceedOnClose();
             },
             proceedOnClose: function () {
@@ -105,12 +105,14 @@ module.exports = Em.Route.extend({
   step1: Em.Route.extend({
     route: '/start',
     enter: function (router) {
-      App.clusterStatus.setClusterStatus({
-        clusterName: this.get('clusterName'),
-        clusterState: 'ADD_SECURITY_STEP_1',
-        wizardControllerName: router.get('addSecurityController.name'),
-        localdb: App.db.data
-      });
+      if(!App.testMode){
+        App.clusterStatus.setClusterStatus({
+          clusterName: this.get('clusterName'),
+          clusterState: 'ADD_SECURITY_STEP_1',
+          wizardControllerName: router.get('addSecurityController.name'),
+          localdb: App.db.data
+        });
+      }
     },
 
     connectOutlets: function (router) {
@@ -134,12 +136,14 @@ module.exports = Em.Route.extend({
     route: '/configure',
 
     enter: function (router) {
-      App.clusterStatus.setClusterStatus({
-        clusterName: this.get('clusterName'),
-        clusterState: 'ADD_SECURITY_STEP_2',
-        wizardControllerName: router.get('addSecurityController.name'),
-        localdb: App.db.data
-      });
+      if(!App.testMode){
+        App.clusterStatus.setClusterStatus({
+          clusterName: this.get('clusterName'),
+          clusterState: 'ADD_SECURITY_STEP_2',
+          wizardControllerName: router.get('addSecurityController.name'),
+          localdb: App.db.data
+        });
+      }
     },
     connectOutlets: function (router) {
       console.log('in addSecurity.step2:connectOutlets');

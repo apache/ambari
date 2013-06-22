@@ -41,7 +41,6 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
   },
 
   loadStep: function () {
-
     this.clearStep();
     var stages = App.db.getSecurityDeployStages();
     if (stages && stages.length > 0) {
@@ -52,7 +51,6 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
         var failedStages = stages.filterProperty('isError', true);
         failedStages.setEach('isError', false);
         failedStages.setEach('isStarted', false);
-        failedStages.setEach('isCompleted', false);
       } else if (stages.filterProperty('isStarted', true).someProperty('isCompleted', false)) {
         var runningStage = stages.filterProperty('isStarted', true).findProperty('isCompleted', false);
         runningStage.set('isStarted', false);
@@ -61,6 +59,12 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
     } else {
       this.loadStages();
       this.addInfoToStages();
+      var runningOperations = App.router.get('backgroundOperationsController.services').filterProperty('isRunning');
+      var stopAllOperation = runningOperations.findProperty('name', 'Stop All Services');
+      var stopStage = this.get('stages').findProperty('name', 'STOP_SERVICES');
+      if (stopStage.get('name') === 'STOP_SERVICES' && stopAllOperation) {
+        stopStage.set('requestId', stopAllOperation.get('id'));
+      }
     }
     this.loadSecureServices();
     this.moveToNextStage();
@@ -69,9 +73,9 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
 
   loadStages: function () {
     this.get('stages').pushObjects([
-      App.Poll.create({stage: 'stage2', label: Em.I18n.translations['admin.addSecurity.apply.stage2'], isPolling: true}),
-      App.Poll.create({stage: 'stage3', label: Em.I18n.translations['admin.addSecurity.apply.stage3'], isPolling: false}),
-      App.Poll.create({stage: 'stage4', label: Em.I18n.translations['admin.addSecurity.apply.stage4'], isPolling: true})
+      App.Poll.create({stage: 'stage2', label: Em.I18n.translations['admin.addSecurity.apply.stage2'], isPolling: true, name: 'STOP_SERVICES'}),
+      App.Poll.create({stage: 'stage3', label: Em.I18n.translations['admin.addSecurity.apply.stage3'], isPolling: false, name: 'APPLY_CONFIGURATIONS'}),
+      App.Poll.create({stage: 'stage4', label: Em.I18n.translations['admin.addSecurity.apply.stage4'], isPolling: true, name: 'START_SERVICES'})
     ]);
   },
 
@@ -100,7 +104,6 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
       } else if (currentStage && currentStage.get('stage') === 'stage3') {
         if (App.testMode) {
           currentStage.set('isSuccess', true);
-          currentStage.set('isCompleted', true);
           this.moveToNextStage();
         } else {
           this.loadClusterConfigs();
@@ -353,6 +356,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
     var stages = [];
     this.get('stages').forEach(function (_stage) {
       var stage = {
+        name: _stage.get('name'),
         stage: _stage.get('stage'),
         label: _stage.get('label'),
         isPolling: _stage.get('isPolling'),

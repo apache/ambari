@@ -688,6 +688,7 @@ module.exports = Em.Route.extend({
       disableSecurity: Ember.Route.extend({
         route: '/disableSecurity',
         enter: function (router) {
+          //after refresh check if the wizard is open then restore it
           if (router.get('mainAdminSecurityController').getDisableSecurityStatus() === 'RUNNING') {
             App.clusterStatus.setClusterStatus({
               clusterName: this.get('clusterName'),
@@ -718,12 +719,10 @@ module.exports = Em.Route.extend({
                   if (applyingConfigStage && !applyingConfigStage.get('isCompleted')) {
                     if (applyingConfigStage.get('isStarted')) {
                       App.showAlertPopup(Em.I18n.t('admin.security.applying.config.header'), Em.I18n.t('admin.security.applying.config.body'));
-                      return;
                     } else {
                       App.showConfirmationPopup(function () {
                         self.proceedOnClose();
                       }, Em.I18n.t('admin.addSecurity.disable.onClose'));
-                      return;
                     }
                   } else {
                     self.proceedOnClose();

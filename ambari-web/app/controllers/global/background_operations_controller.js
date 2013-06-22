@@ -75,7 +75,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
         status: "",
         isRunning: false,
         hosts: []
-      })
+      });
       if(request.Requests.request_context != ""){
         rq.name = request.Requests.request_context;
         rq.displayName = request.Requests.request_context;
@@ -86,7 +86,10 @@ App.BackgroundOperationsController = Em.Controller.extend({
       runningTasks += request.tasks.filterProperty('Tasks.status', 'IN_PROGRESS').length;
       runningTasks += request.tasks.filterProperty('Tasks.status', 'PENDING').length;
       if(runningTasks > 0){
+        rq.set('isRunning', true);
         runningServices++;
+      } else {
+        rq.set('isRunning', false);
       }
 
       var hostNames = request.tasks.mapProperty('Tasks.host_name').uniq();
