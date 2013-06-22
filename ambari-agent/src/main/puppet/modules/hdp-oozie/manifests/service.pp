@@ -108,7 +108,7 @@ class hdp-oozie::service(
     $no_op_test = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
   } elsif ($ensure == 'stopped') {
     $stop_cmd  = "su - ${user} -c  'cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-stop.sh'"
-    $no_op_test = undef
+    $no_op_test = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
   } else {
     $daemon_cmd = undef
   }
@@ -143,7 +143,7 @@ class hdp-oozie::service(
   } elsif ($ensure == 'stopped') {
     hdp::exec { "exec $stop_cmd":
       command => $stop_cmd,
-      unless  => $no_op_test,
+      $onlyif  => $no_op_test,
       initial_wait => $initial_wait
    }
   }
