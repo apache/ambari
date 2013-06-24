@@ -40,7 +40,6 @@ class TestHostname(TestCase):
     os.chmod(tmpname, os.stat(tmpname).st_mode | stat.S_IXUSR)
 
     tmpfile = file(tmpname, "w+")
-
     config = AmbariConfig.config
     try:
       tmpfile.write("#!/bin/sh\n\necho 'test.example.com'")
@@ -54,6 +53,30 @@ class TestHostname(TestCase):
       config.remove_option('agent', 'hostname_script')
 
     pass
+
+  def test_public_hostname_override(self):
+    fd = tempfile.mkstemp(text=True)
+    tmpname = fd[1]
+    os.close(fd[0])
+    os.chmod(tmpname, os.stat(tmpname).st_mode | stat.S_IXUSR)
+   
+    tmpfile = file(tmpname, "w+")
+
+    config = AmbariConfig.config
+    try:
+      tmpfile.write("#!/bin/sh\n\necho 'test.example.com'")
+      tmpfile.close()
+
+      config.set('agent', 'public_hostname_script', tmpname)
+
+      self.assertEquals(hostname.public_hostname(), 'test.example.com', 
+                        "expected hostname 'test.example.com'")
+    finally:
+      os.remove(tmpname)
+      config.remove_option('agent', 'public_hostname_script')
+
+    pass
+
 
 
 
