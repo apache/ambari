@@ -25,8 +25,6 @@ class hdp-templeton::server(
 {  
 
   $templeton_user = $hdp-templeton::params::templeton_user
-  $smoke_test_user = $hdp::params::smokeuser
-  $smokeuser_keytab = $hdp::params::smokeuser_keytab
   if ($service_state == 'no_op') { 
   } elsif ($service_state in ['running','stopped','installed_and_configured','uninstalled']) {
   $hdp::params::service_exists['hdp-templeton::server'] = true
@@ -56,12 +54,6 @@ class hdp-templeton::server(
      }
   }
 
-  if ($security_enabled == true) {
-    $kinit_if_needed = "su - ${smoke_test_user} -c '${smokeuser_keytab} ${smoke_test_user}';"
-  } else {
-    $kinit_if_needed = "echo 0;"
-  }
-
   class{ 'hdp-templeton' :
     service_state => $service_state,
     server        => true
@@ -86,6 +78,13 @@ class hdp-templeton::copy-hdfs-directories($service_state)
 {
  $webhcat_apps_dir = $hdp::params::webhcat_apps_dir
  $webhcat_user = $hdp::params::webhcat_user
+ $smoke_test_user = $hdp::params::smokeuser
+ $smokeuser_keytab = $hdp::params::smokeuser_keytab
+ if ($hdp::params::security_enabled == true) {
+     $kinit_if_needed = "${hdp::params::kinit_path_local} -kt ${smokeuser_keytab} ${smoke_test_user};"
+   } else {
+     $kinit_if_needed = "echo 0;"
+   }
 # $pig_src_tar = "$hdp::params::artifact_dir/pig.tar.gz"
 
 #  hdp-hadoop::hdfs::copyfromlocal { '/usr/share/templeton/templeton*jar':
