@@ -220,34 +220,6 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     return uiConfig;
   },
 
-  appendInstanceName: function (name, property) {
-    var newValue;
-    if (this.get('globalProperties').someProperty('name', name)) {
-      var globalProperty = this.get('globalProperties').findProperty('name', name);
-      newValue = globalProperty.value;
-      var isInstanceName = this.get('globalProperties').findProperty('name', 'instance_name').value;
-      if (isInstanceName === true || isInstanceName === 'true') {
-        if (/primary_name?$/.test(globalProperty.name) && property !== 'hadoop.security.auth_to_local' && property !== 'oozie.authentication.kerberos.name.rules') {
-          if (this.get('isOozieSelected') && (property === 'oozie.service.HadoopAccessorService.kerberos.principal' || property === 'oozie.authentication.kerberos.principal')) {
-            var oozieServerName = App.Service.find('OOZIE').get('hostComponents').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
-            newValue = newValue + '/' + oozieServerName;
-          } else if (this.isWebHcatSelected() && (property === 'templeton.kerberos.principal')) {
-            var webHcatName = App.Service.find('WEBHCAT').get('hostComponents').findProperty('componentName', 'WEBHCAT_SERVER').get('host.hostName');
-            newValue = newValue + '/' + webHcatName;
-          } else {
-            if (!/_HOST?$/.test(newValue)) {
-              newValue = newValue + '/_HOST';
-            }
-          }
-        }
-      }
-    } else {
-      console.log("The template name does not exist in secure_properties file");
-      newValue = null;
-    }
-    return newValue;
-  },
-
   /**
    * Set all site property that are derived from other puppet-variable
    */
@@ -261,12 +233,11 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     express.forEach(function (_express) {
       //console.log("The value of template is: " + _express);
       var index = parseInt(_express.match(/\[([\d]*)(?=\])/)[1]);
-      if (this.get('globalProperties').someProperty('name', templateName[index])) {
-        //console.log("The name of the variable is: " + this.get('content.serviceConfigProperties').findProperty('name', templateName[index]).name);
-        var globValue = this.appendInstanceName(templateName[index], name);
+      var globValue = this.get('globalProperties').findProperty('name', templateName[index]);
+      if (globValue) {
         console.log('The template value of templateName ' + '[' + index + ']' + ': ' + templateName[index] + ' is: ' + globValue);
         if (value !== null) {   // if the property depends on more than one template name like <templateName[0]>/<templateName[1]> then don't proceed to the next if the prior is null or not found in the global configs
-          value = value.replace(_express, globValue);
+          value = value.replace(_express, globValue.value);
         }
       } else {
         /*
@@ -292,16 +263,12 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     if (fkValue) {
       fkValue.forEach(function (_fkValue) {
         var index = parseInt(_fkValue.match(/\[([\d]*)(?=\])/)[1]);
-        var globalValue
+        var globalValue;
         if (uiConfig.someProperty('name', config.foreignKey[index])) {
           globalValue = uiConfig.findProperty('name', config.foreignKey[index]).value;
           config._name = config.name.replace(_fkValue, globalValue);
-        } else if (this.get('content.serviceConfigProperties').someProperty('name', config.foreignKey[index])) {
-          if (this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).value === '') {
-            globalValue = this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).defaultValue;
-          } else {
-            globalValue = this.get('content.serviceConfigProperties').findProperty('name', config.foreignKey[index]).value;
-          }
+        } else if (this.get('globalProperties').someProperty('name', config.foreignKey[index])) {
+            globalValue = this.get('globalProperties').findProperty('name', config.foreignKey[index]).value;
           config._name = config.name.replace(_fkValue, globalValue);
         }
       }, this);
@@ -312,9 +279,9 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     if (templateValue) {
       templateValue.forEach(function (_value) {
         var index = parseInt(_value.match(/\[([\d]*)(?=\])/)[1]);
-        if (this.get('globalProperties').someProperty('name', config.templateName[index])) {
-          var globValue = this.appendInstanceName(config.templateName[index]);
-          config.value = config.value.replace(_value, globValue);
+        var globValue = this.get('globalProperties').findProperty('name', config.templateName[index]);
+        if (globValue) {
+          config.value = config.value.replace(_value, globValue.value);
         } else {
           config.value = null;
         }
@@ -335,6 +302,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     this.loadStaticGlobal(); //Hack for properties which are declared in config_properties.js and not able to retrieve values declared in secure_properties.js
     this.loadUsersToGlobal();
     this.loadHostNamesToGlobal();
+    this.loadPrimaryNamesToGlobals();
   },
 
   loadUsersToGlobal: function () {
@@ -382,6 +350,25 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     }, this);
   },
 
+  loadPrimaryNamesToGlobals: function () {
+    var principalProperties = this.getPrincipalNames();
+    principalProperties.forEach(function (_principalProperty) {
+      var name = _principalProperty.name.replace('principal', 'primary');
+      var value =  _principalProperty.value.split('/')[0];
+      this.get('globalProperties').pushObject({name:name,value:value});
+    }, this);
+  },
+
+  getPrincipalNames: function () {
+    var principalNames = [];
+    this.get('globalProperties').forEach(function (_globalProperty) {
+      if (/principal_name?$/.test(_globalProperty.name)) {
+        principalNames.pushObject(_globalProperty);
+      }
+    }, this);
+    return principalNames;
+  },
+
   loadUsersFromServer: function () {
     if (App.testMode) {
       var serviceUsers = this.get('serviceUsers');
@@ -393,6 +380,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       App.router.get('mainAdminSecurityController').setSecurityStatus();
     }
   },
+
 
   loadClusterConfigs: function () {
     var self = this;
@@ -519,9 +507,14 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   },
 
   addSecureConfigs: function () {
-    this.get('serviceConfigTags').forEach(function (_serviceConfigTags, index) {
+    this.get('serviceConfigTags').forEach(function (_serviceConfigTags) {
       _serviceConfigTags.newTagName = 'version' + (new Date).getTime();
       if (_serviceConfigTags.siteName === 'global') {
+        var nagiosPrincipalName = this.get('globalProperties').findProperty('name','nagios_principal_name');
+        var zkPrincipalName = this.get('globalProperties').findProperty('name','zookeeper_principal_name');
+        var realmName = this.get('globalProperties').findProperty('name','kerberos_domain');
+        nagiosPrincipalName.value = nagiosPrincipalName.value + '@' + realmName.value;
+        zkPrincipalName.value = zkPrincipalName.value + '@' + realmName.value;
         this.get('globalProperties').forEach(function (_globalProperty) {
           _serviceConfigTags.configs[_globalProperty.name] = _globalProperty.value;
         }, this);

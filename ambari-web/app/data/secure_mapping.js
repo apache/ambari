@@ -41,7 +41,7 @@ module.exports = [
   },
   {
     "name": "dfs.namenode.kerberos.principal",
-    "templateName": ["namenode_primary_name", "kerberos_domain"],
+    "templateName": ["namenode_principal_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "hdfs-site.xml"
@@ -55,7 +55,7 @@ module.exports = [
   },
   {
     "name": "dfs.secondary.namenode.kerberos.principal",
-    "templateName": ["namenode_primary_name", "kerberos_domain"],
+    "templateName": ["namenode_principal_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "hdfs-site.xml"
@@ -69,7 +69,7 @@ module.exports = [
   },
   {
     "name": "dfs.web.authentication.kerberos.principal",
-    "templateName": ["hadoop_http_primary_name", "kerberos_domain"],
+    "templateName": ["hadoop_http_principal_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "hdfs-site.xml"
@@ -83,7 +83,7 @@ module.exports = [
   },
   {
     "name": "dfs.datanode.kerberos.principal",
-    "templateName": ["datanode_primary_name", "kerberos_domain"],
+    "templateName": ["datanode_principal_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "hdfs-site.xml"
@@ -125,7 +125,7 @@ module.exports = [
   },
   {
     "name": "mapreduce.jobtracker.kerberos.principal",
-    "templateName": ["jobtracker_primary_name", "kerberos_domain"],
+    "templateName": ["jobtracker_principal_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "mapred-site.xml"
@@ -139,7 +139,7 @@ module.exports = [
   },
   {
     "name": "mapreduce.tasktracker.kerberos.principal",
-    "templateName": ["tasktracker_primary_name", "kerberos_domain"],
+    "templateName": ["tasktracker_principal_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "mapred-site.xml"
@@ -153,7 +153,7 @@ module.exports = [
   },
   {
     "name": "hbase.master.kerberos.principal",
-    "templateName": ["hbase_primary_name", "kerberos_domain"],
+    "templateName": ["hbase_principal_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "hbase-site.xml"
@@ -167,7 +167,7 @@ module.exports = [
   },
   {
     "name": "hbase.regionserver.kerberos.principal",
-    "templateName": ["hbase_primary_name", "kerberos_domain"],
+    "templateName": ["hbase_principal_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "hbase-site.xml"
@@ -195,7 +195,7 @@ module.exports = [
   },
   {
     "name": "hive.metastore.kerberos.principal",
-    "templateName": ["hive_metastore_primary_name", "kerberos_domain"],
+    "templateName": ["hive_metastore_principal_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "hive-site.xml"
@@ -209,7 +209,7 @@ module.exports = [
   },
   {
     "name": "hive.server2.authentication.kerberos.principal",
-    "templateName": ["hive_metastore_primary_name", "kerberos_domain"],
+    "templateName": ["hive_metastore_principal_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "hive-site.xml"
@@ -251,7 +251,7 @@ module.exports = [
   },
   {
     "name": "oozie.service.HadoopAccessorService.kerberos.principal",
-    "templateName": ["oozie_primary_name", "kerberos_domain"],
+    "templateName": ["oozie_principal_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "oozie-site.xml"
@@ -265,7 +265,7 @@ module.exports = [
   },
   {
     "name": "oozie.authentication.kerberos.principal",
-    "templateName": ["hadoop_http_primary_name", "kerberos_domain"],
+    "templateName": ["oozie_http_principal_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "oozie-site.xml"
@@ -286,7 +286,7 @@ module.exports = [
   },
   {
     "name": "templeton.kerberos.principal",
-    "templateName": ["hadoop_http_primary_name", "kerberos_domain"],
+    "templateName": ["webHCat_http_principal_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "webhcat-site.xml"

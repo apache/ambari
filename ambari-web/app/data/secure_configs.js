@@ -96,6 +96,14 @@ module.exports = [
     ],
     sites: ['oozie-site'],
     configs: configProperties.filterProperty('serviceName', 'OOZIE')
+  },
+  {
+    serviceName: 'NAGIOS',
+    displayName: 'Nagios',
+    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'Nagios Server', displayName:  'Nagios Server'})
+    ],
+    configs: configProperties.filterProperty('serviceName', 'NAGIOS')
   }
 
 ];

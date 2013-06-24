@@ -39,6 +39,7 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
   loadStep: function () {
     console.log("TRACE: Loading addSecurity step2: Configure Services");
     this.clearStep();
+    this.addMasterHostToGlobals(this.get('content.services'));
     this.renderServiceConfigs(this.get('content.services'));
     var storedServices = this.get('content.serviceConfigProperties');
     if (storedServices) {
@@ -99,14 +100,55 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
   loadComponentConfigs: function (_componentConfig, componentConfig) {
     _componentConfig.configs.forEach(function (_serviceConfigProperty) {
       var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
-      //serviceConfigProperty.serviceConfig = componentConfig;
-      //serviceConfigProperty.initialValue();
       componentConfig.configs.pushObject(serviceConfigProperty);
       serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
       serviceConfigProperty.validate();
     }, this);
   },
 
+
+  addMasterHostToGlobals: function (serviceConfigs) {
+    var oozieService = serviceConfigs.findProperty('serviceName', 'OOZIE');
+    var hiveService = serviceConfigs.findProperty('serviceName', 'HIVE');
+    var webHcatService = App.Service.find().mapProperty('serviceName').contains('WEBHCAT');
+    var nagiosService = serviceConfigs.findProperty('serviceName', 'NAGIOS');
+    var generalService = serviceConfigs.findProperty('serviceName', 'GENERAL');
+    if (oozieService) {
+      var oozieServerHost = oozieService.configs.findProperty('name', 'oozie_servername');
+      var oozieServerPrincipal = oozieService.configs.findProperty('name', 'oozie_principal_name');
+      var oozieSpnegoPrincipal =  generalService.configs.findProperty('name', 'oozie_http_principal_name');
+      if (oozieServerHost && oozieServerPrincipal && oozieSpnegoPrincipal) {
+        oozieServerHost.defaultValue = App.Service.find('OOZIE').get('hostComponents').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
+        oozieServerPrincipal.defaultValue = 'oozie/' + oozieServerHost.defaultValue;
+        oozieSpnegoPrincipal.defaultValue = 'HTTP/' + oozieServerHost.defaultValue;
+        oozieSpnegoPrincipal.isVisible = true;
+      }
+    }
+    if (hiveService) {
+      var hiveServerHost = hiveService.configs.findProperty('name', 'hive_metastore');
+      if (hiveServerHost) {
+        hiveServerHost.defaultValue = App.Service.find('HIVE').get('hostComponents').findProperty('componentName', 'HIVE_SERVER').get('host.hostName');
+      }
+    }
+
+    if(webHcatService) {
+      var webHcatHost =  App.Service.find('WEBHCAT').get('hostComponents').findProperty('componentName', 'WEBHCAT_SERVER').get('host.hostName');
+      var webHcatSpnegoPrincipal =  generalService.configs.findProperty('name', 'webHCat_http_principal_name');
+      if(webHcatHost && webHcatSpnegoPrincipal) {
+        webHcatSpnegoPrincipal.defaultValue = 'HTTP/' + webHcatHost;
+        webHcatSpnegoPrincipal.isVisible = true;
+      }
+    }
+
+    if(nagiosService) {
+      var nagiosServerHost = nagiosService.configs.findProperty('name', 'nagios_server');
+      var nagiosServerPrincipal = nagiosService.configs.findProperty('name', 'nagios_principal_name');
+      if (nagiosServerHost && nagiosServerPrincipal) {
+        nagiosServerHost.defaultValue = App.Service.find('NAGIOS').get('hostComponents').findProperty('componentName', 'NAGIOS_SERVER').get('host.hostName');
+        nagiosServerPrincipal.defaultValue = 'nagios/' + nagiosServerHost.defaultValue;
+      }
+    }
+  },
 
   /**
    *  submit and move to step3
