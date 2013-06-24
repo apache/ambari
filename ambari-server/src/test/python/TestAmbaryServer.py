@@ -26,6 +26,7 @@ import os, errno, tempfile
 import signal
 import stat
 import datetime
+import operator
 # We have to use this import HACK because the filename contains a dash
 ambari_server = __import__('ambari-server')
 FatalException = ambari_server.FatalException
@@ -2938,7 +2939,7 @@ class TestAmbariServer(TestCase):
     {
       "authentication.ldap.primaryUrl" : "test",
       "authentication.ldap.secondaryUrl" : "test",
-      "authentication.ldap.useSSL" : "true",
+      "authentication.ldap.useSSL" : "false",
       "authentication.ldap.usernameAttribute" : "test",
       "authentication.ldap.baseDn" : "test",
       "authorization.userRoleName" : "test",
@@ -2946,11 +2947,14 @@ class TestAmbariServer(TestCase):
       "authentication.ldap.bindAnonymously" : "true",
       "authentication.ldap.managerDn" : "test",
       "authentication.ldap.managerPassword" : \
-        '${alias=ambari.ldap.manager.password}'
+        '${alias=ambari.ldap.manager.password}',
+      "client.security" : "ldap"
     }
 
-    self.assertEquals(sorted(update_properties_method.call_args[0][0]),
-      sorted(ldap_properties_map))
+    sorted_x = sorted(ldap_properties_map.iteritems(), key=operator.itemgetter(0))
+    sorted_y = sorted(update_properties_method.call_args[0][0].iteritems(),
+                      key=operator.itemgetter(0))
+    self.assertEquals(sorted_x, sorted_y)
     self.assertTrue(update_properties_method.called)
     self.assertTrue(configure_ldap_password_method.called)
     self.assertTrue(get_validated_string_input_method.called)
