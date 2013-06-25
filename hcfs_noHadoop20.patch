@@ -1,0 +1,3739 @@
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/metainfo.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/metainfo.xml
+deleted file mode 100644
+index ca45822..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/metainfo.xml
++++ /dev/null
+@@ -1,22 +0,0 @@
+-<?xml version="1.0"?>
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-<metainfo>
+-    <versions>
+-	  <active>true</active>
+-    </versions>
+-</metainfo>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/repos/repoinfo.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/repos/repoinfo.xml
+deleted file mode 100644
+index 5bb20d8..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/repos/repoinfo.xml
++++ /dev/null
+@@ -1,99 +0,0 @@
+-<?xml version="1.0"?>
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-<reposinfo>
+-  <os type="centos6">
+-    <repo>
+-      <baseurl>http://public-repo-1.hortonworks.com/HDP-2.0.0.2/repos/centos6</baseurl>
+-      <repoid>HDP-2.0.1</repoid>
+-      <reponame>HDP</reponame>
+-    </repo>
+-    <repo>
+-      <baseurl></baseurl>
+-      <repoid>HDP-epel</repoid>
+-      <reponame>HDP-epel</reponame>
+-      <mirrorslist><![CDATA[http://mirrors.fedoraproject.org/mirrorlist?repo=epel-6&arch=$basearch]]></mirrorslist>
+-    </repo>
+-  </os>
+-  <os type="centos5">
+-    <repo>
+-      <baseurl>http://public-repo-1.hortonworks.com/HDP-2.0.0.2/repos/centos5</baseurl>
+-      <repoid>HDP-2.0.1</repoid>
+-      <reponame>HDP</reponame>
+-    </repo>
+-    <repo>
+-      <baseurl></baseurl>
+-      <repoid>HDP-epel</repoid>
+-      <reponame>HDP-epel</reponame>
+-      <mirrorslist><![CDATA[http://mirrors.fedoraproject.org/mirrorlist?repo=epel-5&arch=$basearch]]></mirrorslist>
+-    </repo>
+-  </os>
+-  <os type="redhat6">
+-    <repo>
+-      <baseurl>http://public-repo-1.hortonworks.com/HDP-2.0.0.2/repos/centos6</baseurl>
+-      <repoid>HDP-2.0.1</repoid>
+-      <reponame>HDP</reponame>
+-    </repo>
+-    <repo>
+-      <baseurl></baseurl>
+-      <repoid>HDP-epel</repoid>
+-      <reponame>HDP-epel</reponame>
+-      <mirrorslist><![CDATA[http://mirrors.fedoraproject.org/mirrorlist?repo=epel-6&arch=$basearch]]></mirrorslist>
+-    </repo>
+-  </os>
+-  <os type="redhat5">
+-    <repo>
+-      <baseurl>http://public-repo-1.hortonworks.com/HDP-2.0.0.2/repos/centos5</baseurl>
+-      <repoid>HDP-2.0.1</repoid>
+-      <reponame>HDP</reponame>
+-    </repo>
+-    <repo>
+-      <baseurl></baseurl>
+-      <repoid>HDP-epel</repoid>
+-      <reponame>HDP-epel</reponame>
+-      <mirrorslist><![CDATA[http://mirrors.fedoraproject.org/mirrorlist?repo=epel-5&arch=$basearch]]></mirrorslist>
+-    </repo>
+-  </os>
+-<!--
+-  <os type="suse11">
+-    <repo>
+-      <baseurl>http://public-repo-1.hortonworks.com/HDP-2.0.1/repos/suse11</baseurl>
+-      <repoid>HDP-2.0.1</repoid>
+-      <reponame>HDP</reponame>
+-    </repo>
+-    <repo>
+-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/suse11</baseurl>
+-      <repoid>HDP-UTILS-1.1.0.15</repoid>
+-      <reponame>HDP-UTILS</reponame>
+-      <mirrorslist></mirrorslist>
+-    </repo>
+-  </os>
+-    <os type="sles11">
+-    <repo>
+-      <baseurl>http://public-repo-1.hortonworks.com/HDP-2.0.1/repos/suse11</baseurl>
+-      <repoid>HDP-2.0.1</repoid>
+-      <reponame>HDP</reponame>
+-    </repo>
+-    <repo>
+-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/suse11</baseurl>
+-      <repoid>HDP-UTILS-1.1.0.15</repoid>
+-      <reponame>HDP-UTILS</reponame>
+-      <mirrorslist></mirrorslist>
+-    </repo>
+-  </os>
+--->
+-</reposinfo>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/GANGLIA/metainfo.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/GANGLIA/metainfo.xml
+deleted file mode 100644
+index 395bb4f..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/GANGLIA/metainfo.xml
++++ /dev/null
+@@ -1,36 +0,0 @@
+-<?xml version="1.0"?>
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-<metainfo>
+-    <user>root</user>
+-    <comment>Ganglia Metrics Collection system</comment>
+-    <version>3.2.0</version>
+-
+-    <components>
+-        <component>
+-            <name>GANGLIA_SERVER</name>
+-            <category>MASTER</category>
+-        </component>
+-
+-        <component>
+-            <name>GANGLIA_MONITOR</name>
+-            <category>SLAVE</category>
+-        </component>
+-
+-    </components>
+-
+-</metainfo>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HBASE/configuration/hbase-policy.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HBASE/configuration/hbase-policy.xml
+deleted file mode 100644
+index e45f23c..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HBASE/configuration/hbase-policy.xml
++++ /dev/null
+@@ -1,53 +0,0 @@
+-<?xml version="1.0"?>
+-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+-<!--
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+--->
+-
+-<configuration>
+-  <property>
+-    <name>security.client.protocol.acl</name>
+-    <value>*</value>
+-    <description>ACL for HRegionInterface protocol implementations (ie. 
+-    clients talking to HRegionServers)
+-    The ACL is a comma-separated list of user and group names. The user and 
+-    group list is separated by a blank. For e.g. "alice,bob users,wheel". 
+-    A special value of "*" means all users are allowed.</description>
+-  </property>
+-
+-  <property>
+-    <name>security.admin.protocol.acl</name>
+-    <value>*</value>
+-    <description>ACL for HMasterInterface protocol implementation (ie. 
+-    clients talking to HMaster for admin operations).
+-    The ACL is a comma-separated list of user and group names. The user and 
+-    group list is separated by a blank. For e.g. "alice,bob users,wheel". 
+-    A special value of "*" means all users are allowed.</description>
+-  </property>
+-
+-  <property>
+-    <name>security.masterregion.protocol.acl</name>
+-    <value>*</value>
+-    <description>ACL for HMasterRegionInterface protocol implementations
+-    (for HRegionServers communicating with HMaster)
+-    The ACL is a comma-separated list of user and group names. The user and 
+-    group list is separated by a blank. For e.g. "alice,bob users,wheel". 
+-    A special value of "*" means all users are allowed.</description>
+-  </property>
+-</configuration>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HBASE/configuration/hbase-site.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HBASE/configuration/hbase-site.xml
+deleted file mode 100644
+index ba47e76..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HBASE/configuration/hbase-site.xml
++++ /dev/null
+@@ -1,334 +0,0 @@
+-<?xml version="1.0"?>
+-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+-<!--
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+--->
+-<configuration>
+-  <property>
+-    <name>hbase.rootdir</name>
+-    <value></value>
+-    <description>The directory shared by region servers and into
+-    which HBase persists.  The URL should be 'fully-qualified'
+-    to include the filesystem scheme.  For example, to specify the
+-    HDFS directory '/hbase' where the HDFS instance's namenode is
+-    running at namenode.example.org on port 9000, set this value to:
+-    hdfs://namenode.example.org:9000/hbase.  By default HBase writes
+-    into /tmp.  Change this configuration else all data will be lost
+-    on machine restart.
+-    </description>
+-  </property>
+-  <property>
+-    <name>hbase.cluster.distributed</name>
+-    <value>true</value>
+-    <description>The mode the cluster will be in. Possible values are
+-      false for standalone mode and true for distributed mode.  If
+-      false, startup will run all HBase and ZooKeeper daemons together
+-      in the one JVM.
+-    </description>
+-  </property>
+-  <property>
+-    <name>hbase.tmp.dir</name>
+-    <value>/var/log/hbase</value>
+-    <description>Temporary directory on the local filesystem.
+-    Change this setting to point to a location more permanent
+-    than '/tmp' (The '/tmp' directory is often cleared on
+-    machine restart).
+-    </description>
+-  </property>
+-  <property>
+-    <name>hbase.master.info.bindAddress</name>
+-    <value></value>
+-    <description>The bind address for the HBase Master web UI
+-    </description>
+-  </property>
+-  <property>
+-    <name>hbase.regionserver.global.memstore.upperLimit</name>
+-    <value>0.4</value>
+-    <description>Maximum size of all memstores in a region server before new
+-      updates are blocked and flushes are forced. Defaults to 40% of heap
+-    </description>
+-  </property>
+-  <property>
+-    <name>hbase.regionserver.handler.count</name>
+-    <value></value>
+-    <description>Count of RPC Listener instances spun up on RegionServers.
+-    Same property is used by the Master for count of master handlers.
+-    Default is 10.
+-    </description>
+-  </property>
+-  <property>
+-    <name>hbase.hregion.majorcompaction</name>
+-    <value></value>
+-    <description>The time (in miliseconds) between 'major' compactions of all
+-    HStoreFiles in a region.  Default: 1 day.
+-    Set to 0 to disable automated major compactions.
+-    </description>
+-  </property>
+-  <property>
+-    <name>hbase.master.lease.thread.wakefrequency</name>
+-    <value>3000</value>
+-    <description>The interval between checks for expired region server leases.
+-    This value has been reduced due to the other reduced values above so that
+-    the master will notice a dead region server sooner. The default is 15 seconds.
+-    </description>
+-  </property>
+-  <property>
+-    <name>hbase.regionserver.global.memstore.lowerLimit</name>
+-    <value>0.35</value>
+-    <description>When memstores are being forced to flush to make room in
+-      memory, keep flushing until we hit this mark. Defaults to 35% of heap.
+-      This value equal to hbase.regionserver.global.memstore.upperLimit causes
+-      the minimum possible flushing to occur when updates are blocked due to
+-      memstore limiting.
+-    </description>
+-  </property>
+-  <property>
+-    <name>hbase.hregion.memstore.block.multiplier</name>
+-    <value></value>
+-    <description>Block updates if memstore has hbase.hregion.memstore.block.multiplier
+-    time hbase.hregion.flush.size bytes.  Useful preventing
+-    runaway memstore during spikes in update traffic.  Without an
+-    upper-bound, memstore fills such that when it flushes the
+-    resultant flush files take a long time to compact or split, or
+-    worse, we OOME
+-    </description>
+-  </property>
+-  <property>
+-    <name>hbase.hregion.memstore.flush.size</name>
+-    <value></value>
+-    <description>
+-    Memstore will be flushed to disk if size of the memstore
+-    exceeds this number of bytes.  Value is checked by a thread that runs
+-    every hbase.server.thread.wakefrequency.
+-    </description>
+-  </property>
+-  <property>
+-    <name>hbase.hregion.memstore.mslab.enabled</name>
+-    <value>true</value>
+-    <description>
+-      Enables the MemStore-Local Allocation Buffer,
+-      a feature which works to prevent heap fragmentation under
+-      heavy write loads. This can reduce the frequency of stop-the-world
+-      GC pauses on large heaps.
+-    </description>
+-  </property>
+-  <property>
+-    <name>hbase.hregion.max.filesize</name>
+-    <value>268435456</value>
+-    <description>
+-    Maximum HStoreFile size. If any one of a column families' HStoreFiles has
+-    grown to exceed this value, the hosting HRegion is split in two.
+-    Default: 1G.
+-    </description>
+-  </property>
+-  <property>
+-    <name>hbase.client.scanner.caching</name>
+-    <value></value>
+-    <description>Number of rows that will be fetched when calling next
+-    on a scanner if it is not served from (local, client) memory. Higher
+-    caching values will enable faster scanners but will eat up more memory
+-    and some calls of next may take longer and longer times when the cache is empty.
+-    Do not set this value such that the time between invocations is greater
+-    than the scanner timeout; i.e. hbase.regionserver.lease.period
+-    </description>
+-  </property>
+-  <property>
+-    <name>zookeeper.session.timeout</name>
+-    <value></value>
+-    <description>ZooKeeper session timeout.
+-      HBase passes this to the zk quorum as suggested maximum time for a
+-      session (This setting becomes zookeeper's 'maxSessionTimeout').  See
+-      http://hadoop.apache.org/zookeeper/docs/current/zookeeperProgrammers.html#ch_zkSessions
+-      "The client sends a requested timeout, the server responds with the
+-      timeout that it can give the client. " In milliseconds.
+-    </description>
+-  </property>
+-  <property>
+-    <name>hbase.client.keyvalue.maxsize</name>
+-    <value></value>
+-    <description>Specifies the combined maximum allowed size of a KeyValue
+-    instance. This is to set an upper boundary for a single entry saved in a
+-    storage file. Since they cannot be split it helps avoiding that a region
+-    cannot be split any further because the data is too large. It seems wise
+-    to set this to a fraction of the maximum region size. Setting it to zero
+-    or less disables the check.
+-    </description>
+-  </property>
+-  <property>
+-    <name>hbase.hstore.compactionThreshold</name>
+-    <value>3</value>
+-    <description>
+-    If more than this number of HStoreFiles in any one HStore
+-    (one HStoreFile is written per flush of memstore) then a compaction
+-    is run to rewrite all HStoreFiles files as one.  Larger numbers
+-    put off compaction but when it runs, it takes longer to complete.
+-    </description>
+-  </property>
+-  <property>
+-    <name>hbase.hstore.blockingStoreFiles</name>
+-    <value>7</value>
+-    <description>
+-    If more than this number of StoreFiles in any one Store
+-    (one StoreFile is written per flush of MemStore) then updates are
+-    blocked for this HRegion until a compaction is completed, or
+-    until hbase.hstore.blockingWaitTime has been exceeded.
+-    </description>
+-  </property>
+-  <property>
+-    <name>hfile.block.cache.size</name>
+-    <value>0.25</value>
+-    <description>
+-        Percentage of maximum heap (-Xmx setting) to allocate to block cache
+-        used by HFile/StoreFile. Default of 0.25 means allocate 25%.
+-        Set to 0 to disable but it's not recommended.
+-    </description>
+-  </property>
+-
+-  <!-- The following properties configure authentication information for
+-       HBase processes when using Kerberos security.  There are no default
+-       values, included here for documentation purposes -->
+-  <property>
+-    <name>hbase.master.keytab.file</name>
+-    <value>/etc/security/keytabs/hm.service.keytab</value>
+-    <description>Full path to the kerberos keytab file to use for logging in
+-    the configured HMaster server principal.
+-    </description>
+-  </property>
+-  <property>
+-    <name>hbase.master.kerberos.principal</name>
+-    <value></value>
+-    <description>Ex. "hbase/_HOST@EXAMPLE.COM".  The kerberos principal name
+-    that should be used to run the HMaster process.  The principal name should
+-    be in the form: user/hostname@DOMAIN.  If "_HOST" is used as the hostname
+-    portion, it will be replaced with the actual hostname of the running
+-    instance.
+-    </description>
+-  </property>
+-  <property>
+-    <name>hbase.regionserver.keytab.file</name>
+-    <value>/etc/security/keytabs/rs.service.keytab</value>
+-    <description>Full path to the kerberos keytab file to use for logging in
+-    the configured HRegionServer server principal.
+-    </description>
+-  </property>
+-  <property>
+-    <name>hbase.regionserver.kerberos.principal</name>
+-    <value></value>
+-    <description>Ex. "hbase/_HOST@EXAMPLE.COM".  The kerberos principal name
+-    that should be used to run the HRegionServer process.  The principal name
+-    should be in the form: user/hostname@DOMAIN.  If "_HOST" is used as the
+-    hostname portion, it will be replaced with the actual hostname of the
+-    running instance.  An entry for this principal must exist in the file
+-    specified in hbase.regionserver.keytab.file
+-    </description>
+-  </property>
+-
+-  <!-- Additional configuration specific to HBase security -->
+-  <property>
+-    <name>hbase.superuser</name>
+-    <value>hbase</value>
+-    <description>List of users or groups (comma-separated), who are allowed
+-    full privileges, regardless of stored ACLs, across the cluster.
+-    Only used when HBase security is enabled.
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>hbase.coprocessor.region.classes</name>
+-    <value></value>
+-    <description>A comma-separated list of Coprocessors that are loaded by
+-    default on all tables. For any override coprocessor method, these classes
+-    will be called in order. After implementing your own Coprocessor, just put
+-    it in HBase's classpath and add the fully qualified class name here.
+-    A coprocessor can also be loaded on demand by setting HTableDescriptor.
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>hbase.coprocessor.master.classes</name>
+-    <value></value>
+-    <description>A comma-separated list of
+-      org.apache.hadoop.hbase.coprocessor.MasterObserver coprocessors that are
+-      loaded by default on the active HMaster process. For any implemented
+-      coprocessor methods, the listed classes will be called in order. After
+-      implementing your own MasterObserver, just put it in HBase's classpath
+-      and add the fully qualified class name here.
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>hbase.zookeeper.property.clientPort</name>
+-    <value>2181</value>
+-    <description>Property from ZooKeeper's config zoo.cfg.
+-    The port at which the clients will connect.
+-    </description>
+-  </property>
+-
+-  <!--
+-  The following three properties are used together to create the list of
+-  host:peer_port:leader_port quorum servers for ZooKeeper.
+-  -->
+-  <property>
+-    <name>hbase.zookeeper.quorum</name>
+-    <value></value>
+-    <description>Comma separated list of servers in the ZooKeeper Quorum.
+-    For example, "host1.mydomain.com,host2.mydomain.com,host3.mydomain.com".
+-    By default this is set to localhost for local and pseudo-distributed modes
+-    of operation. For a fully-distributed setup, this should be set to a full
+-    list of ZooKeeper quorum servers. If HBASE_MANAGES_ZK is set in hbase-env.sh
+-    this is the list of servers which we will start/stop ZooKeeper on.
+-    </description>
+-  </property>
+-  <!-- End of properties used to generate ZooKeeper host:port quorum list. -->
+-
+-  <property>
+-    <name>dfs.support.append</name>
+-    <value>true</value>
+-    <description>Does HDFS allow appends to files?
+-    This is an hdfs config. set in here so the hdfs client will do append support.
+-    You must ensure that this config. is true serverside too when running hbase
+-    (You will have to restart your cluster after setting it).
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>dfs.client.read.shortcircuit</name>
+-    <value>true</value>
+-    <description>Enable/Disable short circuit read for your client.
+-    Hadoop servers should be configured to allow short circuit read
+-    for the hbase user for this to take effect
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>dfs.client.read.shortcircuit.skip.checksum</name>
+-    <value>false</value>
+-    <description>Enable/disbale skipping the checksum check</description>
+-  </property>
+-
+-  <property>
+-    <name>hbase.regionserver.optionalcacheflushinterval</name>
+-    <value>10000</value>
+-    <description>
+-      Amount of time to wait since the last time a region was flushed before
+-      invoking an optional cache flush. Default 60,000.
+-    </description>
+-  </property>
+-
+-</configuration>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HBASE/metainfo.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HBASE/metainfo.xml
+deleted file mode 100644
+index 645f7ce..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HBASE/metainfo.xml
++++ /dev/null
+@@ -1,40 +0,0 @@
+-<?xml version="1.0"?>
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-<metainfo>
+-    <user>mapred</user>
+-    <comment>Non-relational distributed database and centralized service for configuration management &amp; synchronization</comment>
+-    <version>0.94.5.22-1</version>
+-
+-    <components>
+-        <component>
+-            <name>HBASE_MASTER</name>
+-            <category>MASTER</category>
+-        </component>
+-
+-        <component>
+-            <name>HBASE_REGIONSERVER</name>
+-            <category>SLAVE</category>
+-        </component>
+-
+-        <component>
+-            <name>HBASE_CLIENT</name>
+-            <category>CLIENT</category>
+-        </component>
+-    </components>
+-
+-</metainfo>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HCATALOG/metainfo.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HCATALOG/metainfo.xml
+deleted file mode 100644
+index 45f3342..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HCATALOG/metainfo.xml
++++ /dev/null
+@@ -1,30 +0,0 @@
+-<?xml version="1.0"?>
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-<metainfo>
+-    <user>root</user>
+-    <comment>This is comment for HCATALOG service</comment>
+-    <version>0.5.0.22-1</version>
+-
+-    <components>
+-        <component>
+-            <name>HCAT</name>
+-            <category>CLIENT</category>
+-        </component>
+-    </components>
+-
+-</metainfo>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HDFS/configuration/core-site.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HDFS/configuration/core-site.xml
+deleted file mode 100644
+index e646d5b..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HDFS/configuration/core-site.xml
++++ /dev/null
+@@ -1,257 +0,0 @@
+-<?xml version="1.0"?>
+-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+-
+- <!--
+-    Licensed to the Apache Software Foundation (ASF) under one or more
+-    contributor license agreements.  See the NOTICE file distributed with
+-    this work for additional information regarding copyright ownership.
+-    The ASF licenses this file to You under the Apache License, Version 2.0
+-    (the "License"); you may not use this file except in compliance with
+-    the License.  You may obtain a copy of the License at
+- 
+-        http://www.apache.org/licenses/LICENSE-2.0
+- 
+-    Unless required by applicable law or agreed to in writing, software
+-    distributed under the License is distributed on an "AS IS" BASIS,
+-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-    See the License for the specific language governing permissions and
+-    limitations under the License.
+- -->
+- 
+-<!-- Put site-specific property overrides in this file. -->
+-
+-<configuration xmlns:xi="http://www.w3.org/2001/XInclude">
+-
+-<!-- i/o properties -->
+-
+-  <property>
+-    <name>io.file.buffer.size</name>
+-    <value>131072</value>
+-    <description>The size of buffer for use in sequence files.
+-  The size of this buffer should probably be a multiple of hardware
+-  page size (4096 on Intel x86), and it determines how much data is
+-  buffered during read and write operations.</description>
+-  </property>
+-
+-  <property>
+-    <name>io.serializations</name>
+-    <value>org.apache.hadoop.io.serializer.WritableSerialization</value>
+-  </property>
+-
+-  <property>
+-    <name>io.compression.codecs</name>
+-    <value>org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec</value>
+-    <description>A list of the compression codec classes that can be used
+-                 for compression/decompression.</description>
+-  </property>
+-
+-  <property>
+-    <name>io.compression.codec.lzo.class</name>
+-    <value>com.hadoop.compression.lzo.LzoCodec</value>
+-    <description>The implementation for lzo codec.</description>
+-  </property>
+-
+-<!-- file system properties -->
+-
+-  <property>
+-    <name>fs.default.name</name>
+-    <!-- cluster variant -->
+-    <value></value>
+-    <description>The name of the default file system.  Either the
+-  literal string "local" or a host:port for NDFS.</description>
+-    <final>true</final>
+-  </property>
+-
+-  <property>
+-    <name>fs.trash.interval</name>
+-    <value>360</value>
+-    <description>Number of minutes between trash checkpoints.
+-  If zero, the trash feature is disabled.
+-  </description>
+-  </property>
+-
+-  <property>
+-    <name>fs.checkpoint.dir</name>
+-    <value></value>
+-    <description>Determines where on the local filesystem the DFS secondary
+-        name node should store the temporary images to merge.
+-        If this is a comma-delimited list of directories then the image is
+-        replicated in all of the directories for redundancy.
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>fs.checkpoint.edits.dir</name>
+-    <value>${fs.checkpoint.dir}</value>
+-    <description>Determines where on the local filesystem the DFS secondary
+-        name node should store the temporary edits to merge.
+-        If this is a comma-delimited list of directoires then teh edits is
+-        replicated in all of the directoires for redundancy.
+-        Default value is same as fs.checkpoint.dir
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>fs.checkpoint.period</name>
+-    <value>21600</value>
+-    <description>The number of seconds between two periodic checkpoints.
+-  </description>
+-  </property>
+-
+-  <property>
+-    <name>fs.checkpoint.size</name>
+-    <value>536870912</value>
+-    <description>The size of the current edit log (in bytes) that triggers
+-       a periodic checkpoint even if the fs.checkpoint.period hasn't expired.
+-  </description>
+-  </property>
+-
+-  <!-- ipc properties: copied from kryptonite configuration -->
+-  <property>
+-    <name>ipc.client.idlethreshold</name>
+-    <value>8000</value>
+-    <description>Defines the threshold number of connections after which
+-               connections will be inspected for idleness.
+-  </description>
+-  </property>
+-
+-  <property>
+-    <name>ipc.client.connection.maxidletime</name>
+-    <value>30000</value>
+-    <description>The maximum time after which a client will bring down the
+-               connection to the server.
+-  </description>
+-  </property>
+-
+-  <property>
+-    <name>ipc.client.connect.max.retries</name>
+-    <value>50</value>
+-    <description>Defines the maximum number of retries for IPC connections.</description>
+-  </property>
+-
+-  <!-- Web Interface Configuration -->
+-  <property>
+-    <name>webinterface.private.actions</name>
+-    <value>false</value>
+-    <description> If set to true, the web interfaces of JT and NN may contain
+-                actions, such as kill job, delete file, etc., that should
+-                not be exposed to public. Enable this option if the interfaces
+-                are only reachable by those who have the right authorization.
+-  </description>
+-  </property>
+-
+- <property>
+-   <name>hadoop.security.authentication</name>
+-   <value>simple</value>
+-   <description>
+-   Set the authentication for the cluster. Valid values are: simple or
+-   kerberos.
+-   </description>
+- </property>
+-<property>
+-  <name>hadoop.security.authorization</name>
+-  <value>false</value>
+-  <description>
+-     Enable authorization for different protocols.
+-  </description>
+-</property>
+-
+-  <property>
+-    <name>hadoop.security.auth_to_local</name>
+-    <value>
+-        RULE:[2:$1@$0]([rn]m@.*)s/.*/yarn/
+-        RULE:[2:$1@$0]([nd]n@.*)s/.*/hdfs/
+-        RULE:[2:$1@$0](hm@.*)s/.*/hbase/
+-        RULE:[2:$1@$0](rs@.*)s/.*/hbase/
+-        DEFAULT
+-    </value>
+-<description>The mapping from kerberos principal names to local OS user names.
+-  So the default rule is just "DEFAULT" which takes all principals in your default domain to their first component.
+-  "omalley@APACHE.ORG" and "omalley/admin@APACHE.ORG" to "omalley", if your default domain is APACHE.ORG.
+-The translations rules have 3 sections:
+-      base     filter    substitution
+-The base consists of a number that represents the number of components in the principal name excluding the realm and the pattern for building the name from the sections of the principal name. The base uses $0 to mean the realm, $1 to mean the first component and $2 to mean the second component.
+-
+-[1:$1@$0] translates "omalley@APACHE.ORG" to "omalley@APACHE.ORG"
+-[2:$1] translates "omalley/admin@APACHE.ORG" to "omalley"
+-[2:$1%$2] translates "omalley/admin@APACHE.ORG" to "omalley%admin"
+-
+-The filter is a regex in parens that must the generated string for the rule to apply.
+-
+-"(.*%admin)" will take any string that ends in "%admin"
+-"(.*@ACME.COM)" will take any string that ends in "@ACME.COM"
+-
+-Finally, the substitution is a sed rule to translate a regex into a fixed string.
+-
+-"s/@ACME\.COM//" removes the first instance of "@ACME.COM".
+-"s/@[A-Z]*\.COM//" removes the first instance of "@" followed by a name followed by ".COM".
+-"s/X/Y/g" replaces all of the "X" in the name with "Y"
+-
+-So, if your default realm was APACHE.ORG, but you also wanted to take all principals from ACME.COM that had a single component "joe@ACME.COM", you'd do:
+-
+-RULE:[1:$1@$0](.@ACME.ORG)s/@.//
+-DEFAULT
+-
+-To also translate the names with a second component, you'd make the rules:
+-
+-RULE:[1:$1@$0](.@ACME.ORG)s/@.//
+-RULE:[2:$1@$0](.@ACME.ORG)s/@.//
+-DEFAULT
+-
+-If you want to treat all principals from APACHE.ORG with /admin as "admin", your rules would look like:
+-
+-RULE[2:$1%$2@$0](.%admin@APACHE.ORG)s/./admin/
+-DEFAULT
+-    </description>
+-  </property>
+-
+-<!--
+-<property>
+-  <name>hadoop.proxyuser.scope.function_hdp_user("hcat_user").groups</name>
+-  <value></value>
+-  <description>
+-     Proxy group for Hadoop.
+-  </description>
+-</property>
+-
+-<property>
+-  <name>hadoop.proxyuser.scope.function_hdp_user("hcat_user").hosts</name>
+-  <value></value>
+-  <description>
+-     Proxy host for Hadoop.
+-  </description>
+-</property>
+-
+-<property>
+-  <name>hadoop.proxyuser.scope.function_hdp_user("oozie_user").groups</name>
+-  <value></value>
+-  <description>
+-     Proxy group for Hadoop.
+-  </description>
+-</property>
+-
+-<property>
+-  <name>hadoop.proxyuser.scope.function_hdp_user("oozie_user").hosts</name>
+-  <value></value>
+-  <description>
+-     Proxy host for Hadoop.
+-  </description>
+-</property>
+-
+-<property>
+-  <name>hadoop.proxyuser.scope.function_hdp_user("templeton_user").groups</name>
+-  <value></value>
+-  <description>
+-    Proxy group for templeton.
+-  </description>
+-</property>
+-
+-<property>
+-  <name>hadoop.proxyuser.scope.function_hdp_user("templeton_user").hosts</name>
+-  <value></value>
+-  <description>
+-    Proxy host for templeton.
+-  </description>
+-</property>
+--->
+-</configuration>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HDFS/configuration/global.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HDFS/configuration/global.xml
+deleted file mode 100644
+index 95fd565..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HDFS/configuration/global.xml
++++ /dev/null
+@@ -1,207 +0,0 @@
+-<?xml version="1.0"?>
+-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+-<!--
+-/**
+- * Licensed to the Apache Software Foundation (ASF) under one
+- * or more contributor license agreements.  See the NOTICE file
+- * distributed with this work for additional information
+- * regarding copyright ownership.  The ASF licenses this file
+- * to you under the Apache License, Version 2.0 (the
+- * "License"); you may not use this file except in compliance
+- * with the License.  You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+--->
+-
+-<configuration>
+-  <property>
+-    <name>namenode_host</name>
+-    <value></value>
+-    <description>NameNode Host.</description>
+-  </property>
+-  <property>
+-    <name>dfs_name_dir</name>
+-    <value>/hadoop/hdfs/namenode</value>
+-    <description>NameNode Directories.</description>
+-  </property>
+-  <property>
+-    <name>snamenode_host</name>
+-    <value></value>
+-    <description>Secondary NameNode.</description>
+-  </property>
+-  <property>
+-    <name>rm_host</name>
+-    <value></value>
+-    <description>Resource Manager.</description>
+-  </property>
+-  <property>
+-    <name>nm_hosts</name>
+-    <value></value>
+-    <description>List of Node Manager Hosts.</description>
+-  </property>
+-  <property>
+-    <name>hs_host</name>
+-    <value></value>
+-    <description>History Server.</description>
+-  </property>
+-  <property>
+-    <name>fs_checkpoint_dir</name>
+-    <value>/hadoop/hdfs/namesecondary</value>
+-    <description>Secondary NameNode checkpoint dir.</description>
+-  </property>
+-  <property>
+-    <name>datanode_hosts</name>
+-    <value></value>
+-    <description>List of Datanode Hosts.</description>
+-  </property>
+-  <property>
+-    <name>dfs_data_dir</name>
+-    <value>/hadoop/hdfs/data</value>
+-    <description>Data directories for Data Nodes.</description>
+-  </property>
+-  <property>
+-    <name>hdfs_log_dir_prefix</name>
+-    <value>/var/log/hadoop</value>
+-    <description>Hadoop Log Dir Prefix</description>
+-  </property>
+-  <property>
+-    <name>hadoop_pid_dir_prefix</name>
+-    <value>/var/run/hadoop</value>
+-    <description>Hadoop PID Dir Prefix</description>
+-  </property>
+-  <property>
+-    <name>dfs_webhdfs_enabled</name>
+-    <value>true</value>
+-    <description>WebHDFS enabled</description>
+-  </property>
+-  <property>
+-    <name>hadoop_heapsize</name>
+-    <value>1024</value>
+-    <description>Hadoop maximum Java heap size</description>
+-  </property>
+-  <property>
+-    <name>namenode_heapsize</name>
+-    <value>1024</value>
+-    <description>NameNode Java heap size</description>
+-  </property>
+-  <property>
+-    <name>namenode_opt_newsize</name>
+-    <value>200</value>
+-    <description>NameNode new generation size</description>
+-  </property>
+-  <property>
+-    <name>namenode_opt_maxnewsize</name>
+-    <value>640</value>
+-    <description>NameNode maximum new generation size</description>
+-  </property>
+-  <property>
+-    <name>datanode_du_reserved</name>
+-    <value>1</value>
+-    <description>Reserved space for HDFS</description>
+-  </property>
+-  <property>
+-    <name>dtnode_heapsize</name>
+-    <value>1024</value>
+-    <description>DataNode maximum Java heap size</description>
+-  </property>
+-  <property>
+-    <name>dfs_datanode_failed_volume_tolerated</name>
+-    <value>0</value>
+-    <description>DataNode volumes failure toleration</description>
+-  </property>
+-  <property>
+-    <name>fs_checkpoint_period</name>
+-    <value>21600</value>
+-    <description>HDFS Maximum Checkpoint Delay</description>
+-  </property>
+-  <property>
+-    <name>fs_checkpoint_size</name>
+-    <value>0.5</value>
+-    <description>FS Checkpoint Size.</description>
+-  </property>
+-  <property>
+-    <name>proxyuser_group</name>
+-    <value>users</value>
+-    <description>Proxy user group.</description>
+-  </property>
+-  <property>
+-    <name>dfs_exclude</name>
+-    <value></value>
+-    <description>HDFS Exclude hosts.</description>
+-  </property>
+-  <property>
+-    <name>dfs_include</name>
+-    <value></value>
+-    <description>HDFS Include hosts.</description>
+-  </property>
+-  <property>
+-    <name>dfs_replication</name>
+-    <value>3</value>
+-    <description>Default Block Replication.</description>
+-  </property>
+-  <property>
+-    <name>dfs_block_local_path_access_user</name>
+-    <value>hbase</value>
+-    <description>Default Block Replication.</description>
+-  </property>
+-  <property>
+-    <name>dfs_datanode_address</name>
+-    <value>50010</value>
+-    <description>Port for datanode address.</description>
+-  </property>
+-  <property>
+-    <name>dfs_datanode_http_address</name>
+-    <value>50075</value>
+-    <description>Port for datanode address.</description>
+-  </property>
+-  <property>
+-    <name>dfs_datanode_data_dir_perm</name>
+-    <value>750</value>
+-    <description>Datanode dir perms.</description>
+-  </property>
+-
+-  <property>
+-    <name>security_enabled</name>
+-    <value>false</value>
+-    <description>Hadoop Security</description>
+-  </property>
+-  <property>
+-    <name>kerberos_domain</name>
+-    <value>EXAMPLE.COM</value>
+-    <description>Kerberos realm.</description>
+-  </property>
+-  <property>
+-    <name>kadmin_pw</name>
+-    <value></value>
+-    <description>Kerberos realm admin password</description>
+-  </property>
+-  <property>
+-    <name>keytab_path</name>
+-    <value>/etc/security/keytabs</value>
+-    <description>Kerberos keytab path.</description>
+-  </property>
+-  
+-  <property>
+-    <name>keytab_path</name>
+-    <value>/etc/security/keytabs</value>
+-    <description>KeyTab Directory.</description>
+-  </property>
+-    <property>
+-    <name>namenode_formatted_mark_dir</name>
+-    <value>/var/run/hadoop/hdfs/namenode/formatted/</value>
+-    <description>Formatteed Mark Directory.</description>
+-  </property>
+-    <property>
+-    <name>hdfs_user</name>
+-    <value>hdfs</value>
+-    <description>User and Groups.</description>
+-  </property>
+-  
+-</configuration>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HDFS/configuration/hadoop-policy.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HDFS/configuration/hadoop-policy.xml
+deleted file mode 100644
+index 6ec304d..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HDFS/configuration/hadoop-policy.xml
++++ /dev/null
+@@ -1,134 +0,0 @@
+-<?xml version="1.0"?>
+-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+-
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-
+-<!-- Put site-specific property overrides in this file. -->
+-
+-<configuration>
+-  <property>
+-    <name>security.client.protocol.acl</name>
+-    <value>*</value>
+-    <description>ACL for ClientProtocol, which is used by user code
+-    via the DistributedFileSystem.
+-    The ACL is a comma-separated list of user and group names. The user and
+-    group list is separated by a blank. For e.g. "alice,bob users,wheel".
+-    A special value of "*" means all users are allowed.</description>
+-  </property>
+-
+-  <property>
+-    <name>security.client.datanode.protocol.acl</name>
+-    <value>*</value>
+-    <description>ACL for ClientDatanodeProtocol, the client-to-datanode protocol
+-    for block recovery.
+-    The ACL is a comma-separated list of user and group names. The user and
+-    group list is separated by a blank. For e.g. "alice,bob users,wheel".
+-    A special value of "*" means all users are allowed.</description>
+-  </property>
+-
+-  <property>
+-    <name>security.datanode.protocol.acl</name>
+-    <value>*</value>
+-    <description>ACL for DatanodeProtocol, which is used by datanodes to
+-    communicate with the namenode.
+-    The ACL is a comma-separated list of user and group names. The user and
+-    group list is separated by a blank. For e.g. "alice,bob users,wheel".
+-    A special value of "*" means all users are allowed.</description>
+-  </property>
+-
+-  <property>
+-    <name>security.inter.datanode.protocol.acl</name>
+-    <value>*</value>
+-    <description>ACL for InterDatanodeProtocol, the inter-datanode protocol
+-    for updating generation timestamp.
+-    The ACL is a comma-separated list of user and group names. The user and
+-    group list is separated by a blank. For e.g. "alice,bob users,wheel".
+-    A special value of "*" means all users are allowed.</description>
+-  </property>
+-
+-  <property>
+-    <name>security.namenode.protocol.acl</name>
+-    <value>*</value>
+-    <description>ACL for NamenodeProtocol, the protocol used by the secondary
+-    namenode to communicate with the namenode.
+-    The ACL is a comma-separated list of user and group names. The user and
+-    group list is separated by a blank. For e.g. "alice,bob users,wheel".
+-    A special value of "*" means all users are allowed.</description>
+-  </property>
+-
+-  <property>
+-    <name>security.inter.tracker.protocol.acl</name>
+-    <value>*</value>
+-    <description>ACL for InterTrackerProtocol, used by the tasktrackers to
+-    communicate with the jobtracker.
+-    The ACL is a comma-separated list of user and group names. The user and
+-    group list is separated by a blank. For e.g. "alice,bob users,wheel".
+-    A special value of "*" means all users are allowed.</description>
+-  </property>
+-
+-  <property>
+-    <name>security.job.submission.protocol.acl</name>
+-    <value>*</value>
+-    <description>ACL for JobSubmissionProtocol, used by job clients to
+-    communciate with the jobtracker for job submission, querying job status etc.
+-    The ACL is a comma-separated list of user and group names. The user and
+-    group list is separated by a blank. For e.g. "alice,bob users,wheel".
+-    A special value of "*" means all users are allowed.</description>
+-  </property>
+-
+-  <property>
+-    <name>security.task.umbilical.protocol.acl</name>
+-    <value>*</value>
+-    <description>ACL for TaskUmbilicalProtocol, used by the map and reduce
+-    tasks to communicate with the parent tasktracker.
+-    The ACL is a comma-separated list of user and group names. The user and
+-    group list is separated by a blank. For e.g. "alice,bob users,wheel".
+-    A special value of "*" means all users are allowed.</description>
+-  </property>
+-
+- <property>
+-    <name>security.admin.operations.protocol.acl</name>
+-    <value>hadoop</value>
+-    <description>ACL for AdminOperationsProtocol. Used for admin commands.
+-    The ACL is a comma-separated list of user and group names. The user and
+-    group list is separated by a blank. For e.g. "alice,bob users,wheel".
+-    A special value of "*" means all users are allowed.</description>
+-  </property>
+-
+-  <property>
+-    <name>security.refresh.usertogroups.mappings.protocol.acl</name>
+-    <value>hadoop</value>
+-    <description>ACL for RefreshUserMappingsProtocol. Used to refresh
+-    users mappings. The ACL is a comma-separated list of user and
+-    group names. The user and group list is separated by a blank. For
+-    e.g. "alice,bob users,wheel".  A special value of "*" means all
+-    users are allowed.</description>
+-  </property>
+-
+-<property>
+-    <name>security.refresh.policy.protocol.acl</name>
+-    <value>hadoop</value>
+-    <description>ACL for RefreshAuthorizationPolicyProtocol, used by the
+-    dfsadmin and mradmin commands to refresh the security policy in-effect.
+-    The ACL is a comma-separated list of user and group names. The user and
+-    group list is separated by a blank. For e.g. "alice,bob users,wheel".
+-    A special value of "*" means all users are allowed.</description>
+-  </property>
+-
+-
+-</configuration>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HDFS/configuration/hdfs-site.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HDFS/configuration/hdfs-site.xml
+deleted file mode 100644
+index e1a244a..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HDFS/configuration/hdfs-site.xml
++++ /dev/null
+@@ -1,438 +0,0 @@
+-<?xml version="1.0"?>
+-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+-
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-
+-<!-- Put site-specific property overrides in this file. -->
+-
+-<configuration>
+-
+-<!-- file system properties -->
+-
+-  <property>
+-    <name>dfs.name.dir</name>
+-    <!-- cluster variant -->
+-    <value></value>
+-    <description>Determines where on the local filesystem the DFS name node
+-      should store the name table.  If this is a comma-delimited list
+-      of directories then the name table is replicated in all of the
+-      directories, for redundancy. </description>
+-    <final>true</final>
+-  </property>
+-
+-  <property>
+-    <name>dfs.support.append</name>
+-    <value>true</value>
+-    <description>to enable dfs append</description>
+-    <final>true</final>
+-  </property>
+-
+-  <property>
+-    <name>dfs.webhdfs.enabled</name>
+-    <value>true</value>
+-    <description>to enable webhdfs</description>
+-    <final>true</final>
+-  </property>
+-
+-<!--
+- <property>
+-    <name>dfs.datanode.socket.write.timeout</name>
+-    <value>0</value>
+-    <description>DFS Client write socket timeout</description>
+-  </property>
+--->
+-
+-  <property>
+-    <name>dfs.datanode.failed.volumes.tolerated</name>
+-    <value>0</value>
+-    <description>#of failed disks dn would tolerate</description>
+-    <final>true</final>
+-  </property>
+-
+-  <property>
+-    <name>dfs.block.local-path-access.user</name>
+-    <value>hbase</value>
+-    <description>the user who is allowed to perform short
+-    circuit reads.
+-    </description>
+-    <final>true</final>
+-  </property>
+-
+-  <property>
+-    <name>dfs.data.dir</name>
+-    <value></value>
+-    <description>Determines where on the local filesystem an DFS data node
+-  should store its blocks.  If this is a comma-delimited
+-  list of directories, then data will be stored in all named
+-  directories, typically on different devices.
+-  Directories that do not exist are ignored.
+-  </description>
+-    <final>true</final>
+-  </property>
+-
+-  <property>
+-    <name>dfs.hosts.exclude</name>
+-    <value></value>
+-    <description>Names a file that contains a list of hosts that are
+-    not permitted to connect to the namenode.  The full pathname of the
+-    file must be specified.  If the value is empty, no hosts are
+-    excluded.</description>
+-  </property>
+-
+-<!--
+-  <property>
+-    <name>dfs.hosts</name>
+-    <value></value>
+-    <description>Names a file that contains a list of hosts that are
+-    permitted to connect to the namenode. The full pathname of the file
+-    must be specified.  If the value is empty, all hosts are
+-    permitted.</description>
+-  </property>
+--->
+-
+-  <property>
+-    <name>dfs.checksum.type</name>
+-    <value>CRC32</value>
+-    <description>The checksum method to be used by default. To maintain
+-    compatibility, it is being set to CRC32. Once all migration steps
+-    are complete, we can change it to CRC32C and take advantage of the
+-    additional performance benefit.</description>
+-  </property>
+-
+-  <property>
+-    <name>dfs.replication.max</name>
+-    <value>50</value>
+-    <description>Maximal block replication.
+-  </description>
+-  </property>
+-
+-  <property>
+-    <name>dfs.replication</name>
+-    <value>3</value>
+-    <description>Default block replication.
+-  </description>
+-  </property>
+-
+-  <property>
+-    <name>dfs.heartbeat.interval</name>
+-    <value>3</value>
+-    <description>Determines datanode heartbeat interval in seconds.</description>
+-  </property>
+-
+-  <property>
+-    <name>dfs.heartbeat.interval</name>
+-    <value>3</value>
+-    <description>Determines datanode heartbeat interval in seconds.</description>
+-  </property>
+-
+-  <property>
+-    <name>dfs.safemode.threshold.pct</name>
+-    <value>1.0f</value>
+-    <description>
+-        Specifies the percentage of blocks that should satisfy
+-        the minimal replication requirement defined by dfs.replication.min.
+-        Values less than or equal to 0 mean not to start in safe mode.
+-        Values greater than 1 will make safe mode permanent.
+-        </description>
+-  </property>
+-
+-  <property>
+-    <name>dfs.balance.bandwidthPerSec</name>
+-    <value>6250000</value>
+-    <description>
+-        Specifies the maximum amount of bandwidth that each datanode
+-        can utilize for the balancing purpose in term of
+-        the number of bytes per second.
+-  </description>
+-  </property>
+-
+-  <property>
+-    <name>dfs.datanode.address</name>
+-    <value>0.0.0.0:50010</value>
+-  </property>
+-
+-  <property>
+-    <name>dfs.datanode.http.address</name>
+-    <value>0.0.0.0:50075</value>
+-  </property>
+-
+-  <property>
+-    <name>dfs.block.size</name>
+-    <value>134217728</value>
+-    <description>The default block size for new files.</description>
+-  </property>
+-
+-  <property>
+-    <name>dfs.http.address</name>
+-    <value></value>
+-<description>The name of the default file system.  Either the
+-literal string "local" or a host:port for NDFS.</description>
+-<final>true</final>
+-</property>
+-
+-<property>
+-<name>dfs.datanode.du.reserved</name>
+-<!-- cluster variant -->
+-<value>1073741824</value>
+-<description>Reserved space in bytes per volume. Always leave this much space free for non dfs use.
+-</description>
+-</property>
+-
+-<property>
+-<name>dfs.datanode.ipc.address</name>
+-<value>0.0.0.0:8010</value>
+-<description>
+-The datanode ipc server address and port.
+-If the port is 0 then the server will start on a free port.
+-</description>
+-</property>
+-
+-<property>
+-<name>dfs.blockreport.initialDelay</name>
+-<value>120</value>
+-<description>Delay for first block report in seconds.</description>
+-</property>
+-
+-<property>
+-<name>dfs.datanode.du.pct</name>
+-<value>0.85f</value>
+-<description>When calculating remaining space, only use this percentage of the real available space
+-</description>
+-</property>
+-
+-<property>
+-<name>dfs.namenode.handler.count</name>
+-<value>40</value>
+-<description>The number of server threads for the namenode.</description>
+-</property>
+-
+-<property>
+-<name>dfs.datanode.max.xcievers</name>
+-<value>1024</value>
+-<description>PRIVATE CONFIG VARIABLE</description>
+-</property>
+-
+-<!-- Permissions configuration -->
+-
+-<property>
+-<name>dfs.umaskmode</name>
+-<value>022</value>
+-<description>
+-The octal umask used when creating files and directories.
+-</description>
+-</property>
+-
+-<property>
+-<name>dfs.web.ugi</name>
+-<!-- cluster variant -->
+-<value>gopher,gopher</value>
+-<description>The user account used by the web interface.
+-Syntax: USERNAME,GROUP1,GROUP2, ...
+-</description>
+-</property>
+-
+-<property>
+-<name>dfs.permissions</name>
+-<value>true</value>
+-<description>
+-If "true", enable permission checking in HDFS.
+-If "false", permission checking is turned off,
+-but all other behavior is unchanged.
+-Switching from one parameter value to the other does not change the mode,
+-owner or group of files or directories.
+-</description>
+-</property>
+-
+-<property>
+-<name>dfs.permissions.supergroup</name>
+-<value>hdfs</value>
+-<description>The name of the group of super-users.</description>
+-</property>
+-
+-<property>
+-<name>dfs.namenode.handler.count</name>
+-<value>100</value>
+-<description>Added to grow Queue size so that more client connections are allowed</description>
+-</property>
+-
+-<property>
+-<name>ipc.server.max.response.size</name>
+-<value>5242880</value>
+-</property>
+-<property>
+-<name>dfs.block.access.token.enable</name>
+-<value>true</value>
+-<description>
+-If "true", access tokens are used as capabilities for accessing datanodes.
+-If "false", no access tokens are checked on accessing datanodes.
+-</description>
+-</property>
+-
+-<property>
+-<name>dfs.namenode.kerberos.principal</name>
+-<value></value>
+-<description>
+-Kerberos principal name for the NameNode
+-</description>
+-</property>
+-
+-<property>
+-<name>dfs.secondary.namenode.kerberos.principal</name>
+-<value></value>
+-    <description>
+-        Kerberos principal name for the secondary NameNode.
+-    </description>
+-  </property>
+-
+-
+-<!--
+-  This is KRB DOMAIN specific. The FQDN of the namenode has to be mentioned.
+--->
+-  <property>
+-    <name>dfs.namenode.kerberos.https.principal</name>
+-    <value></value>
+-     <description>The Kerberos principal for the host that the NameNode runs on.</description>
+-
+-  </property>
+-
+-  <property>
+-    <name>dfs.secondary.namenode.kerberos.https.principal</name>
+-    <value></value>
+-    <description>The Kerberos principal for the hostthat the secondary NameNode runs on.</description>
+-
+-  </property>
+-
+-  <property>
+-    <!-- cluster variant -->
+-    <name>dfs.secondary.http.address</name>
+-    <value></value>
+-    <description>Address of secondary namenode web server</description>
+-  </property>
+-
+-  <property>
+-    <name>dfs.secondary.https.port</name>
+-    <value>50490</value>
+-    <description>The https port where secondary-namenode binds</description>
+-  </property>
+-
+-  <property>
+-    <name>dfs.web.authentication.kerberos.principal</name>
+-    <value></value>
+-    <description>
+-      The HTTP Kerberos principal used by Hadoop-Auth in the HTTP endpoint.
+-      The HTTP Kerberos principal MUST start with 'HTTP/' per Kerberos
+-      HTTP SPENGO specification.
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>dfs.web.authentication.kerberos.keytab</name>
+-    <value></value>
+-    <description>
+-      The Kerberos keytab file with the credentials for the
+-      HTTP Kerberos principal used by Hadoop-Auth in the HTTP endpoint.
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>dfs.datanode.kerberos.principal</name>
+-    <value></value>
+- <description>
+-        The Kerberos principal that the DataNode runs as. "_HOST" is replaced by the real host name.
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>dfs.namenode.keytab.file</name>
+-    <value></value>
+- <description>
+-        Combined keytab file containing the namenode service and host principals.
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>dfs.secondary.namenode.keytab.file</name>
+-    <value></value>
+-  <description>
+-        Combined keytab file containing the namenode service and host principals.
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>dfs.datanode.keytab.file</name>
+-    <value></value>
+- <description>
+-        The filename of the keytab file for the DataNode.
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>dfs.https.port</name>
+-    <value>50470</value>
+- <description>The https port where namenode binds</description>
+-
+-  </property>
+-
+-  <property>
+-    <name>dfs.https.address</name>
+-    <value></value>
+-  <description>The https address where namenode binds</description>
+-
+-  </property>
+-
+-  <property>
+-    <name>dfs.datanode.data.dir.perm</name>
+-    <value>750</value>
+-<description>The permissions that should be there on dfs.data.dir
+-directories. The datanode will not come up if the permissions are
+-different on existing dfs.data.dir directories. If the directories
+-don't exist, they will be created with this permission.</description>
+-  </property>
+-
+-  <property>
+-    <name>dfs.access.time.precision</name>
+-    <value>0</value>
+-    <description>The access time for HDFS file is precise upto this value.
+-                 The default value is 1 hour. Setting a value of 0 disables
+-                 access times for HDFS.
+-    </description>
+-  </property>
+-
+-  <property>
+-   <name>dfs.cluster.administrators</name>
+-   <value> hdfs</value>
+-   <description>ACL for who all can view the default servlets in the HDFS</description>
+-  </property>
+-
+-  <property>
+-    <name>ipc.server.read.threadpool.size</name>
+-    <value>5</value>
+-    <description></description>
+-  </property>
+-
+-  <property>
+-    <name>dfs.namenode.check.stale.datanode</name>
+-    <value>true</value>
+-    <description>
+-      With this setting, the datanodes that have not replied to the heartbeat
+-      for more than 30s (i.e. in a stale state) are used for reads only if all
+-      other remote replicas have failed.
+-    </description>
+-  </property>
+-
+-</configuration>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HDFS/metainfo.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HDFS/metainfo.xml
+deleted file mode 100644
+index 1fbfbe6..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HDFS/metainfo.xml
++++ /dev/null
+@@ -1,46 +0,0 @@
+-<?xml version="1.0"?>
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-<metainfo>
+-    <user>root</user>
+-    <comment>Apache Hadoop Distributed File System</comment>
+-    <version>2.0.3.22-1</version>
+-
+-    <components>
+-        <component>
+-            <name>NAMENODE</name>
+-            <category>MASTER</category>
+-        </component>
+-
+-        <component>
+-            <name>DATANODE</name>
+-            <category>SLAVE</category>
+-        </component>
+-
+-        <component>
+-            <name>SECONDARY_NAMENODE</name>
+-            <category>MASTER</category>
+-        </component>
+-
+-        <component>
+-            <name>HDFS_CLIENT</name>
+-            <category>CLIENT</category>
+-        </component>
+-    </components>
+-
+-
+-</metainfo>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HIVE/configuration/hive-site.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HIVE/configuration/hive-site.xml
+deleted file mode 100644
+index 7d35558..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HIVE/configuration/hive-site.xml
++++ /dev/null
+@@ -1,138 +0,0 @@
+-<?xml version="1.0"?>
+-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+-<!--
+-Licensed to the Apache Software Foundation (ASF) under one or more
+-contributor license agreements. See the NOTICE file distributed with
+-this work for additional information regarding copyright ownership.
+-The ASF licenses this file to You under the Apache License, Version 2.0
+-(the "License"); you may not use this file except in compliance with
+-the License. You may obtain a copy of the License at
+-
+-http://www.apache.org/licenses/LICENSE-2.0
+-
+-Unless required by applicable law or agreed to in writing, software
+-distributed under the License is distributed on an "AS IS" BASIS,
+-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-See the License for the specific language governing permissions and
+-limitations under the License.
+--->
+-
+-<configuration>
+-  <property>
+-    <name>hive.metastore.local</name>
+-    <value>false</value>
+-    <description>controls whether to connect to remove metastore server or
+-    open a new metastore server in Hive Client JVM</description>
+-  </property>
+-
+-  <property>
+-    <name>javax.jdo.option.ConnectionURL</name>
+-    <value></value>
+-    <description>JDBC connect string for a JDBC metastore</description>
+-  </property>
+-
+-  <property>
+-    <name>javax.jdo.option.ConnectionDriverName</name>
+-    <value>com.mysql.jdbc.Driver</value>
+-    <description>Driver class name for a JDBC metastore</description>
+-  </property>
+-
+-  <property>
+-    <name>javax.jdo.option.ConnectionUserName</name>
+-    <value></value>
+-    <description>username to use against metastore database</description>
+-  </property>
+-
+-  <property>
+-    <name>javax.jdo.option.ConnectionPassword</name>
+-    <value></value>
+-    <description>password to use against metastore database</description>
+-  </property>
+-
+-  <property>
+-    <name>hive.metastore.warehouse.dir</name>
+-    <value>/apps/hive/warehouse</value>
+-    <description>location of default database for the warehouse</description>
+-  </property>
+-
+-  <property>
+-    <name>hive.metastore.sasl.enabled</name>
+-    <value></value>
+-    <description>If true, the metastore thrift interface will be secured with SASL.
+-     Clients must authenticate with Kerberos.</description>
+-  </property>
+-
+-  <property>
+-    <name>hive.metastore.kerberos.keytab.file</name>
+-    <value></value>
+-    <description>The path to the Kerberos Keytab file containing the metastore
+-     thrift server's service principal.</description>
+-  </property>
+-
+-  <property>
+-    <name>hive.metastore.kerberos.principal</name>
+-    <value></value>
+-    <description>The service principal for the metastore thrift server. The special
+-    string _HOST will be replaced automatically with the correct host name.</description>
+-  </property>
+-
+-  <property>
+-    <name>hive.metastore.cache.pinobjtypes</name>
+-    <value>Table,Database,Type,FieldSchema,Order</value>
+-    <description>List of comma separated metastore object types that should be pinned in the cache</description>
+-  </property>
+-
+-  <property>
+-    <name>hive.metastore.uris</name>
+-    <value></value>
+-    <description>URI for client to contact metastore server</description>
+-  </property>
+-
+-  <property>
+-    <name>hive.semantic.analyzer.factory.impl</name>
+-    <value>org.apache.hivealog.cli.HCatSemanticAnalyzerFactory</value>
+-    <description>controls which SemanticAnalyzerFactory implemenation class is used by CLI</description>
+-  </property>
+-
+-  <property>
+-    <name>hadoop.clientside.fs.operations</name>
+-    <value>true</value>
+-    <description>FS operations are owned by client</description>
+-  </property>
+-
+-  <property>
+-    <name>hive.metastore.client.socket.timeout</name>
+-    <value>60</value>
+-    <description>MetaStore Client socket timeout in seconds</description>
+-  </property>
+-
+-  <property>
+-    <name>hive.metastore.execute.setugi</name>
+-    <value>true</value>
+-    <description>In unsecure mode, setting this property to true will cause the metastore to execute DFS operations using the client's reported user and group permissions. Note that this property must be set on both the client and     server sides. Further note that its best effort. If client sets its to true and server sets it to false, client setting will be ignored.</description>
+-  </property>
+-
+-  <property>
+-    <name>hive.security.authorization.enabled</name>
+-    <value>true</value>
+-    <description>enable or disable the hive client authorization</description>
+-  </property>
+-
+-  <property>
+-    <name>hive.security.authorization.manager</name>
+-    <value>org.apache.hcatalog.security.HdfsAuthorizationProvider</value>
+-    <description>the hive client authorization manager class name.
+-    The user defined authorization class should implement interface org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider.  </description>
+-  </property>
+-
+-  <property>
+-    <name>hive.server2.enable.doAs</name>
+-    <value>true</value>
+-  </property>
+-
+-  <property>
+-    <name>fs.hdfs.impl.disable.cache</name>
+-    <value>true</value>
+-  </property>
+-
+-</configuration>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HIVE/metainfo.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HIVE/metainfo.xml
+deleted file mode 100644
+index c87b494..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/HIVE/metainfo.xml
++++ /dev/null
+@@ -1,43 +0,0 @@
+-<?xml version="1.0"?>
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-<metainfo>
+-    <user>root</user>
+-    <comment>Data warehouse system for ad-hoc queries &amp; analysis of large datasets and table &amp; storage management service</comment>
+-    <version>0.10.0.22-1</version>
+-
+-    <components>        
+-        <component>
+-            <name>HIVE_METASTORE</name>
+-            <category>MASTER</category>
+-        </component>
+-        <component>
+-            <name>HIVE_SERVER</name>
+-            <category>MASTER</category>
+-        </component>
+-        <component>
+-            <name>MYSQL_SERVER</name>
+-            <category>MASTER</category>
+-        </component>
+-        <component>
+-            <name>HIVE_CLIENT</name>
+-            <category>CLIENT</category>
+-        </component>
+-    </components>
+-
+-
+-</metainfo>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/MAPREDUCE2/configuration/container-executor.cfg ambari-server/src/test/resources/stacks/HDP/2.0.1/services/MAPREDUCE2/configuration/container-executor.cfg
+deleted file mode 100644
+index 502ddaa..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/MAPREDUCE2/configuration/container-executor.cfg
++++ /dev/null
+@@ -1,20 +0,0 @@
+-#
+-# Licensed to the Apache Software Foundation (ASF) under one or more
+-# contributor license agreements.  See the NOTICE file distributed with
+-# this work for additional information regarding copyright ownership.
+-# The ASF licenses this file to You under the Apache License, Version 2.0
+-# (the "License"); you may not use this file except in compliance with
+-# the License.  You may obtain a copy of the License at
+-#
+-#     http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-#
+-yarn.nodemanager.local-dirs=TODO-YARN-LOCAL-DIR
+-yarn.nodemanager.linux-container-executor.group=hadoop
+-yarn.nodemanager.log-dirs=TODO-YARN-LOG-DIR
+-banned.users=hfds,bin,0
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/MAPREDUCE2/configuration/core-site.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/MAPREDUCE2/configuration/core-site.xml
+deleted file mode 100644
+index 3a2af49..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/MAPREDUCE2/configuration/core-site.xml
++++ /dev/null
+@@ -1,20 +0,0 @@
+-<?xml version="1.0"?>
+-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-<configuration>
+-</configuration>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/MAPREDUCE2/configuration/mapred-queue-acls.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/MAPREDUCE2/configuration/mapred-queue-acls.xml
+deleted file mode 100644
+index ce12380..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/MAPREDUCE2/configuration/mapred-queue-acls.xml
++++ /dev/null
+@@ -1,39 +0,0 @@
+-<?xml version="1.0"?>
+-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+-
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-
+-<!-- mapred-queue-acls.xml -->
+-<configuration>
+-
+-
+-<!-- queue default -->
+-
+-  <property>
+-    <name>mapred.queue.default.acl-submit-job</name>
+-    <value>*</value>
+-  </property>
+-
+-  <property>
+-    <name>mapred.queue.default.acl-administer-jobs</name>
+-    <value>*</value>
+-  </property>
+-
+-  <!-- END ACLs -->
+-
+-</configuration>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/MAPREDUCE2/configuration/mapred-site.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/MAPREDUCE2/configuration/mapred-site.xml
+deleted file mode 100644
+index 29fcfeb..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/MAPREDUCE2/configuration/mapred-site.xml
++++ /dev/null
+@@ -1,549 +0,0 @@
+-<?xml version="1.0"?>
+-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+-
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-
+-<!-- Put site-specific property overrides in this file. -->
+-
+-<configuration xmlns:xi="http://www.w3.org/2001/XInclude">
+-
+-<!-- i/o properties -->
+-
+-  <property>
+-    <name>io.sort.mb</name>
+-    <value></value>
+-    <description>No description</description>
+-  </property>
+-
+-  <property>
+-    <name>io.sort.record.percent</name>
+-    <value>.2</value>
+-    <description>No description</description>
+-  </property>
+-
+-  <property>
+-    <name>io.sort.spill.percent</name>
+-    <value></value>
+-    <description>No description</description>
+-  </property>
+-
+-  <property>
+-    <name>io.sort.factor</name>
+-    <value>100</value>
+-    <description>No description</description>
+-  </property>
+-
+-<!-- map/reduce properties -->
+-
+-<property>
+-  <name>mapred.tasktracker.tasks.sleeptime-before-sigkill</name>
+-  <value>250</value>
+-  <description>Normally, this is the amount of time before killing
+-  processes, and the recommended-default is 5.000 seconds - a value of
+-  5000 here.  In this case, we are using it solely to blast tasks before
+-  killing them, and killing them very quickly (1/4 second) to guarantee
+-  that we do not leave VMs around for later jobs.
+-  </description>
+-</property>
+-
+-  <property>
+-    <name>mapred.job.tracker.handler.count</name>
+-    <value>50</value>
+-    <description>
+-    The number of server threads for the JobTracker. This should be roughly
+-    4% of the number of tasktracker nodes.
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>mapred.system.dir</name>
+-    <value>/mapred/system</value>
+-    <description>No description</description>
+-    <final>true</final>
+-  </property>
+-
+-  <property>
+-    <name>mapred.job.tracker</name>
+-    <!-- cluster variant -->
+-    <value></value>
+-    <description>No description</description>
+-    <final>true</final>
+-  </property>
+-
+-  <property>
+-    <name>mapred.job.tracker.http.address</name>
+-    <!-- cluster variant -->
+-    <value></value>
+-    <description>No description</description>
+-    <final>true</final>
+-  </property>
+-
+-  <property>
+-    <!-- cluster specific -->
+-    <name>mapred.local.dir</name>
+-    <value></value>
+-    <description>No description</description>
+-    <final>true</final>
+-  </property>
+-
+-  <property>
+-  <name>mapreduce.cluster.administrators</name>
+-  <value> hadoop</value>
+-  </property>
+-
+-  <property>
+-    <name>mapred.reduce.parallel.copies</name>
+-    <value>30</value>
+-    <description>No description</description>
+-  </property>
+-
+-  <property>
+-    <name>mapred.tasktracker.map.tasks.maximum</name>
+-    <value></value>
+-    <description>No description</description>
+-  </property>
+-
+-  <property>
+-    <name>mapred.tasktracker.reduce.tasks.maximum</name>
+-    <value></value>
+-    <description>No description</description>
+-  </property>
+-
+-  <property>
+-    <name>tasktracker.http.threads</name>
+-    <value>50</value>
+-  </property>
+-
+-  <property>
+-    <name>mapred.map.tasks.speculative.execution</name>
+-    <value>false</value>
+-    <description>If true, then multiple instances of some map tasks
+-               may be executed in parallel.</description>
+-  </property>
+-
+-  <property>
+-    <name>mapred.reduce.tasks.speculative.execution</name>
+-    <value>false</value>
+-    <description>If true, then multiple instances of some reduce tasks
+-               may be executed in parallel.</description>
+-  </property>
+-
+-  <property>
+-    <name>mapred.reduce.slowstart.completed.maps</name>
+-    <value>0.05</value>
+-  </property>
+-
+-  <property>
+-    <name>mapred.inmem.merge.threshold</name>
+-    <value>1000</value>
+-    <description>The threshold, in terms of the number of files
+-  for the in-memory merge process. When we accumulate threshold number of files
+-  we initiate the in-memory merge and spill to disk. A value of 0 or less than
+-  0 indicates we want to DON'T have any threshold and instead depend only on
+-  the ramfs's memory consumption to trigger the merge.
+-  </description>
+-  </property>
+-
+-  <property>
+-    <name>mapred.job.shuffle.merge.percent</name>
+-    <value>0.66</value>
+-    <description>The usage threshold at which an in-memory merge will be
+-  initiated, expressed as a percentage of the total memory allocated to
+-  storing in-memory map outputs, as defined by
+-  mapred.job.shuffle.input.buffer.percent.
+-  </description>
+-  </property>
+-
+-  <property>
+-    <name>mapred.job.shuffle.input.buffer.percent</name>
+-    <value>0.7</value>
+-    <description>The percentage of memory to be allocated from the maximum heap
+-  size to storing map outputs during the shuffle.
+-  </description>
+-  </property>
+-
+-  <property>
+-    <name>mapred.map.output.compression.codec</name>
+-    <value></value>
+-    <description>If the map outputs are compressed, how should they be
+-      compressed
+-    </description>
+-  </property>
+-
+-<property>
+-  <name>mapred.output.compression.type</name>
+-  <value>BLOCK</value>
+-  <description>If the job outputs are to compressed as SequenceFiles, how should
+-               they be compressed? Should be one of NONE, RECORD or BLOCK.
+-  </description>
+-</property>
+-
+-
+-  <property>
+-    <name>mapred.jobtracker.completeuserjobs.maximum</name>
+-    <value>5</value>
+-  </property>
+-
+-  <property>
+-    <name>mapred.jobtracker.taskScheduler</name>
+-    <value></value>
+-  </property>
+-
+-  <property>
+-    <name>mapred.jobtracker.restart.recover</name>
+-    <value>false</value>
+-    <description>"true" to enable (job) recovery upon restart,
+-               "false" to start afresh
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>mapred.job.reduce.input.buffer.percent</name>
+-    <value>0.0</value>
+-    <description>The percentage of memory- relative to the maximum heap size- to
+-  retain map outputs during the reduce. When the shuffle is concluded, any
+-  remaining map outputs in memory must consume less than this threshold before
+-  the reduce can begin.
+-  </description>
+-  </property>
+-
+- <property>
+-  <name>mapreduce.reduce.input.limit</name>
+-  <value>10737418240</value>
+-  <description>The limit on the input size of the reduce. (This value
+-  is 10 Gb.)  If the estimated input size of the reduce is greater than
+-  this value, job is failed. A value of -1 means that there is no limit
+-  set. </description>
+-</property>
+-
+-
+-  <!-- copied from kryptonite configuration -->
+-  <property>
+-    <name>mapred.compress.map.output</name>
+-    <value></value>
+-  </property>
+-
+-
+-  <property>
+-    <name>mapred.task.timeout</name>
+-    <value>600000</value>
+-    <description>The number of milliseconds before a task will be
+-  terminated if it neither reads an input, writes an output, nor
+-  updates its status string.
+-  </description>
+-  </property>
+-
+-  <property>
+-    <name>jetty.connector</name>
+-    <value>org.mortbay.jetty.nio.SelectChannelConnector</value>
+-    <description>No description</description>
+-  </property>
+-
+-  <property>
+-    <name>mapred.task.tracker.task-controller</name>
+-    <value></value>
+-   <description>
+-     TaskController which is used to launch and manage task execution.
+-  </description>
+-  </property>
+-
+-  <property>
+-    <name>mapred.child.root.logger</name>
+-    <value>INFO,TLA</value>
+-  </property>
+-
+-  <property>
+-    <name>mapred.child.java.opts</name>
+-    <value></value>
+-
+-    <description>No description</description>
+-  </property>
+-
+-  <property>
+-    <name>mapred.cluster.map.memory.mb</name>
+-    <value></value>
+-  </property>
+-
+-  <property>
+-    <name>mapred.cluster.reduce.memory.mb</name>
+-    <value></value>
+-  </property>
+-
+-  <property>
+-    <name>mapred.job.map.memory.mb</name>
+-    <value></value>
+-  </property>
+-
+-  <property>
+-    <name>mapred.job.reduce.memory.mb</name>
+-    <value></value>
+-  </property>
+-
+-  <property>
+-    <name>mapred.cluster.max.map.memory.mb</name>
+-    <value></value>
+-  </property>
+-
+-  <property>
+-    <name>mapred.cluster.max.reduce.memory.mb</name>
+-    <value></value>
+-  </property>
+-
+-<property>
+-  <name>mapred.hosts</name>
+-  <value></value>
+-</property>
+-
+-<property>
+-  <name>mapred.hosts.exclude</name>
+-  <value></value>
+-</property>
+-
+-<property>
+-  <name>mapred.max.tracker.blacklists</name>
+-  <value>16</value>
+-  <description>
+-    if node is reported blacklisted by 16 successful jobs within timeout-window, it will be graylisted
+-  </description>
+-</property>
+-
+-<property>
+-  <name>mapred.healthChecker.script.path</name>
+-  <value></value>
+-</property>
+-
+-<property>
+-  <name>mapred.healthChecker.interval</name>
+-  <value>135000</value>
+-</property>
+-
+-<property>
+-  <name>mapred.healthChecker.script.timeout</name>
+-  <value>60000</value>
+-</property>
+-
+-<property>
+-  <name>mapred.job.tracker.persist.jobstatus.active</name>
+-  <value>false</value>
+-  <description>Indicates if persistency of job status information is
+-  active or not.
+-  </description>
+-</property>
+-
+-<property>
+-  <name>mapred.job.tracker.persist.jobstatus.hours</name>
+-  <value>1</value>
+-  <description>The number of hours job status information is persisted in DFS.
+-    The job status information will be available after it drops of the memory
+-    queue and between jobtracker restarts. With a zero value the job status
+-    information is not persisted at all in DFS.
+-  </description>
+-</property>
+-
+-<property>
+-  <name>mapred.job.tracker.persist.jobstatus.dir</name>
+-  <value></value>
+-  <description>The directory where the job status information is persisted
+-   in a file system to be available after it drops of the memory queue and
+-   between jobtracker restarts.
+-  </description>
+-</property>
+-
+-<property>
+-  <name>mapred.jobtracker.retirejob.check</name>
+-  <value>10000</value>
+-</property>
+-
+-<property>
+-  <name>mapred.jobtracker.retirejob.interval</name>
+-  <value>21600000</value>
+-</property>
+-
+-<property>
+-  <name>mapred.job.tracker.history.completed.location</name>
+-  <value>/mapred/history/done</value>
+-  <description>No description</description>
+-</property>
+-
+-<property>
+-  <name>mapred.task.maxvmem</name>
+-  <value></value>
+-  <final>true</final>
+-   <description>No description</description>
+-</property>
+-
+-<property>
+-  <name>mapred.jobtracker.maxtasks.per.job</name>
+-  <value></value>
+-  <final>true</final>
+-  <description>The maximum number of tasks for a single job.
+-  A value of -1 indicates that there is no maximum.  </description>
+-</property>
+-
+-<property>
+-  <name>mapreduce.fileoutputcommitter.marksuccessfuljobs</name>
+-  <value>false</value>
+-</property>
+-
+-<property>
+-  <name>mapred.userlog.retain.hours</name>
+-  <value></value>
+-</property>
+-
+-<property>
+-  <name>mapred.job.reuse.jvm.num.tasks</name>
+-  <value>1</value>
+-  <description>
+-    How many tasks to run per jvm. If set to -1, there is no limit
+-  </description>
+-  <final>true</final>
+-</property>
+-
+-<property>
+-  <name>mapreduce.jobtracker.kerberos.principal</name>
+-  <value></value>
+-  <description>
+-      JT user name key.
+- </description>
+-</property>
+-
+-<property>
+-  <name>mapreduce.tasktracker.kerberos.principal</name>
+-   <value></value>
+-  <description>
+-       tt user name key. "_HOST" is replaced by the host name of the task tracker.
+-   </description>
+-</property>
+-
+-
+-  <property>
+-    <name>hadoop.job.history.user.location</name>
+-    <value>none</value>
+-    <final>true</final>
+-  </property>
+-
+-
+- <property>
+-   <name>mapreduce.jobtracker.keytab.file</name>
+-   <value></value>
+-   <description>
+-       The keytab for the jobtracker principal.
+-   </description>
+-
+-</property>
+-
+- <property>
+-   <name>mapreduce.tasktracker.keytab.file</name>
+-   <value></value>
+-    <description>The filename of the keytab for the task tracker</description>
+- </property>
+-
+- <property>
+-   <name>mapreduce.jobtracker.staging.root.dir</name>
+-   <value>/user</value>
+- <description>The Path prefix for where the staging directories should be placed. The next level is always the user's
+-   name. It is a path in the default file system.</description>
+- </property>
+-
+- <property>
+-      <name>mapreduce.tasktracker.group</name>
+-      <value>hadoop</value>
+-      <description>The group that the task controller uses for accessing the task controller. The mapred user must be a member and users should *not* be members.</description>
+-
+- </property>
+-
+-  <property>
+-    <name>mapreduce.jobtracker.split.metainfo.maxsize</name>
+-    <value>50000000</value>
+-    <final>true</final>
+-     <description>If the size of the split metainfo file is larger than this, the JobTracker will fail the job during
+-    initialize.
+-   </description>
+-  </property>
+-  <property>
+-    <name>mapreduce.history.server.embedded</name>
+-    <value>false</value>
+-    <description>Should job history server be embedded within Job tracker
+-process</description>
+-    <final>true</final>
+-  </property>
+-
+-  <property>
+-    <name>mapreduce.history.server.http.address</name>
+-    <!-- cluster variant -->
+-    <value></value>
+-    <description>Http address of the history server</description>
+-    <final>true</final>
+-  </property>
+-
+-  <property>
+-    <name>mapreduce.jobhistory.kerberos.principal</name>
+-    <!-- cluster variant -->
+-  <value></value>
+-    <description>Job history user name key. (must map to same user as JT
+-user)</description>
+-  </property>
+-
+- <property>
+-   <name>mapreduce.jobhistory.keytab.file</name>
+-    <!-- cluster variant -->
+-   <value></value>
+-   <description>The keytab for the job history server principal.</description>
+- </property>
+-
+-<property>
+-  <name>mapred.jobtracker.blacklist.fault-timeout-window</name>
+-  <value>180</value>
+-  <description>
+-    3-hour sliding window (value is in minutes)
+-  </description>
+-</property>
+-
+-<property>
+-  <name>mapred.jobtracker.blacklist.fault-bucket-width</name>
+-  <value>15</value>
+-  <description>
+-    15-minute bucket size (value is in minutes)
+-  </description>
+-</property>
+-
+-<property>
+-  <name>mapred.queue.names</name>
+-  <value>default</value>
+-  <description> Comma separated list of queues configured for this jobtracker.</description>
+-</property>
+-
+-<property>
+-  <name>mapreduce.shuffle.port</name>
+-  <value>8081</value>
+-  <description>Default port that the ShuffleHandler will run on. ShuffleHandler is a service run at the NodeManager to facilitate transfers of intermediate Map outputs to requesting Reducers.</description>
+-</property>
+-
+-<property>
+-  <name>mapreduce.jobhistory.intermediate-done-dir</name>
+-  <value>/mr-history/tmp</value>
+-  <description>Directory where history files are written by MapReduce jobs.</description>
+-</property>
+-
+-<property>
+-  <name>mapreduce.jobhistory.done-dir</name>
+-  <value>/mr-history/done</value>
+-  <description>Directory where history files are managed by the MR JobHistory Server.</description>
+-</property>
+-
+-</configuration>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/MAPREDUCE2/metainfo.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/MAPREDUCE2/metainfo.xml
+deleted file mode 100644
+index 7c4d1f4..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/MAPREDUCE2/metainfo.xml
++++ /dev/null
+@@ -1,32 +0,0 @@
+-<?xml version="1.0"?>
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-<metainfo>
+-    <user>mapred</user>
+-    <comment>Apache Hadoop NextGen MapReduce (client libraries)</comment>
+-    <version>2.0.3.22-1</version>
+-    <components>
+-        <component>
+-            <name>HISTORYSERVER</name>
+-            <category>MASTER</category>
+-        </component>
+-        <component>
+-            <name>MAPREDUCE2_CLIENT</name>
+-            <category>CLIENT</category>
+-        </component>
+-    </components>
+-</metainfo>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/NAGIOS/metainfo.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/NAGIOS/metainfo.xml
+deleted file mode 100644
+index bd7de07..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/NAGIOS/metainfo.xml
++++ /dev/null
+@@ -1,30 +0,0 @@
+-<?xml version="1.0"?>
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-<metainfo>
+-    <user>root</user>
+-    <comment>Nagios Monitoring and Alerting system</comment>
+-    <version>3.2.3</version>
+-
+-    <components>
+-        <component>
+-            <name>NAGIOS_SERVER</name>
+-            <category>MASTER</category>
+-        </component>
+-    </components>
+-
+-</metainfo>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/OOZIE/configuration/oozie-site.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/OOZIE/configuration/oozie-site.xml
+deleted file mode 100644
+index 1665ba8..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/OOZIE/configuration/oozie-site.xml
++++ /dev/null
+@@ -1,245 +0,0 @@
+-<?xml version="1.0"?>
+-<!--
+-  Licensed to the Apache Software Foundation (ASF) under one
+-  or more contributor license agreements.  See the NOTICE file
+-  distributed with this work for additional information
+-  regarding copyright ownership.  The ASF licenses this file
+-  to you under the Apache License, Version 2.0 (the
+-  "License"); you may not use this file except in compliance
+-  with the License.  You may obtain a copy of the License at
+-        
+-       http://www.apache.org/licenses/LICENSE-2.0
+-  
+-  Unless required by applicable law or agreed to in writing, software
+-  distributed under the License is distributed on an "AS IS" BASIS,
+-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-  See the License for the specific language governing permissions and
+-  limitations under the License.
+--->     
+-
+-<configuration>
+-
+-<!--
+-    Refer to the oozie-default.xml file for the complete list of
+-    Oozie configuration properties and their default values.
+--->
+-  <property>
+-    <name>oozie.base.url</name>
+-    <value>http://localhost:11000/oozie</value>
+-    <description>Base Oozie URL.</description>
+-   </property>
+-
+-  <property>
+-    <name>oozie.system.id</name>
+-    <value>oozie-${user.name}</value>
+-    <description>
+-    The Oozie system ID.
+-    </description>
+-   </property>
+-
+-   <property>
+-     <name>oozie.systemmode</name>
+-     <value>NORMAL</value>
+-     <description>
+-     System mode for  Oozie at startup.
+-     </description>
+-   </property>
+-
+-   <property>
+-     <name>oozie.service.AuthorizationService.security.enabled</name>
+-     <value>true</value>
+-     <description>
+-     Specifies whether security (user name/admin role) is enabled or not.
+-     If disabled any user can manage Oozie system and manage any job.
+-     </description>
+-   </property>
+-
+-   <property>
+-     <name>oozie.service.PurgeService.older.than</name>
+-     <value>30</value>
+-     <description>
+-     Jobs older than this value, in days, will be purged by the PurgeService.
+-     </description>
+-   </property>
+-
+-   <property>
+-     <name>oozie.service.PurgeService.purge.interval</name>
+-     <value>3600</value>
+-     <description>
+-     Interval at which the purge service will run, in seconds.
+-     </description>
+-   </property>
+-
+-   <property>
+-     <name>oozie.service.CallableQueueService.queue.size</name>
+-     <value>1000</value>
+-     <description>Max callable queue size</description>
+-   </property>
+-
+-   <property>
+-     <name>oozie.service.CallableQueueService.threads</name>
+-     <value>10</value>
+-     <description>Number of threads used for executing callables</description>
+-   </property>
+-
+-   <property>
+-     <name>oozie.service.CallableQueueService.callable.concurrency</name>
+-     <value>3</value>
+-     <description>
+-     Maximum concurrency for a given callable type.
+-     Each command is a callable type (submit, start, run, signal, job, jobs, suspend,resume, etc).
+-     Each action type is a callable type (Map-Reduce, Pig, SSH, FS, sub-workflow, etc).
+-     All commands that use action executors (action-start, action-end, action-kill and action-check) use
+-     the action type as the callable type.
+-     </description>
+-   </property>
+-
+-   <property>
+-     <name>oozie.service.coord.normal.default.timeout</name>
+-     <value>120</value>
+-     <description>Default timeout for a coordinator action input check (in minutes) for normal job.
+-      -1 means infinite timeout</description>
+-   </property>
+-
+-   <property>
+-     <name>oozie.db.schema.name</name>
+-     <value>oozie</value>
+-     <description>
+-      Oozie DataBase Name
+-     </description>
+-   </property>
+-
+-    <property>
+-      <name>oozie.service.HadoopAccessorService.jobTracker.whitelist</name>
+-      <value> </value>
+-      <description>
+-      Whitelisted job tracker for Oozie service.
+-      </description>
+-    </property>
+-   
+-    <property>
+-      <name>oozie.authentication.type</name>
+-      <value>simple</value>
+-      <description>
+-      </description>
+-    </property>
+-   
+-    <property>
+-      <name>oozie.service.HadoopAccessorService.nameNode.whitelist</name>
+-      <value> </value>
+-      <description>
+-      </description>
+-    </property>
+-
+-    <property>
+-      <name>oozie.service.WorkflowAppService.system.libpath</name>
+-      <value>/user/${user.name}/share/lib</value>
+-      <description>
+-      System library path to use for workflow applications.
+-      This path is added to workflow application if their job properties sets
+-      the property 'oozie.use.system.libpath' to true.
+-      </description>
+-    </property>
+-
+-    <property>
+-      <name>use.system.libpath.for.mapreduce.and.pig.jobs</name>
+-      <value>false</value>
+-      <description>
+-      If set to true, submissions of MapReduce and Pig jobs will include
+-      automatically the system library path, thus not requiring users to
+-      specify where the Pig JAR files are. Instead, the ones from the system
+-      library path are used.
+-      </description>
+-    </property>
+-    <property>
+-      <name>oozie.authentication.kerberos.name.rules</name>
+-      <value>
+-        RULE:[2:$1@$0]([jt]t@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-MAPREDUSER/
+-        RULE:[2:$1@$0]([nd]n@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HDFSUSER/
+-        RULE:[2:$1@$0](hm@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HBASE-USER/
+-        RULE:[2:$1@$0](rs@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HBASE-USER/
+-        DEFAULT
+-        </value>
+-      <description>The mapping from kerberos principal names to local OS user names.</description>
+-    </property>
+-    <property>
+-      <name>oozie.service.HadoopAccessorService.hadoop.configurations</name>
+-      <value>*=/etc/hadoop/conf</value>
+-      <description>
+-          Comma separated AUTHORITY=HADOOP_CONF_DIR, where AUTHORITY is the HOST:PORT of
+-          the Hadoop service (JobTracker, HDFS). The wildcard '*' configuration is
+-          used when there is no exact match for an authority. The HADOOP_CONF_DIR contains
+-          the relevant Hadoop *-site.xml files. If the path is relative is looked within
+-          the Oozie configuration directory; though the path can be absolute (i.e. to point
+-          to Hadoop client conf/ directories in the local filesystem.
+-      </description>
+-    </property>
+-    <property>
+-        <name>oozie.service.ActionService.executor.ext.classes</name>
+-        <value>
+-            org.apache.oozie.action.email.EmailActionExecutor,
+-            org.apache.oozie.action.hadoop.HiveActionExecutor,
+-            org.apache.oozie.action.hadoop.ShellActionExecutor,
+-            org.apache.oozie.action.hadoop.SqoopActionExecutor,
+-            org.apache.oozie.action.hadoop.DistcpActionExecutor
+-        </value>
+-    </property>
+-
+-    <property>
+-        <name>oozie.service.SchemaService.wf.ext.schemas</name>
+-        <value>shell-action-0.1.xsd,email-action-0.1.xsd,hive-action-0.2.xsd,sqoop-action-0.2.xsd,ssh-action-0.1.xsd,distcp-action-0.1.xsd</value>
+-    </property>
+-    <property>
+-        <name>oozie.service.JPAService.create.db.schema</name>
+-        <value>false</value>
+-        <description>
+-            Creates Oozie DB.
+-
+-            If set to true, it creates the DB schema if it does not exist. If the DB schema exists is a NOP.
+-            If set to false, it does not create the DB schema. If the DB schema does not exist it fails start up.
+-        </description>
+-    </property>
+-
+-    <property>
+-        <name>oozie.service.JPAService.jdbc.driver</name>
+-        <value>org.apache.derby.jdbc.EmbeddedDriver</value>
+-        <description>
+-            JDBC driver class.
+-        </description>
+-    </property>
+-
+-    <property>
+-        <name>oozie.service.JPAService.jdbc.url</name>
+-        <value>jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true</value>
+-        <description>
+-            JDBC URL.
+-        </description>
+-    </property>
+-
+-    <property>
+-        <name>oozie.service.JPAService.jdbc.username</name>
+-        <value>sa</value>
+-        <description>
+-            DB user name.
+-        </description>
+-    </property>
+-
+-    <property>
+-        <name>oozie.service.JPAService.jdbc.password</name>
+-        <value> </value>
+-        <description>
+-            DB user password.
+-
+-            IMPORTANT: if password is emtpy leave a 1 space string, the service trims the value,
+-                       if empty Configuration assumes it is NULL.
+-        </description>
+-    </property>
+-
+-    <property>
+-        <name>oozie.service.JPAService.pool.max.active.conn</name>
+-        <value>10</value>
+-        <description>
+-             Max number of connections.
+-        </description>
+-    </property>
+-</configuration>
+\ No newline at end of file
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/OOZIE/metainfo.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/OOZIE/metainfo.xml
+deleted file mode 100644
+index a65b547..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/OOZIE/metainfo.xml
++++ /dev/null
+@@ -1,35 +0,0 @@
+-<?xml version="1.0"?>
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-<metainfo>
+-    <user>root</user>
+-    <comment>System for workflow coordination and execution of Apache Hadoop jobs</comment>
+-    <version>3.3.1</version>
+-
+-    <components>
+-        <component>
+-            <name>OOZIE_SERVER</name>
+-            <category>MASTER</category>
+-        </component>
+-
+-        <component>
+-            <name>OOZIE_CLIENT</name>
+-            <category>CLIENT</category>
+-        </component>
+-    </components>
+-
+-</metainfo>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/PIG/configuration/pig.properties ambari-server/src/test/resources/stacks/HDP/2.0.1/services/PIG/configuration/pig.properties
+deleted file mode 100644
+index 01000b5..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/PIG/configuration/pig.properties
++++ /dev/null
+@@ -1,52 +0,0 @@
+-# Licensed to the Apache Software Foundation (ASF) under one
+-# or more contributor license agreements.  See the NOTICE file
+-# distributed with this work for additional information
+-# regarding copyright ownership.  The ASF licenses this file
+-# to you under the Apache License, Version 2.0 (the
+-# "License"); you may not use this file except in compliance
+-# with the License.  You may obtain a copy of the License at
+-#
+-#      http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-
+-# Pig default configuration file. All values can be overwritten by pig.properties and command line arguments.
+-# see bin/pig -help
+-
+-# brief logging (no timestamps)
+-brief=false
+-
+-#debug level, INFO is default
+-debug=INFO
+-
+-#verbose print all log messages to screen (default to print only INFO and above to screen)
+-verbose=false
+-
+-#exectype local|mapreduce, mapreduce is default
+-exectype=mapreduce
+-
+-#Enable insertion of information about script into hadoop job conf 
+-pig.script.info.enabled=true
+-
+-#Do not spill temp files smaller than this size (bytes)
+-pig.spill.size.threshold=5000000
+-#EXPERIMENT: Activate garbage collection when spilling a file bigger than this size (bytes)
+-#This should help reduce the number of files being spilled.
+-pig.spill.gc.activation.size=40000000
+-
+-#the following two parameters are to help estimate the reducer number
+-pig.exec.reducers.bytes.per.reducer=1000000000
+-pig.exec.reducers.max=999
+-
+-#Temporary location to store the intermediate data.
+-pig.temp.dir=/tmp/
+-
+-#Threshold for merging FRJoin fragment files
+-pig.files.concatenation.threshold=100
+-pig.optimistic.files.concatenation=false;
+-
+-pig.disable.counter=false
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/PIG/metainfo.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/PIG/metainfo.xml
+deleted file mode 100644
+index 731d7b0..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/PIG/metainfo.xml
++++ /dev/null
+@@ -1,30 +0,0 @@
+-<?xml version="1.0"?>
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-<metainfo>
+-    <user>root</user>
+-    <comment>Scripting platform for analyzing large datasets</comment>
+-    <version>0.10.1.22-1</version>
+-
+-    <components>
+-        <component>
+-            <name>PIG</name>
+-            <category>CLIENT</category>
+-        </component>
+-    </components>
+-
+-</metainfo>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/TEZ/metainfo.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/TEZ/metainfo.xml
+deleted file mode 100644
+index 30aa43e..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/TEZ/metainfo.xml
++++ /dev/null
+@@ -1,30 +0,0 @@
+-<?xml version="1.0"?>
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-<metainfo>
+-    <user>root</user>
+-    <comment>Tez is the next generation Hadoop Query Processing framework written on top of YARN</comment>
+-    <version>0.1.0.22-1</version>
+-
+-    <components>
+-        <component>
+-            <name>TEZ_CLIENT</name>
+-            <category>CLIENT</category>
+-        </component>
+-    </components>
+-
+-</metainfo>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/WEBHCAT/configuration/webhcat-site.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/WEBHCAT/configuration/webhcat-site.xml
+deleted file mode 100644
+index 31d0113..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/WEBHCAT/configuration/webhcat-site.xml
++++ /dev/null
+@@ -1,126 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<!-- 
+-Licensed to the Apache Software Foundation (ASF) under one
+-or more contributor license agreements.  See the NOTICE file
+-distributed with this work for additional information
+-regarding copyright ownership.  The ASF licenses this file
+-to you under the Apache License, Version 2.0 (the
+-"License"); you may not use this file except in compliance
+-with the License.  You may obtain a copy of the License at
+-
+-http://www.apache.org/licenses/LICENSE-2.0
+-
+-Unless required by applicable law or agreed to in writing, software
+-distributed under the License is distributed on an "AS IS" BASIS,
+-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-See the License for the specific language governing permissions and
+-limitations under the License.
+--->
+-
+-<!-- The default settings for Templeton. -->
+-<!-- Edit templeton-site.xml to change settings for your local -->
+-<!-- install. -->
+-
+-<configuration>
+-
+-  <property>
+-    <name>templeton.port</name>
+-      <value>50111</value>
+-    <description>The HTTP port for the main server.</description>
+-  </property>
+-
+-  <property>
+-    <name>templeton.hadoop.conf.dir</name>
+-    <value>/etc/hadoop/conf</value>
+-    <description>The path to the Hadoop configuration.</description>
+-  </property>
+-
+-  <property>
+-    <name>templeton.jar</name>
+-    <value>/usr/lib/hcatalog/share/webhcat/svr/webhcat.jar</value>
+-    <description>The path to the Templeton jar file.</description>
+-  </property>
+-
+-  <property>
+-    <name>templeton.libjars</name>
+-    <value>/usr/lib/zookeeper/zookeeper.jar</value>
+-    <description>Jars to add the the classpath.</description>
+-  </property>
+-
+-
+-  <property>
+-    <name>templeton.hadoop</name>
+-    <value>/usr/bin/hadoop</value>
+-    <description>The path to the Hadoop executable.</description>
+-  </property>
+-
+-  <property>
+-    <name>templeton.pig.archive</name>
+-    <value>hdfs:///apps/webhcat/pig.tar.gz</value>
+-    <description>The path to the Pig archive.</description>
+-  </property>
+-
+-  <property>
+-    <name>templeton.pig.path</name>
+-    <value>pig.tar.gz/pig/bin/pig</value>
+-    <description>The path to the Pig executable.</description>
+-  </property>
+-
+-  <property>
+-    <name>templeton.hcat</name>
+-    <value>/usr/bin/hcat</value>
+-    <description>The path to the hcatalog executable.</description>
+-  </property>
+-
+-  <property>
+-    <name>templeton.hive.archive</name>
+-    <value>hdfs:///apps/webhcat/hive.tar.gz</value>
+-    <description>The path to the Hive archive.</description>
+-  </property>
+-
+-  <property>
+-    <name>templeton.hive.path</name>
+-    <value>hive.tar.gz/hive/bin/hive</value>
+-    <description>The path to the Hive executable.</description>
+-  </property>
+-
+-  <property>
+-    <name>templeton.hive.properties</name>
+-    <value></value>
+-    <description>Properties to set when running hive.</description>
+-  </property>
+-
+-
+-  <property>
+-    <name>templeton.zookeeper.hosts</name>
+-    <value></value>
+-    <description>ZooKeeper servers, as comma separated host:port pairs</description>
+-  </property>
+-
+-  <property>
+-    <name>templeton.storage.class</name>
+-    <value>org.apache.hcatalog.templeton.tool.ZooKeeperStorage</value>
+-    <description>The class to use as storage</description>
+-  </property>
+-
+-  <property>
+-   <name>templeton.override.enabled</name>
+-   <value>false</value>
+-   <description>
+-     Enable the override path in templeton.override.jars
+-   </description>
+- </property>
+-
+- <property>
+-    <name>templeton.streaming.jar</name>
+-    <value>hdfs:///apps/webhcat/hadoop-streaming.jar</value>
+-    <description>The hdfs path to the Hadoop streaming jar file.</description>
+-  </property> 
+-
+-  <property>
+-    <name>templeton.exec.timeout</name>
+-    <value>60000</value>
+-    <description>Time out for templeton api</description>
+-  </property>
+-
+-</configuration>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/WEBHCAT/metainfo.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/WEBHCAT/metainfo.xml
+deleted file mode 100644
+index e65992f..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/WEBHCAT/metainfo.xml
++++ /dev/null
+@@ -1,31 +0,0 @@
+-<?xml version="1.0"?>
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-<metainfo>
+-    <user>root</user>
+-    <comment>This is comment for WEBHCAT service</comment>
+-    <version>0.5.0</version>
+-
+-    <components>
+-        <component>
+-            <name>WEBHCAT_SERVER</name>
+-            <category>MASTER</category>
+-        </component>
+-    </components>
+-
+-
+-</metainfo>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/YARN/configuration/capacity-scheduler.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/YARN/configuration/capacity-scheduler.xml
+deleted file mode 100644
+index 3f78292..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/YARN/configuration/capacity-scheduler.xml
++++ /dev/null
+@@ -1,120 +0,0 @@
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-
+-<configuration>
+-
+-  <property>
+-    <name>yarn.scheduler.capacity.maximum-applications</name>
+-    <value>10000</value>
+-    <description>
+-      Maximum number of applications that can be pending and running.
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>yarn.scheduler.capacity.maximum-am-resource-percent</name>
+-    <value>0.1</value>
+-    <description>
+-      Maximum percent of resources in the cluster which can be used to run 
+-      application masters i.e. controls number of concurrent running
+-      applications.
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>yarn.scheduler.capacity.root.queues</name>
+-    <value>default</value>
+-    <description>
+-      The queues at the this level (root is the root queue).
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>yarn.scheduler.capacity.root.capacity</name>
+-    <value>100</value>
+-    <description>
+-      The total capacity as a percentage out of 100 for this queue.
+-      If it has child queues then this includes their capacity as well.
+-      The child queues capacity should add up to their parent queue's capacity
+-      or less.
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>yarn.scheduler.capacity.root.default.capacity</name>
+-    <value>100</value>
+-    <description>Default queue target capacity.</description>
+-  </property>
+-
+-  <property>
+-    <name>yarn.scheduler.capacity.root.default.user-limit-factor</name>
+-    <value>1</value>
+-    <description>
+-      Default queue user limit a percentage from 0.0 to 1.0.
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>yarn.scheduler.capacity.root.default.maximum-capacity</name>
+-    <value>100</value>
+-    <description>
+-      The maximum capacity of the default queue. 
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>yarn.scheduler.capacity.root.default.state</name>
+-    <value>RUNNING</value>
+-    <description>
+-      The state of the default queue. State can be one of RUNNING or STOPPED.
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>yarn.scheduler.capacity.root.default.acl_submit_jobs</name>
+-    <value>*</value>
+-    <description>
+-      The ACL of who can submit jobs to the default queue.
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>yarn.scheduler.capacity.root.default.acl_administer_jobs</name>
+-    <value>*</value>
+-    <description>
+-      The ACL of who can administer jobs on the default queue.
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>yarn.scheduler.capacity.root.acl_administer_queues</name>
+-    <value>*</value>
+-    <description>
+-      The ACL for who can administer this queue i.e. change sub-queue 
+-      allocations.
+-    </description>
+-  </property>
+-  
+-  <property>
+-    <name>yarn.scheduler.capacity.root.unfunded.capacity</name>
+-    <value>50</value>
+-    <description>
+-      No description
+-    </description>
+-  </property>
+-
+-</configuration>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/YARN/configuration/container-executor.cfg ambari-server/src/test/resources/stacks/HDP/2.0.1/services/YARN/configuration/container-executor.cfg
+deleted file mode 100644
+index 502ddaa..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/YARN/configuration/container-executor.cfg
++++ /dev/null
+@@ -1,20 +0,0 @@
+-#
+-# Licensed to the Apache Software Foundation (ASF) under one or more
+-# contributor license agreements.  See the NOTICE file distributed with
+-# this work for additional information regarding copyright ownership.
+-# The ASF licenses this file to You under the Apache License, Version 2.0
+-# (the "License"); you may not use this file except in compliance with
+-# the License.  You may obtain a copy of the License at
+-#
+-#     http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-#
+-yarn.nodemanager.local-dirs=TODO-YARN-LOCAL-DIR
+-yarn.nodemanager.linux-container-executor.group=hadoop
+-yarn.nodemanager.log-dirs=TODO-YARN-LOG-DIR
+-banned.users=hfds,bin,0
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/YARN/configuration/core-site.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/YARN/configuration/core-site.xml
+deleted file mode 100644
+index 3a2af49..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/YARN/configuration/core-site.xml
++++ /dev/null
+@@ -1,20 +0,0 @@
+-<?xml version="1.0"?>
+-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-<configuration>
+-</configuration>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/YARN/configuration/yarn-site.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/YARN/configuration/yarn-site.xml
+deleted file mode 100644
+index e6c02bd..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/YARN/configuration/yarn-site.xml
++++ /dev/null
+@@ -1,172 +0,0 @@
+-<?xml version="1.0"?>
+-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-
+-<!-- Put site-specific property overrides in this file. -->
+-
+-<configuration xmlns:xi="http://www.w3.org/2001/XInclude">
+-
+-<!-- ResourceManager -->
+-
+-  <property>
+-    <name>yarn.resourcemanager.resource-tracker.address</name>
+-    <value>TODO-RMNODE-HOSTNAME:8025</value>
+-  </property>
+-
+-  <property>
+-    <name>yarn.resourcemanager.scheduler.address</name>
+-    <value>TODO-RMNODE-HOSTNAME:8030</value>
+-  </property>
+-  
+-  <property>
+-    <name>yarn.resourcemanager.address</name>
+-    <value>TODO-RMNODE-HOSTNAME:8050</value>
+-  </property>
+-
+-	<property>
+-    <name>yarn.resourcemanager.admin.address</name>
+-    <value>TODO-RMNODE-HOSTNAME:8141</value>
+-	</property>
+-
+-  <property>
+-   <name>yarn.resourcemanager.scheduler.class</name>
+-   <value>org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler</value>
+-  </property>
+-
+-  <property>
+-    <name>yarn.scheduler.minimum-allocation-mb</name>
+-    <value>1024</value>
+-  </property>
+-
+-  <property>
+-    <name>yarn.scheduler.maximum-allocation-mb</name>
+-    <value>8192</value>
+-  </property>
+-
+-<!-- NodeManager -->
+-
+-  <property>
+-    <name>yarn.nodemanager.address</name>
+-    <value>0.0.0.0:45454</value>
+-  </property>
+-
+-  <property>
+-    <name>yarn.nodemanager.local-dirs</name>
+-    <value>TODO-YARN-LOCAL-DIR</value>
+-  </property>
+-
+-  <property>
+-    <name>yarn.nodemanager.resource.memory-mb</name>
+-    <value>8192</value>
+-    <description>Amount of physical memory, in MB, that can be allocated
+-      for containers.</description>
+-  </property>
+-
+-  <property>
+-    <name>yarn.application.classpath</name>
+-    <value>/etc/hadoop/conf,/usr/lib/hadoop/*,/usr/lib/hadoop/lib/*,/usr/lib/hadoop-hdfs/*,/usr/lib/hadoop-hdfs/lib/*,/usr/lib/hadoop-yarn/*,/usr/lib/hadoop-yarn/lib/*,/usr/lib/hadoop-mapreduce/*,/usr/lib/hadoop-mapreduce/lib/*</value>
+-  <description>Classpath for typical applications.</description>
+-  </property>
+-
+-  <property>
+-    <name>yarn.nodemanager.vmem-pmem-ratio</name>
+-    <value>2.1</value>
+-    <description>Ratio between virtual memory to physical memory when
+-    setting memory limits for containers. Container allocations are
+-    expressed in terms of physical memory, and virtual memory usage
+-    is allowed to exceed this allocation by this ratio.
+-    </description>
+-  </property>
+-  
+-  <property>
+-    <name>yarn.nodemanager.container-executor.class</name>
+-    <value>org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor</value>
+-    <description>ContainerExecutor for launching containers</description>
+-  </property>
+- 
+-  <property>
+-    <name>yarn.nodemanager.aux-services</name>
+-    <value>mapreduce.shuffle</value>
+-    <description>Auxilliary services of NodeManager</description>
+-  </property>
+-
+-  <property>
+-    <name>yarn.nodemanager.aux-services.class</name>
+-    <value>org.apache.hadoop.mapred.ShuffleHandler</value>
+-  </property>
+-
+-  <property>
+-    <name>yarn.nodemanager.log-dirs</name>
+-    <value>TODO-YARN-LOG-DIR</value>
+-  </property>
+-
+-  <property>
+-    <name>yarn.nodemanager.container-monitor.interval-ms</name>
+-    <value>3000</value>
+-    <description>The interval, in milliseconds, for which the node manager
+-    waits  between two cycles of monitoring its containers' memory usage. 
+-    </description>
+-  </property>
+-
+-  <property>
+-    <name>yarn.nodemanager.health-checker.script.path</name>
+-    <value>/etc/hadoop/conf/health_check</value>
+-  </property>
+-
+-  <property>
+-    <name>yarn.nodemanager.health-checker.interval-ms</name>
+-    <value>135000</value>
+-  </property>
+-
+-  <property>
+-    <name>yarn.nodemanager.health-checker.script.timeout-ms</name>
+-    <value>60000</value>
+-  </property>
+-
+-  <property>
+-    <name>yarn.nodemanager.log.retain-second</name>
+-    <value>604800</value>
+-  </property>
+-
+-  <property>
+-    <name>yarn.log-aggregation-enable</name>
+-    <value>true</value>
+-  </property>
+-
+-  <property>
+-    <name>yarn.nodemanager.remote-app-log-dir</name>
+-    <value>/app-logs</value>
+-  </property>
+-
+-  <property>
+-    <name>yarn.nodemanager.remote-app-log-dir-suffix</name>
+-    <value>logs</value>
+-  </property>
+-
+-  <property>
+-    <name>yarn.nodemanager.log-aggregation.compression-type</name>
+-    <value>gz</value> 
+-  </property>
+-
+-  <property>
+-    <name>yarn.nodemanager.delete.debug-delay-sec</name>
+-    <value>36000</value>
+-  </property>
+-
+-
+-</configuration>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/YARN/metainfo.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/YARN/metainfo.xml
+deleted file mode 100644
+index 743c40d..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/YARN/metainfo.xml
++++ /dev/null
+@@ -1,36 +0,0 @@
+-<?xml version="1.0"?>
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-<metainfo>
+-    <user>mapred</user>
+-    <comment>Apache Hadoop NextGen MapReduce (YARN)</comment>
+-    <version>2.0.3.22-1</version>
+-    <components>
+-        <component>
+-            <name>RESOURCEMANAGER</name>
+-            <category>MASTER</category>
+-        </component>
+-        <component>
+-            <name>NODEMANAGER</name>
+-            <category>SLAVE</category>
+-        </component>
+-       <component>
+-            <name>YARN_CLIENT</name>
+-            <category>CLIENT</category>
+-        </component>
+-    </components>
+-</metainfo>
+diff --git ambari-server/src/test/resources/stacks/HDP/2.0.1/services/ZOOKEEPER/metainfo.xml ambari-server/src/test/resources/stacks/HDP/2.0.1/services/ZOOKEEPER/metainfo.xml
+deleted file mode 100644
+index e72fd2a..0000000
+--- ambari-server/src/test/resources/stacks/HDP/2.0.1/services/ZOOKEEPER/metainfo.xml
++++ /dev/null
+@@ -1,35 +0,0 @@
+-<?xml version="1.0"?>
+-<!--
+-   Licensed to the Apache Software Foundation (ASF) under one or more
+-   contributor license agreements.  See the NOTICE file distributed with
+-   this work for additional information regarding copyright ownership.
+-   The ASF licenses this file to You under the Apache License, Version 2.0
+-   (the "License"); you may not use this file except in compliance with
+-   the License.  You may obtain a copy of the License at
+-
+-       http://www.apache.org/licenses/LICENSE-2.0
+-
+-   Unless required by applicable law or agreed to in writing, software
+-   distributed under the License is distributed on an "AS IS" BASIS,
+-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-   See the License for the specific language governing permissions and
+-   limitations under the License.
+--->
+-<metainfo>
+-    <user>root</user>
+-    <comment>Centralized service which provides highly reliable distributed coordination</comment>
+-    <version>3.4.5.22-1</version>
+-
+-    <components>
+-        <component>
+-            <name>ZOOKEEPER_SERVER</name>
+-            <category>MASTER</category>
+-        </component>
+-
+-        <component>
+-            <name>ZOOKEEPER_CLIENT</name>
+-            <category>CLIENT</category>
+-        </component>
+-    </components>
+-
+-</metainfo>
+diff --git ambari-web/pom.xml ambari-web/pom.xml
+index 10f8f43..a72596f 100644
+--- ambari-web/pom.xml
++++ ambari-web/pom.xml
+@@ -31,7 +31,6 @@
+   <description>Ambari Web</description>
+   <properties>
+     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+-    <python.exec>python2</python.exec>
+   </properties>
+   <build>
+     <plugins>
+@@ -91,7 +90,7 @@
+             <configuration>
+               <target name="ambari-web-compile">
+                 <exec dir="${basedir}" executable="npm" failonerror="false">
+-                  <env key="PYTHON" value="${python.exec}" />
++                  <env key="PYTHON" value="python2.6" />
+                   <arg value="install"/>
+                 </exec>
+                 <exec dir="${basedir}" executable="brunch" failonerror="false">

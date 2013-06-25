@@ -31,7 +31,6 @@
   <description>Ambari Web</description>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <python.exec>python2</python.exec>
   </properties>
   <build>
     <plugins>
@@ -91,7 +90,7 @@
             <configuration>
               <target name="ambari-web-compile">
                 <exec dir="${basedir}" executable="npm" failonerror="false">
-                  <env key="PYTHON" value="${python.exec}" />
+                  <env key="PYTHON" value="python2.6" />
                   <arg value="install"/>
                 </exec>
                 <exec dir="${basedir}" executable="brunch" failonerror="false">
