@@ -568,7 +568,7 @@ def adjust_directory_permissions(ambari_user):
   cmd = RECURSIVE_RM_CMD.format(bootstrap_dir)
   run_os_command(cmd)
   os.mkdir(bootstrap_dir)
-  print "adjusting permissions and ownership..."
+  print "Adjusting file permissions and ownership..."
   for pack in NR_ADJUST_OWNERSHIP_LIST:
     file = pack[0]
     mod = pack[1]
@@ -599,7 +599,7 @@ def set_file_permissions(file, mod, user, group, recursive):
 
 def create_custom_user():
   user = get_validated_string_input(
-    "Please choose user name for ambari-server process: ",
+    "Please choose a user name for ambari-server daemon: ",
     "ambari",
     "^[a-z_][a-z0-9_-]{1,31}$",
     "Invalid username.",
@@ -647,7 +647,7 @@ def check_ambari_user():
     create_user = False
     update_user_setting = False
     if user is not None:
-      create_user = get_YN_input("Ambari-server process is configured to run under user {0}."
+      create_user = get_YN_input("Ambari-server daemon is configured to run under user '{0}'."
                         " Change this setting [y/n] (n)? ".format(user), False)
       update_user_setting = create_user # Only if we will create another user
     else: # user is not configured yet
