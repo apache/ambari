@@ -112,7 +112,6 @@ App.MainHostView = App.TableView.extend({
       } else {
         return this.get('view.content').filterProperty('healthClass', statusString ).get('length');
       }
-
     }.property('view.content.@each.healthClass'),
 
     label: function () {
@@ -131,12 +130,12 @@ App.MainHostView = App.TableView.extend({
     });
 
     var categories = [
-      self.categoryObject.create({value: Em.I18n.t('common.all'), healthStatusValue: '', isActive: true}),
-      self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.green'), healthStatusValue: 'health-status-LIVE'}),
-      self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.red'), healthStatusValue: 'health-status-DEAD-RED'}),
-      self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.orange'), healthStatusValue: 'health-status-DEAD-ORANGE'}),
-      self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.yellow'), healthStatusValue: 'health-status-DEAD-YELLOW'}),
-      self.categoryObject.create({value: Em.I18n.t('hosts.host.alerts.label'), healthStatusValue: 'health-status-WITH-ALERTS', last: true, alerts: true })
+      self.categoryObject.create({value: Em.I18n.t('common.all'), healthStatusValue: '', isActive: true, isVisible: false}),
+      self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.green'), healthStatusValue: 'health-status-LIVE', isVisible: true}),
+      self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.red'), healthStatusValue: 'health-status-DEAD-RED', isVisible: true}),
+      self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.orange'), healthStatusValue: 'health-status-DEAD-ORANGE', isVisible: true}),
+      self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.yellow'), healthStatusValue: 'health-status-DEAD-YELLOW', isVisible: true}),
+      self.categoryObject.create({value: Em.I18n.t('hosts.host.alerts.label'), healthStatusValue: 'health-status-WITH-ALERTS', last: true, alerts: true, isVisible: true })
     ];
 
     return categories;
@@ -170,6 +169,11 @@ App.MainHostView = App.TableView.extend({
         this.get('parentView').updateFilter(7, '', 'number');
         this.get('parentView').updateFilter(0, category.get('healthStatusValue'), 'string');
       }
+    },
+    clearFilter: function() {
+      this.get('categories').setEach('isActive', false);
+      this.set('value', '');
+      this.showClearFilter();
     }
   }),
 

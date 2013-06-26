@@ -189,6 +189,7 @@ App.TableView = Em.View.extend({
       this.get('filterConditions').push(filterCondition);
     }
     this.saveFilterConditions();
+    this.filtersUsedCalc();
     this.filter();
   },
 
@@ -256,6 +257,31 @@ App.TableView = Em.View.extend({
     } else {
       this.set('filteredContent', content.toArray());
     }
-  }.observes('content')
+  }.observes('content'),
+
+  filtersUsed: false,
+
+  filtersUsedCalc: function() {
+    var filterConditions = this.get('filterConditions');
+    if (!filterConditions.length) {
+      this.set('filtersUsed', false);
+    }
+    var filtersUsed = false;
+    filterConditions.forEach(function(filterCondition) {
+      if (filterCondition.value.toString() !== '') {
+        filtersUsed = true;
+      }
+    });
+    this.set('filtersUsed', filtersUsed);
+  },
+
+  clearFilters: function() {
+    this.set('filterConditions', []);
+    this.get('_childViews').forEach(function(childView) {
+      if (childView['clearFilter']) {
+        childView.clearFilter();
+      }
+    });
+  }
 
 });
