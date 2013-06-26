@@ -159,7 +159,8 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "HDFS",
-      "category": "NameNode"
+      "category": "NameNode",
+      "components": ["NAMENODE", "SECONDARY_NAMENODE"]
     },
     {
       "id": "puppet var",
@@ -172,7 +173,8 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "HDFS",
-      "category": "NameNode"
+      "category": "NameNode",
+      "components": ["NAMENODE", "SECONDARY_NAMENODE"]
     },
     {
       "id": "puppet var",
@@ -211,7 +213,8 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "HDFS",
-      "category": "DataNode"
+      "category": "DataNode",
+      "component": "DATANODE"
     },
     {
       "id": "puppet var",
@@ -224,7 +227,8 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "HDFS",
-      "category": "DataNode"
+      "category": "DataNode",
+      "component": "DATANODE"
     },
     //MAPREDUCE
     {
@@ -238,7 +242,8 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "MAPREDUCE",
-      "category": "JobTracker"
+      "category": "JobTracker",
+      "component": "JOBTRACKER"
     },
     {
       "id": "puppet var",
@@ -251,7 +256,8 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "MAPREDUCE",
-      "category": "JobTracker"
+      "category": "JobTracker",
+      "component": "JOBTRACKER"
     },
     {
       "id": "puppet var",
@@ -264,7 +270,8 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "MAPREDUCE",
-      "category": "TaskTracker"
+      "category": "TaskTracker",
+      "component": "TASKTRACKER"
     },
     {
       "id": "puppet var",
@@ -277,7 +284,8 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "MAPREDUCE",
-      "category": "TaskTracker"
+      "category": "TaskTracker",
+      "component": "TASKTRACKER"
     },
 
     //HBASE
@@ -292,7 +300,8 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "HBASE",
-      "category": "HBase"
+      "category": "HBase",
+      "components": ["HBASE_MASTER", "HBASE_REGIONSERVER"]
     },
     {
       "id": "puppet var",
@@ -305,7 +314,8 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "HBASE",
-      "category": "HBase"
+      "category": "HBase",
+      "components": ["HBASE_MASTER", "HBASE_REGIONSERVER"]
     },
 
     //HIVE
@@ -333,7 +343,8 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "HIVE",
-      "category": "Hive Metastore"
+      "category": "Hive Metastore",
+      "component": "HIVE_SERVER"
     },
     {
       "id": "puppet var",
@@ -346,7 +357,8 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "HIVE",
-      "category": "Hive Metastore"
+      "category": "Hive Metastore",
+      "component": "HIVE_SERVER"
 
     },
 
@@ -375,7 +387,8 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "OOZIE",
-      "category": "Oozie Server"
+      "category": "Oozie Server",
+      "component": "OOZIE_SERVER"
     },
     {
       "id": "puppet var",
@@ -388,7 +401,8 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "OOZIE",
-      "category": "Oozie Server"
+      "category": "Oozie Server",
+      "component": "OOZIE_SERVER"
     },
 
     //ZooKeeper
@@ -403,7 +417,8 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "ZOOKEEPER",
-      "category": "ZooKeeper Server"
+      "category": "ZooKeeper Server",
+      "component": "ZOOKEEPER_SERVER"
     },
     {
       "id": "puppet var",
@@ -416,7 +431,8 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "ZOOKEEPER",
-      "category": "ZooKeeper Server"
+      "category": "ZooKeeper Server",
+      "component": "ZOOKEEPER_SERVER"
     },
     //NAGIOS
     {
@@ -443,7 +459,8 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "NAGIOS",
-      "category": "Nagios Server"
+      "category": "Nagios Server",
+      "component": "NAGIOS_SERVER"
     },
     {
       "id": "puppet var",
@@ -456,7 +473,8 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "NAGIOS",
-      "category": "Nagios Server"
+      "category": "Nagios Server",
+      "component": "NAGIOS_SERVER"
     }
 
   ]

@@ -89,6 +89,7 @@ Em.I18n.translations = {
   'common.diskUsage':'Disk Usage',
   'common.loadAvg':'Load Avg',
   'common.components':'Components',
+  'common.component':'Component',
   'common.quickLinks':'Quick Links',
   'common.save':'Save',
   'common.servers':'Servers',
@@ -135,6 +136,7 @@ Em.I18n.translations = {
   'common.use': 'Use',
   'common.stacks': 'Stacks',
   'common.reset': 'Reset',
+  'common.proceed': 'Proceed',
 
   'requestInfo.installComponents':'Install Components',
   'requestInfo.installServices':'Install Services',
@@ -601,6 +603,13 @@ Em.I18n.translations = {
   'admin.security.step1.body.instruction3': 'Create Kerberos principals for Hadoop services and hosts',
   'admin.security.step1.body.instruction4': 'Generate keytabs for each principal and place on the appropriate hosts',
   'admin.security.step2.body.header': 'Configure Kerberos security properties',
+  'admin.security.step2.popup.header': 'Manual Steps Required Before Proceeding',
+  'admin.security.step2.popup.notice': 'You need to create the following principals and keytabs on the hosts shown.<br />'+
+  'You can download the list as a CSV file and use it to create a script to generate the principals and keytabs.' +
+  'Once the principals and keytabs have been created, click on <i>Proceed</i> to continue. If you need to make configuration changes, click <i>Cancel</i>.',
+  'admin.security.step2.popup.table.principal': 'Principal',
+  'admin.security.step2.popup.table.keytab': 'Keytab',
+  'admin.security.step2.popup.downloadCSV': 'Download CSV',
   'admin.security.step3.body.header': 'Applying kerberos security to the cluster',
   'admin.security.step3.body.success.header' : 'Kerberos-based security has been enabled on your cluster. Please wait while services are started in secure mode.',
   'admin.security.step3.body.failure.header' : 'Failed to enable Kerberos-based security on your cluster. Your cluster will keep running in non-secure mode.',

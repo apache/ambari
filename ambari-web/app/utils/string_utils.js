@@ -105,5 +105,23 @@ module.exports = {
 
   isSingleLine: function(string){
     return string.trim().indexOf("\n") == -1;
+  },
+  /**
+   * transform array of objects into CSV format content
+   * @param array
+   * @return {Array}
+   */
+  arrayToCSV: function(array){
+    var content = "";
+    array.forEach(function(item){
+      var row = [];
+      for(var i in item){
+        if(item.hasOwnProperty(i)){
+          row.push(item[i]);
+        }
+      }
+      content += row.join(',') + '\n';
+    });
+    return content;
   }
 }

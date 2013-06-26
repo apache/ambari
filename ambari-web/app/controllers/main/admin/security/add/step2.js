@@ -17,6 +17,8 @@
  */
 
 var App = require('app');
+var stringUtils = require('utils/string_utils');
+
 App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
 
   name: 'mainAdminSecurityAddStep2Controller',
@@ -150,13 +152,110 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     }
   },
 
+  showHostPrincipalKeytabList: function(){
+    App.ModalPopup.show({
+      self: this,
+      header: Em.I18n.t('admin.security.step2.popup.header'),
+      primary: Em.I18n.t('common.proceed'),
+      downloadCsv: Em.I18n.t('admin.security.step2.popup.downloadCSV'),
+      classNames: ['sixty-percent-width-modal'],
+      csvContent: [],
+      onDownloadCsv: function(){
+        var blob = new Blob([this.get('csvContent')], {type: "text/csv;charset=utf-8"});
+        saveAs(blob, "host-principal-keytab-list.csv");
+      },
+      onPrimary: function(){
+        this.hide();
+        App.router.send('next');
+      },
+      buildCsvContent: function(data){
+        this.set('csvContent', stringUtils.arrayToCSV(data));
+      },
+      bodyClass: Em.View.extend({
+        componentsToDisplay: ['NAMENODE', 'SECONDARY_NAMENODE', 'DATANODE', 'JOBTRACKER', 'ZOOKEEPER_SERVER', 'HIVE_SERVER', 'TASKTRACKER',
+        'OOZIE_SERVER', 'NAGIOS_SERVER', 'HBASE_MASTER', 'HBASE_REGIONSERVER'],
+        hostComponents: function(){
+          var componentsToDisplay = this.get('componentsToDisplay');
+          var configs = this.get('parentView.self.stepConfigs');
+          var hosts = App.Host.find();
+          var result = [];
+          hosts.forEach(function(host){
+            host.get('hostComponents').forEach(function(hostComponent){
+              if(componentsToDisplay.contains(hostComponent.get('componentName'))){
+                var serviceConfigs = configs.findProperty('serviceName', hostComponent.get('service.serviceName')).get('configs');
+                var principal, keytab;
+                serviceConfigs.forEach(function(config){
+                  if (config.get('component') && config.get('component') === hostComponent.get('componentName')) {
+                    if (config.get('name').substr(-15, 15) === '_principal_name') {
+                      principal = config.get('value').replace('_HOST', host.get('hostName')) + config.get('unit');
+                    } else if (config.get('name').substr(-7, 7) === '_keytab' || config.get('name').substr(-12, 12) === '_keytab_path') {
+                      keytab = config.get('value');
+                    }
+                  } else if (config.get('components') && config.get('components').contains(hostComponent.get('componentName'))) {
+                    if (config.get('name').substr(-15, 15) === '_principal_name') {
+                      principal = config.get('value').replace('_HOST', host.get('hostName')) + config.get('unit');
+                    } else if (config.get('name').substr(-7, 7) === '_keytab' || config.get('name').substr(-12, 12) === '_keytab_path') {
+                      keytab = config.get('value');
+                    }
+                  }
+                });
+
+                result.push({
+                  host: host.get('hostName'),
+                  component: hostComponent.get('displayName'),
+                  principal: principal,
+                  keytab: keytab
+                });
+              }
+            });
+          });
+          this.get('parentView').buildCsvContent(result);
+          return result;
+        }.property(),
+        template: Em.Handlebars.compile([
+          '<div class="alert alert-info">{{t admin.security.step2.popup.notice}}</div>',
+          '<div class="long-popup-list">',
+            '<table class="table table-bordered table-striped">',
+            '<thead>',
+              '<tr>',
+                '<th>{{t common.host}}</th>',
+                '<th>{{t common.component}}</th>',
+                '<th>{{t admin.security.step2.popup.table.principal}}</th>',
+                '<th>{{t admin.security.step2.popup.table.keytab}}</th>',
+              '</tr>',
+            '</thead>',
+            '<tbody>',
+            '{{#each hostComponent in view.hostComponents}}',
+              '<tr>',
+                '<td>{{hostComponent.host}}</td>',
+                '<td>{{hostComponent.component}}</td>',
+                '<td>{{hostComponent.principal}}</td>',
+                '<td>{{hostComponent.keytab}}</td>',
+              '</tr>',
+            '{{/each}}',
+            '</tbody>',
+            '</table>',
+          '</div>'
+        ].join(''))
+      }),
+      footerClass: Em.View.extend({
+        classNames: ['modal-footer'],
+        template: Em.Handlebars.compile([
+          '{{#if view.parentView.downloadCsv}}<a class="btn btn-info" {{action onDownloadCsv target="view.parentView"}}>{{view.parentView.downloadCsv}}</a>&nbsp;{{/if}}',
+          '{{#if view.parentView.secondary}}<a class="btn" {{action onSecondary target="view.parentView"}}>{{view.parentView.secondary}}</a>&nbsp;{{/if}}',
+          '{{#if view.parentView.primary}}<a class="btn btn-success" {{action onPrimary target="view.parentView"}}>{{view.parentView.primary}}</a>{{/if}}'
+        ].join(''))
+      })
+    });
+  },
+
   /**
    *  submit and move to step3
    */
 
   submit: function () {
     if (!this.get('isSubmitDisabled')) {
-      App.router.send('next');
+      this.showHostPrincipalKeytabList();
     }
   }
 
