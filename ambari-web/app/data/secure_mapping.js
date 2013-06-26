@@ -138,6 +138,20 @@ module.exports = [
     "filename": "mapred-site.xml"
   },
   {
+    "name": "mapreduce.jobhistory.kerberos.principal",
+    "templateName": ["jobtracker_principal_name", "kerberos_domain"],
+    "foreignKey": null,
+    "value": "<templateName[0]>@<templateName[1]>",
+    "filename": "mapred-site.xml"
+  },
+  {
+    "name": "mapreduce.jobhistory.keytab.file",
+    "templateName": ["jobtracker_keytab"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "mapred-site.xml"
+  },
+  {
     "name": "mapreduce.tasktracker.kerberos.principal",
     "templateName": ["tasktracker_principal_name", "kerberos_domain"],
     "foreignKey": null,
