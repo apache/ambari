@@ -92,8 +92,7 @@ module.exports = Em.Route.extend({
               this.fitHeight();
             }
           }
-        )
-        ;
+        );
 
         App.router.transitionTo('step' + currentStep);
       } else {

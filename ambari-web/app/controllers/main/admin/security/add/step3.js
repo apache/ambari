@@ -268,7 +268,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
           globalValue = uiConfig.findProperty('name', config.foreignKey[index]).value;
           config._name = config.name.replace(_fkValue, globalValue);
         } else if (this.get('globalProperties').someProperty('name', config.foreignKey[index])) {
-            globalValue = this.get('globalProperties').findProperty('name', config.foreignKey[index]).value;
+          globalValue = this.get('globalProperties').findProperty('name', config.foreignKey[index]).value;
           config._name = config.name.replace(_fkValue, globalValue);
         }
       }, this);
@@ -354,8 +354,8 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     var principalProperties = this.getPrincipalNames();
     principalProperties.forEach(function (_principalProperty) {
       var name = _principalProperty.name.replace('principal', 'primary');
-      var value =  _principalProperty.value.split('/')[0];
-      this.get('globalProperties').pushObject({name:name,value:value});
+      var value = _principalProperty.value.split('/')[0];
+      this.get('globalProperties').pushObject({name: name, value: value});
     }, this);
   },
 
@@ -510,9 +510,9 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     this.get('serviceConfigTags').forEach(function (_serviceConfigTags) {
       _serviceConfigTags.newTagName = 'version' + (new Date).getTime();
       if (_serviceConfigTags.siteName === 'global') {
-        var nagiosPrincipalName = this.get('globalProperties').findProperty('name','nagios_principal_name');
-        var zkPrincipalName = this.get('globalProperties').findProperty('name','zookeeper_principal_name');
-        var realmName = this.get('globalProperties').findProperty('name','kerberos_domain');
+        var nagiosPrincipalName = this.get('globalProperties').findProperty('name', 'nagios_principal_name');
+        var zkPrincipalName = this.get('globalProperties').findProperty('name', 'zookeeper_principal_name');
+        var realmName = this.get('globalProperties').findProperty('name', 'kerberos_domain');
         nagiosPrincipalName.value = nagiosPrincipalName.value + '@' + realmName.value;
         zkPrincipalName.value = zkPrincipalName.value + '@' + realmName.value;
         this.get('globalProperties').forEach(function (_globalProperty) {
@@ -546,5 +546,11 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       stages.pushObject(stage);
     }, this);
     App.db.setSecurityDeployStages(stages);
+    App.clusterStatus.setClusterStatus({
+      clusterName: this.get('clusterName'),
+      clusterState: 'ADD_SECURITY_STEP_3',
+      wizardControllerName: App.router.get('addSecurityController.name'),
+      localdb: App.db.data
+    });
   }.observes('stages.@each.requestId', 'stages.@each.isStarted', 'stages.@each.isCompleted')
 });

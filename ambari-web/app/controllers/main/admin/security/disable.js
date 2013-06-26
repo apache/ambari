@@ -371,6 +371,12 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
       stages.pushObject(stage);
     }, this);
     App.db.setSecurityDeployStages(stages);
+    App.clusterStatus.setClusterStatus({
+      clusterName: this.get('clusterName'),
+      clusterState: 'DISABLE_SECURITY',
+      wizardControllerName: this.get('name'),
+      localdb: App.db.data
+    });
   }.observes('stages.@each.requestId', 'stages.@each.isStarted', 'stages.@each.isCompleted')
 
 });
