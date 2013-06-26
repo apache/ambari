@@ -365,11 +365,12 @@ App.MainDashboardView = Em.View.extend({
       var oldValue = this.get('currentPrefObject');
       oldValue.dashboardVersion = 'new';
       this.postUserPref(this.get('persistKey'), oldValue);
+      this.didInsertElement();
     }else{
       var oldValue = this.get('initPrefObject');
       oldValue.dashboardVersion = 'new';
+      this.translateToReal(oldValue);
     }
-    this.translateToReal(oldValue);
   },
 
   updateServices: function(){
