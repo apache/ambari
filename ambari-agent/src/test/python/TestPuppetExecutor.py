@@ -162,7 +162,8 @@ class TestPuppetExecutor(TestCase):
     self.assertEquals(result_check, True, "Failed to condence output log")
     self.assertEquals(len(result.splitlines(True)), 2, "Failed to condence output log")
 
-  def test_watchdog_1(self):
+  @patch("shell.kill_process_with_children")
+  def test_watchdog_1(self, kill_process_with_children_mock):
     """
     Tests whether watchdog works
     """
@@ -176,6 +177,7 @@ class TestPuppetExecutor(TestCase):
     result = {  }
     puppetEnv = { "RUBYLIB" : ""}
     executor_mock.PUPPET_TIMEOUT_SECONDS = 0.1
+    kill_process_with_children_mock.side_effect = lambda pid : subproc_mock.terminate()
     subproc_mock.returncode = None
     thread = Thread(target =  executor_mock.runPuppetFile, args = ("fake_puppetFile", result, puppetEnv, tmpoutfile, tmperrfile))
     thread.start()

@@ -28,6 +28,7 @@ import threading
 import time
 import traceback
 import AmbariConfig
+import pprint
 
 try:
     import pwd
@@ -39,7 +40,7 @@ serverTracker = {}
 logger = logging.getLogger()
 
 threadLocal = threading.local()
-
+gracefull_kill_delay = 5 # seconds between SIGTERM and SIGKILL
 tempFiles = [] 
 def noteTempFile(filename):
   tempFiles.append(filename)
@@ -54,21 +55,43 @@ def killstaleprocesses():
   for file in files:
     if str(file).endswith(".pid"):
       pid = str(file).split('.')[0]
-      killprocessgrp(int(pid))
+      kill_process_with_children(int(pid))
       os.unlink(os.path.join(prefix,file))
   logger.info ("Killed stale processes")
 
+
 def killprocessgrp(pid):
+  run_kill_function(os.killpg, pid)
+
+def kill_process_with_children(parent_pid):
+  def kill_tree_function(pid, signal):
+    '''
+    Kills process tree starting from a given pid.
+    '''
+    # The command below starts 'ps' linux utility and then parses it's
+    # output using 'awk'. AWK recursively extracts PIDs of all children of
+    # a given PID and then passes list of "kill -<SIGNAL> PID" commands to 'sh'
+    # shell.
+    CMD = """ps xf | awk -v PID=""" + str(pid) + \
+        """ ' $1 == PID { P = $1; next } P && /_/ { P = P " " $1;""" + \
+        """K=P } P && !/_/ { P="" }  END { print "kill -""" \
+        + str(signal) + """ "K }' | sh """
+    process = subprocess.Popen(CMD, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, shell=True)
+    process.communicate()
+  run_kill_function(kill_tree_function, parent_pid)
+
+def run_kill_function(kill_function, pid):
   try:
-    os.killpg(pid, signal.SIGTERM)
+    kill_function(pid, signal.SIGTERM)
   except Exception, e:
     logger.warn("Failed to kill PID %d" % (pid))
     logger.warn("Reported error: " + repr(e))
 
-  time.sleep(5)
+  time.sleep(gracefull_kill_delay)
 
   try:
-    os.killpg(pid, signal.SIGKILL)
+    kill_function(pid, signal.SIGKILL)
   except Exception, e:
     logger.error("Failed to send SIGKILL to PID %d. Process exited?" % (pid))
     logger.error("Reported error: " + repr(e))

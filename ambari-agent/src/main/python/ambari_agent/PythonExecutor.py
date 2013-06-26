@@ -104,9 +104,6 @@ class PythonExecutor:
     self.event.wait(self.PYTHON_TIMEOUT_SECONDS)
     if python.returncode is None:
       logger.error("Subprocess timed out and will be killed")
-      self.runShellKillPgrp(python)
+      shell.kill_process_with_children(python.pid)
       self.python_process_has_been_killed = True
     pass
-
-  def runShellKillPgrp(self, python):
-    shell.killprocessgrp(python.pid)

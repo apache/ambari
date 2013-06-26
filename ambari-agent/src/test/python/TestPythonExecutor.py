@@ -28,13 +28,13 @@ from threading import Thread
 
 from PythonExecutor import PythonExecutor
 from AmbariConfig import AmbariConfig
-from mock.mock import MagicMock
+from mock.mock import MagicMock, patch
 
 
 class TestPythonExecutor(TestCase):
 
-
-  def test_watchdog_1(self):
+  @patch("shell.kill_process_with_children")
+  def test_watchdog_1(self, kill_process_with_children_mock):
     """
     Tests whether watchdog works
     """
@@ -43,6 +43,7 @@ class TestPythonExecutor(TestCase):
     _, tmpoutfile = tempfile.mkstemp()
     _, tmperrfile = tempfile.mkstemp()
     executor.PYTHON_TIMEOUT_SECONDS = 0.1
+    kill_process_with_children_mock.side_effect = lambda pid : subproc_mock.terminate()
 
     def lauch_python_subprocess_method(command, tmpout, tmperr):
       subproc_mock.tmpout = tmpout
