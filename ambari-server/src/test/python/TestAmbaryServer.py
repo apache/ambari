@@ -976,7 +976,8 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "get_YN_input")  
   @patch("__builtin__.open")
   @patch("ambari-server.Properties")
-  def test_setup_https(self, Properties_mock, open_Mock, get_YN_input_mock,\
+  @patch.object(ambari_server, "is_root")
+  def test_setup_https(self, is_root_mock, Properties_mock, open_Mock, get_YN_input_mock,\
                        import_cert_and_key_action_mock,
                        is_server_runing_mock, get_ambari_properties_mock,\
                        find_properties_file_mock,\
@@ -984,6 +985,20 @@ class TestAmbariServer(TestCase):
     args = MagicMock()
     open_Mock.return_value = file
     p = get_ambari_properties_mock.return_value
+
+    # Testing call under non-root
+    is_root_mock.return_value = False
+    try:
+      ambari_server.setup_https(args)
+      self.fail("Should throw exception")
+    except FatalException as fe:
+      # Expected
+      self.assertTrue("root-level" in fe.reason)
+      pass
+
+    # Testing call under root
+    is_root_mock.return_value = True
+
     #Case #1: if client ssl is on and user didnt choose 
     #disable ssl option and choose import certs and keys
     p.get_property.side_effect = ["key_dir","5555","6666", "true"]
@@ -2816,7 +2831,8 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, 'get_YN_input')
   @patch.object(ambari_server, 'search_file')
   @patch.object(ambari_server, 'get_ambari_properties')
-  def test_reset_master_key_persisted(self, get_ambari_properties_method,
+  @patch.object(ambari_server, 'is_root')
+  def test_reset_master_key_persisted(self, is_root_method, get_ambari_properties_method,
               search_file_message, get_YN_input_method,
               get_validated_string_input_method, save_master_key_method,
               update_properties_method, get_master_key_ispersisted_method,
@@ -2825,6 +2841,20 @@ class TestAmbariServer(TestCase):
 
     out = StringIO.StringIO()
     sys.stdout = out
+
+    # Testing call under non-root
+    is_root_method.return_value = False
+    try:
+      ambari_server.reset_master_key()
+      self.fail("Should throw exception")
+    except FatalException as fe:
+      # Expected
+      self.assertTrue("root-level" in fe.reason)
+      pass
+
+    # Testing call under root
+    is_root_method.return_value = True
+
     search_file_message.return_value = "filepath"
     configs = { ambari_server.SECURITY_MASTER_KEY_LOCATION : "filepath",
                 ambari_server.SECURITY_KEYS_DIR : tempfile.gettempdir(),
@@ -2862,7 +2892,8 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, 'get_YN_input')
   @patch.object(ambari_server, 'search_file')
   @patch.object(ambari_server, 'get_ambari_properties')
-  def test_reset_master_key_not_persisted(self, get_ambari_properties_method,
+  @patch.object(ambari_server, 'is_root')
+  def test_reset_master_key_not_persisted(self, is_root_method, get_ambari_properties_method,
               search_file_message, get_YN_input_method,
               get_validated_string_input_method, save_master_key_method,
               update_properties_method, get_master_key_ispersisted_method,
@@ -2871,6 +2902,7 @@ class TestAmbariServer(TestCase):
 
     out = StringIO.StringIO()
     sys.stdout = out
+    is_root_method.return_value = True
     search_file_message.return_value = "filepath"
     configs = { ambari_server.SECURITY_MASTER_KEY_LOCATION : "filepath",
                 ambari_server.SECURITY_KEYS_DIR : tempfile.gettempdir(),
@@ -2905,13 +2937,28 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, 'setup_master_key')
   @patch.object(ambari_server, 'search_file')
   @patch.object(ambari_server, 'get_ambari_properties')
-  def test_setup_ldap(self, get_ambari_properties_method,
+  @patch.object(ambari_server, 'is_root')
+  def test_setup_ldap(self, is_root_method, get_ambari_properties_method,
                 search_file_message, setup_master_key_method,
                 get_validated_string_input_method,
                 configure_ldap_password_method, update_properties_method,
                 get_YN_input_method, save_passwd_for_alias_method):
     out = StringIO.StringIO()
     sys.stdout = out
+
+    # Testing call under non-root
+    is_root_method.return_value = False
+    try:
+      ambari_server.setup_ldap()
+      self.fail("Should throw exception")
+    except FatalException as fe:
+      # Expected
+      self.assertTrue("root-level" in fe.reason)
+      pass
+
+    # Testing call under root
+    is_root_method.return_value = True
+
     search_file_message.return_value = "filepath"
 
     configs = { ambari_server.SECURITY_MASTER_KEY_LOCATION : "filepath",

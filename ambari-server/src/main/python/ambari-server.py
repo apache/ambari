@@ -380,6 +380,7 @@ NR_ADJUST_OWNERSHIP_LIST =[
   ( "/var/run/ambari-server", "644", "{0}", "{0}" , True),
   ( "/var/run/ambari-server", "755", "{0}", "{0}" , False),
   ( "/var/run/ambari-server/bootstrap", "755", "{0}", "{0}", False ),
+  ( "/var/lib/ambari-server/ambari-env.sh", "700", "{0}", "{0}", False ),
   ( "/var/lib/ambari-server/keys", "600", "{0}", "{0}", True ),
   ( "/var/lib/ambari-server/keys", "700", "{0}", "{0}", False ),
   ( "/var/lib/ambari-server/keys/db", "700", "{0}", "{0}", False ),
@@ -646,7 +647,7 @@ def check_ambari_user():
     create_user = False
     update_user_setting = False
     if user is not None:
-      create_user = get_YN_input("Ambari-server process is configured run under user {0}."
+      create_user = get_YN_input("Ambari-server process is configured to run under user {0}."
                         " Change this setting [y/n] (n)? ".format(user), False)
       update_user_setting = create_user # Only if we will create another user
     else: # user is not configured yet
@@ -2277,6 +2278,11 @@ def get_prompt_default(defaultStr=None):
     return '(' + defaultStr + ')'
 
 def setup_ldap():
+  if not is_root():
+    err = 'Ambari-server setup-ldap should be run with ' \
+          'root-level privileges'
+    raise FatalException(4, err)
+
   properties = get_ambari_properties()
 
   # Setup secure key
@@ -2368,7 +2374,12 @@ def setup_ldap():
 
 
 def reset_master_key():
+  if not is_root():
+    err = 'Ambari-server resetmasterkey should be run with ' \
+          'root-level privileges'
+    raise FatalException(4, err)
   setup_master_key(resetKey=True)
+
 
 def setup_master_key(resetKey=False):
   properties = get_ambari_properties()
@@ -2619,6 +2630,10 @@ def update_properties(propertyMap):
   return 0
 
 def setup_https(args):
+  if not is_root():
+    err = 'Ambari-server setup-https should be run with ' \
+          'root-level privileges'
+    raise FatalException(4, err)
   if not SILENT:
     properties = get_ambari_properties()
     try:
