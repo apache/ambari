@@ -112,7 +112,7 @@ App.MainHostView = App.TableView.extend({
       } else {
         return this.get('view.content').filterProperty('healthClass', statusString ).get('length');
       }
-    }.property('view.content.@each.healthClass'),
+    }.property('view.content.@each.healthClass', 'view.content.@each.criticalAlertsCount'),
 
     label: function () {
       return "%@ (%@)".fmt(this.get('value'), this.get('hostsCount'));
