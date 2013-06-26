@@ -2805,7 +2805,7 @@ class TestAmbariServer(TestCase):
     sys.stdout = sys.__stdout__
 
 
-
+  @patch.object(ambari_server, 'save_passwd_for_alias')
   @patch.object(ambari_server, 'configure_ldap_password')
   @patch.object(ambari_server, 'configure_database_password')
   @patch.object(ambari_server, 'is_alias_string')
@@ -2821,7 +2821,7 @@ class TestAmbariServer(TestCase):
               get_validated_string_input_method, save_master_key_method,
               update_properties_method, get_master_key_ispersisted_method,
               is_alias_string_method, configure_database_password_method,
-              configure_ldap_password_method):
+              configure_ldap_password_method, save_passwd_for_alias_method):
 
     out = StringIO.StringIO()
     sys.stdout = out
@@ -2846,11 +2846,12 @@ class TestAmbariServer(TestCase):
     self.assertTrue(update_properties_method.called)
     self.assertTrue(configure_database_password_method.called)
     self.assertTrue(configure_ldap_password_method.called)
+    self.assertTrue(save_passwd_for_alias_method.called)
 
     sys.stdout = sys.__stdout__
 
 
-
+  @patch.object(ambari_server, 'save_passwd_for_alias')
   @patch.object(ambari_server, 'configure_ldap_password')
   @patch.object(ambari_server, 'configure_database_password')
   @patch.object(ambari_server, 'is_alias_string')
@@ -2866,7 +2867,7 @@ class TestAmbariServer(TestCase):
               get_validated_string_input_method, save_master_key_method,
               update_properties_method, get_master_key_ispersisted_method,
               is_alias_string_method, configure_database_password_method,
-              configure_ldap_password_method):
+              configure_ldap_password_method, save_passwd_for_alias_method):
 
     out = StringIO.StringIO()
     sys.stdout = out
@@ -2891,6 +2892,7 @@ class TestAmbariServer(TestCase):
     self.assertTrue(update_properties_method.called)
     self.assertTrue(configure_database_password_method.called)
     self.assertTrue(configure_ldap_password_method.called)
+    self.assertFalse(save_master_key_method.called)
 
     sys.stdout = sys.__stdout__
 

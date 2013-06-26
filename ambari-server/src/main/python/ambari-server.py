@@ -2390,7 +2390,7 @@ def setup_master_key(resetKey=False):
       return None, True, True       # setup is secure and key persisted
     elif not persist and not resetKey:
       masterKey = get_validated_string_input("Please provide master key " +\
-                    "for unlocking credential store: ", "", ".*", "", False)
+                    "for unlocking credential store: ", "", ".*", "", False, False)
       return masterKey, True, False # return master key for saving passwords
   else:
     if masterKeyFile is not None:
@@ -2409,14 +2409,14 @@ def setup_master_key(resetKey=False):
   if masterKeyFile is None or resetKey:
     key = get_validated_string_input(
       "Please provide master key for the credential store: ",
-      passwordDefault, passwordPattern, passwordDescr, True)
+      passwordDefault, passwordPattern, passwordDescr, True, False)
     if key != passwordDefault:
       key = get_validated_string_input("Please re-enter master key: ",
-        passwordDefault, passwordPattern, passwordDescr, True)
+        passwordDefault, passwordPattern, passwordDescr, True, False)
 
     persist = get_YN_input("Do you want to persist master key. If you choose "\
                            "not to persist, you need to provide the master "\
-                           "key while starting the ambari server as a env "\
+                           "key while starting the ambari server as an env "\
                            "variable named " + SECURITY_KEY_ENV_VAR_NAME +\
                            " or the start will prompt for the master key."
                            " Persist [y/n] (y)? ", True)
@@ -2441,6 +2441,8 @@ def setup_master_key(resetKey=False):
       os.remove(store_file)
 
     # Encrypt the passwords with new key
+    db_password_alias = None
+    ldap_password_alias = None
     try:
       db_password_alias = properties[JDBC_PASSWORD_PROPERTY]
       ldap_password_alias = properties[LDAP_MGR_PASSWORD_PROPERTY]
@@ -2451,7 +2453,10 @@ def setup_master_key(resetKey=False):
       configure_database_password(True, key, True)
 
     if ldap_password_alias is not None and is_alias_string(ldap_password_alias):
-      configure_ldap_password(True)
+      password = configure_ldap_password()
+      retCode = save_passwd_for_alias(LDAP_MGR_PASSWORD_ALIAS, password, key)
+      if retCode != 0:
+        print 'Saving secure ldap password failed. Exiting.'
 
   return key, True, persist
 
