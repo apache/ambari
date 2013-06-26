@@ -1224,7 +1224,7 @@ def configure_database_password(isSecure=False, masterKey=None, showDefault=True
   if isSecure:
     retCode = save_passwd_for_alias(JDBC_RCA_PASSWORD_ALIAS, password, masterKey)
     if retCode != 0:
-      print 'Saving secure database password failed.'
+      print 'Failed to save secure LDAP password.'
       return password, aliasStr
     return password, get_alias_string(JDBC_RCA_PASSWORD_ALIAS)
 
@@ -2288,8 +2288,6 @@ def setup_ldap():
                         "authentication.ldap.useSSL",
                         "authentication.ldap.usernameAttribute",
                         "authentication.ldap.baseDn",
-                        "authorization.userRoleName",
-                        "authorization.adminRoleName",
                         "authentication.ldap.bindAnonymously" ]
 
   ldap_property_list_opt = [ "authentication.ldap.managerDn",
@@ -2300,37 +2298,34 @@ def setup_ldap():
   LDAP_USE_SSL_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[2], "false")
   LDAP_USER_ATT_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[3], "uid")
   LDAP_BASE_DN_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[4])
-  LDAP_USER_ROLE_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[5], "user")
-  LDAP_ADMIN_ROLE_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[6], "admin")
-  LDAP_BIND_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[7], "false")
+  LDAP_BIND_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[5], "false")
   LDAP_MGR_DN_DEFAULT = get_value_from_properties(properties, ldap_property_list_opt[0])
 
 
   ldap_properties_map_reqd =\
   {
-    ldap_property_list_reqd[0]:(LDAP_PRIMARY_URL_DEFAULT, "Primary URL {0}: ".format(get_prompt_default(LDAP_PRIMARY_URL_DEFAULT))),\
-    ldap_property_list_reqd[1]:(LDAP_SECONDARY_URL_DEFAULT, "Secondary URL {0}: ".format(get_prompt_default(LDAP_SECONDARY_URL_DEFAULT))),\
-    ldap_property_list_reqd[2]:(LDAP_USE_SSL_DEFAULT, "Use SSL [true/false] {0}: ".format(get_prompt_default(LDAP_USE_SSL_DEFAULT))),\
-    ldap_property_list_reqd[3]:(LDAP_USER_ATT_DEFAULT, "User name attribute {0}: ".format(get_prompt_default(LDAP_USER_ATT_DEFAULT))),\
-    ldap_property_list_reqd[4]:(LDAP_BASE_DN_DEFAULT, "Base DN {0}: ".format(get_prompt_default(LDAP_BASE_DN_DEFAULT))),\
-    ldap_property_list_reqd[5]:(LDAP_USER_ROLE_DEFAULT, "User role name {0}: ".format(get_prompt_default(LDAP_USER_ROLE_DEFAULT))),\
-    ldap_property_list_reqd[6]:(LDAP_ADMIN_ROLE_DEFAULT, "Admin role name {0}: ".format(get_prompt_default(LDAP_ADMIN_ROLE_DEFAULT))),\
-    ldap_property_list_reqd[7]:(LDAP_BIND_DEFAULT, "Bind anonymously [true/false] {0}: ".format(get_prompt_default(LDAP_BIND_DEFAULT))),\
+    ldap_property_list_reqd[0]:(LDAP_PRIMARY_URL_DEFAULT, "Primary URL* {0}: ".format(get_prompt_default(LDAP_PRIMARY_URL_DEFAULT)), False),\
+    ldap_property_list_reqd[1]:(LDAP_SECONDARY_URL_DEFAULT, "Secondary URL {0}: ".format(get_prompt_default(LDAP_SECONDARY_URL_DEFAULT)), True),\
+    ldap_property_list_reqd[2]:(LDAP_USE_SSL_DEFAULT, "Use SSL* [true/false] {0}: ".format(get_prompt_default(LDAP_USE_SSL_DEFAULT)), False),\
+    ldap_property_list_reqd[3]:(LDAP_USER_ATT_DEFAULT, "User name attribute* {0}: ".format(get_prompt_default(LDAP_USER_ATT_DEFAULT)), False),\
+    ldap_property_list_reqd[4]:(LDAP_BASE_DN_DEFAULT, "Base DN* {0}: ".format(get_prompt_default(LDAP_BASE_DN_DEFAULT)), False),\
+    ldap_property_list_reqd[5]:(LDAP_BIND_DEFAULT, "Bind anonymously* [true/false] {0}: ".format(get_prompt_default(LDAP_BIND_DEFAULT)), False)\
   }
 
-  print "Input LDAP properties. Hit [Enter] to skip property."
   ldap_property_value_map = {}
   for key in ldap_property_list_reqd:
     input = get_validated_string_input(ldap_properties_map_reqd[key][1],
-      ldap_properties_map_reqd[key][0], ".*", "", False, False)
+      ldap_properties_map_reqd[key][0], ".*", "", False,
+      ldap_properties_map_reqd[key][2])
     if input is not None and input != "":
       ldap_property_value_map[key] = input
 
   bindAnonymously = ldap_property_value_map["authentication.ldap.bindAnonymously"]
-  # Ask for manager credentials only if bindAnonymously is true
-  if bindAnonymously and bindAnonymously == 'true' or \
-        bindAnonymously == 'TRUE' or bindAnonymously == 'True':
-    username = get_validated_string_input("Manager DN {0}:".format(
+  anonymous = (bindAnonymously and bindAnonymously.lower() == 'true')
+  password = None
+  # Ask for manager credentials only if bindAnonymously is false
+  if not anonymous:
+    username = get_validated_string_input("Manager DN* {0}:".format(
       get_prompt_default(LDAP_MGR_DN_DEFAULT)), LDAP_MGR_DN_DEFAULT, ".*", "", False, False)
     ldap_property_value_map[LDAP_MGR_USERNAME_PROPERTY] = username
     password = configure_ldap_password()
@@ -2349,18 +2344,19 @@ def setup_ldap():
       print("%s: %s" % (property, ldap_property_value_map[property]))
 
   for property in ldap_property_list_opt:
-    if property != LDAP_MGR_PASSWORD_PROPERTY:
-      print("%s: %s" % (property, ldap_property_value_map[property]))
-    else:
-      print("%s: %s" % (property, "****"))
+    if ldap_property_value_map.has_key(property):
+      if property != LDAP_MGR_PASSWORD_PROPERTY:
+        print("%s: %s" % (property, ldap_property_value_map[property]))
+      else:
+        print("%s: %s" % (property, "****"))
 
   save_settings = get_YN_input("Save settings [y/n] (y)? ", True)
 
   if save_settings:
-    if isSecure:
+    if isSecure and password:
       retCode = save_passwd_for_alias(LDAP_MGR_PASSWORD_ALIAS, password, masterKey)
       if retCode != 0:
-        print 'Saving secure ldap password failed.'
+        print 'Failed to save secure LDAP password.'
         return retCode
     ldap_property_value_map[CLIENT_SECURITY_KEY] = 'ldap'
     # Persisting values
@@ -2575,7 +2571,7 @@ def save_master_key(master_key, key_location, persist=True):
 
 def configure_ldap_password():
   passwordDefault = ""
-  passwordPrompt = 'Enter LDAP Password: '
+  passwordPrompt = 'Enter Manager Password*: '
   passwordPattern = ".*"
   passwordDescr = "Invalid characters in password."
 

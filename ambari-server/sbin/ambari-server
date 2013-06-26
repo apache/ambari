@@ -99,7 +99,7 @@ case "$1" in
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
   setup-ldap)
-        echo -e "Setting up ldap properties"
+        echo -e "Setting up LDAP properties..."
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
   resetmasterkey)

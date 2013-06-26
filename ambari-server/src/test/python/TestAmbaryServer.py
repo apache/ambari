@@ -2927,7 +2927,7 @@ class TestAmbariServer(TestCase):
 
     def side_effect(*args, **kwargs):
       if 'Bind anonymously' in args[0]:
-        return 'true'
+        return 'false'
       if args[1] == "true" or args[1] == "false":
         return args[1]
       else:
@@ -2944,9 +2944,7 @@ class TestAmbariServer(TestCase):
       "authentication.ldap.useSSL" : "false",
       "authentication.ldap.usernameAttribute" : "test",
       "authentication.ldap.baseDn" : "test",
-      "authorization.userRoleName" : "test",
-      "authorization.adminRoleName" : "test",
-      "authentication.ldap.bindAnonymously" : "true",
+      "authentication.ldap.bindAnonymously" : "false",
       "authentication.ldap.managerDn" : "test",
       "authentication.ldap.managerPassword" : \
         '${alias=ambari.ldap.manager.password}',
