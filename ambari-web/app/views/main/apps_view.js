@@ -267,6 +267,14 @@ App.MainAppsView = Em.View.extend({
    * data, and subsequently the popup dialog.
    */
   didInsertElement: function(){
+    var self = this;
+    Em.run.next(function() {
+      self.get('_childViews').forEach(function(childView) {
+        if(childView['showClearFilter']) {
+          childView.showClearFilter();
+        }
+      });
+    });
     App.router.get('mainAppsItemController').set('lastJobId', null);
     this.onChangeViewType();
   },
