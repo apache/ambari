@@ -253,6 +253,23 @@
   </property>
 
   <property>
+    <name>hbase.security.authentication</name>
+    <value>simple</value>
+  </property>
+
+  <property>
+    <name>hbase.rpc.engine</name>
+    <value>org.apache.hadoop.hbase.ipc.WritableRpcEngine</value>
+  </property>
+
+  <property>
+    <name>hbase.security.authorization</name>
+    <value>false</value>
+    <description>Enables HBase authorization. Set the value of this property to false to disable HBase authorization.
+    </description>
+  </property>
+
+  <property>
     <name>hbase.coprocessor.region.classes</name>
     <value></value>
     <description>A comma-separated list of Coprocessors that are loaded by
@@ -265,7 +282,7 @@
 
   <property>
     <name>hbase.coprocessor.master.classes</name>
-    <value></value>
+    <value>org.apache.hadoop.hbase.security.access.AccessController</value>
     <description>A comma-separated list of
       org.apache.hadoop.hbase.coprocessor.MasterObserver coprocessors that are
       loaded by default on the active HMaster process. For any implemented
@@ -338,7 +355,7 @@
   </property>
   <property>
     <name>zookeeper.znode.parent</name>
-    <value></value>
+    <value>/hbase-unsecure</value>
     <description>Root ZNode for HBase in ZooKeeper. All of HBase's ZooKeeper
       files that are configured with a relative path will go under this node.
       By default, all of HBase's ZooKeeper file path are configured with a
