@@ -1439,13 +1439,15 @@ public class AmbariManagementControllerImpl implements
 
       Config baseConfig = cluster.getConfig(cr.getType(), cr.getVersionTag());
       if (null != baseConfig) {
+        Config oldConfig = cluster.getDesiredConfigByType(cr.getType());
         String authName = getAuthName();
         if (cluster.addDesiredConfig(authName, baseConfig)) {
           Logger logger = LoggerFactory.getLogger("configchange");
           logger.info("cluster '" + request.getClusterName() + "' "
               + "changed by: '" + authName + "'; "
               + "type='" + baseConfig.getType() + "' "
-              + "tag='" + baseConfig.getVersionTag() + "'");
+              + "tag='" + baseConfig.getVersionTag() + "'"
+              + (null == oldConfig ? "" : " from='"+ oldConfig.getVersionTag() + "'"));
         }
       }
     }
@@ -3011,13 +3013,16 @@ public class AmbariManagementControllerImpl implements
           Config baseConfig = c.getConfig(cr.getType(), cr.getVersionTag());
           if (null != baseConfig) {
             String authName = getAuthName();
+            DesiredConfig oldConfig = h.getDesiredConfigs(c.getClusterId()).get(cr.getType());
+            
             if (h.addDesiredConfig(c.getClusterId(), cr.isSelected(), authName,  baseConfig)) {
               Logger logger = LoggerFactory.getLogger("configchange");
               logger.info("cluster '" + c.getClusterName() + "', "
                   + "host '" + h.getHostName() + "' "
                   + "changed by: '" + authName + "'; "
                   + "type='" + baseConfig.getType() + "' "
-                  + "tag='" + baseConfig.getVersionTag() + "'");
+                  + "tag='" + baseConfig.getVersionTag() + "'"
+                  + (null == oldConfig ? "" : ", from='" + oldConfig.getVersion() + "'"));
             }
           }
           
