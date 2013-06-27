@@ -453,13 +453,6 @@ var configs = [
     "filename": "mapred-site.xml"
   },
   {
-    "name": "mapred.task.tracker.task-controller",
-    "templateName": ["task_controller"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
     "name": "mapreduce.history.server.embedded",
     "templateName": [],
     "foreignKey": null,

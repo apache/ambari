@@ -902,18 +902,6 @@ module.exports =
       "category": "Advanced"
     },
     {
-      "id": "puppet var",
-      "name": "task_controller",
-      "displayName": "task_controller",
-      "description": "",
-      "defaultValue": "org.apache.hadoop.mapred.DefaultTaskController",
-      "displayType": "advanced",
-      "isVisible": false,
-      "serviceName": "MAPREDUCE",
-      "domain": "global",
-      "category": "Advanced"
-    },
-    {
       "id": "site property",
       "name": "mapred.capacity-scheduler.maximum-system-jobs",
       "displayName": "Max system jobs",
