@@ -444,10 +444,16 @@ public class AmbariMetaInfoTest {
     
     try {
       RepositoryInfo repository = metaInfo.getRepository(STACK_NAME_HDP, STACK_VERSION_HDP, OS_TYPE, REPO_ID);
+      String defaultBaseUrl = repository.getDefaultBaseUrl();
+      Assert.assertNull(defaultBaseUrl);
+      
+      // what it will expected to be
+      defaultBaseUrl = repository.getBaseUrl();
       
       metaInfo.updateRepository(STACK_NAME_HDP, STACK_VERSION_HDP, OS_TYPE, REPO_ID, TMP_URL1);
       repository = metaInfo.getRepository(STACK_NAME_HDP, STACK_VERSION_HDP, OS_TYPE, REPO_ID);
       Assert.assertEquals(TMP_URL1, repository.getBaseUrl());
+      Assert.assertEquals(defaultBaseUrl, repository.getDefaultBaseUrl());
       
       // reload from disk
       AmbariMetaInfo metaInfo1 = new AmbariMetaInfo(tmp, new File("target/version"));

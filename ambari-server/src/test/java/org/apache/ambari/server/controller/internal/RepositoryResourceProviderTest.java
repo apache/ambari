@@ -57,7 +57,7 @@ public class RepositoryResourceProviderTest {
     AmbariManagementController managementController = EasyMock.createMock(AmbariManagementController.class);
 
     RepositoryResponse rr = new RepositoryResponse(VAL_BASE_URL, VAL_OS,
-        VAL_REPO_ID, VAL_REPO_NAME, null);
+        VAL_REPO_ID, VAL_REPO_NAME, null, null);
     Set<RepositoryResponse> allResponse = new HashSet<RepositoryResponse>();
     allResponse.add(rr);
     
@@ -126,7 +126,7 @@ public class RepositoryResourceProviderTest {
     AmbariManagementController managementController = EasyMock.createMock(AmbariManagementController.class);
 
     RepositoryResponse rr = new RepositoryResponse(VAL_BASE_URL, VAL_OS,
-        VAL_REPO_ID, VAL_REPO_NAME, null);
+        VAL_REPO_ID, VAL_REPO_NAME, null, null);
     Set<RepositoryResponse> allResponse = new HashSet<RepositoryResponse>();
     allResponse.add(rr);    
     
@@ -145,7 +145,7 @@ public class RepositoryResourceProviderTest {
 
     // add the property map to a set for the request.
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
-    properties.put(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID, "http://bar.com");
+    properties.put(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID, "http://garbage.eu.co");
 
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties, null);

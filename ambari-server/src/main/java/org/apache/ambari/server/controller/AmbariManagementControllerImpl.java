@@ -19,9 +19,18 @@
 package org.apache.ambari.server.controller;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
@@ -44,6 +53,7 @@ import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
@@ -82,6 +92,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -146,6 +157,9 @@ public class AmbariManagementControllerImpl implements
 
   final private static String JDK_RESOURCE_LOCATION =
       "/resources/";
+  
+  final private static int REPO_URL_CONNECT_TIMEOUT = 2000;
+  final private static int REPO_URL_READ_TIMEOUT = 500;
 
   final private String jdkResourceUrl;
   final private String ojdbcUrl;
@@ -4310,9 +4324,17 @@ public class AmbariManagementControllerImpl implements
       
       if (null != rr.getBaseUrl()) {
         // verify url is accessible
-        ambariMetaInfo.updateRepository(rr.getStackName(),
-            rr.getStackVersion(), rr.getOsType(), rr.getRepoId(),
-            rr.getBaseUrl());
+        URLStreamProvider usp = new URLStreamProvider(
+            REPO_URL_CONNECT_TIMEOUT, REPO_URL_READ_TIMEOUT);
+        try {
+          IOUtils.readLines(usp.readFrom(rr.getBaseUrl()));
+          ambariMetaInfo.updateRepository(rr.getStackName(),
+              rr.getStackVersion(), rr.getOsType(), rr.getRepoId(),
+              rr.getBaseUrl());
+        }
+        catch (IOException ioe) {
+          throw new IllegalArgumentException("Could not access base_url '" + rr.getBaseUrl(), ioe);
+        }
       }
     }
   }

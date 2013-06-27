@@ -84,6 +84,7 @@ public class AmbariMetaInfo {
   private static final String REPOSITORY_XML_ATTRIBUTE_OS_TYPE = "type";
   private static final String REPOSITORY_XML_REPO_BLOCK_NAME = "repo";
   private static final String REPOSITORY_XML_PROPERTY_BASEURL = "baseurl";
+  private static final String REPOSITORY_XML_PROPERTY_DEFAULT_BASEURL = "default_baseurl";
   private static final String REPOSITORY_XML_PROPERTY_REPOID = "repoid";
   private static final String REPOSITORY_XML_PROPERTY_REPONAME = "reponame";
   private static final String REPOSITORY_XML_PROPERTY_MIRRORSLIST = "mirrorslist";
@@ -343,8 +344,16 @@ public class AmbariMetaInfo {
                 
                 if (xmlRepoId.equals(repoId)) {
                   NodeList nl = property.getElementsByTagName(REPOSITORY_XML_PROPERTY_BASEURL);
-                  for (int k = 0; k < nl.getLength(); k++) {
-                    nl.item(k).setTextContent(baseUrl);
+                  if (null != nl && nl.getLength() > 0) {
+                    String defaultBaseUrl = getTagValue(REPOSITORY_XML_PROPERTY_DEFAULT_BASEURL, property);
+                    if (null == defaultBaseUrl) {
+                      Node n = doc.createElement(REPOSITORY_XML_PROPERTY_DEFAULT_BASEURL);
+                      n.setTextContent(nl.item(0).getTextContent());
+                      if (null != ri)
+                        ri.setDefaultBaseUrl(nl.item(0).getTextContent());
+                      property.appendChild(n);
+                    }
+                    nl.item(0).setTextContent(baseUrl);
                   }
                 }
               }
@@ -893,14 +902,11 @@ public class AmbariMetaInfo {
             continue;
           }
           Element property = (Element) repoNode;
-          String repoId = getTagValue(REPOSITORY_XML_PROPERTY_REPOID,
-              property);
-          String repoName = getTagValue(REPOSITORY_XML_PROPERTY_REPONAME,
-              property);
-          String baseUrl = getTagValue(
-              REPOSITORY_XML_PROPERTY_BASEURL, property);
-          String mirrorsList = getTagValue(
-              REPOSITORY_XML_PROPERTY_MIRRORSLIST, property);
+          String repoId = getTagValue(REPOSITORY_XML_PROPERTY_REPOID, property);
+          String repoName = getTagValue(REPOSITORY_XML_PROPERTY_REPONAME, property);
+          String baseUrl = getTagValue(REPOSITORY_XML_PROPERTY_BASEURL, property);
+          String mirrorsList = getTagValue(REPOSITORY_XML_PROPERTY_MIRRORSLIST, property);
+          String defaultBaseUrl = getTagValue(REPOSITORY_XML_PROPERTY_DEFAULT_BASEURL, property);
 
           String[] osTypes = osType.split(",");
 
@@ -911,6 +917,7 @@ public class AmbariMetaInfo {
             repositoryInfo.setRepoName(repoName);
             repositoryInfo.setBaseUrl(baseUrl);
             repositoryInfo.setMirrorsList(mirrorsList);
+            repositoryInfo.setDefaultBaseUrl(defaultBaseUrl);
 
             if (LOG.isDebugEnabled()) {
               LOG.debug("Adding repo to stack"

@@ -69,6 +69,9 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
   public static final String REPOSITORY_MIRRORS_LIST_PROPERTY_ID = PropertyHelper
       .getPropertyId("Repositories", "mirrors_list");
   
+  public static final String REPOSITORY_DEFAULT_BASE_URL_PROPERTY_ID = PropertyHelper
+      .getPropertyId("Repositories", "default_base_url");
+  
 
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(new String[] { STACK_NAME_PROPERTY_ID,
@@ -148,6 +151,9 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
 
         setResourceProperty(resource, REPOSITORY_MIRRORS_LIST_PROPERTY_ID,
             response.getMirrorsList(), requestedIds);
+        
+        setResourceProperty(resource, REPOSITORY_DEFAULT_BASE_URL_PROPERTY_ID,
+            response.getDefaultBaseUrl(), requestedIds);
 
         resources.add(resource);
     }

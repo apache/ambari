@@ -135,6 +135,7 @@
         "Repositories/repo_id",
         "Repositories/repo_name",
         "Repositories/mirrors_list",
+        "Repositories/default_base_url",
         "_"
     ],
     "StackService":[

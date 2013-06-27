@@ -26,6 +26,7 @@ public class RepositoryInfo {
   private String repoId;
   private String repoName;
   private String mirrorsList;
+  private String defaultBaseUrl;
 
   /**
    * @return the baseUrl
@@ -96,6 +97,20 @@ public class RepositoryInfo {
   public void setMirrorsList(String mirrorsList) {
     this.mirrorsList = mirrorsList;
   }
+  
+  /**
+   * @return the default base url
+   */
+  public String getDefaultBaseUrl() {
+    return defaultBaseUrl;
+  }
+
+  /**
+   * @param url the default base url to set
+   */
+  public void setDefaultBaseUrl(String url) {
+    defaultBaseUrl = url;
+  }
 
   @Override
   public String toString() {
@@ -111,6 +126,6 @@ public class RepositoryInfo {
   
   public RepositoryResponse convertToResponse()
   {
-    return new RepositoryResponse(getBaseUrl(), getOsType(), getRepoId(), getRepoName(), getMirrorsList());
+    return new RepositoryResponse(getBaseUrl(), getOsType(), getRepoId(), getRepoName(), getMirrorsList(), getDefaultBaseUrl());
   }
 }
