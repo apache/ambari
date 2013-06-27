@@ -389,7 +389,6 @@ NR_ADJUST_OWNERSHIP_LIST =[
   ( "/etc/ambari-server/conf", "644", "{0}", "{0}", True ),
   ( "/etc/ambari-server/conf", "755", "{0}", "{0}", False ),
   ( "/etc/ambari-server/conf/password.dat", "640", "{0}", "{0}", False ),
-
   # Also, /etc/ambari-server/conf/password.dat
   # is generated later at store_password_file
 ]
@@ -568,6 +567,11 @@ def adjust_directory_permissions(ambari_user):
   cmd = RECURSIVE_RM_CMD.format(bootstrap_dir)
   run_os_command(cmd)
   os.mkdir(bootstrap_dir)
+  # Add master key if exists
+  keyLocation = get_master_key_location(properties)
+  masterKeyFile = search_file(SECURITY_MASTER_KEY_FILENAME, keyLocation)
+  if masterKeyFile:
+    NR_ADJUST_OWNERSHIP_LIST.append((masterKeyFile, "600", "{0}", "{0}", False))
   print "Adjusting file permissions and ownership..."
   for pack in NR_ADJUST_OWNERSHIP_LIST:
     file = pack[0]
