@@ -69,6 +69,15 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     this.get('serviceConfigTags').clear();
   },
 
+  retry: function () {
+    if (this.get('stages').someProperty('isError', true)) {
+      var failedStages = this.get('stages').filterProperty('isError', true);
+      failedStages.setEach('isError', false);
+      failedStages.setEach('isStarted', false);
+    }
+    this.moveToNextStage();
+  },
+
   loadStep: function () {
     this.set('secureMapping', require('data/secure_mapping').slice(0));
     this.clearStep();
@@ -79,14 +88,13 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         stages[index] = App.Poll.create(_stage);
       }, this);
       if (stages.someProperty('isError', true)) {
-        var failedStages = stages.filterProperty('isError', true);
-        failedStages.setEach('isError', false);
-        failedStages.setEach('isStarted', false);
+        this.get('stages').pushObjects(stages);
+        return;
       } else if (stages.filterProperty('isStarted', true).someProperty('isCompleted', false)) {
         var runningStage = stages.filterProperty('isStarted', true).findProperty('isCompleted', false);
         runningStage.set('isStarted', false);
+        this.get('stages').pushObjects(stages);
       }
-      this.get('stages').pushObjects(stages);
     } else {
       this.loadStages();
       this.addInfoToStages();

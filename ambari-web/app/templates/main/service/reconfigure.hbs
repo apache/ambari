@@ -45,6 +45,14 @@
             {{/if}}
           {{/if}}
       </td>
+      <td>
+        {{#if stage.isError}}
+          <a class="btn btn-primary"
+             href="javascript:void(null)" {{action retry target = "controller"}}><i class="icon-repeat icon-white"></i>
+            {{t common.retry}}
+          </a>
+        {{/if}}
+      </td>
     </tr>
     {{/each}}
   </tbody>

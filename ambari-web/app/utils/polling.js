@@ -48,7 +48,7 @@ App.Poll = Em.Object.extend({
 
   showLink: function () {
     return (this.get('isPolling') === true && this.get('isStarted') === true);
-  }.property('isPolling','isStarted'),
+  }.property('isPolling', 'isStarted'),
 
   start: function () {
     if (this.get('requestId') === undefined) {
@@ -161,7 +161,7 @@ App.Poll = Em.Object.extend({
 
   calculateProgressByTasks: function (tasksData) {
     var queuedTasks = tasksData.filterProperty('Tasks.status', 'QUEUED').length;
-    var completedTasks = tasksData.filter(function(task){
+    var completedTasks = tasksData.filter(function (task) {
       return ['COMPLETED', 'FAILED', 'ABORTED', 'TIMEDOUT'].contains(task.Tasks.status);
     }).length;
     var inProgressTasks = tasksData.filterProperty('Tasks.status', 'IN_PROGRESS').length;
@@ -169,11 +169,16 @@ App.Poll = Em.Object.extend({
   },
 
   isPollingFinished: function (polledData) {
-    if (polledData.everyProperty('Tasks.status', 'COMPLETED')) {
-      this.set('isSuccess', true);
-      return true;
-    } else if (polledData.someProperty('Tasks.status', 'FAILED') || polledData.someProperty('Tasks.status', 'TIMEDOUT') || polledData.someProperty('Tasks.status', 'ABORTED')) {
-      this.set('isError', true);
+    var runningTasks;
+    runningTasks = polledData.filterProperty('Tasks.status', 'QUEUED').length;
+    runningTasks += polledData.filterProperty('Tasks.status', 'IN_PROGRESS').length;
+    runningTasks += polledData.filterProperty('Tasks.status', 'PENDING').length;
+    if (runningTasks === 0) {
+      if (polledData.everyProperty('Tasks.status', 'COMPLETED')) {
+        this.set('isSuccess', true);
+      } else if (polledData.someProperty('Tasks.status', 'FAILED') || polledData.someProperty('Tasks.status', 'TIMEDOUT') || polledData.someProperty('Tasks.status', 'ABORTED')) {
+        this.set('isError', true);
+      }
       return true;
     } else {
       return false;
