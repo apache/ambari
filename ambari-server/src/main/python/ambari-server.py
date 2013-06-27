@@ -2655,38 +2655,30 @@ def setup_https(args):
                                 "SSL port ["+str(client_api_ssl_port)+"] ? ",\
                                 str(client_api_ssl_port),\
                                 "^[0-9]{1,5}$", "Invalid port.", False))   
-        if get_YN_input(\
-              "Do you want to import trusted certificate and private key (y/n) y? ",\
-              True):
-         import_cert_and_key_action(security_server_keys_dir, properties)
-         cert_was_imported = True  
+        import_cert_and_key_action(security_server_keys_dir, properties)
+        cert_was_imported = True  
       else:
        if get_YN_input("Do you want to configure HTTPS (y/n) y? ", True):
         properties.process_pair(SSL_API_PORT,\
         get_validated_string_input("SSL port ["+str(client_api_ssl_port)+"] ? ",\
         str(client_api_ssl_port), "^[0-9]{1,5}$", "Invalid port.", False))   
-        if get_YN_input(\
-              "Do you want to import trusted certificate and private key (y/n) y? ",\
-              True):
-         import_cert_and_key_action(security_server_keys_dir, properties)
-         cert_was_imported = True        
+        import_cert_and_key_action(security_server_keys_dir, properties)
+        cert_was_imported = True        
        else:
         return
 
       conf_file = find_properties_file()
       f = open(conf_file, 'w')
       properties.store(f, "Changed by 'ambari-server setup-https' command")
-      if cert_was_imported: 
-       print "NOTE: If cluster have been already created,"+\
-             " agent's keystors should be cleared manually!"
       if is_server_runing():
-        print "To apply changes server should be restarted"+\
-              " by command: ambari-server restart|(stop|start)"
+        print 'NOTE: Reset Ambari Server to apply changes'+\
+              ' ("ambari-server restart|stop|start")'
     except (KeyError), e:
       err = 'Property ' + str(e) + ' is not defined at ' + conf_file
       raise FatalException(1, err)
   else:
     print "setup-https is not enabled in silent mode."
+  print "Ambari Server 'HTTPS setup' completed successfully. Exiting."
   
 def is_server_runing():
   if os.path.exists(PID_DIR + os.sep + PID_NAME):
@@ -2710,10 +2702,10 @@ def import_cert_and_key_action(security_server_keys_dir, properties):
    
 def import_cert_and_key(security_server_keys_dir):
   import_cert_path = get_validated_filepath_input(\
-                    "Please enter path to certificate: ",\
+                    "Please enter path to Certificate: ",\
                     "Certificate not found")
   import_key_path  =  get_validated_filepath_input(\
-                      "Please enter path to key: ", "Key not found")
+                      "Please enter path to Private Key: ", "Private Key not found")
   pem_password = get_validated_string_input("Please enter password for private key: ", "", None, None, True)
   keystoreFilePath = os.path.join(security_server_keys_dir,\
                                   SSL_KEYSTORE_FILE_NAME)
@@ -2723,7 +2715,7 @@ def import_cert_and_key(security_server_keys_dir):
   import_key_path, pem_password, keystoreFilePath))
 
   if retcode == 0:
-   print 'Successfully imported trusted cerificate and private key'
+   print 'Importing and saving certificate...done.'
    set_file_permissions(keystoreFilePath, "660", read_ambari_user(), "root", False)
    with open(passFilePath, 'w+') as passFile:
     passFile.write(pem_password)
