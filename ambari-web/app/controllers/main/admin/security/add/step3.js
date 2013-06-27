@@ -21,6 +21,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
 
   name: 'mainAdminSecurityAddStep3Controller',
   secureMapping: require('data/secure_mapping'),
+  secureProperties: require('data/secure_properties').configProperties,
   stages: [],
   configs: [],
   noOfWaitingAjaxCalls: 0,
@@ -33,6 +34,18 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
 
   isOozieSelected: function () {
     return this.get('content.services').someProperty('serviceName', 'OOZIE');
+  }.property('content.services'),
+
+  isHiveSelected: function () {
+    return this.get('content.services').someProperty('serviceName', 'HIVE');
+  }.property('content.services'),
+
+  isNagiosSelected: function () {
+    return this.get('content.services').someProperty('serviceName', 'NAGIOS');
+  }.property('content.services'),
+
+  isZkSelected: function () {
+    return this.get('content.services').someProperty('serviceName', 'ZOOKEEPER');
   }.property('content.services'),
 
   isWebHcatSelected: function () {
@@ -209,13 +222,15 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     }, this);
     var dependentConfig = this.get('secureMapping').filterProperty('foreignKey');
     dependentConfig.forEach(function (_config) {
-      this.setConfigValue(uiConfig, _config);
-      uiConfig.pushObject({
-        "id": "site property",
-        "name": _config._name || _config.name,
-        "value": _config.value,
-        "filename": _config.filename
-      });
+      if (App.Service.find().mapProperty('serviceName').contains( _config.serviceName)) {
+        this.setConfigValue(uiConfig, _config);
+        uiConfig.pushObject({
+          "id": "site property",
+          "name": _config._name || _config.name,
+          "value": _config.value,
+          "filename": _config.filename
+        });
+      }
     }, this);
     return uiConfig;
   },
@@ -315,16 +330,18 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   },
 
   loadHostNamesToGlobal: function () {
-    if (this.get('isOozieSelected')) {
-      var oozieHostName = App.Service.find('OOZIE').get('hostComponents').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
+    var oozieHostComponent = App.Service.find('OOZIE').get('hostComponents').findProperty('componentName', 'OOZIE_SERVER');
+    if (this.get('isOozieSelected') && oozieHostComponent) {
+      var oozieHostName = oozieHostComponent.get('host.hostName');
       this.get('globalProperties').pushObject({
         id: 'puppet var',
         name: 'oozieserver_host',
         value: oozieHostName
       });
     }
-    if (App.Service.find('HIVE')) {
-      var hiveHostName = App.Service.find('HIVE').get('hostComponents').findProperty('componentName', 'HIVE_METASTORE').get('host.hostName');
+    var hiveHostComponent = App.Service.find('HIVE').get('hostComponents').findProperty('componentName', 'HIVE_METASTORE');
+    if (this.get('isHiveSelected') && hiveHostComponent) {
+      var hiveHostName = hiveHostComponent.get('host.hostName');
       this.get('globalProperties').pushObject({
         id: 'puppet var',
         name: 'hivemetastore_host',
@@ -361,9 +378,19 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
 
   getPrincipalNames: function () {
     var principalNames = [];
+    var allPrincipalNames = [];
     this.get('globalProperties').forEach(function (_globalProperty) {
       if (/principal_name?$/.test(_globalProperty.name)) {
         principalNames.pushObject(_globalProperty);
+      }
+    }, this);
+    this.get('secureProperties').forEach(function (_secureProperty) {
+      if (/principal_name?$/.test(_secureProperty.name)) {
+        var principalName = principalNames.findProperty('name', _secureProperty.name);
+        if (!principalName) {
+          _secureProperty.value = _secureProperty.defaultValue;
+          principalNames.pushObject(_secureProperty);
+        }
       }
     }, this);
     return principalNames;
@@ -510,11 +537,15 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     this.get('serviceConfigTags').forEach(function (_serviceConfigTags) {
       _serviceConfigTags.newTagName = 'version' + (new Date).getTime();
       if (_serviceConfigTags.siteName === 'global') {
-        var nagiosPrincipalName = this.get('globalProperties').findProperty('name', 'nagios_principal_name');
-        var zkPrincipalName = this.get('globalProperties').findProperty('name', 'zookeeper_principal_name');
         var realmName = this.get('globalProperties').findProperty('name', 'kerberos_domain');
-        nagiosPrincipalName.value = nagiosPrincipalName.value + '@' + realmName.value;
-        zkPrincipalName.value = zkPrincipalName.value + '@' + realmName.value;
+        if (this.get('isNagiosSelected')) {
+          var nagiosPrincipalName = this.get('globalProperties').findProperty('name', 'nagios_principal_name');
+          nagiosPrincipalName.value = nagiosPrincipalName.value + '@' + realmName.value;
+        }
+        if (this.get('isZkSelected')) {
+          var zkPrincipalName = this.get('globalProperties').findProperty('name', 'zookeeper_principal_name');
+          zkPrincipalName.value = zkPrincipalName.value + '@' + realmName.value;
+        }
         this.get('globalProperties').forEach(function (_globalProperty) {
           _serviceConfigTags.configs[_globalProperty.name] = _globalProperty.value;
         }, this);
