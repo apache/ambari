@@ -39,6 +39,7 @@ import socket
 import datetime
 import socket
 import tempfile
+import random
 
 # debug settings
 VERBOSE = False
@@ -93,6 +94,7 @@ RECURSIVE_RM_CMD = 'rm -rf {0}'
 
 # openssl command
 EXPRT_KSTR_CMD = "openssl pkcs12 -export -in {0} -inkey {1} -certfile {0} -out {3} -password pass:{2} -passin pass:{2}"
+CHANGE_KEY_PWD_CND = 'openssl rsa -in {0} -des3 -out {0}.secured -passout pass:{1}'
 
 # constants
 STACK_NAME_VER_SEP = "-"
@@ -161,6 +163,7 @@ SSL_CERT_FILE_NAME = "ca.crt"
 SSL_KEY_FILE_NAME = "ca.key"
 SSL_KEYSTORE_FILE_NAME = "keystore.p12"
 SSL_KEY_PASSWORD_FILE_NAME = "pass.txt"
+SSL_KEY_PASSWORD_LENGTH = 50
 DEFAULT_SSL_API_PORT = 8443
 
 JDBC_RCA_PASSWORD_ALIAS = "ambari.db.password"
@@ -2707,12 +2710,24 @@ def import_cert_and_key(security_server_keys_dir):
   import_key_path  =  get_validated_filepath_input(\
                       "Please enter path to Private Key: ", "Private Key not found")
   pem_password = get_validated_string_input("Please enter password for private key: ", "", None, None, True)
-  keystoreFilePath = os.path.join(security_server_keys_dir,\
-                                  SSL_KEYSTORE_FILE_NAME)
-  passFilePath = os.path.join(security_server_keys_dir,\
-                              SSL_KEY_PASSWORD_FILE_NAME)
-  retcode, out, err = run_os_command(EXPRT_KSTR_CMD.format(import_cert_path,\
-  import_key_path, pem_password, keystoreFilePath))
+
+  #jetty requires private key files with non-empty key passwords
+  retcode = 0
+  err = ''
+  if not pem_password:
+    #print message here
+    pem_password = generate_random_string()
+    retcode, out, err = run_os_command(CHANGE_KEY_PWD_CND.format(
+      import_key_path, pem_password))
+    import_key_path += '.secured'
+
+  if retcode == 0:
+    keystoreFilePath = os.path.join(security_server_keys_dir,\
+                                    SSL_KEYSTORE_FILE_NAME)
+    passFilePath = os.path.join(security_server_keys_dir,\
+                                SSL_KEY_PASSWORD_FILE_NAME)
+    retcode, out, err = run_os_command(EXPRT_KSTR_CMD.format(import_cert_path,\
+    import_key_path, pem_password, keystoreFilePath))
 
   if retcode == 0:
    print 'Importing and saving certificate...done.'
@@ -2734,7 +2749,10 @@ def import_cert_and_key(security_server_keys_dir):
 def import_file_to_keystore(source, destination):
   shutil.copy(source, destination)
   set_file_permissions(destination, "660", read_ambari_user(), "root", False)
- 
+
+def generate_random_string(length=SSL_KEY_PASSWORD_LENGTH):
+  chars = string.digits + string.ascii_letters
+  return ''.join(random.choice(chars) for x in range(length))
  
 def get_validated_filepath_input(prompt, description, default=None):
   input = False
