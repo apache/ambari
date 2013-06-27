@@ -38,7 +38,8 @@ define hdp::java::jce::package(
   #TODO:SUHAS how to avoid redownload and install if correct version already present.
   # may be check the file sizes for local_policy and export_US policy jars? 
   # UNLESS  => "test -e ${java_exec}"
-  $curl_cmd = "mkdir -p ${artifact_dir}; curl -f --retry 10 ${jce_location}/${jce_policy_zip} -o ${jce_curl_target}"
+  # curl -k - ignoring unverified server ssl sertificate,
+  $curl_cmd = "mkdir -p ${artifact_dir}; curl -kf --retry 10 ${jce_location}/${jce_policy_zip} -o ${jce_curl_target}"
   exec{ "jce-download ${name}":
     command => $curl_cmd,
     creates => $jce_curl_target,

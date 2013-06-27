@@ -164,14 +164,23 @@ public class AmbariManagementControllerImpl implements
     this.masterHostname =  InetAddress.getLocalHost().getCanonicalHostName();
 
     if (configs != null) {
-      this.jdkResourceUrl = "http://" + masterHostname + ":"
-          + configs.getClientApiPort()
-          + JDK_RESOURCE_LOCATION;
-      this.ojdbcUrl = "http://" + masterHostname + ":" + 
-          + configs.getClientApiPort() + JDK_RESOURCE_LOCATION + "/" + configs.getOjdbcJarName();
+      String protocol, port;
+      if (configs.getApiSSLAuthentication() == true) {
+        protocol = "https";
+        port = String.valueOf(configs.getClientSSLApiPort());
+      } else {
+        protocol = "http";
+        port = String.valueOf(configs.getClientApiPort());
+      }
 
-      this.mysqljdbcUrl = "http://" + masterHostname + ":" + 
-          + configs.getClientApiPort() + JDK_RESOURCE_LOCATION + "/" + configs.getMySQLJarName();
+      this.jdkResourceUrl = protocol + "://" + masterHostname + ":"
+          + port
+          + JDK_RESOURCE_LOCATION;
+      this.ojdbcUrl = protocol + "://" + masterHostname + ":"
+          + port + JDK_RESOURCE_LOCATION + "/" + configs.getOjdbcJarName();
+
+      this.mysqljdbcUrl = protocol + "://" + masterHostname + ":"
+          + port + JDK_RESOURCE_LOCATION + "/" + configs.getMySQLJarName();
       this.serverDB = configs.getServerDBName();
     } else {
       this.jdkResourceUrl = null;
@@ -179,8 +188,6 @@ public class AmbariManagementControllerImpl implements
       this.mysqljdbcUrl = null;
       this.serverDB = null;
     }
-    
-   
   }
 
   @Override
