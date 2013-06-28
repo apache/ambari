@@ -95,7 +95,8 @@ class hdp-hbase::hbase::service_check() inherits hdp-hbase::params
       }
      Anchor['hdp-hbase::hbase::service_check::begin'] ->  File['/tmp/hbaseSmokeVerify.sh']
        File[$hbase_servicecheck_file] ->  File[$hbase_grant_premissions_file] ->
-       Hdp::Exec['${smokeuser}_grant_privileges'] -> Exec[$hbase_servicecheck_file] ->
+       Hdp-hadoop::Exec-hadoop['${smokeuser}_grant_privileges'] ->
+       Exec[$hbase_servicecheck_file] ->
        Exec['/tmp/hbaseSmokeVerify.sh'] -> Anchor['hdp-hbase::hbase::service_check::end']
   } else {
     Anchor['hdp-hbase::hbase::service_check::begin'] ->  File['/tmp/hbaseSmokeVerify.sh']
