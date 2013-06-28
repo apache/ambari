@@ -88,7 +88,7 @@ class hdp-hbase::hbase::service_check() inherits hdp-hbase::params
       mode => '0644',
       content => template('hdp-hbase/hbase_grant_permissions.erb')
       }
-      hdp::exec { '${smokeuser}_grant_privileges' :
+      hdp-hadoop::exec-hadoop { '${smokeuser}_grant_privileges' :
         command => $grantprivelegecmd,
         require => File[$hbase_grant_premissions_file],
         user => $hbase_user

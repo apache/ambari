@@ -368,6 +368,7 @@ define hdp-hadoop::exec-hadoop(
   $security_enabled = $hdp::params::security_enabled
   $conf_dir = $hdp-hadoop::params::conf_dir
   $hdfs_user = $hdp-hadoop::params::hdfs_user
+  $hbase_user = $hdp-hadoop::params::hbase_user
 
   if ($user == undef) {
     $run_user = $hdfs_user
@@ -379,19 +380,30 @@ define hdp-hadoop::exec-hadoop(
     if ($run_user in [$hdfs_user,'root']) {
       $keytab = "${hdp::params::keytab_path}/hdfs.headless.keytab"
       $principal = $hdfs_user
-    }  else {
+    } elsif ($run_user in [$hbase_user]) {
+      $keytab = "${hdp::params::keytab_path}/hbase.headless.keytab"
+      $principal = $hbase_user
+    } else {
       $keytab = $hdp::params::smokeuser_keytab
       $principal = $hdp::params::smokeuser
     }
-    $kinit_if_needed = "${kinit_path_local} -kt ${keytab} ${principal}; "
+    $kinit_if_needed = "su - ${run_user} -c '${kinit_path_local} -kt ${keytab} ${principal}'"
   } else {
     $kinit_if_needed = ""
   }
- 
+
   if ($echo_yes == true) {
-    $cmd = "${kinit_if_needed}yes Y | hadoop --config ${conf_dir} ${command}"
+    $cmd = "yes Y | hadoop --config ${conf_dir} ${command}"
   } else {
-    $cmd = "${kinit_if_needed}hadoop --config ${conf_dir} ${command}"
+    $cmd = "hadoop --config ${conf_dir} ${command}"
+  }
+
+  if ($kinit_if_needed != "") {
+    exec { "kinit_before_${cmd}":
+      command => $kinit_if_needed,
+      path => ['/bin'],
+      before => Hdp::Exec[$cmd]
+    }
   }
 
   hdp::exec { $cmd:
