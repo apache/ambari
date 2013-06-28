@@ -85,35 +85,36 @@ class hdp-templeton::copy-hdfs-directories($service_state)
    } else {
      $kinit_if_needed = "echo 0;"
    }
-# $pig_src_tar = "$hdp::params::artifact_dir/pig.tar.gz"
 
-#  hdp-hadoop::hdfs::copyfromlocal { '/usr/share/templeton/templeton*jar':
-#    service_state => $service_state,
-#    owner => $hdp-templeton::params::templeton_user,
-#    mode  => '755',
-#    dest_dir => '/apps/templeton/ugi.jar'
-#  }
+  anchor{ "hdp::hdp-templeton::copy-hdfs-directories::begin" : }
+  anchor{ "hdp::hdp-templeton::copy-hdfs-directories::end" : }
+
+  $kinit_cmd = "su - ${webhcat_user} -c '${kinit_if_needed}'"
+  exec { $kinit_cmd:
+    command => $kinit_cmd,
+    path => ['/bin']
+  }
+
   hdp-hadoop::hdfs::copyfromlocal { '/usr/lib/hadoop/contrib/streaming/hadoop-streaming*.jar':
    service_state => $service_state,
    owner => $webhcat_user,
    mode  => '755',
    dest_dir => "$webhcat_apps_dir/hadoop-streaming.jar",
-   kinit_if_needed => $kinit_if_needed
   }
-  #TODO: Use ${hdp::params::artifact_dir}/${hdp-templeton::params::pig_tar_name} instead
   hdp-hadoop::hdfs::copyfromlocal { '/usr/share/HDP-webhcat/pig.tar.gz' :
     service_state => $service_state,
     owner => $webhcat_user,
     mode  => '755',
     dest_dir => "$webhcat_apps_dir/pig.tar.gz",
-    kinit_if_needed => $kinit_if_needed
   }
-  #TODO: Use ${hdp::params::artifact_dir}/${hdp-templeton::params::hive_tar_name} instead
   hdp-hadoop::hdfs::copyfromlocal { '/usr/share/HDP-webhcat/hive.tar.gz' :
     service_state => $service_state,
     owner => $webhcat_user,
     mode  => '755',
     dest_dir => "$webhcat_apps_dir/hive.tar.gz",
-    kinit_if_needed => $kinit_if_needed
   }
+  Anchor["hdp::hdp-templeton::copy-hdfs-directories::begin"] ->
+  Exec[$kinit_cmd] ->
+  Hdp-hadoop::Hdfs::Copyfromlocal<||>  ->
+  Anchor["hdp::hdp-templeton::copy-hdfs-directories::end"]
 }
