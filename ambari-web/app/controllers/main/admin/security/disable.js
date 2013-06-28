@@ -344,9 +344,6 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
               case 'hbase.security.authorization':
                 _serviceConfigTags.configs[configName] = 'false';
                 break;
-              case 'hbase.coprocessor.master.classes':
-                _serviceConfigTags.configs[configName] = 'org.apache.hadoop.hbase.security.access.AccessController';
-                break;
               case 'zookeeper.znode.parent':
                 _serviceConfigTags.configs[configName] = '/hbase-unsecure';
                 break;

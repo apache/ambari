@@ -282,7 +282,7 @@
 
   <property>
     <name>hbase.coprocessor.master.classes</name>
-    <value>org.apache.hadoop.hbase.security.access.AccessController</value>
+    <value></value>
     <description>A comma-separated list of
       org.apache.hadoop.hbase.coprocessor.MasterObserver coprocessors that are
       loaded by default on the active HMaster process. For any implemented
