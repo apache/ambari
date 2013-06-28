@@ -257,6 +257,108 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     if (!this.get('isSubmitDisabled')) {
       this.showHostPrincipalKeytabList();
     }
-  }
-
+  },
+  
+    doDownloadCsv: function(){
+      var blob = new Blob([this.buildCvsContent()], {type: "text/csv;charset=utf-8"});
+      saveAs(blob, "host-principal-keytab-list.csv");
+    },
+    
+    buildCvsContent: function() {
+      var configs = this.get('stepConfigs');
+      var hosts = App.Host.find();
+      var result = [];
+      var componentsToDisplay = ['NAMENODE', 'SECONDARY_NAMENODE', 'DATANODE', 'JOBTRACKER', 'ZOOKEEPER_SERVER', 'HIVE_SERVER', 'TASKTRACKER',
+                                 'OOZIE_SERVER', 'NAGIOS_SERVER', 'HBASE_MASTER', 'HBASE_REGIONSERVER'];
+      var securityUsers = App.router.get('mainAdminSecurityController').get('serviceUsers');
+      if (!securityUsers || securityUsers.length < 1) { // Page could be refreshed in middle
+        if (App.testMode) {
+          securityUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'hdfs'});
+          securityUsers.pushObject({id: 'puppet var', name: 'mapred_user', value: 'mapred'});
+          securityUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: 'hbase'});
+          securityUsers.pushObject({id: 'puppet var', name: 'hive_user', value: 'hive'});
+          securityUsers.pushObject({id: 'puppet var', name: 'smokeuser', value: 'ambari-qa'});
+        } else {
+          App.router.get('mainAdminSecurityController').setSecurityStatus();
+          securityUsers = App.router.get('mainAdminSecurityController').get('serviceUsers');
+        }
+      }
+      var generalConfigs = configs.findProperty('serviceName', 'GENERAL').configs;
+      var realm = generalConfigs.findProperty('name', 'kerberos_domain').get('value');
+      var smokeUser = securityUsers.findProperty('name', 'smokeuser').value + '@' + realm;
+      var hdfsUser = securityUsers.findProperty('name', 'hdfs_user').value + '@' + realm;
+      var hbaseUser = securityUsers.findProperty('name', 'hbase_user').value + '@' + realm;
+      var smokeUserKeytabPath = generalConfigs.findProperty('name', 'smokeuser_keytab').get('value');
+      var hdfsUserKeytabPath = generalConfigs.findProperty('name', 'keytab_path').get('value') + "/hdfs.headless.keytab";
+      var hbaseUserKeytabPath = generalConfigs.findProperty('name', 'keytab_path').get('value') + "/hbase.headless.keytab";
+      var httpPrincipal = generalConfigs.findProperty('name', 'hadoop_http_principal_name');
+      var httpKeytabPath = generalConfigs.findProperty('name', 'hadoop_http_keytab').get('value');
+      var addedPrincipalsHost = {}; //Keys = host_principal, Value = 'true'
+      
+      hosts.forEach(function(host){
+        result.push({
+          host: host.get('hostName'),
+          component: Em.I18n.t('admin.addSecurity.user.smokeUser'),
+          principal: smokeUser,
+          keytab: smokeUserKeytabPath
+        });
+        result.push({
+          host: host.get('hostName'),
+          component: Em.I18n.t('admin.addSecurity.user.hdfsUser'),
+          principal: hdfsUser,
+          keytab: hdfsUserKeytabPath
+        });
+        result.push({
+          host: host.get('hostName'),
+          component: Em.I18n.t('admin.addSecurity.user.hbaseUser'),
+          principal: hbaseUser,
+          keytab: hbaseUserKeytabPath
+        });
+        if(host.get('hostComponents').someProperty('componentName', 'NAMENODE') || 
+          host.get('hostComponents').someProperty('componentName', 'SECONDARY_NAMENODE') ||
+          host.get('hostComponents').someProperty('componentName', 'WEBHCAT_SERVER') ||
+          host.get('hostComponents').someProperty('componentName', 'OOZIE_SERVER')){
+          result.push({
+            host: host.get('hostName'),
+            component: Em.I18n.t('admin.addSecurity.user.httpUser'),
+            principal: httpPrincipal.get('value').replace('_HOST', host.get('hostName')) + httpPrincipal.get('unit'),
+            keytab: httpKeytabPath
+          });
+        }
+        host.get('hostComponents').forEach(function(hostComponent){
+          if(componentsToDisplay.contains(hostComponent.get('componentName'))){
+            var serviceConfigs = configs.findProperty('serviceName', hostComponent.get('service.serviceName')).get('configs');
+            var principal, keytab;
+            serviceConfigs.forEach(function(config){
+              if (config.get('component') && config.get('component') === hostComponent.get('componentName')) {
+                if (config.get('name').endsWith('_principal_name')) {
+                  principal = config.get('value').replace('_HOST', host.get('hostName')) + config.get('unit');
+                } else if (config.get('name').endsWith('_keytab') || config.get('name').endsWith('_keytab_path')) {
+                  keytab = config.get('value');
+                }
+              } else if (config.get('components') && config.get('components').contains(hostComponent.get('componentName'))) {
+                if (config.get('name').endsWith('_principal_name')) {
+                  principal = config.get('value').replace('_HOST', host.get('hostName')) + config.get('unit');
+                } else if (config.get('name').endsWith('_keytab') || config.get('name').endsWith('_keytab_path')) {
+                  keytab = config.get('value');
+                }
+              }
+            });
+            
+   
+            var key = host.get('hostName') + "--" + principal;
+            if (!addedPrincipalsHost[key]) {
+              result.push({
+                host: host.get('hostName'),
+                component: hostComponent.get('displayName'),
+                principal: principal,
+                keytab: keytab
+              });
+              addedPrincipalsHost[key] = true;
+            }
+          }
+        });
+      });
+      return stringUtils.arrayToCSV(result);
+    }
 });

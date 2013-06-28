@@ -141,6 +141,11 @@ App.MainAdminSecurityController = Em.Controller.extend({
       name: 'proxyuser_group',
       value: configs['proxyuser_group'] ? configs['proxyuser_group'] : 'users'
     });
+    serviceUsers.pushObject({
+      id: 'puppet var',
+      name: 'smokeuser',
+      value: configs['smokeuser'] ? configs['smokeuser'] : 'ambari-qa'
+    });
   },
 
   showSecurityErrorPopup: function () {
