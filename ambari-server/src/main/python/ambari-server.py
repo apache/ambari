@@ -2472,6 +2472,12 @@ def setup_master_key(resetKey=False):
       if retCode != 0:
         print 'Saving secure ldap password failed. Exiting.'
 
+  # Since files for store and master are created we need to ensure correct
+  # permissions
+  ambari_user = read_ambari_user()
+  if ambari_user:
+    adjust_directory_permissions(ambari_user)
+
   return key, True, persist
 
 def get_credential_store_location(properties):
@@ -2674,13 +2680,18 @@ def setup_https(args):
       f = open(conf_file, 'w')
       properties.store(f, "Changed by 'ambari-server setup-https' command")
       if is_server_runing():
-        print 'NOTE: Reset Ambari Server to apply changes'+\
+        print 'NOTE: Restart Ambari Server to apply changes'+\
               ' ("ambari-server restart|stop|start")'
     except (KeyError), e:
       err = 'Property ' + str(e) + ' is not defined at ' + conf_file
       raise FatalException(1, err)
   else:
     print "setup-https is not enabled in silent mode."
+
+  ambari_user = read_ambari_user()
+  if ambari_user:
+    adjust_directory_permissions(ambari_user)
+
   print "Ambari Server 'HTTPS setup' completed successfully. Exiting."
   
 def is_server_runing():
