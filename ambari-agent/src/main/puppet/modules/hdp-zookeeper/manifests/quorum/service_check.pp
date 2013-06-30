@@ -22,7 +22,7 @@ class hdp-zookeeper::quorum::service_check()
 {
   include hdp-zookeeper::params
   $conf_dir = $hdp-zookeeper::params::conf_dir
-
+  $security_enabled = $hdp::params::security_enabled
   $smoke_test_user = $hdp::params::smokeuser
 
   $smoke_script = $hdp::params::zk_smoke_test_script
@@ -44,7 +44,7 @@ define hdp-zookeeper::quorum_smoke_shell_file()
   }
 
   exec { '/tmp/zkSmoke.sh':
-    command   => "sh /tmp/zkSmoke.sh ${smoke_script} ${smoke_test_user} ${conf_dir}",
+    command   => "sh /tmp/zkSmoke.sh ${smoke_script} ${smoke_test_user} ${conf_dir} ${security_enabled}",
     tries     => 3,
     try_sleep => 5,
     require   => File['/tmp/zkSmoke.sh'],
