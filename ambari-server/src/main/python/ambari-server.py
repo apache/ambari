@@ -534,8 +534,7 @@ def check_selinux():
         print "Temporarily disabling SELinux"
         run_os_command(SE_SETENFORCE_CMD)
       print_warning_msg(
-        "SELinux is set to 'permissive' mode and temporarily disabled."
-        " You should disable SELinux permanently.")
+        "SELinux is set to 'permissive' mode and temporarily disabled.")
       ok = get_YN_input("OK to continue [y/n] (y)? ", True)
       if not ok:
         raise FatalException(1, None)
@@ -659,7 +658,7 @@ def check_ambari_user():
       update_user_setting = create_user # Only if we will create another user
     else: # user is not configured yet
       update_user_setting = True # Write configuration anyway
-      create_user = get_YN_input("Create a separate user for ambari-server "
+      create_user = get_YN_input("Use a separate user for ambari-server "
                    "daemon [y/n] (n)? ", False)
       if not create_user:
         user = "root"
@@ -695,7 +694,7 @@ def check_iptables():
     print 'Stopping iptables service'
   '''
   retcode, out, err = run_os_command(IP_TBLS_STOP_CMD)
-  print 'iptables is disabled now'
+  print 'iptables is disabled now. please reenable later.'
 
   if not retcode == 0 and err and len(err) > 0:
     print err
