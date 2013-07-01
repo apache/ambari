@@ -245,7 +245,7 @@
   <!-- Additional configuration specific to HBase security -->
   <property>
     <name>hbase.superuser</name>
-    <value></value>
+    <value>hbase</value>
     <description>List of users or groups (comma-separated), who are allowed
     full privileges, regardless of stored ACLs, across the cluster.
     Only used when HBase security is enabled.

@@ -34,14 +34,14 @@ App.ServiceConfigView = Em.View.extend({
   filter: '', //from template
   columns: [], //from template
   canEdit: true, // View is editable or read-only?
-  toggleRestartMessageView: function(){
+  toggleRestartMessageView: function () {
     this.$('.service-body').toggle('blind', 200);
     this.set('isRestartMessageCollapsed', !this.get('isRestartMessageCollapsed'));
   },
   didInsertElement: function () {
     this.$('.service-body').hide();
-    $(".restart-required-property").tooltip({html:true});
-    $(".icon-lock").tooltip({placement:'right'});
+    $(".restart-required-property").tooltip({html: true});
+    $(".icon-lock").tooltip({placement: 'right'});
   }
 });
 
@@ -128,6 +128,19 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
               propertyDisplayName: "dfs.block.local-path-access.user",
               newValue: newValue,
               curValue: curConfigs.findProperty("name", "dfs_block_local_path_access_user").get("value"),
+              changedPropertyName: "hbase_user"
+            }
+          );
+        }
+        var hbaseCurConfigs = stepConfigs.findProperty("serviceName", "HBASE").get("configs");
+        if (newValue != hbaseCurConfigs.findProperty("name", "hbase.superuser").get("value")) {
+          this.affectedProperties.push(
+            {
+              serviceName: "HBASE",
+              propertyName: "hbase.superuser",
+              propertyDisplayName: "hbase.superuser",
+              newValue: newValue,
+              curValue: hbaseCurConfigs.findProperty("name", "hbase.superuser").get("value"),
               changedPropertyName: "hbase_user"
             }
           );
@@ -313,21 +326,21 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
     return category.indexOf("Advanced") != -1;
   },
   showAddPropertyWindow: function (event) {
-    var allConfigs = this.get('service.configs').filterProperty('serviceName',this.get('service.serviceName'));
+    var allConfigs = this.get('service.configs').filterProperty('serviceName', this.get('service.serviceName'));
     var serviceConfigObj = Ember.Object.create({
       name: '',
       value: '',
       defaultValue: null,
       filename: '',
       isUserProperty: true,
-      isKeyError:false,
-      errorMessage:"",
-      observeAddPropertyValue:function(){
+      isKeyError: false,
+      errorMessage: "",
+      observeAddPropertyValue: function () {
         var name = this.get('name');
-        if(name.trim() != ""){
-          if(validator.isValidConfigKey(name)){
+        if (name.trim() != "") {
+          if (validator.isValidConfigKey(name)) {
             var configMappingProperty = App.config.get('configMapping').all().findProperty('name', name);
-            if((configMappingProperty == null) && (!allConfigs.findProperty('name',name))){
+            if ((configMappingProperty == null) && (!allConfigs.findProperty('name', name))) {
               this.set("isKeyError", false);
               this.set("errorMessage", "");
             } else {
@@ -375,11 +388,11 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
           serviceConfigObj.serviceName = serviceName;
           serviceConfigObj.displayType = stringUtils.isSingleLine(serviceConfigObj.get('value')) ? 'advanced' : 'multiLine';
           var serviceConfigProperty = App.ServiceConfigProperty.create(serviceConfigObj);
-          self.get('controller.secureConfigs').filterProperty('filename',self.get('category.siteFileName')).forEach(function(_secureConfig){
-            if(_secureConfig.name === serviceConfigProperty.get('name')) {
-              serviceConfigProperty.set('isSecureConfig',true);
+          self.get('controller.secureConfigs').filterProperty('filename', self.get('category.siteFileName')).forEach(function (_secureConfig) {
+            if (_secureConfig.name === serviceConfigProperty.get('name')) {
+              serviceConfigProperty.set('isSecureConfig', true);
             }
-          },this);
+          }, this);
           self.get('serviceConfigs').pushObject(serviceConfigProperty);
           this.hide();
         }
