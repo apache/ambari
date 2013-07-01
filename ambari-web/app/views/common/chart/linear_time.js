@@ -349,6 +349,10 @@ App.ChartLinearTimeView = Ember.View.extend({
       if (graph_container.length) {
         this.draw(seriesData);
         this.set('hasData', true);
+          //move yAxis value lower to make them fully visible
+          if(!this.get('isPopup')) {
+              $('svg.y_axis text').attr('y',8);
+          }
       }
     }
     else {
