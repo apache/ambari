@@ -426,13 +426,34 @@ don't exist, they will be created with this permission.</description>
   </property>
 
   <property>
-    <name>dfs.namenode.check.stale.datanode</name>
+    <name>dfs.namenode.avoid.read.stale.datanode</name>
     <value>true</value>
     <description>
-      With this setting, the datanodes that have not replied to the heartbeat
-      for more than 30s (i.e. in a stale state) are used for reads only if all
-      other remote replicas have failed.
+      Indicate whether or not to avoid reading from stale datanodes whose
+      heartbeat messages have not been received by the namenode for more than a
+      specified time interval.
     </description>
+  </property>
+  <property>
+    <name>dfs.namenode.avoid.write.stale.datanode</name>
+    <value>true</value>
+    <description>
+      Indicate whether or not to avoid writing to stale datanodes whose
+      heartbeat messages have not been received by the namenode for more than a
+      specified time interval.
+    </description>
+  </property>
+  <property>
+    <name>dfs.namenode.write.stale.datanode.ratio</name>
+    <value>1.0f</value>
+    <description>When the ratio of number stale datanodes to total datanodes marked is greater
+      than this ratio, stop avoiding writing to stale nodes so as to prevent causing hotspots.
+    </description>
+  </property>
+  <property>
+    <name>dfs.namenode.stale.datanode.interval</name>
+    <value>30000</value>
+    <description>Datanode is stale after not getting a heartbeat in this interval in ms</description>
   </property>
 
 </configuration>
