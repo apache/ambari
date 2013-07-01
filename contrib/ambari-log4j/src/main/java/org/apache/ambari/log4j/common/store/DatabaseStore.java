@@ -96,10 +96,12 @@ public class DatabaseStore implements LogStore {
   @Override
   public void close() throws IOException {
     try {
-      connection.close();
+      if (this.initialized && this.connection != null) {
+        connection.close();
+      }
     } catch (SQLException sqle) {
       throw new IOException(
-          "Failed to close connectionto database " + this.database, sqle);
+          "Failed to close connection to database " + this.database, sqle);
     }
   }
 }
