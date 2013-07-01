@@ -252,7 +252,7 @@ class hdp-hadoop(
         before  => Anchor['hdp-hadoop::end']
       }
       $tc_owner = 'root'
-      $tc_mode = '0400'
+      $tc_mode = '0644'
     } else {
       $tc_owner = $hdfs_user
       $tc_mode = undef
