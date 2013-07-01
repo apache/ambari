@@ -356,6 +356,15 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         value: hiveHostName
       });
     }
+    var webHcatComponent =  App.Service.find('WEBHCAT').get('hostComponents').findProperty('componentName', 'WEBHCAT_SERVER');
+    if(this.isWebHcatSelected() && webHcatComponent) {
+     var webHcatHostName =  webHcatComponent.get('host.hostName');
+      this.get('globalProperties').pushObject({
+        id: 'puppet var',
+        name: 'webhcat_server',
+        value: webHcatHostName
+      });
+    }
   },
 
   loadStaticGlobal: function () {

@@ -457,6 +457,22 @@ module.exports = [
     "value": "<templateName[0]>",
     "filename": "core-site.xml",
     "serviceName": "OOZIE"
+  },
+  {
+    "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
+    "templateName": ["proxyuser_group"],
+    "foreignKey": ["webHCat_http_primary_name"],
+    "value": "<templateName[0]>",
+    "filename": "core-site.xml",
+    "serviceName": "WEBHCAT"
+  },
+  {
+    "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
+    "templateName": ["webhcat_server"],
+    "foreignKey": ["webHCat_http_primary_name"],
+    "value": "<templateName[0]>",
+    "filename": "core-site.xml",
+    "serviceName": "WEBHCAT"
   }
 ];
 
