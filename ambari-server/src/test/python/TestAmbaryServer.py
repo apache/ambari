@@ -967,7 +967,8 @@ class TestAmbariServer(TestCase):
     args.jce_policy = None
     ambari_server.install_jce_manualy(args)
 
-  
+
+  @patch.object(ambari_server, 'read_ambari_user')
   @patch.object(ambari_server, "get_validated_string_input")
   @patch.object(ambari_server, "find_properties_file")
   @patch.object(ambari_server, "get_ambari_properties")
@@ -981,7 +982,8 @@ class TestAmbariServer(TestCase):
                        import_cert_and_key_action_mock,
                        is_server_runing_mock, get_ambari_properties_mock,\
                        find_properties_file_mock,\
-                       get_validated_string_input_mock):
+                       get_validated_string_input_mock,
+                       read_ambari_user_method):
     args = MagicMock()
     open_Mock.return_value = file
     p = get_ambari_properties_mock.return_value
@@ -998,7 +1000,7 @@ class TestAmbariServer(TestCase):
 
     # Testing call under root
     is_root_mock.return_value = True
-
+    read_ambari_user_method.return_value = None
     #Case #1: if client ssl is on and user didnt choose 
     #disable ssl option and choose import certs and keys
     p.get_property.side_effect = ["key_dir","5555","6666", "true"]
@@ -2761,15 +2763,16 @@ class TestAmbariServer(TestCase):
     sys.stdout = sys.__stdout__
 
 
-
+  @patch.object(ambari_server, 'read_ambari_user')
+  @patch.object(ambari_server, 'read_master_key')
   @patch.object(ambari_server, 'update_properties')
   @patch.object(ambari_server, 'save_master_key')
-  @patch.object(ambari_server, 'get_validated_string_input')
   @patch.object(ambari_server, 'get_YN_input')
   @patch.object(ambari_server, 'get_ambari_properties')
   def test_setup_master_key_persist(self, get_ambari_properties_method,
-            get_YN_input_method, get_validated_string_input_method,
-            save_master_key_method, update_properties_method):
+            get_YN_input_method, save_master_key_method,
+            update_properties_method, read_master_key_method,
+            read_ambari_user_method):
 
     out = StringIO.StringIO()
     sys.stdout = out
@@ -2779,28 +2782,32 @@ class TestAmbariServer(TestCase):
 
     get_ambari_properties_method.return_value = configs
     get_YN_input_method.return_value = True
-    get_validated_string_input_method.return_value = "aaa"
+    read_master_key_method.return_value = "aaa"
+    read_ambari_user_method.return_value = None
     save_master_key_method.return_value = None
     update_properties_method.return_value = None
 
     ambari_server.setup_master_key(False)
 
     self.assertTrue(get_YN_input_method.called)
-    self.assertTrue(get_validated_string_input_method.called)
+    self.assertTrue(read_master_key_method.called)
+    self.assertTrue(read_ambari_user_method.called)
     self.assertTrue(save_master_key_method.called)
     self.assertTrue(update_properties_method.called)
 
     sys.stdout = sys.__stdout__
 
 
+  @patch.object(ambari_server, 'read_ambari_user')
+  @patch.object(ambari_server, 'read_master_key')
   @patch.object(ambari_server, 'update_properties')
   @patch.object(ambari_server, 'save_master_key')
-  @patch.object(ambari_server, 'get_validated_string_input')
   @patch.object(ambari_server, 'get_YN_input')
   @patch.object(ambari_server, 'get_ambari_properties')
   def test_setup_master_key_not_persist(self, get_ambari_properties_method,
-              get_YN_input_method, get_validated_string_input_method,
-              save_master_key_method, update_properties_method):
+              get_YN_input_method, save_master_key_method,
+              update_properties_method, read_master_key_method,
+              read_ambari_user_method):
 
     out = StringIO.StringIO()
     sys.stdout = out
@@ -2810,14 +2817,16 @@ class TestAmbariServer(TestCase):
 
     get_ambari_properties_method.return_value = configs
     get_YN_input_method.side_effect = [True, False]
-    get_validated_string_input_method.return_value = "aaa"
+    read_master_key_method.return_value = "aaa"
+    read_ambari_user_method.return_value = None
     save_master_key_method.return_value = None
     update_properties_method.return_value = None
 
     ambari_server.setup_master_key(False)
 
     self.assertTrue(get_YN_input_method.called)
-    self.assertTrue(get_validated_string_input_method.called)
+    self.assertTrue(read_master_key_method.called)
+    self.assertTrue(read_ambari_user_method.called)
     self.assertTrue(update_properties_method.called)
     self.assertFalse(save_master_key_method.called)
 

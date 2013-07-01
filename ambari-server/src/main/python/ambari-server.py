@@ -1832,7 +1832,7 @@ def setup(args):
       err = 'Unable to start PostgreSQL server. Exiting'
       raise FatalException(retcode, err)
 
-    print 'Configuring database...'
+    print 'Configuring local database...'
     retcode = setup_db(args)
     if not retcode == 0:
       err = 'Running database init script was failed. Exiting.'
@@ -2386,13 +2386,32 @@ def reset_master_key():
     raise FatalException(4, err)
   setup_master_key(resetKey=True)
 
+def read_master_key():
+  passwordPattern = ".*"
+  passwordDescr = "Invalid characters in password. Use only alphanumeric or "\
+                  "_ or - characters"
+  passwordDefault = ""
+
+  masterKey = get_validated_string_input(
+      "Please provide master key for the credential store: ",
+      passwordDefault, passwordPattern, passwordDescr, True, True)
+
+  if not masterKey:
+    print "Master Key cannot be empty!"
+    return read_master_key()
+
+  masterKey2 = get_validated_string_input( "Re-enter master key: ",
+      passwordDefault, passwordPattern, passwordDescr, True, True)
+
+  if masterKey != masterKey2:
+    print "Master key did not match!"
+    return read_master_key()
+
+  return masterKey
+
 
 def setup_master_key(resetKey=False):
   properties = get_ambari_properties()
-  passwordPattern = "^[a-zA-Z0-9_-]*$"
-  passwordDescr = "Invalid characters in password. Use only alphanumeric or "\
-                  "_ or - characters"
-  passwordDefault = "hadooprocks!"
   # check configuration for location of master key
   keyLocation = get_master_key_location(properties)
   persist = get_master_key_ispersisted(properties)
@@ -2420,12 +2439,7 @@ def setup_master_key(resetKey=False):
 
   key = None
   if masterKeyFile is None or resetKey:
-    key = get_validated_string_input(
-      "Please provide master key for the credential store: ",
-      passwordDefault, passwordPattern, passwordDescr, True, False)
-    if key != passwordDefault:
-      key = get_validated_string_input("Please re-enter master key: ",
-        passwordDefault, passwordPattern, passwordDescr, True, False)
+    key = read_master_key()
 
     persist = get_YN_input("Do you want to persist master key. If you choose "\
                            "not to persist, you need to provide the master "\
