@@ -341,6 +341,7 @@ App.AddHostController = App.WizardController.extend({
     this.clearAllSteps();
     this.clearStorageData();
     App.router.get('updateController').updateAll();
+    App.updater.immediateRun('updateHost');
   }
 
 });
