@@ -186,6 +186,14 @@ module.exports = [
     "serviceName": "MAPREDUCE"
   },
   {
+    "name": "mapred.task.tracker.task-controller",
+    "templateName": ["tasktracker_task_controller"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "mapred-site.xml",
+    "serviceName": "MAPREDUCE"
+  },
+  {
     "name": "hbase.master.kerberos.principal",
     "templateName": ["hbase_principal_name", "kerberos_domain"],
     "foreignKey": null,

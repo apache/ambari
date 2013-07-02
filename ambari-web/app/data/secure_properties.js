@@ -287,6 +287,20 @@ module.exports =
       "category": "TaskTracker",
       "component": "TASKTRACKER"
     },
+    {
+      "id": "puppet var",
+      "name": "tasktracker_task_controller",
+      "displayName": "TaskController",
+      "value": "",
+      "defaultValue": "org.apache.hadoop.mapred.LinuxTaskController",
+      "description": "TaskController which is used to launch and manage task execution. This sets property mapred.task.tracker.task-controller",
+      "displayType": "advanced",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "MAPREDUCE",
+      "category": "TaskTracker",
+      "component": "TASKTRACKER"
+    },
 
     //HBASE
     {

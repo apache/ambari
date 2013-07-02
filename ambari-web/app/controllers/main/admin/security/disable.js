@@ -335,6 +335,9 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
               case 'dfs.datanode.http.address':
                 _serviceConfigTags.configs[configName] = '0.0.0.0:50075';
                 break;
+              case 'mapred.task.tracker.task-controller':
+                _serviceConfigTags.configs[configName] = 'org.apache.hadoop.mapred.DefaultTaskController';
+                break;
               case 'hbase.security.authentication':
                 _serviceConfigTags.configs[configName] = 'simple';
                 break;
