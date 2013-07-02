@@ -18,95 +18,73 @@
 
 
 <div id="host-warnings">
-    <div class="row-fluid">
-            <div class="span6">
-              {{view Ember.Select
+  <div class="notice">
+    <span>{{t installer.step3.hostWarningsPopup.notice}}</span>
+  </div>
+  <div class="row-fluid">
+    <div class="span7">
+      {{t common.hosts}}&nbsp;{{view Ember.Select
               contentBinding="view.categories"
               selectionBinding="view.category"
               }}
-            </div>
-        <div class="span3 offset3">
-            <a href="javascript.void(0)" title="Show Details" {{action openWarningsInDialog target="view"}} class="task-detail-open-dialog"><i class="icon-external-link"></i> {{t installer.step3.hostWarningsPopup.details}}</a>
+    </div>
+    <div class="span3 offset2">
+      <a href="javascript.void(0)" title="Show Details" {{action openWarningsInDialog target="view"}}
+         class="task-detail-open-dialog"><i
+              class="icon-external-link"></i> {{t installer.step3.hostWarningsPopup.details}}</a>
+    </div>
+  </div>
+  <div class="summary">
+    <span>
+      {{#if view.warnings.length}}
+        <i class="icon-warning-sign"></i>
+      {{else}}
+        <i class="icon-ok"></i>
+      {{/if}}
+      &nbsp;{{view.warningsSummary}}</span>
+  </div>
+  <div class="content-area">
+    <div class="warnings-list">
+      {{#each category in view.content}}
+        <div class="block">
+          <div class="title">
+            {{#if category.warnings.length}}
+            <i class="icon-warning-sign"></i>
+            {{else}}
+            <i class="icon-ok"></i>
+            {{/if}}
+            &nbsp;{{category.warnings.length}} {{category.title}}</div>
+          {{#if category.warnings.length}}
+          <table>
+            <thead>
+            <tr>
+              <th colspan="2">{{category.message}}</th>
+            </tr>
+            <tr>
+              <th colspan="2"><b>{{category.type}}</b></th>
+            </tr>
+            </thead>
+            <tbody>
+            {{#each warning in category.warnings}}
+              <tr>
+                <td>{{warning.name}}</td>
+                <td>{{t installer.step3.hostWarningsPopup.exist}}
+                  <a>
+                    {{warning.hosts.length}}
+                    {{#if warning.onSingleHost}}
+                      {{t installer.step3.hostWarningsPopup.host}}
+                    {{else}}
+                      {{t installer.step3.hostWarningsPopup.hosts}}
+                    {{/if}}
+                  </a>
+                </td>
+              </tr>
+            {{/each}}
+            </tbody>
+          </table>
+          {{/if}}
         </div>
+      {{/each}}
     </div>
-    <div class="content-area">
-          <div class="warnings-list">
-              <table class="table">
-                  <thead>
-                  <tr>
-                      <th class="category-title" colspan="2">{{t installer.step3.hostWarningsPopup.directoriesAndFiles}}</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  {{#each path in view.content.directoriesFiles}}
-                  <tr>
-                      <td>{{path.name}}</td>
-                      <td>
-                        <span>
-                        {{#if path.isWarn}}
-                          <i class="icon-warning-sign"></i>
-                        {{else}}
-                          <i class="icon-ok"></i>
-                        {{/if}}
-                        {{path.message}}
-                        </span>
-                      </td>
-                  </tr>
-                  {{/each}}
-                  </tbody>
-              </table>
-              <table class="table">
-                  <thead>
-                  <tr>
-                      <th class="category-title" colspan="2">{{t installer.step3.hostWarningsPopup.packages}}</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                    {{#each package in view.content.packages}}
-                    <tr>
-                        <td>{{package.name}}</td>
-                        <td>
-                          <span>
-                          {{#if package.isWarn}}
-                            <i class="icon-warning-sign"></i>
-                          {{else}}
-                            <i class="icon-ok"></i>
-                          {{/if}}
-                          {{package.message}}
-                          </span>
-                        </td>
-                    </tr>
-                    {{/each}}
-                  </tbody>
-              </table>
-              <table class="table">
-                  <thead>
-                  <tr>
-                      <th class="category-title" colspan="2">{{t installer.step3.hostWarningsPopup.processes}}</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  {{#if view.content.processes.length}}
-                    {{#each process in view.content.processes}}
-                    <tr>
-                        <td {{bindAttr title="process.command"}}>{{process.shortCommand}}}</td>
-                        <td>
-                          <span>
-                          {{#if process.isWarn}}
-                            <i class="icon-warning-sign"></i>
-                          {{else}}
-                            <i class="icon-ok"></i>
-                          {{/if}}
-                          {{process.message}}
-                          </span>
-                        </td>
-                    </tr>
-                    {{/each}}
-                  {{else}}
-                  <tr><td colspan="2">{{t installer.step3.hostWarningsPopup.noProcesses}}</td></tr>
-                  {{/if}}
-                  </tbody>
-              </table>
-          </div>
-    </div>
+  </div>
 </div>

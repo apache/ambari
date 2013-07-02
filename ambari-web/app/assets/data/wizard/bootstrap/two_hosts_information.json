@@ -367,7 +367,7 @@
               "type" : "not_exist"
             },
             {
-              "name" : "/var/run/templeton",
+              "name" : "/var/log/templeton",
               "type" : "not_exist"
             },
             {

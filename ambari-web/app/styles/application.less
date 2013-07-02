@@ -2526,22 +2526,32 @@ table.graphs {
 }
 
 #host-warnings {
+  .notice {
+    padding-bottom: 10px;
+  }
+  .summary {
+    padding-left: 17px;
+  }
   .warnings-list {
-    table {
-      margin-bottom: 0;
-      margin-top: 5px;
-      td {
-        width: 50%;
-        i {
-          font-size: 16px;
-          margin: 2px;
+    .block {
+      margin-bottom: 5px;
+      border: 2px solid;
+      border-radius: 4px;
+      .title {
+        padding: 3px;
+        padding-left: 15px;
+      }
+      table {
+        border-top: 1px solid;
+        width: 100%;
+        td, th {
+          text-align: left;
+          padding-left: 15px;
+        }
+        thead tr:first-child th {
+          font-weight: normal;
         }
       }
-    }
-    .category-title {
-      padding: 3px;
-      text-align: left;
-      background-color: rgb(196, 193, 193);
     }
   }
 }
