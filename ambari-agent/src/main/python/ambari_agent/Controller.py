@@ -59,6 +59,7 @@ class Controller(threading.Thread):
     self.repeatRegistration = False
     self.cachedconnect = None
     self.range = range
+    self.hasMappedComponents = True
 
   def __del__(self):
     logger.info("Server connection disconnected.")
@@ -86,6 +87,8 @@ class Controller(threading.Thread):
           logger.info("Got status commands on registration " + pprint.pformat(ret['statusCommands']) )
           self.addToQueue(ret['statusCommands'])
           pass
+        else:
+          self.hasMappedComponents = False
         pass
       except ssl.SSLError:
         self.repeatRegistration=False
@@ -120,7 +123,7 @@ class Controller(threading.Thread):
   # For testing purposes
   DEBUG_HEARTBEAT_RETRIES = 0
   DEBUG_SUCCESSFULL_HEARTBEATS = 0
-  DEBUG_STOP_HEARTBITTING = False
+  DEBUG_STOP_HEARTBEATING = False
 
   def heartbeatWithServer(self):
     self.DEBUG_HEARTBEAT_RETRIES = 0
@@ -133,10 +136,11 @@ class Controller(threading.Thread):
 
     #TODO make sure the response id is monotonically increasing
     id = 0
-    while not self.DEBUG_STOP_HEARTBITTING:
+    while not self.DEBUG_STOP_HEARTBEATING:
       try:
         if not retry:
-          data = json.dumps(self.heartbeat.build(self.responseId, int(hb_interval)))
+          data = json.dumps(
+              self.heartbeat.build(self.responseId, int(hb_interval), self.hasMappedComponents))
           pass
         else:
           self.DEBUG_HEARTBEAT_RETRIES += 1
@@ -146,6 +150,9 @@ class Controller(threading.Thread):
         logger.debug('Got server response: ' + pprint.pformat(response))
         
         serverId=int(response['responseId'])
+
+        if 'hasMappedComponents' in response.keys():
+          self.hasMappedComponents = response['hasMappedComponents'] != False
 
         if 'registrationCommand' in response.keys():
           # check if the registration command is None. If none skip
@@ -209,7 +216,7 @@ class Controller(threading.Thread):
     self.actionQueue = ActionQueue(self.config)
     self.actionQueue.start()
     self.register = Register(self.config)
-    self.heartbeat = Heartbeat(self.actionQueue)
+    self.heartbeat = Heartbeat(self.actionQueue, self.config)
 
     opener = urllib2.build_opener()
     urllib2.install_opener(opener)

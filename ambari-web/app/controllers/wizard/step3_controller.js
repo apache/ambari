@@ -713,6 +713,12 @@ App.WizardStep3Controller = Em.Controller.extend({
         console.log("last_agent_env is missing for " + host.Hosts.host_name + ".  Skipping host check.");
         return;
       }
+      
+      // TODO - Remove when correct parsing code in place.
+      if (!host.Hosts.last_agent_env.paths) {
+        return;
+      }
+      
       host.Hosts.last_agent_env.paths.forEach(function(path){
         var parsedPath = {
           name: path.name,

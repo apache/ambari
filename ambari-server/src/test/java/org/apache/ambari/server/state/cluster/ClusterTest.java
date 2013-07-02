@@ -173,9 +173,8 @@ public class ClusterTest {
     Directory dir2 = new Directory();
     dir2.setName("/var/log/hadoop");
     dir2.setType("not_exist");
-    agentEnv.setPaths(new Directory[] { dir1, dir2 });
-    
-    
+    agentEnv.setStackFoldersAndFiles(new Directory[] { dir1, dir2 });
+
     AgentVersion agentVersion = new AgentVersion("0.0.x");
     long currentTime = 1001;
 

@@ -19,6 +19,7 @@ limitations under the License.
 '''
 
 from unittest import TestCase
+import unittest
 from ambari_agent.Heartbeat import Heartbeat
 from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent.LiveStatus import LiveStatus
@@ -28,6 +29,7 @@ import os
 import time
 from mock.mock import patch, MagicMock, call
 from ambari_agent.StackVersionsFileHandler import StackVersionsFileHandler
+from ambari_agent.HostInfo import HostInfo
 import StringIO
 import sys
 
@@ -111,6 +113,58 @@ class TestHeartbeat(TestCase):
     NUMBER_OF_COMPONENTS = 1
     self.assertEquals(max_number_of_status_entries == NUMBER_OF_COMPONENTS, True)
 
+  @patch.object(HostInfo, 'register')
+  def test_heartbeat_no_host_check_cmd_in_progress(self, register_mock):
+    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
+    actionQueue.commandInProgress= {
+      'role' : "role",
+      'actionId' : "actionId",
+      'taskId' : "taskId",
+      'stdout' : "stdout",
+      'clusterName' : "clusterName",
+      'stderr' : 'none',
+      'exitCode' : 777,
+      'serviceName' : "serviceName",
+      'status' : 'IN_PROGRESS',
+      'configurations':{'global' : {}},
+      'roleCommand' : 'START'
+    }
+    heartbeat = Heartbeat(actionQueue)
+    heartbeat.build(12, 6)
+    self.assertTrue(register_mock.called)
+    args, kwargs = register_mock.call_args_list[0]
+    self.assertTrue(args[2])
+    self.assertFalse(args[1])
+
+  @patch.object(HostInfo, 'register')
+  def test_heartbeat_no_host_check_cmd_in_queue(self, register_mock):
+    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
+    statusCommand = {
+      "serviceName" : 'HDFS',
+      "commandType" : "STATUS_COMMAND",
+      "clusterName" : "",
+      "componentName" : "DATANODE",
+      'configurations':{'global' : {}}
+    }
+    actionQueue.commandQueue.put(statusCommand)
+
+    heartbeat = Heartbeat(actionQueue)
+    heartbeat.build(12, 6)
+    self.assertTrue(register_mock.called)
+    args, kwargs = register_mock.call_args_list[0]
+    self.assertTrue(args[2])
+    self.assertFalse(args[1])
+
+  @patch.object(HostInfo, 'register')
+  def test_heartbeat_host_check_no_cmd(self, register_mock):
+    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
+    heartbeat = Heartbeat(actionQueue)
+    heartbeat.build(12, 6)
+    self.assertTrue(register_mock.called)
+    args, kwargs = register_mock.call_args_list[0]
+    self.assertFalse(args[1])
+    self.assertFalse(args[2])
+
   def test_heartbeat_with_task_in_progress(self):
     actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
     actionQueue.commandInProgress= {
@@ -141,3 +195,6 @@ class TestHeartbeat(TestCase):
     self.assertEquals(result['reports'][0]['status'], "IN_PROGRESS")
     self.assertEquals(result['reports'][0]['roleCommand'], "START")
     pass
+
+if __name__ == "__main__":
+  unittest.main(verbosity=2)

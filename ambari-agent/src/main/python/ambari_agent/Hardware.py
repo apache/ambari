@@ -37,7 +37,28 @@ class Hardware:
     otherInfo = self.facterInfo()
     self.hardware.update(otherInfo)
     pass
-  
+
+  @staticmethod
+  def extractMountInfo(outputLine):
+    if outputLine == None or len(outputLine) == 0:
+      return None
+
+      """ this ignores any spaces in the filesystemname and mounts """
+    split = outputLine.split()
+    if (len(split)) == 7:
+      device, type, size, used, available, percent, mountpoint = split
+      mountinfo = {
+        'size' : size,
+        'used' : used,
+        'available' : available,
+        'percent' : percent,
+        'mountpoint' : mountpoint,
+        'type': type,
+        'device' : device }
+      return mountinfo
+    else:
+      return None
+
   def osdisks(self):
     """ Run df to find out the disks on the host. Only works on linux 
     platforms. Note that this parser ignores any filesystems with spaces 
@@ -47,24 +68,13 @@ class Hardware:
     dfdata = df.communicate()[0]
     lines = dfdata.splitlines()
     for l in lines:
-      split = l.split()
-      """ this ignores any spaces in the filesystemname and mounts """
-      if (len(split)) == 7:
-        device, type, size, used, available, percent, mountpoint = split
-        mountinfo = { 
-                     'size' : size,
-                     'used' : used,
-                     'available' : available,
-                     'percent' : percent,
-                     'mountpoint' : mountpoint,
-                     'type': type,
-                     'device' : device }
-        if os.access(mountpoint, os.W_OK):
-          mounts.append(mountinfo)
-        pass
+      mountinfo = self.extractMountInfo(l)
+      if mountinfo != None and os.access(mountinfo['mountpoint'], os.W_OK):
+        mounts.append(mountinfo)
       pass
+    pass
     return mounts
-    
+
   def facterBin(self, facterHome):
     facterBin = facterHome + "/bin/facter"
     if (os.path.exists(facterBin)):

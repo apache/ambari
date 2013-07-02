@@ -38,6 +38,7 @@ public class HeartBeatResponse {
   RegistrationCommand registrationCommand;
 
   boolean restartAgent = false;
+  boolean hasMappedComponents = false;
 
   @JsonProperty("responseId")
   public long getResponseId() {
@@ -87,6 +88,16 @@ public class HeartBeatResponse {
   @JsonProperty("restartAgent")
   public void setRestartAgent(boolean restartAgent) {
     this.restartAgent = restartAgent;
+  }
+
+  @JsonProperty("hasMappedComponents")
+  public boolean hasMappedComponents() {
+    return hasMappedComponents;
+  }
+
+  @JsonProperty("hasMappedComponents")
+  public void setHasMappedComponents(boolean hasMappedComponents) {
+    this.hasMappedComponents = hasMappedComponents;
   }
 
   public void addExecutionCommand(ExecutionCommand execCmd) {

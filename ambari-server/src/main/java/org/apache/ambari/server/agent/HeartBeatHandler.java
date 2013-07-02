@@ -97,6 +97,10 @@ public class HeartBeatHandler {
 
   public HeartBeatResponse handleHeartBeat(HeartBeat heartbeat)
       throws AmbariException {
+    long now = System.currentTimeMillis();
+    if(heartbeat.getAgentEnv() != null && heartbeat.getAgentEnv().getHostHealth() != null) {
+      heartbeat.getAgentEnv().getHostHealth().setServerTimeStampAtReporting(now);
+    }
     String hostname = heartbeat.getHostname();
     Long currentResponseId = hostResponseIds.get(hostname);
     HeartBeatResponse response;
@@ -133,7 +137,6 @@ public class HeartBeatHandler {
     hostResponseIds.put(hostname, currentResponseId);
     hostResponses.put(hostname, response);
 
-    long now = System.currentTimeMillis();
     HostState hostState = hostObject.getState();
     // If the host is waiting for component status updates, notify it
     if (heartbeat.componentStatus.size() > 0
@@ -170,6 +173,7 @@ public class HeartBeatHandler {
     // Send commands if node is active
     if (hostObject.getState().equals(HostState.HEALTHY)) {
       sendCommands(hostname, response);
+      annotateResponse(hostname, response);
     }
     return response;
   }
@@ -452,5 +456,22 @@ public class HeartBeatHandler {
     hostResponseIds.put(hostname, requestId);
     response.setResponseId(requestId);
     return response;
+  }
+
+  /**
+   * Annotate the response with some housekeeping details.
+   * hasMappedComponents - indicates if any components are mapped to the host
+   * @param hostname
+   * @param response
+   * @throws AmbariException
+   */
+  private void annotateResponse(String hostname, HeartBeatResponse response) throws AmbariException {
+    for (Cluster cl : this.clusterFsm.getClustersForHost(hostname)) {
+      List<ServiceComponentHost> scHosts = cl.getServiceComponentHosts(hostname);
+      if (scHosts != null && scHosts.size() > 0) {
+        response.setHasMappedComponents(true);
+        break;
+      }
+    }
   }
 }

@@ -38,20 +38,20 @@ class Register:
     global clusterId, clusterDefinitionRevision, firstContact
     timestamp = int(time.time()*1000)
    
-    hostInfo = HostInfo() 
+    hostInfo = HostInfo(self.config)
     agentEnv = { }
-    hostInfo.register(agentEnv)
+    hostInfo.register(agentEnv, False, False)
 
     version = self.read_agent_version()
     
     register = { 'responseId'        : int(id),
-                  'timestamp'         : timestamp,
-                  'hostname'          : hostname.hostname(),
-                  'publicHostname'    : hostname.public_hostname(),
-                  'hardwareProfile'   : self.hardware.get(),
-                  'agentEnv'          : agentEnv,
-                  'agentVersion'      : version
-                }
+                 'timestamp'         : timestamp,
+                 'hostname'          : hostname.hostname(),
+                 'publicHostname'    : hostname.public_hostname(),
+                 'hardwareProfile'   : self.hardware.get(),
+                 'agentEnv'          : agentEnv,
+                 'agentVersion'      : version
+               }
     return register
 
   def read_agent_version(self):
