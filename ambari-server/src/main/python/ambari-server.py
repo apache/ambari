@@ -157,12 +157,12 @@ SECURITY_MASTER_KEY_FILENAME = "master"
 SSL_KEY_DIR = 'security.server.keys_dir'
 SSL_API_PORT = 'client.api.ssl.port'
 SSL_API = 'api.ssl'
-SSL_SERVER_CERT_NAME = 'security.server.cert_name'
-SSL_SERVER_KEY_NAME = 'security.server.key_name'
-SSL_CERT_FILE_NAME = "ca.crt"
-SSL_KEY_FILE_NAME = "ca.key"
-SSL_KEYSTORE_FILE_NAME = "keystore.p12"
-SSL_KEY_PASSWORD_FILE_NAME = "pass.txt"
+SSL_SERVER_CERT_NAME = 'client.api.ssl.cert_name'
+SSL_SERVER_KEY_NAME = 'client.api.ssl.key_name'
+SSL_CERT_FILE_NAME = "https.crt"
+SSL_KEY_FILE_NAME = "https.key"
+SSL_KEYSTORE_FILE_NAME = "https.keystore.p12"
+SSL_KEY_PASSWORD_FILE_NAME = "https.pass.txt"
 SSL_KEY_PASSWORD_LENGTH = 50
 DEFAULT_SSL_API_PORT = 8443
 
@@ -2739,7 +2739,7 @@ def import_cert_and_key(security_server_keys_dir):
   retcode = 0
   err = ''
   if not pem_password:
-    #print message here
+    print 'Generating random password for HTTPS keystore...done.'
     pem_password = generate_random_string()
     retcode, out, err = run_os_command(CHANGE_KEY_PWD_CND.format(
       import_key_path, pem_password))

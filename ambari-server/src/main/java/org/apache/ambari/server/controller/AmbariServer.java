@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller;
 
 
 import java.io.File;
+import javax.crypto.BadPaddingException;
 import java.net.BindException;
 import java.util.Map;
 
@@ -290,13 +291,19 @@ public class AmbariServer {
       SelectChannelConnector apiConnector;
 
       if (configs.getApiSSLAuthentication()) {
+        String httpsKeystore = configsMap.get(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME_KEY) +
+          File.separator + configsMap.get(Configuration.CLIENT_API_SSL_KSTR_NAME_KEY);
+        LOG.info("API SSL Authentication is turned on. Keystore - " + httpsKeystore);        
+        
+        String httpsCrtPass = configsMap.get(Configuration.CLIENT_API_SSL_CRT_PASS_KEY);
+
         SslSelectChannelConnector sapiConnector = new SslSelectChannelConnector();
         sapiConnector.setPort(configs.getClientSSLApiPort());
-        sapiConnector.setKeystore(keystore);
-        sapiConnector.setTruststore(keystore);
-        sapiConnector.setPassword(srvrCrtPass);
-        sapiConnector.setKeyPassword(srvrCrtPass);
-        sapiConnector.setTrustPassword(srvrCrtPass);
+        sapiConnector.setKeystore(httpsKeystore);
+        sapiConnector.setTruststore(httpsKeystore);
+        sapiConnector.setPassword(httpsCrtPass);
+        sapiConnector.setKeyPassword(httpsCrtPass);
+        sapiConnector.setTrustPassword(httpsCrtPass);
         sapiConnector.setKeystoreType("PKCS12");
         sapiConnector.setTruststoreType("PKCS12");
         sapiConnector.setMaxIdleTime(configs.getConnectionMaxIdleTime());
@@ -357,6 +364,10 @@ public class AmbariServer {
 
       server.join();
       LOG.info("Joined the Server");
+    } catch (BadPaddingException bpe){
+      LOG.error("Bad keystore or private key password. " +
+        "HTTPS certificate re-importing may be required.");
+      throw bpe;
     } catch(BindException bindException) {
       LOG.error("Could not bind to server port - instance may already be running. " +
           "Terminating this instance.", bindException);

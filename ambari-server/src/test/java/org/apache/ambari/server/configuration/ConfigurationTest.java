@@ -24,10 +24,13 @@ import com.google.inject.Injector;
 import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Properties;
 
 public class ConfigurationTest {
@@ -88,6 +91,42 @@ public class ConfigurationTest {
     Assert.assertEquals(6666, conf.getClientSSLApiPort());
     conf = new Configuration();
     Assert.assertEquals(8443, conf.getClientSSLApiPort());
-  }  
+  }
+
+  @Test
+  public void testGetClientHTTPSSettings() throws IOException {
+
+    File passFile = File.createTempFile("https.pass.", "txt");
+    passFile.deleteOnExit();
+    
+    String password = "pass12345";
+    
+    FileUtils.writeStringToFile(passFile, password);
+    
+    Properties ambariProperties = new Properties();
+    ambariProperties.setProperty(Configuration.API_USE_SSL, "true");
+    ambariProperties.setProperty(
+        Configuration.CLIENT_API_SSL_KSTR_DIR_NAME_KEY,
+        passFile.getParent());
+    ambariProperties.setProperty(
+        Configuration.CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY,
+        passFile.getName());
+    
+    Configuration conf = new Configuration(ambariProperties);
+    Assert.assertTrue(conf.getApiSSLAuthentication());
+
+    //Different certificates for two-way SSL and HTTPS
+    Assert.assertFalse(conf.getConfigsMap().get(Configuration.KSTR_NAME_KEY).
+      equals(conf.getConfigsMap().get(Configuration.CLIENT_API_SSL_KSTR_NAME_KEY)));
+    Assert.assertFalse(conf.getConfigsMap().get(Configuration.SRVR_CRT_NAME_KEY).
+      equals(conf.getConfigsMap().get(Configuration.CLIENT_API_SSL_CRT_NAME_KEY)));
+
+    Assert.assertEquals("https.keystore.p12", conf.getConfigsMap().get(
+      Configuration.CLIENT_API_SSL_KSTR_NAME_KEY));
+    Assert.assertEquals(passFile.getName(), conf.getConfigsMap().get(
+      Configuration.CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY));
+    Assert.assertEquals(password, conf.getConfigsMap().get(Configuration.CLIENT_API_SSL_CRT_PASS_KEY));
+
+  }
 
 }

@@ -36,7 +36,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
@@ -78,6 +77,12 @@ public class Configuration {
   public static final String CLIENT_SECURITY_KEY = "client.security";
   public static final String CLIENT_API_PORT_KEY = "client.api.port";
   public static final String CLIENT_API_SSL_PORT_KEY = "client.api.ssl.port";
+  public static final String CLIENT_API_SSL_KSTR_DIR_NAME_KEY = "client.api.ssl.keys_dir";
+  public static final String CLIENT_API_SSL_KSTR_NAME_KEY = "client.api.ssl.keystore_name";
+  public static final String CLIENT_API_SSL_CRT_NAME_KEY = "client.api.ssl.cert_name";
+  public static final String CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY = "client.api.ssl.cert_pass_file";
+  public static final String CLIENT_API_SSL_CRT_PASS_KEY = "client.api.ssl.crt_pass";
+  public static final String CLIENT_API_SSL_KEY_NAME_KEY = "client.api.ssl.key_name";
   public static final String SERVER_DB_NAME_KEY = "server.jdbc.database";
   public static final String SERVER_DB_NAME_DEFAULT = "postgres";
   public static final String ORACLE_DB_NAME = "oracle";
@@ -171,6 +176,12 @@ public class Configuration {
   public static final String SRVR_CRT_NAME_DEFAULT = "ca.crt";
   public static final String SRVR_KEY_NAME_DEFAULT = "ca.key";
   public static final String KSTR_NAME_DEFAULT = "keystore.p12";
+
+  public static final String CLIENT_API_SSL_KSTR_NAME_DEFAULT = "https.keystore.p12";
+  public static final String CLIENT_API_SSL_CRT_PASS_FILE_NAME_DEFAULT = "https.pass.txt";
+  public static final String CLIENT_API_SSL_KEY_NAME_DEFAULT = "https.key";
+  public static final String CLIENT_API_SSL_CRT_NAME_DEFAULT = "https.crt";
+
   private static final String SRVR_CRT_PASS_FILE_DEFAULT ="pass.txt";
   private static final String SRVR_CRT_PASS_LEN_DEFAULT = "50";
   private static final String PASSPHRASE_ENV_DEFAULT = "AMBARI_PASSPHRASE";
@@ -266,16 +277,27 @@ public class Configuration {
     configsMap.put(SRVR_CRT_PASS_LEN_KEY, properties.getProperty(
         SRVR_CRT_PASS_LEN_KEY, SRVR_CRT_PASS_LEN_DEFAULT));
 
+    configsMap.put(CLIENT_API_SSL_KSTR_DIR_NAME_KEY, properties.getProperty(
+      CLIENT_API_SSL_KSTR_DIR_NAME_KEY, configsMap.get(SRVR_KSTR_DIR_KEY)));
+    configsMap.put(CLIENT_API_SSL_KSTR_NAME_KEY, properties.getProperty(
+      CLIENT_API_SSL_KSTR_NAME_KEY, CLIENT_API_SSL_KSTR_NAME_DEFAULT));
+    configsMap.put(CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY, properties.getProperty(
+      CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY, CLIENT_API_SSL_CRT_PASS_FILE_NAME_DEFAULT));
+    configsMap.put(CLIENT_API_SSL_KEY_NAME_KEY, properties.getProperty(
+      CLIENT_API_SSL_KEY_NAME_KEY, CLIENT_API_SSL_KEY_NAME_DEFAULT));
+    configsMap.put(CLIENT_API_SSL_CRT_NAME_KEY, properties.getProperty(
+      CLIENT_API_SSL_CRT_NAME_KEY, CLIENT_API_SSL_CRT_NAME_DEFAULT));
+
     File passFile = new File(configsMap.get(SRVR_KSTR_DIR_KEY) + File.separator
         + configsMap.get(SRVR_CRT_PASS_FILE_KEY));
-    String randStr = null;
+    String password = null;
 
     if (!passFile.exists()) {
       LOG.info("Generation of file with password");
       try {
-        randStr = RandomStringUtils.randomAlphanumeric(Integer
+        password = RandomStringUtils.randomAlphanumeric(Integer
             .parseInt(configsMap.get(SRVR_CRT_PASS_LEN_KEY)));
-        FileUtils.writeStringToFile(passFile, randStr);
+        FileUtils.writeStringToFile(passFile, password);
         ShellCommandUtil.setUnixFilePermissions(
                ShellCommandUtil.MASK_OWNER_ONLY_RW, passFile.getAbsolutePath());
       } catch (IOException e) {
@@ -286,13 +308,39 @@ public class Configuration {
     } else {
       LOG.info("Reading password from existing file");
       try {
-        randStr = FileUtils.readFileToString(passFile);
-        randStr = randStr.replaceAll("\\p{Cntrl}", "");
+        password = FileUtils.readFileToString(passFile);
+        password = password.replaceAll("\\p{Cntrl}", "");
       } catch (IOException e) {
         e.printStackTrace();
       }
     }
-    configsMap.put(SRVR_CRT_PASS_KEY, randStr);
+    configsMap.put(SRVR_CRT_PASS_KEY, password);
+
+    if (this.getApiSSLAuthentication()) {
+      LOG.info("API SSL Authentication is turned on.");
+      File httpsPassFile = new File(configsMap.get(CLIENT_API_SSL_KSTR_DIR_NAME_KEY)
+        + File.separator + configsMap.get(CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY));
+
+      if (httpsPassFile.exists()) {
+        LOG.info("Reading password from existing file");
+        try {
+          password = FileUtils.readFileToString(httpsPassFile);
+          password = password.replaceAll("\\p{Cntrl}", "");
+        } catch (IOException e) {
+          e.printStackTrace();
+          throw new RuntimeException("Error reading certificate password from" +
+            " file " + httpsPassFile.getAbsolutePath());
+        }
+      } else {
+        LOG.error("There is no keystore for https UI connection.");
+        LOG.error("Run \"ambari-server setup-https\" or set " + Configuration.API_USE_SSL + " = false.");
+        throw new RuntimeException("Error reading certificate password from " +
+          "file " + httpsPassFile.getAbsolutePath());
+
+      }
+
+      configsMap.put(CLIENT_API_SSL_CRT_PASS_KEY, password);
+    }
 
     loadSSLParams();
   }

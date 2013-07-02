@@ -433,7 +433,7 @@ public class AmbariMetaInfoTest {
   public void testRepoBaseUrl() throws Exception {
     File stackRoot = new File("src/test/resources/stacks");
     
-    File tmp = new File(FileUtils.getTempDirectoryPath() + "stacks" + System.currentTimeMillis());
+    File tmp = new File(FileUtils.getTempDirectoryPath() + File.separator + "stacks" + System.currentTimeMillis());
     FileUtils.copyDirectory(stackRoot, tmp);
 
     AmbariMetaInfo metaInfo = new AmbariMetaInfo(tmp, new File("target/version"));

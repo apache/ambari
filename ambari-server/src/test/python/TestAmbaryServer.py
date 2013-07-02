@@ -1097,8 +1097,8 @@ class TestAmbariServer(TestCase):
     properties = MagicMock()
     properties.get_property.side_effect = ["key_dir","5555","6666", "true"]
     properties.process_pair = MagicMock()
-    expect_process_pair = "[call('security.server.cert_name', 'ca.crt'),\n"+\
-                          " call('security.server.key_name', 'ca.key'),\n"+\
+    expect_process_pair = "[call('client.api.ssl.cert_name', 'https.crt'),\n"+\
+                          " call('client.api.ssl.key_name', 'https.key'),\n"+\
                           " call('api.ssl', 'true')]"
     ambari_server.import_cert_and_key_action("key_dir", properties)
   	
