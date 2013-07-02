@@ -48,7 +48,7 @@ App.supports = {
   reassignMaster: false,
   stackUpgrade: false,
   capacitySchedulerUi: false,
-  startStopAllServices: false,
+  startStopAllServices: true,
   hiveOozieExtraDatabases: true,
   multipleHBaseMasters: false,
   addMasters: false,
