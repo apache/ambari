@@ -40,12 +40,14 @@ class TestBootstrap(TestCase):
     logging.basicConfig(level=logging.ERROR)
 
   #Timout is specified in bootstrap.HOST_BOOTSTRAP_TIMEOUT, default is 300 seconds
-  def test_return_failed_status_for_hanging_ssh_threads_after_timeout(self):
+  @patch.object(time, "time")
+  def test_return_failed_status_for_hanging_ssh_threads_after_timeout(self, time_mock):
     bootstrap.HOST_BOOTSTRAP_TIMEOUT = 1
     forever_hanging_timeout = 5
     SSH.run = lambda self: time.sleep(forever_hanging_timeout)
     pssh = PSSH(["hostname"], "root", "sshKeyFile", "bootdir", command="command")
     self.assertTrue(pssh.ret == {})
+    time_mock.side_effect = [0,0,500, forever_hanging_timeout-1]
     starttime = time.time()
     pssh.run()
     self.assertTrue(pssh.ret != {})
@@ -53,13 +55,36 @@ class TestBootstrap(TestCase):
     self.assertTrue(pssh.ret["hostname"]["log"] == "FAILED")
     self.assertTrue(pssh.ret["hostname"]["exitstatus"] == -1)
 
+  @patch.object(bootstrap, "get_difference")
+  @patch.object(PSCP, "run")
+  def test_copyPasswordFile(self, run_mock, get_difference_mock):
+    bootstrap_obj = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir",\
+                              "bootdir", "setupAgentFile", "ambariServer", "centos6", None, "8440")
+    bootstrap_obj.statuses = {
+        "hostname" : {
+            "exitstatus" : 0,
+            "log" : ""
+        }
+    }
+    get_difference_mock.return_value = ["hostname"]
+    ret = bootstrap_obj.copyPasswordFile()
+    self.assertTrue(ret == 1)
+    get_difference_mock.return_value = None
+    ret = bootstrap_obj.copyPasswordFile()
+    self.assertTrue(ret == 0)
+    bootstrap_obj.statuses = None
+    ret = bootstrap_obj.copyPasswordFile()
+    self.assertTrue(ret == 1)
+
   #Timout is specified in bootstrap.HOST_BOOTSTRAP_TIMEOUT, default is 300 seconds
-  def test_return_failed_status_for_hanging_scp_threads_after_timeout(self):
+  @patch.object(time, "time")
+  def test_return_failed_status_for_hanging_scp_threads_after_timeout(self, time_mock):
     bootstrap.HOST_BOOTSTRAP_TIMEOUT = 1
     forever_hanging_timeout = 5
     SCP.run = lambda self: time.sleep(forever_hanging_timeout)
     pscp = PSCP(["hostname"], "root", "sshKeyFile", "inputfile", "remote", "bootdir")
     self.assertTrue(pscp.ret == {})
+    time_mock.side_effect = [0,0,500, forever_hanging_timeout-1]
     starttime = time.time()
     pscp.run()
     self.assertTrue(pscp.ret != {})
@@ -67,24 +92,176 @@ class TestBootstrap(TestCase):
     self.assertTrue(pscp.ret["hostname"]["log"] == "FAILED")
     self.assertTrue(pscp.ret["hostname"]["exitstatus"] == -1)
 
+
+  @patch.object(bootstrap, "get_difference")
   @patch.object(SCP, "writeLogToFile")
   @patch.object(SSH, "writeLogToFile")
   @patch.object(Popen, "communicate")
   def test_return_error_message_for_missing_sudo_package(self, communicate_method,
                                                          SSH_writeLogToFile_method,
-                                                         SCP_writeLogToFile_method):
+                                                         SCP_writeLogToFile_method,
+                                                         get_difference_mock):
     SCP_writeLogToFile_method.return_value = None
     SSH_writeLogToFile_method.return_value = None
+    get_difference_mock.return_value = None
     communicate_method.return_value = ("", "")
-    bootstrap = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None, "8440")
-    bootstrap.statuses = {
+    bootstrap_obj = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir", "bootdir",\
+                              "setupAgentFile", "ambariServer", "centos6", None, "8440")
+    bootstrap_obj.statuses = {
       "hostname" : {
         "exitstatus" : 0,
         "log" : ""
       }
     }
-    ret = bootstrap.checkSudoPackage()
-    self.assertTrue("Error: Sudo command is not available. Please install the sudo command." in bootstrap.statuses["hostname"]["log"])
+    ret = bootstrap_obj.checkSudoPackage()
+    self.assertTrue("Error: Sudo command is not available. Please install the sudo command."\
+        in bootstrap_obj.statuses["hostname"]["log"])
+    bootstrap_obj.statuses = None
+    ret = bootstrap_obj.checkSudoPackage()
+    self.assertTrue(ret == None)
+    obj = MagicMock()
+    objtype = MagicMock()
+    func = bootstrap_obj.__get__(obj, objtype)
+    self.assertTrue(not func is None)
+    # This falls because returned function is not Bootstrap member
+    #func(MagicMock(), MagicMock())
+
+  @patch.object(bootstrap, "get_difference")
+  @patch.object(PSSH, "run")
+  def test_changePasswordFileModeOnHost(self, run_mock, get_difference_mock):
+    bootstrap_obj = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir", "bootdir",\
+                              "setupAgentFile", "ambariServer", "centos6", None, "8440")
+    ret = bootstrap_obj.changePasswordFileModeOnHost()
+    self.assertTrue(ret == 1)
+    bootstrap_obj.statuses = {
+        "hostname" : {
+            "exitstatus" : 0,
+            "log" : ""
+        }
+    }
+    ret = bootstrap_obj.changePasswordFileModeOnHost()
+    self.assertTrue(ret == 1)
+    get_difference_mock.return_value = None
+    ret = bootstrap_obj.changePasswordFileModeOnHost()
+    self.assertTrue(ret == 0)
+
+  @patch.object(bootstrap, "get_difference")
+  @patch.object(PSSH, "run")
+  def test_deletePasswordFile(self, run_mock, get_difference_mock):
+    bootstrap = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir", "bootdir",\
+                          "setupAgentFile", "ambariServer", "centos6", None, "8440")
+    ret = bootstrap.deletePasswordFile()
+    self.assertTrue(ret == 1)
+    bootstrap.statuses = {
+        "hostname" : {
+            "exitstatus" : 0,
+            "log" : ""
+        }
+    }
+    bootstrap.hostlist_to_remove_password_file = ["hostname"]
+    ret = bootstrap.deletePasswordFile()
+    self.assertTrue(ret == 1)
+    get_difference_mock.return_value = None
+    bootstrap.hostlist_to_remove_password_file = ["hostname"]
+    ret = bootstrap.deletePasswordFile()
+    self.assertTrue(ret == 0)
+
+  @patch("__builtin__.open")
+  def test_createDoneFiles(self, open_mock):
+    bootstrap_obj = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir", "bootdir",\
+                              "setupAgentFile", "ambariServer", "centos6", None, "8440")
+    bootstrap_obj.statuses = {"hostname": {"exitstatus" : 0}, "hostname1": {"exitstatus" : 0}}
+    f = open_mock.return_value
+    f.write = MagicMock()
+    ret = bootstrap_obj.createDoneFiles()
+    self.assertTrue(f.write.call_count == 2)
+
+
+  @patch.object(subprocess, "Popen")
+  @patch("sys.stderr")
+  @patch("sys.exit")
+  @patch.object(BootStrap, "run")
+  @patch("os.path.dirname")
+  @patch("os.path.realpath")
+  def test_bootstrap_main(self, dirname_mock, realpath_mock, run_mock, exit_mock, stderr_mock, subprocess_Popen_mock):
+    bootstrap.main(["bootstrap.py", "hostname,hostname2", "/tmp/bootstrap", "root", "sshKeyFile", "setupAgent.py", "ambariServer",\
+                    "centos6", "1.1.1", "8440", "passwordfile"])
+    self.assertTrue(run_mock.called)
+    run_mock.reset()
+    bootstrap.main(["bootstrap.py", "hostname,hostname2", "/tmp/bootstrap", "root", "sshKeyFile", "setupAgent.py", "ambariServer", \
+                    "centos6", "1.1.1", "8440", None])
+    self.assertTrue(run_mock.called)
+    run_mock.reset()
+    def side_effect(retcode):
+      raise Exception(retcode, "sys.exit")
+    exit_mock.side_effect = side_effect
+    try:
+     bootstrap.main(["bootstrap.py","hostname,hostname2", "/tmp/bootstrap"])
+     self.fail("sys.exit(2)")
+    except Exception:
+    # Expected
+     pass
+    self.assertTrue(exit_mock.called)
+
+
+  def test_getAmbariPort(self):
+    bootstrap_obj = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir", "bootdir",\
+                              "setupAgentFile", "ambariServer", "centos6", None, "8440")
+    self.assertEquals(bootstrap_obj.getAmbariPort(),"8440")
+    bootstrap_obj = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir", "bootdir",\
+                              "setupAgentFile", "ambariServer", "centos6", None, None)
+    self.assertEquals(bootstrap_obj.getAmbariPort(),"null")
+
+  def test_getRunSetupWithPasswordCommand(self):
+    bootstrap_obj = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir", "bootdir",\
+                              "setupAgentFile", "ambariServer", "centos6", None, "8440")
+    ret = bootstrap_obj.getRunSetupWithPasswordCommand("hostname")
+    self.assertEquals(ret, "sudo -S python /tmp/setupAgent.py hostname  ambariServer  8440 < /tmp/host_pass")
+
+  @patch("__builtin__.open")
+  def test_SCP_writeLogToFile(self, open_mock):
+    scp_obj = SCP(["hostaname"], "root", MagicMock(), MagicMock(), "/tmp", "/tmp/boot")
+    f = open_mock.return_value
+    scp_obj.writeLogToFile("/tmp")
+    self.assertTrue(f.write.called)
+
+  @patch("__builtin__.open")
+  def test_SSH_writeLogToFile(self, open_mock):
+      scp_obj = SSH(["hostaname"], "root", MagicMock(), MagicMock(), "/tmp", "/tmp/boot")
+      f = open_mock.return_value
+      scp_obj.writeLogToFile("/tmp")
+      self.assertTrue(f.write.called)
+
+  def test_generateRandomFileName(self):
+    bootstrap_obj = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile",\
+                              "ambariServer", "centos6", None, "8440")
+    self.assertTrue(bootstrap_obj.generateRandomFileName(None) == bootstrap_obj.getUtime())
+
+  @patch("os.path.isfile")
+  @patch("__builtin__.open")
+  def test_is_suse(self, open_mock, isfile_mock):
+    bootstrap_obj = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile",\
+                              "ambariServer", "centos6", None, "8440")
+    isfile_mock.return_value = True
+    f = open_mock.return_value
+    f.read.return_value = " suse  "
+    self.assertTrue(bootstrap_obj.is_suse())
+
+
+  @patch.object(BootStrap, "is_suse")
+  def test_getRepoDir(self, is_suse_mock):
+    bootstrap_obj = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile",\
+                              "ambariServer", "centos6", None, "8440")
+    is_suse_mock.return_value = True
+    res = bootstrap_obj.getRepoDir()
+    self.assertEquals(res, "/etc/zypp/repos.d")
+
+  @patch("os.path.join")
+  def test_getSetupScript(self, join_mock):
+    bootstrap_obj = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile",\
+                              "ambariServer", "centos6", None, "8440")
+    self.assertTrue(join_mock.called)
+    self.assertEquals(bootstrap_obj.scriptDir, "scriptDir")
 
   @patch.object(SCP, "writeLogToFile")
   @patch.object(SSH, "writeLogToFile")
@@ -109,7 +286,8 @@ class TestBootstrap(TestCase):
     changePasswordFileModeOnHost_method.return_value = 0
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
-    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None, "8440", "passwordFile")
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile",\
+                          "ambariServer", "centos6", None, "8440", "passwordFile")
     def side_effect():
       bootstrap.copyPasswordFile_called = True
       bootstrap.hostlist_to_remove_password_file = ["hostname"]
@@ -142,7 +320,8 @@ class TestBootstrap(TestCase):
     changePasswordFileModeOnHost_method.return_value = 0
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
-    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None, "8440")
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile",\
+                          "ambariServer", "centos6", None, "8440")
     bootstrap.copyPasswordFile_called = False
     def side_effect():
       bootstrap.copyPasswordFile_called = True
@@ -154,6 +333,7 @@ class TestBootstrap(TestCase):
     self.assertFalse(deletePasswordFile_method.called)
     self.assertFalse(changePasswordFileModeOnHost_method.called)
 
+  @patch.object(bootstrap, "get_difference")
   @patch.object(SCP, "writeLogToFile")
   @patch.object(SSH, "writeLogToFile")
   @patch.object(Popen, "communicate")
@@ -165,9 +345,11 @@ class TestBootstrap(TestCase):
                                                                     createDoneFiles_method,
                                                                     communicate_method,
                                                                     SSH_writeLogToFile_method,
-                                                                    SCP_writeLogToFile_method):
+                                                                    SCP_writeLogToFile_method,
+                                                                    get_difference_mock):
     SCP_writeLogToFile_method.return_value = None
     SSH_writeLogToFile_method.return_value = None
+    get_difference_mock.return_value = None
     communicate_method.return_value = ("", "")
     createDoneFiles_method.return_value = None
 
@@ -176,16 +358,26 @@ class TestBootstrap(TestCase):
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
     hosts = ["hostname"]
-    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None, "8440", "passwordFile")
-    bootstrap.successive_hostlist = hosts
-    bootstrap.copyOsCheckScript()
-    bootstrap.successive_hostlist = hosts
-    bootstrap.copyNeededFiles()
-    bootstrap.successive_hostlist = hosts
-    bootstrap.runSetupAgent()
+    bootstrap_obj = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile",\
+                              "ambariServer", "centos6", None, "8440", "passwordFile")
+    bootstrap_obj.successive_hostlist = hosts
+    bootstrap_obj.copyOsCheckScript()
+    bootstrap_obj.successive_hostlist = hosts
+    bootstrap_obj.copyNeededFiles()
+    bootstrap_obj.successive_hostlist = hosts
+    bootstrap_obj.runSetupAgent()
+    self.assertTrue(getRunSetupWithPasswordCommand_method.called)
+    self.assertTrue(getMoveRepoFileWithPasswordCommand_method.called)
+    getRunSetupWithPasswordCommand_method.reset()
+    getMoveRepoFileWithPasswordCommand_method.reset()
+    getRunSetupWithPasswordCommand_method.reset()
+    getMoveRepoFileWithPasswordCommand_method.reset()
+    bootstrap_obj.successive_hostlist = None
+    bootstrap_obj.copyOsCheckScript()
     self.assertTrue(getRunSetupWithPasswordCommand_method.called)
     self.assertTrue(getMoveRepoFileWithPasswordCommand_method.called)
 
+  @patch.object(bootstrap, "get_difference")
   @patch.object(SCP, "writeLogToFile")
   @patch.object(SSH, "writeLogToFile")
   @patch.object(Popen, "communicate")
@@ -197,7 +389,8 @@ class TestBootstrap(TestCase):
                                                                       createDoneFiles_method,
                                                                       communicate_method,
                                                                       SSH_writeLogToFile_method,
-                                                                      SCP_writeLogToFile_method):
+                                                                      SCP_writeLogToFile_method,
+                                                                      get_difference_mock):
     SCP_writeLogToFile_method.return_value = None
     SSH_writeLogToFile_method.return_value = None
     communicate_method.return_value = ("", "")
@@ -208,16 +401,30 @@ class TestBootstrap(TestCase):
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
     hosts = ["hostname"]
-    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", None, "8440")
-    bootstrap.successive_hostlist = hosts
-    bootstrap.copyOsCheckScript()
-    bootstrap.successive_hostlist = hosts
-    bootstrap.copyNeededFiles()
-    bootstrap.successive_hostlist = hosts
-    bootstrap.runSetupAgent()
+    bootstrap_obj = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile",\
+                              "ambariServer", "centos6", None, "8440")
+    bootstrap_obj.successive_hostlist = hosts
+    bootstrap_obj.copyOsCheckScript()
+    bootstrap_obj.successive_hostlist = hosts
+    bootstrap_obj.copyNeededFiles()
+    bootstrap_obj.successive_hostlist = hosts
+    bootstrap_obj.runSetupAgent()
     self.assertTrue(getRunSetupWithoutPasswordCommand_method.called)
     self.assertTrue(getMoveRepoFileWithoutPasswordCommand_method.called)
+    getRunSetupWithoutPasswordCommand_method.reset()
+    getMoveRepoFileWithoutPasswordCommand_method.reset()
 
+    get_difference_mock.return_value = None
+    self.assertTrue(bootstrap_obj.copyNeededFiles() == 0)
+    self.assertTrue(getRunSetupWithoutPasswordCommand_method.called)
+    self.assertTrue(getMoveRepoFileWithoutPasswordCommand_method.called)
+    getRunSetupWithoutPasswordCommand_method.reset()
+    getMoveRepoFileWithoutPasswordCommand_method.reset()
+
+    bootstrap_obj.successive_hostlist = None
+    bootstrap_obj.copyNeededFiles()
+    self.assertTrue(getRunSetupWithoutPasswordCommand_method.called)
+    self.assertTrue(getMoveRepoFileWithoutPasswordCommand_method.called)
 
   @patch.object(BootStrap, "runSetupAgent")
   @patch.object(BootStrap, "copyNeededFiles")
@@ -323,7 +530,8 @@ class TestBootstrap(TestCase):
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
     version = "1.1.1"
-    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", version, "8440")
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer",\
+                          "centos6", version, "8440")
     runSetupCommand = bootstrap.getRunSetupCommand("hostname")
     self.assertTrue(runSetupCommand.endswith(version + " 8440"))
 
@@ -343,7 +551,8 @@ class TestBootstrap(TestCase):
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
     version = None
-    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile", "ambariServer", "centos6", version, "8440")
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile",\
+                          "ambariServer", "centos6", version, "8440")
     runSetupCommand = bootstrap.getRunSetupCommand("hostname")
     self.assertTrue(runSetupCommand.endswith("8440"))
 
@@ -416,6 +625,7 @@ class TestBootstrap(TestCase):
     self.assertTrue(pssh_run_method.call_count >= 2)
     self.assertTrue(pssh_getstatus_method.call_count >= 2)
     self.assertTrue(ret == 1)
+
 
 
   def test_PSSH_constructor_argument_validation(self):

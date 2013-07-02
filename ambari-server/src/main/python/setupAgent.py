@@ -70,21 +70,22 @@ def installAgent(projectVersion):
 
 def configureAgent(server_hostname):
   """ Configure the agent so that it has all the configs knobs properly installed """
-  osCommand = ["sed", "-i.bak", "s/hostname=localhost/hostname=" + server_hostname + "/g", "/etc/ambari-agent/conf/ambari-agent.ini"]
+  osCommand = ["sed", "-i.bak", "s/hostname=localhost/hostname=" + server_hostname +\
+                                "/g", "/etc/ambari-agent/conf/ambari-agent.ini"]
   execOsCommand(osCommand)
-
   return
 
 def runAgent(passPhrase, expected_hostname):
   os.environ[AMBARI_PASSPHRASE_VAR] = passPhrase
-  agent_retcode = subprocess.call("/usr/sbin/ambari-agent restart --expected-hostname=" + expected_hostname, shell=True)
+  agent_retcode = subprocess.call("/usr/sbin/ambari-agent restart --expected-hostname=" +\
+                                  expected_hostname, shell=True)
   try:
-
     ret = execOsCommand(["tail", "-20", "/var/log/ambari-agent/ambari-agent.log"])
     try:
-      print ret['log']
-    except KeyError:
-      pass
+      log = ret['log']
+    except Exception:
+      log = "Log not found"
+    print log
     if not 0 == ret['exitstatus']:
       return ret['exitstatus']
 
@@ -94,8 +95,6 @@ def runAgent(passPhrase, expected_hostname):
 
 
 def getOptimalVersion(initialProjectVersion):
-  if initialProjectVersion == "":
-    return initialProjectVersion
   optimalVersion = initialProjectVersion
 
   if is_suse():
@@ -131,11 +130,13 @@ def checkAgentPackageAvailability(projectVersion):
   return execOsCommand(yumCommand)
 
 def findNearestAgentPackageVersionSuse(projectVersion):
-  zypperCommand = ["bash", "-c", "zypper search -s --match-exact ambari-agent | grep ' " + projectVersion + "' | cut -d '|' -f 4 | head -n1"]
+  zypperCommand = ["bash", "-c", "zypper search -s --match-exact ambari-agent | grep ' " + projectVersion +\
+                                 "' | cut -d '|' -f 4 | head -n1"]
   return execOsCommand(zypperCommand)
 
 def findNearestAgentPackageVersion(projectVersion):
-  yumCommand = ["bash", "-c", "yum list available ambari-agent | grep ' " + projectVersion + "' | sed -re 's/\s+/ /g' | cut -d ' ' -f 2 | head -n1"]
+  yumCommand = ["bash", "-c", "yum list available ambari-agent | grep ' " + projectVersion +\
+                              "' | sed -re 's/\s+/ /g' | cut -d ' ' -f 2 | head -n1"]
   return execOsCommand(yumCommand)
 
 def checkServerReachability(host, port):
@@ -144,9 +145,10 @@ def checkServerReachability(host, port):
   try: 
    s.connect((host, port)) 
    return
-  except socket.error, e: 
+  except Exception:
    ret["exitstatus"] = 1
-   ret["log"] = "Host registration aborted. Ambari Agent host cannot reach Ambari Server '" + host+":"+str(port) + "'. "+\
+   ret["log"] = "Host registration aborted. Ambari Agent host cannot reach Ambari Server '" +\
+                host+":"+str(port) + "'. "+\
   		        "Please check the network connectivity between the Ambari Agent host and the Ambari Server"
    sys.exit(ret)
   pass
@@ -179,10 +181,16 @@ def main(argv=None):
     projectVersion = "-" + projectVersion
 
   if is_suse():
-    installAgentSuse(projectVersion)
+    ret = installAgentSuse(projectVersion)
+    if (not ret["exitstatus"]==0):
+      sys.exit(ret)
   else:
-    installPreReq()
-    installAgent(projectVersion)
+    ret = installPreReq()
+    if (not ret["exitstatus"]==0):
+      sys.exit(ret)
+    ret = installAgent(projectVersion)
+    if (not ret["exitstatus"]==0):
+      sys.exit(ret)
 
   configureAgent(hostname)
   sys.exit(runAgent(passPhrase, expected_hostname))

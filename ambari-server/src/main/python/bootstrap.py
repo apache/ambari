@@ -125,10 +125,6 @@ class SSH(threading.Thread):
     logFile = open(logFilePath, "a+")
     logFile.write(self.ret["log"])
     logFile.close
-    pass
-
-pass
-
 
 def splitlist(hosts, n):
   return [hosts[i:i+n] for i in range(0, len(hosts), n)]
@@ -269,7 +265,8 @@ class BootStrap:
 
   
   """ BootStrapping the agents on a list of hosts"""
-  def __init__(self, hosts, user, sshkeyFile, scriptDir, boottmpdir, setupAgentFile, ambariServer, cluster_os_type, ambariVersion, server_port, passwordFile = None):
+  def __init__(self, hosts, user, sshkeyFile, scriptDir, boottmpdir, setupAgentFile, ambariServer, cluster_os_type,\
+               ambariVersion, server_port, passwordFile = None):
     self.hostlist = hosts
     self.successive_hostlist = hosts
     self.hostlist_to_remove_password_file = None
@@ -285,7 +282,8 @@ class BootStrap:
     self.statuses = None
     self.server_port = server_port
     """Prepare temp file names"""
-    self.osCheckScriptRemoteLocation = os.path.join(self.TEMP_FOLDER, self.generateRandomFileName(self.OS_CHECK_SCRIPT_FILE_TEMPLATE))
+    self.osCheckScriptRemoteLocation = os.path.join(self.TEMP_FOLDER,\
+                                                    self.generateRandomFileName(self.OS_CHECK_SCRIPT_FILE_TEMPLATE))
     pass
 
   def generateRandomFileName(self, fileNameTemplate):
@@ -322,9 +320,6 @@ class BootStrap:
 
   def getOsCheckScriptRemoteLocation(self):
     return self.osCheckScriptRemoteLocation
-
-  def getSetupScript(self):
-    return os.path.join(self.scriptDir, "setupAgent.py")
 
   def getUtime(self):
     return int(time.time())
@@ -526,7 +521,9 @@ class BootStrap:
     try:
       """ Checking 'sudo' package on remote hosts """
       command = "rpm -qa | grep sudo"
-      pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, self.bootdir, errorMessage="Error: Sudo command is not available. Please install the sudo command.", command=command)
+      pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, self.bootdir,\
+                  errorMessage="Error: Sudo command is not available. Please install the sudo command.",\
+                  command=command)
       pssh.run()
       out = pssh.getstatus()
       # Preparing report about failed hosts
@@ -591,7 +588,6 @@ class BootStrap:
     except Exception, e:
       logging.info("Traceback " + traceback.format_exc())
       return 1
-    pass
 
   def changePasswordFileModeOnHost(self):
     try:
@@ -620,7 +616,6 @@ class BootStrap:
     except Exception, e:
       logging.info("Traceback " + traceback.format_exc())
       return 1
-    pass
 
   def deletePasswordFile(self):
     try:
@@ -649,7 +644,6 @@ class BootStrap:
     except Exception, e:
       logging.info("Traceback " + traceback.format_exc())
       return 1
-    pass
 
   def run(self):
     """ Copyfiles and run commands on remote hosts """
@@ -684,9 +678,9 @@ def main(argv=None):
   onlyargs = argv[1:]
   if len(onlyargs) < 3:
     sys.stderr.write("Usage: <comma separated hosts> "
-                     "<tmpdir for storage> <user> <sshkeyFile> <agent setup script> <ambari-server name> <cluster os type> <ambari version> <ambari port> <passwordFile>\n")
+                     "<tmpdir for storage> <user> <sshkeyFile> <agent setup script>"
+                     " <ambari-server name> <cluster os type> <ambari version> <ambari port> <passwordFile>\n")
     sys.exit(2)
-    pass
   #Parse the input
   hostList = onlyargs[0].split(",")
   bootdir =  onlyargs[1]
@@ -707,9 +701,11 @@ def main(argv=None):
   
   logging.info("BootStrapping hosts " + pprint.pformat(hostList) +
                "using " + scriptDir + " cluster primary OS: " + cluster_os_type +
-              " with user '" + user + "' sshKey File " + sshKeyFile + " password File " + passwordFile +
-              " using tmp dir " + bootdir + " ambari: " + ambariServer +"; server_port: " + server_port + "; ambari version: " + ambariVersion)
-  bootstrap = BootStrap(hostList, user, sshKeyFile, scriptDir, bootdir, setupAgentFile, ambariServer, cluster_os_type, ambariVersion, server_port, passwordFile)
+               " with user '" + user + "' sshKey File " + sshKeyFile + " password File " + passwordFile +\
+               " using tmp dir " + bootdir + " ambari: " + ambariServer +"; server_port: " + server_port +\
+               "; ambari version: " + ambariVersion)
+  bootstrap = BootStrap(hostList, user, sshKeyFile, scriptDir, bootdir, setupAgentFile,\
+                        ambariServer, cluster_os_type, ambariVersion, server_port, passwordFile)
   ret = bootstrap.run()
   #return  ret
   return 0 # Hack to comply with current usage
