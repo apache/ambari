@@ -276,32 +276,32 @@
 
   <property>
     <name>mapred.cluster.map.memory.mb</name>
-    <value></value>
+    <value>1536</value>
   </property>
 
   <property>
     <name>mapred.cluster.reduce.memory.mb</name>
-    <value></value>
+    <value>2048</value>
   </property>
 
   <property>
     <name>mapred.job.map.memory.mb</name>
-    <value></value>
+    <value>1536</value>
   </property>
 
   <property>
     <name>mapred.job.reduce.memory.mb</name>
-    <value></value>
+    <value>2048</value>
   </property>
 
   <property>
     <name>mapred.cluster.max.map.memory.mb</name>
-    <value></value>
+    <value>6144</value>
   </property>
 
   <property>
     <name>mapred.cluster.max.reduce.memory.mb</name>
-    <value></value>
+    <value>4096</value>
   </property>
 
 <property>
