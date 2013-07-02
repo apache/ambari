@@ -624,13 +624,6 @@ var configs = [
     "filename": "hbase-site.xml"
   },
   {
-    "name": "templeton.hive.properties",
-    "templateName": ["hivemetastore_host"],
-    "foreignKey": null,
-    "value": "hive.metastore.local=false,hive.metastore.uris=thrift://<templateName[0]>:9083,hive.metastore.sasl.enabled=yes,hive.metastore.execute.setugi=true",
-    "filename": "webhcat-site.xml"
-  },
-  {
     "name": "templeton.zookeeper.hosts",
     "templateName": ["zookeeperserver_hosts"],
     "foreignKey": null,

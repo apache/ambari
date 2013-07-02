@@ -993,6 +993,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   loadUiSideConfigs: function (configMapping) {
     var uiConfig = [];
     var configs = configMapping.filterProperty('foreignKey', null);
+    this.addDynamicProperties(configs);
     configs.forEach(function (_config) {
       var valueWithOverrides = this.getGlobConfigValueWithOverrides(_config.templateName, _config.value, _config.name);
       if (valueWithOverrides !== null) {
@@ -1006,6 +1007,21 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       }
     }, this);
     return uiConfig;
+  },
+
+
+  addDynamicProperties: function(configs) {
+    var allConfigs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs');
+    var templetonHiveProperty =  allConfigs.someProperty('name', 'templeton.hive.properties');
+    if (!templetonHiveProperty && this.get('content.serviceName') === 'WEBHCAT') {
+      configs.pushObject({
+        "name": "templeton.hive.properties",
+        "templateName": ["hivemetastore_host"],
+        "foreignKey": null,
+        "value": "hive.metastore.local=false,hive.metastore.uris=thrift://<templateName[0]>:9083,hive.metastore.sasl.enabled=yes,hive.metastore.execute.setugi=true",
+        "filename": "webhcat-site.xml"
+      });
+    }
   },
 
   /**
@@ -1590,6 +1606,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         var webhcatMasterHost = serviceConfigs.findProperty('name', 'webhcatserver_host');
         webhcatMasterHost.defaultValue = this.get('content.hostComponents').filterProperty('componentName', 'WEBHCAT_SERVER').mapProperty('host.hostName');
         globalConfigs.push(webhcatMasterHost);
+        var hiveMetastoreHost = this.get('serviceConfigs').findProperty('serviceName', 'HIVE').configs.findProperty('name', 'hivemetastore_host');
+        hiveMetastoreHost.defaultValue = App.Service.find('HIVE').get('hostComponents').findProperty('componentName', 'HIVE_SERVER').get('host.hostName');
+        globalConfigs.push(hiveMetastoreHost);
         break;
     }
   },

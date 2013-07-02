@@ -177,6 +177,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   loadUiSideConfigs: function () {
     var uiConfig = [];
     var configs = this.get('configMapping').filterProperty('foreignKey', null);
+    this.addDynamicProperties(configs);
     configs.forEach(function (_config) {
       var valueWithOverrides = this.getGlobConfigValueWithOverrides(_config.templateName, _config.value, _config.name);
       uiConfig.pushObject({
@@ -198,6 +199,19 @@ App.WizardStep8Controller = Em.Controller.extend({
       });
     }, this);
     return uiConfig;
+  },
+
+  addDynamicProperties: function(configs) {
+    var templetonHiveProperty =  this.get('content.serviceConfigProperties').someProperty('name', 'templeton.hive.properties');
+    if (!templetonHiveProperty) {
+      configs.pushObject({
+        "name": "templeton.hive.properties",
+        "templateName": ["hivemetastore_host"],
+        "foreignKey": null,
+        "value": "hive.metastore.local=false,hive.metastore.uris=thrift://<templateName[0]>:9083,hive.metastore.sasl.enabled=yes,hive.metastore.execute.setugi=true",
+        "filename": "webhcat-site.xml"
+      });
+    }
   },
 
   getRegisteredHosts: function () {
