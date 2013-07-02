@@ -1203,7 +1203,8 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "print_info_msg")
   @patch.object(ambari_server, "get_JAVA_HOME")
   @patch.object(ambari_server, "get_ambari_properties")
-  def test_download_jdk(self, get_ambari_properties_mock, get_JAVA_HOME_mock,\
+  @patch("shutil.copyfile")
+  def test_download_jdk(self, copyfile_mock, get_ambari_properties_mock, get_JAVA_HOME_mock,\
                         print_info_msg_mock, write_property_mock,\
                         run_os_command_mock, get_YN_input_mock, track_jdk_mock,
                         path_existsMock, path_isfileMock, statMock,\
@@ -1213,7 +1214,7 @@ class TestAmbariServer(TestCase):
     path_existsMock.return_value = False
     get_JAVA_HOME_mock.return_value = False
     get_ambari_properties_mock.return_value = -1
-
+    # Test case: ambari.properties not found
     try:
       ambari_server.download_jdk(args)
       self.fail("Should throw exception because of not found ambari.properties")
@@ -1221,17 +1222,20 @@ class TestAmbariServer(TestCase):
       # Expected
       self.assertTrue(get_ambari_properties_mock.called)
       pass
-
+    # Test case: JDK already exists
+    p = MagicMock()
+    get_ambari_properties_mock.return_value = p
+    p.__getitem__.return_value = "somewhere"
     get_JAVA_HOME_mock.return_value = True
     path_existsMock.return_value = True
     rcode = ambari_server.download_jdk(args)
     self.assertEqual(0, rcode)
-
+    # Test case: java home setup
     get_JAVA_HOME_mock.return_value = False
     rcode = ambari_server.download_jdk(args)
     self.assertEqual(0, rcode)
     self.assertTrue(write_property_mock.called)
-
+    # Test case: JDK file does not exist, property not defined
     path_existsMock.return_value = False
     p = MagicMock()
     get_ambari_properties_mock.return_value = p
@@ -1242,7 +1246,8 @@ class TestAmbariServer(TestCase):
     except FatalException:
       # Expected
       pass
-
+    # Test case: JDK file does not exist, os command (curl) result does not
+    # contain Content-Length
     p.__getitem__.return_value = "somewhere"
     p.__getitem__.side_effect = None
     path_existsMock.return_value = False
@@ -1253,7 +1258,7 @@ class TestAmbariServer(TestCase):
     except FatalException:
       # Expected
       pass
-
+    # Successful JDK download
     ambari_server.JDK_INSTALL_DIR = os.getcwd()
     get_YN_input_mock.return_value = True
     run_os_command_mock.return_value = (0, "Creating jdk-1.2/jre"
@@ -1264,6 +1269,42 @@ class TestAmbariServer(TestCase):
     statMock.return_value = statResult
     rcode = ambari_server.download_jdk(args)
     self.assertEqual(0, rcode)
+    # Test case: JDK file does not exist, jdk-location argument passed
+    p.__getitem__.return_value = "somewhere"
+    p.__getitem__.side_effect = None
+    args.jdk_location = "/existing/jdk/file"
+    path_existsMock.side_effect = [False, False, True, False, False, False]
+    ambari_server.download_jdk(args)
+    self.assertTrue(copyfile_mock.called)
+
+    copyfile_mock.reset_mock()
+    # Negative test case: JDK file does not exist, jdk-location argument
+    # (non-accessible file) passed
+    p.__getitem__.return_value = "somewhere"
+    p.__getitem__.side_effect = None
+    args.jdk_location = "/existing/jdk/file"
+    path_existsMock.side_effect = [False, False, True, False, False, False]
+    def copyfile_side_effect(s, d):
+       raise Exception("TerribleException")
+    copyfile_mock.side_effect = copyfile_side_effect
+    try:
+      ambari_server.download_jdk(args)
+      self.fail("Should throw exception")
+    except FatalException:
+      # Expected
+      self.assertTrue(copyfile_mock.called)
+    copyfile_mock.reset_mock()
+    # Test case: jdk is already installed, ensure that JCE check is not skipped
+    p = MagicMock()
+    get_ambari_properties_mock.return_value = p
+    p.__getitem__.return_value = "somewhere"
+    get_JAVA_HOME_mock.return_value = True
+    path_existsMock.return_value = True
+    install_jce_manualy_mock.return_value = 1
+    with patch.object(ambari_server, "download_jce_policy") as download_jce_policy_mock:
+      rcode = ambari_server.download_jdk(args)
+      self.assertTrue(download_jce_policy_mock.called)
+
 
 
   @patch.object(ambari_server, "run_os_command")

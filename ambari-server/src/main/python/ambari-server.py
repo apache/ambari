@@ -1447,94 +1447,109 @@ def install_jce_manualy(args):
 #
 def download_jdk(args):
   jce_installed = install_jce_manualy(args)
-  if get_JAVA_HOME():
-    return 0
-  if args.java_home and os.path.exists(args.java_home):
-    print_warning_msg("JAVA_HOME " + args.java_home
-                    + " must be valid on ALL hosts")
-    write_property(JAVA_HOME_PROPERTY, args.java_home)
-    return 0
-
   properties = get_ambari_properties()
   if properties == -1:
     err = "Error getting ambari properties"
     raise FatalException(-1, err)
-
   conf_file = properties.fileName
-  try:
-    jdk_url = properties[JDK_URL_PROPERTY]
-    resources_dir = properties[RESOURCES_DIR_PROPERTY]
-  except (KeyError), e:
-    err = 'Property ' + str(e) + ' is not defined at ' + conf_file
-    raise FatalException(1, err)
-  dest_file = resources_dir + os.sep + JDK_LOCAL_FILENAME
-  if not os.path.exists(dest_file):
-    print 'Downloading JDK from ' + jdk_url + ' to ' + dest_file
-    try:
-      size_command = JDK_DOWNLOAD_SIZE_CMD.format(jdk_url);
-      #Get Header from url,to get file size then
-      retcode, out, err = run_os_command(size_command)
-      if out.find("Content-Length") == -1:
-        err = "Request header doesn't contain Content-Length"
-        raise FatalException(1, err)
-      start_with = int(out.find("Content-Length") + len("Content-Length") + 2)
-      end_with = out.find("\r\n", start_with)
-      src_size = int(out[start_with:end_with])
-      print 'JDK distribution size is ' + str(src_size) + ' bytes'
-      file_exists = os.path.isfile(dest_file)
-      file_size = -1
-      if file_exists:
-        file_size = os.stat(dest_file).st_size
-      if file_exists and file_size == src_size:
-        print_info_msg("File already exists")
-      else:
-        track_jdk(JDK_LOCAL_FILENAME, jdk_url, dest_file)
-        print 'Successfully downloaded JDK distribution to ' + dest_file
-    except FatalException:
-      raise
-    except Exception, e:
-      err = 'Failed to download JDK: ' + str(e)
-      raise FatalException(1, err)
-    downloaded_size = os.stat(dest_file).st_size
-    if downloaded_size != src_size or downloaded_size < JDK_MIN_FILESIZE:
-      err = 'Size of downloaded JDK distribution file is ' \
-                    + str(downloaded_size) + ' bytes, it is probably \
-                    damaged or incomplete'
-      raise FatalException(1, err)
+  ok = False
+  if get_JAVA_HOME():
+    pass # do nothing
+  elif args.java_home and os.path.exists(args.java_home):
+    print_warning_msg("JAVA_HOME " + args.java_home
+                    + " must be valid on ALL hosts")
+    write_property(JAVA_HOME_PROPERTY, args.java_home)
   else:
-    print "JDK already exists using " + dest_file
-  
-  try:
-     out, ok = install_jdk(dest_file)
-     jdk_version = re.search('Creating (jdk.*)/jre', out).group(1)
-  except Exception, e:
-     print "Installation of JDK has failed: %s\n" % e.message
-     file_exists = os.path.isfile(dest_file)
-     if file_exists:
-        ok = get_YN_input("JDK found at "+dest_file+". "
-                    "Would you like to re-download the JDK [y/n] (y)? ", True)
-        if not ok:
-           err = "Unable to install JDK. Please remove JDK file found at "+ dest_file +" and re-run Ambari Server setup"
-           raise FatalException(1, err)
+    try:
+      jdk_url = properties[JDK_URL_PROPERTY]
+      resources_dir = properties[RESOURCES_DIR_PROPERTY]
+    except (KeyError), e:
+      err = 'Property ' + str(e) + ' is not defined at ' + conf_file
+      raise FatalException(1, err)
+    dest_file = resources_dir + os.sep + JDK_LOCAL_FILENAME
+    if os.path.exists(dest_file):
+      print "JDK already exists, using " + dest_file
+    elif args.jdk_location and os.path.exists(args.jdk_location):
+      print "Copying local JDK file {0} to {1}".format(args.jdk_location, dest_file)
+      try:
+        shutil.copyfile(args.jdk_location, dest_file)
+      except Exception, e:
+        err = "Can not copy file {0} to {1} due to: {2} . Please check file " \
+              "permissions and free disk space.".format(args.jdk_location,
+                                                        dest_file, e.message)
+        raise FatalException(1, err)
+    else:
+      print 'Downloading JDK from ' + jdk_url + ' to ' + dest_file
+      jdk_download_fail_msg = " Failed to download JDK: {0}. Please check that Oracle " \
+        "JDK is available at {1}. Also you may specify JDK file " \
+        "location in local filesystem using --jdk-location command " \
+        "line argument.".format("{0}", jdk_url)
+      try:
+        size_command = JDK_DOWNLOAD_SIZE_CMD.format(jdk_url);
+        #Get Header from url,to get file size then
+        retcode, out, err = run_os_command(size_command)
+        if out.find("Content-Length") == -1:
+          err = jdk_download_fail_msg.format("Request header doesn't contain Content-Length")
+          raise FatalException(1, err)
+        start_with = int(out.find("Content-Length") + len("Content-Length") + 2)
+        end_with = out.find("\r\n", start_with)
+        src_size = int(out[start_with:end_with])
+        print 'JDK distribution size is ' + str(src_size) + ' bytes'
+        file_exists = os.path.isfile(dest_file)
+        file_size = -1
+        if file_exists:
+          file_size = os.stat(dest_file).st_size
+        if file_exists and file_size == src_size:
+          print_info_msg("File already exists")
         else:
-           track_jdk(JDK_LOCAL_FILENAME, jdk_url, dest_file)
-           print 'Successfully re-downloaded JDK distribution to ' + dest_file 
-           try:
-               out, ok = install_jdk(dest_file)
-               jdk_version = re.search('Creating (jdk.*)/jre', out).group(1)
-           except Exception, e:
-             print "Installation of JDK was failed: %s\n" % e.message
-             err = "Unable to install JDK. Please remove JDK, file found at "+ dest_file +" and re-run Ambari Server setup"
+          track_jdk(JDK_LOCAL_FILENAME, jdk_url, dest_file)
+          print 'Successfully downloaded JDK distribution to ' + dest_file
+      except FatalException:
+        raise
+      except Exception, e:
+        err = jdk_download_fail_msg.format(str(e))
+        raise FatalException(1, err)
+      downloaded_size = os.stat(dest_file).st_size
+      if downloaded_size != src_size or downloaded_size < JDK_MIN_FILESIZE:
+        err = 'Size of downloaded JDK distribution file is ' \
+                      + str(downloaded_size) + ' bytes, it is probably \
+                      damaged or incomplete'
+        raise FatalException(1, err)
+
+    try:
+       out, ok = install_jdk(dest_file)
+       jdk_version = re.search('Creating (jdk.*)/jre', out).group(1)
+    except Exception, e:
+       print "Installation of JDK has failed: %s\n" % e.message
+       file_exists = os.path.isfile(dest_file)
+       if file_exists:
+          ok = get_YN_input("JDK found at "+dest_file+". "
+                      "Would you like to re-download the JDK [y/n] (y)? ", True)
+          if not ok:
+             err = "Unable to install JDK. Please remove JDK file found at "+ \
+                   dest_file +" and re-run Ambari Server setup"
              raise FatalException(1, err)
-  
-     else:
-         err = "Unable to install JDK. File "+ dest_file +" does not exist, please re-run Ambari Server setup"
-         raise FatalException(1, err)
-  
-  print "Successfully installed JDK to {0}/{1}".\
-      format(JDK_INSTALL_DIR, jdk_version)
-  write_property(JAVA_HOME_PROPERTY, "{0}/{1}".
-      format(JDK_INSTALL_DIR, jdk_version))
+          else:
+             track_jdk(JDK_LOCAL_FILENAME, jdk_url, dest_file)
+             print 'Successfully re-downloaded JDK distribution to ' + dest_file
+             try:
+                 out, ok = install_jdk(dest_file)
+                 jdk_version = re.search('Creating (jdk.*)/jre', out).group(1)
+             except Exception, e:
+               print "Installation of JDK was failed: %s\n" % e.message
+               err = "Unable to install JDK. Please remove JDK, file found at "+ \
+                     dest_file +" and re-run Ambari Server setup"
+               raise FatalException(1, err)
+
+       else:
+           err = "Unable to install JDK. File "+ dest_file +" does not exist, " \
+                                        "please re-run Ambari Server setup"
+           raise FatalException(1, err)
+
+    print "Successfully installed JDK to {0}/{1}".\
+        format(JDK_INSTALL_DIR, jdk_version)
+    write_property(JAVA_HOME_PROPERTY, "{0}/{1}".
+        format(JDK_INSTALL_DIR, jdk_version))
 
   if jce_installed != 0:
     try:
@@ -1559,12 +1574,17 @@ def download_jce_policy(properties, accpeted_bcl):
   dest_file = resources_dir + os.sep + JCE_POLICY_FILENAME
   if not os.path.exists(dest_file):
     print 'Downloading JCE Policy archive from ' + jce_url + ' to ' + dest_file
+    jce_download_fail_msg = " Failed to download JCE Policy archive : {0}. " \
+        "Please check that JCE Policy archive is available " \
+        "at {1} . Also you may install JCE Policy archive manually using " \
+      "--jce-policy command line argument.".format("{0}", jce_url)
     try:
       size_command = JDK_DOWNLOAD_SIZE_CMD.format(jce_url);
       #Get Header from url,to get file size then
       retcode, out, err = run_os_command(size_command)
       if out.find("Content-Length") == -1:
-        err = "Request header doesn't contain Content-Length";
+        err = jce_download_fail_msg.format(
+            "Request header doesn't contain Content-Length")
         raise FatalException(1, err)
       start_with = int(out.find("Content-Length") + len("Content-Length") + 2)
       end_with = out.find("\r\n", start_with)
@@ -2818,6 +2838,8 @@ def main():
                       help="File with stack upgrade script")
   parser.add_option('-j', '--java-home', default=None,
                   help="Use specified java_home.  Must be valid on all hosts")
+  parser.add_option('-i', '--jdk-location', dest="jdk_location", default=None,
+                    help="Use specified JDK file in local filesystem instead of downloading")
   parser.add_option('-c', '--jce-policy', default=None,
                   help="Use specified jce_policy.  Must be valid on all hosts", dest="jce_policy") 
   parser.add_option("-v", "--verbose",
