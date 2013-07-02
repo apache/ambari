@@ -80,6 +80,8 @@ check_python_version ()
   return $OK
 }
 
+retcode=0
+
 case "$1" in
   start)
         check_python_version
@@ -167,13 +169,14 @@ case "$1" in
   restart)
         echo -e "Restarting $AMBARI_AGENT"
         $0 stop
-        $0 start
+        $0 start "$@"
+        retcode=$?
         ;;     
   *)
         tput bold
         echo "Usage: /usr/sbin/ambari-agent {start|stop|restart|status}"
         tput sgr0
-        exit 1
+        retcode=1
 esac
 
-exit 0
+exit $retcode
