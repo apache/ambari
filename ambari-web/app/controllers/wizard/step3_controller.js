@@ -915,31 +915,36 @@ App.WizardStep3Controller = Em.Controller.extend({
               warnings: categoryWarnings.filterProperty('category', 'processes'),
               title: Em.I18n.t('installer.step3.hostWarningsPopup.processes'),
               message: Em.I18n.t('installer.step3.hostWarningsPopup.processes.message'),
-              type: Em.I18n.t('common.process')
+              type: Em.I18n.t('common.process'),
+              category: 'process'
             },
             {
               warnings: categoryWarnings.filterProperty('category', 'packages'),
               title: Em.I18n.t('installer.step3.hostWarningsPopup.packages'),
               message: Em.I18n.t('installer.step3.hostWarningsPopup.packages.message'),
-              type: Em.I18n.t('common.package')
+              type: Em.I18n.t('common.package'),
+              category: 'package'
             },
             {
               warnings: categoryWarnings.filterProperty('category', 'fileFolders'),
               title: Em.I18n.t('installer.step3.hostWarningsPopup.fileFolders'),
               message: Em.I18n.t('installer.step3.hostWarningsPopup.fileFolders.message'),
-              type: Em.I18n.t('common.path')
+              type: Em.I18n.t('common.path'),
+              category: 'fileFolders'
             },
             {
               warnings: categoryWarnings.filterProperty('category', 'services'),
               title: Em.I18n.t('installer.step3.hostWarningsPopup.services'),
               message: Em.I18n.t('installer.step3.hostWarningsPopup.services.message'),
-              type: Em.I18n.t('common.service')
+              type: Em.I18n.t('common.service'),
+              category: 'service'
             },
             {
               warnings: categoryWarnings.filterProperty('category', 'users'),
               title: Em.I18n.t('installer.step3.hostWarningsPopup.users'),
               message: Em.I18n.t('installer.step3.hostWarningsPopup.users.message'),
-              type: Em.I18n.t('common.user')
+              type: Em.I18n.t('common.user'),
+              category: 'user'
             }
           ]
         }.property('category', 'warningsByHost'),
@@ -952,38 +957,44 @@ App.WizardStep3Controller = Em.Controller.extend({
         /**
          * generate detailed content to show it in new window
          */
-        contentInDetails: function(){
+        contentInDetails: function () {
           var content = this.get('content');
+          var warningsByHost = this.get('warningsByHost').slice();
+          warningsByHost.shift();
           var newContent = '';
-          if(content.hostName == 'All Hosts'){
-            newContent += '<h4>'+Em.I18n.t('installer.step3.warningsWindow.allHosts')+'</h4>';
-          } else {
-            newContent += '<h4>' + Em.I18n.t('installer.step3.warningsWindow.warningsOn') + content.hostName + '</h4>';
+          newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.header') + new Date;
+          newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.hosts');
+          newContent += warningsByHost.mapProperty('name').join(' ');
+          if (content.findProperty('category', 'fileFolders').warnings.length) {
+            newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.fileFolders');
+            newContent += content.findProperty('category', 'fileFolders').warnings.mapProperty('name').join(' ') +  Em.I18n.t('installer.step3.hostWarningsPopup.report.folder');
           }
-          newContent += '<div>' + Em.I18n.t('installer.step3.warningsWindow.directoriesAndFiles') + '</div><div>';
-          content.directoriesFiles.filterProperty('isWarn', true).forEach(function(path){
-              newContent += path.name + '&nbsp;'
-          });
-          if(content.directoriesFiles.filterProperty('isWarn', true).length == 0){
-            newContent += Em.I18n.t('installer.step3.warningsWindow.noWarnings');
+          if (content.findProperty('category', 'process').warnings.length) {
+            newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.process');
+            content.findProperty('category', 'process').warnings.forEach(function (process, i) {
+              process.hosts.forEach(function (host, j) {
+                if (!!i || !!j) {
+                  newContent += ',';
+                }
+                newContent += '(' + host + ',' + process.user + ',' + process.pid + ')';
+              });
+            });
           }
-          newContent += '</div><br/><div>PACKAGES</div><div>';
-          content.packages.filterProperty('isWarn', true).forEach(function(_package){
-              newContent += _package.name + '&nbsp;'
-          });
-          if(content.packages.filterProperty('isWarn', true).length == 0){
-            newContent += Em.I18n.t('installer.step3.warningsWindow.noWarnings');
+          if (content.findProperty('category', 'package').warnings.length) {
+            newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.package');
+            newContent += content.findProperty('category', 'package').warnings.mapProperty('name').join(' ');
           }
-          newContent += '</div><br/><div>PROCESSES</div><div>';
-          content.processes.filterProperty('isWarn', true).forEach(function(process, index){
-              newContent += '(' + content.hostName + ',' + process.pid + ',' + process.user + ')';
-              newContent += (index != (content.processes.filterProperty('isWarn', true).length-1)) ? ',' : '';
-          })
-          if(content.processes.filterProperty('isWarn', true).length == 0){
-            newContent += Em.I18n.t('installer.step3.warningsWindow.noWarnings');
+          if (content.findProperty('category', 'service').warnings.length) {
+            newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.service');
+            newContent += content.findProperty('category', 'service').warnings.mapProperty('name').join(' ');
           }
+          if (content.findProperty('category', 'user').warnings.length) {
+            newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.user');
+            newContent += content.findProperty('category', 'user').warnings.mapProperty('name').join(' ');
+          }
+          newContent += '</p>';
           return newContent;
-        }.property('content'),
+        }.property('content', 'warningsByHost'),
         /**
          * open new browser tab with detailed content
          */
