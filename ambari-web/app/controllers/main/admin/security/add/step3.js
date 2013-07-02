@@ -30,7 +30,9 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   globalProperties: [],
 
   isSubmitDisabled: true,
-  isBackBtnDisabled: true,
+  isBackBtnDisabled: function () {
+    return !this.get('stages').someProperty('isError', true);
+  }.property('stages.@each.isCompleted'),
 
   isOozieSelected: function () {
     return this.get('content.services').someProperty('serviceName', 'OOZIE');
@@ -109,14 +111,15 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   },
 
   enableSubmit: function () {
+    var addSecurityController = App.router.get('addSecurityController');
     if (this.get('stages').someProperty('isError', true) || this.get('stages').everyProperty('isSuccess', true)) {
       this.set('isSubmitDisabled', false);
       if (this.get('stages').someProperty('isError', true)) {
-        this.set('isBackBtnDisabled', false);
-        App.router.get('addSecurityController').setStepsEnable();
+        addSecurityController.setStepsEnable();
       }
     } else {
       this.set('isSubmitDisabled', true);
+      addSecurityController.setLowerStepsDisable(3);
     }
   }.observes('stages.@each.isCompleted'),
 
@@ -230,7 +233,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     }, this);
     var dependentConfig = this.get('secureMapping').filterProperty('foreignKey');
     dependentConfig.forEach(function (_config) {
-      if (App.Service.find().mapProperty('serviceName').contains( _config.serviceName)) {
+      if (App.Service.find().mapProperty('serviceName').contains(_config.serviceName)) {
         this.setConfigValue(uiConfig, _config);
         uiConfig.pushObject({
           "id": "site property",
@@ -356,9 +359,9 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         value: hiveHostName
       });
     }
-    var webHcatComponent =  App.Service.find('WEBHCAT').get('hostComponents').findProperty('componentName', 'WEBHCAT_SERVER');
-    if(this.isWebHcatSelected() && webHcatComponent) {
-     var webHcatHostName =  webHcatComponent.get('host.hostName');
+    var webHcatComponent = App.Service.find('WEBHCAT').get('hostComponents').findProperty('componentName', 'WEBHCAT_SERVER');
+    if (this.isWebHcatSelected() && webHcatComponent) {
+      var webHcatHostName = webHcatComponent.get('host.hostName');
       this.get('globalProperties').pushObject({
         id: 'puppet var',
         name: 'webhcat_server',
