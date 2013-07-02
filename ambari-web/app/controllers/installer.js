@@ -171,12 +171,50 @@ App.InstallerController = App.WizardController.extend({
       return 0;
     });
     stackVersions.forEach(function (version) {
-          result.push(
-              Ember.Object.create({
-                name: version.Versions.stack_name + "-" + version.Versions.stack_version,
-                isSelected: false
-              })
-          );
+      /*
+       * operatingSystems:[
+       *  {
+       *    osType: 'centos5',
+       *    baseUrl: 'http://...',
+       *    originalBaseUrl: 'http://...',
+       *    defaultBaseUrl: 'http://...',
+       *    mirrorsList: '';
+       *  },
+       *  {
+       *    osType: 'centos6',
+       *    baseUrl: 'http://...',
+       *    originalBaseUrl: 'http://...',
+       *    defaultBaseUrl: 'http://...',
+       *    mirrorsList: '';
+       *  },
+       * ]
+       */
+      var oses = [];
+      if (version.operatingSystems) {
+        version.operatingSystems.forEach(function (os) {
+          if (os.repositories) {
+            os.repositories.forEach(function (repo) {
+              if(repo.Repositories.repo_name == version.Versions.stack_name){
+                oses.push({
+                  osType: os.OperatingSystems.os_type,
+                  baseUrl: repo.Repositories.base_url,
+                  originalBaseUrl: repo.Repositories.base_url,
+                  defaultBaseUrl: repo.Repositories.default_base_url ? 
+                      repo.Repositories.default_base_url : repo.Repositories.base_url,
+                  mirrorsList: repo.Repositories.mirrors_list
+                });
+              }
+            });
+          }
+        });
+      }
+      result.push(
+          Ember.Object.create({
+            name: version.Versions.stack_name + "-" + version.Versions.stack_version,
+            isSelected: false,
+            operatingSystems: oses
+          })
+      );
     }, this);
     this.get('stacks').pushObjects(result);
   },

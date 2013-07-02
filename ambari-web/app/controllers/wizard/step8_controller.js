@@ -922,6 +922,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       var clusterNames = this.getExistingClusterNames();
       this.deleteClusters(clusterNames);
     }
+    this.setLocalRepositories();
     this.createCluster();
     this.createSelectedServices();
     this.createConfigurations();
@@ -1023,6 +1024,40 @@ App.WizardStep8Controller = Em.Controller.extend({
   deleteClustersErrorCallback: function(request, ajaxOptions, error, opt) {
     console.log('DELETE cluster failed');
   },
+  
+
+  /**
+   * Updates local repositories for the Ambari server.
+   */
+  setLocalRepositories: function () {
+    if (this.get('content.controllerName') !== 'installerController' || !App.supports.localRepositories) {
+      return false;
+    }
+    var self = this;
+    var apiUrl = App.get('stack2VersionURL');
+    var stacks = this.get('content.stacks');
+    stacks.forEach(function (stack) {
+      stack.operatingSystems.forEach(function (os) {
+        if (os.baseUrl !== os.originalBaseUrl) {
+          console.log("Updating local repository URL from " + os.originalBaseUrl + " -> " + os.baseUrl + ". ", os);
+          var url = App.apiPrefix + apiUrl + "/operatingSystems/" + os.osType + "/repositories/" + stack.name;
+          self.ajax({
+            type: 'PUT',
+            url: url,
+            data: JSON.stringify({
+              "Repositories": {
+                "base_url": os.baseUrl
+              }
+            }),
+            beforeSend: function () {
+              console.log("BeforeSend: setLocalRepositories PUT to ", url);
+            }
+          });
+        }
+      });
+    });
+  },
+
 
   /**
    *  The following create* functions are called upon submitting Step 8.

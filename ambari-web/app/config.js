@@ -54,7 +54,8 @@ App.supports = {
   addMasters: false,
   customizeSmokeTestUser: true,
   hue: false,
-  ldapGroupMapping: false
+  ldapGroupMapping: false,
+  localRepositories: false
 };
 
 if (App.enableExperimental) {

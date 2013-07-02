@@ -711,7 +711,7 @@ var urls = {
     }
   },
   'wizard.stacks_versions': {
-    'real': '/stacks2/{stackName}/versions?fields=Versions',
+    'real': '/stacks2/{stackName}/versions?fields=Versions,operatingSystems/repositories/Repositories',
     'mock': '/data/wizard/stack/{stackName}_versions.json',
     'format': function (data) {
       return {

@@ -100,6 +100,7 @@
   <div class="advancedOptions">
     <h5>{{t installer.step2.advancedOptions.header}}</h5>
 
+    {{#unless App.supports.localRepositories}}
     <label {{bindAttr class=":checkbox"}}>
       {{view Ember.Checkbox checkedBinding="content.installOptions.localRepo"}}
 
@@ -111,6 +112,8 @@
         {{t installer.step2.localRepo.tooltip.title}}</a>
       {{t installer.step2.localRepo.label_instead}}
     </label>
+    {{/unless}}
+    
     {{#if isInstaller}}
     <label {{bindAttr class=":checkbox"}}>
       <div class="java-home">

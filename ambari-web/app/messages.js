@@ -244,6 +244,14 @@ Em.I18n.translations = {
 
   'installer.step1.header':'Select Stack',
   'installer.step1.body':'Please select the service stack that you want to use to install your Hadoop cluster.',
+  'installer.step1.advancedRepo.title':'Advaned Repository Options',
+  'installer.step1.advancedRepo.message':'Specify the repository where software packages will be downloaded from. If your hosts do not have access to the internet, you will have to create a local mirror of the repository accessible by all hosts and specify the Base URL here.',
+  'installer.step1.advancedRepo.localRepo.error.modifyUrl':'Local repository URL must be modified',
+  'installer.step1.advancedRepo.localRepo.error.noUrl':'Base URL required for a local repository',
+  'installer.step1.advancedRepo.localRepo.column.baseUrl':'Base URL',
+  'installer.step1.advancedRepo.localRepo.label.os':'Operating System',
+  'installer.step1.advancedRepo.localRepo.label.baseUrl':'Repository Base URL',
+  'installer.step1.advancedRepo.localRepo.label.stack':'Stack',
 
   'installer.step2.header':'Install Options',
   'installer.step2.body':'Enter the list of hosts to be included in the cluster and provide your SSH key.',

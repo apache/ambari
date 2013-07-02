@@ -25,5 +25,48 @@
     <label class="radio">{{view view.stackRadioButton contentBinding="stack"}} {{stack.name}}</label>
   {{/each}}
 </form>
+
+{{#if App.supports.localRepositories}}
+<div class="accordion" id="advancedRepoAccordion">
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#advancedRepoAccordion" href="#collapseOne">
+        {{t installer.step1.advancedRepo.title}}
+      </a>
+    </div>
+    <div id="collapseOne" class="accordion-body collapse">
+      <div class="accordion-inner">
+        <div class="alert alert-info">
+          {{t installer.step1.advancedRepo.message}}
+        </div>
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th class="os">{{t common.os}}</th>
+              <th class="baseUrl">{{t installer.step1.advancedRepo.localRepo.column.baseUrl}}</th>
+              <th class="actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+          {{#each localRepo in view.localRepositories}}
+            <tr>
+              <td>{{localRepo.osType}}</td>
+              <td>{{localRepo.baseUrl}}</td>
+              <td>
+                <a class="action" {{action "removeLocalRepository" localRepo target="view" }} >
+                  <i class="icon-minus-sign"></i>{{t common.remove}}
+                </a>
+              </td>
+            </tr>
+          {{/each}}
+          </tbody>
+        </table>
+        <a {{bindAttr class=":btn :pull-right view.isAddOSDisabled:disabled"}} {{action addLocalRepository target="view"}}><i class="icon-plus"></i> Add OS</a>
+      </div>
+    </div>
+  </div>
+</div>
+{{/if}}
+
 <a class="btn pull-left" {{action back}}>&larr; {{t common.back}}</a>
 <a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>
