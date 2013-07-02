@@ -58,12 +58,12 @@ App.DashboardWidgetView = Em.View.extend({
 
   deleteWidget: function (event) {
     var parent = this.get('parentView');
-    if(App.testMode) {
-      //update view on dashboard
-      var obj_class = parent.widgetsMapper(this.id);
-      parent.get('visibleWidgets').removeObject(obj_class);
-      parent.get('hiddenWidgets').pushObject(Em.Object.create({displayName: this.title, id: this.id, checked: false}));
-    }else{
+    //update view on dashboard
+    var obj_class = parent.widgetsMapper(this.id);
+    parent.get('visibleWidgets').removeObject(obj_class);
+    parent.get('hiddenWidgets').pushObject(Em.Object.create({displayName: this.title, id: this.id, checked: false}));
+
+    if (!App.testMode) {
       //reconstruct new persist value then post in persist
       parent.getUserPref(parent.get('persistKey'));
       var oldValue = parent.get('currentPrefObject');
@@ -81,7 +81,6 @@ App.DashboardWidgetView = Em.View.extend({
       }
       newValue.hidden.push([deletedId, this.title]);
       parent.postUserPref(parent.get('persistKey'), newValue);
-      parent.translateToReal(newValue);
     }
 
   },

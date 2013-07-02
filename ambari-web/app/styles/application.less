@@ -39,7 +39,7 @@ html, body {
 @footer-height: 100px;
 
 #main {
-  overflow: visible;
+  overflow: hidden;
   padding-bottom: @footer-height;
   min-width: 980px;
 }
@@ -1935,6 +1935,8 @@ table.graphs {
       color: #666666;
     }
     .filter-components{
+      overflow: auto;
+      height: 375px;
       color: #333333;
       right: 0;
       left: auto;
@@ -2055,7 +2057,13 @@ table.graphs {
       font-size: 12px;
       text-align: left;
     }
-
+    .thumbnail .icon-remove-sign{
+      color: #000000;
+      text-shadow: #fff 0px 0px 15px;
+      position: relative;
+      left: -17px;
+      top: -7px;
+    }
     .thumbnail .widget-content{
       text-align: center;
       font-size: 35px;
@@ -2095,16 +2103,10 @@ table.graphs {
       .corner-icon{
         display:block;
         text-decoration: none;
-        .icon-remove-sign{
-          color: #000000;
-          text-shadow: #fff 0px 0px 15px;
-          position:absolute;
-          margin-left: -17px;
-          margin-top: -7px;
-        }
       }
       .caption{
         color: #ffffff;
+        margin-left: -5px;
         text-shadow: #000 0px 0px 15px;
       }
       .rickshaw_legend{
@@ -2153,16 +2155,10 @@ table.graphs {
       .corner-icon{
         display:block;
         text-decoration: none;
-        .icon-remove-sign{
-          color: #000000;
-          text-shadow: #fff 0px 0px 15px;
-          position:absolute;
-          margin-left: -17px;
-          margin-top: -7px;
-        }
       }
       .caption{
         color: #ffffff;
+        margin-left: -5px;
         text-shadow: #000 0px 0px 15px;
       }
       .widget-content{
@@ -2180,13 +2176,6 @@ table.graphs {
       .corner-icon{
         display:block;
         text-decoration: none;
-        .icon-remove-sign{
-          color: #000000;
-          text-shadow: #fff 0px 0px 15px;
-          position:absolute;
-          margin-left: -17px;
-          margin-top: -7px;
-        }
       }
       .hidden-info{
         display: block;
@@ -2194,18 +2183,17 @@ table.graphs {
       .hidden-info-three-line{
         display: block;
       }
+      .caption{
+        color: #ffffff;
+        margin-left: -5px;
+      }
       .widget-content{
         display: none;
       }
       .widget-content-isNA{
         display: none;
       }
-      .caption{
-        color: #ffffff;
-      }
     }
-
-
 
     .thumbnail .widget-content .svg {
       position:relative;

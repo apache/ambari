@@ -151,7 +151,6 @@ App.MainDashboardView = Em.View.extend({
             visibleWidgets.pushObject(new_obj);
             hiddenWidgets.removeObject(item);
           }, this);
-
         } else {
           //save in persist
           parent.getUserPref(parent.get('persistKey'));
@@ -168,12 +167,11 @@ App.MainDashboardView = Em.View.extend({
           }, this);
           hiddenWidgets.forEach(function(item){
             newValue.hidden.push([item.id, item.displayName]);
-          },this);
+          }, this);
 
           parent.postUserPref(parent.get('persistKey'), newValue);
           parent.translateToReal(newValue);
         }
-
       }
     })
   }),
