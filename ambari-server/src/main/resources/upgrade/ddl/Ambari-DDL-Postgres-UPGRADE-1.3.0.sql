@@ -61,48 +61,10 @@ drop sequence ambari.clusters_cluster_id_seq;
 
 CREATE LANGUAGE plpgsql;
 
-BEGIN;
-
-CREATE OR REPLACE FUNCTION create_or_update_metainfo_table(ambariVersion VARCHAR, userName TEXT) RETURNS text AS
-$$
-DECLARE
-    version VARCHAR(255) := 'version';
-    fqtn text := 'ambari.metainfo';
-BEGIN
-    IF NOT EXISTS (SELECT * FROM pg_tables WHERE tablename = 'metainfo') THEN
-        EXECUTE 'CREATE TABLE '
-        || fqtn
-        || ' (metainfo_key VARCHAR(255), metainfo_value VARCHAR, PRIMARY KEY(metainfo_key));';
-        EXECUTE 'GRANT ALL PRIVILEGES ON TABLE '
-        || fqtn
-        || ' TO '
-        || $2
-        || ';';
-        EXECUTE 'INSERT INTO '
-        || fqtn
-        || '(metainfo_key, metainfo_value) select '
-        || quote_literal(version)
-        || ','
-        || quote_literal($1)
-        || ';';
-        RETURN 'INFO: metainfo was created';
-    ELSE
-        EXECUTE 'UPDATE '
-        || fqtn
-        || ' SET metainfo_value = '
-        || quote_literal($1)
-        || ' WHERE metainfo_key = '
-        || quote_literal(version)
-        || ';';
-        RETURN 'INFO: metainfo was updated';
-    END IF;
-END;
-$$
-LANGUAGE 'plpgsql';
-
-SELECT create_or_update_metainfo_table('${ambariVersion}',:username);
-
-COMMIT;
+CREATE TABLE ambari.metainfo (metainfo_key VARCHAR(255), metainfo_value VARCHAR, PRIMARY KEY(metainfo_key));
+INSERT INTO ambari.metainfo (metainfo_key, metainfo_value) select 'version', '${ambariVersion}';
+UPDATE ambari.metainfo SET metainfo_value = '${ambariVersion}' WHERE metainfo_key = 'version';
+GRANT ALL PRIVILEGES ON TABLE ambari.metainfo TO :username;
 
 UPDATE ambari.hostcomponentstate SET current_state = 'INSTALLED' WHERE current_state like 'STOP_FAILED';
 UPDATE ambari.hostcomponentstate SET current_state = 'INSTALLED' WHERE current_state like 'START_FAILED';
