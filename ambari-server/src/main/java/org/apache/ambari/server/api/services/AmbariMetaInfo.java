@@ -32,16 +32,13 @@ import java.util.Set;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.PropertyInfo;
@@ -49,7 +46,6 @@ import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.Stack;
 import org.apache.ambari.server.state.StackInfo;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -84,7 +80,6 @@ public class AmbariMetaInfo {
   private static final String REPOSITORY_XML_ATTRIBUTE_OS_TYPE = "type";
   private static final String REPOSITORY_XML_REPO_BLOCK_NAME = "repo";
   private static final String REPOSITORY_XML_PROPERTY_BASEURL = "baseurl";
-  private static final String REPOSITORY_XML_PROPERTY_DEFAULT_BASEURL = "default_baseurl";
   private static final String REPOSITORY_XML_PROPERTY_REPOID = "repoid";
   private static final String REPOSITORY_XML_PROPERTY_REPONAME = "reponame";
   private static final String REPOSITORY_XML_PROPERTY_MIRRORSLIST = "mirrorslist";
@@ -112,6 +107,9 @@ public class AmbariMetaInfo {
   private List<StackInfo> stacksResult = new ArrayList<StackInfo>();
   private File stackRoot;
   private File serverVersionFile;
+  
+  @Inject
+  private MetainfoDAO metainfoDAO;
 
   /**
    * Ambari Meta Info Object
@@ -127,12 +125,11 @@ public class AmbariMetaInfo {
     this.serverVersionFile = new File(serverVersionFilePath);
   }
 
-  @Inject
   public AmbariMetaInfo(File stackRoot, File serverVersionFile) throws Exception {
     this.stackRoot = stackRoot;
     this.serverVersionFile = serverVersionFile;
   }
-
+  
   /**
    * Initialize the Ambari Meta Info
    *
@@ -272,125 +269,6 @@ public class AmbariMetaInfo {
     return repoResult;
   }
   
-  public synchronized void updateRepository(String stackName, String stackVersion,
-      String osType, String repoId, String baseUrl) throws AmbariException {
-    
-    // validate existing
-    RepositoryInfo ri = getRepository(stackName, stackVersion, osType, repoId);
-    
-    if (!stackRoot.exists())
-      throw new StackAccessException("Stack root does not exist.");
-    
-    String repoFileName = stackRoot.getAbsolutePath() + File.separator +
-        stackName + File.separator + stackVersion + File.separator +
-        REPOSITORY_FOLDER_NAME + File.separator + REPOSITORY_FILE_NAME;
-    
-    File repoFile = new File(repoFileName);
-    if (!repoFile.exists())
-      throw new StackAccessException("Stack repo file does not exist.");
-    
-    try {
-      // backup
-      File newFile = new File(repoFileName + "." + System.currentTimeMillis());
-      FileUtils.copyFile(repoFile, newFile, false);
-
-      // read/update/persist
-      DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-      DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-      Document doc = dBuilder.parse(repoFile);
-      
-      NodeList osNodes = doc.getElementsByTagName(REPOSITORY_XML_MAIN_BLOCK_NAME);
-
-      List<Node> newOsNodes = new ArrayList<Node>();
-      
-      for (int i = 0; i < osNodes.getLength(); i++) {
-        Node osNode = osNodes.item(i);
-        if (osNode.getNodeType() != Node.ELEMENT_NODE) {
-          continue;
-        }
-        
-        NamedNodeMap attrs = osNode.getAttributes();
-        Node osAttr = attrs.getNamedItem(REPOSITORY_XML_ATTRIBUTE_OS_TYPE);
-        if (osAttr == null) {
-          continue;
-        }
-        
-        String xmlOsValue = osAttr.getNodeValue();
-        
-        if (-1 == xmlOsValue.indexOf(osType)) {
-          continue;
-        }
-        
-        Node template = osNode.cloneNode(true);
-        
-        // many os'es can be defined
-        String[] allOsTypes = osAttr.getNodeValue().split(",");
-        
-        for (String xmlOsType : allOsTypes) {
-          Node newOsNode = template.cloneNode(true);
-          NamedNodeMap newAttrs = newOsNode.getAttributes();
-          Node newOsAttr = newAttrs.getNamedItem(REPOSITORY_XML_ATTRIBUTE_OS_TYPE);
-          newOsAttr.setTextContent(xmlOsType);
-
-          if (xmlOsType.equals(osType)) {
-            NodeList newOsNodeChildren = newOsNode.getChildNodes();
-            
-            for (int j = 0; j < newOsNodeChildren.getLength(); j++) {
-              Node repoNode = newOsNodeChildren.item(j);
-              if (repoNode.getNodeName().equals(REPOSITORY_XML_REPO_BLOCK_NAME)) {
-
-                Element property = (Element) repoNode;
-                String xmlRepoId = getTagValue(REPOSITORY_XML_PROPERTY_REPOID, property);
-                
-                if (xmlRepoId.equals(repoId)) {
-                  NodeList nl = property.getElementsByTagName(REPOSITORY_XML_PROPERTY_BASEURL);
-                  if (null != nl && nl.getLength() > 0) {
-                    String defaultBaseUrl = getTagValue(REPOSITORY_XML_PROPERTY_DEFAULT_BASEURL, property);
-                    if (null == defaultBaseUrl) {
-                      Node n = doc.createElement(REPOSITORY_XML_PROPERTY_DEFAULT_BASEURL);
-                      n.setTextContent(nl.item(0).getTextContent());
-                      if (null != ri)
-                        ri.setDefaultBaseUrl(nl.item(0).getTextContent());
-                      property.appendChild(n);
-                    }
-                    nl.item(0).setTextContent(baseUrl);
-                  }
-                }
-              }
-            }
-            doc.getDocumentElement().replaceChild(newOsNode, osNode);
-          } else {
-            newOsNodes.add(newOsNode);
-          }
-        }
-      }
-      
-      for (Node n : newOsNodes) {
-        doc.getDocumentElement().appendChild(n);
-      }
-
-      TransformerFactory tf = TransformerFactory.newInstance();
-      Transformer t = tf.newTransformer();
-      t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-      t.setOutputProperty(OutputKeys.METHOD, "xml");
-      t.setOutputProperty(OutputKeys.INDENT, "yes");
-      t.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-      t.setOutputProperty("{http://xml.apache.org/xslt}indent-amount",  "2");
-      doc.setXmlStandalone(true);
-      
-      t.transform(new DOMSource(doc), new StreamResult(repoFile));      
-    }
-    catch (Exception e) {
-      throw new AmbariException (e.getMessage(), e);
-    }
-    
-    // modify existing definition currently in-memory (must be valid to get here)
-    if (null != ri) {
-      ri.setBaseUrl(baseUrl);
-    }
-    
-  }
-
   /*
    * function for given a stack name and version, is it a supported stack
    */
@@ -766,7 +644,7 @@ public class AmbariMetaInfo {
                 + ", stackVersion=" + stack.getName()
                 + ", repoFolder=" + repositoryFolder.getPath());
           }
-          List<RepositoryInfo> repositoryInfoList = getRepository(repositoryFolder);
+          List<RepositoryInfo> repositoryInfoList = getRepository(repositoryFolder, stackInfo.getVersion());
           stackInfo.getRepositories().addAll(repositoryInfoList);
         }
 
@@ -866,11 +744,10 @@ public class AmbariMetaInfo {
     return stackInfo;
   }
 
-  private List<RepositoryInfo> getRepository(File repositoryFile)
+  private List<RepositoryInfo> getRepository(File repositoryFile, String stackVersion)
       throws ParserConfigurationException, IOException, SAXException {
 
     List<RepositoryInfo> repositorysInfo = new ArrayList<RepositoryInfo>();
-//    try {
 
     DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
     DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -906,7 +783,6 @@ public class AmbariMetaInfo {
           String repoName = getTagValue(REPOSITORY_XML_PROPERTY_REPONAME, property);
           String baseUrl = getTagValue(REPOSITORY_XML_PROPERTY_BASEURL, property);
           String mirrorsList = getTagValue(REPOSITORY_XML_PROPERTY_MIRRORSLIST, property);
-          String defaultBaseUrl = getTagValue(REPOSITORY_XML_PROPERTY_DEFAULT_BASEURL, property);
 
           String[] osTypes = osType.split(",");
 
@@ -916,21 +792,29 @@ public class AmbariMetaInfo {
             repositoryInfo.setRepoId(repoId);
             repositoryInfo.setRepoName(repoName);
             repositoryInfo.setBaseUrl(baseUrl);
+            repositoryInfo.setDefaultBaseUrl(baseUrl);
             repositoryInfo.setMirrorsList(mirrorsList);
-            repositoryInfo.setDefaultBaseUrl(defaultBaseUrl);
-
+            
             if (LOG.isDebugEnabled()) {
               LOG.debug("Adding repo to stack"
                   + ", repoInfo=" + repositoryInfo.toString());
             }
+
+            if (null != metainfoDAO) {
+              LOG.debug("Checking for override for base_url");
+              String key = generateRepoMetaKey(repoName, stackVersion, os, repoId, REPOSITORY_XML_PROPERTY_BASEURL);
+              MetainfoEntity entity = metainfoDAO.findByKey(key);
+              if (null != entity) {
+                repositoryInfo.setBaseUrl(entity.getMetainfoValue());
+              }
+              
+            }            
+            
             repositorysInfo.add(repositoryInfo);
           }
         }
       }
     }
-//    } catch (Exception e) {
-//      e.printStackTrace();
-//    }
 
     return repositorysInfo;
   }
@@ -1060,5 +944,54 @@ public class AmbariMetaInfo {
             osType.equals("oraclelinux6") ||
             osType.equals("suse11") || osType.equals("sles11");
   }
+  
+  private String generateRepoMetaKey(String stackName, String stackVersion,
+      String osType, String repoId, String field) {
+    
+    StringBuilder sb = new StringBuilder("repo:/");
+    sb.append(stackName).append('/');
+    sb.append(stackVersion).append('/');
+    sb.append(osType).append('/');
+    sb.append(repoId);
+    sb.append(':').append(field);
+    
+    return sb.toString();
+  }
+
+  /**
+   * @param stackName the stack name
+   * @param stackVersion the stack version
+   * @param osType the os
+   * @param repoId the repo id
+   * @param newBaseUrl the new base url
+   */
+  public void updateRepoBaseURL(String stackName,
+      String stackVersion, String osType, String repoId, String newBaseUrl) throws AmbariException {
+
+    // validate existing
+    RepositoryInfo ri = getRepository(stackName, stackVersion, osType, repoId);
+    
+    if (!stackRoot.exists())
+      throw new StackAccessException("Stack root does not exist.");
+    
+    ri.setBaseUrl(newBaseUrl);
+    
+    if (null != metainfoDAO) {
+      String metaKey = generateRepoMetaKey(stackName, stackVersion, osType,
+          repoId, REPOSITORY_XML_PROPERTY_BASEURL);
+      
+      MetainfoEntity entity = new MetainfoEntity();
+      entity.setMetainfoName(metaKey);
+      entity.setMetainfoValue(newBaseUrl);
+      
+      if (null != ri.getDefaultBaseUrl() && newBaseUrl.equals(ri.getDefaultBaseUrl())) {
+        metainfoDAO.remove(entity);
+      } else {
+        metainfoDAO.merge(entity);
+      }
+    }
+    
+  }
+
  
 }

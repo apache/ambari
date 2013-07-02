@@ -18,6 +18,14 @@
 
 package org.apache.ambari.server.controller;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,13 +34,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.persistence.EntityManager;
+
 import junit.framework.Assert;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
-import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.ObjectNotFoundException;
+import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.StackAccessException;
@@ -46,13 +57,30 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.serveraction.ServerActionManager;
 import org.apache.ambari.server.serveraction.ServerActionManagerImpl;
-import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.ConfigImpl;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentFactory;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.junit.After;
@@ -62,11 +90,10 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
-
-import static org.junit.Assert.*;
 
 public class AmbariManagementControllerTest {
 
@@ -6497,6 +6524,47 @@ public class AmbariManagementControllerTest {
     for (RepositoryInfo repositoryInfo: stackInfo.getRepositories()) {
       assertFalse(INCORRECT_BASE_URL.equals(repositoryInfo.getBaseUrl()));
     }
+  }
+  
+  @Test
+  public void testUpdateRepoUrl() throws Exception {
+    String INCORRECT_URL_2 = "http://bar.com/foo";
+    
+    RepositoryInfo repo = ambariMetaInfo.getRepository(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
+    assertNotNull(repo);
+    assertNotNull(repo.getBaseUrl());
+    
+    String original = repo.getBaseUrl();
+    
+    repo = ambariMetaInfo.getRepository(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
+    assertEquals(original, repo.getBaseUrl());
+    
+    ambariMetaInfo.updateRepoBaseURL(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID, INCORRECT_BASE_URL);
+    
+    repo = ambariMetaInfo.getRepository(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
+    assertEquals(INCORRECT_BASE_URL, repo.getBaseUrl());
+    assertEquals(original, repo.getDefaultBaseUrl());
+    
+    ambariMetaInfo.updateRepoBaseURL(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID, INCORRECT_URL_2);
+    repo = ambariMetaInfo.getRepository(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
+    assertFalse(INCORRECT_BASE_URL.equals(repo.getBaseUrl()));
+    assertEquals(INCORRECT_URL_2, repo.getBaseUrl());
+    assertEquals(original, repo.getDefaultBaseUrl());
+
+    // verify change with new meta info
+    AmbariMetaInfo ami = new AmbariMetaInfo(new File("src/test/resources/stacks"), new File("target/version"));
+    injector.injectMembers(ami);
+    ami.init();
+    
+    repo = ami.getRepository(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
+    assertEquals(INCORRECT_URL_2, repo.getBaseUrl());
+    assertNotNull(repo.getDefaultBaseUrl());
+    assertEquals(original, repo.getDefaultBaseUrl());
+    
+    ami.updateRepoBaseURL(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID, original);
+    repo = ami.getRepository(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
+    assertEquals(original, repo.getBaseUrl());
+    assertEquals(original, repo.getDefaultBaseUrl());
   }
   
 }

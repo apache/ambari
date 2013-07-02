@@ -20,15 +20,12 @@ package org.apache.ambari.server.api.services;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import junit.framework.Assert;
 
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackInfo;
-import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.map.DeserializationConfig;
@@ -37,8 +34,6 @@ import org.codehaus.jackson.type.TypeReference;
 import org.codehaus.jettison.json.JSONException;
 import org.junit.Test;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.UniformInterfaceException;
@@ -55,34 +50,21 @@ public class AmbariMetaServiceTest extends JerseyTest {
   private static Log LOG = LogFactory.getLog(AmbariMetaService.class);
   Injector injector;
   protected Client client;
-
+  
   public  AmbariMetaServiceTest() {
     super(new WebAppDescriptor.Builder(PACKAGE_NAME).servletClass(ServletContainer.class)
         .initParam("com.sun.jersey.api.json.POJOMappingFeature", "true")
         .build());
   }
 
-  public class MockModule extends AbstractModule {
-    File stackRoot = new File("src/test/resources/stacks");
-    AmbariMetaInfo ambariMetaInfo;
-    
-    public MockModule() throws Exception {
-      this.ambariMetaInfo = new AmbariMetaInfo(stackRoot, new File("target/version"));
-    }
-
-    @Override
-    protected void configure() {
-      bind(AmbariMetaInfo.class).toInstance(ambariMetaInfo);
-      requestStaticInjection(AmbariMetaService.class);     
-    }
-  }
-
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    injector = Guice.createInjector(new MockModule());
-    AmbariMetaInfo metainfo = injector.getInstance(AmbariMetaInfo.class);
+    
+    AmbariMetaInfo metainfo = new AmbariMetaInfo(new File("src/test/resources/stacks"), new File("target/version"));
     metainfo.init();
+    
+    AmbariMetaService.init(metainfo);
   }
 
   @Test

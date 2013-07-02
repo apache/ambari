@@ -50,6 +50,7 @@ public class AmbariServerTest {
   @Before
   public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
   }
 

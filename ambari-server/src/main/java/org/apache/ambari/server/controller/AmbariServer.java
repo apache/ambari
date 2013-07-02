@@ -24,8 +24,6 @@ import javax.crypto.BadPaddingException;
 import java.net.BindException;
 import java.util.Map;
 
-import com.google.inject.persist.PersistFilter;
-import com.google.gson.Gson;
 import org.apache.ambari.eventdb.webservice.WorkflowJsonService;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
@@ -33,7 +31,11 @@ import org.apache.ambari.server.agent.HeartBeatHandler;
 import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.api.AmbariPersistFilter;
 import org.apache.ambari.server.api.rest.BootStrapResource;
-import org.apache.ambari.server.api.services.*;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.api.services.AmbariMetaService;
+import org.apache.ambari.server.api.services.KeyService;
+import org.apache.ambari.server.api.services.PersistKeyValueImpl;
+import org.apache.ambari.server.api.services.PersistKeyValueService;
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -69,6 +71,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
+import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -432,12 +435,12 @@ public class AmbariServer {
     BootStrapResource.init(injector.getInstance(BootStrapImpl.class));
     StageUtils.setGson(injector.getInstance(Gson.class));
     WorkflowJsonService.setDBProperties(
-        injector.getInstance(Configuration.class)
-    );
+        injector.getInstance(Configuration.class));
   }
 
   public static void main(String[] args) throws Exception {
     Injector injector = Guice.createInjector(new ControllerModule());
+    
     AmbariServer server = null;
     try {
       LOG.info("Getting the controller");

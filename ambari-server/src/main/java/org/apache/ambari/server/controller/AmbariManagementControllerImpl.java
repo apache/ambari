@@ -56,6 +56,8 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.Users;
@@ -4303,7 +4305,7 @@ public class AmbariManagementControllerImpl implements
       RepositoryInfo repository = this.ambariMetaInfo.getRepository(stackName, stackVersion, osType, repoId);
       response = Collections.singleton(repository.convertToResponse());
     }
-
+    
     return response;
   }
   
@@ -4323,18 +4325,9 @@ public class AmbariManagementControllerImpl implements
         throw new AmbariException("Repo ID must be specified.");
       
       if (null != rr.getBaseUrl()) {
-        // verify url is accessible
-        URLStreamProvider usp = new URLStreamProvider(
-            REPO_URL_CONNECT_TIMEOUT, REPO_URL_READ_TIMEOUT);
-        try {
-          IOUtils.readLines(usp.readFrom(rr.getBaseUrl()));
-          ambariMetaInfo.updateRepository(rr.getStackName(),
-              rr.getStackVersion(), rr.getOsType(), rr.getRepoId(),
-              rr.getBaseUrl());
-        }
-        catch (IOException ioe) {
-          throw new IllegalArgumentException("Could not access base_url '" + rr.getBaseUrl(), ioe);
-        }
+        ambariMetaInfo.updateRepoBaseURL(rr.getStackName(),
+            rr.getStackVersion(), rr.getOsType(), rr.getRepoId(),
+            rr.getBaseUrl());
       }
     }
   }
@@ -4548,4 +4541,5 @@ public class AmbariManagementControllerImpl implements
   private String getAuthName() {
     return AuthorizationHelper.getAuthenticatedName(configs.getAnonymousAuditName());
   }
+  
 }

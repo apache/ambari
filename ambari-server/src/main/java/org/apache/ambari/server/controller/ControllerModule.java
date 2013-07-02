@@ -51,18 +51,15 @@ import java.util.Properties;
 public class ControllerModule extends AbstractModule {
 
   private final Configuration configuration;
-  private final AmbariMetaInfo ambariMetaInfo;
   private final HostsMap hostsMap;
 
   public ControllerModule() throws Exception {
     configuration = new Configuration();
-    ambariMetaInfo = new AmbariMetaInfo(configuration);
     hostsMap = new HostsMap(configuration);
   }
 
   public ControllerModule(Properties properties) throws Exception {
     configuration = new Configuration(properties);
-    ambariMetaInfo = new AmbariMetaInfo(configuration);
     hostsMap = new HostsMap(configuration);
   }
 
@@ -71,7 +68,6 @@ public class ControllerModule extends AbstractModule {
     installFactories();
 
     bind(Configuration.class).toInstance(configuration);
-    bind(AmbariMetaInfo.class).toInstance(ambariMetaInfo);
     bind(HostsMap.class).toInstance(hostsMap);
     bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
 
