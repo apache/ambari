@@ -200,7 +200,8 @@ class TestHostInfo(TestCase):
     path_mock.return_value = True
     hostInfo = HostInfo()
     results = []
-    hostInfo.checkFolders(["/etc/conf", "/var/lib"], ["a1", "b1"], results)
+    existingUsers = [{'name':'a1', 'homeDir':'/home/a1'}, {'name':'b1', 'homeDir':'/home/b1'}]
+    hostInfo.checkFolders(["/etc/conf", "/var/lib", "/home/"], ["a1", "b1"], existingUsers, results)
     self.assertEqual(4, len(results))
     names = [i['name'] for i in results]
     for item in ['/etc/conf/a1', '/var/lib/a1', '/etc/conf/b1', '/var/lib/b1']:

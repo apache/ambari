@@ -198,12 +198,15 @@ class HostInfo:
       pass
     return diskInfo
 
-  def checkFolders(self, basePaths, projectNames, dirs):
+  def checkFolders(self, basePaths, projectNames, existingUsers, dirs):
+    foldersToIgnore = []
+    for user in existingUsers:
+      foldersToIgnore.append(user['homeDir'])
     try:
       for dirName in basePaths:
         for project in projectNames:
           path = os.path.join(dirName.strip(), project.strip())
-          if os.path.exists(path):
+          if not path in foldersToIgnore and os.path.exists(path):
             obj = {}
             obj['type'] = self.dirType(path)
             obj['name'] = path
@@ -282,13 +285,13 @@ class HostInfo:
       self.etcAlternativesConf(self.DEFAULT_PROJECT_NAMES, etcs)
       dict['alternatives'] = etcs
 
-      dirs = []
-      self.checkFolders(self.DEFAULT_DIRS, self.DEFAULT_PROJECT_NAMES, dirs)
-      dict['stackFoldersAndFiles'] = dirs
-
       existingUsers = []
       self.checkUsers(self.DEFAULT_USERS, existingUsers)
       dict['existingUsers'] = existingUsers
+
+      dirs = []
+      self.checkFolders(self.DEFAULT_DIRS, self.DEFAULT_PROJECT_NAMES, existingUsers, dirs)
+      dict['stackFoldersAndFiles'] = dirs
 
       installedPackages = []
       availablePackages = []
