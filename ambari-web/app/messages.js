@@ -138,6 +138,7 @@ Em.I18n.translations = {
   'common.reset': 'Reset',
   'common.path': 'Path',
   'common.package': 'Package',
+  'common.proceed': 'Proceed',
   'common.process': 'Process',
 
   'requestInfo.installComponents':'Install Components',
