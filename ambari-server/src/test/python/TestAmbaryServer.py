@@ -1669,7 +1669,7 @@ class TestAmbariServer(TestCase):
     signal.signal(signal.SIGALRM, signal_handler)
     signal.alarm(5)
     rcode = ambari_server.reset(args)
-
+    signal.alarm(0)
     self.assertEqual(None, rcode)
     self.assertTrue(setup_db_mock.called)
 
@@ -2375,6 +2375,42 @@ class TestAmbariServer(TestCase):
     #Call tested method
     self.assertEquals(0, ambari_server.update_ambari_properties())
     self.assertFalse(properties_mock.called)
+
+
+  @patch.object(ambari_server, "get_conf_dir")
+  def test_update_ambari_properties_without_user_property(self, get_conf_dir_mock):
+    '''
+      Checks: update_ambari_properties call should add ambari-server.user property if
+      it's absent
+    '''
+    properties = ["server.jdbc.user.name=ambari-server\n",
+                  "server.jdbc.user.passwd=/etc/ambari-server/conf/password.dat\n",
+                  "java.home=/usr/jdk64/jdk1.6.0_31\n",
+                  "server.os_type=redhat6\n"]
+
+    get_conf_dir_mock.return_value = '/etc/ambari-server/conf'
+
+    (tf1, fn1) = tempfile.mkstemp()
+    (tf2, fn2) = tempfile.mkstemp()
+    ambari_server.AMBARI_PROPERTIES_RPMSAVE_FILE = fn1
+    ambari_server.AMBARI_PROPERTIES_FILE = fn2
+
+    with open(ambari_server.AMBARI_PROPERTIES_RPMSAVE_FILE, 'w') as f:
+      for line in properties:
+        f.write(line)
+
+    #Call tested method
+    ambari_server.update_ambari_properties()
+
+    ambari_properties =  ambari_server.Properties()
+    ambari_properties.load(open(fn2))
+
+    self.assertTrue(ambari_server.NR_USER_PROPERTY in ambari_properties.keys())
+    value = ambari_properties[ambari_server.NR_USER_PROPERTY]
+    self.assertEqual(value, "root")
+
+    os.unlink(fn2)
+
 
   @patch("sys.exit")
   @patch.object(ambari_server, "get_YN_input")

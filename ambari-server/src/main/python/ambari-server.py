@@ -357,6 +357,12 @@ def update_ambari_properties():
     for prop_key, prop_value in old_properties.getPropertyDict().items():
       new_properties.process_pair(prop_key,prop_value)
 
+    # Adding custom user name property if it is absent
+    # In previous versions without custom user support server was started as
+    # "root" anyway so it's a reasonable default
+    if not NR_USER_PROPERTY in new_properties.keys():
+      new_properties.process_pair(NR_USER_PROPERTY, "root")
+
     new_properties.store(open(conf_file,'w'))
 
   except Exception, e:
@@ -565,7 +571,7 @@ def read_ambari_user():
 def adjust_directory_permissions(ambari_user):
   properties = get_ambari_properties()
   bootstrap_dir = get_value_from_properties(properties, BOOTSTRAP_DIR_PROPERTY)
-  print "Wiping bootstrap dir ({0}) contents...".format(bootstrap_dir)
+  print "Cleaning bootstrap directory ({0}) contents...".format(bootstrap_dir)
   cmd = RECURSIVE_RM_CMD.format(bootstrap_dir)
   run_os_command(cmd)
   os.mkdir(bootstrap_dir)
@@ -574,7 +580,7 @@ def adjust_directory_permissions(ambari_user):
   masterKeyFile = search_file(SECURITY_MASTER_KEY_FILENAME, keyLocation)
   if masterKeyFile:
     NR_ADJUST_OWNERSHIP_LIST.append((masterKeyFile, "600", "{0}", "{0}", False))
-  print "Adjusting file permissions and ownership..."
+  print "Adjusting ambari-server permissions and ownership..."
   for pack in NR_ADJUST_OWNERSHIP_LIST:
     file = pack[0]
     mod = pack[1]
@@ -605,8 +611,8 @@ def set_file_permissions(file, mod, user, group, recursive):
 
 def create_custom_user():
   user = get_validated_string_input(
-    "Please choose a user name for ambari-server daemon: ",
-    "ambari",
+    "Enter user account for ambari-server daemon (root):",
+    "root",
     "^[a-z_][a-z0-9_-]{1,31}$",
     "Invalid username.",
     False
@@ -658,7 +664,7 @@ def check_ambari_user():
       update_user_setting = create_user # Only if we will create another user
     else: # user is not configured yet
       update_user_setting = True # Write configuration anyway
-      create_user = get_YN_input("Use a separate user for ambari-server "
+      create_user = get_YN_input("Customize user account for ambari-server "
                    "daemon [y/n] (n)? ", False)
       if not create_user:
         user = "root"
