@@ -253,7 +253,7 @@ class hdp-nagios::server::web_permisssions()
   file { "/etc/nagios/htpasswd.users" :
     owner => $hdp-nagios::params::nagios_user,
     group => $hdp-nagios::params::nagios_group,
-    mode  => '0644'
+    mode  => '0640'
   }
 
   Hdp::Exec[$cmd] -> File["/etc/nagios/htpasswd.users"]
