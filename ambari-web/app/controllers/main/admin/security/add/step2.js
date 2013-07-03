@@ -42,6 +42,7 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     console.log("TRACE: Loading addSecurity step2: Configure Services");
     this.clearStep();
     this.addMasterHostToGlobals(this.get('content.services'));
+    this.addSlaveHostToGlobals(this.get('content.services'));
     this.renderServiceConfigs(this.get('content.services'));
     var storedServices = this.get('content.serviceConfigProperties');
     if (storedServices) {
@@ -108,6 +109,32 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     }, this);
   },
 
+  /**
+   * fill config with hosts of component
+   * @param service
+   * @param configName
+   * @param componentName
+   */
+  setHostsToConfig: function(service, configName, componentName){
+    if(service){
+      var hosts = service.configs.findProperty('name', configName);
+      if(hosts){
+        hosts.defaultValue = App.Service.find(service.serviceName)
+          .get('hostComponents')
+          .filterProperty('componentName', componentName)
+          .mapProperty('host.hostName');
+      }
+    }
+  },
+
+  addSlaveHostToGlobals: function(serviceConfigs){
+    var hdfsService = serviceConfigs.findProperty('serviceName', 'HDFS');
+    var mapReduceService = serviceConfigs.findProperty('serviceName', 'MAPREDUCE');
+    var hbaseService = serviceConfigs.findProperty('serviceName', 'HBASE');
+    this.setHostsToConfig(hdfsService, 'datanode_hosts', 'DATANODE');
+    this.setHostsToConfig(mapReduceService, 'tasktracker_hosts', 'TASKTRACKER');
+    this.setHostsToConfig(hbaseService, 'regionserver_hosts', 'HBASE_REGIONSERVER');
+  },
 
   addMasterHostToGlobals: function (serviceConfigs) {
     var oozieService = serviceConfigs.findProperty('serviceName', 'OOZIE');
@@ -115,6 +142,10 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     var webHcatService = App.Service.find().mapProperty('serviceName').contains('WEBHCAT');
     var nagiosService = serviceConfigs.findProperty('serviceName', 'NAGIOS');
     var generalService = serviceConfigs.findProperty('serviceName', 'GENERAL');
+    var hbaseService = serviceConfigs.findProperty('serviceName', 'HBASE');
+    var zooKeeperService = serviceConfigs.findProperty('serviceName', 'ZOOKEEPER');
+    var hdfsService = serviceConfigs.findProperty('serviceName', 'HDFS');
+    var mapReduceService = serviceConfigs.findProperty('serviceName', 'MAPREDUCE');
     if (oozieService) {
       var oozieServerHost = oozieService.configs.findProperty('name', 'oozie_servername');
       var oozieServerPrincipal = oozieService.configs.findProperty('name', 'oozie_principal_name');
@@ -150,6 +181,22 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
         nagiosServerPrincipal.defaultValue = 'nagios/' + nagiosServerHost.defaultValue;
       }
     }
+    if(hdfsService){
+      var namenodeHost = hdfsService.configs.findProperty('name', 'namenode_host');
+      var sNamenodeHost = hdfsService.configs.findProperty('name', 'snamenode_host');
+      if (namenodeHost && sNamenodeHost) {
+        namenodeHost.defaultValue = App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'NAMENODE').get('host.hostName');
+        sNamenodeHost.defaultValue = App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'SECONDARY_NAMENODE').get('host.hostName');
+      }
+    }
+    if(mapReduceService){
+      var jobTrackerHost = mapReduceService.configs.findProperty('name', 'jobtracker_host');
+      if (jobTrackerHost) {
+        jobTrackerHost.defaultValue = App.Service.find('MAPREDUCE').get('hostComponents').findProperty('componentName', 'JOBTRACKER').get('host.hostName');
+      }
+    }
+    this.setHostsToConfig(hbaseService, 'hbasemaster_host', 'HBASE_MASTER');
+    this.setHostsToConfig(zooKeeperService, 'zookeeperserver_hosts', 'ZOOKEEPER_SERVER');
   },
 
   showHostPrincipalKeytabList: function(){

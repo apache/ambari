@@ -150,6 +150,19 @@ module.exports =
     //HDFS
     {
       "id": "puppet var",
+      "name": "namenode_host",
+      "displayName": "NameNode host",
+      "value": "",
+      "defaultValue": "",
+      "description": "The host that has been assigned to run NameNode",
+      "displayType": "masterHost",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "HDFS",
+      "category": "NameNode"
+    },
+    {
+      "id": "puppet var",
       "name": "namenode_principal_name",
       "displayName": "Principal name",
       "value": "",
@@ -175,6 +188,32 @@ module.exports =
       "serviceName": "HDFS",
       "category": "NameNode",
       "components": ["NAMENODE", "SECONDARY_NAMENODE"]
+    },
+    {
+      "id": "puppet var",
+      "name": "snamenode_host",
+      "displayName": "SNameNode host",
+      "value": "",
+      "defaultValue": "",
+      "description": "The host that has been assigned to run SecondaryNameNode",
+      "displayType": "masterHost",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "HDFS",
+      "category": "SNameNode"
+    },
+    {
+      "id": "puppet var",
+      "name": "datanode_hosts", //not in the schema. For UI purpose
+      "displayName": "DataNode hosts",
+      "value": "",
+      "defaultValue": "",
+      "description": "The hosts that have been assigned to run DataNode",
+      "displayType": "slaveHosts",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "HDFS",
+      "category": "DataNode"
     },
     {
       "id": "puppet var",
@@ -233,6 +272,19 @@ module.exports =
     //MAPREDUCE
     {
       "id": "puppet var",
+      "name": "jobtracker_host",
+      "displayName": "JobTracker host",
+      "value": "",
+      "defaultValue": "",
+      "description": "The host that has been assigned to run JobTracker",
+      "displayType": "masterHost",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "MAPREDUCE",
+      "category": "JobTracker"
+    },
+    {
+      "id": "puppet var",
       "name": "jobtracker_principal_name",
       "displayName": "Principal name",
       "value": "",
@@ -258,6 +310,19 @@ module.exports =
       "serviceName": "MAPREDUCE",
       "category": "JobTracker",
       "component": "JOBTRACKER"
+    },
+    {
+      "id": "puppet var",
+      "name": "tasktracker_hosts",
+      "displayName": "TaskTracker hosts",
+      "value": "",
+      "defaultValue": "",
+      "description": "The hosts that have been assigned to run TaskTracker",
+      "displayType": "slaveHosts",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "MAPREDUCE",
+      "category": "TaskTracker"
     },
     {
       "id": "puppet var",
@@ -303,6 +368,32 @@ module.exports =
     },
 
     //HBASE
+    {
+      "id": "puppet var",
+      "name": "hbasemaster_host",
+      "displayName": "HBase Master hosts",
+      "value": "",
+      "defaultValue": "",
+      "description": "The host that has been assigned to run HBase Master",
+      "displayType": "masterHosts",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "HBASE",
+      "category": "HBase"
+    },
+    {
+      "id": "puppet var",
+      "name": "regionserver_hosts",
+      "displayName": "RegionServer hosts",
+      "value": "",
+      "defaultValue": "",
+      "description": "The hosts that have been assigned to run RegionServer",
+      "displayType": "slaveHosts",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "HBASE",
+      "category": "HBase"
+    },
     {
       "id": "puppet var",
       "name": "hbase_principal_name",
@@ -420,6 +511,19 @@ module.exports =
     },
 
     //ZooKeeper
+    {
+      "id": "puppet var",
+      "name": "zookeeperserver_hosts",
+      "displayName": "ZooKeeper Server hosts",
+      "value": "",
+      "defaultValue": "",
+      "description": "The host that has been assigned to run ZooKeeper Server",
+      "displayType": "masterHosts",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "ZOOKEEPER",
+      "category": "ZooKeeper Server"
+    },
     {
       "id": "puppet var",
       "name": "zookeeper_principal_name",
