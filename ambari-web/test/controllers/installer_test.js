@@ -30,7 +30,6 @@ describe('App.InstallerController', function () {
     var test_data = {
       "items" : [
         {
-          "href" : "http://ec2-54-224-185-227.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.2.0",
           "Versions" : {
             "active" : false,
             "min_upgrade_version" : null,
@@ -39,7 +38,6 @@ describe('App.InstallerController', function () {
           }
         },
         {
-          "href" : "http://ec2-54-224-185-227.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.2.1",
           "Versions" : {
             "active" : true,
             "min_upgrade_version" : null,
@@ -48,7 +46,6 @@ describe('App.InstallerController', function () {
           }
         },
         {
-          "href" : "http://ec2-54-224-185-227.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/1.3.0",
           "Versions" : {
             "active" : true,
             "min_upgrade_version" : "1.2.0",
@@ -57,7 +54,6 @@ describe('App.InstallerController', function () {
           }
         },
         {
-          "href" : "http://ec2-54-224-185-227.compute-1.amazonaws.com:8080/api/v1/stacks2/HDP/versions/2.0.1",
           "Versions" : {
             "active" : false,
             "min_upgrade_version" : null,

@@ -505,7 +505,7 @@ App.config = Em.Object.create({
     });
     var params = urlParams.join('|');
     App.ajax.send({
-      name: 'config.on-site',
+      name: 'config.on_site',
       sender: this,
       data: {
         params: params

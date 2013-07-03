@@ -19,6 +19,7 @@
 
 var App = require('app');
 require('controllers/global/cluster_controller');
+require('models/host_component');
 require('utils/http_client');
 require('models/service');
 
@@ -54,4 +55,48 @@ describe('App.clusterController', function () {
       expect(controller.get('clusterDataLoadedPercent')).to.equal('width:100%');
     });
   });
+
+  describe('#loadClusterNameSuccessCallback', function() {
+    var test_data = {
+      "items" : [
+        {
+          "Clusters" : {
+            "cluster_name" : "tdk",
+            "version" : "HDP-1.3.0"
+          }
+        }
+      ]
+    };
+    controller.loadClusterNameSuccessCallback(test_data);
+    it('Check cluster', function() {
+      expect(controller.get('cluster.Clusters.cluster_name')).to.equal('tdk');
+      expect(controller.get('cluster.Clusters.version')).to.equal('HDP-1.3.0');
+      expect(App.get('clusterName')).to.equal('tdk');
+    });
+  });
+
+  describe('#loadClusterNameErrorCallback', function() {
+    controller.loadClusterNameErrorCallback();
+    it('', function() {
+      expect(controller.get('isLoaded')).to.equal(true);
+    });
+  });
+
+  describe('#getUrl', function() {
+    controller.set('clusterName', 'tdk');
+    var tests = ['test1', 'test2', 'test3'];
+    it('testMode = true', function() {
+      App.testMode = true;
+      tests.forEach(function(test) {
+        expect(controller.getUrl(test, test)).to.equal(test);
+      });
+    });
+    it('testMode = false', function() {
+      App.testMode = false;
+      tests.forEach(function(test) {
+        expect(controller.getUrl(test, test)).to.equal(App.apiPrefix + '/clusters/' + controller.get('clusterName') + test);
+      });
+    });
+  });
+
 });

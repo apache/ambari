@@ -222,7 +222,7 @@ var urls = {
     'real': '/clusters/{clusterName}',
     'mock': '/data/clusters/cluster.json'
   },
-  'config.on-site': {
+  'config.on_site': {
     'real': '/clusters/{clusterName}/configurations?{params}',
     'mock': '/data/configurations/cluster_level_configs.json?{params}',
     'format': function (data) {
@@ -395,6 +395,17 @@ var urls = {
     'mock': '/data/services/metrics/hdfs/space_utilization.json',
     'testInProduction': true
   },
+  'service.start_stop': {
+    'real': '/clusters/{clusterName}/services?ServiceInfo',
+    'mock': '/data/mirroring/poll/poll_6.json',
+    'format': function (data, opt) {
+      return {
+        type: 'PUT',
+        async: false,
+        data: data.data
+      };
+    }
+  },
   'dashboard.cluster_metrics.cpu': {
     'real': '/clusters/{clusterName}/?fields=metrics/cpu[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/cluster_metrics/cpu_1hr.json',
@@ -445,12 +456,12 @@ var urls = {
     'mock': '/data/hosts/metrics/processes.json',
     'testInProduction': true
   },
-  'admin.security_status': {
-    'real': '/clusters/{clusterName}',
+  'host.service_config_hosts_overrides': {
+    'real': '/clusters/{clusterName}/configurations?{urlParams}',
     'format': function (data, opt) {
       return {
-        timeout: 10000,
-        async: false
+        async: false,
+        timeout: 10000
       };
     }
   },
@@ -463,12 +474,12 @@ var urls = {
       };
     }
   },
-  'router.set_ambari_stacks': {
-    'real': '/stacks',
-    'mock': '/data/wizard/stack/stacks.json',
+  'admin.security_status': {
+    'real': '/clusters/{clusterName}',
     'format': function (data, opt) {
       return {
-        async: false
+        async: false,
+        timeout: 10000
       };
     }
   },
@@ -488,18 +499,6 @@ var urls = {
       return {
         async: false
       };
-    }
-  },
-  'wizard.launch_bootstrap': {
-    'real': '/bootstrap',
-    'mock': '/data/wizard/bootstrap/bootstrap.json',
-    'type': 'POST',
-    'format': function (data) {
-      return {
-        async: false,
-        contentType: 'application/json',
-        data: data.bootStrapData
-      }
     }
   },
   'admin.security.cluster_configs': {
@@ -537,17 +536,6 @@ var urls = {
       };
     }
   },
-  'service.start_stop': {
-    'real': '/clusters/{clusterName}/services?ServiceInfo',
-    'mock': '/data/mirroring/poll/poll_6.json',
-    'format': function (data, opt) {
-      return {
-        type: 'PUT',
-        async: false,
-        data: data.data
-      };
-    }
-  },
   'admin.stack_upgrade.run_upgrade': {
     'real': '/clusters/{clusterName}',
     'format': function (data, opt) {
@@ -571,15 +559,6 @@ var urls = {
   'admin.stack_upgrade.do_poll': {
     'real': '/clusters/{cluster}/requests/{requestId}?fields=tasks/*',
     'mock': '/data/wizard/{mock}'
-  },
-  'host.service_config_hosts_overrides': {
-    'real': '/clusters/{clusterName}/configurations?{urlParams}',
-    'format': function (data, opt) {
-      return {
-        async: false,
-        timeout: 10000
-      };
-    }
   },
   'wizard.install_services.add_host_controller.is_retry': {
     'real': '/clusters/{cluster}/host_components',
@@ -628,6 +607,7 @@ var urls = {
     'mock': '/data/wizard/stack/hdp/version/{stackVersion}.json',
     'format': function (data, opt) {
       return {
+        timeout: 10000,
         async: false
       };
     }
@@ -719,6 +699,18 @@ var urls = {
       };
     }
   },
+  'wizard.launch_bootstrap': {
+    'real': '/bootstrap',
+    'mock': '/data/wizard/bootstrap/bootstrap.json',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        async: false,
+        contentType: 'application/json',
+        data: data.bootStrapData
+      }
+    }
+  },
   'router.login': {
     'real': '/users/{loginName}',
     'mock': '/data/users/user_{usr}.json',
@@ -738,6 +730,15 @@ var urls = {
   },
   'router.logoff': {
     'real': '/logout'
+  },
+  'router.set_ambari_stacks': {
+    'real': '/stacks',
+    'mock': '/data/wizard/stack/stacks.json',
+    'format': function (data, opt) {
+      return {
+        async: false
+      };
+    }
   },
   'router.authentication': {
     'real': '/clusters',
