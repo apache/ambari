@@ -567,7 +567,9 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
           zkPrincipalName.value = zkPrincipalName.value + '@' + realmName.value;
         }
         this.get('globalProperties').forEach(function (_globalProperty) {
-          _serviceConfigTags.configs[_globalProperty.name] = _globalProperty.value;
+          if (!/_hosts?$/.test(_globalProperty.name)) {
+            _serviceConfigTags.configs[_globalProperty.name] = _globalProperty.value;
+          }
         }, this);
       }
       else {
