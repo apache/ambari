@@ -115,7 +115,9 @@ class LiveStatus:
   # Live status was stripped from heartbeat after revision e1718dd
   def build(self):
     global SERVICES, COMPONENTS, LIVE_STATUS, DEAD_STATUS
-    statusCheck = StatusCheck(AmbariConfig.servicesToPidNames, AmbariConfig.pidPathesVars, self.globalConfig, AmbariConfig.linuxUserPattern)
+    statusCheck = StatusCheck(AmbariConfig.servicesToPidNames,
+      AmbariConfig.pidPathesVars, self.globalConfig,
+      AmbariConfig.servicesToLinuxUser)
     livestatus = None
     for component in self.COMPONENTS:
       if component["serviceName"] == self.service and component["componentName"] == self.component:

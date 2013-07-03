@@ -33,10 +33,10 @@ USERNAME_CHARS=string.ascii_uppercase +string.ascii_lowercase + string.digits + 
 PID_DIR='/pids_dir'
 
 COMPONENT_LIVE = 'LIVE_COMPONENT'
-COMPONENT_LIVE_PID = 'live_{USER}_comp.pid'
+COMPONENT_LIVE_PID = 'live_' + StatusCheck.USER_PATTERN + '_comp.pid'
 
 COMPONENT_DEAD = 'DEAD_COMPONENT'
-COMPONENT_DEAD_PID = 'dead_{USER}_comp.pid'
+COMPONENT_DEAD_PID = 'dead_' + StatusCheck.USER_PATTERN + '_comp.pid'
 
 class TestStatusCheck(TestCase):
 
@@ -59,12 +59,12 @@ class TestStatusCheck(TestCase):
 
     live_user = self.generateUserName()
     self.logger.info('Live user: ' + live_user)
-    self.live_pid_file_name = string.replace(COMPONENT_LIVE_PID, '{USER}', live_user)
+    self.live_pid_file_name = string.replace(COMPONENT_LIVE_PID, StatusCheck.USER_PATTERN, live_user)
     self.live_pid_full_path = PID_DIR + os.sep + self.live_pid_file_name
 
     dead_user = self.generateUserName()
     self.logger.info('Dead user: ' + live_user)
-    self.dead_pid_file_name = string.replace(COMPONENT_DEAD_PID, '{USER}', dead_user)
+    self.dead_pid_file_name = string.replace(COMPONENT_DEAD_PID, StatusCheck.USER_PATTERN, dead_user)
     self.dead_pid_full_path = PID_DIR + os.sep + self.dead_pid_file_name
 
     self.pidFilesDict = {self.live_pid_file_name : self.live_pid_full_path,
@@ -72,13 +72,20 @@ class TestStatusCheck(TestCase):
 
     self.is_live_values = {self.live_pid_full_path : True,
                       self.dead_pid_full_path : False}
+    
+    self.servicesToLinuxUser = {COMPONENT_LIVE : 'live_user',
+                                COMPONENT_DEAD : 'dead_user'}
+
+    self.globalConfig = {'live_user' : live_user,
+                         'dead_user' : dead_user}
 
     
   # Ensure that status checker return True for running process
   @patch.object(StatusCheck, 'getIsLive')
   def test_live(self, get_is_live_mock):
 
-    statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathesVars,{},AmbariConfig.linuxUserPattern)
+    statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathesVars,
+      self.globalConfig, self.servicesToLinuxUser)
 
     statusCheck.pidFilesDict = self.pidFilesDict
     
@@ -87,10 +94,53 @@ class TestStatusCheck(TestCase):
     status = statusCheck.getStatus(COMPONENT_LIVE)
     self.assertEqual(status, True)
 
+  # Ensure that status checker return True for running process even if multiple
+  # pids for a service component exist
+  @patch.object(StatusCheck, 'getIsLive')
+  def test_live_if_multiple_pids(self, get_is_live_mock):
+
+    one_more_pid_file_name = string.replace(COMPONENT_LIVE_PID, StatusCheck.USER_PATTERN,
+      'any_other_linux_user')
+    one_more_pid_full_path = PID_DIR + os.sep + one_more_pid_file_name
+
+    self.pidFilesDict[one_more_pid_file_name] = one_more_pid_full_path
+    self.is_live_values[one_more_pid_full_path] = False
+
+    statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathesVars,
+      self.globalConfig, self.servicesToLinuxUser)
+
+    statusCheck.pidFilesDict = self.pidFilesDict
+
+    get_is_live_mock.side_effect = lambda pid_path : self.is_live_values[pid_path]
+
+    status = statusCheck.getStatus(COMPONENT_LIVE)
+    self.assertEqual(status, True)
+    
+  # Ensure that status checker prints error message if there is no linux user
+  # for service, which pid depends on user
+  @patch.object(StatusCheck, 'getIsLive')
+  @patch.object(logger, "error")
+  def test_no_user_mapping(self, error_mock, get_is_live_mock):
+
+    
+    badServiceToPidDict = self.serviceToPidDict.copy()
+    badServiceToPidDict['BAD_COMPONENT'] = 'prefix' + StatusCheck.USER_PATTERN
+
+    statusCheck = StatusCheck(badServiceToPidDict, self.pidPathesVars,
+      self.globalConfig, self.servicesToLinuxUser)
+
+    statusCheck.pidFilesDict = self.pidFilesDict
+
+    get_is_live_mock.side_effect = lambda pid_path : self.is_live_values[pid_path]
+
+    status = statusCheck.getStatus(COMPONENT_LIVE)
+    self.assertTrue(error_mock.called)
+
   # Ensure that status checker return False for dead process
   @patch.object(StatusCheck, 'getIsLive')
   def test_dead(self, get_is_live_mock):
-    statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathesVars,{},AmbariConfig.linuxUserPattern)
+    statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathesVars,
+      self.globalConfig, self.servicesToLinuxUser)
 
     statusCheck.pidFilesDict = self.pidFilesDict
     

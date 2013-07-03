@@ -167,7 +167,19 @@ servicesToPidNames = {
   'WEBHCAT_SERVER': 'webhcat.pid',
 }
 
-linuxUserPattern = '[A-Za-z0-9_-]*[$]?'
+#Each service, which's pid depends on user should provide user mapping
+servicesToLinuxUser = {
+  'NAMENODE': 'hdfs_user',
+  'SECONDARY_NAMENODE': 'hdfs_user',
+  'DATANODE': 'hdfs_user',
+  'JOBTRACKER': 'mapred_user',
+  'TASKTRACKER': 'mapred_user',
+  'RESOURCEMANAGER': 'yarn_user',
+  'NODEMANAGER': 'yarn_user',
+  'HISTORYSERVER': 'mapred_user',
+  'HBASE_MASTER': 'hbase_user',
+  'HBASE_REGIONSERVER': 'hbase_user',
+}
 
 pidPathesVars = [
   {'var' : 'hcfs_pid_dir_prefix',
