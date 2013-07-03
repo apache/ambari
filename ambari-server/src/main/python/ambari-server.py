@@ -3126,4 +3126,8 @@ class Properties(object):
       raise
 
 if __name__ == "__main__":
-  main()
+  try:
+    main() 
+  except (KeyboardInterrupt, EOFError):
+    print("\nAborting ... Keyboard Interrupt.")
+    sys.exit(1)
