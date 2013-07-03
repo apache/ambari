@@ -30,7 +30,8 @@ import AmbariConfig
 logger = logging.getLogger()
 
 class Hardware:
-  def __init__(self):
+  def __init__(self, config):
+    self.config = config
     self.hardware = {}
     osdisks = self.osdisks()
     self.hardware['mounts'] = osdisks
@@ -88,9 +89,9 @@ class Hardware:
     pass
   
   def configureEnviron(self, environ):
-    if not AmbariConfig.config.has_option("puppet", "ruby_home"):
+    if not self.config.has_option("puppet", "ruby_home"):
       return environ
-    ruby_home = AmbariConfig.config.get("puppet", "ruby_home")
+    ruby_home = self.config.get("puppet", "ruby_home")
     if os.path.exists(ruby_home):
       """Only update ruby home if the config is configured"""
       path = os.environ["PATH"]
@@ -143,8 +144,8 @@ class Hardware:
     logger.info("Facter info : \n" + pprint.pformat(retDict))
     return retDict  
   
-  def facterInfo(self):   
-    facterHome = AmbariConfig.config.get("puppet", "facter_home")
+  def facterInfo(self):
+    facterHome = self.config.get("puppet", "facter_home")
     facterEnv = os.environ
     logger.info("Using facter home as: " + facterHome)
     facterInfo = {}
@@ -183,7 +184,7 @@ class Hardware:
     return self.hardware
 
 def main(argv=None):
-  hardware = Hardware()
+  hardware = Hardware(AmbariConfig.config)
   print hardware.get()
 
 if __name__ == '__main__':

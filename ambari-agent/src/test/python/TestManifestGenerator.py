@@ -68,6 +68,7 @@ class TestManifestGenerator(TestCase):
   @patch.object(manifestGenerator, 'writeTasks')
   def testGenerateManifest(self, writeTasksMock, writeParamsMock, writeNodesMock, writeImportsMock):
     tmpFileName = tempfile.mkstemp(dir=self.dir, text=True)[1]
+    self.parsedJson['roleParams'] = 'role param'
     manifestGenerator.generateManifest(self.parsedJson, tmpFileName, '../../main/puppet/modules', self.config.getConfig())
 
     self.assertTrue(writeParamsMock.called)
@@ -84,3 +85,42 @@ class TestManifestGenerator(TestCase):
     result = manifestGenerator.escape('\'\\')
     self.assertEqual(result, shouldBe)
 
+
+  def test_writeNodes(self):
+    tmpFileName = tempfile.mkstemp(dir=self.dir, text=True)[1]
+    tmpFile = file(tmpFileName, 'r+')
+
+    clusterHostInfo = self.parsedJson['clusterHostInfo']
+    clusterHostInfo['zookeeper_hosts'] = ["h1.hortonworks.com", "h2.hortonworks.com"]
+    manifestGenerator.writeNodes(tmpFile, clusterHostInfo)
+    tmpFile.seek(0)
+    print tmpFile.read()
+    tmpFile.close()
+    os.remove(tmpFileName)
+
+
+  def test_writeHostAttributes(self):
+    tmpFileName = tempfile.mkstemp(dir=self.dir, text=True)[1]
+    tmpFile = file(tmpFileName, 'r+')
+
+    hostAttributes = {'HostAttr1' : '1', 'HostAttr2' : '2'}
+    manifestGenerator.writeHostAttributes(tmpFile, hostAttributes)
+    tmpFile.seek(0)
+    print tmpFile.read()
+    tmpFile.close()
+    os.remove(tmpFileName)
+
+
+  def test_writeTasks(self):
+    tmpFileName = tempfile.mkstemp(dir=self.dir, text=True)[1]
+    tmpFile = file(tmpFileName, 'r+')
+    roles = [{'role' : 'ZOOKEEPER_SERVER',
+              'cmd' : 'NONE',
+              'roleParams' : {'someRoleParams': '-x'}}]
+    clusterHostInfo = self.parsedJson['clusterHostInfo']
+    clusterHostInfo['zookeeper_hosts'] = ["h1.hortonworks.com", "h2.hortonworks.com"]
+    manifestGenerator.writeTasks(tmpFile, roles, self.config, clusterHostInfo, "h1.hortonworks.com")
+    tmpFile.seek(0)
+    print tmpFile.read()
+    tmpFile.close()
+    os.remove(tmpFileName)

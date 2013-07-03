@@ -21,12 +21,15 @@ limitations under the License.
 from unittest import TestCase
 import logging
 import unittest
+import subprocess
 from mock.mock import patch
 from mock.mock import MagicMock
 from mock.mock import create_autospec
 from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
 from ambari_agent.PackagesAnalyzer import PackagesAnalyzer
 from ambari_agent.HostInfo import HostInfo
+from ambari_agent.Hardware import Hardware
+from ambari_agent.AmbariConfig import AmbariConfig
 
 class TestHostInfo(TestCase):
 
@@ -209,7 +212,7 @@ class TestHostInfo(TestCase):
     builtins_open_mock.return_value = [
       "hdfs:x:493:502:Hadoop HDFS:/usr/lib/hadoop:/bin/bash",
       "zookeeper:x:492:502:ZooKeeper:/var/run/zookeeper:/bin/bash"]
-    path_mock.return_value = True
+    path_mock.side_effect = [True, False]
 
     hostInfo = HostInfo()
     results = []
@@ -220,6 +223,9 @@ class TestHostInfo(TestCase):
     self.assertTrue(newlist[1]['name'], "zookeeper")
     self.assertTrue(newlist[0]['homeDir'], "/usr/lib/hadoop")
     self.assertTrue(newlist[1]['homeDir'], "/var/run/zookeeper")
+    self.assertTrue(newlist[0]['status'], "Available")
+    self.assertTrue(newlist[1]['status'], "Invalid home directory")
+
 
   @patch.object(HostInfo, 'osdiskAvailableSpace')
   @patch.object(HostCheckReportFileHandler, 'writeHostCheckFile')
@@ -279,6 +285,195 @@ class TestHostInfo(TestCase):
     self.assertEqual(dict['existingRepos'][0], hostInfo.RESULT_UNAVAILABLE)
     self.assertEqual(dict['installedPackages'], [])
     self.assertEqual(1, len(dict['hostHealth']['diskStatus']))
+
+  @patch("os.path.exists")
+  @patch("os.path.islink")
+  @patch("os.path.isdir")
+  @patch("os.path.isfile")
+  def test_dirType(self, os_path_isfile_mock, os_path_isdir_mock, os_path_islink_mock, os_path_exists_mock):
+    host = HostInfo()
+
+    os_path_exists_mock.return_value = False
+    result = host.dirType("/home")
+    self.assertEquals(result, 'not_exist')
+
+    os_path_exists_mock.return_value = True
+    os_path_islink_mock.return_value = True
+    result = host.dirType("/home")
+    self.assertEquals(result, 'sym_link')
+
+    os_path_exists_mock.return_value = True
+    os_path_islink_mock.return_value = False
+    os_path_isdir_mock.return_value = True
+    result = host.dirType("/home")
+    self.assertEquals(result, 'directory')
+
+    os_path_exists_mock.return_value = True
+    os_path_islink_mock.return_value = False
+    os_path_isdir_mock.return_value = False
+    os_path_isfile_mock.return_value = True
+    result = host.dirType("/home")
+    self.assertEquals(result, 'file')
+
+    os_path_exists_mock.return_value = True
+    os_path_islink_mock.return_value = False
+    os_path_isdir_mock.return_value = False
+    os_path_isfile_mock.return_value = False
+    result = host.dirType("/home")
+    self.assertEquals(result, 'unknown')
+
+
+  @patch("os.path.exists")
+  @patch("glob.glob")
+  def test_hadoopVarRunCount(self, glob_glob_mock, os_path_exists_mock):
+    hostInfo = HostInfo()
+
+    os_path_exists_mock.return_value = True
+    glob_glob_mock.return_value = ['pid1','pid2','pid3']
+    result = hostInfo.hadoopVarRunCount()
+    self.assertEquals(result, 3)
+
+    os_path_exists_mock.return_value = False
+    result = hostInfo.hadoopVarRunCount()
+    self.assertEquals(result, 0)
+
+
+  @patch("os.path.exists")
+  @patch("glob.glob")
+  def test_hadoopVarLogCount(self, glob_glob_mock, os_path_exists_mock):
+    hostInfo = HostInfo()
+
+    os_path_exists_mock.return_value = True
+    glob_glob_mock.return_value = ['log1','log2']
+    result = hostInfo.hadoopVarLogCount()
+    self.assertEquals(result, 2)
+
+    os_path_exists_mock.return_value = False
+    result = hostInfo.hadoopVarLogCount()
+    self.assertEquals(result, 0)
+
+
+  @patch("os.listdir", create=True, autospec=True)
+  @patch("__builtin__.open", create=True, autospec=True)
+  @patch("pwd.getpwuid", create=True, autospec=True)
+  def test_javaProcs(self, pwd_getpwuid_mock, buitin_open_mock, os_listdir_mock):
+    hostInfo = HostInfo()
+    openRead = MagicMock()
+    openRead.read.return_value = '/java/;/hadoop/'
+    buitin_open_mock.side_effect = [openRead, ['Uid: 22']]
+    pwuid = MagicMock()
+    pwd_getpwuid_mock.return_value = pwuid
+    pwuid.pw_name = 'user'
+    os_listdir_mock.return_value = ['1']
+    list = []
+    hostInfo.javaProcs(list)
+
+    self.assertEquals(list[0]['command'], '/java/;/hadoop/')
+    self.assertEquals(list[0]['pid'], 1)
+    self.assertTrue(list[0]['hadoop'])
+    self.assertEquals(list[0]['user'], 'user')
+
+
+  @patch("subprocess.Popen")
+  @patch.object(Hardware, 'extractMountInfo')
+  def test_osdiskAvailableSpace(self, extract_mount_info_mock, subproc_popen_mock):
+    hostInfo = HostInfo()
+    p = MagicMock()
+    p.communicate.return_value = ['some']
+    subproc_popen_mock.return_value = p
+    extract_mount_info_mock.return_value = {'info' : 'info'}
+    result = hostInfo.osdiskAvailableSpace('')
+
+    self.assertTrue(result['info'], 'info')
+
+    p.communicate.return_value = ''
+    result = hostInfo.osdiskAvailableSpace('')
+
+    self.assertEquals(result, {})
+
+
+  @patch("subprocess.Popen")
+  def test_checkLiveServices(self, subproc_popen):
+    hostInfo = HostInfo()
+    p = MagicMock()
+    p.returncode = 0
+    p.communicate.return_value = ('', 'err')
+    subproc_popen.return_value = p
+    result = []
+    hostInfo.checkLiveServices(['service1'], result)
+
+    self.assertEquals(result[0]['status'], 'Healthy')
+    self.assertEquals(result[0]['name'], 'service1')
+    self.assertEquals(result[0]['desc'], '')
+
+    p.returncode = 1
+    p.communicate.return_value = ('out', 'err')
+    result = []
+    hostInfo.checkLiveServices(['service1'], result)
+
+    self.assertEquals(result[0]['status'], 'Unhealthy')
+    self.assertEquals(result[0]['name'], 'service1')
+    self.assertEquals(result[0]['desc'], 'out')
+
+    p.communicate.return_value = ('', 'err')
+    result = []
+    hostInfo.checkLiveServices(['service1'], result)
+
+    self.assertEquals(result[0]['status'], 'Unhealthy')
+    self.assertEquals(result[0]['name'], 'service1')
+    self.assertEquals(result[0]['desc'], 'err')
+
+    p.communicate.return_value = ('', 'err', '')
+    result = []
+    hostInfo.checkLiveServices(['service1'], result)
+
+    self.assertEquals(result[0]['status'], 'Unhealthy')
+    self.assertEquals(result[0]['name'], 'service1')
+    self.assertTrue(len(result[0]['desc']) > 0)
+
+
+  @patch("os.path.exists")
+  @patch("os.listdir", create=True, autospec=True)
+  @patch("os.path.islink")
+  @patch("os.path.realpath")
+  def test_etcAlternativesConf(self, os_path_realpath_mock, os_path_islink_mock, os_listdir_mock, os_path_exists_mock):
+    hostInfo = HostInfo()
+    os_path_exists_mock.return_value = False
+    result = hostInfo.etcAlternativesConf('',[])
+
+    self.assertEquals(result, [])
+
+    os_path_exists_mock.return_value = True
+    os_listdir_mock.return_value = ['config1']
+    os_path_islink_mock.return_value = True
+    os_path_realpath_mock.return_value = 'real_path_to_conf'
+    result = []
+    hostInfo.etcAlternativesConf('project',result)
+
+    self.assertEquals(result[0]['name'], 'config1')
+    self.assertEquals(result[0]['target'], 'real_path_to_conf')
+
+
+  @patch("subprocess.Popen")
+  def test_rpmInfo(self, subproc_popen):
+    hostInfo = HostInfo()
+    p = MagicMock()
+    p.returncode = 0
+    p.communicate.side_effect = [('out', 'err'), ('', 'err') , ('out', 'err', 'fail')]
+    subproc_popen.return_value = p
+    rpmList = []
+    hostInfo.rpmInfo(rpmList)
+
+    self.assertEquals(rpmList[0]['version'], 'out')
+    self.assertEquals(rpmList[0]['name'], 'glusterfs')
+    self.assertTrue(rpmList[0]['installed'])
+
+    self.assertEquals(rpmList[1]['name'], 'openssl')
+    self.assertFalse(rpmList[1]['installed'])
+
+    self.assertFalse(rpmList[2]['available'])
+    self.assertEquals(rpmList[2]['name'], 'wget')
+
 
 if __name__ == "__main__":
   unittest.main(verbosity=2)
