@@ -146,6 +146,26 @@ App.MainAdminSecurityController = Em.Controller.extend({
       name: 'smokeuser',
       value: configs['smokeuser'] ? configs['smokeuser'] : 'ambari-qa'
     });
+    serviceUsers.pushObject({
+      id: 'puppet var',
+      name: 'zk_user',
+      value: configs['zk_user'] ? configs['zk_user'] : 'zookeeper'
+    });
+    serviceUsers.pushObject({
+      id: 'puppet var',
+      name: 'oozie_user',
+      value: configs['oozie_user'] ? configs['oozie_user'] : 'oozie'
+    });
+    serviceUsers.pushObject({
+      id: 'puppet var',
+      name: 'nagios_user',
+      value: configs['nagios_user'] ? configs['nagios_user'] : 'nagios'
+    });
+    serviceUsers.pushObject({
+      id: 'puppet var',
+      name: 'user_group',
+      value: configs['user_group'] ? configs['user_group'] : 'hadoop'
+    });
   },
 
   showSecurityErrorPopup: function () {

@@ -330,16 +330,41 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
           securityUsers = App.router.get('mainAdminSecurityController').get('serviceUsers');
         }
       }
+      var isHbaseInstalled = App.Service.find().findProperty('serviceName', 'HBASE');
       var generalConfigs = configs.findProperty('serviceName', 'GENERAL').configs;
       var realm = generalConfigs.findProperty('name', 'kerberos_domain').get('value');
-      var smokeUser = securityUsers.findProperty('name', 'smokeuser').value + '@' + realm;
-      var hdfsUser = securityUsers.findProperty('name', 'hdfs_user').value + '@' + realm;
-      var hbaseUser = securityUsers.findProperty('name', 'hbase_user').value + '@' + realm;
+      var smokeUserId = securityUsers.findProperty('name', 'smokeuser').value;
+      var hdfsUserId = securityUsers.findProperty('name', 'hdfs_user').value;
+      var hbaseUserId = securityUsers.findProperty('name', 'hbase_user').value;
+      var mapredUserId = securityUsers.findProperty('name', 'mapred_user').value;
+      var hiveUserId = securityUsers.findProperty('name', 'hive_user').value;
+      var zkUserId = securityUsers.findProperty('name', 'zk_user').value;
+      var oozieUserId = securityUsers.findProperty('name', 'oozie_user').value;
+      var nagiosUserId = securityUsers.findProperty('name', 'nagios_user').value;
+      var hadoopGroupId = securityUsers.findProperty('name', 'user_group').value;
+      
+      var smokeUser = smokeUserId + '@' + realm;
+      var hdfsUser = hdfsUserId + '@' + realm;
+      var hbaseUser = hbaseUserId + '@' + realm;
       var smokeUserKeytabPath = generalConfigs.findProperty('name', 'smokeuser_keytab').get('value');
       var hdfsUserKeytabPath = generalConfigs.findProperty('name', 'keytab_path').get('value') + "/hdfs.headless.keytab";
       var hbaseUserKeytabPath = generalConfigs.findProperty('name', 'keytab_path').get('value') + "/hbase.headless.keytab";
       var httpPrincipal = generalConfigs.findProperty('name', 'hadoop_http_principal_name');
       var httpKeytabPath = generalConfigs.findProperty('name', 'hadoop_http_keytab').get('value');
+      var componentToOwnerMap = {
+          'NAMENODE': hdfsUserId,
+          'SECONDARY_NAMENODE': hdfsUserId,
+          'DATANODE': hdfsUserId,
+          'TASKTRACKER': mapredUserId,
+          'JOBTRACKER': mapredUserId,
+          'ZOOKEEPER_SERVER': zkUserId,
+          'HIVE_SERVER': hiveUserId,
+          'OOZIE_SERVER': oozieUserId,
+          'NAGIOS_SERVER': nagiosUserId,
+          'HBASE_MASTER': hbaseUserId,
+          'HBASE_REGIONSERVER': hbaseUserId
+      };
+      
       var addedPrincipalsHost = {}; //Keys = host_principal, Value = 'true'
       
       hosts.forEach(function(host){
@@ -347,20 +372,31 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
           host: host.get('hostName'),
           component: Em.I18n.t('admin.addSecurity.user.smokeUser'),
           principal: smokeUser,
-          keytab: smokeUserKeytabPath
+          keytab: smokeUserKeytabPath,
+          owner: smokeUserId,
+          group: hadoopGroupId,
+          acl: '440'
         });
         result.push({
           host: host.get('hostName'),
           component: Em.I18n.t('admin.addSecurity.user.hdfsUser'),
           principal: hdfsUser,
-          keytab: hdfsUserKeytabPath
+          keytab: hdfsUserKeytabPath,
+          owner: hdfsUserId,
+          group: hadoopGroupId,
+          acl: '440'
         });
-        result.push({
-          host: host.get('hostName'),
-          component: Em.I18n.t('admin.addSecurity.user.hbaseUser'),
-          principal: hbaseUser,
-          keytab: hbaseUserKeytabPath
-        });
+        if (isHbaseInstalled) {
+          result.push({
+            host: host.get('hostName'),
+            component: Em.I18n.t('admin.addSecurity.user.hbaseUser'),
+            principal: hbaseUser,
+            keytab: hbaseUserKeytabPath,
+            owner: hbaseUserId,
+            group: hadoopGroupId,
+            acl: '440'
+          });
+        }
         if(host.get('hostComponents').someProperty('componentName', 'NAMENODE') || 
           host.get('hostComponents').someProperty('componentName', 'SECONDARY_NAMENODE') ||
           host.get('hostComponents').someProperty('componentName', 'WEBHCAT_SERVER') ||
@@ -369,7 +405,10 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
             host: host.get('hostName'),
             component: Em.I18n.t('admin.addSecurity.user.httpUser'),
             principal: httpPrincipal.get('value').replace('_HOST', host.get('hostName')) + httpPrincipal.get('unit'),
-            keytab: httpKeytabPath
+            keytab: httpKeytabPath,
+            owner: 'root',
+            group: hadoopGroupId,
+            acl: '440'
           });
         }
         host.get('hostComponents').forEach(function(hostComponent){
@@ -395,11 +434,18 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
    
             var key = host.get('hostName') + "--" + principal;
             if (!addedPrincipalsHost[key]) {
+              var owner = componentToOwnerMap[hostComponent.get('componentName')];
+              if(!owner){
+                owner = '';
+              }
               result.push({
                 host: host.get('hostName'),
                 component: hostComponent.get('displayName'),
                 principal: principal,
-                keytab: keytab
+                keytab: keytab,
+                owner: owner,
+                group: hadoopGroupId,
+                acl: '400'
               });
               addedPrincipalsHost[key] = true;
             }
