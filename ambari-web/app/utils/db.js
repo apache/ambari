@@ -21,21 +21,21 @@ App.db = {};
 if (typeof Storage !== 'undefined') {
   Storage.prototype.setObject = function (key, value) {
     this.setItem(key, JSON.stringify(value));
-  }
+  };
 
   Storage.prototype.getObject = function (key) {
     var value = this.getItem(key);
     return value && JSON.parse(value);
-  }
+  };
 } else {
   // stub for unit testing purposes
   window.localStorage = {};
   localStorage.setItem = function (key, val) {
     this[key] = val;
-  }
+  };
   localStorage.getItem = function (key) {
     return this[key];
-  }
+  };
   window.localStorage.setObject = function (key, value) {
     this[key] = value;
   };
@@ -306,7 +306,10 @@ App.db.setSecurityWizardStatus = function (status) {
 
 App.db.setDisableSecurityStatus = function (status) {
   App.db.data = localStorage.getObject('ambari');
-  App.db.data.disableSecurityStatus = status;
+  if (!App.db.data.AddSecurity) {
+    App.db.data.AddSecurity = {};
+  }
+  App.db.data.AddSecurity.disableSecurityStatus = status;
   localStorage.setObject('ambari', App.db.data);
 };
 
@@ -316,6 +319,15 @@ App.db.setSecurityDeployStages = function (securityStages) {
     App.db.data.AddSecurity = {};
   }
   App.db.data.AddSecurity.securityDeployStages = securityStages;
+  localStorage.setObject('ambari', App.db.data);
+};
+
+App.db.setSecureConfigProperties  = function (secureConfigs) {
+  App.db.data = localStorage.getObject('ambari');
+  if (!App.db.data.AddSecurity) {
+    App.db.data.AddSecurity = {};
+  }
+  App.db.data.AddSecurity.secureConfigProperties = secureConfigs;
   localStorage.setObject('ambari', App.db.data);
 };
 
@@ -507,12 +519,20 @@ App.db.getSecurityWizardStatus = function () {
 
 App.db.getDisableSecurityStatus = function () {
   App.db.data = localStorage.getObject('ambari');
-  return App.db.data.disableSecurityStatus;
+  if (!App.db.data.AddSecurity) {
+    App.db.data.AddSecurity = {};
+  }
+  return App.db.data.AddSecurity.disableSecurityStatus;
 };
 
 App.db.getSecurityDeployStages = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.AddSecurity.securityDeployStages;
+};
+
+App.db.getSecureConfigProperties = function () {
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.AddSecurity.secureConfigProperties;
 };
 
 App.db.getStacks = function () {

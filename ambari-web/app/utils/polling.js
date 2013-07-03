@@ -82,6 +82,7 @@ App.Poll = Em.Object.extend({
         console.log("TRACE: Polling-> value of the received data is: " + jsonData);
         if (jsonData === null) {
           self.set('isSuccess', true);
+          self.set('isError', false);
         } else {
           var requestId = jsonData.Requests.id;
           self.set('requestId', requestId);
@@ -92,6 +93,7 @@ App.Poll = Em.Object.extend({
       error: function () {
         console.log("ERROR");
         self.set('isError', true);
+        self.set('isSuccess', false);
       },
 
       statusCode: require('data/statusCodes')
@@ -136,8 +138,9 @@ App.Poll = Em.Object.extend({
         console.log("TRACE: In error function for the GET data");
         console.log("TRACE: value of the url is: " + url);
         console.log("TRACE: error code status is: " + request.status);
-        self.set('requestId', undefined);
-        self.set('isError', true);
+        if (!self.get('isSuccess')) {
+          self.set('isError', true);
+        }
       },
 
       statusCode: require('data/statusCodes')
@@ -176,7 +179,9 @@ App.Poll = Em.Object.extend({
     if (runningTasks === 0) {
       if (polledData.everyProperty('Tasks.status', 'COMPLETED')) {
         this.set('isSuccess', true);
+        this.set('isError', false);
       } else if (polledData.someProperty('Tasks.status', 'FAILED') || polledData.someProperty('Tasks.status', 'TIMEDOUT') || polledData.someProperty('Tasks.status', 'ABORTED')) {
+        this.set('isSuccess', false);
         this.set('isError', true);
       }
       return true;
@@ -204,20 +209,6 @@ App.Poll = Em.Object.extend({
       return false;
     }
     this.replacePolledData(tasksData);
-    /* this.hosts.forEach(function (_host) {
-     var actionsPerHost = tasksData.filterProperty('Tasks.host_name', _host.name); // retrieved from polled Data
-     if (actionsPerHost.length === 0) {
-     _host.set('message', this.t('installer.step9.host.status.nothingToInstall'));
-     console.log("INFO: No task is hosted on the host");
-     }
-     if (actionsPerHost !== null && actionsPerHost !== undefined && actionsPerHost.length !== 0) {
-     this.setLogTasksStatePerHost(actionsPerHost, _host);
-     this.onSuccessPerHost(actionsPerHost, _host);     // every action should be a success
-     this.onErrorPerHost(actionsPerHost, _host);     // any action should be a failure
-     this.onInProgressPerHost(actionsPerHost, _host);  // current running action for a host
-     totalProgress += self.progressPerHost(actionsPerHost, _host);
-     }
-     }, this); */
     var totalProgress = this.calculateProgressByTasks(tasksData);
     this.set('progress', totalProgress.toString());
     console.log("INFO: right now the progress is: " + this.get('progress'));

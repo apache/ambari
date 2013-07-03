@@ -656,12 +656,12 @@ module.exports = Em.Route.extend({
         if (!App.testMode) {
           App.clusterStatus.updateFromServer();
           var currentClusterStatus = App.clusterStatus.get('value');
-          App.db.data = currentClusterStatus.localdb;
-          if (currentClusterStatus.localdb.AddSecurity) {
-            App.db.setSecurityDeployStages(currentClusterStatus.localdb.AddSecurity.securityDeployStages);
-            controller.setAddSecurityWizardStatus(currentClusterStatus.localdb.AddSecurity.status);
-            App.db.setServiceConfigProperties(currentClusterStatus.localdb.Installer.configProperties);
-            App.db.setWizardCurrentStep('AddSecurity', currentClusterStatus.localdb.AddSecurity.currentStep);
+          App.db.data.AddSecurity = currentClusterStatus.localdb;
+          if (currentClusterStatus.localdb) {
+            App.db.setSecurityDeployStages(currentClusterStatus.localdb.securityDeployStages);
+            controller.setAddSecurityWizardStatus(currentClusterStatus.localdb.status);
+            App.db.setServiceConfigProperties(currentClusterStatus.localdb.secureConfigProperties);
+            App.db.setWizardCurrentStep('AddSecurity', currentClusterStatus.localdb.currentStep);
           }
           App.db.setDisableSecurityStatus(currentClusterStatus.localdb.disableSecurityStatus);
         }
@@ -699,12 +699,6 @@ module.exports = Em.Route.extend({
         enter: function (router) {
           //after refresh check if the wizard is open then restore it
           if (router.get('mainAdminSecurityController').getDisableSecurityStatus() === 'RUNNING') {
-            App.clusterStatus.setClusterStatus({
-              clusterName: this.get('clusterName'),
-              clusterState: 'DISABLE_SECURITY',
-              wizardControllerName: router.get('mainAdminSecurityDisableController.name'),
-              localdb: App.db.data
-            });
             Ember.run.next(function () {
               App.router.get('updateController').set('isWorking', false);
               App.ModalPopup.show({
@@ -746,7 +740,7 @@ module.exports = Em.Route.extend({
                     clusterName: router.get('content.cluster.name'),
                     clusterState: 'SECURITY_COMPLETED',
                     wizardControllerName: router.get('mainAdminSecurityDisableController.name'),
-                    localdb: App.db.data
+                    localdb: App.db.data.AddSecurity
                   });
                   this.hide();
                   router.transitionTo('adminSecurity.index');

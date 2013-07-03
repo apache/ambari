@@ -84,7 +84,7 @@ module.exports = Em.Route.extend({
                 clusterName: router.get('content.cluster.name'),
                 clusterState: 'SECURITY_COMPLETED',
                 wizardControllerName: router.get('addSecurityController.name'),
-                localdb: App.db.data
+                localdb: App.db.data.AddSecurity
               });
               router.transitionTo('adminSecurity.index');
             },
@@ -104,12 +104,13 @@ module.exports = Em.Route.extend({
   step1: Em.Route.extend({
     route: '/start',
     enter: function (router) {
+      router.get('addSecurityController').setCurrentStep('1');
       if(!App.testMode){
         App.clusterStatus.setClusterStatus({
           clusterName: this.get('clusterName'),
           clusterState: 'ADD_SECURITY_STEP_1',
           wizardControllerName: router.get('addSecurityController.name'),
-          localdb: App.db.data
+          localdb:  App.db.data.AddSecurity
         });
       }
     },
@@ -118,7 +119,6 @@ module.exports = Em.Route.extend({
       console.log('in addSecurity.step1:connectOutlets');
       var controller = router.get('addSecurityController');
       controller.dataLoading().done(function () {
-        controller.setCurrentStep('1');
         controller.loadAllPriorSteps();
         controller.connectOutlet('mainAdminSecurityAddStep1', controller.get('content'));
       })
@@ -135,12 +135,13 @@ module.exports = Em.Route.extend({
     route: '/configure',
 
     enter: function (router) {
+      router.get('addSecurityController').setCurrentStep('2');
       if(!App.testMode){
         App.clusterStatus.setClusterStatus({
           clusterName: this.get('clusterName'),
           clusterState: 'ADD_SECURITY_STEP_2',
           wizardControllerName: router.get('addSecurityController.name'),
-          localdb: App.db.data
+          localdb:  App.db.data.AddSecurity
         });
       }
     },
@@ -148,7 +149,6 @@ module.exports = Em.Route.extend({
       console.log('in addSecurity.step2:connectOutlets');
       var controller = router.get('addSecurityController');
       controller.dataLoading().done(function () {
-        controller.setCurrentStep('2');
         controller.loadAllPriorSteps();
         controller.connectOutlet('mainAdminSecurityAddStep2', controller.get('content'));
       })
@@ -165,15 +165,6 @@ module.exports = Em.Route.extend({
 
   step3: Em.Route.extend({
     route: '/apply',
-
-    enter: function (router) {
-      App.clusterStatus.setClusterStatus({
-        clusterName: this.get('clusterName'),
-        clusterState: 'ADD_SECURITY_STEP_3',
-        wizardControllerName: router.get('addSecurityController.name'),
-        localdb: App.db.data
-      });
-    },
 
     connectOutlets: function (router) {
       console.log('in addSecurity.step3:connectOutlets');

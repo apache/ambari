@@ -68,12 +68,53 @@ App.AddSecurityController = App.WizardController.extend({
 
   },
 
+  saveServiceConfigProperties: function (stepController) {
+    var serviceConfigProperties = [];
+    stepController.get('stepConfigs').forEach(function (_content) {
+      _content.get('configs').forEach(function (_configProperties) {
+        var displayType = _configProperties.get('displayType');
+        if (displayType === 'directories' || displayType === 'directory') {
+          var value = _configProperties.get('value').trim().split(/\s+/g).join(',');
+          _configProperties.set('value', value);
+        }
+        var overrides = _configProperties.get('overrides');
+        var overridesArray = [];
+        if(overrides!=null){
+          overrides.forEach(function(override){
+            var overrideEntry = {
+              value: override.get('value'),
+              hosts: []
+            };
+            override.get('selectedHostOptions').forEach(function(host){
+              overrideEntry.hosts.push(host);
+            });
+            overridesArray.push(overrideEntry);
+          });
+        }
+        overridesArray = (overridesArray.length) ? overridesArray : null;
+        var configProperty = {
+          id: _configProperties.get('id'),
+          name: _configProperties.get('name'),
+          value: _configProperties.get('value'),
+          defaultValue: _configProperties.get('defaultValue'),
+          serviceName: _configProperties.get('serviceName'),
+          domain:  _configProperties.get('domain'),
+          filename: _configProperties.get('filename'),
+          overrides: overridesArray
+        };
+        serviceConfigProperties.push(configProperty);
+      }, this);
+    }, this);
+    App.db.setSecureConfigProperties(serviceConfigProperties);
+    this.set('content.serviceConfigProperties', serviceConfigProperties);
+  },
+
   /**
    * Loads all service config properties
    */
 
   loadServiceConfigs: function () {
-    var serviceConfigProperties = App.db.getServiceConfigProperties();
+    var serviceConfigProperties = App.db.getSecureConfigProperties();
     this.set('content.serviceConfigProperties', serviceConfigProperties);
   }
 });

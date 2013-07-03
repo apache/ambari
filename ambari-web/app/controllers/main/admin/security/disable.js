@@ -44,6 +44,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
     if (this.get('stages').someProperty('isError', true)) {
       var failedStages = this.get('stages').filterProperty('isError', true);
       failedStages.setEach('isError', false);
+      failedStages.setEach('isSuccess', false);
       failedStages.setEach('isStarted', false);
     }
     this.moveToNextStage();
@@ -62,6 +63,8 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
       } else if (stages.filterProperty('isStarted', true).someProperty('isCompleted', false)) {
         var runningStage = stages.filterProperty('isStarted', true).findProperty('isCompleted', false);
         runningStage.set('isStarted', false);
+        this.get('stages').pushObjects(stages);
+      } else {
         this.get('stages').pushObjects(stages);
       }
     } else {
@@ -220,7 +223,11 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
   },
 
   loadClusterConfigsErrorCallback: function (request, ajaxOptions, error) {
-    this.get('stages').findProperty('stage', 'stage3').set('isError', true);
+    var stage3 = this.get('stages').findProperty('stage', 'stage3');
+    if (stage3) {
+      stage3.set('isSuccess', false);
+      stage3.set('isError', true);
+    }
     console.log("TRACE: error code status is: " + request.status);
   },
 
@@ -244,10 +251,14 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
 
   getAllConfigurationsSuccessCallback: function (data) {
     console.log("TRACE: In success function for the GET getServiceConfigsFromServer call");
+    var stage3 = this.get('stages').findProperty('stage', 'stage3');
     this.get('serviceConfigTags').forEach(function (_tag) {
       if (!data.items.someProperty('type', _tag.siteName)) {
         console.log("Error: Metadata for secure services (secure_configs.js) is having config tags that are not being retrieved from server");
-        this.get('stages').findProperty('stage', 'stage3').set('isError', true);
+        if (stage3) {
+          stage3.set('isSuccess', false);
+          stage3.set('isError', true);
+        }
       }
       _tag.configs = data.items.findProperty('type', _tag.siteName).properties;
     }, this);
@@ -256,7 +267,11 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
   },
 
   getAllConfigurationsErrorCallback: function (request, ajaxOptions, error) {
-    this.get('stages').findProperty('stage', 'stage3').set('isError', true);
+    var stage3 = this.get('stages').findProperty('stage', 'stage3');
+    if (stage3) {
+      stage3.set('isSuccess', false);
+      stage3.set('isError', true);
+    }
     console.log("TRACE: In error function for the getServiceConfigsFromServer call");
     console.log("TRACE: error code status is: " + request.status);
   },
@@ -304,11 +319,16 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
     if (this.get('noOfWaitingAjaxCalls') == 0) {
       var currentStage = this.get('stages').findProperty('stage', 'stage3');
       currentStage.set('isSuccess', true);
+      currentStage.set('isError', false);
     }
   },
 
   applyConfigurationToClusterErrorCallback: function (request, ajaxOptions, error) {
-    this.get('stages').findProperty('stage', 'stage3').set('isError', true);
+    var stage3 = this.get('stages').findProperty('stage', 'stage3');
+    if (stage3) {
+      stage3.set('isSuccess', false);
+      stage3.set('isError', true);
+    }
   },
 
 
@@ -362,29 +382,33 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
 
   saveStages: function () {
     var stages = [];
-    this.get('stages').forEach(function (_stage) {
-      var stage = {
-        name: _stage.get('name'),
-        stage: _stage.get('stage'),
-        label: _stage.get('label'),
-        isPolling: _stage.get('isPolling'),
-        isStarted: _stage.get('isStarted'),
-        requestId: _stage.get('requestId'),
-        isSuccess: _stage.get('isSuccess'),
-        isError: _stage.get('isError'),
-        url: _stage.get('url'),
-        polledData: _stage.get('polledData'),
-        data: _stage.get('data')
-      };
-      stages.pushObject(stage);
-    }, this);
-    App.db.setSecurityDeployStages(stages);
-    App.clusterStatus.setClusterStatus({
-      clusterName: this.get('clusterName'),
-      clusterState: 'DISABLE_SECURITY',
-      wizardControllerName: this.get('name'),
-      localdb: App.db.data
-    });
-  }.observes('stages.@each.requestId', 'stages.@each.isStarted', 'stages.@each.isCompleted')
+    if (this.get('stages').length === 3) {
+      this.get('stages').forEach(function (_stage) {
+        var stage = {
+          name: _stage.get('name'),
+          stage: _stage.get('stage'),
+          label: _stage.get('label'),
+          isPolling: _stage.get('isPolling'),
+          isStarted: _stage.get('isStarted'),
+          requestId: _stage.get('requestId'),
+          isSuccess: _stage.get('isSuccess'),
+          isError: _stage.get('isError'),
+          url: _stage.get('url'),
+          polledData: _stage.get('polledData'),
+          data: _stage.get('data')
+        };
+        stages.pushObject(stage);
+      }, this);
+      App.db.setSecurityDeployStages(stages);
+      if (!App.testMode) {
+        App.clusterStatus.setClusterStatus({
+          clusterName: this.get('clusterName'),
+          clusterState: 'DISABLE_SECURITY',
+          wizardControllerName: this.get('name'),
+          localdb: App.db.data.AddSecurity
+        });
+      }
+    }
+  }.observes('stages.@each.requestId')
 
 });
