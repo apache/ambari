@@ -854,6 +854,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   saveGlobalConfigs: function (configs) {
     var globalConfigs = this.get('globalConfigs');
     configs.filterProperty('id', 'puppet var').forEach(function (uiConfigProperty) {
+      var displayType = uiConfigProperty.get('displayType');
+      if (displayType == 'directories' || displayType === 'directory') {
+        var value = uiConfigProperty.get('value').replace(/,/g,' ').trim().split(/\s+/g).join(',');
+        uiConfigProperty.set('value', value);
+      }
       if (globalConfigs.someProperty('name', uiConfigProperty.name)) {
         var modelGlobalConfig = globalConfigs.findProperty('name', uiConfigProperty.name);
         modelGlobalConfig.value = uiConfigProperty.value;
