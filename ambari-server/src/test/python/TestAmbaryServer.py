@@ -17,6 +17,7 @@ limitations under the License.
 '''
 
 import StringIO
+import re
 from unittest import TestCase
 import sys
 from mock.mock import patch
@@ -3169,6 +3170,38 @@ class TestAmbariServer(TestCase):
     str2 = ambari_server.generate_random_string(random_str_len)
     self.assertTrue(str1 != str2)
 
+
+  def test_regexps(self):
+    res = re.search(ambari_server.REGEX_HOSTNAME_PORT, "")
+    self.assertTrue(res is None)
+    res = re.search(ambari_server.REGEX_HOSTNAME_PORT, "ddd")
+    self.assertTrue(res is None)
+    res = re.search(ambari_server.REGEX_HOSTNAME_PORT, "gg:ff")
+    self.assertTrue(res is None)
+    res = re.search(ambari_server.REGEX_HOSTNAME_PORT, "gg:55444325")
+    self.assertTrue(res is None)
+    res = re.search(ambari_server.REGEX_HOSTNAME_PORT, "gg:555")
+    self.assertTrue(res is not None)
+
+    res = re.search(ambari_server.REGEX_TRUE_FALSE, "")
+    self.assertTrue(res is not None)
+    res = re.search(ambari_server.REGEX_TRUE_FALSE, "t")
+    self.assertTrue(res is None)
+    res = re.search(ambari_server.REGEX_TRUE_FALSE, "trrrr")
+    self.assertTrue(res is None)
+    res = re.search(ambari_server.REGEX_TRUE_FALSE, "true|false")
+    self.assertTrue(res is None)
+    res = re.search(ambari_server.REGEX_TRUE_FALSE, "true")
+    self.assertTrue(res is not None)
+    res = re.search(ambari_server.REGEX_TRUE_FALSE, "false")
+    self.assertTrue(res is not None)
+
+    res = re.search(ambari_server.REGEX_ANYTHING, "")
+    self.assertTrue(res is not None)
+    res = re.search(ambari_server.REGEX_ANYTHING, "t")
+    self.assertTrue(res is not None)
+    res = re.search(ambari_server.REGEX_ANYTHING, "trrrr")
+    self.assertTrue(res is not None)
 
 
   def get_sample(self, sample):

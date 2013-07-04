@@ -262,6 +262,9 @@ DATABASE_DROP_SCRIPTS = ['/var/lib/ambari-server/resources/Ambari-DDL-Postgres-R
 
 REGEX_IP_ADDRESS = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
 REGEX_HOSTNAME = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
+REGEX_HOSTNAME_PORT = "^(.*:[0-9]{1,5}$)"
+REGEX_TRUE_FALSE = "^(true|false)?$"
+REGEX_ANYTHING = ".*"
 
 POSTGRES_EXEC_ARGS = "-h {0} -p {1} -d {2} -U {3} -f {4} -v username='\"{3}\"'"
 ORACLE_EXEC_ARGS = "-S '{0}/{1}@(description=(address=(protocol=TCP)(host={2})(port={3}))(connect_data=(sid={4})))' @{5} {0}"
@@ -2358,7 +2361,12 @@ def setup_ldap():
 
   ldap_property_value_map = {}
   for idx, key in enumerate(ldap_property_list_reqd):
-    pattern = ".*" if idx != 0 else "^(.*:[0-9]{1,5}$)"
+    if idx == 0:
+      pattern = REGEX_HOSTNAME_PORT
+    elif idx in [2, 5]:
+      pattern = REGEX_TRUE_FALSE
+    else:
+      pattern = REGEX_ANYTHING
     input = get_validated_string_input(ldap_properties_map_reqd[key][1],
       ldap_properties_map_reqd[key][0], pattern,
       "Invalid characters in the input!", False, ldap_properties_map_reqd[key][2])
