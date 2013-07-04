@@ -80,6 +80,19 @@ App.MainChartsHeatmapController = Em.Controller.extend({
   }.property(),
 
   selectedMetric: null,
+
+  inputMaximum: '',
+
+  validation: function () {
+    if (this.get('selectedMetric')) {
+      if (/^\d+$/.test(this.get('inputMaximum'))) {
+        $('#inputMaximum').removeClass('error');
+        this.set('selectedMetric.maximumValue', this.get('inputMaximum'));
+      } else {
+        $('#inputMaximum').addClass('error');
+      }
+    }
+  }.observes('inputMaximum'),
   /**
    *  route on host detail page
    * @param event
@@ -103,6 +116,7 @@ App.MainChartsHeatmapController = Em.Controller.extend({
     if (selectedMetric) {
       selectedMetric.refreshHostSlots();
     }
+    this.set('inputMaximum', this.get('selectedMetric.maximumValue'));
   }.observes('selectedMetric'),
 
   /**
