@@ -302,11 +302,15 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
 
   submit: function () {
     if (!this.get('isSubmitDisabled')) {
-      this.showHostPrincipalKeytabList();
+      if (App.supports.secureClusterProceedPopup) {
+        this.showHostPrincipalKeytabList();
+      } else {
+        App.router.send('next');
+      }
     }
   },
-  
-    doDownloadCsv: function(){
+
+  doDownloadCsv: function(){
       var blob = new Blob([this.buildCvsContent()], {type: "text/csv;charset=utf-8"});
       saveAs(blob, "host-principal-keytab-list.csv");
     },
