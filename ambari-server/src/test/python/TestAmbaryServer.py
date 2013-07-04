@@ -27,6 +27,8 @@ import signal
 import stat
 import datetime
 import operator
+from pwd import getpwnam
+
 # We have to use this import HACK because the filename contains a dash
 ambari_server = __import__('ambari-server')
 FatalException = ambari_server.FatalException
@@ -608,17 +610,20 @@ class TestAmbariServer(TestCase):
     self.assertEquals(user, None)
 
 
+  @patch("os.path.exists")
   @patch.object(ambari_server, "set_file_permissions")
   @patch.object(ambari_server, "run_os_command")
   @patch.object(ambari_server, "get_ambari_properties")
   @patch.object(ambari_server, "get_value_from_properties")
   @patch("os.mkdir")
-  def test_adjust_directory_permissions(self, mkdir_mock, get_value_from_properties_mock, get_ambari_properties_mock,
-                                        run_os_command_mock, set_file_permissions_mock):
+  def test_adjust_directory_permissions(self, mkdir_mock,
+            get_value_from_properties_mock, get_ambari_properties_mock,
+            run_os_command_mock, set_file_permissions_mock, exists_mock):
     # Testing boostrap dir wipe
     properties_mock = MagicMock()
     get_value_from_properties_mock.return_value = "dummy_bootstrap_dir"
     ambari_server.adjust_directory_permissions("user")
+    exists_mock.return_value = False
     self.assertEquals(run_os_command_mock.call_args_list[0][0][0], "rm -rf dummy_bootstrap_dir")
     self.assertTrue(mkdir_mock.called)
 
@@ -1673,7 +1678,9 @@ class TestAmbariServer(TestCase):
     self.assertEqual(None, rcode)
     self.assertTrue(setup_db_mock.called)
 
-
+  @patch("os.chown")
+  @patch("pwd.getpwnam")
+  @patch.object(ambari_server, 'get_master_key_location')
   @patch.object(ambari_server, 'save_master_key')
   @patch('os.chmod', autospec=True)
   @patch.object(ambari_server, 'get_validated_string_input')
@@ -1700,15 +1707,22 @@ class TestAmbariServer(TestCase):
                  print_info_msg_mock, popenMock, openMock, pexistsMock,
                  killMock, get_ambari_properties_mock, os_environ_mock,
                  get_validated_string_input_method, os_chmod_method,
-                 save_master_key_method):
+                 save_master_key_method, get_master_key_location_method,
+                 getpwnam_mock, os_chown_mock):
     args = MagicMock()
 
     f = MagicMock()
     f.readline.return_value = 42
     openMock.return_value = f
-    get_ambari_properties_mock.return_value = \
-    {ambari_server.SECURITY_KEY_IS_PERSISTED : "True"}
 
+    p = get_ambari_properties_mock.return_value
+    p.get_property.return_value = 'False'
+    search_file_mock.return_value = None
+    pw = MagicMock()
+    pw.setattr('pw_uid', 0)
+    pw.setattr('pw_gid', 0)
+    getpwnam_mock.return_value = pw
+    os_chown_mock.return_value = None
     # Checking "server is running"
     pexistsMock.return_value = True
     try:
@@ -1882,8 +1896,6 @@ class TestAmbariServer(TestCase):
 
     # Check environ master key is set
     popenMock.reset_mock()
-    get_ambari_properties_mock.return_value = \
-    {ambari_server.SECURITY_KEY_IS_PERSISTED : "False"}
     os_environ_mock.copy.return_value = {"a" : "b",
         ambari_server.SECURITY_KEY_ENV_VAR_NAME : "masterkey"}
     args.persistence_type="local"
@@ -1902,8 +1914,7 @@ class TestAmbariServer(TestCase):
     # Check environ master key is not set
     popenMock.reset_mock()
     os_environ_mock.reset_mock()
-    get_ambari_properties_mock.return_value = \
-    {ambari_server.SECURITY_KEY_IS_PERSISTED : "False"}
+    p.get_property.return_value = 'True'
     os_environ_mock.copy.return_value = {"a" : "b"}
     args.persistence_type="local"
     read_ambari_user_mock.return_value = "root"
@@ -2766,13 +2777,12 @@ class TestAmbariServer(TestCase):
     self.assertEquals(args.persistence_type, "remote")
 
 
-  @patch.object(ambari_server, 'setup_master_key')
-  @patch.object(ambari_server, 'read_passwd_for_alias')
+  @patch.object(ambari_server, 'decrypt_password_for_alias')
   @patch.object(ambari_server, 'is_alias_string')
   @patch.object(ambari_server, 'get_ambari_properties')
   def test_configure_database_username_password_masterkey_persisted(self,
           get_ambari_properties_method, is_alias_string_method,
-          read_passwd_for_alias_method, setup_master_key_method):
+          decrypt_password_for_alias_method):
 
     out = StringIO.StringIO()
     sys.stdout = out
@@ -2784,170 +2794,148 @@ class TestAmbariServer(TestCase):
     get_ambari_properties_method.return_value = configs
 
     is_alias_string_method.return_value = True
-    read_passwd_for_alias_method.return_value = "falepasswd"
+    decrypt_password_for_alias_method.return_value = "falepasswd"
     args = MagicMock()
+    args.master_key = None
 
     ambari_server.configure_database_username_password(args)
 
-    self.assertTrue(read_passwd_for_alias_method.called)
+    self.assertTrue(decrypt_password_for_alias_method.called)
     self.assertTrue(is_alias_string_method.called)
     self.assertEquals("fakeuser", args.database_username)
     self.assertEquals("falepasswd", args.database_password)
 
-    configs[ambari_server.SECURITY_KEY_IS_PERSISTED] = "False"
-    get_ambari_properties_method.return_value = configs
-    args.reset_mock()
-    setup_master_key_method.return_value = (None, True, True)
-
-    ambari_server.configure_database_username_password(args)
-
-    self.assertTrue(setup_master_key_method.called)
-    read_passwd_for_alias_method.assert_called_with(
-        ambari_server.JDBC_RCA_PASSWORD_ALIAS, None)
-
     sys.stdout = sys.__stdout__
 
 
-  @patch.object(ambari_server, 'save_passwd_for_alias')
   @patch.object(ambari_server, 'read_password')
-  def test_configure_database_password(self, read_password_method,
-                                       save_passwd_for_alias_method):
+  def test_configure_database_password(self, read_password_method):
 
     out = StringIO.StringIO()
     sys.stdout = out
 
     read_password_method.return_value = "fakepasswd"
+
+    result = ambari_server.configure_database_password(True)
+    self.assertTrue(read_password_method.called)
+    self.assertEquals("fakepasswd", result)
+
+    result = ambari_server.configure_database_password(True)
+    self.assertEquals("fakepasswd", result)
+
+    result = ambari_server.configure_database_password(True)
+    self.assertEquals("fakepasswd", result)
+
+    sys.stdout = sys.__stdout__
+
+
+  @patch.object(ambari_server, 'remove_password_file')
+  @patch.object(ambari_server, 'save_passwd_for_alias')
+  @patch.object(ambari_server, 'read_master_key')
+  @patch.object(ambari_server, 'read_ambari_user')
+  @patch.object(ambari_server, 'get_master_key_location')
+  @patch.object(ambari_server, 'update_properties')
+  @patch.object(ambari_server, 'save_master_key')
+  @patch.object(ambari_server, 'get_YN_input')
+  @patch.object(ambari_server, 'search_file')
+  @patch.object(ambari_server, 'get_ambari_properties')
+  @patch.object(ambari_server, 'is_root')
+  def test_setup_master_key_not_persist(self, is_root_method,
+              get_ambari_properties_method, search_file_message,
+              get_YN_input_method, save_master_key_method,
+              update_properties_method, get_master_key_location_method,
+              read_ambari_user_method, read_master_key_method,
+              save_passwd_for_alias_method, remove_password_file_method):
+
+    out = StringIO.StringIO()
+    sys.stdout = out
+
+    is_root_method.return_value = True
+    p = get_ambari_properties_method.return_value
+    p.get_property.side_effect = [ None, "fakepasswd", "fakepasswd" ]
+    read_master_key_method.return_value = "aaa"
+    get_YN_input_method.return_value = False
+    read_ambari_user_method.return_value = None
     save_passwd_for_alias_method.return_value = 0
 
-    result = ambari_server.configure_database_password(True, None, True)
+    ambari_server.setup_master_key()
+
+    self.assertTrue(get_YN_input_method.called)
+    self.assertTrue(read_master_key_method.called)
+    self.assertTrue(read_ambari_user_method.called)
+    self.assertTrue(update_properties_method.called)
+    self.assertFalse(save_master_key_method.called)
     self.assertTrue(save_passwd_for_alias_method.called)
-    self.assertTrue(read_password_method.called)
-    save_passwd_for_alias_method.assert_called_with(ambari_server
-      .JDBC_RCA_PASSWORD_ALIAS, "fakepasswd", None)
-    self.assertEquals(("fakepasswd", ambari_server.get_alias_string(
-      ambari_server.JDBC_RCA_PASSWORD_ALIAS)), result)
+    self.assertEquals(2, save_passwd_for_alias_method.call_count)
+    self.assertTrue(remove_password_file_method.called)
 
-    save_passwd_for_alias_method.reset_mock()
-    result = ambari_server.configure_database_password(False, None, True)
-    self.assertFalse(save_passwd_for_alias_method.called)
-    self.assertEquals(("fakepasswd", None), result)
+    result_expected = {ambari_server.JDBC_PASSWORD_PROPERTY :
+        ambari_server.get_alias_string(ambari_server.JDBC_RCA_PASSWORD_ALIAS),
+        ambari_server.LDAP_MGR_PASSWORD_PROPERTY :
+        ambari_server.get_alias_string(ambari_server.LDAP_MGR_PASSWORD_ALIAS),
+        ambari_server.SECURITY_IS_ENCRYPTION_ENABLED : 'true'}
 
-    save_passwd_for_alias_method.reset_mock()
-    save_passwd_for_alias_method.return_value = -1
-    result = ambari_server.configure_database_password(True, None, True)
-    self.assertEquals(("fakepasswd", None), result)
+    sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
+    sorted_y = sorted(update_properties_method.call_args[0][0].iteritems(),
+                      key=operator.itemgetter(0))
+    self.assertEquals(sorted_x, sorted_y)
 
     sys.stdout = sys.__stdout__
 
 
-  @patch.object(ambari_server, 'read_ambari_user')
   @patch.object(ambari_server, 'read_master_key')
-  @patch.object(ambari_server, 'update_properties')
-  @patch.object(ambari_server, 'save_master_key')
-  @patch.object(ambari_server, 'get_YN_input')
-  @patch.object(ambari_server, 'get_ambari_properties')
-  def test_setup_master_key_persist(self, get_ambari_properties_method,
-            get_YN_input_method, save_master_key_method,
-            update_properties_method, read_master_key_method,
-            read_ambari_user_method):
-
-    out = StringIO.StringIO()
-    sys.stdout = out
-    configs = { ambari_server.SECURITY_MASTER_KEY_LOCATION : "filepath",
-                ambari_server.SECURITY_KEYS_DIR : tempfile.gettempdir(),
-                ambari_server.SECURITY_KEY_IS_PERSISTED : None }
-
-    get_ambari_properties_method.return_value = configs
-    get_YN_input_method.return_value = True
-    read_master_key_method.return_value = "aaa"
-    read_ambari_user_method.return_value = None
-    save_master_key_method.return_value = None
-    update_properties_method.return_value = None
-
-    ambari_server.setup_master_key(False)
-
-    self.assertTrue(get_YN_input_method.called)
-    self.assertTrue(read_master_key_method.called)
-    self.assertTrue(read_ambari_user_method.called)
-    self.assertTrue(save_master_key_method.called)
-    self.assertTrue(update_properties_method.called)
-
-    sys.stdout = sys.__stdout__
-
-
   @patch.object(ambari_server, 'read_ambari_user')
-  @patch.object(ambari_server, 'read_master_key')
+  @patch.object(ambari_server, 'get_master_key_location')
   @patch.object(ambari_server, 'update_properties')
   @patch.object(ambari_server, 'save_master_key')
   @patch.object(ambari_server, 'get_YN_input')
-  @patch.object(ambari_server, 'get_ambari_properties')
-  def test_setup_master_key_not_persist(self, get_ambari_properties_method,
-              get_YN_input_method, save_master_key_method,
-              update_properties_method, read_master_key_method,
-              read_ambari_user_method):
-
-    out = StringIO.StringIO()
-    sys.stdout = out
-    configs = { ambari_server.SECURITY_MASTER_KEY_LOCATION : "filepath",
-                ambari_server.SECURITY_KEYS_DIR : tempfile.gettempdir(),
-                ambari_server.SECURITY_KEY_IS_PERSISTED : None }
-
-    get_ambari_properties_method.return_value = configs
-    get_YN_input_method.side_effect = [True, False]
-    read_master_key_method.return_value = "aaa"
-    read_ambari_user_method.return_value = None
-    save_master_key_method.return_value = None
-    update_properties_method.return_value = None
-
-    ambari_server.setup_master_key(False)
-
-    self.assertTrue(get_YN_input_method.called)
-    self.assertTrue(read_master_key_method.called)
-    self.assertTrue(read_ambari_user_method.called)
-    self.assertTrue(update_properties_method.called)
-    self.assertFalse(save_master_key_method.called)
-
-    sys.stdout = sys.__stdout__
-
-
-  @patch.object(ambari_server, 'get_master_key_ispersisted')
-  @patch.object(ambari_server, 'update_properties')
-  @patch.object(ambari_server, 'save_master_key')
-  @patch.object(ambari_server, 'get_validated_string_input')
-  @patch.object(ambari_server, 'get_YN_input')
-  @patch.object(ambari_server, 'get_ambari_properties')
   @patch.object(ambari_server, 'search_file')
-  def test_setup_master_key_already_persisted(self, search_file_message,
-            get_ambari_properties_method,
-            get_YN_input_method, get_validated_string_input_method,
-            save_master_key_method, update_properties_method,
-            get_master_key_ispersisted_method):
+  @patch.object(ambari_server, 'get_ambari_properties')
+  @patch.object(ambari_server, 'is_root')
+  def test_setup_master_key_persist(self, is_root_method,
+              get_ambari_properties_method, search_file_message,
+              get_YN_input_method, save_master_key_method,
+              update_properties_method, get_master_key_location_method,
+              read_ambari_user_method, read_master_key_method):
 
     out = StringIO.StringIO()
     sys.stdout = out
-    configs = { ambari_server.SECURITY_MASTER_KEY_LOCATION : "filepath",
-                ambari_server.SECURITY_KEYS_DIR : tempfile.gettempdir(),
-                ambari_server.SECURITY_KEY_IS_PERSISTED : "true" }
 
-    get_ambari_properties_method.return_value = configs
-    get_master_key_ispersisted_method.return_value = True
-    search_file_message.return_value = "filepath"
+    is_root_method.return_value = True
+    p = get_ambari_properties_method.return_value
+    p.get_property.side_effect = [ None, "fakepasswd", None ]
+    read_master_key_method.return_value = "aaa"
+    get_YN_input_method.side_effect = [True, False]
+    read_ambari_user_method.return_value = None
 
-    ambari_server.setup_master_key(False)
+    ambari_server.setup_master_key()
 
-    self.assertFalse(save_master_key_method.called)
-    self.assertFalse(get_YN_input_method.called)
-    self.assertFalse(get_validated_string_input_method.called)
-    self.assertFalse(update_properties_method.called)
+    self.assertTrue(get_YN_input_method.called)
+    self.assertTrue(read_master_key_method.called)
+    self.assertTrue(read_ambari_user_method.called)
+    self.assertTrue(update_properties_method.called)
+    self.assertTrue(save_master_key_method.called)
+
+    result_expected = {ambari_server.JDBC_PASSWORD_PROPERTY:
+        ambari_server.get_alias_string(ambari_server.JDBC_RCA_PASSWORD_ALIAS),
+        ambari_server.SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
+
+    sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
+    sorted_y = sorted(update_properties_method.call_args[0][0].iteritems(),
+                      key=operator.itemgetter(0))
+    self.assertEquals(sorted_x, sorted_y)
 
     sys.stdout = sys.__stdout__
 
 
+  @patch.object(ambari_server, 'read_master_key')
+  @patch.object(ambari_server, 'remove_password_file')
+  @patch("os.path.exists")
+  @patch.object(ambari_server, 'read_ambari_user')
+  @patch.object(ambari_server, 'get_master_key_location')
+  @patch("ambari-server.Properties")
   @patch.object(ambari_server, 'save_passwd_for_alias')
-  @patch.object(ambari_server, 'configure_ldap_password')
-  @patch.object(ambari_server, 'configure_database_password')
-  @patch.object(ambari_server, 'is_alias_string')
-  @patch.object(ambari_server, 'get_master_key_ispersisted')
+  @patch.object(ambari_server, 'read_passwd_for_alias')
   @patch.object(ambari_server, 'update_properties')
   @patch.object(ambari_server, 'save_master_key')
   @patch.object(ambari_server, 'get_validated_string_input')
@@ -2955,12 +2943,14 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, 'search_file')
   @patch.object(ambari_server, 'get_ambari_properties')
   @patch.object(ambari_server, 'is_root')
-  def test_reset_master_key_persisted(self, is_root_method, get_ambari_properties_method,
-              search_file_message, get_YN_input_method,
-              get_validated_string_input_method, save_master_key_method,
-              update_properties_method, get_master_key_ispersisted_method,
-              is_alias_string_method, configure_database_password_method,
-              configure_ldap_password_method, save_passwd_for_alias_method):
+  def test_reset_master_key_persisted(self, is_root_method,
+              get_ambari_properties_method, search_file_message,
+              get_YN_input_method, get_validated_string_input_method,
+              save_master_key_method, update_properties_method,
+              read_passwd_for_alias_method, save_passwd_for_alias_method,
+              Properties_mock, get_master_key_location_method,
+              read_ambari_user_method, exists_mock,
+              remove_password_file_method, read_master_key_method):
 
     out = StringIO.StringIO()
     sys.stdout = out
@@ -2968,7 +2958,7 @@ class TestAmbariServer(TestCase):
     # Testing call under non-root
     is_root_method.return_value = False
     try:
-      ambari_server.reset_master_key()
+      ambari_server.setup_master_key()
       self.fail("Should throw exception")
     except FatalException as fe:
       # Expected
@@ -2979,36 +2969,48 @@ class TestAmbariServer(TestCase):
     is_root_method.return_value = True
 
     search_file_message.return_value = "filepath"
-    configs = { ambari_server.SECURITY_MASTER_KEY_LOCATION : "filepath",
-                ambari_server.SECURITY_KEYS_DIR : tempfile.gettempdir(),
-                ambari_server.SECURITY_KEY_IS_PERSISTED : "true",
-                ambari_server.JDBC_PASSWORD_PROPERTY : "${alias=fakealias}",
-                ambari_server.LDAP_MGR_PASSWORD_PROPERTY : "${alias=fakealias}"}
+    read_ambari_user_method.return_value = None
+    p = get_ambari_properties_method.return_value
+    p.get_property.side_effect = [ 'true', '${alias=fakealias}',
+                                   '${alias=fakealias}' ]
 
-    get_ambari_properties_method.return_value = configs
-    get_master_key_ispersisted_method.return_value = True
-    get_validated_string_input_method.return_value = "aaa"
-    get_YN_input_method.return_value = True
-    is_alias_string_method.return_value = True
+    get_YN_input_method.side_effect = [ True, True ]
+    read_master_key_method.return_value = "aaa"
+    read_passwd_for_alias_method.return_value = "fakepassword"
+    save_passwd_for_alias_method.return_value = 0
+    exists_mock.return_value = False
 
-    ambari_server.reset_master_key()
+    ambari_server.setup_master_key()
 
     self.assertTrue(save_master_key_method.called)
     self.assertTrue(get_YN_input_method.called)
-    self.assertTrue(get_validated_string_input_method.called)
+    self.assertTrue(read_master_key_method.called)
     self.assertTrue(update_properties_method.called)
-    self.assertTrue(configure_database_password_method.called)
-    self.assertTrue(configure_ldap_password_method.called)
-    self.assertTrue(save_passwd_for_alias_method.called)
+    self.assertTrue(read_passwd_for_alias_method.called)
+    self.assertTrue(2, read_passwd_for_alias_method.call_count)
+    self.assertTrue(2, save_passwd_for_alias_method.call_count)
+
+    result_expected = {ambari_server.JDBC_PASSWORD_PROPERTY:
+        ambari_server.get_alias_string(ambari_server.JDBC_RCA_PASSWORD_ALIAS),
+        ambari_server.LDAP_MGR_PASSWORD_PROPERTY:
+        ambari_server.get_alias_string(ambari_server.LDAP_MGR_PASSWORD_ALIAS),
+        ambari_server.SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
+
+    sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
+    sorted_y = sorted(update_properties_method.call_args[0][0].iteritems(),
+                      key=operator.itemgetter(0))
+    self.assertEquals(sorted_x, sorted_y)
 
     sys.stdout = sys.__stdout__
 
 
+  @patch.object(ambari_server, 'remove_password_file')
+  @patch("os.path.exists")
+  @patch.object(ambari_server, 'read_ambari_user')
+  @patch.object(ambari_server, 'get_master_key_location')
+  @patch("ambari-server.Properties")
   @patch.object(ambari_server, 'save_passwd_for_alias')
-  @patch.object(ambari_server, 'configure_ldap_password')
-  @patch.object(ambari_server, 'configure_database_password')
-  @patch.object(ambari_server, 'is_alias_string')
-  @patch.object(ambari_server, 'get_master_key_ispersisted')
+  @patch.object(ambari_server, 'read_passwd_for_alias')
   @patch.object(ambari_server, 'update_properties')
   @patch.object(ambari_server, 'save_master_key')
   @patch.object(ambari_server, 'get_validated_string_input')
@@ -3016,38 +3018,52 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, 'search_file')
   @patch.object(ambari_server, 'get_ambari_properties')
   @patch.object(ambari_server, 'is_root')
-  def test_reset_master_key_not_persisted(self, is_root_method, get_ambari_properties_method,
+  def test_reset_master_key_not_persisted(self, is_root_method,
+              get_ambari_properties_method,
               search_file_message, get_YN_input_method,
               get_validated_string_input_method, save_master_key_method,
-              update_properties_method, get_master_key_ispersisted_method,
-              is_alias_string_method, configure_database_password_method,
-              configure_ldap_password_method, save_passwd_for_alias_method):
+              update_properties_method, read_passwd_for_alias_method,
+              save_passwd_for_alias_method, Properties_mock,
+              get_master_key_location_method, read_ambari_user_method,
+              exists_mock, remove_password_file_method):
 
     out = StringIO.StringIO()
     sys.stdout = out
+
     is_root_method.return_value = True
-    search_file_message.return_value = "filepath"
-    configs = { ambari_server.SECURITY_MASTER_KEY_LOCATION : "filepath",
-                ambari_server.SECURITY_KEYS_DIR : tempfile.gettempdir(),
-                ambari_server.SECURITY_KEY_IS_PERSISTED : "false",
-                ambari_server.JDBC_PASSWORD_PROPERTY : "${alias=fakealias}",
-                ambari_server.LDAP_MGR_PASSWORD_PROPERTY : "${alias=fakealias}"}
+    search_file_message.return_value = False
+    read_ambari_user_method.return_value = None
+    p = get_ambari_properties_method.return_value
+    p.get_property.side_effect = [ 'true', '${alias=fakealias}',
+                                   '${alias=fakealias}' ]
 
-    get_ambari_properties_method.return_value = configs
-    get_master_key_ispersisted_method.return_value = False
+    get_YN_input_method.side_effect = [ True, False ]
     get_validated_string_input_method.return_value = "aaa"
-    get_YN_input_method.return_value = False
-    is_alias_string_method.return_value = True
+    read_passwd_for_alias_method.return_value = "fakepassword"
+    save_passwd_for_alias_method.return_value = 0
+    exists_mock.return_value = False
 
-    ambari_server.reset_master_key()
+    ambari_server.setup_master_key()
 
     self.assertFalse(save_master_key_method.called)
     self.assertTrue(get_YN_input_method.called)
     self.assertTrue(get_validated_string_input_method.called)
     self.assertTrue(update_properties_method.called)
-    self.assertTrue(configure_database_password_method.called)
-    self.assertTrue(configure_ldap_password_method.called)
+    self.assertTrue(read_passwd_for_alias_method.called)
+    self.assertTrue(2, read_passwd_for_alias_method.call_count)
+    self.assertTrue(2, save_passwd_for_alias_method.call_count)
     self.assertFalse(save_master_key_method.called)
+
+    result_expected = {ambari_server.JDBC_PASSWORD_PROPERTY:
+        ambari_server.get_alias_string(ambari_server.JDBC_RCA_PASSWORD_ALIAS),
+        ambari_server.LDAP_MGR_PASSWORD_PROPERTY:
+        ambari_server.get_alias_string(ambari_server.LDAP_MGR_PASSWORD_ALIAS),
+        ambari_server.SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
+
+    sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
+    sorted_y = sorted(update_properties_method.call_args[0][0].iteritems(),
+                      key=operator.itemgetter(0))
+    self.assertEquals(sorted_x, sorted_y)
 
     sys.stdout = sys.__stdout__
 
@@ -3117,7 +3133,7 @@ class TestAmbariServer(TestCase):
       "authentication.ldap.bindAnonymously" : "false",
       "authentication.ldap.managerDn" : "test",
       "authentication.ldap.managerPassword" : \
-        '${alias=ambari.ldap.manager.password}',
+       'password',
       "client.security" : "ldap"
     }
 

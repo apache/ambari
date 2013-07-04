@@ -91,7 +91,7 @@ case "$1" in
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
   setup)
-        echo -e "Initializing ..."
+        echo -e "Initializing..."
         initdb_res=`/sbin/service postgresql initdb 2>&1 > /dev/null`
         initdb_res=`/sbin/service postgresql start 2>&1 > /dev/null`
         initdb_res=`/sbin/service postgresql stop 2>&1 > /dev/null`
@@ -102,8 +102,8 @@ case "$1" in
         echo -e "Setting up LDAP properties..."
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
-  resetmasterkey)
-        echo -e "Reseting master key for credential store"
+  encrypt-passwords)
+        echo -e "Setting up password encryption..."
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
   setup-https)
@@ -111,7 +111,7 @@ case "$1" in
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
   *)
-        echo "Usage: /usr/sbin/ambari-server {start|stop|restart|setup|upgrade|status|upgradestack|setup-ldap|setup-https|resetmasterkey} [options]"
+        echo "Usage: /usr/sbin/ambari-server {start|stop|restart|setup|upgrade|status|upgradestack|setup-ldap|setup-https|encrypt-passwords} [options]"
         exit 1
 esac
 

@@ -225,8 +225,8 @@ public class Configuration {
     ".key.ispersisted";
   public static final String MASTER_KEY_LOCATION = "security.master.key" +
     ".location";
-  public static final String MASTER_KEY_ENV_PROP = "ambari.security.master" +
-    ".key";
+  public static final String MASTER_KEY_ENV_PROP =
+    "AMBARI_SECURITY_MASTER_KEY";
   public static final String MASTER_KEY_FILENAME_DEFAULT = "master";
 
   private static final Logger LOG = LoggerFactory.getLogger(
@@ -696,8 +696,9 @@ public class Configuration {
   }
 
   public boolean isMasterKeyPersisted() {
-    String isPersisted = properties.getProperty(MASTER_KEY_PERSISTED, "true");
-    return isPersisted.toLowerCase().equals("true");
+    String masterKeyLocation = getMasterKeyLocation();
+    File f = new File(masterKeyLocation);
+    return f.exists();
   }
 
   public String getMasterKeyLocation() {
