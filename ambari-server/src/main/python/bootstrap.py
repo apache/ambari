@@ -125,6 +125,10 @@ class SSH(threading.Thread):
     logFile = open(logFilePath, "a+")
     logFile.write(self.ret["log"])
     logFile.close
+    pass
+
+pass
+
 
 def splitlist(hosts, n):
   return [hosts[i:i+n] for i in range(0, len(hosts), n)]
@@ -261,9 +265,11 @@ pass
     
 class BootStrap:
   TEMP_FOLDER = "/tmp"
-  OS_CHECK_SCRIPT_FILE_TEMPLATE = "os_type_check%(f)s.sh"
+  OS_CHECK_SCRIPT_FILENAME = "os_type_check.sh"
+  AMBARI_REPO_FILENAME = "ambari.repo"
+  SETUP_SCRIPT_FILENAME = "setupAgent.py"
+  PASSWORD_FILENAME = "host_pass"
 
-  
   """ BootStrapping the agents on a list of hosts"""
   def __init__(self, hosts, user, sshkeyFile, scriptDir, boottmpdir, setupAgentFile, ambariServer, cluster_os_type,\
                ambariVersion, server_port, passwordFile = None):
@@ -281,16 +287,22 @@ class BootStrap:
     self.passwordFile = passwordFile
     self.statuses = None
     self.server_port = server_port
-    """Prepare temp file names"""
-    self.osCheckScriptRemoteLocation = os.path.join(self.TEMP_FOLDER,\
-                                                    self.generateRandomFileName(self.OS_CHECK_SCRIPT_FILE_TEMPLATE))
+    self.remote_files = {}
     pass
 
-  def generateRandomFileName(self, fileNameTemplate):
-    if fileNameTemplate == None:
+  def getRemoteName(self, filename):
+    full_name = os.path.join(self.TEMP_FOLDER, filename)
+    if not self.remote_files.has_key(full_name):
+      self.remote_files[full_name] = self.generateRandomFileName(full_name)
+
+    return self.remote_files[full_name]
+
+  def generateRandomFileName(self, filename):
+    if filename is None:
       return self.getUtime()
     else:
-      return fileNameTemplate% {'f': self.getUtime()}
+      name, ext = os.path.splitext(filename)
+      return str(name) + str(self.getUtime()) + str(ext)
 
   # This method is needed  to implement the descriptor protocol (make object  to pass self reference to mockups)
   def __get__(self, obj, objtype):
@@ -313,28 +325,31 @@ class BootStrap:
   
   def getRepoFile(self):
     """ Ambari repo file for Ambari."""
-    return os.path.join(self.getRepoDir(), "ambari.repo")
+    return os.path.join(self.getRepoDir(), self.AMBARI_REPO_FILENAME)
 
   def getOsCheckScript(self):
-    return os.path.join(self.scriptDir, "os_type_check.sh")
+    return os.path.join(self.scriptDir, self.OS_CHECK_SCRIPT_FILENAME)
 
   def getOsCheckScriptRemoteLocation(self):
-    return self.osCheckScriptRemoteLocation
+    return self.getRemoteName(self.OS_CHECK_SCRIPT_FILENAME)
 
   def getUtime(self):
     return int(time.time())
 
   def getPasswordFile(self):
-    return "/tmp/host_pass"
+    return self.getRemoteName(self.PASSWORD_FILENAME)
 
   def hasPassword(self):
-    return self.passwordFile != None and self.passwordFile != 'null'
+    return self.passwordFile is not None and self.passwordFile != 'null'
 
   def getMoveRepoFileWithPasswordCommand(self, targetDir):
-    return "sudo -S mv /tmp/ambari.repo " + targetDir + " < " + self.getPasswordFile()
+    return "sudo -S mv " + str(self.getRemoteName(self.AMBARI_REPO_FILENAME))\
+           + " " + str(targetDir) + " < " + str(self.getPasswordFile())
+
 
   def getMoveRepoFileWithoutPasswordCommand(self, targetDir):
-    return "sudo mv /tmp/ambari.repo " + targetDir
+    return "sudo mv " + str(self.getRemoteName(self.AMBARI_REPO_FILENAME)) +\
+            " " + str(targetDir)
 
   def getMoveRepoFileCommand(self, targetDir):
     if self.hasPassword():
@@ -375,8 +390,9 @@ class BootStrap:
     try:
       # Copying the files
       fileToCopy = self.getRepoFile()
+      target = self.getRemoteName(self.AMBARI_REPO_FILENAME)
       logging.info("Copying repo file to 'tmp' folder...")
-      pscp = PSCP(self.successive_hostlist, self.user, self.sshkeyFile, fileToCopy, "/tmp", self.bootdir)
+      pscp = PSCP(self.successive_hostlist, self.user, self.sshkeyFile, fileToCopy, target, self.bootdir)
       pscp.run()
       out = pscp.getstatus()
       # Preparing report about failed hosts
@@ -403,7 +419,8 @@ class BootStrap:
       #updating statuses
       self.statuses = unite_statuses(self.statuses, out)
 
-      pscp = PSCP(self.successive_hostlist, self.user, self.sshkeyFile, self.setupAgentFile, "/tmp", self.bootdir)
+      target = self.getRemoteName(self.SETUP_SCRIPT_FILENAME)
+      pscp = PSCP(self.successive_hostlist, self.user, self.sshkeyFile, self.setupAgentFile, target, self.bootdir)
       pscp.run()
       out = pscp.getstatus()
       # Preparing report about failed hosts
@@ -440,14 +457,26 @@ class BootStrap:
       return self.server_port    
     
   def getRunSetupWithPasswordCommand(self, expected_hostname):
-    return "sudo -S python /tmp/setupAgent.py " + expected_hostname + " " + \
-           os.environ[AMBARI_PASSPHRASE_VAR_NAME] + " " + self.ambariServer +\
-           " " + self.getAmbariVersion() + " " + self.getAmbariPort() + " < " + self.getPasswordFile()
+    setupFile = self.getRemoteName(self.SETUP_SCRIPT_FILENAME)
+    passphrase = os.environ[AMBARI_PASSPHRASE_VAR_NAME]
+    server = self.ambariServer
+    version = self.getAmbariVersion()
+    port = self.getAmbariPort()
+    passwordFile = self.getPasswordFile()
+    return "sudo -S python " + str(setupFile) + " " + str(expected_hostname) +\
+           " " + str(passphrase) + " " + str(server) + " " + str(version) +\
+           " " + str(port) + " < " + str(passwordFile)
 
   def getRunSetupWithoutPasswordCommand(self, expected_hostname):
-    return "sudo python /tmp/setupAgent.py " + expected_hostname + " " + \
-           os.environ[AMBARI_PASSPHRASE_VAR_NAME] + " " + self.ambariServer +\
-            " " + self.getAmbariVersion()  + " " + self.getAmbariPort()
+    setupFile=self.getRemoteName(self.SETUP_SCRIPT_FILENAME)
+    passphrase=os.environ[AMBARI_PASSPHRASE_VAR_NAME]
+    server=self.ambariServer
+    version=self.getAmbariVersion()
+    port=self.getAmbariPort()
+
+    return "sudo python " + str(setupFile) + " " + str(expected_hostname) +\
+           " " + str(passphrase) + " " + str(server) + " " + str(version) +\
+           " " + str(port)
 
   def getRunSetupCommand(self, expected_hostname):
     if self.hasPassword():
@@ -550,7 +579,7 @@ class BootStrap:
     try:
       # Copying the password file
       logging.info("Copying password file to 'tmp' folder...")
-      pscp = PSCP(self.successive_hostlist, self.user, self.sshkeyFile, self.passwordFile, "/tmp", self.bootdir)
+      pscp = PSCP(self.successive_hostlist, self.user, self.sshkeyFile, self.passwordFile, self.getPasswordFile(), self.bootdir)
       pscp.run()
       out = pscp.getstatus()
       # Preparing report about failed hosts
@@ -681,6 +710,7 @@ def main(argv=None):
                      "<tmpdir for storage> <user> <sshkeyFile> <agent setup script>"
                      " <ambari-server name> <cluster os type> <ambari version> <ambari port> <passwordFile>\n")
     sys.exit(2)
+    pass
   #Parse the input
   hostList = onlyargs[0].split(",")
   bootdir =  onlyargs[1]

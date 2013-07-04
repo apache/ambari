@@ -39,6 +39,24 @@ class TestBootstrap(TestCase):
   def setUp(self):
     logging.basicConfig(level=logging.ERROR)
 
+  def test_getRemoteName(self):
+    bootstrap_obj = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir", \
+                              "bootdir", "setupAgentFile", "ambariServer", "centos6", None, "8440")
+    utime1 = 1234
+    utime2 = 12345
+    bootstrap_obj.getUtime = MagicMock(return_value=utime1)
+    remote1 = bootstrap_obj.getRemoteName("/tmp/setupAgent.sh")
+    self.assertEquals(remote1, "/tmp/setupAgent{0}.sh".format(utime1))
+
+    bootstrap_obj.getUtime.return_value=utime2
+    remote1 = bootstrap_obj.getRemoteName("/tmp/setupAgent.sh")
+    self.assertEquals(remote1, "/tmp/setupAgent{0}.sh".format(utime1))
+
+    remote2 = bootstrap_obj.getRemoteName("/tmp/host_pass")
+    self.assertEquals(remote2, "/tmp/host_pass{0}".format(utime2))
+
+  pass
+
   #Timout is specified in bootstrap.HOST_BOOTSTRAP_TIMEOUT, default is 300 seconds
   @patch.object(time, "time")
   def test_return_failed_status_for_hanging_ssh_threads_after_timeout(self, time_mock):
@@ -215,8 +233,11 @@ class TestBootstrap(TestCase):
   def test_getRunSetupWithPasswordCommand(self):
     bootstrap_obj = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir", "bootdir",\
                               "setupAgentFile", "ambariServer", "centos6", None, "8440")
+    utime = 1234
+    bootstrap_obj.getUtime = MagicMock(return_value=utime)
     ret = bootstrap_obj.getRunSetupWithPasswordCommand("hostname")
-    self.assertEquals(ret, "sudo -S python /tmp/setupAgent.py hostname  ambariServer  8440 < /tmp/host_pass")
+    expected = "sudo -S python /tmp/setupAgent{0}.py hostname  ambariServer  8440 < /tmp/host_pass{0}".format(utime)
+    self.assertEquals(ret, expected)
 
   @patch("__builtin__.open")
   def test_SCP_writeLogToFile(self, open_mock):
@@ -256,11 +277,9 @@ class TestBootstrap(TestCase):
     res = bootstrap_obj.getRepoDir()
     self.assertEquals(res, "/etc/zypp/repos.d")
 
-  @patch("os.path.join")
-  def test_getSetupScript(self, join_mock):
+  def test_getSetupScript(self):
     bootstrap_obj = BootStrap(["hostname"], "root", "sshKeyFile", "scriptDir", "bootdir", "setupAgentFile",\
                               "ambariServer", "centos6", None, "8440")
-    self.assertTrue(join_mock.called)
     self.assertEquals(bootstrap_obj.scriptDir, "scriptDir")
 
   @patch.object(SCP, "writeLogToFile")
