@@ -36,6 +36,18 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     }.property('service.capacityUsed', 'service.capacityTotal')
   }),
 
+  dataNodesLive: function(){
+    return this.get("service").get("dataNodes").filterProperty("healthClass", "health-status-LIVE").length;
+  }.property('service'),
+
+  dataNodeHostText: function () {
+    if(this.get("dataNodesLive") > 1){
+      return Em.I18n.t('services.service.summary.viewHosts');
+    }else{
+      return Em.I18n.t('services.service.summary.viewHost');
+    }
+  }.property("dataNodesLive"),
+
   dfsTotalBlocks: function(){
     return this.formatUnavailable(this.get('service.dfsTotalBlocks'));
   }.property('service.dfsTotalBlocks'),

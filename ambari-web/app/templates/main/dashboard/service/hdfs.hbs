@@ -42,27 +42,16 @@
       <tbody>
     {{/unless}}
 
-      <!-- NameNode -->
-      <tr>
-        <td>{{t dashboard.services.hdfs.nanmenode}}</td>
-        <td><a href="#" {{action showDetails view.service.nameNode}}>{{view.service.nameNode.publicHostName}}</a></td>
-      </tr>
-      <!-- SecondaryNameNode -->
-      <tr>
-        <td>{{t dashboard.services.hdfs.snanmenode}}</td>
-        <td><a href="#" {{action showDetails view.service.snameNode}}>{{view.service.snameNode.publicHostName}}</a></td>
-      </tr>
+      {{view view.dashboardMasterComponentView}}
+
       <!-- Data Nodes -->
       <tr>
         <td>{{t dashboard.services.hdfs.datanodes}}</td>
         <td>
-          <a href="#" {{action filterHosts view.dataNodeComponent}}>{{view.service.dataNodes.length}} {{t dashboard.services.hdfs.datanodes}}</a>
-        </td>
-      </tr>
-      <!-- NameNode Web UI -->
-      <tr>
-        <td>{{t dashboard.services.hdfs.nameNodeWebUI}}</td>
-        <td><a {{bindAttr href="view.nodeWebUrl"}} target="_blank">{{view.service.nameNode.publicHostName}}:50070</a>
+          <span class="green-live">{{view.service.liveDataNodes.length}}/{{view.service.dataNodes.length}}</span> {{t services.service.summary.DataNodesLive}}
+          <div class="summary-view-host">
+            <a href="#" {{action filterHosts view.dataNodeComponent}}>{{view.dataNodeHostText}}</a>
+          </div>
         </td>
       </tr>
       <!-- NameNode Uptime -->

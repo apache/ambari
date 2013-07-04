@@ -40,73 +40,54 @@
   <div class="service-content">
     <table id="summary-info" class="table no-borders table-condensed">
       <tbody>
-      {{#unless view.serviceStatus.oozie}}
-        {{#unless view.serviceStatus.hive}}
-          {{#unless view.serviceStatus.zookeeper}}
-            {{#unless view.serviceStatus.hdfs}}
-              {{#unless view.serviceStatus.mapreduce}}
-                {{#unless view.serviceStatus.hbase}}
-                  {{#unless view.serviceStatus.ganglia}}
-                    {{#unless view.serviceStatus.hue}}
-                      {{#unless view.serviceStatus.mapreduce2}}
-                        {{#unless view.serviceStatus.flume}}
-		                      {{#each component in view.components}}
-		                        <tr>
-		                          {{#if component.isMaster}}
-		                            <td class="summary-label">{{component.displayName}}</td>
-		                            <td><a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.publicHostName}}</a></td>
-		                          {{else}}
-		                            <td class="summary-label">{{component.displayName}}s</td>
-		                            <td><a {{action filterHosts component}} href="javascript:void(null)">{{component.displayName}}s</a></td>
-		                          {{/if}}
-		                        </tr>
-		                      {{/each}}
-		                      {{#if view.serviceStatus.nagios}}
-		                        <tr>
-		                          <td class="summary-label">{{t services.service.info.summary.nagiosWebUI}}</td>
-		                          <td><a target=_blank href="http://{{unbound view.nagiosServer}}/nagios">{{view.nagiosServer}}/nagios</a></td>
-		                        </tr>
-		                      {{/if}}
-		                    {{/unless}}
-                      {{/unless}}
-                    {{/unless}}
-                  {{/unless}}
-                {{/unless}}
-              {{/unless}}
-            {{/unless}}
-          {{/unless}}
-        {{/unless}}
-      {{/unless}}
-      {{#if view.serviceStatus.hdfs}}
-        {{view App.MainDashboardServiceHdfsView showOnlyRows=true serviceBinding="view.service"}}
-      {{/if}}
-      {{#if view.serviceStatus.mapreduce}}
-        {{view App.MainDashboardServiceMapreduceView showOnlyRows=true serviceBinding="view.service"}}
-      {{/if}}
-      {{#if view.serviceStatus.mapreduce2}}
-        {{template "templates/main/service/info/summary/mapreduce2"}}
-      {{/if}}
-      {{#if view.serviceStatus.hbase}}
-        {{view App.MainDashboardServiceHbaseView showOnlyRows=true serviceBinding="view.service"}}
-      {{/if}}
-      {{#if view.serviceStatus.zookeeper}}
-        {{template "templates/main/service/info/summary/zookeeper"}}
-      {{/if}}
-      {{#if view.serviceStatus.oozie}}
-        {{template "templates/main/service/info/summary/oozie"}}
-      {{/if}}
-      {{#if view.serviceStatus.ganglia}}
-        {{template "templates/main/service/info/summary/ganglia"}}
-      {{/if}}
-      {{#if view.serviceStatus.hive}}
-        {{template "templates/main/service/info/summary/hive"}}
-      {{/if}}
-      {{#if view.serviceStatus.hue}}
-        {{template "templates/main/service/info/summary/hue"}}
-      {{/if}}
-      {{#if view.serviceStatus.flume}}
-        {{view App.MainDashboardServiceFlumeView showOnlyRows=true serviceBinding="view.service"}}
-      {{/if}}
+        {{#if view.noTemplateService}}
+          {{#each component in view.components}}
+            {{#if component.isMaster}}
+             {{view view.sumMasterComponentView}}
+            {{else}}
+              <tr>
+                <td class="summary-label">{{component.displayName}}{{#if view.hasManyClients}}s{{/if}}</td>
+                <td>
+                  <span class="green-live">{{view.clients.length}}</span>
+                  {{component.displayName}} {{#if view.hasManyClients}}s{{/if}} {{t common.installed}}
+                  <div class="summary-view-host">
+                    <a {{action filterHosts component}} href="javascript:void(null)>{{view.clientsHostText}}</a>
+                  </div>
+                </td>
+              </tr>
+            {{/if}}
+          {{/each}}
+        {{/if}}
+        {{#if view.serviceStatus.hdfs}}
+          {{view App.MainDashboardServiceHdfsView showOnlyRows=true serviceBinding="view.service"}}
+        {{/if}}
+        {{#if view.serviceStatus.mapreduce}}
+          {{view App.MainDashboardServiceMapreduceView showOnlyRows=true serviceBinding="view.service"}}
+        {{/if}}
+        {{#if view.serviceStatus.mapreduce2}}
+          {{template "templates/main/service/info/summary/mapreduce2"}}
+        {{/if}}
+        {{#if view.serviceStatus.hbase}}
+          {{view App.MainDashboardServiceHbaseView showOnlyRows=true serviceBinding="view.service"}}
+        {{/if}}
+        {{#if view.serviceStatus.zookeeper}}
+          {{template "templates/main/service/info/summary/zookeeper"}}
+        {{/if}}
+        {{#if view.serviceStatus.oozie}}
+          {{template "templates/main/service/info/summary/oozie"}}
+        {{/if}}
+        {{#if view.serviceStatus.ganglia}}
+          {{template "templates/main/service/info/summary/ganglia"}}
+        {{/if}}
+        {{#if view.serviceStatus.hive}}
+          {{template "templates/main/service/info/summary/hive"}}
+        {{/if}}
+        {{#if view.serviceStatus.hue}}
+          {{template "templates/main/service/info/summary/hue"}}
+        {{/if}}
+        {{#if view.serviceStatus.flume}}
+          {{view App.MainDashboardServiceFlumeView showOnlyRows=true serviceBinding="view.service"}}
+        {{/if}}
       </tbody>
     </table>
     {{!view view.moreStatsView}}

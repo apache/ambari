@@ -55,6 +55,14 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
     return template.format(liveCount, allCount, runningCount, waitingCount);
   }.property('service.aliveTrackers', 'service.taskTrackers','service.mapsRunning', 'service.mapsWaiting', 'service.reducesRunning', 'service.reducesWaiting'),
 
+  trackersText: function () {
+    if(this.get('service').get('taskTrackers').get('length') > 1){
+      return Em.I18n.t('services.service.summary.viewHosts');
+    }else{
+      return Em.I18n.t('services.service.summary.viewHost');
+    }
+  }.property("service.taskTrackers.length"),
+
   trackersSummary: function () {
     var svc = this.get('service');
     var liveCount = svc.get('aliveTrackers').get('length');

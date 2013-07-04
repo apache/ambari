@@ -41,31 +41,24 @@
     <table class="table no-borders">
       <tbody>
     {{/unless}}
-      <!-- JobTracker -->
-      <tr>
-        <td>{{t services.service.summary.jobTracker}}</td>
-        <td><a href="#" {{action showDetails view.service.jobTracker}}>{{view.service.jobTracker.publicHostName}}</a></td>
-      </tr>
+
+     {{view view.dashboardMasterComponentView}}
+
       <!-- TaskTrackers -->
       <tr>
         <td>{{t dashboard.services.mapreduce.taskTrackers}}</td>
-        <td><a href="#" {{action filterHosts view.taskTrackerComponent}}>{{view.service.taskTrackers.length}} {{t dashboard.services.mapreduce.taskTrackers}}</a></td>
-      </tr>
-      <!-- JobTracker Web UI -->
-      <tr>
-        <td>{{t services.service.summary.jobTrackerWebUI}}</td>
-        <td><a {{bindAttr href="view.jobTrackerWebUrl"}} target="_blank">{{view.service.jobTracker.publicHostName}}:50030</a>
+        <td>
+
+          <span class="green-live">{{view.trackersSummary}}</span> {{t services.service.summary.TrackersLive}}
+          <div class="summary-view-host">
+            <a href="#" {{action filterHosts view.taskTrackerComponent}}>{{view.trackersText}}</a>
+          </div>
         </td>
       </tr>
       <!-- Job Tracker Uptime -->
       <tr>
         <td>{{t dashboard.services.mapreduce.jobTrackerUptime}}</td>
         <td>{{view.jobTrackerUptime}}</td>
-      </tr>
-      <!-- Trackers -->
-      <tr>
-        <td>{{t dashboard.services.mapreduce.trackers}}</td>
-        <td>{{view.trackersSummary}}</td>
       </tr>
       <!-- TaskTracker Counts -->
       <tr>

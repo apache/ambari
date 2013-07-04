@@ -16,19 +16,16 @@
 * limitations under the License.
 }}
 
-{{#each component in view.components}}
-  {{#if component.isMaster}}
-    <tr>
-      <td class="summary-label">{{component.displayName}}</td>
-      <td><a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.publicHostName}}</a></td>
-    </tr>
-  {{/if}}
-{{/each}}
+
+
+{{view view.sumMasterComponentView}}
+
 <tr>
   <td class="summary-label">{{t services.ganglia.monitors}}</td>
-  <td><a {{action filterHosts view.monitorsObj}} href="javascript:void(null)">{{view.monitors}}</a></td>
-</tr>
-<tr>
-  <td class="summary-label">{{t services.ganglia.webUi}}</td>
-  <td><a target=_blank href="http://{{unbound view.gangliaServer}}/ganglia">{{view.gangliaServer}}/ganglia</a></td>
+  <td>
+    <span class="green-live">{{view.monitors}} </span>{{t services.service.summary.GangliaMonitorsLIVE}}
+    <div class="summary-view-host">
+       <a {{action filterHosts view.monitorsObj}} href="javascript:void(null)" >{{view.hasManyMonitors}}</a>
+    </div>
+  </td>
 </tr>

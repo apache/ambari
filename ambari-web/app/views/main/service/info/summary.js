@@ -48,6 +48,22 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     flume: false
   },
 
+  sumMasterComponentView : Em.View.extend({
+    templateName: require('templates/main/service/info/summary/master_components'),
+    mastersComp : function(){
+      return this.get('parentView.service.hostComponents').filterProperty('isMaster', true);
+    }.property("service")
+  }),
+
+  noTemplateService: function () {
+    var serviceName = this.get("service.serviceName");
+    if(serviceName == "WEBHCAT" || serviceName == "NAGIOS"){
+      return true;
+    }else{
+      return false;
+    }
+  }.property('controller.content'),
+
   clients: function () {
     var service = this.get('controller.content');
     if (["OOZIE", "ZOOKEEPER", "HIVE", "MAPREDUCE2"].contains(service.get("id"))) {
@@ -62,6 +78,14 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     }
     return false;
   }.property('servers'),
+
+  clientsHostText: function () {
+    if(this.get("hasManyClients")){
+      return Em.I18n.t('services.service.summary.viewHosts');
+    }else{
+      return Em.I18n.t('services.service.summary.viewHost');
+    }
+  }.property("hasManyClients"),
 
   hasManyClients: function () {
     if (this.get('clients').length > 1) {
@@ -107,8 +131,22 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     var service = this.get('controller.content');
     if (service.get("id") == "GANGLIA") {
       var monitors = service.get('hostComponents').filterProperty('isMaster', false);
+      var liveMonitors = monitors.filterProperty("workStatus","STARTED").length;
       if (monitors.length) {
-        result = monitors.length - 1 ? Em.I18n.t('services.service.info.summary.hostsRunningMonitor').format(monitors.length) : Em.I18n.t('services.service.info.summary.hostRunningMonitor');
+        result = Em.I18n.t('services.service.info.summary.hostsRunningMonitor').format(monitors.length, liveMonitors);
+      }
+    }
+    return result;
+  }.property('controller.content'),
+
+  hasManyMonitors: function () {
+    var service = this.get('controller.content');
+    if (service.get("id") == "GANGLIA") {
+      var monitors = service.get('hostComponents').filterProperty('isMaster', false);
+      if (monitors.length > 1){
+        return Em.I18n.t('services.service.summary.viewHosts');
+      }else{
+        return Em.I18n.t('services.service.summary.viewHost');
       }
     }
     return result;
@@ -393,12 +431,12 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     if (summaryTable && alertsList) {
       var rows = $(summaryTable).find('tr');
       if (rows != null && rows.length > 0) {
-        var minimumHeight = 50;
+        var minimumHeightSum = 20;
+        var minimumHeightAlert = 50;
         var calculatedHeight = summaryTable.clientHeight;
-        if (calculatedHeight < minimumHeight) {
-          $(alertsList).attr('style', "height:" + minimumHeight + "px;");
-          $(summaryTable).append('<tr><td></td></tr>');
-          $(summaryTable).attr('style', "height:" + minimumHeight + "px;");
+        if (calculatedHeight < minimumHeightAlert) {
+          $(alertsList).attr('style', "height:" + minimumHeightAlert + "px;");
+          $(summaryTable).attr('style', "height:" + minimumHeightSum + "px;");
         } else {
           $(alertsList).attr('style', "height:" + calculatedHeight + "px;");
         }

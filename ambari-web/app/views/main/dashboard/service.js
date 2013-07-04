@@ -26,7 +26,16 @@ App.MainDashboardServiceHealthView = Em.View.extend({
   //template: Em.Handlebars.compile(""),
   blink: false,
   tagName: 'span',
-  
+  attributeBindings:['rel', 'title','data-original-title'],
+  rel: 'HealthTooltip',
+  'data-original-title': function(){
+    var popupText = "";
+    this.get("service").get("hostComponents").filterProperty('isMaster', true).forEach(function(item){
+      popupText +=" " + item.get("componentName") + " " + item.get("componentTextStatus");
+    });
+    return popupText;
+  }.property('service.healthStatus'),
+
   /**
    * When set to true, extending classes should
    * show only tabular rows as they will be 
@@ -79,6 +88,7 @@ App.MainDashboardServiceHealthView = Em.View.extend({
   }.property('service.healthStatus'),
 
   didInsertElement: function () {
+    $("[rel='HealthTooltip']").tooltip();
     this.doBlink(); // check for blink availability
   }
 });
@@ -89,6 +99,13 @@ App.MainDashboardServiceView = Em.View.extend({
   data: function () {
     return this.get('controller.data.' + this.get('serviceName'));
   }.property('controller.data'),
+
+  dashboardMasterComponentView : Em.View.extend({
+    templateName: require('templates/main/service/info/summary/master_components'),
+    mastersComp : function(){
+     return this.get('parentView.service.hostComponents').filterProperty('isMaster', true);
+    }.property("service")
+  }),
 
   formatUnavailable: function(value){
     return (value || value == 0) ? value : this.t('services.service.summary.notAvailable');

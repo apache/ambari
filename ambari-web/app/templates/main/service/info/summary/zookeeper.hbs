@@ -16,16 +16,14 @@
 * limitations under the License.
 }}
 
-<tr>
-  <td class="summary-label">{{t common.servers}}</td>
-  <td>
-      <a {{action filterHosts view.serversHost}} href="javascript:void(null)">{{view.servers.length}} ZooKeeper Server{{#if view.hasManyServers}}s{{/if}}</a>
-  </td>
-</tr>
 
-<tr>
-  <td class="summary-label">{{t common.clients}}</td>
+
+{{view view.sumMasterComponentView}}
+<td class="summary-label">{{t services.zookeeper.client}}</td>
   <td>
-      <a {{action filterHosts view.clientObj}} href="javascript:void(null)">{{view.clients.length}} ZooKeeper Client{{#if view.hasManyClients}}s{{/if}}</a>
+    <span class="green-live">{{view.clients.length}} </span>{{t services.zookeeper.client}}{{#if view.hasManyClients}}s{{/if}} {{t common.installed}}
+    <div class="summary-view-host">
+       <a {{action filterHosts view.clientObj}} href="javascript:void(null)" >{{view.clientsHostText}}</a>
+    </div>
   </td>
 </tr>

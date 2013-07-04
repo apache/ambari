@@ -36,6 +36,20 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
     }
     return [];
   }.property('masters'),
+
+
+  liveRegionServes: function () {
+    return this.get('service.regionServers').filterProperty("healthClass","health-status-LIVE");
+  }.property("service"),
+
+  regionServesText: function () {
+    if(this.get('service.regionServers').get("length") > 1){
+      return Em.I18n.t('services.service.summary.viewHosts');
+    }else{
+      return Em.I18n.t('services.service.summary.viewHost');
+    }
+  }.property("service"),
+
   /**
    * Formatted output for passive master components
    */

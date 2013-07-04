@@ -42,34 +42,18 @@
       <tbody>
     {{/unless}}
       <!-- HBase Master Server -->
-      <tr>
-        <td>{{t dashboard.services.hbase.masterServer}}</td>
-        <td>
-            {{#if view.activeMaster}}
-              <a href="#" {{action showDetails view.activeMaster.host}}>{{view.activeMasterTitle}}</a>
-              {{#if view.passiveMasters.length}}
-                  {{view.passiveMasterOutput}}
-              {{/if}}
-            {{else}}
-              {{t dashboard.services.hbase.noMasterServer}}
-            {{/if}}
-        </td>
-      </tr>
+
+      {{view view.dashboardMasterComponentView}}
+
       <!-- RegionServers -->
       <tr>
         <td>{{t dashboard.services.hbase.regionServers}}</td>
-        <td><a href="#" {{action filterHosts view.regionServerComponent}}>{{view.service.regionServers.length}} {{t dashboard.services.hbase.regionServers}}</a></td>
-      </tr>
-      <!-- HBaseMaster Web UI -->
-      <tr>
-        <td>{{t dashboard.services.hbase.masterWebUI}}</td>
-        <td>
-            {{#if view.activeMaster}}
-              <a {{bindAttr href="view.hbaseMasterWebUrl"}} target="_blank">{{view.activeMaster.host.publicHostName}}:60010</a>
-            {{else}}
-              {{t services.service.summary.notAvailable}}
-            {{/if}}
-        </td>
+         <td>
+            <span class="green-live">{{view.liveRegionServes.length}}/{{view.service.regionServers.length}} </span> {{t services.service.summary.RegionServersLIVE}}
+            <div class="summary-view-host">
+              <a href="#" {{action filterHosts view.regionServerComponent}}>{{view.regionServesText}}</a>
+            </div>
+         </td>
       </tr>
       <!-- Regions in Transition -->
       <tr>

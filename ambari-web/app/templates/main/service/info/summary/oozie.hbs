@@ -16,21 +16,16 @@
 * limitations under the License.
 }}
 
-{{#each component in view.components}}
-  {{#if component.isMaster}}
-    <tr>
-      <td class="summary-label">{{t common.servers}}</td>
-      <td><a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.publicHostName}}</a></td>
-    </tr>
-  {{/if}}
-{{/each}}
+
+{{view view.sumMasterComponentView}}
+
 <tr>
   <td class="summary-label">{{t services.oozie.clients}}</td>
   <td>
-    <a {{action filterHosts view.clientObj}} href="javascript:void(null)">{{view.clients.length}} {{t services.oozie.client}}{{#if view.hasManyClients}}s{{/if}}</a>
+    <span class="green-live">{{view.clients.length}} </span>{{t services.oozie.client}}{{#if view.hasManyClients}}s{{/if}} {{t common.installed}}
+    <div class="summary-view-host">
+       <a {{action filterHosts view.clientObj}} href="javascript:void(null)" >{{view.clientsHostText}}</a>
+    </div>
   </td>
 </tr>
-<tr>
-  <td class="summary-label">{{t services.oozie.webUi}}</td>
-  <td><a target=_blank href="http://{{unbound view.oozieServer}}:11000/oozie">{{view.oozieServer}}/oozie</a></td>
-</tr>
+
