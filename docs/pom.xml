@@ -184,7 +184,7 @@
             <email>jaimin@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -244,7 +244,7 @@
             <email>ncole@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -271,7 +271,7 @@
                 <role>Committer</role>
             </roles>
             <organization>
-                Hortonworks
+                - 
             </organization>            
         </developer>
         <developer>
@@ -280,7 +280,7 @@
             <email>smohanty@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -292,7 +292,7 @@
             <email>swagle@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -304,7 +304,7 @@
             <email>srimanth@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -316,7 +316,7 @@
             <email>tbeerbower@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -343,7 +343,7 @@
                 <role>PMC</role>
             </roles>
             <organization>
-                Hortonworks
+                -
             </organization>           
         </developer>
         <developer>
