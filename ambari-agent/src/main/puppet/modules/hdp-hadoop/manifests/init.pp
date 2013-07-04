@@ -282,9 +282,9 @@ class hdp-hadoop(
     $mysql_driver_url = $hdp::params::mysql_jdbc_url
 
     if ($server_db_name == 'oracle' and $oracle_driver_url != "") {
-      $db_driver_dload_cmd = "curl -f --retry 5 $oracle_driver_url -o ${hadoop_lib_home}/${db_driver_filename}"
+      $db_driver_dload_cmd = "curl -kf --retry 5 $oracle_driver_url -o ${hadoop_lib_home}/${db_driver_filename}"
     } elsif ($server_db_name == 'mysql' and $mysql_driver_url != "") {
-      $db_driver_dload_cmd = "curl -f --retry 5 $mysql_driver_url -o ${hadoop_lib_home}/${db_driver_filename}"
+      $db_driver_dload_cmd = "curl -kf --retry 5 $mysql_driver_url -o ${hadoop_lib_home}/${db_driver_filename}"
     }
     if ($db_driver_dload_cmd != undef) {
       exec { '${db_driver_dload_cmd}':

@@ -45,7 +45,7 @@ class hdp-oozie::service(
   $artifact_dir = $hdp::params::artifact_dir
   $driver_location = $hdp::params::jdk_location
   $driver_curl_target = "${java_share_dir}/${oracle_driver_jar_name}"
-  $curl_cmd = "curl -f --retry 10 ${driver_location}${oracle_driver_jar_name} -o ${driver_curl_target}"
+  $curl_cmd = "curl -kf --retry 10 ${driver_location}${oracle_driver_jar_name} -o ${driver_curl_target}"
   
   $jdbc_driver_name = $configuration['oozie-site']['oozie.service.JPAService.jdbc.driver']
   if ($jdbc_driver_name == "com.mysql.jdbc.Driver"){
