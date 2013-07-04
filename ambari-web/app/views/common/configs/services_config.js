@@ -80,8 +80,14 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
    * Warn/prompt user to adjust Service props when changing user/groups in Misc
    * Is triggered when user ended editing text field
    */
-  miscConfigChange: function () {
-    var changedProperty = this.get("serviceConfigs").filterProperty("editDone", true);
+  miscConfigChange: function (manuallyChangedProperty) {
+    var changedProperty;
+    if(manuallyChangedProperty.get("id")){
+      changedProperty = [manuallyChangedProperty];
+    }else{
+      changedProperty = this.get("serviceConfigs").filterProperty("editDone", true);
+    }
+
     if (changedProperty.length > 0) {
       changedProperty = changedProperty.objectAt(0);
     } else {
@@ -432,6 +438,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
       }
       serviceConfigProperty.set('value', dValue);
     }
+    this.miscConfigChange(serviceConfigProperty);
   },
 
   createOverrideProperty: function (event) {
