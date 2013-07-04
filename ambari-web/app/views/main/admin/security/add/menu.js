@@ -32,6 +32,10 @@ App.MainAdminSecurityAddMenuView = Em.View.extend({
 
   isStep3Disabled: function () {
     return this.get('controller.isStepDisabled').findProperty('step',3).get('value');
+  }.property('controller.isStepDisabled.@each.value').cacheable(),
+
+  isStep4Disabled: function () {
+    return this.get('controller.isStepDisabled').findProperty('step',4).get('value');
   }.property('controller.isStepDisabled.@each.value').cacheable()
 
 });

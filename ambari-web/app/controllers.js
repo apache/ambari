@@ -40,6 +40,7 @@ require('controllers/main/admin/security/add/addSecurity_controller');
 require('controllers/main/admin/security/add/step1');
 require('controllers/main/admin/security/add/step2');
 require('controllers/main/admin/security/add/step3');
+require('controllers/main/admin/security/add/step4');
 require('controllers/main/admin/authentication');
 require('controllers/main/service');
 require('controllers/main/service/item');

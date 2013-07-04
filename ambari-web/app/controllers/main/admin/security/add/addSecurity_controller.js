@@ -22,7 +22,7 @@ App.AddSecurityController = App.WizardController.extend({
   name: 'addSecurityController',
   securityEnabled: false,
 
-  totalSteps: 3,
+  totalSteps: 4,
 
   content: Em.Object.create({
     services: [],
@@ -36,6 +36,7 @@ App.AddSecurityController = App.WizardController.extend({
   loadAllPriorSteps: function () {
     var step = this.get('currentStep');
     switch (step) {
+      case '4':
       case '3':
       case '2':
         this.loadServiceConfigs();
@@ -100,6 +101,9 @@ App.AddSecurityController = App.WizardController.extend({
           serviceName: _configProperties.get('serviceName'),
           domain:  _configProperties.get('domain'),
           filename: _configProperties.get('filename'),
+          unit: _configProperties.get('unit'),
+          components: _configProperties.get('components'),
+          component: _configProperties.get('component'),
           overrides: overridesArray
         };
         serviceConfigProperties.push(configProperty);

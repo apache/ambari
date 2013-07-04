@@ -71,6 +71,7 @@ require('views/main/admin/security/add/menu');
 require('views/main/admin/security/add/step1');
 require('views/main/admin/security/add/step2');
 require('views/main/admin/security/add/step3');
+require('views/main/admin/security/add/step4');
 require('views/main/dashboard');
 require('views/main/dashboard/service');
 require('views/main/dashboard/service/hdfs');

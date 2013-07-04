@@ -41,13 +41,14 @@ module.exports = Em.Route.extend({
 
             onClose: function () {
               var self = this;
-              if (router.get('addSecurityController.currentStep') == 3) {
-                var controller = router.get('mainAdminSecurityAddStep3Controller');
+              if (router.get('addSecurityController.currentStep') == 4) {
+                var controller = router.get('mainAdminSecurityAddStep4Controller');
                 if (!controller.get('isSubmitDisabled')) {
+                  router.get('mainAdminSecurityAddStep4Controller').clearStep();
                   self.proceedOnClose();
                   return;
                 }
-                var applyingConfigStage = router.get('mainAdminSecurityAddStep3Controller.stages').findProperty('stage', 'stage3');
+                var applyingConfigStage = router.get('mainAdminSecurityAddStep4Controller.stages').findProperty('stage', 'stage3');
                 if (applyingConfigStage) {
                   if (!applyingConfigStage.get('isCompleted')) {
                     if (applyingConfigStage.get('isStarted')) {
@@ -67,13 +68,13 @@ module.exports = Em.Route.extend({
                   return;
                 }
               }
-              router.get('mainAdminSecurityAddStep3Controller').clearStep();
+              router.get('mainAdminSecurityAddStep4Controller').clearStep();
               App.db.setSecurityDeployStages(undefined);
               self.proceedOnClose();
             },
             proceedOnClose: function () {
               this.hide();
-              router.get('mainAdminSecurityAddStep3Controller').clearStep();
+              router.get('mainAdminSecurityAddStep4Controller').clearStep();
               router.get('addSecurityController.content.services').clear();
               router.set('addSecurityController.content.serviceConfigProperties', null);
               App.router.get('updateController').set('isWorking', true);
@@ -84,7 +85,7 @@ module.exports = Em.Route.extend({
                 clusterName: router.get('content.cluster.name'),
                 clusterState: 'SECURITY_COMPLETED',
                 wizardControllerName: router.get('addSecurityController.name'),
-                localdb: App.db.data.AddSecurity
+                localdb: App.db.data
               });
               router.transitionTo('adminSecurity.index');
             },
@@ -110,7 +111,7 @@ module.exports = Em.Route.extend({
           clusterName: this.get('clusterName'),
           clusterState: 'ADD_SECURITY_STEP_1',
           wizardControllerName: router.get('addSecurityController.name'),
-          localdb:  App.db.data.AddSecurity
+          localdb: App.db.data
         });
       }
     },
@@ -141,7 +142,7 @@ module.exports = Em.Route.extend({
           clusterName: this.get('clusterName'),
           clusterState: 'ADD_SECURITY_STEP_2',
           wizardControllerName: router.get('addSecurityController.name'),
-          localdb:  App.db.data.AddSecurity
+          localdb: App.db.data
         });
       }
     },
@@ -164,29 +165,66 @@ module.exports = Em.Route.extend({
   }),
 
   step3: Em.Route.extend({
-    route: '/apply',
+    route: '/principal_keytab',
 
+    enter: function (router) {
+      router.get('addSecurityController').setCurrentStep('3');
+      if(!App.testMode){
+        App.clusterStatus.setClusterStatus({
+          clusterName: this.get('clusterName'),
+          clusterState: 'ADD_SECURITY_STEP_3',
+          wizardControllerName: router.get('addSecurityController.name'),
+          localdb: App.db.data
+        });
+      }
+    },
     connectOutlets: function (router) {
       console.log('in addSecurity.step3:connectOutlets');
       var controller = router.get('addSecurityController');
       controller.dataLoading().done(function () {
-        controller.setCurrentStep('3');
         controller.loadAllPriorSteps();
-        controller.setLowerStepsDisable(3);
         controller.connectOutlet('mainAdminSecurityAddStep3', controller.get('content'));
+      })
+    },
+    back: Em.Router.transitionTo('step2'),
+    next: Em.Router.transitionTo('step4')
+  }),
+
+  step4: Em.Route.extend({
+    route: '/apply',
+
+    enter: function (router) {
+      router.get('addSecurityController').setCurrentStep('4');
+      if(!App.testMode){
+        App.clusterStatus.setClusterStatus({
+          clusterName: this.get('clusterName'),
+          clusterState: 'ADD_SECURITY_STEP_4',
+          wizardControllerName: router.get('addSecurityController.name'),
+          localdb: App.db.data
+        });
+      }
+    },
+
+    connectOutlets: function (router) {
+      console.log('in addSecurity.step4:connectOutlets');
+      var controller = router.get('addSecurityController');
+      controller.dataLoading().done(function () {
+        controller.loadAllPriorSteps();
+        controller.setLowerStepsDisable(4);
+        controller.connectOutlet('mainAdminSecurityAddStep4', controller.get('content'));
       })
     },
     unroutePath: function () {
       return false;
     },
     back: function (router, context) {
-      var controller = router.get('mainAdminSecurityAddStep3Controller');
+      var controller = router.get('mainAdminSecurityAddStep4Controller');
       if (!controller.get('isBackBtnDisabled')) {
-        router.transitionTo('step2');
+        router.transitionTo('step3');
       }
     },
     done: function (router, context) {
-      var controller = router.get('mainAdminSecurityAddStep3Controller');
+      var controller = router.get('mainAdminSecurityAddStep4Controller');
       if (!controller.get('isSubmitDisabled')) {
         $(context.currentTarget).parents("#modal").find(".close").trigger('click');
       }
@@ -197,7 +235,9 @@ module.exports = Em.Route.extend({
 
   gotoStep2: Em.Router.transitionTo('step2'),
 
-  gotoStep3: Em.Router.transitionTo('step3')
+  gotoStep3: Em.Router.transitionTo('step3'),
+
+  gotoStep4: Em.Router.transitionTo('step4')
 
 });
 

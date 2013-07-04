@@ -616,7 +616,8 @@ Em.I18n.translations = {
   'admin.addSecurity.header': 'Add security wizard',
   'admin.security.step1.header': 'Get Started',
   'admin.security.step2.header': 'Configure Services',
-  'admin.security.step3.header': 'Save and Apply Configuration',
+  'admin.security.step3.header': 'Create Principals and Keytabs',
+  'admin.security.step4.header': 'Save and Apply Configuration',
   'admin.security.step1.body.header': 'Important: Before configuring Ambari to manage your Kerberos-enabled cluster, ' +
     'you must perform the following manual steps on your cluster. Be sure to record the location of the keytab files ' +
     'for each host and the principals for each Hadoop service. This information is required in order to use the wizard.',
@@ -625,16 +626,15 @@ Em.I18n.translations = {
   'admin.security.step1.body.instruction3': 'Create Kerberos principals for Hadoop services and hosts',
   'admin.security.step1.body.instruction4': 'Generate keytabs for each principal and place on the appropriate hosts',
   'admin.security.step2.body.header': 'Configure Kerberos security properties',
-  'admin.security.step2.popup.header': 'Manual Steps Required Before Proceeding',
-  'admin.security.step2.popup.notice': 'You need to create the following principals and keytabs on the hosts shown.<br />'+
-  'You can download the list as a CSV file and use it to create a script to generate the principals and keytabs.' +
-  'Once the principals and keytabs have been created, click on <i>Proceed</i> to continue. If you need to make configuration changes, click <i>Cancel</i>.',
-  'admin.security.step2.popup.table.principal': 'Principal',
-  'admin.security.step2.popup.table.keytab': 'Keytab',
-  'admin.security.step2.popup.downloadCSV': 'Download CSV',
-  'admin.security.step3.body.header': 'Applying kerberos security to the cluster',
-  'admin.security.step3.body.success.header' : 'Kerberos-based security has been enabled on your cluster. Please wait while services are started in secure mode.',
-  'admin.security.step3.body.failure.header' : 'Failed to enable Kerberos-based security on your cluster. Your cluster will keep running in non-secure mode.',
+  'admin.security.step3.notice': 'You need to create the following principals and keytabs on the hosts shown.<br />'+
+  'You can download the list as a CSV file and use it to create a script to generate the principals and keytabs. ' +
+  'Once the principals and keytabs have been created, click on <i>Proceed</i> to continue. If you need to make configuration changes, click <i>Back</i>.',
+  'admin.security.step3.table.principal': 'Principal',
+  'admin.security.step3.table.keytab': 'Keytab',
+  'admin.security.step3.downloadCSV': 'Download CSV',
+  'admin.security.step4.body.header': 'Applying kerberos security to the cluster',
+  'admin.security.step4.body.success.header' : 'Kerberos-based security has been enabled on your cluster. Please wait while services are started in secure mode.',
+  'admin.security.step4.body.failure.header' : 'Failed to enable Kerberos-based security on your cluster. Your cluster will keep running in non-secure mode.',
   'admin.security.disable.body.header' : 'Disabling kerberos security on the cluster',
   'admin.security.disable.body.success.header': 'Kerberos-based security has been disabled on your cluster. Please wait while services are started in non-secure mode.',
   'admin.security.disable.body.failure.header': 'Failed to disable Kerberos-based security on your cluster. Your cluster will keep running in secure mode.',
