@@ -73,7 +73,7 @@
             <tr>
               <td>{{warning.name}}</td>
               <td>{{category.action}}
-                <a href="javascript:void(null);">
+                <a href="javascript:void(null);" rel='HostsListTooltip' {{bindAttr data-original-title="warning.hostsList"}} {{action showHostsPopup warning.hosts}}>
                   {{warning.hosts.length}}
                   {{#if warning.onSingleHost}}
                   {{t installer.step3.hostWarningsPopup.host}}

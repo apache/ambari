@@ -678,6 +678,15 @@ App.WizardStep3Controller = Em.Controller.extend({
     var warnings = [];
     var warning;
     var hosts = [];
+    data.items.sort(function (a, b) {
+      if (a.Hosts.host_name > b.Hosts.host_name) {
+        return 1;
+      }
+      if (a.Hosts.host_name < b.Hosts.host_name) {
+        return -1;
+      }
+      return 0;
+    });
     data.items.forEach(function (_host) {
       var host = {
         name: _host.Hosts.host_name,
@@ -806,6 +815,13 @@ App.WizardStep3Controller = Em.Controller.extend({
       }
       hosts.push(host);
     }, this);
+    warnings.forEach(function (warn) {
+      if (warn.hosts.length < 11) {
+        warn.hostsList = warn.hosts.join('<br>')
+      } else {
+        warn.hostsList = warn.hosts.slice(0,10).join('<br>') + '<br> ' + Em.I18n.t('installer.step3.hostWarningsPopup.moreHosts').format(warn.hosts.length - 10);
+      }
+    });
     hosts.unshift({
       name: 'All Hosts',
       warnings: warnings
@@ -890,6 +906,7 @@ App.WizardStep3Controller = Em.Controller.extend({
             $(this.get('content').filterProperty('isCollapsed').map(function (cat) {
               return '#' + cat.category
             }).join(',')).hide();
+            this.$("[rel='HostsListTooltip']").tooltip({html: true, placement: "right"});
           })
         }.observes('content'),
         warningsByHost: function () {
@@ -962,6 +979,22 @@ App.WizardStep3Controller = Em.Controller.extend({
             }
           ]
         }.property('category', 'warningsByHost'),
+
+        showHostsPopup: function (hosts) {
+          $('.tooltip').hide();
+          App.ModalPopup.show({
+            header: Em.I18n.t('installer.step3.hostWarningsPopup.allHosts'),
+            bodyClass: Ember.View.extend({
+              hosts: hosts.context,
+              template: Ember.Handlebars.compile('<ul>{{#each host in view.hosts}}<li>{{host}}</li>{{/each}}</ul>')
+            }),
+            onPrimary: function () {
+              this.hide();
+            },
+            secondary: null
+          });
+        },
+
         onToggleBlock: function (category) {
           this.$('#' + category.context.category).toggle('blind', 500);
           category.context.isCollapsed = !category.context.isCollapsed;

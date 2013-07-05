@@ -354,6 +354,8 @@ Em.I18n.translations = {
   'installer.step3.hostWarningsPopup.action.running':'Running on',
   'installer.step3.hostWarningsPopup.host':'host',
   'installer.step3.hostWarningsPopup.hosts':'hosts',
+  'installer.step3.hostWarningsPopup.moreHosts':'{0} more hosts...<br>Click on link to view all hosts.',
+  'installer.step3.hostWarningsPopup.allHosts':'List of hosts',
   'installer.step3.hostWarningsPopup.rerunChecks':'Rerun Checks',
   'installer.step3.hostWarningsPopup.hostHasWarnings':'Warning: Host checks failed on some of your hosts. It is highly recommended that you fix these problems first before proceeding to prevent potentially major problems with cluster installation. Are you sure you want to ignore these warnings and proceed?',
   'installer.step3.warningsWindow.allHosts':'Warnings across all hosts',
