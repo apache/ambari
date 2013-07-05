@@ -689,45 +689,33 @@ App.WizardStep3Controller = Em.Controller.extend({
         console.log("last_agent_env is missing for " + _host.Hosts.host_name + ".  Skipping _host check.");
         return;
       }
-      
-      // TODO - Remove when correct parsing code in place.
-      if (!_host.Hosts.last_agent_env.paths) {
-        return;
-      }
-      
+
       //parse all directories and files warnings for host
 
       //todo: to be removed after check in new API
       var stackFoldersAndFiles = _host.Hosts.last_agent_env.stackFoldersAndFiles || _host.Hosts.last_agent_env.paths;
 
       stackFoldersAndFiles.forEach(function (path) {
-
-        //todo: to be removed after check in new API
-        if (path.type === 'not_exist') {
-
-          warning = warnings.findProperty('name', path.name);
-          if (warning) {
-            warning.hosts.push(_host.Hosts.host_name);
-            warning.onSingleHost = false;
-          } else {
-            warning = {
-              name: path.name,
-              hosts: [_host.Hosts.host_name],
-              category: 'fileFolders',
-              onSingleHost: true
-            }
-            warnings.push(warning);
+        warning = warnings.findProperty('name', path.name);
+        if (warning) {
+          warning.hosts.push(_host.Hosts.host_name);
+          warning.onSingleHost = false;
+        } else {
+          warning = {
+            name: path.name,
+            hosts: [_host.Hosts.host_name],
+            category: 'fileFolders',
+            onSingleHost: true
           }
-          host.warnings.push(warning);
+          warnings.push(warning);
         }
+        host.warnings.push(warning);
       }, this);
 
       //parse all package warnings for host
       _host.Hosts.last_agent_env.rpms.forEach(function (_package) {
 
-        //todo: to be removed after check in new API
         if (_package.installed) {
-
           warning = warnings.findProperty('name', _package.name);
           if (warning) {
             warning.hosts.push(_host.Hosts.host_name);
@@ -751,28 +739,23 @@ App.WizardStep3Controller = Em.Controller.extend({
       var javaProcs = _host.Hosts.last_agent_env.hostHealth ? _host.Hosts.last_agent_env.hostHealth.activeJavaProcs : _host.Hosts.last_agent_env.javaProcs;
 
       javaProcs.forEach(function (process) {
-
-        //todo: to be removed after check in new API
-        if (process.hadoop) {
-
-          warning = warnings.findProperty('name', (process.command.substr(0, 15) + '...'));
-          if (warning) {
-            warning.hosts.push(_host.Hosts.host_name);
-            warning.onSingleHost = false;
-          } else {
-            warning = {
-              name: (process.command.substr(0, 15) + '...'),
-              hosts: [_host.Hosts.host_name],
-              category: 'processes',
-              user: process.user,
-              pid: process.pid,
-              command: process.command,
-              onSingleHost: true
-            }
-            warnings.push(warning);
+        warning = warnings.findProperty('name', (process.command.substr(0, 15) + '...'));
+        if (warning) {
+          warning.hosts.push(_host.Hosts.host_name);
+          warning.onSingleHost = false;
+        } else {
+          warning = {
+            name: (process.command.substr(0, 15) + '...'),
+            hosts: [_host.Hosts.host_name],
+            category: 'processes',
+            user: process.user,
+            pid: process.pid,
+            command: process.command,
+            onSingleHost: true
           }
-          host.warnings.push(warning);
+          warnings.push(warning);
         }
+        host.warnings.push(warning);
       }, this);
 
       //parse all service warnings for host
@@ -852,6 +835,9 @@ App.WizardStep3Controller = Em.Controller.extend({
       onSecondary: function() {
         self.rerunChecks();
       },
+      didInsertElement: function () {
+        this.fitHeight();
+      },
 
       footerClass: Ember.View.extend({
         template: Ember.Handlebars.compile([
@@ -898,6 +884,14 @@ App.WizardStep3Controller = Em.Controller.extend({
 
       bodyClass: Ember.View.extend({
         templateName: require('templates/wizard/step3_host_warnings_popup'),
+        classNames: ['host-check'],
+        didInsertElement: function () {
+          Ember.run.next(this, function () {
+            $(this.get('content').filterProperty('isCollapsed').map(function (cat) {
+              return '#' + cat.category
+            }).join(',')).hide();
+          })
+        }.observes('content'),
         warningsByHost: function () {
           return App.router.get('wizardStep3Controller.warningsByHost');
         }.property('App.router.wizardStep3Controller.warningsByHost'),
@@ -910,44 +904,68 @@ App.WizardStep3Controller = Em.Controller.extend({
         category: 'All Hosts',
         content: function () {
           var categoryWarnings = this.get('warningsByHost').findProperty('name', this.get('category')).warnings;
+          var processesIssues = categoryWarnings.filterProperty('category', 'processes');
+          var packagesIssues = categoryWarnings.filterProperty('category', 'packages');
+          var fileFoldersIssues = categoryWarnings.filterProperty('category', 'fileFolders');
+          var servicesIssues = categoryWarnings.filterProperty('category', 'services');
+          var usersIssues = categoryWarnings.filterProperty('category', 'users');
           return [
             {
-              warnings: categoryWarnings.filterProperty('category', 'processes'),
-              title: Em.I18n.t('installer.step3.hostWarningsPopup.processes'),
+              warnings: processesIssues,
+              title: Em.I18n.t('installer.step3.hostWarningsPopup.process') + ' ' + Em.I18n.t('installer.step3.hostWarningsPopup.issue' + (processesIssues.length !== 1 ? 's' : '')),
               message: Em.I18n.t('installer.step3.hostWarningsPopup.processes.message'),
               type: Em.I18n.t('common.process'),
-              category: 'process'
+              emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.processes'),
+              action: Em.I18n.t('installer.step3.hostWarningsPopup.action.running'),
+              category: 'process',
+              isCollapsed: !processesIssues.length
             },
             {
-              warnings: categoryWarnings.filterProperty('category', 'packages'),
-              title: Em.I18n.t('installer.step3.hostWarningsPopup.packages'),
+              warnings: packagesIssues,
+              title: Em.I18n.t('installer.step3.hostWarningsPopup.package') + ' ' + Em.I18n.t('installer.step3.hostWarningsPopup.issue' + (packagesIssues.length !== 1 ? 's' : '')),
               message: Em.I18n.t('installer.step3.hostWarningsPopup.packages.message'),
               type: Em.I18n.t('common.package'),
-              category: 'package'
+              emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.packages'),
+              action: Em.I18n.t('installer.step3.hostWarningsPopup.action.installed'),
+              category: 'package',
+              isCollapsed: !packagesIssues.length
             },
             {
-              warnings: categoryWarnings.filterProperty('category', 'fileFolders'),
-              title: Em.I18n.t('installer.step3.hostWarningsPopup.fileFolders'),
+              warnings: fileFoldersIssues,
+              title: Em.I18n.t('installer.step3.hostWarningsPopup.fileAndFolder') + ' ' + Em.I18n.t('installer.step3.hostWarningsPopup.issue' + (fileFoldersIssues.length !== 1 ? 's' : '')),
               message: Em.I18n.t('installer.step3.hostWarningsPopup.fileFolders.message'),
               type: Em.I18n.t('common.path'),
-              category: 'fileFolders'
+              emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.filesAndFolders'),
+              action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
+              category: 'fileFolders',
+              isCollapsed: !fileFoldersIssues.length
             },
             {
-              warnings: categoryWarnings.filterProperty('category', 'services'),
-              title: Em.I18n.t('installer.step3.hostWarningsPopup.services'),
+              warnings: servicesIssues,
+              title: Em.I18n.t('installer.step3.hostWarningsPopup.service') + ' ' + Em.I18n.t('installer.step3.hostWarningsPopup.issue' + (servicesIssues.length !== 1 ? 's' : '')),
               message: Em.I18n.t('installer.step3.hostWarningsPopup.services.message'),
               type: Em.I18n.t('common.service'),
-              category: 'service'
+              emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.services'),
+              action: Em.I18n.t('installer.step3.hostWarningsPopup.action.notRunning'),
+              category: 'service',
+              isCollapsed: !servicesIssues.length
             },
             {
-              warnings: categoryWarnings.filterProperty('category', 'users'),
-              title: Em.I18n.t('installer.step3.hostWarningsPopup.users'),
+              warnings: usersIssues,
+              title: Em.I18n.t('installer.step3.hostWarningsPopup.user') + ' ' + Em.I18n.t('installer.step3.hostWarningsPopup.issue' + (usersIssues.length !== 1 ? 's' : '')),
               message: Em.I18n.t('installer.step3.hostWarningsPopup.users.message'),
               type: Em.I18n.t('common.user'),
-              category: 'user'
+              emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.users'),
+              action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
+              category: 'user',
+              isCollapsed: !usersIssues.length
             }
           ]
         }.property('category', 'warningsByHost'),
+        onToggleBlock: function (category) {
+          this.$('#' + category.context.category).toggle('blind', 500);
+          category.context.isCollapsed = !category.context.isCollapsed;
+        },
         warningsSummary: function () {
           var warnings = this.get('warnings');
           var warningsByHost = self.get('warningsByHost').slice();

@@ -43,17 +43,21 @@
       {{/if}}
       &nbsp;{{view.warningsSummary}}</span>
   </div>
-  <div class="content-area">
-    <div class="warnings-list">
-      {{#each category in view.content}}
-        <div class="block">
-          <div class="title">
-            {{#if category.warnings.length}}
-            <i class="icon-warning-sign"></i>
-            {{else}}
-            <i class="icon-ok"></i>
-            {{/if}}
-            &nbsp;{{category.warnings.length}} {{category.title}}</div>
+  <div class="accordion warnings-list" id="accordion2">
+    {{#each category in view.content}}
+    <div class="accordion-group block">
+      <div class="accordion-heading title">
+        <a class="accordion-toggle" {{action onToggleBlock category}}>
+          {{#if category.warnings.length}}
+          <i class="icon-warning-sign"></i>
+          {{else}}
+          <i class="icon-ok"></i>
+          {{/if}}
+          &nbsp;{{category.warnings.length}} {{category.title}}
+        </a>
+      </div>
+      <div id="{{unbound category.category}}" class="accordion-body collapse in">
+        <div class="accordion-inner">
           {{#if category.warnings.length}}
           <table>
             <thead>
@@ -66,25 +70,28 @@
             </thead>
             <tbody>
             {{#each warning in category.warnings}}
-              <tr>
-                <td>{{warning.name}}</td>
-                <td>{{t installer.step3.hostWarningsPopup.exist}}
-                  <a>
-                    {{warning.hosts.length}}
-                    {{#if warning.onSingleHost}}
-                      {{t installer.step3.hostWarningsPopup.host}}
-                    {{else}}
-                      {{t installer.step3.hostWarningsPopup.hosts}}
-                    {{/if}}
-                  </a>
-                </td>
-              </tr>
+            <tr>
+              <td>{{warning.name}}</td>
+              <td>{{category.action}}
+                <a href="javascript:void(null);">
+                  {{warning.hosts.length}}
+                  {{#if warning.onSingleHost}}
+                  {{t installer.step3.hostWarningsPopup.host}}
+                  {{else}}
+                  {{t installer.step3.hostWarningsPopup.hosts}}
+                  {{/if}}
+                </a>
+              </td>
+            </tr>
             {{/each}}
             </tbody>
           </table>
+          {{else}}
+          {{t installer.step3.hostWarningsPopup.emptyMessage}} {{category.emptyName}}
           {{/if}}
         </div>
-      {{/each}}
+      </div>
     </div>
+    {{/each}}
   </div>
 </div>
