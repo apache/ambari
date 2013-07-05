@@ -83,13 +83,11 @@ ambari_provider_module = os.environ.get('AMBARI_PROVIDER_MODULE')
 NR_USER_PROPERTY = "ambari-server.user"
 NR_USER_COMMENT =  "Ambari user"
 NR_GET_OWNER_CMD = 'stat -c "%U" {0}'
-NR_USERADD_CMD = 'useradd -M -g {0} --comment "{1}" ' \
+NR_USERADD_CMD = 'useradd -M --comment "{1}" ' \
                  '--shell /sbin/nologin -d /var/lib/ambari-server/keys/ {0}'
 NR_SET_USER_COMMENT_CMD = 'usermod -c "{0}" {1}'
-NR_GROUPADD_CMD = 'groupadd {0}'
-NR_ADD_USER_TO_GROUP = 'usermod -G {0} {0}'
 NR_CHMOD_CMD = 'chmod {0} {1} {2}'
-NR_CHOWN_CMD = 'chown {0} {1}:{2} {3}'
+NR_CHOWN_CMD = 'chown {0} {1} {2}'
 
 RECURSIVE_RM_CMD = 'rm -rf {0}'
 
@@ -397,20 +395,20 @@ NR_CONF_DIR = get_conf_dir()
 # {0} in user/group will be replaced by customized ambari-server username
 NR_ADJUST_OWNERSHIP_LIST =[
 
-  ( "/var/log/ambari-server", "644", "{0}", "{0}", True ),
-  ( "/var/log/ambari-server", "755", "{0}", "{0}", False ),
-  ( "/var/run/ambari-server", "644", "{0}", "{0}" , True),
-  ( "/var/run/ambari-server", "755", "{0}", "{0}" , False),
-  ( "/var/run/ambari-server/bootstrap", "755", "{0}", "{0}", False ),
-  ( "/var/lib/ambari-server/ambari-env.sh", "700", "{0}", "{0}", False ),
-  ( "/var/lib/ambari-server/keys", "600", "{0}", "{0}", True ),
-  ( "/var/lib/ambari-server/keys", "700", "{0}", "{0}", False ),
-  ( "/var/lib/ambari-server/keys/db", "700", "{0}", "{0}", False ),
-  ( "/var/lib/ambari-server/keys/db/newcerts", "700", "{0}", "{0}", False ),
-  ( "/var/lib/ambari-server/keys/.ssh", "700", "{0}", "{0}", False ),
-  ( "/etc/ambari-server/conf", "644", "{0}", "{0}", True ),
-  ( "/etc/ambari-server/conf", "755", "{0}", "{0}", False ),
-  ( "/etc/ambari-server/conf/password.dat", "640", "{0}", "{0}", False ),
+  ( "/var/log/ambari-server", "644", "{0}", True ),
+  ( "/var/log/ambari-server", "755", "{0}", False ),
+  ( "/var/run/ambari-server", "644", "{0}", True),
+  ( "/var/run/ambari-server", "755", "{0}", False),
+  ( "/var/run/ambari-server/bootstrap", "755", "{0}", False ),
+  ( "/var/lib/ambari-server/ambari-env.sh", "700", "{0}", False ),
+  ( "/var/lib/ambari-server/keys", "600", "{0}", True ),
+  ( "/var/lib/ambari-server/keys", "700", "{0}", False ),
+  ( "/var/lib/ambari-server/keys/db", "700", "{0}", False ),
+  ( "/var/lib/ambari-server/keys/db/newcerts", "700", "{0}", False ),
+  ( "/var/lib/ambari-server/keys/.ssh", "700", "{0}", False ),
+  ( "/etc/ambari-server/conf", "644", "{0}", True ),
+  ( "/etc/ambari-server/conf", "755", "{0}", False ),
+  ( "/etc/ambari-server/conf/password.dat", "640", "{0}", False ),
   # Also, /etc/ambari-server/conf/password.dat
   # is generated later at store_password_file
 ]
@@ -610,12 +608,11 @@ def adjust_directory_permissions(ambari_user):
     file = pack[0]
     mod = pack[1]
     user = pack[2].format(ambari_user)
-    group = pack[3].format(ambari_user)
-    recursive = pack[4]
-    set_file_permissions(file, mod, user, group, recursive)
+    recursive = pack[3]
+    set_file_permissions(file, mod, user, recursive)
 
 
-def set_file_permissions(file, mod, user, group, recursive):
+def set_file_permissions(file, mod, user, recursive):
   WARN_MSG = "Command {0} returned exit code {1} with message: {2}"
   if recursive:
     params = " -R "
@@ -626,7 +623,7 @@ def set_file_permissions(file, mod, user, group, recursive):
     retcode, out, err = run_os_command(command)
     if retcode != 0 :
       print_warning_msg(WARN_MSG.format(command, file, err))
-    command = NR_CHOWN_CMD.format(params, user, group, file)
+    command = NR_CHOWN_CMD.format(params, user, file)
     retcode, out, err = run_os_command(command)
     if retcode != 0 :
       print_warning_msg(WARN_MSG.format(command, file, err))
@@ -643,38 +640,19 @@ def create_custom_user():
     False
   )
 
-  print_info_msg("Trying to create group {0}".format(user))
-  command = NR_GROUPADD_CMD.format(user)
-  retcode, out, err = run_os_command(command)
-  if retcode == 9: # 9 = group already exists
-    print_warning_msg("Group {0} already exists, "
-                      "skipping group creation".format(user))
-  elif retcode != 0: # fail:
-    print_warning_msg("Can't create group {0}. Command {1} "
-                      "finished with {2}: \n{3}".format(user, command, retcode, err))
-    return  retcode, None
-
   print_info_msg("Trying to create user {0}".format(user))
   command = NR_USERADD_CMD.format(user, NR_USER_COMMENT)
   retcode, out, err = run_os_command(command)
   if retcode == 9: # 9 = username already in use
-    print_warning_msg("User {0} already exists, "
+    print_info_msg("User {0} already exists, "
                       "skipping user creation".format(user))
 
-    print_info_msg("Trying to add user {0} to group {0}".format(user))
-    command = NR_ADD_USER_TO_GROUP.format(user)
-
-    retcode, out, err = run_os_command(command)
-    if retcode != 0: # fail:
-      print_warning_msg("Can't add user {0} to group {0}. Command {1} "
-                        "finished with {2}: \n{3}".format(user, command, retcode, err))
-      return  retcode, None
   elif retcode != 0: # fail
     print_warning_msg("Can't create user {0}. Command {1} "
                       "finished with {2}: \n{3}".format(user, command, retcode, err))
     return retcode, None
 
-  print_info_msg("User/group configuration is done.")
+  print_info_msg("User configuration is done.")
   return 0, user
 
 
@@ -863,7 +841,7 @@ def store_password_file(password, filename):
     passFile.write(password)
   print_info_msg("Adjusting filesystem permissions")  
   ambari_user = read_ambari_user()
-  set_file_permissions(passFilePath, "660", ambari_user, "root", False)
+  set_file_permissions(passFilePath, "660", ambari_user, False)
 
   return passFilePath
 
@@ -2889,11 +2867,11 @@ def import_cert_and_key(security_server_keys_dir):
 
   if retcode == 0:
    print 'Importing and saving certificate...done.'
-   set_file_permissions(keystoreFilePath, "660", read_ambari_user(), "root", False)
+   set_file_permissions(keystoreFilePath, "660", read_ambari_user(), False)
    with open(passFilePath, 'w+') as passFile:
     passFile.write(pem_password)
     pass
-   set_file_permissions(passFilePath, "660", read_ambari_user(), "root", False)
+   set_file_permissions(passFilePath, "660", read_ambari_user(), False)
    import_file_to_keystore(import_cert_path, os.path.join(\
                           security_server_keys_dir, SSL_CERT_FILE_NAME))
    import_file_to_keystore(import_key_path, os.path.join(\
@@ -2906,7 +2884,7 @@ def import_cert_and_key(security_server_keys_dir):
  
 def import_file_to_keystore(source, destination):
   shutil.copy(source, destination)
-  set_file_permissions(destination, "660", read_ambari_user(), "root", False)
+  set_file_permissions(destination, "660", read_ambari_user(), False)
 
 def generate_random_string(length=SSL_KEY_PASSWORD_LENGTH):
   chars = string.digits + string.ascii_letters
