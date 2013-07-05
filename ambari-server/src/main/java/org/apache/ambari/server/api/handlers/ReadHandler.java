@@ -47,6 +47,7 @@ public class ReadHandler implements RequestHandler {
 
     try {
       addFieldsToQuery(request, query);
+      query.setPageRequest(request.getPageRequest());
     } catch (IllegalArgumentException e) {
       return new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e.getMessage()));
     }

@@ -52,6 +52,32 @@ public interface ClusterController {
              NoSuchParentResourceException;
 
   /**
+   * Get a page of resources of the given type filtered by the given request,
+   * predicate objects and page request.
+   *
+   * @param type        the type of the requested resources
+   * @param request     the request object which defines the desired set of properties
+   * @param predicate   the predicate object which filters which resources are returned
+   * @param pageRequest the page request for a paginated response
+   *
+   * @return a page response representing the requested page of resources
+   *
+   * @throws UnsupportedPropertyException thrown if the request or predicate contain
+   *                                      unsupported property ids
+   * @throws SystemException an internal exception occurred
+   * @throws NoSuchResourceException no matching resource(s) found
+   * @throws NoSuchParentResourceException a specified parent resource doesn't exist
+   */
+  public PageResponse getResources(Resource.Type type,
+                                         Request request,
+                                         Predicate predicate,
+                                         PageRequest pageRequest)
+      throws UnsupportedPropertyException,
+      SystemException,
+      NoSuchResourceException,
+      NoSuchParentResourceException;
+
+  /**
    * Get the {@link Schema schema} for the given resource type.  The schema
    * for a given resource type describes the properties and categories provided
    * by that type of resource.

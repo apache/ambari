@@ -168,6 +168,9 @@ public class QueryLexer {
   static {
     // ignore values
     SET_IGNORE.add("fields");
+    SET_IGNORE.add("page_size");
+    SET_IGNORE.add("to");
+    SET_IGNORE.add("from");
     SET_IGNORE.add("_");
   }
 

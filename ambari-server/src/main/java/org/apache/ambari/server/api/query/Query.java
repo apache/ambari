@@ -85,4 +85,11 @@ public interface Query {
    * @param predicate  the user provided predicate
    */
   public void setUserPredicate(Predicate predicate);
+
+  /**
+   * Set the page request information for this query.
+   *
+   * @param pageRequest  the page request information
+   */
+  public void setPageRequest(PageRequest pageRequest);
 }

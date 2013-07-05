@@ -73,6 +73,11 @@ public class QueryImpl implements Query {
   private Predicate m_userPredicate;
 
   /**
+   * The user supplied page request information.
+   */
+  private PageRequest m_pageRequest;
+
+  /**
    * The logger.
    */
   private final static Logger LOG =
@@ -138,8 +143,16 @@ public class QueryImpl implements Query {
     }
 
     Predicate predicate = createPredicate(m_resource);
-    Iterable<Resource> iterResource = getClusterController().getResources(
-        resourceType, createRequest(), predicate);
+    Iterable<Resource> iterResource;
+
+    if (m_pageRequest == null) {
+      iterResource = getClusterController().getResources(
+          resourceType, createRequest(), predicate);
+    } else {
+      PageResponse pageResponse = getClusterController().getResources(
+          resourceType, createRequest(), predicate, m_pageRequest);
+      iterResource = pageResponse.getIterable();
+    }
 
     TreeNode<Resource> tree = result.getResultTree();
     int count = 1;
@@ -176,6 +189,11 @@ public class QueryImpl implements Query {
   @Override
   public void setUserPredicate(Predicate predicate) {
     m_userPredicate = predicate;
+  }
+
+  @Override
+  public void setPageRequest(PageRequest pageRequest) {
+    m_pageRequest = pageRequest;
   }
 
   ClusterController getClusterController() {

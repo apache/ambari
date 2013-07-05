@@ -153,7 +153,7 @@ public class HostRoleCommandDAO {
       Collection<HostRoleStatus> statuses, boolean match, boolean checkAllTasks) {
     List<Long> results = null;
     StringBuilder queryStr = new StringBuilder();
-    Integer resultsLimit = null;
+
     queryStr.append("SELECT DISTINCT command.requestId ").append(
         "FROM HostRoleCommandEntity command ");
     if (statuses != null && !statuses.isEmpty()) {
@@ -175,17 +175,12 @@ public class HostRoleCommandDAO {
         }
         queryStr.append("IN ?1 ");
       }
-      resultsLimit = REQUESTS_RESULT_LIMIT_WITH_FILTER;
-    } else {
-      resultsLimit = REQUESTS_RESULT_LIMIT;
     }
 
     queryStr.append("ORDER BY command.requestId DESC");
     TypedQuery<Long> query = entityManagerProvider.get().createQuery(queryStr.toString(),
         Long.class);
-    if (resultsLimit != null) {
-      query.setMaxResults(resultsLimit);
-    }
+
     if (statuses != null && !statuses.isEmpty()) {
       results = daoUtils.selectList(query, statuses);
     } else {

@@ -22,7 +22,9 @@ import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;
 import org.apache.ambari.server.api.resources.*;
+import org.apache.ambari.server.controller.internal.PageRequestImpl;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
+import org.apache.ambari.server.controller.spi.PageRequest;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.slf4j.Logger;
@@ -65,6 +67,11 @@ public abstract class BaseRequest implements Request {
    * Associated resource definition
    */
   private ResourceInstance m_resource;
+
+  /**
+   * Default page size for pagination request.
+   */
+  private static final int DEFAULT_PAGE_SIZE = 20;
 
   /**
    *  Logger instance.
@@ -180,6 +187,44 @@ public abstract class BaseRequest implements Request {
   @Override
   public Map<String, List<String>> getHttpHeaders() {
     return m_headers.getRequestHeaders();
+  }
+
+  @Override
+  public PageRequest getPageRequest() {
+
+    String pageSize = m_uriInfo.getQueryParameters().getFirst("page_size");
+    String from     = m_uriInfo.getQueryParameters().getFirst("from");
+    String to       = m_uriInfo.getQueryParameters().getFirst("to");
+
+    if (pageSize == null && from == null && to == null) {
+      return null;
+    }
+
+    int offset = 0;
+    PageRequest.StartingPoint startingPoint;
+
+    // TODO : support other starting points
+    if (from != null) {
+      if(from.equals("start")) {
+        startingPoint = PageRequest.StartingPoint.Beginning;
+      } else {
+        offset = Integer.valueOf(from);
+        startingPoint = PageRequest.StartingPoint.OffsetStart;
+      }
+    } else if (to != null ) {
+      if (to.equals("end")) {
+        startingPoint = PageRequest.StartingPoint.End;
+      } else {
+        offset = Integer.valueOf(to);
+        startingPoint = PageRequest.StartingPoint.OffsetEnd;
+      }
+    } else {
+      startingPoint = PageRequest.StartingPoint.Beginning;
+    }
+
+    // TODO : support predicate and comparator
+    return new PageRequestImpl(startingPoint,
+        pageSize == null ? DEFAULT_PAGE_SIZE : Integer.valueOf(pageSize), offset, null, null);
   }
 
   @Override

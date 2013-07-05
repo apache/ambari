@@ -87,6 +87,7 @@ public class ReadHandlerTest {
     expect(resource.getQuery()).andReturn(query);
 
     expect(request.getFields()).andReturn(mapPartialResponseFields);
+    expect(request.getPageRequest()).andReturn(null);
     query.addProperty(null, "foo", null);
     query.addProperty("bar", "c", null);
     query.addProperty("bar/d", "e", null);
@@ -94,6 +95,7 @@ public class ReadHandlerTest {
 
     expect(request.getQueryPredicate()).andReturn(predicate);
     query.setUserPredicate(predicate);
+    query.setPageRequest(null);
     expect(query.execute()).andReturn(result);
     result.setResultStatus(capture(resultStatusCapture));
 
@@ -117,9 +119,11 @@ public class ReadHandlerTest {
     expect(resource.getQuery()).andReturn(query);
 
     expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
+    expect(request.getPageRequest()).andReturn(null);
 
     expect(request.getQueryPredicate()).andReturn(predicate);
     query.setUserPredicate(predicate);
+    query.setPageRequest(null);
     SystemException systemException = new SystemException("testMsg", new RuntimeException());
     expect(query.execute()).andThrow(systemException);
 
@@ -145,9 +149,11 @@ public class ReadHandlerTest {
     expect(resource.getQuery()).andReturn(query);
 
     expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
+    expect(request.getPageRequest()).andReturn(null);
 
     expect(request.getQueryPredicate()).andReturn(predicate);
     query.setUserPredicate(predicate);
+    query.setPageRequest(null);
 
     expect(query.execute()).andThrow(exception);
 
@@ -174,9 +180,11 @@ public class ReadHandlerTest {
     expect(resource.getQuery()).andReturn(query);
 
     expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
+    expect(request.getPageRequest()).andReturn(null);
 
     expect(request.getQueryPredicate()).andReturn(predicate);
     query.setUserPredicate(predicate);
+    query.setPageRequest(null);
 
     expect(query.execute()).andThrow(exception);
 
@@ -202,9 +210,11 @@ public class ReadHandlerTest {
     expect(resource.getQuery()).andReturn(query);
 
     expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
+    expect(request.getPageRequest()).andReturn(null);
 
     expect(request.getQueryPredicate()).andReturn(predicate).anyTimes();
     query.setUserPredicate(predicate);
+    query.setPageRequest(null);
 
     expect(query.execute()).andThrow(exception);
 
@@ -229,9 +239,11 @@ public class ReadHandlerTest {
     expect(resource.getQuery()).andReturn(query);
 
     expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
+    expect(request.getPageRequest()).andReturn(null);
 
     expect(request.getQueryPredicate()).andReturn(null).anyTimes();
     query.setUserPredicate(null);
+    query.setPageRequest(null);
 
     expect(query.execute()).andThrow(exception);
 
@@ -257,6 +269,7 @@ public class ReadHandlerTest {
 //    expect(request.getResource()).andReturn(resource);
 //    expect(resource.getQuery()).andReturn(query);
 //
+//    expect(request.getPageRequest()).andReturn(null);
 //    expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
 //
 //    expect(request.getQueryPredicate()).andReturn(null).anyTimes();
