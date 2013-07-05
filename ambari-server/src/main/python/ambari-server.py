@@ -422,6 +422,15 @@ class FatalException(Exception):
     def _get_message(self):
       return str(self)
 
+class NonFatalException(Exception):
+  def __init__(self, reason):
+    self.reason = reason
+
+  def __str__(self):
+    return repr("NonFatal exception: %s" % self.reason)
+
+  def _get_message(self):
+    return str(self)
 
 def is_root():
   '''
@@ -1894,19 +1903,12 @@ def setup(args):
     retcode = setup_remote_db(args)
     if retcode == -1:
       err =  "The cli was not found"
-      raise FatalException(retcode, err)
+      raise NonFatalException(err)
 
     if not retcode == 0:
       err = 'Error while configuring connection properties. Exiting'
       raise FatalException(retcode, err)
     check_jdbc_drivers(args)
-
-  if args.warnings:
-    print "Ambari Server 'setup' finished with warnings:"
-    for warning in args.warnings:
-      print warning
-  else:
-    print "Ambari Server 'setup' finished successfully"
 
 
 
@@ -1953,24 +1955,36 @@ def reset(args):
       retcode, out, err = execute_remote_script(args, DATABASE_DROP_SCRIPTS[DATABASE_INDEX])
       if not retcode == 0:
         if retcode == -1:
-          print_warning_msg('Cannot find ' + client_desc + ' client in the path to reset the Ambari Server schema. To reset Ambari Server schema ' +
-          'you must run the following DDL against the database to drop the schema:' + os.linesep + client_usage_cmd_drop + os.linesep +
-          ', then you must run the following DDL against the database to create the schema ' + os.linesep + client_usage_cmd_init + os.linesep )
-        raise FatalException(retcode, err)
+          print_warning_msg('Cannot find ' + client_desc + 
+                            ' client in the path to reset the Ambari Server ' +
+                            ' schema. To reset Ambari Server schema ' +
+                            'you must run the following DDL against the database ' +
+                            'to drop the schema:' + os.linesep + client_usage_cmd_drop 
+                            + os.linesep + ', then you must run the following DDL '
+                            + 'against the database to create the schema ' + os.linesep
+                             + client_usage_cmd_init + os.linesep )
+        raise NonFatalException(err)
 
       retcode, out, err = execute_remote_script(args, DATABASE_INIT_SCRIPTS[DATABASE_INDEX])
       if not retcode == 0:
         if retcode == -1:
-          print_warning_msg('Cannot find ' + client_desc + ' client in the path to reset the Ambari Server schema. To reset Ambari Server schema ' +
-          'you must run the following DDL against the database to drop the schema:' + os.linesep + client_usage_cmd_drop + os.linesep +
-          ', then you must run the following DDL against the database to create the schema ' + os.linesep + client_usage_cmd_init + os.linesep )
-        raise FatalException(retcode, err)
+          print_warning_msg('Cannot find ' + client_desc + ' client in the path to ' +
+                            'reset the Ambari Server schema. To reset Ambari Server schema ' +
+                            'you must run the following DDL against the database to '
+                            + 'drop the schema:' + os.linesep + client_usage_cmd_drop 
+                            + os.linesep + ', then you must run the following DDL ' + 
+                            'against the database to create the schema ' + os.linesep + 
+                            client_usage_cmd_init + os.linesep )
+        raise NonFatalException(err)
 
     else:
-      err = 'Cannot find ' + client_desc + ' client in the path to reset the Ambari Server schema. To reset Ambari Server schema ' + \
-      'you must run the following DDL against the database to drop the schema:' + os.linesep + client_usage_cmd_drop + os.linesep +   \
-      ', then you must run the following DDL against the database to create the schema ' + os.linesep + client_usage_cmd_init + os.linesep
-      raise FatalException(-1, err)
+      err = 'Cannot find ' + client_desc + ' client in the path to reset the Ambari ' +\
+      'Server schema. To reset Ambari Server schema ' + \
+      'you must run the following DDL against the database to drop the schema:' + \
+      os.linesep + client_usage_cmd_drop + os.linesep +   \
+      ', then you must run the following DDL against the database to create the ' + \
+      'schema ' + os.linesep + client_usage_cmd_init + os.linesep
+      raise NonFatalException(err)
 
   else:
     dbname = args.database_name
@@ -1985,8 +1999,6 @@ def reset(args):
 
     print_info_msg ("About to run database setup")
     setup_db(args)
-
-  print "Ambari Server 'reset' complete"
 
 
 
@@ -2109,13 +2121,14 @@ def start(args):
     param_list = ["/bin/sh", "-c", command]
   print "Running server: " + str(param_list)
   server_process = subprocess.Popen(param_list, env=environ)
-  print "done."
 
 
 #
 # Stops the Ambari Server.
 #
 def stop(args):
+  if (args != None):
+    args.exit_message = None
   if os.path.exists(PID_DIR + os.sep + PID_NAME):
     f = open(PID_DIR + os.sep + PID_NAME, "r")
     pid = int(f.readline())
@@ -2208,13 +2221,13 @@ def upgrade(args):
     print_warning_msg(warn)
   else:
     adjust_directory_permissions(user)
-  print "Ambari Server 'upgrade' finished successfully"
 
 
 #
 # The Ambari Server status.
 #
 def status(args):
+  args.exit_message = None
   status, pid = is_server_runing()
   if status:
     print "Ambari Server running"
@@ -2407,7 +2420,6 @@ def setup_ldap():
     update_properties(ldap_property_value_map)
     print 'Saving...done'
 
-  print "Ambari Server 'LDAP setup' completed successfully. Exiting."
   return 0
 
 
@@ -2800,8 +2812,6 @@ def setup_https(args):
   if ambari_user:
     adjust_directory_permissions(ambari_user)
 
-  print "Ambari Server 'HTTPS setup' completed successfully. Exiting."
-  
 def is_server_runing():
   if os.path.exists(PID_DIR + os.sep + PID_NAME):
     f = open(PID_DIR + os.sep + PID_NAME, "r")
@@ -3021,7 +3031,8 @@ def main():
   if len(args) < args_number_required:
     print parser.print_help()
     parser.error("Invalid number of arguments. Entered: " + str(len(args)) + ", required: " + str(args_number_required))
- 
+
+  options.exit_message = "Ambari Server '%s' completed successfully." % action
   try:
     if action == SETUP_ACTION:
       setup(options)
@@ -3052,7 +3063,13 @@ def main():
     if e.reason is not None:
       print_error_msg("Exiting with exit code {0}. Reason: {1}".format(e.code, e.reason))
     sys.exit(e.code)
+  except NonFatalException as e:
+    options.exit_message = "Ambari Server '%s' completed with warnings." % action
+    if e.reason is not None:
+      print_warning_msg(e.reason)
 
+  if options.exit_message is not None:
+    print options.exit_message
 
 
 # A Python replacement for java.util.Properties

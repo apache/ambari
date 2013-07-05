@@ -33,6 +33,7 @@ from pwd import getpwnam
 # We have to use this import HACK because the filename contains a dash
 ambari_server = __import__('ambari-server')
 FatalException = ambari_server.FatalException
+NonFatalException = ambari_server.NonFatalException
 
 
 class TestAmbariServer(TestCase):
@@ -1576,8 +1577,6 @@ class TestAmbariServer(TestCase):
       result = ambari_server.setup(args)
     except FatalException:
       self.fail("Setup should be successful")
-
-
     self.assertEqual(None, result)
     self.assertEquals(True, store_local_properties_mock.called)
     self.assertEquals(False, store_remote_properties_mock.called)
@@ -1590,9 +1589,8 @@ class TestAmbariServer(TestCase):
     try:
       result = ambari_server.setup(args)
       self.fail("Should throw exception")
-    except FatalException as fe:
-      self.assertEquals(-1, fe.code)
-
+    except NonFatalException as fe:
+      self.assertTrue("cli was not found" in fe.reason)
 
 
 
@@ -2454,7 +2452,7 @@ class TestAmbariServer(TestCase):
     try:
       ambari_server.setup(args)
       self.fail("Should throw exception")
-    except FatalException as fe:
+    except NonFatalException as fe:
       # Expected
       self.assertTrue("The cli was not found" in fe.reason)
 
@@ -2477,7 +2475,7 @@ class TestAmbariServer(TestCase):
     try:
       ambari_server.reset(args)
       self.fail("Should throw exception")
-    except FatalException as fe:
+    except NonFatalException as fe:
       # Expected
       self.assertTrue("Client wasn't found" in fe.reason)
       pass
