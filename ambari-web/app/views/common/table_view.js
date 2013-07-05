@@ -61,6 +61,8 @@ App.TableView = Em.View.extend({
           });
         }
       });
+    } else {
+      this.clearFilters();
     }
 
     Em.run.next(function() {
