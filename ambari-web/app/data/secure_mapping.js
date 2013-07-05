@@ -343,9 +343,11 @@ module.exports = [
     "name": "oozie.authentication.kerberos.name.rules",
     "templateName": ["jobtracker_primary_name", "kerberos_domain", "mapred_user", "tasktracker_primary_name", "namenode_primary_name", "hdfs_user", "datanode_primary_name", "hbase_primary_name", "hbase_user"],
     "foreignKey": null,
-    "value": "RULE:[2:$1@$0](<templateName[0]>@.*<templateName[1]>)s/.*/<templateName[2]>/ RULE:[2:$1@$0](<templateName[3]>@.*<templateName[1]>)s/.*/<templateName[2]>/ RULE:[2:$1@$0](<templateName[4]>@.*<templateName[1]>)s/.*/<templateName[5]>/ RULE:[2:$1@$0](<templateName[6]>@.*<templateName[1]>)s/.*/<templateName[5]>/ RULE:[2:$1@$0](<templateName[7]>@.*<templateName[1]>)s/.*/<templateName[8]>/ DEFAULT",
+    "value": "RULE:[2:$1@$0](<templateName[0]>@.*<templateName[1]>)s/.*/<templateName[2]>/\nRULE:[2:$1@$0](<templateName[3]>@.*<templateName[1]>)s/.*/<templateName[2]>/\nRULE:[2:$1@$0](<templateName[4]>@.*<templateName[1]>)s/.*/<templateName[5]>/\nRULE:[2:$1@$0](<templateName[6]>@.*<templateName[1]>)s/.*/<templateName[5]>/\nRULE:[2:$1@$0](<templateName[7]>@.*<templateName[1]>)s/.*/<templateName[8]>/\nDEFAULT",
     "filename": "oozie-site.xml",
-    "serviceName": "OOZIE"
+    "serviceName": "OOZIE",
+    "dependedServiceName": "HBASE",
+    "replace": "\nRULE:[2:$1@$0](<templateName[7]>@.*<templateName[1]>)s/.*/<templateName[8]>/"
   },
   {
     "name": "templeton.kerberos.principal",
