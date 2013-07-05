@@ -65,7 +65,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
     this.get("services").clear();
     var runningServices = 0;
     var self = this;
-    data.items = data.items.sort(function(a,b){return b.Requests.id - a.Requests.id}).slice( 0, 10);
+    data.items = data.items.sort(function(a,b){return b.Requests.id - a.Requests.id});
     data.items.forEach(function(request){
       var rq = Em.Object.create({
         id:request.Requests.id,

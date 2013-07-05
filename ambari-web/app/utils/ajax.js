@@ -41,7 +41,7 @@ var urls = {
     'testInProduction': true
   },
   'background_operations.get_most_recent': {
-    'real': '/clusters/{clusterName}/requests?fields=*,tasks/Tasks/*',
+    'real': '/clusters/{clusterName}/requests?to=end&page_size=10&fields=*,tasks/Tasks/*',
     'mock': '/data/background_operations/list_on_start.json',
     'testInProduction': true
   },
