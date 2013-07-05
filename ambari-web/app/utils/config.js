@@ -735,6 +735,66 @@ App.config = Em.Object.create({
       }
     });
     console.log("loadServiceConfigHostsOverrides(): Finished loading.");
+  },
+
+  /**
+   * Set all site property that are derived from other site-properties
+   */
+  setConfigValue: function (mappedConfigs, allConfigs, config, globalConfigs) {
+    var globalValue;
+    if (config.value == null) {
+      return;
+    }
+    var fkValue = config.value.match(/<(foreignKey.*?)>/g);
+    var fkName = config.name.match(/<(foreignKey.*?)>/g);
+    var templateValue = config.value.match(/<(templateName.*?)>/g);
+    if (fkValue) {
+      fkValue.forEach(function (_fkValue) {
+        var index = parseInt(_fkValue.match(/\[([\d]*)(?=\])/)[1]);
+        if (mappedConfigs.someProperty('name', config.foreignKey[index])) {
+          globalValue = mappedConfigs.findProperty('name', config.foreignKey[index]).value;
+          config.value = config.value.replace(_fkValue, globalValue);
+        } else if (allConfigs.someProperty('name', config.foreignKey[index])) {
+          if (allConfigs.findProperty('name', config.foreignKey[index]).value === '') {
+            globalValue = allConfigs.findProperty('name', config.foreignKey[index]).defaultValue;
+          } else {
+            globalValue = allConfigs.findProperty('name', config.foreignKey[index]).value;
+          }
+          config.value = config.value.replace(_fkValue, globalValue);
+        }
+      }, this);
+    }
+
+    // config._name - formatted name from original config name
+    if (fkName) {
+      fkName.forEach(function (_fkName) {
+        var index = parseInt(_fkName.match(/\[([\d]*)(?=\])/)[1]);
+        if (mappedConfigs.someProperty('name', config.foreignKey[index])) {
+          globalValue = mappedConfigs.findProperty('name', config.foreignKey[index]).value;
+          config._name = config.name.replace(_fkName, globalValue);
+        } else if (allConfigs.someProperty('name', config.foreignKey[index])) {
+          if (allConfigs.findProperty('name', config.foreignKey[index]).value === '') {
+            globalValue = allConfigs.findProperty('name', config.foreignKey[index]).defaultValue;
+          } else {
+            globalValue = allConfigs.findProperty('name', config.foreignKey[index]).value;
+          }
+          config._name = config.name.replace(_fkName, globalValue);
+        }
+      }, this);
+    }
+
+    //For properties in the configMapping file having foreignKey and templateName properties.
+    if (templateValue) {
+      templateValue.forEach(function (_value) {
+        var index = parseInt(_value.match(/\[([\d]*)(?=\])/)[1]);
+        if (globalConfigs.someProperty('name', config.templateName[index])) {
+          var globalValue = globalConfigs.findProperty('name', config.templateName[index]).value;
+          config.value = config.value.replace(_value, globalValue);
+        } else {
+          config.value = null;
+        }
+      }, this);
+    }
   }
 
 });
