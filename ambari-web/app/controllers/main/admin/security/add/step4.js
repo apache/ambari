@@ -222,7 +222,11 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
     var uiConfig = [];
     var configs = this.get('secureMapping').filterProperty('foreignKey', null);
     configs.forEach(function (_config) {
-      var value = this.getGlobConfigValue(_config.templateName, _config.value, _config.name);
+      var value = _config.value;
+      if (_config.hasOwnProperty('dependedServiceName') && _config.hasOwnProperty('replace')) {
+        value = this.checkServiceForConfigValue(value, _config.dependedServiceName, _config.replace);
+      }
+      value = this.getGlobConfigValue(_config.templateName, value, _config.name);
       uiConfig.pushObject({
         "id": "site property",
         "name": _config.name,
@@ -243,6 +247,13 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
       }
     }, this);
     return uiConfig;
+  },
+
+  checkServiceForConfigValue: function(value, serviceName, replace) {
+    if (!App.Service.find().mapProperty('serviceName').contains(serviceName)) {
+      value = value.replace(replace, '');
+    }
+    return value;
   },
 
   /**

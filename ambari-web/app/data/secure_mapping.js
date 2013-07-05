@@ -40,7 +40,9 @@ module.exports = [
     "foreignKey": null,
     "value": "RULE:[2:$1@$0](<templateName[0]>@.*<templateName[1]>)s/.*/<templateName[2]>/\nRULE:[2:$1@$0](<templateName[3]>@.*<templateName[1]>)s/.*/<templateName[2]>/\nRULE:[2:$1@$0](<templateName[4]>@.*<templateName[1]>)s/.*/<templateName[5]>/\nRULE:[2:$1@$0](<templateName[6]>@.*<templateName[1]>)s/.*/<templateName[5]>/\nRULE:[2:$1@$0](<templateName[7]>@.*<templateName[1]>)s/.*/<templateName[8]>/\nDEFAULT",
     "filename": "core-site.xml",
-    "serviceName": "HDFS"
+    "serviceName": "HDFS",
+    "dependedServiceName": "HBASE",
+    "replace": "\nRULE:[2:$1@$0](<templateName[7]>@.*<templateName[1]>)s/.*/<templateName[8]>/"
   },
   {
     "name": "dfs.namenode.kerberos.principal",
