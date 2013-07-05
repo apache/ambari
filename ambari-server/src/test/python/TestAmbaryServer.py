@@ -985,12 +985,18 @@ class TestAmbariServer(TestCase):
   @patch("__builtin__.open")
   @patch("ambari-server.Properties")
   @patch.object(ambari_server, "is_root")
-  def test_setup_https(self, is_root_mock, Properties_mock, open_Mock, get_YN_input_mock,\
+  @patch.object(ambari_server, "is_valid_cert_host")  
+  @patch.object(ambari_server, "is_valid_cert_exp") 
+  def test_setup_https(self, is_valid_cert_exp_mock, is_valid_cert_host_mock,\
+                       is_root_mock, Properties_mock, open_Mock, get_YN_input_mock,\
                        import_cert_and_key_action_mock,
                        is_server_runing_mock, get_ambari_properties_mock,\
                        find_properties_file_mock,\
                        get_validated_string_input_mock,
                        read_ambari_user_method):
+      
+    is_valid_cert_exp_mock.return_value=True
+    is_valid_cert_host_mock.return_value=True
     args = MagicMock()
     open_Mock.return_value = file
     p = get_ambari_properties_mock.return_value
@@ -1119,12 +1125,18 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "run_os_command")
   @patch("os.path.join")
   @patch.object(ambari_server, "get_validated_filepath_input")
-  @patch.object(ambari_server, "get_validated_string_input")  
-  def test_import_cert_and_key(self, get_validated_string_input_mock,\
+  @patch.object(ambari_server, "get_validated_string_input")
+  @patch.object(ambari_server, "is_valid_cert_host")  
+  @patch.object(ambari_server, "is_valid_cert_exp")  
+  def test_import_cert_and_key(self,is_valid_cert_exp_mock,\
+                               is_valid_cert_host_mock,\
+                               get_validated_string_input_mock,\
                                get_validated_filepath_input_mock,\
                                os_path_join_mock, run_os_command_mock,\
                                open_mock, import_file_to_keystore_mock,\
                                set_file_permissions_mock, read_ambari_user_mock):
+    is_valid_cert_exp_mock.return_value=True
+    is_valid_cert_host_mock.return_value=True
     get_validated_string_input_mock.return_value = "password"
     get_validated_filepath_input_mock.side_effect = \
                                             ["cert_file_path","key_file_path"]
@@ -1155,12 +1167,17 @@ class TestAmbariServer(TestCase):
   @patch("os.path.join")
   @patch.object(ambari_server, "get_validated_filepath_input")
   @patch.object(ambari_server, "get_validated_string_input")
+  @patch.object(ambari_server, "is_valid_cert_host")  
+  @patch.object(ambari_server, "is_valid_cert_exp")  
   def test_import_cert_and_key_with_empty_password(self, \
+    is_valid_cert_exp_mock, is_valid_cert_host_mock,                                         
     get_validated_string_input_mock, get_validated_filepath_input_mock,\
     os_path_join_mock, run_os_command_mock, open_mock, \
     import_file_to_keystore_mock, set_file_permissions_mock,
     read_ambari_user_mock, generate_random_string_mock):
-
+      
+    is_valid_cert_exp_mock.return_value=True
+    is_valid_cert_host_mock.return_value=True
     get_validated_string_input_mock.return_value = ""
     get_validated_filepath_input_mock.side_effect =\
     ["cert_file_path","key_file_path"]
@@ -1182,6 +1199,142 @@ class TestAmbariServer(TestCase):
     self.assertEqual(str(import_file_to_keystore_mock.call_args_list),\
       expect_import_file_to_keystore)
     self.assertTrue(generate_random_string_mock.called)
+
+
+  def test_is_valid_cert_exp(self):
+    
+    #No data in certInfo
+    certInfo = {}
+    is_valid = ambari_server.is_valid_cert_exp(certInfo)
+    self.assertFalse(is_valid)
+    
+    #Issued in future
+    issuedOn = (datetime.datetime.now() + datetime.timedelta(hours=1000)).strftime(ambari_server.SSL_DATE_FORMAT)
+    expiresOn = (datetime.datetime.now() + datetime.timedelta(hours=2000)).strftime(ambari_server.SSL_DATE_FORMAT)
+    certInfo = {ambari_server.NOT_BEFORE_ATTR : issuedOn,
+                ambari_server.NOT_AFTER_ATTR  : expiresOn}
+    is_valid = ambari_server.is_valid_cert_exp(certInfo)
+    self.assertFalse(is_valid)
+    
+    #Was expired
+    issuedOn = (datetime.datetime.now() - datetime.timedelta(hours=2000)).strftime(ambari_server.SSL_DATE_FORMAT)
+    expiresOn = (datetime.datetime.now() - datetime.timedelta(hours=1000)).strftime(ambari_server.SSL_DATE_FORMAT)
+    certInfo = {ambari_server.NOT_BEFORE_ATTR : issuedOn,
+                ambari_server.NOT_AFTER_ATTR  : expiresOn}
+    is_valid = ambari_server.is_valid_cert_exp(certInfo)
+    self.assertFalse(is_valid)
+    
+    #Valid
+    issuedOn = (datetime.datetime.now() - datetime.timedelta(hours=2000)).strftime(ambari_server.SSL_DATE_FORMAT)
+    expiresOn = (datetime.datetime.now() + datetime.timedelta(hours=1000)).strftime(ambari_server.SSL_DATE_FORMAT)
+    certInfo = {ambari_server.NOT_BEFORE_ATTR : issuedOn,
+                ambari_server.NOT_AFTER_ATTR  : expiresOn}
+    is_valid = ambari_server.is_valid_cert_exp(certInfo)
+    self.assertTrue(is_valid)
+    
+  @patch.object(ambari_server, "get_fqdn")
+  def is_valid_cert_host(self, get_fqdn_mock):
+    
+    #No data in certInfo
+    certInfo = {}
+    is_valid = ambari_server.is_valid_cert_host(certInfo)
+    self.assertFalse(is_valid)
+    
+    #Failed to get FQDN
+    get_fqdn_mock.return_value = None
+    is_valid = ambari_server.is_valid_cert_host(certInfo)
+    self.assertFalse(is_valid)
+    
+    #FQDN and Common name in certificated don't correspond
+    get_fqdn_mock.return_value = 'host1'
+    certInfo = {ambari_server.COMMON_NAME_ATTR : 'host2'}
+    is_valid = ambari_server.is_valid_cert_host(certInfo)
+    self.assertFalse(is_valid)
+    
+    #FQDN and Common name in certificated correspond
+    get_fqdn_mock.return_value = 'host1'
+    certInfo = {ambari_server.COMMON_NAME_ATTR : 'host1'}
+    is_valid = ambari_server.is_valid_cert_host(certInfo)
+    self.assertFalse(is_valid)
+
+  @patch("socket.getfqdn")
+  @patch("urllib2.urlopen")
+  @patch.object(ambari_server, "get_ambari_properties")
+  def test_get_fqdn(self, get_ambari_properties_mock, url_open_mock, getfqdn_mock):
+    
+    #No ambari.properties
+    get_ambari_properties_mock.return_value = -1
+    fqdn = ambari_server.get_fqdn()
+    self.assertEqual(fqdn, None)
+    
+    #Read FQDN from service
+    p = MagicMock()
+    p[ambari_server.GET_FQDN_SERVICE_URL] = 'someurl'
+    get_ambari_properties_mock.return_value = p
+    
+    u = MagicMock()
+    host = 'host1.domain.com'
+    u.read.return_value = host
+    url_open_mock.return_value = u
+    
+    fqdn = ambari_server.get_fqdn()
+    self.assertEqual(fqdn, host)
+    
+    #Failed to read FQDN from service, getting from socket
+    u.reset_mock()
+    u.side_effect = Exception("Failed to read FQDN from service")
+    getfqdn_mock.return_value = host
+    fqdn = ambari_server.get_fqdn()
+    self.assertEqual(fqdn, host)
+    
+
+  @patch.object(ambari_server, "run_os_command")
+  def test_get_cert_info(self, run_os_command_mock):
+    # Error running openssl command
+    path = 'path/to/certificate'
+    run_os_command_mock.return_value = -1, None, None
+    cert_info = ambari_server.get_cert_info(path)
+    self.assertEqual(cert_info, None)
+    
+    #Empty result of openssl command
+    run_os_command_mock.return_value = 0, None, None
+    cert_info = ambari_server.get_cert_info(path)
+    self.assertEqual(cert_info, None)
+    
+    #Positive scenario
+    notAfter = 'Jul  3 14:12:57 2014 GMT'
+    notBefore = 'Jul  3 14:12:57 2013 GMT'
+    attr1_key = 'A'
+    attr1_value = 'foo'
+    attr2_key = 'B'
+    attr2_value = 'bar'
+    attr3_key = 'CN'
+    attr3_value = 'host.domain.com'
+    subject_pattern = '/{attr1_key}={attr1_value}/{attr2_key}={attr2_value}/{attr3_key}={attr3_value}'
+    subject = subject_pattern.format(attr1_key = attr1_key, attr1_value = attr1_value,
+                                     attr2_key = attr2_key, attr2_value = attr2_value,
+                                     attr3_key = attr3_key, attr3_value = attr3_value)
+    out_pattern = """
+notAfter={notAfter}
+notBefore={notBefore}
+subject={subject}
+-----BEGIN CERTIFICATE-----
+MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
+...
+5lqd8XxOGSYoMOf+70BLN2sB
+-----END CERTIFICATE-----
+    """
+    out = out_pattern.format(notAfter = notAfter, notBefore = notBefore, subject = subject)
+    run_os_command_mock.return_value = 0, out, None
+    cert_info = ambari_server.get_cert_info(path)
+    self.assertEqual(cert_info['notAfter'], notAfter)
+    self.assertEqual(cert_info['notBefore'], notBefore)
+    self.assertEqual(cert_info['subject'], subject)
+    self.assertEqual(cert_info[attr1_key], attr1_value)
+    self.assertEqual(cert_info[attr2_key], attr2_value)
+    self.assertEqual(cert_info[attr3_key], attr3_value)
+
+      
 
   @patch.object(ambari_server, "run_os_command")
   @patch("__builtin__.open")

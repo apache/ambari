@@ -96,6 +96,7 @@ RECURSIVE_RM_CMD = 'rm -rf {0}'
 # openssl command
 EXPRT_KSTR_CMD = "openssl pkcs12 -export -in {0} -inkey {1} -certfile {0} -out {3} -password pass:{2} -passin pass:{2}"
 CHANGE_KEY_PWD_CND = 'openssl rsa -in {0} -des3 -out {0}.secured -passout pass:{1}'
+GET_CRT_INFO_CMD = 'openssl x509 -dates -subject -in {0}'
 
 # constants
 STACK_NAME_VER_SEP = "-"
@@ -107,6 +108,11 @@ BOLD_OFF='\033[0m'
 
 #Common messages
 PRESS_ENTER_MSG="Press <enter> to continue."
+
+#SSL certificate metainfo
+COMMON_NAME_ATTR='CN'
+NOT_BEFORE_ATTR='notBefore'
+NOT_AFTER_ATTR='notAfter'
 
 if ambari_provider_module is not None:
   ambari_provider_module_option = "-Dprovider.module.class=" +\
@@ -167,6 +173,7 @@ SSL_KEYSTORE_FILE_NAME = "https.keystore.p12"
 SSL_KEY_PASSWORD_FILE_NAME = "https.pass.txt"
 SSL_KEY_PASSWORD_LENGTH = 50
 DEFAULT_SSL_API_PORT = 8443
+SSL_DATE_FORMAT = '%b  %d %H:%M:%S %Y GMT'
 
 JDBC_RCA_PASSWORD_ALIAS = "ambari.db.password"
 CLIENT_SECURITY_KEY = "client.security"
@@ -286,6 +293,7 @@ JAVA_HOME_PROPERTY = "java.home"
 JDK_URL_PROPERTY='jdk.url'
 JCE_URL_PROPERTY='jce_policy.url'
 OS_TYPE_PROPERTY = "server.os_type"
+GET_FQDN_SERVICE_URL="agent.fqdn.service.url"
 
 JDK_DOWNLOAD_CMD = "curl --create-dirs -o {0} {1}"
 JDK_DOWNLOAD_SIZE_CMD = "curl -I {0}"
@@ -2767,6 +2775,7 @@ def setup_https(args):
     err = 'Ambari-server setup-https should be run with ' \
           'root-level privileges'
     raise FatalException(4, err)
+  args.exit_message = None
   if not SILENT:
     properties = get_ambari_properties()
     try:
@@ -2775,25 +2784,29 @@ def setup_https(args):
                             else properties.get_property(SSL_API_PORT)
       api_ssl = properties.get_property(SSL_API) in ['true']
       cert_was_imported = False
+      cert_must_import = True
       if api_ssl:
-       if get_YN_input("Do you want to disable SSL (y/n) n? ", False):
+       if get_YN_input("Do you want to disable SSL [y/n] n? ", False):
         properties.process_pair(SSL_API, "false")
+        cert_must_import=False
        else:
         properties.process_pair(SSL_API_PORT, \
                                 get_validated_string_input(\
                                 "SSL port ["+str(client_api_ssl_port)+"] ? ",\
                                 str(client_api_ssl_port),\
                                 "^[0-9]{1,5}$", "Invalid port.", False))   
-        import_cert_and_key_action(security_server_keys_dir, properties)
-        cert_was_imported = True  
+        cert_was_imported = import_cert_and_key_action(security_server_keys_dir, properties)
       else:
        if get_YN_input("Do you want to configure HTTPS (y/n) y? ", True):
         properties.process_pair(SSL_API_PORT,\
         get_validated_string_input("SSL port ["+str(client_api_ssl_port)+"] ? ",\
         str(client_api_ssl_port), "^[0-9]{1,5}$", "Invalid port.", False))   
-        import_cert_and_key_action(security_server_keys_dir, properties)
-        cert_was_imported = True        
+        cert_was_imported = import_cert_and_key_action(security_server_keys_dir, properties)
        else:
+        return
+      
+      if cert_must_import and not cert_was_imported:
+        print 'Setup of HTTPS failed. Exiting.'
         return
 
       conf_file = find_properties_file()
@@ -2831,6 +2844,9 @@ def import_cert_and_key_action(security_server_keys_dir, properties):
    properties.process_pair(SSL_SERVER_CERT_NAME, SSL_CERT_FILE_NAME)
    properties.process_pair(SSL_SERVER_KEY_NAME, SSL_KEY_FILE_NAME)
    properties.process_pair(SSL_API, "true")
+   return True
+  else:
+   return False
    
 def import_cert_and_key(security_server_keys_dir):
   import_cert_path = get_validated_filepath_input(\
@@ -2839,6 +2855,19 @@ def import_cert_and_key(security_server_keys_dir):
   import_key_path  =  get_validated_filepath_input(\
                       "Please enter path to Private Key: ", "Private Key not found")
   pem_password = get_validated_string_input("Please enter password for private key: ", "", None, None, True)
+  
+  certInfoDict = get_cert_info(import_cert_path)
+  
+  if not certInfoDict:
+    print_warning_msg('Error getting certificate information')
+  else:  
+    #Validate common name of certificate
+    if not is_valid_cert_host(certInfoDict):
+      print_warning_msg('Validation of certificate hostname failed')
+  
+    #Validate issue and expirations dates of certificate
+    if not is_valid_cert_exp(certInfoDict):
+      print_warning_msg('Validation of certificate issue and expiration dates failed')
 
   #jetty requires private key files with non-empty key passwords
   retcode = 0
@@ -2871,8 +2900,8 @@ def import_cert_and_key(security_server_keys_dir):
                           security_server_keys_dir, SSL_KEY_FILE_NAME))
    return True
   else:
-   print 'Could not import trusted cerificate and private key:'
-   print err
+   print_error_msg('Could not import Certificate and Private Key.')
+   print 'SSL error on exporting keystore: ' + err.rstrip() + '.'
    return False
  
 def import_file_to_keystore(source, destination):
@@ -2898,6 +2927,117 @@ def get_validated_filepath_input(prompt, description, default=None):
       else:
         print description
         input=False
+
+
+def get_cert_info(path):
+  retcode, out, err = run_os_command(GET_CRT_INFO_CMD.format(path))
+  
+  if retcode != 0:
+    print 'Error during getting certificate info'
+    print err
+    return None
+  
+  if out:
+    certInfolist = out.split(os.linesep)
+  else:
+    print 'Empty certificate info'
+    return None
+  
+  notBefore = None
+  notAfter = None
+  subject = None
+  
+  for item in range(len(certInfolist)):
+      
+    if certInfolist[item].startswith('notAfter='):
+      notAfter = certInfolist[item].split('=')[1]
+
+    if certInfolist[item].startswith('notBefore='):
+      notBefore = certInfolist[item].split('=')[1]
+      
+    if certInfolist[item].startswith('subject='):
+      subject = certInfolist[item].split('=', 1)[1]
+      
+  #Convert subj to dict
+  pattern = re.compile(r"[A-Z]{1,2}=[\w.-]{1,}")
+  if subject:
+    subjList = pattern.findall(subject)
+    keys = [item.split('=')[0] for item in subjList]
+    values = [item.split('=')[1] for item in subjList]
+    subjDict = dict(zip(keys, values))
+  
+    result = subjDict
+    result['notBefore'] = notBefore
+    result['notAfter'] = notAfter
+    result['subject'] = subject
+  
+    return result
+  else:
+    return {}
+
+def is_valid_cert_exp(certInfoDict):
+  if certInfoDict.has_key(NOT_BEFORE_ATTR):
+    notBefore = certInfoDict[NOT_BEFORE_ATTR]
+  else:
+    print_warning_msg('There is no Not Before value in certificate')
+    return False
+
+  if certInfoDict.has_key(NOT_AFTER_ATTR):
+    notAfter = certInfoDict['notAfter']
+  else:
+    print_warning_msg('There is no Not After value in certificate')
+    return False
+      
+  
+  notBeforeDate = datetime.datetime.strptime(notBefore, SSL_DATE_FORMAT)
+  notAfterDate = datetime.datetime.strptime(notAfter, SSL_DATE_FORMAT)
+  
+  currentDate = datetime.datetime.now()
+  
+  if currentDate > notAfterDate:
+    print_warning_msg('Certificate was expired on: ' + str(notAfterDate))
+    return False
+    
+  if currentDate < notBeforeDate:
+    print_warning_msg('Certificate will be active from: ' + str(notBeforeDate))
+    return False
+
+  return True
+
+def is_valid_cert_host(certInfoDict):
+  if certInfoDict.has_key(COMMON_NAME_ATTR):
+   commonName = certInfoDict[COMMON_NAME_ATTR]
+  else:
+    print_warning_msg('There is no Common name in certificate')
+    return False
+
+  fqdn = get_fqdn()
+
+  if not fqdn:
+    print_warning_msg('Failed to get server FQDN')
+    return False
+  
+  if commonName != fqdn:
+    print_warning_msg('Common name in certificate: ' + commonName + ' doesn\'t matches the server hostname: ' + fqdn)
+    return False
+
+  return True
+
+
+def get_fqdn():
+  properties = get_ambari_properties()
+  if properties == -1:
+    print "Error getting ambari properties"
+    return None
+
+  get_fqdn_service_url = properties[GET_FQDN_SERVICE_URL]
+  try:
+    handle = urllib2.urlopen(get_fqdn_service_url, '', 2)
+    str = handle.read()
+    handle.close()
+    return str
+  except Exception, e:
+    return socket.getfqdn()
 
 #
 # Main.
