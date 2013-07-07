@@ -3293,7 +3293,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     }
 
     sorted_x = sorted(ldap_properties_map.iteritems(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][0].iteritems(),
+    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
                       key=operator.itemgetter(0))
     self.assertEquals(sorted_x, sorted_y)
     self.assertTrue(update_properties_method.called)
@@ -3323,6 +3323,38 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     
     str2 = ambari_server.generate_random_string(random_str_len)
     self.assertTrue(str1 != str2)
+
+  @patch("__builtin__.open")
+  @patch.object(ambari_server, "search_file")
+  @patch.object(ambari_server, "backup_file_in_temp")
+  def test_update_properties(self, backup_file_in_temp_mock, search_file_mock, open_mock):
+    conf_file = "ambari.properties"
+    propertyMap = {"1":"1", "2":"2"}
+    properties = MagicMock()
+    f = MagicMock(name = "file")
+    # f.__enter__.return_value = f #mimic file behavior
+    search_file_mock.return_value = conf_file
+    open_mock.return_value = f
+
+    ambari_server.update_properties(properties, propertyMap)
+
+    properties.store.assert_called_with(f.__enter__.return_value)
+    backup_file_in_temp_mock.assert_called_with(conf_file)
+    self.assertEquals(2, properties.removeOldProp.call_count)
+    self.assertEquals(2, properties.process_pair.call_count)
+
+    properties = MagicMock()
+    backup_file_in_temp_mock.reset_mock()
+    open_mock.reset_mock()
+
+    ambari_server.update_properties(properties, None)
+    properties.store.assert_called_with(f.__enter__.return_value)
+    backup_file_in_temp_mock.assert_called_with(conf_file)
+    self.assertFalse(properties.removeOldProp.called)
+    self.assertFalse(properties.process_pair.called)
+
+
+    pass
 
 
   def test_regexps(self):

@@ -180,6 +180,10 @@ LDAP_MGR_PASSWORD_ALIAS = "ambari.ldap.manager.password"
 LDAP_MGR_PASSWORD_PROPERTY = "authentication.ldap.managerPassword"
 LDAP_MGR_USERNAME_PROPERTY = "authentication.ldap.managerDn"
 
+SSL_TRUSTSTORE_PATH_PROPERTY = "ssl.trustStore.path"
+SSL_TRUSTSTORE_PASSWORD_PROPERTY = "ssl.trustStore.password"
+SSL_TRUSTSTORE_TYPE_PROPERTY = "ssl.trustStore.type"
+
 AMBARI_CONF_VAR="AMBARI_CONF_DIR"
 AMBARI_SERVER_LIB="AMBARI_SERVER_LIB"
 JAVA_HOME="JAVA_HOME"
@@ -2337,7 +2341,17 @@ def setup_ldap():
                         "authentication.ldap.bindAnonymously" ]
 
   ldap_property_list_opt = [ "authentication.ldap.managerDn",
-                             LDAP_MGR_PASSWORD_PROPERTY ]
+                             LDAP_MGR_PASSWORD_PROPERTY,
+                             SSL_TRUSTSTORE_TYPE_PROPERTY,
+                             SSL_TRUSTSTORE_PATH_PROPERTY,
+                             SSL_TRUSTSTORE_PASSWORD_PROPERTY]
+
+  ldap_property_list_truststore=[SSL_TRUSTSTORE_TYPE_PROPERTY,
+                                 SSL_TRUSTSTORE_PATH_PROPERTY,
+                                 SSL_TRUSTSTORE_PASSWORD_PROPERTY]
+
+  ldap_property_list_passwords=[LDAP_MGR_PASSWORD_PROPERTY,
+                                SSL_TRUSTSTORE_PASSWORD_PROPERTY]
 
   LDAP_PRIMARY_URL_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[0])
   LDAP_SECONDARY_URL_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[1])
@@ -2346,6 +2360,8 @@ def setup_ldap():
   LDAP_BASE_DN_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[4])
   LDAP_BIND_DEFAULT = get_value_from_properties(properties, ldap_property_list_reqd[5], "false")
   LDAP_MGR_DN_DEFAULT = get_value_from_properties(properties, ldap_property_list_opt[0])
+  SSL_TRUSTSTORE_TYPE_DEFAULT = get_value_from_properties(properties, SSL_TRUSTSTORE_TYPE_PROPERTY, "jks")
+  SSL_TRUSTSTORE_PATH_DEFAULT = get_value_from_properties(properties, SSL_TRUSTSTORE_PATH_PROPERTY)
 
 
   ldap_properties_map_reqd =\
@@ -2384,6 +2400,43 @@ def setup_ldap():
     password = configure_ldap_password()
     ldap_property_value_map[LDAP_MGR_PASSWORD_PROPERTY] = password
 
+
+  useSSL = ldap_property_value_map["authentication.ldap.useSSL"]
+  ldaps = (useSSL and useSSL.lower() == 'true')
+
+  if ldaps:
+    truststore_default = "n"
+    truststore_set = bool(SSL_TRUSTSTORE_PATH_DEFAULT)
+    if truststore_set:
+      truststore_default = "y"
+    custom_trust_store = get_YN_input("Do you want to provide custom TrustStore for Ambari [y/n] ({0})?".
+                                      format(truststore_default),
+                                      truststore_set)
+    if custom_trust_store:
+      ts_type = get_validated_string_input(
+        "TrustStore type [jks/jceks/pkcs12] {0}:".format(get_prompt_default(SSL_TRUSTSTORE_TYPE_DEFAULT)),
+        SSL_TRUSTSTORE_TYPE_DEFAULT,
+        "^(jks|jceks|pkcs12)?$", "Wrong type", False)
+      ts_path = None
+      while not ts_path:
+        ts_path = get_validated_string_input(
+          "Path to TrustStore file {0}:".format(get_prompt_default(SSL_TRUSTSTORE_PATH_DEFAULT)),
+          SSL_TRUSTSTORE_PATH_DEFAULT,
+          ".*", False, False)
+        if not os.path.exists(ts_path):
+          print 'File not found.'
+      ts_password = read_password("", ".*", "Password for TrustStore:", "Invalid characters in password")
+
+      ldap_property_value_map[SSL_TRUSTSTORE_TYPE_PROPERTY] = ts_type
+      ldap_property_value_map[SSL_TRUSTSTORE_PATH_PROPERTY] = ts_path
+      ldap_property_value_map[SSL_TRUSTSTORE_PASSWORD_PROPERTY] = ts_password
+      pass
+    else:
+      properties.removeOldProp(SSL_TRUSTSTORE_TYPE_PROPERTY)
+      properties.removeOldProp(SSL_TRUSTSTORE_PATH_PROPERTY)
+      properties.removeOldProp(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
+    pass
+
   print '=' * 20
   print 'Review Settings'
   print '=' * 20
@@ -2393,7 +2446,7 @@ def setup_ldap():
 
   for property in ldap_property_list_opt:
     if ldap_property_value_map.has_key(property):
-      if property != LDAP_MGR_PASSWORD_PROPERTY:
+      if property not in ldap_property_list_passwords:
         print("%s: %s" % (property, ldap_property_value_map[property]))
       else:
         print("%s: %s" % (property, "****"))
@@ -2403,7 +2456,7 @@ def setup_ldap():
   if save_settings:
     ldap_property_value_map[CLIENT_SECURITY_KEY] = 'ldap'
     # Persisting values
-    update_properties(ldap_property_value_map)
+    update_properties(properties, ldap_property_value_map)
     print 'Saving...done'
 
   return 0
@@ -2747,6 +2800,21 @@ def update_properties(propertyMap):
       properties.store(file)
 
   return 0
+
+def update_properties(properties, propertyMap):
+  conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
+  backup_file_in_temp(conf_file)
+  if conf_file is not None:
+    if propertyMap is not None:
+      for key in propertyMap.keys():
+        properties.removeOldProp(key)
+        properties.process_pair(key, str(propertyMap[key]))
+      pass
+
+    with open(conf_file, 'w') as file:
+      properties.store(file)
+    pass
+  pass
 
 def setup_https(args):
   if not is_root():
