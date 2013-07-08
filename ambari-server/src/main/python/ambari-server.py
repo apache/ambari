@@ -2639,7 +2639,7 @@ def setup_master_key():
       print 'Failed to save secure LDAP password.'
   pass
 
-  update_properties(propertyMap)
+  update_properties(properties, propertyMap)
 
   # Since files for store and master are created we need to ensure correct
   # permissions
