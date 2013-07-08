@@ -61,6 +61,7 @@ export smoke_user_keytab=$5
 export realm=$6
 export JTHOST=$7
 export NNHOST=$8
+export kinit_path_local=$9
 
 export OOZIE_EXIT_CODE=0
 export JOBTRACKER=`getValueFromField ${hadoop_conf_dir}/mapred-site.xml mapred.job.tracker`

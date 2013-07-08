@@ -45,6 +45,7 @@ define hdp-oozie::smoke_shell_file()
   }
   $smoke_user_keytab = $hdp::params::smokeuser_keytab
   $realm=$hdp::params::kerberos_domain
+  $kinit_path = $hdp::params::kinit_path_local
 
   file { '/tmp/oozieSmoke.sh':
     ensure => present,
@@ -53,7 +54,7 @@ define hdp-oozie::smoke_shell_file()
   }
 
   exec { '/tmp/oozieSmoke.sh':
-    command   => "sh /tmp/oozieSmoke.sh ${conf_dir} ${hadoopconf_dir} ${smoke_test_user} ${security} ${smoke_user_keytab} ${realm} $jt_host $nn_host",
+    command   => "sh /tmp/oozieSmoke.sh ${conf_dir} ${hadoopconf_dir} ${smoke_test_user} ${security} ${smoke_user_keytab} ${realm} $jt_host $nn_host $kinit_path",
     tries     => 3,
     try_sleep => 5,
     require   => File['/tmp/oozieSmoke.sh'],
