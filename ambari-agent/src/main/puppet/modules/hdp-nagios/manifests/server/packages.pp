@@ -76,13 +76,14 @@ debug("## state: $service_state")
       package_type => 'nagios-plugins'
     }
 
-    hdp::package::remove_pkg { 'nagios':
-      package_type => 'nagios'
+    exec { "remove_package nagios":
+      path    => "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+      command => "rpm -e --allmatches --nopostun nagios ; true"
     }
 
     debug("##Adding removing dep")
     # Removing conflicting packages. Names of packages being removed are hardcoded and not resolved via hdp::params
-    Hdp::Package::Remove_pkg['hdp_mon_nagios_addons'] -> Hdp::Package::Remove_pkg['nagios-plugins'] -> Hdp::Package::Remove_pkg['nagios'] -> Hdp::Package['nagios-plugins']
+    Hdp::Package::Remove_pkg['hdp_mon_nagios_addons'] -> Hdp::Package::Remove_pkg['nagios-plugins'] -> Exec['remove_package nagios'] -> Hdp::Package['nagios-plugins']
   }
 
   Hdp::Package['nagios-plugins'] -> Hdp::Package['nagios-server'] -> Hdp::Package['nagios-fping'] -> Hdp::Package['nagios-addons'] -> Hdp::Package['nagios-php-pecl-json']
