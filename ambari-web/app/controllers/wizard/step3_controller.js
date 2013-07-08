@@ -1048,7 +1048,7 @@ App.WizardStep3Controller = Em.Controller.extend({
          * open new browser tab with detailed content
          */
         openWarningsInDialog: function(){
-          var newWindow = window.open('', this.get('category')+' warnings');
+          var newWindow = window.open('');
           var newDocument = newWindow.document;
           newDocument.write(this.get('contentInDetails'));
           newWindow.focus();
