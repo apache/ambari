@@ -921,62 +921,57 @@ App.WizardStep3Controller = Em.Controller.extend({
         category: 'All Hosts',
         content: function () {
           var categoryWarnings = this.get('warningsByHost').findProperty('name', this.get('category')).warnings;
-          var processesIssues = categoryWarnings.filterProperty('category', 'processes');
-          var packagesIssues = categoryWarnings.filterProperty('category', 'packages');
-          var fileFoldersIssues = categoryWarnings.filterProperty('category', 'fileFolders');
-          var servicesIssues = categoryWarnings.filterProperty('category', 'services');
-          var usersIssues = categoryWarnings.filterProperty('category', 'users');
           return [
-            {
-              warnings: processesIssues,
-              title: Em.I18n.t('installer.step3.hostWarningsPopup.process') + ' ' + Em.I18n.t('installer.step3.hostWarningsPopup.issue' + (processesIssues.length !== 1 ? 's' : '')),
+            Ember.Object.create({
+              warnings: categoryWarnings.filterProperty('category', 'processes'),
+              title: Em.I18n.t('installer.step3.hostWarningsPopup.process'),
               message: Em.I18n.t('installer.step3.hostWarningsPopup.processes.message'),
               type: Em.I18n.t('common.process'),
               emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.processes'),
               action: Em.I18n.t('installer.step3.hostWarningsPopup.action.running'),
               category: 'process',
-              isCollapsed: !processesIssues.length
-            },
-            {
-              warnings: packagesIssues,
-              title: Em.I18n.t('installer.step3.hostWarningsPopup.package') + ' ' + Em.I18n.t('installer.step3.hostWarningsPopup.issue' + (packagesIssues.length !== 1 ? 's' : '')),
+              isCollapsed: true
+            }),
+             Ember.Object.create({
+              warnings: categoryWarnings.filterProperty('category', 'packages'),
+              title: Em.I18n.t('installer.step3.hostWarningsPopup.package'),
               message: Em.I18n.t('installer.step3.hostWarningsPopup.packages.message'),
               type: Em.I18n.t('common.package'),
               emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.packages'),
               action: Em.I18n.t('installer.step3.hostWarningsPopup.action.installed'),
               category: 'package',
-              isCollapsed: !packagesIssues.length
-            },
-            {
-              warnings: fileFoldersIssues,
-              title: Em.I18n.t('installer.step3.hostWarningsPopup.fileAndFolder') + ' ' + Em.I18n.t('installer.step3.hostWarningsPopup.issue' + (fileFoldersIssues.length !== 1 ? 's' : '')),
+              isCollapsed: true
+            }),
+             Ember.Object.create({
+              warnings: categoryWarnings.filterProperty('category', 'fileFolders'),
+              title: Em.I18n.t('installer.step3.hostWarningsPopup.fileAndFolder'),
               message: Em.I18n.t('installer.step3.hostWarningsPopup.fileFolders.message'),
               type: Em.I18n.t('common.path'),
               emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.filesAndFolders'),
               action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
               category: 'fileFolders',
-              isCollapsed: !fileFoldersIssues.length
-            },
-            {
-              warnings: servicesIssues,
-              title: Em.I18n.t('installer.step3.hostWarningsPopup.service') + ' ' + Em.I18n.t('installer.step3.hostWarningsPopup.issue' + (servicesIssues.length !== 1 ? 's' : '')),
+              isCollapsed: true
+            }),
+             Ember.Object.create({
+              warnings: categoryWarnings.filterProperty('category', 'services'),
+              title: Em.I18n.t('installer.step3.hostWarningsPopup.service'),
               message: Em.I18n.t('installer.step3.hostWarningsPopup.services.message'),
               type: Em.I18n.t('common.service'),
               emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.services'),
               action: Em.I18n.t('installer.step3.hostWarningsPopup.action.notRunning'),
               category: 'service',
-              isCollapsed: !servicesIssues.length
-            },
-            {
-              warnings: usersIssues,
-              title: Em.I18n.t('installer.step3.hostWarningsPopup.user') + ' ' + Em.I18n.t('installer.step3.hostWarningsPopup.issue' + (usersIssues.length !== 1 ? 's' : '')),
+              isCollapsed: true
+            }),
+             Ember.Object.create({
+              warnings: categoryWarnings.filterProperty('category', 'users'),
+              title: Em.I18n.t('installer.step3.hostWarningsPopup.user'),
               message: Em.I18n.t('installer.step3.hostWarningsPopup.users.message'),
               type: Em.I18n.t('common.user'),
               emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.users'),
               action: Em.I18n.t('installer.step3.hostWarningsPopup.action.exists'),
               category: 'user',
-              isCollapsed: !usersIssues.length
-            }
+              isCollapsed: true
+            })
           ]
         }.property('category', 'warningsByHost'),
 
@@ -997,13 +992,16 @@ App.WizardStep3Controller = Em.Controller.extend({
 
         onToggleBlock: function (category) {
           this.$('#' + category.context.category).toggle('blind', 500);
-          category.context.isCollapsed = !category.context.isCollapsed;
+          category.context.set('isCollapsed', !category.context.isCollapsed);
         },
-        warningsSummary: function () {
+        warningsNotice: function () {
           var warnings = this.get('warnings');
           var warningsByHost = self.get('warningsByHost').slice();
           warningsByHost.shift();
-          return Em.I18n.t('installer.step3.hostWarningsPopup.summary').format(warnings.length, warningsByHost.length - warningsByHost.filterProperty('warnings.length', 0).length);
+          var issues = warnings.length + ' ' + (warnings.length === 1 ? Em.I18n.t('installer.step3.hostWarningsPopup.issue') : Em.I18n.t('installer.step3.hostWarningsPopup.issues'));
+          var hostsNumber = warningsByHost.length - warningsByHost.filterProperty('warnings.length', 0).length;
+          var hosts = hostsNumber + ' ' + (hostsNumber === 1 ? Em.I18n.t('installer.step3.hostWarningsPopup.host') : Em.I18n.t('installer.step3.hostWarningsPopup.hosts'));
+          return Em.I18n.t('installer.step3.hostWarningsPopup.summary').format(issues, hosts);
         }.property('warnings', 'warningsByHost'),
         /**
          * generate detailed content to show it in new window

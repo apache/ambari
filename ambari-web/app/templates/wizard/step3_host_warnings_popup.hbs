@@ -19,7 +19,7 @@
 
 <div id="host-warnings">
   <div class="notice">
-    <span>{{t installer.step3.hostWarningsPopup.notice}}</span>
+    <span>{{t installer.step3.hostWarningsPopup.checks}} <b>{{view.warningsNotice}}</b>. {{t installer.step3.hostWarningsPopup.notice}}</span>
   </div>
   <div class="row-fluid">
     <div class="span7">
@@ -34,26 +34,18 @@
               class="icon-external-link"></i> {{t installer.step3.hostWarningsPopup.report}}</a>
     </div>
   </div>
-  <div class="summary">
-    <span>
-      {{#if view.warnings.length}}
-        <i class="icon-warning-sign"></i>
-      {{else}}
-        <i class="icon-ok"></i>
-      {{/if}}
-      &nbsp;{{view.warningsSummary}}</span>
-  </div>
   <div class="accordion warnings-list" id="accordion2">
     {{#each category in view.content}}
     <div class="accordion-group block">
-      <div class="accordion-heading title">
+      <div class="accordion-heading">
+        <i {{bindAttr class=":pull-left :accordion-toggle category.isCollapsed:icon-caret-right:icon-caret-down"}}></i>
+        {{#if category.warnings.length}}
+        <i class="pull-right accordion-toggle icon-warning-sign"></i>
+        {{else}}
+        <i class="pull-right accordion-toggle icon-ok"></i>
+        {{/if}}
         <a class="accordion-toggle" {{action onToggleBlock category}}>
-          {{#if category.warnings.length}}
-          <i class="icon-warning-sign"></i>
-          {{else}}
-          <i class="icon-ok"></i>
-          {{/if}}
-          &nbsp;{{category.warnings.length}} {{category.title}}
+          {{category.title}} ({{category.warnings.length}})
         </a>
       </div>
       <div id="{{unbound category.category}}" class="accordion-body collapse in">
