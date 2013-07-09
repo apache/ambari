@@ -205,32 +205,6 @@ App.MainServiceInfoSummaryView = Em.View.extend({
       "user":"hive"
     }
   },
-  /**
-   * Get public host name (should be Master) for service
-   * @param {String} serviceName - GANGLIA, NAGIOS etc
-   * @return {*}
-   */
-  getServer: function(serviceName) {
-    var service=this.get('controller.content');
-    if(service.get("id") == serviceName) {
-      return (App.singleNodeInstall ? App.singleNodeAlias : service.get("hostComponents").findProperty('isMaster', true).get("host").get("publicHostName"));
-    }
-    else {
-      return '';
-    }
-  },
-  gangliaServer:function() {
-    return this.getServer("GANGLIA");
-  }.property('controller.content'),
-  nagiosServer:function(){
-    return this.getServer("NAGIOS");
-  }.property('controller.content'),
-  oozieServer:function(){
-    return this.getServer("OOZIE");
-  }.property('controller.content'),
-  hueServer:function(){
-    return this.getServer("HUE");
-  }.property('controller.content'),
 
   /**
    * Array of the hostComponents for service

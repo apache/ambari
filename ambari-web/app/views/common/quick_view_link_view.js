@@ -28,24 +28,32 @@ App.QuickViewLinks = Em.View.extend({
     var components = this.get('content.hostComponents');
     var host;
 
-    if (serviceName === 'HDFS') {
-      host = App.singleNodeInstall ? App.singleNodeAlias : components.findProperty('componentName', 'NAMENODE').get('host.publicHostName');
-    } else if (serviceName === 'MAPREDUCE') {
-      host = App.singleNodeInstall ? App.singleNodeAlias : components.findProperty('componentName', 'JOBTRACKER').get('host.publicHostName');
-    } else if (serviceName === 'HBASE') {
-      var component;
-      if (App.supports.multipleHBaseMasters) {
-        component = components.filterProperty('componentName', 'HBASE_MASTER').findProperty('haStatus', 'active');
-      } else {
-        component = components.findProperty('componentName', 'HBASE_MASTER');
-      }
-      if (component) {
-        if (App.singleNodeInstall) {
-          host = App.singleNodeAlias;
+    switch (serviceName) {
+      case "HDFS":
+        host = App.singleNodeInstall ? App.singleNodeAlias : components.findProperty('componentName', 'NAMENODE').get('host.publicHostName');
+        break;
+      case "MAPREDUCE":
+      case "OOZIE":
+      case "GANGLIA":
+      case "NAGIOS":
+      case "HUE":
+        host = App.singleNodeInstall ? App.singleNodeAlias : components.findProperty('isMaster', true).get("host").get("publicHostName");
+        break;
+      case "HBASE":
+        var component;
+        if (App.supports.multipleHBaseMasters) {
+          component = components.filterProperty('componentName', 'HBASE_MASTER').findProperty('haStatus', 'active');
         } else {
-          host = component.get('host.publicHostName');
+          component = components.findProperty('componentName', 'HBASE_MASTER');
         }
-      }
+        if (component) {
+          if (App.singleNodeInstall) {
+            host = App.singleNodeAlias;
+          } else {
+            host = component.get('host.publicHostName');
+          }
+        }
+        break;
     }
     if (!host) {
       return [
@@ -68,6 +76,10 @@ App.QuickViewLinks = Em.View.extend({
       case "hdfs":
       case "mapreduce":
       case "hbase":
+      case "oozie":
+      case "ganglia":
+      case "nagios":
+      case "hue":
         return "_blank";
         break;
       default:

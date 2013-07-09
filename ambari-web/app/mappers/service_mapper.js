@@ -160,37 +160,32 @@ App.servicesMapper = App.QuickDataMapper.create({
           finalJson.rand = Math.random();
           result.push(finalJson);
           App.store.load(App.HDFSService, finalJson);
-        }
-        else
-          if (item && item.ServiceInfo && item.ServiceInfo.service_name == "MAPREDUCE") {
-            finalJson = this.mapreduceMapper(item);
-            finalJson.rand = Math.random();
-            result.push(finalJson);
-            App.store.load(App.MapReduceService, finalJson);
+        }else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "MAPREDUCE") {
+          finalJson = this.mapreduceMapper(item);
+          finalJson.rand = Math.random();
+          result.push(finalJson);
+          App.store.load(App.MapReduceService, finalJson);
+        }else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "HBASE") {
+          finalJson = this.hbaseMapper(item);
+          finalJson.rand = Math.random();
+          result.push(finalJson);
+          App.store.load(App.HBaseService, finalJson);
+        }else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "FLUME") {
+          finalJson = this.flumeMapper(item);
+          finalJson.rand = Math.random();
+          result.push(finalJson);
+          if(finalJson.nodeObjs){
+            finalJson.nodeObjs.forEach(function(no){
+              App.store.load(App.FlumeNode, no);
+            });
           }
-          else
-            if (item && item.ServiceInfo && item.ServiceInfo.service_name == "HBASE") {
-              finalJson = this.hbaseMapper(item);
-              finalJson.rand = Math.random();
-              result.push(finalJson);
-              App.store.load(App.HBaseService, finalJson);
-            } else
-              if (item && item.ServiceInfo && item.ServiceInfo.service_name == "FLUME") {
-                finalJson = this.flumeMapper(item);
-                finalJson.rand = Math.random();
-                result.push(finalJson);
-                if(finalJson.nodeObjs){
-                  finalJson.nodeObjs.forEach(function(no){
-                    App.store.load(App.FlumeNode, no);
-                  });
-                }
-                App.store.load(App.FlumeService, finalJson);
-              }
-              else {
-                finalJson = this.parseIt(item, this.config);
-                finalJson.rand = Math.random();
-                result.push(finalJson);
-              }
+          App.store.load(App.FlumeService, finalJson);
+        }else {
+          finalJson = this.parseIt(item, this.config);
+          finalJson.rand = Math.random();
+          this.mapQuickLinks(finalJson, item);
+          result.push(finalJson);
+        }
       }, this);
 
 
@@ -258,6 +253,23 @@ App.servicesMapper = App.QuickDataMapper.create({
       }
     }
     console.log('out service mapper.  Took ' + (new Date().getTime() - start) + 'ms');
+  },
+
+  /**
+   * Map quick links to services:OOZIE,GANGLIA,NAGIOS,HUE
+   * @param finalJson
+   * @param item
+   */
+  mapQuickLinks: function (finalJson, item){
+    if(item && item.ServiceInfo && item.ServiceInfo.service_name == "OOZIE"){
+      finalJson.quick_links = [19];
+    }else if(item && item.ServiceInfo && item.ServiceInfo.service_name == "GANGLIA"){
+      finalJson.quick_links = [20];
+    }else if(item && item.ServiceInfo && item.ServiceInfo.service_name == "NAGIOS"){
+      finalJson.quick_links = [21];
+    }else if(item && item.ServiceInfo && item.ServiceInfo.service_name == "HUE"){
+      finalJson.quick_links = [22];
+    }
   },
 
   hdfsMapper: function (item) {

@@ -132,5 +132,29 @@ App.QuickLinks.FIXTURES = [
     label:'Thread Stacks',
     url:'http://%@:60010/stacks',
     service_id: 'HBASE'
+  },
+  {
+    id:19,
+    label:'Oozie Web UI',
+    url:'http://%@:11000/oozie',
+    service_id: 'OOZIE'
+  },
+  {
+    id:20,
+    label:'Ganglia Web UI',
+    url:'http://%@/ganglia',
+    service_id: 'GANGLIA'
+  },
+  {
+    id:21,
+    label:'Nagios Web UI',
+    url:'http://%@/nagios',
+    service_id: 'NAGIOS'
+  },
+  {
+    id:22,
+    label:'Hue Web UI',
+    url:'http://%@/hue',
+    service_id: 'HUE'
   }
 ];
