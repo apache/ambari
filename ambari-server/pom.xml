@@ -304,8 +304,20 @@
                  <source>
                   <location>src/main/resources/hive-schema-0.10.0.oracle.sql</location>
                 </source>
-                 <source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/var/lib/ambari-server/resources/scripts</directory>
+              <filemode>755</filemode>
+              <sources>
+                <source>
                   <location>src/main/resources/scripts/install_flume.sh</location>
+                </source>
+                <source>
+                  <location>src/main/resources/scripts/configs.sh</location>
+                </source>
+                <source>
+                  <location>src/main/resources/scripts/keytabs.sh</location>
                 </source>
               </sources>
             </mapping>
