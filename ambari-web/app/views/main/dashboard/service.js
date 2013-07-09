@@ -31,7 +31,7 @@ App.MainDashboardServiceHealthView = Em.View.extend({
   'data-original-title': function(){
     var popupText = "";
     this.get("service").get("hostComponents").filterProperty('isMaster', true).forEach(function(item){
-      popupText +=" " + item.get("componentName") + " " + item.get("componentTextStatus");
+      popupText += item.get("displayName") + " " + item.get("componentTextStatus") + "<br/>";
     });
     return popupText;
   }.property('service.healthStatus'),
