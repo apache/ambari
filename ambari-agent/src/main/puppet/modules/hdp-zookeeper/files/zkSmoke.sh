@@ -28,10 +28,6 @@ export ZOOKEEPER_EXIT_CODE=0
 zkhosts=` grep "^server\.[[:digit:]]"  $conf_dir/zoo.cfg  | cut -f 2 -d '=' | cut -f 1 -d ':' | tr '\n' ' ' `
 zk_node1=`echo $zkhosts | tr ' ' '\n' | head -n 1`  
 echo "zk_node1=$zk_node1"
-# If security is enabled, destroy the tickets
-if [[ $security_enabled == "true" ]]; then
-  su - $smoke_user -c 'kdestroy'
-fi
 # Delete /zk_smoketest znode if exists
 su - $smoke_user -c "source $conf_dir/zookeeper-env.sh ;  echo delete /zk_smoketest | ${smoke_script} -server $zk_node1:2181"  
 # Create /zk_smoketest znode on one zookeeper server
