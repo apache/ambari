@@ -59,8 +59,8 @@ export smoke_test_user=$3
 export security_enabled=$4
 export smoke_user_keytab=$5
 export realm=$6
-export JTHOST=$7
-export NNHOST=$8
+export JTPRINC=$7
+export NNPRINC=$8
 export kinit_path_local=$9
 
 export OOZIE_EXIT_CODE=0
@@ -79,8 +79,8 @@ sed -i "s|oozie.wf.application.path=hdfs://localhost:9000|oozie.wf.application.p
 
 if [[ $security_enabled == "true" ]]; then
   kinitcmd="${kinit_path_local} -kt ${smoke_user_keytab} ${smoke_test_user}; "
-  echo "dfs.namenode.kerberos.principal=nn/`echo ${NNHOST} | tr '[:upper:]' '[:lower:]'`@${realm}" >> examples/apps/map-reduce/job.properties
-  echo "mapreduce.jobtracker.kerberos.principal=jt/`echo ${JTHOST} | tr '[:upper:]' '[:lower:]'`@${realm}" >> examples/apps/map-reduce/job.properties
+  echo "dfs.namenode.kerberos.principal=${NNPRINC}" >> examples/apps/map-reduce/job.properties
+  echo "mapreduce.jobtracker.kerberos.principal=${JTPRINC}" >> examples/apps/map-reduce/job.properties
 else 
   kinitcmd=""
 fi

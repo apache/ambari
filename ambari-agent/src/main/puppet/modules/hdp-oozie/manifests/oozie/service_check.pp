@@ -36,8 +36,6 @@ define hdp-oozie::smoke_shell_file()
   $conf_dir = $hdp::params::oozie_conf_dir
   $hadoopconf_dir = $hdp::params::hadoop_conf_dir 
   $security_enabled=$hdp::params::security_enabled
-  $jt_host=$hdp::params::jtnode_host
-  $nn_host=$hdp::params::namenode_host
   if ($security_enabled == true) {
     $security = "true"
   } else {
@@ -46,6 +44,8 @@ define hdp-oozie::smoke_shell_file()
   $smoke_user_keytab = $hdp::params::smokeuser_keytab
   $realm=$hdp::params::kerberos_domain
   $kinit_path = $hdp::params::kinit_path_local
+  $nn_principal = $hdp::params::nn_principal
+  $jt_principal = $hdp::params::jt_principal
 
   file { '/tmp/oozieSmoke.sh':
     ensure => present,
@@ -54,7 +54,7 @@ define hdp-oozie::smoke_shell_file()
   }
 
   exec { '/tmp/oozieSmoke.sh':
-    command   => "sh /tmp/oozieSmoke.sh ${conf_dir} ${hadoopconf_dir} ${smoke_test_user} ${security} ${smoke_user_keytab} ${realm} $jt_host $nn_host $kinit_path",
+    command   => "sh /tmp/oozieSmoke.sh ${conf_dir} ${hadoopconf_dir} ${smoke_test_user} ${security} ${smoke_user_keytab} ${realm} $jt_principal $nn_principal $kinit_path",
     tries     => 3,
     try_sleep => 5,
     require   => File['/tmp/oozieSmoke.sh'],

@@ -44,7 +44,7 @@ class hdp::params()
   $cluster_client_state = hdp_default("cluster_client_state","installed_and_configured")
 
   ## Hostname defaults
-  $hostname = hdp_default("myhostname", $::fqdn)
+  $hostname = hdp_to_lowercase(hdp_default("myhostname", $::fqdn))
   $public_hostname = hdp_default("public_hostname")
 
   ##### for secure install
@@ -64,6 +64,19 @@ class hdp::params()
   $snamenode_host = hdp_default("snamenode_host")
   $jtnode_host = hdp_default("jtnode_host")
   $slave_hosts = hdp_default("slave_hosts")
+
+  $nn_principal_str = hdp_default("hdfs-site/dfs.namenode.kerberos.principal", "nn/_HOST@EXAMPLE.COM")
+  if ("_HOST" in $nn_principal_str) {
+    $nn_principal = regsubst($nn_principal_str, "_HOST", hdp_to_lowercase($namenode_host[0]))
+  } else {
+    $nn_principal = $nn_principal_str
+  }
+  $jt_principal_str = hdp_default("mapred-site/mapreduce.jobtracker.kerberos.principal", "jt/_HOST@EXAMPLE.COM")
+  if ("_HOST" in $jt_principal_str) {
+    $jt_principal = regsubst($jt_principal_str, "_HOST", hdp_to_lowercase($jtnode_host[0]))
+  } else {
+    $jt_principal = $jt_principal_str
+  }
 
   $rm_host = hdp_default("rm_host")
   $nm_hosts = hdp_default("nm_hosts")
