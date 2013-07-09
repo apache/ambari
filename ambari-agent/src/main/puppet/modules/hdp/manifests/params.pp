@@ -66,14 +66,14 @@ class hdp::params()
   $slave_hosts = hdp_default("slave_hosts")
 
   $nn_principal_str = hdp_default("hdfs-site/dfs.namenode.kerberos.principal", "nn/_HOST@EXAMPLE.COM")
-  if ("_HOST" in $nn_principal_str) {
-    $nn_principal = regsubst($nn_principal_str, "_HOST", hdp_to_lowercase($namenode_host[0]))
+  if ("_HOST" in $nn_principal_str and hdp_is_empty($namenode_host) == false) {
+    $nn_principal = regsubst($nn_principal_str, "_HOST", hdp_to_lowercase(hdp_first_value_from_list($namenode_host)))
   } else {
     $nn_principal = $nn_principal_str
   }
   $jt_principal_str = hdp_default("mapred-site/mapreduce.jobtracker.kerberos.principal", "jt/_HOST@EXAMPLE.COM")
-  if ("_HOST" in $jt_principal_str) {
-    $jt_principal = regsubst($jt_principal_str, "_HOST", hdp_to_lowercase($jtnode_host[0]))
+  if ("_HOST" in $jt_principal_str and hdp_is_empty($jtnode_host) == false) {
+    $jt_principal = regsubst($jt_principal_str, "_HOST", hdp_to_lowercase(hdp_first_value_from_list($jtnode_host)))
   } else {
     $jt_principal = $jt_principal_str
   }
