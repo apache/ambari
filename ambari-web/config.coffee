@@ -56,7 +56,8 @@ exports.config =
           'vendor/scripts/rickshaw.js',
           'vendor/scripts/spin.js',
           'vendor/scripts/jquery.flexibleArea.js',
-          'vendor/scripts/FileSaver.js'
+          'vendor/scripts/FileSaver.js',
+          'vendor/scripts/Blob.js'
           ]
 
     stylesheets:

@@ -23,8 +23,18 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   name: 'mainAdminSecurityAddStep3Controller',
   hostComponents: [],
   doDownloadCsv: function(){
-    var blob = new Blob([stringUtils.arrayToCSV(this.get('hostComponents'))], {type: "text/csv;charset=utf-8"});
-    saveAs(blob, "host-principal-keytab-list.csv");
+    if ($.browser.msie && $.browser.version < 10) {
+      this.openInfoInNewTab();
+    } else {
+      var blob = new Blob([stringUtils.arrayToCSV(this.get('hostComponents'))], {type: "text/csv;charset=utf-8;"});
+      saveAs(blob, "host-principal-keytab-list.csv");
+    }
+  },
+  openInfoInNewTab: function(){
+    var newWindow = window.open('');
+    var newDocument = newWindow.document;
+    newDocument.write(stringUtils.arrayToCSV(this.get('hostComponents')));
+    newWindow.focus();
   },
   loadStep: function(){
     var configs = this.get('content.serviceConfigProperties');
