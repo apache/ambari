@@ -3031,7 +3031,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
         ambari_server.SECURITY_IS_ENCRYPTION_ENABLED : 'true'}
 
     sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][0].iteritems(),
+    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
                       key=operator.itemgetter(0))
     self.assertEquals(sorted_x, sorted_y)
 
@@ -3076,7 +3076,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
         ambari_server.SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
 
     sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][0].iteritems(),
+    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
                       key=operator.itemgetter(0))
     self.assertEquals(sorted_x, sorted_y)
 
@@ -3152,7 +3152,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
         ambari_server.SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
 
     sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][0].iteritems(),
+    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
                       key=operator.itemgetter(0))
     self.assertEquals(sorted_x, sorted_y)
 
@@ -3216,7 +3216,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
         ambari_server.SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
 
     sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
-    sorted_y = sorted(update_properties_method.call_args[0][0].iteritems(),
+    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
                       key=operator.itemgetter(0))
     self.assertEquals(sorted_x, sorted_y)
 
