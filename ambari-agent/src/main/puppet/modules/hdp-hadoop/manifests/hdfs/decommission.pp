@@ -26,7 +26,7 @@ class hdp-hadoop::hdfs::decommission(
   }
 
   $kinit_path = $hdp::params::kinit_path_local
-  $keytab_path = "${hdp::params::keytab_path}/hdfs.headless.keytab"
+  $keytab_path = $hdp::params::hdfs_user_keytab
   $hdfs_user = $hdp::params::hdfs_user
   $kinit_cmd = "su - ${hdfs_user} -c '${kinit_path} -kt ${keytab_path} ${hdfs_user}'"
 

@@ -128,6 +128,7 @@ module.exports = Em.Route.extend({
     next: function (router) {
       var addSecurityController = router.get('addSecurityController');
       addSecurityController.get('content').set('serviceConfigProperties', null);
+      App.db.setSecureConfigProperties(null);
       router.transitionTo('step2');
     }
   }),

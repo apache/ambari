@@ -56,6 +56,8 @@ class hdp::params()
   $keytab_path = hdp_default("keytab_path", "/etc/security/keytabs")
   $use_hostname_in_principal = hdp_default("instance_name", true)
   $smokeuser_keytab = hdp_default("smokeuser_keytab", "/etc/security/keytabs/smokeuser.headless.keytab")
+  $hdfs_user_keytab = hdp_default("hdfs_user_keytab", "/etc/security/keytabs/hdfs.headless.keytab")
+  $hbase_user_keytab = hdp_default("hbase_user_keytab", "/etc/security/keytabs/hbase.headless.keytab")
   $nagios_keytab_path = hdp_default("nagios_keytab_path", "/etc/security/keytabs/nagios.service.keytab")
   $nagios_principal_name = hdp_default("nagios_principal_name", "nagios")
 

@@ -61,6 +61,9 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     }
     var isHbaseInstalled = App.Service.find().findProperty('serviceName', 'HBASE');
     var generalConfigs = configs.filterProperty('serviceName', 'GENERAL');
+    var hdfsConfigs = configs.filterProperty('serviceName', 'HDFS');
+    var webHcatConfigs = configs.filterProperty('serviceName', 'WEBHCAT');
+    var oozieConfigs = configs.filterProperty('serviceName', 'OOZIE');
     var realm = generalConfigs.findProperty('name', 'kerberos_domain').value;
     var smokeUserId = securityUsers.findProperty('name', 'smokeuser').value;
     var hdfsUserId = securityUsers.findProperty('name', 'hdfs_user').value;
@@ -76,10 +79,14 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     var hdfsUser = hdfsUserId + '@' + realm;
     var hbaseUser = hbaseUserId + '@' + realm;
     var smokeUserKeytabPath = generalConfigs.findProperty('name', 'smokeuser_keytab').value;
-    var hdfsUserKeytabPath = generalConfigs.findProperty('name', 'keytab_path').value + "/hdfs.headless.keytab";
-    var hbaseUserKeytabPath = generalConfigs.findProperty('name', 'keytab_path').value + "/hbase.headless.keytab";
-    var httpPrincipal = generalConfigs.findProperty('name', 'hadoop_http_principal_name');
-    var httpKeytabPath = generalConfigs.findProperty('name', 'hadoop_http_keytab').value;
+    var hdfsUserKeytabPath = generalConfigs.findProperty('name', 'hdfs_user_keytab').value;
+    var hbaseUserKeytabPath = generalConfigs.findProperty('name', 'hbase_user_keytab').value;
+    var hadoopHttpPrincipal = hdfsConfigs.findProperty('name', 'hadoop_http_principal_name');
+    var hadoopHttpKeytabPath = hdfsConfigs.findProperty('name', 'hadoop_http_keytab').value;
+    var webHCatHttpPrincipal = webHcatConfigs.findProperty('name', 'webHCat_http_principal_name');
+    var webHCatHttpKeytabPath = webHcatConfigs.findProperty('name', 'webhcat_http_keytab').value;
+    var oozieHttpPrincipal = oozieConfigs.findProperty('name', 'oozie_http_principal_name');
+    var oozieHttpKeytabPath = oozieConfigs.findProperty('name', 'oozie_http_keytab').value;
     var componentToOwnerMap = {
       'NAMENODE': hdfsUserId,
       'SECONDARY_NAMENODE': hdfsUserId,
@@ -127,14 +134,34 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         });
       }
       if(host.get('hostComponents').someProperty('componentName', 'NAMENODE') ||
-        host.get('hostComponents').someProperty('componentName', 'SECONDARY_NAMENODE') ||
-        host.get('hostComponents').someProperty('componentName', 'WEBHCAT_SERVER') ||
-        host.get('hostComponents').someProperty('componentName', 'OOZIE_SERVER')){
+        host.get('hostComponents').someProperty('componentName', 'SECONDARY_NAMENODE')){
         result.push({
           host: host.get('hostName'),
-          component: Em.I18n.t('admin.addSecurity.user.httpUser'),
-          principal: httpPrincipal.value.replace('_HOST', host.get('hostName')) + httpPrincipal.unit,
-          keytab: httpKeytabPath,
+          component: Em.I18n.t('admin.addSecurity.hdfs.user.httpUser'),
+          principal: hadoopHttpPrincipal.value.replace('_HOST', host.get('hostName')) + hadoopHttpPrincipal.unit,
+          keytab: hadoopHttpKeytabPath,
+          owner: 'root',
+          group: hadoopGroupId,
+          acl: '440'
+        });
+      }
+      if (host.get('hostComponents').someProperty('componentName', 'WEBHCAT_SERVER')) {
+        result.push({
+          host: host.get('hostName'),
+          component: Em.I18n.t('admin.addSecurity.webhcat.user.httpUser'),
+          principal: webHCatHttpPrincipal.value.replace('_HOST', host.get('hostName')) + webHCatHttpPrincipal.unit,
+          keytab: webHCatHttpKeytabPath,
+          owner: 'root',
+          group: hadoopGroupId,
+          acl: '440'
+        });
+      }
+      if (host.get('hostComponents').someProperty('componentName', 'OOZIE_SERVER')) {
+        result.push({
+          host: host.get('hostName'),
+          component: Em.I18n.t('admin.addSecurity.oozie.user.httpUser'),
+          principal: oozieHttpPrincipal.value.replace('_HOST', host.get('hostName')) + oozieHttpPrincipal.unit,
+          keytab: oozieHttpKeytabPath,
           owner: 'root',
           group: hadoopGroupId,
           acl: '440'

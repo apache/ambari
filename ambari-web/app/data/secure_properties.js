@@ -53,7 +53,7 @@ module.exports =
       "isVisible": false,
       "isOverridable": false,
       "serviceName": "GENERAL",
-      "category": "KERBEROS"
+      "category": "AMBARI"
     },
     {
       "id": "puppet var",
@@ -71,7 +71,7 @@ module.exports =
     {
       "id": "puppet var",
       "name": "kinit_path_local",
-      "displayName": "kinit path",
+      "displayName": "Kinit path",
       "value": "",
       "defaultValue": "/usr/bin/kinit",
       "description": "Path to installed kinit command",
@@ -83,55 +83,17 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "hadoop_http_principal_name",
-      "displayName": "DFS Web Principal name",
+      "name": "smokeuser_principal_name",
+      "displayName": "Smoke test user Principal",
       "value": "",
-      "defaultValue": "HTTP/_HOST",
-      "description": "Principal name for spnego access for NameNode and SNameNode. _HOST will get automatically replaced with actual hostname at instance of NameNode and SNameNode",
-      "displayType": "advanced",
+      "defaultValue": "ambari-qa",
+      "description": "This is the principal name for Smoke test user",
+      "displayType": "principal",
       "isVisible": true,
       "isOverridable": false,
+      "isReconfigurable": false,
       "serviceName": "GENERAL",
-      "category": "KERBEROS"
-    },
-    {
-      "id": "puppet var",
-      "name": "oozie_http_principal_name",
-      "displayName": "Oozie Web Principal name",
-      "value": "",
-      "defaultValue": "HTTP/_HOST",
-      "description": "Principal name for spnego access for Oozie",
-      "displayType": "advanced",
-      "isVisible": false,
-      "isOverridable": false,
-      "serviceName": "GENERAL",
-      "category": "KERBEROS"
-    },
-    {
-      "id": "puppet var",
-      "name": "webHCat_http_principal_name",
-      "displayName": "WebHCat Principal name",
-      "value": "",
-      "defaultValue": "HTTP/_HOST",
-      "description": "Principal name for spnego access for WebHCat",
-      "displayType": "advanced",
-      "isVisible": false,
-      "isOverridable": false,
-      "serviceName": "GENERAL",
-      "category": "KERBEROS"
-    },
-    {
-      "id": "puppet var",
-      "name": "hadoop_http_keytab",
-      "displayName": "Path to spnego keytab file",
-      "value": "",
-      "defaultValue": "/etc/security/keytabs/spnego.service.keytab",
-      "description": "Path to spnego keytab file for NameNode, SNameNode, Oozie and WebHCat",
-      "displayType": "directory",
-      "isVisible": true,
-      "isOverridable": false,
-      "serviceName": "GENERAL",
-      "category": "KERBEROS"
+      "category": "AMBARI"
     },
     {
       "id": "puppet var",
@@ -144,7 +106,61 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "GENERAL",
-      "category": "KERBEROS"
+      "category": "AMBARI"
+    },
+    {
+      "id": "puppet var",
+      "name": "hdfs_principal_name",
+      "displayName": "HDFS User Principal",
+      "value": "",
+      "defaultValue": "hdfs",
+      "description": "This is the principal name for HDFS user",
+      "displayType": "principal",
+      "isVisible": true,
+      "isOverridable": false,
+      "isReconfigurable": false,
+      "serviceName": "GENERAL",
+      "category": "AMBARI"
+    },
+    {
+      "id": "puppet var",
+      "name": "hdfs_user_keytab",
+      "displayName": "Path to HDFS user keytab file",
+      "value": "",
+      "defaultValue": "/etc/security/keytabs/hdfs.headless.keytab",
+      "description": "Path to keytab file for HDFS user",
+      "displayType": "directory",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "GENERAL",
+      "category": "AMBARI"
+    },
+    {
+      "id": "puppet var",
+      "name": "hbase_principal_name",
+      "displayName": "HBase User Principal",
+      "value": "",
+      "defaultValue": "hbase",
+      "description": "This is the principal name for HBase user",
+      "displayType": "principal",
+      "isVisible": false,
+      "isOverridable": false,
+      "isReconfigurable": false,
+      "serviceName": "GENERAL",
+      "category": "AMBARI"
+    },
+    {
+      "id": "puppet var",
+      "name": "hbase_user_keytab",
+      "displayName": "Path to HBase user keytab file",
+      "value": "",
+      "defaultValue": "/etc/security/keytabs/hbase.headless.keytab",
+      "description": "Path to keytab file for Hbase user",
+      "displayType": "directory",
+      "isVisible": false,
+      "isOverridable": false,
+      "serviceName": "GENERAL",
+      "category": "AMBARI"
     },
 
     //HDFS
@@ -167,13 +183,13 @@ module.exports =
       "displayName": "Principal name",
       "value": "",
       "defaultValue": "nn/_HOST",
-      "description": "Principal name for NameNode and SNameNode. _HOST will get automatically replaced with actual hostname at instance of NameNode and SNameNode",
-      "displayType": "advanced",
+      "description": "Principal name for NameNode. _HOST will get automatically replaced with actual hostname at an instance of NameNode",
+      "displayType": "principal",
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "HDFS",
       "category": "NameNode",
-      "components": ["NAMENODE", "SECONDARY_NAMENODE"]
+      "components": ["NAMENODE"]
     },
     {
       "id": "puppet var",
@@ -181,13 +197,13 @@ module.exports =
       "displayName": "Path to Keytab File",
       "value": "",
       "defaultValue": "/etc/security/keytabs/nn.service.keytab",
-      "description": "Path to NameNode and SNameNode keytab file",
+      "description": "Path to NameNode keytab file",
       "displayType": "directory",
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "HDFS",
       "category": "NameNode",
-      "components": ["NAMENODE", "SECONDARY_NAMENODE"]
+      "components": ["NAMENODE"]
     },
     {
       "id": "puppet var",
@@ -201,6 +217,34 @@ module.exports =
       "isVisible": true,
       "serviceName": "HDFS",
       "category": "SNameNode"
+    },
+    {
+      "id": "puppet var",
+      "name": "snamenode_principal_name",
+      "displayName": "Principal name",
+      "value": "",
+      "defaultValue": "nn/_HOST",
+      "description": "Principal name for SNameNode. _HOST will get automatically replaced with actual hostname at an instance of SNameNode",
+      "displayType": "principal",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "HDFS",
+      "category": "SNameNode",
+      "components": ["SECONDARY_NAMENODE"]
+    },
+    {
+      "id": "puppet var",
+      "name": "snamenode_keytab",
+      "displayName": "Path to Keytab File",
+      "value": "",
+      "defaultValue": "/etc/security/keytabs/nn.service.keytab",
+      "description": "Path to SNameNode keytab file",
+      "displayType": "directory",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "HDFS",
+      "category": "SNameNode",
+      "components": ["SECONDARY_NAMENODE"]
     },
     {
       "id": "puppet var",
@@ -248,7 +292,7 @@ module.exports =
       "value": "",
       "defaultValue": "dn/_HOST",
       "description": "Principal name for DataNode. _HOST will get automatically replaced with actual hostname at every instance of DataNode",
-      "displayType": "advanced",
+      "displayType": "principal",
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "HDFS",
@@ -268,6 +312,32 @@ module.exports =
       "serviceName": "HDFS",
       "category": "DataNode",
       "component": "DATANODE"
+    },
+    {
+      "id": "puppet var",
+      "name": "hadoop_http_principal_name",
+      "displayName": "DFS Web Principal name",
+      "value": "",
+      "defaultValue": "HTTP/_HOST",
+      "description": "Principal name for spnego access for NameNode and SNameNode. _HOST will get automatically replaced with actual hostname at instance of NameNode and SNameNode",
+      "displayType": "principal",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "HDFS",
+      "category": "General"
+    },
+    {
+      "id": "puppet var",
+      "name": "hadoop_http_keytab",
+      "displayName": "Path to spnego keytab file",
+      "value": "",
+      "defaultValue": "/etc/security/keytabs/spnego.service.keytab",
+      "description": "Path to spnego keytab file for NameNode and SNameNode",
+      "displayType": "directory",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "HDFS",
+      "category": "General"
     },
     //MAPREDUCE
     {
@@ -289,8 +359,8 @@ module.exports =
       "displayName": "Principal name",
       "value": "",
       "defaultValue": "jt/_HOST",
-      "description": "Principal name for JobTracker. _HOST will get automatically replaced with actual hostname at an instance of JobTracker",
-      "displayType": "advanced",
+      "description": "Principal name for JobTracker and Job History Server. _HOST will get automatically replaced with actual hostname at instance of JobTracker and Job History Server",
+      "displayType": "principal",
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "MAPREDUCE",
@@ -303,7 +373,7 @@ module.exports =
       "displayName": "Path to keytab file",
       "value": "",
       "defaultValue": "/etc/security/keytabs/jt.service.keytab",
-      "description": "Path to JobTracker keytab file",
+      "description": "Path to JobTracker and Job History Server keytab file",
       "displayType": "directory",
       "isVisible": true,
       "isOverridable": false,
@@ -331,7 +401,7 @@ module.exports =
       "value": "",
       "defaultValue": "tt/_HOST",
       "description": "Principal name for TaskTracker. _HOST will get automatically replaced with actual hostname at every instance of TaskTracker",
-      "displayType": "advanced",
+      "displayType": "principal",
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "MAPREDUCE",
@@ -367,6 +437,46 @@ module.exports =
       "component": "TASKTRACKER"
     },
 
+    //WEBHCAT
+    {
+      "id": "puppet var",
+      "name": "webhcatserver_host",
+      "displayName": "WebHCat Server host",
+      "value": "",
+      "defaultValue": "localhost",
+      "description": "The host that has been assigned to run WebHCat Server",
+      "displayType": "masterHost",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "WEBHCAT",
+      "category": "WebHCat Server"
+    },
+    {
+      "id": "puppet var",
+      "name": "webHCat_http_principal_name",
+      "displayName": "Principal name",
+      "value": "",
+      "defaultValue": "HTTP/_HOST",
+      "description": "Principal name for spnego access for WebHCat",
+      "displayType": "principal",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "WEBHCAT",
+      "category": "WebHCat Server"
+    },
+    {
+      "id": "puppet var",
+      "name": "webhcat_http_keytab",
+      "displayName": "Path to keytab file",
+      "value": "",
+      "defaultValue": "/etc/security/keytabs/spnego.service.keytab",
+      "description": "Path to spnego keytab file for WebHCat",
+      "displayType": "directory",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "WEBHCAT",
+      "category": "WebHCat Server"
+    },
     //HBASE
     {
       "id": "puppet var",
@@ -379,7 +489,35 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "HBASE",
-      "category": "HBase"
+      "category": "HBase Master"
+    },
+    {
+      "id": "puppet var",
+      "name": "hbase_master_principal_name",
+      "displayName": "Principal name",
+      "value": "",
+      "defaultValue": "hbase/_HOST",
+      "description": "Principal name for HBase master. _HOST will get automatically replaced with actual hostname at an instance of HBase Master",
+      "displayType": "principal",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "HBASE",
+      "category": "HBase Master",
+      "components": ["HBASE_MASTER"]
+    },
+    {
+      "id": "puppet var",
+      "name": "hbase_master_keytab",
+      "displayName": "Path to Keytab file",
+      "value": "",
+      "defaultValue": "/etc/security/keytabs/hbase.service.keytab",
+      "description": "Path to HBase master keytab file",
+      "displayType": "directory",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "HBASE",
+      "category": "HBase Master",
+      "components": ["HBASE_MASTER"]
     },
     {
       "id": "puppet var",
@@ -392,35 +530,35 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "HBASE",
-      "category": "HBase"
+      "category": "RegionServer"
     },
     {
       "id": "puppet var",
-      "name": "hbase_principal_name",
+      "name": "hbase_regionserver_principal_name",
       "displayName": "Principal name",
       "value": "",
       "defaultValue": "hbase/_HOST",
-      "description": "Principal name for HBase master and RegionServer. _HOST will get automatically replaced with actual hostname at every instance of HBase master and RegionServer",
-      "displayType": "advanced",
+      "description": "Principal name for HBase RegionServer. _HOST will get automatically replaced with actual hostname at every instance of RegionServer",
+      "displayType": "principal",
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "HBASE",
-      "category": "HBase",
-      "components": ["HBASE_MASTER", "HBASE_REGIONSERVER"]
+      "category": "RegionServer",
+      "components": ["HBASE_REGIONSERVER"]
     },
     {
       "id": "puppet var",
-      "name": "hbase_service_keytab",
+      "name": "hbase_regionserver_keytab",
       "displayName": "Path to Keytab file",
       "value": "",
       "defaultValue": "/etc/security/keytabs/hbase.service.keytab",
-      "description": "Path to HBase master and RegionServer keytab file",
+      "description": "Path to HBase RegionServer keytab file",
       "displayType": "directory",
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "HBASE",
-      "category": "HBase",
-      "components": ["HBASE_MASTER", "HBASE_REGIONSERVER"]
+      "category": "RegionServer",
+      "components": ["HBASE_REGIONSERVER"]
     },
 
     //HIVE
@@ -430,7 +568,7 @@ module.exports =
       "displayName": "Hive Metastore host",
       "value": "",
       "defaultValue": "localhost",
-      "description": "The host that has been assigned to run Hive Metastore",
+      "description": "The host that has been assigned to run Hive Metastore and HiveServer2",
       "displayType": "masterHost",
       "isVisible": true,
       "isOverridable": false,
@@ -443,8 +581,8 @@ module.exports =
       "displayName": "Principal name",
       "value": "",
       "defaultValue": "hive/_HOST",
-      "description": "Principal name for Hive Metastore. _HOST will get automatically replaced with actual hostname at an instance of Hive Metastore",
-      "displayType": "advanced",
+      "description": "Principal name for Hive Metastore and HiveServer2. _HOST will get automatically replaced with actual hostname at an instance of Hive Metastore and HiveServer2",
+      "displayType": "principal",
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "HIVE",
@@ -453,18 +591,17 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "hive_metastore__keytab",
+      "name": "hive_metastore_keytab",
       "displayName": "Path to Keytab file",
       "value": "",
       "defaultValue": "/etc/security/keytabs/hive.service.keytab",
-      "description": "Path to Hive Metastore keytab file",
+      "description": "Path to Hive Metastore and HiveServer2 keytab file",
       "displayType": "directory",
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "HIVE",
       "category": "Hive Metastore",
       "component": "HIVE_SERVER"
-
     },
 
     //OOZIE
@@ -488,7 +625,7 @@ module.exports =
       "value": "",
       "defaultValue": "oozie/_HOST",
       "description": "Principal name for Oozie server",
-      "displayType": "advanced",
+      "displayType": "principal",
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "OOZIE",
@@ -508,6 +645,32 @@ module.exports =
       "serviceName": "OOZIE",
       "category": "Oozie Server",
       "component": "OOZIE_SERVER"
+    },
+    {
+      "id": "puppet var",
+      "name": "oozie_http_principal_name",
+      "displayName": "Oozie Web Principal name",
+      "value": "",
+      "defaultValue": "HTTP/_HOST",
+      "description": "Principal name for spnego access for Oozie",
+      "displayType": "principal",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "OOZIE",
+      "category": "Oozie Server"
+    },
+    {
+      "id": "puppet var",
+      "name": "oozie_http_keytab",
+      "displayName": "Path to spnego keytab file",
+      "value": "",
+      "defaultValue": "/etc/security/keytabs/spnego.service.keytab",
+      "description": "Path to spnego keytab file for oozie",
+      "displayType": "directory",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "OOZIE",
+      "category": "Oozie Server"
     },
 
     //ZooKeeper
@@ -531,7 +694,7 @@ module.exports =
       "value": "",
       "defaultValue": "zookeeper/_HOST",
       "description": "Principal name for ZooKeeper. _HOST will get automatically replaced with actual hostname at every instance of zookeeper server",
-      "displayType": "advanced",
+      "displayType": "principal",
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "ZOOKEEPER",
@@ -573,7 +736,7 @@ module.exports =
       "value": "",
       "defaultValue": "nagios",
       "description": "Primary name for Nagios server",
-      "displayType": "advanced",
+      "displayType": "principal",
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "NAGIOS",

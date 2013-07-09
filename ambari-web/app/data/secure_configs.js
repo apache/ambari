@@ -26,11 +26,12 @@ var configProperties = App.SecureConfigProperties.create();
 module.exports = [
   {
     serviceName: 'GENERAL',
-    displayName: 'Kerberos',
+    displayName: 'General',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'KERBEROS', displayName: 'General'})
+      App.ServiceConfigCategory.create({ name: 'KERBEROS', displayName: 'Kerberos'}),
+      App.ServiceConfigCategory.create({ name: 'AMBARI', displayName: 'Ambari'})
     ],
-    sites: ['global','webhcat-site'],
+    sites: ['global'],
     configs: configProperties.filterProperty('serviceName', 'GENERAL')
   },
   {
@@ -52,7 +53,7 @@ module.exports = [
     displayName: 'MapReduce',
     filename: 'mapred-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'JobTracker', displayName: 'JobTracker'}),
+      App.ServiceConfigCategory.create({ name: 'JobTracker', displayName: 'JobTracker and Job History Server'}),
       App.ServiceConfigCategory.create({ name: 'TaskTracker', displayName: 'TaskTracker'})
     ],
     sites: ['mapred-site'],
@@ -64,17 +65,28 @@ module.exports = [
     displayName: 'Hive',
     filename: 'hive-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'Hive Metastore', displayName: 'Hive Metastore'})
+      App.ServiceConfigCategory.create({ name: 'Hive Metastore', displayName: 'Hive Metastore and Hive Server 2'})
     ],
     sites: ['hive-site'],
     configs: configProperties.filterProperty('serviceName', 'HIVE')
+  },
+  {
+    serviceName: 'WEBHCAT',
+    displayName: 'WebHCat',
+    filename: 'webhcat-site',
+    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'WebHCat Server', displayName : 'WebHCat Server'})
+    ],
+    sites: ['webhcat-site'],
+    configs: configProperties.filterProperty('serviceName', 'WEBHCAT')
   },
   {
     serviceName: 'HBASE',
     displayName: 'HBase',
     filename: 'hbase-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'HBase', displayName: 'HBase'})
+      App.ServiceConfigCategory.create({ name: 'HBase Master', displayName : 'HBase Master'}),
+      App.ServiceConfigCategory.create({ name: 'RegionServer', displayName : 'RegionServer'})
     ],
     sites: ['hbase-site'],
     configs: configProperties.filterProperty('serviceName', 'HBASE')

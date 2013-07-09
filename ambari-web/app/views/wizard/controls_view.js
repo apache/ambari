@@ -71,6 +71,8 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
     // sets the width of the field depending on display type
     if (['directory', 'url', 'email', 'user', 'host','advanced'].contains(this.get('serviceConfig.displayType'))) {
       return ['span6'];
+    } else if (this.get('serviceConfig.displayType') === 'principal'){
+      return ['span12'];
     } else {
       return ['input-small'];
     }

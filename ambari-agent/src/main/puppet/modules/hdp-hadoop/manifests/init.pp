@@ -378,10 +378,10 @@ define hdp-hadoop::exec-hadoop(
 
   if (($security_enabled == true) and ($kinit_override == false)) {
     if ($run_user in [$hdfs_user,'root']) {
-      $keytab = "${hdp::params::keytab_path}/hdfs.headless.keytab"
+      $keytab = $hdp::params::hdfs_user_keytab
       $principal = $hdfs_user
     } elsif ($run_user in [$hbase_user]) {
-      $keytab = "${hdp::params::keytab_path}/hbase.headless.keytab"
+      $keytab = $hdp::params::hbase_user_keytab
       $principal = $hbase_user
     } else {
       $keytab = $hdp::params::smokeuser_keytab

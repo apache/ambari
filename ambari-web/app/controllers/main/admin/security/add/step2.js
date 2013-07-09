@@ -25,6 +25,7 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
   stepConfigs: [],
   installedServices: [],
   selectedService: null,
+  securityUsers: [],
 
   isSubmitDisabled: function () {
     return !this.stepConfigs.filterProperty('showConfig', true).everyProperty('errorCount', 0);
@@ -32,6 +33,7 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
 
   clearStep: function () {
     this.get('stepConfigs').clear();
+    this.get('securityUsers').clear();
   },
 
 
@@ -41,6 +43,8 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
   loadStep: function () {
     console.log("TRACE: Loading addSecurity step2: Configure Services");
     this.clearStep();
+    this.loadUsers();
+    this.addUserPrincipals(this.get('content.services'));
     this.addMasterHostToGlobals(this.get('content.services'));
     this.addSlaveHostToGlobals(this.get('content.services'));
     this.renderServiceConfigs(this.get('content.services'));
@@ -127,6 +131,47 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     }
   },
 
+  loadUsers: function() {
+    var securityUsers = App.router.get('mainAdminSecurityController').get('serviceUsers');
+    if (!securityUsers || securityUsers.length < 1) { // Page could be refreshed in middle
+      if (App.testMode) {
+        securityUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'hdfs'});
+        securityUsers.pushObject({id: 'puppet var', name: 'mapred_user', value: 'mapred'});
+        securityUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: 'hbase'});
+        securityUsers.pushObject({id: 'puppet var', name: 'hive_user', value: 'hive'});
+        securityUsers.pushObject({id: 'puppet var', name: 'smokeuser', value: 'ambari-qa'});
+      } else {
+        App.router.get('mainAdminSecurityController').setSecurityStatus();
+        securityUsers = App.router.get('mainAdminSecurityController').get('serviceUsers');
+      }
+    }
+    this.set('securityUsers',securityUsers);
+  },
+
+  addUserPrincipals: function(serviceConfigs) {
+    var securityUsers = this.get('securityUsers');
+    var smokeUser = securityUsers.findProperty('name', 'smokeuser');
+    var hdfsUser = securityUsers.findProperty('name', 'hdfs_user');
+    var hbaseUser = securityUsers.findProperty('name', 'hbase_user');
+    var generalService = serviceConfigs.findProperty('serviceName', 'GENERAL');
+    var smokeUserPrincipal = generalService.configs.findProperty('name', 'smokeuser_principal_name');
+    var hdfsUserPrincipal = generalService.configs.findProperty('name', 'hdfs_principal_name');
+    var hbaseUserPrincipal = generalService.configs.findProperty('name', 'hbase_principal_name');
+    var hbaseUserKeytab = generalService.configs.findProperty('name', 'hbase_user_keytab');
+    var hbaseService = serviceConfigs.findProperty('serviceName', 'HBASE');
+    if(smokeUser && smokeUserPrincipal) {
+      smokeUserPrincipal.defaultValue = smokeUser.value;
+    }
+    if(hdfsUser && hdfsUserPrincipal) {
+      hdfsUserPrincipal.defaultValue = hdfsUser.value;
+    }
+    if(hbaseService && hbaseUser && hbaseUserPrincipal) {
+      hbaseUserPrincipal.defaultValue = hbaseUser.value;
+      hbaseUserPrincipal.isVisible = true;
+      hbaseUserKeytab.isVisible = true;
+    }
+  },
+
   addSlaveHostToGlobals: function(serviceConfigs){
     var hdfsService = serviceConfigs.findProperty('serviceName', 'HDFS');
     var mapReduceService = serviceConfigs.findProperty('serviceName', 'MAPREDUCE');
@@ -139,9 +184,8 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
   addMasterHostToGlobals: function (serviceConfigs) {
     var oozieService = serviceConfigs.findProperty('serviceName', 'OOZIE');
     var hiveService = serviceConfigs.findProperty('serviceName', 'HIVE');
-    var webHcatService = App.Service.find().mapProperty('serviceName').contains('WEBHCAT');
+    var webHcatService = serviceConfigs.findProperty('serviceName', 'WEBHCAT');
     var nagiosService = serviceConfigs.findProperty('serviceName', 'NAGIOS');
-    var generalService = serviceConfigs.findProperty('serviceName', 'GENERAL');
     var hbaseService = serviceConfigs.findProperty('serviceName', 'HBASE');
     var zooKeeperService = serviceConfigs.findProperty('serviceName', 'ZOOKEEPER');
     var hdfsService = serviceConfigs.findProperty('serviceName', 'HDFS');
@@ -149,12 +193,11 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     if (oozieService) {
       var oozieServerHost = oozieService.configs.findProperty('name', 'oozie_servername');
       var oozieServerPrincipal = oozieService.configs.findProperty('name', 'oozie_principal_name');
-      var oozieSpnegoPrincipal =  generalService.configs.findProperty('name', 'oozie_http_principal_name');
+      var oozieSpnegoPrincipal =  oozieService.configs.findProperty('name', 'oozie_http_principal_name');
       if (oozieServerHost && oozieServerPrincipal && oozieSpnegoPrincipal) {
         oozieServerHost.defaultValue = App.Service.find('OOZIE').get('hostComponents').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
         oozieServerPrincipal.defaultValue = 'oozie/' + oozieServerHost.defaultValue;
         oozieSpnegoPrincipal.defaultValue = 'HTTP/' + oozieServerHost.defaultValue;
-        oozieSpnegoPrincipal.isVisible = true;
       }
     }
     if (hiveService) {
@@ -163,13 +206,12 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
         hiveServerHost.defaultValue = App.Service.find('HIVE').get('hostComponents').findProperty('componentName', 'HIVE_SERVER').get('host.hostName');
       }
     }
-
     if(webHcatService) {
-      var webHcatHost =  App.Service.find('WEBHCAT').get('hostComponents').findProperty('componentName', 'WEBHCAT_SERVER').get('host.hostName');
-      var webHcatSpnegoPrincipal =  generalService.configs.findProperty('name', 'webHCat_http_principal_name');
+      var webHcatHost =  webHcatService.configs.findProperty('name', 'webhcatserver_host');
+      var webHcatSpnegoPrincipal =  webHcatService.configs.findProperty('name', 'webHCat_http_principal_name');
       if(webHcatHost && webHcatSpnegoPrincipal) {
-        webHcatSpnegoPrincipal.defaultValue = 'HTTP/' + webHcatHost;
-        webHcatSpnegoPrincipal.isVisible = true;
+        webHcatHost.defaultValue =  App.Service.find('WEBHCAT').get('hostComponents').findProperty('componentName', 'WEBHCAT_SERVER').get('host.hostName');
+        webHcatSpnegoPrincipal.defaultValue = 'HTTP/' + webHcatHost.defaultValue;
       }
     }
 

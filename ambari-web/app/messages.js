@@ -628,7 +628,7 @@ Em.I18n.translations = {
   'admin.security.enable.popup.header': 'Add security',
   'admin.security.disable.popup.header': 'Remove security',
   'admin.security.disable.popup.body': 'Kerberos security will be disabled on the cluster',
-  'admin.addSecurity.header': 'Add security wizard',
+  'admin.addSecurity.header': 'Enable Security Wizard',
   'admin.security.step1.header': 'Get Started',
   'admin.security.step2.header': 'Configure Services',
   'admin.security.step3.header': 'Create Principals and Keytabs',
@@ -661,7 +661,9 @@ Em.I18n.translations = {
   'admin.addSecurity.user.smokeUser': 'Ambari Smoke Test User',
   'admin.addSecurity.user.hdfsUser': 'HDFS User',
   'admin.addSecurity.user.hbaseUser': 'HBase User',
-  'admin.addSecurity.user.httpUser': 'SPNEGO User',
+  'admin.addSecurity.hdfs.user.httpUser': 'HDFS SPNEGO User',
+  'admin.addSecurity.webhcat.user.httpUser': 'WebHCat SPNEGO User',
+  'admin.addSecurity.oozie.user.httpUser': 'Oozie SPNEGO User',
   'admin.addSecurity.enable.onClose': 'You are in the process of enabling security on your cluster. ' +
     'Are you sure you want to quit? If you quit, ' +
     'you may have to re-run the security wizard from the beginning to enable security.',
