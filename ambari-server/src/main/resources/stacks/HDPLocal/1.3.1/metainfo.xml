@@ -18,6 +18,5 @@
 <metainfo>
     <versions>
 	  <upgrade>1.2.0</upgrade>
-	  <active>true</active>
     </versions>
 </metainfo>
