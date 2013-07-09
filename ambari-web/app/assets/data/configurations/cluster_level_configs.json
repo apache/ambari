@@ -199,7 +199,7 @@
         "oozie.base.url" : "http://dev.hortonworks.com:11000/oozie",
         "oozie.service.JPAService.jdbc.username" : "sa",
         "oozie.service.CallableQueueService.queue.size" : "1000",
-        "oozie.authentication.kerberos.name.rules" : "\n        RULE:[2:$1@$0]([jt]t@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-MAPREDUSER/\n        RULE:[2:$1@$0]([nd]n@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HDFSUSER/\n        RULE:[2:$1@$0](hm@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HBASE-USER/\n        RULE:[2:$1@$0](rs@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HBASE-USER/\n        DEFAULT\n        ",
+        "oozie.authentication.kerberos.name.rules" : "RULE:[2:$1@$0]([jt]t@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-MAPREDUSER/\nRULE:[2:$1@$0]([nd]n@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HDFSUSER/\nRULE:[2:$1@$0](hm@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HBASE-USER/\nRULE:[2:$1@$0](rs@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HBASE-USER/\nDEFAULT",
         "oozie.service.HadoopAccessorService.nameNode.whitelist" : " ",
         "oozie.service.SchemaService.wf.ext.schemas" : "shell-action-0.1.xsd,email-action-0.1.xsd,hive-action-0.2.xsd,sqoop-action-0.2.xsd,ssh-action-0.1.xsd,distcp-action-0.1.xsd",
         "oozie.service.WorkflowAppService.system.libpath" : "/user/${user.name}/share/lib",
@@ -211,7 +211,7 @@
         "oozie.service.JPAService.jdbc.url" : "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true",
         "oozie.service.JPAService.jdbc.driver" : "org.apache.derby.jdbc.EmbeddedDriver",
         "oozie.service.HadoopAccessorService.hadoop.configurations" : "*=/etc/hadoop/conf",
-        "oozie.service.ActionService.executor.ext.classes" : "\n            org.apache.oozie.action.email.EmailActionExecutor,\n            org.apache.oozie.action.hadoop.HiveActionExecutor,\n            org.apache.oozie.action.hadoop.ShellActionExecutor,\n            org.apache.oozie.action.hadoop.SqoopActionExecutor,\n            org.apache.oozie.action.hadoop.DistcpActionExecutor\n        "
+        "oozie.service.ActionService.executor.ext.classes" : "org.apache.oozie.action.email.EmailActionExecutor,\norg.apache.oozie.action.hadoop.HiveActionExecutor,\norg.apache.oozie.action.hadoop.ShellActionExecutor,\norg.apache.oozie.action.hadoop.SqoopActionExecutor,\norg.apache.oozie.action.hadoop.DistcpActionExecutor"
       }
     },
     {

@@ -299,7 +299,7 @@ App.config = Em.Object.create({
            * (/^\s+$/.test(_config.value)) { _config.isRequired = false; }
            */
           _config.isRequired = true;
-          _config.displayType = 'advanced';
+          _config.displayType = stringUtils.isSingleLine(_config.value) ? 'advanced' : 'multiLine';
           serviceConfigs.push(_config);
         }
       }

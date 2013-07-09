@@ -17,7 +17,7 @@
       "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.authentication.kerberos.name.rules",
       "StackConfigurations" : {
         "property_description" : "The mapping from kerberos principal names to local OS user names.",
-        "property_value" : "\n        RULE:[2:$1@$0]([jt]t@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-MAPREDUSER/\n        RULE:[2:$1@$0]([nd]n@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HDFSUSER/\n        RULE:[2:$1@$0](hm@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HBASE-USER/\n        RULE:[2:$1@$0](rs@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HBASE-USER/\n        DEFAULT\n        ",
+        "property_value" : "RULE:[2:$1@$0]([jt]t@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-MAPREDUSER/\nRULE:[2:$1@$0]([nd]n@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HDFSUSER/\nRULE:[2:$1@$0](hm@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HBASE-USER/\nRULE:[2:$1@$0](rs@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HBASE-USER/\nDEFAULT",
         "stack_version" : "1.3.0",
         "property_name" : "oozie.authentication.kerberos.name.rules",
         "filename" : "oozie-site.xml",
@@ -161,7 +161,7 @@
       "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/1.3.0/stackServices/OOZIE/configurations/oozie.service.ActionService.executor.ext.classes",
       "StackConfigurations" : {
         "property_description" : null,
-        "property_value" : "\n            org.apache.oozie.action.email.EmailActionExecutor,\n            org.apache.oozie.action.hadoop.HiveActionExecutor,\n            org.apache.oozie.action.hadoop.ShellActionExecutor,\n            org.apache.oozie.action.hadoop.SqoopActionExecutor,\n            org.apache.oozie.action.hadoop.DistcpActionExecutor\n        ",
+        "property_value" : "org.apache.oozie.action.email.EmailActionExecutor,\norg.apache.oozie.action.hadoop.HiveActionExecutor,\norg.apache.oozie.action.hadoop.ShellActionExecutor,\norg.apache.oozie.action.hadoop.SqoopActionExecutor,\norg.apache.oozie.action.hadoop.DistcpActionExecutor",
         "stack_version" : "1.3.0",
         "property_name" : "oozie.service.ActionService.executor.ext.classes",
         "filename" : "oozie-site.xml",
