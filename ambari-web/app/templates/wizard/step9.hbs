@@ -77,6 +77,7 @@
         </thead>
 
         <tbody>
+        {{#if controller.visibleHosts.length}}
         {{#each host in controller.visibleHosts}}
         {{#view App.HostStatusView objBinding="host"}}
         <td>
@@ -99,6 +100,11 @@
 
         {{/view}}
         {{/each}}
+        {{else}}
+        <tr>
+            <td colspan="3"><p>{{t installer.step3.hosts.noHosts}}</p></td>
+        </tr>
+        {{/if}}
 
         </tbody>
       </table>
