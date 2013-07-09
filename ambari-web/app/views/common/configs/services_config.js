@@ -211,7 +211,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
             classNames: ['modal-footer'],
             template: Ember.Handlebars.compile([
               '<div class="pull-right">',
-              '<button class="btn" {{action onUndo target="view.parentView"}}>Undo</button>',
+              '<button class="btn" {{action onUndo target="view.parentView"}}>Cancel</button>',
               '<button class="btn btn-warning" {{action onIgnore target="view.parentView"}}>Ignore</button>',
               '<button class="btn btn-success" {{action onApply target="view.parentView"}}>Apply</button>',
               '</div>'
