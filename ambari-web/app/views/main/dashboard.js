@@ -58,7 +58,7 @@ App.MainDashboardView = Em.View.extend({
             newValue.visible.push(id);
           }
           self.postUserPref(self.get('persistKey'), newValue);
-          // self.translateToReal(newValue);
+          //self.translateToReal(newValue);
         }
       }
     });
@@ -84,39 +84,39 @@ App.MainDashboardView = Em.View.extend({
   },
   setInitPrefObject: function() {
     //in case of some service not installed
-    var visible_full = [
+    var visibleFull = [
       '2', '4', '8', '10',
       '17', '11', '12', '13', '14',
       '18', '1', '6', '5', '9',
       '3', '7', '15', '16', '20',
       '19', '21', '23'
     ]; // all in order
-    var hidden_full = [['22','Region In Transition']];
+    var hiddenFull = [['22','Region In Transition']];
     if (this.get('hdfs_model') == null) {
-      var hdfs_arr = ['1', '2', '3', '4', '5', '15', '17'];
-      hdfs_arr.forEach ( function (item) {
-        var index = visible_full.indexOf(item);
-        visible_full.splice(index, 1);
+      var hdfs= ['1', '2', '3', '4', '5', '15', '17'];
+      hdfs.forEach ( function (item) {
+        var index = visibleFull.indexOf(item);
+        visibleFull.splice(index, 1);
       }, this);
     }
     if (this.get('mapreduce_model') == null) {
-      var map_arr = ['6', '7', '8', '9', '10', '16', '18'];
-      map_arr.forEach ( function (item) {
-        var index = visible_full.indexOf(item);
-        visible_full.splice(index, 1);
+      var map = ['6', '7', '8', '9', '10', '16', '18'];
+      map.forEach ( function (item) {
+        var index = visibleFull.indexOf(item);
+        visibleFull.splice(index, 1);
       }, this);
     }
     if (this.get('hbase_model') == null) {
-      var hbase_arr = ['19', '20', '21', '23'];
-      hbase_arr.forEach ( function (item) {
-        var index = visible_full.indexOf(item);
-        visible_full.splice(index, 1);
+      var hbase = ['19', '20', '21', '23'];
+      hbase.forEach ( function (item) {
+        var index = visibleFull.indexOf(item);
+        visibleFull.splice(index, 1);
       }, this);
-      hidden_full = [];
+      hiddenFull = [];
     }
     var obj = this.get('initPrefObject');
-    obj.visible = visible_full;
-    obj.hidden = hidden_full;
+    obj.visible = visibleFull;
+    obj.hidden = hiddenFull;
   },
   
   hdfs_model: null,
@@ -147,8 +147,8 @@ App.MainDashboardView = Em.View.extend({
         if (App.testMode) {
           var visibleWidgets = this.get('visibleWidgets');
           checkedWidgets.forEach(function(item){
-            var new_obj = parent.widgetsMapper(item.id);
-            visibleWidgets.pushObject(new_obj);
+            var newObj = parent.widgetsMapper(item.id);
+            visibleWidgets.pushObject(newObj);
             hiddenWidgets.removeObject(item);
           }, this);
         } else {
@@ -187,39 +187,31 @@ App.MainDashboardView = Em.View.extend({
 
     if (version == 'classic') {
       this.set('isClassicDashboard', true);
-    }else if(version == 'new'){
+    } else if (version == 'new') {
       this.set('isClassicDashboard', false);
-      // clear current visible and hiddenWidgets
-      var visibleWidgets = this.get('visibleWidgets');
-      var size = visibleWidgets.length;
-      for (var i = 1; i <= size; i++) {
-        visibleWidgets.removeAt(0);
-      }
-      var hiddenWidgets = this.get('hiddenWidgets');
-      var size = hiddenWidgets.length;
-      for (var i = 1; i <= size; i++) {
-        hiddenWidgets.removeAt(0);
-      }
+      var visibleWidgets = [];
+      var hiddenWidgets = [];
       // re-construct visibleWidgets and hiddenWidgets
-      for (var j = 0; j <= visible.length -1; j++){
-        var cur_id = visible[j];
-        var widgetClass = this.widgetsMapper(cur_id);
+      for (var j = 0; j <= visible.length -1; j++) {
+        var id = visible[j];
+        var widgetClass = this.widgetsMapper(id);
         //override with new threshold
-        if (threshold[cur_id].length > 0) {
+        if (threshold[id].length > 0) {
           widgetClass.reopen({
-            thresh1: threshold[cur_id][0],
-            thresh2: threshold[cur_id][1]
+            thresh1: threshold[id][0],
+            thresh2: threshold[id][1]
           });
         }
         visibleWidgets.pushObject(widgetClass);
       }
-      for (var j = 0; j <= hidden.length -1; j++){
-        var cur_id = hidden[j][0];
-        var cur_title = hidden[j][1];
-        hiddenWidgets.pushObject(Em.Object.create({displayName:cur_title , id: cur_id, checked: false}));
+      for (var j = 0; j <= hidden.length -1; j++) {
+        var id = hidden[j][0];
+        var title = hidden[j][1];
+        hiddenWidgets.pushObject(Em.Object.create({displayName:title , id: id, checked: false}));
       }
+      this.set('visibleWidgets', visibleWidgets);
+      this.set('hiddenWidgets', hiddenWidgets);
     }
-
   },
 
   setOnLoadVisibleWidgets: function () {

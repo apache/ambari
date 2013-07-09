@@ -58,12 +58,12 @@ App.DashboardWidgetView = Em.View.extend({
 
   deleteWidget: function (event) {
     var parent = this.get('parentView');
-    //update view on dashboard
-    var obj_class = parent.widgetsMapper(this.id);
-    parent.get('visibleWidgets').removeObject(obj_class);
-    parent.get('hiddenWidgets').pushObject(Em.Object.create({displayName: this.title, id: this.id, checked: false}));
-
-    if (!App.testMode) {
+    if (App.testMode) {
+      //update view on dashboard
+      var objClass = parent.widgetsMapper(this.id);
+      parent.get('visibleWidgets').removeObject(objClass);
+      parent.get('hiddenWidgets').pushObject(Em.Object.create({displayName: this.title, id: this.id, checked: false}));
+    } else {
       //reconstruct new persist value then post in persist
       parent.getUserPref(parent.get('persistKey'));
       var oldValue = parent.get('currentPrefObject');
@@ -74,15 +74,15 @@ App.DashboardWidgetView = Em.View.extend({
         hidden: oldValue.hidden,
         threshold: oldValue.threshold
       });
-      for(var i = 0; i <= oldValue.visible.length -1; i++){
-        if(oldValue.visible[i] != deletedId){
+      for (var i = 0; i <= oldValue.visible.length - 1; i++) {
+        if (oldValue.visible[i] != deletedId) {
           newValue.visible.push(oldValue.visible[i]);
         }
       }
       newValue.hidden.push([deletedId, this.title]);
       parent.postUserPref(parent.get('persistKey'), newValue);
+      parent.translateToReal(newValue);
     }
-
   },
 
   editWidget: function (event) {
@@ -101,7 +101,7 @@ App.DashboardWidgetView = Em.View.extend({
       observeNewThresholdValue: function () {
         var thresh1 = this.get('thresh1');
         var thresh2 = this.get('thresh2');
-        if(thresh1.trim() != ""){
+        if (thresh1.trim() != "") {
           if (isNaN(thresh1) || thresh1 > max_tmp || thresh1 < 0) {
             this.set('isThresh1Error', true);
             this.set('errorMessage1', 'Invalid! Enter a number between 0 - ' + max_tmp);
@@ -230,7 +230,7 @@ App.DashboardWidgetView = Em.View.extend({
         rv = parseFloat( RegExp.$1 ); // IE version 1-10
     }
     var isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
-    if(isFirefox) {
+    if (isFirefox) {
       return -2;
     }else{
       return rv;
