@@ -662,8 +662,9 @@ module.exports = Em.Route.extend({
             controller.setAddSecurityWizardStatus(currentClusterStatus.localdb.status);
             App.db.setServiceConfigProperties(currentClusterStatus.localdb.secureConfigProperties);
             App.db.setWizardCurrentStep('AddSecurity', currentClusterStatus.localdb.currentStep);
+            App.db.setDisableSecurityStatus(currentClusterStatus.localdb.disableSecurityStatus);
           }
-          App.db.setDisableSecurityStatus(currentClusterStatus.localdb.disableSecurityStatus);
+
         }
         if (!(controller.getAddSecurityWizardStatus() === 'RUNNING') && !(controller.getDisableSecurityStatus() === 'RUNNING')) {
           Em.run.next(function () {

@@ -30,7 +30,9 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
   globalProperties: [],
 
   isSubmitDisabled: true,
-  isBackBtnDisabled: true,
+  isBackBtnDisabled: function () {
+    return !this.get('stages').someProperty('isError', true);
+  }.property('stages.@each.isCompleted'),
 
   isOozieSelected: function () {
     return this.get('content.services').someProperty('serviceName', 'OOZIE');
@@ -69,34 +71,35 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
     this.get('serviceConfigTags').clear();
   },
 
+  retry: function () {
+    if (this.get('stages').someProperty('isError', true)) {
+      var failedStages = this.get('stages').filterProperty('isError', true);
+      failedStages.setEach('isError', false);
+      failedStages.setEach('isSuccess', false);
+      failedStages.setEach('isStarted', false);
+    }
+    this.moveToNextStage();
+  },
+
   loadStep: function () {
     this.set('secureMapping', require('data/secure_mapping').slice(0));
-    var stages = App.db.getSecurityDeployStages();
     this.clearStep();
+    var stages = App.db.getSecurityDeployStages();
     this.prepareSecureConfigs();
     if (stages && stages.length > 0) {
       stages.forEach(function (_stage, index) {
         stages[index] = App.Poll.create(_stage);
       }, this);
-      var stopServices = stages.findProperty('name', 'STOP_SERVICES');
-      var runningOperation = App.router.get('backgroundOperationsController.services').findProperty('isRunning');
-      if(stopServices.get('isStarted')){
-        if(stopServices.get('isCompleted') || !runningOperation || !(runningOperation.get('name') === 'Stop All Services')){
-          stopServices.set('requestId', undefined);
-          stopServices.set('isError', false);
-          stopServices.set('isSuccess', false);
-          stopServices.set('isStarted', false);
-        }
-      }
       if (stages.someProperty('isError', true)) {
-        var failedStages = stages.filterProperty('isError', true);
-        failedStages.setEach('isError', false);
-        failedStages.setEach('isStarted', false);
+        this.get('stages').pushObjects(stages);
+        return;
       } else if (stages.filterProperty('isStarted', true).someProperty('isCompleted', false)) {
         var runningStage = stages.filterProperty('isStarted', true).findProperty('isCompleted', false);
         runningStage.set('isStarted', false);
+        this.get('stages').pushObjects(stages);
+      } else {
+        this.get('stages').pushObjects(stages);
       }
-      this.get('stages').pushObjects(stages);
     } else {
       this.loadStages();
       this.addInfoToStages();
@@ -111,14 +114,15 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
   },
 
   enableSubmit: function () {
+    var addSecurityController = App.router.get('addSecurityController');
     if (this.get('stages').someProperty('isError', true) || this.get('stages').everyProperty('isSuccess', true)) {
       this.set('isSubmitDisabled', false);
       if (this.get('stages').someProperty('isError', true)) {
-        this.set('isBackBtnDisabled', false);
-        App.router.get('addSecurityController').setStepsEnable();
+        addSecurityController.setStepsEnable();
       }
     } else {
       this.set('isSubmitDisabled', true);
+      addSecurityController.setLowerStepsDisable(4);
     }
   }.observes('stages.@each.isCompleted'),
 
@@ -236,7 +240,7 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
     }, this);
     var dependentConfig = this.get('secureMapping').filterProperty('foreignKey');
     dependentConfig.forEach(function (_config) {
-      if (App.Service.find().mapProperty('serviceName').contains( _config.serviceName)) {
+      if (App.Service.find().mapProperty('serviceName').contains(_config.serviceName)) {
         this.setConfigValue(uiConfig, _config);
         uiConfig.pushObject({
           "id": "site property",
@@ -249,12 +253,14 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
     return uiConfig;
   },
 
-  checkServiceForConfigValue: function(value, serviceName, replace) {
+
+  checkServiceForConfigValue: function (value, serviceName, replace) {
     if (!App.Service.find().mapProperty('serviceName').contains(serviceName)) {
       value = value.replace(replace, '');
     }
     return value;
   },
+
 
   /**
    * Set all site property that are derived from other puppet-variable
@@ -369,6 +375,15 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
         value: hiveHostName
       });
     }
+    var webHcatComponent = App.Service.find('WEBHCAT').get('hostComponents').findProperty('componentName', 'WEBHCAT_SERVER');
+    if (this.isWebHcatSelected() && webHcatComponent) {
+      var webHcatHostName = webHcatComponent.get('host.hostName');
+      this.get('globalProperties').pushObject({
+        id: 'puppet var',
+        name: 'webhcat_server',
+        value: webHcatHostName
+      });
+    }
   },
 
   loadStaticGlobal: function () {
@@ -452,7 +467,11 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
   },
 
   loadClusterConfigsErrorCallback: function (request, ajaxOptions, error) {
-    this.get('stages').findProperty('stage', 'stage3').set('isError', true);
+    var stage3 = this.get('stages').findProperty('stage', 'stage3');
+    if (stage3) {
+      stage3.set('isSuccess', false);
+      stage3.set('isError', true);
+    }
     console.log("TRACE: error code status is: " + request.status);
   },
 
@@ -505,11 +524,16 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
     if (this.get('noOfWaitingAjaxCalls') == 0) {
       var currentStage = this.get('stages').findProperty('stage', 'stage3');
       currentStage.set('isSuccess', true);
+      currentStage.set('isError', false);
     }
   },
 
   applyConfigurationToClusterErrorCallback: function (request, ajaxOptions, error) {
-    this.get('stages').findProperty('stage', 'stage3').set('isError', true);
+    var stage3 = this.get('stages').findProperty('stage', 'stage3');
+    if (stage3) {
+      stage3.set('isSuccess', false);
+      stage3.set('isError', true);
+    }
   },
 
   /**
@@ -537,10 +561,14 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
 
   getAllConfigurationsSuccessCallback: function (data) {
     console.log("TRACE: In success function for the GET getServiceConfigsFromServer call");
+    var stage3 = this.get('stages').findProperty('stage', 'stage3');
     this.get('serviceConfigTags').forEach(function (_tag) {
       if (!data.items.someProperty('type', _tag.siteName)) {
         console.log("Error: Metadata for secure services (secure_configs.js) is having config tags that are not being retrieved from server");
-        this.get('stages').findProperty('stage', 'stage3').set('isError', true);
+        if (stage3) {
+          stage3.set('isSuccess', false);
+          stage3.set('isError', true);
+        }
       }
       _tag.configs = data.items.findProperty('type', _tag.siteName).properties;
     }, this);
@@ -549,7 +577,11 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
   },
 
   getAllConfigurationsErrorCallback: function (request, ajaxOptions, error) {
-    this.get('stages').findProperty('stage', 'stage3').set('isError', true);
+    var stage3 = this.get('stages').findProperty('stage', 'stage3');
+    if (stage3) {
+      stage3.set('isSuccess', false);
+      stage3.set('isError', true);
+    }
     console.log("TRACE: In error function for the getServiceConfigsFromServer call");
     console.log("TRACE: error code status is: " + request.status);
   },
@@ -568,7 +600,9 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
           zkPrincipalName.value = zkPrincipalName.value + '@' + realmName.value;
         }
         this.get('globalProperties').forEach(function (_globalProperty) {
-          _serviceConfigTags.configs[_globalProperty.name] = _globalProperty.value;
+          if (!/_hosts?$/.test(_globalProperty.name)) {
+            _serviceConfigTags.configs[_globalProperty.name] = _globalProperty.value;
+          }
         }, this);
       }
       else {
@@ -581,28 +615,32 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
 
   saveStages: function () {
     var stages = [];
-    this.get('stages').forEach(function (_stage) {
-      var stage = {
-        name: _stage.get('name'),
-        stage: _stage.get('stage'),
-        label: _stage.get('label'),
-        isPolling: _stage.get('isPolling'),
-        isStarted: _stage.get('isStarted'),
-        requestId: _stage.get('requestId'),
-        isSuccess: _stage.get('isSuccess'),
-        isError: _stage.get('isError'),
-        url: _stage.get('url'),
-        polledData: _stage.get('polledData'),
-        data: _stage.get('data')
-      };
-      stages.pushObject(stage);
-    }, this);
-    App.db.setSecurityDeployStages(stages);
-    App.clusterStatus.setClusterStatus({
-      clusterName: this.get('clusterName'),
-      clusterState: 'ADD_SECURITY_STEP_4',
-      wizardControllerName: App.router.get('addSecurityController.name'),
-      localdb: App.db.data
-    });
-  }.observes('stages.@each.requestId', 'stages.@each.isStarted', 'stages.@each.isCompleted')
+    if (this.get('stages').length === 3) {
+      this.get('stages').forEach(function (_stage) {
+        var stage = {
+          name: _stage.get('name'),
+          stage: _stage.get('stage'),
+          label: _stage.get('label'),
+          isPolling: _stage.get('isPolling'),
+          isStarted: _stage.get('isStarted'),
+          requestId: _stage.get('requestId'),
+          isSuccess: _stage.get('isSuccess'),
+          isError: _stage.get('isError'),
+          url: _stage.get('url'),
+          polledData: _stage.get('polledData'),
+          data: _stage.get('data')
+        };
+        stages.pushObject(stage);
+      }, this);
+      App.db.setSecurityDeployStages(stages);
+      if (!App.testMode) {
+        App.clusterStatus.setClusterStatus({
+          clusterName: this.get('clusterName'),
+          clusterState: 'ADD_SECURITY_STEP_3',
+          wizardControllerName: App.router.get('addSecurityController.name'),
+          localdb: App.db.data.AddSecurity
+        });
+      }
+    }
+  }.observes('stages.@each.requestId')
 });

@@ -658,8 +658,8 @@ Em.I18n.translations = {
   'admin.addSecurity.apply.stage4': '3. Start Services',
   'admin.addSecurity.apply.stage5': '5. Smoke Test',
   'admin.addSecurity.user.smokeUser': 'Ambari Smoke Test User',
-  'admin.addSecurity.user.hdfsUser': 'Ambari HDFS Test User',
-  'admin.addSecurity.user.hbaseUser': 'Ambari HBase Test User',
+  'admin.addSecurity.user.hdfsUser': 'HDFS User',
+  'admin.addSecurity.user.hbaseUser': 'HBase User',
   'admin.addSecurity.user.httpUser': 'SPNEGO User',
   'admin.addSecurity.enable.onClose': 'You are in the process of enabling security on your cluster. ' +
     'Are you sure you want to quit? If you quit, ' +
