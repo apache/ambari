@@ -43,6 +43,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -121,6 +122,7 @@ public class HBaseMasterPortScannerTest {
       service.getServiceComponent(HBASE_MASTER).addServiceComponentHost(hostname).persist();
       if (hostname.equals("127.0.0.1")) {
         serviceComponentHost = service.getServiceComponent(HBASE_MASTER).getServiceComponentHost(hostname);
+        serviceComponentHost.setState(State.STARTED);
       }
     }
     when(timerMock.purge()).thenReturn(0);

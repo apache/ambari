@@ -34,6 +34,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.State;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -275,20 +276,29 @@ public class HBaseMasterPortScanner implements Runnable {
     LOG.info("Set result of HBASE_MASTER scan");
   }
   
-  private boolean validateScanResults(Map<ServiceComponentHost, Boolean> scanResuls){
+  private boolean validateScanResults(Map<ServiceComponentHost, Boolean> scanResuls) {
     boolean res = false;
     int activeMasters = 0;
+    int startedComponents = 0;
     for (Map.Entry<ServiceComponentHost, Boolean> entry : scanResuls.entrySet()) {
-      activeMasters += (entry.getValue()) ? 1 : 0;
+      activeMasters += (entry.getValue() && entry.getKey().getState() == State.STARTED) ? 1 : 0;
+      startedComponents += (entry.getKey().getState() == State.STARTED) ? 1 : 0;
     }
-    if(activeMasters == 0 || activeMasters > 1) {
-      res = false;
+    if (startedComponents > 0) {
+      if (activeMasters == 0 || activeMasters > 1) {
+        res = false;
+      } else {
+        res = true;
+      }
+    } else {
+      if (activeMasters > 0) {
+        res = false;
+      } else {
+        res = true;
+      }
     }
-    else {
-      res = true;
-    } 
-    LOG.info("Results of HBASE_MASTER scan are "+ ((res) ? "valid" : "invalid"));
-    return res;  
+    LOG.info("Results of HBASE_MASTER scan are " + ((res) ? "valid" : "invalid"));
+    return res;
   }
   
   protected boolean scan(String hostname) {
