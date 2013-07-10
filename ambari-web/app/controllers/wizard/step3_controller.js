@@ -705,7 +705,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       var stackFoldersAndFiles = _host.Hosts.last_agent_env.stackFoldersAndFiles || _host.Hosts.last_agent_env.paths;
 
       stackFoldersAndFiles.forEach(function (path) {
-        warning = warnings.findProperty('name', path.name);
+        warning = warnings.filterProperty('category', 'fileFolders').findProperty('name', path.name);
         if (warning) {
           warning.hosts.push(_host.Hosts.host_name);
           warning.onSingleHost = false;
@@ -725,7 +725,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       _host.Hosts.last_agent_env.rpms.forEach(function (_package) {
 
         if (_package.installed) {
-          warning = warnings.findProperty('name', _package.name);
+          warning = warnings.filterProperty('category', 'packages').findProperty('name', _package.name);
           if (warning) {
             warning.hosts.push(_host.Hosts.host_name);
             warning.onSingleHost = false;
@@ -748,7 +748,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       var javaProcs = _host.Hosts.last_agent_env.hostHealth ? _host.Hosts.last_agent_env.hostHealth.activeJavaProcs : _host.Hosts.last_agent_env.javaProcs;
 
       javaProcs.forEach(function (process) {
-        warning = warnings.findProperty('name', (process.command.substr(0, 15) + '...'));
+        warning = warnings.filterProperty('category', 'processes').findProperty('pid', process.pid);
         if (warning) {
           warning.hosts.push(_host.Hosts.host_name);
           warning.onSingleHost = false;
@@ -774,7 +774,7 @@ App.WizardStep3Controller = Em.Controller.extend({
 
         _host.Hosts.last_agent_env.hostHealth.liveServices.forEach(function (service) {
           if (service.status === 'Healthy') {
-            warning = warnings.findProperty('name', service.name);
+            warning = warnings.filterProperty('category', 'services').findProperty('name', service.name);
             if (warning) {
               warning.hosts.push(_host.Hosts.host_name);
               warning.onSingleHost = false;
@@ -797,7 +797,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       if (_host.Hosts.last_agent_env.existingUsers) {
 
         _host.Hosts.last_agent_env.existingUsers.forEach(function (user) {
-          warning = warnings.findProperty('name', user.userName);
+          warning = warnings.filterProperty('category', 'users').findProperty('name', user.userName);
           if (warning) {
             warning.hosts.push(_host.Hosts.host_name);
             warning.onSingleHost = false;
