@@ -387,7 +387,7 @@ define hdp-hadoop::exec-hadoop(
       $keytab = $hdp::params::smokeuser_keytab
       $principal = $hdp::params::smokeuser
     }
-    $kinit_if_needed = "su - ${run_user} -c '${kinit_path_local} -kt ${keytab} ${principal}'"
+    $kinit_if_needed = "su - ${run_user} -c '${hdp::params::kinit_path_local} -kt ${keytab} ${principal}'"
   } else {
     $kinit_if_needed = ""
   }

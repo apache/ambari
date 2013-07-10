@@ -28,7 +28,7 @@ class hdp-templeton::templeton::service_check()
   } else {
     $security = "false"
   }
-  $kinit_path_local = $hdp::params::kinit_path_local
+  $kinit_path = $hdp::params::kinit_path_local
   $smoke_user_keytab = $hdp::params::smokeuser_keytab
 
   $templeton_host = $hdp::params::webhcat_server_host
@@ -51,7 +51,7 @@ define hdp-templeton::smoke_shell_file()
   }
 
   exec { '/tmp/templetonSmoke.sh':
-    command   => "sh /tmp/templetonSmoke.sh ${templeton_host} ${smoke_test_user} ${smoke_user_keytab} ${security} ${kinit_path_local}",
+    command   => "sh /tmp/templetonSmoke.sh ${templeton_host} ${smoke_test_user} ${smoke_user_keytab} ${security} ${kinit_path}",
     tries     => 3,
     try_sleep => 5,
     require   => File['/tmp/templetonSmoke.sh'],

@@ -27,7 +27,7 @@ class hdp-sqoop::sqoop::service_check()
   $security_enabled=$hdp::params::security_enabled
   $smoke_user_keytab = $hdp::params::smokeuser_keytab
   if ($security_enabled == true) {
-    $smoke_user_kinitcmd="${kinit_path_local}  -kt ${smoke_user_keytab} ${smoke_test_user}; "
+    $smoke_user_kinitcmd="${hdp::params::kinit_path_local}  -kt ${smoke_user_keytab} ${smoke_test_user}; "
   } else {
     $smoke_user_kinitcmd=""
   }

@@ -52,7 +52,7 @@ class hdp::params()
   $kerberos_domain = hdp_default("kerberos_domain","EXAMPLE.COM")
   $smoketest_user_secure_uid = hdp_default("smoketest_user_secure_uid",1012)
   ## $smoketest_user_secure_uid = 1012
-  $kinit_path_local = hdp_default("kinit_path_local","/usr/bin/kinit")
+  $kinit_path_local = hdp_get_kinit_path(hdp_default("kinit_path_local"), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin")
   $keytab_path = hdp_default("keytab_path", "/etc/security/keytabs")
   $use_hostname_in_principal = hdp_default("instance_name", true)
   $smokeuser_keytab = hdp_default("smokeuser_keytab", "/etc/security/keytabs/smokeuser.headless.keytab")
