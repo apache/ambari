@@ -60,11 +60,11 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
   },
   //Set editDone true for last edited config text field parameter
   focusOut: function(event){
-    this.get('_parentView').get("content").set("editDone", true);
+    this.get('serviceConfig').set("editDone", true);
   },
   //Set editDone false for all current category config text field parameter
   focusIn: function(event){
-    this.get("categoryConfigsAll").setEach("editDone", false);
+    this.get("parentView.categoryConfigsAll").setEach("editDone", false);
   },
 
   textFieldClassName: function () {
