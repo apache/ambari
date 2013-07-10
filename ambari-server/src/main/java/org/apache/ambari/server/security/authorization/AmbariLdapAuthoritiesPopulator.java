@@ -19,6 +19,7 @@ package org.apache.ambari.server.security.authorization;
 
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
@@ -55,43 +56,54 @@ public class AmbariLdapAuthoritiesPopulator implements LdapAuthoritiesPopulator 
   }
 
   @Override
-  @Transactional
   public Collection<? extends GrantedAuthority> getGrantedAuthorities(DirContextOperations userData, String username) {
     log.info("Get roles for user " + username + " from local DB");
 
-    UserEntity user = null;
+    UserEntity user;
 
     user = userDAO.findLdapUserByName(username);
 
     if (user == null) {
       log.info("User " + username + " not present in local DB - creating");
 
-      UserEntity newUser = new UserEntity();
-      newUser.setLdapUser(true);
-      newUser.setUserName(username);
-
-      //Adding a default "user" role
-      addRole(newUser, configuration.getConfigsMap().
-          get(Configuration.USER_ROLE_NAME_KEY));
+      createLdapUser(username);
+      user = userDAO.findLdapUserByName(username);
     }
 
-    user = userDAO.findLdapUserByName(username);
-
-    //Adding an "admin" user role if user is a member of ambari administrators
-    // LDAP group
-    Boolean isAdmin =
-        (Boolean) userData.getObjectAttribute(AMBARI_ADMIN_LDAP_ATTRIBUTE_KEY);
-    if ((isAdmin != null) && isAdmin) {
-      log.info("Adding admin role to LDAP user " + username);
-      addRole(user, configuration.getConfigsMap().
-          get(Configuration.ADMIN_ROLE_NAME_KEY));
-    } else {
-      removeRole(user, configuration.getConfigsMap().
-          get(Configuration.ADMIN_ROLE_NAME_KEY));
+    //don't remove admin role from user if group mapping was not configured
+    if (configuration.getLdapServerProperties().isGroupMappingEnabled()) {
+      //Adding an "admin" user role if user is a member of ambari administrators
+      // LDAP group
+      Boolean isAdmin =
+          (Boolean) userData.getObjectAttribute(AMBARI_ADMIN_LDAP_ATTRIBUTE_KEY);
+      if ((isAdmin != null) && isAdmin) {
+        log.info("Adding admin role to LDAP user " + username);
+        addRole(user, configuration.getConfigsMap().
+            get(Configuration.ADMIN_ROLE_NAME_KEY));
+      } else {
+        removeRole(user, configuration.getConfigsMap().
+            get(Configuration.ADMIN_ROLE_NAME_KEY));
+      }
     }
 
-    user = userDAO.findLdapUserByName(username);
     return authorizationHelper.convertRolesToAuthorities(user.getRoleEntities());
+  }
+
+  /**
+   * Creates record in local DB for LDAP user
+   * @param username - name of user to create
+   */
+  @Transactional
+  void createLdapUser(String username) {
+    UserEntity newUser = new UserEntity();
+    newUser.setLdapUser(true);
+    newUser.setUserName(username);
+
+    userDAO.create(newUser);
+
+    //Adding a default "user" role
+    addRole(newUser, configuration.getConfigsMap().
+        get(Configuration.USER_ROLE_NAME_KEY));
   }
 
   /**
@@ -101,7 +113,8 @@ public class AmbariLdapAuthoritiesPopulator implements LdapAuthoritiesPopulator 
    * @param user - the user entity to be modified
    * @param roleName - the role to add to user's roleEntities
    */
-  private void addRole(UserEntity user, String roleName) {
+  @Transactional
+  void addRole(UserEntity user, String roleName) {
     log.info("Using default role name " + roleName);
 
     RoleEntity roleEntity = roleDAO.findByName(roleName);
@@ -133,7 +146,8 @@ public class AmbariLdapAuthoritiesPopulator implements LdapAuthoritiesPopulator 
    * @param user
    * @param roleName
    */
-  private void removeRole(UserEntity user, String roleName) {
+  @Transactional
+  void removeRole(UserEntity user, String roleName) {
     UserEntity userEntity = userDAO.findByPK(user.getUserId());
     RoleEntity roleEntity = roleDAO.findByName(roleName);
 

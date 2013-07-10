@@ -649,6 +649,7 @@ public class Configuration {
         (LDAP_BASE_DN_KEY, LDAP_BASE_DN_DEFAULT));
     ldapServerProperties.setUsernameAttribute(properties.
         getProperty(LDAP_USERNAME_ATTRIBUTE_KEY, LDAP_USERNAME_ATTRIBUTE_DEFAULT));
+
     ldapServerProperties.setGroupBase(properties.
         getProperty(LDAP_GROUP_BASE_KEY, LDAP_GROUP_BASE_DEFAULT));
     ldapServerProperties.setGroupObjectClass(properties.
@@ -661,6 +662,15 @@ public class Configuration {
         LDAP_ADMIN_GROUP_MAPPING_RULES_KEY, LDAP_ADMIN_GROUP_MAPPING_RULES_DEFAULT));
     ldapServerProperties.setGroupSearchFilter(properties.getProperty(
         LDAP_GROUP_SEARCH_FILTER_KEY, LDAP_GROUP_SEARCH_FILTER_DEFAULT));
+
+    if (properties.containsKey(LDAP_GROUP_BASE_KEY) ||
+        properties.containsKey(LDAP_GROUP_OBJECT_CLASS_KEY) ||
+        properties.containsKey(LDAP_GROUP_MEMEBERSHIP_ATTR_KEY) ||
+        properties.containsKey(LDAP_GROUP_NAMING_ATTR_KEY) ||
+        properties.containsKey(LDAP_ADMIN_GROUP_MAPPING_RULES_KEY) ||
+        properties.containsKey(LDAP_GROUP_SEARCH_FILTER_KEY)) {
+      ldapServerProperties.setGroupMappingEnabled(true);
+    }
 
     return ldapServerProperties;
   }

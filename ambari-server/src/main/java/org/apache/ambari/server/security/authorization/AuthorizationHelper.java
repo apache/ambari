@@ -25,9 +25,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @Singleton
 /**
@@ -39,7 +37,7 @@ public class AuthorizationHelper {
    * Converts collection of RoleEntities to collection of GrantedAuthorities
    */
   public Collection<GrantedAuthority> convertRolesToAuthorities(Collection<RoleEntity> roleEntities) {
-    List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>(roleEntities.size());
+    Set<GrantedAuthority> authorities = new HashSet<GrantedAuthority>(roleEntities.size());
 
     for (RoleEntity roleEntity : roleEntities) {
       authorities.add(new SimpleGrantedAuthority(roleEntity.getRoleName().toUpperCase()));
