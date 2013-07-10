@@ -22,7 +22,7 @@ var stringUtils = require('utils/string_utils');
 App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
   name: 'mainAdminSecurityAddStep3Controller',
   hostComponents: [],
-  doDownloadCsv: function(){
+  doDownloadCsv: function () {
     if ($.browser.msie && $.browser.version < 10) {
       this.openInfoInNewTab();
     } else {
@@ -30,7 +30,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       saveAs(blob, "host-principal-keytab-list.csv");
     }
   },
-  openInfoInNewTab: function(){
+  openInfoInNewTab: function () {
     var newWindow = window.open('');
     var newDocument = newWindow.document;
     newDocument.write(stringUtils.arrayToCSV(this.get('hostComponents')));
@@ -62,8 +62,6 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     var isHbaseInstalled = App.Service.find().findProperty('serviceName', 'HBASE');
     var generalConfigs = configs.filterProperty('serviceName', 'GENERAL');
     var hdfsConfigs = configs.filterProperty('serviceName', 'HDFS');
-    var webHcatConfigs = configs.filterProperty('serviceName', 'WEBHCAT');
-    var oozieConfigs = configs.filterProperty('serviceName', 'OOZIE');
     var realm = generalConfigs.findProperty('name', 'kerberos_domain').value;
     var smokeUserId = securityUsers.findProperty('name', 'smokeuser').value;
     var hdfsUserId = securityUsers.findProperty('name', 'hdfs_user').value;
@@ -83,10 +81,6 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     var hbaseUserKeytabPath = generalConfigs.findProperty('name', 'hbase_user_keytab').value;
     var hadoopHttpPrincipal = hdfsConfigs.findProperty('name', 'hadoop_http_principal_name');
     var hadoopHttpKeytabPath = hdfsConfigs.findProperty('name', 'hadoop_http_keytab').value;
-    var webHCatHttpPrincipal = webHcatConfigs.findProperty('name', 'webHCat_http_principal_name');
-    var webHCatHttpKeytabPath = webHcatConfigs.findProperty('name', 'webhcat_http_keytab').value;
-    var oozieHttpPrincipal = oozieConfigs.findProperty('name', 'oozie_http_principal_name');
-    var oozieHttpKeytabPath = oozieConfigs.findProperty('name', 'oozie_http_keytab').value;
     var componentToOwnerMap = {
       'NAMENODE': hdfsUserId,
       'SECONDARY_NAMENODE': hdfsUserId,
@@ -103,7 +97,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
 
     var addedPrincipalsHost = {}; //Keys = host_principal, Value = 'true'
 
-    hosts.forEach(function(host){
+    hosts.forEach(function (host) {
       result.push({
         host: host.get('hostName'),
         component: Em.I18n.t('admin.addSecurity.user.smokeUser'),
@@ -146,6 +140,9 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         });
       }
       if (host.get('hostComponents').someProperty('componentName', 'WEBHCAT_SERVER')) {
+        var webHcatConfigs = configs.filterProperty('serviceName', 'WEBHCAT');
+        var webHCatHttpPrincipal = webHcatConfigs.findProperty('name', 'webHCat_http_principal_name');
+        var webHCatHttpKeytabPath = webHcatConfigs.findProperty('name', 'webhcat_http_keytab').value;
         result.push({
           host: host.get('hostName'),
           component: Em.I18n.t('admin.addSecurity.webhcat.user.httpUser'),
@@ -157,6 +154,9 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         });
       }
       if (host.get('hostComponents').someProperty('componentName', 'OOZIE_SERVER')) {
+        var oozieConfigs = configs.filterProperty('serviceName', 'OOZIE');
+        var oozieHttpPrincipal = oozieConfigs.findProperty('name', 'oozie_http_principal_name');
+        var oozieHttpKeytabPath = oozieConfigs.findProperty('name', 'oozie_http_keytab').value;
         result.push({
           host: host.get('hostName'),
           component: Em.I18n.t('admin.addSecurity.oozie.user.httpUser'),
@@ -171,7 +171,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         if(componentsToDisplay.contains(hostComponent.get('componentName'))){
           var serviceConfigs = configs.filterProperty('serviceName', hostComponent.get('service.serviceName'));
           var principal, keytab;
-          serviceConfigs.forEach(function(config){
+          serviceConfigs.forEach(function (config) {
             if (config.component && config.component === hostComponent.get('componentName')) {
               if (config.name.endsWith('_principal_name')) {
                 principal = config.value.replace('_HOST', host.get('hostName')) + config.unit;
