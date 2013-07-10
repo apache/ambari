@@ -184,6 +184,7 @@ LDAP_MGR_PASSWORD_ALIAS = "ambari.ldap.manager.password"
 LDAP_MGR_PASSWORD_PROPERTY = "authentication.ldap.managerPassword"
 LDAP_MGR_USERNAME_PROPERTY = "authentication.ldap.managerDn"
 
+SSL_TRUSTSTORE_PASSWORD_ALIAS="ambari.ssl.trustStore.password"
 SSL_TRUSTSTORE_PATH_PROPERTY = "ssl.trustStore.path"
 SSL_TRUSTSTORE_PASSWORD_PROPERTY = "ssl.trustStore.password"
 SSL_TRUSTSTORE_TYPE_PROPERTY = "ssl.trustStore.type"
@@ -2574,6 +2575,7 @@ def setup_master_key():
       db_password = file.read()
       
   ldap_password = properties.get_property(LDAP_MGR_PASSWORD_PROPERTY)
+  ts_password = properties.get_property(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
   resetKey = False
   masterKey = None
 
@@ -2604,6 +2606,9 @@ def setup_master_key():
         if ldap_password and is_alias_string(ldap_password):
           print err.format('LDAP manager password', '"' + LDAP_SETUP_ACTION + '"')
           return 1
+        if ts_password and is_alias_string(ts_password):
+          print err.format('TrustStore password', '"' + LDAP_SETUP_ACTION + '"')
+          return 1
       pass
     pass
   pass
@@ -2613,7 +2618,8 @@ def setup_master_key():
     db_password = read_passwd_for_alias(JDBC_RCA_PASSWORD_ALIAS, masterKey)
   if ldap_password and is_alias_string(ldap_password):
     ldap_password = read_passwd_for_alias(LDAP_MGR_PASSWORD_ALIAS, masterKey)
-
+  if ts_password and is_alias_string(ts_password):
+    ts_password = read_passwd_for_alias(SSL_TRUSTSTORE_PASSWORD_ALIAS, masterKey)
   # Read master key, if non-secure or reset is true
   if resetKey or not isSecure:
     masterKey = read_master_key()
@@ -2659,6 +2665,13 @@ def setup_master_key():
     propertyMap[LDAP_MGR_PASSWORD_PROPERTY] = get_alias_string(LDAP_MGR_PASSWORD_ALIAS)
     if retCode != 0:
       print 'Failed to save secure LDAP password.'
+  pass
+
+  if ts_password and not is_alias_string(ts_password):
+    retCode = save_passwd_for_alias(SSL_TRUSTSTORE_PASSWORD_ALIAS, ts_password, masterKey)
+    propertyMap[SSL_TRUSTSTORE_PASSWORD_PROPERTY] = get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS)
+    if retCode != 0:
+      print 'Failed to save secure TrustStore password.'
   pass
 
   update_properties(properties, propertyMap)

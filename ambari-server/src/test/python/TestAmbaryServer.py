@@ -3050,12 +3050,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
               read_ambari_user_method, read_master_key_method,
               save_passwd_for_alias_method, remove_password_file_method):
 
-    out = StringIO.StringIO()
-    sys.stdout = out
-
     is_root_method.return_value = True
     p = get_ambari_properties_method.return_value
-    p.get_property.side_effect = [ None, "fakepasswd", "fakepasswd" ]
+    p.get_property.side_effect = [ None, "fakepasswd", "fakepasswd", "fakepasswd"]
     read_master_key_method.return_value = "aaa"
     get_YN_input_method.return_value = False
     read_ambari_user_method.return_value = None
@@ -3069,21 +3066,21 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(update_properties_method.called)
     self.assertFalse(save_master_key_method.called)
     self.assertTrue(save_passwd_for_alias_method.called)
-    self.assertEquals(2, save_passwd_for_alias_method.call_count)
+    self.assertEquals(3, save_passwd_for_alias_method.call_count)
     self.assertTrue(remove_password_file_method.called)
 
     result_expected = {ambari_server.JDBC_PASSWORD_PROPERTY :
         ambari_server.get_alias_string(ambari_server.JDBC_RCA_PASSWORD_ALIAS),
         ambari_server.LDAP_MGR_PASSWORD_PROPERTY :
         ambari_server.get_alias_string(ambari_server.LDAP_MGR_PASSWORD_ALIAS),
+        ambari_server.SSL_TRUSTSTORE_PASSWORD_PROPERTY :
+          ambari_server.get_alias_string(ambari_server.SSL_TRUSTSTORE_PASSWORD_ALIAS),
         ambari_server.SECURITY_IS_ENCRYPTION_ENABLED : 'true'}
 
     sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
     sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
                       key=operator.itemgetter(0))
     self.assertEquals(sorted_x, sorted_y)
-
-    sys.stdout = sys.__stdout__
 
 
   @patch.object(ambari_server, 'read_master_key')
@@ -3101,12 +3098,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
               update_properties_method, get_master_key_location_method,
               read_ambari_user_method, read_master_key_method):
 
-    out = StringIO.StringIO()
-    sys.stdout = out
-
     is_root_method.return_value = True
     p = get_ambari_properties_method.return_value
-    p.get_property.side_effect = [ None, "fakepasswd", None ]
+    p.get_property.side_effect = [ None, "fakepasswd", None, None]
     read_master_key_method.return_value = "aaa"
     get_YN_input_method.side_effect = [True, False]
     read_ambari_user_method.return_value = None
@@ -3127,8 +3121,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
                       key=operator.itemgetter(0))
     self.assertEquals(sorted_x, sorted_y)
-
-    sys.stdout = sys.__stdout__
 
 
   @patch.object(ambari_server, 'read_master_key')
@@ -3155,9 +3147,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
               read_ambari_user_method, exists_mock,
               remove_password_file_method, read_master_key_method):
 
-    out = StringIO.StringIO()
-    sys.stdout = out
-
     # Testing call under non-root
     is_root_method.return_value = False
     try:
@@ -3175,7 +3164,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     read_ambari_user_method.return_value = None
     p = get_ambari_properties_method.return_value
     p.get_property.side_effect = [ 'true', '${alias=fakealias}',
-                                   '${alias=fakealias}' ]
+                                   '${alias=fakealias}', '${alias=fakealias}']
 
     get_YN_input_method.side_effect = [ True, True ]
     read_master_key_method.return_value = "aaa"
@@ -3190,21 +3179,21 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(read_master_key_method.called)
     self.assertTrue(update_properties_method.called)
     self.assertTrue(read_passwd_for_alias_method.called)
-    self.assertTrue(2, read_passwd_for_alias_method.call_count)
-    self.assertTrue(2, save_passwd_for_alias_method.call_count)
+    self.assertTrue(3, read_passwd_for_alias_method.call_count)
+    self.assertTrue(3, save_passwd_for_alias_method.call_count)
 
     result_expected = {ambari_server.JDBC_PASSWORD_PROPERTY:
         ambari_server.get_alias_string(ambari_server.JDBC_RCA_PASSWORD_ALIAS),
         ambari_server.LDAP_MGR_PASSWORD_PROPERTY:
         ambari_server.get_alias_string(ambari_server.LDAP_MGR_PASSWORD_ALIAS),
+        ambari_server.SSL_TRUSTSTORE_PASSWORD_PROPERTY:
+        ambari_server.get_alias_string(ambari_server.SSL_TRUSTSTORE_PASSWORD_ALIAS),
         ambari_server.SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
 
     sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
     sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
                       key=operator.itemgetter(0))
     self.assertEquals(sorted_x, sorted_y)
-
-    sys.stdout = sys.__stdout__
 
 
   @patch.object(ambari_server, 'remove_password_file')
@@ -3230,15 +3219,12 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
               get_master_key_location_method, read_ambari_user_method,
               exists_mock, remove_password_file_method):
 
-    out = StringIO.StringIO()
-    sys.stdout = out
-
     is_root_method.return_value = True
     search_file_message.return_value = False
     read_ambari_user_method.return_value = None
     p = get_ambari_properties_method.return_value
     p.get_property.side_effect = [ 'true', '${alias=fakealias}',
-                                   '${alias=fakealias}' ]
+                                   '${alias=fakealias}', '${alias=fakealias}']
 
     get_YN_input_method.side_effect = [ True, False ]
     get_validated_string_input_method.return_value = "aaa"
@@ -3253,22 +3239,22 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(get_validated_string_input_method.called)
     self.assertTrue(update_properties_method.called)
     self.assertTrue(read_passwd_for_alias_method.called)
-    self.assertTrue(2, read_passwd_for_alias_method.call_count)
-    self.assertTrue(2, save_passwd_for_alias_method.call_count)
+    self.assertTrue(3, read_passwd_for_alias_method.call_count)
+    self.assertTrue(3, save_passwd_for_alias_method.call_count)
     self.assertFalse(save_master_key_method.called)
 
     result_expected = {ambari_server.JDBC_PASSWORD_PROPERTY:
         ambari_server.get_alias_string(ambari_server.JDBC_RCA_PASSWORD_ALIAS),
         ambari_server.LDAP_MGR_PASSWORD_PROPERTY:
         ambari_server.get_alias_string(ambari_server.LDAP_MGR_PASSWORD_ALIAS),
+        ambari_server.SSL_TRUSTSTORE_PASSWORD_PROPERTY:
+          ambari_server.get_alias_string(ambari_server.SSL_TRUSTSTORE_PASSWORD_ALIAS),
         ambari_server.SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
 
     sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
     sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
                       key=operator.itemgetter(0))
     self.assertEquals(sorted_x, sorted_y)
-
-    sys.stdout = sys.__stdout__
 
 
   @patch.object(ambari_server, 'save_passwd_for_alias')

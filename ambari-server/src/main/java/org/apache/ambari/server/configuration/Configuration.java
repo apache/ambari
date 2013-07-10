@@ -170,6 +170,10 @@ public class Configuration {
   public static final String SSL_TRUSTSTORE_PATH_KEY = "ssl.trustStore.path";
   public static final String SSL_TRUSTSTORE_PASSWORD_KEY = "ssl.trustStore.password";
   public static final String SSL_TRUSTSTORE_TYPE_KEY = "ssl.trustStore.type";
+  public static final String JAVAX_SSL_TRUSTSTORE = "javax.net.ssl.trustStore";
+  public static final String JAVAX_SSL_TRUSTSTORE_PASSWORD = "javax.net.ssl.trustStorePassword";
+  public static final String JAVAX_SSL_TRUSTSTORE_TYPE = "javax.net.ssl.trustStoreType";
+
 
   private static final String SRVR_TWO_WAY_SSL_DEFAULT = "false";
   private static final String SRVR_KSTR_DIR_DEFAULT = ".";
@@ -348,15 +352,22 @@ public class Configuration {
   /**
    * Loads trusted certificates store properties
    */
-  private void loadSSLParams(){
+  void loadSSLParams(){
     if (properties.getProperty(SSL_TRUSTSTORE_PATH_KEY) != null) {
-      System.setProperty("javax.net.ssl.trustStore", properties.getProperty(SSL_TRUSTSTORE_PATH_KEY));
+      System.setProperty(JAVAX_SSL_TRUSTSTORE, properties.getProperty(SSL_TRUSTSTORE_PATH_KEY));
     }
     if (properties.getProperty(SSL_TRUSTSTORE_PASSWORD_KEY) != null) {
-      System.setProperty("javax.net.ssl.trustStorePassword", properties.getProperty(SSL_TRUSTSTORE_PASSWORD_KEY));
+      String ts_password = readPasswordFromStore(
+              properties.getProperty(SSL_TRUSTSTORE_PASSWORD_KEY));
+      if (ts_password != null) {
+        System.setProperty(JAVAX_SSL_TRUSTSTORE_PASSWORD, ts_password);
+      } else {
+        System.setProperty(JAVAX_SSL_TRUSTSTORE_PASSWORD,
+                properties.getProperty(SSL_TRUSTSTORE_PASSWORD_KEY));
+      }
     }
     if (properties.getProperty(SSL_TRUSTSTORE_TYPE_KEY) != null) {
-      System.setProperty("javax.net.ssl.trustStoreType", properties.getProperty(SSL_TRUSTSTORE_TYPE_KEY));
+      System.setProperty(JAVAX_SSL_TRUSTSTORE_TYPE, properties.getProperty(SSL_TRUSTSTORE_TYPE_KEY));
     }
   }
 
@@ -588,7 +599,7 @@ public class Configuration {
     }
   }
 
-  private String readPasswordFromStore(String aliasStr) {
+  String readPasswordFromStore(String aliasStr) {
     String password = null;
     loadCredentialProvider();
     if (credentialProvider != null) {

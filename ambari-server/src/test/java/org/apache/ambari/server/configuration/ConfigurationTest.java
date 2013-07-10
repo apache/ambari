@@ -28,6 +28,8 @@ import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -127,6 +129,30 @@ public class ConfigurationTest {
       Configuration.CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY));
     Assert.assertEquals(password, conf.getConfigsMap().get(Configuration.CLIENT_API_SSL_CRT_PASS_KEY));
 
+  }
+
+  @Test
+  public void testLoadSSLParams_unencrypted() throws IOException {
+    Properties ambariProperties = new Properties();
+    String unencrypted = "fake-unencrypted-password";
+    String encrypted = "fake-encrypted-password";
+    ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_PASSWORD_KEY, unencrypted);
+    Configuration conf = spy(new Configuration(ambariProperties));
+    doReturn(null).when(conf).readPasswordFromStore(anyString());
+    conf.loadSSLParams();
+    Assert.assertEquals(System.getProperty(conf.JAVAX_SSL_TRUSTSTORE_PASSWORD, "unknown"), unencrypted);
+  }
+
+  @Test
+  public void testLoadSSLParams_encrypted() throws IOException {
+    Properties ambariProperties = new Properties();
+    String unencrypted = "fake-unencrypted-password";
+    String encrypted = "fake-encrypted-password";
+    ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_PASSWORD_KEY, unencrypted);
+    Configuration conf = spy(new Configuration(ambariProperties));
+    doReturn(encrypted).when(conf).readPasswordFromStore(anyString());
+    conf.loadSSLParams();
+    Assert.assertEquals(System.getProperty(conf.JAVAX_SSL_TRUSTSTORE_PASSWORD, "unknown"), encrypted);
   }
 
 }
