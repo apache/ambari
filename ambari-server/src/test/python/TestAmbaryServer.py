@@ -1121,6 +1121,8 @@ class TestAmbariServer(TestCase):
     self.assertEqual(str(properties.process_pair.call_args_list),\
                      expect_process_pair)
     
+  @patch.object(ambari_server, "remove_file")
+  @patch.object(ambari_server, "copy_file")
   @patch.object(ambari_server, "read_ambari_user")
   @patch.object(ambari_server, "set_file_permissions")
   @patch.object(ambari_server, "import_file_to_keystore")
@@ -1137,14 +1139,15 @@ class TestAmbariServer(TestCase):
                                get_validated_filepath_input_mock,\
                                os_path_join_mock, run_os_command_mock,\
                                open_mock, import_file_to_keystore_mock,\
-                               set_file_permissions_mock, read_ambari_user_mock):
+                               set_file_permissions_mock, read_ambari_user_mock, copy_file_mock,\
+                               remove_file_mock):
     is_valid_cert_exp_mock.return_value=True
     is_valid_cert_host_mock.return_value=True
     get_validated_string_input_mock.return_value = "password"
     get_validated_filepath_input_mock.side_effect = \
                                             ["cert_file_path","key_file_path"]
-    os_path_join_mock.side_effect = ["cert_file_path","key_file_path",\
-                                        "keystore_cert_file_path",\
+    os_path_join_mock.side_effect = ["keystore_file_path","pass_file_path",\
+                                        "passin_file_path","password_file_path","keystore_cert_file_path",\
                                         "keystore_cert_key_file_path",]
     run_os_command_mock.return_value = (0, "",	"")
     om = open_mock.return_value
@@ -1156,11 +1159,13 @@ class TestAmbariServer(TestCase):
     ambari_server.import_cert_and_key("key_dir")
     self.assertTrue(get_validated_filepath_input_mock.call_count == 2)
     self.assertTrue(get_validated_string_input_mock.called)
-    self.assertTrue(os_path_join_mock.call_count == 4)
+    self.assertEqual(os_path_join_mock.call_count, 6)
     self.assertTrue(set_file_permissions_mock.call_count == 2)
     self.assertEqual(str(import_file_to_keystore_mock.call_args_list),\
                          expect_import_file_to_keystore)
 
+  @patch.object(ambari_server, "remove_file")
+  @patch.object(ambari_server, "copy_file")
   @patch.object(ambari_server, "generate_random_string")
   @patch.object(ambari_server, "read_ambari_user")
   @patch.object(ambari_server, "set_file_permissions")
@@ -1177,16 +1182,17 @@ class TestAmbariServer(TestCase):
     get_validated_string_input_mock, get_validated_filepath_input_mock,\
     os_path_join_mock, run_os_command_mock, open_mock, \
     import_file_to_keystore_mock, set_file_permissions_mock,
-    read_ambari_user_mock, generate_random_string_mock):
+    read_ambari_user_mock, generate_random_string_mock, copy_file_mock,\
+    remove_file_mock):
       
     is_valid_cert_exp_mock.return_value=True
     is_valid_cert_host_mock.return_value=True
     get_validated_string_input_mock.return_value = ""
     get_validated_filepath_input_mock.side_effect =\
     ["cert_file_path","key_file_path"]
-    os_path_join_mock.side_effect = ["cert_file_path","key_file_path",\
-                                     "keystore_cert_file_path",\
-                                     "keystore_cert_key_file_path",]
+    os_path_join_mock.side_effect = ["keystore_file_path","pass_file_path",\
+                                    "passin_file_path","password_file_path","keystore_cert_file_path",\
+                                    "keystore_cert_key_file_path",]
     run_os_command_mock.return_value = (0, "",	"")
 
     expect_import_file_to_keystore = "[call('cert_file_path',"+\
@@ -1197,7 +1203,7 @@ class TestAmbariServer(TestCase):
     ambari_server.import_cert_and_key("key_dir")
     self.assertEquals(get_validated_filepath_input_mock.call_count, 2)
     self.assertTrue(get_validated_string_input_mock.called)
-    self.assertEquals(os_path_join_mock.call_count, 4)
+    self.assertEquals(os_path_join_mock.call_count, 6)
     self.assertEquals(set_file_permissions_mock.call_count, 2)
     self.assertEqual(str(import_file_to_keystore_mock.call_args_list),\
       expect_import_file_to_keystore)
@@ -2752,6 +2758,48 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     sys.stdout = sys.__stdout__
 
+  
+  @patch("os.path.exists")
+  @patch("os.remove")
+  @patch.object(ambari_server,"print_warning_msg")
+  def test_remove_file(self, printWarningMsgMock, removeMock, pathExistsMock):
+    def side_effect():
+      raise Exception(-1, "Failed to delete!")
+    
+    removeMock.side_effect = side_effect
+    pathExistsMock.return_value = 1
+    
+    res = ambari_server.remove_file("/someNonExsistantDir/filename")
+    self.assertEquals(res,1)
+    
+    removeMock.side_effect = None
+    res = ambari_server.remove_file("/someExsistantDir/filename")
+    self.assertEquals(res, 0)
+  
+  @patch("shutil.copyfile")
+  def test_copy_file(self, shutilCopyfileMock):
+    def side_effect():
+      raise Exception(-1, "Failed to copy!")
+    
+    shutilCopyfileMock.side_effect = side_effect
+    
+    try:
+      ambari_server.copy_file("/tmp/psswd","/someNonExsistantDir/filename")
+      self.fail("Exception on file not copied has not been thrown!")
+    except FatalException:
+      # Expected
+      pass
+    
+    self.assertTrue(shutilCopyfileMock.called)
+    
+    
+    shutilCopyfileMock.side_effect = None
+    try:
+      ambari_server.copy_file("/tmp/psswd","/root/psswd")
+    except FatalException:
+        self.fail("Exception on file copied should not be thrown!")
+        
+    self.assertTrue(shutilCopyfileMock.called)
 
   @patch.object(ambari_server, "get_ambari_properties")
   @patch.object(ambari_server, "find_jdbc_driver")

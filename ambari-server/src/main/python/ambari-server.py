@@ -91,8 +91,12 @@ NR_CHOWN_CMD = 'chown {0} {1} {2}'
 
 RECURSIVE_RM_CMD = 'rm -rf {0}'
 
+SSL_PASSWORD_FILE = "pass.txt"
+SSL_PASSIN_FILE = "passin.txt" 
+
 # openssl command
-EXPRT_KSTR_CMD = "openssl pkcs12 -export -in {0} -inkey {1} -certfile {0} -out {3} -password pass:{2} -passin pass:{2}"
+VALIDATE_KEYSTORE_CMD = "openssl pkcs12 -info -in '{0}' -password file:'{1}' -passout file:'{2}'"
+EXPRT_KSTR_CMD = "openssl pkcs12 -export -in '{0}' -inkey '{1}' -certfile '{0}' -out '{4}' -password file:'{2}' -passin file:'{3}'"
 CHANGE_KEY_PWD_CND = 'openssl rsa -in {0} -des3 -out {0}.secured -passout pass:{1}'
 GET_CRT_INFO_CMD = 'openssl x509 -dates -subject -in {0}'
 
@@ -1761,6 +1765,24 @@ def find_jdbc_driver(args):
       return drivers
     return -1
   return 0
+  
+def copy_file(src, dest_file):
+  try:
+    shutil.copyfile(src, dest_file)
+  except Exception, e:
+    err = "Can not copy file {0} to {1} due to: {2} . Please check file " \
+              "permissions and free disk space.".format(src, dest_file, e.message)
+    raise FatalException(1, err)
+
+def remove_file(filePath):
+  if os.path.exists(filePath):
+    try:
+      os.remove(filePath)
+    except Exception, e:
+      print_warning_msg('Unable to remove file: ' + str(e))
+      return 1
+  pass
+  return 0
 
 def copy_files(files, dest_dir):
   if os.path.isdir(dest_dir):
@@ -2930,20 +2952,44 @@ def import_cert_and_key(security_server_keys_dir):
                                     SSL_KEYSTORE_FILE_NAME)
     passFilePath = os.path.join(security_server_keys_dir,\
                                 SSL_KEY_PASSWORD_FILE_NAME)
+    passinFilePath = os.path.join(tempfile.gettempdir(),\
+                                   SSL_PASSIN_FILE)
+    passwordFilePath = os.path.join(tempfile.gettempdir(),\
+                                   SSL_PASSWORD_FILE)
+  
+    with open(passFilePath, 'w+') as passFile:
+      passFile.write(pem_password)
+      passFile.close
+      pass
+   
+    set_file_permissions(passFilePath, "660", read_ambari_user(), False)
+ 
+    copy_file(passFilePath, passinFilePath)
+    copy_file(passFilePath, passwordFilePath)
+ 
     retcode, out, err = run_os_command(EXPRT_KSTR_CMD.format(import_cert_path,\
-    import_key_path, pem_password, keystoreFilePath))
-
+    import_key_path, passwordFilePath, passinFilePath, keystoreFilePath))
   if retcode == 0:
    print 'Importing and saving certificate...done.'
    set_file_permissions(keystoreFilePath, "660", read_ambari_user(), False)
-   with open(passFilePath, 'w+') as passFile:
-    passFile.write(pem_password)
-    pass
-   set_file_permissions(passFilePath, "660", read_ambari_user(), False)
+
    import_file_to_keystore(import_cert_path, os.path.join(\
                           security_server_keys_dir, SSL_CERT_FILE_NAME))
    import_file_to_keystore(import_key_path, os.path.join(\
                           security_server_keys_dir, SSL_KEY_FILE_NAME))
+
+   #Validate keystore
+   retcode, out, err = run_os_command(VALIDATE_KEYSTORE_CMD.format(keystoreFilePath,\
+   passwordFilePath, passinFilePath))
+   
+   remove_file(passinFilePath)
+   remove_file(passwordFilePath)
+
+   if not retcode == 0:
+     print 'Error during keystore validation occured!:'
+     print err
+     return False
+   
    return True
   else:
    print_error_msg('Could not import Certificate and Private Key.')
