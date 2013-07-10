@@ -37,16 +37,16 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   }),
 
   dataNodesLive: function(){
-    return this.get("service").get("dataNodes").filterProperty("healthClass", "health-status-LIVE").length;
+    return App.HostComponent.find().filterProperty('componentName', 'DATANODE').filterProperty("workStatus","STARTED");
   }.property('service'),
 
   dataNodeHostText: function () {
-    if(this.get("dataNodesLive") > 1){
+    if(this.get("service.dataNodes") > 1){
       return Em.I18n.t('services.service.summary.viewHosts');
     }else{
       return Em.I18n.t('services.service.summary.viewHost');
     }
-  }.property("dataNodesLive"),
+  }.property("service"),
 
   dfsTotalBlocks: function(){
     return this.formatUnavailable(this.get('service.dfsTotalBlocks'));

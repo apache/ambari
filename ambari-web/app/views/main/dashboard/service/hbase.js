@@ -39,8 +39,8 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
 
 
   liveRegionServes: function () {
-    return this.get('service.regionServers').filterProperty("healthClass","health-status-LIVE");
-  }.property("service"),
+    return App.HostComponent.find().filterProperty('componentName', 'HBASE_REGIONSERVER').filterProperty("workStatus","STARTED");
+  }.property(),
 
   regionServesText: function () {
     if(this.get('service.regionServers').get("length") > 1){

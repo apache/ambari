@@ -133,7 +133,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
       var monitors = service.get('hostComponents').filterProperty('isMaster', false);
       var liveMonitors = monitors.filterProperty("workStatus","STARTED").length;
       if (monitors.length) {
-        result = Em.I18n.t('services.service.info.summary.hostsRunningMonitor').format(monitors.length, liveMonitors);
+        result = Em.I18n.t('services.service.info.summary.hostsRunningMonitor').format(liveMonitors, monitors.length);
       }
     }
     return result;

@@ -65,7 +65,7 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
 
   trackersSummary: function () {
     var svc = this.get('service');
-    var liveCount = svc.get('aliveTrackers').get('length');
+    var liveCount = App.HostComponent.find().filterProperty('componentName', 'TASKTRACKER').filterProperty("workStatus","STARTED").length;
     var totalCount = svc.get('taskTrackers').get('length');
     var template = this.t('dashboard.services.mapreduce.trackersSummary');
     return template.format(liveCount, totalCount);
