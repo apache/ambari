@@ -117,6 +117,7 @@
             <exclude>src/test/resources/temporal_ganglia_data.txt</exclude>
             <exclude>src/test/resources/users.ldif</exclude>
             <exclude>src/main/resources/ca.config</exclude>
+            <exclude>src/main/resources/hive-schema-0.10.0.oracle.sql</exclude>
             <exclude>src/main/resources/db/serial</exclude>
             <exclude>src/main/resources/db/index.txt</exclude>
             <exclude>conf/unix/ca.config</exclude>
