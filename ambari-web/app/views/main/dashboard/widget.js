@@ -221,7 +221,7 @@ App.DashboardWidgetView = Em.View.extend({
     });
   },
 
-  getInternetExplorerVersion: function(){
+  getInternetExplorerVersion: function (){
     var rv = -1; //return -1 for other browsers
     if (navigator.appName == 'Microsoft Internet Explorer') {
       var ua = navigator.userAgent;
@@ -235,7 +235,23 @@ App.DashboardWidgetView = Em.View.extend({
     }else{
       return rv;
     }
-  }
+  },
+
+  /**
+   * for simple-text template,
+   * calculate the hover content top number
+   * based on how long the hiddenInfo is
+   */
+  hoverContentTopClass: function () {
+    var lineNum = this.get('hiddenInfo.length');
+    if (lineNum == 2) {
+      return "simple-text-hidden-two-line";
+    } else if (lineNum == 3) {
+      return "simple-text-hidden-three-line";
+    } else {
+      return "";
+    }
+  }.property('this.hiddenInfo.length')
 
 });
 

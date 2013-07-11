@@ -2078,31 +2078,42 @@ table.graphs {
     }
 
     .thumbnail .corner-icon{
-      color: #ffffff;
       display: none;
+      position: relative;
+      .icon-remove-sign{
+        color: #000000;
+        text-shadow: #fff 0px 0px 15px;
+        position: relative;
+        left: -17px;
+        top: -7px;
+      }
+      .icon-edit{
+        color: #555555;
+      }
     }
     .thumbnail .hidden-info{
-      color: #ffffff;
+      color: #555555;
       font-size: 12px;
       font-weight: bold;
       padding-top: 60px;
       text-align: center;
       text-decoration: none;
       display: none;
+      position: relative;
     }
     .thumbnail .hidden-info-three-line{
-      color: #ffffff;
+      color: #555555;
       font-size: 12px;
       font-weight: bold;
       padding-top: 50px;
       text-align: center;
       text-decoration: none;
       display: none;
+      position: relative;
       table td{
         text-align: center ;
       }
     }
-
     .thumbnail .caption {
       padding-left: 0px;
       padding-top: 7px;
@@ -2112,18 +2123,13 @@ table.graphs {
       font-weight:bold;
       font-size: 12px;
       text-align: left;
-    }
-    .thumbnail .icon-remove-sign{
-      color: #000000;
-      text-shadow: #fff 0px 0px 15px;
       position: relative;
-      left: -17px;
-      top: -7px;
     }
     .thumbnail .widget-content{
       text-align: center;
       font-size: 35px;
       padding-top: 40px; //svg
+      position: relative;
       .screensaver{ // graph onload wait
         width: 90%;
         height: 105px;
@@ -2138,8 +2144,67 @@ table.graphs {
       color: #D6DDDF;
       padding-top: 70px;
       font-weight: bold;
-
+      position: relative;
     }
+    .thumbnail{
+      background-color: #ffffff;
+      z-index: 3;
+    }
+    .has-hidden-info .thumbnail:hover {
+      cursor: move;
+      //background-color: #d3d3d3;
+      .corner-icon{
+        display:block;
+        text-decoration: none;
+        z-index: 9;
+      }
+      .hidden-info{
+        display: block;
+        z-index: 7;
+      }
+      .hidden-info-three-line{
+        display: block;
+        z-index: 7;
+      }
+      .caption{
+        margin-left: -6px;
+        z-index: 7;
+      }
+      .slots-caption{
+        margin-left: -13px;
+        z-index: 7;
+      }
+      .widget-content{
+        top: -104px;
+        opacity: 0.3;
+        z-index: 5;
+      }
+      .widget-content-isNA{
+        top: -104px;
+        opacity: 0.3;
+        z-index: 5;
+      }
+      .uptime-content{
+        top: -136px;
+      }
+      .uptime-content-isNA{
+        top: -95px;
+      }
+      .slots-content-isNA{
+        top: -82px;
+      }
+      .simple-text-hidden-two-line{
+        top: -105px;
+        opacity: 0.3;
+        z-index: 5;
+      }
+      .simple-text-hidden-three-line{
+        top: -116px;
+        opacity: 0.3;
+        z-index: 5;
+      }
+    }
+
     .cluster-metrics .chart-container{
       margin: 0px 10px 0px 10px;
       .chart-y-axis{
@@ -2154,16 +2219,14 @@ table.graphs {
       font-size: 12px;
     }
     .cluster-metrics .thumbnail:hover{
-      background-color: #909090;
       cursor: move;
       .corner-icon{
         display:block;
         text-decoration: none;
+        z-index: 9;
       }
       .caption{
-        color: #ffffff;
-        margin-left: -5px;
-        text-shadow: #000 0px 0px 15px;
+        margin-left: -6px;
       }
       .rickshaw_legend{
         padding-top: 3px;
@@ -2206,51 +2269,16 @@ table.graphs {
       }
     }
     .links .thumbnail:hover{
-      background-color: #909090;
       cursor: move;
       .corner-icon{
         display:block;
         text-decoration: none;
+        z-index: 9;
       }
       .caption{
-        color: #ffffff;
-        margin-left: -5px;
-        text-shadow: #000 0px 0px 15px;
-      }
-      .widget-content{
-        color: #D6DDDF;
-        text-shadow: #000 0px 0px 5px;
-        a{
-          color: #ffffff;
-        }
+        margin-left: -6px;
       }
     }
-    .has-hidden-info .thumbnail:hover {
-      background-color: #909090;
-      cursor: move;
-      text-shadow: #000 0px 0px 15px;
-      .corner-icon{
-        display:block;
-        text-decoration: none;
-      }
-      .hidden-info{
-        display: block;
-      }
-      .hidden-info-three-line{
-        display: block;
-      }
-      .caption{
-        color: #ffffff;
-        margin-left: -5px;
-      }
-      .widget-content{
-        display: none;
-      }
-      .widget-content-isNA{
-        display: none;
-      }
-    }
-
     .thumbnail .widget-content .svg {
       position:relative;
     }
@@ -2282,18 +2310,13 @@ table.graphs {
     .is-red{
       .widget-content {
         color: #B80000;
-        //text-shadow: 0.1em 0.1em #D6DDDF ;
-        //filter: Shadow(Color=red, Direction=45, Strength=1); /* IE 10-*/
         padding-top: 70px;
         font-weight: bold;
       }
-
     }
     .is-orange{
       .widget-content {
         color: #FF8E00;
-        //text-shadow: 0.1em 0.1em #D6DDDF ;
-        //filter: Shadow(Color=red, Direction=45, Strength=1); /* IE 10-*/
         padding-top: 70px;
         font-weight: bold;
       }
@@ -2301,13 +2324,12 @@ table.graphs {
     .is-green {
       .widget-content {
         color: #95A800;
-        //text-shadow: 0.1em 0.1em #D6DDDF ;
-        //filter: Shadow(Color=red, Direction=45, Strength=0); /* IE 10-*/
         padding-top: 70px;
         font-weight: bold;
       }
     }
     .is-na {
+      position: relative;
       .widget-content {
         color: #D6DDDF;
         text-shadow: none;
