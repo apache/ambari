@@ -300,7 +300,7 @@ JAVA_HOME_PROPERTY = "java.home"
 JDK_URL_PROPERTY='jdk.url'
 JCE_URL_PROPERTY='jce_policy.url'
 OS_TYPE_PROPERTY = "server.os_type"
-GET_FQDN_SERVICE_URL="agent.fqdn.service.url"
+GET_FQDN_SERVICE_URL="server.fqdn.service.url"
 
 JDK_DOWNLOAD_CMD = "curl --create-dirs -o {0} {1}"
 JDK_DOWNLOAD_SIZE_CMD = "curl -I {0}"
@@ -375,7 +375,11 @@ def update_ambari_properties():
     new_properties.load(open(conf_file))
 
     for prop_key, prop_value in old_properties.getPropertyDict().items():
-      new_properties.process_pair(prop_key,prop_value)
+      if ("agent.fqdn.service.url" == prop_key):
+        #BUG-7179 what is agent.fqdn property in ambari.props?
+        new_properties.process_pair(GET_FQDN_SERVICE_URL,prop_value)
+      else:
+        new_properties.process_pair(prop_key,prop_value)
 
     # Adding custom user name property if it is absent
     # In previous versions without custom user support server was started as

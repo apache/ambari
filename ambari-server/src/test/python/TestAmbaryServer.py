@@ -1276,6 +1276,10 @@ class TestAmbariServer(TestCase):
     fqdn = ambari_server.get_fqdn()
     self.assertEqual(fqdn, None)
     
+    #Check mbari_server.GET_FQDN_SERVICE_URL property name (AMBARI-2612)
+    #property name should be server.fqdn.service.url
+    self.assertEqual(ambari_server.GET_FQDN_SERVICE_URL, "server.fqdn.service.url")
+    
     #Read FQDN from service
     p = MagicMock()
     p[ambari_server.GET_FQDN_SERVICE_URL] = 'someurl'
@@ -2473,7 +2477,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       "server.jdbc.user.passwd=/etc/ambari-server/conf/password.dat\n",
       "java.home=/usr/jdk64/jdk1.6.0_31\n",
       "server.os_type=redhat6\n",
-      "ambari-server.user=ambari\n"]
+      "ambari-server.user=ambari\n",
+      "agent.fqdn.service.url=URL\n"]
 
     NEW_PROPERTY = 'some_new_property=some_value\n'
     CHANGED_VALUE_PROPERTY = 'server.os_type=should_not_overwrite_value\n'
@@ -2507,8 +2512,14 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       ambari_properties_content = f.readlines()
 
     for line in properties:
-      if not line in ambari_properties_content:
-        self.fail()
+      if (line == "agent.fqdn.service.url=URL\n"):
+        if (not ambari_server.GET_FQDN_SERVICE_URL+"=URL\n" in ambari_properties_content) and (line in ambari_properties_content):
+          self.fail()
+      else:
+        if not line in ambari_properties_content:
+          self.fail()
+
+
 
     if not NEW_PROPERTY in ambari_properties_content:
       self.fail()
