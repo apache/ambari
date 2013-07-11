@@ -287,7 +287,7 @@ MYSQL_EXEC_ARGS = "--host={0} --port={1} --user={2} --password={3} {4} " \
 
 JDBC_PATTERNS = {"oracle":"*ojdbc*.jar", "mysql":"*mysql*.jar"}
 DATABASE_FULL_NAMES = {"oracle":"Oracle", "mysql":"MySQL", "postgres":"PostgreSQL"}
-ORACLE_DB_ID_TYPES = ["Service Name", "Service ID"]
+ORACLE_DB_ID_TYPES = ["Service Name", "SID"]
 
 
 # jdk commands
@@ -1029,7 +1029,7 @@ def prompt_db_properties(args):
 
       database_num = str(DATABASE_INDEX + 1)
       database_num = get_validated_string_input(
-        "Select database:\n1 - Postgres(Embedded)\n2 - Oracle\n[" + database_num + "]:",
+        "Select database:\n1 - PostgreSQL (Embedded)\n2 - Oracle\n[" + database_num + "]:",
         database_num,
         "^[12]$",
         "Invalid number.",
@@ -1061,7 +1061,7 @@ def prompt_db_properties(args):
           # Oracle uses service name or service id
           idType = "1"
           idType = get_validated_string_input(
-            "Select type of id to use:\n1 - " + ORACLE_DB_ID_TYPES[0] +
+            "Select Oracle identifier type:\n1 - " + ORACLE_DB_ID_TYPES[0] +
             "\n2 - " + ORACLE_DB_ID_TYPES[1] + "\n[" + idType + "]:",
             idType,
             "^[12]$",
