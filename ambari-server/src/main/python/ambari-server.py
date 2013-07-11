@@ -606,7 +606,7 @@ def read_ambari_user():
 def adjust_directory_permissions(ambari_user):
   properties = get_ambari_properties()
   bootstrap_dir = get_value_from_properties(properties, BOOTSTRAP_DIR_PROPERTY)
-  print "Cleaning bootstrap directory ({0}) contents...".format(bootstrap_dir)
+  print_info_msg("Cleaning bootstrap directory ({0}) contents...".format(bootstrap_dir))
   cmd = RECURSIVE_RM_CMD.format(bootstrap_dir)
   run_os_command(cmd)
   os.mkdir(bootstrap_dir)
@@ -1120,11 +1120,7 @@ def store_remote_properties(args):
     print_error_msg ("Error getting ambari properties")
     return -1
 
-  isSecure = properties.get_property(SECURITY_IS_ENCRYPTION_ENABLED)
-  if isSecure and isSecure.lower() == 'true':
-    isSecure = True
-  else:
-    isSecure = False
+  isSecure = get_is_secure(properties)
 
   properties.process_pair(PERSISTENCE_TYPE_PROPERTY, "remote")
 
@@ -1145,23 +1141,24 @@ def store_remote_properties(args):
     connectionStringFormat = DATABASE_CONNECTION_STRINGS_ALT
   properties.process_pair(JDBC_URL_PROPERTY, connectionStringFormat[DATABASE_INDEX].format(jdbc_hostname, args.database_port, args.database_name))
   properties.process_pair(JDBC_USER_NAME_PROPERTY, args.database_username)
-  if isSecure:
-    properties.process_pair(JDBC_PASSWORD_PROPERTY,
-          encrypt_password(JDBC_RCA_PASSWORD_ALIAS, args.database_password))
-  else:
-    properties.process_pair(JDBC_PASSWORD_PROPERTY,
+  properties.process_pair(JDBC_PASSWORD_PROPERTY,
       store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
+  if isSecure:
+    encrypted_password = encrypt_password(JDBC_RCA_PASSWORD_ALIAS, args.database_password)
+    if encrypted_password != args.database_password:
+      properties.process_pair(JDBC_PASSWORD_PROPERTY, encrypted_password)
+  pass
 
   properties.process_pair(JDBC_RCA_DRIVER_PROPERTY, DATABASE_DRIVER_NAMES[DATABASE_INDEX])
   properties.process_pair(JDBC_RCA_URL_PROPERTY, connectionStringFormat[DATABASE_INDEX].format(jdbc_hostname, args.database_port, args.database_name))
   properties.process_pair(JDBC_RCA_USER_NAME_PROPERTY, args.database_username)
-  if isSecure:
-    properties.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY,
-          encrypt_password(JDBC_RCA_PASSWORD_ALIAS, args.database_password))
-  else:
-    properties.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY,
+  properties.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY,
       store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
-
+  if isSecure:
+    encrypted_password = encrypt_password(JDBC_RCA_PASSWORD_ALIAS, args.database_password)
+    if encrypted_password != args.database_password:
+      properties.process_pair(JDBC_RCA_PASSWORD_FILE_PROPERTY, encrypted_password)
+  pass
 
   conf_file = properties.fileName
 
@@ -1291,13 +1288,14 @@ def configure_database_username_password(args):
   else:
     print_error_msg("Connection properties not set in config file.")
 
-
 # Store local database connection properties
 def store_local_properties(args):
   properties = get_ambari_properties()
   if properties == -1:
     print_error_msg ("Error getting ambari properties")
     return -1
+
+  isSecure = get_is_secure(properties)
 
   properties.removeOldProp(JDBC_SCHEMA_PROPERTY)
   properties.removeOldProp(JDBC_HOSTNAME_PROPERTY)
@@ -1311,13 +1309,15 @@ def store_local_properties(args):
   properties.removeOldProp(JDBC_DATABASE_PROPERTY)
   properties.process_pair(PERSISTENCE_TYPE_PROPERTY, "local")
   properties.process_pair(JDBC_USER_NAME_PROPERTY, args.database_username)
-  isSecure = properties.get_property(SECURITY_IS_ENCRYPTION_ENABLED)
-  if isSecure and isSecure.lower() == 'true':
-    properties.process_pair(JDBC_PASSWORD_PROPERTY,
-      encrypt_password(JDBC_RCA_PASSWORD_ALIAS, args.database_password))
-  else:
-    properties.process_pair(JDBC_PASSWORD_PROPERTY,
+  properties.process_pair(JDBC_PASSWORD_PROPERTY,
       store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
+
+  if isSecure:
+    encrypted_password = encrypt_password(JDBC_RCA_PASSWORD_ALIAS, args.database_password)
+    if args.database_password != encrypted_password:
+      properties.process_pair(JDBC_PASSWORD_PROPERTY, encrypted_password)
+    pass
+  pass
 
   conf_file = properties.fileName
 
@@ -1842,11 +1842,29 @@ def check_jdbc_drivers(args):
 
   return 0
 
-#
+def verify_setup_allowed():
+  properties = get_ambari_properties()
+  if properties == -1:
+    print_error_msg ("Error getting ambari properties")
+    return -1
 
+  isSecure = get_is_secure(properties)
+  (isPersisted, masterKeyFile) = get_is_persisted(properties)
+  if isSecure and not isPersisted and SILENT:
+    print "ERROR: Cannot run silent 'setup' with password encryption enabled " \
+          "and Master Key not persisted."
+    print "Ambari Server 'setup' exiting."
+    return 1
+  return 0
+
+#
 # Setup the Ambari Server.
 #
 def setup(args):
+  retcode = verify_setup_allowed()
+  if not retcode == 0:
+    raise FatalException(1, None)
+
   if not is_root():
     err = 'Ambari-server setup should be run with '\
                      'root-level privileges'
@@ -2082,10 +2100,8 @@ def start(args):
       print "Please do not forget to start PostgreSQL server."
 
   properties = get_ambari_properties()
-  isSecure = properties.get_property(SECURITY_IS_ENCRYPTION_ENABLED)
-  isSecure = True if isSecure and isSecure.lower() == 'true' else False
-  keyLocation = get_master_key_location(properties)
-  masterKeyFile = search_file(SECURITY_MASTER_KEY_FILENAME, keyLocation)
+  isSecure = get_is_secure(properties)
+  (isPersisted, masterKeyFile) = get_is_persisted(properties)
   environ = os.environ.copy()
   # Need to handle master key not persisted scenario
   if isSecure and not masterKeyFile:
@@ -2110,8 +2126,7 @@ def start(args):
         prompt = True
 
     if prompt:
-      masterKey = get_validated_string_input("Please provide master key " +\
-                  "for unlocking credential store: ", "", ".*", "", True, False)
+      masterKey = get_original_master_key(properties)
       tempDir = tempfile.gettempdir()
       tempFilePath = tempDir + os.sep + "masterkey"
       save_master_key(masterKey, tempFilePath, True)
@@ -2365,6 +2380,7 @@ def setup_ldap():
     raise FatalException(4, err)
 
   properties = get_ambari_properties()
+  isSecure = get_is_secure(properties)
   # python2.x dict is not ordered
   ldap_property_list_reqd = ["authentication.ldap.primaryUrl",
                         "authentication.ldap.secondaryUrl",
@@ -2423,19 +2439,20 @@ def setup_ldap():
 
   bindAnonymously = ldap_property_value_map["authentication.ldap.bindAnonymously"]
   anonymous = (bindAnonymously and bindAnonymously.lower() == 'true')
-  password = None
+  mgr_password = None
   # Ask for manager credentials only if bindAnonymously is false
   if not anonymous:
     username = get_validated_string_input("Manager DN* {0}: ".format(
       get_prompt_default(LDAP_MGR_DN_DEFAULT)), LDAP_MGR_DN_DEFAULT, ".*",
                 "Invalid characters in the input!", False, False)
     ldap_property_value_map[LDAP_MGR_USERNAME_PROPERTY] = username
-    password = configure_ldap_password()
-    ldap_property_value_map[LDAP_MGR_PASSWORD_PROPERTY] = password
+    mgr_password = configure_ldap_password()
+    ldap_property_value_map[LDAP_MGR_PASSWORD_PROPERTY] = mgr_password
 
 
   useSSL = ldap_property_value_map["authentication.ldap.useSSL"]
   ldaps = (useSSL and useSSL.lower() == 'true')
+  ts_password = None
 
   if ldaps:
     truststore_default = "n"
@@ -2469,6 +2486,7 @@ def setup_ldap():
       properties.removeOldProp(SSL_TRUSTSTORE_PATH_PROPERTY)
       properties.removeOldProp(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
     pass
+  pass
 
   print '=' * 20
   print 'Review Settings'
@@ -2488,6 +2506,19 @@ def setup_ldap():
 
   if save_settings:
     ldap_property_value_map[CLIENT_SECURITY_KEY] = 'ldap'
+    if isSecure:
+      if mgr_password:
+        encrypted_passwd = encrypt_password(LDAP_MGR_PASSWORD_ALIAS, mgr_password)
+        if mgr_password != encrypted_passwd:
+          ldap_property_value_map[LDAP_MGR_PASSWORD_PROPERTY] = encrypted_passwd
+      pass
+      if ts_password:
+        encrypted_passwd = encrypt_password(SSL_TRUSTSTORE_PASSWORD_ALIAS, ts_password)
+        if ts_password != encrypted_passwd:
+          ldap_property_value_map[SSL_TRUSTSTORE_PASSWORD_PROPERTY] = encrypted_passwd
+      pass
+    pass
+
     # Persisting values
     update_properties(properties, ldap_property_value_map)
     print 'Saving...done'
@@ -2495,15 +2526,17 @@ def setup_ldap():
   return 0
 
 
-def read_master_key():
+def read_master_key(isReset=False):
   passwordPattern = ".*"
+  passwordPrompt = "Please provide master key for locking the credential store: "
   passwordDescr = "Invalid characters in password. Use only alphanumeric or "\
                   "_ or - characters"
   passwordDefault = ""
+  if isReset:
+    passwordPrompt = "Enter new Master Key: "
 
-  masterKey = get_validated_string_input(
-      "Please provide master key for locking the credential store: ",
-      passwordDefault, passwordPattern, passwordDescr, True, True)
+  masterKey = get_validated_string_input(passwordPrompt, passwordDefault,
+                            passwordPattern, passwordDescr, True, True)
 
   if not masterKey:
     print "Master Key cannot be empty!"
@@ -2524,15 +2557,13 @@ def encrypt_password(alias, password):
   if properties == -1:
     raise FatalException(1, None)
 
-  isSecure = properties.get_property(SECURITY_IS_ENCRYPTION_ENABLED)
-  if isSecure and isSecure.lower() == 'true':
-    keyLocation = get_master_key_location(properties)
-    masterKeyFile = search_file(SECURITY_MASTER_KEY_FILENAME, keyLocation)
+  isSecure = get_is_secure(properties)
+  (isPersisted, masterKeyFile) = get_is_persisted(properties)
+  if isSecure:
     masterKey = None
     if not masterKeyFile:
       # Encryption enabled but no master key file found
-      masterKey = get_validated_string_input("Please provide master key " +\
-                "for unlocking credential store: ", "", ".*", "", False, False)
+      masterKey = get_original_master_key(properties)
 
     retCode = save_passwd_for_alias(alias, password, masterKey)
     if retCode != 0:
@@ -2548,20 +2579,62 @@ def decrypt_password_for_alias(alias):
   if properties == -1:
     raise FatalException(1, None)
 
-  isSecure = properties.get_property(SECURITY_IS_ENCRYPTION_ENABLED)
-  if isSecure and isSecure.lower() == 'true':
-    keyLocation = get_master_key_location(properties)
-    masterKeyFile = search_file(SECURITY_MASTER_KEY_FILENAME, keyLocation)
+  isSecure = get_is_secure(properties)
+  (isPersisted, masterKeyFile) = get_is_persisted(properties)
+  if isSecure:
     masterKey = None
     if not masterKeyFile:
       # Encryption enabled but no master key file found
-      masterKey = get_validated_string_input("Please provide master key " +\
-                "for unlocking credential store: ", "", ".*", "", False, False)
+      masterKey = get_original_master_key(properties)
 
     return read_passwd_for_alias(alias, masterKey)
   else:
     return alias
 
+def get_original_master_key(properties):
+  try:
+    masterKey = get_validated_string_input('Enter current Master Key: ',
+                                             "", ".*", "", True, True)
+  except KeyboardInterrupt:
+    print 'Exiting...'
+    sys.exit(1)
+
+  # Find an alias that exists
+  alias = None
+  property = properties.get_property(JDBC_PASSWORD_PROPERTY)
+  if property and is_alias_string(property):
+    alias = JDBC_RCA_PASSWORD_ALIAS
+
+  if not alias:
+    property = properties.get_property(LDAP_MGR_PASSWORD_PROPERTY)
+    if property and is_alias_string(property):
+      alias = LDAP_MGR_PASSWORD_ALIAS
+
+  if not alias:
+    property = properties.get_property(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
+    if property and is_alias_string(property):
+      alias = SSL_TRUSTSTORE_PASSWORD_ALIAS
+
+  # Decrypt alias with master to validate it, if no master return
+  if alias and masterKey:
+    password = read_passwd_for_alias(alias, masterKey)
+    if not password:
+      print "ERROR: Master key does not match."
+      return get_original_master_key(properties)
+
+  return masterKey
+
+def get_is_secure(properties):
+  isSecure = properties.get_property(SECURITY_IS_ENCRYPTION_ENABLED)
+  isSecure = True if isSecure and isSecure.lower() == 'true' else False
+  return isSecure
+
+def get_is_persisted(properties):
+  keyLocation = get_master_key_location(properties)
+  masterKeyFile = search_file(SECURITY_MASTER_KEY_FILENAME, keyLocation)
+  isPersisted = True if masterKeyFile else False
+
+  return (isPersisted, masterKeyFile)
 
 def setup_master_key():
   if not is_root():
@@ -2572,17 +2645,21 @@ def setup_master_key():
   properties = get_ambari_properties()
   if properties == -1:
     raise FatalException(1, "Failed to read properties file.")
-  # Check configuration for location of master key
-  keyLocation = get_master_key_location(properties)
-  masterKeyFile = search_file(SECURITY_MASTER_KEY_FILENAME, keyLocation)
-  isPersisted = True if masterKeyFile else False
-  isSecure = properties.get_property(SECURITY_IS_ENCRYPTION_ENABLED)
-  isSecure = True if isSecure and isSecure.lower() == 'true' else False
+
   db_password = properties.get_property(JDBC_PASSWORD_PROPERTY)
-  # Read clear text password from from
-  if db_password and not is_alias_string(db_password) and os.path.isfile(db_password):
-    with open(db_password, 'r') as file:
-      db_password = file.read()
+  # Encrypt passwords cannot be called before setup
+  if not db_password:
+    print 'Please call "setup" before "encrypt-passwords". Exiting...'
+    return 1
+
+  # Check configuration for location of master key
+  isSecure = get_is_secure(properties)
+  (isPersisted, masterKeyFile) = get_is_persisted(properties)
+
+  # Read clear text password from file
+  if not is_alias_string(db_password) and os.path.isfile(db_password):
+    with open(db_password, 'r') as passwdfile:
+      db_password = passwdfile.read()
       
   ldap_password = properties.get_property(LDAP_MGR_PASSWORD_PROPERTY)
   ts_password = properties.get_property(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
@@ -2590,35 +2667,36 @@ def setup_master_key():
   masterKey = None
 
   if isSecure:
-    resetKey = get_YN_input("Password encryption is enabled. Do you want to "
-                            "reset master key? [y/n] (n): ", False)
+    print "Password encryption is enabled."
+    resetKey = get_YN_input("Do you want to reset Master Key? [y/n] (n): ", False)
 
   # For encrypting of only unencrypted passwords without resetting the key ask
   # for master key if not persisted.
   if isSecure and not isPersisted and not resetKey:
-    masterKey = get_validated_string_input('Please provide master key for '
-                  'the credential store: ', "", ".*", "", True, False)
+    print "Master Key not persisted."
+    masterKey = get_original_master_key(properties)
   pass
 
   # Make sure both passwords are clear-text if master key is lost
   if resetKey:
     if not isPersisted:
-      masterKey = get_validated_string_input('Please provide original master '
-                  'key for the credential store. Press [Enter] to skip: ',
-                                             "", ".*", "", True, True)
-
+      print "Master Key not persisted."
+      masterKey = get_original_master_key(properties)
+      # Unable get the right master key or skipped question <enter>
       if not masterKey:
-        err = '{0} is already encrypted. Please call {1} to store unencrypted' \
-              ' password and call "encrypt-passwords" again.'
+        print "To disable encryption, do the following:"
+        print "- Edit " + find_properties_file() + \
+              " and set " + SECURITY_IS_ENCRYPTION_ENABLED + " = " + "false."
+        err = "{0} is already encrypted. Please call {1} to store unencrypted" \
+              " password and call 'encrypt-passwords' again."
         if db_password and is_alias_string(db_password):
-          print err.format('Database password', '"' + SETUP_ACTION + '"')
-          return 1
+          print err.format('- Database password', "'" + SETUP_ACTION + "'")
         if ldap_password and is_alias_string(ldap_password):
-          print err.format('LDAP manager password', '"' + LDAP_SETUP_ACTION + '"')
-          return 1
+          print err.format('- LDAP manager password', "'" + LDAP_SETUP_ACTION + "'")
         if ts_password and is_alias_string(ts_password):
-          print err.format('TrustStore password', '"' + LDAP_SETUP_ACTION + '"')
-          return 1
+          print err.format('TrustStore password', "'" + LDAP_SETUP_ACTION + "'")
+
+        return 1
       pass
     pass
   pass
@@ -2632,15 +2710,15 @@ def setup_master_key():
     ts_password = read_passwd_for_alias(SSL_TRUSTSTORE_PASSWORD_ALIAS, masterKey)
   # Read master key, if non-secure or reset is true
   if resetKey or not isSecure:
-    masterKey = read_master_key()
+    masterKey = read_master_key(resetKey)
     persist = get_YN_input("Do you want to persist master key. If you choose "\
-                           "not to persist, you need to provide the master "\
-                           "key while starting the ambari server as an env "\
+                           "not to persist, you need to provide the Master "\
+                           "Key while starting the ambari server as an env "\
                            "variable named " + SECURITY_KEY_ENV_VAR_NAME +\
                            " or the start will prompt for the master key."
                            " Persist [y/n] (y)? ", True)
     if persist:
-      save_master_key(masterKey, keyLocation + os.sep +
+      save_master_key(masterKey, get_master_key_location(properties) + os.sep +
                                  SECURITY_MASTER_KEY_FILENAME, persist)
     elif not persist and masterKeyFile:
       try:
@@ -2648,15 +2726,16 @@ def setup_master_key():
         print_info_msg("Deleting master key file at location: " + str(
           masterKeyFile))
       except Exception, e:
-        print 'Could not remove master key file. %s' % e
-    pass
-  pass
-
-  if resetKey and masterKey:
-    # Blow up the credential store made with previous key
+        print 'ERROR: Could not remove master key file. %s' % e
+    # Blow up the credential store made with previous key, if any
     store_file = get_credential_store_location(properties)
     if os.path.exists(store_file):
-      os.remove(store_file)
+      try:
+        os.remove(store_file)
+      except:
+        print_warning_msg("Failed to remove credential store file.")
+      pass
+    pass
   pass
 
   propertyMap = {SECURITY_IS_ENCRYPTION_ENABLED : 'true'}
@@ -2750,7 +2829,7 @@ def read_passwd_for_alias(alias, masterKey=""):
     print_info_msg("Return code from credential provider get passwd: " +
                    str(retcode))
     if retcode != 0:
-      print 'Unable to read password from store. alias = ' + alias
+      print 'ERROR: Unable to read password from store. alias = ' + alias
     else:
       passwd = open(tempFilePath, 'r').read()
       # Remove temporary file

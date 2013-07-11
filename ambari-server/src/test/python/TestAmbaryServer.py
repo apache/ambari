@@ -1660,6 +1660,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     result = ambari_server.find_jdk()
     self.assertNotEqual(None, result)
 
+  @patch("os.path.exists")
+  @patch.object(ambari_server, 'verify_setup_allowed')
   @patch.object(ambari_server, "get_YN_input")
   @patch.object(ambari_server, "configure_os_settings")
   @patch.object(ambari_server, "download_jdk")
@@ -1678,10 +1680,13 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   def test_setup(self, is_root_mock, store_local_properties_mock, is_local_database_mock, store_remote_properties_mock,
                  setup_remote_db_mock, check_selinux_mock, check_jdbc_drivers_mock, check_ambari_user_mock,
                  check_iptables_mock, check_postgre_up_mock, setup_db_mock, configure_postgres_mock,
-                 download_jdk_mock, configure_os_settings_mock,get_YN_input  ):
+                 download_jdk_mock, configure_os_settings_mock,get_YN_input,
+                 verify_setup_allowed_method, exists_mock):
     args = MagicMock()
     failed = False
     get_YN_input.return_value = False
+    verify_setup_allowed_method.return_value = 0
+    exists_mock.return_value = False
     def reset_mocks():
       is_root_mock.reset_mock()
       store_local_properties_mock.reset_mock()
@@ -2595,6 +2600,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     os.unlink(fn2)
 
 
+  @patch.object(ambari_server, 'verify_setup_allowed')
   @patch("sys.exit")
   @patch.object(ambari_server, "get_YN_input")
   @patch.object(ambari_server, "get_db_cli_tool")
@@ -2607,8 +2613,11 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, "download_jdk")
   @patch.object(ambari_server, "configure_os_settings")
   @patch('__builtin__.raw_input')
-  def test_setup_remote_db_wo_client(self,raw_input, configure_os_settings_mock, download_jdk_mock, check_ambari_user_mock, is_root_mock, check_jdbc_drivers_mock, check_iptables_mock, is_local_db_mock,
-                                     store_remote_properties_mock, get_db_cli_tool_mock, get_YN_input, exit_mock):
+  def test_setup_remote_db_wo_client(self,raw_input, configure_os_settings_mock,
+        download_jdk_mock, check_ambari_user_mock, is_root_mock,
+        check_jdbc_drivers_mock, check_iptables_mock, is_local_db_mock,
+        store_remote_properties_mock, get_db_cli_tool_mock, get_YN_input,
+        exit_mock, verify_setup_allowed_method):
     args = MagicMock()
     raw_input.return_value =""
     is_root_mock.return_value = True
@@ -2621,6 +2630,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     check_ambari_user_mock.return_value = 0
     download_jdk_mock.return_value = 0
     configure_os_settings_mock.return_value = 0
+    verify_setup_allowed_method.return_value = 0
 
     try:
       ambari_server.setup(args)
@@ -3043,6 +3053,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     sys.stdout = sys.__stdout__
 
 
+  @patch("os.path.exists")
+  @patch.object(ambari_server, 'get_is_secure')
+  @patch.object(ambari_server, 'get_is_persisted')
   @patch.object(ambari_server, 'remove_password_file')
   @patch.object(ambari_server, 'save_passwd_for_alias')
   @patch.object(ambari_server, 'read_master_key')
@@ -3059,15 +3072,19 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
               get_YN_input_method, save_master_key_method,
               update_properties_method, get_master_key_location_method,
               read_ambari_user_method, read_master_key_method,
-              save_passwd_for_alias_method, remove_password_file_method):
+              save_passwd_for_alias_method, remove_password_file_method,
+              get_is_persisted_method, get_is_secure_method, exists_mock):
 
     is_root_method.return_value = True
     p = get_ambari_properties_method.return_value
-    p.get_property.side_effect = [ None, "fakepasswd", "fakepasswd", "fakepasswd"]
+    p.get_property.side_effect = [ "fakepasswd", "fakepasswd", "fakepasswd"]
     read_master_key_method.return_value = "aaa"
     get_YN_input_method.return_value = False
     read_ambari_user_method.return_value = None
     save_passwd_for_alias_method.return_value = 0
+    get_is_persisted_method.return_value = (True, "filepath")
+    get_is_secure_method.return_value = False
+    exists_mock.return_value = False
 
     ambari_server.setup_master_key()
 
@@ -3094,6 +3111,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEquals(sorted_x, sorted_y)
 
 
+  @patch("os.path.exists")
+  @patch.object(ambari_server, 'get_is_secure')
+  @patch.object(ambari_server, 'get_is_persisted')
   @patch.object(ambari_server, 'read_master_key')
   @patch.object(ambari_server, 'read_ambari_user')
   @patch.object(ambari_server, 'get_master_key_location')
@@ -3107,14 +3127,18 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
               get_ambari_properties_method, search_file_message,
               get_YN_input_method, save_master_key_method,
               update_properties_method, get_master_key_location_method,
-              read_ambari_user_method, read_master_key_method):
+              read_ambari_user_method, read_master_key_method,
+              get_is_persisted_method, get_is_secure_method, exists_mock):
 
     is_root_method.return_value = True
     p = get_ambari_properties_method.return_value
-    p.get_property.side_effect = [ None, "fakepasswd", None, None]
+    p.get_property.side_effect = [ "fakepasswd", None, None]
     read_master_key_method.return_value = "aaa"
     get_YN_input_method.side_effect = [True, False]
     read_ambari_user_method.return_value = None
+    get_is_persisted_method.return_value = (True, "filepath")
+    get_is_secure_method.return_value = False
+    exists_mock.return_value = False
 
     ambari_server.setup_master_key()
 
@@ -3207,6 +3231,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEquals(sorted_x, sorted_y)
 
 
+  @patch.object(ambari_server, 'get_is_persisted')
+  @patch.object(ambari_server, 'get_is_secure')
   @patch.object(ambari_server, 'remove_password_file')
   @patch("os.path.exists")
   @patch.object(ambari_server, 'read_ambari_user')
@@ -3228,13 +3254,14 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
               update_properties_method, read_passwd_for_alias_method,
               save_passwd_for_alias_method, Properties_mock,
               get_master_key_location_method, read_ambari_user_method,
-              exists_mock, remove_password_file_method):
+              exists_mock, remove_password_file_method, get_is_secure_method,
+              get_is_persisted_method):
 
     is_root_method.return_value = True
     search_file_message.return_value = False
     read_ambari_user_method.return_value = None
     p = get_ambari_properties_method.return_value
-    p.get_property.side_effect = [ 'true', '${alias=fakealias}',
+    p.get_property.side_effect = [ '${alias=fakealias}',
                                    '${alias=fakealias}', '${alias=fakealias}']
 
     get_YN_input_method.side_effect = [ True, False ]
@@ -3242,6 +3269,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     read_passwd_for_alias_method.return_value = "fakepassword"
     save_passwd_for_alias_method.return_value = 0
     exists_mock.return_value = False
+    get_is_secure_method.return_value = True
+    get_is_persisted_method.return_value = (True, "filePath")
 
     ambari_server.setup_master_key()
 
@@ -3268,6 +3297,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEquals(sorted_x, sorted_y)
 
 
+  @patch.object(ambari_server, 'get_is_secure')
+  @patch.object(ambari_server, 'encrypt_password')
   @patch.object(ambari_server, 'save_passwd_for_alias')
   @patch.object(ambari_server, 'get_YN_input')
   @patch.object(ambari_server, 'update_properties')
@@ -3281,7 +3312,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                 search_file_message, setup_master_key_method,
                 get_validated_string_input_method,
                 configure_ldap_password_method, update_properties_method,
-                get_YN_input_method, save_passwd_for_alias_method):
+                get_YN_input_method, save_passwd_for_alias_method,
+                encrypt_password_method, get_is_secure_method):
     out = StringIO.StringIO()
     sys.stdout = out
 
@@ -3302,7 +3334,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     configs = { ambari_server.SECURITY_MASTER_KEY_LOCATION : "filepath",
                 ambari_server.SECURITY_KEYS_DIR : tempfile.gettempdir(),
-                ambari_server.SECURITY_KEY_IS_PERSISTED : "true"
+                ambari_server.SECURITY_IS_ENCRYPTION_ENABLED : "true"
               }
 
     get_ambari_properties_method.return_value = configs
@@ -3310,6 +3342,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     setup_master_key_method.return_value = (None, True, True)
     get_YN_input_method.return_value = True
     save_passwd_for_alias_method.return_value = 0
+    encrypt_password_method.return_value = ambari_server.get_alias_string(
+      ambari_server.LDAP_MGR_PASSWORD_ALIAS)
 
     def side_effect(*args, **kwargs):
       if 'Bind anonymously' in args[0]:
@@ -3334,7 +3368,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       "authentication.ldap.managerDn" : "test",
       "authentication.ldap.managerPassword" : \
        'password',
-      "client.security" : "ldap"
+      "client.security" : "ldap",\
+      ambari_server.LDAP_MGR_PASSWORD_PROPERTY : ambari_server.get_alias_string(\
+      ambari_server.LDAP_MGR_PASSWORD_ALIAS)
     }
 
     sorted_x = sorted(ldap_properties_map.iteritems(), key=operator.itemgetter(0))
