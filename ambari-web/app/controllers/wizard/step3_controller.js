@@ -754,12 +754,15 @@ App.WizardStep3Controller = Em.Controller.extend({
           warning.onSingleHost = false;
         } else {
           warning = {
-            name: (process.command.substr(0, 15) + '...'),
+            name: (process.command.substr(0, 35) + '...'),
             hosts: [_host.Hosts.host_name],
             category: 'processes',
             user: process.user,
             pid: process.pid,
-            command: process.command,
+            command: '<table><tr><td style="word-break: break-all;">' +
+                ((process.command.length < 500) ? process.command : process.command.substr(0, 230) + '...' +
+                    '<p style="text-align: center">................</p>' +
+                    '...' + process.command.substr(-230)) + '</td></tr></table>',
             onSingleHost: true
           }
           warnings.push(warning);
@@ -907,6 +910,7 @@ App.WizardStep3Controller = Em.Controller.extend({
               return '#' + cat.category
             }).join(',')).hide();
             this.$("[rel='HostsListTooltip']").tooltip({html: true, placement: "right"});
+            this.$('#process .warning-name').tooltip({html: true, placement: "top"});
           })
         }.observes('content'),
         warningsByHost: function () {
