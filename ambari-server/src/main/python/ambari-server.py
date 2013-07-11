@@ -103,6 +103,8 @@ GET_CRT_INFO_CMD = 'openssl x509 -dates -subject -in {0}'
 # constants
 STACK_NAME_VER_SEP = "-"
 JAVA_SHARE_PATH="/usr/share/java"
+SERVER_OUT_FILE="/var/log/ambari-server/ambari-server.out"
+SERVER_LOG_FILE="/var/log/ambari-server/ambari-server.log"
 
 # terminal styles
 BOLD_ON='\033[1m'
@@ -128,7 +130,7 @@ SERVER_START_CMD="{0}" + os.sep + "bin" + os.sep +\
                  os.getenv('AMBARI_JVM_ARGS','-Xms512m -Xmx2048m') +\
                  " -cp {1}"+ os.pathsep + "{2}" +\
                  " org.apache.ambari.server.controller.AmbariServer "\
-                 ">/var/log/ambari-server/ambari-server.out 2>&1 &" \
+                 ">" + SERVER_OUT_FILE + " 2>&1 &" \
                  " echo $! > {3}" # Writing pidfile
 SERVER_START_CMD_DEBUG="{0}" + os.sep + "bin" + os.sep +\
                        "java -server -XX:NewRatio=2 -XX:+UseConcMarkSweepGC " +\
@@ -143,19 +145,19 @@ SECURITY_PROVIDER_GET_CMD="{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
                           os.pathsep + "{2} " +\
                           "org.apache.ambari.server.security.encryption" +\
                           ".CredentialProvider GET {3} {4} {5} " +\
-                          "> /var/log/ambari-server/ambari-server.out 2>&1"
+                          "> " + SERVER_OUT_FILE + " 2>&1"
 
 SECURITY_PROVIDER_PUT_CMD="{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
                           os.pathsep + "{2} " +\
                           "org.apache.ambari.server.security.encryption" +\
                           ".CredentialProvider PUT {3} {4} {5} " +\
-                          "> /var/log/ambari-server/ambari-server.out 2>&1"
+                          "> " + SERVER_OUT_FILE + " 2>&1"
 
 SECURITY_PROVIDER_KEY_CMD="{0}" + os.sep + "bin" + os.sep + "java -cp {1}" +\
                           os.pathsep + "{2} " +\
                           "org.apache.ambari.server.security.encryption" +\
                           ".MasterKeyServiceImpl {3} {4} {5} " +\
-                          "> /var/log/ambari-server/ambari-server.out 2>&1"
+                          "> " + SERVER_OUT_FILE + " 2>&1"
 
 SECURITY_KEYS_DIR = "security.server.keys_dir"
 SECURITY_MASTER_KEY_LOCATION = "security.master.key.location"
@@ -2026,12 +2028,12 @@ def start(args):
   current_user = getpass.getuser()
   ambari_user = read_ambari_user()
   if ambari_user is None:
-    err = "Can not detect a system user for Ambari. " \
-          "Please run \"setup\" command to create such user "
+    err = "Unable to detect a system user for Ambari Server. " \
+          "Please run \"ambari-server setup\" command to create user "
     raise FatalException(1, err)
   if current_user != ambari_user and not is_root():
-    err = "Can not start ambari-server as user {0}. Please either run \"start\" " \
-          "command as root or as user {1}".format(current_user, ambari_user)
+    err = "Unable to start Ambari Server as user {0}. Please either run \"ambari-server start\" " \
+          "command as root, as sudo or as user \"{1}\"".format(current_user, ambari_user)
     raise FatalException(1, err)
 
   parse_properties_file(args)
@@ -2041,15 +2043,15 @@ def start(args):
     f.close()
     try:
       os.kill(pid, 0)
-      err = "Server is already running."
+      err = "Ambari Server is already running."
       raise FatalException(1, err)
     except OSError as e:
-      print_info_msg("Server is not running...")
+      print_info_msg("Ambari Server is not running...")
 
   conf_dir = get_conf_dir()
   jdk_path = find_jdk()
   if jdk_path is None:
-    err = "No JDK found, please run the \"setup\" " \
+    err = "No JDK found, please run the \"ambari-server setup\" " \
                     "command to install a JDK automatically or install any " \
                     "JDK manually to " + JDK_INSTALL_DIR
     raise FatalException(1, err)
@@ -2057,7 +2059,7 @@ def start(args):
   # Preparations
 
   if is_root():
-    print "Have root privileges."
+    print "Ambari Server running with 'root' privileges."
 
     if args.persistence_type == "local":
       retcode = check_postgre_up()
@@ -2071,14 +2073,13 @@ def start(args):
       err = "Failed to stop iptables. Exiting"
       raise FatalException(retcode, err)
   else: # Skipping actions that require root permissions
-    print "Can not check iptables status when starting "\
+    print "Unable to check iptables status when starting "\
       "without root privileges."
-    print "Please don't forget to disable or adjust iptables if needed"
+    print "Please do not forget to disable or adjust iptables if needed"
     if args.persistence_type == "local":
-      print "Can not check PostgreSQL server status when starting " \
+      print "Unable to check PostgreSQL server status when starting " \
             "without root privileges."
-      print "Please don't forget to start PostgreSQL server."
-
+      print "Please do not forget to start PostgreSQL server."
 
   properties = get_ambari_properties()
   isSecure = properties.get_property(SECURITY_IS_ENCRYPTION_ENABLED)
@@ -2136,8 +2137,13 @@ def start(args):
     param_list = ["/bin/su", ambari_user, "-s", "/bin/sh", "-c", command]
   else:
     param_list = ["/bin/sh", "-c", command]
-  print "Running server: " + str(param_list)
+
+  print_info_msg ("Running server: " + str(param_list))
   server_process = subprocess.Popen(param_list, env=environ)
+
+  print "Server PID at: "+pidfile
+  print "Server out at: "+SERVER_OUT_FILE
+  print "Server log at: "+SERVER_LOG_FILE
 
 
 #

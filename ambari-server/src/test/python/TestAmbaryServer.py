@@ -1910,7 +1910,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       self.fail("Should fail with 'Can not detect a system user for Ambari'")
     except FatalException as e:
       # Expected
-      self.assertTrue('Can not detect a system user' in e.reason)
+      self.assertTrue('Unable to detect a system user for Ambari Server.' in e.reason)
 
     parse_properties_file_mock.reset_mock()
 
@@ -1924,7 +1924,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       self.fail("Should fail with 'Can not start ambari-server as user...'")
     except FatalException as e:
       # Expected
-      self.assertTrue('Can not start ambari-server as user' in e.reason)
+      self.assertTrue('Unable to start Ambari Server as user' in e.reason)
       self.assertFalse(parse_properties_file_mock.called)
 
     parse_properties_file_mock.reset_mock()
@@ -2055,7 +2055,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       self.fail("Can not start ambari-server as user non_custom_user.")
     except FatalException as e:
       # Expected
-      self.assertTrue('Can not start ambari-server as user' in e.reason)
+      self.assertTrue('Unable to start Ambari Server as user' in e.reason)
 
     parse_properties_file_mock.reset_mock()
 
