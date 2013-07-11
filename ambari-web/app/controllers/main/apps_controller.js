@@ -379,7 +379,8 @@ App.MainAppsController = Em.ArrayController.extend({
     if(this.get("filterObject.viewType") == "filtered"){
       this.set("runUrl", link);
     }else{
-      this.set("runUrl",  "/jobhistory/datatable?iDisplayStart="+this.get('filterObject.iDisplayStart')+"&iDisplayLength="+this.get('filterObject.iDisplayLength'));
+      this.set("runUrl", "/jobhistory/datatable?iDisplayStart=" + this.get('filterObject.iDisplayStart') + "&iDisplayLength=" + this.get('filterObject.iDisplayLength') +
+         '&iSortCol_0=' + this.get('filterObject.iSortCol_0') + '&sSortDir_0=' + this.get('filterObject.sSortDir_0'));
     }
 
     var timeout = this.get('runTimeout');
