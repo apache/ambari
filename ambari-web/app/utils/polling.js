@@ -61,6 +61,7 @@ App.Poll = Em.Object.extend({
   setRequestId: function () {
     if (App.testMode) {
       this.set('requestId', '1');
+      this.doPolling();
       return;
     }
     var self = this;
@@ -86,6 +87,7 @@ App.Poll = Em.Object.extend({
         } else {
           var requestId = jsonData.Requests.id;
           self.set('requestId', requestId);
+          self.doPolling();
           console.log('requestId is: ' + requestId);
         }
       },
@@ -104,9 +106,12 @@ App.Poll = Em.Object.extend({
     if (this.get('requestId')) {
       this.startPolling();
     }
-  }.observes('requestId'),
+  },
 
   startPolling: function () {
+    if (!this.get('requestId')) {
+      return;
+    }
     var self = this;
     var url = App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/requests/' + this.get('requestId') + '?fields=tasks/*';
     if (App.testMode) {
