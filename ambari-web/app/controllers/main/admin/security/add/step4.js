@@ -28,6 +28,7 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
   secureServices: [],
   serviceConfigTags: [],
   globalProperties: [],
+  totalSteps: 3,
 
   isSubmitDisabled: true,
   isBackBtnDisabled: function () {
@@ -72,13 +73,12 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
   },
 
   retry: function () {
-    if (this.get('stages').someProperty('isError', true)) {
-      var failedStages = this.get('stages').filterProperty('isError', true);
-      failedStages.setEach('isError', false);
-      failedStages.setEach('isSuccess', false);
-      failedStages.setEach('isStarted', false);
+    var failedStage = this.get('stages').findProperty('isError', true);
+    if (failedStage) {
+      failedStage.set('isStarted', false);
+      failedStage.set('isError', false);
+      this.startStage(failedStage);
     }
-    this.moveToNextStage();
   },
 
   loadStep: function () {
@@ -92,6 +92,7 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
       }, this);
       if (stages.someProperty('isError', true)) {
         this.get('stages').pushObjects(stages);
+        this.addObserver('stages.@each.isSuccess', this.onCompleteStage);
         return;
       } else if (stages.filterProperty('isStarted', true).someProperty('isCompleted', false)) {
         var runningStage = stages.filterProperty('isStarted', true).findProperty('isCompleted', false);
@@ -110,6 +111,7 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
         stopStage.set('requestId', stopAllOperation.get('id'));
       }
     }
+    this.addObserver('stages.@each.isSuccess', this.onCompleteStage);
     this.moveToNextStage();
   },
 
@@ -157,38 +159,46 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
     ]);
   },
 
-  startStage: function () {
-    var startedStages = this.get('stages').filterProperty('isStarted', true);
-    if (startedStages.length) {
-      var currentStage = startedStages.findProperty('isCompleted', false);
+  startStage: function (currentStage) {
+    if (this.get('stages').length === this.totalSteps) {
+      if (!currentStage) {
+        var startedStages = this.get('stages').filterProperty('isStarted', true);
+        currentStage = startedStages.findProperty('isCompleted', false);
+      }
       if (currentStage && currentStage.get('isPolling') === true) {
+        currentStage.set('isStarted', true);
         currentStage.start();
       } else if (currentStage && currentStage.get('stage') === 'stage3') {
+        currentStage.set('isStarted', true);
         if (App.testMode) {
-          currentStage.set('isSuccess', true);
-          App.router.get('mainAdminSecurityController').setAddSecurityWizardStatus(null);
+          currentStage.set('isError', false);
+          currentStage.set('isCompleted', true);
         } else {
-          this.loadClusterConfigs()
+          this.loadClusterConfigs();
         }
       }
     }
-  }.observes('stages.@each.isStarted'),
+  },
 
   onCompleteStage: function () {
-    var index = this.get('stages').filterProperty('isCompleted', true).length;
-    if (index > 0) {
-      var lastCompletedStageResult = this.get('stages').objectAt(index - 1).get('isSuccess');
-      if (lastCompletedStageResult) {
-        this.moveToNextStage();
+    if (this.get('stages').length === this.totalSteps) {
+      var index = this.get('stages').filterProperty('isSuccess', true).length;
+      if (index > 0) {
+        var lastCompletedStageResult = this.get('stages').objectAt(index - 1).get('isSuccess');
+        if (lastCompletedStageResult) {
+          var nextStage = this.get('stages').objectAt(index);
+          this.moveToNextStage(nextStage);
+        }
       }
     }
-  }.observes('stages.@each.isCompleted'),
+  },
 
-  moveToNextStage: function () {
-    var leftStages = this.get('stages').filterProperty('isStarted', false);
-    var nextStage = leftStages.findProperty('isCompleted', false);
+  moveToNextStage: function (nextStage) {
+    if (!nextStage) {
+      nextStage = this.get('stages').findProperty('isStarted', false);
+    }
     if (nextStage) {
-      nextStage.set('isStarted', true);
+      this.startStage(nextStage);
     }
   },
 
@@ -613,9 +623,17 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
     }, this);
   },
 
+  saveStagesOnRequestId: function () {
+    this.saveStages();
+  }.observes('stages.@each.requestId'),
+
+  saveStagesOnCompleted: function () {
+    this.saveStages();
+  }.observes('stages.@each.isCompleted'),
+
   saveStages: function () {
     var stages = [];
-    if (this.get('stages').length === 3) {
+    if (this.get('stages').length === this.totalSteps) {
       this.get('stages').forEach(function (_stage) {
         var stage = {
           name: _stage.get('name'),
@@ -642,5 +660,5 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
         });
       }
     }
-  }.observes('stages.@each.requestId')
+  }
 });

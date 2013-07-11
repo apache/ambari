@@ -85,7 +85,7 @@ module.exports = Em.Route.extend({
                 clusterName: router.get('content.cluster.name'),
                 clusterState: 'SECURITY_COMPLETED',
                 wizardControllerName: router.get('addSecurityController.name'),
-                localdb: App.db.data
+                localdb: App.db.data.AddSecurity
               });
               router.transitionTo('adminSecurity.index');
             },
@@ -160,7 +160,6 @@ module.exports = Em.Route.extend({
       var addSecurityController = router.get('addSecurityController');
       var addSecurityStep2Controller = router.get('mainAdminSecurityAddStep2Controller');
       addSecurityController.saveServiceConfigProperties(addSecurityStep2Controller);
-      App.db.setSecurityDeployStages(undefined);
       router.transitionTo('step3');
     }
   }),
@@ -188,7 +187,10 @@ module.exports = Em.Route.extend({
       })
     },
     back: Em.Router.transitionTo('step2'),
-    next: Em.Router.transitionTo('step4')
+    next: function (router) {
+      App.db.setSecurityDeployStages(undefined);
+      router.transitionTo('step4');
+    }
   }),
 
   step4: Em.Route.extend({

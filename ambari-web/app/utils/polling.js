@@ -84,6 +84,7 @@ App.Poll = Em.Object.extend({
         if (jsonData === null) {
           self.set('isSuccess', true);
           self.set('isError', false);
+          self.set('requestId',undefined);
         } else {
           var requestId = jsonData.Requests.id;
           self.set('requestId', requestId);
