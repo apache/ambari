@@ -84,7 +84,7 @@ App.UpdateController = Em.Controller.extend({
       conditionalFields.push("components/host_components/metrics/flume/flume");
     }
     var conditionalFieldsString = conditionalFields.length > 0 ? ',' + conditionalFields.join(',') : '';
-    
+    var methodStartTs = new Date().getTime();
     var servicesUrl = isInitialLoad ? 
       //this.getUrl('/data/dashboard/services.json', '/services?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles') :
       this.getUrl('/data/dashboard/services.json', '/services?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles,components/host_components/metrics/jvm/memHeapUsedM,components/host_components/metrics/jvm/memHeapCommittedM,components/host_components/metrics/mapred/jobtracker/trackers_decommissioned,components/host_components/metrics/cpu/cpu_wio,components/host_components/metrics/rpc/RpcQueueTime_avg_time'+conditionalFieldsString):
@@ -92,9 +92,12 @@ App.UpdateController = Em.Controller.extend({
     var callback = callback || function (jqXHR, textStatus) {
       self.set('isUpdated', true);
     };
-      App.HttpClient.get(servicesUrl, App.servicesMapper, {
-        complete: callback
-      });
+    App.HttpClient.get(servicesUrl, App.servicesMapper, {
+      complete: function(){
+        console.log("UpdateServiceMetric() Finished in:"+ (new Date().getTime()-methodStartTs) + " ms");
+        callback();
+      }
+    });
   }
 
 });

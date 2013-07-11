@@ -213,18 +213,30 @@ App.servicesMapper = App.QuickDataMapper.create({
 
       var oldHostComponents = App.HostComponent.find();
       var item;
-      for (var i = 0; i < oldHostComponents.content.length; i++) {
+      var currentHCWithComponentNames = {};
+      var currentComponentNameHostNames = {};
+      for ( var i = 0; i < oldHostComponents.content.length; i++) {
         item = oldHostComponents.objectAt(i);
         if (item && !result.findProperty('id', item.get('id'))) {
           item.deleteRecord();
+        } else {
+          var componentName = item.get('componentName');
+          if (componentName) {
+            currentHCWithComponentNames[item.get('id')] = item.get('id');
+          }
+          if (!currentComponentNameHostNames[componentName]) {
+            currentComponentNameHostNames[componentName] = [];
+          }
+          currentComponentNameHostNames[componentName].pushObject(item.get('host.hostName'));
         }
       }
       result.forEach(function (item) {
-        if (App.HostComponent.find(item.id).get('componentName') &&
-            !App.HostComponent.find().filterProperty('componentName', item.component_name).someProperty('host.hostName', item.host_id)) {
+        if (currentHCWithComponentNames[item.id] != null && 
+            !currentComponentNameHostNames[item.component_name].contains(item.host_id)) {
           item.id = (new Date).getTime();
         }
       });
+      
       App.store.loadMany(this.get('model3'), result);
       for(var hostComponentId in hostComponentToActualConfigsMap){
         var hostComponentObj = App.HostComponent.find(hostComponentId);
