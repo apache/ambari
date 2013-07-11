@@ -2853,7 +2853,7 @@ def update_properties(properties, propertyMap):
 
 def setup_https(args):
   if not is_root():
-    err = 'Ambari-server setup-https should be run with ' \
+    err = 'ambari-server setup-https should be run with ' \
           'root-level privileges'
     raise FatalException(4, err)
   args.exit_message = None
@@ -2867,7 +2867,7 @@ def setup_https(args):
       cert_was_imported = False
       cert_must_import = True
       if api_ssl:
-       if get_YN_input("Do you want to disable SSL [y/n] n? ", False):
+       if get_YN_input("Do you want to disable HTTPS [y/n] (n)? ", False):
         properties.process_pair(SSL_API, "false")
         cert_must_import=False
        else:
@@ -2878,7 +2878,7 @@ def setup_https(args):
                                 "^[0-9]{1,5}$", "Invalid port.", False))   
         cert_was_imported = import_cert_and_key_action(security_server_keys_dir, properties)
       else:
-       if get_YN_input("Do you want to configure HTTPS (y/n) y? ", True):
+       if get_YN_input("Do you want to configure HTTPS [y/n] (y)? ", True):
         properties.process_pair(SSL_API_PORT,\
         get_validated_string_input("SSL port ["+str(client_api_ssl_port)+"] ? ",\
         str(client_api_ssl_port), "^[0-9]{1,5}$", "Invalid port.", False))   
@@ -2931,24 +2931,24 @@ def import_cert_and_key_action(security_server_keys_dir, properties):
    
 def import_cert_and_key(security_server_keys_dir):
   import_cert_path = get_validated_filepath_input(\
-                    "Please enter path to Certificate: ",\
+                    "Enter path to Certificate: ",\
                     "Certificate not found")
   import_key_path  =  get_validated_filepath_input(\
-                      "Please enter path to Private Key: ", "Private Key not found")
-  pem_password = get_validated_string_input("Please enter password for private key: ", "", None, None, True)
+                      "Enter path to Private Key: ", "Private Key not found")
+  pem_password = get_validated_string_input("Please enter password for Private Key: ", "", None, None, True)
   
   certInfoDict = get_cert_info(import_cert_path)
   
   if not certInfoDict:
-    print_warning_msg('Error getting certificate information')
+    print_warning_msg('Unable to get Certificate information')
   else:  
     #Validate common name of certificate
     if not is_valid_cert_host(certInfoDict):
-      print_warning_msg('Validation of certificate hostname failed')
+      print_warning_msg('Unable to validate Certificate hostname')
   
     #Validate issue and expirations dates of certificate
     if not is_valid_cert_exp(certInfoDict):
-      print_warning_msg('Validation of certificate issue and expiration dates failed')
+      print_warning_msg('Unable to validate Certificate issue and expiration dates')
 
   #jetty requires private key files with non-empty key passwords
   retcode = 0
@@ -2983,7 +2983,7 @@ def import_cert_and_key(security_server_keys_dir):
     retcode, out, err = run_os_command(EXPRT_KSTR_CMD.format(import_cert_path,\
     import_key_path, passwordFilePath, passinFilePath, keystoreFilePath))
   if retcode == 0:
-   print 'Importing and saving certificate...done.'
+   print 'Importing and saving Certificate...done.'
    set_file_permissions(keystoreFilePath, "660", read_ambari_user(), False)
 
    import_file_to_keystore(import_cert_path, os.path.join(\
@@ -3038,14 +3038,14 @@ def get_cert_info(path):
   retcode, out, err = run_os_command(GET_CRT_INFO_CMD.format(path))
   
   if retcode != 0:
-    print 'Error during getting certificate info'
+    print 'Error getting Certificate info'
     print err
     return None
   
   if out:
     certInfolist = out.split(os.linesep)
   else:
-    print 'Empty certificate info'
+    print 'Empty Certificate info'
     return None
   
   notBefore = None
@@ -3084,13 +3084,13 @@ def is_valid_cert_exp(certInfoDict):
   if certInfoDict.has_key(NOT_BEFORE_ATTR):
     notBefore = certInfoDict[NOT_BEFORE_ATTR]
   else:
-    print_warning_msg('There is no Not Before value in certificate')
+    print_warning_msg('There is no Not Before value in Certificate')
     return False
 
   if certInfoDict.has_key(NOT_AFTER_ATTR):
     notAfter = certInfoDict['notAfter']
   else:
-    print_warning_msg('There is no Not After value in certificate')
+    print_warning_msg('There is no Not After value in Certificate')
     return False
       
   
@@ -3100,7 +3100,7 @@ def is_valid_cert_exp(certInfoDict):
   currentDate = datetime.datetime.now()
   
   if currentDate > notAfterDate:
-    print_warning_msg('Certificate was expired on: ' + str(notAfterDate))
+    print_warning_msg('Certificate expired on: ' + str(notAfterDate))
     return False
     
   if currentDate < notBeforeDate:
@@ -3113,7 +3113,7 @@ def is_valid_cert_host(certInfoDict):
   if certInfoDict.has_key(COMMON_NAME_ATTR):
    commonName = certInfoDict[COMMON_NAME_ATTR]
   else:
-    print_warning_msg('There is no Common name in certificate')
+    print_warning_msg('There is no Common Name in Certificate')
     return False
 
   fqdn = get_fqdn()
@@ -3123,7 +3123,7 @@ def is_valid_cert_host(certInfoDict):
     return False
   
   if commonName != fqdn:
-    print_warning_msg('Common name in certificate: ' + commonName + ' doesn\'t matches the server hostname: ' + fqdn)
+    print_warning_msg('Common Name in Certificate: ' + commonName + ' does not match the server FQDN: ' + fqdn)
     return False
 
   return True
@@ -3132,7 +3132,7 @@ def is_valid_cert_host(certInfoDict):
 def get_fqdn():
   properties = get_ambari_properties()
   if properties == -1:
-    print "Error getting ambari properties"
+    print "Error reading ambari properties"
     return None
 
   get_fqdn_service_url = properties[GET_FQDN_SERVICE_URL]
