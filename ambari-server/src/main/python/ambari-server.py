@@ -2758,25 +2758,29 @@ def setup_master_key():
   # Encrypt only un-encrypted passwords
   if db_password and not is_alias_string(db_password):
     retCode = save_passwd_for_alias(JDBC_RCA_PASSWORD_ALIAS, db_password, masterKey)
-    propertyMap[JDBC_PASSWORD_PROPERTY] = get_alias_string(JDBC_RCA_PASSWORD_ALIAS)
     if retCode != 0:
       print 'Failed to save secure database password.'
     else:
+      propertyMap[JDBC_PASSWORD_PROPERTY] = get_alias_string(JDBC_RCA_PASSWORD_ALIAS)
       remove_password_file(JDBC_PASSWORD_FILENAME)
+      if properties.get_property(JDBC_RCA_PASSWORD_FILE_PROPERTY):
+        propertyMap[JDBC_RCA_PASSWORD_FILE_PROPERTY] = get_alias_string(JDBC_RCA_PASSWORD_ALIAS)
   pass
 
   if ldap_password and not is_alias_string(ldap_password):
     retCode = save_passwd_for_alias(LDAP_MGR_PASSWORD_ALIAS, ldap_password, masterKey)
-    propertyMap[LDAP_MGR_PASSWORD_PROPERTY] = get_alias_string(LDAP_MGR_PASSWORD_ALIAS)
     if retCode != 0:
       print 'Failed to save secure LDAP password.'
+    else:
+      propertyMap[LDAP_MGR_PASSWORD_PROPERTY] = get_alias_string(LDAP_MGR_PASSWORD_ALIAS)
   pass
 
   if ts_password and not is_alias_string(ts_password):
     retCode = save_passwd_for_alias(SSL_TRUSTSTORE_PASSWORD_ALIAS, ts_password, masterKey)
-    propertyMap[SSL_TRUSTSTORE_PASSWORD_PROPERTY] = get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS)
     if retCode != 0:
       print 'Failed to save secure TrustStore password.'
+    else:
+      propertyMap[SSL_TRUSTSTORE_PASSWORD_PROPERTY] = get_alias_string(SSL_TRUSTSTORE_PASSWORD_ALIAS)
   pass
 
   update_properties(properties, propertyMap)
