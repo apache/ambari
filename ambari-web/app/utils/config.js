@@ -387,7 +387,7 @@ App.config = Em.Object.create({
    * @param selectedServiceNames
    * @return {Array}
    */
-  renderConfigs: function (configs, allInstalledServiceNames, selectedServiceNames) {
+  renderConfigs: function (configs, storedConfigs, allInstalledServiceNames, selectedServiceNames) {
     var renderedServiceConfigs = [];
     var localDB = {
       hosts: App.db.getHosts(),
@@ -414,7 +414,9 @@ App.config = Em.Object.create({
         _config.isOverridable = (_config.isOverridable === undefined) ? true : _config.isOverridable;
         serviceConfigProperty = App.ServiceConfigProperty.create(_config);
         this.updateHostOverrides(serviceConfigProperty, _config);
-        serviceConfigProperty.initialValue(localDB);
+        if (!storedConfigs) {
+          serviceConfigProperty.initialValue(localDB);
+        }
         this.tweakDynamicDefaults(localDB, serviceConfigProperty, _config);
         serviceConfigProperty.validate();
         configsByService.pushObject(serviceConfigProperty);
