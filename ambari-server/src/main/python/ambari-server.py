@@ -105,6 +105,7 @@ STACK_NAME_VER_SEP = "-"
 JAVA_SHARE_PATH="/usr/share/java"
 SERVER_OUT_FILE="/var/log/ambari-server/ambari-server.out"
 SERVER_LOG_FILE="/var/log/ambari-server/ambari-server.log"
+BLIND_PASSWORD="*****"
 
 # terminal styles
 BOLD_ON='\033[1m'
@@ -971,8 +972,8 @@ def check_postgre_up():
 
 def get_validated_db_name(database_name):
   return get_validated_string_input(
-        DATABASE_STORAGE_NAMES[DATABASE_INDEX] + " Name [" 
-        + database_name + "]:",
+        DATABASE_STORAGE_NAMES[DATABASE_INDEX] + " Name (" 
+        + database_name + "): ",
         database_name,
         ".*",
         "Invalid " + DATABASE_STORAGE_NAMES[DATABASE_INDEX] + " name.",
@@ -981,7 +982,7 @@ def get_validated_db_name(database_name):
   
 def get_validated_service_name(service_name, index):
   return get_validated_string_input(
-            ORACLE_DB_ID_TYPES[index] + " [" + service_name + "]:",
+            ORACLE_DB_ID_TYPES[index] + " (" + service_name + "): ",
             service_name,
             ".*",
             "Invalid " + ORACLE_DB_ID_TYPES[index] + ".",
@@ -994,7 +995,7 @@ def read_password(passwordDefault=PG_DEFAULT_PASSWORD,
                   passwordDescr=None):
   # setup password
   if passwordPrompt is None:
-    passwordPrompt = 'Password [' + passwordDefault + ']: '
+    passwordPrompt = 'Password (' + passwordDefault + '): '
 
   if passwordDescr is None:
     passwordDescr = "Invalid characters in password. Use only alphanumeric or " \
@@ -1048,7 +1049,7 @@ def prompt_db_properties(args):
 
       database_num = str(DATABASE_INDEX + 1)
       database_num = get_validated_string_input(
-        "Select database:\n1 - PostgreSQL (Embedded)\n2 - Oracle\n[" + database_num + "]:",
+        "Select database:\n1 - PostgreSQL (Embedded)\n2 - Oracle\n(" + database_num + "): ",
         database_num,
         "^[12]$",
         "Invalid number.",
@@ -1060,7 +1061,7 @@ def prompt_db_properties(args):
       
       if args.database != "postgres" :
         args.database_host = get_validated_string_input(
-          "Hostname [" + args.database_host + "]:",
+          "Hostname (" + args.database_host + "): ",
           args.database_host,
           "^[a-zA-Z0-9.\-]*$",
           "Invalid hostname.",
@@ -1069,7 +1070,7 @@ def prompt_db_properties(args):
   
         args.database_port=DATABASE_PORTS[DATABASE_INDEX]
         args.database_port = get_validated_string_input(
-          "Port [" + args.database_port + "]:",
+          "Port (" + args.database_port + "): ",
           args.database_port,
           "^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$",
           "Invalid port.",
@@ -1081,7 +1082,7 @@ def prompt_db_properties(args):
           idType = "1"
           idType = get_validated_string_input(
             "Select Oracle identifier type:\n1 - " + ORACLE_DB_ID_TYPES[0] +
-            "\n2 - " + ORACLE_DB_ID_TYPES[1] + "\n[" + idType + "]:",
+            "\n2 - " + ORACLE_DB_ID_TYPES[1] + "\n(" + idType + "): ",
             idType,
             "^[12]$",
             "Invalid number.",
@@ -1107,7 +1108,7 @@ def prompt_db_properties(args):
       
       # Username is common for Oracle/MySQL/Postgres
       args.database_username = get_validated_string_input(
-        'Username [' + args.database_username + ']: ',
+        'Username (' + args.database_username + '): ',
         args.database_username,
         USERNAME_PATTERN,
         "Invalid characters in username. Start with _ or alpha "
@@ -1197,7 +1198,7 @@ def setup_remote_db(args):
  Before starting Ambari Server, you must run the following DDL against the database to create \
 the schema ".format(DATABASE_NAMES[DATABASE_INDEX], str(DATABASE_CLI_TOOLS_DESC[DATABASE_INDEX]))
   client_usage_cmd = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_INIT_SCRIPTS[DATABASE_INDEX], args.database_username,
-                                                     args.database_password, args.database_name)
+                                                     BLIND_PASSWORD, args.database_name)
 
   retcode, out, err = execute_remote_script(args, DATABASE_INIT_SCRIPTS[DATABASE_INDEX])
   if retcode != 0:
@@ -1271,7 +1272,7 @@ def execute_remote_script(args, scriptPath):
 def configure_database_password(showDefault=True):
   passwordDefault = PG_DEFAULT_PASSWORD
   if showDefault:
-    passwordPrompt = 'Enter Database Password [' + passwordDefault + ']: '
+    passwordPrompt = 'Enter Database Password (' + passwordDefault + '): '
   else:
     passwordPrompt = 'Enter Database Password: '
   passwordPattern = "^[a-zA-Z0-9_-]*$"
@@ -1343,7 +1344,7 @@ def store_local_properties(args):
   try:
     properties.store(open(conf_file, "w"))
   except Exception, e:
-    print 'Could not write ambari config file "%s": %s' % (conf_file, e)
+    print 'Unable to write ambari.properties configuration file "%s": %s' % (conf_file, e)
     return -1
   return 0
 
@@ -2003,9 +2004,9 @@ def reset(args):
   if args.persistence_type=="remote":
     client_desc = DATABASE_NAMES[DATABASE_INDEX] + ' ' + DATABASE_CLI_TOOLS_DESC[DATABASE_INDEX]
     client_usage_cmd_drop = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_DROP_SCRIPTS[DATABASE_INDEX], args.database_username,
-                                                     args.database_password, args.database_name)
+                                                     BLIND_PASSWORD, args.database_name)
     client_usage_cmd_init = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_INIT_SCRIPTS[DATABASE_INDEX], args.database_username,
-                                                     args.database_password, args.database_name)    
+                                                     BLIND_PASSWORD, args.database_name)    
 
     if get_db_cli_tool(args) != -1:
       retcode, out, err = execute_remote_script(args, DATABASE_DROP_SCRIPTS[DATABASE_INDEX])
@@ -2013,11 +2014,11 @@ def reset(args):
         if retcode == -1:
           print_warning_msg('Cannot find ' + client_desc + 
                             ' client in the path to reset the Ambari Server ' +
-                            ' schema. To reset Ambari Server schema ' +
+                            'schema. To reset Ambari Server schema ' +
                             'you must run the following DDL against the database ' +
                             'to drop the schema:' + os.linesep + client_usage_cmd_drop 
-                            + os.linesep + ', then you must run the following DDL '
-                            + 'against the database to create the schema ' + os.linesep
+                            + os.linesep + 'Then you must run the following DDL '
+                            + 'against the database to create the schema: ' + os.linesep
                              + client_usage_cmd_init + os.linesep )
         raise NonFatalException(err)
 
@@ -2028,8 +2029,8 @@ def reset(args):
                             'reset the Ambari Server schema. To reset Ambari Server schema ' +
                             'you must run the following DDL against the database to '
                             + 'drop the schema:' + os.linesep + client_usage_cmd_drop 
-                            + os.linesep + ', then you must run the following DDL ' + 
-                            'against the database to create the schema ' + os.linesep + 
+                            + os.linesep + 'Then you must run the following DDL ' + 
+                            'against the database to create the schema: ' + os.linesep + 
                             client_usage_cmd_init + os.linesep )
         raise NonFatalException(err)
 
@@ -2038,8 +2039,8 @@ def reset(args):
       'Server schema. To reset Ambari Server schema ' + \
       'you must run the following DDL against the database to drop the schema:' + \
       os.linesep + client_usage_cmd_drop + os.linesep +   \
-      ', then you must run the following DDL against the database to create the ' + \
-      'schema ' + os.linesep + client_usage_cmd_init + os.linesep
+      'Then you must run the following DDL against the database to create the ' + \
+      'schema: ' + os.linesep + client_usage_cmd_init + os.linesep
       raise NonFatalException(err)
 
   else:
@@ -2519,7 +2520,7 @@ def setup_ldap():
       if property not in ldap_property_list_passwords:
         print("%s: %s" % (property, ldap_property_value_map[property]))
       else:
-        print("%s: %s" % (property, "****"))
+        print("%s: %s" % (property, BLIND_PASSWORD))
 
   save_settings = get_YN_input("Save settings [y/n] (y)? ", True)
 
