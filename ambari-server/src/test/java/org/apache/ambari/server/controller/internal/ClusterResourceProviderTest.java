@@ -204,11 +204,11 @@ public class ClusterResourceProviderTest {
 
     // set expectations
     expect(managementController.getClusters(EasyMock.<Set<ClusterRequest>>anyObject())).andReturn(nameResponse).once();
-    expect(managementController.updateCluster(
-        AbstractResourceProviderTest.Matcher.getClusterRequest(102L, "Cluster102", "HDP-0.1", null), eq(mapRequestProps))).
+    expect(managementController.updateClusters(
+        AbstractResourceProviderTest.Matcher.getClusterRequestSet(102L, "Cluster102", "HDP-0.1", null), eq(mapRequestProps))).
         andReturn(response).once();
-    expect(managementController.updateCluster(
-        AbstractResourceProviderTest.Matcher.getClusterRequest(103L, null, "HDP-0.1", null), eq(mapRequestProps))).
+    expect(managementController.updateClusters(
+        AbstractResourceProviderTest.Matcher.getClusterRequestSet(103L, null, "HDP-0.1", null), eq(mapRequestProps))).
         andReturn(response).once();
 
     // replay
@@ -264,9 +264,9 @@ public class ClusterResourceProviderTest {
     mapRequestProps.put("context", "Called from a test");
 
     // set expectations
-    expect(managementController.getClusters(EasyMock.<Set<ClusterRequest>>anyObject())).andReturn(nameResponse).once();
-    expect(managementController.updateCluster(EasyMock.anyObject(ClusterRequest.class),
-        eq(mapRequestProps))).andReturn(response).once();
+    expect(managementController.getClusters(EasyMock.<Set<ClusterRequest>>anyObject())).andReturn(nameResponse).times(2);
+    expect(managementController.updateClusters(Collections.singleton(EasyMock.anyObject(ClusterRequest.class)),
+        eq(mapRequestProps))).andReturn(response).times(1);
 
     // replay
     replay(managementController, response);
@@ -279,9 +279,23 @@ public class ClusterResourceProviderTest {
     properties.put(PropertyHelper.getPropertyId("Clusters.desired_config.properties", "a"), "b");
     properties.put(PropertyHelper.getPropertyId("Clusters.desired_config.properties", "x"), "y");
 
+
+    Map<String, Object> properties2 = new LinkedHashMap<String, Object>();
+
+    properties2.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    properties2.put(PropertyHelper.getPropertyId("Clusters.desired_config", "type"), "mapred-site");
+    properties2.put(PropertyHelper.getPropertyId("Clusters.desired_config", "tag"), "versio99");
+    properties2.put(PropertyHelper.getPropertyId("Clusters.desired_config.properties", "foo"), "A1");
+    properties2.put(PropertyHelper.getPropertyId("Clusters.desired_config.properties", "bar"), "B2");
+
+    Set<Map<String, Object>> propertySet = new HashSet<Map<String, Object>>();
+
+    propertySet.add(properties);
+    propertySet.add(properties2);
+
     // create the request
-    Request request = PropertyHelper.getUpdateRequest(properties, mapRequestProps);
-    
+    Request request = new RequestImpl(null, propertySet, mapRequestProps, null);
+
     Predicate  predicate = new PredicateBuilder().property(
         ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").toPredicate();
     
@@ -290,12 +304,22 @@ public class ClusterResourceProviderTest {
         PropertyHelper.getPropertyIds(Resource.Type.Cluster),
         PropertyHelper.getKeyPropertyIds(Resource.Type.Cluster),
         managementController);
-    
+
+    AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
+
+    ((ObservableResourceProvider)provider).addObserver(observer);
+
     provider.updateResources(request, predicate);
+
+    ResourceProviderEvent lastEvent = observer.getLastEvent();
+    Assert.assertNotNull(lastEvent);
+    Assert.assertEquals(Resource.Type.Cluster, lastEvent.getResourceType());
+    Assert.assertEquals(ResourceProviderEvent.Type.Update, lastEvent.getType());
+    Assert.assertEquals(request, lastEvent.getRequest());
+    Assert.assertEquals(predicate, lastEvent.getPredicate());
 
     // verify
     verify(managementController, response);
-
   }
 
   @Test

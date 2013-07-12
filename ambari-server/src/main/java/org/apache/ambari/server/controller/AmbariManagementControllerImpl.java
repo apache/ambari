@@ -19,7 +19,6 @@
 package org.apache.ambari.server.controller;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -53,11 +52,8 @@ import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
-import org.apache.ambari.server.orm.dao.MetainfoDAO;
-import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.Users;
@@ -94,7 +90,6 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1436,9 +1431,25 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public synchronized RequestStatusResponse updateCluster(ClusterRequest request,
-                                                          Map<String, String> requestProperties)
+  public synchronized RequestStatusResponse updateClusters(Set<ClusterRequest> requests,
+                                                           Map<String, String> requestProperties)
       throws AmbariException {
+
+    RequestStatusResponse response = null;
+
+    // We have to allow for multiple requests to account for multiple
+    // configuration updates (create multiple configuration resources)...
+    for (ClusterRequest request : requests) {
+      // TODO : Is there ever a real world case where we could have multiple non-null responses?
+      response = updateCluster(request, requestProperties);
+    }
+    return response;
+  }
+
+  private synchronized RequestStatusResponse updateCluster(ClusterRequest request,
+                                                           Map<String, String> requestProperties)
+      throws AmbariException {
+
     if (request.getClusterName() == null
         || request.getClusterName().isEmpty()) {
       throw new IllegalArgumentException("Invalid arguments, cluster name"

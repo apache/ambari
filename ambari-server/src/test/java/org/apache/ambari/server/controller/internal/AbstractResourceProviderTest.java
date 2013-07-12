@@ -145,6 +145,13 @@ public class AbstractResourceProviderTest {
       return null;
     }
 
+    public static Set<ClusterRequest> getClusterRequestSet(
+        Long clusterId, String clusterName, String stackVersion, Set<String> hostNames)
+    {
+      EasyMock.reportMatcher(new ClusterRequestSetMatcher(clusterId, clusterName, stackVersion, hostNames));
+      return null;
+    }
+
     public static ConfigurationRequest getConfigurationRequest(
         String clusterName, String type, String tag, Map<String, String> configs)
     {
@@ -238,6 +245,41 @@ public class AbstractResourceProviderTest {
     @Override
     public void appendTo(StringBuffer stringBuffer) {
       stringBuffer.append("ClusterRequestMatcher(").append(super.toString()).append(")");
+    }
+  }
+
+  /**
+   * Matcher for a ClusterRequest set.
+   */
+  public static class ClusterRequestSetMatcher extends ClusterRequest implements IArgumentMatcher {
+
+    public ClusterRequestSetMatcher(Long clusterId, String clusterName, String stackVersion, Set<String> hostNames) {
+      super(clusterId, clusterName, stackVersion, hostNames);
+    }
+
+    @Override
+    public boolean matches(Object o) {
+      if (!(o instanceof Set)) {
+        return false;
+      }
+
+      Set set = (Set) o;
+
+      if (set.size() != 1) {
+        return false;
+      }
+
+      Object request = set.iterator().next();
+
+      return eq(((ClusterRequest) request).getClusterId(), getClusterId()) &&
+          eq(((ClusterRequest) request).getClusterName(), getClusterName()) &&
+          eq(((ClusterRequest) request).getStackVersion(), getStackVersion()) &&
+          eq(((ClusterRequest) request).getHostNames(), getHostNames());
+    }
+
+    @Override
+    public void appendTo(StringBuffer stringBuffer) {
+      stringBuffer.append("ClusterRequestSetMatcher(").append(super.toString()).append(")");
     }
   }
 

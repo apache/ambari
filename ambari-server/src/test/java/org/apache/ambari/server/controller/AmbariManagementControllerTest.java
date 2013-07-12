@@ -57,7 +57,6 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.security.authorization.Users;
@@ -3685,7 +3684,7 @@ public class AmbariManagementControllerTest {
     ClusterRequest cr = new ClusterRequest(null, clusterName, null, null);
     cr.setDesiredConfig(new ConfigurationRequest(clusterName, "global",
         "v1", configs));
-    controller.updateCluster(cr, Collections.<String,String>emptyMap());
+    controller.updateClusters(Collections.singleton(cr), Collections.<String, String>emptyMap());
 
     Set<ServiceRequest> sReqs = new HashSet<ServiceRequest>();
     Map<String, String> configVersions = new HashMap<String, String>();
@@ -4503,10 +4502,10 @@ public class AmbariManagementControllerTest {
 
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
     crReq.setDesiredConfig(cr1);
-    controller.updateCluster(crReq, null);
+    controller.updateClusters(Collections.singleton(crReq), null);
     crReq = new ClusterRequest(null, clusterName, null, null);
     crReq.setDesiredConfig(cr2);
-    controller.updateCluster(crReq, null);
+    controller.updateClusters(Collections.singleton(crReq), null);
 
     // Install
     long requestId1 = installService(clusterName, serviceName1, true, false);
@@ -4529,7 +4528,7 @@ public class AmbariManagementControllerTest {
       configs);
     crReq = new ClusterRequest(null, clusterName, null, null);
     crReq.setDesiredConfig(cr3);
-    controller.updateCluster(crReq, null);
+    controller.updateClusters(Collections.singleton(crReq), null);
 
     // Stop HDFS & MAPREDUCE
     stopService(clusterName, serviceName1, false, false);
@@ -4658,10 +4657,10 @@ public class AmbariManagementControllerTest {
 
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
     crReq.setDesiredConfig(cr1);
-    controller.updateCluster(crReq, null);
+    controller.updateClusters(Collections.singleton(crReq), null);
     crReq = new ClusterRequest(null, clusterName, null, null);
     crReq.setDesiredConfig(cr2);
-    controller.updateCluster(crReq, null);
+    controller.updateClusters(Collections.singleton(crReq), null);
 
     installService(clusterName, serviceName, false, false);
     startService(clusterName, serviceName, false, false);
@@ -4684,7 +4683,7 @@ public class AmbariManagementControllerTest {
       configs);
     crReq = new ClusterRequest(null, clusterName, null, null);
     crReq.setDesiredConfig(cr3);
-    controller.updateCluster(crReq, null);
+    controller.updateClusters(Collections.singleton(crReq), null);
 
     id = startService(clusterName, serviceName, false, true);
     List<Stage> stages = actionDB.getAllStages(id);
@@ -5040,7 +5039,7 @@ public class AmbariManagementControllerTest {
       configs);
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
     crReq.setDesiredConfig(cr1);
-    controller.updateCluster(crReq, null);
+    controller.updateClusters(Collections.singleton(crReq), null);
 
     // Install
     installService(clusterName, serviceName, false, false);
@@ -5121,14 +5120,14 @@ public class AmbariManagementControllerTest {
       configs);
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
     crReq.setDesiredConfig(cr1);
-    controller.updateCluster(crReq, null);
+    controller.updateClusters(Collections.singleton(crReq), null);
     Map<String, String> props = new HashMap<String, String>();
     props.put("datanodes", host2);
     cr2 = new ConfigurationRequest(clusterName, "hdfs-exclude-file", "tag1",
       props);
     crReq = new ClusterRequest(null, clusterName, null, null);
     crReq.setDesiredConfig(cr2);
-    controller.updateCluster(crReq, null);
+    controller.updateClusters(Collections.singleton(crReq), null);
 
     // Start
     startService(clusterName, serviceName, false, false);
@@ -5221,10 +5220,10 @@ public class AmbariManagementControllerTest {
 
     ClusterRequest crReq = new ClusterRequest(null, clusterName, null, null);
     crReq.setDesiredConfig(cr1);
-    controller.updateCluster(crReq, null);
+    controller.updateClusters(Collections.singleton(crReq), null);
     crReq = new ClusterRequest(null, clusterName, null, null);
     crReq.setDesiredConfig(cr2);
-    controller.updateCluster(crReq, null);
+    controller.updateClusters(Collections.singleton(crReq), null);
 
     // Install
     installService(clusterName, serviceName, false, false);
@@ -5655,7 +5654,7 @@ public class AmbariManagementControllerTest {
 
     ClusterRequest r = new ClusterRequest(c.getClusterId(), clusterName, "HDP-0.0.1", null);
     try {
-      controller.updateCluster(r, mapRequestProps);
+      controller.updateClusters(Collections.singleton(r), mapRequestProps);
       fail("Update cluster should fail");
     } catch (AmbariException e) {
       Assert.assertTrue(e.getMessage().contains("must be greater than current version"));
@@ -5663,7 +5662,7 @@ public class AmbariManagementControllerTest {
 
     r = new ClusterRequest(c.getClusterId(), clusterName, "HDPLocal-1.2.2", null);
     try {
-      controller.updateCluster(r, mapRequestProps);
+      controller.updateClusters(Collections.singleton(r), mapRequestProps);
       fail("Update cluster should fail");
     } catch (AmbariException e) {
       Assert.assertTrue(e.getMessage().contains("Upgrade not possible between different stacks"));
@@ -5671,7 +5670,7 @@ public class AmbariManagementControllerTest {
 
     r = new ClusterRequest(c.getClusterId(), clusterName, "HDP-0.2", null);
     try {
-      controller.updateCluster(r, mapRequestProps);
+      controller.updateClusters(Collections.singleton(r), mapRequestProps);
       fail("Update cluster should fail");
     } catch (AmbariException e) {
       Assert.assertTrue(e.getMessage().contains("Upgrade needs all services to be stopped"));
@@ -5683,7 +5682,7 @@ public class AmbariManagementControllerTest {
 
     r = new ClusterRequest(c.getClusterId(), clusterName, "HDP-0.2", null);
     try {
-      controller.updateCluster(r, mapRequestProps);
+      controller.updateClusters(Collections.singleton(r), mapRequestProps);
       fail("Update cluster should fail");
     } catch (AmbariException e) {
       Assert.assertTrue(e.getMessage().contains("Upgrade needs all services to be stopped"));
@@ -5692,7 +5691,7 @@ public class AmbariManagementControllerTest {
 
     c.getService(serviceName).getServiceComponent(componentName).getServiceComponentHost(host2)
         .setState(State.INSTALLED);
-    controller.updateCluster(r, mapRequestProps);
+    controller.updateClusters(Collections.singleton(r), mapRequestProps);
     StackId expectedStackId = new StackId("HDP-0.2");
     Assert.assertTrue(expectedStackId.equals(c.getDesiredStackVersion()));
     Assert.assertTrue(expectedStackId.equals(c.getService(serviceName).getDesiredStackVersion()));
@@ -5712,7 +5711,7 @@ public class AmbariManagementControllerTest {
 
     // Fail as another request is active
     try {
-      controller.updateCluster(r, mapRequestProps);
+      controller.updateClusters(Collections.singleton(r), mapRequestProps);
       fail("Update cluster should fail");
     } catch (AmbariException e) {
       Assert.assertTrue(e.getMessage().contains("A prior upgrade request with id"));
@@ -5729,17 +5728,17 @@ public class AmbariManagementControllerTest {
         .setState(State.INSTALLED);
     c.setCurrentStackVersion(expectedStackId);
     r = new ClusterRequest(c.getClusterId(), clusterName, "", null);
-    controller.updateCluster(r, mapRequestProps);
+    controller.updateClusters(Collections.singleton(r), mapRequestProps);
     Assert.assertEquals(State.INSTALLED, sc.getServiceComponentHost(host1).getState());
     Assert.assertEquals(State.INSTALLED, sc.getServiceComponentHost(host2).getState());
 
     r = new ClusterRequest(c.getClusterId(), clusterName, null, null);
-    controller.updateCluster(r, mapRequestProps);
+    controller.updateClusters(Collections.singleton(r), mapRequestProps);
     Assert.assertEquals(State.INSTALLED, sc.getServiceComponentHost(host1).getState());
     Assert.assertEquals(State.INSTALLED, sc.getServiceComponentHost(host2).getState());
 
     r = new ClusterRequest(c.getClusterId(), clusterName, "HDP-0.2", null);
-    controller.updateCluster(r, mapRequestProps);
+    controller.updateClusters(Collections.singleton(r), mapRequestProps);
     Assert.assertEquals(State.INSTALLED, sc.getServiceComponentHost(host1).getState());
     Assert.assertEquals(State.INSTALLED, sc.getServiceComponentHost(host2).getState());
   }
@@ -5757,7 +5756,7 @@ public class AmbariManagementControllerTest {
     c.setDesiredStackVersion(currentStackId);
     ClusterRequest r = new ClusterRequest(c.getClusterId(), clusterName, "HDP-0.3", null);
     try {
-      controller.updateCluster(r, mapRequestProps);
+      controller.updateClusters(Collections.singleton(r), mapRequestProps);
     } catch (AmbariException e) {
       Assert.assertTrue(e.getMessage().contains("Illegal request to upgrade to"));
     }
@@ -5768,7 +5767,7 @@ public class AmbariManagementControllerTest {
     c.refresh();
     r = new ClusterRequest(c.getClusterId(), clusterName, "HDP-0.2", null);
     try {
-      controller.updateCluster(r, mapRequestProps);
+      controller.updateClusters(Collections.singleton(r), mapRequestProps);
     } catch (AmbariException e) {
       Assert.assertTrue(e.getMessage().contains("Upgrade is not allowed from"));
     }
@@ -5823,7 +5822,7 @@ public class AmbariManagementControllerTest {
     resetServiceState(pigServiceName, currentStackId, c);
 
     ClusterRequest r = new ClusterRequest(c.getClusterId(), clusterName, "HDP-0.2", null);
-    RequestStatusResponse trackAction = controller.updateCluster(r, mapRequestProps);
+    RequestStatusResponse trackAction = controller.updateClusters(Collections.singleton(r), mapRequestProps);
     List<Stage> stages = actionDB.getAllStages(trackAction.getRequestId());
 
     // Upgrade a cluster with one service
@@ -5849,7 +5848,7 @@ public class AmbariManagementControllerTest {
     // Upgrade a cluster with two service
     actionDB.abortOperation(trackAction.getRequestId());
     r = new ClusterRequest(c.getClusterId(), clusterName, "HDP-0.2", null);
-    trackAction = controller.updateCluster(r, mapRequestProps);
+    trackAction = controller.updateClusters(Collections.singleton(r), mapRequestProps);
     stages = actionDB.getAllStages(trackAction.getRequestId());
 
     expectedTasks.expectTask(Role.JOBTRACKER, host1);
@@ -5859,7 +5858,7 @@ public class AmbariManagementControllerTest {
 
     // Upgrade again
     actionDB.abortOperation(trackAction.getRequestId());
-    trackAction = controller.updateCluster(r, mapRequestProps);
+    trackAction = controller.updateClusters(Collections.singleton(r), mapRequestProps);
     stages = actionDB.getAllStages(trackAction.getRequestId());
     validateGeneratedStages(stages, 5, expectedTasks);
 
@@ -5874,7 +5873,7 @@ public class AmbariManagementControllerTest {
         .setStackVersion(desiredStackId);
 
     actionDB.abortOperation(trackAction.getRequestId());
-    trackAction = controller.updateCluster(r, mapRequestProps);
+    trackAction = controller.updateClusters(Collections.singleton(r), mapRequestProps);
     stages = actionDB.getAllStages(trackAction.getRequestId());
     validateGeneratedStages(stages, 5, expectedTasks);
 
@@ -5883,7 +5882,7 @@ public class AmbariManagementControllerTest {
     c.getService(mrServiceName).getServiceComponent(mrTaskTrackerComp).getServiceComponentHost(host2)
         .setState(State.UPGRADING);
     actionDB.abortOperation(trackAction.getRequestId());
-    trackAction = controller.updateCluster(r, mapRequestProps);
+    trackAction = controller.updateClusters(Collections.singleton(r), mapRequestProps);
     stages = actionDB.getAllStages(trackAction.getRequestId());
     validateGeneratedStages(stages, 5, expectedTasks);
 
@@ -5903,7 +5902,7 @@ public class AmbariManagementControllerTest {
     resetServiceState(pigServiceName, currentStackId, c);
 
     actionDB.abortOperation(trackAction.getRequestId());
-    trackAction = controller.updateCluster(r, mapRequestProps);
+    trackAction = controller.updateClusters(Collections.singleton(r), mapRequestProps);
     stages = actionDB.getAllStages(trackAction.getRequestId());
 
     expectedTasks.resetAll();

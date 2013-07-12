@@ -231,7 +231,7 @@ public interface AmbariManagementController {
    * values carried by the given request object.
    *
    *
-   * @param request           request object which defines which cluster to
+   * @param requests          request objects which define which cluster to
    *                          update and the values to set
    * @param requestProperties request specific properties independent of resource
    *
@@ -239,8 +239,8 @@ public interface AmbariManagementController {
    *
    * @throws AmbariException thrown if the resource cannot be updated
    */
-  public RequestStatusResponse updateCluster(ClusterRequest request,
-                                             Map<String, String> requestProperties)
+  public RequestStatusResponse updateClusters(Set<ClusterRequest> requests,
+                                              Map<String, String> requestProperties)
       throws AmbariException;
 
   /**
