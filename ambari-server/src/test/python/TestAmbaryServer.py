@@ -3127,7 +3127,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     is_root_method.return_value = True
     p = get_ambari_properties_method.return_value
-    p.get_property.side_effect = [ "fakepasswd", "fakepasswd", "fakepasswd"]
+    p.get_property.side_effect = [ "fakepasswd", "fakepasswd", "fakepasswd", "fakepasswd"]
     read_master_key_method.return_value = "aaa"
     get_YN_input_method.return_value = False
     read_ambari_user_method.return_value = None
@@ -3149,10 +3149,12 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     result_expected = {ambari_server.JDBC_PASSWORD_PROPERTY :
         ambari_server.get_alias_string(ambari_server.JDBC_RCA_PASSWORD_ALIAS),
+        ambari_server.JDBC_RCA_PASSWORD_FILE_PROPERTY:
+        ambari_server.get_alias_string(ambari_server.JDBC_RCA_PASSWORD_ALIAS),
         ambari_server.LDAP_MGR_PASSWORD_PROPERTY :
         ambari_server.get_alias_string(ambari_server.LDAP_MGR_PASSWORD_ALIAS),
         ambari_server.SSL_TRUSTSTORE_PASSWORD_PROPERTY :
-          ambari_server.get_alias_string(ambari_server.SSL_TRUSTSTORE_PASSWORD_ALIAS),
+        ambari_server.get_alias_string(ambari_server.SSL_TRUSTSTORE_PASSWORD_ALIAS),
         ambari_server.SECURITY_IS_ENCRYPTION_ENABLED : 'true'}
 
     sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
@@ -3161,6 +3163,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEquals(sorted_x, sorted_y)
 
 
+  @patch.object(ambari_server, 'save_passwd_for_alias')
   @patch("os.path.exists")
   @patch.object(ambari_server, 'get_is_secure')
   @patch.object(ambari_server, 'get_is_persisted')
@@ -3178,17 +3181,19 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
               get_YN_input_method, save_master_key_method,
               update_properties_method, get_master_key_location_method,
               read_ambari_user_method, read_master_key_method,
-              get_is_persisted_method, get_is_secure_method, exists_mock):
+              get_is_persisted_method, get_is_secure_method, exists_mock,
+              save_passwd_for_alias_method):
 
     is_root_method.return_value = True
     p = get_ambari_properties_method.return_value
-    p.get_property.side_effect = [ "fakepasswd", None, None]
+    p.get_property.side_effect = [ "fakepasswd", None, None, None ]
     read_master_key_method.return_value = "aaa"
     get_YN_input_method.side_effect = [True, False]
     read_ambari_user_method.return_value = None
     get_is_persisted_method.return_value = (True, "filepath")
     get_is_secure_method.return_value = False
     exists_mock.return_value = False
+    save_passwd_for_alias_method.return_value = 0
 
     ambari_server.setup_master_key()
 
@@ -3249,6 +3254,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     read_ambari_user_method.return_value = None
     p = get_ambari_properties_method.return_value
     p.get_property.side_effect = [ 'true', '${alias=fakealias}',
+                                   '${alias=fakealias}',
                                    '${alias=fakealias}', '${alias=fakealias}']
 
     get_YN_input_method.side_effect = [ True, True ]
@@ -3268,6 +3274,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(3, save_passwd_for_alias_method.call_count)
 
     result_expected = {ambari_server.JDBC_PASSWORD_PROPERTY:
+        ambari_server.get_alias_string(ambari_server.JDBC_RCA_PASSWORD_ALIAS),
+        ambari_server.JDBC_RCA_PASSWORD_FILE_PROPERTY:
         ambari_server.get_alias_string(ambari_server.JDBC_RCA_PASSWORD_ALIAS),
         ambari_server.LDAP_MGR_PASSWORD_PROPERTY:
         ambari_server.get_alias_string(ambari_server.LDAP_MGR_PASSWORD_ALIAS),
@@ -3311,7 +3319,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     search_file_message.return_value = False
     read_ambari_user_method.return_value = None
     p = get_ambari_properties_method.return_value
-    p.get_property.side_effect = [ '${alias=fakealias}',
+    p.get_property.side_effect = [ '${alias=fakealias}', '${alias=fakealias}',
                                    '${alias=fakealias}', '${alias=fakealias}']
 
     get_YN_input_method.side_effect = [ True, False ]
@@ -3335,10 +3343,12 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     result_expected = {ambari_server.JDBC_PASSWORD_PROPERTY:
         ambari_server.get_alias_string(ambari_server.JDBC_RCA_PASSWORD_ALIAS),
+        ambari_server.JDBC_RCA_PASSWORD_FILE_PROPERTY:
+        ambari_server.get_alias_string(ambari_server.JDBC_RCA_PASSWORD_ALIAS),
         ambari_server.LDAP_MGR_PASSWORD_PROPERTY:
         ambari_server.get_alias_string(ambari_server.LDAP_MGR_PASSWORD_ALIAS),
         ambari_server.SSL_TRUSTSTORE_PASSWORD_PROPERTY:
-          ambari_server.get_alias_string(ambari_server.SSL_TRUSTSTORE_PASSWORD_ALIAS),
+        ambari_server.get_alias_string(ambari_server.SSL_TRUSTSTORE_PASSWORD_ALIAS),
         ambari_server.SECURITY_IS_ENCRYPTION_ENABLED: 'true'}
 
     sorted_x = sorted(result_expected.iteritems(), key=operator.itemgetter(0))
@@ -3390,12 +3400,20 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_ambari_properties_method.return_value = configs
     configure_ldap_password_method.return_value = "password"
     setup_master_key_method.return_value = (None, True, True)
-    get_YN_input_method.return_value = True
     save_passwd_for_alias_method.return_value = 0
     encrypt_password_method.return_value = ambari_server.get_alias_string(
       ambari_server.LDAP_MGR_PASSWORD_ALIAS)
 
-    def side_effect(*args, **kwargs):
+    def yn_input_side_effect(*args, **kwargs):
+      if 'TrustStore' in args[0]:
+        return False
+      else:
+        return True
+
+    #get_YN_input_method.side_effect = yn_input_side_effect()
+    get_YN_input_method.side_effect = [ True,  ]
+
+    def valid_input_side_effect(*args, **kwargs):
       if 'Bind anonymously' in args[0]:
         return 'false'
       if args[1] == "true" or args[1] == "false":
@@ -3403,7 +3421,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       else:
         return "test"
 
-    get_validated_string_input_method.side_effect = side_effect
+    get_validated_string_input_method.side_effect = valid_input_side_effect
 
     ambari_server.setup_ldap()
 
@@ -3416,8 +3434,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       "authentication.ldap.baseDn" : "test",
       "authentication.ldap.bindAnonymously" : "false",
       "authentication.ldap.managerDn" : "test",
-      "authentication.ldap.managerPassword" : \
-       'password',
       "client.security" : "ldap",\
       ambari_server.LDAP_MGR_PASSWORD_PROPERTY : ambari_server.get_alias_string(\
       ambari_server.LDAP_MGR_PASSWORD_ALIAS)
