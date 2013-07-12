@@ -236,7 +236,9 @@ App.MainServiceInfoSummaryView = Em.View.extend({
           components.push(obj);
         }
       });
-      this.set('components', components);
+      if(!this.get('isDestroyed') && !this.get('isDestroying')){
+        this.set('components', components);
+      }
   },
   
   _hostComponentsUpd: function() {
