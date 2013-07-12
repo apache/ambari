@@ -62,7 +62,7 @@ App.HostPopup = Em.Object.create({
     this.set("servicesInfo", null);
     this.set("inputData", null);
     this.set("inputData", this.get("serviceController.services"));
-    this.createPopup();
+    return  this.createPopup();
   },
 
   /**
@@ -70,23 +70,47 @@ App.HostPopup = Em.Object.create({
    * @param tasks
    * @return {Array} [Status, Icon type, Progressbar color, is IN_PROGRESS]
    */
-  getStatus: function (tasks) {
-    if (tasks.everyProperty('Tasks.status', 'COMPLETED')) {
+  getStatus: function(tasks){
+    var isCompleted = true;
+    var status;
+    var tasksLength = tasks.length;
+    var isFailed = false;
+    var isAborted = false;
+    var isTimedout = false;
+    var isInProgress = false;
+    for (var i = 0; i < tasksLength; i++) {
+      if (tasks[i].Tasks.status !== 'COMPLETED') {
+        isCompleted = false;
+      }
+      if(tasks[i].Tasks.status === 'FAILED'){
+        isFailed = true;
+      }
+      if (tasks[i].Tasks.status === 'ABORTED') {
+        isAborted = true;
+      }
+      if (tasks[i].Tasks.status === 'TIMEDOUT') {
+        isTimedout = true;
+      }
+      if (tasks[i].Tasks.status === 'IN_PROGRESS') {
+        isInProgress = true;
+      }
+    };
+    if (isFailed) {
+      status = ['FAILED', 'icon-exclamation-sign', 'progress-danger', false];
+    } else if (isAborted) {
+      status = ['CANCELLED', 'icon-minus', 'progress-warning', false];
+    } else if (isTimedout) {
+      status = ['TIMEDOUT', 'icon-time', 'progress-warning', false];
+    } else if (isInProgress) {
+      status = ['IN_PROGRESS', 'icon-cogs', 'progress-info', true];
+    }
+    if(status){
+      return status;
+    } else if(isCompleted){
       return ['SUCCESS', 'icon-ok', 'progress-success', false];
+    } else {
+      return ['PENDING', 'icon-cog', 'progress-info', true];
     }
-    if (tasks.someProperty('Tasks.status', 'FAILED')) {
-      return ['FAILED', 'icon-exclamation-sign', 'progress-danger', false];
-    }
-    if (tasks.someProperty('Tasks.status', 'ABORTED')) {
-      return ['CANCELLED', 'icon-minus', 'progress-warning', false];
-    }
-    if (tasks.someProperty('Tasks.status', 'TIMEDOUT')) {
-      return ['TIMEDOUT', 'icon-time', 'progress-warning', false];
-    }
-    if (tasks.someProperty('Tasks.status', 'IN_PROGRESS')) {
-      return ['IN_PROGRESS', 'icon-cogs', 'progress-info', true];
-    }
-    return ['PENDING', 'icon-cog', 'progress-info', true];
   },
 
   /**
@@ -95,16 +119,19 @@ App.HostPopup = Em.Object.create({
    * @return {Number} percent of completion
    */
   getProgress: function (tasks) {
-    var progress = 0;
-    var actionsNumber = tasks.length;
-    var completedActions = tasks.filterProperty('Tasks.status', 'COMPLETED').length
-      + tasks.filterProperty('Tasks.status', 'FAILED').length
-      + tasks.filterProperty('Tasks.status', 'ABORTED').length
-      + tasks.filterProperty('Tasks.status', 'TIMEDOUT').length;
-    var queuedActions = tasks.filterProperty('Tasks.status', 'QUEUED').length;
-    var inProgressActions = tasks.filterProperty('Tasks.status', 'IN_PROGRESS').length;
-    progress = Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsNumber * 100);
-    return progress;
+    var completedActions = 0;
+    var queuedActions = 0;
+    var inProgressActions = 0;
+    tasks.forEach(function(task){
+      if(['COMPLETED', 'FAILED', 'ABORTED', 'TIMEDOUT'].contains(task.Tasks.status)){
+        completedActions++;
+      } else if(task.Tasks.status === 'QUEUED'){
+        queuedActions++;
+      } else if(task.Tasks.status === 'IN_PROGRESS'){
+        inProgressActions++;
+      }
+    });
+    return Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / tasks.length * 100);
   },
 
   /**
@@ -161,11 +188,29 @@ App.HostPopup = Em.Object.create({
         allNewServices.push(newService);
       });
       self.set('servicesInfo', allNewServices);
-      if (this.get("serviceName") == "")
-        this.setBackgroundOperationHeader();
+      if (this.get("serviceName") == "") this.setBackgroundOperationHeader();
     }
   }.observes("inputData"),
 
+  /**
+   * update icon of task depending on its status
+   * @param taskInfo
+   */
+  updateTaskIcon: function(taskInfo){
+    if (taskInfo.get('status') == 'pending' || taskInfo.get('status') == 'queued') {
+      taskInfo.set('icon', 'icon-cog');
+    } else if (taskInfo.get('status') == 'in_progress') {
+      taskInfo.set('icon', 'icon-cogs');
+    } else if (taskInfo.get('status') == 'completed') {
+      taskInfo.set('icon', ' icon-ok');
+    } else if (taskInfo.get('status') == 'failed') {
+      taskInfo.set('icon', 'icon-exclamation-sign');
+    } else if (taskInfo.get('status') == 'aborted') {
+      taskInfo.set('icon', 'icon-minus');
+    } else if (taskInfo.get('status') == 'timedout') {
+      taskInfo.set('icon', 'icon-time');
+    }
+  },
   /**
    * Create hosts and tasks data structure for popup
    * Set data for hosts and tasks
@@ -182,8 +227,7 @@ App.HostPopup = Em.Object.create({
           host.setEach("serviceName", service.name);
           hosts.push.apply(hosts, host);
         });
-      }
-      else {
+      } else {
         if (this.get("currentServiceId") != null) {
           hostsData = hostsData.filterProperty("id", this.get("currentServiceId")).objectAt(0);
         }
@@ -199,74 +243,142 @@ App.HostPopup = Em.Object.create({
       }
     }
 
+    var existedHosts = self.get('hosts');
+
     if (hosts) {
-      /**
-       * sort host names by name value
-       */
-      this.sortArray(hosts, "name");
-
-      hosts.forEach(function (_host) {
-        var tasks = _host.logTasks;
-        var hostInfo = Ember.Object.create({});
-        hostInfo.set('name', _host.name);
-        hostInfo.set('publicName', _host.publicName);
-        hostInfo.set('progress', 0);
-        hostInfo.set('status', App.format.taskStatus("PENDING"));
-        hostInfo.set('serviceName', _host.serviceName);
-        hostInfo.set('isVisible', true);
-        hostInfo.set('icon', "icon-cog");
-        hostInfo.set('barColor', "progress-info");
-        hostInfo.set('barWidth', "width:0%;");
-
-        tasks = self.sortTasksById(tasks);
-        var tasksArr = [];
-
-        if (tasks.length) {
-
-          var hostStatus = self.getStatus(tasks);
-          var hostProgress = self.getProgress(tasks);
-          hostInfo.set('status', App.format.taskStatus(hostStatus[0]));
-          hostInfo.set('icon', hostStatus[1]);
-          hostInfo.set('barColor', hostStatus[2]);
-          hostInfo.set('isInProgress', hostStatus[3]);
-          hostInfo.set('progress', hostProgress);
-          hostInfo.set('barWidth', "width:" + hostProgress + "%;");
-
-          tasks.forEach(function (_task) {
-            var taskInfo = Ember.Object.create({});
-            taskInfo.set('id', _task.Tasks.id);
-            taskInfo.set('hostName', _host.publicName);
-            taskInfo.set('command', _task.Tasks.command.toLowerCase());
-            taskInfo.set('status', App.format.taskStatus(_task.Tasks.status));
-            taskInfo.set('role', App.format.role(_task.Tasks.role));
-            taskInfo.set('stderr', _task.Tasks.stderr);
-            taskInfo.set('stdout', _task.Tasks.stdout);
-            taskInfo.set('isVisible', true);
-            taskInfo.set('icon', 'icon-cogs');
-            if (taskInfo.get('status') == 'pending' || taskInfo.get('status') == 'queued') {
-              taskInfo.set('icon', 'icon-cog');
-            } else if (taskInfo.get('status') == 'in_progress') {
-              taskInfo.set('icon', 'icon-cogs');
-            } else if (taskInfo.get('status') == 'completed') {
-              taskInfo.set('icon', ' icon-ok');
-            } else if (taskInfo.get('status') == 'failed') {
-              taskInfo.set('icon', 'icon-exclamation-sign');
-            } else if (taskInfo.get('status') == 'aborted') {
-              taskInfo.set('icon', 'icon-minus');
-            } else if (taskInfo.get('status') == 'timedout') {
-              taskInfo.set('icon', 'icon-time');
+      if(existedHosts && existedHosts.length === hosts.length){
+        existedHosts.forEach(function(host){
+          var newHostInfo = hosts.findProperty('name', host.get('name'));
+          if(newHostInfo){
+            var hostStatus = self.getStatus(newHostInfo.logTasks);
+            var hostProgress = self.getProgress(newHostInfo.logTasks);
+            host.set('status', App.format.taskStatus(hostStatus[0]));
+            host.set('icon', hostStatus[1]);
+            host.set('barColor', hostStatus[2]);
+            host.set('isInProgress', hostStatus[3]);
+            host.set('progress', hostProgress);
+            host.set('barWidth', "width:" + hostProgress + "%;");
+            var existTasks = host.get('tasks');
+            var newTasks = newHostInfo.logTasks;
+            if(existTasks && newTasks && existTasks.length==newTasks.length){
+              // Same number of source and destinations
+              var existTaskMap = {};
+              var newTaskMap = {};
+              host.get('tasks').forEach(function(taskInfo){
+                var id = taskInfo.get('id');
+                existTaskMap[id] = taskInfo;
+              });
+              var newTasksArray = [];
+              newTasks.forEach(function(newTask){
+                var existTask = existTaskMap[newTask.Tasks.id];
+                if(existTask){
+                  // reuse
+                  existTask.set('status', App.format.taskStatus(newTask.Tasks.status));
+                  existTask.set('stderr', newTask.Tasks.stderr);
+                  existTask.set('stdout', newTask.Tasks.stdout);
+                  self.updateTaskIcon(existTask);
+                  delete existTaskMap[newTask.Tasks.id];
+                }else{
+                  // create new
+                  var taskInfo = Ember.Object.create({
+                    id: newTask.Tasks.id,
+                    hostName: newHostInfo.publicName,
+                    command: newTask.Tasks.command.toLowerCase(),
+                    status: App.format.taskStatus(newTask.Tasks.status),
+                    role: App.format.role(newTask.Tasks.role),
+                    stderr: newTask.Tasks.stderr,
+                    stdout: newTask.Tasks.stdout,
+                    isVisible: true,
+                    icon: 'icon-cogs'
+                  });
+                  self.updateTaskIcon(taskInfo);
+                  newTasksArray.push(taskInfo);
+                }
+              });
+              for(var id in existTaskMap){
+                host.get('tasks').removeObject(existTaskMap[id]);
+              }
+              if(newTasksArray.length){
+                host.get('tasks').pushObjects(newTasksArray);
+              }
+            }else{
+              // Tasks have changed
+              var tasksArr = [];
+              newTasks.forEach(function(newTask){
+                var taskInfo = Ember.Object.create({
+                  id: newTask.Tasks.id,
+                  hostName: newHostInfo.publicName,
+                  command: newTask.Tasks.command.toLowerCase(),
+                  status: App.format.taskStatus(newTask.Tasks.status),
+                  role: App.format.role(newTask.Tasks.role),
+                  stderr: newTask.Tasks.stderr,
+                  stdout: newTask.Tasks.stdout,
+                  isVisible: true,
+                  icon: 'icon-cogs'
+                });
+                self.updateTaskIcon(taskInfo);
+                tasksArr.push(taskInfo);
+              });
+              host.set('tasks', tasksArr);
             }
-            tasksArr.push(taskInfo);
-          }, this);
-        }
+          }
+        }, this);
+      } else {
 
-        hostInfo.set('tasks', tasksArr);
-        hostsArr.push(hostInfo);
-      }, this);
+        //sort hosts by name
+        this.sortArray(hosts, "name");
+
+        hosts.forEach(function (_host) {
+          var tasks = _host.logTasks;
+          var hostInfo = Ember.Object.create({
+            name: _host.name,
+            publicName: _host.publicName,
+            progress: 0,
+            status: App.format.taskStatus("PENDING"),
+            serviceName: _host.serviceName,
+            isVisible: true,
+            icon: "icon-cog",
+            barColor: "progress-info",
+            barWidth: "width:0%;"
+          });
+
+          var tasksArr = [];
+
+          if (tasks.length) {
+            tasks = self.sortTasksById(tasks);
+            var hostStatus = self.getStatus(tasks);
+            var hostProgress = self.getProgress(tasks);
+            hostInfo.set('status', App.format.taskStatus(hostStatus[0]));
+            hostInfo.set('icon', hostStatus[1]);
+            hostInfo.set('barColor', hostStatus[2]);
+            hostInfo.set('isInProgress', hostStatus[3]);
+            hostInfo.set('progress', hostProgress);
+            hostInfo.set('barWidth', "width:" + hostProgress + "%;");
+
+            tasks.forEach(function (_task) {
+              var taskInfo = Ember.Object.create({
+                id: _task.Tasks.id,
+                hostName: _host.publicName,
+                command: _task.Tasks.command.toLowerCase(),
+                status: App.format.taskStatus(_task.Tasks.status),
+                role: App.format.role(_task.Tasks.role),
+                stderr: _task.Tasks.stderr,
+                stdout: _task.Tasks.stdout,
+                isVisible: true,
+                icon: 'icon-cogs'
+              });
+              this.updateTaskIcon(taskInfo);
+              tasksArr.push(taskInfo);
+            }, this);
+          }
+
+          hostInfo.set('tasks', tasksArr);
+          hostsArr.push(hostInfo);
+        }, this);
+        self.set("hosts", hostsArr);
+      }
     }
-
-    self.set("hosts", hostsArr);
-  }.observes("inputData"),
+  }.observes('inputData'),
 
   /**
    * Sort tasks by it`s id
@@ -274,21 +386,9 @@ App.HostPopup = Em.Object.create({
    * @return {Array}
    */
   sortTasksById: function (tasks) {
-    var result = [];
-    var id = 1;
-    for (var i = 0; i < tasks.length; i++) {
-      id = (tasks[i].Tasks.id > id) ? tasks[i].Tasks.id : id;
-    }
-    while (id >= 1) {
-      for (var j = 0; j < tasks.length; j++) {
-        if (id == tasks[j].Tasks.id) {
-          result.push(tasks[j]);
-        }
-      }
-      id--;
-    }
-    result.reverse();
-    return result;
+    return tasks.sort(function (a, b) {
+      return (a.Tasks.id > b.Tasks.id) ? 1 : (a.Tasks.id < b.Tasks.id) ? -1 : 0;
+    });
   },
 
   /**
@@ -582,10 +682,10 @@ App.HostPopup = Em.Object.create({
          * Onclick handler for selected Task
          */
         openTaskLogInDialog: function () {
-          newwindow = window.open();
-          newdocument = newwindow.document;
-          newdocument.write($(".task-detail-log-info").html());
-          newdocument.close();
+          var newWindow = window.open();
+          var newDocument = newWindow.document;
+          newDocument.write($(".task-detail-log-info").html());
+          newDocument.close();
         },
 
         openedTaskId: 0,
