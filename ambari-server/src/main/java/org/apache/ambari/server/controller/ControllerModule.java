@@ -42,6 +42,8 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.StandardPasswordEncoder;
 
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 /**
@@ -89,6 +91,16 @@ public class ControllerModule extends AbstractModule {
 
     Properties properties = new Properties();
 
+    // custom jdbc properties
+    Map<String, String> custom = configuration.getDatabaseCustomProperties();
+    
+    if (0 != custom.size()) {
+      for (Entry<String, String> entry : custom.entrySet()) {
+        properties.setProperty("eclipselink.jdbc.property." + entry.getKey(),
+           entry.getValue());
+      }
+    }    
+
     switch (persistenceType) {
       case IN_MEMORY:
         properties.put("javax.persistence.jdbc.url", Configuration.JDBC_IN_MEMORY_URL);
@@ -116,6 +128,8 @@ public class ControllerModule extends AbstractModule {
         break;
       case DROP_AND_CREATE:
         properties.setProperty("eclipselink.ddl-generation", "drop-and-create-tables");
+        break;
+      default:
         break;
     }
     properties.setProperty("eclipselink.ddl-generation.output-mode", "both");

@@ -36,6 +36,8 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.Map.Entry;
 
 
 /**
@@ -132,6 +134,7 @@ public class Configuration {
   public static final String SERVER_JDBC_USER_PASSWD_KEY = "server.jdbc.user.passwd";
   public static final String SERVER_JDBC_DRIVER_KEY = "server.jdbc.driver";
   public static final String SERVER_JDBC_URL_KEY = "server.jdbc.url";
+  public static final String SERVER_JDBC_PROPERTIES_PREFIX = "server.jdbc.properties.";
 
 //  public static final String SERVER_RCA_PERSISTENCE_TYPE_KEY = "server.rca.persistence.type";
   public static final String SERVER_JDBC_RCA_USER_NAME_KEY = "server.jdbc.rca.user.name";
@@ -246,6 +249,7 @@ public class Configuration {
 
   private CredentialProvider credentialProvider = null;
   private volatile boolean credentialProviderInitialized = false;
+  private Map<String,String> customDbProperties = null;
 
   public Configuration() {
     this(readConfigFile());
@@ -743,4 +747,26 @@ public class Configuration {
   public int getTwoWayAuthPort() {
     return Integer.parseInt(properties.getProperty(SRVR_TWO_WAY_SSL_PORT_KEY, String.valueOf(SRVR_TWO_WAY_SSL_PORT_DEFAULT)));
   }
+
+  /**
+   * @return custom properties for database connections
+   */
+  public Map<String,String> getDatabaseCustomProperties() {
+    if (null != customDbProperties) {
+      return customDbProperties;
+    }
+    
+    customDbProperties = new HashMap<String, String>();
+    
+    for (Entry<Object, Object> entry : properties.entrySet()) {
+      String key = entry.getKey().toString();
+      String val = entry.getValue().toString();
+      if (key.startsWith(SERVER_JDBC_PROPERTIES_PREFIX)) {
+        customDbProperties.put(key.substring(SERVER_JDBC_PROPERTIES_PREFIX.length()), val);
+      }
+    }
+    
+    return customDbProperties;
+  }
+
 }
