@@ -237,7 +237,12 @@ App.MainServiceInfoSummaryView = Em.View.extend({
         }
       });
       this.set('components', components);
+  },
+  
+  _hostComponentsUpd: function() {
+    Ember.run.once(this, 'hostComponentsUpd');
   }.observes('controller.content.rand', 'controller.content.hostComponents.@each.isMaster', 'controller.content.hostComponents.@each.host'),
+  
   /**
    * Wrapper for displayName. used to render correct display name for mysql_server
    */
