@@ -35,7 +35,7 @@ logger = logging.getLogger()
 configFile = "/etc/ambari-agent/conf/ambari-agent.ini"
 
 PACKAGE_ERASE_CMD_RHEL = "yum erase -y {0}"
-PACKAGE_ERASE_CMD_SUSE = "zypper remove --quiet -n {0}"
+PACKAGE_ERASE_CMD_SUSE = "zypper -n -q remove {0}"
 USER_ERASE_CMD = "userdel -rf {0}"
 PROC_KILL_CMD = "kill -9 {0}"
 ALT_DISP_CMD = "alternatives --display {0}"

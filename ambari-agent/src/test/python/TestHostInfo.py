@@ -144,7 +144,8 @@ class TestHostInfo(TestCase):
                                                     @HDP-1.3.0
                       oracle-server-db.x86          1.3.17-2
                                                     @Oracle-11g
-                      ambari-log4j.noarch           1.2.5.9-1             @AMBARI.dev-1.x"""
+                      ambari-log4j.noarch           1.2.5.9-1             @AMBARI.dev-1.x
+                      libconfuse.x86_64             2.7-4.el6             @HDP-epel"""
     result = {}
     result['out'] = stringToRead
     result['err'] = ""
@@ -154,15 +155,15 @@ class TestHostInfo(TestCase):
     hasZy_mock.return_value = False
     installedPackages = []
     packageAnalyzer.allInstalledPackages(installedPackages)
-    self.assertEqual(8, len(installedPackages))
+    self.assertEqual(9, len(installedPackages))
     for package in installedPackages:
       self.assertTrue(package[0] in ["AMBARI.dev.noarch", "PyXML.x86_64", "oracle-server-db.x86",
                                  "Red_Hat_Enterprise_Linux-Release_Notes-6-en-US.noarch",
-                                 "hcatalog.noarch", "hesiod.x86_64", "hive.noarch", "ambari-log4j.noarch"])
+                                 "hcatalog.noarch", "hesiod.x86_64", "hive.noarch", "ambari-log4j.noarch", "libconfuse.x86_64"])
       self.assertTrue(package[1] in ["1.x-1.el6", "0.8.4-19.el6", "3-7.el6", "3.1.0-19.el6",
-                                 "0.11.0.1.3.0.0-107.el6", "1.2.5.9-1", "1.3.17-2"])
+                                 "0.11.0.1.3.0.0-107.el6", "1.2.5.9-1", "1.3.17-2", "1.2.5.9-1", "2.7-4.el6"])
       self.assertTrue(package[2] in ["installed", "koji-override-0", "HDP-1.3.0",
-                                 "koji-override-0/$releasever", "AMBARI.dev-1.x", "Oracle-11g"])
+                                 "koji-override-0/$releasever", "AMBARI.dev-1.x", "Oracle-11g", "HDP-epel"])
 
     packages = packageAnalyzer.getInstalledPkgsByNames(["AMBARI", "Red_Hat_Enterprise", "hesiod", "hive"],
                                                        installedPackages)

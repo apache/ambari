@@ -71,7 +71,7 @@ class HostInfo:
 
   # Additional packages to look for (search packages that start with these)
   ADDITIONAL_PACKAGES = [
-    "rrdtool", "rrdtool-python", "nagios", "ganglia", "gmond", "gweb"
+    "rrdtool", "rrdtool-python", "nagios", "ganglia", "gmond", "gweb", "libconfuse", "ambari-log4j"
   ]
 
   # ignores packages from repos whose names start with these strings
