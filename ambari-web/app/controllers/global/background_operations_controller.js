@@ -67,40 +67,36 @@ App.BackgroundOperationsController = Em.Controller.extend({
     var self = this;
     data.items = data.items.sort(function(a,b){return b.Requests.id - a.Requests.id});
     data.items.forEach(function(request){
+      var hostsMap = {};
+      var isRunningTasks = false;
+      request.tasks.forEach(function (task) {
+        if (!isRunningTasks && (['QUEUED', 'IN_PROGRESS', 'PENDING'].contains(task.Tasks.status))) {
+          isRunningTasks = true;
+        }
+        if (hostsMap[task.Tasks.host_name]) {
+          hostsMap[task.Tasks.host_name].logTasks.push(task);
+        } else {
+          hostsMap[task.Tasks.host_name] = {
+            name: task.Tasks.host_name,
+            publicName: task.Tasks.host_name,
+            logTasks: [task]
+          };
+        }
+      }, this);
+      var hosts = [];
+      for(var hostName in hostsMap){
+        hosts.push(hostsMap[hostName]);
+      }
       var rq = Em.Object.create({
-        id:request.Requests.id,
-        name: 'Request name not specified',
-        displayName: 'Request name not specified',
-        progress:10,
+        id: request.Requests.id,
+        name: request.Requests.request_context || 'Request name not specified',
+        displayName: request.Requests.request_context || 'Request name not specified',
+        progress: 10,
         status: "",
-        isRunning: false,
-        hosts: []
+        isRunning: isRunningTasks,
+        hosts: hosts
       });
-      if(request.Requests.request_context != ""){
-        rq.name = request.Requests.request_context;
-        rq.displayName = request.Requests.request_context;
-      }
-
-      var runningTasks = 0;
-      runningTasks = request.tasks.filterProperty('Tasks.status', 'QUEUED').length;
-      runningTasks += request.tasks.filterProperty('Tasks.status', 'IN_PROGRESS').length;
-      runningTasks += request.tasks.filterProperty('Tasks.status', 'PENDING').length;
-      if(runningTasks > 0){
-        rq.set('isRunning', true);
-        runningServices++;
-      } else {
-        rq.set('isRunning', false);
-      }
-
-      var hostNames = request.tasks.mapProperty('Tasks.host_name').uniq();
-      hostNames.forEach(function (name) {
-        var tasks = request.tasks.filterProperty("Tasks.host_name",name);
-        rq.get("hosts").push({
-          name: name,
-          publicName: name,
-          logTasks: tasks
-        });
-      });
+      runningServices += ~~isRunningTasks;
       self.get("services").push(rq);
     });
     self.set("allOperationsCount",runningServices);
@@ -113,9 +109,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
    * @return PopupObject For testing purposes
    */
   showPopup: function(){
-    if(!App.testMode){
-      App.updater.immediateRun('requestMostRecent');
-    }
+    App.updater.immediateRun('requestMostRecent');
     return App.HostPopup.initPopup("", this, true);
   }
 
