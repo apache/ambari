@@ -24,7 +24,6 @@ import com.google.inject.Scopes;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.persist.jpa.JpaPersistModule;
 import org.apache.ambari.server.actionmanager.*;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.serveraction.ServerActionManager;

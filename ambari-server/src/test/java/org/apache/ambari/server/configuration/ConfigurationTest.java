@@ -25,6 +25,7 @@ import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.RandomStringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -114,6 +115,13 @@ public class ConfigurationTest {
         Configuration.CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY,
         passFile.getName());
     
+    
+    String oneWayPort = RandomStringUtils.randomNumeric(4);
+    String twoWayPort = RandomStringUtils.randomNumeric(4);
+    
+    ambariProperties.setProperty(Configuration.SRVR_TWO_WAY_SSL_PORT_KEY, twoWayPort.toString());
+    ambariProperties.setProperty(Configuration.SRVR_ONE_WAY_SSL_PORT_KEY, oneWayPort.toString());
+    
     Configuration conf = new Configuration(ambariProperties);
     Assert.assertTrue(conf.getApiSSLAuthentication());
 
@@ -128,6 +136,8 @@ public class ConfigurationTest {
     Assert.assertEquals(passFile.getName(), conf.getConfigsMap().get(
       Configuration.CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY));
     Assert.assertEquals(password, conf.getConfigsMap().get(Configuration.CLIENT_API_SSL_CRT_PASS_KEY));
+    Assert.assertEquals(Integer.parseInt(twoWayPort), conf.getTwoWayAuthPort());
+    Assert.assertEquals(Integer.parseInt(oneWayPort), conf.getOneWayAuthPort());
 
   }
 

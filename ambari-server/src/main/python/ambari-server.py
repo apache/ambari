@@ -232,6 +232,12 @@ JDBC_RCA_PASSWORD_FILENAME = "rca_password.dat"
 CLIENT_API_PORT_PROPERTY = "client.api.port"
 CLIENT_API_PORT = "8080"
 
+SRVR_TWO_WAY_SSL_PORT_PROPERTY = "security.server.two_way_ssl.port"
+SRVR_TWO_WAY_SSL_PORT = "8441"
+
+SRVR_ONE_WAY_SSL_PORT_PROPERTY = "security.server.one_way_ssl.port"
+SRVR_ONE_WAY_SSL_PORT = "8440"
+
 PERSISTENCE_TYPE_PROPERTY = "server.persistence.type"
 JDBC_DRIVER_PROPERTY = "server.jdbc.driver"
 JDBC_URL_PROPERTY = "server.jdbc.url"
@@ -2332,7 +2338,8 @@ def get_choice_string_input(prompt,default,firstChoice,secondChoice):
 
 
 def get_validated_string_input(prompt, default, pattern, description,
-                               is_pass, allowEmpty=True):
+                               is_pass, allowEmpty=True, validatorFunction=None):
+
   input = ""
   while not input:
     if SILENT:
@@ -2350,12 +2357,20 @@ def get_validated_string_input(prompt, default, pattern, description,
         continue
       else:
         input = default
+        if validatorFunction:
+          if not validatorFunction(input):
+            input = ""
+            continue
         break #done here and picking up default
     else:
       if not pattern==None and not re.search(pattern,input.strip()):
         print description
         input= ""
-
+        
+      if validatorFunction:
+        if not validatorFunction(input):
+          input = ""
+          continue
   return input
 
 
@@ -2965,13 +2980,13 @@ def setup_https(args):
                                 get_validated_string_input(\
                                 "SSL port ["+str(client_api_ssl_port)+"] ? ",\
                                 str(client_api_ssl_port),\
-                                "^[0-9]{1,5}$", "Invalid port.", False))   
+                                "^[0-9]{1,5}$", "Invalid port.", False, validatorFunction = is_valid_https_port))
         cert_was_imported = import_cert_and_key_action(security_server_keys_dir, properties)
       else:
        if get_YN_input("Do you want to configure HTTPS [y/n] (y)? ", True):
         properties.process_pair(SSL_API_PORT,\
         get_validated_string_input("SSL port ["+str(client_api_ssl_port)+"] ? ",\
-        str(client_api_ssl_port), "^[0-9]{1,5}$", "Invalid port.", False))   
+        str(client_api_ssl_port), "^[0-9]{1,5}$", "Invalid port.", False, validatorFunction = is_valid_https_port))
         cert_was_imported = import_cert_and_key_action(security_server_keys_dir, properties)
        else:
         return
@@ -3217,7 +3232,30 @@ def is_valid_cert_host(certInfoDict):
     return False
 
   return True
+  
+def is_valid_https_port(port):
+  properties = get_ambari_properties()
+  if properties == -1:
+    print "Error getting ambari properties"
+    return False
 
+  one_way_port = properties[SRVR_ONE_WAY_SSL_PORT_PROPERTY]
+  if not one_way_port:
+    one_way_port = SRVR_ONE_WAY_SSL_PORT
+
+  two_way_port = properties[SRVR_TWO_WAY_SSL_PORT_PROPERTY]
+  if not two_way_port:
+    two_way_port = SRVR_TWO_WAY_SSL_PORT
+
+  if port.strip() == one_way_port.strip():
+    print "Port for https can't match the port for one way authentication port(" + one_way_port + ")"
+    return False
+
+  if port.strip() == two_way_port.strip():
+    print "Port for https can't match the port for two way authentication port(" + two_way_port + ")"
+    return False
+
+  return True
 
 def get_fqdn():
   properties = get_ambari_properties()

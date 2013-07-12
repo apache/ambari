@@ -18,6 +18,13 @@
 
 package org.apache.ambari.server.security;
 
+import java.io.IOException;
+
+
+
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -26,7 +33,19 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNull;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
 public class SecurityFilterTest {
+  
+  private Injector injector;
+
+  @Before
+  public void setUp() throws IOException {
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    SecurityFilter.init(injector.getInstance(Configuration.class));
+  }
+  
   @Test
   public void mustFilterNonHttpsRequests() throws Exception {
     SecurityFilter filter = new SecurityFilter();

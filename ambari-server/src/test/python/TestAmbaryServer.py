@@ -1242,7 +1242,7 @@ class TestAmbariServer(TestCase):
     self.assertTrue(is_valid)
     
   @patch.object(ambari_server, "get_fqdn")
-  def is_valid_cert_host(self, get_fqdn_mock):
+  def test_is_valid_cert_host(self, get_fqdn_mock):
     
     #No data in certInfo
     certInfo = {}
@@ -1264,7 +1264,35 @@ class TestAmbariServer(TestCase):
     get_fqdn_mock.return_value = 'host1'
     certInfo = {ambari_server.COMMON_NAME_ATTR : 'host1'}
     is_valid = ambari_server.is_valid_cert_host(certInfo)
-    self.assertFalse(is_valid)
+    self.assertTrue(is_valid)
+    
+
+  @patch.object(ambari_server, "get_ambari_properties")
+  def test_is_valid_https_port(self, get_ambari_properties_mock):
+    
+    #No ambari.properties
+    get_ambari_properties_mock.return_value = -1
+    is_valid = ambari_server.is_valid_https_port(1111)
+    self.assertEqual(is_valid, False)
+    
+    #User entered port used by one way auth
+    portOneWay = "1111"
+    portTwoWay = "2222"
+    validPort = "3333"
+    get_ambari_properties_mock.return_value = {ambari_server.SRVR_ONE_WAY_SSL_PORT_PROPERTY : portOneWay,
+                                               ambari_server.SRVR_TWO_WAY_SSL_PORT_PROPERTY : portTwoWay}
+    is_valid = ambari_server.is_valid_https_port(portOneWay)
+    self.assertEqual(is_valid, False)
+    
+    #User entered port used by two way auth
+    is_valid = ambari_server.is_valid_https_port(portTwoWay)
+    self.assertEqual(is_valid, False)
+    
+    #User entered valid port
+    get_ambari_properties_mock.return_value = {ambari_server.SRVR_ONE_WAY_SSL_PORT_PROPERTY : portOneWay,
+                                               ambari_server.SRVR_TWO_WAY_SSL_PORT_PROPERTY : portTwoWay}
+    is_valid = ambari_server.is_valid_https_port(validPort)
+    self.assertEqual(is_valid, True)
 
   @patch("socket.getfqdn")
   @patch("urllib2.urlopen")
@@ -1348,6 +1376,28 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEqual(cert_info[attr3_key], attr3_value)
 
       
+  @patch('__builtin__.raw_input')
+  def test_get_validated_string_input(self, raw_input_mock):
+    prompt = 'prompt'
+    default_value = 'default'
+    description = 'desc'
+    validator = MagicMock()
+    validator.return_value = True
+    inputed_value1 = 'val1'
+    inputed_value2 = 'val2'
+    raw_input_mock.return_value = inputed_value1
+    input = ambari_server.get_validated_string_input(prompt, default_value, None,
+                                             description, False, False, validator)
+    self.assertTrue(validator.called)
+    self.assertEqual(inputed_value1, input)
+    
+    validator.side_effect = [False, True]
+    raw_input_mock.side_effect = [inputed_value1, inputed_value2]
+    input = ambari_server.get_validated_string_input(prompt, default_value, None,
+                                             description, False, False, validator)
+    self.assertEqual(inputed_value2, input)
+    
+    
 
   @patch.object(ambari_server, "run_os_command")
   @patch("__builtin__.open")

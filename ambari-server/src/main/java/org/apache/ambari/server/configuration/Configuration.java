@@ -57,6 +57,8 @@ public class Configuration {
   public static final String API_AUTHENTICATE = "api.authenticate";
   public static final String API_USE_SSL = "api.ssl";
   public static final String SRVR_TWO_WAY_SSL_KEY = "security.server.two_way_ssl";
+  public static final String SRVR_TWO_WAY_SSL_PORT_KEY = "security.server.two_way_ssl.port";
+  public static final String SRVR_ONE_WAY_SSL_PORT_KEY = "security.server.one_way_ssl.port";
   public static final String SRVR_KSTR_DIR_KEY = "security.server.keys_dir";
   public static final String SRVR_CRT_NAME_KEY = "security.server.cert_name";
   public static final String SRVR_KEY_NAME_KEY = "security.server.key_name";
@@ -176,6 +178,8 @@ public class Configuration {
 
 
   private static final String SRVR_TWO_WAY_SSL_DEFAULT = "false";
+  public static final String SRVR_TWO_WAY_SSL_PORT_DEFAULT = "8441";
+  public static final String SRVR_ONE_WAY_SSL_PORT_DEFAULT = "8440";
   private static final String SRVR_KSTR_DIR_DEFAULT = ".";
   public static final String SRVR_CRT_NAME_DEFAULT = "ca.crt";
   public static final String SRVR_KEY_NAME_DEFAULT = "ca.key";
@@ -258,6 +262,10 @@ public class Configuration {
     configsMap = new HashMap<String, String>();
     configsMap.put(SRVR_TWO_WAY_SSL_KEY, properties.getProperty(
         SRVR_TWO_WAY_SSL_KEY, SRVR_TWO_WAY_SSL_DEFAULT));
+    configsMap.put(SRVR_TWO_WAY_SSL_PORT_KEY, properties.getProperty(
+        SRVR_TWO_WAY_SSL_PORT_KEY, SRVR_TWO_WAY_SSL_PORT_DEFAULT));
+    configsMap.put(SRVR_ONE_WAY_SSL_PORT_KEY, properties.getProperty(
+        SRVR_ONE_WAY_SSL_PORT_KEY, SRVR_ONE_WAY_SSL_PORT_DEFAULT));
     configsMap.put(SRVR_KSTR_DIR_KEY, properties.getProperty(
         SRVR_KSTR_DIR_KEY, SRVR_KSTR_DIR_DEFAULT));
     configsMap.put(SRVR_CRT_NAME_KEY, properties.getProperty(
@@ -726,5 +734,13 @@ public class Configuration {
     String defaultDir = properties.getProperty(MASTER_KEY_LOCATION,
       properties.getProperty(SRVR_KSTR_DIR_KEY, SRVR_KSTR_DIR_DEFAULT));
     return defaultDir + File.separator + MASTER_KEY_FILENAME_DEFAULT;
+  }
+
+  public int getOneWayAuthPort() {
+    return Integer.parseInt(properties.getProperty(SRVR_ONE_WAY_SSL_PORT_KEY, String.valueOf(SRVR_ONE_WAY_SSL_PORT_DEFAULT)));
+  }
+
+  public int getTwoWayAuthPort() {
+    return Integer.parseInt(properties.getProperty(SRVR_TWO_WAY_SSL_PORT_KEY, String.valueOf(SRVR_TWO_WAY_SSL_PORT_DEFAULT)));
   }
 }

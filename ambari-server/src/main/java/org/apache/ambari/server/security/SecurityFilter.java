@@ -30,14 +30,16 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 public class SecurityFilter implements Filter {
-	
+  
   //Allowed pathes for one way auth https
   private static String CA = "/ca";
+
+  private static Configuration config;
   private final static Log LOG = LogFactory.getLog(SecurityFilter.class);
 
   @Override
@@ -52,7 +54,7 @@ public class SecurityFilter implements Filter {
     String reqUrl = req.getRequestURL().toString();
 
     LOG.debug("Filtering " + reqUrl + " for security purposes");
-    if (serReq.getLocalPort() != AmbariServer.AGENT_TWO_WAY_AUTH) {
+    if (serReq.getLocalPort() != config.getTwoWayAuthPort()) {
       if (isRequestAllowed(reqUrl)) {
         filtCh.doFilter(serReq, serResp);
       }
@@ -96,5 +98,9 @@ public class SecurityFilter implements Filter {
     }
     LOG.warn("Request " + reqUrl + " doesn't match any pattern.");
     return false;
+  }
+
+  public static void init(Configuration instance) {
+    config = instance;
   }
 }

@@ -82,9 +82,6 @@ import com.sun.jersey.spi.container.servlet.ServletContainer;
 @Singleton
 public class AmbariServer {
   private static Logger LOG = LoggerFactory.getLogger(AmbariServer.class);
-  public static final int AGENT_ONE_WAY_AUTH = 8440;
-  public static final int AGENT_TWO_WAY_AUTH = 8441;
-
 
   private Server server = null;
   private Server serverForAgent = null;
@@ -196,7 +193,7 @@ public class AmbariServer {
       //Secured connector for 2-way auth
       SslSelectChannelConnector sslConnectorTwoWay = new
           SslSelectChannelConnector();
-      sslConnectorTwoWay.setPort(AGENT_TWO_WAY_AUTH);
+      sslConnectorTwoWay.setPort(configs.getTwoWayAuthPort());
 
       Map<String, String> configsMap = configs.getConfigsMap();
       String keystore = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) +
@@ -238,7 +235,7 @@ public class AmbariServer {
       // sslConnectorOneWay.setWantClientAuth(false);
       // sslConnectorOneWay.setNeedClientAuth(false);
       SslSelectChannelConnector sslConnectorOneWay = new SslSelectChannelConnector(contextFactory);
-      sslConnectorOneWay.setPort(AGENT_ONE_WAY_AUTH);
+      sslConnectorOneWay.setPort(configs.getOneWayAuthPort());
       sslConnectorOneWay.setAcceptors(2);
       sslConnectorTwoWay.setAcceptors(2);
       serverForAgent.setConnectors(new Connector[]{ sslConnectorOneWay, sslConnectorTwoWay});
@@ -436,6 +433,7 @@ public class AmbariServer {
     StageUtils.setGson(injector.getInstance(Gson.class));
     WorkflowJsonService.setDBProperties(
         injector.getInstance(Configuration.class));
+    SecurityFilter.init(injector.getInstance(Configuration.class));
   }
 
   public static void main(String[] args) throws Exception {
