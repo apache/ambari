@@ -259,7 +259,7 @@ created = 2013-07-02 20:39:22.162757"""
 
     self.assertTrue(get_os_type_method.called)
     self.assertTrue(run_os_command_method.called)
-    run_os_command_method.assert_called_with("zypper remove --quiet -n {0}"
+    run_os_command_method.assert_called_with("zypper -n -q remove {0}"
     .format(' '.join(['abcd', 'wxyz'])))
     self.assertEquals(0, retval)
 
