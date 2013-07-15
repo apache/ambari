@@ -102,6 +102,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         host: host.get('hostName'),
         component: Em.I18n.t('admin.addSecurity.user.smokeUser'),
         principal: smokeUser,
+        keytabFile: stringUtils.getFileFromPath(smokeUserKeytabPath),
         keytab: smokeUserKeytabPath,
         owner: smokeUserId,
         group: hadoopGroupId,
@@ -111,6 +112,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         host: host.get('hostName'),
         component: Em.I18n.t('admin.addSecurity.user.hdfsUser'),
         principal: hdfsUser,
+        keytabFile: stringUtils.getFileFromPath(hdfsUserKeytabPath),
         keytab: hdfsUserKeytabPath,
         owner: hdfsUserId,
         group: hadoopGroupId,
@@ -121,6 +123,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
           host: host.get('hostName'),
           component: Em.I18n.t('admin.addSecurity.user.hbaseUser'),
           principal: hbaseUser,
+          keytabFile: stringUtils.getFileFromPath(hbaseUserKeytabPath),
           keytab: hbaseUserKeytabPath,
           owner: hbaseUserId,
           group: hadoopGroupId,
@@ -133,6 +136,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
           host: host.get('hostName'),
           component: Em.I18n.t('admin.addSecurity.hdfs.user.httpUser'),
           principal: hadoopHttpPrincipal.value.replace('_HOST', host.get('hostName')) + hadoopHttpPrincipal.unit,
+          keytabFile: stringUtils.getFileFromPath(hadoopHttpKeytabPath),
           keytab: hadoopHttpKeytabPath,
           owner: 'root',
           group: hadoopGroupId,
@@ -147,6 +151,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
           host: host.get('hostName'),
           component: Em.I18n.t('admin.addSecurity.webhcat.user.httpUser'),
           principal: webHCatHttpPrincipal.value.replace('_HOST', host.get('hostName')) + webHCatHttpPrincipal.unit,
+          keytabFile: stringUtils.getFileFromPath(webHCatHttpKeytabPath),
           keytab: webHCatHttpKeytabPath,
           owner: 'root',
           group: hadoopGroupId,
@@ -161,6 +166,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
           host: host.get('hostName'),
           component: Em.I18n.t('admin.addSecurity.oozie.user.httpUser'),
           principal: oozieHttpPrincipal.value.replace('_HOST', host.get('hostName')) + oozieHttpPrincipal.unit,
+          keytabFile: stringUtils.getFileFromPath(oozieHttpKeytabPath),
           keytab: oozieHttpKeytabPath,
           owner: 'root',
           group: hadoopGroupId,
@@ -186,8 +192,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
               }
             }
           });
-
-
+          var displayName = this.changeDisplayName(hostComponent.get('displayName'));
           var key = host.get('hostName') + "--" + principal;
           if (!addedPrincipalsHost[key]) {
             var owner = componentToOwnerMap[hostComponent.get('componentName')];
@@ -196,8 +201,9 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
             }
             result.push({
               host: host.get('hostName'),
-              component: hostComponent.get('displayName'),
+              component: displayName,
               principal: principal,
+              keytabFile: stringUtils.getFileFromPath(keytab),
               keytab: keytab,
               owner: owner,
               group: hadoopGroupId,
@@ -206,8 +212,16 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
             addedPrincipalsHost[key] = true;
           }
         }
-      });
-    });
+      },this);
+    },this);
     this.set('hostComponents', result);
-  }
+  },
+
+  changeDisplayName: function (name) {
+    if (name === 'HiveServer2') {
+      return 'Hive Metastore and HiveServer2';
+    } else {
+      return name;
+    }
+  },
 });
