@@ -224,13 +224,14 @@ class hdp-hadoop(
       group => $hdp::params::user_group
     }
  
-    hdp::user{ $hdfs_user:
+    hdp::user{ 'hdfs_user':
+      user_name => $hdfs_user,
       groups => [$hdp::params::user_group]
     }
-    if ( !defined(hdp::user[$mapred_user]) ) {
-      hdp::user { $mapred_user:
-        groups => [$hdp::params::user_group]
-      }
+    
+    hdp::user { 'mapred_user':
+      user_name => $mapred_user,
+      groups => [$hdp::params::user_group]
     }
 
     $logdirprefix = $hdp-hadoop::params::hdfs_log_dir_prefix
@@ -297,7 +298,7 @@ class hdp-hadoop(
       }
     }
 
-    Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Package<||> ->  Hdp::User<|title == $hdfs_user or title == $mapred_user|>  ->
+    Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Package<||> ->  Hdp::User<|title == 'hdfs_user' or title == 'mapred_user'|>  ->
       Hdp::Directory_recursive_create[$hadoop_config_dir] -> Hdp-hadoop::Configfile<|tag == 'common'|> ->
       Hdp::Directory_recursive_create[$logdirprefix] -> Hdp::Directory_recursive_create[$piddirprefix] -> Anchor['hdp-hadoop::end']
   }

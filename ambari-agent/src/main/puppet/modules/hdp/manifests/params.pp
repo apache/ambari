@@ -185,6 +185,7 @@ class hdp::params()
 
   ############ users
   $user_info = hdp_default("user_info",{})
+  $defined_groups = {}
 
   $nagios_default_user = "nagios"
   $nagios_default_group = "nagios"
