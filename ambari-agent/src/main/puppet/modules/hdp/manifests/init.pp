@@ -28,9 +28,9 @@ class hdp(
   include hdp::params
 
   Exec { logoutput => 'on_failure' }
-
-  group { $hdp::params::user_group :
-    ensure => present
+  
+  hdp::group { 'hdp_user_group':
+    group_name => $hdp::params::user_group,
   }
 
  ## Port settings
@@ -126,45 +126,55 @@ class hdp(
 
     ##Create all users for all components presents in cluster
     if ($hdp::params::hbase_master_hosts != "") {
-      hdp::user{ $hdp::params::hbase_user:
+      hdp::user{ 'hbase_user':
+        user_name => $hdp::params::hbase_user,
         groups => [$hdp::params::user_group]
       }
 
-      Anchor['hdp::begin'] -> Group[$hdp::params::user_group] -> Hdp::User[$hdp::params::hbase_user] -> Anchor['hdp::end']       
+      Anchor['hdp::begin'] -> Hdp::Group['hdp_user_group'] -> Hdp::User['hbase_user'] -> Anchor['hdp::end']       
     }
     
     if ($hdp::params::nagios_server_host != "") {
-      group {$hdp::params::nagios_group:
-        ensure => present
-      }
+	    hdp::group { 'nagios_group':
+	      group_name => $hdp::params::nagios_group,
+	    }
 
-      hdp::user{ $hdp::params::nagios_user:
+      hdp::user{ 'nagios_user':
+        user_name => $hdp::params::nagios_user,
         gid => $hdp::params::nagios_group
       }
 
-      Anchor['hdp::begin'] -> Group[$hdp::params::nagios_group] -> Hdp::User[$hdp::params::nagios_user] -> Anchor['hdp::end']
+      Anchor['hdp::begin'] -> Hdp::Group['nagios_group'] -> Hdp::User['nagios_user'] -> Anchor['hdp::end']
     }
 
     if ($hdp::params::oozie_server != "") {
-      hdp::user{ $hdp::params::oozie_user:}
+      hdp::user{ 'oozie_user':
+        user_name => $hdp::params::oozie_user
+      }
 
-      Anchor['hdp::begin'] -> Group[$hdp::params::user_group] -> Hdp::User[$hdp::params::oozie_user] -> Anchor['hdp::end']  
+      Anchor['hdp::begin'] -> Hdp::Group['hdp_user_group'] -> Hdp::User['oozie_user'] -> Anchor['hdp::end']  
     }
 
     if ($hdp::params::hcat_server_host != "") {
-      hdp::user{ $hdp::params::webhcat_user:}
-
-      if ($hdp::params::webhcat_user != $hdp::params::hcat_user) {
-        hdp::user { $hdp::params::hcat_user:}
+      hdp::user{ 'webhcat_user':
+        user_name => $hdp::params::webhcat_user
       }
 
-      Anchor['hdp::begin'] -> Group[$hdp::params::user_group] -> Hdp::User<|title == $webhcat_user or title == $hcat_user|> -> Anchor['hdp::end'] 
+      if ($hdp::params::webhcat_user != $hdp::params::hcat_user) {
+        hdp::user { 'hcat_user':
+          user_name => $hdp::params::hcat_user
+        }
+      }
+
+      Anchor['hdp::begin'] -> Hdp::Group['hdp_user_group'] -> Hdp::User<|title == 'webhcat_user' or title == 'hcat_user'|> -> Anchor['hdp::end'] 
     }
 
     if ($hdp::params::hive_server_host != "") {
-      hdp::user{ $hdp::params::hive_user:}
+      hdp::user{ 'hive_user':
+        user_name => $hdp::params::hive_user
+      }
 
-      Anchor['hdp::begin'] -> Group[$hdp::params::user_group] -> Hdp::User[$hdp::params::hive_user] -> Anchor['hdp::end']  
+      Anchor['hdp::begin'] -> Hdp::Group['hdp_user_group'] -> Hdp::User['hive_user'] -> Anchor['hdp::end']  
     }
 
 }
@@ -190,19 +200,16 @@ class hdp::create_smoke_user()
   $smoke_user = $hdp::params::smokeuser
   $security_enabled = $hdp::params::security_enabled
 
-  if ( $smoke_group != $proxyuser_group) {
-    group { $smoke_group :
-      ensure => present
-    }
+  hdp::group { 'smoke_group':
+    group_name => $smoke_group,
   }
   
-  if ($hdp::params::user_group != $proxyuser_group) {
-    group { $proxyuser_group :
-      ensure => present
-    }
-  }
+	hdp::group { 'proxyuser_group':
+	  group_name => $proxyuser_group,
+	}
   
-  hdp::user { $smoke_user: 
+  hdp::user { 'smoke_user':
+    user_name => $smoke_user,
     gid    => $hdp::params::user_group,
     groups => ["$proxyuser_group"]
   }
@@ -226,8 +233,8 @@ class hdp::create_smoke_user()
    require => File[$changeUid_path]
   }
 
-  Group<|title == $smoke_group or title == $proxyuser_group|> ->
-  Hdp::User[$smoke_user] -> Hdp::Exec[$cmd_set_uid]
+  Hdp::Group<|title == 'smoke_group' or title == 'proxyuser_group'|> ->
+  Hdp::User['smoke_user'] -> Hdp::Exec[$cmd_set_uid]
 }
 
 
@@ -241,13 +248,29 @@ class hdp::set_selinux()
  }
 }
 
+define hdp::group(
+  $group_name = undef
+)
+{
+  if($hdp::params::defined_groups[$group_name]!="defined"){
+    group { $name:
+      name => $group_name,
+      ensure => present   
+    }
+    
+    $hdp::params::defined_groups[$group_name] = "defined"
+  }
+}
+
 define hdp::user(
+  $user_name = undef,
   $gid = $hdp::params::user_group,
   $just_validate = undef,
   $groups = undef
 )
 {
-  $user_info = $hdp::params::user_info[$name]
+  $user_info = $hdp::params::user_info[$user_name]
+  
   if ($just_validate != undef) {
     $just_val  = $just_validate
   } elsif (($user_info == undef) or ("|${user_info}|" == '||')){ #tests for different versions of Puppet
@@ -258,17 +281,23 @@ define hdp::user(
   
   if ($just_val == true) {
     exec { "user ${name} exists":
-      command => "su - ${name} -c 'ls /dev/null' >/dev/null 2>&1",
+      command => "su - ${user_name} -c 'ls /dev/null' >/dev/null 2>&1",
       path    => ['/bin']
     }
   } else {
-    user { $name:
-      ensure     => present,
-      managehome => true,
-      gid        => $gid, #TODO either remove this to support LDAP env or fix it
-      shell      => '/bin/bash',
-      groups     => $groups 
-    }
+      if(!defined(User[$user_name])){
+		    user { $user_name:
+		      ensure     => present,
+		      managehome => true,
+		      gid        => $gid, #TODO either remove this to support LDAP env or fix it
+		      shell      => '/bin/bash',
+		      groups     => $groups 
+		    }
+		  } else {
+		    User <| $name == $user_name |> {
+		      groups +> $groups
+		    }
+		  }
   }
 }
 

@@ -64,7 +64,9 @@ class hdp-zookeeper(
    } else {
      hdp::package { 'zookeeper':}
 
-     hdp::user{ $zk_user:}
+     hdp::user{ 'zk_user':
+       user_name => $zk_user
+     }
 
      hdp::directory_recursive_create { $zk_config_dir: 
       service_state => $service_state,
@@ -100,7 +102,7 @@ class hdp-zookeeper(
        group => $hdp::params::user_group
      }
 
-      Anchor['hdp-zookeeper::begin'] -> Hdp::Package['zookeeper'] -> Hdp::User[$zk_user] -> 
+      Anchor['hdp-zookeeper::begin'] -> Hdp::Package['zookeeper'] -> Hdp::User['zk_user'] -> 
         Hdp::Directory_recursive_create[$zk_config_dir] -> Hdp-zookeeper::Configfile<||> -> File["${zk_config_dir}/zoo_sample.cfg"] -> Anchor['hdp-zookeeper::end']
       if ($type == 'server') {
         Hdp::Directory_recursive_create[$zk_config_dir] -> Hdp-zookeeper::Configfile<||> -> Class['hdp-zookeeper::service'] -> Anchor['hdp-zookeeper::end']
