@@ -22,6 +22,7 @@ var stringUtils = require('utils/string_utils');
 module.exports = Em.Route.extend({
   route: '/main',
   enter: function (router) {
+    App.db.updateStorage();
     console.log('in /main:enter');
     if (router.getAuthenticated()) {
       App.router.get('clusterController').loadClusterName(false);
