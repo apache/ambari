@@ -88,4 +88,23 @@ public class HostConfigMappingDAO {
     return daoUtils.selectList(query, Long.valueOf(clusterId), type);
   }
 
+  /**
+   * @param clusterId
+   * @param hostName
+   */
+  @Transactional
+  public void removeHost(long clusterId, String hostName) {
+    TypedQuery<HostConfigMappingEntity> query = entityManagerProvider.get().createQuery(
+        "SELECT entity FROM HostConfigMappingEntity entity " +
+        "WHERE entity.clusterId = ?1 AND entity.hostName = ?2",
+        HostConfigMappingEntity.class);
+    
+    List<HostConfigMappingEntity> list = daoUtils.selectList(query, Long.valueOf(clusterId), hostName);
+
+      for (HostConfigMappingEntity entity : list) {
+        entityManagerProvider.get().remove(entity);
+      }
+    
+  }
+
 }

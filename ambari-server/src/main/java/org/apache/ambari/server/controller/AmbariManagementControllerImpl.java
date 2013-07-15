@@ -3574,9 +3574,69 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public void deleteHosts(Set<HostRequest> request)
+  public void deleteHosts(Set<HostRequest> requests)
       throws AmbariException {
-    throw new AmbariException("Delete hosts not supported");
+
+    List<HostRequest> okToRemove = new ArrayList<HostRequest>();
+    
+    for (HostRequest hostRequest : requests) {
+      String hostName = hostRequest.getHostname();
+      if (null == hostName)
+        continue;
+      
+      if (null != hostRequest.getClusterName()) {
+        Cluster cluster = clusters.getCluster(hostRequest.getClusterName());
+        
+        List<ServiceComponentHost> list = cluster.getServiceComponentHosts(hostName);
+
+        if (0 != list.size()) {
+          StringBuilder reason = new StringBuilder("Cannot remove host ")
+              .append(hostName)
+              .append(" from ")
+              .append(hostRequest.getClusterName())
+              .append(".  The following roles exist: ");
+          
+          int i = 0;
+          for (ServiceComponentHost sch : list) {
+            if ((i++) > 0)
+              reason.append(", ");
+            reason.append(sch.getServiceComponentName());
+          }
+          
+          throw new AmbariException(reason.toString());
+        }
+        okToRemove.add(hostRequest);
+        
+      } else {
+        // check if host exists (throws exception if not found)
+        clusters.getHost(hostName);
+        
+        // delete host outright
+        Set<Cluster> clusterSet = clusters.getClustersForHost(hostName);
+        if (0 != clusterSet.size()) {
+          StringBuilder reason = new StringBuilder("Cannot remove host ")
+            .append(hostName)
+            .append(".  It belongs to clusters: ");
+          int i = 0;
+          for (Cluster c : clusterSet) {
+            if ((i++) > 0)
+              reason.append(", ");
+            reason.append(c.getClusterName());
+          }
+          throw new AmbariException(reason.toString());
+        }
+        okToRemove.add(hostRequest);
+      }
+    }
+    
+    for (HostRequest hostRequest : okToRemove) {
+      if (null != hostRequest.getClusterName()) {
+        clusters.unmapHostFromCluster(hostRequest.getHostname(),
+            hostRequest.getClusterName());
+      } else {
+        clusters.deleteHost(hostRequest.getHostname());
+      }
+    }
   }
 
   @Override
@@ -3617,11 +3677,12 @@ public class AmbariManagementControllerImpl implements
             + ", request=" + request);
       }
 
-      //Only allow removing master components in MAINTENANCE state without stages generation
-      if (component.isClientComponent() ||
+      // Only allow removing master/slave components in MAINTENANCE state without stages generation.
+      // Clients may be removed without a state check.
+      if (!component.isClientComponent() &&
           componentHost.getState() != State.MAINTENANCE) {
-        throw new AmbariException("Only master or slave component can be removed. They must be in " +
-            "MAINTENANCE state in order to be removed.");
+        throw new AmbariException("To remove master or slave components they must be in a " +
+            "MAINTENANCE state. Current=" + componentHost.getState() + ".");
       }
 
       if (!safeToRemoveSCHs.containsKey(component)) {

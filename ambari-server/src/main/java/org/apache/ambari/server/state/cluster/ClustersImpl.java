@@ -18,15 +18,20 @@
 
 package org.apache.ambari.server.state.cluster;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.persistence.RollbackException;
 
-import com.google.gson.Gson;
-import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -34,17 +39,27 @@ import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.AgentVersion;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
+import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.host.HostFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 @Singleton
 public class ClustersImpl implements Clusters {
@@ -76,6 +91,8 @@ public class ClustersImpl implements Clusters {
   AmbariMetaInfo ambariMetaInfo;
   @Inject
   Gson gson;
+  @Inject
+  private HostConfigMappingDAO hostConfigMappingDAO;
 
   @Inject
   public ClustersImpl() {
@@ -452,7 +469,7 @@ public class ClustersImpl implements Clusters {
       w.unlock();
     }
   }
-
+  
   @Transactional
   void mapHostClusterEntities(String hostName, Long clusterId) {
     HostEntity hostEntity = hostDAO.findByName(hostName);
@@ -566,6 +583,74 @@ public class ClustersImpl implements Clusters {
     } finally {
       w.unlock();
     }
+  }
+  
+  @Override
+  public void unmapHostFromCluster(String hostname, String clusterName)
+      throws AmbariException {
+
+    loadClustersAndHosts();
+    
+    w.lock();
+
+    try {
+      Host host = getHost(hostname);
+      Cluster cluster = getCluster(clusterName);
+
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Unmapping a host from a cluster"
+            + ", clusterName=" + clusterName
+            + ", clusterId=" + cluster.getClusterId()
+            + ", hostname=" + hostname);
+      }
+      
+      unmapHostClusterEntities(hostname, cluster.getClusterId());
+
+      hostClusterMap.get(hostname).remove(cluster);
+      clusterHostMap.get(clusterName).remove(host);
+
+    } finally {
+      w.unlock();
+    }
+    
+  }
+  
+  @Transactional
+  private void unmapHostClusterEntities(String hostName, long clusterId) {
+    HostEntity hostEntity = hostDAO.findByName(hostName);
+    ClusterEntity clusterEntity = clusterDAO.findById(clusterId);
+
+    hostEntity.getClusterEntities().remove(clusterEntity);
+    clusterEntity.getHostEntities().remove(hostEntity);
+
+    hostConfigMappingDAO.removeHost(clusterId, hostName);
+    
+    hostDAO.merge(hostEntity);
+    clusterDAO.merge(clusterEntity);
+  }
+  
+  @Override
+  public void deleteHost(String hostname) throws AmbariException {
+    loadClustersAndHosts();
+
+    if (!hosts.containsKey(hostname))
+      return;
+    
+    w.lock();
+
+    try {
+      HostEntity entity = hostDAO.findByName(hostname);
+      hostDAO.refresh(entity);
+      
+      hostDAO.remove(entity);
+      
+      hosts.remove(hostname);
+    } catch (Exception e) {
+      throw new AmbariException("Could not remove host", e);
+    } finally {
+      w.unlock();
+    }
+    
   }
 
 }

@@ -21,7 +21,6 @@ package org.apache.ambari.server.controller;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -42,6 +41,7 @@ import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
+import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.Role;
@@ -80,6 +80,8 @@ import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.junit.After;
@@ -6564,6 +6566,144 @@ public class AmbariManagementControllerTest {
     repo = ami.getRepository(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
     assertEquals(original, repo.getBaseUrl());
     assertEquals(original, repo.getDefaultBaseUrl());
+  }
+  
+  @Test
+  public void testDeleteHost() throws Exception {
+    String clusterName = "foo1";
+    
+    createCluster(clusterName);
+    
+    Cluster cluster = clusters.getCluster(clusterName);
+    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+    
+    String serviceName = "HDFS";
+    createService(clusterName, serviceName, null);
+    String componentName1 = "NAMENODE";
+    String componentName2 = "DATANODE";
+    String componentName3 = "HDFS_CLIENT";
+
+    Map<String, String> mapRequestProps = new HashMap<String, String>();
+    mapRequestProps.put("context", "Called from a test");
+
+    createServiceComponent(clusterName, serviceName, componentName1, State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName2, State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName3, State.INIT);
+
+    String host1 = "h1";
+    clusters.addHost(host1);
+    clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").persist();
+    
+    String host2 = "h2";
+    clusters.addHost(host2);
+    clusters.getHost("h2").setOsType("centos6");
+    clusters.getHost("h2").persist();
+    
+    String host3 = "h3";
+
+    clusters.mapHostToCluster(host1, clusterName);
+
+    createServiceComponentHost(clusterName, null, componentName1, host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2, host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3, host1, null);
+    
+    // Install
+    installService(clusterName, serviceName, false, false);
+    
+    // make them believe they are up
+    Map<String, ServiceComponentHost> hostComponents = cluster.getService(serviceName).getServiceComponent(componentName1).getServiceComponentHosts();
+    for (Map.Entry<String, ServiceComponentHost> entry : hostComponents.entrySet()) {
+      ServiceComponentHost cHost = entry.getValue();
+      cHost.handleEvent(new ServiceComponentHostInstallEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis(), cluster.getDesiredStackVersion().getStackId()));
+      cHost.handleEvent(new ServiceComponentHostOpSucceededEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis()));
+    }
+    hostComponents = cluster.getService(serviceName).getServiceComponent(componentName2).getServiceComponentHosts();
+    for (Map.Entry<String, ServiceComponentHost> entry : hostComponents.entrySet()) {
+      ServiceComponentHost cHost = entry.getValue();
+      cHost.handleEvent(new ServiceComponentHostInstallEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis(), cluster.getDesiredStackVersion().getStackId()));
+      cHost.handleEvent(new ServiceComponentHostOpSucceededEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis()));
+    }
+    
+    Set<HostRequest> requests = new HashSet<HostRequest>();
+    // delete from cluster
+    requests.clear();
+    requests.add(new HostRequest(host1, clusterName, null));
+    try {
+      controller.deleteHosts(requests);
+      fail("Expect failure deleting hosts when components exist.");
+    } catch (Exception e) {
+    }
+    
+    Set<ServiceComponentHostRequest> schRequests = new HashSet<ServiceComponentHostRequest>();
+    // maintenance HC for non-clients
+    schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName1, host1, null, "MAINTENANCE"));
+    schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName2, host1, null, "MAINTENANCE"));
+    controller.updateHostComponents(schRequests, new HashMap<String,String>(), false);
+
+    // delete HC
+    schRequests.clear();
+    schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName1, host1, null, null));
+    schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName2, host1, null, null));
+    schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName3, host1, null, null));
+    controller.deleteHostComponents(schRequests);
+    
+    Assert.assertEquals(0, cluster.getServiceComponentHosts(host1).size());
+    
+    // delete, which should fail since it is part of a cluster
+    requests.clear();
+    requests.add(new HostRequest(host1, null, null));
+    try {
+      controller.deleteHosts(requests);
+      fail("Expect failure when removing from host when it is part of a cluster.");
+    } catch (Exception e) {
+    }
+    
+    // delete host from cluster
+    requests.clear();
+    requests.add(new HostRequest(host1, clusterName, null));
+    controller.deleteHosts(requests);
+
+    // host is no longer part of the cluster
+    Assert.assertFalse(clusters.getHostsForCluster(clusterName).containsKey(host1));
+    Assert.assertFalse(clusters.getClustersForHost(host1).contains(cluster));
+
+    // delete entirely
+    requests.clear();
+    requests.add(new HostRequest(host1, null, null));
+    controller.deleteHosts(requests);
+
+    // verify host does not exist
+    try {
+      clusters.getHost(host1);
+      Assert.fail("Expected a HostNotFoundException.");
+    } catch (HostNotFoundException e) {
+      // expected
+    }
+    
+    // remove host2
+    requests.clear();
+    requests.add(new HostRequest(host2, null, null));
+    controller.deleteHosts(requests);
+    
+    // verify host does not exist
+    try {
+      clusters.getHost(host2);
+      Assert.fail("Expected a HostNotFoundException.");
+    } catch (HostNotFoundException e) {
+      // expected
+    }
+
+    // try removing a host that never existed
+    requests.clear();
+    requests.add(new HostRequest(host3, null, null));
+    try {
+      controller.deleteHosts(requests);
+      Assert.fail("Expected a HostNotFoundException trying to remove a host that was never added.");
+    } catch (HostNotFoundException e) {
+      // expected
+    }
+
   }
   
 }

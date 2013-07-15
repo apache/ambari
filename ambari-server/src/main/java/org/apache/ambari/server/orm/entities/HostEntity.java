@@ -97,10 +97,10 @@ public class HostEntity {
   @Lob
   private String hostAttributes = "";
 
-  @OneToMany(mappedBy = "hostEntity")
+  @OneToMany(mappedBy = "hostEntity", cascade = {CascadeType.REMOVE, CascadeType.PERSIST})
   private Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities;
 
-  @OneToMany(mappedBy = "hostEntity")
+  @OneToMany(mappedBy = "hostEntity", cascade = {CascadeType.REMOVE, CascadeType.PERSIST})
   private Collection<HostComponentStateEntity> hostComponentStateEntities;
 
   @ManyToMany
@@ -110,12 +110,12 @@ public class HostEntity {
   )
   private Collection<ClusterEntity> clusterEntities;
 
-  @OneToOne(mappedBy = "hostEntity")
+  @OneToOne(mappedBy = "hostEntity", cascade = CascadeType.REMOVE)
   private HostStateEntity hostStateEntity;
 
-  @OneToMany(mappedBy = "host")
+  @OneToMany(mappedBy = "host", cascade = CascadeType.REMOVE)
   private Collection<HostRoleCommandEntity> hostRoleCommandEntities;
-
+  
   public String getHostName() {
     return hostName;
   }

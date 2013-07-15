@@ -58,7 +58,7 @@ public class HostConfigMappingEntity {
   
   @Column(name = "user_name", insertable = true, updatable = true, nullable = false)
   private String user = null;
-
+  
   public Long getClusterId() {
     return clusterId;
   }

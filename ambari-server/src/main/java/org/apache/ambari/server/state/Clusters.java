@@ -158,4 +158,19 @@ public interface Clusters {
   public void updateHostWithClusterAndAttributes(
       Map<String, Set<String>> hostsClusters, Map<String, Map<String, String>> hostAttributes)
       throws AmbariException;
+
+  /**
+   * Removes a host from a cluster.  Inverts {@link #mapHostToCluster(String, String)
+   * @param hostname
+   * @param clusterName
+   */
+  public void unmapHostFromCluster(String hostname, String clusterName)
+      throws AmbariException;
+
+  /**
+   * Removes a host.  Inverts {@link #addHost(String)}
+   * @param hostname
+   */
+  public void deleteHost(String hostname)
+      throws AmbariException;
 }
