@@ -29,6 +29,8 @@ The Ambari API facilitates the management and monitoring of the resources of an 
 - [Query Parameters](#query-parameters)
 - [Batch Requests](#batch-requests)
 - [RequestInfo](#request-info)
+- [Temporal Metrics](#temporal-metrics)
+- [Pagination](#pagination)
 - [Errors](#errors)
 
 
@@ -1015,8 +1017,60 @@ The returned result is a list of data points over the specified time range.  Eac
     	]
 	}
 
-	
+Pagination
+----
 
+It is possible to divide the resources returned for a request up into pages by specifying a page size and offset.
+
+<table>
+  <tr>
+    <th>Parameter</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>page_size</td>
+    <td>The number of resources to be returned for the paged response.</td>  
+  </tr>
+  <tr>
+    <td>from</td>
+    <td>The starting page resource (inclusive).  Valid values are :offset | "start"</td>  
+  </tr>
+  <tr>
+    <td>to</td>
+    <td>The ending page resource (inclusive).  Valid values are :offset | "end"</td>  
+  </tr>
+</table>
+
+
+**Note**: either from or to can be specified, not both.  If neither is specified then 'from=0' is assumed.
+
+The :offset is an integer value that represents an offset (zero based) into the set of resources.  For example, 'from=21' means that the first resource of the response page should be the 21st resource of the resource set.
+
+**Example - Get a page of 10 request resources starting with the 21st**
+
+    /api/v1/clusters/cl1/requests?from=21&page_size=10
+
+The "start" keyword indicates the start of the resource set and is equivalent to an offset of 0.
+
+**Example - Get a page of 10 request resources from the start**
+
+    /api/v1/clusters/cl1/requests?from=start&page_size=10
+    
+    /api/v1/clusters/cl1/requests?from=0&page_size=10
+    
+
+
+The "end" keyword indicates the end of the set of resources and is equivalent to an offset of -1.
+
+**Example - Get the last 10 request resources**
+
+    /api/v1/clusters/cl1/requests?to=end&page_size=10
+    
+    /api/v1/clusters/cl1/requests?to=-1&page_size=10
+
+
+The default ordering of the resources (by the natural ordering of the resource key properties) is implied.	
+	
 
 HTTP Return Codes
 ----
