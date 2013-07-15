@@ -295,6 +295,15 @@ Configuration resources are sets of key/value pairs that configure the services 
 
 [Configuration Resource Overview](configuration.md)
 
+#### requests
+Request resources are groups of tasks that were created to carry out an instruction.
+
+[Request Resources](request-resources.md)
+
+#### tasks
+Task resources are the individual tasks that make up a request resource.
+
+[Task Resources](task-resources.md)
 
 #### workflows
 Workflow resources are DAGs of MapReduce jobs in a Hadoop cluster.
