@@ -71,6 +71,7 @@ App.db.cleanUp = function () {
 };
 
 App.db.updateStorage = function() {
+  App.db.data = localStorage.getObject('ambari');
   if (App.db.data && App.db.data.app && App.db.data.app.tables) {
     return true;
   }
