@@ -123,5 +123,14 @@ module.exports = {
       content += row.join(',') + '\n';
     });
     return content;
+  },
+
+  /**
+   * Extracts filename from linux/unix path
+   * @param String: path
+   * @return {Sring}: filename
+   */
+  getFileFromPath: function(path) {
+    return path.replace(/^.*[\/]/, '');
   }
 }
