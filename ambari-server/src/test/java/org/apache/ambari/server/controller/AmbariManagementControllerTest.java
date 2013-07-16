@@ -267,58 +267,63 @@ public class AmbariManagementControllerTest {
   }
 
   private long startService(String clusterName, String serviceName,
-      boolean runSmokeTests, boolean reconfigureClients) throws
-    AmbariException {
+                            boolean runSmokeTests, boolean reconfigureClients) throws
+      AmbariException {
     ServiceRequest r = new ServiceRequest(clusterName, serviceName, null,
-      State.STARTED.toString());
+        State.STARTED.toString());
     Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
     requests.add(r);
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
     RequestStatusResponse resp = controller.updateServices(requests,
-      mapRequestProps, runSmokeTests, reconfigureClients);
+        mapRequestProps, runSmokeTests, reconfigureClients);
 
     Assert.assertEquals(State.STARTED,
-      clusters.getCluster(clusterName).getService(serviceName)
-        .getDesiredState());
+        clusters.getCluster(clusterName).getService(serviceName)
+            .getDesiredState());
 
-    // manually change live state to started as no running action manager
-    for (ServiceComponent sc :
-      clusters.getCluster(clusterName).getService(serviceName)
-        .getServiceComponents().values()) {
-      for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-        sch.setState(State.STARTED);
+    if (resp != null) {
+      // manually change live state to stopped as no running action manager
+      List<HostRoleCommand> commands = actionDB.getRequestTasks(resp.getRequestId());
+      for (HostRoleCommand cmd : commands) {
+        if (!cmd.getRole().toString().endsWith("CHECK")) {
+          clusters.getCluster(clusterName).getService(serviceName).getServiceComponent(cmd.getRole().name())
+              .getServiceComponentHost(cmd.getHostName()).setState(State.STARTED);
+        }
       }
+      return resp.getRequestId();
+    } else {
+      return -1;
     }
-
-    return resp.getRequestId();
   }
 
   private long installService(String clusterName, String serviceName,
-      boolean runSmokeTests, boolean reconfigureClients) throws
-    AmbariException {
+                              boolean runSmokeTests, boolean reconfigureClients) throws
+      AmbariException {
     ServiceRequest r = new ServiceRequest(clusterName, serviceName, null,
-      State.INSTALLED.toString());
+        State.INSTALLED.toString());
     Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
     requests.add(r);
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
     RequestStatusResponse resp = controller.updateServices(requests,
-      mapRequestProps, runSmokeTests, reconfigureClients);
+        mapRequestProps, runSmokeTests, reconfigureClients);
 
     Assert.assertEquals(State.INSTALLED,
-      clusters.getCluster(clusterName).getService(serviceName)
-        .getDesiredState());
-    // manually change live state to stopped as no running action manager
-    for (ServiceComponent sc :
-      clusters.getCluster(clusterName).getService(serviceName)
-        .getServiceComponents().values()) {
-      for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-        sch.setState(State.INSTALLED);
-      }
-    }
+        clusters.getCluster(clusterName).getService(serviceName)
+            .getDesiredState());
 
-    return resp.getRequestId();
+    if (resp != null) {
+      // manually change live state to stopped as no running action manager
+      List<HostRoleCommand> commands = actionDB.getRequestTasks(resp.getRequestId());
+      for (HostRoleCommand cmd : commands) {
+        clusters.getCluster(clusterName).getService(serviceName).getServiceComponent(cmd.getRole().name())
+            .getServiceComponentHost(cmd.getHostName()).setState(State.INSTALLED);
+      }
+      return resp.getRequestId();
+    } else {
+      return -1;
+    }
   }
 
   @Test
@@ -860,10 +865,12 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     clusters.addHost(host1);
     clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").setState(HostState.HEALTHY);
     clusters.getHost("h1").persist();
     String host2 = "h2";
     clusters.addHost(host2);
     clusters.getHost("h2").setOsType("centos5");
+    clusters.getHost("h2").setState(HostState.HEALTHY);
     clusters.getHost("h2").persist();
 
     clusters.getHost("h1").setOsType("centos5");
@@ -2457,10 +2464,12 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     clusters.addHost(host1);
     clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").setState(HostState.HEALTHY);
     clusters.getHost("h1").persist();
     String host2 = "h2";
     clusters.addHost(host2);
     clusters.getHost("h2").setOsType("centos5");
+    clusters.getHost("h2").setState(HostState.HEALTHY);
     clusters.getHost("h2").persist();
     clusters.mapHostToCluster(host1, clusterName);
     clusters.mapHostToCluster(host2, clusterName);
@@ -2685,10 +2694,12 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     clusters.addHost(host1);
     clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").setState(HostState.HEALTHY);
     clusters.getHost("h1").persist();
     String host2 = "h2";
     clusters.addHost(host2);
     clusters.getHost("h2").setOsType("centos5");
+    clusters.getHost("h2").setState(HostState.HEALTHY);
     clusters.getHost("h2").persist();
     clusters.mapHostToCluster(host1, clusterName);
     clusters.mapHostToCluster(host2, clusterName);
@@ -2881,13 +2892,16 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     clusters.addHost(host1);
     clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").setState(HostState.HEALTHY);
     clusters.getHost("h1").persist();
     String host2 = "h2";
     clusters.addHost(host2);
     clusters.getHost("h2").setOsType("centos5");
+    clusters.getHost("h2").setState(HostState.HEALTHY);
     clusters.getHost("h2").persist();
     clusters.mapHostToCluster(host1, clusterName);
     clusters.mapHostToCluster(host2, clusterName);
+
 
     Set<ServiceComponentHostRequest> set1 =
         new HashSet<ServiceComponentHostRequest>();
@@ -3058,10 +3072,12 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     clusters.addHost(host1);
     clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").setState(HostState.HEALTHY);
     clusters.getHost("h1").persist();
     String host2 = "h2";
     clusters.addHost(host2);
     clusters.getHost("h2").setOsType("centos5");
+    clusters.getHost("h2").setState(HostState.HEALTHY);
     clusters.getHost("h2").persist();
     clusters.mapHostToCluster(host1, clusterName);
     clusters.mapHostToCluster(host2, clusterName);
@@ -3656,10 +3672,12 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     clusters.addHost(host1);
     clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").setState(HostState.HEALTHY);
     clusters.getHost("h1").persist();
     String host2 = "h2";
     clusters.addHost(host2);
     clusters.getHost("h2").setOsType("centos6");
+    clusters.getHost("h2").setState(HostState.HEALTHY);
     clusters.getHost("h2").persist();
 
     clusters.mapHostToCluster(host1, clusterName);
@@ -4462,10 +4480,13 @@ public class AmbariManagementControllerTest {
     clusters.addHost(host2);
     clusters.addHost(host3);
     clusters.getHost("h1").setOsType("centos6");
+    clusters.getHost("h1").setState(HostState.HEALTHY);
     clusters.getHost("h1").persist();
     clusters.getHost("h2").setOsType("centos6");
+    clusters.getHost("h2").setState(HostState.HEALTHY);
     clusters.getHost("h2").persist();
     clusters.getHost("h3").setOsType("centos6");
+    clusters.getHost("h3").setState(HostState.HEALTHY);
     clusters.getHost("h3").persist();
 
     clusters.mapHostToCluster(host1, clusterName);
@@ -4628,10 +4649,12 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     clusters.addHost(host1);
     clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").setState(HostState.HEALTHY);
     clusters.getHost("h1").persist();
     String host2 = "h2";
     clusters.addHost(host2);
     clusters.getHost("h2").setOsType("centos6");
+    clusters.getHost("h2").setState(HostState.HEALTHY);
     clusters.getHost("h2").persist();
 
     clusters.mapHostToCluster(host1, clusterName);
@@ -4717,9 +4740,11 @@ public class AmbariManagementControllerTest {
 
     String host1 = "h1";
     clusters.addHost(host1);
+    clusters.getHost("h1").setState(HostState.HEALTHY);
     clusters.getHost("h1").persist();
     String host2 = "h2";
     clusters.addHost(host2);
+    clusters.getHost("h2").setState(HostState.HEALTHY);
     clusters.getHost("h2").persist();
 
     clusters.getHost("h1").setOsType("centos5");
@@ -4804,6 +4829,153 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
+  public void testSkipTaskOnUnhealthyHosts() throws AmbariException {
+    String clusterName = "foo1";
+    createCluster(clusterName);
+    clusters.getCluster(clusterName)
+        .setDesiredStackVersion(new StackId("HDP-0.1"));
+    String serviceName = "HDFS";
+    createService(clusterName, serviceName, null);
+    String componentName1 = "NAMENODE";
+    String componentName2 = "DATANODE";
+
+    createServiceComponent(clusterName, serviceName, componentName1,
+        State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName2,
+        State.INIT);
+
+    String host1 = "h1";
+    clusters.addHost(host1);
+    clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").setState(HostState.HEALTHY);
+    clusters.getHost("h1").persist();
+    String host2 = "h2";
+    clusters.addHost(host2);
+    clusters.getHost("h2").setOsType("centos6");
+    clusters.getHost("h2").setState(HostState.HEALTHY);
+    clusters.getHost("h2").persist();
+    String host3 = "h3";
+    clusters.addHost(host3);
+    clusters.getHost("h3").setOsType("centos6");
+    clusters.getHost("h3").setState(HostState.HEALTHY);
+    clusters.getHost("h3").persist();
+
+    clusters.mapHostToCluster(host1, clusterName);
+    clusters.mapHostToCluster(host2, clusterName);
+    clusters.mapHostToCluster(host3, clusterName);
+
+    createServiceComponentHost(clusterName, serviceName, componentName1,
+        host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+        host2, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+        host3, null);
+
+    // Install
+    installService(clusterName, serviceName, false, false);
+
+    // h1=HEALTHY, h2=HEARTBEAT_LOST, h3=WAITING_FOR_HOST_STATUS_UPDATES
+    clusters.getHost("h1").setState(HostState.HEALTHY);
+    clusters.getHost("h2").setState(HostState.HEALTHY);
+    clusters.getHost("h3").setState(HostState.HEARTBEAT_LOST);
+
+    long requestId = startService(clusterName, serviceName, true, false);
+    List<HostRoleCommand> commands = actionDB.getRequestTasks(requestId);
+    Assert.assertEquals(3, commands.size());
+    int commandCount = 0;
+    for (HostRoleCommand command : commands) {
+      if (command.getRoleCommand() == RoleCommand.START) {
+        Assert.assertTrue(command.getHostName().equals("h1") || command.getHostName().equals("h2"));
+        commandCount++;
+      }
+    }
+    Assert.assertEquals("Expect only two task.", 2, commandCount);
+
+    stopService(clusterName, serviceName, false, false);
+
+    // h1=HEARTBEAT_LOST, h2=HEARTBEAT_LOST, h3=HEALTHY
+    clusters.getHost("h1").setState(HostState.HEARTBEAT_LOST);
+    clusters.getHost("h2").setState(HostState.HEARTBEAT_LOST);
+    clusters.getHost("h3").setState(HostState.HEALTHY);
+
+    requestId = startService(clusterName, serviceName, true, false);
+    commands = actionDB.getRequestTasks(requestId);
+    commandCount = 0;
+    for (HostRoleCommand command : commands) {
+      if (command.getRoleCommand() == RoleCommand.START) {
+        Assert.assertTrue(command.getHostName().equals("h3"));
+        commandCount++;
+      }
+    }
+    Assert.assertEquals("Expect only one task.", 1, commandCount);
+
+    stopService(clusterName, serviceName, false, false);
+
+    // h1=HEALTHY, h2=HEALTHY, h3=HEALTHY
+    clusters.getHost("h1").setState(HostState.HEALTHY);
+    clusters.getHost("h2").setState(HostState.HEALTHY);
+    clusters.getHost("h3").setState(HostState.HEALTHY);
+
+    requestId = startService(clusterName, serviceName, true, false);
+    commands = actionDB.getRequestTasks(requestId);
+    commandCount = 0;
+    for (HostRoleCommand command : commands) {
+      if (command.getRoleCommand() == RoleCommand.START) {
+        Assert.assertTrue(command.getHostName().equals("h3") ||
+            command.getHostName().equals("h2") ||
+            command.getHostName().equals("h1"));
+        commandCount++;
+      }
+    }
+    Assert.assertEquals("Expect all three task.", 3, commandCount);
+
+    // h1=HEALTHY, h2=HEARTBEAT_LOST, h3=HEALTHY
+    clusters.getHost("h2").setState(HostState.HEARTBEAT_LOST);
+    requestId = stopService(clusterName, serviceName, false, false);
+    commands = actionDB.getRequestTasks(requestId);
+    Assert.assertEquals(2, commands.size());
+    commandCount = 0;
+    for (HostRoleCommand command : commands) {
+      if (command.getRoleCommand() == RoleCommand.STOP) {
+        Assert.assertTrue(command.getHostName().equals("h3") ||
+            command.getHostName().equals("h1"));
+        commandCount++;
+      }
+    }
+    Assert.assertEquals("Expect only two task.", 2, commandCount);
+
+    // Force a sch into INSTALL_FAILED
+    Cluster cluster = clusters.getCluster(clusterName);
+    Service s = cluster.getService(serviceName);
+    ServiceComponent sc3 = s.getServiceComponent(componentName2);
+    for (ServiceComponentHost sch : sc3.getServiceComponentHosts().values()) {
+      if (sch.getHostName().equals("h3")) {
+        sch.setState(State.INSTALL_FAILED);
+      }
+    }
+
+    // h1=HEALTHY, h2=HEALTHY, h3=HEARTBEAT_LOST
+    clusters.getHost("h3").setState(HostState.HEARTBEAT_LOST);
+    clusters.getHost("h2").setState(HostState.HEALTHY);
+    requestId = installService(clusterName, serviceName, false, false);
+    Assert.assertEquals(-1, requestId);
+
+    // All healthy, INSTALL should succeed
+    clusters.getHost("h3").setState(HostState.HEALTHY);
+    requestId = installService(clusterName, serviceName, false, false);
+    commands = actionDB.getRequestTasks(requestId);
+    Assert.assertEquals(1, commands.size());
+    commandCount = 0;
+    for (HostRoleCommand command : commands) {
+      if (command.getRoleCommand() == RoleCommand.INSTALL) {
+        Assert.assertTrue(command.getHostName().equals("h3"));
+        commandCount++;
+      }
+    }
+    Assert.assertEquals("Expect only one task.", 1, commandCount);
+  }
+
+  @Test
   public void testServiceCheckWhenHostIsUnhealthy() throws AmbariException {
     String clusterName = "foo1";
     createCluster(clusterName);
@@ -4825,14 +4997,17 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     clusters.addHost(host1);
     clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").setState(HostState.HEALTHY);
     clusters.getHost("h1").persist();
     String host2 = "h2";
     clusters.addHost(host2);
     clusters.getHost("h2").setOsType("centos6");
+    clusters.getHost("h2").setState(HostState.HEALTHY);
     clusters.getHost("h2").persist();
     String host3 = "h3";
     clusters.addHost(host3);
     clusters.getHost("h3").setOsType("centos6");
+    clusters.getHost("h3").setState(HostState.HEALTHY);
     clusters.getHost("h3").persist();
 
     clusters.mapHostToCluster(host1, clusterName);
@@ -4939,14 +5114,17 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     clusters.addHost(host1);
     clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").setState(HostState.HEALTHY);
     clusters.getHost("h1").persist();
     String host2 = "h2";
     clusters.addHost(host2);
     clusters.getHost("h2").setOsType("centos6");
+    clusters.getHost("h2").setState(HostState.HEALTHY);
     clusters.getHost("h2").persist();
     String host3 = "h3";
     clusters.addHost(host3);
     clusters.getHost("h3").setOsType("centos6");
+    clusters.getHost("h3").setState(HostState.HEALTHY);
     clusters.getHost("h3").persist();
 
     clusters.mapHostToCluster(host1, clusterName);
@@ -5015,9 +5193,11 @@ public class AmbariManagementControllerTest {
     String host2 = "h2";
     clusters.addHost(host1);
     clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").setState(HostState.HEALTHY);
     clusters.getHost("h1").persist();
     clusters.addHost(host2);
     clusters.getHost("h2").setOsType("centos5");
+    clusters.getHost("h2").setState(HostState.HEALTHY);
     clusters.getHost("h2").persist();
     clusters.mapHostToCluster(host1, clusterName);
     clusters.mapHostToCluster(host2, clusterName);
@@ -5089,10 +5269,12 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     clusters.addHost(host1);
     clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").setState(HostState.HEALTHY);
     clusters.getHost("h1").persist();
     String host2 = "h2";
     clusters.addHost(host2);
     clusters.getHost("h2").setOsType("centos6");
+    clusters.getHost("h2").setState(HostState.HEALTHY);
     clusters.getHost("h2").persist();
 
     clusters.mapHostToCluster(host1, clusterName);
@@ -5187,10 +5369,12 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     clusters.addHost(host1);
     clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").setState(HostState.HEALTHY);
     clusters.getHost("h1").persist();
     String host2 = "h2";
     clusters.addHost(host2);
     clusters.getHost("h2").setOsType("centos6");
+    clusters.getHost("h2").setState(HostState.HEALTHY);
     clusters.getHost("h2").persist();
 
     clusters.mapHostToCluster(host1, clusterName);
@@ -5270,10 +5454,12 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     clusters.addHost(host1);
     clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").setState(HostState.HEALTHY);
     clusters.getHost("h1").persist();
     String host2 = "h2";
     clusters.addHost(host2);
     clusters.getHost("h2").setOsType("centos6");
+    clusters.getHost("h2").setState(HostState.HEALTHY);
     clusters.getHost("h2").persist();
 
     clusters.mapHostToCluster(host1, clusterName);
@@ -5348,9 +5534,11 @@ public class AmbariManagementControllerTest {
 
     String host1 = "h1";
     clusters.addHost(host1);
+    clusters.getHost("h1").setState(HostState.HEALTHY);
     clusters.getHost("h1").persist();
     String host2 = "h2";
     clusters.addHost(host2);
+    clusters.getHost("h2").setState(HostState.HEALTHY);
     clusters.getHost("h2").persist();
 
     clusters.getHost("h1").setOsType("centos5");
@@ -5630,6 +5818,9 @@ public class AmbariManagementControllerTest {
 
     clusters.getHost(host1).setOsType("centos5");
     clusters.getHost(host2).setOsType("centos6");
+    clusters.getHost(host1).setState(HostState.HEALTHY);
+    clusters.getHost(host2).setState(HostState.HEALTHY);
+
     clusters.mapHostToCluster(host1, clusterName);
     clusters.mapHostToCluster(host2, clusterName);
 
@@ -5806,8 +5997,10 @@ public class AmbariManagementControllerTest {
     createServiceComponent(clusterName, pigServiceName, pigComponentName, null);
 
     clusters.addHost(host1);
+    clusters.getHost(host1).setState(HostState.HEALTHY);
     clusters.getHost(host1).persist();
     clusters.addHost(host2);
+    clusters.getHost(host2).setState(HostState.HEALTHY);
     clusters.getHost(host2).persist();
 
     clusters.getHost(host1).setOsType("centos5");

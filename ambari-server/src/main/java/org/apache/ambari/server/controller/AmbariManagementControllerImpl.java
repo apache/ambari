@@ -1924,7 +1924,7 @@ public class AmbariManagementControllerImpl implements
           for (ServiceComponentHost potentialSch : sc
             .getServiceComponentHosts().values()) {
             if (!potentialSch.getHostState().equals(HostState
-              .HEARTBEAT_LOST)) {
+                .HEARTBEAT_LOST)) {
               potentialHosts.add(potentialSch);
             }
           }
@@ -2057,6 +2057,20 @@ public class AmbariManagementControllerImpl implements
         for (State newState : changedScHosts.get(compName).keySet()) {
           for (ServiceComponentHost scHost :
               changedScHosts.get(compName).get(newState)) {
+
+            // Do not create role command for hosts that are not responding
+            if (scHost.getHostState().equals(HostState.HEARTBEAT_LOST)) {
+              LOG.info("Command is not created for servicecomponenthost "
+                  + ", clusterName=" + cluster.getClusterName()
+                  + ", clusterId=" + cluster.getClusterId()
+                  + ", serviceName=" + scHost.getServiceName()
+                  + ", componentName=" + scHost.getServiceComponentName()
+                  + ", hostname=" + scHost.getHostName()
+                  + ", hostState=" + scHost.getHostState()
+                  + ", targetNewState=" + newState);
+              continue;
+            }
+
             RoleCommand roleCommand;
             State oldSchState = scHost.getState();
             ServiceComponentHostEvent event;
@@ -2877,6 +2891,7 @@ public class AmbariManagementControllerImpl implements
           }
           continue;
         }
+
         if (newState == oldSchState) {
           sch.setDesiredState(newState);
           if (LOG.isDebugEnabled()) {
