@@ -56,6 +56,7 @@ import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;
+import java.util.logging.Level;
 
 public class ServiceComponentHostImpl implements ServiceComponentHost {
 
@@ -1519,7 +1520,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           removeEntities();
           persisted = false;
         }
+        clusters.getCluster(this.getClusterName()).removeServiceComponentHost(this);
         desiredConfigs.clear();
+      } catch (AmbariException ex) {
+        if (LOG.isDebugEnabled()) {
+          LOG.error(ex.getMessage());
+        }
       } finally {
         writeLock.unlock();
       }

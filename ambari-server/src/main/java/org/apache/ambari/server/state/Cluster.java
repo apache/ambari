@@ -70,6 +70,13 @@ public interface Cluster {
   public List<ServiceComponentHost> getServiceComponentHosts(String hostname);
 
   /**
+   * Remove ServiceComponentHost from cluster
+   * @param ServiceComponentHost
+   */  
+  public void removeServiceComponentHost(ServiceComponentHost svcCompHost) throws AmbariException;
+  
+  
+  /**
    * Get desired stack version
    * @return
    */

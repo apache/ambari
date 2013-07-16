@@ -375,6 +375,7 @@ public class ClusterImpl implements Cluster {
 
   }
 
+  @Override
   public void removeServiceComponentHost(ServiceComponentHost svcCompHost)
       throws AmbariException {
     loadServiceHostComponents();

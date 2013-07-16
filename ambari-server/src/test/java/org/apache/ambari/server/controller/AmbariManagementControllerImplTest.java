@@ -1700,6 +1700,72 @@ public class AmbariManagementControllerImplTest {
     }
     assertNull(sch);
     
+    /*
+    *Test remove service
+    */
+    serviceRequests.clear();
+    serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "INSTALLED"));
+    amc.updateServices(serviceRequests, mapRequestProps, true, false);
+    serviceRequests.clear();
+    serviceRequests.add(new ServiceRequest("c1", null, null, null));
+    assertEquals(1, amc.getServices(serviceRequests).size());
+    serviceRequests.clear();
+    serviceRequests.add(new ServiceRequest("c1", "HDFS", null, null));
+    amc.deleteServices(serviceRequests);
+    serviceRequests.clear();
+    serviceRequests.add(new ServiceRequest("c1", null, null, null));     
+    assertEquals(0, amc.getServices(serviceRequests).size());
+    
+    /*
+    *Test add service again
+    */
+    serviceRequests.clear();
+    serviceRequests.add(new ServiceRequest("c1", "HDFS", null, null));
+    amc.createServices(serviceRequests);
+    assertEquals(1, amc.getServices(serviceRequests).size());
+    //Create new configs
+    configurationRequest = new ConfigurationRequest("c1", "core-site", "version2",
+        gson.<Map<String, String>>fromJson("{ \"fs.default.name\" : \"localhost:8020\"}", confType)
+    );
+    amc.createConfiguration(configurationRequest);
+    configurationRequest = new ConfigurationRequest("c1", "hdfs-site", "version2",
+        gson.<Map<String, String>>fromJson("{ \"dfs.datanode.data.dir.perm\" : \"750\"}", confType)
+    );
+    amc.createConfiguration(configurationRequest);
+    configurationRequest = new ConfigurationRequest("c1", "global", "version2",
+        gson.<Map<String, String>>fromJson("{ \"hbase_hdfs_root_dir\" : \"/apps/hbase/\"}", confType)
+    );
+    amc.createConfiguration(configurationRequest);    
+    //Add configs to service
+    serviceRequests.clear();
+    serviceRequests.add(new ServiceRequest("c1", "HDFS",
+        gson.<Map<String, String>>fromJson("{\"core-site\": \"version2\", \"hdfs-site\": \"version2\", \"global\" : \"version2\" }", confType)
+        , null));
+    amc.updateServices(serviceRequests, mapRequestProps, true, false);
+    //Crate service components
+    serviceComponentRequests = new HashSet<ServiceComponentRequest>();
+    serviceComponentRequests.add(new ServiceComponentRequest("c1", "HDFS", "NAMENODE", null, null));
+    serviceComponentRequests.add(new ServiceComponentRequest("c1", "HDFS", "SECONDARY_NAMENODE", null, null));
+    serviceComponentRequests.add(new ServiceComponentRequest("c1", "HDFS", "DATANODE", null, null));
+    serviceComponentRequests.add(new ServiceComponentRequest("c1", "HDFS", "HDFS_CLIENT", null, null));
+    amc.createComponents(serviceComponentRequests);
+    
+    //Create ServiceComponentHosts
+    componentHostRequests = new HashSet<ServiceComponentHostRequest>();
+    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host1", null, null));
+    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", null, null));
+    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "SECONDARY_NAMENODE", "host1", null, null));
+    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host2", null, null));
+    componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host3", null, null));
+    amc.createHostComponents(componentHostRequests);    
+
+    
+    namenodes = cluster.getService("HDFS").getServiceComponent("NAMENODE").getServiceComponentHosts();
+    assertEquals(1, namenodes.size());
+    Map<String, ServiceComponentHost> datanodes = cluster.getService("HDFS").getServiceComponent("DATANODE").getServiceComponentHosts();
+    assertEquals(3, datanodes.size());
+    Map<String, ServiceComponentHost> namenodes2 = cluster.getService("HDFS").getServiceComponent("SECONDARY_NAMENODE").getServiceComponentHosts();
+    assertEquals(1, namenodes2.size());    
   }
 
   private void testRunSmokeTestFlag(Map<String, String> mapRequestProps,
