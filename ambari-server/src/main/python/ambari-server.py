@@ -2594,7 +2594,7 @@ def decrypt_password_for_alias(alias):
 def get_original_master_key(properties):
   try:
     masterKey = get_validated_string_input('Enter current Master Key: ',
-                                             "", ".*", "", True, True)
+                                             "", ".*", "", True, False)
   except KeyboardInterrupt:
     print 'Exiting...'
     sys.exit(1)
