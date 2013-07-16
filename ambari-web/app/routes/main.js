@@ -661,11 +661,10 @@ module.exports = Em.Route.extend({
           if (currentClusterStatus.localdb) {
             App.db.setSecurityDeployStages(currentClusterStatus.localdb.securityDeployStages);
             controller.setAddSecurityWizardStatus(currentClusterStatus.localdb.status);
-            App.db.setServiceConfigProperties(currentClusterStatus.localdb.secureConfigProperties);
+            App.db.setSecureConfigProperties(currentClusterStatus.localdb.secureConfigProperties);
             App.db.setWizardCurrentStep('AddSecurity', currentClusterStatus.localdb.currentStep);
             App.db.setDisableSecurityStatus(currentClusterStatus.localdb.disableSecurityStatus);
           }
-
         }
         if (!(controller.getAddSecurityWizardStatus() === 'RUNNING') && !(controller.getDisableSecurityStatus() === 'RUNNING')) {
           Em.run.next(function () {
