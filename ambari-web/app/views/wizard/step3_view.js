@@ -51,10 +51,14 @@ App.WizardStep3View = Em.View.extend({
       if (failedHosts == 0) {
         // all are ok
         this.set('message', Em.I18n.t('installer.step3.warnings.noWarnings').format(hosts.length));
-      }
-      else {
-          // some failed
-          this.set('message', Em.I18n.t('installer.step3.warnings.someWarnings').format(hosts.length, failedHosts));
+      } else if (failedHosts == hosts.length) {
+        // all failed
+        this.set('status', 'alert-warn');
+        this.set('linkText', '');
+        this.set('message', Em.I18n.t('installer.step3.warnings.allFailed').format(failedHosts));
+      } else {
+        // some failed
+        this.set('message', Em.I18n.t('installer.step3.warnings.someWarnings').format((hosts.length-failedHosts), failedHosts));
       }
     }
   }.observes('controller.isHostHaveWarnings', 'controller.bootHosts.@each.bootStatus')
