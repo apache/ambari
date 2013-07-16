@@ -372,6 +372,7 @@ Em.I18n.translations = {
   'installer.step3.warnings.noWarnings':'All host checks passed on {0} registered hosts.',
   'installer.step3.warnings.fails':'Some warnings were encountered while performing checks against the {0} registered hosts above',
   'installer.step3.warnings.someWarnings':'All host checks passed on {0} registered hosts. Note: Host checks were skipped on {1} hosts that failed to register.',
+  'installer.step3.warnings.allFailed':'Host checks were skipped on {0} hosts that failed to register.',
   'installer.step3.warnings.updateChecks.success':'Host Checks successfully updated',
   'installer.step3.warnings.updateChecks.failed':'Host Checks update failed',
   'installer.step3.removeSelected':'Remove Selected',
