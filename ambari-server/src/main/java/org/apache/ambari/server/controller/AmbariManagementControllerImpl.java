@@ -128,12 +128,6 @@ public class AmbariManagementControllerImpl implements
 
   private final Gson gson;
 
-  private static RoleCommandOrder rco;
-  static {
-    rco = new RoleCommandOrder();
-    RoleCommandOrder.initialize();
-  }
-
   @Inject
   private ServiceFactory serviceFactory;
   @Inject
@@ -205,6 +199,13 @@ public class AmbariManagementControllerImpl implements
       this.serverDB = null;
     }
   }
+
+  private RoleCommandOrder getRCO(Cluster cluster) {
+      RoleCommandOrder rco;
+      rco = injector.getInstance(RoleCommandOrder.class);
+      rco.initialize(cluster);
+      return rco;
+  };
 
   @Override
   public void createCluster(ClusterRequest request)
@@ -2251,6 +2252,7 @@ public class AmbariManagementControllerImpl implements
                 clusters.getHostsForCluster(cluster.getClusterName()), cluster, hostsMap, injector));
       }
 
+      RoleCommandOrder rco = this.getRCO(cluster);
       RoleGraph rg = new RoleGraph(rco);
       rg.build(stage);
       return rg.getStages();
@@ -4219,6 +4221,9 @@ public class AmbariManagementControllerImpl implements
         throw new AmbariException("Unsupported action");
       }
     }
+
+    Cluster cluster = clusters.getCluster(clusterName);
+    RoleCommandOrder rco = this.getRCO(cluster);
     RoleGraph rg = new RoleGraph(rco);
     rg.build(stage);
     List<Stage> stages = rg.getStages();

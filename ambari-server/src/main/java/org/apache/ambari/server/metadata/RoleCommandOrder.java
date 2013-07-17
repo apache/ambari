@@ -18,6 +18,7 @@
 package org.apache.ambari.server.metadata;
 
 import java.util.HashMap;
+
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -25,6 +26,10 @@ import java.util.Set;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.stageplanner.RoleGraphNode;
+import org.apache.ambari.server.state.Cluster;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.apache.ambari.server.AmbariException;
 
 /**
  * This class is used to establish the order between two roles. This class
@@ -32,6 +37,9 @@ import org.apache.ambari.server.stageplanner.RoleGraphNode;
  */
 public class RoleCommandOrder {
 
+  private final static Logger LOG =
+			LoggerFactory.getLogger(RoleCommandOrder.class);
+	
   private static class RoleCommandPair {
     Role role;
     RoleCommand cmd;
@@ -63,7 +71,7 @@ public class RoleCommandOrder {
   /**
    * key -> blocked role command value -> set of blocker role commands.
    */
-  private static Map<RoleCommandPair, Set<RoleCommandPair>> dependencies = new HashMap<RoleCommandPair, Set<RoleCommandPair>>();
+  private Map<RoleCommandPair, Set<RoleCommandPair>> dependencies = new HashMap<RoleCommandPair, Set<RoleCommandPair>>();
 
   /**
    * Add a pair of tuples where the tuple defined by the first two parameters are blocked on
@@ -73,211 +81,370 @@ public class RoleCommandOrder {
    * @param blockerRole The role that is blocking
    * @param blockerCommand The command on the blocking role
    */
-  private static void addDependency(Role blockedRole,
+  private void addDependency(Role blockedRole,
        RoleCommand blockedCommand, Role blockerRole, RoleCommand blockerCommand) {
     RoleCommandPair rcp1 = new RoleCommandPair(blockedRole, blockedCommand);
     RoleCommandPair rcp2 = new RoleCommandPair(blockerRole, blockerCommand);
-    if (dependencies.get(rcp1) == null) {
-      dependencies.put(rcp1, new HashSet<RoleCommandPair>());
+    if (this.dependencies.get(rcp1) == null) {
+      this.dependencies.put(rcp1, new HashSet<RoleCommandPair>());
     }
-    dependencies.get(rcp1).add(rcp2);
+    this.dependencies.get(rcp1).add(rcp2);
   }
 
-  public static void initialize() {
-    // Installs
-    addDependency(Role.NAGIOS_SERVER, RoleCommand.INSTALL, Role.HIVE_CLIENT,
-      RoleCommand.INSTALL);
-    addDependency(Role.NAGIOS_SERVER, RoleCommand.INSTALL, Role.HCAT,
-      RoleCommand.INSTALL);
-    addDependency(Role.NAGIOS_SERVER, RoleCommand.INSTALL, Role.MAPREDUCE_CLIENT,
-      RoleCommand.INSTALL);
-    addDependency(Role.NAGIOS_SERVER, RoleCommand.INSTALL, Role.OOZIE_CLIENT,
-      RoleCommand.INSTALL);
+  public void initialize(Cluster cluster) {
+    Boolean hasHCFS = false;
+    
+    try {
+      if (cluster != null && cluster.getService("HCFS") != null) {
+    	  hasHCFS = true;
+      } 
+    } catch (AmbariException e) {
+    }
 
-    // Starts
-    addDependency(Role.SECONDARY_NAMENODE, RoleCommand.START, Role.NAMENODE,
+    if (hasHCFS) {
+      // Installs
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.INSTALL, Role.HIVE_CLIENT,
+        RoleCommand.INSTALL);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.INSTALL, Role.HCAT,
+        RoleCommand.INSTALL);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.INSTALL, Role.MAPREDUCE_CLIENT,
+        RoleCommand.INSTALL);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.INSTALL, Role.OOZIE_CLIENT,
+        RoleCommand.INSTALL);
+
+      // Starts
+      addDependency(Role.HBASE_MASTER, RoleCommand.START, Role.ZOOKEEPER_SERVER,
+          RoleCommand.START);
+      addDependency(Role.HBASE_MASTER, RoleCommand.START, Role.PEERSTATUS,
+          RoleCommand.START);
+      addDependency(Role.HBASE_REGIONSERVER, RoleCommand.START,
+          Role.HBASE_MASTER, RoleCommand.START);
+      addDependency(Role.JOBTRACKER, RoleCommand.START, Role.PEERSTATUS,
+          RoleCommand.START);
+      addDependency(Role.TASKTRACKER, RoleCommand.START, Role.PEERSTATUS,
+          RoleCommand.START);
+      addDependency(Role.OOZIE_SERVER, RoleCommand.START, Role.JOBTRACKER,
+          RoleCommand.START);
+      addDependency(Role.OOZIE_SERVER, RoleCommand.START, Role.TASKTRACKER,
+          RoleCommand.START);
+      addDependency(Role.HIVE_SERVER, RoleCommand.START, Role.TASKTRACKER,
+          RoleCommand.START);
+      addDependency(Role.WEBHCAT_SERVER, RoleCommand.START, Role.TASKTRACKER,
+          RoleCommand.START);
+      addDependency(Role.WEBHCAT_SERVER, RoleCommand.START, Role.HIVE_SERVER,
+          RoleCommand.START);
+      addDependency(Role.HIVE_METASTORE, RoleCommand.START, Role.MYSQL_SERVER,
+          RoleCommand.START);
+      addDependency(Role.HIVE_SERVER, RoleCommand.START, Role.MYSQL_SERVER,
+          RoleCommand.START);
+      addDependency(Role.HUE_SERVER, RoleCommand.START, Role.HIVE_SERVER,
+          RoleCommand.START);
+      addDependency(Role.HUE_SERVER, RoleCommand.START, Role.HCAT,
+          RoleCommand.START);
+      addDependency(Role.HUE_SERVER, RoleCommand.START, Role.OOZIE_SERVER,
+          RoleCommand.START); 
+      addDependency(Role.FLUME_SERVER, RoleCommand.START, Role.OOZIE_SERVER,
+          RoleCommand.START);
+
+      // Service checks
+      addDependency(Role.HCFS_SERVICE_CHECK, RoleCommand.EXECUTE, Role.PEERSTATUS,
+          RoleCommand.START);
+      addDependency(Role.MAPREDUCE_SERVICE_CHECK, RoleCommand.EXECUTE,
+          Role.JOBTRACKER, RoleCommand.START);
+      addDependency(Role.MAPREDUCE_SERVICE_CHECK, RoleCommand.EXECUTE,
+          Role.TASKTRACKER, RoleCommand.START);
+      addDependency(Role.OOZIE_SERVICE_CHECK, RoleCommand.EXECUTE,
+          Role.OOZIE_SERVER, RoleCommand.START);
+      addDependency(Role.WEBHCAT_SERVICE_CHECK, RoleCommand.EXECUTE,
+          Role.WEBHCAT_SERVER, RoleCommand.START);
+      addDependency(Role.HBASE_SERVICE_CHECK, RoleCommand.EXECUTE,
+          Role.HBASE_MASTER, RoleCommand.START);
+      addDependency(Role.HBASE_SERVICE_CHECK, RoleCommand.EXECUTE,
+          Role.HBASE_REGIONSERVER, RoleCommand.START);
+      addDependency(Role.HIVE_SERVICE_CHECK, RoleCommand.EXECUTE,
+          Role.HIVE_SERVER, RoleCommand.START);
+      addDependency(Role.HIVE_SERVICE_CHECK, RoleCommand.EXECUTE,
+          Role.HIVE_METASTORE, RoleCommand.START);
+      addDependency(Role.HCAT_SERVICE_CHECK, RoleCommand.EXECUTE,
+          Role.HIVE_SERVER, RoleCommand.START);
+      addDependency(Role.PIG_SERVICE_CHECK, RoleCommand.EXECUTE,
+          Role.JOBTRACKER, RoleCommand.START);
+      addDependency(Role.PIG_SERVICE_CHECK, RoleCommand.EXECUTE,
+         Role.TASKTRACKER, RoleCommand.START);
+      addDependency(Role.SQOOP_SERVICE_CHECK, RoleCommand.EXECUTE,
+          Role.JOBTRACKER, RoleCommand.START);
+      addDependency(Role.SQOOP_SERVICE_CHECK, RoleCommand.EXECUTE,
+          Role.TASKTRACKER, RoleCommand.START);
+      addDependency(Role.ZOOKEEPER_SERVICE_CHECK, RoleCommand.EXECUTE,
+          Role.ZOOKEEPER_SERVER, RoleCommand.START);
+      addDependency(Role.ZOOKEEPER_QUORUM_SERVICE_CHECK, RoleCommand.EXECUTE,
+          Role.ZOOKEEPER_SERVER, RoleCommand.START);
+
+      addDependency(Role.ZOOKEEPER_SERVER, RoleCommand.STOP,
+          Role.HBASE_MASTER, RoleCommand.STOP);
+      addDependency(Role.ZOOKEEPER_SERVER, RoleCommand.STOP,
+          Role.HBASE_REGIONSERVER, RoleCommand.STOP);
+      addDependency(Role.HBASE_MASTER, RoleCommand.STOP,
+          Role.HBASE_REGIONSERVER, RoleCommand.STOP);
+
+      addDependency(Role.JOBTRACKER, RoleCommand.UPGRADE,
+          Role.HCFS_CLIENT, RoleCommand.UPGRADE);
+      addDependency(Role.TASKTRACKER, RoleCommand.UPGRADE,
+          Role.JOBTRACKER, RoleCommand.UPGRADE);
+      addDependency(Role.MAPREDUCE_CLIENT, RoleCommand.UPGRADE,
+          Role.TASKTRACKER, RoleCommand.UPGRADE);
+      addDependency(Role.MAPREDUCE_CLIENT, RoleCommand.UPGRADE,
+          Role.JOBTRACKER, RoleCommand.UPGRADE);
+      addDependency(Role.ZOOKEEPER_SERVER, RoleCommand.UPGRADE,
+          Role.MAPREDUCE_CLIENT, RoleCommand.UPGRADE);
+      addDependency(Role.ZOOKEEPER_CLIENT, RoleCommand.UPGRADE,
+          Role.ZOOKEEPER_SERVER, RoleCommand.UPGRADE);
+      addDependency(Role.HBASE_MASTER, RoleCommand.UPGRADE,
+          Role.ZOOKEEPER_CLIENT, RoleCommand.UPGRADE);
+      addDependency(Role.HBASE_REGIONSERVER, RoleCommand.UPGRADE,
+          Role.HBASE_MASTER, RoleCommand.UPGRADE);
+      addDependency(Role.HBASE_CLIENT, RoleCommand.UPGRADE,
+          Role.HBASE_REGIONSERVER, RoleCommand.UPGRADE);
+ 
+      addDependency(Role.JOBTRACKER, RoleCommand.UPGRADE,
+          Role.HCFS_CLIENT, RoleCommand.UPGRADE);
+      addDependency(Role.TASKTRACKER, RoleCommand.UPGRADE,
+          Role.JOBTRACKER, RoleCommand.UPGRADE);
+      addDependency(Role.MAPREDUCE_CLIENT, RoleCommand.UPGRADE,
+          Role.TASKTRACKER, RoleCommand.UPGRADE);
+      addDependency(Role.MAPREDUCE_CLIENT, RoleCommand.UPGRADE,
+          Role.JOBTRACKER, RoleCommand.UPGRADE);
+      addDependency(Role.ZOOKEEPER_SERVER, RoleCommand.UPGRADE,
+          Role.MAPREDUCE_CLIENT, RoleCommand.UPGRADE);
+      addDependency(Role.ZOOKEEPER_CLIENT, RoleCommand.UPGRADE,
+          Role.ZOOKEEPER_SERVER, RoleCommand.UPGRADE);
+      addDependency(Role.HBASE_MASTER, RoleCommand.UPGRADE,
+          Role.ZOOKEEPER_CLIENT, RoleCommand.UPGRADE);
+      addDependency(Role.HBASE_REGIONSERVER, RoleCommand.UPGRADE,
+          Role.HBASE_MASTER, RoleCommand.UPGRADE);
+      addDependency(Role.HBASE_CLIENT, RoleCommand.UPGRADE,
+          Role.HBASE_REGIONSERVER, RoleCommand.UPGRADE);
+      addDependency(Role.HIVE_SERVER, RoleCommand.UPGRADE,
+          Role.HBASE_CLIENT, RoleCommand.UPGRADE);
+      addDependency(Role.HIVE_METASTORE, RoleCommand.UPGRADE,
+          Role.HIVE_SERVER, RoleCommand.UPGRADE);
+      addDependency(Role.MYSQL_SERVER, RoleCommand.UPGRADE,
+          Role.HIVE_METASTORE, RoleCommand.UPGRADE);
+      addDependency(Role.HIVE_CLIENT, RoleCommand.UPGRADE,
+          Role.MYSQL_SERVER, RoleCommand.UPGRADE);
+      addDependency(Role.HCAT, RoleCommand.UPGRADE,
+          Role.HIVE_CLIENT, RoleCommand.UPGRADE);
+      addDependency(Role.OOZIE_SERVER, RoleCommand.UPGRADE,
+          Role.HCAT, RoleCommand.UPGRADE);
+      addDependency(Role.OOZIE_CLIENT, RoleCommand.UPGRADE,
+          Role.OOZIE_SERVER, RoleCommand.UPGRADE);
+      addDependency(Role.WEBHCAT_SERVER, RoleCommand.UPGRADE,
+          Role.OOZIE_CLIENT, RoleCommand.UPGRADE);
+      addDependency(Role.PIG, RoleCommand.UPGRADE,
+          Role.WEBHCAT_SERVER, RoleCommand.UPGRADE);
+      addDependency(Role.SQOOP, RoleCommand.UPGRADE,
+          Role.PIG, RoleCommand.UPGRADE);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.UPGRADE,
+          Role.SQOOP, RoleCommand.UPGRADE);
+      addDependency(Role.GANGLIA_SERVER, RoleCommand.UPGRADE,
+          Role.NAGIOS_SERVER, RoleCommand.UPGRADE);
+      addDependency(Role.GANGLIA_MONITOR, RoleCommand.UPGRADE,
+          Role.GANGLIA_SERVER, RoleCommand.UPGRADE);
+    } else {
+      // Installs
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.INSTALL, Role.HIVE_CLIENT,
+        RoleCommand.INSTALL);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.INSTALL, Role.HCAT,
+        RoleCommand.INSTALL);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.INSTALL, Role.MAPREDUCE_CLIENT,
+        RoleCommand.INSTALL);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.INSTALL, Role.OOZIE_CLIENT,
+        RoleCommand.INSTALL);
+
+      // Starts
+      addDependency(Role.SECONDARY_NAMENODE, RoleCommand.START, Role.NAMENODE,
         RoleCommand.START);
-    addDependency(Role.RESOURCEMANAGER, RoleCommand.START, Role.NAMENODE,
+      addDependency(Role.RESOURCEMANAGER, RoleCommand.START, Role.NAMENODE,
         RoleCommand.START);
-    addDependency(Role.RESOURCEMANAGER, RoleCommand.START, Role.DATANODE,
+      addDependency(Role.RESOURCEMANAGER, RoleCommand.START, Role.DATANODE,
         RoleCommand.START);
-    addDependency(Role.NODEMANAGER, RoleCommand.START, Role.NAMENODE,
+      addDependency(Role.NODEMANAGER, RoleCommand.START, Role.NAMENODE,
         RoleCommand.START);
-    addDependency(Role.NODEMANAGER, RoleCommand.START, Role.DATANODE,
+      addDependency(Role.NODEMANAGER, RoleCommand.START, Role.DATANODE,
         RoleCommand.START);
-    addDependency(Role.HISTORYSERVER, RoleCommand.START, Role.NAMENODE,
+      addDependency(Role.HISTORYSERVER, RoleCommand.START, Role.NAMENODE,
         RoleCommand.START);
-    addDependency(Role.HISTORYSERVER, RoleCommand.START, Role.DATANODE,
+      addDependency(Role.HISTORYSERVER, RoleCommand.START, Role.DATANODE,
         RoleCommand.START);
-    addDependency(Role.HBASE_MASTER, RoleCommand.START, Role.ZOOKEEPER_SERVER,
+      addDependency(Role.HBASE_MASTER, RoleCommand.START, Role.ZOOKEEPER_SERVER,
         RoleCommand.START);
-    addDependency(Role.HBASE_MASTER, RoleCommand.START, Role.NAMENODE,
+      addDependency(Role.HBASE_MASTER, RoleCommand.START, Role.NAMENODE,
         RoleCommand.START);
-    addDependency(Role.HBASE_MASTER, RoleCommand.START, Role.DATANODE,
+      addDependency(Role.HBASE_MASTER, RoleCommand.START, Role.DATANODE,
         RoleCommand.START);
-    addDependency(Role.HBASE_REGIONSERVER, RoleCommand.START,
+      addDependency(Role.HBASE_REGIONSERVER, RoleCommand.START,
         Role.HBASE_MASTER, RoleCommand.START);
-    addDependency(Role.JOBTRACKER, RoleCommand.START, Role.NAMENODE,
+      addDependency(Role.JOBTRACKER, RoleCommand.START, Role.NAMENODE,
         RoleCommand.START);
-    addDependency(Role.JOBTRACKER, RoleCommand.START, Role.DATANODE,
+      addDependency(Role.JOBTRACKER, RoleCommand.START, Role.DATANODE,
         RoleCommand.START);
-    addDependency(Role.TASKTRACKER, RoleCommand.START, Role.NAMENODE,
+      addDependency(Role.TASKTRACKER, RoleCommand.START, Role.NAMENODE,
         RoleCommand.START);
-    addDependency(Role.TASKTRACKER, RoleCommand.START, Role.DATANODE,
+      addDependency(Role.TASKTRACKER, RoleCommand.START, Role.DATANODE,
         RoleCommand.START);
-    addDependency(Role.OOZIE_SERVER, RoleCommand.START, Role.JOBTRACKER,
+      addDependency(Role.OOZIE_SERVER, RoleCommand.START, Role.JOBTRACKER,
         RoleCommand.START);
-    addDependency(Role.OOZIE_SERVER, RoleCommand.START, Role.TASKTRACKER,
+      addDependency(Role.OOZIE_SERVER, RoleCommand.START, Role.TASKTRACKER,
         RoleCommand.START);
-    addDependency(Role.HIVE_SERVER, RoleCommand.START, Role.TASKTRACKER,
+      addDependency(Role.HIVE_SERVER, RoleCommand.START, Role.TASKTRACKER,
         RoleCommand.START);
-    addDependency(Role.HIVE_SERVER, RoleCommand.START, Role.DATANODE,
+      addDependency(Role.HIVE_SERVER, RoleCommand.START, Role.DATANODE,
         RoleCommand.START);
-    addDependency(Role.WEBHCAT_SERVER, RoleCommand.START, Role.TASKTRACKER,
+      addDependency(Role.WEBHCAT_SERVER, RoleCommand.START, Role.TASKTRACKER,
         RoleCommand.START);
-    addDependency(Role.WEBHCAT_SERVER, RoleCommand.START, Role.DATANODE,
+      addDependency(Role.WEBHCAT_SERVER, RoleCommand.START, Role.DATANODE,
         RoleCommand.START);
-    addDependency(Role.WEBHCAT_SERVER, RoleCommand.START, Role.HIVE_SERVER,
+      addDependency(Role.WEBHCAT_SERVER, RoleCommand.START, Role.HIVE_SERVER,
         RoleCommand.START);
-    addDependency(Role.HIVE_METASTORE, RoleCommand.START, Role.MYSQL_SERVER,
+      addDependency(Role.HIVE_METASTORE, RoleCommand.START, Role.MYSQL_SERVER,
         RoleCommand.START);
-    addDependency(Role.HIVE_SERVER, RoleCommand.START, Role.MYSQL_SERVER,
+      addDependency(Role.HIVE_SERVER, RoleCommand.START, Role.MYSQL_SERVER,
         RoleCommand.START);
-    addDependency(Role.HUE_SERVER, RoleCommand.START, Role.HIVE_SERVER,
-      RoleCommand.START);
-    addDependency(Role.HUE_SERVER, RoleCommand.START, Role.HCAT,
-      RoleCommand.START);
-    addDependency(Role.HUE_SERVER, RoleCommand.START, Role.OOZIE_SERVER,
+      addDependency(Role.HUE_SERVER, RoleCommand.START, Role.HIVE_SERVER,
         RoleCommand.START);
-    addDependency(Role.FLUME_SERVER, RoleCommand.START, Role.OOZIE_SERVER,
+      addDependency(Role.HUE_SERVER, RoleCommand.START, Role.HCAT,
+        RoleCommand.START);
+      addDependency(Role.HUE_SERVER, RoleCommand.START, Role.OOZIE_SERVER,
+        RoleCommand.START);
+      addDependency(Role.FLUME_SERVER, RoleCommand.START, Role.OOZIE_SERVER,
         RoleCommand.START);
 
-    // Service checks
-    addDependency(Role.HDFS_SERVICE_CHECK, RoleCommand.EXECUTE, Role.NAMENODE,
+      // Service checks
+      addDependency(Role.HDFS_SERVICE_CHECK, RoleCommand.EXECUTE, Role.NAMENODE,
         RoleCommand.START);
-    addDependency(Role.HDFS_SERVICE_CHECK, RoleCommand.EXECUTE, Role.DATANODE,
+      addDependency(Role.HDFS_SERVICE_CHECK, RoleCommand.EXECUTE, Role.DATANODE,
         RoleCommand.START);
-    addDependency(Role.HDFS_SERVICE_CHECK, RoleCommand.EXECUTE, Role.SECONDARY_NAMENODE,
+      addDependency(Role.HDFS_SERVICE_CHECK, RoleCommand.EXECUTE, Role.SECONDARY_NAMENODE,
         RoleCommand.START);
-    addDependency(Role.MAPREDUCE_SERVICE_CHECK, RoleCommand.EXECUTE,
+      addDependency(Role.MAPREDUCE_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.JOBTRACKER, RoleCommand.START);
-    addDependency(Role.MAPREDUCE_SERVICE_CHECK, RoleCommand.EXECUTE,
+      addDependency(Role.MAPREDUCE_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.TASKTRACKER, RoleCommand.START);
-    addDependency(Role.RESOURCEMANAGER_SERVICE_CHECK, RoleCommand.EXECUTE,
+      addDependency(Role.RESOURCEMANAGER_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.RESOURCEMANAGER, RoleCommand.START);
-    addDependency(Role.OOZIE_SERVICE_CHECK, RoleCommand.EXECUTE,
+      addDependency(Role.OOZIE_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.OOZIE_SERVER, RoleCommand.START);
-    addDependency(Role.WEBHCAT_SERVICE_CHECK, RoleCommand.EXECUTE,
+      addDependency(Role.WEBHCAT_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.WEBHCAT_SERVER, RoleCommand.START);
-    addDependency(Role.HBASE_SERVICE_CHECK, RoleCommand.EXECUTE,
+      addDependency(Role.HBASE_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.HBASE_MASTER, RoleCommand.START);
-    addDependency(Role.HBASE_SERVICE_CHECK, RoleCommand.EXECUTE,
+      addDependency(Role.HBASE_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.HBASE_REGIONSERVER, RoleCommand.START);
-    addDependency(Role.HIVE_SERVICE_CHECK, RoleCommand.EXECUTE,
+      addDependency(Role.HIVE_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.HIVE_SERVER, RoleCommand.START);
-    addDependency(Role.HIVE_SERVICE_CHECK, RoleCommand.EXECUTE,
+      addDependency(Role.HIVE_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.HIVE_METASTORE, RoleCommand.START);
-    addDependency(Role.HCAT_SERVICE_CHECK, RoleCommand.EXECUTE,
+      addDependency(Role.HCAT_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.HIVE_SERVER, RoleCommand.START);
-    addDependency(Role.PIG_SERVICE_CHECK, RoleCommand.EXECUTE,
+      addDependency(Role.PIG_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.JOBTRACKER, RoleCommand.START);
-    addDependency(Role.PIG_SERVICE_CHECK, RoleCommand.EXECUTE,
+      addDependency(Role.PIG_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.TASKTRACKER, RoleCommand.START);
-    addDependency(Role.PIG_SERVICE_CHECK, RoleCommand.EXECUTE,
+      addDependency(Role.PIG_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.RESOURCEMANAGER, RoleCommand.START);
-    addDependency(Role.PIG_SERVICE_CHECK, RoleCommand.EXECUTE,
+      addDependency(Role.PIG_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.NODEMANAGER, RoleCommand.START);
-    addDependency(Role.SQOOP_SERVICE_CHECK, RoleCommand.EXECUTE,
+      addDependency(Role.SQOOP_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.JOBTRACKER, RoleCommand.START);
-    addDependency(Role.SQOOP_SERVICE_CHECK, RoleCommand.EXECUTE,
+      addDependency(Role.SQOOP_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.TASKTRACKER, RoleCommand.START);
-    addDependency(Role.ZOOKEEPER_SERVICE_CHECK, RoleCommand.EXECUTE,
+      addDependency(Role.ZOOKEEPER_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.ZOOKEEPER_SERVER, RoleCommand.START);
-    addDependency(Role.ZOOKEEPER_QUORUM_SERVICE_CHECK, RoleCommand.EXECUTE,
+      addDependency(Role.ZOOKEEPER_QUORUM_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.ZOOKEEPER_SERVER, RoleCommand.START);
     
-    addDependency(Role.ZOOKEEPER_SERVER, RoleCommand.STOP,
+      addDependency(Role.ZOOKEEPER_SERVER, RoleCommand.STOP,
         Role.HBASE_MASTER, RoleCommand.STOP);
-    addDependency(Role.ZOOKEEPER_SERVER, RoleCommand.STOP,
+      addDependency(Role.ZOOKEEPER_SERVER, RoleCommand.STOP,
         Role.HBASE_REGIONSERVER, RoleCommand.STOP);
-    addDependency(Role.NAMENODE, RoleCommand.STOP,
+      addDependency(Role.NAMENODE, RoleCommand.STOP,
         Role.HBASE_MASTER, RoleCommand.STOP);
-    addDependency(Role.DATANODE, RoleCommand.STOP,
+      addDependency(Role.DATANODE, RoleCommand.STOP,
         Role.HBASE_MASTER, RoleCommand.STOP);
-    addDependency(Role.HBASE_MASTER, RoleCommand.STOP,
+      addDependency(Role.HBASE_MASTER, RoleCommand.STOP,
         Role.HBASE_REGIONSERVER, RoleCommand.STOP);
-    addDependency(Role.NAMENODE, RoleCommand.STOP,
+      addDependency(Role.NAMENODE, RoleCommand.STOP,
         Role.JOBTRACKER, RoleCommand.STOP);
-    addDependency(Role.NAMENODE, RoleCommand.STOP,
+      addDependency(Role.NAMENODE, RoleCommand.STOP,
         Role.TASKTRACKER, RoleCommand.STOP);
-    addDependency(Role.NAMENODE, RoleCommand.STOP,
+      addDependency(Role.NAMENODE, RoleCommand.STOP,
         Role.RESOURCEMANAGER, RoleCommand.STOP);
-    addDependency(Role.NAMENODE, RoleCommand.STOP,
+      addDependency(Role.NAMENODE, RoleCommand.STOP,
         Role.NODEMANAGER, RoleCommand.STOP);
-    addDependency(Role.NAMENODE, RoleCommand.STOP,
+      addDependency(Role.NAMENODE, RoleCommand.STOP,
         Role.HISTORYSERVER, RoleCommand.STOP);
-    addDependency(Role.DATANODE, RoleCommand.STOP,
+      addDependency(Role.DATANODE, RoleCommand.STOP,
         Role.JOBTRACKER, RoleCommand.STOP);
-    addDependency(Role.DATANODE, RoleCommand.STOP,
+      addDependency(Role.DATANODE, RoleCommand.STOP,
         Role.TASKTRACKER, RoleCommand.STOP);
-    addDependency(Role.DATANODE, RoleCommand.STOP,
+      addDependency(Role.DATANODE, RoleCommand.STOP,
         Role.RESOURCEMANAGER, RoleCommand.STOP);
-    addDependency(Role.DATANODE, RoleCommand.STOP,
+      addDependency(Role.DATANODE, RoleCommand.STOP,
         Role.NODEMANAGER, RoleCommand.STOP);
-    addDependency(Role.DATANODE, RoleCommand.STOP,
+      addDependency(Role.DATANODE, RoleCommand.STOP,
         Role.HISTORYSERVER, RoleCommand.STOP);
 
-    addDependency(Role.SECONDARY_NAMENODE, RoleCommand.UPGRADE,
+      addDependency(Role.SECONDARY_NAMENODE, RoleCommand.UPGRADE,
         Role.NAMENODE, RoleCommand.UPGRADE);
-    addDependency(Role.DATANODE, RoleCommand.UPGRADE,
+      addDependency(Role.DATANODE, RoleCommand.UPGRADE,
         Role.SECONDARY_NAMENODE, RoleCommand.UPGRADE);
-    addDependency(Role.HDFS_CLIENT, RoleCommand.UPGRADE,
+      addDependency(Role.HDFS_CLIENT, RoleCommand.UPGRADE,
         Role.DATANODE, RoleCommand.UPGRADE);
-    addDependency(Role.JOBTRACKER, RoleCommand.UPGRADE,
+      addDependency(Role.JOBTRACKER, RoleCommand.UPGRADE,
         Role.HDFS_CLIENT, RoleCommand.UPGRADE);
-    addDependency(Role.TASKTRACKER, RoleCommand.UPGRADE,
+      addDependency(Role.TASKTRACKER, RoleCommand.UPGRADE,
         Role.JOBTRACKER, RoleCommand.UPGRADE);
-    addDependency(Role.MAPREDUCE_CLIENT, RoleCommand.UPGRADE,
+      addDependency(Role.MAPREDUCE_CLIENT, RoleCommand.UPGRADE,
         Role.TASKTRACKER, RoleCommand.UPGRADE);
-    addDependency(Role.MAPREDUCE_CLIENT, RoleCommand.UPGRADE,
+      addDependency(Role.MAPREDUCE_CLIENT, RoleCommand.UPGRADE,
         Role.TASKTRACKER, RoleCommand.UPGRADE);
-    addDependency(Role.ZOOKEEPER_SERVER, RoleCommand.UPGRADE,
+      addDependency(Role.ZOOKEEPER_SERVER, RoleCommand.UPGRADE,
         Role.MAPREDUCE_CLIENT, RoleCommand.UPGRADE);
-    addDependency(Role.ZOOKEEPER_CLIENT, RoleCommand.UPGRADE,
+      addDependency(Role.ZOOKEEPER_CLIENT, RoleCommand.UPGRADE,
         Role.ZOOKEEPER_SERVER, RoleCommand.UPGRADE);
-    addDependency(Role.HBASE_MASTER, RoleCommand.UPGRADE,
+      addDependency(Role.HBASE_MASTER, RoleCommand.UPGRADE,
         Role.ZOOKEEPER_CLIENT, RoleCommand.UPGRADE);
-    addDependency(Role.HBASE_REGIONSERVER, RoleCommand.UPGRADE,
+      addDependency(Role.HBASE_REGIONSERVER, RoleCommand.UPGRADE,
         Role.HBASE_MASTER, RoleCommand.UPGRADE);
-    addDependency(Role.HBASE_CLIENT, RoleCommand.UPGRADE,
+      addDependency(Role.HBASE_CLIENT, RoleCommand.UPGRADE,
         Role.HBASE_REGIONSERVER, RoleCommand.UPGRADE);
-    addDependency(Role.HIVE_SERVER, RoleCommand.UPGRADE,
+      addDependency(Role.HIVE_SERVER, RoleCommand.UPGRADE,
         Role.HBASE_CLIENT, RoleCommand.UPGRADE);
-    addDependency(Role.HIVE_METASTORE, RoleCommand.UPGRADE,
+      addDependency(Role.HIVE_METASTORE, RoleCommand.UPGRADE,
         Role.HIVE_SERVER, RoleCommand.UPGRADE);
-    addDependency(Role.MYSQL_SERVER, RoleCommand.UPGRADE,
+      addDependency(Role.MYSQL_SERVER, RoleCommand.UPGRADE,
         Role.HIVE_METASTORE, RoleCommand.UPGRADE);
-    addDependency(Role.HIVE_CLIENT, RoleCommand.UPGRADE,
+      addDependency(Role.HIVE_CLIENT, RoleCommand.UPGRADE,
         Role.MYSQL_SERVER, RoleCommand.UPGRADE);
-    addDependency(Role.HCAT, RoleCommand.UPGRADE,
+      addDependency(Role.HCAT, RoleCommand.UPGRADE,
         Role.HIVE_CLIENT, RoleCommand.UPGRADE);
-    addDependency(Role.OOZIE_SERVER, RoleCommand.UPGRADE,
+      addDependency(Role.OOZIE_SERVER, RoleCommand.UPGRADE,
         Role.HCAT, RoleCommand.UPGRADE);
-    addDependency(Role.OOZIE_CLIENT, RoleCommand.UPGRADE,
+      addDependency(Role.OOZIE_CLIENT, RoleCommand.UPGRADE,
         Role.OOZIE_SERVER, RoleCommand.UPGRADE);
-    addDependency(Role.WEBHCAT_SERVER, RoleCommand.UPGRADE,
+      addDependency(Role.WEBHCAT_SERVER, RoleCommand.UPGRADE,
         Role.OOZIE_CLIENT, RoleCommand.UPGRADE);
-    addDependency(Role.PIG, RoleCommand.UPGRADE,
+      addDependency(Role.PIG, RoleCommand.UPGRADE,
         Role.WEBHCAT_SERVER, RoleCommand.UPGRADE);
-    addDependency(Role.SQOOP, RoleCommand.UPGRADE,
+      addDependency(Role.SQOOP, RoleCommand.UPGRADE,
         Role.PIG, RoleCommand.UPGRADE);
-    addDependency(Role.NAGIOS_SERVER, RoleCommand.UPGRADE,
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.UPGRADE,
         Role.SQOOP, RoleCommand.UPGRADE);
-    addDependency(Role.GANGLIA_SERVER, RoleCommand.UPGRADE,
+      addDependency(Role.GANGLIA_SERVER, RoleCommand.UPGRADE,
         Role.NAGIOS_SERVER, RoleCommand.UPGRADE);
-    addDependency(Role.GANGLIA_MONITOR, RoleCommand.UPGRADE,
+      addDependency(Role.GANGLIA_MONITOR, RoleCommand.UPGRADE,
         Role.GANGLIA_SERVER, RoleCommand.UPGRADE);
-
+    }
     extendTransitiveDependency();
     }
 
@@ -293,11 +460,11 @@ public class RoleCommandOrder {
         rgn1.getCommand());
     RoleCommandPair rcp2 = new RoleCommandPair(rgn2.getRole(),
         rgn2.getCommand());
-    if ((dependencies.get(rcp1) != null)
-        && (dependencies.get(rcp1).contains(rcp2))) {
+    if ((this.dependencies.get(rcp1) != null)
+        && (this.dependencies.get(rcp1).contains(rcp2))) {
       return 1;
-    } else if ((dependencies.get(rcp2) != null)
-        && (dependencies.get(rcp2).contains(rcp1))) {
+    } else if ((this.dependencies.get(rcp2) != null)
+        && (this.dependencies.get(rcp2).contains(rcp1))) {
       return -1;
     } else if (!rgn2.getCommand().equals(rgn1.getCommand())) {
       return compareCommands(rgn1, rgn2);
@@ -309,24 +476,24 @@ public class RoleCommandOrder {
    * Adds transitive dependencies to each node.
    * A => B and B => C implies A => B,C and B => C
    */
-  private static void extendTransitiveDependency() {
-    for (RoleCommandPair rcp : dependencies.keySet()) {
+  private void extendTransitiveDependency() {
+    for (RoleCommandPair rcp : this.dependencies.keySet()) {
       HashSet<RoleCommandPair> visited = new HashSet<RoleCommandPair>();
       HashSet<RoleCommandPair> transitiveDependencies = new HashSet<RoleCommandPair>();
-      for (RoleCommandPair directlyBlockedOn : dependencies.get(rcp)) {
+      for (RoleCommandPair directlyBlockedOn : this.dependencies.get(rcp)) {
         visited.add(directlyBlockedOn);
         identifyTransitiveDependencies(directlyBlockedOn, visited, transitiveDependencies);
       }
       if (transitiveDependencies.size() > 0) {
-        dependencies.get(rcp).addAll(transitiveDependencies);
+        this.dependencies.get(rcp).addAll(transitiveDependencies);
       }
     }
   }
 
-  private static void identifyTransitiveDependencies(RoleCommandPair rcp, HashSet<RoleCommandPair> visited,
+  private void identifyTransitiveDependencies(RoleCommandPair rcp, HashSet<RoleCommandPair> visited,
                                                      HashSet<RoleCommandPair> transitiveDependencies) {
-    if (dependencies.get(rcp) != null) {
-      for (RoleCommandPair blockedOn : dependencies.get(rcp)) {
+    if (this.dependencies.get(rcp) != null) {
+      for (RoleCommandPair blockedOn : this.dependencies.get(rcp)) {
         if (!visited.contains(blockedOn)) {
           visited.add(blockedOn);
           transitiveDependencies.add(blockedOn);
@@ -365,4 +532,33 @@ public class RoleCommandOrder {
     }
     return 0;
   }
+
+  public int compareDeps(RoleCommandOrder rco) {
+    Set<RoleCommandPair> v1 = null, v2 = null;
+    if (this == rco) {
+      return 0;
+    }
+
+    // Check for key set match
+    if (!this.dependencies.keySet().equals(rco.dependencies.keySet())){
+      LOG.debug("dependency keysets differ");
+      return 1;
+    }
+    LOG.debug("dependency keysets match");
+
+    // So far so good.  Since the keysets match, let's check the
+    // actual entries against each other
+    for (RoleCommandPair key: this.dependencies.keySet()) {
+      v1 = this.dependencies.get(key);
+      v2 = rco.dependencies.get(key);
+      if (!v1.equals(v2)) {
+        LOG.debug("different entry found for key (" + key.role.toString() + ", "
+                                                    + key.cmd.toString() + ")" );
+        return 1;
+      }
+    }
+    LOG.debug("dependency entries match");
+    return 0;
+  }
+
 }
