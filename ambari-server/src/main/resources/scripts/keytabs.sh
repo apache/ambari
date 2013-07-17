@@ -66,9 +66,10 @@ processCSVFile () {
         service=`echo $line|cut -d , -f 2`;
         principal=`echo $line|cut -d , -f 3`;
         keytabFile=`echo $line|cut -d , -f 4`;
-        owner=`echo $line|cut -d , -f 5`;
-        group=`echo $line|cut -d , -f 6`;
-        acl=`echo $line|cut -d , -f 7`;
+        keytabFilePath=`echo $line|cut -d , -f 5`;
+        owner=`echo $line|cut -d , -f 6`;
+        group=`echo $line|cut -d , -f 7`;
+        acl=`echo $line|cut -d , -f 8`;
         
         if [[ $seenHosts != *$hostName* ]]; then
               echo "mkdir -p ./keytabs_$hostName" >> commands.mkdir;
@@ -86,8 +87,8 @@ processCSVFile () {
           seenPrincipals="$seenPrincipals$principal"
         fi
         
-        tmpKeytabFile=${keytabFile/\/etc\/security\/keytabs/`pwd`/tmp_keytabs}
-        newKeytabFile=${keytabFile/\/etc\/security\/keytabs/`pwd`/keytabs_$hostName}
+        tmpKeytabFile=${keytabFilePath/\/etc\/security\/keytabs/`pwd`/tmp_keytabs}
+        newKeytabFile=${keytabFilePath/\/etc\/security\/keytabs/`pwd`/keytabs_$hostName}
         if [ ! -f $tmpKeytabFile ]; then
           echo "kadmin.local -q \"xst -k $tmpKeytabFile $principal\"" >> commands.xst;          
         fi
