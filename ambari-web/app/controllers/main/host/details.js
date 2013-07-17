@@ -239,7 +239,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         }),
         onPrimary: function () {
           this.hide();
-          this.primary(component);
+          self.primary(component);
         }
       });
     }
