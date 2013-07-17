@@ -187,13 +187,8 @@ public class CertificateManager {
     LOG.info("Signing of agent certificate");
     LOG.info("Verifying passphrase");
 
-
-
     String passphraseSrvr = configs.getConfigsMap().get(Configuration.
         PASSPHRASE_KEY).trim();
-
-    LOG.info("Pass phrase Server " + passphraseSrvr);
-    LOG.info("Pass phrase Agent " + passphraseAgent);
 
     if (!passphraseSrvr.equals(passphraseAgent.trim())) {
       LOG.warn("Incorrect passphrase from the agent");
@@ -210,8 +205,8 @@ public class CertificateManager {
     String agentCrtReqName = agentHostname + ".csr";
     String agentCrtName = agentHostname + ".crt";
 
-    Object[] scriptArgs = {srvrKstrDir,agentCrtReqName,agentCrtName,
-      srvrCrtPass,srvrKeyName,srvrCrtName};
+    Object[] scriptArgs = {srvrKstrDir, agentCrtReqName, agentCrtName,
+        srvrCrtPass, srvrKeyName, srvrCrtName};
 
     //Revoke previous agent certificate if exists
     File agentCrtFile = new File(srvrKstrDir + File.separator + agentCrtName);
@@ -236,12 +231,12 @@ public class CertificateManager {
       e1.printStackTrace();
     }
 
-    String command = MessageFormat.format(SIGN_AGENT_CRT,scriptArgs);
+    String command = MessageFormat.format(SIGN_AGENT_CRT, scriptArgs);
 
     LOG.debug(command);
 
     int commandExitCode = runCommand(command); // ssl command execution
-    if(commandExitCode != 0) {
+    if (commandExitCode != 0) {
       response.setResult(SignCertResponse.ERROR_STATUS);
       response.setMessage(ShellCommandUtil.getOpenSslCommandResult(command, commandExitCode));
       //LOG.warn(ShellCommandUtil.getOpenSslCommandResult(command, commandExitCode));
