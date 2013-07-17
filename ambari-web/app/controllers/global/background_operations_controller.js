@@ -103,6 +103,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
     self.set('serviceTimestamp', new Date().getTime());
   },
 
+  popupView: null,
 
   /**
    * Onclick handler for background operations number located right to logo
@@ -110,7 +111,12 @@ App.BackgroundOperationsController = Em.Controller.extend({
    */
   showPopup: function(){
     App.updater.immediateRun('requestMostRecent');
-    return App.HostPopup.initPopup("", this, true);
+    if(this.get('popupView')){
+      this.set('popupView.isOpen', true);
+      $(this.get('popupView.element')).appendTo('#wrapper');
+    } else {
+      this.set('popupView', App.HostPopup.initPopup("", this, true));
+    }
   }
 
 });
