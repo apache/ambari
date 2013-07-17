@@ -26,7 +26,11 @@ App.WizardStep9Controller = Em.Controller.extend({
 
   isSubmitDisabled: function () {
     // return !this.get('isStepCompleted');
-    return !['STARTED','START FAILED'].contains(this.get('content.cluster.status'));
+    var validStates = ['STARTED','START FAILED'];
+    if (this.get('content.controllerName') == 'addHostController') {
+      validStates.push('INSTALL FAILED');
+    }
+    return !validStates.contains(this.get('content.cluster.status'));
   }.property('content.cluster.status'),
 
   // links to previous steps are enabled iff install failed in installer
