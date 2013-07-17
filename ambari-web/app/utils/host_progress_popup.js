@@ -135,6 +135,57 @@ App.HostPopup = Em.Object.create({
     });
     return Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / tasks.length * 100);
   },
+  /**
+   * Count number of operations for select box options
+   * @param obj
+   * @param categories
+   */
+  setSelectCount: function (obj, categories) {
+    if (!obj) return;
+    var countAll = obj.length;
+    var countPending = 0;
+    var countInProgress = 0;
+    var countFailed = 0;
+    var countCompleted = 0;
+    var countAborted = 0;
+    var countTimedout = 0;
+    obj.forEach(function(item){
+      switch (item.status){
+        case 'pending':
+          countPending++;
+          break;
+        case 'queued':
+          countPending++;
+          break;
+        case 'in_progress':
+          countInProgress++;
+          break;
+        case 'failed':
+          countFailed++;
+          break;
+        case 'success':
+          countCompleted++;
+          break;
+        case 'completed':
+          countCompleted++;
+          break;
+        case 'aborted':
+          countAborted++;
+          break;
+        case 'timedout':
+          countTimedout++;
+          break;
+      }
+    }, this);
+
+    categories.findProperty("value", 'all').set("count", countAll);
+    categories.findProperty("value", 'pending').set("count", countPending);
+    categories.findProperty("value", 'in_progress').set("count", countInProgress);
+    categories.findProperty("value", 'failed').set("count", countFailed);
+    categories.findProperty("value", 'completed').set("count", countCompleted);
+    categories.findProperty("value", 'aborted').set("count", countAborted);
+    categories.findProperty("value", 'timedout').set("count", countTimedout);
+  },
 
   /**
    * For Background operation popup calculate number of running Operations, and set popup header
@@ -145,7 +196,7 @@ App.HostPopup = Em.Object.create({
     numRunning = allServices.filterProperty("status", App.format.taskStatus("IN_PROGRESS")).length;
     numRunning += allServices.filterProperty("status", App.format.taskStatus("QUEUED")).length;
     numRunning += allServices.filterProperty("status", App.format.taskStatus("PENDING")).length;
-    this.set("popupHeaderName", numRunning + " Background Operations Running");
+    this.set("popupHeaderName", numRunning + Em.I18n.t('hostPopup.header.postFix'));
   },
 
   /**
@@ -402,6 +453,14 @@ App.HostPopup = Em.Object.create({
     var hostsInfo = this.get("hosts");
     var servicesInfo = this.get("servicesInfo");
     var showServices = this.get('showServices');
+    var categoryObject = Em.Object.extend({
+      value: '',
+      count: 0,
+      labelPath: '',
+      label: function(){
+        return Em.I18n.t(this.get('labelPath')).format(this.get('count'));
+      }.property('count')
+    });
     return App.ModalPopup.show({
       //no need to track is it loaded when popup contain only list of hosts
       isLoaded: !showServices,
@@ -459,7 +518,7 @@ App.HostPopup = Em.Object.create({
          */
         setOnStart: function () {
           if (this.get("controller.showServices")) {
-            this.setSelectCount(this.get("services"));
+            this.get('controller').setSelectCount(this.get("services"), this.get('categories'));
           } else {
             this.set("isHostListHidden", false);
             this.set("isServiceListHidden", true);
@@ -577,13 +636,13 @@ App.HostPopup = Em.Object.create({
          * Select box, display names and values
          */
         categories: [
-          Ember.Object.create({value: 'all', label: Em.I18n.t('installer.step9.hostLog.popup.categories.all') }),
-          Ember.Object.create({value: 'pending', label: Em.I18n.t('installer.step9.hostLog.popup.categories.pending')}),
-          Ember.Object.create({value: 'in_progress', label: Em.I18n.t('installer.step9.hostLog.popup.categories.in_progress')}),
-          Ember.Object.create({value: 'failed', label: Em.I18n.t('installer.step9.hostLog.popup.categories.failed') }),
-          Ember.Object.create({value: 'completed', label: Em.I18n.t('installer.step9.hostLog.popup.categories.completed') }),
-          Ember.Object.create({value: 'aborted', label: Em.I18n.t('installer.step9.hostLog.popup.categories.aborted') }),
-          Ember.Object.create({value: 'timedout', label: Em.I18n.t('installer.step9.hostLog.popup.categories.timedout') })
+          categoryObject.create({value: 'all', labelPath: 'hostPopup.status.category.all'}),
+          categoryObject.create({value: 'pending', labelPath: 'hostPopup.status.category.pending'}),
+          categoryObject.create({value: 'in_progress', labelPath: 'hostPopup.status.category.inProgress'}),
+          categoryObject.create({value: 'failed', labelPath: 'hostPopup.status.category.failed'}),
+          categoryObject.create({value: 'completed', labelPath: 'hostPopup.status.category.success'}),
+          categoryObject.create({value: 'aborted', labelPath: 'hostPopup.status.category.aborted'}),
+          categoryObject.create({value: 'timedout', labelPath: 'hostPopup.status.category.timedout'})
         ],
 
         /**
@@ -594,66 +653,15 @@ App.HostPopup = Em.Object.create({
         taskCategory: null,
 
         /**
-         * Count number of operations for select box options
-         * @param obj
-         */
-        setSelectCount: function (obj) {
-          if (!obj) return;
-          var countAll = obj.length;
-          var countPending = 0;
-          var countInProgress = 0;
-          var countFailed = 0;
-          var countCompleted = 0;
-          var countAborted = 0;
-          var countTimedout = 0;
-          obj.forEach(function(item){
-            switch (item.status){
-              case 'pending':
-                countPending++;
-                break;
-              case 'queued':
-                countPending++;
-                break;
-              case 'in_progress':
-                countInProgress++;
-                break;
-              case 'failed':
-                countFailed++;
-                break;
-              case 'success':
-                countCompleted++;
-                break;
-              case 'completed':
-                countCompleted++;
-                break;
-              case 'aborted':
-                countAborted++;
-                break;
-              case 'timedout':
-                countTimedout++;
-                break;
-            }
-          }, this);
-
-          this.categories.findProperty("value", 'all').set("label", "All (" + countAll + ")");
-          this.categories.findProperty("value", 'pending').set("label", "Pending (" + countPending + ")");
-          this.categories.findProperty("value", 'in_progress').set("label", "In Progress (" + countInProgress + ")");
-          this.categories.findProperty("value", 'failed').set("label", "Failed (" + countFailed + ")");
-          this.categories.findProperty("value", 'completed').set("label", "Success (" + countCompleted + ")");
-          this.categories.findProperty("value", 'aborted').set("label", "Aborted (" + countAborted + ")");
-          this.categories.findProperty("value", 'timedout').set("label", "Timedout (" + countTimedout + ")");
-        },
-
-        /**
          * Depending on currently viewed tab, call setSelectCount function
          */
         updateSelectView: function () {
           if (!this.get('isHostListHidden')) {
-            this.setSelectCount(this.get("hosts"))
+            this.get('controller').setSelectCount(this.get("hosts"), this.get('categories'));
           } else if (!this.get('isTaskListHidden')) {
-            this.setSelectCount(this.get("tasks"))
+            this.get('controller').setSelectCount(this.get("tasks"), this.get('categories'));
           } else if (!this.get('isServiceListHidden')) {
-            this.setSelectCount(this.get("services"))
+            this.get('controller').setSelectCount(this.get("services"), this.get('categories'));
           }
         }.observes('hosts', 'isTaskListHidden', 'isHostListHidden'),
 

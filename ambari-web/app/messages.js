@@ -160,6 +160,14 @@ Em.I18n.translations = {
   'hostPopup.noServicesToShow':'No services to show',
   'hostPopup.noHostsToShow':'No hosts to show',
   'hostPopup.noTasksToShow':'No tasks to show',
+  'hostPopup.status.category.all':'All ({0})',
+  'hostPopup.status.category.pending':'Pending ({0})',
+  'hostPopup.status.category.inProgress':'In Progress ({0})',
+  'hostPopup.status.category.failed':'Failed ({0})',
+  'hostPopup.status.category.success':'Success ({0})',
+  'hostPopup.status.category.aborted':'Aborted ({0})',
+  'hostPopup.status.category.timedout':'Timedout ({0})',
+  'hostPopup.header.postFix':' Background Operations Running',
 
   'question.sure':'Are you sure?',
 
