@@ -18,6 +18,7 @@
 
 <div class="host-component-popup-wrap">
 
+    {{#if view.parentView.isLoaded}}
     <!-- SERVICES --->
 
     <div {{bindAttr class="view.isServiceListHidden:hidden :task-list-main-warp"}}>
@@ -144,7 +145,7 @@
   </div>
 
 
-  <!-- TASKS DETAILS --->
+  <!-- TASK DETAILS --->
 
   <div {{bindAttr class="view.isLogWrapHidden:hidden :task-detail-info"}}>
     <div class="task-top-wrap">
@@ -170,4 +171,7 @@
       </div>
     </div>
   </div>
+    {{else}}
+      <div class="spinner"></div>
+    {{/if}}
 </div>
