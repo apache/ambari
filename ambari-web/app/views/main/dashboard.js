@@ -395,6 +395,10 @@ App.MainDashboardView = Em.View.extend({
           vName = App.MainDashboardServiceHdfsView;
           item2 = App.HDFSService.find(item.get('id'));
           break;
+        case "YARN":
+          vName = App.MainDashboardServiceYARNView;
+          item2 = App.YARNService.find(item.get('id'));
+          break;
         case "MAPREDUCE":
           vName = App.MainDashboardServiceMapreduceView;
           item2 = App.MapReduceService.find(item.get('id'));

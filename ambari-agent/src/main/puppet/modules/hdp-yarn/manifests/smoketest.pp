@@ -18,7 +18,7 @@
 # under the License.
 #
 #
-class hdp-yarn::smoketest(
+define hdp-yarn::smoketest(
   $component_name = undef
 )
 {
@@ -29,15 +29,18 @@ class hdp-yarn::smoketest(
   if ($component_name == 'resourcemanager') {
     $component_type = 'rm'
     $component_address = $rm_webui_address
+  } elsif ($component_name == 'nodemanager') {
+    $component_type = 'nm'
+    $component_address = $nm_webui_address
   } elsif ($component_name == 'historyserver') {
-    $component_type = 'hs' 
+    $component_type = 'hs'
     $component_address = $hs_webui_address
   } else {
     hdp_fail("Unsupported component name: $component_name")
   }
 
   $smoke_test_user = $hdp::params::smokeuser
-  
+
   $validateStatusFileName = "validateYarnComponentStatus.py"
   $validateStatusFilePath = "/tmp/$validateStatusFileName"
 
@@ -55,6 +58,6 @@ class hdp-yarn::smoketest(
     try_sleep => 5,
     path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
     logoutput => "true"
-  }
-  File[$validateStatusFilePath] -> Exec[$validateStatusFilePath]
+}
+  anchor{"hdp-yarn::smoketest::begin":} -> File[$validateStatusFilePath] -> Exec[$validateStatusFilePath] -> anchor{"hdp-yarn::smoketest::end":}
 }

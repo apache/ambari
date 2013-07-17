@@ -406,6 +406,26 @@ var urls = {
       };
     }
   },
+  'service.metrics.yarn.gc': {
+    'real': '/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/jvm/gcTimeMillis[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'mock': '/data/services/metrics/yarn/gc.json',
+    'testInProduction': true
+  },
+  'service.metrics.yarn.jobs_threads': {
+    'real': '/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/jvm/threadsRunnable[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsBlocked[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsWaiting[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/threadsTimedWaiting[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'mock': '/data/services/metrics/yarn/jvm_threads.json',
+    'testInProduction': true
+  },
+  'service.metrics.yarn.rpc': {
+    'real': '/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/rpc/RpcQueueTime_avg_time[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'mock': '/data/services/metrics/yarn/rpc.json',
+    'testInProduction': true
+  },
+  'service.metrics.yarn.jobs_heap': {
+    'real': '/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/jvm/memNonHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memNonHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapUsedM[{fromSeconds},{toSeconds},{stepSeconds}],metrics/jvm/memHeapCommittedM[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'mock': '/data/services/metrics/yarn/jvm_heap.json',
+    'testInProduction': true
+  },
   'dashboard.cluster_metrics.cpu': {
     'real': '/clusters/{clusterName}/?fields=metrics/cpu[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/cluster_metrics/cpu_1hr.json',

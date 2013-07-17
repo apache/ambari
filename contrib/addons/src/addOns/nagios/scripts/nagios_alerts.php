@@ -389,6 +389,13 @@ function hdp_mon_generate_response( $response_data )
       case "FLUME":
             $pieces[0] = "FLUME";
       break;      
+      case "JOBHISTORY":
+        $pieces[0] = "MAPREDUCE2";
+        break;
+      case "RESOURCEMANAGER":
+      case "NODEMANAGER":
+        $pieces[0] = "YARN";
+        break;
       case "NAGIOS":
       case "HDFS":
       case "MAPREDUCE":

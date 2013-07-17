@@ -1,0 +1,15 @@
+{
+  "apps": [
+    {
+      "appId": "application_201301280808_0003",
+      "appName": "oozie:launcher:T\\=map-reduce:W\\=map-reduce-wf:A\\=mr-node:ID\\=0000000-130128081151371-oozie-oozi-W",
+      "appType": "MAPREDUCE",
+      "userName": "ambari_qa",
+      "submitTime": 1359378907927,
+      "finishTime": 0,
+      "stages": [1,0],
+      "workflowId": "mapreduce_201301280808_0003",
+      "workflowEntityName": "3"
+    }
+  ]
+}

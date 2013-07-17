@@ -69,6 +69,9 @@ require('controllers/main/charts/heatmap_metrics/heatmap_metric_mapreduce_gctime
 require('controllers/main/charts/heatmap_metrics/heatmap_metric_mapreduce_mapsRunning');
 require('controllers/main/charts/heatmap_metrics/heatmap_metric_mapreduce_reducesRunning');
 require('controllers/main/charts/heatmap_metrics/heatmap_metric_mapreduce_memHeapUsed');
+require('controllers/main/charts/heatmap_metrics/heatmap_metric_yarn');
+require('controllers/main/charts/heatmap_metrics/heatmap_metric_yarn_gctime');
+require('controllers/main/charts/heatmap_metrics/heatmap_metric_yarn_memHeapUsed');
 require('controllers/main/charts/heatmap_metrics/heatmap_metric_hbase');
 require('controllers/main/charts/heatmap_metrics/heatmap_metric_hbase_readrequest');
 require('controllers/main/charts/heatmap_metrics/heatmap_metric_hbase_writerequest');

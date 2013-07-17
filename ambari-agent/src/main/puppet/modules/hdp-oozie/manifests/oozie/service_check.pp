@@ -23,14 +23,25 @@ class hdp-oozie::oozie::service_check()
   include hdp-oozie::params
 
   $smoke_shell_files = ['oozieSmoke.sh']
+
+  if (hdp_get_major_stack_version($stack_version) >= 2) {
+    $smoke_test_file_name = 'oozieSmoke2.sh'
+  } else {
+    $smoke_test_file_name = 'oozieSmoke.sh'
+  }
+
   anchor { 'hdp-oozie::oozie::service_check::begin':}
 
-  hdp-oozie::smoke_shell_file { $smoke_shell_files: }
+  hdp-oozie::smoke_shell_file { $smoke_shell_files:
+    smoke_shell_file_name => $smoke_test_file_name
+  }
 
   anchor{ 'hdp-oozie::oozie::service_check::end':}
 }
 
-define hdp-oozie::smoke_shell_file()
+define hdp-oozie::smoke_shell_file(
+  $smoke_shell_file_name
+)
 {
   $smoke_test_user = $hdp::params::smokeuser
   $conf_dir = $hdp::params::oozie_conf_dir
@@ -47,17 +58,17 @@ define hdp-oozie::smoke_shell_file()
   $nn_principal = $hdp::params::nn_principal
   $jt_principal = $hdp::params::jt_principal
 
-  file { '/tmp/oozieSmoke.sh':
+  file { "/tmp/${smoke_shell_file_name}":
     ensure => present,
-    source => "puppet:///modules/hdp-oozie/oozieSmoke.sh",
+    source => "puppet:///modules/hdp-oozie/${smoke_shell_file_name}",
     mode => '0755'
   }
 
-  exec { '/tmp/oozieSmoke.sh':
-    command   => "sh /tmp/oozieSmoke.sh ${conf_dir} ${hadoopconf_dir} ${smoke_test_user} ${security} ${smoke_user_keytab} ${realm} $jt_principal $nn_principal $kinit_path",
+  exec { "/tmp/${smoke_shell_file_name}":
+    command   => "sh /tmp/${smoke_shell_file_name} ${conf_dir} ${hadoopconf_dir} ${smoke_test_user} ${security} ${smoke_user_keytab} ${realm} $jt_host $nn_host",
     tries     => 3,
     try_sleep => 5,
-    require   => File['/tmp/oozieSmoke.sh'],
+    require   => File["/tmp/${smoke_shell_file_name}"],
     path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
     logoutput => "true"
   }

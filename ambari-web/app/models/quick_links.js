@@ -156,5 +156,53 @@ App.QuickLinks.FIXTURES = [
     label:'Hue Web UI',
     url:'http://%@/hue',
     service_id: 'HUE'
+  },
+  {
+    id:23,
+    label:'ResourceManager UI',
+    url:'http://%@:8088',
+    service_id: 'YARN'
+  },
+  {
+    id:24,
+    label:'ResourceManager logs',
+    url:'http://%@:8088/logs',
+    service_id: 'YARN'
+  },
+  {
+    id:25,
+    label:'ResourceManager JMX',
+    url:'http://%@:8088/jmx',
+    service_id: 'YARN'
+  },
+  {
+    id:26,
+    label:'Thread Stacks',
+    url:'http://%@:8088/stacks',
+    service_id: 'YARN'
+  },
+  {
+    id:27,
+    label:'JobHistory UI',
+    url:'http://%@:19888',
+    service_id: 'MAPREDUCE2'
+  },
+  {
+    id:28,
+    label:'JobHistory logs',
+    url:'http://%@:19888/logs',
+    service_id: 'MAPREDUCE2'
+  },
+  {
+    id:29,
+    label:'JobHistory JMX',
+    url:'http://%@:19888/jmx',
+    service_id: 'MAPREDUCE2'
+  },
+  {
+    id:30,
+    label:'Thread Stacks',
+    url:'http://%@:19888/stacks',
+    service_id: 'MAPREDUCE2'
   }
 ];

@@ -61,6 +61,19 @@ App.MainChartsHeatmapController = Em.Controller.extend({
       );
     }
 
+    if (App.YARNService.find().get('length')) {
+      metrics.push(
+        Em.Object.create({
+          label: Em.I18n.t('charts.heatmap.category.yarn'),
+          category: 'yarn',
+          items: [
+            App.MainChartHeatmapYarnGCTimeMillisMetric.create(),
+            App.MainChartHeatmapYarnMemHeapUsedMetric.create()
+          ]
+        })
+      );
+    }
+
     if (App.HBaseService.find().get('length')) {
       metrics.push(
         Em.Object.create({

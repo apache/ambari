@@ -23,6 +23,7 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.controller.utilities.PropertyHelper.MetricsVersion;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -54,7 +55,7 @@ public class GangliaPropertyProviderTest {
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
 
     GangliaPropertyProvider propertyProvider = new GangliaHostComponentPropertyProvider(
-        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent),
+        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP1),
         streamProvider,
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID,
@@ -127,7 +128,7 @@ public class GangliaPropertyProviderTest {
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
 
     GangliaPropertyProvider propertyProvider = new GangliaHostPropertyProvider(
-        PropertyHelper.getGangliaPropertyIds(Resource.Type.Host),
+        PropertyHelper.getGangliaPropertyIds(Resource.Type.Host, PropertyHelper.MetricsVersion.HDP1),
         streamProvider,
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID,
@@ -170,7 +171,7 @@ public class GangliaPropertyProviderTest {
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
 
     GangliaPropertyProvider propertyProvider = new GangliaHostPropertyProvider(
-        PropertyHelper.getGangliaPropertyIds(Resource.Type.Host),
+        PropertyHelper.getGangliaPropertyIds(Resource.Type.Host, PropertyHelper.MetricsVersion.HDP1),
         streamProvider,
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID,
@@ -204,7 +205,7 @@ public class GangliaPropertyProviderTest {
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
 
     GangliaPropertyProvider propertyProvider = new GangliaHostComponentPropertyProvider(
-        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent),
+        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, MetricsVersion.HDP1),
         streamProvider,
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID,
@@ -237,7 +238,7 @@ public class GangliaPropertyProviderTest {
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
 
     GangliaPropertyProvider propertyProvider = new GangliaHostComponentPropertyProvider(
-        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent),
+        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, MetricsVersion.HDP1),
         streamProvider,
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID,
@@ -275,7 +276,7 @@ public class GangliaPropertyProviderTest {
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
 
     GangliaPropertyProvider propertyProvider = new GangliaHostComponentPropertyProvider(
-        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent),
+        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, MetricsVersion.HDP1),
         streamProvider,
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID,
@@ -306,7 +307,7 @@ public class GangliaPropertyProviderTest {
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
 
     GangliaPropertyProvider propertyProvider = new GangliaHostComponentPropertyProvider(
-        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent),
+        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, MetricsVersion.HDP1),
         streamProvider,
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID,
@@ -339,7 +340,7 @@ public class GangliaPropertyProviderTest {
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
 
     GangliaPropertyProvider propertyProvider = new GangliaHostComponentPropertyProvider(
-        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent),
+        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, MetricsVersion.HDP1),
         streamProvider,
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID,
@@ -372,7 +373,7 @@ public class GangliaPropertyProviderTest {
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
 
     GangliaPropertyProvider propertyProvider = new GangliaHostComponentPropertyProvider(
-        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent),
+        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, MetricsVersion.HDP1),
         streamProvider,
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID,
@@ -405,7 +406,7 @@ public class GangliaPropertyProviderTest {
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
 
     GangliaPropertyProvider propertyProvider = new GangliaHostComponentPropertyProvider(
-        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent),
+        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, MetricsVersion.HDP1),
         streamProvider,
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID,

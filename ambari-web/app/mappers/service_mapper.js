@@ -82,6 +82,35 @@ App.servicesMapper = App.QuickDataMapper.create({
     name_node_cpu: 'nameNodeComponent.host_components[0].metrics.cpu.cpu_wio',
     name_node_rpc: 'nameNodeComponent.host_components[0].metrics.rpc.RpcQueueTime_avg_time'
   },
+  yarnConfig: {
+    version: 'resourceManagerComponent.ServiceComponentInfo.Version',
+    resource_manager_node_id: 'resourceManagerComponent.host_components[0].HostRoles.host_name',
+    node_manager_nodes: 'node_manager_nodes',
+    node_manager_live_nodes: 'node_manager_live_nodes',
+    yarn_client_nodes: 'yarn_client_nodes',
+    resource_manager_start_time: 'resourceManagerComponent.ServiceComponentInfo.StartTime',
+    jvm_memory_heap_used: 'resourceManagerComponent.host_components[0].metrics.jvm.memHeapUsedM',
+    jvm_memory_heap_committed: 'resourceManagerComponent.host_components[0].metrics.jvm.memHeapCommittedM',
+    containers_allocated: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.AllocatedContainers',
+    containers_pending: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.PendingContainers',
+    containers_reserved: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.ReservedContainers',
+    apps_submitted: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.AppsSubmitted',
+    apps_running: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.AppsRunning',
+    apps_pending: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.AppsPending',
+    apps_completed: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.AppsCompleted',
+    apps_killed: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.AppsKilled',
+    apps_failed: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.AppsFailed',
+    node_managers_count_active: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.activeNMcount',
+    node_managers_count_lost: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.lostNMcount',
+    node_managers_count_unhealthy: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.unhealthyNMcount',
+    node_managers_count_rebooted: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.rebootedNMcount',
+    node_managers_count_decommissioned: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.decommissionedNMcount'
+  },
+  mapReduce2Config: {
+    version: 'jobHistoryServerComponent.ServiceComponentInfo.Version',
+    job_history_server_id: 'jobHistoryServerComponent.host_components[0].HostRoles.host_name',
+    map_reduce2_clients: 'map_reduce2_clients'
+  },
   mapReduceConfig: {
     version: 'jobTrackerComponent.ServiceComponentInfo.Version',
     job_tracker_id: 'jobTrackerComponent.host_components[0].HostRoles.host_name',
@@ -180,10 +209,19 @@ App.servicesMapper = App.QuickDataMapper.create({
             });
           }
           App.store.load(App.FlumeService, finalJson);
+        }else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "YARN") {
+          finalJson = this.yarnMapper(item);
+          finalJson.rand = Math.random();
+          result.push(finalJson);
+          App.store.load(App.YARNService, finalJson);
+        }else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "MAPREDUCE2") {
+          finalJson = this.mapreduce2Mapper(item);
+          finalJson.rand = Math.random();
+          result.push(finalJson);
+          App.store.load(App.MapReduce2Service, finalJson);
         }else {
           finalJson = this.parseIt(item, this.config);
           finalJson.rand = Math.random();
-          this.mapQuickLinks(finalJson, item);
           result.push(finalJson);
         }
       }, this);
@@ -326,6 +364,84 @@ App.servicesMapper = App.QuickDataMapper.create({
     // Map
     var finalJson = this.parseIt(item, finalConfig);
     finalJson.quick_links = [1, 2, 3, 4];
+
+    return finalJson;
+  },
+  yarnMapper: function (item) {
+    var result = [];
+    var finalConfig = jQuery.extend({}, this.config);
+    // Change the JSON so that it is easy to map
+    var yarnConfig = this.yarnConfig;
+    item.components.forEach(function (component) {
+      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "RESOURCEMANAGER") {
+        item.resourceManagerComponent = component;
+        // live nodes calculation
+        var nmList = [];
+        if (component.ServiceComponentInfo.rm_metrics && component.ServiceComponentInfo.rm_metrics.cluster && component.ServiceComponentInfo.rm_metrics.cluster.nodeManagers) {
+          nmList = App.parseJSON(component.ServiceComponentInfo.rm_metrics.cluster.nodeManagers);
+        }
+        nmList.forEach(function (nm) {
+          if (nm.State === "RUNNING") {
+            if (!item.node_manager_live_nodes) {
+              item.node_manager_live_nodes = [];
+            }
+            item.node_manager_live_nodes.push(nm.HostName);
+          }
+        });
+        // extend config
+        finalConfig = jQuery.extend(finalConfig, yarnConfig);
+      }
+      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "NODEMANAGER") {
+        if (!item.node_manager_nodes) {
+          item.node_manager_nodes = [];
+        }
+        if (component.host_components) {
+          component.host_components.forEach(function (hc) {
+            item.node_manager_nodes.push(hc.HostRoles.host_name);
+          });
+        }
+      }
+      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "YARN_CLIENT") {
+        if (!item.yarn_client_nodes) {
+          item.yarn_client_nodes = [];
+        }
+        if (component.host_components) {
+          component.host_components.forEach(function (hc) {
+            item.yarn_client_nodes.push(hc.HostRoles.host_name);
+          });
+        }
+      }
+    });
+    // Map
+    var finalJson = this.parseIt(item, finalConfig);
+    finalJson.quick_links = [ 19, 20, 21, 22 ];
+
+    return finalJson;
+  },
+  mapreduce2Mapper: function (item) {
+    var result = [];
+    var finalConfig = jQuery.extend({}, this.config);
+    // Change the JSON so that it is easy to map
+    var mapReduce2Config = this.mapReduce2Config;
+    item.components.forEach(function (component) {
+      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "HISTORYSERVER") {
+        item.jobHistoryServerComponent = component;
+        finalConfig = jQuery.extend(finalConfig, mapReduce2Config);
+      }
+      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "MAPREDUCE2_CLIENT") {
+        if (!item.map_reduce2_clients) {
+          item.map_reduce2_clients = [];
+        }
+        if (component.host_components) {
+          component.host_components.forEach(function (hc) {
+            item.map_reduce2_clients.push(hc.HostRoles.host_name);
+          });
+        }
+      }
+    });
+    // Map
+    var finalJson = this.parseIt(item, finalConfig);
+    finalJson.quick_links = [23, 24, 25, 26];
 
     return finalJson;
   },

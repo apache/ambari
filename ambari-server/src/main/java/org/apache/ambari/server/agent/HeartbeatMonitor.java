@@ -119,11 +119,11 @@ public class HeartbeatMonitor implements Runnable {
       } catch (AmbariException e) {
         LOG.warn("Exception in getting host object; Is it fatal?", e);
       }
-      if (lastHeartbeat + 2*threadWakeupInterval < now) {
-        LOG.warn("Hearbeat lost from host "+host);
+      if (lastHeartbeat + 2 * threadWakeupInterval < now) {
+        LOG.warn("Heartbeat lost from host " + host);
         //Heartbeat is expired
         hostObj.handleEvent(new HostHeartbeatLostEvent(host));
-        
+
         // mark all components that are not clients with unknown status
         for (Cluster cluster : fsm.getClustersForHost(hostObj.getHostName())) {
           for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostObj.getHostName())) {
@@ -134,14 +134,17 @@ public class HeartbeatMonitor implements Runnable {
                 !sch.getState().equals(State.INSTALLING) &&
                 !sch.getState().equals(State.INSTALL_FAILED) &&
                 !sch.getState().equals(State.UNINSTALLED)) {
+              LOG.warn("Setting component state to UNKNOWN for component " + sc.getName() + " on " + host);
               sch.setState(State.UNKNOWN);
             }
           }
         }
-        
+
         // hbase
-        if(hostState != hostObj.getState() && scanner != null) scanner.updateHBaseMaster(hostObj);
-        
+        if (hostState != hostObj.getState() && scanner != null) {
+          scanner.updateHBaseMaster(hostObj);
+        }
+
         //Purge action queue
         actionQueue.dequeueAll(host);
         //notify action manager
@@ -149,7 +152,7 @@ public class HeartbeatMonitor implements Runnable {
       }
       if (hostState == HostState.WAITING_FOR_HOST_STATUS_UPDATES) {
         long timeSpentInState = hostObj.getTimeInState();
-        if (timeSpentInState + 5*threadWakeupInterval < now) {
+        if (timeSpentInState + 5 * threadWakeupInterval < now) {
           //Go back to init, the agent will be asked to register again in the next heartbeat
           LOG.warn("timeSpentInState + 5*threadWakeupInterval < now, Go back to init");
           hostObj.setState(HostState.INIT);
@@ -159,7 +162,7 @@ public class HeartbeatMonitor implements Runnable {
       // Get status of service components
       List<StatusCommand> cmds = generateStatusCommands(hostname);
       LOG.trace("Generated " + cmds.size() + " status commands for host: " +
-        hostname);
+          hostname);
       if (cmds.isEmpty()) {
         // Nothing to do
       } else {

@@ -146,8 +146,8 @@ App.WizardStep6Controller = Em.Controller.extend({
    * @return {*}
    */
   isServiceSelected: function (name) {
-    return !!(this.get('content.services').findProperty('serviceName', name) &&
-      this.get('content.services').findProperty('serviceName', name).get('isSelected'));
+    return this.get('content.services').findProperty('serviceName', name) &&
+      this.get('content.services').findProperty('serviceName', name).get('isSelected');
   },
 
   /**

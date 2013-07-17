@@ -54,7 +54,14 @@ App.QuickViewLinks = Em.View.extend({
           }
         }
         break;
+      case "YARN":
+        host = App.singleNodeInstall ? App.singleNodeAlias : components.findProperty('componentName', 'RESOURCEMANAGER').get('host.publicHostName');
+        break;
+      case "MAPREDUCE2":
+        host = App.singleNodeInstall ? App.singleNodeAlias : components.findProperty('componentName', 'HISTORYSERVER').get('host.publicHostName');
+        break;
     }
+
     if (!host) {
       return [
         {
@@ -74,6 +81,8 @@ App.QuickViewLinks = Em.View.extend({
   linkTarget: function () {
     switch (this.get('content.serviceName').toLowerCase()) {
       case "hdfs":
+      case "yarn":
+      case "mapreduce2":
       case "mapreduce":
       case "hbase":
       case "oozie":

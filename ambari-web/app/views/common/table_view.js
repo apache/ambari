@@ -191,8 +191,8 @@ App.TableView = Em.View.extend({
       this.get('filterConditions').push(filterCondition);
     }
     this.saveFilterConditions();
+
     this.filtersUsedCalc();
-    this.filter();
   },
 
   saveFilterConditions: function() {

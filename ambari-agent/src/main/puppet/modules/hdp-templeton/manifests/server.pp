@@ -95,11 +95,23 @@ class hdp-templeton::copy-hdfs-directories($service_state)
     path => ['/bin']
   }
 
-  hdp-hadoop::hdfs::copyfromlocal { '/usr/lib/hadoop/contrib/streaming/hadoop-streaming*.jar':
-   service_state => $service_state,
-   owner => $webhcat_user,
-   mode  => '755',
-   dest_dir => "$webhcat_apps_dir/hadoop-streaming.jar",
+  if (hdp_get_major_stack_version($stack_version) >= 2) {
+    hdp-hadoop::hdfs::copyfromlocal { '/usr/lib/hadoop-mapreduce/hadoop-streaming*.jar':
+      service_state => $service_state,
+      owner => $webhcat_user,
+      mode  => '755',
+      dest_dir => "$webhcat_apps_dir/hadoop-streaming.jar",
+      kinit_if_needed => $kinit_if_needed
+    }
+  }
+  else {
+    hdp-hadoop::hdfs::copyfromlocal { '/usr/lib/hadoop/contrib/streaming/hadoop-streaming*.jar':
+      service_state => $service_state,
+      owner => $webhcat_user,
+      mode  => '755',
+      dest_dir => "$webhcat_apps_dir/hadoop-streaming.jar",
+      kinit_if_needed => $kinit_if_needed
+    }
   }
   hdp-hadoop::hdfs::copyfromlocal { '/usr/share/HDP-webhcat/pig.tar.gz' :
     service_state => $service_state,

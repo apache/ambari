@@ -87,6 +87,7 @@ App.runsMapper = App.QuickDataMapper.create({
     startTime: 'startTime',
     elapsedTime: 'elapsedTime',
     input: 'inputBytes',
-    output: 'outputBytes'
+    output: 'outputBytes',
+    tags: 'workflowTags'
   }
 });

@@ -81,7 +81,7 @@ class hdp-hadoop::params(
   
   $mapred_log_dir_prefix = hdp_default("mapred_log_dir_prefix","/var/log/hadoop-mapreduce")
 
-  $mapred_pid_dir_prefix = hdp_default("mapreduce_libs_path","/var/run/hadoop-mapreduce")
+  $mapred_pid_dir_prefix = hdp_default("mapred_pid_dir_prefix","/var/run/hadoop-mapreduce")
 
   ### compression related
   if (($hdp::params::lzo_enabled == true) and ($hdp::params::snappy_enabled == true)) {
@@ -106,6 +106,8 @@ class hdp-hadoop::params(
   $fs_checkpoint_dir = hdp_default("core-site/fs.checkpoint.dir","/tmp/hadoop-hdfs/dfs/namesecondary")
 
   $proxyuser_group = hdp_default("core-site/proxyuser.group","users")
+  
+  $hadoop_tmp_dir = hdp_default("core-site/hadoop.tmp.dir","/tmp/hadoop-$hdfs_user")
 
   ### hdfs-site
   $datanode_du_reserved = hdp_default("hdfs-site/datanode.du.reserved",1073741824)

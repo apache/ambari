@@ -47,7 +47,7 @@ public class JMXPropertyProviderTest {
     TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
 
     JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
-        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
+        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP1),
         streamProvider,
         hostProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
@@ -234,7 +234,7 @@ public class JMXPropertyProviderTest {
     TestJMXHostProvider hostProvider = new TestJMXHostProvider(true);
 
     JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
-        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
+        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP1),
         streamProvider,
         hostProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
@@ -266,12 +266,49 @@ public class JMXPropertyProviderTest {
   }
 
   @Test
+  public void testPopulateResources_HDP2() throws Exception {
+    TestStreamProvider  streamProvider = new TestStreamProvider();
+    TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
+
+    JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
+        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP2),
+        streamProvider,
+        hostProvider,
+        PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+        PropertyHelper.getPropertyId("HostRoles", "host_name"),
+        PropertyHelper.getPropertyId("HostRoles", "component_name"),
+        PropertyHelper.getPropertyId("HostRoles", "state"),
+        Collections.singleton("STARTED"));
+
+    // namenode
+    Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+
+    resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
+    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
+    resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+
+    // request with an empty set should get all supported properties
+    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+
+    Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
+
+    Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-0e-34-e1.compute-1.internal", "8088"), streamProvider.getLastSpec());
+
+    // see test/resources/resourcemanager_jmx.json for values
+    Assert.assertEquals(6,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue", "AggregateContainersAllocated")));
+    Assert.assertEquals(6,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue", "AggregateContainersReleased")));
+    Assert.assertEquals(8192,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue", "AvailableMB")));
+    Assert.assertEquals(1,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue", "AvailableVCores")));
+    Assert.assertEquals(2,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue", "AppsSubmitted")));
+  }
+
+    @Test
   public void testPopulateResourcesUnhealthyResource() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
     TestJMXHostProvider hostProvider = new TestJMXHostProvider(true);
 
     JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
-        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
+        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP1),
         streamProvider,
         hostProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
@@ -304,7 +341,7 @@ public class JMXPropertyProviderTest {
     Set<Resource> resources = new HashSet<Resource>();
 
     JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
-        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent),
+        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP1),
         streamProvider,
         hostProvider,
         PropertyHelper.getPropertyId("HostRoles", "cluster_name"),

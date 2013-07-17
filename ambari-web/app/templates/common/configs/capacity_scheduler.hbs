@@ -35,14 +35,9 @@
             <table class="table table-bordered table-striped">
                 <thead>
                 <tr>
-                    <th>{{t services.mapReduce.config.queue.name}}</th>
-                    <th>{{t common.users}}</th>
-                    <th>{{t services.mapReduce.config.queue.groups}}</th>
-                    <th>{{t services.mapReduce.config.queue.capacity}}</th>
-                    <th>{{t services.mapReduce.config.queue.maxCapacity}}</th>
-                    <th>{{t services.mapReduce.config.queue.minUserLimit}}</th>
-                    <th>{{t services.mapReduce.config.queue.userLimitFactor}}</th>
-                    <th>{{t services.mapReduce.config.queue.supportsPriority}}</th>
+                    {{#each header in view.tableHeaders}}
+                      <th>{{header}}</th>
+                    {{/each}}
                 </tr>
                 </thead>
                 <tbody>
@@ -51,13 +46,9 @@
                       <td><a href="javascript:void(0)">
                           <i {{bindAttr style="queue.color"}} class="marker"></i>{{queue.name}}</a>
                       </td>
-                      <td>{{queue.users}}</td>
-                      <td>{{queue.groups}}</td>
-                      <td>{{queue.capacity}}&#37;</td>
-                      <td>{{queue.maxCapacity}}&#37;</td>
-                      <td>{{queue.minUserLimit}}&#37;</td>
-                      <td>{{queue.userLimitFactor}}</td>
-                      <td>{{queue.supportsPriority}}</td>
+                      {{#each config in queue.configs}}
+                        <td>{{config.value}}</td>
+                      {{/each}}
                   </tr>
                   {{/each}}
                 </tbody>

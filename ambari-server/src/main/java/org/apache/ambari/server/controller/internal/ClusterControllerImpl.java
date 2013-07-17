@@ -301,28 +301,28 @@ public class ClusterControllerImpl implements ClusterController {
     Iterable<Resource> resources = getResources(type, readRequest, predicate);
 
     PredicateBuilder pb = new PredicateBuilder();
-    PredicateBuilder.PredicateBuilderPredicate pbPredicate = null;
+    PredicateBuilder.PredicateBuilderWithPredicate pbWithPredicate = null;
 
     for (Resource resource : resources) {
-      if (pbPredicate != null) {
-        pb = pbPredicate.or();
+      if (pbWithPredicate != null) {
+        pb = pbWithPredicate.or();
       }
 
-      pb          = pb.begin();
-      pbPredicate = null;
+      pb              = pb.begin();
+      pbWithPredicate = null;
 
       for (String keyPropertyId : keyPropertyIds) {
-        if (pbPredicate != null) {
-          pb = pbPredicate.and();
+        if (pbWithPredicate != null) {
+          pb = pbWithPredicate.and();
         }
-        pbPredicate =
+        pbWithPredicate =
             pb.property(keyPropertyId).equals((Comparable) resource.getPropertyValue(keyPropertyId));
       }
-      if (pbPredicate != null) {
-        pbPredicate = pbPredicate.end();
+      if (pbWithPredicate != null) {
+        pbWithPredicate = pbWithPredicate.end();
       }
     }
-    return pbPredicate == null ? null : pbPredicate.toPredicate();
+    return pbWithPredicate == null ? null : pbWithPredicate.toPredicate();
   }
 
   /**

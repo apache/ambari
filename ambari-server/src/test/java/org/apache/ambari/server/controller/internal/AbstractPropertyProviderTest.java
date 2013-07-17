@@ -37,14 +37,14 @@ public class AbstractPropertyProviderTest {
 
   @Test
   public void testGetComponentMetrics() {
-    Map<String, Map<String, PropertyInfo>> componentMetrics = PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent);
+    Map<String, Map<String, PropertyInfo>> componentMetrics = PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP1);
     AbstractPropertyProvider provider = new TestPropertyProvider(componentMetrics);
     Assert.assertEquals(componentMetrics, provider.getComponentMetrics());
   }
 
   @Test
   public void testGetPropertyInfoMap() {
-    AbstractPropertyProvider provider = new TestPropertyProvider(PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent));
+    AbstractPropertyProvider provider = new TestPropertyProvider(PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP1));
 
     // specific property
     Map<String, PropertyInfo> propertyInfoMap = provider.getPropertyInfoMap("NAMENODE", "metrics/cpu/cpu_aidle");

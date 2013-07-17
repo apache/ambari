@@ -19,8 +19,6 @@
 var Ember = require('ember');
 var App = require('app');
 require('controllers/wizard/step5_controller');
-var components = require('data/service_components');
-
 
 describe('App.WizardStep5Controller', function () {
   var controller = App.WizardStep5Controller.create();
@@ -101,9 +99,7 @@ describe('App.WizardStep5Controller', function () {
           expect(controller.getHostForComponent(test.hosts.length, scheme).host_name).to.equal(test.hosts[test.equals[index]]);
         });
       });
-
     });
-
   });
 
   describe('#getZooKeeperServer', function() {

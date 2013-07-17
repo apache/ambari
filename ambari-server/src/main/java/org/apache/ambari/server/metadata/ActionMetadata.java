@@ -57,6 +57,8 @@ public class ActionMetadata {
     serviceActions.put("hcfs"       , Arrays.asList(Role.HCFS_SERVICE_CHECK.toString()));
     serviceActions.put("hbase"      , Arrays.asList(Role.HBASE_SERVICE_CHECK.toString()));
     serviceActions.put("mapreduce"  , Arrays.asList(Role.MAPREDUCE_SERVICE_CHECK.toString()));
+    serviceActions.put("mapreduce2" , Arrays.asList(Role.MAPREDUCE2_SERVICE_CHECK.toString()));
+    serviceActions.put("yarn"       , Arrays.asList(Role.YARN_SERVICE_CHECK.toString()));
     serviceActions.put("zookeeper"  , Arrays.asList(Role.ZOOKEEPER_QUORUM_SERVICE_CHECK.toString()));
     serviceActions.put("hive"       , Arrays.asList(Role.HIVE_SERVICE_CHECK.toString()));
     serviceActions.put("hcat"       , Arrays.asList(Role.HCAT_SERVICE_CHECK.toString()));
@@ -72,6 +74,10 @@ public class ActionMetadata {
     serviceCheckActions.put("hbase", Role.HBASE_SERVICE_CHECK.toString());
     serviceCheckActions.put("mapreduce",
         Role.MAPREDUCE_SERVICE_CHECK.toString());
+    serviceCheckActions.put("mapreduce2",
+        Role.MAPREDUCE2_SERVICE_CHECK.toString());
+    serviceCheckActions.put("yarn",
+        Role.YARN_SERVICE_CHECK.toString());
     serviceCheckActions.put("zookeeper",
         Role.ZOOKEEPER_QUORUM_SERVICE_CHECK.toString());
     serviceCheckActions.put("hive", Role.HIVE_SERVICE_CHECK.toString());

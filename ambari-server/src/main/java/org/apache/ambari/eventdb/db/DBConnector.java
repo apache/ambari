@@ -19,11 +19,8 @@ package org.apache.ambari.eventdb.db;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.ambari.eventdb.model.DataTable;
+import org.apache.ambari.eventdb.model.*;
 import org.apache.ambari.eventdb.model.Jobs.JobDBEntry;
-import org.apache.ambari.eventdb.model.TaskAttempt;
-import org.apache.ambari.eventdb.model.WorkflowContext;
-import org.apache.ambari.eventdb.model.Workflows;
 import org.apache.ambari.eventdb.model.Workflows.WorkflowDBEntry.WorkflowFields;
 
 public interface DBConnector {
@@ -37,9 +34,11 @@ public interface DBConnector {
   
   public DataTable fetchWorkflows(int offset, int limit, String searchTerm, int echo, WorkflowFields field, boolean sortAscending, String searchWorkflowId,
       String searchWorkflowName, String searchWorkflowType, String searchUserName, int minJobs, int maxJobs, long minInputBytes, long maxInputBytes,
-      long minOutputBytes, long maxOutputBytes, long minDuration, long maxDuration, long minStartTime, long maxStartTime, long minFinishTime, long maxFinishTime)
-      throws IOException;
-  
+      long minOutputBytes, long maxOutputBytes, long minDuration, long maxDuration, long minStartTime, long maxStartTime, long minFinishTime, 
+      long maxFinishTime, String tagSearchTerm) throws IOException;
+
+  public List<Apps.AppDBEntry> fetchAppDetails(String workflowId) throws IOException;
+
   public List<JobDBEntry> fetchJobDetails(String workflowID) throws IOException;
   
   public List<JobDBEntry> fetchJobDetails(long minFinishTime, long maxStartTime) throws IOException;

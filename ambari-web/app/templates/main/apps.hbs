@@ -22,8 +22,6 @@
     <tr>
       <td></td>
       <td>{{t apps.avgTable.jobs}}</td>
-      <td>{{t apps.avgTable.input}}</td>
-      <td>{{t apps.avgTable.output}}</td>
       <td>{{t apps.avgTable.duration}}</td>
       <td>{{t apps.avgTable.oldest}}</td>
       <td>{{t apps.avgTable.mostRecent}}</td>
@@ -31,8 +29,6 @@
     <tr class="avg-info">
       <td>{{t apps.avgTable.avg}}</td>
       <td>{{summary.jobs.avg}}</td>
-      <td>{{summary.input.avg}}</td>
-      <td>{{summary.output.avg}}</td>
       <td>{{summary.duration.avg}}</td>
       <td>{{summary.times.oldest}}</td>
       <td>{{summary.times.youngest}}</td>
@@ -41,8 +37,6 @@
     <tr class="compare-info">
       <td>{{t apps.avgTable.min}} / {{t apps.avgTable.max}}</td>
       <td>{{summary.jobs.min}} / {{summary.jobs.max}}</td>
-      <td>{{summary.input.min}} / {{summary.input.max}}</td>
-      <td>{{summary.output.min}} / {{summary.output.max}}</td>
       <td>{{summary.duration.min}} / {{summary.duration.max}}</td>
       <td></td>
       <td></td>
@@ -80,9 +74,8 @@
       <th>{{view view.nameFilterView}}</th>
       <th>{{view view.typeFilterView}}</th>
       <th>{{view view.userFilterView}}</th>
+      <th>{{view view.tagFilterView}}</th>
       <th>{{view view.jobsFilterView}}</th>
-      <th>{{view view.inputFilterView}}</th>
-      <th>{{view view.outputFilterView}}</th>
       <th>{{view view.durationFilterView}}</th>
       <th>{{view view.runDateFilterView}}</th>
     </tr>

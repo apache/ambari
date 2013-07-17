@@ -42,7 +42,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
   secureConfigs: require('data/secure_mapping'),
 
-  
   /**
    * During page load time, we get the host overrides from the server.
    * The current host -> site:tag map is stored below. This will be 
@@ -1578,6 +1577,22 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         var jobTrackerHost = serviceConfigs.findProperty('name', 'jobtracker_host');
         jobTrackerHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'JOBTRACKER').get('host.hostName');
         globalConfigs.push(jobTrackerHost);
+        break;
+      case 'MAPREDUCE2':
+        var historyServerHost = serviceConfigs.findProperty('name', 'hs_host');
+        historyServerHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'HISTORYSERVER').get('host.hostName');
+        globalConfigs.push(historyServerHost);
+        break;
+      case 'YARN':
+        var resourceManagerHost = serviceConfigs.findProperty('name', 'rm_host');
+        resourceManagerHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'RESOURCEMANAGER').get('host.hostName');
+        globalConfigs.push(resourceManagerHost);
+        //yarn.log.server.url config dependent on HistoryServer host
+        if(App.HostComponent.find().someProperty('componentName', 'HISTORYSERVER')){
+          historyServerHost = this.get('serviceConfigs').findProperty('serviceName', 'MAPREDUCE2').configs.findProperty('name', 'hs_host');
+          historyServerHost.defaultValue = App.HostComponent.find().findProperty('componentName', 'HISTORYSERVER').get('host.hostName');
+          globalConfigs.push(historyServerHost);
+        }
         break;
       case 'HIVE':
         var hiveMetastoreHost = serviceConfigs.findProperty('name', 'hivemetastore_host');

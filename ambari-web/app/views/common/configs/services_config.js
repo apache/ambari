@@ -675,7 +675,9 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
   category: null,
   service: null,
   serviceConfigs: null,
-  customConfigs: require('data/custom_configs'),
+  customConfigs: function(){
+    return App.config.get('preDefinedCustomConfigs');
+  }.property('App.config.preDefinedCustomConfigs'),
   /**
    * configs filtered by capacity-scheduler category
    */
@@ -696,14 +698,20 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
     this.createEmptyQueue(this.get('customConfigs').filterProperty('isQueue'));
   },
   //list of fields which will be populated by default in a new queue
-  fieldsToPopulate: [
-    "mapred.capacity-scheduler.queue.<queue-name>.minimum-user-limit-percent",
-    "mapred.capacity-scheduler.queue.<queue-name>.user-limit-factor",
-    "mapred.capacity-scheduler.queue.<queue-name>.supports-priority",
-    "mapred.capacity-scheduler.queue.<queue-name>.maximum-initialized-active-tasks",
-    "mapred.capacity-scheduler.queue.<queue-name>.maximum-initialized-active-tasks-per-user",
-    "mapred.capacity-scheduler.queue.<queue-name>.init-accept-jobs-factor"
-  ],
+  fieldsToPopulate: function(){
+    if(App.config.get('isHDP2')){
+      return ["yarn.scheduler.capacity.root.<queue-name>.user-limit-factor",
+      "yarn.scheduler.capacity.root.<queue-name>.state"];
+    }
+    return [
+      "mapred.capacity-scheduler.queue.<queue-name>.minimum-user-limit-percent",
+      "mapred.capacity-scheduler.queue.<queue-name>.user-limit-factor",
+      "mapred.capacity-scheduler.queue.<queue-name>.supports-priority",
+      "mapred.capacity-scheduler.queue.<queue-name>.maximum-initialized-active-tasks",
+      "mapred.capacity-scheduler.queue.<queue-name>.maximum-initialized-active-tasks-per-user",
+      "mapred.capacity-scheduler.queue.<queue-name>.init-accept-jobs-factor"
+    ];
+  }.property('App.config.isHDP2'),
   /**
    * create empty queue
    * take some queue then copy it and set all config values to null
@@ -741,33 +749,36 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
       queues.push({
         name: queueName,
         color: this.generateColor(queueName),
-        configs: this.filterConfigsByQueue(queueName, configs)
+        configs: this.groupConfigsByQueue(queueName, configs)
       })
     }, this);
     return queues;
   }.property('queueObserver'),
   /**
-   * filter configs by queue
+   * group configs by queue
    * @param queueName
    * @param configs
    */
-  filterConfigsByQueue: function (queueName, configs) {
-    var customConfigs = this.get('customConfigs');
+  groupConfigsByQueue: function (queueName, configs) {
+    var customConfigs = [];
     var queue = [];
+    this.get('customConfigs').forEach(function(_config){
+      var copy = $.extend({}, _config);
+      copy.name = _config.name.replace('<queue-name>', queueName);
+      customConfigs.push(copy);
+    });
     configs.forEach(function (config) {
-      var customConfig = customConfigs.findProperty('name', config.name.replace('queue.' + queueName, 'queue.<queue-name>'));
-      if ((config.name.indexOf('mapred.capacity-scheduler.queue.' + queueName) !== -1) ||
-        (config.name.indexOf('mapred.queue.' + queueName) !== -1)) {
-        if (customConfig) {
-          config.set('description', customConfig.description);
-          config.set('displayName', customConfig.displayName);
-          config.set('isRequired', customConfig.isRequired);
-          config.set('unit', customConfig.unit);
-          config.set('displayType', customConfig.displayType);
-          config.set('valueRange', customConfig.valueRange);
-          config.set('isVisible', customConfig.isVisible);
-          config.set('index', customConfig.index);
-        }
+      var customConfig = customConfigs.findProperty('name', config.get('name'));
+      if (customConfig) {
+        config.set('description', customConfig.description);
+        config.set('displayName', customConfig.displayName);
+        config.set('isRequired', customConfig.isRequired);
+        config.set('unit', customConfig.unit);
+        config.set('displayType', customConfig.displayType);
+        config.set('valueRange', customConfig.valueRange);
+        config.set('isVisible', customConfig.isVisible);
+        config.set('inTable', customConfig.inTable);
+        config.set('index', customConfig.index);
         queue.push(config);
       }
     });
@@ -778,9 +789,9 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
     return queue;
   },
   /**
-   * add missing properties to queue
+   * add missing properties to queue when they don't come from server
    * @param queue
-   * @param queueName
+   * @param customConfigs
    */
   addMissingProperties: function (queue, queueName) {
     var customConfigs = this.get('customConfigs');
@@ -796,7 +807,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
     }, this);
   },
   /**
-   * format table content from queues
+   * convert queues to table content
    */
   tableContent: function () {
     var result = [];
@@ -809,18 +820,35 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
       var queueObject = {
         name: queue.name,
         color: 'background-color:' + queue.color + ';',
-        users: usersAndGroups[0],
-        groups: usersAndGroups[1],
-        capacity: queue.configs.findProperty('name', 'mapred.capacity-scheduler.queue.' + queue.name + '.capacity').get('value'),
-        maxCapacity: queue.configs.findProperty('name', 'mapred.capacity-scheduler.queue.' + queue.name + '.maximum-capacity').get('value'),
-        minUserLimit: queue.configs.findProperty('name', 'mapred.capacity-scheduler.queue.' + queue.name + '.minimum-user-limit-percent').get('value'),
-        userLimitFactor: queue.configs.findProperty('name', 'mapred.capacity-scheduler.queue.' + queue.name + '.user-limit-factor').get('value'),
-        supportsPriority: queue.configs.findProperty('name', 'mapred.capacity-scheduler.queue.' + queue.name + '.supports-priority').get('value')
+        configs: this.sortByIndex(queue.configs.filterProperty('inTable'))
       };
+      //push acl_submit_jobs users
+      queueObject.configs.unshift({
+        value: usersAndGroups[1],
+        inTable: true,
+        displayName: Em.I18n.t('common.users')
+      });
+      //push acl_submit_jobs groups
+      queueObject.configs.unshift({
+        value: usersAndGroups[0],
+        inTable: true,
+        displayName: Em.I18n.t('services.mapReduce.config.queue.groups')
+      });
       result.push(queueObject);
     }, this);
     return result;
   }.property('queues'),
+  /**
+   * create headers depending on existed properties in queue
+   */
+  tableHeaders: function(){
+    var headers = [
+      Em.I18n.t('services.mapReduce.config.queue.name')
+    ];
+    return (this.get('tableContent').length) ?
+      headers.concat(this.get('tableContent').objectAt(0).configs.filterProperty('inTable').mapProperty('displayName')):
+      headers;
+  }.property('tableContent'),
   queueObserver: null,
   /**
    * uses as template for adding new queue
@@ -873,7 +901,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
       if (config.isQueue) {
         serviceConfigs.push(config);
       }
-    });
+    }, this);
     adminConfig.set('value', admin.join(' '));
     submitConfig.set('value', submit.join(' '));
     this.set('queueObserver', new Date().getTime());
@@ -919,10 +947,9 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
         } else {
           _config.set('value', queue.configs.findProperty('name', _config.get('name')).get('value').toString());
         }
-        //comparison executes including 'queue.<queue-name>' to avoid false matches
-        _config.set('name', configName.replace('queue.' + queue.name, 'queue.' + queue.configs.findProperty('name', 'queueName').get('value')));
+        _config.set('name', configName.replace(queueNamePrefix + queue.name, queueNamePrefix + queue.configs.findProperty('name', 'queueName').get('value')));
       }
-    });
+    }, this);
     this.set('queueObserver', new Date().getTime());
   },
   pieChart: App.ChartPieView.extend({
@@ -943,7 +970,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
       queues.forEach(function (queue) {
         data.push({
           label: queue.name,
-          value: parseInt(queue.configs.findProperty('name', 'mapred.capacity-scheduler.queue.' + queue.name + '.capacity').get('value')),
+          value: value,
           color: queue.color
         })
       });
@@ -1060,10 +1087,10 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
       content: function () {
         var content = (queueName) ? self.get('queues').findProperty('name', queueName) : self.get('emptyQueue');
         var configs = [];
-        var tableContent = self.get('tableContent');
         // copy of queue configs
         content.configs.forEach(function (config, index) {
-          if (config.name == 'mapred.capacity-scheduler.queue.' + content.name + '.capacity') {
+          if(config.get('name').substr(-9, 9) === '.capacity') {
+            //added validation function for capacity property
             config.reopen({
               validate: function () {
                 var value = this.get('value');
@@ -1111,6 +1138,19 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
             } else {
               config.set('value', false);
             }
+          }
+          if(config.name === 'yarn.scheduler.capacity.root.' + content.name + '.state'){
+            config.reopen({
+              validate: function(){
+                var value = this.get('value');
+                this._super();
+                if(!this.get('errorMessage')){
+                  if(!(value === 'STOPPED' || value === 'RUNNING')){
+                    this.set('errorMessage', 'State value should be RUNNING or STOPPED');
+                  }
+                }
+              }.observes('value')
+            })
           }
           configs[index] = App.ServiceConfigProperty.create(config);
         });
@@ -1167,8 +1207,8 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
        */
       insertExtraConfigs: function (content) {
         var that = this;
-        var admin = content.configs.findProperty('name', 'mapred.queue.' + content.name + '.acl-administer-jobs').get('value');
-        var submit = content.configs.findProperty('name', 'mapred.queue.' + content.name + '.acl-submit-job').get('value');
+        var admin = content.configs.findProperty('name', self.getUserAndGroupNames(content.name)[1]).get('value');
+        var submit = content.configs.findProperty('name', self.getUserAndGroupNames(content.name)[0]).get('value');
         admin = (admin) ? admin.split(' ') : [''];
         submit = (submit) ? submit.split(' ') : [''];
         if (admin.length < 2) {
@@ -1177,7 +1217,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
         if (submit.length < 2) {
           submit.push('');
         }
-        var newField = App.ServiceConfigProperty.create({
+        var nameField = App.ServiceConfigProperty.create({
           name: 'queueName',
           displayName: Em.I18n.t('services.mapReduce.extraConfig.queue.name'),
           description: Em.I18n.t('services.mapReduce.description.queue.name'),
@@ -1216,11 +1256,11 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
           isEditable: self.get('canEdit'),
           index: 0
         });
-        newField.validate();
-        content.configs.unshift(newField);
+        nameField.validate();
+        content.configs.unshift(nameField);
 
         var submitUser = App.ServiceConfigProperty.create({
-          name: 'mapred.queue.' + content.name + '.acl-submit-job',
+          name: self.getUserAndGroupNames(content.name)[0],
           displayName: Em.I18n.t('common.users'),
           value: submit[0],
           description: Em.I18n.t('services.mapReduce.description.queue.submit.user'),
@@ -1233,7 +1273,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
         });
 
         var submitGroup = App.ServiceConfigProperty.create({
-          name: 'mapred.queue.' + content.name + '.acl-submit-job',
+          name: self.getUserAndGroupNames(content.name)[0],
           displayName: Em.I18n.t('services.mapReduce.config.queue.groups'),
           description: Em.I18n.t('services.mapReduce.description.queue.submit.group'),
           value: submit[1],
@@ -1246,7 +1286,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
         });
 
         var adminUser = App.ServiceConfigProperty.create({
-          name: 'mapred.queue.' + content.name + '.acl-administer-jobs',
+          name: self.getUserAndGroupNames(content.name)[1],
           displayName: Em.I18n.t('services.mapReduce.config.queue.adminUsers'),
           description: Em.I18n.t('services.mapReduce.description.queue.admin.user'),
           value: admin[0],
@@ -1259,7 +1299,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
         });
 
         var adminGroup = App.ServiceConfigProperty.create({
-          name: 'mapred.queue.' + content.name + '.acl-administer-jobs',
+          name: self.getUserAndGroupNames(content.name)[1],
           displayName: Em.I18n.t('services.mapReduce.config.queue.adminGroups'),
           value: admin[1],
           description: Em.I18n.t('services.mapReduce.description.queue.admin.group'),
@@ -1303,8 +1343,8 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
       },
       /**
        * Validate by follow rules:
-       * Users can be blank. If this is blank, Groups must not be blank.
-       * Groups can be blank. If this is blank, Users must not be blank.
+       * Users can be blank. If it is blank, Groups must not be blank.
+       * Groups can be blank. If it is blank, Users must not be blank.
        * @param context
        * @param boundConfig
        */

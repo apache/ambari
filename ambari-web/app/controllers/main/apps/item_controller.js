@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var stringUtils = require('utils/string_utils');
 
 App.MainAppsItemController = Em.Controller.extend({
   name:'mainAppsItemController',
@@ -34,16 +35,29 @@ App.MainAppsItemController = Em.Controller.extend({
     }
     var self = this;
 
-    var url = App.testMode ? '/data/apps/jobs/'+ currentId +'.json' :
-      App.apiPrefix + "/jobhistory/job?workflowId=" + currentId;
+    if (!App.testMode && stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === -1) {
+      var url = App.testMode ? '/data/apps/jobs/'+ currentId +'.json' :
+        App.apiPrefix + "/jobhistory/job?workflowId=" + currentId;
 
-    var mapper = App.jobsMapper;
-    mapper.set('controller', this);
-    App.HttpClient.get(url, mapper,{
-      complete:function(jqXHR, textStatus) {
-        self.set('content.loadAllJobs', true);
-      }
-    });
+      var mapper = App.jobsMapper;
+      mapper.set('controller', this);
+      App.HttpClient.get(url, mapper,{
+        complete:function(jqXHR, textStatus) {
+          self.set('content.loadAllJobs', true);
+        }
+      });
+    } else {
+      var url = App.testMode ? '/data/apps/apps/'+ currentId +'.json' :
+        App.apiPrefix + "/jobhistory/app?workflowId=" + currentId;
+
+      var mapper = App.appsMapper;
+      mapper.set('controller', this);
+      App.HttpClient.get(url, mapper,{
+        complete:function(jqXHR, textStatus) {
+          self.set('content.loadAllJobs', true);
+        }
+      });
+    }
   }.observes('content')
 
 })

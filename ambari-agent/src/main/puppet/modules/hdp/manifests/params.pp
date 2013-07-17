@@ -230,7 +230,6 @@ class hdp::params()
   $hive_apps_whs_dir = hdp_default("hive_apps_whs_dir", "/apps/hive/warehouse")
   $webhcat_apps_dir = hdp_default("webhcat_apps_dir", "/apps/webhcat")
   $hbase_hdfs_root_dir = hdp_default("hbase-site/hbase.hdfs.root.dir","/apps/hbase/data")
-  $hbase_staging_dir = hdp_default("hbase-site/hbase.bulkload.staging.dir","/apps/hbase/staging")
 
   $yarn_nm_app_log_dir = hdp_default("yarn-site/yarn.nodemanager.remote-app-log-dir","/app-logs")
 
@@ -317,6 +316,7 @@ class hdp::params()
     $pig_conf_dir = "/etc/pig"
     $oozie_conf_dir = "/etc/oozie"
     $hadoop_jar_location = "/usr/share/hadoop"
+    $hadoop_mapred2_jar_location = "/usr/lib/hadoop-mapreduce"
     $hbase_daemon_script = "/usr/bin/hbase-daemon.sh"
     $use_32_bits_on_slaves = false
     $zk_bin = '/usr/sbin'
@@ -332,10 +332,12 @@ class hdp::params()
    
     $mapred_smoke_test_script = "/usr/lib/hadoop/sbin/hadoop-validate-setup.sh"
 
-    if $stack_version in ("2.0.1") {
+    if (hdp_get_major_stack_version($stack_version) >= 2) {
       $hadoop_bin = "/usr/lib/hadoop/sbin"
+      $hadoop_deps = ['hadoop','hadoop-libhdfs','hadoop-lzo', 'hadoop-lzo-native']
     } else {
       $hadoop_bin = "/usr/lib/hadoop/bin"
+      $hadoop_deps = ['hadoop','hadoop-libhdfs','hadoop-native','hadoop-pipes','hadoop-sbin','hadoop-lzo', 'hadoop-lzo-native']
     }
     $yarn_bin = "/usr/lib/hadoop-yarn/sbin"
     $mapred_bin = "/usr/lib/hadoop-mapreduce/sbin"
@@ -349,6 +351,7 @@ class hdp::params()
     $hive_conf_dir = "/etc/hive/conf"
     $hcat_conf_dir = "/etc/hcatalog/conf"
     $hadoop_jar_location = "/usr/lib/hadoop/"
+    $hadoop_mapred2_jar_location = "/usr/lib/hadoop-mapreduce"
     $hbase_daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
     $use_32_bits_on_slaves = false
     $zk_bin = '/usr/lib/zookeeper/bin'
@@ -384,7 +387,7 @@ class hdp::params()
      suse => 'htpasswd2'} 
 
     }
-    
+
     # StackId => Arch => Os
     $package_names = 
     {
@@ -419,12 +422,7 @@ class hdp::params()
             'ALL' => ['hadoop','hadoop-libhdfs.i386','hadoop-native.i386','hadoop-pipes.i386','hadoop-sbin.i386','hadoop-lzo', 'hadoop-lzo-native.i386']
           },
           64 => {
-            'ALL' => ['hadoop','hadoop-libhdfs','hadoop-native','hadoop-pipes','hadoop-sbin','hadoop-lzo', 'hadoop-lzo-native']
-          }
-        },
-        '2.0.1' => {
-          64 => {
-            'ALL' => ['hadoop','hadoop-libhdfs','hadoop-lzo', 'hadoop-lzo-native']
+            'ALL' => $hadoop_deps
           }
         }
       },

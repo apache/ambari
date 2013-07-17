@@ -180,7 +180,7 @@ define service {
 
 <%if scope.function_hdp_nagios_members_exist('resorcemanager')-%>
 define service {
-        hostgroup_name          resorcemanager
+        hostgroup_name          ganglia-server
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Collector [gmond] process down alert for Resource Manager
         servicegroups           GANGLIA
@@ -193,7 +193,7 @@ define service {
 
 <%if scope.function_hdp_nagios_members_exist('nodemanagers')-%>
 define service {
-        hostgroup_name          nodemanagers
+        hostgroup_name          ganglia-server
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Collector [gmond] process down alert for Node Manager
         servicegroups           GANGLIA
@@ -206,7 +206,7 @@ define service {
 
 <%if scope.function_hdp_nagios_members_exist('historyserver2')-%>
 define service {
-        hostgroup_name          historyserver2
+        hostgroup_name          ganglia-server
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Collector [gmond] process down alert for History Server 2
         servicegroups           GANGLIA
@@ -450,11 +450,11 @@ define service {
 <% end %>
 
 <%if scope.function_hdp_nagios_members_exist('historyserver2')-%>
-# MAPREDUCE::HISTORYSERVER2 Checks
+# MAPREDUCE::JOBHISTORY Checks
 define service {
         hostgroup_name          historyserver2
         use                     hadoop-service
-        service_description     HISTORYSERVER2::History Server 2 Web UI down
+        service_description     JOBHISTORY::History Server 2 Web UI down
         servicegroups           MAPREDUCE
         check_command           check_webui!historyserver2!<%=scope.function_hdp_template_var("hs_port")%>
         normal_check_interval   1
@@ -465,7 +465,7 @@ define service {
 define service {
         hostgroup_name          historyserver2
         use                     hadoop-service
-        service_description     HISTORYSERVER::History Server 2 CPU utilization
+        service_description     JOBHISTORY::History Server 2 CPU utilization
         servicegroups           MAPREDUCE
         check_command           check_cpu!200%!250%
         normal_check_interval   5
@@ -476,7 +476,7 @@ define service {
 define service {
         hostgroup_name          historyserver2
         use                     hadoop-service
-        service_description     HISTORYSERVER::History Server 2 RPC latency
+        service_description     JOBHISTORY::History Server 2 RPC latency
         servicegroups           MAPREDUCE
         check_command           check_rpcq_latency!JobHistoryServer!<%=scope.function_hdp_template_var("hs_port")%>!3000!5000
         normal_check_interval   5

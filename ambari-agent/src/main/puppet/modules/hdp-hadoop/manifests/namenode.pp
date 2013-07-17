@@ -140,12 +140,6 @@ define hdp-hadoop::namenode::create_app_directories($service_state)
         owner         => $hdp::params::hbase_user,
         service_state => $service_state
       }
-     $hbase_staging_dir = $hdp::params::hbase_staging_dir
-     hdp-hadoop::hdfs::directory { $hbase_staging_dir:
-       owner         => $hdp::params::hbase_user,
-       service_state => $service_state,
-       mode             => '711',
-     }
     }
 
     if ($hdp::params::hive_server_host != "") {
@@ -172,7 +166,7 @@ define hdp-hadoop::namenode::create_app_directories($service_state)
       }
     }
 
-    if $stack_version in ("2.0.1") {
+    if (hdp_get_major_stack_version($stack_version) >= 2) {
       if ($hdp::params::nm_hosts != "") {
         if ($hdp::params::yarn_log_aggregation_enabled == "true") {
           $yarn_user = $hdp::params::yarn_user
@@ -181,7 +175,7 @@ define hdp-hadoop::namenode::create_app_directories($service_state)
           hdp-hadoop::hdfs::directory{ $yarn_nm_app_log_dir:
             service_state => $service_state,
             owner => $yarn_user,
-            mode  => '744',
+            mode  => '1777',
             recursive_chmod => true
           }
         }
@@ -191,20 +185,21 @@ define hdp-hadoop::namenode::create_app_directories($service_state)
       if ($hdp::params::hs_host != "") {
         $mapred_user = $hdp::params::mapred_user
         $mapreduce_jobhistory_intermediate_done_dir = $hdp::params::mapreduce_jobhistory_intermediate_done_dir
+        $group = $hdp::params::user_group
         $mapreduce_jobhistory_done_dir = $hdp::params::mapreduce_jobhistory_done_dir
 
         hdp-hadoop::hdfs::directory{ $mapreduce_jobhistory_intermediate_done_dir:
           service_state => $service_state,
           owner => $mapred_user,
-          mode  => '777',
-          recursive_chmod => true
+          group => $group,
+          mode  => '1777'
         }
 
         hdp-hadoop::hdfs::directory{ $mapreduce_jobhistory_done_dir:
           service_state => $service_state,
           owner => $mapred_user,
-          mode  => '750',
-          recursive_chmod => true
+          group => $group,
+          mode  => '1777'
         }
       }
     }

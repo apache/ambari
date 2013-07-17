@@ -64,6 +64,9 @@
         {{#if view.serviceStatus.mapreduce}}
           {{view App.MainDashboardServiceMapreduceView showOnlyRows=true serviceBinding="view.service"}}
         {{/if}}
+        {{#if view.serviceStatus.yarn}}
+          {{view App.MainDashboardServiceYARNView showOnlyRows=true serviceBinding="view.service"}}
+        {{/if}}
         {{#if view.serviceStatus.mapreduce2}}
           {{template "templates/main/service/info/summary/mapreduce2"}}
         {{/if}}

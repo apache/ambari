@@ -141,6 +141,7 @@ class Controller(threading.Thread):
         if not retry:
           data = json.dumps(
               self.heartbeat.build(self.responseId, int(hb_interval), self.hasMappedComponents))
+          logger.debug("Sending request: " + data)
           pass
         else:
           self.DEBUG_HEARTBEAT_RETRIES += 1

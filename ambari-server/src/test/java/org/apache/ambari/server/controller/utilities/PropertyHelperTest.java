@@ -17,8 +17,12 @@
  */
 package org.apache.ambari.server.controller.utilities;
 
+import org.apache.ambari.server.controller.internal.PropertyInfo;
+import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Map;
 
 
 /**
@@ -39,6 +43,30 @@ public class PropertyHelperTest {
     Assert.assertEquals("cat/foo", PropertyHelper.getPropertyId("cat", "foo"));
     Assert.assertEquals("cat/sub/foo", PropertyHelper.getPropertyId("cat/sub", "foo"));
     Assert.assertEquals("cat/sub/foo", PropertyHelper.getPropertyId("cat/sub", "foo/"));
+  }
+
+  @Test
+  public void testGetJMXPropertyIds() {
+
+    //version 1
+    Map<String, Map<String, PropertyInfo>> metrics = PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP1);
+    Map<String, PropertyInfo> componentMetrics = metrics.get("HISTORYSERVER");
+    Assert.assertNull(componentMetrics);
+    componentMetrics = metrics.get("NAMENODE");
+    Assert.assertNotNull(componentMetrics);
+    PropertyInfo info = componentMetrics.get("metrics/jvm/memHeapUsedM");
+    Assert.assertNotNull(info);
+    Assert.assertEquals("Hadoop:service=NameNode,name=jvm.memHeapUsedM", info.getPropertyId());
+
+    //version 2
+    metrics = PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP2);
+    componentMetrics = metrics.get("HISTORYSERVER");
+    Assert.assertNotNull(componentMetrics);
+    componentMetrics = metrics.get("NAMENODE");
+    Assert.assertNotNull(componentMetrics);
+    info = componentMetrics.get("metrics/jvm/memHeapUsedM");
+    Assert.assertNotNull(info);
+    Assert.assertEquals("Hadoop:service=NameNode,name=JvmMetrics.MemHeapUsedM", info.getPropertyId());
   }
 }
 

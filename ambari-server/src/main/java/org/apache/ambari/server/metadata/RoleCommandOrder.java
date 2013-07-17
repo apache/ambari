@@ -272,6 +272,8 @@ public class RoleCommandOrder {
         RoleCommand.START);
       addDependency(Role.NODEMANAGER, RoleCommand.START, Role.DATANODE,
         RoleCommand.START);
+      addDependency(Role.NODEMANAGER, RoleCommand.START, Role.RESOURCEMANAGER,
+        RoleCommand.START);
       addDependency(Role.HISTORYSERVER, RoleCommand.START, Role.NAMENODE,
         RoleCommand.START);
       addDependency(Role.HISTORYSERVER, RoleCommand.START, Role.DATANODE,
@@ -330,6 +332,16 @@ public class RoleCommandOrder {
         Role.JOBTRACKER, RoleCommand.START);
       addDependency(Role.MAPREDUCE_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.TASKTRACKER, RoleCommand.START);
+      addDependency(Role.MAPREDUCE2_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.NODEMANAGER, RoleCommand.START);
+      addDependency(Role.MAPREDUCE2_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.RESOURCEMANAGER, RoleCommand.START);
+      addDependency(Role.MAPREDUCE2_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.HISTORYSERVER, RoleCommand.START);
+      addDependency(Role.YARN_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.NODEMANAGER, RoleCommand.START);
+      addDependency(Role.YARN_SERVICE_CHECK, RoleCommand.EXECUTE,
+        Role.RESOURCEMANAGER, RoleCommand.START);
       addDependency(Role.RESOURCEMANAGER_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.RESOURCEMANAGER, RoleCommand.START);
       addDependency(Role.OOZIE_SERVICE_CHECK, RoleCommand.EXECUTE,

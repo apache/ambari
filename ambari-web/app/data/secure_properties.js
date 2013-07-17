@@ -557,8 +557,6 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "HBASE",
-      "category": "RegionServer",
-      "components": ["HBASE_REGIONSERVER"]
     },
 
     //HIVE
@@ -757,6 +755,5 @@ module.exports =
       "category": "Nagios Server",
       "component": "NAGIOS_SERVER"
     }
-
   ]
 };

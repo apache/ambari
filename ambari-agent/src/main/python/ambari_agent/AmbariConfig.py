@@ -115,6 +115,7 @@ rolesToClass = {
   'HUE_SERVER': 'hdp-hue::server',
   'HDFS_SERVICE_CHECK': 'hdp-hadoop::hdfs::service_check',
   'MAPREDUCE_SERVICE_CHECK': 'hdp-hadoop::mapred::service_check',
+  'MAPREDUCE2_SERVICE_CHECK': 'hdp-yarn::mapred2::service_check',
   'ZOOKEEPER_SERVICE_CHECK': 'hdp-zookeeper::zookeeper::service_check',
   'ZOOKEEPER_QUORUM_SERVICE_CHECK': 'hdp-zookeeper::quorum::service_check',
   'HBASE_SERVICE_CHECK': 'hdp-hbase::hbase::service_check',
@@ -130,6 +131,7 @@ rolesToClass = {
   'RESOURCEMANAGER_SERVICE_CHECK': 'hdp-yarn::resourcemanager::service_check',
   'HISTORYSERVER_SERVICE_CHECK': 'hdp-yarn::historyserver::service_check',
   'TEZ_CLIENT': 'hdp-tez::tez_client',
+  'YARN_SERVICE_CHECK': 'hdp-yarn::yarn::service_check',
   'FLUME_SERVER': 'hdp-flume'
 }
 

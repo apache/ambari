@@ -47,7 +47,8 @@ public class Workflows {
       INPUTBYTES,
       OUTPUTBYTES,
       PARENTWORKFLOWID,
-      WORKFLOWCONTEXT;
+      WORKFLOWCONTEXT,
+      WORKFLOWTAGS;
       
       public String getString(ResultSet rs) throws SQLException {
         return rs.getString(this.toString());
@@ -83,6 +84,7 @@ public class Workflows {
     private int numJobsCompleted;
     private String parentWorkflowId;
     private WorkflowContext workflowContext;
+    private String workflowTags;
     
     public WorkflowDBEntry() {
       /* Required by JAXB. */
@@ -124,6 +126,10 @@ public class Workflows {
       return workflowContext;
     }
     
+    public String getWorkflowTags() {
+      return workflowTags;
+    }
+    
     public void setWorkflowId(String workflowId) {
       this.workflowId = workflowId;
     }
@@ -158,6 +164,10 @@ public class Workflows {
     
     public void setWorkflowContext(WorkflowContext workflowContext) {
       this.workflowContext = workflowContext;
+    }
+    
+    public void setWorkflowTags(String workflowTags) {
+      this.workflowTags = workflowTags;
     }
     
     public long getInputBytes() {

@@ -1080,7 +1080,6 @@ The "end" keyword indicates the end of the set of resources and is equivalent to
 
 The default ordering of the resources (by the natural ordering of the resource key properties) is implied.	
 	
-
 HTTP Return Codes
 ----
 

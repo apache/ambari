@@ -6285,109 +6285,109 @@
         "temporal":true
       },
 
-      "metrics/yarn/Queue/running_0":{
+      "ServiceComponentInfo/rm_metrics/yarn/Queue/running_0":{
         "metric":"yarn.Queue.running_0",
-        "pointInTime":false,
+        "pointInTime":true,
         "temporal":true
       },
-      "metrics/yarn/Queue/running_60":{
-        "metric":"yarn.Queue.running_60",
-        "pointInTime":false,
+      "ServiceComponentInfo/rm_metrics/yarn/Queue/running_60":{
+        "metric":"yarn.QueueMetrics.running_60",
+        "pointInTime":true,
         "temporal":true
       },
-      "metrics/yarn/Queue/running_300":{
-        "metric":"yarn.Queue.running_300",
-        "pointInTime":false,
+      "ServiceComponentInfo/rm_metrics/yarn/Queue/running_300":{
+        "metric":"yarn.QueueMetrics.running_300",
+        "pointInTime":true,
         "temporal":true
       },
-      "metrics/yarn/Queue/running_1440":{
-        "metric":"yarn.Queue.running_1440",
-        "pointInTime":false,
+      "ServiceComponentInfo/rm_metrics/yarn/Queue/running_1440":{
+        "metric":"yarn.QueueMetrics.running_1440",
+        "pointInTime":true,
         "temporal":true
       },
-      "metrics/yarn/Queue/AppsSubmitted":{
-        "metric":"yarn.Queue.AppsSubmitted",
-        "pointInTime":false,
+      "ServiceComponentInfo/rm_metrics/yarn/Queue/AppsSubmitted":{
+        "metric":"yarn.QueueMetrics.AppsSubmitted",
+        "pointInTime":true,
         "temporal":true
       },
-      "metrics/yarn/Queue/AppsRunning":{
-        "metric":"yarn.Queue.AppsRunning",
-        "pointInTime":false,
+      "ServiceComponentInfo/rm_metrics/yarn/Queue/AppsRunning":{
+        "metric":"yarn.QueueMetrics.AppsRunning",
+        "pointInTime":true,
         "temporal":true
       },
-      "metrics/yarn/Queue/AppsPending":{
-        "metric":"yarn.Queue.AppsPending",
-        "pointInTime":false,
+      "ServiceComponentInfo/rm_metrics/yarn/Queue/AppsPending":{
+        "metric":"yarn.QueueMetrics.AppsPending",
+        "pointInTime":true,
         "temporal":true
       },
-      "metrics/yarn/Queue/AppsCompleted":{
-        "metric":"yarn.Queue.AppsCompleted",
-        "pointInTime":false,
+      "ServiceComponentInfo/rm_metrics/yarn/Queue/AppsCompleted":{
+        "metric":"yarn.QueueMetrics.AppsCompleted",
+        "pointInTime":true,
         "temporal":true
       },
-      "metrics/yarn/Queue/AppsKilled":{
-        "metric":"yarn.Queue.AppsKilled",
-        "pointInTime":false,
+      "ServiceComponentInfo/rm_metrics/yarn/Queue/AppsKilled":{
+        "metric":"yarn.QueueMetrics.AppsKilled",
+        "pointInTime":true,
         "temporal":true
       },
-      "metrics/yarn/Queue/AppsFailed":{
-        "metric":"yarn.Queue.AppsFailed",
-        "pointInTime":false,
+      "ServiceComponentInfo/rm_metrics/yarn/Queue/AppsFailed":{
+        "metric":"yarn.QueueMetrics.AppsFailed",
+        "pointInTime":true,
         "temporal":true
       },
-      "metrics/yarn/Queue/AllocatedMB":{
-        "metric":"yarn.Queue.AllocatedMB",
-        "pointInTime":false,
+      "ServiceComponentInfo/rm_metrics/yarn/Queue/AllocatedMB":{
+        "metric":"yarn.QueueMetrics.AllocatedMB",
+        "pointInTime":true,
         "temporal":true
       },
-      "metrics/yarn/Queue/AllocatedContainers":{
-        "metric":"yarn.Queue.AllocatedContainers",
-        "pointInTime":false,
+      "ServiceComponentInfo/rm_metrics/yarn/Queue/AllocatedContainers":{
+        "metric":"yarn.QueueMetrics.AllocatedContainers",
+        "pointInTime":true,
         "temporal":true
       },
-      "metrics/yarn/Queue/AggregateContainersAllocated":{
-        "metric":"yarn.Queue.AggregateContainersAllocated",
-        "pointInTime":false,
+      "ServiceComponentInfo/rm_metrics/yarn/Queue/AggregateContainersAllocated":{
+        "metric":"yarn.QueueMetrics.AggregateContainersAllocated",
+        "pointInTime":true,
         "temporal":true
       },
-      "metrics/yarn/Queue/AggregateContainersReleased":{
-        "metric":"yarn.Queue.AggregateContainersReleased",
-        "pointInTime":false,
+      "ServiceComponentInfo/rm_metrics/yarn/Queue/AggregateContainersReleased":{
+        "metric":"yarn.QueueMetrics.AggregateContainersReleased",
+        "pointInTime":true,
         "temporal":true
       },
-      "metrics/yarn/Queue/AvailableMB":{
-        "metric":"yarn.Queue.AvailableMB",
-        "pointInTime":false,
+      "ServiceComponentInfo/rm_metrics/yarn/Queue/AvailableMB":{
+        "metric":"yarn.QueueMetrics.AvailableMB",
+        "pointInTime":true,
         "temporal":true
       },
-      "metrics/yarn/Queue/PendingMB":{
-        "metric":"yarn.Queue.PendingMB",
-        "pointInTime":false,
+      "ServiceComponentInfo/rm_metrics/yarn/Queue/PendingMB":{
+        "metric":"yarn.QueueMetrics.PendingMB",
+        "pointInTime":true,
         "temporal":true
       },
-      "metrics/yarn/Queue/PendingContainers":{
-        "metric":"yarn.Queue.PendingContainers",
-        "pointInTime":false,
+      "ServiceComponentInfo/rm_metrics/yarn/Queue/PendingContainers":{
+        "metric":"yarn.QueueMetrics.PendingContainers",
+        "pointInTime":true,
         "temporal":true
       },
-      "metrics/yarn/Queue/ReservedMB":{
-        "metric":"yarn.Queue.ReservedMB",
-        "pointInTime":false,
+      "ServiceComponentInfo/rm_metrics/yarn/Queue/ReservedMB":{
+        "metric":"yarn.QueueMetrics.ReservedMB",
+        "pointInTime":true,
         "temporal":true
       },
-      "metrics/yarn/Queue/ReservedContainers":{
-        "metric":"yarn.Queue.ReservedContainers",
-        "pointInTime":false,
+      "ServiceComponentInfo/rm_metrics/yarn/Queue/ReservedContainers":{
+        "metric":"yarn.QueueMetrics.ReservedContainers",
+        "pointInTime":true,
         "temporal":true
       },
-      "metrics/yarn/Queue/ActiveUsers":{
-        "metric":"yarn.Queue.ActiveUsers",
-        "pointInTime":false,
+      "ServiceComponentInfo/rm_metrics/yarn/Queue/ActiveUsers":{
+        "metric":"yarn.QueueMetrics.ActiveUsers",
+        "pointInTime":true,
         "temporal":true
       },
-      "metrics/yarn/Queue/ActiveApplications":{
-        "metric":"yarn.Queue.ActiveApplications",
-        "pointInTime":false,
+      "ServiceComponentInfo/rm_metrics/yarn/Queue/ActiveApplications":{
+        "metric":"yarn.QueueMetrics.ActiveApplications",
+        "pointInTime":true,
         "temporal":true
       },
 

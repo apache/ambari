@@ -90,18 +90,37 @@ class hdp-hbase(
       override_owner => true
     }
 
-   hdp-hbase::configfile { ['hbase-env.sh','hadoop-metrics.properties']: 
+   hdp-hbase::configfile { ['hbase-env.sh','log4j.properties','hadoop-metrics.properties']: 
       type => $type
     }
 
     hdp-hbase::configfile { 'regionservers':}
 
     if ($security_enabled == true) {
-      if ($type == 'master' and $service_state == 'running') {
+      if ($type == 'master') {
         hdp-hbase::configfile { 'hbase_master_jaas.conf' : }
       } elsif ($type == 'regionserver' and $service_state == 'running') {
+
+        $hbase_grant_premissions_file = '/tmp/hbase_grant_permissions.sh'
+
+        file { $hbase_grant_premissions_file:
+          owner   => $hbase_user,
+          group   => $hdp::params::user_group,
+          mode => '0644',
+          content => template('hdp-hbase/hbase_grant_permissions.erb')
+        }
+
+        hdp::exec { '${smokeuser}_grant_privileges' :
+          command => "su - ${smoke_test_user} -c 'hbase --config $conf_dir shell ${hbase_grant_premissions_file}'",
+          require => File[$hbase_grant_premissions_file]
+        }
+
+        Hdp-hbase::Configfile<||> -> File[$hbase_grant_premissions_file] ->
+        Hdp::Exec['${smokeuser}_grant_privileges'] -> Anchor['hdp-hbase::end']
+
+      } elsif ($type == 'regionserver') {
         hdp-hbase::configfile { 'hbase_regionserver_jaas.conf' : }
-      } elsif ($type == 'client') {
+      } else {
         hdp-hbase::configfile { 'hbase_client_jaas.conf' : }
       }
     }

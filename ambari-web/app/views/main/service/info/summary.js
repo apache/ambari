@@ -36,6 +36,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   attributes:null,
   serviceStatus:{
     hdfs:false,
+    yarn:false,
     mapreduce:false,
     mapreduce2:false,
     hbase:false,
@@ -124,6 +125,11 @@ App.MainServiceInfoSummaryView = Em.View.extend({
       }
     }
     return result;
+  }.property('controller.content'),
+
+  historyServerUI: function(){
+    var service=this.get('controller.content');
+    return (App.singleNodeInstall ? "http://" + App.singleNodeAlias + ":19888" : "http://" + service.get("hostComponents").findProperty('isMaster', true).get("host").get("publicHostName")+":19888");
   }.property('controller.content'),
 
   monitors: function () {
@@ -267,6 +273,9 @@ App.MainServiceInfoSummaryView = Em.View.extend({
         case 'hdfs':
           svc = App.HDFSService.find().objectAt(0);
           break;
+        case 'yarn':
+          svc = App.YARNService.find().objectAt(0);
+          break;
         case 'mapreduce':
           svc = App.MapReduceService.find().objectAt(0);
           break;
@@ -319,6 +328,16 @@ App.MainServiceInfoSummaryView = Em.View.extend({
             App.ChartServiceMetricsHDFS_GC.extend(),
             App.ChartServiceMetricsHDFS_JVMHeap.extend(),
             App.ChartServiceMetricsHDFS_JVMThreads.extend()]];
+          break;
+        case 'yarn':
+          graphs = [ /*[App.ChartServiceMetricsYARN_JobsStatus.extend(),
+            App.ChartServiceMetricsYARN_TasksRunningWaiting.extend(),
+            App.ChartServiceMetricsYARN_MapSlots.extend(),
+            App.ChartServiceMetricsYARN_ReduceSlots.extend()],*/
+            [App.ChartServiceMetricsYARN_RPC.extend(),
+            App.ChartServiceMetricsYARN_GC.extend(),
+            App.ChartServiceMetricsYARN_JVMHeap.extend(),
+            App.ChartServiceMetricsYARN_JVMThreads.extend()]];
           break;
         case 'mapreduce':
           graphs = [ [App.ChartServiceMetricsMapReduce_JobsStatus.extend(),

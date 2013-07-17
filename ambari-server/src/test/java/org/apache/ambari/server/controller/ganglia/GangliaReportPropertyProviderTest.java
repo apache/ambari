@@ -45,7 +45,7 @@ public class GangliaReportPropertyProviderTest {
     TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
 
     GangliaReportPropertyProvider propertyProvider = new GangliaReportPropertyProvider(
-        PropertyHelper.getGangliaPropertyIds(Resource.Type.Cluster),
+        PropertyHelper.getGangliaPropertyIds(Resource.Type.Cluster, PropertyHelper.MetricsVersion.HDP1),
         streamProvider,
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID);

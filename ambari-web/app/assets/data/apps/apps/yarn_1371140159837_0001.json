@@ -1,0 +1,18 @@
+{
+    "apps": [
+        {
+            "appId": "application_1371140159837_0001",
+            "appName": "yarnservicecheck",
+            "appType": "YARN",
+            "status": "FINISHED",
+            "userName": "hdfs",
+            "queue": "default",
+            "submitTime": 1371140224391,
+            "launchTime": 1371140224420,
+            "finishTime": 1371140233914,
+            "stages": [],
+            "workflowId": "yarn_1371140159837_0001",
+            "workflowEntityName": "1"
+        }
+    ]
+}

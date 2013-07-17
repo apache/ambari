@@ -36,6 +36,9 @@ import java.util.Set;
 
 import javax.persistence.EntityManager;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
@@ -92,10 +95,6 @@ import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
-
 public class AmbariManagementControllerTest {
 
   private static final Logger LOG =
@@ -108,7 +107,7 @@ public class AmbariManagementControllerTest {
   private static final String REPO_ID = "HDP-1.1.1.16";
   private static final String PROPERTY_NAME = "hbase.regionserver.msginterval";
   private static final String SERVICE_NAME = "HDFS";
-  private static final int STACK_VERSIONS_CNT = 5;
+  private static final int STACK_VERSIONS_CNT = 6;
   private static final int REPOS_CNT = 3;
   private static final int STACKS_CNT = 1;
   private static final int STACK_SERVICES_CNT = 5 ;
@@ -2655,6 +2654,20 @@ public class AmbariManagementControllerTest {
     Assert.assertNull(stage1.getExecutionCommandWrapper(host2, "DATANODE"));
     Assert.assertNotNull(stage3.getExecutionCommandWrapper(host1, "HBASE_SERVICE_CHECK"));
     Assert.assertNotNull(stage2.getExecutionCommandWrapper(host2, "HDFS_SERVICE_CHECK"));
+    
+    for (Stage s : stages) {
+      for (List<ExecutionCommandWrapper> list : s.getExecutionCommands().values()) {
+        for (ExecutionCommandWrapper ecw : list) {
+          if (ecw.getExecutionCommand().getRole().name().contains("SERVICE_CHECK")) {
+            Map<String, String> hostParams = ecw.getExecutionCommand().getHostLevelParams();
+            Assert.assertNotNull(hostParams);
+            Assert.assertTrue(hostParams.size() > 0);
+            Assert.assertTrue(hostParams.containsKey("stack_version"));
+            Assert.assertEquals(hostParams.get("stack_version"), c1.getDesiredStackVersion().getStackVersion());
+          }
+        }
+      }
+    }
 
     // manually set live state
     sch1.setState(State.STARTED);

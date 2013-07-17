@@ -613,6 +613,30 @@ module.exports =
     },
     {
       "id": "puppet var",
+      "name": "mapred_log_dir_prefix",
+      "displayName": "Mapreduce Log Dir Prefix",
+      "description": "",
+      "defaultValue": "/var/log/hadoop-mapreduce",
+      "displayType": "directory",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "MAPREDUCE2",
+      "category": "Advanced"
+    },
+    {
+      "id": "puppet var",
+      "name": "mapred_pid_dir_prefix",
+      "displayName": "Mapreduce PID Dir Prefix",
+      "description": "",
+      "defaultValue": "/var/run/hadoop-mapreduce",
+      "displayType": "directory",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "MAPREDUCE2",
+      "category": "Advanced"
+    },
+    {
+      "id": "puppet var",
       "name": "mapred_hosts_include",
       "displayName": "Include hosts",
       "description": "Include enetered hosts",
@@ -687,6 +711,30 @@ module.exports =
       "serviceName": "YARN",
       "category": "NodeManager",
       "index": 0
+    },
+    {
+      "id": "puppet var",
+      "name": "yarn_log_dir_prefix",
+      "displayName": "YARN Log Dir Prefix",
+      "description": "",
+      "defaultValue": "/var/log/hadoop-yarn",
+      "displayType": "directory",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "YARN",
+      "category": "Advanced"
+    },
+    {
+      "id": "puppet var",
+      "name": "yarn_pid_dir_prefix",
+      "displayName": "YARN PID Dir Prefix",
+      "description": "",
+      "defaultValue": "/var/run/hadoop-yarn",
+      "displayType": "directory",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "YARN",
+      "category": "Advanced"
     },
   /**********************************************HBASE***************************************/
     {
@@ -2023,7 +2071,22 @@ module.exports =
       "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups",
-      "belongsToService":["MAPREDUCE"]
+      "belongsToService":["MAPREDUCE2"]
+    },
+    {
+      "id": "puppet var",
+      "name": "yarn_user",
+      "displayName": "YARN User",
+      "description": "User to run YARN as",
+      "defaultValue": "yarn",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "isOverridable": false,
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "MISC",
+      "category": "Users and Groups",
+      "belongsToService":["YARN"]
     },
     {
       "id": "puppet var",

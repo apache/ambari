@@ -189,5 +189,15 @@ public class RoleGraphTest {
     RoleGraphNode hdfs_service_check = new RoleGraphNode(Role.HDFS_SERVICE_CHECK, RoleCommand.EXECUTE);
     RoleGraphNode snamenode_start = new RoleGraphNode(Role.SECONDARY_NAMENODE, RoleCommand.START);
     Assert.assertEquals(-1, rco.order(snamenode_start, hdfs_service_check));
+    
+    RoleGraphNode mapred2_service_check = new RoleGraphNode(Role.MAPREDUCE2_SERVICE_CHECK, RoleCommand.EXECUTE);
+    RoleGraphNode rm_start = new RoleGraphNode(Role.RESOURCEMANAGER, RoleCommand.START);
+    RoleGraphNode nm_start = new RoleGraphNode(Role.NODEMANAGER, RoleCommand.START);
+    RoleGraphNode hs_start = new RoleGraphNode(Role.HISTORYSERVER, RoleCommand.START);
+    Assert.assertEquals(-1, rco.order(rm_start, mapred2_service_check));
+    Assert.assertEquals(-1, rco.order(nm_start, mapred2_service_check)); 
+    Assert.assertEquals(-1, rco.order(hs_start, mapred2_service_check));
+    Assert.assertEquals(-1, rco.order(hs_start, mapred2_service_check));
+    Assert.assertEquals(1, rco.order(nm_start, rm_start));
   }
 }

@@ -124,7 +124,7 @@ module.exports = [
   },
   {
     "name": "dfs.datanode.address",
-    "templateName": ["dfs_datanode_address"],
+    "templateName": [],
     "foreignKey": null,
     "value": "0.0.0.0:<templateName[0]>",
     "filename": "hdfs-site.xml",
@@ -132,7 +132,7 @@ module.exports = [
   },
   {
     "name": "dfs.datanode.http.address",
-    "templateName": ["dfs_datanode_http_address"],
+    "templateName": [],
     "foreignKey": null,
     "value": "0.0.0.0:<templateName[0]>",
     "filename": "hdfs-site.xml",
@@ -419,6 +419,13 @@ module.exports = [
     "value": "true",
     "filename": "hbase-site.xml",
     "serviceName": "HBASE"
+  },
+  {
+    "name": "hbase.coprocessor.region.classes",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.hadoop.hbase.security.access.AccessController",
+    "filename": "hbase-site.xml"
   },
   {
     "name": "hbase.bulkload.staging.dir",
