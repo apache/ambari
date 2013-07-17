@@ -3074,28 +3074,33 @@ def import_cert_and_key(security_server_keys_dir):
   if retcode == 0:
     keystoreFilePath = os.path.join(security_server_keys_dir,\
                                     SSL_KEYSTORE_FILE_NAME)
+    keystoreFilePathTmp = os.path.join(tempfile.gettempdir(),\
+                                       SSL_KEYSTORE_FILE_NAME)
     passFilePath = os.path.join(security_server_keys_dir,\
                                 SSL_KEY_PASSWORD_FILE_NAME)
+    passFilePathTmp = os.path.join(tempfile.gettempdir(),\
+      SSL_KEY_PASSWORD_FILE_NAME)
     passinFilePath = os.path.join(tempfile.gettempdir(),\
                                    SSL_PASSIN_FILE)
     passwordFilePath = os.path.join(tempfile.gettempdir(),\
                                    SSL_PASSWORD_FILE)
   
-    with open(passFilePath, 'w+') as passFile:
+    with open(passFilePathTmp, 'w+') as passFile:
       passFile.write(pem_password)
       passFile.close
       pass
    
     set_file_permissions(passFilePath, "660", read_ambari_user(), False)
  
-    copy_file(passFilePath, passinFilePath)
-    copy_file(passFilePath, passwordFilePath)
+    copy_file(passFilePathTmp, passinFilePath)
+    copy_file(passFilePathTmp, passwordFilePath)
  
     retcode, out, err = run_os_command(EXPRT_KSTR_CMD.format(import_cert_path,\
-    import_key_path, passwordFilePath, passinFilePath, keystoreFilePath))
+    import_key_path, passwordFilePath, passinFilePath, keystoreFilePathTmp))
   if retcode == 0:
    print 'Importing and saving Certificate...done.'
-   set_file_permissions(keystoreFilePath, "660", read_ambari_user(), False)
+   import_file_to_keystore(keystoreFilePathTmp, keystoreFilePath)
+   import_file_to_keystore(passFilePathTmp, passFilePath)
 
    import_file_to_keystore(import_cert_path, os.path.join(\
                           security_server_keys_dir, SSL_CERT_FILE_NAME))
@@ -3117,7 +3122,10 @@ def import_cert_and_key(security_server_keys_dir):
    return True
   else:
    print_error_msg('Could not import Certificate and Private Key.')
-   print 'SSL error on exporting keystore: ' + err.rstrip() + '.'
+   print 'SSL error on exporting keystore: ' + err.rstrip() + \
+         '.\nPlease ensure that provided Private Key password is correct and ' +\
+         're-import Certificate.'
+
    return False
  
 def import_file_to_keystore(source, destination):
