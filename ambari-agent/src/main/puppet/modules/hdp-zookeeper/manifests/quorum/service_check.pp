@@ -24,7 +24,8 @@ class hdp-zookeeper::quorum::service_check()
   $conf_dir = $hdp-zookeeper::params::conf_dir
   $security_enabled = $hdp::params::security_enabled
   $smoke_test_user = $hdp::params::smokeuser
-
+  $kinit_path = $hdp::params::kinit_path_local
+  $smoke_user_keytab = $hdp::params::smokeuser_keytab
   $smoke_script = $hdp::params::zk_smoke_test_script
   $quorum_smoke_shell_files = ['zkSmoke.sh']
 
@@ -44,7 +45,7 @@ define hdp-zookeeper::quorum_smoke_shell_file()
   }
 
   exec { '/tmp/zkSmoke.sh':
-    command   => "sh /tmp/zkSmoke.sh ${smoke_script} ${smoke_test_user} ${conf_dir} ${security_enabled}",
+    command   => "sh /tmp/zkSmoke.sh ${smoke_script} ${smoke_test_user} ${conf_dir} ${clientPort} ${security_enabled} ${kinit_path} ${smoke_user_keytab}",
     tries     => 3,
     try_sleep => 5,
     require   => File['/tmp/zkSmoke.sh'],

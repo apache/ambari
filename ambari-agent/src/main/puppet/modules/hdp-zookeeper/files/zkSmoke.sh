@@ -23,22 +23,29 @@
 smoke_script=$1
 smoke_user=$2
 conf_dir=$3
-security_enabled=$4
+client_port=$4
+security_enabled=$5
+kinit_path_local=$6
+smoke_user_keytab=$7
 export ZOOKEEPER_EXIT_CODE=0
 zkhosts=` grep "^server\.[[:digit:]]"  $conf_dir/zoo.cfg  | cut -f 2 -d '=' | cut -f 1 -d ':' | tr '\n' ' ' `
 zk_node1=`echo $zkhosts | tr ' ' '\n' | head -n 1`  
 echo "zk_node1=$zk_node1"
+if [[ $security_enabled == "true" ]]; then
+  kinitcmd="$kinit_path_local -kt $smoke_user_keytab $smoke_user"
+  su - $smoke_user -c "$kinitcmd"
+fi
 # Delete /zk_smoketest znode if exists
-su - $smoke_user -c "source $conf_dir/zookeeper-env.sh ;  echo delete /zk_smoketest | ${smoke_script} -server $zk_node1:2181"  
+su - $smoke_user -c "source $conf_dir/zookeeper-env.sh ;  echo delete /zk_smoketest | ${smoke_script} -server $zk_node1:$client_port"
 # Create /zk_smoketest znode on one zookeeper server
-su - $smoke_user -c "source $conf_dir/zookeeper-env.sh ; echo create /zk_smoketest smoke_data | ${smoke_script} -server $zk_node1:2181"
+su - $smoke_user -c "source $conf_dir/zookeeper-env.sh ; echo create /zk_smoketest smoke_data | ${smoke_script} -server $zk_node1:$client_port"
 
 for i in $zkhosts ; do
   echo "Running test on host $i"
   # Verify the data associated with znode across all the nodes in the zookeeper quorum
-  su - $smoke_user -c "source $conf_dir/zookeeper-env.sh ; echo 'get /zk_smoketest' | ${smoke_script} -server $i:2181"
-  su - $smoke_user -c "source $conf_dir/zookeeper-env.sh ; echo 'ls /' | ${smoke_script} -server $i:2181"
-  output=$(su - $smoke_user -c "source $conf_dir/zookeeper-env.sh ; echo 'get /zk_smoketest' | ${smoke_script} -server $i:2181")
+  su - $smoke_user -c "source $conf_dir/zookeeper-env.sh ; echo 'get /zk_smoketest' | ${smoke_script} -server $i:$client_port"
+  su - $smoke_user -c "source $conf_dir/zookeeper-env.sh ; echo 'ls /' | ${smoke_script} -server $i:$client_port"
+  output=$(su - $smoke_user -c "source $conf_dir/zookeeper-env.sh ; echo 'get /zk_smoketest' | ${smoke_script} -server $i:$client_port")
   echo $output | grep smoke_data
   if [[ $? -ne 0 ]] ; then
     echo "Data associated with znode /zk_smoketests is not consistent on host $i"
@@ -46,7 +53,7 @@ for i in $zkhosts ; do
   fi
 done
 
-su - $smoke_user -c "source $conf_dir/zookeeper-env.sh ; echo 'delete /zk_smoketest' | ${smoke_script} -server $zk_node1:2181"
+su - $smoke_user -c "source $conf_dir/zookeeper-env.sh ; echo 'delete /zk_smoketest' | ${smoke_script} -server $zk_node1:$client_port"
 if [[ "$ZOOKEEPER_EXIT_CODE" -ne "0" ]] ; then
   echo "Zookeeper Smoke Test: Failed" 
 else
