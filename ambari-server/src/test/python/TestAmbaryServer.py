@@ -1146,21 +1146,27 @@ class TestAmbariServer(TestCase):
     get_validated_string_input_mock.return_value = "password"
     get_validated_filepath_input_mock.side_effect = \
                                             ["cert_file_path","key_file_path"]
-    os_path_join_mock.side_effect = ["keystore_file_path","pass_file_path",\
-                                        "passin_file_path","password_file_path","keystore_cert_file_path",\
-                                        "keystore_cert_key_file_path",]
+    os_path_join_mock.side_effect = ["keystore_file_path", "keystore_file_path_tmp",\
+                                     "pass_file_path", "pass_file_path_tmp",\
+                                     "passin_file_path","password_file_path",\
+                                     "keystore_cert_file_path",\
+                                     "keystore_cert_key_file_path",]
     run_os_command_mock.return_value = (0, "",	"")
     om = open_mock.return_value
-    expect_import_file_to_keystore = "[call('cert_file_path',"+\
-                                          " 'keystore_cert_file_path'),\n"+\
-                                          " call('key_file_path',"+\
-                                          " 'keystore_cert_key_file_path')]"
+    expect_import_file_to_keystore = "[call('keystore_file_path_tmp',"+\
+                                     " 'keystore_file_path'),\n"+\
+                                     " call('pass_file_path_tmp',"+\
+                                     " 'pass_file_path'),\n"+\
+                                     " call('cert_file_path',"+\
+                                     " 'keystore_cert_file_path'),\n"+\
+                                     " call('key_file_path',"+\
+                                     " 'keystore_cert_key_file_path')]"
 
     ambari_server.import_cert_and_key("key_dir")
     self.assertTrue(get_validated_filepath_input_mock.call_count == 2)
     self.assertTrue(get_validated_string_input_mock.called)
-    self.assertEqual(os_path_join_mock.call_count, 6)
-    self.assertTrue(set_file_permissions_mock.call_count == 2)
+    self.assertEqual(os_path_join_mock.call_count, 8)
+    self.assertTrue(set_file_permissions_mock.call_count == 1)
     self.assertEqual(str(import_file_to_keystore_mock.call_args_list),\
                          expect_import_file_to_keystore)
 
@@ -1190,12 +1196,18 @@ class TestAmbariServer(TestCase):
     get_validated_string_input_mock.return_value = ""
     get_validated_filepath_input_mock.side_effect =\
     ["cert_file_path","key_file_path"]
-    os_path_join_mock.side_effect = ["keystore_file_path","pass_file_path",\
-                                    "passin_file_path","password_file_path","keystore_cert_file_path",\
-                                    "keystore_cert_key_file_path",]
+    os_path_join_mock.side_effect = ["keystore_file_path", "keystore_file_path_tmp",\
+                                     "pass_file_path", "pass_file_path_tmp",\
+                                     "passin_file_path","password_file_path",\
+                                     "keystore_cert_file_path",\
+                                     "keystore_cert_key_file_path",]
     run_os_command_mock.return_value = (0, "",	"")
 
-    expect_import_file_to_keystore = "[call('cert_file_path',"+\
+    expect_import_file_to_keystore = "[call('keystore_file_path_tmp',"+\
+                                     " 'keystore_file_path'),\n"+\
+                                     " call('pass_file_path_tmp',"+\
+                                     " 'pass_file_path'),\n"+\
+                                     " call('cert_file_path',"+\
                                      " 'keystore_cert_file_path'),\n"+\
                                      " call('key_file_path.secured',"+\
                                      " 'keystore_cert_key_file_path')]"
@@ -1203,12 +1215,46 @@ class TestAmbariServer(TestCase):
     ambari_server.import_cert_and_key("key_dir")
     self.assertEquals(get_validated_filepath_input_mock.call_count, 2)
     self.assertTrue(get_validated_string_input_mock.called)
-    self.assertEquals(os_path_join_mock.call_count, 6)
-    self.assertEquals(set_file_permissions_mock.call_count, 2)
+    self.assertEquals(os_path_join_mock.call_count, 8)
+    self.assertEquals(set_file_permissions_mock.call_count, 1)
     self.assertEqual(str(import_file_to_keystore_mock.call_args_list),\
       expect_import_file_to_keystore)
     self.assertTrue(generate_random_string_mock.called)
 
+  @patch("__builtin__.open")
+  @patch.object(ambari_server, "copy_file")
+  @patch.object(ambari_server, "is_root")
+  @patch.object(ambari_server, "read_ambari_user")
+  @patch.object(ambari_server, "set_file_permissions")
+  @patch.object(ambari_server, "import_file_to_keystore")
+  @patch.object(ambari_server, "run_os_command")
+  @patch("os.path.join")
+  @patch.object(ambari_server, "get_validated_filepath_input")
+  @patch.object(ambari_server, "get_validated_string_input")
+  def test_import_cert_and_key_with_incorrect_password(self,
+                                                       get_validated_string_input_mock,\
+                                                       get_validated_filepath_input_mock,\
+                                                       os_path_join_mock,\
+                                                       run_os_command_mock,\
+                                                       import_file_to_keystore_mock,\
+                                                       set_file_permissions_mock,\
+                                                       read_ambari_user_mock,\
+                                                       is_root_mock,\
+                                                       copy_file_mock,\
+                                                       open_mock):
+    get_validated_string_input_mock.return_value = "incorrect_password"
+    get_validated_filepath_input_mock.return_value = 'filename'
+    open_mock.return_value = MagicMock()
+
+    os_path_join_mock.return_value = ''
+    is_root_mock.return_value = True
+
+
+    #provided password doesn't match, openssl command returns an error
+    run_os_command_mock.return_value = (1, "",	"Some error message")
+
+    self.assertFalse(ambari_server.import_cert_and_key_action(*["key_dir", None]))
+    self.assertFalse(ambari_server.import_cert_and_key("key_dir"))
 
   def test_is_valid_cert_exp(self):
     
