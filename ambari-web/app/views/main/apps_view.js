@@ -275,7 +275,7 @@ App.MainAppsView = Em.View.extend({
         }
       });
     });
-    App.router.get('mainAppsItemController').set('lastJobId', null);
+    this.get('controller').set('lastJobId', null);
     this.onChangeViewType();
   },
   /**
