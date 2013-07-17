@@ -3412,7 +3412,39 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(read_password_method.called)
 
     sys.stdout = sys.__stdout__
-    
+
+  @patch.object(ambari_server, 'get_validated_string_input')
+  def test_read_password(self, get_validated_string_input_method):
+    out = StringIO.StringIO()
+    sys.stdout = out
+
+    passwordDefault = ""
+    passwordPrompt = 'Enter Manager Password* : '
+    passwordPattern = ".*"
+    passwordDescr = "Invalid characters in password."
+
+    get_validated_string_input_method.side_effect = ['', 'aaa', 'aaa']
+    password = ambari_server.read_password(passwordDefault, passwordPattern,
+                                passwordPrompt, passwordDescr)
+    self.assertTrue(3, get_validated_string_input_method.call_count)
+    self.assertEquals('aaa', password)
+
+    get_validated_string_input_method.reset_mock()
+    get_validated_string_input_method.side_effect = ['aaa', 'aaa']
+    password = ambari_server.read_password(passwordDefault, passwordPattern,
+                                passwordPrompt, passwordDescr)
+    self.assertTrue(2, get_validated_string_input_method.call_count)
+    self.assertEquals('aaa', password)
+
+    get_validated_string_input_method.reset_mock()
+    get_validated_string_input_method.side_effect = ['aaa']
+    password = ambari_server.read_password('aaa', passwordPattern,
+                                passwordPrompt, passwordDescr)
+    self.assertTrue(1, get_validated_string_input_method.call_count)
+    self.assertEquals('aaa', password)
+
+    sys.stdout = sys.__stdout__
+
   def test_generate_random_string(self):
     random_str_len = 100
     str1 = ambari_server.generate_random_string(random_str_len)

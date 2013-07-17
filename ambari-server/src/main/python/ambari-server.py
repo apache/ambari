@@ -994,14 +994,16 @@ def read_password(passwordDefault=PG_DEFAULT_PASSWORD,
 
   if not password:
     print 'Password cannot be blank.'
-    read_password(passwordDefault, passwordPattern, passwordPrompt, passwordDescr)
+    return read_password(passwordDefault, passwordPattern, passwordPrompt,
+                   passwordDescr)
 
   if password != passwordDefault:
     password1 = get_validated_string_input("Re-enter password: ",
                                            passwordDefault, passwordPattern, passwordDescr, True)
     if password != password1:
       print "Passwords do not match"
-      password = read_password(passwordDefault, passwordPattern, passwordPrompt, passwordDescr)
+      return read_password(passwordDefault, passwordPattern, passwordPrompt,
+                      passwordDescr)
 
   return password
 
