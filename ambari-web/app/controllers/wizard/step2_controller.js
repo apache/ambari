@@ -58,7 +58,7 @@ App.WizardStep2Controller = Em.Controller.extend({
    * set not installed hosts to the hostNameArr
    */
   updateHostNameArr: function(){
-    this.hostNameArr = this.get('hostNames').trim().split(new RegExp("\\s+", "g"));
+    this.hostNameArr = this.get('hostNames').trim().toLowerCase().split(new RegExp("\\s+", "g"));
     this.patternExpression();
     this.get('inputtedAgainHostNames').clear();
     var installedHostNames = App.Host.find().mapProperty('hostName');
