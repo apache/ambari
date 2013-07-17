@@ -60,6 +60,16 @@ public class AgentEnv {
    * The host health report
    */
   private HostHealth hostHealth = new HostHealth();
+  
+  private Integer umask;
+
+  public Integer getUmask() {
+    return umask;
+  }
+
+  public void setUmask(Integer umask) {
+    this.umask = umask;
+  }
 
   public Directory[] getStackFoldersAndFiles() {
       return stackFoldersAndFiles;

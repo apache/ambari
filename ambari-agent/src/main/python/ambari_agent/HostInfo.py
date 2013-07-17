@@ -87,6 +87,8 @@ class HostInfo:
   TIMEOUT_SECONDS = 60
   RESULT_UNAVAILABLE = "unable_to_determine"
   event = threading.Event()
+  
+  current_umask = -1
 
   def __init__(self, config=None):
     self.packages = PackagesAnalyzer()
@@ -250,6 +252,15 @@ class HostInfo:
         reposToRemove.append(repo)
     return reposToRemove
 
+  def getUMask(self):
+    if (self.current_umask == -1):
+     self.current_umask = os.umask(self.current_umask)
+     os.umask(self.current_umask)
+     return self.current_umask
+    else:
+     return self.current_umask
+ 
+ 
   """ Return various details about the host
   componentsMapped: indicates if any components are mapped to this host
   commandsInProgress: indicates if any commands are in progress
@@ -270,6 +281,8 @@ class HostInfo:
     liveSvcs = []
     self.checkLiveServices(self.DEFAULT_LIVE_SERVICES, liveSvcs)
     dict['hostHealth']['liveServices'] = liveSvcs
+    
+    dict['umask'] = str(self.getUMask())
 
     # If commands are in progress or components are already mapped to this host
     # Then do not perform certain expensive host checks

@@ -229,6 +229,7 @@ class TestHostInfo(TestCase):
     self.assertTrue(newlist[1]['status'], "Invalid home directory")
 
 
+  @patch('os.umask')
   @patch.object(HostInfo, 'osdiskAvailableSpace')
   @patch.object(HostCheckReportFileHandler, 'writeHostCheckFile')
   @patch.object(PackagesAnalyzer, 'allAvailablePackages')
@@ -246,7 +247,8 @@ class TestHostInfo(TestCase):
   @patch.object(HostInfo, 'hadoopVarLogCount')
   def test_hostinfo_register(self, hvlc_mock, hvrc_mock, eac_mock, cf_mock, jp_mock,
                              cls_mock, cu_mock, gir_mock, gipbr_mock, gipbn_mock,
-                             gpd_mock, aip_mock, aap_mock, whcf_mock, odas_mock):
+                             gpd_mock, aip_mock, aap_mock, whcf_mock, odas_mock,
+                             os_umask_mock):
     hvlc_mock.return_value = 1
     hvrc_mock.return_value = 1
     gipbr_mock.return_value = ["pkg1"]
@@ -264,6 +266,7 @@ class TestHostInfo(TestCase):
 
     hostInfo.register(dict, False, True)
     self.verifyReturnedValues(dict)
+    self.assertTrue(os_umask_mock.call_count == 2)
 
     hostInfo = HostInfo()
     dict = {}

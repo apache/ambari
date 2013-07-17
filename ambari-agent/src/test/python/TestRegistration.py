@@ -47,6 +47,8 @@ class TestRegistration(TestCase):
     self.assertEquals(data['timestamp'] > 1353678475465L, True, "timestamp should not be empty")
     self.assertEquals(len(data['agentEnv']) > 0, True, "agentEnv should not be empty")
     self.assertEquals(data['agentVersion'], '1.3.0', "agentVersion should not be empty")
+    print data['agentEnv']['umask']
+    self.assertEquals(not data['agentEnv']['umask']== "", True, "agents umask should not be empty")
     self.assertEquals(len(data), 7)
 
     os.remove(ver_file)

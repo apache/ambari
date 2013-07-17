@@ -162,44 +162,64 @@ public class AgentResourceTest extends JerseyTest {
 
   @Test
   public void deserializeClasses() {
+    String DirectoryJSON = "[{name:'/var/lib', type:'directory'},{name:'b', type:'directory'}]";
+    String PackageDetailJSON = "[{name:'abc', version:'2.3', repoName:'HDP'},{name:'abc', version:'3.3', repoName:'HDP-epel'}]";
+    String ExistingUserJSON = "[{name:'hdfs', homeDir:'/var/lib/hadoop', status:''}, " +
+            "{name:'ambari_qa', homeDir:'/var/home/ambari_qa',status:'None'}]";
+    String JavaProcJSON = "[{user:'root', pid:'355', hadoop:'True', command:'cmd'}, " +
+            "{user:'hdfs', pid:'325', hadoop:'False', command:'cmd = 2'}]";
+    String AlternativeJSON = "[{name:'/etc/alternatives/hdfs-conf', target:'/etc/hadoop/conf.dist'}, " +
+            "{name:'abc', target:'def'}]";
+    String AgentEnvJSON = "{\"alternatives\": " + AlternativeJSON + 
+            ", \"existingUsers\": "+ ExistingUserJSON +
+            ", \"umask\": \"18\", \"installedPackages\": "+
+            PackageDetailJSON +", \"stackFoldersAndFiles\": "+ DirectoryJSON +"}";
     AgentEnv.Directory[] dirs = getJsonFormString(
-        "[{name:'/var/lib', type:'directory'},{name:'b', type:'directory'}]",
-        AgentEnv.Directory[].class);
+            DirectoryJSON, AgentEnv.Directory[].class);
     Assert.assertEquals("/var/lib", dirs[0].getName());
     Assert.assertEquals("directory", dirs[1].getType());
 
     AgentEnv.PackageDetail[] pkgs = getJsonFormString(
-        "[{name:'abc', version:'2.3', repoName:'HDP'},{name:'abc', version:'3.3', repoName:'HDP-epel'}]",
-        AgentEnv.PackageDetail[].class);
+        PackageDetailJSON, AgentEnv.PackageDetail[].class);
     Assert.assertEquals("abc", pkgs[0].getName());
     Assert.assertEquals("HDP", pkgs[0].getRepoName());
     Assert.assertEquals("3.3", pkgs[1].getVersion());
 
     AgentEnv.ExistingUser[] users = getJsonFormString(
-        "[{name:'hdfs', homeDir:'/var/lib/hadoop', status:''}, " +
-            "{name:'ambari_qa', homeDir:'/var/home/ambari_qa',status:'None'}]",
-        AgentEnv.ExistingUser[].class);
+        ExistingUserJSON, AgentEnv.ExistingUser[].class);
     Assert.assertEquals("hdfs", users[0].getUserName());
     Assert.assertEquals("/var/lib/hadoop", users[0].getUserHomeDir());
     Assert.assertEquals("None", users[1].getUserStatus());
 
     AgentEnv.JavaProc[] procs = getJsonFormString(
-        "[{user:'root', pid:'355', hadoop:'True', command:'cmd'}, " +
-            "{user:'hdfs', pid:'325', hadoop:'False', command:'cmd = 2'}]",
-        AgentEnv.JavaProc[].class);
+        JavaProcJSON, AgentEnv.JavaProc[].class);
     Assert.assertEquals("root", procs[0].getUser());
     Assert.assertEquals(355, procs[0].getPid());
     Assert.assertEquals("cmd = 2", procs[1].getCommand());
     Assert.assertEquals(false, procs[1].isHadoop());
 
     AgentEnv.Alternative[] alternatives = getJsonFormString(
-        "[{name:'/etc/alternatives/hdfs-conf', target:'/etc/hadoop/conf.dist'}, " +
-            "{name:'abc', target:'def'}]",
-        AgentEnv.Alternative[].class);
+        AlternativeJSON, AgentEnv.Alternative[].class);
     Assert.assertEquals("/etc/alternatives/hdfs-conf", alternatives[0].getName());
     Assert.assertEquals("/etc/hadoop/conf.dist", alternatives[0].getTarget());
     Assert.assertEquals("abc", alternatives[1].getName());
     Assert.assertEquals("def", alternatives[1].getTarget());
+    
+    AgentEnv agentEnv = getJsonFormString(
+            AgentEnvJSON, AgentEnv.class);
+    Assert.assertTrue(18 == agentEnv.getUmask());
+    Assert.assertEquals("/etc/alternatives/hdfs-conf", agentEnv.getAlternatives()[0].getName());
+    Assert.assertEquals("/etc/hadoop/conf.dist", agentEnv.getAlternatives()[0].getTarget());
+    Assert.assertEquals("abc", agentEnv.getAlternatives()[1].getName());
+    Assert.assertEquals("def", agentEnv.getAlternatives()[1].getTarget());
+    Assert.assertEquals("abc", agentEnv.getInstalledPackages()[0].getName());
+    Assert.assertEquals("HDP", agentEnv.getInstalledPackages()[0].getRepoName());
+    Assert.assertEquals("3.3", agentEnv.getInstalledPackages()[1].getVersion());
+    Assert.assertEquals("hdfs", agentEnv.getExistingUsers()[0].getUserName());
+    Assert.assertEquals("/var/lib/hadoop", agentEnv.getExistingUsers()[0].getUserHomeDir());
+    Assert.assertEquals("None", agentEnv.getExistingUsers()[1].getUserStatus());
+    Assert.assertEquals("/var/lib", agentEnv.getStackFoldersAndFiles()[0].getName());
+    Assert.assertEquals("directory", agentEnv.getStackFoldersAndFiles()[1].getType());    
   }
 
   public class MockModule extends AbstractModule {
