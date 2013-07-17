@@ -94,6 +94,7 @@ public interface Service {
 
   public enum Type {
     HDFS,
+    HCFS,
     MAPREDUCE,
     HBASE,
     HIVE,
