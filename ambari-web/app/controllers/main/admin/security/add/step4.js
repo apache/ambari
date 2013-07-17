@@ -172,7 +172,7 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
         currentStage.set('isStarted', true);
         if (App.testMode) {
           currentStage.set('isError', false);
-          currentStage.set('isCompleted', true);
+          currentStage.set('isSuccess', true);
         } else {
           this.loadClusterConfigs();
         }
