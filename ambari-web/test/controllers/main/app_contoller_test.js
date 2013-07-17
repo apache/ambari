@@ -177,8 +177,34 @@ describe('MainAppsController', function () {
            "&iDisplayStart=10" +
            "&iSortCol_0=1" +
            "&sSortDir_0=ASC");
-     })
+       expect(mainAppsController.get('filterObject.viewType')).to.equal('filtered');
+     });
+
+     it('should set viewType to "all" when set iDisplayLength, iDisplayStart, iSortCol_0, sSortDir_0', function () {
+       mainAppsController.set("filterObject.sSearch_0", "");
+       mainAppsController.set("filterObject.sSearch_1", "");
+       mainAppsController.set("filterObject.sSearch_2", "");
+       mainAppsController.set("filterObject.sSearch_3", "");
+       mainAppsController.set("filterObject.minJobs", "");
+       mainAppsController.set("filterObject.maxJobs", "");
+       mainAppsController.set("filterObject.minInputBytes", "");
+       mainAppsController.set("filterObject.maxInputBytes", "");
+       mainAppsController.set("filterObject.minOutputBytes", "");
+       mainAppsController.set("filterObject.maxOutputBytes", "");
+       mainAppsController.set("filterObject.minDuration", "");
+       mainAppsController.set("filterObject.maxDuration", "");
+       mainAppsController.set("filterObject.minStartTime", "");
+       mainAppsController.set("filterObject.maxStartTime", "");
+       mainAppsController.set("filterObject.sSearch", "");
+       mainAppsController.set("filterObject.iDisplayLength", "10");
+       mainAppsController.set("filterObject.iDisplayStart", "10");
+       mainAppsController.set("filterObject.iSortCol_0", "1");
+       mainAppsController.set("filterObject.sSortDir_0", "ASC");
+       expect(mainAppsController.get('filterObject.viewType')).to.equal('all');
+     });
    });
+
+
 
 
  });

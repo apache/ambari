@@ -326,21 +326,23 @@ App.MainAppsController = Em.ArrayController.extend({
         "iSortCol_0", "sSortDir_0"
       ];
 
+      var notFilterFields = ["iDisplayLength", "iDisplayStart", "iSortCol_0", "sSortDir_0"];
+
+      var filtersUsed = false;
+
       for (var n=0; n<arr.length;n++) {
         if(this.get(arr[n])){
           link += arr[n] + "=" + this.get(arr[n]) + "&";
+          if (!notFilterFields.contains(arr[n])) {
+            filtersUsed = true;
+          }
         }
       };
 
       link = link.slice(0,link.length-1);
 
-      var valueInString=link.match(/&/g);
-
-      if(!this.get("viewTypeClickEvent"))
-      if(valueInString != null){
-        this.set("viewType","filtered");
-      }else{
-        this.set("viewType","all");
+      if(!this.get("viewTypeClickEvent")) {
+        this.set('viewType', filtersUsed?'filtered':'all');
       }
 
       return link;
