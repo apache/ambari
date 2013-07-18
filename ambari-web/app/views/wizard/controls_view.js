@@ -90,7 +90,7 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
  */
 App.ServiceConfigTextFieldWithUnit = Ember.View.extend(App.ServiceConfigPopoverSupport, {
   valueBinding: 'serviceConfig.value',
-  classNames: [ 'input-append' ],
+  classNames: ['input-append','with-unit'],
   placeholderBinding: 'serviceConfig.defaultValue',
 
   template: Ember.Handlebars.compile('{{view App.ServiceConfigTextField serviceConfigBinding="view.serviceConfig" isPopoverEnabled="false"}}<span class="add-on">{{view.serviceConfig.unit}}</span>'),
