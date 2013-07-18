@@ -2685,6 +2685,71 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       # Expected
       self.assertTrue("The cli was not found" in fe.reason)
 
+  @patch.object(ambari_server, 'verify_setup_allowed')
+  @patch("sys.exit")
+  @patch.object(ambari_server, "get_YN_input")
+  @patch.object(ambari_server, "get_db_cli_tool")
+  @patch.object(ambari_server, "is_local_database")
+  @patch.object(ambari_server, "check_iptables")
+  @patch.object(ambari_server, "check_jdbc_drivers")
+  @patch.object(ambari_server, "is_root")
+  @patch.object(ambari_server, "check_ambari_user")
+  @patch.object(ambari_server, "download_jdk")
+  @patch.object(ambari_server, "configure_os_settings")
+  @patch('__builtin__.raw_input')
+  def test_store_remote_properties(self,raw_input, configure_os_settings_mock,
+        download_jdk_mock, check_ambari_user_mock, is_root_mock,
+        check_jdbc_drivers_mock, check_iptables_mock, is_local_db_mock,
+        get_db_cli_tool_mock, get_YN_input, exit_mock, verify_setup_allowed_method):
+
+    raw_input.return_value =""
+    is_root_mock.return_value = True
+    is_local_db_mock.return_value = False
+    get_YN_input.return_value = False
+    check_iptables_mock.return_value = (0, "other")
+    get_db_cli_tool_mock.return_value = None
+    check_jdbc_drivers_mock.return_value=0
+    check_ambari_user_mock.return_value = 0
+    download_jdk_mock.return_value = 0
+    configure_os_settings_mock.return_value = 0
+    verify_setup_allowed_method.return_value = 0
+
+    import optparse
+
+    args = optparse.Values()
+    args.database = "oracle"
+    args.database_host = "localhost"
+    args.database_port = "1234"
+    args.database_name = "ambari"
+    args.sid_or_sname = "foo"
+    args.database_username = "foo"
+    args.database_password = "foo"
+
+    tempdir = tempfile.gettempdir()
+
+    prop_file = os.path.join(tempdir, "ambari.properties")
+
+    with open(prop_file, "w") as f:
+      f.write("dummy=dummy")
+    f.close()
+
+    os.environ[ambari_server.AMBARI_CONF_VAR] = tempdir
+    ambari_server.DATABASE_INDEX = 1
+
+    ambari_server.store_remote_properties(args)
+
+    properties = ambari_server.get_ambari_properties()
+
+    found = False
+    for n in properties.propertyNames():
+      if not found and n.startswith("server.jdbc.properties"):
+        found = True
+
+    ambari_server.DATABASE_INDEX = 0
+    del os.environ[ambari_server.AMBARI_CONF_VAR]
+    os.remove(prop_file)
+
+    self.assertTrue(found)
 
   @patch.object(ambari_server, "parse_properties_file")
   @patch.object(ambari_server, "get_db_cli_tool")

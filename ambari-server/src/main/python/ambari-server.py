@@ -276,6 +276,17 @@ DATABASE_DROP_SCRIPTS = ['/var/lib/ambari-server/resources/Ambari-DDL-Postgres-R
                          '/var/lib/ambari-server/resources/Ambari-DDL-Oracle-DROP.sql',
                          '/var/lib/ambari-server/resources/Ambari-DDL-MySQL-DROP.sql']
 
+JDBC_PROPERTIES_PREFIX = "server.jdbc.properties."
+DATABASE_JDBC_PROPERTIES = [
+                         [ ],
+                         [
+                           ["oracle.net.CONNECT_TIMEOUT", "2000"], # socket level timeout
+                           ["oracle.net.READ_TIMEOUT", "2000"], # socket level timeout
+                           ["oracle.jdbc.ReadTimeout", "8000"] # query fetch timeout
+                         ],
+                         [ ]
+                        ]
+
 REGEX_IP_ADDRESS = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
 REGEX_HOSTNAME = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
 REGEX_HOSTNAME_PORT = "^(.*:[0-9]{1,5}$)"
@@ -1145,6 +1156,12 @@ def store_remote_properties(args):
   properties.process_pair(JDBC_USER_NAME_PROPERTY, args.database_username)
   properties.process_pair(JDBC_PASSWORD_PROPERTY,
       store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
+  
+  # save any other defined properties to pass to JDBC
+  if DATABASE_INDEX < len(DATABASE_JDBC_PROPERTIES):
+    for pair in DATABASE_JDBC_PROPERTIES[DATABASE_INDEX]:
+      properties.process_pair(JDBC_PROPERTIES_PREFIX + pair[0], pair[1])
+
   if isSecure:
     encrypted_password = encrypt_password(JDBC_RCA_PASSWORD_ALIAS, args.database_password)
     if encrypted_password != args.database_password:
