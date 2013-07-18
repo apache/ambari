@@ -241,7 +241,7 @@ App.ClusterController = Em.Controller.extend({
       callback();
       return false;
     }
-    
+
     var servicesUrl = this.getUrl('/data/dashboard/services.json', '/services?fields=ServiceInfo,components/host_components/HostRoles/desired_state,components/host_components/HostRoles/state');
 
     App.HttpClient.get(servicesUrl, App.statusMapper, {
@@ -267,7 +267,7 @@ App.ClusterController = Em.Controller.extend({
     if(!this.get('isWorking')){
       return false;
     }
-    App.updater.run(this, 'loadUpdatedStatus', 'isWorking'); //update will not run it immediately
+    App.updater.run(this, 'loadUpdatedStatus', 'isWorking', App.componentsUpdateInterval); //update will not run it immediately
     App.updater.run(this, 'loadAlerts', 'isWorking'); //update will not run it immediately
     return true;
   }.observes('isWorking'),
