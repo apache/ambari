@@ -2434,7 +2434,7 @@ def setup_ldap():
   ldap_properties_map_reqd =\
   {
     ldap_property_list_reqd[0]:(LDAP_PRIMARY_URL_DEFAULT, "Primary URL* {{host:port}} {0}: ".format(get_prompt_default(LDAP_PRIMARY_URL_DEFAULT)), False),\
-    ldap_property_list_reqd[1]:(LDAP_SECONDARY_URL_DEFAULT, "Secondary URL {0}: ".format(get_prompt_default(LDAP_SECONDARY_URL_DEFAULT)), True),\
+    ldap_property_list_reqd[1]:(LDAP_SECONDARY_URL_DEFAULT, "Secondary URL {{host:port}} {0}: ".format(get_prompt_default(LDAP_SECONDARY_URL_DEFAULT)), True),\
     ldap_property_list_reqd[2]:(LDAP_USE_SSL_DEFAULT, "Use SSL* [true/false] {0}: ".format(get_prompt_default(LDAP_USE_SSL_DEFAULT)), False),\
     ldap_property_list_reqd[3]:(LDAP_USER_ATT_DEFAULT, "User name attribute* {0}: ".format(get_prompt_default(LDAP_USER_ATT_DEFAULT)), False),\
     ldap_property_list_reqd[4]:(LDAP_BASE_DN_DEFAULT, "Base DN* {0}: ".format(get_prompt_default(LDAP_BASE_DN_DEFAULT)), False),\
@@ -2443,7 +2443,7 @@ def setup_ldap():
 
   ldap_property_value_map = {}
   for idx, key in enumerate(ldap_property_list_reqd):
-    if idx == 0:
+    if idx in [0, 1]:
       pattern = REGEX_HOSTNAME_PORT
     elif idx in [2, 5]:
       pattern = REGEX_TRUE_FALSE

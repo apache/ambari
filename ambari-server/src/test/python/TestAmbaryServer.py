@@ -3402,6 +3402,76 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                       key=operator.itemgetter(0))
     self.assertEquals(sorted_x, sorted_y)
 
+  @patch('__builtin__.raw_input')
+  @patch.object(ambari_server, 'get_is_secure')
+  @patch.object(ambari_server, 'get_YN_input')
+  @patch.object(ambari_server, 'update_properties')
+  @patch.object(ambari_server, 'search_file')
+  @patch.object(ambari_server, 'get_ambari_properties')
+  @patch.object(ambari_server, 'is_root')
+  def test_setup_ldap_invalid_input(self, is_root_method, get_ambari_properties_method,
+                      search_file_message,
+                      update_properties_method,
+                      get_YN_input_method,
+                      get_is_secure_method,
+                      raw_input_mock):
+    out = StringIO.StringIO()
+    sys.stdout = out
+    is_root_method.return_value = True
+    search_file_message.return_value = "filepath"
+
+    configs = { ambari_server.SECURITY_MASTER_KEY_LOCATION : "filepath",
+                ambari_server.SECURITY_KEYS_DIR : tempfile.gettempdir(),
+                ambari_server.SECURITY_IS_ENCRYPTION_ENABLED : "true"
+    }
+
+    get_ambari_properties_method.return_value = configs
+    raw_input_mock.side_effect = ['a:3', 'b:b', 'host', 'b:2', 'false', 'uid', 'base', 'true']
+    ambari_server.SILENT = False
+    get_YN_input_method.return_value = True
+
+    ambari_server.setup_ldap()
+
+    ldap_properties_map = \
+      {
+        "authentication.ldap.primaryUrl" : "a:3",
+        "authentication.ldap.secondaryUrl" : "b:2",
+        "authentication.ldap.useSSL" : "false",
+        "authentication.ldap.usernameAttribute" : "uid",
+        "authentication.ldap.baseDn" : "base",
+        "authentication.ldap.bindAnonymously" : "true",
+        "client.security" : "ldap"
+      }
+
+    sorted_x = sorted(ldap_properties_map.iteritems(), key=operator.itemgetter(0))
+    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
+                      key=operator.itemgetter(0))
+    self.assertEquals(sorted_x, sorted_y)
+    self.assertTrue(get_YN_input_method.called)
+    self.assertTrue(8, raw_input_mock.call_count)
+
+    raw_input_mock.reset_mock()
+    raw_input_mock.side_effect = ['a:3', '', 'b:2', 'false', 'uid', 'base', 'true']
+
+    ambari_server.setup_ldap()
+
+    ldap_properties_map = \
+      {
+        "authentication.ldap.primaryUrl" : "a:3",
+        "authentication.ldap.useSSL" : "false",
+        "authentication.ldap.usernameAttribute" : "uid",
+        "authentication.ldap.baseDn" : "base",
+        "authentication.ldap.bindAnonymously" : "true",
+        "client.security" : "ldap"
+      }
+
+    sorted_x = sorted(ldap_properties_map.iteritems(), key=operator.itemgetter(0))
+    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
+                      key=operator.itemgetter(0))
+    self.assertEquals(sorted_x, sorted_y)
+    self.assertTrue(5, raw_input_mock.call_count)
+
+    sys.stdout = sys.__stdout__
 
   @patch.object(ambari_server, 'get_is_secure')
   @patch.object(ambari_server, 'encrypt_password')
