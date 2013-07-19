@@ -51,6 +51,7 @@ App.MainAdminSecurityController = Em.Controller.extend({
           App.db.setSecurityDeployStages(undefined);
           self.setDisableSecurityStatus("RUNNING");
           App.router.transitionTo('disableSecurity');
+          this.hide();
         },
         bodyClass: Ember.View.extend({
           isMapReduceInstalled: App.Service.find().mapProperty('serviceName').contains('MAPREDUCE'),
