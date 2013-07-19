@@ -638,6 +638,7 @@ Em.I18n.translations = {
   'admin.security.enable.popup.header': 'Add security',
   'admin.security.disable.popup.header': 'Remove security',
   'admin.security.disable.popup.body': 'Kerberos security will be disabled on the cluster',
+  'admin.security.disable.popup.body.warning' : 'Note: Before proceeding, you need to manually remove all directories listed in the mapred.local.dir property in mapred-site.xml on all TaskTracker hosts; otherwise, MapReduce will not run properly after disabling security.',
   'admin.addSecurity.header': 'Enable Security Wizard',
   'admin.security.step1.header': 'Get Started',
   'admin.security.step2.header': 'Configure Services',
