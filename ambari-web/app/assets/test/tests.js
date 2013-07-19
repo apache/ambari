@@ -58,6 +58,7 @@ require('test/utils/misc_test');
 require('test/utils/validator_test');
 require('test/utils/string_utils_test');
 require('test/views/common/chart/linear_time_test');
+require('test/views/common/filter_view_test');
 require('test/models/host_component_test');
 require('test/models/host_test');
 require('test/models/rack_test');
