@@ -265,11 +265,11 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
 
 
   checkServiceForConfigValue: function (value, serviceNames) {
-    serviceNames.forEach(function(_serviceName){
+    serviceNames.forEach(function (_serviceName) {
       if (!App.Service.find().mapProperty('serviceName').contains(_serviceName.name)) {
         value = value.replace(_serviceName.replace, '');
       }
-    },this);
+    }, this);
 
     return value;
   },
@@ -585,8 +585,9 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
       }
       _tag.configs = data.items.findProperty('type', _tag.siteName).properties;
     }, this);
-    this.addSecureConfigs();
-    this.applyConfigurationsToCluster();
+    if (this.addSecureConfigs()) {
+      this.applyConfigurationsToCluster();
+    }
   },
 
   getAllConfigurationsErrorCallback: function (request, ajaxOptions, error) {
@@ -600,30 +601,57 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
   },
 
   addSecureConfigs: function () {
-    this.get('serviceConfigTags').forEach(function (_serviceConfigTags) {
-      _serviceConfigTags.newTagName = 'version' + (new Date).getTime();
-      if (_serviceConfigTags.siteName === 'global') {
-        var realmName = this.get('globalProperties').findProperty('name', 'kerberos_domain');
-        if (this.get('isNagiosSelected')) {
-          var nagiosPrincipalName = this.get('globalProperties').findProperty('name', 'nagios_principal_name');
-          nagiosPrincipalName.value = nagiosPrincipalName.value + '@' + realmName.value;
-        }
-        if (this.get('isZkSelected')) {
-          var zkPrincipalName = this.get('globalProperties').findProperty('name', 'zookeeper_principal_name');
-          zkPrincipalName.value = zkPrincipalName.value + '@' + realmName.value;
-        }
-        this.get('globalProperties').forEach(function (_globalProperty) {
-          if (!/_hosts?$/.test(_globalProperty.name)) {
-            _serviceConfigTags.configs[_globalProperty.name] = _globalProperty.value;
+    try {
+      this.get('serviceConfigTags').forEach(function (_serviceConfigTags) {
+        _serviceConfigTags.newTagName = 'version' + (new Date).getTime();
+        if (_serviceConfigTags.siteName === 'global') {
+          var realmName = this.get('globalProperties').findProperty('name', 'kerberos_domain');
+          if (this.get('isNagiosSelected')) {
+            var nagiosPrincipalName = this.get('globalProperties').findProperty('name', 'nagios_principal_name');
+            nagiosPrincipalName.value = nagiosPrincipalName.value + '@' + realmName.value;
           }
-        }, this);
+          if (this.get('isZkSelected')) {
+            var zkPrincipalName = this.get('globalProperties').findProperty('name', 'zookeeper_principal_name');
+            zkPrincipalName.value = zkPrincipalName.value + '@' + realmName.value;
+          }
+          this.get('globalProperties').forEach(function (_globalProperty) {
+            if (!/_hosts?$/.test(_globalProperty.name)) {
+              _serviceConfigTags.configs[_globalProperty.name] = _globalProperty.value;
+            }
+          }, this);
+        }
+        else {
+          this.get('configs').filterProperty('id', 'site property').filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
+            _serviceConfigTags.configs[_config.name] = _config.value;
+          }, this);
+        }
+      }, this);
+    } catch (err) {
+      var stage3 = this.get('stages').findProperty('stage', 'stage3');
+      if (stage3) {
+        stage3.set('isSuccess', false);
+        stage3.set('isError', true);
       }
-      else {
-        this.get('configs').filterProperty('id', 'site property').filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
-          _serviceConfigTags.configs[_config.name] = _config.value;
-        }, this);
+      if (err) {
+        console.log("Error: Error occurred while applying secure configs to the server. Error message: " + err);
       }
-    }, this);
+      this.onJsError();
+      return false;
+    }
+    return true;
+  },
+
+  onJsError: function () {
+    App.ModalPopup.show({
+      header: Em.I18n.t('common.error'),
+      secondary: false,
+      onPrimary: function () {
+        this.hide();
+      },
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile('<p>{{t admin.security.apply.configuration.error}}</p>')
+      })
+    });
   },
 
   saveStagesOnRequestId: function () {
@@ -657,7 +685,7 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
       if (!App.testMode) {
         App.clusterStatus.setClusterStatus({
           clusterName: this.get('clusterName'),
-          clusterState: 'ADD_SECURITY_STEP_3',
+          clusterState: 'ADD_SECURITY_STEP_4',
           wizardControllerName: App.router.get('addSecurityController.name'),
           localdb: App.db.data.AddSecurity
         });
