@@ -90,12 +90,12 @@ class hdp-hadoop::namenode(
     }
 
     #top level does not need anchors
-    Class['hdp-hadoop'] -> Hdp-hadoop::Namenode::Create_name_dirs<||> -> Hdp-hadoop::Service['namenode'] ->
+    Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Namenode::Create_name_dirs<||> -> Hdp-hadoop::Service['namenode'] ->
       # Now, creating directories inside HDFS
-      Hdp-hadoop::Namenode::Create_app_directories<||> -> Hdp-hadoop::Namenode::Create_user_directories<||>
+      Hdp-hadoop::Namenode::Create_app_directories<||> -> Hdp-hadoop::Namenode::Create_user_directories<||> -> Anchor['hdp-hadoop::end']
     if ($service_state == 'running' and $format == true) {
-      Class['hdp-hadoop'] -> Hdp-hadoop::Namenode::Create_name_dirs<||> ->
-        Class['hdp-hadoop::namenode::format'] -> Hdp-hadoop::Service['namenode']
+      Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Namenode::Create_name_dirs<||> ->
+        Class['hdp-hadoop::namenode::format'] -> Hdp-hadoop::Service['namenode'] -> Anchor['hdp-hadoop::end']
     }
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
