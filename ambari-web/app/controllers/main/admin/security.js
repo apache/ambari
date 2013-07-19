@@ -34,7 +34,7 @@ App.MainAdminSecurityController = Em.Controller.extend({
   setDisableSecurityStatus: function (status) {
     App.db.setDisableSecurityStatus(status);
   },
-  getDisableSecurityStatus: function(status) {
+  getDisableSecurityStatus: function (status) {
     return App.db.getDisableSecurityStatus();
   },
 
@@ -44,15 +44,31 @@ App.MainAdminSecurityController = Em.Controller.extend({
   notifySecurityOffPopup: function () {
     var self = this;
     if (!this.get('isSubmitDisabled')) {
-      App.showConfirmationPopup(function () {
-        App.db.setSecurityDeployStages(undefined);
-        self.setDisableSecurityStatus("RUNNING");
-        App.router.transitionTo('disableSecurity');
-      }, Em.I18n.t('admin.security.disable.popup.body'));
+      App.ModalPopup.show({
+        header: Em.I18n.t('popup.confirmation.commonHeader'),
+        primary: Em.I18n.t('ok'),
+        onPrimary: function () {
+          App.db.setSecurityDeployStages(undefined);
+          self.setDisableSecurityStatus("RUNNING");
+          App.router.transitionTo('disableSecurity');
+        },
+        bodyClass: Ember.View.extend({
+          isMapReduceInstalled: App.Service.find().mapProperty('serviceName').contains('MAPREDUCE'),
+          template: Ember.Handlebars.compile([
+            '<div class="alert">',
+            '{{t admin.security.disable.popup.body}}',
+            '{{#if view.isMapReduceInstalled}}',
+            '<br>',
+            '{{t admin.security.disable.popup.body.warning}}',
+            '{{/if}}',
+            '</div>'
+          ].join('\n'))
+        })
+      })
     }
   },
 
-  getUpdatedSecurityStatus: function() {
+  getUpdatedSecurityStatus: function () {
     this.setSecurityStatus();
     return this.get('securityEnabled');
   },
@@ -72,7 +88,7 @@ App.MainAdminSecurityController = Em.Controller.extend({
     }
   },
 
-  errorCallback: function() {
+  errorCallback: function () {
     this.set('dataIsLoaded', true);
     this.showSecurityErrorPopup();
   },
@@ -104,7 +120,7 @@ App.MainAdminSecurityController = Em.Controller.extend({
   getServiceConfigsFromServerSuccessCallback: function (data) {
     console.log("TRACE: In success function for the GET getServiceConfigsFromServer call");
     var configs = data.items.findProperty('tag', this.get('tag')).properties;
-    if (configs && (configs['security_enabled'] === 'true'  ||configs['security_enabled'] === true)) {
+    if (configs && (configs['security_enabled'] === 'true' || configs['security_enabled'] === true)) {
       this.set('securityEnabled', true);
     }
     else {
