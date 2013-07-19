@@ -81,8 +81,7 @@ class hdp-hadoop::datanode(
     }
     
     #top level does not need anchors
-    Class['hdp-hadoop'] -> Hdp-hadoop::Service['datanode']
-    Hdp-hadoop::Datanode::Create_data_dirs<||> -> Hdp-hadoop::Service['datanode']
+    Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Datanode::Create_data_dirs<||> -> Hdp-hadoop::Service['datanode'] -> Anchor['hdp-hadoop::end'] 
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
   }

@@ -75,8 +75,10 @@ class hdp-hadoop::jobtracker(
     }
 
     #top level does not need anchors
-    Class['hdp-hadoop'] -> Hdp-hadoop::Service['jobtracker'] -> Hdp-hadoop::Service['historyserver']
-    Hdp-hadoop::Jobtracker::Create_local_dirs<||> -> Hdp-hadoop::Service['jobtracker']
+    Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Service['jobtracker'] -> Hdp-hadoop::Service['historyserver'] 
+    -> Anchor['hdp-hadoop::end']
+    Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Jobtracker::Create_local_dirs<||> -> Hdp-hadoop::Service['jobtracker'] 
+    -> Anchor['hdp-hadoop::end']
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
   }
