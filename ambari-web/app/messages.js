@@ -142,7 +142,8 @@ Em.I18n.translations = {
   'common.process': 'Process',
   'common.property': 'Property',
   'common.installed': 'Installed',
-
+  'common.persist.error' : 'Error in persisting web client state at ambari server',
+  'common.update.error' : 'Error in retrieving web client state from ambari server',
   'requestInfo.installComponents':'Install Components',
   'requestInfo.installServices':'Install Services',
   'requestInfo.startServices':'Start Services',
@@ -652,13 +653,14 @@ Em.I18n.translations = {
   'admin.security.step2.body.header': 'Configure Kerberos security properties',
   'admin.security.step3.notice': 'You need to create the following principals and keytabs on the hosts shown.<br />'+
   'You can download the list as a CSV file and use it to create a script to generate the principals and keytabs. ' +
-  'Once the principals and keytabs have been created, click on <i>Proceed</i> to continue. If you need to make configuration changes, click <i>Back</i>.',
+  'Once the principals and keytabs have been created, click on <i>Apply</i> to continue. If you need to make configuration changes, click <i>Back</i>.',
   'admin.security.step3.table.principal': 'Principal',
   'admin.security.step3.table.keytab': 'Keytab',
   'admin.security.step3.downloadCSV': 'Download CSV',
   'admin.security.step4.body.header': 'Applying kerberos security to the cluster',
   'admin.security.step4.body.success.header' : 'Kerberos-based security has been enabled on your cluster. Please wait while services are started in secure mode.',
   'admin.security.step4.body.failure.header' : 'Failed to enable Kerberos-based security on your cluster. Your cluster will keep running in non-secure mode.',
+  'admin.security.apply.configuration.error' : 'Failed to apply secure configurations to the cluster. Please navigate to "Configure Services" step and make sure all services are configured with appropriate values.',
   'admin.security.disable.body.header' : 'Disabling kerberos security on the cluster',
   'admin.security.disable.body.success.header': 'Kerberos-based security has been disabled on your cluster. Please wait while services are started in non-secure mode.',
   'admin.security.disable.body.failure.header': 'Failed to disable Kerberos-based security on your cluster. Your cluster will keep running in secure mode.',

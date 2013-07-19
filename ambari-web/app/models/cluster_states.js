@@ -65,7 +65,18 @@ App.clusterStatus = Ember.Object.create({
           if (xhr.status == 404) {
             // default status already set
             console.log('Persist API did NOT find the key CLUSTER_CURRENT_STATUS');
+            return;
           }
+          App.ModalPopup.show({
+            header: Em.I18n.t('common.error'),
+            secondary: false,
+            onPrimary: function () {
+              this.hide();
+            },
+            bodyClass: Ember.View.extend({
+              template: Ember.Handlebars.compile('<p>{{t common.update.error}}</p>')
+            })
+          });
         },
         statusCode: require('data/statusCodes')
       }
@@ -112,11 +123,34 @@ App.clusterStatus = Ember.Object.create({
         data: JSON.stringify(keyValuePair),
         beforeSend: function () {
           console.log('BeforeSend: persistKeyValues', keyValuePair);
-        }
+        },
+        error: function () {
+          console.log("ERROR");
+          if(newValue.errorCallBack) {
+            newValue.errorCallBack();
+          } else {
+            this.clusterStatusErrorCallBack();
+          }
+        },
+        statusCode: require('data/statusCodes')
       });
       return newValue;
     }
   },
+
+  clusterStatusErrorCallBack: function() {
+    App.ModalPopup.show({
+      header: Em.I18n.t('common.error'),
+      secondary: false,
+      onPrimary: function () {
+        this.hide();
+      },
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile('<p>{{t common.persist.error}}</p>')
+      })
+    });
+  },
+
   /**
    * general info about cluster
    */

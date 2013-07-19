@@ -273,8 +273,9 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
       }
       _tag.configs = data.items.findProperty('type', _tag.siteName).properties;
     }, this);
-    this.removeSecureConfigs();
-    this.applyConfigurationsToCluster();
+    if (this.removeSecureConfigs()) {
+      this.applyConfigurationsToCluster();
+    }
   },
 
   getAllConfigurationsErrorCallback: function (request, ajaxOptions, error) {
@@ -344,51 +345,64 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
 
 
   removeSecureConfigs: function () {
-    this.get('serviceConfigTags').forEach(function (_serviceConfigTags, index) {
-      _serviceConfigTags.newTagName = 'version' + (new Date).getTime();
-      if (_serviceConfigTags.siteName === 'global') {
-        this.get('secureProperties').forEach(function (_config) {
-          if (_config.name in _serviceConfigTags.configs) {
-            delete _serviceConfigTags.configs[_config.name];
-          }
-        }, this);
-        _serviceConfigTags.configs.security_enabled = 'false';
-        _serviceConfigTags.configs.dfs_datanode_address = '50010';
-        _serviceConfigTags.configs.dfs_datanode_http_address = '50075';
-      } else {
-        this.get('secureMapping').filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
-          var configName = _config.name;
-          if (configName in _serviceConfigTags.configs) {
-            switch (configName) {
-              case 'dfs.datanode.address':
-                _serviceConfigTags.configs[configName] = '0.0.0.0:50010';
-                break;
-              case 'dfs.datanode.http.address':
-                _serviceConfigTags.configs[configName] = '0.0.0.0:50075';
-                break;
-              case 'mapred.task.tracker.task-controller':
-                _serviceConfigTags.configs[configName] = 'org.apache.hadoop.mapred.DefaultTaskController';
-                break;
-              case 'hbase.security.authentication':
-                _serviceConfigTags.configs[configName] = 'simple';
-                break;
-              case 'hbase.rpc.engine':
-                _serviceConfigTags.configs[configName] = 'org.apache.hadoop.hbase.ipc.WritableRpcEngine';
-                break;
-              case 'hbase.security.authorization':
-                _serviceConfigTags.configs[configName] = 'false';
-                break;
-              case 'zookeeper.znode.parent':
-                _serviceConfigTags.configs[configName] = '/hbase-unsecure';
-                break;
-              default:
-                delete _serviceConfigTags.configs[configName];
+    try {
+      this.get('serviceConfigTags').forEach(function (_serviceConfigTags, index) {
+        _serviceConfigTags.newTagName = 'version' + (new Date).getTime();
+        if (_serviceConfigTags.siteName === 'global') {
+          this.get('secureProperties').forEach(function (_config) {
+            if (_config.name in _serviceConfigTags.configs) {
+              delete _serviceConfigTags.configs[_config.name];
             }
-          }
-          console.log("Not Deleted" + _config.name);
-        }, this);
+          }, this);
+          _serviceConfigTags.configs.security_enabled = 'false';
+          _serviceConfigTags.configs.dfs_datanode_address = '50010';
+          _serviceConfigTags.configs.dfs_datanode_http_address = '50075';
+        } else {
+          this.get('secureMapping').filterProperty('filename', _serviceConfigTags.siteName + '.xml').forEach(function (_config) {
+            var configName = _config.name;
+            if (configName in _serviceConfigTags.configs) {
+              switch (configName) {
+                case 'dfs.datanode.address':
+                  _serviceConfigTags.configs[configName] = '0.0.0.0:50010';
+                  break;
+                case 'dfs.datanode.http.address':
+                  _serviceConfigTags.configs[configName] = '0.0.0.0:50075';
+                  break;
+                case 'mapred.task.tracker.task-controller':
+                  _serviceConfigTags.configs[configName] = 'org.apache.hadoop.mapred.DefaultTaskController';
+                  break;
+                case 'hbase.security.authentication':
+                  _serviceConfigTags.configs[configName] = 'simple';
+                  break;
+                case 'hbase.rpc.engine':
+                  _serviceConfigTags.configs[configName] = 'org.apache.hadoop.hbase.ipc.WritableRpcEngine';
+                  break;
+                case 'hbase.security.authorization':
+                  _serviceConfigTags.configs[configName] = 'false';
+                  break;
+                case 'zookeeper.znode.parent':
+                  _serviceConfigTags.configs[configName] = '/hbase-unsecure';
+                  break;
+                default:
+                  delete _serviceConfigTags.configs[configName];
+              }
+            }
+            console.log("Not Deleted" + _config.name);
+          }, this);
+        }
+      }, this);
+    } catch (err) {
+      var stage3 = this.get('stages').findProperty('stage', 'stage3');
+      if (stage3) {
+        stage3.set('isSuccess', false);
+        stage3.set('isError', true);
       }
-    }, this);
+      if (err) {
+        console.log("Error: Error occurred while applying secure configs to the server. Error message: " + err);
+      }
+      return false;
+    }
+    return true;
   },
 
   saveStagesOnRequestId: function () {
