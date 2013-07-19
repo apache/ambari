@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller.ganglia;
 
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.configuration.ComponentSSLConfigurationTest;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
 import org.apache.ambari.server.controller.spi.Request;
@@ -26,7 +28,11 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper.MetricsVersion;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,6 +42,7 @@ import java.util.Set;
 /**
  * Test the Ganglia property provider.
  */
+@RunWith(Parameterized.class)
 public class GangliaPropertyProviderTest {
 
   private static final String PROPERTY_ID = PropertyHelper.getPropertyId("metrics/jvm", "gcCount");
@@ -49,6 +56,30 @@ public class GangliaPropertyProviderTest {
   private static final String HOST_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "host_name");
   private static final String COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "component_name");
 
+  private ComponentSSLConfiguration configuration;
+
+  @Parameterized.Parameters
+  public static Collection<Object[]> configs() {
+    ComponentSSLConfiguration configuration1 =
+        ComponentSSLConfigurationTest.getConfiguration("tspath", "tspass", "tstype", false, false);
+
+    ComponentSSLConfiguration configuration2 =
+        ComponentSSLConfigurationTest.getConfiguration("tspath", "tspass", "tstype", true, false);
+
+    ComponentSSLConfiguration configuration3 =
+        ComponentSSLConfigurationTest.getConfiguration("tspath", "tspass", "tstype", false, true);
+
+    return Arrays.asList(new Object[][]{
+        {configuration1},
+        {configuration2},
+        {configuration3}
+    });
+  }
+
+  public GangliaPropertyProviderTest(ComponentSSLConfiguration configuration) {
+    this.configuration = configuration;
+  }
+
   @Test
   public void testPopulateResources() throws Exception {
     TestStreamProvider streamProvider  = new TestStreamProvider("temporal_ganglia_data.txt");
@@ -57,6 +88,7 @@ public class GangliaPropertyProviderTest {
     GangliaPropertyProvider propertyProvider = new GangliaHostComponentPropertyProvider(
         PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP1),
         streamProvider,
+        configuration,
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID,
         HOST_NAME_PROPERTY_ID,
@@ -75,8 +107,10 @@ public class GangliaPropertyProviderTest {
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    Assert.assertEquals("http://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=domU-12-31-39-0E-34-E1.compute-1.internal&m=jvm.metrics.gcCount&s=10&e=20&r=1",
-        streamProvider.getLastSpec());
+
+    String expected = (configuration.isGangliaSSL() ? "https" : "http") +
+        "://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=domU-12-31-39-0E-34-E1.compute-1.internal&m=jvm.metrics.gcCount&s=10&e=20&r=1";
+    Assert.assertEquals(expected, streamProvider.getLastSpec());
 
     Assert.assertEquals(3, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(PROPERTY_ID));
@@ -111,8 +145,10 @@ public class GangliaPropertyProviderTest {
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    Assert.assertEquals("http://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=domU-12-31-39-0E-34-E1.compute-1.internal&m=mapred.shuffleOutput.shuffle_output_bytes,mapred.shuffleOutput.shuffle_success_outputs,mapred.shuffleOutput.shuffle_failed_outputs,mapred.shuffleOutput.shuffle_exceptions_caught&s=10&e=20&r=1",
-        streamProvider.getLastSpec());
+    expected = (configuration.isGangliaSSL() ? "https" : "http") +
+        "://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=domU-12-31-39-0E-34-E1.compute-1.internal&m=mapred.shuffleOutput.shuffle_output_bytes,mapred.shuffleOutput.shuffle_success_outputs,mapred.shuffleOutput.shuffle_failed_outputs,mapred.shuffleOutput.shuffle_exceptions_caught&s=10&e=20&r=1";
+    Assert.assertEquals(expected, streamProvider.getLastSpec());
+
 
     Assert.assertEquals(6, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(shuffle_exceptions_caught));
@@ -130,6 +166,7 @@ public class GangliaPropertyProviderTest {
     GangliaPropertyProvider propertyProvider = new GangliaHostPropertyProvider(
         PropertyHelper.getGangliaPropertyIds(Resource.Type.Host, PropertyHelper.MetricsVersion.HDP1),
         streamProvider,
+        configuration,
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID,
         HOST_NAME_PROPERTY_ID
@@ -156,8 +193,10 @@ public class GangliaPropertyProviderTest {
     Request  request = PropertyHelper.getReadRequest(Collections.singleton(PROPERTY_ID), temporalInfoMap);
 
     Assert.assertEquals(3, propertyProvider.populateResources(resources, request, null).size());
-    Assert.assertEquals("http://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPJobTracker,HDPHBaseMaster,HDPResourceManager,HDPSlaves,HDPHistoryServer,HDPNameNode&h=domU-12-31-39-0E-34-E3.compute-1.internal,domU-12-31-39-0E-34-E1.compute-1.internal,domU-12-31-39-0E-34-E2.compute-1.internal&m=jvm.metrics.gcCount&s=10&e=20&r=1",
-        streamProvider.getLastSpec());
+
+    String expected = (configuration.isGangliaSSL() ? "https" : "http") +
+        "://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPJobTracker,HDPHBaseMaster,HDPResourceManager,HDPSlaves,HDPHistoryServer,HDPNameNode&h=domU-12-31-39-0E-34-E3.compute-1.internal,domU-12-31-39-0E-34-E1.compute-1.internal,domU-12-31-39-0E-34-E2.compute-1.internal&m=jvm.metrics.gcCount&s=10&e=20&r=1";
+    Assert.assertEquals(expected, streamProvider.getLastSpec());
 
     for (Resource res : resources) {
       Assert.assertEquals(2, PropertyHelper.getProperties(res).size());
@@ -173,6 +212,7 @@ public class GangliaPropertyProviderTest {
     GangliaPropertyProvider propertyProvider = new GangliaHostPropertyProvider(
         PropertyHelper.getGangliaPropertyIds(Resource.Type.Host, PropertyHelper.MetricsVersion.HDP1),
         streamProvider,
+        configuration,
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID,
         HOST_NAME_PROPERTY_ID
@@ -193,8 +233,9 @@ public class GangliaPropertyProviderTest {
 
     Assert.assertEquals(150, propertyProvider.populateResources(resources, request, null).size());
 
-    Assert.assertEquals("http://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPJobTracker,HDPHBaseMaster,HDPResourceManager,HDPSlaves,HDPHistoryServer,HDPNameNode&m=jvm.metrics.gcCount&s=10&e=20&r=1",
-        streamProvider.getLastSpec());
+    String expected = (configuration.isGangliaSSL() ? "https" : "http") +
+        "://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPJobTracker,HDPHBaseMaster,HDPResourceManager,HDPSlaves,HDPHistoryServer,HDPNameNode&m=jvm.metrics.gcCount&s=10&e=20&r=1";
+    Assert.assertEquals(expected, streamProvider.getLastSpec());
 
   }
 
@@ -207,6 +248,7 @@ public class GangliaPropertyProviderTest {
     GangliaPropertyProvider propertyProvider = new GangliaHostComponentPropertyProvider(
         PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, MetricsVersion.HDP1),
         streamProvider,
+        configuration,
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID,
         HOST_NAME_PROPERTY_ID,
@@ -225,8 +267,9 @@ public class GangliaPropertyProviderTest {
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    Assert.assertEquals("http://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=ip-10-39-113-33.ec2.internal&s=10&e=20&r=1",
-        streamProvider.getLastSpec());
+    String expected = (configuration.isGangliaSSL() ? "https" : "http") +
+        "://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=ip-10-39-113-33.ec2.internal&s=10&e=20&r=1";
+    Assert.assertEquals(expected, streamProvider.getLastSpec());
 
     Assert.assertEquals(3, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(FLUME_CHANNEL_CAPACITY_PROPERTY));
@@ -240,6 +283,7 @@ public class GangliaPropertyProviderTest {
     GangliaPropertyProvider propertyProvider = new GangliaHostComponentPropertyProvider(
         PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, MetricsVersion.HDP1),
         streamProvider,
+        configuration,
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID,
         HOST_NAME_PROPERTY_ID,
@@ -262,8 +306,9 @@ public class GangliaPropertyProviderTest {
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    Assert.assertEquals("http://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=ip-10-39-113-33.ec2.internal&e=now&pt=true",
-        streamProvider.getLastSpec());
+    String expected = (configuration.isGangliaSSL() ? "https" : "http") +
+        "://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=ip-10-39-113-33.ec2.internal&e=now&pt=true";
+    Assert.assertEquals(expected, streamProvider.getLastSpec());
 
     Assert.assertEquals(22, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(PROPERTY_ID2));
@@ -278,6 +323,7 @@ public class GangliaPropertyProviderTest {
     GangliaPropertyProvider propertyProvider = new GangliaHostComponentPropertyProvider(
         PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, MetricsVersion.HDP1),
         streamProvider,
+        configuration,
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID,
         HOST_NAME_PROPERTY_ID,
@@ -294,8 +340,9 @@ public class GangliaPropertyProviderTest {
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    Assert.assertEquals("http://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=ip-10-39-113-33.ec2.internal&e=now&pt=true",
-        streamProvider.getLastSpec());
+    String expected = (configuration.isGangliaSSL() ? "https" : "http") +
+        "://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=ip-10-39-113-33.ec2.internal&e=now&pt=true";
+    Assert.assertEquals(expected, streamProvider.getLastSpec());
 
     Assert.assertEquals(33, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(FLUME_CHANNEL_CAPACITY_PROPERTY));
@@ -309,6 +356,7 @@ public class GangliaPropertyProviderTest {
     GangliaPropertyProvider propertyProvider = new GangliaHostComponentPropertyProvider(
         PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, MetricsVersion.HDP1),
         streamProvider,
+        configuration,
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID,
         HOST_NAME_PROPERTY_ID,
@@ -327,8 +375,9 @@ public class GangliaPropertyProviderTest {
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    Assert.assertEquals("http://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=ip-10-39-113-33.ec2.internal&s=10&e=20&r=1",
-        streamProvider.getLastSpec());
+    String expected = (configuration.isGangliaSSL() ? "https" : "http") +
+        "://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=ip-10-39-113-33.ec2.internal&s=10&e=20&r=1";
+    Assert.assertEquals(expected, streamProvider.getLastSpec());
 
     Assert.assertEquals(21, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(FLUME_CHANNEL_CAPACITY_PROPERTY));
@@ -342,6 +391,7 @@ public class GangliaPropertyProviderTest {
     GangliaPropertyProvider propertyProvider = new GangliaHostComponentPropertyProvider(
         PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, MetricsVersion.HDP1),
         streamProvider,
+        configuration,
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID,
         HOST_NAME_PROPERTY_ID,
@@ -360,8 +410,9 @@ public class GangliaPropertyProviderTest {
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    Assert.assertEquals("http://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=ip-10-39-113-33.ec2.internal&s=10&e=20&r=1",
-        streamProvider.getLastSpec());
+    String expected = (configuration.isGangliaSSL() ? "https" : "http") +
+        "://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=ip-10-39-113-33.ec2.internal&s=10&e=20&r=1";
+    Assert.assertEquals(expected, streamProvider.getLastSpec());
 
     Assert.assertEquals(21, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(FLUME_CHANNEL_CAPACITY_PROPERTY));
@@ -375,6 +426,7 @@ public class GangliaPropertyProviderTest {
     GangliaPropertyProvider propertyProvider = new GangliaHostComponentPropertyProvider(
         PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, MetricsVersion.HDP1),
         streamProvider,
+        configuration,
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID,
         HOST_NAME_PROPERTY_ID,
@@ -393,8 +445,9 @@ public class GangliaPropertyProviderTest {
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    Assert.assertEquals("http://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=ip-10-39-113-33.ec2.internal&s=10&e=20&r=1",
-        streamProvider.getLastSpec());
+    String expected = (configuration.isGangliaSSL() ? "https" : "http") +
+        "://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=ip-10-39-113-33.ec2.internal&s=10&e=20&r=1";
+    Assert.assertEquals(expected, streamProvider.getLastSpec());
 
     Assert.assertEquals(11, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(FLUME_CHANNEL_CAPACITY_PROPERTY));
@@ -408,6 +461,7 @@ public class GangliaPropertyProviderTest {
     GangliaPropertyProvider propertyProvider = new GangliaHostComponentPropertyProvider(
         PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, MetricsVersion.HDP1),
         streamProvider,
+        configuration,
         hostProvider,
         CLUSTER_NAME_PROPERTY_ID,
         HOST_NAME_PROPERTY_ID,
@@ -426,8 +480,9 @@ public class GangliaPropertyProviderTest {
 
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
 
-    Assert.assertEquals("http://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=ip-10-39-113-33.ec2.internal&s=10&e=20&r=1",
-        streamProvider.getLastSpec());
+    String expected = (configuration.isGangliaSSL() ? "https" : "http") +
+        "://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPSlaves&h=ip-10-39-113-33.ec2.internal&s=10&e=20&r=1";
+    Assert.assertEquals(expected, streamProvider.getLastSpec());
 
     Assert.assertEquals(11, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(FLUME_CHANNEL_CAPACITY_PROPERTY));

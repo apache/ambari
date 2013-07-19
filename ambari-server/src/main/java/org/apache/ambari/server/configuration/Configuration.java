@@ -179,6 +179,8 @@ public class Configuration {
   public static final String JAVAX_SSL_TRUSTSTORE_PASSWORD = "javax.net.ssl.trustStorePassword";
   public static final String JAVAX_SSL_TRUSTSTORE_TYPE = "javax.net.ssl.trustStoreType";
 
+  public static final String GANGLIA_HTTPS_KEY = "ganglia.https";
+  public static final String NAGIOS_HTTPS_KEY  = "nagios.https";
 
   private static final String SRVR_TWO_WAY_SSL_DEFAULT = "false";
   public static final String SRVR_TWO_WAY_SSL_PORT_DEFAULT = "8441";
@@ -362,9 +364,18 @@ public class Configuration {
   }
 
   /**
+   * Get the property value for the given key.
+   *
+   * @return the property value
+   */
+  public String getProperty(String key) {
+    return properties.getProperty(key);
+  }
+
+  /**
    * Loads trusted certificates store properties
    */
-  void loadSSLParams(){
+  protected void loadSSLParams(){
     if (properties.getProperty(SSL_TRUSTSTORE_PATH_KEY) != null) {
       System.setProperty(JAVAX_SSL_TRUSTSTORE, properties.getProperty(SSL_TRUSTSTORE_PATH_KEY));
     }

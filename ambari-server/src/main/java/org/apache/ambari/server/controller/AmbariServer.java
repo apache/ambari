@@ -38,6 +38,7 @@ import org.apache.ambari.server.api.services.PersistKeyValueImpl;
 import org.apache.ambari.server.api.services.PersistKeyValueService;
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
@@ -446,6 +447,7 @@ public class AmbariServer {
       server = injector.getInstance(AmbariServer.class);
       CertificateManager certMan = injector.getInstance(CertificateManager.class);
       certMan.initRootCert();
+      ComponentSSLConfiguration.instance().init(server.configs);
       if (server != null) {
         server.run();
       }

@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.ganglia.GangliaComponentPropertyProvider;
 import org.apache.ambari.server.controller.ganglia.GangliaHostComponentPropertyProvider;
@@ -257,14 +258,17 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
 
     List<PropertyProvider> providers = new LinkedList<PropertyProvider>();
 
+    ComponentSSLConfiguration configuration = ComponentSSLConfiguration.instance();
     URLStreamProvider streamProvider = new URLStreamProvider(
-        PROPERTY_REQUEST_CONNECT_TIMEOUT, PROPERTY_REQUEST_READ_TIMEOUT);
+        PROPERTY_REQUEST_CONNECT_TIMEOUT, PROPERTY_REQUEST_READ_TIMEOUT,
+        configuration.getTruststorePath(), configuration.getTruststorePassword(), configuration.getTruststoreType());
 
     switch (type){
       case Cluster :
         providers.add(createGangliaReportPropertyProvider(
             type,
             streamProvider,
+            ComponentSSLConfiguration.instance(),
             this,
             PropertyHelper.getPropertyId("Clusters", "cluster_name")));
         break;
@@ -272,6 +276,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
         providers.add(createGangliaHostPropertyProvider(
             type,
             streamProvider,
+            ComponentSSLConfiguration.instance(),
             this,
             PropertyHelper.getPropertyId("Hosts", "cluster_name"),
             PropertyHelper.getPropertyId("Hosts", "host_name")
@@ -291,6 +296,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
         providers.add(createGangliaComponentPropertyProvider(
             type,
             streamProvider,
+            ComponentSSLConfiguration.instance(),
             this,
             PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
             PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name")));
@@ -309,6 +315,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
         providers.add(createGangliaHostComponentPropertyProvider(
             type,
             streamProvider,
+            ComponentSSLConfiguration.instance(),
             this,
             PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
             PropertyHelper.getPropertyId("HostRoles", "host_name"),
@@ -537,6 +544,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
    * Create the Ganglia report property provider for the given type.
    */
   private PropertyProvider createGangliaReportPropertyProvider( Resource.Type type, StreamProvider streamProvider,
+                                                                ComponentSSLConfiguration configuration,
                                                                 GangliaHostProvider hostProvider,
                                                                 String clusterNamePropertyId) {
     updateClusterVersion();
@@ -547,7 +555,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     for (PropertyHelper.MetricsVersion version : PropertyHelper.MetricsVersion.values()) {
 
       providers.put(version, new GangliaReportPropertyProvider(PropertyHelper.getGangliaPropertyIds(type, version), streamProvider,
-          hostProvider, clusterNamePropertyId));
+          configuration, hostProvider, clusterNamePropertyId));
     }
 
     return new VersioningPropertyProvider(clusterVersionsMap, providers, clusterNamePropertyId);
@@ -557,6 +565,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
    * Create the Ganglia host property provider for the given type.
    */
   private PropertyProvider createGangliaHostPropertyProvider( Resource.Type type, StreamProvider streamProvider,
+                                                              ComponentSSLConfiguration configuration,
                                                               GangliaHostProvider hostProvider,
                                                               String clusterNamePropertyId,
                                                               String hostNamePropertyId) {
@@ -568,7 +577,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     for (PropertyHelper.MetricsVersion version : PropertyHelper.MetricsVersion.values()) {
 
       providers.put(version, new GangliaHostPropertyProvider(PropertyHelper.getGangliaPropertyIds(type, version), streamProvider,
-          hostProvider, clusterNamePropertyId, hostNamePropertyId));
+          configuration, hostProvider, clusterNamePropertyId, hostNamePropertyId));
     }
 
     return new VersioningPropertyProvider(clusterVersionsMap, providers, clusterNamePropertyId);
@@ -578,6 +587,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
    * Create the Ganglia component property provider for the given type.
    */
   private PropertyProvider createGangliaComponentPropertyProvider( Resource.Type type, StreamProvider streamProvider,
+                                                                   ComponentSSLConfiguration configuration,
                                                                    GangliaHostProvider hostProvider,
                                                                    String clusterNamePropertyId,
                                                                    String componentNamePropertyId) {
@@ -589,7 +599,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     for (PropertyHelper.MetricsVersion version : PropertyHelper.MetricsVersion.values()) {
 
       providers.put(version, new GangliaComponentPropertyProvider(PropertyHelper.getGangliaPropertyIds(type, version), streamProvider,
-          hostProvider, clusterNamePropertyId, componentNamePropertyId));
+          configuration, hostProvider, clusterNamePropertyId, componentNamePropertyId));
     }
 
     return new VersioningPropertyProvider(clusterVersionsMap, providers, clusterNamePropertyId);
@@ -599,6 +609,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
    * Create the Ganglia host component property provider for the given type.
    */
   private PropertyProvider createGangliaHostComponentPropertyProvider( Resource.Type type, StreamProvider streamProvider,
+                                                                       ComponentSSLConfiguration configuration,
                                                                        GangliaHostProvider hostProvider,
                                                                        String clusterNamePropertyId,
                                                                        String hostNamePropertyId,
@@ -611,7 +622,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     for (PropertyHelper.MetricsVersion version : PropertyHelper.MetricsVersion.values()) {
 
       providers.put(version, new GangliaHostComponentPropertyProvider(PropertyHelper.getGangliaPropertyIds(type, version), streamProvider,
-          hostProvider, clusterNamePropertyId, hostNamePropertyId, componentNamePropertyId));
+          configuration, hostProvider, clusterNamePropertyId, hostNamePropertyId, componentNamePropertyId));
     }
 
     return new VersioningPropertyProvider(clusterVersionsMap, providers, clusterNamePropertyId);

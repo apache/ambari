@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller.ganglia;
 
 import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
@@ -47,6 +48,8 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
 
   private final String componentNamePropertyId;
 
+  private final ComponentSSLConfiguration configuration;
+
   /**
    * Map of Ganglia cluster names keyed by component type.
    */
@@ -73,6 +76,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
 
   public GangliaPropertyProvider(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
                                  StreamProvider streamProvider,
+                                 ComponentSSLConfiguration configuration,
                                  GangliaHostProvider hostProvider,
                                  String clusterNamePropertyId,
                                  String hostNamePropertyId,
@@ -81,6 +85,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
     super(componentPropertyInfoMap);
 
     this.streamProvider           = streamProvider;
+    this.configuration            = configuration;
     this.hostProvider             = hostProvider;
     this.clusterNamePropertyId    = clusterNamePropertyId;
     this.hostNamePropertyId       = hostNamePropertyId;
@@ -264,8 +269,13 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
 
     StringBuilder sb = new StringBuilder();
 
-    sb.append("http://").
-        append(hostProvider.getGangliaCollectorHostName(clusterName)).
+    if (configuration.isGangliaSSL()) {
+      sb.append("https://");
+    } else {
+      sb.append("http://");
+    }
+
+    sb.append(hostProvider.getGangliaCollectorHostName(clusterName)).
         append("/cgi-bin/rrd.py?c=").
         append(clusters);
 
