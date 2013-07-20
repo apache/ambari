@@ -114,7 +114,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
         currentStage.set('isStarted', true);
         if (App.testMode) {
           currentStage.set('isError', false);
-          currentStage.set('isCompleted', true);
+          currentStage.set('isSuccess', true);
         } else {
           this.loadClusterConfigs();
         }
@@ -175,7 +175,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
   addInfoToStage1: function () {
     var stage1 = this.get('stages').findProperty('stage', 'stage1');
     if (App.testMode) {
-      stage1.set('isSucces', true);
+      stage1.set('isSuccess', true);
       stage1.set('isStarted', true);
       stage1.set('isCompleted', true);
     }
