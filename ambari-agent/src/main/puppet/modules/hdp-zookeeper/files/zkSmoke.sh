@@ -28,6 +28,9 @@ security_enabled=$5
 kinit_path_local=$6
 smoke_user_keytab=$7
 export ZOOKEEPER_EXIT_CODE=0
+test_output_file=/tmp/zkSmoke.out
+errors_expr="ERROR|Exception"
+
 zkhosts=` grep "^server\.[[:digit:]]"  $conf_dir/zoo.cfg  | cut -f 2 -d '=' | cut -f 1 -d ':' | tr '\n' ' ' `
 zk_node1=`echo $zkhosts | tr ' ' '\n' | head -n 1`  
 echo "zk_node1=$zk_node1"
@@ -35,10 +38,23 @@ if [[ $security_enabled == "true" ]]; then
   kinitcmd="$kinit_path_local -kt $smoke_user_keytab $smoke_user"
   su - $smoke_user -c "$kinitcmd"
 fi
+
+function verify_output() {
+  if [ -f $test_output_file ]; then
+    errors=`grep -iE $errors_expr $test_output_file`
+    if [ "$?" -eq 0 ]; then
+      echo "Error found in the zookeeper smoke test. Exiting."
+      echo $errors
+      exit 1
+    fi
+  fi
+}
+
 # Delete /zk_smoketest znode if exists
-su - $smoke_user -c "source $conf_dir/zookeeper-env.sh ;  echo delete /zk_smoketest | ${smoke_script} -server $zk_node1:$client_port"
+su - $smoke_user -c "source $conf_dir/zookeeper-env.sh ;  echo delete /zk_smoketest | ${smoke_script} -server $zk_node1:$client_port 2>&1 >> $test_output_file"
 # Create /zk_smoketest znode on one zookeeper server
-su - $smoke_user -c "source $conf_dir/zookeeper-env.sh ; echo create /zk_smoketest smoke_data | ${smoke_script} -server $zk_node1:$client_port"
+su - $smoke_user -c "source $conf_dir/zookeeper-env.sh ; echo create /zk_smoketest smoke_data | ${smoke_script} -server $zk_node1:$client_port 2>&1 >> $test_output_file"
+verify_output
 
 for i in $zkhosts ; do
   echo "Running test on host $i"
