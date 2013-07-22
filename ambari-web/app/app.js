@@ -18,6 +18,8 @@
 
 // Application bootstrapper
 
+var stringUtils = require('utils/string_utils');
+
 module.exports = Em.Application.create({
   name: 'Ambari Web',
   rootElement: '#wrapper',
@@ -54,7 +56,11 @@ module.exports = Em.Application.create({
   currentStackVersion: '',
   currentStackVersionNumber: function(){
     return this.get('currentStackVersion').replace(/HDP(Local)?-/, '');
-  }.property('currentStackVersion')
+  }.property('currentStackVersion'),
+  isHadoop2Stack: function(){
+    return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") === 1 ||
+      stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") === 0)
+  }.property('currentStackVersionNumber')
 });
 
 /**

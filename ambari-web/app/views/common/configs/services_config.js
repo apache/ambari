@@ -18,7 +18,6 @@
 
 var App = require('app');
 var validator = require('utils/validator');
-var stringUtils = require('utils/string_utils');
 
 App.ServicesConfigView = Em.View.extend({
   templateName: require('templates/common/configs/services_config'),
@@ -699,7 +698,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
   },
   //list of fields which will be populated by default in a new queue
   fieldsToPopulate: function(){
-    if(App.config.get('isHDP2')){
+    if(App.get('isHadoop2Stack')){
       return ["yarn.scheduler.capacity.root.<queue-name>.user-limit-factor",
       "yarn.scheduler.capacity.root.<queue-name>.state"];
     }
@@ -711,7 +710,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
       "mapred.capacity-scheduler.queue.<queue-name>.maximum-initialized-active-tasks-per-user",
       "mapred.capacity-scheduler.queue.<queue-name>.init-accept-jobs-factor"
     ];
-  }.property('App.config.isHDP2'),
+  }.property('App.isHadoop2Stack'),
   /**
    * create empty queue
    * take some queue then copy it and set all config values to null
@@ -726,7 +725,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
     customConfigs.forEach(function (config) {
       var newConfig = $.extend({}, config);
       if (fieldsToPopulate.contains(config.name)) {
-        App.config.setDefaultQueue(newConfig, emptyQueue.name);
+        newConfig.value = config.defaultValue;
       }
       newConfig = App.ServiceConfigProperty.create(newConfig);
       newConfig.validate();
@@ -734,18 +733,27 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
     });
     this.set('emptyQueue', emptyQueue);
   },
-  queues: function () {
-    var configs = this.get('categoryConfigs').filterProperty('isQueue', true);
+  deriveQueueNames: function(configs){
     var queueNames = [];
-    var queues = [];
-    configs.mapProperty('name').forEach(function (name) {
-      var queueName = /^mapred\.capacity-scheduler\.queue\.(.*?)\./.exec(name);
-      if (queueName) {
+    configs.mapProperty('name').forEach(function(name){
+      var queueName;
+      if(App.get('isHadoop2Stack')){
+        queueName = /^yarn\.scheduler\.capacity\.root\.(.*?)\./.exec(name);
+      } else {
+        queueName = /^mapred\.capacity-scheduler\.queue\.(.*?)\./.exec(name);
+      }
+      if(queueName){
         queueNames.push(queueName[1]);
       }
     });
-    queueNames = queueNames.uniq();
-    queueNames.forEach(function (queueName) {
+    return queueNames.uniq();
+  },
+  queues: function(){
+    var configs = this.get('categoryConfigs').filterProperty('isQueue', true);
+    var queueNames = this.deriveQueueNames(configs);
+    var queues = [];
+
+    queueNames.forEach(function(queueName){
       queues.push({
         name: queueName,
         color: this.generateColor(queueName),
@@ -782,9 +790,8 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
         queue.push(config);
       }
     });
-    //each queue consists of 10 properties if less then add missing properties
-    if (queue.length < 10) {
-      this.addMissingProperties(queue, queueName);
+    if(queue.length < customConfigs.length){
+      this.addMissingProperties(queue, customConfigs);
     }
     return queue;
   },
@@ -793,14 +800,12 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
    * @param queue
    * @param customConfigs
    */
-  addMissingProperties: function (queue, queueName) {
-    var customConfigs = this.get('customConfigs');
-    customConfigs.forEach(function (_config) {
-      var serviceConfigProperty = $.extend({}, _config);
-      serviceConfigProperty.name = serviceConfigProperty.name.replace(/<queue-name>/, queueName);
-      if (!queue.someProperty('name', serviceConfigProperty.name)) {
-        App.config.setDefaultQueue(serviceConfigProperty, queueName);
-        serviceConfigProperty = App.ServiceConfigProperty.create(serviceConfigProperty);
+  addMissingProperties: function(queue, customConfigs){
+    customConfigs.forEach(function(_config){
+      var serviceConfigProperty;
+      if(!queue.someProperty('name', _config.name)){
+        _config.value = _config.defaultValue;
+        serviceConfigProperty = App.ServiceConfigProperty.create(_config);
         serviceConfigProperty.validate();
         queue.push(serviceConfigProperty);
       }
@@ -812,7 +817,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
   tableContent: function () {
     var result = [];
     this.get('queues').forEach(function (queue) {
-      var usersAndGroups = queue.configs.findProperty('name', 'mapred.queue.' + queue.name + '.acl-submit-job').get('value');
+      var usersAndGroups = queue.configs.findProperty('name', this.getUserAndGroupNames(queue.name)[0]).get('value');
       usersAndGroups = (usersAndGroups) ? usersAndGroups.split(' ') : [''];
       if (usersAndGroups.length == 1) {
         usersAndGroups.push('');
@@ -853,7 +858,37 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
   /**
    * uses as template for adding new queue
    */
-  emptyQueue: [],
+  emptyQueue: {},
+  /**
+   * get capacities sum of queues except of current
+   * @param queueName
+   * @return {Number}
+   */
+  getQueuesCapacitySum: function(queueName){
+    var capacitySum = 0;
+    this.get('queues').filter(function(queue){
+      return queue.name !== queueName;
+    }).forEach(function(queue){
+        capacitySum = capacitySum + window.parseInt(queue.configs.find(function(config){
+          return config.get('name').substr(-9, 9) === '.capacity';
+        }).get('value'));
+      });
+    return capacitySum;
+  },
+  /**
+   * get names of configs, for users and groups, which have different names in HDP1 and HDP2
+   * @param queueName
+   * @return {Array}
+   */
+  getUserAndGroupNames: function(queueName){
+    queueName = queueName || '<queue-name>';
+    if(App.config.get('isHDP2')){
+      return ['yarn.scheduler.capacity.root.' + queueName + '.acl_submit_jobs',
+        'yarn.scheduler.capacity.root.' + queueName + '.acl_administer_jobs']
+    }
+    return ['mapred.queue.' + queueName + '.acl-submit-job',
+      'mapred.queue.' + queueName + '.acl-administer-jobs']
+  },
   generateColor: function (str) {
     var hash = 0;
     for (var i = 0; i < str.length; i++) {
@@ -874,7 +909,9 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
     var adminConfig;
     queue.name = queue.configs.findProperty('name', 'queueName').get('value');
     queue.configs.forEach(function (config) {
-      if (config.name == 'mapred.queue.<queue-name>.acl-administer-jobs') {
+      var adminName = this.getUserAndGroupNames()[1];
+      var submitName = this.getUserAndGroupNames()[0];
+      if(config.name == adminName){
         if (config.type == 'USERS') {
           admin[0] = config.value;
         }
@@ -885,7 +922,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
           adminConfig = config;
         }
       }
-      if (config.name == 'mapred.queue.<queue-name>.acl-submit-job') {
+      if(config.name == submitName){
         if (config.type == 'USERS') {
           submit[0] = config.value;
         }
@@ -935,12 +972,14 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
       var configName = _config.get('name');
       var admin = [];
       var submit = [];
+      //comparison executes including 'queue.<queue-name>' to avoid false matches
+      var queueNamePrefix = App.config.get('isHDP2') ? 'root.' : 'queue.';
       if (configNames.contains(_config.get('name'))) {
-        if (configName == 'mapred.queue.' + queue.name + '.acl-submit-job') {
+        if(configName == this.getUserAndGroupNames(queue.name)[0]){
           submit = queue.configs.filterProperty('name', configName);
           submit = submit.findProperty('type', 'USERS').get('value') + ' ' + submit.findProperty('type', 'GROUPS').get('value');
           _config.set('value', submit);
-        } else if (configName == 'mapred.queue.' + queue.name + '.acl-administer-jobs') {
+        } else if(configName == this.getUserAndGroupNames(queue.name)[1]){
           admin = queue.configs.filterProperty('name', configName);
           admin = admin.findProperty('type', 'USERS').get('value') + ' ' + admin.findProperty('type', 'GROUPS').get('value');
           _config.set('value', admin);
@@ -959,15 +998,16 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
     didInsertElement: function () {
       this.update();
     },
-    data: [
-      {"label": "default", "value": 100}
-    ],
+    data: [{"label":"default", "value":100}],
     update: function () {
       var self = this;
       var data = [];
       var queues = this.get('queues');
       var capacitiesSum = 0;
       queues.forEach(function (queue) {
+        var value = window.parseInt(queue.configs.find(function(_config){
+          return _config.get('name').substr(-9, 9) === '.capacity';
+        }).get('value'));
         data.push({
           label: queue.name,
           value: value,
@@ -1042,12 +1082,9 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
         }
         var content = this.get('content');
         var configs = content.configs.filter(function (config) {
-          if ((config.name == 'mapred.queue.' + content.name + '.acl-submit-job' ||
-            config.name == 'mapred.queue.' + content.name + '.acl-administer-jobs') &&
-            (config.isQueue)) {
-            return false;
-          }
-          return true;
+          return !(config.name == self.getUserAndGroupNames(content.name)[0] ||
+            config.name == self.getUserAndGroupNames(content.name)[1] &&
+              config.isQueue);
         });
         return configs.someProperty('isValid', false);
       }.property('content.configs.@each.isValid'),
@@ -1095,17 +1132,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
               validate: function () {
                 var value = this.get('value');
                 var isError = false;
-                var capacities = [];
-                var capacitySum = 0;
-                if (tableContent) {
-                  capacities = tableContent.mapProperty('capacity');
-                  for (var i = 0, l = capacities.length; i < l; i++) {
-                    capacitySum += parseInt(capacities[i]);
-                  }
-                  if (content.name != '<queue-name>') {
-                    capacitySum = capacitySum - parseInt(tableContent.findProperty('name', content.name).capacity);
-                  }
-                }
+                var capacitySum = self.getQueuesCapacitySum(content.name);
                 if (value == '') {
                   if (this.get('isRequired')) {
                     this.set('errorMessage', 'This is required');

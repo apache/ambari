@@ -32,10 +32,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   serviceConfigs: function(){
     return App.config.get('preDefinedServiceConfigs');
   }.property('App.config.preDefinedServiceConfigs'),
+  customConfigs: function(){
+    return App.config.get('preDefinedCustomConfigs');
+  }.property('App.config.preDefinedCustomConfigs'),
   configMapping: function(){
     return App.config.get('configMapping');
   }.property('App.config.configMapping'),
-  customConfigs: require('data/custom_configs'),
   configs: function() {
     return  App.config.get('preDefinedConfigProperties');
   }.property('App.config.preDefinedConfigProperties'),

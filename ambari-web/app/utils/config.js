@@ -25,10 +25,6 @@ var globalPropertyToServicesMap = null;
 
 App.config = Em.Object.create({
 
-  isHDP2: function(){
-    return (stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 1 ||
-      stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 0)
-  }.property('App.currentStackVersionNumber'),
   preDefinedServiceConfigs: function(){
     var configs = this.get('preDefinedConfigProperties');
     var services = [];
@@ -39,37 +35,36 @@ App.config = Em.Object.create({
     return services;
   }.property('preDefinedConfigProperties'),
   configMapping: function() {
-      if (stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 1 ||
-        stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === 0) {
+      if (App.get('isHadoop2Stack')) {
         return require('data/HDP2/config_mapping');
       }
     return require('data/config_mapping');
-  }.property('App.currentStackVersionNumber'),
+  }.property('App.isHadoop2Stack'),
   preDefinedConfigProperties: function() {
-    if (this.get('isHDP2')) {
+    if (App.get('isHadoop2Stack')) {
       return require('data/HDP2/config_properties').configProperties;
     }
     return require('data/config_properties').configProperties;
-  }.property('isHDP2'),
+  }.property('App.isHadoop2Stack'),
   preDefinedCustomConfigs: function () {
-    if (this.get('isHDP2')) {
+    if (App.get('isHadoop2Stack')) {
       return require('data/HDP2/custom_configs');
     }
     return require('data/custom_configs');
-  }.property('isHDP2'),
+  }.property('App.isHadoop2Stack'),
   //categories which contain custom configs
   categoriesWithCustom: ['CapacityScheduler'],
   //configs with these filenames go to appropriate category not in Advanced
   customFileNames: function() {
     if (App.supports.capacitySchedulerUi) {
-      if(this.get('isHDP2')){
+      if(App.get('isHadoop2Stack')){
         return ['capacity-scheduler.xml'];
       }
       return ['capacity-scheduler.xml', 'mapred-queue-acls.xml'];
     } else {
       return [];
     }
-  }.property('isHDP2'),
+  }.property('App.isHadoop2Stack'),
   /**
    * Cache of loaded configurations. This is useful in not loading
    * same configuration multiple times. It is populated in multiple
@@ -141,7 +136,7 @@ App.config = Em.Object.create({
   capacitySchedulerFilter: function () {
     var yarnRegex = /^yarn\.scheduler\.capacity\.root\.(?!unfunded)([a-z]([\_\-a-z0-9]{0,50}))\.(acl_administer_jobs|acl_submit_jobs|state|user-limit-factor|maximum-capacity|capacity)$/i;
     var self = this;
-    if(this.get('isHDP2')){
+    if(App.get('isHadoop2Stack')){
       return function (_config) {
         return (yarnRegex.test(_config.name));
       }
@@ -151,7 +146,7 @@ App.config = Em.Object.create({
           (/^mapred\.queue\.[a-z]([\_\-a-z0-9]{0,50})\.(acl-administer-jobs|acl-submit-job)$/i.test(_config.name));
       }
     }
-  }.property('isHDP2'),
+  }.property('App.isHadoop2Stack'),
   /**
    * return:
    *   configs,
@@ -403,7 +398,7 @@ App.config = Em.Object.create({
   /**
   Takes care of the "dynamic defaults" for the HCFS configs.  Sets
   some of the config defaults to previously user-entered data.
-  **/ 
+  **/
   tweakDynamicDefaults: function (localDB, serviceConfigProperty, config) {
     console.log("Step7: Tweaking Dynamic defaults");
     var firstHost = null;
@@ -415,11 +410,11 @@ App.config = Em.Object.create({
       if (typeof(config == "string") && config.defaultValue.indexOf("{firstHost}") >= 0) {
         serviceConfigProperty.set('value', serviceConfigProperty.value.replace(new RegExp("{firstHost}"), firstHost));
         serviceConfigProperty.set('defaultValue', serviceConfigProperty.defaultValue.replace(new RegExp("{firstHost}"), firstHost));
-      } 
+      }
     } catch (err) {
       // Nothing to worry about here, most likely trying indexOf on a non-string
     }
-  },  
+  },
   /**
    * create new child configs from overrides, attach them to parent config
    * override - value of config, related to particular host(s)
@@ -445,6 +440,20 @@ App.config = Em.Object.create({
       configProperty.set('overrides', overrides);
     }
   },
+  capacitySchedulerFilter: function () {
+    var yarnRegex = /^yarn\.scheduler\.capacity\.root\.(?!unfunded)([a-z]([\_\-a-z0-9]{0,50}))\.(acl_administer_jobs|acl_submit_jobs|state|user-limit-factor|maximum-capacity|capacity)$/i;
+    var self = this;
+    if(App.get('isHadoop2Stack')){
+      return function (_config) {
+        return (yarnRegex.test(_config.name));
+      }
+    } else {
+      return function (_config) {
+        return (_config.name.indexOf('mapred.capacity-scheduler.queue.') !== -1) ||
+          (/^mapred\.queue\.[a-z]([\_\-a-z0-9]{0,50})\.(acl-administer-jobs|acl-submit-job)$/i.test(_config.name));
+      }
+    }
+  }.property('App.isHadoop2Stack'),
   /**
    * create new ServiceConfig object by service name
    * @param serviceName

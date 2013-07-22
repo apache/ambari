@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var stringUtils = require('utils/string_utils');
 
 App.MainAppsItemController = Em.Controller.extend({
   name:'mainAppsItemController',
@@ -35,7 +34,7 @@ App.MainAppsItemController = Em.Controller.extend({
     }
     var self = this;
 
-    if (!App.testMode && stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === -1) {
+    if (!App.testMode && !App.get('isHadoop2Stack')) {
       var url = App.testMode ? '/data/apps/jobs/'+ currentId +'.json' :
         App.apiPrefix + "/jobhistory/job?workflowId=" + currentId;
 

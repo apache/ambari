@@ -19,7 +19,6 @@
 var App = require('app');
 var misc = require('utils/misc');
 var date = require('utils/date');
-var stringUtils = require('utils/string_utils');
 
 App.MainAppsController = Em.ArrayController.extend({
 
@@ -49,7 +48,12 @@ App.MainAppsController = Em.ArrayController.extend({
     var self = this;
 
     //var runsUrl = App.testMode ? "/data/apps/runs.json" : App.apiPrefix + "/jobhistory/workflow?orderBy=startTime&sortDir=DESC&limit=" + App.maxRunsForAppBrowser;
-    var runsUrl = App.testMode ? "/data/apps/runs2.json" : App.apiPrefix + this.get("runUrl");
+    var runsUrl;
+    if (App.testMode) {
+      runsUrl = App.get('isHadoop2Stack') ? "/data/apps/runs2.json" : "/data/apps/runs.json";
+    } else {
+      runsUrl = App.apiPrefix + this.get("runUrl");
+    }
 
     App.HttpClient.get(runsUrl, App.runsMapper, {
       complete:function (jqXHR, textStatus) {
@@ -110,20 +114,21 @@ App.MainAppsController = Em.ArrayController.extend({
      * Direct binding to job filter field
      */
     runType:"",
-    onRunTypeChange:function(){
-      if(this.runType == "MapReduce"){
-        if (!App.testMode && stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === -1)
-          this.set("sSearch_2","mr");
-        else
-          this.set("sSearch_2","mapreduce");
-      }else if(this.runType == "Hive"){
-        this.set("sSearch_2","hive");
-      }else if(this.runType == "Pig"){
-        this.set("sSearch_2","pig");
-      }else if(this.runType == "Yarn"){
-        this.set("sSearch_2","yarn");
-      }else{
-        this.set("sSearch_2","");
+    onRunTypeChange: function () {
+      if (this.runType == "MapReduce") {
+        if (!App.testMode && !App.get('isHadoop2Stack')) {
+          this.set("sSearch_2", "mr");
+        } else {
+          this.set("sSearch_2", "mapreduce");
+        }
+      } else if (this.runType == "Hive") {
+        this.set("sSearch_2", "hive");
+      } else if (this.runType == "Pig") {
+        this.set("sSearch_2", "pig");
+      } else if (this.runType == "Yarn") {
+        this.set("sSearch_2", "yarn");
+      } else {
+        this.set("sSearch_2", "");
       }
     }.observes("runType"),
 
