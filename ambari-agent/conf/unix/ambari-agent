@@ -115,7 +115,7 @@ case "$1" in
         echo "Ambari Agent successfully started"
         tput sgr0
         echo "Agent PID at: $PIDFILE"
-        echo "Agent outout at: $OUTFILE"
+        echo "Agent out at: $OUTFILE"
         echo "Agent log at: $LOGFILE"
         ;;
   status)
@@ -129,7 +129,7 @@ case "$1" in
             echo "$AMBARI_AGENT running."
             tput sgr0
             echo "Agent PID at: $PIDFILE"
-            echo "Agent outout at: $OUTFILE"
+            echo "Agent out at: $OUTFILE"
             echo "Agent log at: $LOGFILE"
           fi
         else
