@@ -1160,6 +1160,22 @@ module.exports =
     },
     {
       "id": "puppet var",
+      "name": "hive_hostname",
+      "displayName": "Database Host",
+      "description": "Specify the host on which the database is hosted",
+      "defaultValue": "",
+      "isReconfigurable": true,
+      "displayType": "host",
+      "isOverridable": false,
+      "isVisible": false,
+      "isObserved": true,
+      "domain": "global",
+      "serviceName": "HIVE",
+      "category": "Hive Metastore",
+      "index": 3
+    },
+    {
+      "id": "puppet var",
       "name": "hive_existing_mysql_host",
       "displayName": "Database Host",
       "description": "Specify the host on which the existing database is hosted",
@@ -1581,6 +1597,21 @@ module.exports =
       "serviceName": "OOZIE",
       "category": "Oozie Server",
       "index": 6
+    },
+    {
+      "id": "puppet var",
+      "name": "oozie_hostname",
+      "defaultValue": "",
+      "displayName": "Database Host",
+      "description": "The host where the Oozie database is located",
+      "isReconfigurable": true,
+      "isOverridable": false,
+      "displayType": "host",
+      "isVisible": false,
+      "domain": "global",
+      "serviceName": "OOZIE",
+      "category": "Oozie Server",
+      "index": 3
     },
     {
       "id": "puppet var",
