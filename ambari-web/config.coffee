@@ -37,7 +37,7 @@ exports.config =
           'vendor/scripts/handlebars-1.0.0.beta.6.js',
           'vendor/scripts/ember-latest.js',
           'vendor/scripts/ember-data-latest.js',
-          'vendor/scripts/ember-i18n-1.2.0.js',
+          'vendor/scripts/ember-i18n-1.4.1.js',
           'vendor/scripts/bootstrap.js',
           'vendor/scripts/bootstrap-combobox.js'
           'vendor/scripts/d3.v2.js',
