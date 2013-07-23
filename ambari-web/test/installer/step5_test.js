@@ -19,9 +19,11 @@
 var Ember = require('ember');
 var App = require('app');
 require('controllers/wizard/step5_controller');
+var components = require('data/service_components');
 
 describe('App.WizardStep5Controller', function () {
   var controller = App.WizardStep5Controller.create();
+  controller.set('content', {});
   var cpu = 2, memory = 4;
   var schemes = [
     {'description': 'empty condition'},

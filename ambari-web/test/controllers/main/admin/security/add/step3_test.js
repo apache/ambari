@@ -19,8 +19,6 @@
 
 var App = require('app');
 
-require('utils/string_utils');
-require('utils/helper');
 require('controllers/main/admin/security/add/step3');
 require('models/host_component');
 require('models/host');
