@@ -528,6 +528,7 @@ App.servicesMapper = App.QuickDataMapper.create({
     });
     // Map
     finalJson = this.parseIt(item, finalConfig);
+    finalJson.average_load = parseFloat(finalJson.average_load).toFixed(2);
     finalJson.quick_links = [13, 14, 15, 16, 17, 18];
     return finalJson;
   },
@@ -540,7 +541,6 @@ App.servicesMapper = App.QuickDataMapper.create({
   flumeMapper: function (item) {
     var finalConfig = jQuery.extend({}, this.config);
     var finalJson = this.parseIt(item, finalConfig);
-    ;
     item.components.forEach(function (component) {
       if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "FLUME_SERVER") {
         if (!finalJson.nodes) {

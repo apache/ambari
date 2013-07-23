@@ -46,6 +46,7 @@ require('test/mappers/dataset_mapper_test');
 require('test/mappers/hosts_mapper_test');
 require('test/mappers/jobs_mapper_test');
 require('test/mappers/runs_mapper_test');
+require('test/mappers/service_mapper_test');
 require('test/mappers/status_mapper_test');
 require('test/mappers/users_mapper_test');
 require('test/utils/config_test');
