@@ -663,7 +663,7 @@ App.HostPopup = Em.Object.create({
           } else if (!this.get('isServiceListHidden')) {
             this.get('controller').setSelectCount(this.get("services"), this.get('categories'));
           }
-        }.observes('hosts', 'isTaskListHidden', 'isHostListHidden'),
+        }.observes('hosts', 'isTaskListHidden', 'isHostListHidden', 'services.length', 'services.@each.status'),
 
         /**
          * Onclick handler for button <-Tasks
