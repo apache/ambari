@@ -211,8 +211,8 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
 
   onOptionsChange: function () {
     var connectionUrl = this.get('connectionUrl');
-    if (this.get('serviceConfig.serviceName') === 'HIVE') {
-      if (this.get('hostName') && this.get('databaseName') && connectionUrl) {
+    if (connectionUrl) {
+      if (this.get('serviceConfig.serviceName') === 'HIVE') {
         switch (this.get('serviceConfig.value')) {
           case 'New MySQL Database':
           case 'Existing MySQL Database':
@@ -222,9 +222,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
             connectionUrl.set('value', "jdbc:oracle:thin:@//" + this.get('hostName') + ":1521/" + this.get('databaseName'));
             break;
         }
-      }
-    } else if (this.get('serviceConfig.serviceName') === 'OOZIE') {
-      if (this.get('hostName') && this.get('databaseName') && connectionUrl) {
+      } else if (this.get('serviceConfig.serviceName') === 'OOZIE') {
         switch (this.get('serviceConfig.value')) {
           case 'New Derby Database':
             connectionUrl.set('value', "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true");
@@ -237,6 +235,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
             break;
         }
       }
+      connectionUrl.set('defaultValue', connectionUrl.get('value'));
     }
   }.observes('databaseName', 'hostName', 'connectionUrl'),
 
