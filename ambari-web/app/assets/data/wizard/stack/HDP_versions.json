@@ -849,7 +849,7 @@
     {
       "href" : "http://dev.hortonworks.com:8080/api/v1/stacks2/HDP/versions/2.0.1",
       "Versions" : {
-        "active" : false,
+        "active" : true,
         "min_upgrade_version" : null,
         "stack_name" : "HDP",
         "stack_version" : "2.0.1"
