@@ -44,20 +44,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       'OOZIE_SERVER', 'NAGIOS_SERVER', 'HBASE_MASTER', 'HBASE_REGIONSERVER'];
     var securityUsers = [];
     if (!securityUsers || securityUsers.length < 1) { // Page could be refreshed in middle
-      if (App.testMode) {
-        securityUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'hdfs'});
-        securityUsers.pushObject({id: 'puppet var', name: 'mapred_user', value: 'mapred'});
-        securityUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: 'hbase'});
-        securityUsers.pushObject({id: 'puppet var', name: 'hive_user', value: 'hive'});
-        securityUsers.pushObject({id: 'puppet var', name: 'smokeuser', value: 'ambari-qa'});
-        securityUsers.pushObject({id: 'puppet var', name: 'zk_user', value: 'zookeeper'});
-        securityUsers.pushObject({id: 'puppet var', name: 'oozie_user', value: 'oozie'});
-        securityUsers.pushObject({id: 'puppet var', name: 'nagios_user', value: 'nagios'});
-        securityUsers.pushObject({id: 'puppet var', name: 'user_group', value: 'hadoop'});
-      } else {
-        App.router.get('mainAdminSecurityController').setSecurityStatus();
-        securityUsers = App.router.get('mainAdminSecurityController').get('serviceUsers');
-      }
+      securityUsers = this.getSecurityUsers();
     }
     var isHbaseInstalled = App.Service.find().findProperty('serviceName', 'HBASE');
     var generalConfigs = configs.filterProperty('serviceName', 'GENERAL');
@@ -217,11 +204,30 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     this.set('hostComponents', result);
   },
 
+  getSecurityUsers: function() {
+    var securityUsers = [];
+    if (App.testMode) {
+      securityUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'hdfs'});
+      securityUsers.pushObject({id: 'puppet var', name: 'mapred_user', value: 'mapred'});
+      securityUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: 'hbase'});
+      securityUsers.pushObject({id: 'puppet var', name: 'hive_user', value: 'hive'});
+      securityUsers.pushObject({id: 'puppet var', name: 'smokeuser', value: 'ambari-qa'});
+      securityUsers.pushObject({id: 'puppet var', name: 'zk_user', value: 'zookeeper'});
+      securityUsers.pushObject({id: 'puppet var', name: 'oozie_user', value: 'oozie'});
+      securityUsers.pushObject({id: 'puppet var', name: 'nagios_user', value: 'nagios'});
+      securityUsers.pushObject({id: 'puppet var', name: 'user_group', value: 'hadoop'});
+    } else {
+      App.router.get('mainAdminSecurityController').setSecurityStatus();
+      securityUsers = App.router.get('mainAdminSecurityController').get('serviceUsers');
+    }
+    return securityUsers;
+  },
+
   changeDisplayName: function (name) {
     if (name === 'HiveServer2') {
       return 'Hive Metastore and HiveServer2';
     } else {
       return name;
     }
-  },
+  }
 });

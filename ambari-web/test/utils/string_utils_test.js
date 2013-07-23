@@ -82,4 +82,31 @@ describe('string_utils', function () {
       });
     });
   });
+
+  describe('#arrayToCSV', function() {
+    var test = [{a: 1, b:2, c:3}, {a: 1, b:2, c:3}, {a: 1, b:2, c:3}];
+    it('array of object to csv-string', function () {
+      expect(string_utils.arrayToCSV(test)).to.equal("1,2,3\n1,2,3\n1,2,3\n");
+    });
+  });
+
+  describe('#getFileFromPath', function() {
+    var tests = [
+      {t: undefined, e: ''},
+      {t: {}, e: ''},
+      {t: [], e: ''},
+      {t: '', e: ''},
+      {t: function(){}, e: ''},
+      {t: '/path/to/file.ext', e: 'file.ext'},
+      {t: 'file.ext', e: 'file.ext'},
+      {t: 'file', e: 'file'},
+      {t: '/path/to/file', e: 'file'}
+    ];
+    tests.forEach(function(test) {
+      it('Check ' + typeof test.t, function () {
+        expect(string_utils.getFileFromPath(test.t)).to.equal(test.e);
+      });
+    });
+  });
+
 });

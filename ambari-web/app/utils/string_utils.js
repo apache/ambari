@@ -127,10 +127,13 @@ module.exports = {
 
   /**
    * Extracts filename from linux/unix path
-   * @param String: path
-   * @return {Sring}: filename
+   * @param path
+   * @return {string}: filename
    */
   getFileFromPath: function(path) {
-    return path.replace(/^.*[\/]/, '');
+    if (!path || typeof path !== 'string') {
+      return '';
+    }
+    return path.toString().replace(/^.*[\/]/, '');
   }
 }

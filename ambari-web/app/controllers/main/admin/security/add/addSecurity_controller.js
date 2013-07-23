@@ -30,6 +30,10 @@ App.AddSecurityController = App.WizardController.extend({
     controllerName: 'addSecurityController'
   }),
 
+  installedServices: function() {
+    return App.Service.find().mapProperty('serviceName');
+  }.property(),
+
   /**
    * Loads all prior steps on refresh
    */
@@ -57,7 +61,7 @@ App.AddSecurityController = App.WizardController.extend({
   loadServices: function () {
     this.clearServices();
     var secureServices = require('data/secure_configs');
-    var installedServices = App.Service.find().mapProperty('serviceName');
+    var installedServices = this.get('installedServices');
     //General (only non service tab) tab is always displayed
     this.get('content.services').push(secureServices.findProperty('serviceName', 'GENERAL'));
     installedServices.forEach(function (_service) {
