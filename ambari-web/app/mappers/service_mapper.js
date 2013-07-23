@@ -222,6 +222,7 @@ App.servicesMapper = App.QuickDataMapper.create({
         }else {
           finalJson = this.parseIt(item, this.config);
           finalJson.rand = Math.random();
+          this.mapQuickLinks(finalJson, item);
           result.push(finalJson);
         }
       }, this);
