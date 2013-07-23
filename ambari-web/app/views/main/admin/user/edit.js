@@ -22,7 +22,6 @@ App.MainAdminUserEditView = Em.View.extend({
   templateName: require('templates/main/admin/user/edit'),
   userId: false,
   edit: function(event){
-    var parent_controller=this.get("controller").controllers.mainAdminUserController;
     var form = this.get("userForm");
     if(form.isValid()) {
       var Users={};
@@ -40,7 +39,7 @@ App.MainAdminUserEditView = Em.View.extend({
         Users.old_password = form.getField("old_password").get('value');
       }
 
-      parent_controller.sendCommandToServer('/users/' + form.getField("userName").get('value'), "PUT" , {
+      this.get("controller").sendCommandToServer('/users/' + form.getField("userName").get('value'), "PUT" , {
        Users:Users
       }, function (success, message) {
         if (!success) {

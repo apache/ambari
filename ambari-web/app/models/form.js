@@ -183,19 +183,6 @@ App.FormField = Em.Object.extend({ // try to realize this as view
     }
 
     if (!isError) {
-      if(this.get('validator') === 'passwordRetype'){
-        var form = this.get('form');
-        var passwordField = form.getField('password');
-        if (passwordField.get('isValid')
-          && (passwordField.get('value') != this.get('value'))
-          && passwordField.get('value') && this.get('value')
-          ) {
-          this.set('errorMessage', "Passwords are different");
-          isError = true;
-        }
-      }
-    }
-    if (!isError) {
       this.set('errorMessage', '');
     }
   },

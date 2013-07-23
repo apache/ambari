@@ -46,6 +46,7 @@ App.EditUserForm = App.Form.extend({
     { name:"userName", displayName:"Username" },
     { name:"old_password", displayName:"Current Password", displayType:"password", isRequired: false },
     { name:"new_password", displayName:"New Password", displayType:"password",  isRequired: false },
+    { name:"new_passwordRetype", displayName:"Retype New Password", displayType:"password", isRequired: false },
     { name:"admin", displayName:"Admin", displayType:"checkbox", isRequired:false },
     { name:"roles", displayName:"Role", isRequired:false, isHidden:true },
     { name:"isLdap", displayName:"Type", isRequired:false, isHidden:true }
@@ -68,14 +69,21 @@ App.EditUserForm = App.Form.extend({
   isValid:function () {
 
     var isValid = this._super();
-    thisForm = this;
+    var thisForm = this;
 
     var newPass = this.get('field.new_password');
     var oldPass = this.get('field.old_password');
+    var passRetype = this.get('field.new_passwordRetype');
 
-    if (!validator.empty(newPass.get('value')) && validator.empty(oldPass.get('value'))) {
+    if (!validator.empty(newPass.get('value'))) {
+      if(validator.empty(oldPass.get('value'))){
         oldPass.set('errorMessage', this.t('admin.users.editError.requiredField'));
         isValid = false;
+      }
+      if (newPass.get('value') != passRetype.get('value')) {
+        passRetype.set('errorMessage', this.t('admin.users.createError.passwordValidation'));
+        isValid = false;
+      }
     }
 
     return isValid;
