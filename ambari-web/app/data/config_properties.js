@@ -2021,19 +2021,6 @@ module.exports =
       "serviceName": "NAGIOS",
       "index": 2
     },
-    {
-      "id": "puppet var",
-      "name": "nagios_group",
-      "displayName": "Nagios Group",
-      "description": "Nagios Group",
-      "defaultValue": "nagios",
-      "isReconfigurable": false,
-      "displayType": "user",
-      "isOverridable": false,
-      "domain": "global",
-      "isVisible": false,
-      "serviceName": "NAGIOS"
-    },
   /**********************************************ZOOKEEPER***************************************/
     {
       "id": "puppet var",
@@ -2725,6 +2712,21 @@ module.exports =
       "name": "nagios_user",
       "displayName": "Nagios User",
       "description": "User to run Nagios as",
+      "defaultValue": "nagios",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "isOverridable": false,
+      "domain": "global",
+      "isVisible": true,
+      "serviceName":"MISC",
+      "category": "Users and Groups",
+      "belongsToService":["NAGIOS"]
+    },
+    {
+      "id": "puppet var",
+      "name": "nagios_group",
+      "displayName": "Nagios Group",
+      "description": "Nagios Group",
       "defaultValue": "nagios",
       "isReconfigurable": false,
       "displayType": "user",
