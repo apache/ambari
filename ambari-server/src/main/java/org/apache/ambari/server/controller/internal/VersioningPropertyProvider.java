@@ -38,6 +38,7 @@ public class VersioningPropertyProvider extends BaseProvider implements Property
 
   private final Map<String, PropertyHelper.MetricsVersion> clusterVersions;
   private final Map<PropertyHelper.MetricsVersion, AbstractPropertyProvider> providers;
+  private final AbstractPropertyProvider defaultProvider;
   private final String clusterNamePropertyId;
 
   /**
@@ -45,11 +46,13 @@ public class VersioningPropertyProvider extends BaseProvider implements Property
    */
   public VersioningPropertyProvider(Map<String, PropertyHelper.MetricsVersion> clusterVersions,
                                     Map<PropertyHelper.MetricsVersion, AbstractPropertyProvider> providers,
+                                    AbstractPropertyProvider defaultProvider,
                                     String clusterNamePropertyId) {
     super(getComponentMetrics(providers));
 
     this.clusterVersions       = clusterVersions;
     this.providers             = providers;
+    this.defaultProvider       = defaultProvider;
     this.clusterNamePropertyId = clusterNamePropertyId;
   }
 
@@ -77,17 +80,22 @@ public class VersioningPropertyProvider extends BaseProvider implements Property
     // give each set of resources to the underlying provider that matches the
     // metrics version of the associated cluster
     for (Map.Entry<String, Set<Resource>> entry : resourcesByCluster.entrySet()) {
-      String clusterName = entry.getKey();
-      Set<Resource> resourceSet = entry.getValue();
+      String                   clusterName = entry.getKey();
+      Set<Resource>            resourceSet = entry.getValue();
+      AbstractPropertyProvider provider    = null;
 
-      PropertyHelper.MetricsVersion version = clusterVersions.get(clusterName);
+      if (clusterName == null) {
+        provider = defaultProvider;
+      } else {
+        PropertyHelper.MetricsVersion version = clusterVersions.get(clusterName);
 
-      if (version != null) {
-
-        AbstractPropertyProvider provider = providers.get(version);
-        if (provider != null) {
-          keepers.addAll(provider.populateResources(resourceSet, request, predicate));
+        if (version != null) {
+          provider = providers.get(version);
         }
+      }
+
+      if (provider != null) {
+        keepers.addAll(provider.populateResources(resourceSet, request, predicate));
       }
     }
     return keepers;

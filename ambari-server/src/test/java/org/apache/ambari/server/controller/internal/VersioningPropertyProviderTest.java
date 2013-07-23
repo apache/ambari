@@ -69,8 +69,9 @@ public class VersioningPropertyProviderTest {
 
     providers.put(PropertyHelper.MetricsVersion.HDP2, propertyProvider2);
 
-
-    VersioningPropertyProvider provider = new VersioningPropertyProvider(clusterVersionsMap, providers, PropertyHelper.getPropertyId("HostRoles", "cluster_name"));
+    // set propertyProvider2 as the default provider
+    VersioningPropertyProvider provider = new VersioningPropertyProvider(clusterVersionsMap, providers,
+        propertyProvider2, PropertyHelper.getPropertyId("HostRoles", "cluster_name"));
 
 
     Request request = PropertyHelper.getReadRequest();
@@ -106,6 +107,18 @@ public class VersioningPropertyProviderTest {
 
     Assert.assertEquals(resource1, propertyProvider1.getResource());
     Assert.assertEquals(resource2, propertyProvider2.getResource());
+
+
+    // test resource with no associated cluster ... should go to default provider2
+    propertyProvider1.setResource(null);
+    propertyProvider2.setResource(null);
+
+    Resource resource3 = new ResourceImpl(Resource.Type.HostComponent);
+
+    provider.populateResources(Collections.singleton(resource3), request, null);
+
+    Assert.assertNull(propertyProvider1.getResource());
+    Assert.assertEquals(resource3, propertyProvider2.getResource());
   }
 
   private class TestJMXPropertyProvider extends JMXPropertyProvider {

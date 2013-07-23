@@ -530,14 +530,16 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
 
     Map<PropertyHelper.MetricsVersion, AbstractPropertyProvider> providers =
         new HashMap<PropertyHelper.MetricsVersion, AbstractPropertyProvider>();
+    AbstractPropertyProvider lastProvider = null;
 
     for (PropertyHelper.MetricsVersion version : PropertyHelper.MetricsVersion.values()) {
 
-      providers.put(version, new JMXPropertyProvider(PropertyHelper.getJMXPropertyIds(type, version), streamProvider,
-          jmxHostProvider, clusterNamePropertyId, hostNamePropertyId, componentNamePropertyId, statePropertyId, healthyStates));
+      lastProvider = new JMXPropertyProvider(PropertyHelper.getJMXPropertyIds(type, version), streamProvider,
+          jmxHostProvider, clusterNamePropertyId, hostNamePropertyId, componentNamePropertyId, statePropertyId, healthyStates);
+      providers.put(version, lastProvider);
     }
 
-    return new VersioningPropertyProvider(clusterVersionsMap, providers, clusterNamePropertyId);
+    return new VersioningPropertyProvider(clusterVersionsMap, providers, lastProvider, clusterNamePropertyId);
   }
 
   /**
@@ -551,14 +553,16 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
 
     Map<PropertyHelper.MetricsVersion, AbstractPropertyProvider> providers =
         new HashMap<PropertyHelper.MetricsVersion, AbstractPropertyProvider>();
+    AbstractPropertyProvider lastProvider = null;
 
     for (PropertyHelper.MetricsVersion version : PropertyHelper.MetricsVersion.values()) {
 
-      providers.put(version, new GangliaReportPropertyProvider(PropertyHelper.getGangliaPropertyIds(type, version), streamProvider,
-          configuration, hostProvider, clusterNamePropertyId));
+      lastProvider = new GangliaReportPropertyProvider(PropertyHelper.getGangliaPropertyIds(type, version), streamProvider,
+          configuration, hostProvider, clusterNamePropertyId);
+      providers.put(version, lastProvider);
     }
 
-    return new VersioningPropertyProvider(clusterVersionsMap, providers, clusterNamePropertyId);
+    return new VersioningPropertyProvider(clusterVersionsMap, providers, lastProvider, clusterNamePropertyId);
   }
 
   /**
@@ -573,14 +577,16 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
 
     Map<PropertyHelper.MetricsVersion, AbstractPropertyProvider> providers =
         new HashMap<PropertyHelper.MetricsVersion, AbstractPropertyProvider>();
+    AbstractPropertyProvider lastProvider = null;
 
     for (PropertyHelper.MetricsVersion version : PropertyHelper.MetricsVersion.values()) {
 
-      providers.put(version, new GangliaHostPropertyProvider(PropertyHelper.getGangliaPropertyIds(type, version), streamProvider,
-          configuration, hostProvider, clusterNamePropertyId, hostNamePropertyId));
+      lastProvider = new GangliaHostPropertyProvider(PropertyHelper.getGangliaPropertyIds(type, version), streamProvider,
+          configuration, hostProvider, clusterNamePropertyId, hostNamePropertyId);
+      providers.put(version, lastProvider);
     }
 
-    return new VersioningPropertyProvider(clusterVersionsMap, providers, clusterNamePropertyId);
+    return new VersioningPropertyProvider(clusterVersionsMap, providers, lastProvider, clusterNamePropertyId);
   }
 
   /**
@@ -595,14 +601,17 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
 
     Map<PropertyHelper.MetricsVersion, AbstractPropertyProvider> providers =
         new HashMap<PropertyHelper.MetricsVersion, AbstractPropertyProvider>();
+    AbstractPropertyProvider lastProvider = null;
 
     for (PropertyHelper.MetricsVersion version : PropertyHelper.MetricsVersion.values()) {
+      lastProvider =
+          new GangliaComponentPropertyProvider(PropertyHelper.getGangliaPropertyIds(type, version),
+              streamProvider, configuration, hostProvider, clusterNamePropertyId, componentNamePropertyId);
 
-      providers.put(version, new GangliaComponentPropertyProvider(PropertyHelper.getGangliaPropertyIds(type, version), streamProvider,
-          configuration, hostProvider, clusterNamePropertyId, componentNamePropertyId));
+      providers.put(version, lastProvider);
     }
 
-    return new VersioningPropertyProvider(clusterVersionsMap, providers, clusterNamePropertyId);
+    return new VersioningPropertyProvider(clusterVersionsMap, providers, lastProvider, clusterNamePropertyId);
   }
 
   /**
@@ -618,13 +627,15 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
 
     Map<PropertyHelper.MetricsVersion, AbstractPropertyProvider> providers =
         new HashMap<PropertyHelper.MetricsVersion, AbstractPropertyProvider>();
+    AbstractPropertyProvider lastProvider = null;
 
     for (PropertyHelper.MetricsVersion version : PropertyHelper.MetricsVersion.values()) {
 
-      providers.put(version, new GangliaHostComponentPropertyProvider(PropertyHelper.getGangliaPropertyIds(type, version), streamProvider,
-          configuration, hostProvider, clusterNamePropertyId, hostNamePropertyId, componentNamePropertyId));
+      lastProvider = new GangliaHostComponentPropertyProvider(PropertyHelper.getGangliaPropertyIds(type, version), streamProvider,
+          configuration, hostProvider, clusterNamePropertyId, hostNamePropertyId, componentNamePropertyId);
+      providers.put(version, lastProvider);
     }
 
-    return new VersioningPropertyProvider(clusterVersionsMap, providers, clusterNamePropertyId);
+    return new VersioningPropertyProvider(clusterVersionsMap, providers, lastProvider, clusterNamePropertyId);
   }
 }
