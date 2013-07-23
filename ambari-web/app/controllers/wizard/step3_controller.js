@@ -932,8 +932,11 @@ App.WizardStep3Controller = Em.Controller.extend({
           return this.get('warningsByHost').mapProperty('name');
         }.property('warningsByHost'),
         category: 'All Hosts',
+        categoryWarnings: function () {
+          return this.get('warningsByHost').findProperty('name', this.get('category')).warnings
+        }.property('warningsByHost', 'category'),
         content: function () {
-          var categoryWarnings = this.get('warningsByHost').findProperty('name', this.get('category')).warnings;
+          var categoryWarnings = this.get('categoryWarnings');
           return [
             Ember.Object.create({
               warnings: categoryWarnings.filterProperty('category', 'processes'),
