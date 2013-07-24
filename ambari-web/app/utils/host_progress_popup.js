@@ -474,13 +474,19 @@ App.HostPopup = Em.Object.create({
       }),
       classNames: ['sixty-percent-width-modal'],
       autoHeight: false,
-      onPrimary: function () {
+      closeModelPopup: function () {
         this.set('isOpen', false);
         if(showServices){
           $(this.get('element')).detach();
         } else {
           this.hide();
         }
+      },
+      onPrimary: function () {
+        this.closeModelPopup();
+      },
+      onClose: function () {
+        this.closeModelPopup();
       },
       secondary: null,
 
@@ -534,6 +540,7 @@ App.HostPopup = Em.Object.create({
             this.set('isTaskListHidden', true);
             this.set('isHostListHidden', true);
             this.set('isServiceListHidden', false);
+            this.get("controller").setBackgroundOperationHeader();
             this.setOnStart();
           }
         }.observes('parentView.isOpen'),
