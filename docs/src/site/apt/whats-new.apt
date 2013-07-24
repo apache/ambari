@@ -16,32 +16,11 @@
 
 What's New with Ambari?
 
- * The current 1.2.3 release features the following:
-
-   * Improved general stability
-
-   * Ability to update core-site.xml properties
-
-   * Add + remove custom configuration properties
-
-   * New Heatmaps (Host > CPU WIO %, HBase > RegionServer Reads/Writes/Regions/QueueSize/MemstoreSize)
-
-   * Add host components on existing hosts
-
-   * Filter hosts by host health status
-
-   * Mixed OS support
-
-   * init.d scripts
-
-   * Support for Oracle Enterprise Linux 5 and 6
-
-
- * Ambari 1.2.4 will feature:
+ * The current Ambari 1.2.4 release has the following new features:
 
    * Ability to use a non-root, sudo user to install Ambari agents
 
-   * MySQL and Oracle database support for Ambari (in addition to Postgres)
+   * Oracle database support for Ambari (in addition to Postgres)
 
    * Oracle database support for Hive Metastore (in addition to MySQL)
 
@@ -61,16 +40,12 @@ What's New with Ambari?
    * Audit capture of login and config changes
 
 
- * Ambari 1.4.0 will support Hadoop 2.0.  This work is going on under the {{{https://svn.apache.org/repos/asf/incubator/ambari/branches/branch-1.4.0} 1.4.0 branch}}.
+ * Ambari 1.4.0 will support Hadoop 2.0.  This work is going on under {{{https://git-wip-us.apache.org/repos/asf/incubator-ambari/repo?p=incubator-ambari.git;a=log;h=refs/heads/trunk} trunk}}.
 
 
 Getting Ambari Source
 
-  The source can be checked out anonymously from SVN with the following command:
-
-+--
-$ svn checkout http://svn.apache.org/repos/asf/incubator/ambari/trunk ambari
-+--
+  See {{{https://cwiki.apache.org/confluence/display/AMBARI/Ambari+Development} Ambari Development guide}} on how to check out the source and build it.
 
 JIRA
 
@@ -81,7 +56,7 @@ JIRA
 
 User Guide
 
-  Take a look at {{{http://incubator.apache.org/ambari/1.2.3/installing-hadoop-using-ambari/content/index.html} how to install a Hadoop cluster using Ambari 1.2.3}}.
+  Take a look at {{{http://incubator.apache.org/ambari/1.2.4/installing-hadoop-using-ambari/content/index.html} how to install a Hadoop cluster using Ambari 1.2.4}}.
 
 Stay Tuned
 

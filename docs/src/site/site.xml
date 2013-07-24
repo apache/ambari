@@ -83,7 +83,7 @@
 
     <links>
       <item name="JIRA" href="https://issues.apache.org/jira/browse/AMBARI" />
-      <item name="SVN" href="https://svn.apache.org/repos/asf/incubator/ambari/" />
+      <item name="Git" href="https://git-wip-us.apache.org/repos/asf/incubator-ambari/repo?p=incubator-ambari.git;a=summary" />
       <item name="Wiki" href="https://cwiki.apache.org/confluence/display/AMBARI/Ambari" />
     </links>
 
@@ -104,6 +104,7 @@
     </menu>
 
     <menu name="Releases">
+        <item name="1.2.4" href="http://www.apache.org/dist/incubator/ambari/ambari-1.2.4/"/>
         <item name="1.2.3" href="http://www.apache.org/dist/incubator/ambari/ambari-1.2.3/"/>
         <item name="1.2.2" href="http://www.apache.org/dist/incubator/ambari/ambari-1.2.2/"/>
         <item name="1.2.1" href="http://www.apache.org/dist/incubator/ambari/ambari-1.2.1/"/>
@@ -112,6 +113,7 @@
     </menu>
 
     <menu name="Documentation">
+        <item name="Install Guide for 1.2.4" href="1.2.4/installing-hadoop-using-ambari/content/index.html"/>
         <item name="Install Guide for 1.2.3" href="1.2.3/installing-hadoop-using-ambari/content/index.html"/>
         <item name="Install Guide for 1.2.2" href="1.2.2/installing-hadoop-using-ambari/content/index.html"/>
         <item name="Install Guide for 1.2.1" href="1.2.1/installing-hadoop-using-ambari/content/index.html"/>
