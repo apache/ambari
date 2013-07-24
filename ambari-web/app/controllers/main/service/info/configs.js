@@ -439,6 +439,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     //App.config.addAdvancedConfigs(configs, advancedConfigs, serviceName);
     //STEP 7: add custom configs
     App.config.addCustomConfigs(configs);
+    //put properties from capacity-scheduler.xml into one config with textarea view
+    if(this.get('content.serviceName') === 'YARN' && !App.supports.capacitySchedulerUi){
+      configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml');
+    }
     //STEP 8: add configs as names of host components
     this.addHostNamesToGlobalConfig();
 
@@ -829,6 +833,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.savedHostToOverrideSiteToTagMap = {};
     var configs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs');
     this.saveGlobalConfigs(configs);
+    if(this.get('content.serviceName') === 'YARN' && !App.supports.capacitySchedulerUi){
+      configs = App.config.textareaIntoFileConfigs(configs, 'capacity-scheduler.xml');
+    }
     this.saveSiteConfigs(configs);
 
     /**

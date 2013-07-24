@@ -333,9 +333,11 @@ App.config = Em.Object.create({
     var stored = configs.filter(function (_config) {
       return this.get('categoriesWithCustom').contains(_config.category);
     }, this);
-    var queueProperties = stored.filter(this.get('capacitySchedulerFilter'));
-    if (queueProperties.length) {
-      queueProperties.setEach('isQueue', true);
+    if(App.supports.capacitySchedulerUi){
+      var queueProperties = stored.filter(this.get('capacitySchedulerFilter'));
+      if (queueProperties.length) {
+        queueProperties.setEach('isQueue', true);
+      }
     }
   },
 
@@ -440,20 +442,6 @@ App.config = Em.Object.create({
       configProperty.set('overrides', overrides);
     }
   },
-  capacitySchedulerFilter: function () {
-    var yarnRegex = /^yarn\.scheduler\.capacity\.root\.(?!unfunded)([a-z]([\_\-a-z0-9]{0,50}))\.(acl_administer_jobs|acl_submit_jobs|state|user-limit-factor|maximum-capacity|capacity)$/i;
-    var self = this;
-    if(App.get('isHadoop2Stack')){
-      return function (_config) {
-        return (yarnRegex.test(_config.name));
-      }
-    } else {
-      return function (_config) {
-        return (_config.name.indexOf('mapred.capacity-scheduler.queue.') !== -1) ||
-          (/^mapred\.queue\.[a-z]([\_\-a-z0-9]{0,50})\.(acl-administer-jobs|acl-submit-job)$/i.test(_config.name));
-      }
-    }
-  }.property('App.isHadoop2Stack'),
   /**
    * create new ServiceConfig object by service name
    * @param serviceName
@@ -470,7 +458,11 @@ App.config = Em.Object.create({
     serviceConfig.configCategories.filterProperty('isCustomView', true).forEach(function (category) {
       switch (category.name) {
         case 'CapacityScheduler':
-          category.set('customView', App.ServiceConfigCapacityScheduler);
+          if(App.supports.capacitySchedulerUi){
+            category.set('customView', App.ServiceConfigCapacityScheduler);
+          } else {
+            category.set('isCustomView', false);
+          }
           break;
       }
     }, this);
@@ -778,6 +770,82 @@ App.config = Em.Object.create({
         }
       }, this);
     }
+  },
+  complexConfigs: [
+    {
+      "id": "site property",
+      "name": "capacity-scheduler",
+      "displayName": "Capacity Scheduler",
+      "value": "",
+      "defaultValue": "",
+      "description": "Capacity Scheduler properties",
+      "displayType": "custom",
+      "isOverridable": true,
+      "isRequired": true,
+      "isVisible": true,
+      "serviceName": "YARN",
+      "filename": "capacity-scheduler.xml",
+      "category": "CapacityScheduler"
+    }
+  ],
+
+  /**
+   * transform set of configs from file
+   * into one config with textarea content:
+   * name=value
+   * @param configs
+   * @param filename
+   * @return {*}
+   */
+  fileConfigsIntoTextarea: function(configs, filename){
+    var fileConfigs = configs.filterProperty('filename', filename);
+    var value = '';
+    var defaultValue = '';
+    var complexConfig = this.get('complexConfigs').findProperty('filename', filename);
+    if(complexConfig){
+      fileConfigs.forEach(function(_config){
+        value += _config.name + '=' + _config.value + '\n';
+        defaultValue += _config.name + '=' + _config.defaultValue + '\n';
+      }, this);
+      complexConfig.value = value;
+      complexConfig.defaultValue = defaultValue;
+      configs = configs.filter(function(_config){
+        return _config.filename !== filename;
+      });
+      configs.push(complexConfig);
+    }
+    return configs;
+  },
+
+  /**
+   * transform one config with textarea content
+   * into set of configs of file
+   * @param configs
+   * @param filename
+   * @return {*}
+   */
+  textareaIntoFileConfigs: function(configs, filename){
+    var complexConfigName = this.get('complexConfigs').findProperty('filename', filename).name;
+    var configsTextarea = configs.findProperty('name', complexConfigName);
+    var properties = configsTextarea.get('value').replace(/(,| |\n)+/g, ',').split(',');
+
+    properties.forEach(function(_property){
+      var name, value;
+      if(_property){
+        _property = _property.split('=');
+        name = _property[0];
+        value = (_property[1]) ? _property[1] : "";
+        configs.push(Em.Object.create({
+          id: configsTextarea.get('id'),
+          name: name,
+          value: value,
+          defaultValue: value,
+          serviceName: configsTextarea.get('serviceName'),
+          filename: filename
+        }));
+      }
+    });
+    return configs.without(configsTextarea);
   }
 
 });

@@ -692,6 +692,11 @@ App.WizardController = Em.Controller.extend({
   saveServiceConfigProperties: function (stepController) {
     var serviceConfigProperties = [];
     stepController.get('stepConfigs').forEach(function (_content) {
+
+      if(_content.serviceName === 'YARN' && !App.supports.capacitySchedulerUi){
+        _content.set('configs', App.config.textareaIntoFileConfigs(_content.get('configs'), 'capacity-scheduler.xml'));
+      }
+
       _content.get('configs').forEach(function (_configProperties) {
         var displayType = _configProperties.get('displayType');
         if (displayType === 'directories' || displayType === 'directory') {

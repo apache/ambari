@@ -42,11 +42,11 @@ module.exports = [
     displayName: 'HCFS',
     filename: 'core-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'})      
+      App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'})
     ],
     sites: ['core-site'],
     configs: []
-  },  
+  },
   {
     serviceName: 'MAPREDUCE',
     displayName: 'MapReduce',
@@ -85,7 +85,7 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'ResourceManager', displayName : 'Resource Manager', hostComponentNames : ['RESOURCEMANAGER']}),
       App.ServiceConfigCategory.create({ name: 'NodeManager', displayName : 'Node Manager', hostComponentNames : ['NODEMANAGER']}),
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
-      App.ServiceConfigCategory.create({ name: 'CapacityScheduler', displayName : 'Capacity Scheduler', isCapacityScheduler : true, isCustomView: true, siteFileName: 'capacity-scheduler.xml', siteFileNames: ['capacity-scheduler.xml', 'mapred-queue-acls.xml'], canAddProperty: true}),
+      App.ServiceConfigCategory.create({ name: 'CapacityScheduler', displayName : 'Capacity Scheduler', isCapacityScheduler : true, isCustomView: true, siteFileName: 'capacity-scheduler.xml', siteFileNames: ['capacity-scheduler.xml', 'mapred-queue-acls.xml'], canAddProperty: App.supports.capacitySchedulerUi}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
       App.ServiceConfigCategory.create({ name: 'AdvancedYARNSite', displayName : 'Custom yarn-site.xml', siteFileName: 'yarn-site.xml', canAddProperty: true})
     ],
