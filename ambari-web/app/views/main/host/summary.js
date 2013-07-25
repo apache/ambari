@@ -95,14 +95,11 @@ App.MainHostSummaryView = Em.View.extend({
     var slaveComponents = [];
     var masterComponents = [];
     this.get('content.hostComponents').forEach(function (component) {
-      if (component.get('workStatus') != 'INSTALLING') {
-        if (component.get('isMaster')) {
-          masterComponents.push(component);
-        } else if (component.get('isSlave')) {
-          slaveComponents.push(component);
-        }
+      if (component.get('isMaster')) {
+        masterComponents.push(component);
+      } else if (component.get('isSlave')) {
+        slaveComponents.push(component);
       }
-
     }, this);
     return masterComponents.concat(slaveComponents);
   }.property('content', 'content.hostComponents.length'),
@@ -253,7 +250,7 @@ App.MainHostSummaryView = Em.View.extend({
     doBlinking: function () {
       var workStatus = this.get('workStatus');
       var self = this;
-      var pulsate = [ App.HostComponentStatus.starting, App.HostComponentStatus.stopping ].contains(workStatus);
+      var pulsate = [ App.HostComponentStatus.starting, App.HostComponentStatus.stopping, App.HostComponentStatus.installing].contains(workStatus);
       if (!pulsate && this.get('isDataNode')) {
         var dataNodeComponent = this.get('content');
         if (dataNodeComponent && workStatus != "INSTALLED") {
@@ -281,6 +278,9 @@ App.MainHostSummaryView = Em.View.extend({
       return (this.get('workStatus') == App.HostComponentStatus.started || this.get('workStatus') == App.HostComponentStatus.starting);
     }.property('workStatus'),
 
+    isInstalling: function () {
+      return (this.get('workStatus') == App.HostComponentStatus.installing);
+    }.property('workStatus'),
     /**
      * No action available while component is starting/stopping/unknown
      */
