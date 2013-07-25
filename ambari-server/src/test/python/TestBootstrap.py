@@ -358,7 +358,9 @@ class TestBootstrap(TestCase):
   @patch.object(Popen, "communicate")
   @patch.object(BootStrap, "createDoneFiles")
   @patch.object(BootStrap, "getRunSetupWithPasswordCommand")
-  def test_commands_with_password_are_called_for_user_with_password(self, getRunSetupWithPasswordCommand_method,
+  @patch.object(BootStrap, "getMoveRepoFileWithPasswordCommand")
+  def test_commands_with_password_are_called_for_user_with_password(self, getMoveRepoFileWithPasswordCommand_method,
+                                                                    getRunSetupWithPasswordCommand_method,
                                                                     createDoneFiles_method,
                                                                     communicate_method,
                                                                     SSH_writeLogToFile_method,
@@ -371,6 +373,7 @@ class TestBootstrap(TestCase):
     createDoneFiles_method.return_value = None
 
     getRunSetupWithPasswordCommand_method.return_value = ""
+    getMoveRepoFileWithPasswordCommand_method.return_value = ""
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
     hosts = ["hostname"]
@@ -383,11 +386,15 @@ class TestBootstrap(TestCase):
     bootstrap_obj.successive_hostlist = hosts
     bootstrap_obj.runSetupAgent()
     self.assertTrue(getRunSetupWithPasswordCommand_method.called)
+    self.assertTrue(getMoveRepoFileWithPasswordCommand_method.called)
     getRunSetupWithPasswordCommand_method.reset()
+    getMoveRepoFileWithPasswordCommand_method.reset()
     getRunSetupWithPasswordCommand_method.reset()
+    getMoveRepoFileWithPasswordCommand_method.reset()
     bootstrap_obj.successive_hostlist = None
     bootstrap_obj.copyOsCheckScript()
     self.assertTrue(getRunSetupWithPasswordCommand_method.called)
+    self.assertTrue(getMoveRepoFileWithPasswordCommand_method.called)
 
   @patch.object(bootstrap, "get_difference")
   @patch.object(SCP, "writeLogToFile")
@@ -395,7 +402,9 @@ class TestBootstrap(TestCase):
   @patch.object(Popen, "communicate")
   @patch.object(BootStrap, "createDoneFiles")
   @patch.object(BootStrap, "getRunSetupWithoutPasswordCommand")
-  def test_commands_without_password_are_called_for_passwordless_user(self, getRunSetupWithoutPasswordCommand_method,
+  @patch.object(BootStrap, "getMoveRepoFileWithoutPasswordCommand")
+  def test_commands_without_password_are_called_for_passwordless_user(self, getMoveRepoFileWithoutPasswordCommand_method,
+                                                                      getRunSetupWithoutPasswordCommand_method,
                                                                       createDoneFiles_method,
                                                                       communicate_method,
                                                                       SSH_writeLogToFile_method,
@@ -407,6 +416,7 @@ class TestBootstrap(TestCase):
     createDoneFiles_method.return_value = None
 
     getRunSetupWithoutPasswordCommand_method.return_value = ""
+    getMoveRepoFileWithoutPasswordCommand_method.return_value = ""
 
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
     hosts = ["hostname"]
@@ -419,16 +429,21 @@ class TestBootstrap(TestCase):
     bootstrap_obj.successive_hostlist = hosts
     bootstrap_obj.runSetupAgent()
     self.assertTrue(getRunSetupWithoutPasswordCommand_method.called)
+    self.assertTrue(getMoveRepoFileWithoutPasswordCommand_method.called)
     getRunSetupWithoutPasswordCommand_method.reset()
+    getMoveRepoFileWithoutPasswordCommand_method.reset()
 
     get_difference_mock.return_value = None
     self.assertTrue(bootstrap_obj.copyNeededFiles() == 0)
     self.assertTrue(getRunSetupWithoutPasswordCommand_method.called)
+    self.assertTrue(getMoveRepoFileWithoutPasswordCommand_method.called)
     getRunSetupWithoutPasswordCommand_method.reset()
+    getMoveRepoFileWithoutPasswordCommand_method.reset()
 
     bootstrap_obj.successive_hostlist = None
     bootstrap_obj.copyNeededFiles()
     self.assertTrue(getRunSetupWithoutPasswordCommand_method.called)
+    self.assertTrue(getMoveRepoFileWithoutPasswordCommand_method.called)
 
   @patch.object(BootStrap, "runSetupAgent")
   @patch.object(BootStrap, "copyNeededFiles")
@@ -630,6 +645,23 @@ class TestBootstrap(TestCase):
     self.assertTrue(pssh_getstatus_method.call_count >= 2)
     self.assertTrue(ret == 1)
 
+
+  @patch.object(BootStrap, "getRemoteName")
+  @patch.object(BootStrap, "hasPassword")
+  def test_getRepoFile(self, hasPassword_mock, getRemoteName_mock):
+    bootstrap = BootStrap(["hostname"], "user", "sshKeyFile", "scriptDir",
+                          "bootdir", "setupAgentFile",
+                          "ambariServer", "centos6", "version", "8440")
+    # Without password
+    hasPassword_mock.return_value = False
+    getRemoteName_mock.return_value = "RemoteName"
+    rf = bootstrap.getMoveRepoFileCommand("target")
+    self.assertEquals(rf, "sudo mv RemoteName target/ambari.repo")
+    # With password
+    hasPassword_mock.return_value = True
+    getRemoteName_mock.return_value = "RemoteName"
+    rf = bootstrap.getMoveRepoFileCommand("target")
+    self.assertEquals(rf, "sudo -S mv RemoteName target/ambari.repo < RemoteName")
 
 
   def test_PSSH_constructor_argument_validation(self):

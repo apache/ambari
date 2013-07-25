@@ -342,6 +342,23 @@ class BootStrap:
   def hasPassword(self):
     return self.passwordFile is not None and self.passwordFile != 'null'
 
+  def getMoveRepoFileWithPasswordCommand(self, targetDir):
+    return "sudo -S mv " + str(self.getRemoteName(self.AMBARI_REPO_FILENAME))\
+           + " " + os.path.join(str(targetDir), self.AMBARI_REPO_FILENAME) + \
+           " < " + str(self.getPasswordFile())
+
+
+  def getMoveRepoFileWithoutPasswordCommand(self, targetDir):
+    return "sudo mv " + str(self.getRemoteName(self.AMBARI_REPO_FILENAME)) +\
+            " " + os.path.join(str(targetDir), self.AMBARI_REPO_FILENAME)
+
+  def getMoveRepoFileCommand(self, targetDir):
+    if self.hasPassword():
+      return self.getMoveRepoFileWithPasswordCommand(targetDir)
+    else:
+      return self.getMoveRepoFileWithoutPasswordCommand(targetDir)
+
+
 
   def copyOsCheckScript(self):
     try:
@@ -374,7 +391,7 @@ class BootStrap:
     try:
       # Copying the files
       fileToCopy = self.getRepoFile()
-      target = self.getRepoFile()
+      target = self.getRemoteName(self.AMBARI_REPO_FILENAME)
       logging.info("Copying repo file to 'tmp' folder...")
       pscp = PSCP(self.successive_hostlist, self.user, self.sshkeyFile, fileToCopy, target, self.bootdir)
       pscp.run()
@@ -389,6 +406,19 @@ class BootStrap:
       self.statuses = unite_statuses(self.statuses, out)
 
       logging.info("Moving repo file...")
+      targetDir = self.getRepoDir()
+      command = self.getMoveRepoFileCommand(targetDir)
+      pssh = PSSH(self.successive_hostlist, self.user, self.sshkeyFile, self.bootdir, command=command)
+      pssh.run()
+      out = pssh.getstatus()
+      # Preparing report about failed hosts
+      failed_current = get_difference(self.successive_hostlist, skip_failed_hosts(out))
+      self.successive_hostlist = skip_failed_hosts(out)
+      failed = get_difference(self.hostlist, self.successive_hostlist)
+      logging.info("Parallel scp returns for moving repo file. All failed hosts are: " + str(failed) +
+                   ". Failed on last step: " + str(failed_current))
+      #updating statuses
+      self.statuses = unite_statuses(self.statuses, out)
 
       target = self.getRemoteName(self.SETUP_SCRIPT_FILENAME)
       pscp = PSCP(self.successive_hostlist, self.user, self.sshkeyFile, self.setupAgentFile, target, self.bootdir)
