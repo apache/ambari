@@ -18,30 +18,11 @@
 
 <div class="row-fluid">
   <div class="span12">
-  <div class="span6">
-  <div class="host-configuration">
-    <div class="box">
-		  <div class="box-header">
-		    <h4>{{t hosts.host.summary.header}}</h4>
-		  </div>
-		  <div class="host-summary-content">
-		    <dl class="dl-horizontal">
-          <dt>{{t hosts.host.summary.hostname}}:</dt><dd>&nbsp;{{view.content.publicHostName}}</dd>
-		      <dt>{{t common.ipAddress}}:</dt><dd>&nbsp;{{view.content.ip}}</dd>
-          <dt>{{t common.os}}:</dt><dd>&nbsp;{{view.content.osType}}&nbsp;({{view.content.osArch}})</dd>
-		      <dt>{{t common.cpu}}:</dt><dd>&nbsp;{{view.content.cpu}}</dd>
-          <dt>{{t common.disk}}:</dt><dd>&nbsp;{{view.content.diskInfoBar}}</dd>
-          <dt>{{t common.memory}}:</dt><dd>&nbsp;{{view.content.memoryFormatted}}</dd>
-		      <dt>{{t common.loadAvg}}:</dt><dd>&nbsp;{{view.content.loadAvg}}</dd>
-		      <dt>{{t hosts.host.summary.agentHeartbeat}}:</dt><dd>{{view.timeSinceHeartBeat}}</dd>
-		    </dl>
-		  </div>
-	  </div>
-  </div>
-    {{!components}}
+    <div class="span6">
+      {{!components}}
       <div class="box">
         <div class="box-header">
-          <h4>Components</h4>
+          <h4>{{t common.components}}</h4>
         </div>
         {{#if view.sortedComponents.length}}
         <div class="host-components">
@@ -166,20 +147,39 @@
         </div>
         {{/if}}
       </div>
+      <div class="host-configuration">
+            <div class="box">
+                <div class="box-header">
+                    <h4>{{t hosts.host.summary.header}}</h4>
+                </div>
+                <div class="host-summary-content">
+                    <dl class="dl-horizontal">
+                        <dt>{{t hosts.host.summary.hostname}}:</dt><dd>&nbsp;{{view.content.publicHostName}}</dd>
+                        <dt>{{t common.ipAddress}}:</dt><dd>&nbsp;{{view.content.ip}}</dd>
+                        <dt>{{t common.os}}:</dt><dd>&nbsp;{{view.content.osType}}&nbsp;({{view.content.osArch}})</dd>
+                        <dt>{{t common.cpu}}:</dt><dd>&nbsp;{{view.content.cpu}}</dd>
+                        <dt>{{t common.disk}}:</dt><dd>&nbsp;{{view.content.diskInfoBar}}</dd>
+                        <dt>{{t common.memory}}:</dt><dd>&nbsp;{{view.content.memoryFormatted}}</dd>
+                        <dt>{{t common.loadAvg}}:</dt><dd>&nbsp;{{view.content.loadAvg}}</dd>
+                        <dt>{{t hosts.host.summary.agentHeartbeat}}:</dt><dd>{{view.timeSinceHeartBeat}}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
     </div>
   {{!metrics}}
- <div class="span6">
-    <div class="box">
-      <div class="box-header">
-        <h4>{{t hosts.host.summary.hostMetrics}}</h4>
-        <div class="btn-group">
-          <a class="btn" rel="tooltip" title="Go to Ganglia" {{action "showGangliaCharts" target="view"}}><i class="icon-link"></i></a>
+   <div class="span6">
+      <div class="box">
+        <div class="box-header">
+          <h4>{{t hosts.host.summary.hostMetrics}}</h4>
+          <div class="btn-group">
+            <a class="btn" rel="tooltip" title="Go to Ganglia" {{action "showGangliaCharts" target="view"}}><i class="icon-link"></i></a>
+          </div>
+        </div>
+        <div>
+         {{view App.MainHostMetricsView contentBinding="view.content"}}
         </div>
       </div>
-      <div>
-	     {{view App.MainHostMetricsView contentBinding="view.content"}}
-	    </div>
-	  </div>
+    </div>
   </div>
-</div>
 </div>

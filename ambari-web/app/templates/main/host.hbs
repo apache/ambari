@@ -103,7 +103,10 @@
 
       <td>{{host.loadAvg}}</td>
       <td>
-        <span title="{{unbound view.labels}}">{{view.shortLabels}}</span>
+        <a href="#" class="host-components-expander" {{action toggleComponents target="view"}}> <span class="caret right"></span>{{view.componentsMessage}}</a>
+        <div id="host-{{unbound host.hostName}}" class="host-components">
+          {{{view.labels}}}
+        </div>
       </td>
     {{/view}}
     {{/each}}

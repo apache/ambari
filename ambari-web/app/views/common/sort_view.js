@@ -53,8 +53,8 @@ var wrapperView = Em.View.extend({
           childViews.findProperty('name', st.name).set('status', st.status);
         }
       });
-      this.get('parentView').showProperPage();
     }
+    this.get('parentView').showProperPage();
   }.observes('parentView.filteringComplete'),
 
   /**

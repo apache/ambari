@@ -67,32 +67,28 @@ App.MainHostView = App.TableView.extend({
     didInsertElement: function(){
       this.$("[rel='HealthTooltip'], [rel='UsageTooltip']").tooltip();
     },
-    shortLabels: function() {
-      var labels = this.get('content.hostComponents').getEach('displayName');
-      var shortLabels = '';
-      var c = 0;
-      labels.forEach(function(label) {
-        if (label) {
-          if (c < 2) {
-            shortLabels += label.replace(/[^A-Z]/g, '') + ', ';
-            c++;
-          }
-        }
-      });
-      shortLabels = shortLabels.substr(0, shortLabels.length - 2);
-      if (labels.length > 2) {
-        shortLabels += ' ' + Em.I18n.t('and') + ' ' + (labels.length - 2) + ' ' + Em.I18n.t('more');
-      }
-      return shortLabels;
-    }.property('labels'),
 
-    labels: function(){
-      return this.get('content.hostComponents').getEach('displayName').join('\n');
+    toggleComponents: function(event) {
+      this.$(event.target).find('.caret').toggleClass('right');
+      this.$('.host-components').toggle();
+    },
+
+    componentsMessage: function() {
+      var count = this.get('content.hostComponents.length');
+      if (count == 1) {
+        return count + ' ' + Em.I18n.t('common.component');
+      }
+      else {
+        return count + ' ' + Em.I18n.t('common.components');
+      }
+    }.property('content.hostComponents.@each'),
+
+    labels: function() {
+      return this.get('content.hostComponents').getEach('displayName').join("<br />");
     }.property('content.hostComponents.@each'),
 
     usageStyle:function () {
       return "width:" + this.get('content.diskUsage') + "%";
-      //return "width:" + (25+Math.random()*50) + "%"; // Just for tests purposes
     }.property('content.diskUsage')
 
   }),
@@ -209,6 +205,7 @@ App.MainHostView = App.TableView.extend({
    */
   nameFilterView: filters.createTextView({
     column: 1,
+    fieldType: 'input-xlarge',
     onChangeValue: function(){
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
     }
@@ -220,6 +217,7 @@ App.MainHostView = App.TableView.extend({
    */
   ipFilterView: filters.createTextView({
     column: 2,
+    fieldType: 'input-small',
     onChangeValue: function(){
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
     }
