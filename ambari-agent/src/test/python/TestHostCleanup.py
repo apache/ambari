@@ -26,6 +26,8 @@ import StringIO
 import sys
 import tempfile
 import os.path
+import optparse
+import logging
 
 PACKAGE_SECTION = "packages"
 PACKAGE_KEY = "pkg_list"
@@ -94,7 +96,33 @@ created = 2013-07-02 20:39:22.162757"""
     self.assertTrue("hadoop-libhdfs.x86_64" in propMap["packages"])
     sys.stdout = sys.__stdout__
 
-
+  class HostCleanupOptions:
+    def __init__(self, outputfile, inputfile, skip, verbose):
+      self.outputfile = outputfile
+      self.inputfile = inputfile
+      self.skip = skip
+      self.verbose = False
+      
+  @patch.object(logging.FileHandler, 'setFormatter')
+  @patch.object(HostCleanup.HostCleanup,'read_host_check_file')
+  @patch.object(logging,'basicConfig')
+  @patch.object(logging, 'FileHandler')
+  @patch.object(optparse.OptionParser, 'parse_args')
+  def test_options(self, parser_mock, file_handler_mock, logging_mock, read_host_check_file_mock, set_formatter_mock):
+    parser_mock.return_value = (TestHostCleanup.HostCleanupOptions('/someoutputfile', '/someinputfile', '', False), [])
+    file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
+    HostCleanup.main()
+    
+    # test --out
+    file_handler_mock.assert_called_with('/someoutputfile')
+    # test --skip
+    self.assertEquals([''],HostCleanup.SKIP_LIST)
+    #test --verbose
+    logging_mock.assert_called_with(level=logging.INFO)
+    # test --in
+    read_host_check_file_mock.assert_called_with('/someinputfile')
+    
+  
   @patch.object(HostCleanup.HostCleanup, 'do_erase_alternatives')
   @patch.object(HostCleanup.HostCleanup, 'find_repo_files_for_repos')
   @patch.object(HostCleanup.HostCleanup, 'get_os_type')

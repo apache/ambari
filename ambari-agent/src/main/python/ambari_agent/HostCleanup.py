@@ -365,7 +365,7 @@ class HostCleanup:
     return process.returncode, stdoutdata, stderrdata
 
 
-  def search_file(filename, search_path, pathsep=os.pathsep):
+  def search_file(self, filename, search_path, pathsep=os.pathsep):
     """ Given a search path, find file with requested name """
     for path in string.split(search_path, pathsep):
       candidate = os.path.join(path, filename)
@@ -419,7 +419,7 @@ def main():
   else:
     logging.basicConfig(level=logging.INFO)
 
-  if options.skip:
+  if options.skip is not None:
     global SKIP_LIST
     SKIP_LIST = options.skip.split(',')
 
