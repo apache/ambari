@@ -421,7 +421,7 @@ def main():
 
   if options.skip:
     global SKIP_LIST
-    SKIP_LIST = options.skip.splt(',')
+    SKIP_LIST = options.skip.split(',')
 
 
   is_root = h.is_current_user_root()

@@ -86,9 +86,3 @@ class TestShell(unittest.TestCase):
     else:
       # Do not run under other systems
       pass
-
-
-  @patch("os.killpg")
-  def test_killprocessgrp(self, killpg_grp):
-    shell.killprocessgrp(999)
-    self.assertTrue(killpg_grp.called)

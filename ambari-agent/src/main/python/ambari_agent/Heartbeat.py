@@ -64,6 +64,11 @@ class Heartbeat:
         # There may be IN_PROGRESS tasks
         commandsInProgress = True
       pass
+
+    # For first request/heartbeat assume no components are mapped
+    if int(id) == 0:
+      componentsMapped = False
+
     logger.info("Sending heartbeat with response id: " + str(id) + " and "
                 "timestamp: " + str(timestamp) +
                 ". Command(s) in progress: " + repr(commandsInProgress) +

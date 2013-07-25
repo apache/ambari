@@ -39,7 +39,8 @@ class HostInfo:
   DEFAULT_PROJECT_NAMES = [
     "hadoop*", "hadoop", "hbase", "hcatalog", "hive", "ganglia", "nagios",
     "oozie", "sqoop", "hue", "zookeeper", "mapred", "hdfs", "flume",
-    "ambari_qa", "hadoop_deploy", "rrdcached", "hcat"
+    "ambari_qa", "hadoop_deploy", "rrdcached", "hcat", "ambari-qa",
+    "sqoop-ambari-qa", "sqoop-ambari_qa"
   ]
 
   # List of live services checked for on the host
@@ -59,9 +60,14 @@ class HostInfo:
     "hadoop", "zookeeper"
   ]
 
+  # Additional path patterns to find existing directory
+  DIRNAME_PATTERNS = [
+    "/tmp/hadoop-", "/tmp/hsperfdata_"
+  ]
+
   # Default set of directories that are checked for existence of files and folders
   DEFAULT_DIRS = [
-    "/etc", "/var/run", "/var/log", "/usr/lib", "/var/lib", "/var/tmp", "/tmp", "/var"
+    "/etc", "/var/run", "/var/log", "/usr/lib", "/var/lib", "/var/tmp", "/tmp", "/var", "/hadoop"
   ]
 
   # Packages that are used to find repos (then repos are used to find other packages)
@@ -71,14 +77,21 @@ class HostInfo:
 
   # Additional packages to look for (search packages that start with these)
   ADDITIONAL_PACKAGES = [
-    "rrdtool", "rrdtool-python", "nagios", "ganglia", "gmond", "gweb", "libconfuse", "ambari-log4j"
+    "rrdtool", "rrdtool-python", "nagios", "ganglia", "gmond", "gweb", "libconfuse", "ambari-log4j",
+    "mysql", "hadoop", "zookeeper"
   ]
 
-  # ignores packages from repos whose names start with these strings
+  # ignore packages from repos whose names start with these strings
   IGNORE_PACKAGES_FROM_REPOS = [
     "ambari", "installed"
   ]
 
+  # ignore required packages
+  IGNORE_PACKAGES = [
+    "epel-release"
+  ]
+
+  # ignore repos from the list of repos to be cleaned
   IGNORE_REPOS = [
     "ambari", "HDP-UTILS"
   ]
@@ -104,30 +117,6 @@ class HostInfo:
     elif os.path.isfile(path):
       return 'file'
     return 'unknown'
-
-  def rpmInfo(self, rpmList):
-    config = AmbariConfig.config
-
-    try:
-      for rpmName in config.get('heartbeat', 'rpms').split(','):
-        rpmName = rpmName.strip()
-        rpm = {}
-        rpm['name'] = rpmName
-
-        try:
-          osStat = subprocess.Popen(["rpm", "-q", rpmName], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-          out, err = osStat.communicate()
-          if (0 != osStat.returncode or 0 == len(out.strip())):
-            rpm['installed'] = False
-          else:
-            rpm['installed'] = True
-            rpm['version'] = out.strip()
-        except:
-          rpm['available'] = False
-
-        rpmList.append(rpm)
-    except:
-      pass
 
   def hadoopVarRunCount(self):
     if not os.path.exists('/var/run/hadoop'):
@@ -216,6 +205,22 @@ class HostInfo:
     except:
       pass
 
+  def checkFoldersBasedOnNames(self, basePaths, projectNames, existingUsers, dirs):
+    foldersToIgnore = []
+    for user in existingUsers:
+      foldersToIgnore.append(user['homeDir'])
+    try:
+      for dirName in basePaths:
+        for project in projectNames:
+          path = dirName.strip() + project.strip()
+          if not path in foldersToIgnore and os.path.exists(path):
+            obj = {}
+            obj['type'] = self.dirType(path)
+            obj['name'] = path
+            dirs.append(obj)
+    except:
+      pass
+
   def javaProcs(self, list):
     try:
       pids = [pid for pid in os.listdir('/proc') if pid.isdigit()]
@@ -274,9 +279,7 @@ class HostInfo:
 
     dict['hostHealth']['diskStatus'] = [self.osdiskAvailableSpace("/")]
 
-    rpms = []
-    self.rpmInfo(rpms)
-    dict['rpms'] = rpms
+    dict['rpms'] = []
 
     liveSvcs = []
     self.checkLiveServices(self.DEFAULT_LIVE_SERVICES, liveSvcs)
@@ -304,6 +307,7 @@ class HostInfo:
 
       dirs = []
       self.checkFolders(self.DEFAULT_DIRS, self.DEFAULT_PROJECT_NAMES, existingUsers, dirs)
+      self.checkFoldersBasedOnNames(self.DIRNAME_PATTERNS, self.DEFAULT_PROJECT_NAMES, existingUsers, dirs)
       dict['stackFoldersAndFiles'] = dirs
 
       installedPackages = []
@@ -314,14 +318,15 @@ class HostInfo:
       repos = []
       self.packages.getInstalledRepos(self.PACKAGES, installedPackages + availablePackages,
                                       self.IGNORE_PACKAGES_FROM_REPOS, repos)
-      repos = self.getReposToRemove(repos, self.IGNORE_REPOS)
-      dict['existingRepos'] = repos
-
-      packagesInstalled = self.packages.getInstalledPkgsByRepo(repos, installedPackages)
+      packagesInstalled = self.packages.getInstalledPkgsByRepo(repos, self.IGNORE_PACKAGES, installedPackages)
       additionalPkgsInstalled = self.packages.getInstalledPkgsByNames(
         self.ADDITIONAL_PACKAGES, installedPackages)
       allPackages = list(set(packagesInstalled + additionalPkgsInstalled))
       dict['installedPackages'] = self.packages.getPackageDetails(installedPackages, allPackages)
+
+      repos = self.getReposToRemove(repos, self.IGNORE_REPOS)
+      dict['existingRepos'] = repos
+
       self.reportFileHandler.writeHostCheckFile(dict)
       pass
 

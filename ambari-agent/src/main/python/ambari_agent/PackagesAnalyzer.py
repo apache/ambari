@@ -31,7 +31,7 @@ logger = logging.getLogger()
 class PackagesAnalyzer:
 
   # default timeout for async invoked processes
-  TIMEOUT_SECONDS = 60
+  TIMEOUT_SECONDS = 30
   event = threading.Event()
 
   def launch_subprocess(self, command):
@@ -41,7 +41,7 @@ class PackagesAnalyzer:
     self.event.wait(self.TIMEOUT_SECONDS)
     if command.returncode is None:
       logger.error("Task timed out and will be killed")
-      shell.killprocessgrp(command.pid)
+      shell.kill_process_with_children(command.pid)
     pass
 
   def subprocessWithTimeout(self, command):
@@ -175,15 +175,25 @@ class PackagesAnalyzer:
         repoList.append(repo)
 
   # Get all the installed packages from the repos listed in repos
-  def getInstalledPkgsByRepo(self, repos, installedPackages):
+  def getInstalledPkgsByRepo(self, repos, ignorePackages, installedPackages):
     packagesFromRepo = []
+    packagesToRemove = []
     for repo in repos:
       subResult = []
       for item in installedPackages:
         if repo == item[2]:
           subResult.append(item[0])
       packagesFromRepo = list(set(packagesFromRepo + subResult))
-    return packagesFromRepo
+
+    for package in packagesFromRepo:
+      keepPackage = True
+      for ignorePackage in ignorePackages:
+        if self.nameMatch(ignorePackage, package):
+          keepPackage = False
+          break
+      if keepPackage:
+        packagesToRemove.append(package)
+    return packagesToRemove
 
   # Gets all installed packages that start with names in pkgNames
   def getInstalledPkgsByNames(self, pkgNames, installedPackages):

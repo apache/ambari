@@ -59,10 +59,6 @@ def killstaleprocesses():
       os.unlink(os.path.join(prefix,file))
   logger.info ("Killed stale processes")
 
-
-def killprocessgrp(pid):
-  run_kill_function(os.killpg, pid)
-
 def kill_process_with_children(parent_pid):
   def kill_tree_function(pid, signal):
     '''

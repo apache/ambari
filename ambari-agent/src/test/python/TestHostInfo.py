@@ -107,9 +107,9 @@ class TestHostInfo(TestCase):
     for repo in expected:
       self.assertTrue(repo in repos)
 
-    packagesInstalled = packageAnalyzer.getInstalledPkgsByRepo(repos, installedPackages)
-    self.assertEqual(7, len(packagesInstalled))
-    expected = ["hadoop-a", "zk", "webhcat", "hadoop-b", "epel", "epel-2", "def-def.x86"]
+    packagesInstalled = packageAnalyzer.getInstalledPkgsByRepo(repos, ["epel"], installedPackages)
+    self.assertEqual(5, len(packagesInstalled))
+    expected = ["hadoop-a", "zk", "webhcat", "hadoop-b", "def-def.x86"]
     for repo in expected:
       self.assertTrue(repo in packagesInstalled)
 
@@ -121,8 +121,8 @@ class TestHostInfo(TestCase):
       self.assertTrue(additionalPkg in additionalPkgsInstalled)
 
     allPackages = list(set(packagesInstalled + additionalPkgsInstalled))
-    self.assertEqual(9, len(allPackages))
-    expected = ["hadoop-a", "zk", "webhcat", "hadoop-b", "epel", "epel-2", "nagios", "rrd", "def-def.x86"]
+    self.assertEqual(7, len(allPackages))
+    expected = ["hadoop-a", "zk", "webhcat", "hadoop-b", "nagios", "rrd", "def-def.x86"]
     for package in expected:
       self.assertTrue(package in allPackages)
 
@@ -195,6 +195,19 @@ class TestHostInfo(TestCase):
     installedPackages = []
     packageAnalyzer.allInstalledPackages(installedPackages)
     self.assertEqual(installedPackages, [])
+
+  @patch('os.path.exists')
+  def test_checkFoldersBasedOnNames(self, path_mock):
+    path_mock.return_value = True
+    hostInfo = HostInfo()
+    results = []
+    existingUsers = [{'name':'a1', 'homeDir':'/home/a1'}, {'name':'b1', 'homeDir':'/home/b1'}]
+    hostInfo.checkFoldersBasedOnNames(["/etc/conf", "/var/lib_", "/home/"], ["a1", "b1"], existingUsers, results)
+    self.assertEqual(4, len(results))
+    names = [i['name'] for i in results]
+    for item in ['/etc/confa1', '/var/lib_a1', '/etc/confb1', '/var/lib_b1']:
+      self.assertTrue(item in names)
+
 
   @patch('os.path.exists')
   def test_checkFolders(self, path_mock):
@@ -459,26 +472,5 @@ class TestHostInfo(TestCase):
     self.assertEquals(result[0]['target'], 'real_path_to_conf')
 
 
-  @patch("subprocess.Popen")
-  def test_rpmInfo(self, subproc_popen):
-    hostInfo = HostInfo()
-    p = MagicMock()
-    p.returncode = 0
-    p.communicate.side_effect = [('out', 'err'), ('', 'err') , ('out', 'err', 'fail')]
-    subproc_popen.return_value = p
-    rpmList = []
-    hostInfo.rpmInfo(rpmList)
-
-    self.assertEquals(rpmList[0]['version'], 'out')
-    self.assertEquals(rpmList[0]['name'], 'glusterfs')
-    self.assertTrue(rpmList[0]['installed'])
-
-    self.assertEquals(rpmList[1]['name'], 'openssl')
-    self.assertFalse(rpmList[1]['installed'])
-
-    self.assertFalse(rpmList[2]['available'])
-    self.assertEquals(rpmList[2]['name'], 'wget')
-
-
 if __name__ == "__main__":
-  unittest.main(verbosity=2)
+  unittest.main()
