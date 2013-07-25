@@ -5184,6 +5184,83 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
+  public void testReInstallClientComponent() throws AmbariException {
+    String clusterName = "foo1";
+    createCluster(clusterName);
+    clusters.getCluster(clusterName)
+      .setDesiredStackVersion(new StackId("HDP-0.1"));
+    String serviceName = "HDFS";
+    createService(clusterName, serviceName, null);
+    String componentName1 = "NAMENODE";
+    String componentName2 = "DATANODE";
+    String componentName3 = "HDFS_CLIENT";
+
+    createServiceComponent(clusterName, serviceName, componentName1,
+      State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName2,
+      State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName3,
+      State.INIT);
+
+    String host1 = "h1";
+    clusters.addHost(host1);
+    clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").setState(HostState.HEALTHY);
+    clusters.getHost("h1").persist();
+    String host2 = "h2";
+    clusters.addHost(host2);
+    clusters.getHost("h2").setOsType("centos6");
+    clusters.getHost("h2").setState(HostState.HEALTHY);
+    clusters.getHost("h2").persist();
+    String host3 = "h3";
+    clusters.addHost(host3);
+    clusters.getHost("h3").setOsType("centos6");
+    clusters.getHost("h3").setState(HostState.HEALTHY);
+    clusters.getHost("h3").persist();
+
+    clusters.mapHostToCluster(host1, clusterName);
+    clusters.mapHostToCluster(host2, clusterName);
+    clusters.mapHostToCluster(host3, clusterName);
+
+    createServiceComponentHost(clusterName, serviceName, componentName1,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+      host2, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3,
+      host3, null);
+
+    // Install
+    installService(clusterName, serviceName, false, false);
+
+    // Reinstall SCH
+    ServiceComponentHostRequest schr = new ServiceComponentHostRequest
+      (clusterName, serviceName, componentName3, host3, null,
+        State.INSTALLED.name());
+    Set<ServiceComponentHostRequest> setReqs = new
+      HashSet<ServiceComponentHostRequest>();
+    setReqs.add(schr);
+    RequestStatusResponse resp = controller.updateHostComponents(setReqs,
+      Collections.<String, String>emptyMap(), false);
+
+    Assert.assertNotNull(resp);
+    Assert.assertTrue(resp.getRequestId() > 0);
+    List<Stage> stages = actionDB.getAllStages(resp.getRequestId());
+    HostRoleCommand clientReinstallCmd = null;
+    for (Stage stage : stages) {
+      for (HostRoleCommand hrc : stage.getOrderedHostRoleCommands()) {
+        if (hrc.getHostName().equals(host3) && hrc.getRole().toString()
+          .equals("HDFS_CLIENT")) {
+          clientReinstallCmd = hrc;
+          break;
+        }
+      }
+    }
+    Assert.assertNotNull(clientReinstallCmd);
+  }
+
+  @Test
   public void testHivePasswordAbsentInConfigs() throws AmbariException {
     String clusterName = "c1";
     String serviceName = "HIVE";

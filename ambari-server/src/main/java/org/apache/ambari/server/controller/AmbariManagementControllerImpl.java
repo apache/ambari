@@ -3246,7 +3246,8 @@ public class AmbariManagementControllerImpl implements
       }
 
       State oldSchState = sch.getState();
-      if (newState == oldSchState) {
+      // Client component reinstall allowed
+      if (newState == oldSchState && !sc.isClientComponent()) {
         sch.setDesiredState(newState);
         if (LOG.isDebugEnabled()) {
           LOG.debug("Ignoring ServiceComponentHost"
