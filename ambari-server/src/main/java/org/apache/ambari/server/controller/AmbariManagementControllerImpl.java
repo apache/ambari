@@ -100,6 +100,8 @@ import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 
+import org.apache.http.client.utils.URIBuilder;
+
 @Singleton
 public class AmbariManagementControllerImpl implements
     AmbariManagementController {
@@ -145,6 +147,8 @@ public class AmbariManagementControllerImpl implements
   private Configuration configs;
 
   final private String masterHostname;
+  final private Integer masterPort;
+  final private String masterProtocol;
 
   final private static String JDK_RESOURCE_LOCATION =
       "/resources/";
@@ -168,31 +172,42 @@ public class AmbariManagementControllerImpl implements
     LOG.info("Initializing the AmbariManagementControllerImpl");
     this.masterHostname =  InetAddress.getLocalHost().getCanonicalHostName();
 
-    if (configs != null) {
-      String protocol, port;
+    if(configs != null)
+    {
       if (configs.getApiSSLAuthentication() == true) {
-        protocol = "https";
-        port = String.valueOf(configs.getClientSSLApiPort());
+        this.masterProtocol = "https";
+        this.masterPort = configs.getClientSSLApiPort();
       } else {
-        protocol = "http";
-        port = String.valueOf(configs.getClientApiPort());
-      }
-
-      this.jdkResourceUrl = protocol + "://" + masterHostname + ":"
-          + port
-          + JDK_RESOURCE_LOCATION;
-      this.ojdbcUrl = protocol + "://" + masterHostname + ":"
-          + port + JDK_RESOURCE_LOCATION + "/" + configs.getOjdbcJarName();
-
-      this.mysqljdbcUrl = protocol + "://" + masterHostname + ":"
-          + port + JDK_RESOURCE_LOCATION + "/" + configs.getMySQLJarName();
+        this.masterProtocol = "http";
+        this.masterPort = configs.getClientApiPort();
+      }  
+      this.jdkResourceUrl = getAmbariServerURI(JDK_RESOURCE_LOCATION);    
+      this.ojdbcUrl = getAmbariServerURI(JDK_RESOURCE_LOCATION + "/" + configs.getOjdbcJarName());
+      this.mysqljdbcUrl = getAmbariServerURI(JDK_RESOURCE_LOCATION + "/" + configs.getMySQLJarName());
+     
       this.serverDB = configs.getServerDBName();
     } else {
-      this.jdkResourceUrl = null;
+      this.masterProtocol = null;
+      this.masterPort = null;
+      
+      this.jdkResourceUrl = null; 
       this.ojdbcUrl = null;
       this.mysqljdbcUrl = null;
       this.serverDB = null;
     }
+  }
+  
+  public String getAmbariServerURI(String path) {
+    if(masterProtocol==null || masterHostname==null || masterPort==null)
+      return null;
+    
+    URIBuilder uriBuilder = new URIBuilder();
+    uriBuilder.setScheme(masterProtocol);
+    uriBuilder.setHost(masterHostname);
+    uriBuilder.setPort(masterPort);
+    uriBuilder.setPath(path);
+    
+    return uriBuilder.toString();
   }
 
   private RoleCommandOrder getRCO(Cluster cluster) {

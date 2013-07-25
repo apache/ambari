@@ -713,6 +713,11 @@
       <artifactId>postgresql</artifactId>
       <version>9.1-901.jdbc4</version>
     </dependency>
+    <dependency>
+	  <groupId>org.apache.httpcomponents</groupId>
+	  <artifactId>httpclient</artifactId>
+	  <version>4.2.5</version>
+    </dependency>
   </dependencies>
   <!--<reporting>
         <plugins>

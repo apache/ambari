@@ -33,6 +33,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Collections;
@@ -67,6 +68,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceede
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.Test;
 
 import com.google.gson.Gson;
@@ -82,7 +84,71 @@ import com.google.inject.persist.PersistService;
 public class AmbariManagementControllerImplTest {
 
 
+  @Test
+  public void testgetAmbariServerURI() throws Exception {
+    // create mocks
+    Injector injector = createStrictMock(Injector.class);
+    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
 
+    // set expectations
+    injector.injectMembers(capture(controllerCapture));
+    expect(injector.getInstance(Gson.class)).andReturn(null);
+    
+    //replay
+    replay(injector);
+    
+    
+    AmbariManagementControllerImpl controller = new AmbariManagementControllerImpl(null, null, injector);
+    
+    class AmbariConfigsSetter{
+       public void setConfigs(AmbariManagementController controller, String masterProtocol, String masterHostname, Integer masterPort) throws Exception{
+         // masterProtocol
+         Class<?> c = controller.getClass();
+         Field f = c.getDeclaredField("masterProtocol");
+         f.setAccessible(true);
+         
+         Field modifiersField = Field.class.getDeclaredField("modifiers");
+         modifiersField.setAccessible(true);
+         modifiersField.setInt(f, f.getModifiers() & ~Modifier.FINAL);
+         
+         f.set(controller, masterProtocol);
+         
+         // masterHostname
+         f = c.getDeclaredField("masterHostname");
+         f.setAccessible(true);
+         
+         modifiersField = Field.class.getDeclaredField("modifiers");
+         modifiersField.setAccessible(true);
+         modifiersField.setInt(f, f.getModifiers() & ~Modifier.FINAL);
+         
+         f.set(controller, masterHostname);
+         
+         // masterPort
+         f = c.getDeclaredField("masterPort");
+         f.setAccessible(true);
+         
+         modifiersField = Field.class.getDeclaredField("modifiers");
+         modifiersField.setAccessible(true);
+         modifiersField.setInt(f, f.getModifiers() & ~Modifier.FINAL);
+         
+         f.set(controller, masterPort);
+       }
+    }
+
+    AmbariConfigsSetter ambariConfigsSetter = new AmbariConfigsSetter();
+    
+    ambariConfigsSetter.setConfigs(controller, "http", "hostname", 8080);
+    assertEquals("http://hostname:8080/jdk_path", controller.getAmbariServerURI("/jdk_path"));
+    
+    ambariConfigsSetter.setConfigs(controller, "https", "somesecuredhost", 8443);
+    assertEquals("https://somesecuredhost:8443/mysql_path", controller.getAmbariServerURI("/mysql_path"));
+
+    ambariConfigsSetter.setConfigs(controller, "https", "othersecuredhost", 8443);
+    assertEquals("https://othersecuredhost:8443/oracle/ojdbc/", controller.getAmbariServerURI("/oracle/ojdbc/"));
+    
+    verify(injector);
+  }
+  
   @Test
   public void testGetClusters() throws Exception {
     // member state mocks
@@ -1513,7 +1579,7 @@ public class AmbariManagementControllerImplTest {
       protected void configure() {
         Properties properties = new Properties();
         properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
-
+        
         properties.setProperty(Configuration.METADETA_DIR_PATH,
             "src/main/resources/stacks");
         properties.setProperty(Configuration.SERVER_VERSION_FILE,
