@@ -69,6 +69,9 @@
             {{#each warning in category.warnings}}
             <tr>
               <td class="warning-name" {{bindAttr data-original-title="warning.command"}} >{{warning.name}}</td>
+              {{#if warning.version}}
+                  <td class="package-version">{{warning.version}}</td>
+              {{/if}}
               <td>{{category.action}}
                 <a href="javascript:void(null);" rel='HostsListTooltip' {{bindAttr data-original-title="warning.hostsList"}} {{action showHostsPopup warning.hosts}}>
                   {{warning.hosts.length}}

@@ -722,16 +722,16 @@ App.WizardStep3Controller = Em.Controller.extend({
       }, this);
 
       //parse all package warnings for host
-      _host.Hosts.last_agent_env.rpms.forEach(function (_package) {
-
-        if (_package.installed) {
+      _host.Hosts.last_agent_env.installedPackages.forEach(function (_package) {
           warning = warnings.filterProperty('category', 'packages').findProperty('name', _package.name);
           if (warning) {
             warning.hosts.push(_host.Hosts.host_name);
+            warning.version = _package.version,
             warning.onSingleHost = false;
           } else {
             warning = {
               name: _package.name,
+              version: _package.version,
               hosts: [_host.Hosts.host_name],
               category: 'packages',
               onSingleHost: true
@@ -739,7 +739,6 @@ App.WizardStep3Controller = Em.Controller.extend({
             warnings.push(warning);
           }
           host.warnings.push(warning);
-        }
       }, this);
 
       //parse all process warnings for host
