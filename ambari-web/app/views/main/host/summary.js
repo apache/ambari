@@ -210,8 +210,6 @@ App.MainHostSummaryView = Em.View.extend({
     }.property('workStatus','isDataNodeRecommissionAvailable'),
 
     statusClass: function () {
-      var statusClass = null;
-
       //If the component is DataNode
       if (this.get('isDataNode')) {
         if (this.get('isDataNodeRecommissionAvailable') && (this.get('isStart') || this.get('workStatus') == 'INSTALLED')) {
@@ -232,6 +230,10 @@ App.MainHostSummaryView = Em.View.extend({
       //For all other cases
       return 'health-status-' + App.HostComponentStatus.getKeyName(this.get('workStatus'));
     }.property('workStatus', 'isDataNodeRecommissionAvailable', 'this.content.isDecommissioning'),
+
+    disabled: function() {
+      return this.get('parentView.content.isNotHeartBeating')?'disabled':'';
+    }.property('parentView.content.isNotHeartBeating'),
     /**
      * For Upgrade failed state
      */
