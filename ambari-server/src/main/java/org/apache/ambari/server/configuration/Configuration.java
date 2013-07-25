@@ -599,11 +599,12 @@ public class Configuration {
 
   public String getRcaDatabasePassword() {
     String passwdProp = properties.getProperty(SERVER_JDBC_RCA_USER_PASSWD_KEY);
-    String dbpasswd = readPasswordFromStore(passwdProp);
-    if (dbpasswd != null)
-      return dbpasswd;
-    else
-      return readPasswordFromFile(passwdProp, SERVER_JDBC_RCA_USER_PASSWD_DEFAULT);
+    if (passwdProp != null) {
+      String dbpasswd = readPasswordFromStore(passwdProp);
+      if (dbpasswd != null)
+        return dbpasswd;
+    }
+    return readPasswordFromFile(passwdProp, SERVER_JDBC_RCA_USER_PASSWD_DEFAULT);
   }
 
   private String readPasswordFromFile(String filePath, String defaultPassword) {

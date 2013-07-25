@@ -165,4 +165,23 @@ public class ConfigurationTest {
     Assert.assertEquals(System.getProperty(conf.JAVAX_SSL_TRUSTSTORE_PASSWORD, "unknown"), encrypted);
   }
 
+  @Test
+  public void testGetRcaDatabasePassword_fromStore() {
+    String serverJdbcRcaUserPasswdKey = "key";
+    String encrypted = "password";
+
+    Properties properties = new Properties();
+    properties.setProperty(Configuration.SERVER_JDBC_RCA_USER_PASSWD_KEY, serverJdbcRcaUserPasswdKey);
+    Configuration conf = spy(new Configuration(properties));
+    doReturn(encrypted).when(conf).readPasswordFromStore(serverJdbcRcaUserPasswdKey);
+
+    Assert.assertEquals(encrypted, conf.getRcaDatabasePassword());
+  }
+
+  @Test
+  public void testGetRcaDatabasePassword_fromFile() {
+    Configuration conf = spy(new Configuration(new Properties()));
+    Assert.assertEquals("mapred", conf.getRcaDatabasePassword());
+  }
+
 }
