@@ -77,6 +77,14 @@ class hdp(
   $templeton_port = hdp_default("webhcat-site/templeton.port","50111")
 
   $namenode_metadata_port = hdp_default("namenode_metadata_port","8020")
+
+  $changeUid_path = "/tmp/changeUid.sh"
+
+  file { $changeUid_path :
+    ensure => present,
+    source => "puppet:///modules/hdp/changeToSecureUid.sh",
+    mode => '0755'
+  }
   
   #TODO: think not needed and also there seems to be a puppet bug around this and ldap
   class { 'hdp::snmp': service_state => 'running'}
@@ -126,12 +134,7 @@ class hdp(
 
     ##Create all users for all components presents in cluster
     if ($hdp::params::hbase_master_hosts != "") {
-      hdp::user{ 'hbase_user':
-        user_name => $hdp::params::hbase_user,
-        groups => [$hdp::params::user_group]
-      }
-
-      Anchor['hdp::begin'] -> Hdp::Group['hdp_user_group'] -> Hdp::User['hbase_user'] -> Anchor['hdp::end']       
+      class { 'hdp::create_hbase_user': }
     }
     
     if ($hdp::params::nagios_server_host != "") {
@@ -193,6 +196,28 @@ class hdp::pre_install_pkgs
   }
 }
 
+class hdp::create_hbase_user()
+{
+  $hbase_user = $hdp::params::hbase_user
+
+  hdp::user{ 'hbase_user':
+    user_name => $hbase_user,
+    groups => [$hdp::params::user_group]
+  }
+
+  ## Set hbase user uid to > 1000
+  $cmd_set_hbase_uid_check = "test $(id -u ${hbase_user}) -gt 1000"
+  $hbase_user_dirs = "/home/${hbase_user},/tmp/${hbase_user},/usr/bin/${hbase_user}"
+
+  hdp::set_uid { 'set_hbase_user_uid':
+    user      => $hbase_user,
+    user_dirs => $hbase_user_dirs,
+    unless    => $cmd_set_hbase_uid_check
+  }
+
+  Group['hdp_user_group'] -> Hdp::User['hbase_user'] -> Hdp::Set_uid['set_hbase_user_uid']
+}
+
 class hdp::create_smoke_user()
 {
 
@@ -215,26 +240,17 @@ class hdp::create_smoke_user()
   }
 
   ## Set smoke user uid to > 1000 for enable security feature
-  $secure_uid = $hdp::params::smoketest_user_secure_uid
-  $changeUid_path = "/tmp/changeUid.sh"
   $smoke_user_dirs = "/tmp/hadoop-${smoke_user},/tmp/hsperfdata_${smoke_user},/home/${smoke_user},/tmp/${smoke_user},/tmp/sqoop-${smoke_user}"
-  $cmd_set_uid = "$changeUid_path ${smoke_user} ${secure_uid} ${smoke_user_dirs} 2>/dev/null"
   $cmd_set_uid_check = "test $(id -u ${smoke_user}) -gt 1000"
 
-  file { $changeUid_path :
-    ensure => present,
-    source => "puppet:///modules/hdp/changeToSecureUid.sh",
-    mode => '0755'
-  }
-
-  hdp::exec{ $cmd_set_uid:
-   command => $cmd_set_uid,
-   unless => $cmd_set_uid_check,
-   require => File[$changeUid_path]
+  hdp::set_uid { 'set_smoke_user_uid':
+    user      => $smoke_user,
+    user_dirs => $smoke_user_dirs,
+    unless    => $cmd_set_uid_check
   }
 
   Hdp::Group<|title == 'smoke_group' or title == 'proxyuser_group'|> ->
-  Hdp::User['smoke_user'] -> Hdp::Exec[$cmd_set_uid]
+  Hdp::User['smoke_user'] -> Hdp::Set_uid['set_smoke_user_uid']
 }
 
 
@@ -266,7 +282,8 @@ define hdp::user(
   $user_name = undef,
   $gid = $hdp::params::user_group,
   $just_validate = undef,
-  $groups = undef
+  $groups = undef,
+  $uid = undef
 )
 {
   $user_info = $hdp::params::user_info[$user_name]
@@ -286,18 +303,19 @@ define hdp::user(
     }
   } else {
       if(!defined(User[$user_name])){
-		    user { $user_name:
-		      ensure     => present,
-		      managehome => true,
-		      gid        => $gid, #TODO either remove this to support LDAP env or fix it
-		      shell      => '/bin/bash',
-		      groups     => $groups 
-		    }
-		  } else {
-		    User <| $name == $user_name |> {
-		      groups +> $groups
-		    }
-		  }
+        user { $user_name:
+          ensure     => present,
+          managehome => true,
+          gid        => $gid, #TODO either remove this to support LDAP env or fix it
+          shell      => '/bin/bash',
+          groups     => $groups,
+          uid        => $uid
+        }
+      } else {
+        User <| $name == $user_name |> {
+          groups +> $groups
+        }
+      }
   }
 }
 
@@ -459,6 +477,20 @@ define hdp::wait(
     onlyif  => $onlyif,
     path    => $path
   } 
+}
+
+define hdp::set_uid(
+  $user = undef,
+  $user_dirs = undef,
+  $unless = undef
+)
+{
+  $cmd_set_uid = "/tmp/changeUid.sh ${user} ${user_dirs} 2>/dev/null"
+
+  hdp::exec{ $cmd_set_uid:
+    command => $cmd_set_uid,
+    unless  => $unless
+  }
 }
 
 ##### temp

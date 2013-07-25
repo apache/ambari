@@ -20,8 +20,7 @@
 #
 
 username=$1
-newUid=$2
-directories=$3
+directories=$2
 
 function find_available_uid() {
  for ((i=1001; i<=2000; i++))
@@ -35,14 +34,7 @@ function find_available_uid() {
  done
 }
 
-grep -q $newUid /etc/passwd
-if [ "$?" -ne 0 ]
-then
-  echo "Uid $newUid is available for $username"
-else
-  newUid=0
-  find_available_uid
-fi
+find_available_uid
 
 if [ $newUid -eq 0 ]
 then
