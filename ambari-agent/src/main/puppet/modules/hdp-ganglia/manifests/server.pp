@@ -52,14 +52,25 @@ class hdp-ganglia::server(
     service_state       => $service_state 
   }
 
-  if ($hdp::params::hbase_master_hosts) {
+  if ($hdp::params::is_namenode_master) {
+    hdp-ganglia::config::generate_server { 'HDPNameNode':
+      ganglia_service => 'gmond',
+      role => 'server'
+    }
+  }
+  if ($hdp::params::is_jtnode_master) {
+    hdp-ganglia::config::generate_server { 'HDPJobTracker':
+      ganglia_service => 'gmond',
+      role => 'server'
+    }
+  }
+  if ($hdp::params::is_hbase_master) {
     hdp-ganglia::config::generate_server { 'HDPHBaseMaster':
       ganglia_service => 'gmond',
       role => 'server'
     }
   }
-  
-  hdp-ganglia::config::generate_server { ['HDPJobTracker','HDPNameNode','HDPSlaves' ]:
+  hdp-ganglia::config::generate_server { 'HDPSlaves':
     ganglia_service => 'gmond',
     role => 'server'
   }
