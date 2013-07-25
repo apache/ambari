@@ -31,7 +31,7 @@ logger = logging.getLogger()
 class PackagesAnalyzer:
 
   # default timeout for async invoked processes
-  TIMEOUT_SECONDS = 60
+  TIMEOUT_SECONDS = 10
   event = threading.Event()
 
   def launch_subprocess(self, command):
@@ -41,7 +41,7 @@ class PackagesAnalyzer:
     self.event.wait(self.TIMEOUT_SECONDS)
     if command.returncode is None:
       logger.error("Task timed out and will be killed")
-      shell.killprocessgrp(command.pid)
+      shell.kill_process_with_children(command.pid)
     pass
 
   def subprocessWithTimeout(self, command):
