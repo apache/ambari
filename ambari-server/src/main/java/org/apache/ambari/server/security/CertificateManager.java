@@ -233,7 +233,7 @@ public class CertificateManager {
 
     String command = MessageFormat.format(SIGN_AGENT_CRT, scriptArgs);
 
-    LOG.debug(command);
+    LOG.debug(ShellCommandUtil.hideOpenSslPassword(command));
 
     int commandExitCode = runCommand(command); // ssl command execution
     if (commandExitCode != 0) {

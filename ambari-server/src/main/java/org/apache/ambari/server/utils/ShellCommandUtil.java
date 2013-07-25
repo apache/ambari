@@ -31,6 +31,7 @@ import java.io.InputStreamReader;
 public class ShellCommandUtil {
   private static final Log LOG = LogFactory.getLog(ShellCommandUtil.class);
   private static final Object WindowsProcessLaunchLock = new Object();
+  private static final String PASS_TOKEN = "pass:";
 
   /*
   public static String LogAndReturnOpenSslExitCode(String command, int exitCode) {
@@ -47,8 +48,14 @@ public class ShellCommandUtil {
 
   }
 
+  public static String hideOpenSslPassword(String command){
+    int start = command.indexOf(PASS_TOKEN)+PASS_TOKEN.length();
+    CharSequence cs = command.subSequence(start, command.indexOf(" ", start));
+    return command.replace(cs, "****");
+  }
+  
   public static String getOpenSslCommandResult(String command, int exitCode) {
-    return new StringBuilder().append("Command ").append(command).append(" was finished with exit code: ")
+    return new StringBuilder().append("Command ").append(hideOpenSslPassword(command)).append(" was finished with exit code: ")
             .append(exitCode).append(" - ").append(getOpenSslExitCodeDescription(exitCode)).toString();
   }
 

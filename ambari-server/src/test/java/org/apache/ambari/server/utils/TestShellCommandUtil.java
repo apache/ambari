@@ -130,4 +130,13 @@ public class TestShellCommandUtil extends TestCase {
       // Skipping this test under Windows/Mac
     }
   }
+  
+  @Test
+  public void testHideOpenSslPassword(){
+    String command = "openssl ca -config ca.config -in agent_hostname1.csr -out "+
+            "agent_hostname1.crt -batch -passin pass:1234 -keyfile ca.key -cert ca.crt";
+    
+    assertFalse(ShellCommandUtil.hideOpenSslPassword(command).contains("1234"));
+  }
+  
 }
