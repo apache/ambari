@@ -36,7 +36,7 @@ define hdp-hadoop::hdfs::directory(
   if ($service_state == 'running') {
 
 
-    if (hdp_get_major_stack_version($stack_version) >= 2) {
+    if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
       $mkdir_cmd = "fs -mkdir -p ${name}"
     } else {
       $mkdir_cmd = "fs -mkdir ${name}"

@@ -1141,7 +1141,7 @@ date_format=us
 # embedded Perl interpreter) is located.  If you didn't compile
 # Nagios with embedded Perl support, this option has no effect.
 
-p1_file = <%=nagios_p1_pl %>
+p1_file = <%=scope.function_hdp_template_var("::hdp-nagios::server::nagios_p1_pl") %>
 
 
 

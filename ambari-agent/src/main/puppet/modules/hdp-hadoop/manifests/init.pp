@@ -105,8 +105,8 @@ class hdp-hadoop::initialize()
     }
   }
 
-  $task_log4j_properties_location = "${conf_dir}/task-log4j.properties"
-
+  $task_log4j_properties_location = "${hdp-hadoop::params::conf_dir}/task-log4j.properties"
+  
   file { $task_log4j_properties_location:
     owner   => $hdp-hadoop::params::mapred_user,
     group   => $hdp::params::user_group,
@@ -188,7 +188,7 @@ class hdp-hadoop::initialize()
     group => $hdp::params::user_group
   }
 
-  if (hdp_get_major_stack_version($stack_version) >= 2) {
+  if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
     if (hdp_is_empty($configuration) == false and hdp_is_empty($configuration['hdfs-site']) == false) {
       if (hdp_is_empty($configuration['hdfs-site']['dfs.hosts.exclude']) == false) {
         $exlude_file_path = $configuration['hdfs-site']['dfs.hosts.exclude']
@@ -232,7 +232,7 @@ class hdp-hadoop(
     }
 
     hdp::directory_recursive_create { $hadoop_config_dir:
-      service_state => $service_state,
+      service_state => $::service_state,
       force => true
     }
 
@@ -243,7 +243,7 @@ class hdp-hadoop(
 
 
     hdp::directory_recursive_create { $hadoop_config_dir:
-      service_state => $service_state,
+      service_state => $::service_state,
       force => true,
       owner => $hdfs_user,
       group => $hdp::params::user_group
@@ -323,7 +323,7 @@ class hdp-hadoop(
       }
     }
 
-    if (hdp_get_major_stack_version($stack_version) >= 2) {
+    if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
       hdp::directory_recursive_create { "$hadoop_tmp_dir":
         service_state => $service_state,
         force => true,
@@ -331,7 +331,7 @@ class hdp-hadoop(
       }
     }
 
-    if (hdp_get_major_stack_version($stack_version) >= 2) {
+    if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
       Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Package<||> ->  Hdp::User<|title == $hdfs_user or title == $mapred_user|>  ->
       Hdp::Directory_recursive_create[$hadoop_config_dir] -> Hdp-hadoop::Configfile<|tag == 'common'|> ->
       Hdp::Directory_recursive_create[$logdirprefix] -> Hdp::Directory_recursive_create[$piddirprefix] -> Hdp::Directory_recursive_create["$hadoop_tmp_dir"] -> Anchor['hdp-hadoop::end']

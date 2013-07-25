@@ -33,11 +33,13 @@ class hdp-oozie::service(
   $cmd = "env HADOOP_HOME=${hadoop_home} /usr/sbin/oozie_server.sh"
   $pid_file = "${hdp-oozie::params::oozie_pid_dir}/oozie.pid" 
   $jar_location = $hdp::params::hadoop_jar_location
-  if (hdp_get_major_stack_version($stack_version) >= 2) {
+  if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
     $ext_js_path = "/usr/share/HDP-oozie/ext-2.2.zip"
   } else {
     $ext_js_path = "/usr/share/HDP-oozie/ext.zip"
   }
+
+  $lzo_enabled = $hdp::params::lzo_enabled
 
   $security = $hdp::params::security_enabled
   $oozie_keytab = $hdp-oozie::params::oozie_service_keytab
@@ -94,7 +96,7 @@ class hdp-oozie::service(
   $cmd2 =  "cd /usr/lib/oozie && mkdir -p ${oozie_tmp}"
   $cmd3 =  "cd /usr/lib/oozie && chown ${user}:${hdp::params::user_group} ${oozie_tmp}" 
      
-  if (hdp_get_major_stack_version($stack_version) >= 2) {
+  if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
     $cmd4 = $jdbc_driver_name ? {
         /(com.mysql.jdbc.Driver|oracle.jdbc.driver.OracleDriver)/ => "cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 2.x /usr/lib/ -extjs $ext_js_path $jar_option $jar_path",
         default            => "cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 2.x /usr/lib/ -extjs $ext_js_path $jar_option $jar_path",
@@ -160,7 +162,7 @@ define hdp-oozie::service::directory()
   hdp::directory_recursive_create { $name: 
     owner => $hdp-oozie::params::oozie_user,
     mode => '0755',
-    service_state => $ensure,
+    service_state => $hdp-oozie::service::ensure,
     force => true
   }
 }
@@ -174,20 +176,20 @@ define hdp-oozie::service::createsymlinks()
 
 define hdp-oozie::service::exec_sh()
 {
-  $no_op_test = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
+  $no_op_test = "ls ${hdp-oozie::service::pid_file} >/dev/null 2>&1 && ps `cat ${hdp-oozie::service::pid_file}` >/dev/null 2>&1"
   hdp::exec { "exec $name":
     command => "/bin/sh -c '$name'",
     unless  => $no_op_test,
-    initial_wait => $initial_wait
+    initial_wait => $hdp-oozie::service::initial_wait
   }
 }
 
 define hdp-oozie::service::exec_user()
 {
-  $no_op_test = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
+  $no_op_test = "ls ${hdp-oozie::service::pid_file} >/dev/null 2>&1 && ps `cat ${hdp-oozie::service::pid_file}` >/dev/null 2>&1"
   hdp::exec { "exec $name":
-    command => "su - ${user} -c '$name'",
+    command => "su - ${hdp-oozie::service::user} -c '$name'",
     unless  => $no_op_test,
-    initial_wait => $initial_wait
+    initial_wait => $hdp-oozie::service::initial_wait
   }
 }

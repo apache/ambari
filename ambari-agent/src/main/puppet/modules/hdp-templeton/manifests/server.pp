@@ -95,7 +95,7 @@ class hdp-templeton::copy-hdfs-directories($service_state)
     path => ['/bin']
   }
 
-  if (hdp_get_major_stack_version($stack_version) >= 2) {
+  if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
     hdp-hadoop::hdfs::copyfromlocal { '/usr/lib/hadoop-mapreduce/hadoop-streaming*.jar':
       service_state => $service_state,
       owner => $webhcat_user,

@@ -24,7 +24,7 @@ class hdp-oozie::oozie::service_check()
 
   $smoke_shell_files = ['oozieSmoke.sh']
 
-  if (hdp_get_major_stack_version($stack_version) >= 2) {
+  if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
     $smoke_test_file_name = 'oozieSmoke2.sh'
   } else {
     $smoke_test_file_name = 'oozieSmoke.sh'

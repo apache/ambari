@@ -48,41 +48,41 @@ define hdp-yarn::generate_common_configs() {
   $yarn_config_dir = $hdp-yarn::params::conf_dir
 
   # Generate configs
-  if has_key($configuration, 'mapred-site') {
+  if has_key($::configuration, 'mapred-site') {
     configgenerator::configfile{'mapred-site': 
       modulespath => $yarn_config_dir,
       filename => 'mapred-site.xml',
       module => 'hdp-yarn',
-      configuration => $configuration['mapred-site'],
-      owner => $yarn_user,
+      configuration => $::configuration['mapred-site'],
+      owner => $hdp-yarn::params::yarn_user,
       mode => 755
     }
   } else { # Manually overriding ownership of file installed by hadoop package
     file { "${yarn_config_dir}/mapred-site.xml":
-      owner => $yarn_user,
+      owner => $hdp-yarn::params::yarn_user,
       mode => 755
     }
   }
   
-  if has_key($configuration, 'yarn-site') {
+  if has_key($::configuration, 'yarn-site') {
     configgenerator::configfile{'yarn-site': 
       modulespath => $yarn_config_dir,
       filename => 'yarn-site.xml',
       module => 'hdp-yarn',
-      configuration => $configuration['yarn-site'],
-      owner => $yarn_user,
+      configuration => $::configuration['yarn-site'],
+      owner => $hdp-yarn::params::yarn_user,
       mode => 755
     }
   } else { # Manually overriding ownership of file installed by hadoop package
     file { "${yarn_config_dir}/yarn-site.xml":
-      owner => $yarn_user,
+      owner => $hdp-yarn::params::yarn_user,
       mode => 755
     }
   }
 
   hdp::configfile {"${yarn_config_dir}/yarn-env.sh":
     component      => 'yarn',
-    owner          => $yarn_user,
+    owner          => $hdp-yarn::params::yarn_user,
     mode           => 755
   }
 }

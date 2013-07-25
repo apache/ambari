@@ -27,7 +27,7 @@ module Puppet::Parser::Functions
     default = args[1]    
     val = lookupvar("::#{var_name}")    
     # Lookup value inside a hash map.
-    if var_parts.length > 1 and function_hdp_is_empty(val) and function_hdp_is_empty(lookupvar("configuration")) == false and function_hdp_is_empty(lookupvar("#{var_parts[-2]}")) == false
+    if var_parts.length > 1 and function_hdp_is_empty(val) and function_hdp_is_empty(lookupvar("::configuration")) == false and function_hdp_is_empty(lookupvar("#{var_parts[-2]}")) == false
       keyHash = var_parts[-2]
       hashMap = lookupvar("#{keyHash}") 
       val = hashMap.fetch(var_name, default.to_s)

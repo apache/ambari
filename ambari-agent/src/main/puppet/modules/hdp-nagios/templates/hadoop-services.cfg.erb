@@ -35,7 +35,7 @@ define service {
         use                     hadoop-service
         service_description     NAGIOS::Nagios status log staleness
         servicegroups           NAGIOS
-        check_command           check_nagios!10!/var/nagios/status.dat!<%=nagios_lookup_daemon_str%>
+        check_command           check_nagios!10!/var/nagios/status.dat!<%=scope.function_hdp_template_var("::hdp-nagios::server::config::nagios_lookup_daemon_str")%>
         normal_check_interval   5
         retry_check_interval    0.5
         max_check_attempts      2
@@ -126,7 +126,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia [gmetad] process down
         servicegroups           GANGLIA
-        check_command           check_tcp!<%=scope.function_hdp_template_var("ganglia_port")%>!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::ganglia_port")%>!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
         max_check_attempts      4
@@ -137,7 +137,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Collector [gmond] process down alert for slaves
         servicegroups           GANGLIA
-        check_command           check_tcp!<%=scope.function_hdp_template_var("ganglia_collector_slaves_port")%>!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::ganglia_collector_slaves_port")%>!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
         max_check_attempts      4
@@ -148,7 +148,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Collector [gmond] process down alert for NameNode
         servicegroups           GANGLIA
-        check_command           check_tcp!<%=scope.function_hdp_template_var("ganglia_collector_namenode_port")%>!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::ganglia_collector_namenode_port")%>!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
         max_check_attempts      4
@@ -159,7 +159,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Collector [gmond] process down alert for JobTracker
         servicegroups           GANGLIA
-        check_command           check_tcp!<%=scope.function_hdp_template_var("ganglia_collector_jobtracker_port")%>!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::ganglia_collector_jobtracker_port")%>!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
         max_check_attempts      4
@@ -171,7 +171,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Collector [gmond] process down alert for HBase Master
         servicegroups           GANGLIA
-        check_command           check_tcp!<%=scope.function_hdp_template_var("ganglia_collector_hbase_port")%>!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::ganglia_collector_hbase_port")%>!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
         max_check_attempts      4
@@ -184,7 +184,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Collector [gmond] process down alert for Resource Manager
         servicegroups           GANGLIA
-        check_command           check_tcp!<%=scope.function_hdp_template_var("ganglia_collector_rm_port")%>!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::ganglia_collector_rm_port")%>!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
         max_check_attempts      4
@@ -197,7 +197,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Collector [gmond] process down alert for Node Manager
         servicegroups           GANGLIA
-        check_command           check_tcp!<%=scope.function_hdp_template_var("ganglia_collector_nm_port")%>!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::ganglia_collector_nm_port")%>!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
         max_check_attempts      4
@@ -210,7 +210,7 @@ define service {
         use                     hadoop-service
         service_description     GANGLIA::Ganglia Collector [gmond] process down alert for History Server 2
         servicegroups           GANGLIA
-        check_command           check_tcp!<%=scope.function_hdp_template_var("ganglia_collector_hs_port")%>!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::ganglia_collector_hs_port")%>!-w 1 -c 1
         normal_check_interval   0.25
         retry_check_interval    0.25
         max_check_attempts      4
@@ -239,7 +239,7 @@ define service {
         use                     hadoop-service
         service_description     NAMENODE::NameNode Web UI down
         servicegroups           HDFS
-        check_command           check_webui!namenode!<%=scope.function_hdp_template_var("namenode_port")%>
+        check_command           check_webui!namenode!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>
         normal_check_interval   1
         retry_check_interval    1
         max_check_attempts      3
@@ -250,7 +250,7 @@ define service {
         use                     hadoop-service
         service_description     NAMENODE::NameNode edit logs directory status
         servicegroups           HDFS
-        check_command           check_name_dir_status!<%=scope.function_hdp_template_var("namenode_port")%>
+        check_command           check_name_dir_status!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>
         normal_check_interval   0.5
         retry_check_interval    0.5
         max_check_attempts      3
@@ -273,7 +273,7 @@ define service {
         use                     hadoop-service
         service_description     NAMENODE::NameNode process down
         servicegroups           HDFS
-        check_command           check_tcp!<%=scope.function_hdp_template_var("namenode_metadata_port")%>!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::namenode_metadata_port")%>!-w 1 -c 1
         normal_check_interval   0.5
         retry_check_interval    0.25
         max_check_attempts      3
@@ -284,7 +284,7 @@ define service {
         use                     hadoop-service
         service_description     HDFS::Corrupt/Missing blocks
         servicegroups           HDFS
-        check_command           check_hdfs_blocks!<%=scope.function_hdp_template_var("namenode_port")%>!0%!0%
+        check_command           check_hdfs_blocks!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>!0%!0%
         normal_check_interval   2
         retry_check_interval    1 
         max_check_attempts      1
@@ -295,7 +295,7 @@ define service {
         use                     hadoop-service
         service_description     HDFS::HDFS capacity utilization
         servicegroups           HDFS
-        check_command           check_hdfs_capacity!<%=scope.function_hdp_template_var("namenode_port")%>!80%!90%
+        check_command           check_hdfs_capacity!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>!80%!90%
         normal_check_interval   10
         retry_check_interval    1 
         max_check_attempts      1
@@ -306,7 +306,7 @@ define service {
         use                     hadoop-service
         service_description     HDFS::NameNode RPC latency
         servicegroups           HDFS
-        check_command           check_rpcq_latency!NameNode!<%=scope.function_hdp_template_var("namenode_port")%>!3000!5000
+        check_command           check_rpcq_latency!NameNode!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>!3000!5000
         normal_check_interval   5
         retry_check_interval    1 
         max_check_attempts      5
@@ -320,7 +320,7 @@ define service {
         use                     hadoop-service
         service_description     JOBTRACKER::JobTracker Web UI down
         servicegroups           MAPREDUCE
-        check_command           check_webui!jobtracker!<%=scope.function_hdp_template_var("jtnode_port")%>
+        check_command           check_webui!jobtracker!<%=scope.function_hdp_template_var("::hdp::jtnode_port")%>
         normal_check_interval   1
         retry_check_interval    1
         max_check_attempts      3
@@ -331,7 +331,7 @@ define service {
         use                     hadoop-service
         service_description     JOBTRACKER::JobHistory Web UI down
         servicegroups           MAPREDUCE
-        check_command           check_webui!jobhistory!<%=scope.function_hdp_template_var("jobhistory_port")%>
+        check_command           check_webui!jobhistory!<%=scope.function_hdp_template_var("::hdp::jobhistory_port")%>
         normal_check_interval   1
         retry_check_interval    1
         max_check_attempts      3
@@ -355,7 +355,7 @@ define service {
         use                     hadoop-service
         service_description     JOBTRACKER::JobTracker process down
         servicegroups           MAPREDUCE
-        check_command           check_tcp!<%=scope.function_hdp_template_var("jtnode_port")%>!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::jtnode_port")%>!-w 1 -c 1
         normal_check_interval   0.5
         retry_check_interval    0.25
         max_check_attempts      4
@@ -366,7 +366,7 @@ define service {
         use                     hadoop-service
         service_description     MAPREDUCE::JobTracker RPC latency
         servicegroups           MAPREDUCE
-        check_command           check_rpcq_latency!JobTracker!<%=scope.function_hdp_template_var("jtnode_port")%>!3000!5000
+        check_command           check_rpcq_latency!JobTracker!<%=scope.function_hdp_template_var("::hdp::jtnode_port")%>!3000!5000
         normal_check_interval   5
         retry_check_interval    1 
         max_check_attempts      5
@@ -378,7 +378,7 @@ define service {
         use                     hadoop-service
         service_description     TASKTRACKER::TaskTracker process down
         servicegroups           MAPREDUCE
-        check_command           check_tcp!<%=scope.function_hdp_template_var("tasktracker_port")%>!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::tasktracker_port")%>!-w 1 -c 1
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3
@@ -390,7 +390,7 @@ define service {
         use                     hadoop-service
         service_description     TASKTRACKER::Mapreduce local dir used space
         servicegroups           MAPREDUCE
-        check_command           check_mapred_local_dir_used_space!<%=scope.function_hdp_default("mapred-site/mapred.local.dir")%>!85%
+        check_command           check_mapred_local_dir_used_space!<%=scope.function_hdp_default("::hdp::mapred-site/mapred.local.dir")%>!85%
         normal_check_interval   0.5
         retry_check_interval    0.25
         max_check_attempts      3
@@ -405,7 +405,7 @@ define service {
         use                     hadoop-service
         service_description     RESOURCEMANAGER::Resource Manager Web UI down
         servicegroups           YARN
-        check_command           check_webui!resorcemanager!<%=scope.function_hdp_template_var("rm_port")%>
+        check_command           check_webui!resorcemanager!<%=scope.function_hdp_template_var("::hdp::rm_port")%>
         normal_check_interval   1
         retry_check_interval    1
         max_check_attempts      3
@@ -427,7 +427,7 @@ define service {
         use                     hadoop-service
         service_description     RESOURCEMANAGER::Resource Manager RPC latency
         servicegroups           YARN
-        check_command           check_rpcq_latency!ResorceManager!<%=scope.function_hdp_template_var("rm_port")%>!3000!5000
+        check_command           check_rpcq_latency!ResorceManager!<%=scope.function_hdp_template_var("::hdp::rm_port")%>!3000!5000
         normal_check_interval   5
         retry_check_interval    1 
         max_check_attempts      5
@@ -456,7 +456,7 @@ define service {
         use                     hadoop-service
         service_description     JOBHISTORY::History Server 2 Web UI down
         servicegroups           MAPREDUCE
-        check_command           check_webui!historyserver2!<%=scope.function_hdp_template_var("hs_port")%>
+        check_command           check_webui!historyserver2!<%=scope.function_hdp_template_var("::hdp::hs_port")%>
         normal_check_interval   1
         retry_check_interval    1
         max_check_attempts      3
@@ -478,7 +478,7 @@ define service {
         use                     hadoop-service
         service_description     JOBHISTORY::History Server 2 RPC latency
         servicegroups           MAPREDUCE
-        check_command           check_rpcq_latency!JobHistoryServer!<%=scope.function_hdp_template_var("hs_port")%>!3000!5000
+        check_command           check_rpcq_latency!JobHistoryServer!<%=scope.function_hdp_template_var("::hdp::hs_port")%>!3000!5000
         normal_check_interval   5
         retry_check_interval    1 
         max_check_attempts      5
@@ -493,7 +493,7 @@ define service {
         use                     hadoop-service
         service_description     DATANODE::DataNode process down
         servicegroups           HDFS
-        check_command           check_tcp!<%=scope.function_hdp_template_var("datanode_port")%>!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::datanode_port")%>!-w 1 -c 1
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3
@@ -504,7 +504,7 @@ define service {
         use                     hadoop-service
         service_description     DATANODE::DataNode storage full
         servicegroups           HDFS
-        check_command           check_datanode_storage!<%=scope.function_hdp_template_var("datanode_port")%>!90%!90%
+        check_command           check_datanode_storage!<%=scope.function_hdp_template_var("::hdp::datanode_port")%>!90%!90%
         normal_check_interval   5
         retry_check_interval    1
         max_check_attempts      2
@@ -534,7 +534,7 @@ define service {
         use                     hadoop-service
         service_description     ZOOKEEPER::ZooKeeper Server process down
         servicegroups           ZOOKEEPER
-        check_command           check_tcp!<%=scope.function_hdp_template_var("clientPort")%>!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("::clientPort")%>!-w 1 -c 1
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3
@@ -548,7 +548,7 @@ define service {
         use                     hadoop-service
         service_description     REGIONSERVER::RegionServer process down
         servicegroups           HBASE
-        check_command           check_tcp!<%=scope.function_hdp_template_var("hbase_rs_port")%>!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::hbase_rs_port")%>!-w 1 -c 1
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3
@@ -560,7 +560,7 @@ define service {
         use                     hadoop-service
         service_description     HBASEMASTER::HBase Master Web UI down
         servicegroups           HBASE
-        check_command           check_webui!hbase!<%=scope.function_hdp_template_var("hbase_master_port")%>
+        check_command           check_webui!hbase!<%=scope.function_hdp_template_var("::hdp::hbase_master_port")%>
         normal_check_interval   1
         retry_check_interval    1
         max_check_attempts      3
@@ -582,7 +582,7 @@ define service {
         use                     hadoop-service
         service_description     HBASEMASTER::HBase Master process down
         servicegroups           HBASE
-        check_command           check_tcp!<%=scope.function_hdp_template_var("hbase_master_port")%>!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::hbase_master_port")%>!-w 1 -c 1
         normal_check_interval   0.5
         retry_check_interval    0.25
         max_check_attempts      4
@@ -597,9 +597,9 @@ define service {
         service_description     HIVE-METASTORE::Hive Metastore status check
         servicegroups           HIVE-METASTORE
         <%if scope.function_hdp_template_var("security_enabled")-%>
-        check_command           check_hive_metastore_status!<%=scope.function_hdp_template_var("hive_metastore_port")%>!<%=scope.function_hdp_template_var("java64_home")%>!true!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>
+        check_command           check_hive_metastore_status!<%=scope.function_hdp_template_var("::hive_metastore_port")%>!<%=scope.function_hdp_template_var("java64_home")%>!true!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>
         <%else-%>
-        check_command           check_hive_metastore_status!<%=scope.function_hdp_template_var("hive_metastore_port")%>!<%=scope.function_hdp_template_var("java64_home")%>!false
+        check_command           check_hive_metastore_status!<%=scope.function_hdp_template_var("::hive_metastore_port")%>!<%=scope.function_hdp_template_var("java64_home")%>!false
         <%end-%>
         normal_check_interval   0.5
         retry_check_interval    0.5
@@ -614,9 +614,9 @@ define service {
         service_description     OOZIE::Oozie Server status check
         servicegroups           OOZIE
         <%if scope.function_hdp_template_var("security_enabled")-%>
-        check_command           check_oozie_status!<%=scope.function_hdp_template_var("oozie_server_port")%>!<%=scope.function_hdp_template_var("java64_home")%>!true!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>
+        check_command           check_oozie_status!<%=scope.function_hdp_template_var("::hdp::oozie_server_port")%>!<%=scope.function_hdp_template_var("java64_home")%>!true!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>
         <%else-%>
-        check_command           check_oozie_status!<%=scope.function_hdp_template_var("oozie_server_port")%>!<%=scope.function_hdp_template_var("java64_home")%>!false
+        check_command           check_oozie_status!<%=scope.function_hdp_template_var("::hdp::oozie_server_port")%>!<%=scope.function_hdp_template_var("java64_home")%>!false
         <%end-%>
         normal_check_interval   1
         retry_check_interval    1
@@ -631,9 +631,9 @@ define service {
         service_description     WEBHCAT::WebHCat Server status check
         servicegroups           WEBHCAT 
         <%if scope.function_hdp_template_var("security_enabled")-%>
-        check_command           check_templeton_status!<%=scope.function_hdp_template_var("templeton_port")%>!v1!true!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>
+        check_command           check_templeton_status!<%=scope.function_hdp_template_var("::hdp::templeton_port")%>!v1!true!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>
         <%else-%>
-        check_command           check_templeton_status!<%=scope.function_hdp_template_var("templeton_port")%>!v1!false
+        check_command           check_templeton_status!<%=scope.function_hdp_template_var("::hdp::templeton_port")%>!v1!false
         <%end-%>
         normal_check_interval   1
         retry_check_interval    0.5

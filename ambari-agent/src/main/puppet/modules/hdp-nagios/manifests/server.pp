@@ -205,7 +205,7 @@ class hdp-nagios::server(
     anchor{'hdp-nagios::server::begin':}
     anchor{'hdp-nagios::server::end':}
 
-    Anchor['hdp-nagios::server::begin'] -> Class['hdp-nagios::server::packages'] -> file[$nagios_httpd_config_file] -> Class['hdp-nagios::server::enable_snmp']->
+    Anchor['hdp-nagios::server::begin'] -> Class['hdp-nagios::server::packages'] -> File[$nagios_httpd_config_file] -> Class['hdp-nagios::server::enable_snmp']->
     Hdp::Directory[$nagios_config_dir] -> Hdp::Directory[$plugins_dir] -> Hdp::Directory_recursive_create[$nagios_pid_dir] ->
     Hdp::Directory[$nagios_obj_dir] -> Hdp::Directory_Recursive_Create[$nagios_var_dir] ->
     Hdp::Directory_Recursive_Create[$check_result_path] -> Hdp::Directory_Recursive_Create[$nagios_rw_dir] ->

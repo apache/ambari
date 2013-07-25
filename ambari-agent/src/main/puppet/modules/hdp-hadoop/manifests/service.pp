@@ -73,7 +73,7 @@ define hdp-hadoop::service(
     hdp::directory_recursive_create { $pid_dir: 
       owner       => $user,
       context_tag => 'hadoop_service',
-      service_state => $service_state,
+      service_state => $::service_state,
       force => true
     }
   }
@@ -82,7 +82,7 @@ define hdp-hadoop::service(
     hdp::directory_recursive_create { $log_dir: 
       owner       => $user,
       context_tag => 'hadoop_service',
-      service_state => $service_state,
+      service_state => $::service_state,
       force => true
     }
   }

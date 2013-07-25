@@ -60,7 +60,7 @@ define hdp-templeton::service::directory()
   hdp::directory_recursive_create { $name: 
     owner => $hdp-templeton::params::webhcat_user,
     mode => '0755',
-    service_state => $ensure,
+    service_state => $hdp-templeton::service::ensure,
     force => true
   }
 }
