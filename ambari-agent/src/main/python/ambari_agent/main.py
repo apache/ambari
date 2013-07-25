@@ -35,7 +35,7 @@ from security import CertificateManager
 from NetUtil import NetUtil
 import security
 import hostname
-
+from DataCleaner import DataCleaner
 
 logger = logging.getLogger()
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
@@ -197,6 +197,13 @@ def main():
 
   # Check for ambari configuration file.
   config = resolve_ambari_config()
+
+  # Starting data cleanup daemon
+  data_cleaner = None
+  if int(config.get('agent','data_cleanup_interval')) > 0:
+    data_cleaner = DataCleaner(config)
+    data_cleaner.start()
+
   perform_prestart_checks(expected_hostname)
   daemonize()
 

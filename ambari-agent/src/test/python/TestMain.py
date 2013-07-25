@@ -33,6 +33,7 @@ import os
 import tempfile
 from ambari_agent.Controller import Controller
 from optparse import OptionParser
+from ambari_agent.DataCleaner import DataCleaner
 
 
 class TestMain(unittest.TestCase):
@@ -235,9 +236,13 @@ class TestMain(unittest.TestCase):
   @patch.object(Controller, "start")
   @patch.object(Controller, "join")
   @patch("optparse.OptionParser.parse_args")
-  def test_main(self, parse_args_mock, join_mock, start_mock, Controller_init_mock, try_to_connect_mock, update_log_level_mock,
+  @patch.object(DataCleaner,"start")
+  @patch.object(DataCleaner,"__init__")
+  def test_main(self, data_clean_init_mock,data_clean_start_mock, parse_args_mock, join_mock, start_mock,
+                Controller_init_mock, try_to_connect_mock, update_log_level_mock,
                 killstaleprocesses_mock, daemonize_mock, perform_prestart_checks_mock,
                 resolve_ambari_config_mock, stop_mock, bind_signal_handlers_mock, setup_logging_mock):
+    data_clean_init_mock.return_value = None
     Controller_init_mock.return_value = None
     options = MagicMock()
     parse_args_mock.return_value = (options, MagicMock)
@@ -255,6 +260,8 @@ class TestMain(unittest.TestCase):
     self.assertTrue(update_log_level_mock.called)
     try_to_connect_mock.assert_called_once_with(ANY, -1, ANY)
     self.assertTrue(start_mock.called)
+    self.assertTrue(data_clean_init_mock.called)
+    self.assertTrue(data_clean_start_mock.called)
 
     perform_prestart_checks_mock.reset_mock()
 

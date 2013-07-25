@@ -31,6 +31,8 @@ secured_url_port=8441
 
 [agent]
 prefix=/tmp/ambari-agent
+data_cleanup_interval=86400
+data_cleanup_max_age=2592000
 
 [services]
 
