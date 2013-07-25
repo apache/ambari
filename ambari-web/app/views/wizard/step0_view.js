@@ -22,6 +22,8 @@ var App = require('app');
 App.WizardStep0View = Em.View.extend({
 
   tagName: "form", //todo: why form?
+  attributeBindings: ['autocomplete'],
+  autocomplete: 'off',
   templateName: require('templates/wizard/step0'),
 
   //todo: create property for placeholder(go to template)

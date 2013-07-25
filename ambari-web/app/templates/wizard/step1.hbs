@@ -20,7 +20,7 @@
   {{t installer.step1.body}}
 </p>
 <p><b>{{t common.stacks}}</b></p>
-<form>
+<form autocomplete="off">
   {{#each stack in view.stacks}}
     <label class="radio">{{view view.stackRadioButton contentBinding="stack"}} {{stack.name}}</label>
   {{/each}}
