@@ -31,6 +31,7 @@ logger = logging.getLogger()
 class StatusCheck:
     
   USER_PATTERN='{USER}'
+  firstInit = True
 
   def listFiles(self, dir):
     basedir = dir
@@ -79,9 +80,6 @@ class StatusCheck:
     for pidPath in self.pidPathes:
       self.listFiles(pidPath)
 
-    logger.info('serToPidDict:')
-    logger.info(self.serToPidDict.items())
-
     for service, pid in self.serToPidDict.items():
       if self.servicesToLinuxUser.has_key(service):
         linuxUserKey = self.servicesToLinuxUser[service]
@@ -92,7 +90,11 @@ class StatusCheck:
         if self.USER_PATTERN in pid:
           logger.error('There is no linux user mapping for component: ' + service)
 
-    logger.debug('Service to pid dictionary: ' + str(self.serToPidDict))
+    if StatusCheck.firstInit:
+      logger.info('Service to pid dictionary: ' + str(self.serToPidDict))
+      StatusCheck.firstInit = False
+    else:
+      logger.debug('Service to pid dictionary: ' + str(self.serToPidDict))
 
   def getIsLive(self, pidPath):
 

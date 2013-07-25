@@ -93,6 +93,26 @@ class TestStatusCheck(TestCase):
     
     status = statusCheck.getStatus(COMPONENT_LIVE)
     self.assertEqual(status, True)
+    
+  @patch.object(logger, 'info')
+  def test_dont_relog_serToPidDict(self, logger_info_mock):
+    TestStatusCheck.timesLogged = 0
+    
+    def my_side_effect(*args, **kwargs):
+      TestStatusCheck.timesLogged += args[0].find('Service to pid dictionary: ')+1
+      
+
+    logger_info_mock.side_effect = my_side_effect
+    
+    # call this three times
+    statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathesVars,
+      self.globalConfig, self.servicesToLinuxUser)
+    statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathesVars,
+      self.globalConfig, self.servicesToLinuxUser)
+    statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathesVars,
+      self.globalConfig, self.servicesToLinuxUser)
+    # and really only once logged        
+    self.assertEqual(TestStatusCheck.timesLogged, 1)
 
   # Ensure that status checker return True for running process even if multiple
   # pids for a service component exist
