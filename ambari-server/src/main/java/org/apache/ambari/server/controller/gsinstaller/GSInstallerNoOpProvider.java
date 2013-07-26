@@ -21,10 +21,17 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 /**
  * A NO-OP resource provider for a gsInstaller defined cluster.
  */
 public class GSInstallerNoOpProvider extends GSInstallerResourceProvider{
+
+  private final Map<Resource.Type, String> keyPropertyIds = new HashMap<Resource.Type, String>();
 
   // ----- GSInstallerResourceProvider ---------------------------------------
 
@@ -37,5 +44,17 @@ public class GSInstallerNoOpProvider extends GSInstallerResourceProvider{
 
   public GSInstallerNoOpProvider(Resource.Type type, ClusterDefinition clusterDefinition) {
     super(type, clusterDefinition);
+    keyPropertyIds.put(type, "id");
+  }
+
+
+  @Override
+  public Map<Resource.Type, String> getKeyPropertyIds() {
+    return keyPropertyIds;
+  }
+
+  @Override
+  public Set<String> checkPropertyIds(Set<String> propertyIds) {
+    return Collections.emptySet();
   }
 }
