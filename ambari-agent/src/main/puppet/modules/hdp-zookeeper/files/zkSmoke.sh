@@ -41,7 +41,7 @@ fi
 
 function verify_output() {
   if [ -f $test_output_file ]; then
-    errors=`grep -iE $errors_expr $test_output_file`
+    errors=`grep -E $errors_expr $test_output_file`
     if [ "$?" -eq 0 ]; then
       echo "Error found in the zookeeper smoke test. Exiting."
       echo $errors
@@ -51,9 +51,9 @@ function verify_output() {
 }
 
 # Delete /zk_smoketest znode if exists
-su - $smoke_user -c "source $conf_dir/zookeeper-env.sh ;  echo delete /zk_smoketest | ${smoke_script} -server $zk_node1:$client_port 2>&1 >> $test_output_file"
+su - $smoke_user -c "source $conf_dir/zookeeper-env.sh ;  echo delete /zk_smoketest | ${smoke_script} -server $zk_node1:$client_port" 2>&1>$test_output_file
 # Create /zk_smoketest znode on one zookeeper server
-su - $smoke_user -c "source $conf_dir/zookeeper-env.sh ; echo create /zk_smoketest smoke_data | ${smoke_script} -server $zk_node1:$client_port 2>&1 >> $test_output_file"
+su - $smoke_user -c "source $conf_dir/zookeeper-env.sh ; echo create /zk_smoketest smoke_data | ${smoke_script} -server $zk_node1:$client_port" 2>&1>>$test_output_file
 verify_output
 
 for i in $zkhosts ; do
