@@ -2388,7 +2388,7 @@ module.exports =
       "name": "hadoop_conf_dir",
       "displayName": "Hadoop conf directory",
       "description": "",
-      "defaultValue": "/etc/hadoop",
+      "defaultValue": "/etc/hadoop/conf",
       "isRequired": false,
       "isReconfigurable": false,
       "displayType": "directory",
