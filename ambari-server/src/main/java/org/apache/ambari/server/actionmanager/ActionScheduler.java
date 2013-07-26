@@ -325,6 +325,7 @@ class ActionScheduler implements Runnable {
               ServiceComponentHost svcCompHost =
                   svcComp.getServiceComponentHost(host);
               svcCompHost.handleEvent(timeoutEvent);
+              LOG.warn("Operation timed out. Role: " + roleStr + ", host: " + host);
             } catch (ServiceComponentNotFoundException scnex) {
               LOG.debug("Not a service component, assuming its an action. Details: "
                   + scnex.getMessage());

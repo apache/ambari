@@ -365,6 +365,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
    * The information required to make a single RRD request.
    */
   private class RRDRequest {
+    private static final int POPULATION_TIME_UPPER_LIMIT = 5;
     private final String clusterName;
     private final TemporalInfo temporalInfo;
     private final Map<ResourceKey, Set<Resource>> resources = new HashMap<ResourceKey, Set<Resource>>();
@@ -458,8 +459,9 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
         }
         int endTime = convertToNumber(reader.readLine()).intValue();
 
-        if (LOG.isInfoEnabled()) {
-          LOG.info("Ganglia resource population time: " + (endTime - startTime));
+        int totalTime = endTime - startTime;
+        if (LOG.isInfoEnabled() && totalTime > POPULATION_TIME_UPPER_LIMIT) {
+          LOG.info("Ganglia resource population time: " + totalTime);
         }
       } catch (IOException e) {
         if (LOG.isErrorEnabled()) {

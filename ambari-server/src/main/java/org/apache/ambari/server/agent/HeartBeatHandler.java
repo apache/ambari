@@ -223,6 +223,8 @@ public class HeartBeatHandler {
                   hostname, now));
             }
           } else if (report.getStatus().equals("FAILED")) {
+            LOG.warn("Operation failed - may be retried. Service component host: "
+                + schName + ", host: " + hostname);
             scHost.handleEvent(new ServiceComponentHostOpFailedEvent(schName,
                 hostname, now));
           } else if (report.getStatus().equals("IN_PROGRESS")) {

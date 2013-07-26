@@ -2775,6 +2775,12 @@ public class AmbariManagementControllerImpl implements
             + " update components");
       }
 
+      LOG.info("Received a updateComponent request"
+          + ", clusterName=" + request.getClusterName()
+          + ", serviceName=" + request.getServiceName()
+          + ", componentName=" + request.getComponentName()
+          + ", request=" + request.toString());
+
       Cluster cluster = clusters.getCluster(request.getClusterName());
 
       if (request.getServiceName() == null
@@ -3139,14 +3145,12 @@ public class AmbariManagementControllerImpl implements
         request.setServiceName(findServiceName(cluster, request.getComponentName()));
       }
 
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a updateHostComponent request"
-            + ", clusterName=" + request.getClusterName()
-            + ", serviceName=" + request.getServiceName()
-            + ", componentName=" + request.getComponentName()
-            + ", hostname=" + request.getHostname()
-            + ", request=" + request);
-      }
+      LOG.info("Received a updateHostComponent request"
+          + ", clusterName=" + request.getClusterName()
+          + ", serviceName=" + request.getServiceName()
+          + ", componentName=" + request.getComponentName()
+          + ", hostname=" + request.getHostname()
+          + ", request=" + request);
 
       clusterNames.add(request.getClusterName());
 
