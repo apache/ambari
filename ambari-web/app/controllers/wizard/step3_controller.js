@@ -776,7 +776,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       if (_host.Hosts.last_agent_env.hostHealth && _host.Hosts.last_agent_env.hostHealth.liveServices) {
 
         _host.Hosts.last_agent_env.hostHealth.liveServices.forEach(function (service) {
-          if (service.status === 'Healthy') {
+          if (service.status === 'Unhealthy') {
             warning = warnings.filterProperty('category', 'services').findProperty('name', service.name);
             if (warning) {
               warning.hosts.push(_host.Hosts.host_name);
