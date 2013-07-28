@@ -191,12 +191,16 @@ App.HostPopup = Em.Object.create({
    * For Background operation popup calculate number of running Operations, and set popup header
    */
   setBackgroundOperationHeader: function () {
-    var allServices = this.get("servicesInfo");
-    var numRunning = 0;
-    numRunning = allServices.filterProperty("status", App.format.taskStatus("IN_PROGRESS")).length;
-    numRunning += allServices.filterProperty("status", App.format.taskStatus("QUEUED")).length;
-    numRunning += allServices.filterProperty("status", App.format.taskStatus("PENDING")).length;
-    this.set("popupHeaderName", numRunning + Em.I18n.t('hostPopup.header.postFix'));
+    if (this.get("showServices")) {
+      var allServices = this.get("servicesInfo");
+      var numRunning = 0;
+      numRunning = allServices.filterProperty("status", App.format.taskStatus("IN_PROGRESS")).length;
+      numRunning += allServices.filterProperty("status", App.format.taskStatus("QUEUED")).length;
+      numRunning += allServices.filterProperty("status", App.format.taskStatus("PENDING")).length;
+      this.set("popupHeaderName", numRunning + Em.I18n.t('hostPopup.header.postFix'));
+    }else{
+      this.set("popupHeaderName", this.get("serviceName"));
+    }
   },
 
   /**
