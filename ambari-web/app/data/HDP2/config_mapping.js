@@ -216,7 +216,56 @@ var configs = [
     "value": "http://<templateName[0]>:11000/oozie",
     "filename": "oozie-site.xml"
   },
+  {
+    "name": "oozie.service.JPAService.create.db.schema",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "false",  // this is always false
+    "filename": "oozie-site.xml"
+  },
+  {
+    "name": "oozie.db.schema.name",
+    "templateName": ['oozie_database_name'],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "oozie-site.xml"
+  },
+  {
+    "name": "oozie.service.JPAService.jdbc.driver",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "org.apache.derby.jdbc.EmbeddedDriver",  // this value is overwritten in code
+    "filename": "oozie-site.xml"
+  },
+  {
+    "name": "oozie.service.JPAService.jdbc.username",
+    "templateName": ['oozie_metastore_user_name'],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "oozie-site.xml"
+  },
+  {
+    "name": "oozie.service.JPAService.jdbc.password",
+    "templateName": ['oozie_metastore_user_passwd'],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "oozie-site.xml"
+  },
+  {
+    "name": "oozie.service.JPAService.jdbc.url",
+    "templateName": ["oozie_jdbc_connection_url"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "oozie-site.xml"
+  },
   /**********************************************hive-site***************************************/
+  {
+    "name": "javax.jdo.option.ConnectionDriverName",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "com.mysql.jdbc.Driver",  // this value is overwritten in code
+    "filename": "hive-site.xml"
+  },
   {
     "name": "javax.jdo.option.ConnectionUserName",
     "templateName": ["hive_metastore_user_name"],
@@ -231,7 +280,13 @@ var configs = [
     "value": "<templateName[0]>",
     "filename": "hive-site.xml"
   },
-
+  {
+    "name": "javax.jdo.option.ConnectionURL",
+    "templateName": ["hive_jdbc_connection_url"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "hive-site.xml"
+  },
   {
     "name": "hive.metastore.uris",
     "templateName": ["hivemetastore_host"],

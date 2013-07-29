@@ -1072,6 +1072,7 @@ module.exports =
       "displayType": "masterHost",
       "isOverridable": false,
       "isVisible": true,
+      "isObserved": true,
       "serviceName": "HIVE",
       "category": "Hive Metastore",
       "index": 0
@@ -1184,6 +1185,7 @@ module.exports =
       "displayType": "host",
       "isOverridable": false,
       "isVisible": false,
+      "isObserved": true,
       "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore",
@@ -1199,6 +1201,7 @@ module.exports =
       "displayType": "host",
       "isOverridable": false,
       "isVisible": false,
+      "isObserved": true,
       "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore",
@@ -1230,6 +1233,7 @@ module.exports =
       "displayType": "host",
       "isOverridable": false,
       "isVisible": true,
+      "isObserved": true,
       "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore",
@@ -1264,6 +1268,20 @@ module.exports =
       "serviceName": "HIVE",
       "category": "Hive Metastore",
       "index": 6
+    },
+    {
+      "id": "puppet var",
+      "name": "hive_jdbc_connection_url",
+      "displayName": "Database URL",
+      "value": "",
+      "defaultValue": " ", // set to a space to not include this in initial error count
+      "description": "The JDBC connection URL to the database",
+      "displayType": "advanced",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "HIVE",
+      "category": "Hive Metastore",
+      "index": 7
     },
     {
       "id": "puppet var",
@@ -1441,6 +1459,7 @@ module.exports =
       "description": "Using an existing Oracle database for Oozie Metastore",
       "displayType": "masterHost",
       "isVisible": false,
+      "isObserved": true,
       "isReconfigurable": false,
       "isOverridable": false,
       //"domain": "global",
@@ -1509,11 +1528,11 @@ module.exports =
           displayName: 'New Derby Database',
           foreignKeys: ['oozie_derby_database']
         },
-        {
+        /*{
           displayName: 'New MySQL Database',
           foreignKeys: ['oozie_ambari_database', 'oozie_ambari_host'],
           hidden: !App.supports.hiveOozieExtraDatabases
-        },
+        },*/
         {
           displayName: 'Existing MySQL Database',
           foreignKeys: ['oozie_existing_mysql_database', 'oozie_existing_mysql_host'],
@@ -1546,6 +1565,7 @@ module.exports =
       "isOverridable": false,
       "displayType": "host",
       "isVisible": true,
+      "isObserved": true,
       //"domain": "global",
       "serviceName": "OOZIE",
       "category": "Oozie Server",
@@ -1583,6 +1603,20 @@ module.exports =
     },
     {
       "id": "puppet var",
+      "name": "oozie_jdbc_connection_url",
+      "displayName": "Database URL",
+      "description": "The JDBC connection URL to the database",
+      "defaultValue": " ",  // set to a space to not include this in initial error count
+      "isReconfigurable": true,
+      "isOverridable": false,
+      "displayType": "advanced",
+      "isVisible": true,
+      "serviceName": "OOZIE",
+      "category": "Oozie Server",
+      "index": 6
+    },
+    {
+      "id": "puppet var",
       "name": "oozie_data_dir",
       "displayName": "Oozie Data Dir",
       "description": "Data directory in which the Oozie DB exists",
@@ -1596,7 +1630,7 @@ module.exports =
       "domain": "global",
       "serviceName": "OOZIE",
       "category": "Oozie Server",
-      "index": 6
+      "index": 7
     },
     {
       "id": "puppet var",
@@ -1623,6 +1657,7 @@ module.exports =
       "isOverridable": false,
       "displayType": "host",
       "isVisible": false,
+      "isObserved": true,
       //"domain": "global",
       "serviceName": "OOZIE",
       "category": "Oozie Server"
@@ -1637,6 +1672,7 @@ module.exports =
       "isOverridable": false,
       "displayType": "host",
       "isVisible": false,
+      "isObserved": true,
       //"domain": "global",
       "serviceName": "OOZIE",
       "category": "Oozie Server"
