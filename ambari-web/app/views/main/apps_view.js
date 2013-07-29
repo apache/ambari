@@ -29,14 +29,13 @@ App.MainAppsView = Em.View.extend({
     tagName: 'a',
     template: Ember.Handlebars.compile('<i class="icon-arrow-left"></i>'),
     classNameBindings: ['class'],
-    class: "",
-    calculateClass: function () {
+    class: function () {
       if (parseInt(this.get("controller.paginationObject.startIndex")) > 1) {
-        this.set("class", "paginate_previous");
+        return "paginate_previous";
       } else {
-        this.set("class", "paginate_disabled_previous");
+        return "paginate_disabled_previous";
       }
-    }.observes("controller.paginationObject"),
+    }.property("controller.paginationObject.startIndex"),
     click: function (event) {
       if (this.get('class') == "paginate_previous") {
         var startIndex = parseInt(this.get("controller.paginationObject.startIndex")) - 1;
@@ -50,14 +49,13 @@ App.MainAppsView = Em.View.extend({
     tagName: 'a',
     template: Ember.Handlebars.compile('<i class="icon-arrow-right"></i>'),
     classNameBindings: ['class'],
-    class: "",
-    calculateClass: function () {
+    class: function () {
       if ((parseInt(this.get("controller.paginationObject.endIndex"))) < parseInt(this.get("controller.paginationObject.iTotalDisplayRecords"))) {
-        this.set("class", "paginate_next");
+        return "paginate_next";
       } else {
-        this.set("class", "paginate_disabled_next");
+        return "paginate_disabled_next";
       }
-    }.observes("controller.paginationObject"),
+    }.property("controller.paginationObject.endIndex"),
     click: function (event) {
       if (this.get('class') == "paginate_next") {
         var startDisplayValue = parseInt(this.get("controller.paginationObject.endIndex"));
@@ -326,7 +324,7 @@ App.MainAppsView = Em.View.extend({
     onLoad: function() {
       var run = this.get('parentView.run');
       if (run.index) {
-        var strip = (run.index % 2) ? 'odd' : 'even';
+        var strip = (run.index % 2) ? 'even' : 'odd';
         this.$().addClass(strip);
       }
     }.observes('parentView.run'),
