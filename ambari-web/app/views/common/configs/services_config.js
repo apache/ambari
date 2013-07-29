@@ -51,7 +51,6 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
   classNameBindings: ['category.name', 'isShowBlock::hidden'],
 
   content: null,
-  miscModalVisible: false, //If miscConfigChange Modal is shown
   category: null,
   service: null,
   canEdit: true, // View is editable or read-only?
@@ -180,7 +179,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
           );
         }
       }
-      if (this.affectedProperties.length > 0 && !this.get("miscModalVisible")) {
+      if (this.affectedProperties.length > 0 && !this.get("controller.miscModalVisible")) {
         this.newAffectedProperties = this.affectedProperties;
         var self = this;
         return App.ModalPopup.show({
@@ -192,18 +191,18 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
               self.get("controller.stepConfigs").findProperty("serviceName", item.serviceName).get("configs")
                 .findProperty("name", item.propertyName).set("value", item.newValue);
             });
-            self.set("miscModalVisible", false);
+            self.get("controller").set("miscModalVisible", false);
             this.hide();
           },
           onIgnore: function () {
-            self.set("miscModalVisible", false);
+            self.get("controller").set("miscModalVisible", false);
             this.hide();
           },
           onUndo: function () {
             var affected = self.get("newAffectedProperties").objectAt(0);
             self.get("controller.stepConfigs").findProperty("serviceName", "MISC").get("configs")
               .findProperty("name", affected.changedPropertyName).set("value", $.trim(affected.curValue));
-            self.set("miscModalVisible", false);
+            self.get("controller").set("miscModalVisible", false);
             this.hide();
           },
           footerClass: Ember.View.extend({
@@ -221,7 +220,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
             controller: this,
             propertyChange: self.get("newAffectedProperties"),
             didInsertElement: function () {
-              self.set("miscModalVisible", true);
+              self.get("controller").set("miscModalVisible", true);
             }
           })
         });
