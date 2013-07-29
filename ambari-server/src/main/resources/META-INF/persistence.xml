@@ -43,6 +43,7 @@
       <!--<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost/ambari" />-->
       <!--<property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver" />-->
       <property name="eclipselink.cache.size.default" value="3000" />
+      <property name="eclipselink.jdbc.batch-writing" value="JDBC"/>
     </properties>
   </persistence-unit>
 

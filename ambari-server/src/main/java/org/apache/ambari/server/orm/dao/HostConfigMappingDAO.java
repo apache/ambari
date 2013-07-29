@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.orm.dao;
 
-import java.util.List;
+import java.util.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -47,6 +47,7 @@ public class HostConfigMappingDAO {
     return entityManagerProvider.get().merge(entity);
   }
 
+  @Transactional
   public List<HostConfigMappingEntity> findByType(long clusterId, String hostName, String type) {
     TypedQuery<HostConfigMappingEntity> query = entityManagerProvider.get().createQuery(
       "SELECT entity FROM HostConfigMappingEntity entity " +
@@ -56,6 +57,7 @@ public class HostConfigMappingDAO {
     return daoUtils.selectList(query, Long.valueOf(clusterId), hostName, type);
   }
 
+  @Transactional
   public HostConfigMappingEntity findSelectedByType(long clusterId,
       String hostName, String type) {
 
@@ -69,6 +71,7 @@ public class HostConfigMappingDAO {
     return daoUtils.selectSingle(query, Long.valueOf(clusterId), hostName, type);
   }
 
+  @Transactional
   public List<HostConfigMappingEntity> findSelected(long clusterId, String hostName) {
     TypedQuery<HostConfigMappingEntity> query = entityManagerProvider.get().createQuery(
         "SELECT entity FROM HostConfigMappingEntity entity " +
@@ -79,6 +82,23 @@ public class HostConfigMappingDAO {
     return daoUtils.selectList(query, Long.valueOf(clusterId), hostName);
   }
 
+  @Transactional
+  public List<HostConfigMappingEntity> findSelectedByHosts(long clusterId, Collection<String> hostNames) {
+
+    if (hostNames == null || hostNames.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    TypedQuery<HostConfigMappingEntity> query = entityManagerProvider.get().createQuery(
+        "SELECT entity FROM HostConfigMappingEntity entity " +
+            "WHERE entity.clusterId = ?1 AND entity.hostName IN ?2 " +
+            "AND entity.selected > 0",
+        HostConfigMappingEntity.class);
+
+    return daoUtils.selectList(query, Long.valueOf(clusterId), hostNames);
+  }
+
+  @Transactional
   public List<HostConfigMappingEntity> findSelectedHostsByType(long clusterId,
       String type) {
     TypedQuery<HostConfigMappingEntity> query = entityManagerProvider.get().createQuery(
@@ -86,6 +106,32 @@ public class HostConfigMappingDAO {
         "WHERE entity.clusterId = ?1 AND entity.type = ?2 AND entity.selected > 0",
     HostConfigMappingEntity.class);
     return daoUtils.selectList(query, Long.valueOf(clusterId), type);
+  }
+
+  @Transactional
+  public Map<String, List<HostConfigMappingEntity>> findSelectedHostsByTypes(long clusterId,
+                                                                             Collection<String> types) {
+    TypedQuery<HostConfigMappingEntity> query = entityManagerProvider.get().createQuery(
+        "SELECT entity FROM HostConfigMappingEntity entity " +
+            "WHERE entity.clusterId = ?1 AND entity.type IN ?2 AND entity.selected > 0",
+        HostConfigMappingEntity.class);
+
+    Map<String, List<HostConfigMappingEntity>> mappingsByType = new HashMap<String, List<HostConfigMappingEntity>>();
+
+    for (String type : types) {
+      if (!mappingsByType.containsKey(type)) {
+        mappingsByType.put(type, new ArrayList<HostConfigMappingEntity>());
+      }
+    }
+
+    if (!types.isEmpty()) {
+      List<HostConfigMappingEntity> mappings = daoUtils.selectList(query, clusterId, types);
+      for (HostConfigMappingEntity mapping : mappings) {
+        mappingsByType.get(mapping.getType()).add(mapping);
+      }
+    }
+
+    return mappingsByType;
   }
 
   /**

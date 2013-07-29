@@ -19,6 +19,7 @@
 package org.apache.ambari.server.state.cluster;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -43,27 +44,10 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
-import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.HostStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
-import org.apache.ambari.server.state.AgentVersion;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigFactory;
-import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
+import org.apache.ambari.server.orm.entities.*;
+import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.DesiredConfig.HostOverride;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceComponentFactory;
-import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceComponentHostFactory;
-import org.apache.ambari.server.state.ServiceFactory;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
@@ -474,5 +458,31 @@ public class ClusterTest {
     assertEquals(1, c1.getServices().size());
     assertEquals(1, injector.getProvider(EntityManager.class).get().
         createQuery("SELECT service FROM ClusterServiceEntity service").getResultList().size());
+  }
+
+  @Test
+  public void testGetHostsDesiredConfigs() throws Exception {
+    Host host1 = clusters.getHost("h1");
+
+    Config config = configFactory.createNew(c1, "hdfs-site", new HashMap<String, String>(){{
+      put("test", "test");
+    }});
+    config.setVersionTag("1");
+
+    host1.addDesiredConfig(c1.getClusterId(), true, "test", config);
+
+    Map<String, Map<String, DesiredConfig>> configs = c1.getAllHostsDesiredConfigs();
+
+    assertTrue(configs.containsKey("h1"));
+    assertEquals(1, configs.get("h1").size());
+
+    List<String> hostnames = new ArrayList<String>();
+    hostnames.add("h1");
+
+    configs = c1.getHostsDesiredConfigs(hostnames);
+
+    assertTrue(configs.containsKey("h1"));
+    assertEquals(1, configs.get("h1").size());
+
   }
 }

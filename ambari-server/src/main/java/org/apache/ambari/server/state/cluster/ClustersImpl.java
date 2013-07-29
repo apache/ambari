@@ -261,9 +261,10 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
-  @Transactional
   public Host getHost(String hostname) throws AmbariException {
-    loadClustersAndHosts();
+    if (!clustersLoaded) {
+      loadClustersAndHosts();
+    }
     r.lock();
     try {
       if (!hosts.containsKey(hostname)) {
@@ -541,10 +542,11 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
-  @Transactional
   public Map<String, Host> getHostsForCluster(String clusterName)
       throws AmbariException {
-    loadClustersAndHosts();
+    if (!clustersLoaded) {
+      loadClustersAndHosts();
+    }
     r.lock();
 
     try {

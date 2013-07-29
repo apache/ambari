@@ -212,4 +212,17 @@ public interface Cluster {
    * @return cluster-global lock
    */
   ReadWriteLock getClusterGlobalLock();
+
+  /**
+   * Fetch desired configs for list of hosts in cluster
+   * @param hostnames
+   * @return
+   */
+  Map<String, Map<String, DesiredConfig>> getHostsDesiredConfigs(Collection<String> hostnames);
+
+  /**
+   * Fetch desired configs for all hosts in cluster
+   * @return
+   */
+  Map<String, Map<String, DesiredConfig>> getAllHostsDesiredConfigs();
 }

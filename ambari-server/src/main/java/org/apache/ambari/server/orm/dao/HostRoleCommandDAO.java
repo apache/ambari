@@ -110,6 +110,9 @@ public class HostRoleCommandDAO {
   }
 
   @Transactional
+  /**
+   * NB: You cannot rely on return value if batch write is enabled
+   */
   public int updateStatusByRequestId(long requestId, HostRoleStatus target, Collection<HostRoleStatus> sources) {
     Query query = entityManagerProvider.get().createQuery("UPDATE HostRoleCommandEntity command " +
         "SET command.status=?1 " +

@@ -129,4 +129,36 @@ public class HostConfigMappingEntity {
     user = userName;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    HostConfigMappingEntity that = (HostConfigMappingEntity) o;
+
+    if (selected != that.selected) return false;
+    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
+    if (createTimestamp != null ? !createTimestamp.equals(that.createTimestamp) : that.createTimestamp != null)
+      return false;
+    if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
+    if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
+    if (type != null ? !type.equals(that.type) : that.type != null) return false;
+    if (user != null ? !user.equals(that.user) : that.user != null) return false;
+    if (versionTag != null ? !versionTag.equals(that.versionTag) : that.versionTag != null) return false;
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = clusterId != null ? clusterId.hashCode() : 0;
+    result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
+    result = 31 * result + (type != null ? type.hashCode() : 0);
+    result = 31 * result + (createTimestamp != null ? createTimestamp.hashCode() : 0);
+    result = 31 * result + (versionTag != null ? versionTag.hashCode() : 0);
+    result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
+    result = 31 * result + selected;
+    result = 31 * result + (user != null ? user.hashCode() : 0);
+    return result;
+  }
 }

@@ -18,16 +18,8 @@
 
 package org.apache.ambari.server.state.cluster;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -1027,6 +1019,7 @@ public class ClusterImpl implements Cluster {
       readWriteLock.readLock().lock();
       try {
         Map<String, DesiredConfig> map = new HashMap<String, DesiredConfig>();
+        Collection<String> types = new HashSet<String>();
 
         for (ClusterConfigMappingEntity e : clusterEntity.getConfigMappingEntities()) {
           if (e.isSelected() > 0) {
@@ -1035,20 +1028,22 @@ public class ClusterImpl implements Cluster {
             c.setVersion(e.getVersion());
             c.setUser(e.getUser());
 
-            List<HostConfigMappingEntity> hostMappings =
-                hostConfigMappingDAO.findSelectedHostsByType(clusterEntity.getClusterId(),
-                    e.getType());
+            map.put(e.getType(), c);
+            types.add(e.getType());
+          }
+        }
 
-            List<DesiredConfig.HostOverride> hosts = new ArrayList<DesiredConfig.HostOverride>();
-            for (HostConfigMappingEntity mappingEntity : hostMappings) {
-              hosts.add(new DesiredConfig.HostOverride(mappingEntity.getHostName(),
+        if (!map.isEmpty()) {
+          Map<String, List<HostConfigMappingEntity>> hostMappingsByType =
+              hostConfigMappingDAO.findSelectedHostsByTypes(clusterEntity.getClusterId(), types);
+
+          for (Entry<String, DesiredConfig> entry : map.entrySet()) {
+            List<DesiredConfig.HostOverride> hostOverrides = new ArrayList<DesiredConfig.HostOverride>();
+            for (HostConfigMappingEntity mappingEntity : hostMappingsByType.get(entry.getKey())) {
+              hostOverrides.add(new DesiredConfig.HostOverride(mappingEntity.getHostName(),
                   mappingEntity.getVersion()));
             }
-
-            c.setHostOverrides(hosts);
-
-            map.put(e.getType(), c);
-
+            entry.getValue().setHostOverrides(hostOverrides);
           }
         }
 
@@ -1082,6 +1077,48 @@ public class ClusterImpl implements Cluster {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
+  }
+
+
+  @Override
+  public Map<String, Map<String, DesiredConfig>> getHostsDesiredConfigs(Collection<String> hostnames) {
+
+    if (hostnames == null || hostnames.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    List<HostConfigMappingEntity> mappingEntities =
+        hostConfigMappingDAO.findSelectedByHosts(clusterEntity.getClusterId(), hostnames);
+
+    Map<String, Map<String, DesiredConfig>> desiredConfigsByHost = new HashMap<String, Map<String, DesiredConfig>>();
+
+    for (String hostname : hostnames) {
+      desiredConfigsByHost.put(hostname, new HashMap<String, DesiredConfig>());
+    }
+
+    for (HostConfigMappingEntity mappingEntity : mappingEntities) {
+      DesiredConfig desiredConfig = new DesiredConfig();
+      desiredConfig.setVersion(mappingEntity.getVersion());
+      desiredConfig.setServiceName(mappingEntity.getServiceName());
+      desiredConfig.setUser(mappingEntity.getUser());
+
+      desiredConfigsByHost.get(mappingEntity.getHostName()).put(mappingEntity.getType(), desiredConfig);
+    }
+
+    return desiredConfigsByHost;
+  }
+
+  @Override
+  public Map<String, Map<String, DesiredConfig>> getAllHostsDesiredConfigs() {
+
+    Collection<String> hostnames;
+    try {
+      hostnames = clusters.getHostsForCluster(clusterEntity.getClusterName()).keySet();
+    } catch (AmbariException ignored) {
+      return Collections.emptyMap();
+    }
+
+    return getHostsDesiredConfigs(hostnames);
   }
 
 }

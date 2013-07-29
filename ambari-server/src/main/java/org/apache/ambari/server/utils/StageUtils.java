@@ -193,6 +193,7 @@ public class StageUtils {
       Injector injector) throws AmbariException {
     Map<String, List<String>> info = new HashMap<String, List<String>>();
     if (cluster.getServices() != null) {
+      String hostName = getHostName();
       for (String serviceName : cluster.getServices().keySet()) {
         if (cluster.getServices().get(serviceName) != null) {
           for (String componentName : cluster.getServices().get(serviceName)
@@ -218,7 +219,7 @@ public class StageUtils {
             Configuration configuration = injector.getInstance(Configuration.class);
             String url = configuration.getRcaDatabaseUrl();
             if (url.contains(Configuration.HOSTNAME_MACRO)) {
-              url = url.replace(Configuration.HOSTNAME_MACRO, hostsMap.getHostMap(getHostName()));
+              url = url.replace(Configuration.HOSTNAME_MACRO, hostsMap.getHostMap(hostName));
             }
             info.put("ambari_db_rca_url", Arrays.asList(url));
             info.put("ambari_db_rca_driver", Arrays.asList(configuration.getRcaDatabaseDriver()));
