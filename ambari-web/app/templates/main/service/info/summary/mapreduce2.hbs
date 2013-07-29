@@ -16,25 +16,14 @@
 * limitations under the License.
 }}
 
-{{#each component in view.components}}
-  {{#if component.isMaster}}
+{{view view.sumMasterComponentView}}
 <tr>
-  <td class="summary-label">{{component.displayName}}</td>
+  <td class="summary-label">{{t services.service.summary.mapreduce2.clients}}</td>
   <td>
-      <a {{action selectHost component.host}} href="javascript:void(null)">{{component.host.publicHostName}}</a>
-  </td>
-  <tr>
-    <td class="summary-label">{{t services.service.summary.historyServer}}</td>
-    <td>
-        <a {{bindAttr href="view.historyServerUI"}} target="_blank">{{component.host.publicHostName}}:19888</a>
-    </td>
-  </tr>
-</tr>
-  {{/if}}
-{{/each}}
-<tr>
-  <td class="summary-label">{{t common.clients}}</td>
-  <td>
-      <a {{action filterHosts view.clientObj}} href="javascript:void(null)">{{view.clients.length}} MapReduce2 client{{#if view.hasManyClients}}s{{/if}}</a>
+    <span class="green-live">{{view.clients.length}} </span>{{t services.service.summary.mapreduce2.client}}
+    {{#if view.hasManyClients}}s{{/if}} {{t common.installed}}
+    <div class="summary-view-host">
+      <a {{action filterHosts view.clientObj}} href="javascript:void(null)" >{{view.clientsHostText}}</a>
+    </div>
   </td>
 </tr>

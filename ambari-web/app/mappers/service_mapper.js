@@ -415,7 +415,7 @@ App.servicesMapper = App.QuickDataMapper.create({
     });
     // Map
     var finalJson = this.parseIt(item, finalConfig);
-    finalJson.quick_links = [ 19, 20, 21, 22 ];
+    finalJson.quick_links = [ 23, 24, 25, 26 ];
 
     return finalJson;
   },
@@ -442,7 +442,7 @@ App.servicesMapper = App.QuickDataMapper.create({
     });
     // Map
     var finalJson = this.parseIt(item, finalConfig);
-    finalJson.quick_links = [23, 24, 25, 26];
+    finalJson.quick_links = [27, 28, 29, 30];
 
     return finalJson;
   },

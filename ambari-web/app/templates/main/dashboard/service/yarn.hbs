@@ -42,29 +42,33 @@
       <tbody>
     {{/unless}}
 
-      <!-- Resource Manager -->
-      <tr>
-        <td>{{t dashboard.services.yarn.resourceManager}}</td>
-        <td><a href="#" {{action showDetails view.service.resourceManagerNode}}>{{view.service.resourceManagerNode.publicHostName}}</a></td>
-      </tr>
+    {{view view.dashboardMasterComponentView}}
+
       <!-- Node Managers -->
       <tr>
         <td>{{t dashboard.services.yarn.nodeManagers}}</td>
         <td>
-          <a href="#" {{action filterHosts view.nodeManagerComponent}}>{{view.service.nodeManagerNodes.length}} {{t dashboard.services.yarn.nodeManagers}}</a>
+          <span class="green-live">{{view.nodeManagersLive}}/{{view.service.nodeManagerNodes.length}}</span> {{t services.service.summary.nodeManagersLive}}
+          <div class="summary-view-host">
+            <a href="#" {{action filterHosts view.nodeManagerComponent}}>{{view.nodeManagerText}}</a>
+          </div>
         </td>
       </tr>
       <!-- YARN Clients -->
       <tr>
-        <td>{{t dashboard.services.yarn.yarnClients}}</td>
+        <td class="summary-label">{{t dashboard.services.yarn.clients}}</td>
         <td>
-          <a href="#" {{action filterHosts view.yarnClientComponent}}>{{view.service.yarnClientNodes.length}} {{t dashboard.services.yarn.yarnClients}}</a>
-        </td>
-      </tr>
-      <!-- Resource Manager Web UI -->
-      <tr>
-        <td>{{t dashboard.services.yarn.resourceManagerWebUI}}</td>
-        <td><a {{bindAttr href="view.nodeWebUrl"}} target="_blank">{{view.service.resourceManagerNode.publicHostName}}:8088</a>
+          <span class="green-live">{{view.service.yarnClientNodes.length}} </span>
+          {{t dashboard.services.yarn.client}}{{#if view.hasManyYarnClients}}s{{/if}} {{t common.installed}}
+          <div class="summary-view-host">
+             <a {{action filterHosts view.yarnClientComponent}} href="javascript:void(null)">
+              {{#if view.hasManyYarnClients}}
+                {{t services.service.summary.viewHosts}}
+              {{else}}
+                {{t services.service.summary.viewHost}}
+              {{/if}}
+             </a>
+          </div>
         </td>
       </tr>
       <!-- Resource Manager Uptime -->
@@ -76,11 +80,6 @@
       <tr>
         <td>{{t dashboard.services.resourceManager.nodes.heap}}</td>
         <td>{{view.nodeHeap}}</td>
-      </tr>
-      <!-- NodeManagers live -->
-      <tr>
-        <td>{{t dashboard.services.yarn.nodeManagers.live}}</td>
-        <td>{{view.nodeManagersLive}}</td>
       </tr>
       <!-- NodeManagers status -->
       <tr>
