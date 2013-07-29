@@ -87,6 +87,11 @@
     <description>HBase Region Block Multiplier</description>
   </property>
     <property>
+    <name>hregion_memstoreflushsize</name>
+    <value></value>
+    <description>HBase Region MemStore Flush Size.</description>
+  </property>
+    <property>
     <name>client_scannercaching</name>
     <value>100</value>
     <description>Base Client Scanner Caching</description>
@@ -101,6 +106,11 @@
     <value>10485760</value>
     <description>HBase Client Maximum key-value Size</description>
   </property>
+  <property>
+    <name>hbase_hdfs_root_dir</name>
+    <value>/apps/hbase/data</value>
+    <description>HBase Relative Path to HDFS.</description>
+  </property>
     <property>
     <name>hbase_tmp_dir</name>
     <value>/var/log/hbase</value>
@@ -111,5 +121,45 @@
     <value>/etc/hbase</value>
     <description>Config Directory for HBase.</description>
   </property>
-  
+   <property>
+    <name>hdfs_enable_shortcircuit_read</name>
+    <value>true</value>
+    <description>HDFS Short Circuit Read</description>
+  </property>
+   <property>
+    <name>hdfs_support_append</name>
+    <value>true</value>
+    <description>HDFS append support</description>
+  </property>
+   <property>
+    <name>hstore_blockingstorefiles</name>
+    <value>7</value>
+    <description>HStore blocking storefiles.</description>
+  </property>
+   <property>
+    <name>regionserver_memstore_lab</name>
+    <value>true</value>
+    <description>Region Server memstore.</description>
+  </property>
+   <property>
+    <name>regionserver_memstore_lowerlimit</name>
+    <value>0.35</value>
+    <description>Region Server memstore lower limit.</description>
+  </property>
+   <property>
+    <name>regionserver_memstore_upperlimit</name>
+    <value>0.4</value>
+    <description>Region Server memstore upper limit.</description>
+  </property>
+   <property>
+    <name>hbase_conf_dir</name>
+    <value>/etc/hbase</value>
+    <description>HBase conf dir.</description>
+  </property>
+   <property>
+    <name>hbase_user</name>
+    <value>hbase</value>
+    <description>HBase User Name.</description>
+  </property>
+
 </configuration>

@@ -45,11 +45,13 @@
                  for compression/decompression.</description>
   </property>
 
+
   <property>
     <name>io.compression.codec.lzo.class</name>
     <value>com.hadoop.compression.lzo.LzoCodec</value>
     <description>The implementation for lzo codec.</description>
   </property>
+
 
 <!-- file system properties -->
 

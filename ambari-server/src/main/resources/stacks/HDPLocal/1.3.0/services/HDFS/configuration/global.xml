@@ -112,6 +112,47 @@
     <description>FS Checkpoint Size.</description>
   </property>
   <property>
+    <name>proxyuser_group</name>
+    <value>users</value>
+    <description>Proxy user group.</description>
+  </property>
+  <property>
+    <name>dfs_exclude</name>
+    <value></value>
+    <description>HDFS Exclude hosts.</description>
+  </property>
+  <property>
+    <name>dfs_include</name>
+    <value></value>
+    <description>HDFS Include hosts.</description>
+  </property>
+  <property>
+    <name>dfs_replication</name>
+    <value>3</value>
+    <description>Default Block Replication.</description>
+  </property>
+  <property>
+    <name>dfs_block_local_path_access_user</name>
+    <value>hbase</value>
+    <description>Default Block Replication.</description>
+  </property>
+  <property>
+    <name>dfs_datanode_address</name>
+    <value>50010</value>
+    <description>Port for datanode address.</description>
+  </property>
+  <property>
+    <name>dfs_datanode_http_address</name>
+    <value>50075</value>
+    <description>Port for datanode address.</description>
+  </property>
+  <property>
+    <name>dfs_datanode_data_dir_perm</name>
+    <value>750</value>
+    <description>Datanode dir perms.</description>
+  </property>
+
+  <property>
     <name>security_enabled</name>
     <value>false</value>
     <description>Hadoop Security</description>
@@ -122,14 +163,25 @@
     <description>Kerberos realm.</description>
   </property>
   <property>
-    <name>kerberos_domain</name>
-    <value>EXAMPLE.COM</value>
-    <description>Kerberos realm.</description>
+    <name>kadmin_pw</name>
+    <value></value>
+    <description>Kerberos realm admin password</description>
   </property>
   <property>
     <name>keytab_path</name>
     <value>/etc/security/keytabs</value>
-    <description>KeyTab Directory.</description>
+    <description>Kerberos keytab path.</description>
+  </property>
+
+    <property>
+    <name>namenode_formatted_mark_dir</name>
+    <value>/var/run/hadoop/hdfs/namenode/formatted/</value>
+    <description>Formatteed Mark Directory.</description>
+  </property>
+    <property>
+    <name>hdfs_user</name>
+    <value>hdfs</value>
+    <description>User and Groups.</description>
   </property>
   
 </configuration>
