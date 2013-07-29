@@ -62,5 +62,6 @@ require('test/utils/config_test');
 require('test/utils/string_utils_test');
 require('test/views/common/chart/linear_time_test');
 require('test/views/common/filter_view_test');
+require('test/views/common/configs/services_config_test');
 require('test/models/host_test');
 require('test/models/rack_test');
