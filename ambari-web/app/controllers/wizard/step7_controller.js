@@ -40,9 +40,11 @@ App.WizardStep7Controller = Em.Controller.extend({
 
   secureConfigs: require('data/secure_mapping'),
 
+  miscModalVisible: false, //If miscConfigChange Modal is shown
+
   isSubmitDisabled: function () {
-    return !this.stepConfigs.filterProperty('showConfig', true).everyProperty('errorCount', 0);
-  }.property('stepConfigs.@each.errorCount'),
+    return (!this.stepConfigs.filterProperty('showConfig', true).everyProperty('errorCount', 0) || this.get("miscModalVisible"));
+  }.property('stepConfigs.@each.errorCount', 'miscModalVisible'),
 
   selectedServiceNames: function () {
     return this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false).mapProperty('serviceName');
