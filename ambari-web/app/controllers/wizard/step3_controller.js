@@ -1043,7 +1043,7 @@ App.WizardStep3Controller = Em.Controller.extend({
           newContent += warningsByHost.filterProperty('warnings.length').mapProperty('name').join(' ');
           if (content.findProperty('category', 'fileFolders').warnings.length) {
             newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.fileFolders');
-            newContent += content.findProperty('category', 'fileFolders').warnings.mapProperty('name').join(' ') +  Em.I18n.t('installer.step3.hostWarningsPopup.report.folder');
+            newContent += content.findProperty('category', 'fileFolders').warnings.mapProperty('name').join(' ');
           }
           if (content.findProperty('category', 'process').warnings.length) {
             newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.process');
