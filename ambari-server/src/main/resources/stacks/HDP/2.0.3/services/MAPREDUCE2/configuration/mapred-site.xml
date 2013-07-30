@@ -297,4 +297,12 @@
   <description>No description</description>
 </property>
 
+<property>
+  <name>yarn.app.mapreduce.am.staging-dir</name>
+  <value>/user</value>
+  <description>
+    The staging dir used while submitting jobs.
+  </description>
+</property>
+
 </configuration>
