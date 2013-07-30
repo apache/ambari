@@ -512,6 +512,17 @@ var urls = {
       };
     }
   },
+  'cluster.state': {
+    'type': 'POST',
+    'real': '/persist/',
+    'format': function (data, opt) {
+      return {
+        async: false,
+        data: JSON.stringify(data.key),
+        newValue: data.newVal
+      };
+    }
+  },
   'cluster.update_upgrade_version': {
     'real': '/stacks2/HDP/versions?fields=stackServices/StackServices,Versions',
     'mock': '/data/wizard/stack/stacks.json',

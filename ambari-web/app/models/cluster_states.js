@@ -104,7 +104,6 @@ App.clusterStatus = Ember.Object.create({
         this.set('localdb', newValue.localdb);
       }
 
-      var url = App.apiPrefix + '/persist/';
       var keyValuePair = {};
       var val = {
         clusterName: this.get('clusterName'),
@@ -114,39 +113,40 @@ App.clusterStatus = Ember.Object.create({
       };
       keyValuePair[this.get('key')] = JSON.stringify(val);
 
-
-      jQuery.ajax({
-        async: false,
-        context: this,
-        type: "POST",
-        url: url,
-        data: JSON.stringify(keyValuePair),
-        beforeSend: function () {
-          console.log('BeforeSend: persistKeyValues', keyValuePair);
+      App.ajax.send({
+        name: 'cluster.state',
+        sender: this,
+        data: {
+            key: keyValuePair,
+            newVal: newValue
         },
-        error: function () {
-          console.log("ERROR");
-          if(newValue.errorCallBack) {
-            newValue.errorCallBack();
-          } else {
-            this.clusterStatusErrorCallBack();
-          }
-        },
-        statusCode: require('data/statusCodes')
+        beforeSend: 'clusterStatusBeforeSend',
+        error: 'clusterStatusErrorCallBack'
       });
       return newValue;
     }
   },
-
-  clusterStatusErrorCallBack: function() {
+  clusterStatusBeforeSend: function (keyValuePair) {
+    console.log('BeforeSend: persistKeyValues', keyValuePair);
+  },
+  clusterStatusErrorCallBack: function(request, ajaxOptions, error, opt) {
+    console.log("ERROR");
+    if(opt.newValue.errorCallBack) {
+      opt.newValue.errorCallBack();
+    } else {
+      var doc = $.parseXML(request.responseText);
+      var msg = 'Error ' + (request.status) + ' ';
+      msg += $(doc).find("body p").text();
+    }
     App.ModalPopup.show({
       header: Em.I18n.t('common.error'),
       secondary: false,
+      response: msg,
       onPrimary: function () {
         this.hide();
       },
       bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile('<p>{{t common.persist.error}}</p>')
+        template: Ember.Handlebars.compile('<p>{{t common.persist.error}} {{response}}</p>')
       })
     });
   },
