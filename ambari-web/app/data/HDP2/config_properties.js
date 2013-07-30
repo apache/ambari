@@ -1741,7 +1741,7 @@ module.exports =
       "displayName": "Nagios Admin password",
       "description": "Nagios Web UI Admin password",
       "defaultValue": "",
-      "isReconfigurable": false,
+      "isReconfigurable": true,
       "displayType": "password",
       "isOverridable": false,
       "isVisible": true,
