@@ -3561,123 +3561,123 @@
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/running_60":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.running_60",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/running_60":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).running_60",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/running_300":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.running_300",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/running_300":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).running_300",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/running_1440":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.running_1440",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/running_1440":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).running_1440",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AppsSubmitted":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AppsSubmitted",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AppsSubmitted":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AppsSubmitted",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AppsRunning":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AppsRunning",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AppsRunning":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AppsRunning",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AppsPending":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AppsPending",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AppsPending":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AppsPending",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AppsCompleted":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AppsCompleted",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AppsCompleted":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AppsCompleted",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AppsKilled":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AppsKilled",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AppsKilled":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AppsKilled",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AppsFailed":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AppsFailed",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AppsFailed":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AppsFailed",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AllocatedMB":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AllocatedMB",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AllocatedMB":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AllocatedMB",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AllocatedVCores":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AllocatedVCores",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AllocatedVCores":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AllocatedVCores",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AllocatedContainers":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AllocatedContainers",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AllocatedContainers":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AllocatedContainers",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AggregateContainersAllocated":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AggregateContainersAllocated",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AggregateContainersAllocated":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AggregateContainersAllocated",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AggregateContainersReleased":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AggregateContainersReleased",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AggregateContainersReleased":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AggregateContainersReleased",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AvailableMB":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AvailableMB",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AvailableMB":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AvailableMB",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AvailableVCores":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AvailableVCores",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AvailableVCores":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AvailableVCores",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/PendingMB":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.PendingMB",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/PendingMB":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).PendingMB",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/PendingVCores":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.PendingVCores",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/PendingVCores":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).PendingVCores",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/PendingContainers":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.PendingContainers",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/PendingContainers":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).PendingContainers",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/ReservedMB":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.ReservedMB",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/ReservedMB":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).ReservedMB",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/ReservedVCores":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.ReservedVCores",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/ReservedVCores":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).ReservedVCores",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/ReservedContainers":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.ReservedContainers",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/ReservedContainers":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).ReservedContainers",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/ActiveUsers":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.ActiveUsers",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/ActiveUsers":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).ActiveUsers",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/ActiveApplications":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.ActiveApplications",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/ActiveApplications":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).ActiveApplications",
         "pointInTime" : true,
         "temporal" : false
       }
@@ -7914,123 +7914,123 @@
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/running_60":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.running_60",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/running_60":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).running_60",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/running_300":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.running_300",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/running_300":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).running_300",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/running_1440":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.running_1440",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/running_1440":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).running_1440",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AppsSubmitted":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AppsSubmitted",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AppsSubmitted":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AppsSubmitted",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AppsRunning":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AppsRunning",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AppsRunning":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AppsRunning",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AppsPending":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AppsPending",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AppsPending":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AppsPending",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AppsCompleted":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AppsCompleted",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AppsCompleted":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AppsCompleted",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AppsKilled":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AppsKilled",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AppsKilled":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AppsKilled",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AppsFailed":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AppsFailed",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AppsFailed":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AppsFailed",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AllocatedMB":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AllocatedMB",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AllocatedMB":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AllocatedMB",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AllocatedVCores":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AllocatedVCores",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AllocatedVCores":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AllocatedVCores",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AllocatedContainers":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AllocatedContainers",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AllocatedContainers":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AllocatedContainers",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AggregateContainersAllocated":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AggregateContainersAllocated",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AggregateContainersAllocated":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AggregateContainersAllocated",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AggregateContainersReleased":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AggregateContainersReleased",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AggregateContainersReleased":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AggregateContainersReleased",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AvailableMB":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AvailableMB",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AvailableMB":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AvailableMB",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/AvailableVCores":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.AvailableVCores",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AvailableVCores":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AvailableVCores",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/PendingMB":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.PendingMB",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/PendingMB":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).PendingMB",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/PendingVCores":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.PendingVCores",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/PendingVCores":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).PendingVCores",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/PendingContainers":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.PendingContainers",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/PendingContainers":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).PendingContainers",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/ReservedMB":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.ReservedMB",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/ReservedMB":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).ReservedMB",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/ReservedVCores":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.ReservedVCores",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/ReservedVCores":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).ReservedVCores",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/ReservedContainers":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.ReservedContainers",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/ReservedContainers":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).ReservedContainers",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/ActiveUsers":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.ActiveUsers",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/ActiveUsers":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).ActiveUsers",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/yarn/Queue/ActiveApplications":{
-        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics,q0=root.ActiveApplications",
+      "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/ActiveApplications":{
+        "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).ActiveApplications",
         "pointInTime" : true,
         "temporal" : false
       }

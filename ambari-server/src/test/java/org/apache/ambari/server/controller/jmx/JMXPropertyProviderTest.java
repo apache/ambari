@@ -22,12 +22,15 @@ import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 
@@ -229,6 +232,78 @@ public class JMXPropertyProviderTest {
   }
 
   @Test
+  public void testPopulateResources_singleProperty() throws Exception {
+    TestStreamProvider  streamProvider = new TestStreamProvider();
+    TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
+
+    JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
+        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP1),
+        streamProvider,
+        hostProvider,
+        PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+        PropertyHelper.getPropertyId("HostRoles", "host_name"),
+        PropertyHelper.getPropertyId("HostRoles", "component_name"),
+        PropertyHelper.getPropertyId("HostRoles", "state"),
+        Collections.singleton("STARTED"));
+
+    // namenode
+    Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+
+    resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
+    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "NAMENODE");
+    resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+
+    // only ask for one property
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    Request  request = PropertyHelper.getReadRequest(Collections.singleton("metrics/rpc/ReceivedBytes"), temporalInfoMap);
+
+    Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
+
+    Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-0e-34-e1.compute-1.internal", "50070"), streamProvider.getLastSpec());
+
+    // see test/resources/hdfs_namenode_jmx.json for values
+    Assert.assertEquals(13670605,  resource.getPropertyValue("metrics/rpc/ReceivedBytes"));
+    Assert.assertNull(resource.getPropertyValue("metrics/dfs/namenode/CreateFileOps"));
+  }
+
+  @Test
+  public void testPopulateResources_category() throws Exception {
+    TestStreamProvider  streamProvider = new TestStreamProvider();
+    TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
+
+    JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
+        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP1),
+        streamProvider,
+        hostProvider,
+        PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+        PropertyHelper.getPropertyId("HostRoles", "host_name"),
+        PropertyHelper.getPropertyId("HostRoles", "component_name"),
+        PropertyHelper.getPropertyId("HostRoles", "state"),
+        Collections.singleton("STARTED"));
+
+    // namenode
+    Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+
+    resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
+    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "NAMENODE");
+    resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+
+    // request with an empty set should get all supported properties
+    // only ask for one property
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    Request  request = PropertyHelper.getReadRequest(Collections.singleton("metrics/dfs"), temporalInfoMap);
+
+    Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
+
+    Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-0e-34-e1.compute-1.internal", "50070"), streamProvider.getLastSpec());
+
+    // see test/resources/hdfs_namenode_jmx.json for values
+    Assert.assertEquals(184320,  resource.getPropertyValue("metrics/dfs/FSNamesystem/CapacityUsed"));
+    Assert.assertEquals(21,  resource.getPropertyValue("metrics/dfs/FSNamesystem/UnderReplicatedBlocks"));
+    Assert.assertNull(resource.getPropertyValue("metrics/rpc/ReceivedBytes"));
+  }
+
+  @Test
   public void testPopulateResourcesWithUnknownPort() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
     TestJMXHostProvider hostProvider = new TestJMXHostProvider(true);
@@ -295,14 +370,200 @@ public class JMXPropertyProviderTest {
     Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-0e-34-e1.compute-1.internal", "8088"), streamProvider.getLastSpec());
 
     // see test/resources/resourcemanager_jmx.json for values
-    Assert.assertEquals(6,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue", "AggregateContainersAllocated")));
-    Assert.assertEquals(6,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue", "AggregateContainersReleased")));
-    Assert.assertEquals(8192,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue", "AvailableMB")));
-    Assert.assertEquals(1,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue", "AvailableVCores")));
-    Assert.assertEquals(2,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue", "AppsSubmitted")));
+    Assert.assertEquals(6,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AggregateContainersAllocated")));
+    Assert.assertEquals(6,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AggregateContainersReleased")));
+    Assert.assertEquals(8192,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AvailableMB")));
+    Assert.assertEquals(1,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AvailableVCores")));
+    Assert.assertEquals(2,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AppsSubmitted")));
+  }
+  
+  @Test
+  public void testPopulateResources_HDP2_params() throws Exception {
+    TestStreamProvider  streamProvider = new TestStreamProvider();
+    TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
+
+    JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
+        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP2),
+        streamProvider,
+        hostProvider,
+        PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+        PropertyHelper.getPropertyId("HostRoles", "host_name"),
+        PropertyHelper.getPropertyId("HostRoles", "component_name"),
+        PropertyHelper.getPropertyId("HostRoles", "state"),
+        Collections.singleton("STARTED"));
+
+    Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+
+    resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "h1");
+    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
+    resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+
+    // request with an empty set should get all supported properties
+    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+
+    Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
+
+    Assert.assertEquals(propertyProvider.getSpec("h1", "8088"), streamProvider.getLastSpec());
+
+    // see test/resources/resourcemanager_jmx.json for values
+    Assert.assertEquals(6,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AggregateContainersAllocated")));
+    Assert.assertEquals(6,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AggregateContainersReleased")));
+    Assert.assertEquals(8192, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AvailableMB")));
+    Assert.assertEquals(1,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AvailableVCores")));
+    Assert.assertEquals(2,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AppsSubmitted")));
+    
+    Assert.assertEquals(15,   resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AggregateContainersAllocated")));
+    Assert.assertEquals(12,   resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AggregateContainersReleased")));
+    Assert.assertEquals(8192, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AvailableMB")));
+    Assert.assertEquals(1,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AvailableVCores")));
+    Assert.assertEquals(47,   resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AppsSubmitted")));
+    
+    Assert.assertEquals(4,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AggregateContainersAllocated")));
+    Assert.assertEquals(4,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AggregateContainersReleased")));
+    Assert.assertEquals(6048, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AvailableMB")));
+    Assert.assertEquals(1,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AvailableVCores")));
+    Assert.assertEquals(1,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AppsSubmitted")));
   }
 
-    @Test
+  @Test
+  public void testPopulateResources_HDP2_params_singleProperty() throws Exception {
+    TestStreamProvider  streamProvider = new TestStreamProvider();
+    TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
+
+    JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
+        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP2),
+        streamProvider,
+        hostProvider,
+        PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+        PropertyHelper.getPropertyId("HostRoles", "host_name"),
+        PropertyHelper.getPropertyId("HostRoles", "component_name"),
+        PropertyHelper.getPropertyId("HostRoles", "state"),
+        Collections.singleton("STARTED"));
+
+    Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+
+    resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "h1");
+    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
+    resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+
+    // only ask for one property
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    Request  request = PropertyHelper.getReadRequest(Collections.singleton("metrics/yarn/Queue/root/AvailableMB"), temporalInfoMap);
+
+    Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
+
+    Assert.assertEquals(propertyProvider.getSpec("h1", "8088"), streamProvider.getLastSpec());
+
+    // see test/resources/resourcemanager_jmx.json for values
+    Assert.assertEquals(8192, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AvailableMB")));
+    Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AvailableVCores")));
+  }
+
+  @Test
+  public void testPopulateResources_HDP2_params_category() throws Exception {
+    TestStreamProvider  streamProvider = new TestStreamProvider();
+    TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
+
+    JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
+        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP2),
+        streamProvider,
+        hostProvider,
+        PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+        PropertyHelper.getPropertyId("HostRoles", "host_name"),
+        PropertyHelper.getPropertyId("HostRoles", "component_name"),
+        PropertyHelper.getPropertyId("HostRoles", "state"),
+        Collections.singleton("STARTED"));
+
+    Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+
+    resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "h1");
+    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
+    resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+
+    // only ask for one property
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    Request  request = PropertyHelper.getReadRequest(Collections.singleton("metrics/yarn/Queue"), temporalInfoMap);
+
+    Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
+
+    Assert.assertEquals(propertyProvider.getSpec("h1", "8088"), streamProvider.getLastSpec());
+
+    // see test/resources/resourcemanager_jmx.json for values
+    Assert.assertEquals(6,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AggregateContainersAllocated")));
+    Assert.assertEquals(6,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AggregateContainersReleased")));
+    Assert.assertEquals(8192, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AvailableMB")));
+    Assert.assertEquals(1,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AvailableVCores")));
+    Assert.assertEquals(2,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AppsSubmitted")));
+
+    Assert.assertEquals(15,   resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AggregateContainersAllocated")));
+    Assert.assertEquals(12,   resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AggregateContainersReleased")));
+    Assert.assertEquals(8192, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AvailableMB")));
+    Assert.assertEquals(1,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AvailableVCores")));
+    Assert.assertEquals(47,   resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AppsSubmitted")));
+
+    Assert.assertEquals(4,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AggregateContainersAllocated")));
+    Assert.assertEquals(4,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AggregateContainersReleased")));
+    Assert.assertEquals(6048, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AvailableMB")));
+    Assert.assertEquals(1,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AvailableVCores")));
+    Assert.assertEquals(1,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AppsSubmitted")));
+  }
+
+  @Test
+  public void testPopulateResources_HDP2_params_category2() throws Exception {
+    TestStreamProvider  streamProvider = new TestStreamProvider();
+    TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
+
+    JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
+        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP2),
+        streamProvider,
+        hostProvider,
+        PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+        PropertyHelper.getPropertyId("HostRoles", "host_name"),
+        PropertyHelper.getPropertyId("HostRoles", "component_name"),
+        PropertyHelper.getPropertyId("HostRoles", "state"),
+        Collections.singleton("STARTED"));
+
+    Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+
+    resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "h1");
+    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
+    resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+
+    // only ask for one property
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    Request  request = PropertyHelper.getReadRequest(Collections.singleton("metrics/yarn/Queue/root/default"), temporalInfoMap);
+
+    Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
+
+    Assert.assertEquals(propertyProvider.getSpec("h1", "8088"), streamProvider.getLastSpec());
+
+    // see test/resources/resourcemanager_jmx.json for values
+    Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AggregateContainersAllocated")));
+    Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AggregateContainersReleased")));
+    Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AvailableMB")));
+    Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AvailableVCores")));
+    Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AppsSubmitted")));
+
+    Assert.assertEquals(15,   resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AggregateContainersAllocated")));
+    Assert.assertEquals(12,   resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AggregateContainersReleased")));
+    Assert.assertEquals(8192, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AvailableMB")));
+    Assert.assertEquals(1,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AvailableVCores")));
+    Assert.assertEquals(47,   resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default", "AppsSubmitted")));
+
+    Assert.assertEquals(99,   resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default/sub_queue", "AggregateContainersAllocated")));
+    Assert.assertEquals(98,   resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default/sub_queue", "AggregateContainersReleased")));
+    Assert.assertEquals(9898, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default/sub_queue", "AvailableMB")));
+    Assert.assertEquals(2,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default/sub_queue", "AvailableVCores")));
+    Assert.assertEquals(97,   resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/default/sub_queue", "AppsSubmitted")));
+
+    Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AggregateContainersAllocated")));
+    Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AggregateContainersReleased")));
+    Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AvailableMB")));
+    Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AvailableVCores")));
+    Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AppsSubmitted")));
+  }
+
+  @Test
   public void testPopulateResourcesUnhealthyResource() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
     TestJMXHostProvider hostProvider = new TestJMXHostProvider(true);

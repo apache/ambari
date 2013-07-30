@@ -18,16 +18,6 @@
 
 package org.apache.ambari.server.controller.jmx;
 
-import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
-import org.apache.ambari.server.controller.internal.PropertyInfo;
-import org.apache.ambari.server.controller.spi.*;
-import org.apache.ambari.server.controller.utilities.StreamProvider;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -45,6 +35,21 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
+import org.apache.ambari.server.controller.internal.PropertyInfo;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.utilities.StreamProvider;
+import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Property provider implementation for JMX sources.
@@ -311,6 +316,8 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
         for (String propertyId : ids) {
           Map<String, PropertyInfo> propertyInfoMap = getPropertyInfoMap(componentName, propertyId);
 
+          String requestedPropertyId = propertyId;
+
           for (Map.Entry<String, PropertyInfo> entry : propertyInfoMap.entrySet()) {
 
             PropertyInfo propertyInfo = entry.getValue();
@@ -341,22 +348,25 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
                 property = property.substring(dotIndex + 1, firstKeyIndex);
               }
 
-              Map<String, Object> properties = categories.get(category);
-              if (properties != null && properties.containsKey(property)) {
-                Object value = properties.get(property);
-                if (keyList.size() > 0 && value instanceof Map) {
-                  Map map = (Map) value;
-                  for (String key : keyList) {
-                    value = map.get(key);
-                    if (value instanceof Map) {
-                      map = (Map) value;
+              if (containsArguments(propertyId)) {
+                Pattern pattern = Pattern.compile(category);
+                
+                // find all jmx categories that match the regex
+                for (String jmxCat : categories.keySet()) {
+                  Matcher matcher = pattern.matcher(jmxCat);
+                  if (matcher.matches()) {
+                    String newPropertyId = propertyId;
+                    for (int i = 0; i < matcher.groupCount(); i++) {
+                      newPropertyId = substituteArgument(newPropertyId, "$" + (i + 1), matcher.group(i + 1));
                     }
-                    else {
-                      break;
+                    // We need to do the final filtering here, after the argument substitution
+                    if (isRequestedPropertyId(newPropertyId, requestedPropertyId, request)) {
+                      setResourceValue(resource, categories, newPropertyId, jmxCat, property, keyList);
                     }
                   }
                 }
-                resource.setProperty(propertyId, value);
+              } else {
+                setResourceValue(resource, categories, propertyId, category, property, keyList);
               }
             }
           }
@@ -368,6 +378,28 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
       logException(e);
     }
     return resource;
+  }
+
+  private void setResourceValue(Resource resource, Map<String, Map<String, Object>> categories, String propertyId,
+                                String category, String property, List<String> keyList) {
+    Map<String, Object> properties = categories.get(category);
+    
+    if (properties != null && properties.containsKey(property)) {
+      Object value = properties.get(property);
+      if (keyList.size() > 0 && value instanceof Map) {
+        Map<?, ?> map = (Map<?, ?>) value;
+        for (String key : keyList) {
+          value = map.get(key);
+          if (value instanceof Map) {
+            map = (Map<?, ?>) value;
+          }
+          else {
+            break;
+          }
+        }
+      }
+      resource.setProperty(propertyId, value);
+    }
   }
 
   private String getPort(String clusterName, String componentName) throws SystemException {
@@ -392,6 +424,13 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
       return name;
     }
     return null;
+  }
+
+  /**
+   * Determine whether or not the given property id was requested.
+   */
+  private static boolean isRequestedPropertyId(String propertyId, String requestedPropertyId, Request request) {
+    return request.getPropertyIds().isEmpty() || propertyId.startsWith(requestedPropertyId);
   }
 
   /**

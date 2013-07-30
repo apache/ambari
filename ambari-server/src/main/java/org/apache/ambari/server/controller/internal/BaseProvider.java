@@ -54,8 +54,15 @@ public abstract class BaseProvider {
    */
   private final Set<String> combinedIds;
 
-
+  /**
+   * Pre-compiled patterns for metric names that contain regular expressions.
+   */
   private final Map<String, Pattern> patterns;
+
+  /**
+   * Regular expression to check for replacement arguments (e.g. $1) in a property id.
+   */
+  private static final Pattern CHECK_FOR_METRIC_ARGUMENTS_REGEX = Pattern.compile(".*\\$\\d+.*");
 
   /**
    * The logger.
@@ -78,8 +85,8 @@ public abstract class BaseProvider {
     this.combinedIds.addAll(this.categoryIds);
     this.patterns = new HashMap<String, Pattern>();
     for (String id : this.combinedIds) {
-      if (id.matches(".*\\$\\d+.*")) {
-        String pattern = id.replaceAll("\\$\\d+", "\\\\S+");
+      if (containsArguments(id)) {
+        String pattern = id.replaceAll("\\$\\d+(\\.\\S+\\(\\S+\\))*", "\\\\S+");
         patterns.put(id, Pattern.compile(pattern));
       }
     }
@@ -194,24 +201,36 @@ public abstract class BaseProvider {
   }
 
   protected String getRegExpKey(String id) {
+    String regExpKey = null;
     for (Map.Entry<String, Pattern> entry : patterns.entrySet()) {
       Pattern pattern = entry.getValue();
-
       Matcher matcher = pattern.matcher(id);
 
       if (matcher.matches()) {
-        return entry.getKey();
+        String key = entry.getKey();
+        if (regExpKey == null || key.startsWith(regExpKey)) {
+          regExpKey = entry.getKey();
+        }
       }
     }
-    return null;
+    return regExpKey;
   }
 
   protected boolean isPatternKey(String id) {
     return patterns.containsKey(id);
   }
 
-
   /**
+   * Check to see if the given property id contains replacement arguments (e.g. $1)
+   *
+   * @param propertyId  the property id to check
+   *
+   * @return true if the given property id contains any replacement arguments
+   */
+  protected boolean containsArguments(String propertyId) {
+    Matcher matcher = CHECK_FOR_METRIC_ARGUMENTS_REGEX.matcher(propertyId);
+    return matcher.find();
+  }
 
   /**
    * Set a property value on the given resource for the given id and value.

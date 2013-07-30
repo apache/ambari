@@ -59,6 +59,36 @@ public class AbstractPropertyProviderTest {
     Assert.assertTrue(propertyInfoMap.containsKey("metrics/disk/part_max_used"));
   }
 
+  @Test
+  public void testSubstituteArguments() throws Exception
+  {
+    //simple substitute
+    String newPropertyId = AbstractPropertyProvider.substituteArgument("category/name1/$1/name2/$2", "$1", "foo");
+    Assert.assertEquals("category/name1/foo/name2/$2", newPropertyId);
+
+    newPropertyId = AbstractPropertyProvider.substituteArgument("category/name1/$1/name2/$2", "$2", "bar");
+    Assert.assertEquals("category/name1/$1/name2/bar", newPropertyId);
+
+    //substitute with method
+    newPropertyId = AbstractPropertyProvider.substituteArgument(
+        "category/name1/$1.toLowerCase()/name2/$2.toUpperCase()", "$1", "FOO");
+    Assert.assertEquals("category/name1/foo/name2/$2.toUpperCase()", newPropertyId);
+
+    newPropertyId = AbstractPropertyProvider.substituteArgument(
+        "category/name1/$1.toLowerCase()/name2/$2.toUpperCase()", "$2", "bar");
+    Assert.assertEquals("category/name1/$1.toLowerCase()/name2/BAR", newPropertyId);
+
+    //substitute with chained methods
+    newPropertyId = AbstractPropertyProvider.substituteArgument(
+        "category/name1/$1.toLowerCase().substring(1)/name2", "$1", "FOO");
+    Assert.assertEquals("category/name1/oo/name2", newPropertyId);
+
+    newPropertyId = AbstractPropertyProvider.substituteArgument(
+        "category/name1/$1.toLowerCase().substring(1).concat(\"_post\")/name2/$2.concat(\"_post\")", "$1", "FOO");
+    newPropertyId = AbstractPropertyProvider.substituteArgument(newPropertyId, "$2", "bar");
+    Assert.assertEquals("category/name1/oo_post/name2/bar_post", newPropertyId);
+  }
+
   static class TestPropertyProvider extends AbstractPropertyProvider {
 
     public TestPropertyProvider(Map<String, Map<String, PropertyInfo>> componentMetrics) {

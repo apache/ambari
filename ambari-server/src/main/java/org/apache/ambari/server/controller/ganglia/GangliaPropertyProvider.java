@@ -518,10 +518,10 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
           for (String propertyId : propertyIdSet) {
             if (propertyId != null) {
               if (metricsMap.containsKey(propertyId)){
-                if (propertyId.matches(".*\\$\\d+.*")) {
+                if (containsArguments(propertyId)) {
                   int i = 1;
                   for (String param : parameterList) {
-                    propertyId = propertyId.replace("$" + i, param);
+                    propertyId = substituteArgument(propertyId, "$" + i, param);
                     ++i;
                   }
                 }
