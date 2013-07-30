@@ -604,22 +604,23 @@ App.WizardStep3Controller = Em.Controller.extend({
   /**
    * check warnings from server and put it in parsing
     */
-  rerunChecks: function(){
+  rerunChecks: function () {
     var self = this;
     var currentProgress = 0;
-    var interval = setInterval(function(){
-      self.set('checksUpdateProgress', Math.ceil((++currentProgress/60)*100))
+    var interval = setInterval(function () {
+      currentProgress += 100000 / self.get('warningsTimeInterval');
+      if (currentProgress < 100) {
+        self.set('checksUpdateProgress', currentProgress);
+      } else {
+        clearInterval(interval);
+        App.ajax.send({
+          name: 'wizard.step3.rerun_checks',
+          sender: self,
+          success: 'rerunChecksSuccessCallback',
+          error: 'rerunChecksErrorCallback'
+        });
+      }
     }, 1000);
-    setTimeout(function(){
-      clearInterval(interval);
-      App.ajax.send({
-        name: 'wizard.step3.rerun_checks',
-        sender: self,
-        success: 'rerunChecksSuccessCallback',
-        error: 'rerunChecksErrorCallback'
-      });
-    }, this.get('warningsTimeInterval'));
-
   },
 
   rerunChecksSuccessCallback: function (data) {
