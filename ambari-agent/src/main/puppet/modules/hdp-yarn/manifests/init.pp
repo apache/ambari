@@ -55,12 +55,12 @@ define hdp-yarn::generate_common_configs() {
       module => 'hdp-yarn',
       configuration => $::configuration['mapred-site'],
       owner => $hdp-yarn::params::yarn_user,
-      mode => 755
+      mode => 644
     }
   } else { # Manually overriding ownership of file installed by hadoop package
     file { "${yarn_config_dir}/mapred-site.xml":
       owner => $hdp-yarn::params::yarn_user,
-      mode => 755
+      mode => 644
     }
   }
   
@@ -71,12 +71,28 @@ define hdp-yarn::generate_common_configs() {
       module => 'hdp-yarn',
       configuration => $::configuration['yarn-site'],
       owner => $hdp-yarn::params::yarn_user,
-      mode => 755
+      mode => 644
     }
   } else { # Manually overriding ownership of file installed by hadoop package
     file { "${yarn_config_dir}/yarn-site.xml":
       owner => $hdp-yarn::params::yarn_user,
-      mode => 755
+      mode => 644
+    }
+  }
+
+  if has_key($::configuration, 'capacity-scheduler') {
+    configgenerator::configfile{'capacity-scheduler': 
+      modulespath => $yarn_config_dir,
+      filename => 'capacity-scheduler.xml',
+      module => 'hdp-yarn',
+      configuration => $::configuration['capacity-scheduler'],
+      owner => $hdp-yarn::params::yarn_user,
+      mode => 644
+    }
+  } else { # Manually overriding ownership of file installed by hadoop package
+    file { "${yarn_config_dir}/capacity-scheduler.xml":
+      owner => $hdp-yarn::params::yarn_user,
+      mode => 644
     }
   }
 
