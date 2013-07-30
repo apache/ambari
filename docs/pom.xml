@@ -130,6 +130,18 @@
                 Hortonworks
             </organization>
         </developer>
+        <developer>
+            <id>croberts</id>
+            <name>Chad Roberts</name>
+            <email>croberts@apache.org</email>
+            <timezone></timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Redhat
+            </organization>
+        </developer>
         <developer>            
             <id>ddas</id>
             <name>Devaraj Das</name>
@@ -141,6 +153,18 @@
             <organization>
                 Hortonworks                
             </organization>            
+        </developer>
+        <developer>
+            <id>dmitriusan</id>
+            <name>Dmitry Lysnichenko</name>
+            <email>dmitriusan@apache.org</email>
+            <timezone>+2</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
         </developer>
         <developer>
             <id>eyang</id>
@@ -245,6 +269,30 @@
             <timezone>-8</timezone>
             <roles>
                 <role>PMC</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>odiachenko</id>
+            <name>Oleksandr Diachenko</name>
+            <email>odiachenko@apache.org</email>
+            <timezone>+2</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>onechiporenko</id>
+            <name>Oleg Nechiporenko</name>
+            <email>onechiporenko@apache.org</email>
+            <timezone>+2</timezone>
+            <roles>
+                <role>Committer</role>
             </roles>
             <organization>
                 Hortonworks
@@ -357,7 +405,19 @@
             <organization>
                 Hortonworks                
             </organization>
-        </developer>        
+        </developer>       
+        <developer>
+            <id>xiwang</id>
+            <name>Xi Wang</name>
+            <email>xiwang@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer> 
         <developer>
             <id>yusaku</id>
             <name>Yusaku Sako</name>
