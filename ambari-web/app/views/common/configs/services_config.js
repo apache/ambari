@@ -1138,7 +1138,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
       }),
       bodyClass: Ember.View.extend({
         template: Ember.Handlebars.compile([
-          '<form class="form-horizontal pre-scrollable">{{#each view.parentView.content.configs}}',
+          '<form class="form-horizontal pre-scrollable" autocomplete="off">{{#each view.parentView.content.configs}}',
           '{{#if isVisible}}',
           '<div class="row-fluid control-group">',
           '   <div {{bindAttr class="errorMessage:error :control-label-span :span4"}}>',

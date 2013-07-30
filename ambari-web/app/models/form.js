@@ -23,6 +23,8 @@ App.Form = Em.View.extend({
    * generating fields from fieldsOptions
    */
   classNames:["form-horizontal"],
+  attributeBindings: ['autocomplete'],
+  autocomplete: 'off',
   i18nprefix:'form.',
   fields:[],
   field:{},
