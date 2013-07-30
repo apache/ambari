@@ -31,7 +31,7 @@ App.TaskTrackerUpView = App.DashboardWidgetView.extend({
 
   hiddenInfo: function () {
     var svc = this.get('model');
-    var liveCount = svc.get('aliveTrackers').get('length');
+    var liveCount = App.HostComponent.find().filterProperty('componentName', 'TASKTRACKER').filterProperty("workStatus","STARTED").length;
     var totalCount = svc.get('taskTrackers').get('length');
     var result = [];
     result.pushObject(liveCount + " live");
@@ -61,11 +61,11 @@ App.TaskTrackerUpView = App.DashboardWidgetView.extend({
   maxValue: 100,
 
   data: function () {
-    return ((this.get('model.aliveTrackers.length')/ this.get('model.taskTrackers.length')).toFixed(2)) * 100;
+    return ( App.HostComponent.find().filterProperty('componentName', 'TASKTRACKER').filterProperty("workStatus","STARTED").length / this.get('model.taskTrackers.length')).toFixed(2) * 100;
   }.property('model.taskTrackers.length', 'model.aliveTrackers.length'),
 
   content: function () {
-    return this.get('model.aliveTrackers.length') + "/" + this.get('model.taskTrackers.length');
+    return App.HostComponent.find().filterProperty('componentName', 'TASKTRACKER').filterProperty("workStatus","STARTED").length + "/" + this.get('model.taskTrackers.length');
   }.property('model.taskTrackers.length', 'model.aliveTrackers.length'),
 
   editWidget: function (event) {

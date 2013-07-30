@@ -31,11 +31,13 @@ App.DataNodeUpView = App.DashboardWidgetView.extend({
 
   hiddenInfo: function () {
     var result = [];
-    result.pushObject(this.get('model.liveDataNodes.length') + ' ' + this.t('dashboard.services.hdfs.nodes.live'));
-    result.pushObject(this.get('model.deadDataNodes.length') + ' ' + this.t('dashboard.services.hdfs.nodes.dead'));
+    result.pushObject( App.HostComponent.find().filterProperty('componentName', 'DATANODE').filterProperty("workStatus","STARTED").length
+      + ' ' + this.t('dashboard.services.hdfs.nodes.live'));
+    result.pushObject( App.HostComponent.find().filterProperty('componentName', 'DATANODE').filterProperty("workStatus","INSTALLED").length
+      + ' ' + this.t('dashboard.services.hdfs.nodes.dead'));
     result.pushObject(this.get('model.decommissionDataNodes.length')+ ' ' + this.t('dashboard.services.hdfs.nodes.decom'));
     return result;
-  }.property('model.liveDataNodes.length','model.deadDataNodes.length','model.decommissionDataNodes.length'),
+  }.property('model', 'model.decommissionDataNodes.length'),
   hiddenInfoClass: "hidden-info-three-line",
 
   classNameBindings: ['isRed', 'isOrange', 'isGreen'],
@@ -60,12 +62,12 @@ App.DataNodeUpView = App.DashboardWidgetView.extend({
   maxValue: 100,
 
   data: function () {
-    return ((this.get('model.liveDataNodes.length')/ this.get('model.dataNodes.length')).toFixed(2)) * 100;
-  }.property('model.dataNodes.length', 'model.liveDataNodes.length'),
+    return ((App.HostComponent.find().filterProperty('componentName', 'DATANODE').filterProperty("workStatus","STARTED").length / this.get('model.dataNodes.length')).toFixed(2)) * 100;
+  }.property('model.dataNodes.length', 'model'),
 
   content: function () {
-    return this.get('model.liveDataNodes.length') + "/" + this.get('model.dataNodes.length');
-  }.property('model.dataNodes.length', 'model.liveDataNodes.length'),
+    return App.HostComponent.find().filterProperty('componentName', 'DATANODE').filterProperty("workStatus","STARTED").length + "/" + this.get('model.dataNodes.length');
+  }.property('model.dataNodes.length', 'model'),
 
   editWidget: function (event) {
     var parent = this;
