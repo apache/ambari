@@ -75,10 +75,7 @@ processCSVFile () {
               echo "mkdir -p ./keytabs_$hostName" >> commands.mkdir;
               echo "chmod 755 ./keytabs_$hostName" >> commands.chmod;
               echo "chown -R root:$group `pwd`/keytabs_$hostName" >> commands.chown.1
-              echo "mkdir -p `pwd`/tmp_tar/etc/security/" >> commands.tar
-              echo "mv  `pwd`/keytabs_$hostName `pwd`/tmp_tar/etc/security/keytabs" >> commands.tar
-              echo "tar -C `pwd`/tmp_tar/ -cf `pwd`/keytabs_$hostName.tar etc" >> commands.tar
-              echo "rm -rf `pwd`/tmp_tar" >> commands.tar
+              echo "tar -cvf keytabs_$hostName.tar keytabs_$hostName" >> commands.tar
               seenHosts="$seenHosts$hostName";
         fi
         
@@ -86,11 +83,14 @@ processCSVFile () {
           echo -e "kadmin.local -q \"addprinc -randkey $principal\"" >> commands.addprinc;
           seenPrincipals="$seenPrincipals$principal"
         fi
-        
-        tmpKeytabFile=${keytabFilePath/\/etc\/security\/keytabs/`pwd`/tmp_keytabs}
-        newKeytabFile=${keytabFilePath/\/etc\/security\/keytabs/`pwd`/keytabs_$hostName}
+        tmpKeytabFile="`pwd`/tmp_keytabs/$keytabFile";
+	    newKeytabPath="`pwd`/keytabs_$hostName$keytabFilePath";
+	    newKeytabFile="$newKeytabPath/$keytabFile";
         if [ ! -f $tmpKeytabFile ]; then
           echo "kadmin.local -q \"xst -k $tmpKeytabFile $principal\"" >> commands.xst;          
+        fi
+        if [ ! -d $newKeytabPath ]; then
+            echo "mkdir -p $newKeytabPath" >> commands.mkdir;
         fi
         echo "cp $tmpKeytabFile $newKeytabFile" >> commands.xst.cp
         echo "chmod $acl $newKeytabFile" >> commands.chmod.2
@@ -139,7 +139,7 @@ processCSVFile () {
     echo "###########################################################################"
     echo "# Cleanup"
     echo "###########################################################################"
-    echo "#rm -rf ./tmp_keytabs"
+    echo "rm -rf ./tmp_keytabs"
     echo ""
     echo "echo \"****************************************************************************\""
     echo "echo \"****************************************************************************\""

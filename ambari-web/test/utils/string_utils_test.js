@@ -109,4 +109,25 @@ describe('string_utils', function () {
     });
   });
 
+    describe('#getPath', function() {
+        var tests = [
+          {t: undefined, e: ''},
+          {t: {}, e: ''},
+          {t: [], e: ''},
+          {t: '', e: ''},
+          {t: function(){}, e: ''},
+          {t: '/path/to/filename', e: '/path/to'},
+          {t: '/path/to/', e: '/path/to'},
+          {t: '/filename', e: '/'},
+          {t: 'filename', e: ''},
+          {t: '/path/', e: '/path'},
+          {t: 'filename/', e: ''}
+      ];
+      tests.forEach(function(test) {
+          it('Check ' + typeof test.t, function () {
+            expect(string_utils.getPath(test.t)).to.equal(test.e);
+          });
+      });
+  });
+
 });

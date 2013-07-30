@@ -26,8 +26,12 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     if ($.browser.msie && $.browser.version < 10) {
       this.openInfoInNewTab();
     } else {
-      var blob = new Blob([stringUtils.arrayToCSV(this.get('hostComponents'))], {type: "text/csv;charset=utf-8;"});
-      saveAs(blob, "host-principal-keytab-list.csv");
+      try {
+        var blob = new Blob([stringUtils.arrayToCSV(this.get('hostComponents'))], {type: "text/csv;charset=utf-8;"});
+        saveAs(blob, "host-principal-keytab-list.csv");
+      } catch(e) {
+         this.openInfoInNewTab();
+      }
     }
   },
   openInfoInNewTab: function () {
@@ -90,7 +94,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         component: Em.I18n.t('admin.addSecurity.user.smokeUser'),
         principal: smokeUser,
         keytabFile: stringUtils.getFileFromPath(smokeUserKeytabPath),
-        keytab: smokeUserKeytabPath,
+        keytab: stringUtils.getPath(smokeUserKeytabPath),
         owner: smokeUserId,
         group: hadoopGroupId,
         acl: '440'
@@ -100,7 +104,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         component: Em.I18n.t('admin.addSecurity.user.hdfsUser'),
         principal: hdfsUser,
         keytabFile: stringUtils.getFileFromPath(hdfsUserKeytabPath),
-        keytab: hdfsUserKeytabPath,
+        keytab: stringUtils.getPath(hdfsUserKeytabPath),
         owner: hdfsUserId,
         group: hadoopGroupId,
         acl: '440'
@@ -111,7 +115,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
           component: Em.I18n.t('admin.addSecurity.user.hbaseUser'),
           principal: hbaseUser,
           keytabFile: stringUtils.getFileFromPath(hbaseUserKeytabPath),
-          keytab: hbaseUserKeytabPath,
+          keytab: stringUtils.getPath(hbaseUserKeytabPath),
           owner: hbaseUserId,
           group: hadoopGroupId,
           acl: '440'
@@ -124,7 +128,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
           component: Em.I18n.t('admin.addSecurity.hdfs.user.httpUser'),
           principal: hadoopHttpPrincipal.value.replace('_HOST', host.get('hostName')) + hadoopHttpPrincipal.unit,
           keytabFile: stringUtils.getFileFromPath(hadoopHttpKeytabPath),
-          keytab: hadoopHttpKeytabPath,
+          keytab: stringUtils.getPath(hadoopHttpKeytabPath),
           owner: 'root',
           group: hadoopGroupId,
           acl: '440'
@@ -139,7 +143,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
           component: Em.I18n.t('admin.addSecurity.webhcat.user.httpUser'),
           principal: webHCatHttpPrincipal.value.replace('_HOST', host.get('hostName')) + webHCatHttpPrincipal.unit,
           keytabFile: stringUtils.getFileFromPath(webHCatHttpKeytabPath),
-          keytab: webHCatHttpKeytabPath,
+          keytab: stringUtils.getPath(webHCatHttpKeytabPath),
           owner: 'root',
           group: hadoopGroupId,
           acl: '440'
@@ -154,7 +158,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
           component: Em.I18n.t('admin.addSecurity.oozie.user.httpUser'),
           principal: oozieHttpPrincipal.value.replace('_HOST', host.get('hostName')) + oozieHttpPrincipal.unit,
           keytabFile: stringUtils.getFileFromPath(oozieHttpKeytabPath),
-          keytab: oozieHttpKeytabPath,
+          keytab: stringUtils.getPath(oozieHttpKeytabPath),
           owner: 'root',
           group: hadoopGroupId,
           acl: '440'
@@ -191,7 +195,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
               component: displayName,
               principal: principal,
               keytabFile: stringUtils.getFileFromPath(keytab),
-              keytab: keytab,
+              keytab: stringUtils.getPath(keytab),
               owner: owner,
               group: hadoopGroupId,
               acl: '400'

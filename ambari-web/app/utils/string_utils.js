@@ -134,6 +134,14 @@ module.exports = {
     if (!path || typeof path !== 'string') {
       return '';
     }
-    return path.toString().replace(/^.*[\/]/, '');
+    return path.replace(/^.*[\/]/, '');
+  },
+
+  getPath: function(path) {
+    if (!path || typeof path !== 'string' || path[0] != '/') {
+      return '';
+    }
+    var last_slash = path.lastIndexOf('/');
+    return (last_slash!=0)?path.substr(0,last_slash):'/';
   }
 }
