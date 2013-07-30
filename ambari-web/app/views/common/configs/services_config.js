@@ -18,6 +18,7 @@
 
 var App = require('app');
 var validator = require('utils/validator');
+var stringUtils = require('utils/string_utils');
 
 App.ServicesConfigView = Em.View.extend({
   templateName: require('templates/common/configs/services_config'),
