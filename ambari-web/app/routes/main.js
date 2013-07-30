@@ -647,6 +647,15 @@ module.exports = Em.Route.extend({
       }
     }),
 
+    adminHighAvailability: Em.Route.extend({
+      route: '/highAvailability',
+      connectOutlets: function (router) {
+        router.set('mainAdminController.category', "highAvailability");
+        router.get('mainAdminController').connectOutlet('mainAdminHighAvailability');
+      }
+    }),
+
+    enableHighAvailability: require('routes/high_availability_routes'),
 
     adminSecurity: Em.Route.extend({
       route: '/security',

@@ -632,6 +632,16 @@ Em.I18n.translations = {
   'admin.authentication.form.test.success':'The configuration passes the test',
   'admin.authentication.form.test.fail':'The configuration fails the test',
 
+  'admin.highAvailability':' High Availability',
+  'admin.highAvailability.button.enable':'Enable NameNode HA',
+  'admin.highAvailability.disabled':'NameNode HA is disabled',
+  'admin.highAvailability.enabled':'NameNode HA is enabled',
+  'admin.highAvailability.wizard.header':'Enable NameNode HA Wizard',
+  'admin.highAvailability.wizard.step1.header':'Get Started',
+  'admin.highAvailability.wizard.step2.header':'Select Hosts',
+  'admin.highAvailability.wizard.step3.header':'Review',
+  'admin.highAvailability.wizard.step4.header':'Apply',
+
   'admin.security.title':'Kerberos Security has not been enabled on this cluster.',
   'admin.security.enabled': 'Kerberos security is enabled on the cluster',
   'admin.security.disabled': 'Kerberos security is disabled on the cluster',
