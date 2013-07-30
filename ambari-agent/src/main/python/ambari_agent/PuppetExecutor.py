@@ -171,7 +171,7 @@ class PuppetExecutor:
     logger.debug("Setting RUBYLIB as: " + rubyLib)
     logger.info("Running command " + pprint.pformat(puppetcommand))
     puppet = self.lauch_puppet_subprocess(puppetcommand, tmpout, tmperr, puppetEnv)
-    logger.info("Command started with PID: " + puppet.pid)
+    logger.info("Command started with PID: " + str(puppet.pid))
     logger.debug("Launching watchdog thread")
     self.event.clear()
     self.last_puppet_has_been_killed = False
@@ -223,7 +223,7 @@ class PuppetExecutor:
   def puppet_watchdog_func(self, puppet):
     self.event.wait(self.PUPPET_TIMEOUT_SECONDS)
     if puppet.returncode is None:
-      logger.error("Task timed out, killing process with PID: " + puppet.pid)
+      logger.error("Task timed out, killing process with PID: " + str(puppet.pid))
       shell.kill_process_with_children(puppet.pid)
       self.last_puppet_has_been_killed = True
     pass
