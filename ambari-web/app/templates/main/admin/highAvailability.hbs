@@ -22,9 +22,13 @@
       {{t admin.highAvailability.enabled}}
     </p>
   {{else}}
-    <p class="muted">
-      {{t admin.highAvailability.disabled}}
-      <a class="btn btn-padding btn-success" {{action enableHighAvailability target="controller"}}>{{t admin.highAvailability.button.enable}}</a>
-    </p>
+    {{#if controller.dataIsLoaded}}
+      <p class="muted">
+        {{t admin.highAvailability.disabled}}
+        <a class="btn btn-padding btn-success" {{action enableHighAvailability target="controller"}}>{{t admin.highAvailability.button.enable}}</a>
+      </p>
+    {{else}}
+      <div class="spinner"></div>
+    {{/if}}
   {{/if}}
 </div>

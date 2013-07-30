@@ -21,6 +21,10 @@ var App = require('app');
 App.MainAdminHighAvailabilityView = Em.View.extend({
   templateName: require('templates/main/admin/highAvailability'),
 
+  didInsertElement: function () {
+    this.get('controller').setSecurityStatus();
+  },
+
   isHighAvailabilityEnabled: false //todo: real check
 
 });

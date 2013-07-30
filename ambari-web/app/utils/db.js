@@ -64,7 +64,7 @@ App.db.cleanUp = function () {
     'StackUpgrade' : {},
     'ReassignMaster' : {},
     'AddSecurity': {},
-    'HighAvailability': {}
+    'HighAvailabilityWizard': {}
 
   };
   console.log("In cleanup./..");
