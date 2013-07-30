@@ -97,7 +97,7 @@ class TestStatusCheck(TestCase):
   @patch.object(logger, 'info')
   def test_dont_relog_serToPidDict(self, logger_info_mock):
     TestStatusCheck.timesLogged = 0
-    
+
     def my_side_effect(*args, **kwargs):
       TestStatusCheck.timesLogged += args[0].find('Service to pid dictionary: ')+1
       
@@ -111,8 +111,8 @@ class TestStatusCheck(TestCase):
       self.globalConfig, self.servicesToLinuxUser)
     statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathesVars,
       self.globalConfig, self.servicesToLinuxUser)
-    # and really only once logged        
-    self.assertEqual(TestStatusCheck.timesLogged, 1)
+    # logged not more then once
+    self.assert_(TestStatusCheck.timesLogged <= 1, "test_dont_relog_serToPidDict logged more then once")
 
   # Ensure that status checker return True for running process even if multiple
   # pids for a service component exist

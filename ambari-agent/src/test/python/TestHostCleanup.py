@@ -103,14 +103,17 @@ created = 2013-07-02 20:39:22.162757"""
       self.skip = skip
       self.verbose = False
       
+  @patch.object(HostCleanup.HostCleanup, 'do_cleanup')  
+  @patch.object(HostCleanup.HostCleanup, 'is_current_user_root')
   @patch.object(logging.FileHandler, 'setFormatter')
   @patch.object(HostCleanup.HostCleanup,'read_host_check_file')
   @patch.object(logging,'basicConfig')
   @patch.object(logging, 'FileHandler')
   @patch.object(optparse.OptionParser, 'parse_args')
-  def test_options(self, parser_mock, file_handler_mock, logging_mock, read_host_check_file_mock, set_formatter_mock):
+  def test_options(self, parser_mock, file_handler_mock, logging_mock, read_host_check_file_mock, set_formatter_mock, user_root_mock, do_cleanup_mock):
     parser_mock.return_value = (TestHostCleanup.HostCleanupOptions('/someoutputfile', '/someinputfile', '', False), [])
     file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
+    user_root_mock.return_value = True
     HostCleanup.main()
     
     # test --out
