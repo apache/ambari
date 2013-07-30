@@ -70,6 +70,19 @@ class hdp-ganglia::server(
       role => 'server'
     }
   }
+  if ($hdp::params::is_rmnode_master) {
+    hdp-ganglia::config::generate_server { 'HDPResourceManager':
+      ganglia_service => 'gmond',
+      role => 'server'
+    }
+  }
+  if ($hdp::params::is_hsnode_master) {
+    hdp-ganglia::config::generate_server { 'HDPHistoryServer':
+      ganglia_service => 'gmond',
+      role => 'server'
+    }
+  }
+	
   hdp-ganglia::config::generate_server { 'HDPSlaves':
     ganglia_service => 'gmond',
     role => 'server'
