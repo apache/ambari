@@ -23,6 +23,7 @@ import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper.MetricsVersion;
@@ -237,6 +238,52 @@ public class GangliaPropertyProviderTest {
         "://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPJobTracker,HDPHBaseMaster,HDPResourceManager,HDPSlaves,HDPHistoryServer,HDPNameNode&m=jvm.metrics.gcCount&s=10&e=20&r=1";
     Assert.assertEquals(expected, streamProvider.getLastSpec());
 
+  }
+  
+  class PopulateResourceManagerResourcesTest{
+    public void testProperty(String property, String jmxMetricName) throws SystemException{
+      TestStreamProvider streamProvider  = new TestStreamProvider("yarn_ganglia_data.txt");
+      TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
+
+      GangliaPropertyProvider propertyProvider = new GangliaHostComponentPropertyProvider(
+          PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, MetricsVersion.HDP2),
+          streamProvider,
+          configuration,
+          hostProvider,
+          CLUSTER_NAME_PROPERTY_ID,
+          HOST_NAME_PROPERTY_ID,
+          COMPONENT_NAME_PROPERTY_ID);
+
+      // flume
+      Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+
+      resource.setProperty(HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
+      resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
+
+      // only ask for one property
+      Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+      temporalInfoMap.put(property, new TemporalInfoImpl(10L, 20L, 1L));
+      Request  request = PropertyHelper.getReadRequest(Collections.singleton(property), temporalInfoMap);
+
+      Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
+
+      String expected = (configuration.isGangliaSSL() ? "https" : "http") +
+          String.format("://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPResourceManager&h=ip-10-39-113-33.ec2.internal&m=%s&s=10&e=20&r=1",jmxMetricName);
+      Assert.assertEquals(expected, streamProvider.getLastSpec());
+
+      Assert.assertEquals(3, PropertyHelper.getProperties(resource).size());
+      Assert.assertNotNull(resource.getPropertyValue(property));
+    }
+  }
+  
+  @Test
+  public void testPopulateResources_resourcemanager_clustermetrics() throws Exception {
+	  PopulateResourceManagerResourcesTest tester = new PopulateResourceManagerResourcesTest();
+	  tester.testProperty("metrics/yarn/ClusterMetrics/NumActiveNMs","yarn.ClusterMetrics.NumActiveNMs");
+	  tester.testProperty("metrics/yarn/ClusterMetrics/NumDecommissionedNMs","yarn.ClusterMetrics.NumDecommissionedNMs");
+	  tester.testProperty("metrics/yarn/ClusterMetrics/NumLostNMs", "yarn.ClusterMetrics.NumLostNMs");
+	  tester.testProperty("metrics/yarn/ClusterMetrics/NumUnhealthyNMs", "yarn.ClusterMetrics.NumUnhealthyNMs");
+	  tester.testProperty("metrics/yarn/ClusterMetrics/NumRebootedNMs", "yarn.ClusterMetrics.NumRebootedNMs");
   }
 
 

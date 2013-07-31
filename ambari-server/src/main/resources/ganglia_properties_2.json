@@ -6578,6 +6578,31 @@
         "pointInTime":false,
         "temporal":true
       },
+      "metrics/yarn/ClusterMetrics/NumActiveNMs":{
+        "metric":"yarn.ClusterMetrics.NumActiveNMs",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/yarn/ClusterMetrics/NumDecommissionedNMs":{
+        "metric":"yarn.ClusterMetrics.NumDecommissionedNMs",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/yarn/ClusterMetrics/NumLostNMs":{
+        "metric":"yarn.ClusterMetrics.NumLostNMs",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/yarn/ClusterMetrics/NumUnhealthyNMs":{
+        "metric":"yarn.ClusterMetrics.NumUnhealthyNMs",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/yarn/ClusterMetrics/NumRebootedNMs":{
+        "metric":"yarn.ClusterMetrics.NumRebootedNMs",
+        "pointInTime":false,
+        "temporal":true
+      },
       "metrics/yarn/Queue/AllocatedVCores":{
         "metric":"yarn.QueueMetrics.AllocatedVCores",
         "pointInTime":false,
@@ -16695,6 +16720,31 @@
       },
       "metrics/rpc/CallQueueLen":{
         "metric":"rpc.rpc.CallQueueLength",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/yarn/ClusterMetrics/NumActiveNMs":{
+        "metric":"yarn.ClusterMetrics.NumActiveNMs",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/yarn/ClusterMetrics/NumDecommissionedNMs":{
+        "metric":"yarn.ClusterMetrics.NumDecommissionedNMs",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/yarn/ClusterMetrics/NumLostNMs":{
+        "metric":"yarn.ClusterMetrics.NumLostNMs",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/yarn/ClusterMetrics/NumUnhealthyNMs":{
+        "metric":"yarn.ClusterMetrics.NumUnhealthyNMs",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/yarn/ClusterMetrics/NumRebootedNMs":{
+        "metric":"yarn.ClusterMetrics.NumRebootedNMs",
         "pointInTime":false,
         "temporal":true
       },

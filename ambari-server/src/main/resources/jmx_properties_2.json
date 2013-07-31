@@ -3560,6 +3560,31 @@
         "metric" : "Hadoop:service=ResourceManager,name=RMNMInfo.LiveNodeManagers",
         "pointInTime" : true,
         "temporal" : false
+       },
+       "metrics/yarn/ClusterMetrics/NumActiveNMs":{
+        "metric" : "Hadoop:service=ResourceManager,name=ClusterMetrics.NumActiveNMs",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/yarn/ClusterMetrics/NumDecommissionedNMs":{
+        "metric" : "Hadoop:service=ResourceManager,name=ClusterMetrics.NumDecommissionedNMs",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/yarn/ClusterMetrics/NumLostNMs":{
+        "metric" : "Hadoop:service=ResourceManager,name=ClusterMetrics.NumLostNMs",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/yarn/ClusterMetrics/NumUnhealthyNMs":{
+        "metric" : "Hadoop:service=ResourceManager,name=ClusterMetrics.NumUnhealthyNMs",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/yarn/ClusterMetrics/NumRebootedNMs":{
+        "metric" : "Hadoop:service=ResourceManager,name=ClusterMetrics.NumRebootedNMs",
+        "pointInTime":true,
+        "temporal":false
       },
       "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/running_60":{
         "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).running_60",
@@ -7913,6 +7938,31 @@
         "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.ThreadsWaiting",
         "pointInTime" : true,
         "temporal" : false
+      },
+      "metrics/yarn/ClusterMetrics/NumActiveNMs":{
+        "metric" : "Hadoop:service=ResourceManager,name=ClusterMetrics.NumActiveNMs",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/yarn/ClusterMetrics/NumDecommissionedNMs":{
+        "metric" : "Hadoop:service=ResourceManager,name=ClusterMetrics.NumDecommissionedNMs",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/yarn/ClusterMetrics/NumLostNMs":{
+        "metric" : "Hadoop:service=ResourceManager,name=ClusterMetrics.NumLostNMs",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/yarn/ClusterMetrics/NumUnhealthyNMs":{
+        "metric" : "Hadoop:service=ResourceManager,name=ClusterMetrics.NumUnhealthyNMs",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/yarn/ClusterMetrics/NumRebootedNMs":{
+        "metric" : "Hadoop:service=ResourceManager,name=ClusterMetrics.NumRebootedNMs",
+        "pointInTime":true,
+        "temporal":false
       },
       "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/running_60":{
         "metric" : "Hadoop:service=ResourceManager,name=QueueMetrics(.+).running_60",

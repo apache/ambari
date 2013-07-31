@@ -375,6 +375,12 @@ public class JMXPropertyProviderTest {
     Assert.assertEquals(8192,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AvailableMB")));
     Assert.assertEquals(1,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AvailableVCores")));
     Assert.assertEquals(2,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AppsSubmitted")));
+    
+    Assert.assertEquals(1,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/ClusterMetrics", "NumActiveNMs")));
+    Assert.assertEquals(0,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/ClusterMetrics", "NumDecommissionedNMs")));
+    Assert.assertEquals(0,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/ClusterMetrics", "NumLostNMs")));
+    Assert.assertEquals(0,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/ClusterMetrics", "NumUnhealthyNMs")));
+    Assert.assertEquals(0,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/ClusterMetrics", "NumRebootedNMs")));
   }
   
   @Test
