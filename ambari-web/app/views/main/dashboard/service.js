@@ -28,13 +28,15 @@ App.MainDashboardServiceHealthView = Em.View.extend({
   tagName: 'span',
   attributeBindings:['rel', 'title','data-original-title'],
   rel: 'HealthTooltip',
-  'data-original-title': function(){
+  'data-original-title': '',
+
+  getHostComponentStatus: function(){
     var popupText = "";
     this.get("service").get("hostComponents").filterProperty('isMaster', true).forEach(function(item){
       popupText += item.get("displayName") + " " + item.get("componentTextStatus") + "<br/>";
     });
-    return popupText;
-  }.property('service.healthStatus'),
+    this.set('data-original-title',popupText);
+  }.observes('service.hostComponents.@each.workStatus'),
 
   /**
    * When set to true, extending classes should
@@ -88,6 +90,7 @@ App.MainDashboardServiceHealthView = Em.View.extend({
   }.property('service.healthStatus'),
 
   didInsertElement: function () {
+    this.getHostComponentStatus();
     $("[rel='HealthTooltip']").tooltip();
     this.doBlink(); // check for blink availability
   }
