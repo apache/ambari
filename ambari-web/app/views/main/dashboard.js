@@ -73,6 +73,9 @@ App.MainDashboardView = Em.View.extend({
         case "HDFS":
           self.set('hdfs_model',  App.HDFSService.find(item.get('id')) || item);
           break;
+        case "YARN":
+          self.set('yarn_model', App.YARNService.find(item.get('id')) || item);
+          break;
         case "MAPREDUCE":
           self.set('mapreduce_model', App.MapReduceService.find(item.get('id')) || item);
           break;
@@ -89,7 +92,8 @@ App.MainDashboardView = Em.View.extend({
       '17', '11', '12', '13', '14',
       '18', '1', '6', '5', '9',
       '3', '7', '15', '16', '20',
-      '19', '21', '23'
+      '19', '21', '23',
+      '24', '25', '26' // all yarn
     ]; // all in order
     var hiddenFull = [['22','Region In Transition']];
     if (this.get('hdfs_model') == null) {
@@ -113,6 +117,12 @@ App.MainDashboardView = Em.View.extend({
         visibleFull.splice(index, 1);
       }, this);
       hiddenFull = [];
+    }if (this.get('yarn_model') == null) {
+      var yarn = ['24', '25', '26'];
+      yarn.forEach ( function (item) {
+        var index = visibleFull.indexOf(item);
+        visibleFull.splice(index, 1);
+      }, this);
     }
     var obj = this.get('initPrefObject');
     obj.visible = visibleFull;
@@ -121,6 +131,8 @@ App.MainDashboardView = Em.View.extend({
   
   hdfs_model: null,
   mapreduce_model: null,
+  mapreduce2_model: null,
+  yarn_model: null,
   hbase_model: null,
   visibleWidgets: [],
   hiddenWidgets: [], // widget child view will push object in this array if deleted
@@ -260,6 +272,9 @@ App.MainDashboardView = Em.View.extend({
       case '21': return App.HBaseAverageLoadView;
       case '22': return App.HBaseRegionsInTransitionView;
       case '23': return App.HBaseMasterUptimeView;
+      case '24': return App.ResourceManagerHeapPieChartView;
+      case '25': return App.ResourceManagerUptimeView;
+      case '26': return App.NodeManagersLiveView;
     }
   },
 
@@ -269,7 +284,8 @@ App.MainDashboardView = Em.View.extend({
     visible: [],
     hidden: [],
     threshold: {1: [80, 90], 2: [85, 95], 3: [90, 95], 4: [80, 90], 5: [1000, 3000], 6: [70, 90], 7: [90, 95], 8: [50, 75], 9: [30000, 120000],
-      10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: [], 17: [], 18: [], 19: [], 20: [70, 90], 21: [10, 19.2], 22: [3, 10], 23: []} // id:[thresh1, thresh2]
+      10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: [], 17: [], 18: [], 19: [], 20: [70, 90], 21: [10, 19.2], 22: [3, 10], 23: [],
+      24: [70, 90], 25: [], 26: [50, 75]} // id:[thresh1, thresh2]
   }),
   persistKey: function () {
     var loginName = App.router.get('loginName');

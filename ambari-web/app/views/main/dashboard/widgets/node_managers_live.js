@@ -18,83 +18,76 @@
 
 var App = require('app');
 
-App.DashboardWidgetView = Em.View.extend({
+App.NodeManagersLiveView = App.DashboardWidgetView.extend({
 
-  title: null,
-  templateName: null, // each has specific template
-
-  model : function () {
-    if (this.get('model_type') == 'hdfs') {
-      return this.get('parentView').get('hdfs_model');
-    } else if (this.get('model_type') == 'mapreduce') {
-      return this.get('parentView').get('mapreduce_model');
-    } else if (this.get('model_type') == 'hbase') {
-      return this.get('parentView').get('hbase_model');
-    } else if (this.get('model_type') == 'yarn') {
-      return this.get('parentView').get('yarn_model');
-    }
-  }.property(''), //data bind from parent view
-
-  id: null, // id 1-10 used to identify
-  viewID: function(){ // used by re-sort
-    return 'widget-' + this.id;
-  }.property('id'),  //html id bind to view-class: widget-(1)
-  attributeBindings: ['viewID'],
+  templateName: require('templates/main/dashboard/widgets/simple_text'),
+  title: Em.I18n.t('dashboard.widgets.NodeManagersLive'),
+  id: '26',
 
   isPieChart: false,
-  isText: false,
+  isText: true,
   isProgressBar: false,
-  isLinks: false,
-  content: null, // widget content pieChart/ text/ progress bar/links/ metrics. etc
-  hiddenInfo: null, // more info details
-  hiddenInfoClass: "hidden-info-two-line",
+  model_type: 'yarn',
 
-  thresh1: null, //num not string
-  thresh2: null,
+  hiddenInfo: function () {
+    var nmActive = this.get('model.nodeManagersCountActive');
+    var nmLost = this.get('model.nodeManagersCountLost');
+    var nmUnhealthy = this.get('model.nodeManagersCountUnhealthy');
+    var nmRebooted = this.get('model.nodeManagersCountRebooted');
+    var nmDecom = this.get('model.nodeManagersCountDecommissioned');
+    var result = [];
+      result.pushObject(nmActive + " active");
+      result.pushObject(nmLost + " lost");
+      result.pushObject(nmUnhealthy + " unhealthy");
+      result.pushObject(nmRebooted + " rebooted");
+      result.pushObject(nmDecom + " decommissioned");
+    return result;
+  }.property('model.nodeManagersCountActive', 'model.nodeManagersCountLost',
+    'model.nodeManagersCountUnhealthy', 'model.nodeManagersCountRebooted', 'model.nodeManagersCountDecommissioned'),
+  hiddenInfoClass: "hidden-info-five-line",
 
-  didInsertElement: function () {
-    this.$("[rel='ZoomInTooltip']").tooltip({
-      placement : 'left'
-    });
-  },
+  classNameBindings: ['isRed', 'isOrange', 'isGreen'],
+  isRed: function () {
+    var thresh1 = this.get('thresh1');
+    var thresh2 = this.get('thresh2');
+    return this.get('data') <= thresh1? true: false;
+  }.property('data','thresh1','thresh2'),
+  isOrange: function () {
+    var thresh1 = this.get('thresh1');
+    var thresh2 = this.get('thresh2');
+    return (this.get('data') <= thresh2 && this.get('data') > thresh1 )? true: false;
+  }.property('data','thresh1','thresh2'),
+  isGreen: function () {
+    var thresh1 = this.get('thresh1');
+    var thresh2 = this.get('thresh2');
+    return this.get('data') > thresh2? true: false;
+  }.property('data','thresh1','thresh2'),
 
-  deleteWidget: function (event) {
-    var parent = this.get('parentView');
-    if (App.testMode) {
-      //update view on dashboard
-      var objClass = parent.widgetsMapper(this.id);
-      parent.get('visibleWidgets').removeObject(objClass);
-      parent.get('hiddenWidgets').pushObject(Em.Object.create({displayName: this.title, id: this.id, checked: false}));
-    } else {
-      //reconstruct new persist value then post in persist
-      parent.getUserPref(parent.get('persistKey'));
-      var oldValue = parent.get('currentPrefObject');
-      var deletedId = this.id;
-      var newValue = Em.Object.create({
-        dashboardVersion: oldValue.dashboardVersion,
-        visible: [],
-        hidden: oldValue.hidden,
-        threshold: oldValue.threshold
-      });
-      for (var i = 0; i <= oldValue.visible.length - 1; i++) {
-        if (oldValue.visible[i] != deletedId) {
-          newValue.visible.push(oldValue.visible[i]);
-        }
-      }
-      newValue.hidden.push([deletedId, this.title]);
-      parent.postUserPref(parent.get('persistKey'), newValue);
-      parent.translateToReal(newValue);
-    }
-  },
+  thresh1: 40,
+  thresh2: 70,
+  maxValue: 100,
+
+  data:  function () {
+    var nodeManagers = this.get('model.nodeManagerNodes.length');
+    var nodeManagersLive = this.get('model.nodeManagerLiveNodes.length');
+    return (nodeManagersLive / nodeManagers).toFixed(2) * 100;
+  }.property('model.nodeManagerNodes', 'model.nodeManagerLiveNodes'),
+
+  content: function () {
+    var nodeManagers = this.get('model.nodeManagerNodes.length');
+    var nodeManagersLive = this.get('model.nodeManagerLiveNodes.length');
+    return nodeManagersLive + '/' + nodeManagers;
+  }.property('model.nodeManagerNodes', 'model.nodeManagerLiveNodes'),
 
   editWidget: function (event) {
-    var self = this;
-    var max_tmp =  parseFloat(self.get('maxValue'));
+    var parent = this;
+    var max_tmp =  parseFloat(parent.get('maxValue'));
     var configObj = Ember.Object.create({
-      thresh1: self.get('thresh1') + '',
-      thresh2: self.get('thresh2') + '',
-      hintInfo: 'Edit the percentage thresholds to change the color of current pie chart. ' + ' '+
-        ' Enter two numbers between 0 to ' + max_tmp,
+      thresh1: parent.get('thresh1') + '',
+      thresh2: parent.get('thresh2') + '',
+      hintInfo: 'Edit the percentage of thresholds to change the color of current widget. ' +
+        ' Assume all task trackers UP is 100, and all DOWN is 0. '+
+        ' So enter two numbers between 0 to ' + max_tmp,
       isThresh1Error: false,
       isThresh2Error: false,
       errorMessage1: "",
@@ -107,7 +100,7 @@ App.DashboardWidgetView = Em.View.extend({
           if (isNaN(thresh1) || thresh1 > max_tmp || thresh1 < 0) {
             this.set('isThresh1Error', true);
             this.set('errorMessage1', 'Invalid! Enter a number between 0 - ' + max_tmp);
-          } else if (this.get('isThresh2Error') === false && parseFloat(thresh2)<= parseFloat(thresh1)) {
+          } else if (this.get('isThresh2Error') === false && parseFloat(thresh2)<= parseFloat(thresh1)){
             this.set('isThresh1Error', true);
             this.set('errorMessage1', 'Threshold 1 should be smaller than threshold 2 !');
           } else {
@@ -138,13 +131,12 @@ App.DashboardWidgetView = Em.View.extend({
           $("#slider-range").slider('values', 1 , parseFloat(thresh2));
         }
       }.observes('thresh1', 'thresh2')
-
     });
 
     var browserVerion = this.getInternetExplorerVersion();
     App.ModalPopup.show({
       header: 'Customize Widget',
-      classNames: [ 'sixty-percent-width-modal-edit-widget' ],
+      classNames: [ 'sixty-percent-width-modal-edit-widget'],
       bodyClass: Ember.View.extend({
         templateName: require('templates/main/dashboard/edit_widget_popup'),
         configPropertyObj: configObj
@@ -153,18 +145,16 @@ App.DashboardWidgetView = Em.View.extend({
       onPrimary: function() {
         configObj.observeNewThresholdValue();
         if (!configObj.isThresh1Error && !configObj.isThresh2Error) {
-          self.set('thresh1', parseFloat(configObj.get('thresh1')) );
-          self.set('thresh2', parseFloat(configObj.get('thresh2')) );
-
+          parent.set('thresh1', parseFloat(configObj.get('thresh1')) );
+          parent.set('thresh2', parseFloat(configObj.get('thresh2')) );
           if (!App.testMode) {
-            // save to persist
-            var parent = self.get('parentView');
-            parent.getUserPref(parent.get('persistKey'));
-            var oldValue = parent.get('currentPrefObject');
-            oldValue.threshold[parseInt(self.id)] = [configObj.get('thresh1'), configObj.get('thresh2')];
-            parent.postUserPref(parent.get('persistKey'), oldValue);
+            //save to persit
+            var big_parent = parent.get('parentView');
+            big_parent.getUserPref(big_parent.get('persistKey'));
+            var oldValue = big_parent.get('currentPrefObject');
+            oldValue.threshold[parseInt(parent.id)] = [configObj.get('thresh1'), configObj.get('thresh2')];
+            big_parent.postUserPref(big_parent.get('persistKey'),oldValue);
           }
-
           this.hide();
         }
       },
@@ -175,11 +165,11 @@ App.DashboardWidgetView = Em.View.extend({
 
       didInsertElement: function () {
         var handlers = [configObj.get('thresh1'), configObj.get('thresh2')];
-        var colors = ['#95A800', '#FF8E00', '#B80000']; //color green, orange ,red
+        var colors = ['#B80000', '#FF8E00', '#95A800']; //color red, orange, green
 
         if (browserVerion == -1 || browserVerion > 9) {
           configObj.set('isIE9', false);
-          configObj.set('isGreenOrangeRed', true);
+          configObj.set('isGreenOrangeRed', false);
           $("#slider-range").slider({
             range: true,
             min: 0,
@@ -198,12 +188,13 @@ App.DashboardWidgetView = Em.View.extend({
             }
           });
 
-          function updateColors (handlers) {
+          function updateColors(handlers) {
             var colorstops = colors[0] + ", "; // start with the first color
             for (var i = 0; i < handlers.length; i++) {
-              colorstops += colors[i] + " " + handlers[i]*100/max_tmp + "%,";
-              colorstops += colors[i+1] + " " + handlers[i]*100/max_tmp + "%,";
+              colorstops += colors[i] + " " + handlers[i] + "%,";
+              colorstops += colors[i+1] + " " + handlers[i] + "%,";
             }
+            // end with the last color
             colorstops += colors[colors.length - 1];
             var css1 = '-webkit-linear-gradient(left,' + colorstops + ')'; // chrome & safari
             $('#slider-range').css('background-image', css1);
@@ -217,46 +208,10 @@ App.DashboardWidgetView = Em.View.extend({
           }
         } else {
           configObj.set('isIE9', true);
-          configObj.set('isGreenOrangeRed', true);
+          configObj.set('isGreenOrangeRed', false);
         }
       }
     });
-  },
+  }
 
-  getInternetExplorerVersion: function (){
-    var rv = -1; //return -1 for other browsers
-    if (navigator.appName == 'Microsoft Internet Explorer') {
-      var ua = navigator.userAgent;
-      var re  = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
-      if (re.exec(ua) != null)
-        rv = parseFloat( RegExp.$1 ); // IE version 1-10
-    }
-    var isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
-    if (isFirefox) {
-      return -2;
-    }else{
-      return rv;
-    }
-  },
-
-  /**
-   * for simple-text template,
-   * calculate the hover content top number
-   * based on how long the hiddenInfo is
-   */
-  hoverContentTopClass: function () {
-    var lineNum = this.get('hiddenInfo.length');
-    if (lineNum == 2) {
-      return "simple-text-hidden-two-line";
-    } else if (lineNum == 3) {
-      return "simple-text-hidden-three-line";
-    } else if (lineNum == 4) {
-      return "simple-text-hidden-four-line";
-    } else if (lineNum == 5) {
-      return "simple-text-hidden-five-line";
-    }
-  }.property('this.hiddenInfo.length')
-
-});
-
-
+})

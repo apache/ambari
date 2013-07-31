@@ -26,7 +26,7 @@
       <i class="icon-edit"></i>
     </a>
 
-    <div class="hidden-info">
+    <div {{bindAttr class=":hidden-info-general view.hiddenInfoClass" }}>
       <table align="center">
         {{#each line in view.hiddenInfo}}
             <tr><td>{{line}}</td></tr>

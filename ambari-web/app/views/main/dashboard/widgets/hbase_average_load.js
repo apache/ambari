@@ -55,7 +55,7 @@ App.HBaseAverageLoadView = App.DashboardWidgetView.extend({
     return this.get('data') > thresh2? true: false;
   }.property('data','thresh1','thresh2'),
   isNA: function (){
-    return this.get('data') === null;
+    return this.get('data') === null || isNaN(this.get('data'));
   }.property('data'),
 
   thresh1: 0.5,

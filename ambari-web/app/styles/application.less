@@ -2002,6 +2002,7 @@ table.graphs {
     .filter-components{
       overflow: auto;
       max-height: 375px;
+      width: 210px;
       color: #333333;
       right: 0;
       left: auto;
@@ -2098,28 +2099,23 @@ table.graphs {
         color: #555555;
       }
     }
-    .thumbnail .hidden-info{
+    .thumbnail .hidden-info-general{
       color: #555555;
       font-size: 12px;
       font-weight: bold;
-      padding-top: 60px;
       text-align: center;
       text-decoration: none;
       display: none;
       position: relative;
     }
-    .thumbnail .hidden-info-three-line{
-      color: #555555;
-      font-size: 12px;
-      font-weight: bold;
+    .hidden-info-two-line{
+      padding-top: 60px;
+    }
+    .hidden-info-three-line{
       padding-top: 50px;
-      text-align: center;
-      text-decoration: none;
-      display: none;
-      position: relative;
-      table td{
-        text-align: center ;
-      }
+    }
+    .hidden-info-five-line{
+      padding-top: 40px;
     }
     .thumbnail .caption {
       padding-left: 0px;
@@ -2165,11 +2161,7 @@ table.graphs {
         text-decoration: none;
         z-index: 9;
       }
-      .hidden-info{
-        display: block;
-        z-index: 7;
-      }
-      .hidden-info-three-line{
+      .hidden-info-general{
         display: block;
         z-index: 7;
       }
@@ -2207,6 +2199,16 @@ table.graphs {
       }
       .simple-text-hidden-three-line{
         top: -116px;
+        opacity: 0.3;
+        z-index: 5;
+      }
+      .simple-text-hidden-four-line{
+        top: -126px;
+        opacity: 0.3;
+        z-index: 5;
+      }
+      .simple-text-hidden-five-line{
+        top: -150px;
         opacity: 0.3;
         z-index: 5;
       }
@@ -2286,7 +2288,7 @@ table.graphs {
       }
     }
     .thumbnail .widget-content .svg {
-      position:relative;
+      position: relative;
     }
 
     #map-reduce-slots-text{
@@ -4398,11 +4400,14 @@ i.icon-asterisks {
     .thumbnail .caption {
       font-size: 14px;
     }
-    .thumbnail .hidden-info{
+    .thumbnail .hidden-info-two-line {
       font-size: 14px;
     }
     .thumbnail .hidden-info-three-line{
       font-size: 14px;
+    }
+    .thumbnail .hidden-info-five-line{
+      font-size: 12px;
     }
     .links .thumbnail .widget-content{
         font-weight: bold;

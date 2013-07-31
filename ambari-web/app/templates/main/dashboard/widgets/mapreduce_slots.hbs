@@ -21,7 +21,7 @@
     <a class="corner-icon span1" href="#" {{action deleteWidget target="view"}}><i class="icon-remove-sign icon-large"></i></a>
     <div class="caption span10 slots-caption"> {{view.title}}</div>
 
-    <div class="hidden-info">
+    <div {{bindAttr class=":hidden-info-general view.hiddenInfoClass"}}>
       <table align="center">
         {{#each line in view.hiddenInfo}}
           <tr><td>{{line}}</td></tr>{{/each}}

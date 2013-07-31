@@ -1136,6 +1136,9 @@ Em.I18n.translations = {
   'dashboard.widgets.HBaseMasterHeap': 'HBase Master Heap',
   'dashboard.widgets.HBaseRegionsInTransition': 'Region In Transition',
   'dashboard.widgets.HBaseMasterUptime': 'HBase Master Uptime',
+  'dashboard.widgets.ResourceManagerHeap': 'ResourceManager Heap',
+  'dashboard.widgets.ResourceManagerUptime': 'ResourceManager Uptime',
+  'dashboard.widgets.NodeManagersLive': 'NodeManagers Live',
 
   'dashboard.services':'Services',
   'dashboard.services.hosts':'Hosts',
