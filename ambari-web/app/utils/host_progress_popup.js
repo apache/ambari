@@ -192,13 +192,10 @@ App.HostPopup = Em.Object.create({
    */
   setBackgroundOperationHeader: function () {
     if (this.get("showServices")) {
-      var allServices = this.get("servicesInfo");
-      var numRunning = 0;
-      numRunning = allServices.filterProperty("status", App.format.taskStatus("IN_PROGRESS")).length;
-      numRunning += allServices.filterProperty("status", App.format.taskStatus("QUEUED")).length;
-      numRunning += allServices.filterProperty("status", App.format.taskStatus("PENDING")).length;
+      var numRunning = this.get('categories').findProperty("value", 'pending').get("count");
+      numRunning += this.get('categories').findProperty("value", 'in_progress').get("count");
       this.set("popupHeaderName", numRunning + Em.I18n.t('hostPopup.header.postFix'));
-    }else{
+    } else {
       this.set("popupHeaderName", this.get("serviceName"));
     }
   },
