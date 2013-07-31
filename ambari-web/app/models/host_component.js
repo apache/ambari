@@ -128,6 +128,7 @@ App.HostComponentStatus = {
   install_failed: "INSTALL_FAILED",
   installing: "INSTALLING",
   upgrade_failed: "UPGRADE_FAILED",
+  maintenance: "MAINTENANCE",
   unknown: "UNKNOWN",
 
   getKeyName:function(value){
@@ -146,6 +147,8 @@ App.HostComponentStatus = {
         return 'installing';
       case this.upgrade_failed:
         return 'upgrade_failed';
+      case this.maintenance:
+        return 'maintenance';
       case this.unknown:
         return 'unknown';
     }
