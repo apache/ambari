@@ -85,18 +85,8 @@ module.exports = [
         ]
       }),
       Ember.Object.create({
-        service_name: 'MAPREDUCE2',
-        display_name: 'MapReduce 2',
-        service_components: [
-          Ember.Object.create({
-            display_name: 'History Server',
-            component_value: ''
-          })
-        ]
-      }),
-      Ember.Object.create({
         service_name: 'YARN',
-        display_name: 'YARN',
+        display_name: 'YARN + MapReduce2',
         service_components: [
           Ember.Object.create({
             display_name: 'Node Manager',
@@ -104,6 +94,10 @@ module.exports = [
           }),
           Ember.Object.create({
             display_name: 'Resource Manager',
+            component_value: ''
+          }),
+          Ember.Object.create({
+            display_name: 'History Server',
             component_value: ''
           })
         ]

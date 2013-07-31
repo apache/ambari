@@ -49,11 +49,12 @@ module.exports = [
     isDisabled: false,
     isSelected: true,
     canBeSelected: true,
+    isHidden: true,
     description: Em.I18n.t('services.mapreduce2.description')
   },
   {
     serviceName: 'YARN',
-    displayName: 'YARN',
+    displayName: 'YARN + MapReduce2',
     isDisabled: false,
     isSelected: true,
     canBeSelected: true,

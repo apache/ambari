@@ -552,6 +552,9 @@ App.WizardStep8Controller = Em.Controller.extend({
         case 'Resource Manager':
           _component.set('component_value', this.get('content.masterComponentHosts').findProperty('component', 'RESOURCEMANAGER').hostName);
           break;
+        case 'History Server':
+          _component.set('component_value', this.get('content.masterComponentHosts').findProperty('component', 'HISTORYSERVER').hostName);
+          break;
       }
     }, this);
     this.get('services').pushObject(mrObj);
@@ -570,14 +573,6 @@ App.WizardStep8Controller = Em.Controller.extend({
   loadTtValue: function (ttComponent) {
     var ttHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'TaskTracker');
     var totalTtHosts = ttHosts.hosts.length;
-    /* var totalGroups = this.get('slaveComponentConfig.components').findProperty('componentName', 'TASKTRACKER').groups.length;
-     var groupLabel;
-     if (totalGroups == 1) {
-     groupLabel = 'group';
-     } else {
-     groupLabel = 'groups';
-     }
-     */
     ttComponent.set('component_value', totalTtHosts + Em.I18n.t('installer.step8.hosts'));
   },
 

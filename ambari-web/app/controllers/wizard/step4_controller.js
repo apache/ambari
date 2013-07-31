@@ -51,15 +51,19 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     var hive = this.findProperty('serviceName', 'HIVE');
     var hcatalog = this.findProperty('serviceName', 'HCATALOG');
     var webhcat = this.findProperty('serviceName', 'WEBHCAT');
+    var yarn = this.findProperty('serviceName', 'YARN');
+    var mapreduce2 = this.findProperty('serviceName', 'MAPREDUCE2');
 
     // prevent against getting error when not all elements have been loaded yet
-    if (hbase && zookeeper && hive && hcatalog && webhcat) {
+    if (hbase && zookeeper && hive && hcatalog && webhcat && yarn && mapreduce2) {
       if (stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === -1) {
         zookeeper.set('isSelected', hbase.get('isSelected') || hive.get('isSelected'));
-      }else{
+      }
+      else {
         if (!zookeeper.get('isSelected')) {
           zookeeper.set('isSelected', hbase.get('isSelected'));
         }
+        mapreduce2.set('isSelected', yarn.get('isSelected'));
       }
       hcatalog.set('isSelected', hive.get('isSelected'));
       webhcat.set('isSelected', hive.get('isSelected'));
