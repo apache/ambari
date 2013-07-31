@@ -116,6 +116,23 @@
   </property>
 
   <property>
+    <name>yarn.nodemanager.local-dirs</name>
+    <value></value>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.linux-container-executor.group</name>
+    <value>hadoop</value>
+    <description>Unix group of the NodeManager</description>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.container-executor.class</name>
+    <value>org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor</value>
+    <description>Executor(launcher) of the containers</description>
+  </property>
+
+  <property>
     <name>yarn.nodemanager.container-monitor.interval-ms</name>
     <value>3000</value>
     <description>The interval, in milliseconds, for which the node manager

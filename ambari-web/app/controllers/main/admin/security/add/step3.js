@@ -45,7 +45,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     var hosts = App.Host.find();
     var result = [];
     var componentsToDisplay = ['NAMENODE', 'SECONDARY_NAMENODE', 'DATANODE', 'JOBTRACKER', 'ZOOKEEPER_SERVER', 'HIVE_SERVER', 'TASKTRACKER',
-      'OOZIE_SERVER', 'NAGIOS_SERVER', 'HBASE_MASTER', 'HBASE_REGIONSERVER'];
+      'OOZIE_SERVER', 'NAGIOS_SERVER', 'HBASE_MASTER', 'HBASE_REGIONSERVER','HISTORYSERVER','RESOURCEMANAGER','NODEMANAGER'];
     var securityUsers = [];
     if (!securityUsers || securityUsers.length < 1) { // Page could be refreshed in middle
       securityUsers = this.getSecurityUsers();
@@ -58,6 +58,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     var hdfsUserId = securityUsers.findProperty('name', 'hdfs_user').value;
     var hbaseUserId = securityUsers.findProperty('name', 'hbase_user').value;
     var mapredUserId = securityUsers.findProperty('name', 'mapred_user').value;
+    var yarnUserId =  securityUsers.findProperty('name', 'yarn_user').value;
     var hiveUserId = securityUsers.findProperty('name', 'hive_user').value;
     var zkUserId = securityUsers.findProperty('name', 'zk_user').value;
     var oozieUserId = securityUsers.findProperty('name', 'oozie_user').value;
@@ -78,6 +79,9 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       'DATANODE': hdfsUserId,
       'TASKTRACKER': mapredUserId,
       'JOBTRACKER': mapredUserId,
+      'HISTORYSERVER': mapredUserId,
+      'RESOURCEMANAGER':yarnUserId,
+      'NODEMANAGER':yarnUserId,
       'ZOOKEEPER_SERVER': zkUserId,
       'HIVE_SERVER': hiveUserId,
       'OOZIE_SERVER': oozieUserId,
@@ -213,6 +217,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     if (App.testMode) {
       securityUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'hdfs'});
       securityUsers.pushObject({id: 'puppet var', name: 'mapred_user', value: 'mapred'});
+      securityUsers.pushObject({id: 'puppet var', name: 'yarn_user', value: 'yarn'});
       securityUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: 'hbase'});
       securityUsers.pushObject({id: 'puppet var', name: 'hive_user', value: 'hive'});
       securityUsers.pushObject({id: 'puppet var', name: 'smokeuser', value: 'ambari-qa'});

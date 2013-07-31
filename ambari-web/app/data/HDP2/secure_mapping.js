@@ -33,15 +33,14 @@ module.exports = [
     "filename": "core-site.xml",
     "serviceName": "HDFS"
   },
-
   {
     "name": "hadoop.security.auth_to_local",
-    "templateName": ["jobtracker_primary_name", "kerberos_domain", "mapred_user", "tasktracker_primary_name", "namenode_primary_name", "hdfs_user", "datanode_primary_name", "hbase_master_primary_name", "hbase_user","hbase_regionserver_primary_name","oozie_primary_name","oozie_user"],
+    "templateName": ["resourcemanager_primary_name", "kerberos_domain", "yarn_user", "nodemanager_primary_name", "namenode_primary_name", "hdfs_user", "datanode_primary_name", "hbase_master_primary_name", "hbase_user","hbase_regionserver_primary_name","oozie_primary_name","oozie_user","jobhistory_primary_name","mapred_user"],
     "foreignKey": null,
-    "value": "RULE:[2:$1@$0](<templateName[0]>@.*<templateName[1]>)s/.*/<templateName[2]>/\nRULE:[2:$1@$0](<templateName[3]>@.*<templateName[1]>)s/.*/<templateName[2]>/\nRULE:[2:$1@$0](<templateName[4]>@.*<templateName[1]>)s/.*/<templateName[5]>/\nRULE:[2:$1@$0](<templateName[6]>@.*<templateName[1]>)s/.*/<templateName[5]>/\nRULE:[2:$1@$0](<templateName[7]>@.*<templateName[1]>)s/.*/<templateName[8]>/\nRULE:[2:$1@$0](<templateName[9]>@.*<templateName[1]>)s/.*/<templateName[8]>/\nRULE:[2:$1@$0](<templateName[10]>@.*<templateName[1]>)s/.*/<templateName[11]>/\nDEFAULT",
+    "value": "RULE:[2:$1@$0](<templateName[0]>@.*<templateName[1]>)s/.*/<templateName[2]>/\nRULE:[2:$1@$0](<templateName[3]>@.*<templateName[1]>)s/.*/<templateName[2]>/\nRULE:[2:$1@$0](<templateName[4]>@.*<templateName[1]>)s/.*/<templateName[5]>/\nRULE:[2:$1@$0](<templateName[6]>@.*<templateName[1]>)s/.*/<templateName[5]>/\nRULE:[2:$1@$0](<templateName[7]>@.*<templateName[1]>)s/.*/<templateName[8]>/\nRULE:[2:$1@$0](<templateName[9]>@.*<templateName[1]>)s/.*/<templateName[8]>/\nRULE:[2:$1@$0](<templateName[10]>@.*<templateName[1]>)s/.*/<templateName[11]>/\nRULE:[2:$1@$0](<templateName[12]>@.*<templateName[1]>)s/.*/<templateName[13]>/\nDEFAULT",
     "filename": "core-site.xml",
     "serviceName": "HDFS",
-    "dependedServiceName": [{name: "HBASE", replace: "\nRULE:[2:$1@$0](<templateName[7]>@.*<templateName[1]>)s/.*/<templateName[8]>/\nRULE:[2:$1@$0](<templateName[9]>@.*<templateName[1]>)s/.*/<templateName[8]>/"},{name: "OOZIE",replace: "\nRULE:[2:$1@$0](<templateName[10]>@.*<templateName[1]>)s/.*/<templateName[11]>/"}]
+    "dependedServiceName": [{name: "HBASE", replace: "\nRULE:[2:$1@$0](<templateName[7]>@.*<templateName[1]>)s/.*/<templateName[8]>/\nRULE:[2:$1@$0](<templateName[9]>@.*<templateName[1]>)s/.*/<templateName[8]>/"},{name: "OOZIE",replace: "\nRULE:[2:$1@$0](<templateName[10]>@.*<templateName[1]>)s/.*/<templateName[11]>/"},{name: "MAPREDUCE2",replace: "\nRULE:[2:$1@$0](<templateName[12]>@.*<templateName[1]>)s/.*/<templateName[13]>/"}]
   },
   {
     "name": "dfs.namenode.kerberos.principal",
@@ -139,60 +138,60 @@ module.exports = [
     "serviceName": "HDFS"
   },
   {
-    "name": "mapreduce.jobtracker.kerberos.principal",
-    "templateName": ["jobtracker_principal_name", "kerberos_domain"],
+    "name": "mapreduce.jobhistory.principal",
+    "templateName": ["jobhistory_principal_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "mapred-site.xml",
-    "serviceName": "MAPREDUCE"
+    "serviceName": "MAPREDUCE2"
   },
   {
-    "name": "mapreduce.jobtracker.keytab.file",
-    "templateName": ["jobtracker_keytab"],
+    "name": "mapreduce.jobhistory.keytab",
+    "templateName": ["jobhistory_keytab"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "mapred-site.xml",
-    "serviceName": "MAPREDUCE"
+    "serviceName": "MAPREDUCE2"
   },
   {
-    "name": "mapreduce.jobhistory.kerberos.principal",
-    "templateName": ["jobtracker_principal_name", "kerberos_domain"],
+    "name": "yarn.resourcemanager.principal",
+    "templateName": ["resourcemanager_principal_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
-    "filename": "mapred-site.xml",
-    "serviceName": "MAPREDUCE"
+    "filename": "yarn-site.xml",
+    "serviceName": "YARN"
   },
   {
-    "name": "mapreduce.jobhistory.keytab.file",
-    "templateName": ["jobtracker_keytab"],
+    "name": "yarn.resourcemanager.keytab",
+    "templateName": ["resourcemanager_keytab"],
     "foreignKey": null,
     "value": "<templateName[0]>",
-    "filename": "mapred-site.xml",
-    "serviceName": "MAPREDUCE"
+    "filename": "yarn-site.xml",
+    "serviceName": "YARN"
   },
   {
-    "name": "mapreduce.tasktracker.kerberos.principal",
-    "templateName": ["tasktracker_principal_name", "kerberos_domain"],
+    "name": "yarn.nodemanager.principal",
+    "templateName": ["nodemanager_principal_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
-    "filename": "mapred-site.xml",
-    "serviceName": "MAPREDUCE"
+    "filename": "yarn-site.xml",
+    "serviceName": "YARN"
   },
   {
-    "name": "mapreduce.tasktracker.keytab.file",
-    "templateName": ["tasktracker_keytab"],
+    "name": "yarn.nodemanager.keytab",
+    "templateName": ["nodemanager_keytab"],
     "foreignKey": null,
     "value": "<templateName[0]>",
-    "filename": "mapred-site.xml",
-    "serviceName": "MAPREDUCE"
+    "filename": "yarn-site.xml",
+    "serviceName": "YARN"
   },
   {
-    "name": "mapred.task.tracker.task-controller",
-    "templateName": ["tasktracker_task_controller"],
+    "name": "yarn.nodemanager.container-executor.class",
+    "templateName": ["yarn_nodemanager_container-executor_class"],
     "foreignKey": null,
     "value": "<templateName[0]>",
-    "filename": "mapred-site.xml",
-    "serviceName": "MAPREDUCE"
+    "filename": "yarn-site.xml",
+    "serviceName": "YARN"
   },
   {
     "name": "hbase.master.kerberos.principal",
@@ -340,7 +339,7 @@ module.exports = [
   },
   {
     "name": "oozie.authentication.kerberos.name.rules",
-    "templateName": ["jobtracker_primary_name", "kerberos_domain", "mapred_user", "tasktracker_primary_name", "namenode_primary_name", "hdfs_user", "datanode_primary_name", "hbase_master_primary_name", "hbase_user","hbase_regionserver_primary_name"],
+    "templateName": ["resourcemanager_primary_name", "kerberos_domain", "yarn_user", "nodemanager_primary_name", "namenode_primary_name", "hdfs_user", "datanode_primary_name", "hbase_master_primary_name", "hbase_user","hbase_regionserver_primary_name"],
     "foreignKey": null,
     "value": "RULE:[2:$1@$0](<templateName[0]>@.*<templateName[1]>)s/.*/<templateName[2]>/\nRULE:[2:$1@$0](<templateName[3]>@.*<templateName[1]>)s/.*/<templateName[2]>/\nRULE:[2:$1@$0](<templateName[4]>@.*<templateName[1]>)s/.*/<templateName[5]>/\nRULE:[2:$1@$0](<templateName[6]>@.*<templateName[1]>)s/.*/<templateName[5]>/\nRULE:[2:$1@$0](<templateName[7]>@.*<templateName[1]>)s/.*/<templateName[8]>/\nRULE:[2:$1@$0](<templateName[9]>@.*<templateName[1]>)s/.*/<templateName[8]>/\nDEFAULT",
     "filename": "oozie-site.xml",

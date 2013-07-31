@@ -60,7 +60,13 @@ App.AddSecurityController = App.WizardController.extend({
    */
   loadServices: function () {
     this.clearServices();
-    var secureServices = require('data/secure_configs');
+    var secureServices;
+    if(App.get('isHadoop2Stack')) {
+      secureServices = require('data/HDP2/secure_configs');
+    } else {
+      secureServices = require('data/secure_configs');
+    }
+
     var installedServices = this.get('installedServices');
     //General (only non service tab) tab is always displayed
     this.get('content.services').push(secureServices.findProperty('serviceName', 'GENERAL'));

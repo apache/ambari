@@ -140,6 +140,11 @@ App.MainAdminSecurityController = Em.Controller.extend({
     });
     serviceUsers.pushObject({
       id: 'puppet var',
+      name: 'yarn_user',
+      value: configs['yarn_user'] ? configs['yarn_user'] : 'yarn'
+    });
+    serviceUsers.pushObject({
+      id: 'puppet var',
       name: 'mapred_user',
       value: configs['mapred_user'] ? configs['mapred_user'] : 'mapred'
     });

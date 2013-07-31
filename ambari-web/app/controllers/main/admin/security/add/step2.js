@@ -175,9 +175,11 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
   addSlaveHostToGlobals: function(serviceConfigs){
     var hdfsService = serviceConfigs.findProperty('serviceName', 'HDFS');
     var mapReduceService = serviceConfigs.findProperty('serviceName', 'MAPREDUCE');
+    var yarnService = serviceConfigs.findProperty('serviceName', 'YARN');
     var hbaseService = serviceConfigs.findProperty('serviceName', 'HBASE');
     this.setHostsToConfig(hdfsService, 'datanode_hosts', 'DATANODE');
     this.setHostsToConfig(mapReduceService, 'tasktracker_hosts', 'TASKTRACKER');
+    this.setHostsToConfig(yarnService, 'nodemanager_host', 'NODEMANAGER');
     this.setHostsToConfig(hbaseService, 'regionserver_hosts', 'HBASE_REGIONSERVER');
   },
 
@@ -190,6 +192,8 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     var zooKeeperService = serviceConfigs.findProperty('serviceName', 'ZOOKEEPER');
     var hdfsService = serviceConfigs.findProperty('serviceName', 'HDFS');
     var mapReduceService = serviceConfigs.findProperty('serviceName', 'MAPREDUCE');
+    var mapReduce2Service = serviceConfigs.findProperty('serviceName', 'MAPREDUCE2');
+    var yarnService = serviceConfigs.findProperty('serviceName', 'YARN');
     if (oozieService) {
       var oozieServerHost = oozieService.configs.findProperty('name', 'oozie_servername');
       var oozieServerPrincipal = oozieService.configs.findProperty('name', 'oozie_principal_name');
@@ -235,6 +239,18 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
       var jobTrackerHost = mapReduceService.configs.findProperty('name', 'jobtracker_host');
       if (jobTrackerHost) {
         jobTrackerHost.defaultValue = App.Service.find('MAPREDUCE').get('hostComponents').findProperty('componentName', 'JOBTRACKER').get('host.hostName');
+      }
+    }
+    if(mapReduce2Service){
+      var jobHistoryServerHost = mapReduce2Service.configs.findProperty('name', 'jobhistoryserver_host');
+      if (jobHistoryServerHost) {
+        jobHistoryServerHost.defaultValue = App.Service.find('MAPREDUCE2').get('hostComponents').findProperty('componentName', 'HISTORYSERVER').get('host.hostName');
+      }
+    }
+    if(yarnService){
+      var resourceManagerHost = yarnService.configs.findProperty('name', 'resourcemanager_host');
+      if (resourceManagerHost) {
+        resourceManagerHost.defaultValue = App.Service.find('YARN').get('hostComponents').findProperty('componentName', 'RESOURCEMANAGER').get('host.hostName');
       }
     }
     this.setHostsToConfig(hbaseService, 'hbasemaster_host', 'HBASE_MASTER');

@@ -26,6 +26,7 @@ App.testEnableSecurity = true; // By default enable security is tested; turning 
 App.apiPrefix = '/api/v1';
 App.defaultStackVersion = 'HDP-1.3.0';
 App.defaultLocalStackVersion = 'HDPLocal-1.3.0';
+App.testHadoop2Stack = true;
 App.defaultJavaHome = '/usr/jdk/jdk1.6.0_31';
 App.timeout = 180000; // default AJAX timeout
 App.maxRetries = 3; // max number of retries for certain AJAX calls

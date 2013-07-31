@@ -20,9 +20,21 @@ var App = require('app');
 App.MainAdminSecurityDisableController = Em.Controller.extend({
 
   name: 'mainAdminSecurityDisableController',
-  secureMapping: require('data/secure_mapping'),
-  configMapping: App.config.get('configMapping'),
-  secureProperties: require('data/secure_properties').configProperties.slice(0),
+  secureMapping: function() {
+    if(App.get('isHadoop2Stack')) {
+      return require('data/HDP2/secure_mapping');
+    } else {
+      return require('data/secure_mapping');
+    }
+  }.property(App.isHadoop2Stack),
+  secureProperties: function() {
+    if(App.get('isHadoop2Stack')) {
+      return require('data/HDP2/secure_properties').configProperties;
+    } else {
+      return require('data/secure_properties').configProperties;
+    }
+  }.property(App.isHadoop2Stack),
+
   stages: [],
   configs: [],
   noOfWaitingAjaxCalls: 0,
@@ -370,6 +382,9 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
                   break;
                 case 'mapred.task.tracker.task-controller':
                   _serviceConfigTags.configs[configName] = 'org.apache.hadoop.mapred.DefaultTaskController';
+                  break;
+                case 'yarn.nodemanager.container-executor.class':
+                  _serviceConfigTags.configs[configName] = 'org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor';
                   break;
                 case 'hbase.security.authentication':
                   _serviceConfigTags.configs[configName] = 'simple';

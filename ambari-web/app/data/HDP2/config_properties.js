@@ -736,6 +736,18 @@ module.exports =
       "serviceName": "YARN",
       "category": "Advanced"
     },
+    {
+      "id": "puppet var",
+      "name": "yarn_nodemanager_local-dirs",
+      "displayName": "YARN local directories",
+      "defaultValue": "",
+      "defaultDirectory": "/hadoop/yarn",
+      "displayType": "directories",
+      "isReconfigurable": true,
+      "isVisible": true,
+      "serviceName": "YARN",
+      "category": "Advanced"
+    },
   /**********************************************HBASE***************************************/
     {
       "id": "puppet var",

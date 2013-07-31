@@ -20,8 +20,20 @@ var App = require('app');
 App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
 
   name: 'mainAdminSecurityAddStep4Controller',
-  secureMapping: require('data/secure_mapping'),
-  secureProperties: require('data/secure_properties').configProperties,
+  secureMapping: function() {
+    if(App.get('isHadoop2Stack')) {
+      return require('data/HDP2/secure_mapping');
+    } else {
+      return require('data/secure_mapping');
+    }
+  }.property(App.isHadoop2Stack),
+  secureProperties: function() {
+    if(App.get('isHadoop2Stack')) {
+      return require('data/HDP2/secure_properties').configProperties;
+    } else {
+      return require('data/secure_properties').configProperties;
+    }
+  }.property(App.isHadoop2Stack),
   stages: [],
   configs: [],
   noOfWaitingAjaxCalls: 0,

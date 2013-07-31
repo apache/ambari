@@ -18,7 +18,7 @@
 var App = require('app');
 require('models/service_config');
 App.SecureConfigProperties = Ember.ArrayProxy.extend({
-  content: require('data/secure_properties').configProperties
+  content: require('data/HDP2/secure_properties').configProperties
 });
 
 var configProperties = App.SecureConfigProperties.create();
@@ -47,19 +47,27 @@ module.exports = [
     sites: ['core-site', 'hdfs-site'],
     configs: configProperties.filterProperty('serviceName', 'HDFS')
   },
-
   {
-    serviceName: 'MAPREDUCE',
-    displayName: 'MapReduce',
+    serviceName: 'MAPREDUCE2',
+    displayName: 'MapReduce2',
     filename: 'mapred-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'JobTracker', displayName: 'JobTracker and Job History Server'}),
-      App.ServiceConfigCategory.create({ name: 'TaskTracker', displayName: 'TaskTracker'})
+      App.ServiceConfigCategory.create({ name: 'JobHistoryServer', displayName: 'Job History Server'})
     ],
     sites: ['mapred-site'],
-    configs: configProperties.filterProperty('serviceName', 'MAPREDUCE')
+    configs: configProperties.filterProperty('serviceName', 'MAPREDUCE2')
   },
-
+  {
+    serviceName: 'YARN',
+    displayName: 'YARN',
+    filename: 'yarn-site',
+    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'ResourceManager', displayName : 'Resource Manager'}),
+      App.ServiceConfigCategory.create({ name: 'NodeManager', displayName : 'Node Manager'})
+      ],
+    sites: ['yarn-site'],
+    configs: configProperties.filterProperty('serviceName', 'YARN')
+  },
   {
     serviceName: 'HIVE',
     displayName: 'Hive',

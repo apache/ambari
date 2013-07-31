@@ -151,9 +151,10 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
           );
         }
       } else if (changedProperty.get("name") == "user_group") {
-        if (!(this.get("controller.selectedServiceNames").indexOf("MAPREDUCE") >= 0)) {
+        if (!((this.get("controller.selectedServiceNames").indexOf("MAPREDUCE") >= 0) || (this.get("controller.selectedServiceNames").indexOf("YARN") >= 0))) {
           return;
         }
+        if(this.get("controller.selectedServiceNames").indexOf("MAPREDUCE") >= 0) {
         curConfigs = stepConfigs.findProperty("serviceName", "MAPREDUCE").get("configs");
         if (newValue != curConfigs.findProperty("name", "mapreduce.tasktracker.group").get("value")) {
           this.affectedProperties.push(
@@ -178,6 +179,22 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
               changedPropertyName: "user_group"
             }
           );
+        }
+        }
+        if (this.get("controller.selectedServiceNames").indexOf("YARN") >= 0) {
+        curConfigs = stepConfigs.findProperty("serviceName", "YARN").get("configs");
+        if (newValue != curConfigs.findProperty("name", "yarn.nodemanager.linux-container-executor.group").get("value")) {
+          this.affectedProperties.push(
+            {
+              serviceName: "YARN",
+              propertyName: "yarn.nodemanager.linux-container-executor.group",
+              propertyDisplayName: "yarn.nodemanager.linux-container-executor.group",
+              newValue: newValue,
+              curValue: curConfigs.findProperty("name", "yarn.nodemanager.linux-container-executor.group").get("value"),
+              changedPropertyName: "user_group"
+            }
+          )
+        }
         }
       }
       if (this.affectedProperties.length > 0 && !this.get("controller.miscModalVisible")) {

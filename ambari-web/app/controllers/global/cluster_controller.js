@@ -241,8 +241,8 @@ App.ClusterController = Em.Controller.extend({
       callback();
       return false;
     }
-
-    var servicesUrl = this.getUrl('/data/dashboard/services.json', '/services?fields=ServiceInfo,components/host_components/HostRoles/desired_state,components/host_components/HostRoles/state');
+    var testUrl = App.testHadoop2Stack ? '/data/dashboard/HDP2/services.json':'/data/dashboard/services.json';
+    var servicesUrl = this.getUrl(testUrl, '/services?fields=ServiceInfo,components/host_components/HostRoles/desired_state,components/host_components/HostRoles/state');
 
     App.HttpClient.get(servicesUrl, App.statusMapper, {
       complete: callback
