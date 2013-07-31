@@ -41,6 +41,8 @@ class hdp-ganglia::monitor(
 
     hdp::package { 'ganglia-monitor': }
 
+    hdp::package { 'ganglia-gmond-modules-python': }
+
     if ($hdp::params::service_exists['hdp-ganglia::server'] != true) {
       class { 'hdp-ganglia::config': ganglia_server_host => $ganglia_server_host}
     }
@@ -64,11 +66,11 @@ class hdp-ganglia::monitor(
     class { 'hdp-ganglia::monitor::ownership': }
 
     if ($hdp::params::service_exists['hdp-ganglia::server'] != true) {
-      Class['hdp-ganglia'] -> Hdp::Package['ganglia-monitor'] -> Class['hdp-ganglia::config'] -> 
+      Class['hdp-ganglia'] -> Hdp::Package['ganglia-monitor'] -> Hdp::Package['ganglia-gmond-modules-python'] -> Class['hdp-ganglia::config'] -> 
         Class['hdp-ganglia::monitor::config-gen'] -> Class['hdp-ganglia::monitor::ownership'] ->
         Class['hdp-ganglia::monitor::gmond']
     } else {
-      Hdp::Package['ganglia-monitor'] ->  Class['hdp-ganglia::monitor::config-gen'] ->
+      Hdp::Package['ganglia-monitor'] -> Hdp::Package['ganglia-gmond-modules-python'] -> Class['hdp-ganglia::monitor::config-gen'] ->
         Class['hdp-ganglia::monitor::ownership'] -> Class['hdp-ganglia::monitor::gmond']
     }
   }

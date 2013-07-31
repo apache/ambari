@@ -577,14 +577,17 @@ class hdp::params()
     {
       'ALL' => {64 => {'ALL' => 'perl-Net-SNMP'}}
     },
-
+        
     nagios-server => {
       'ALL' => {
         64 => {
-            'ALL' => 'nagios-3.2.3',
-            suse => ['nagios-3.2.3','nagios-www-3.2.3']
+            'ALL' => ['nagios-3.5.0-99','nagios-www-3.5.0-99']
           }
         }
+    },
+
+    nagios-devel => {
+      'ALL' => {64 => {'ALL' => 'nagios-devel-3.5.0-99'}}
     },
 
     nagios-fping => {
@@ -614,20 +617,28 @@ class hdp::params()
       }
     },
 
+    ganglia-devel => {
+      'ALL' => {64 => {'ALL' => 'ganglia-devel-3.5.0-99'}}
+    },
+
+    libganglia => {
+      'ALL' => {64 => {'ALL' => 'libganglia-3.5.0-99'}}
+    },
+
     ganglia-server => {
-      'ALL' => {64 => {'ALL' => 'ganglia-gmetad-3.2.0'}}
+      'ALL' => {64 => {'ALL' => 'ganglia-gmetad-3.5.0-99'}}
     },
 
-    ganglia-gweb => {
-      'ALL' => {64 => {'ALL' => 'gweb'}}
-    },
-
-    ganglia-hdp-gweb-addons => {
-      'ALL' => {64 => {'ALL' => 'hdp_mon_ganglia_addons'}}
+    ganglia-web => {
+      'ALL' => {64 => {'ALL' => 'ganglia-web-3.5.7-99.noarch'}}
     },
 
     ganglia-monitor => {
-      'ALL' => {64 => {'ALL' =>'ganglia-gmond-3.2.0'}}
+      'ALL' => {64 => {'ALL' =>'ganglia-gmond-3.5.0-99'}}
+    },
+
+    ganglia-gmond-modules-python => {
+      'ALL' => {64 => {'ALL' =>'ganglia-gmond-modules-python-3.5.0-99'}}
     },
 
     rrdtool-python => {
@@ -711,10 +722,10 @@ class hdp::params()
   $nagios_lookup_daemon_strs = 
   {
     suse => '/usr/sbin/nagios',
-    centos6 => '/usr/bin/nagios',
-    centos5 => '/usr/bin/nagios',
-    redhat6 => '/usr/bin/nagios',
-    redhat5 => '/usr/bin/nagios',
+    centos6 => '/usr/sbin/nagios',
+    centos5 => '/usr/sbin/nagios',
+    redhat6 => '/usr/sbin/nagios',
+    redhat5 => '/usr/sbin/nagios',
     oraclelinux6 => '/usr/bin/nagios',
     oraclelinux5 => '/usr/bin/nagios'
   }
