@@ -154,6 +154,7 @@ define service {
         max_check_attempts      4
 }
 
+<%if scope.function_hdp_nagios_members_exist('jobtracker')-%>
 define service {
         hostgroup_name          ganglia-server
         use                     hadoop-service
@@ -164,6 +165,7 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      4
 }
+<%end-%>
 
 <%if scope.function_hdp_nagios_members_exist('hbasemasters')-%>
 define service {
