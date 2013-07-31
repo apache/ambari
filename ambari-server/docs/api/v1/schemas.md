@@ -31,6 +31,8 @@ Ambari API Response Schemas
 - [GET host_component](#get-host_component)
 - [GET configurations](#get-configurations)
 - [GET configuration](#get-configuration)
+- [GET request](#get-request)
+- [GET task](#get-task)
 - [POST/PUT/DELETE resource](#post-put-delete-resource)
 
 
@@ -2762,6 +2764,244 @@ GET configuration
         }
       }
     }
+
+    
+GET request
+----
+
+**Example**
+
+    GET /api/v1/clusters/c1/requests/2
+
+    {
+      "href" : "http://your.ambari.server/api/v1/clusters/c1/requests/2",
+      "Requests" : {
+        "cluster_name" : "c1",
+        "id" : 2,
+        "request_context" : "Start Services"
+      },
+      "tasks" : [
+        {
+          "href" : "http://your.ambari.server/api/v1/clusters/c1/requests/2/tasks/15",
+          "Tasks" : {
+            "cluster_name" : "c1",
+            "id" : 15,
+            "request_id" : 2
+          }
+        },
+        {
+          "href" : "http://your.ambari.server/api/v1/clusters/c1/requests/2/tasks/16",
+          "Tasks" : {
+            "cluster_name" : "c1",
+            "id" : 16,
+            "request_id" : 2
+          }
+        },
+        {
+          "href" : "http://your.ambari.server/api/v1/clusters/c1/requests/2/tasks/17",
+          "Tasks" : {
+            "cluster_name" : "c1",
+            "id" : 17,
+            "request_id" : 2
+          }
+        }
+      ]
+    }
+
+**Schema**
+
+    {
+      "type":"object",
+      "$schema": "http://json-schema.org/draft-03/schema",
+      "title": "Request",
+      "required":true,
+      "properties":{
+        "Requests": {
+          "type":"object",
+          "title": "RequestInfo",
+          "description":"Request information",
+          "required":true,
+          "properties":{
+            "cluster_name": {
+              "type":"string",
+              "title": "ClusterName",
+              "required":true
+            },
+            "id": {
+              "type":"number",
+              "Title": "Id",
+              "required":true
+            },
+            "request_context": {
+              "type":"string",
+              "title": "RequestContext",
+              "required":false
+            }
+          }
+        },
+        "href": {
+          "type":"string",
+          "description": "This request API href",
+          "required":true
+        },
+        "tasks": {
+          "type":"array",
+          "title": "Task set",
+          "required":true,
+          "items":
+          {
+            "type":"object",
+            "title": "Task",
+            "required":true,
+            "properties":{
+              "Tasks": {
+                "type":"object",
+                "title": "Task info",
+                "required":true,
+                "properties":{
+                  "cluster_name": {
+                    "type":"string",
+                    "title": "ClusterName",
+                    "required":true
+                  },
+                  "id": {
+                    "type":"number",
+                    "title": "Id",
+                    "required":true
+                  },
+                  "request_id": {
+                    "type":"number",
+                    "title": "RequestId",
+                    "required":true
+                  }
+                }
+              },
+              "href": {
+                "type":"string",
+                "title": "This task API href",
+                "required":true
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    
+GET task
+----
+
+**Example**
+
+    GET api/v1/clusters/c1/requests/2/tasks/15
+
+    {
+      "href" : "http://dev01.ambari.apache.org:8080/api/v1/clusters/c1/requests/2/tasks/15",
+      "Tasks" : {
+        "attempt_cnt" : 1,
+        "cluster_name" : "c1",
+        "command" : "START",
+        "exit_code" : 0,
+        "host_name" : "dev01.ambari.apache.org",
+        "id" : 15,
+        "request_id" : 2,
+        "role" : "DATANODE",
+        "stage_id" : 1,
+        "start_time" : 1375283290257,
+        "status" : "COMPLETED",
+        "stderr" : "none",
+        "stdout" : "notice: /Stage[2]/Hdp-hadoop::Initialize/Configgenerator::Configfile…
+      }
+    }
+    
+**Schema**
+
+    {
+      "type":"object",
+      "$schema": "http://json-schema.org/draft-03/schema",
+      "title": "Task",
+      "required":true,
+      "properties":{
+        "Tasks": {
+          "type":"object",
+          "title": "Task Info",
+          "required":true,
+          "properties":{
+            "attempt_cnt": {
+              "type":"number",
+              "title": "AttemptCount",
+              "required":false
+            },
+            "cluster_name": {
+              "type":"string",
+              "title": "ClusterName",
+              "required":true
+            },
+            "command": {
+              "type":"string",
+              "title": "Command",
+              "required":false
+            },
+            "exit_code": {
+              "type":"number",
+              "title": "ExitCode",
+              "required":false
+            },
+            "host_name": {
+              "type":"string",
+              "title": "HostName",
+              "required":false
+            },
+            "id": {
+              "type":"number",
+              "title": "Id",
+              "required":true
+            },
+            "request_id": {
+              "type":"number",
+              "title": "RequestId",
+              "required":true
+            },
+            "role": {
+              "type":"string",
+              "title": "Role",
+              "required":false
+            },
+            "stage_id": {
+              "type":"number",
+              "title": "StageId",
+              "required":false
+            },
+            "start_time": {
+              "type":"number",
+              "title": "StartTime",
+              "required":false
+            },
+            "status": {
+              "type":"string",
+              "title": "Status",
+              "required":true
+            },
+            "stderr": {
+              "type":"string",
+              "title": "StdErr",
+              "required":false
+            },
+            "stdout": {
+              "type":"string",
+              "title": "StdOut",
+              "required":false
+            }
+          }
+        },
+        "href": {
+          "type":"string",
+          "title": "This task API href",
+          "required":true
+        }
+      }
+    }
+
 
 POST/PUT/DELETE resource
 ----
