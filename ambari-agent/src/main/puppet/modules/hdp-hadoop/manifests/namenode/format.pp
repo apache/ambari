@@ -27,31 +27,35 @@ class hdp-hadoop::namenode::format(
   $hdfs_user = $hdp::params::hdfs_user
   $hadoop_conf_dir = $hdp-hadoop::params::conf_dir
 
-  if ($force == true) {
-      hdp-hadoop::exec-hadoop { 'namenode -format' :
-      command => 'namenode -format',
-      kinit_override => true,
-      notify  => Hdp::Exec['set namenode mark']
-    }
-  } else {
+  # Avoid formatting standby namenode in a HA cluster
+  if ($hdp::params::dfs_ha_enabled == false) {
+    if ($force == true) {
+        hdp-hadoop::exec-hadoop { 'namenode -format' :
+        command => 'namenode -format',
+        kinit_override => true,
+        notify  => Hdp::Exec['set namenode mark']
+      }
+    } else {
+
       file { '/tmp/checkForFormat.sh':
-      ensure => present,
-      source => "puppet:///modules/hdp-hadoop/checkForFormat.sh",
-      mode => '0755'
+        ensure => present,
+        source => "puppet:///modules/hdp-hadoop/checkForFormat.sh",
+        mode => '0755'
+      }
+
+      exec { '/tmp/checkForFormat.sh':
+        command   => "sh /tmp/checkForFormat.sh ${hdfs_user} ${hadoop_conf_dir} ${mark_dir} ${dfs_name_dir} ",
+        unless   => "test -d ${mark_dir}",
+        require   => File['/tmp/checkForFormat.sh'],
+        path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+        logoutput => "true",
+        notify   => Hdp::Exec['set namenode mark']
+      }
     }
 
-    exec { '/tmp/checkForFormat.sh':
-      command   => "sh /tmp/checkForFormat.sh ${hdfs_user} ${hadoop_conf_dir} ${mark_dir} ${dfs_name_dir} ",
-      unless   => "test -d ${mark_dir}",
-      require   => File['/tmp/checkForFormat.sh'],
-      path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-      logoutput => "true",
-      notify   => Hdp::Exec['set namenode mark']
+    hdp::exec { 'set namenode mark' :
+      command     => "mkdir -p ${mark_dir}",
+      refreshonly => true
     }
-  }
-
-  hdp::exec { 'set namenode mark' :
-    command     => "mkdir -p ${mark_dir}",
-    refreshonly => true
   }
 }

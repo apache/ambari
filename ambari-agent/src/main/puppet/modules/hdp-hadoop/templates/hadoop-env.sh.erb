@@ -108,3 +108,6 @@ done
 #Add libraries required by nodemanager
 MAPREDUCE_LIBS=<%=scope.function_hdp_template_var("mapreduce_libs_path")%> 
 export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}
+
+# Setting path to hdfs command line
+export HADOOP_LIBEXEC_DIR=<%=scope.function_hdp_template_var("hadoop_libexec_dir")%>

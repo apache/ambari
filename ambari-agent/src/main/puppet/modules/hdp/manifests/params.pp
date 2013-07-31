@@ -293,7 +293,7 @@ class hdp::params()
  
   $exec_path = ["/bin","/usr/bin", "/usr/sbin"]
 
-   #### params used on multiple modules
+  #### params used on multiple modules
   $dfs_data_dir = hdp_default("hdfs-site/dfs.data.dir","/tmp/hadoop-hdfs/dfs/data")
 
   ### artifact dir
@@ -301,7 +301,19 @@ class hdp::params()
 
   ### artifacts download url ##
   $apache_artifacts_download_url = hdp_default("apache_artifacts_download_url","")
-  $gpl_artifacts_download_url = hdp_default("gpl_artifacts_download_url","") 
+  $gpl_artifacts_download_url = hdp_default("gpl_artifacts_download_url","")
+
+  # hdfs ha settings
+  $dfs_ha_nameservices = hdp_default("hdfs-site/dfs.nameservices")
+  $dfs_ha_namenode_ids = hdp_default("hdfs-site/dfs.ha.namenodes.${dfs_ha_nameservices}")
+  if (hdp_is_empty($dfs_ha_namenode_ids) == false) {
+    $dfs_ha_namenode_ids_array_len = inline_template("<%=(dfs_ha_namenode_ids).split(',').size()%>")
+    if ($dfs_ha_namenode_ids_array_len > 1) {
+      $dfs_ha_enabled = true
+    }
+  } else {
+    $dfs_ha_enabled = false
+  }
 
   $packages = 'bigtop' 
   if ($packages == 'hdp') {
