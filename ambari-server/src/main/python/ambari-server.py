@@ -62,6 +62,8 @@ SETUP_GANGLIA_HTTPS_ACTION = "setup-ganglia-https"
 SETUP_NAGIOS_HTTPS_ACTION  = "setup-nagios-https"
 ENCRYPT_PASSWORDS_ACTION = "encrypt-passwords"
 
+ACTION_REQUIRE_RESTART = [RESET_ACTION, UPGRADE_ACTION, UPGRADE_STACK_ACTION, SETUP_HTTPS_ACTION, LDAP_SETUP_ACTION]
+
 # selinux commands
 GET_SE_LINUX_ST_CMD = "/usr/sbin/sestatus"
 SE_SETENFORCE_CMD = "setenforce 0"
@@ -3038,18 +3040,17 @@ def setup_https(args):
       conf_file = find_properties_file()
       f = open(conf_file, 'w')
       properties.store(f, "Changed by 'ambari-server setup-https' command")
-      if is_server_runing():
-        print 'NOTE: Restart Ambari Server to apply changes'+\
-              ' ("ambari-server restart|stop|start")'
+
+      ambari_user = read_ambari_user()
+      if ambari_user:
+        adjust_directory_permissions(ambari_user)
     except (KeyError), e:
       err = 'Property ' + str(e) + ' is not defined at ' + conf_file
       raise FatalException(1, err)
   else:
-    print "setup-https is not enabled in silent mode."
+    warning = "setup-https is not enabled in silent mode."
+    raise NonFatalException(warning)
 
-  ambari_user = read_ambari_user()
-  if ambari_user:
-    adjust_directory_permissions(ambari_user)
 
 def is_server_runing():
   if os.path.exists(PID_DIR + os.sep + PID_NAME):
@@ -3603,6 +3604,12 @@ def main():
       setup_component_https("Nagios", "setup-nagios-https", NAGIOS_HTTPS, "nagios_cert")
     else:
       parser.error("Invalid action")
+
+    if action in ACTION_REQUIRE_RESTART:
+      if is_server_runing():
+        print 'NOTE: Restart Ambari Server to apply changes'+ \
+              ' ("ambari-server restart|stop|start")'
+
   except FatalException as e:
     if e.reason is not None:
       print_error_msg("Exiting with exit code {0}. Reason: {1}".format(e.code, e.reason))

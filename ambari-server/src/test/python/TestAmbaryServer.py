@@ -1104,8 +1104,16 @@ class TestAmbariServer(TestCase):
     p.process_pair.reset_mock()
     p.get_property.reset_mock()
     p.store.reset_mock()
-    import_cert_and_key_action_mock.reset_mock() 
+    import_cert_and_key_action_mock.reset_mock()
+
+    #Case #5: if silent mode is enabled
     ambari_server.SILENT = True
+    try:
+      ambari_server.setup_https(args)
+      self.fail("Should throw exception")
+    except NonFatalException as fe:
+      self.assertTrue("setup-https is not enabled in silent mode" in fe.reason)
+
     
   @patch.object(ambari_server, "import_cert_and_key")
   def test_import_cert_and_key_action(self, import_cert_and_key_mock):
