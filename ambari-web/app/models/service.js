@@ -91,7 +91,8 @@ App.Service = DS.Model.extend({
       if (
         _component.get('workStatus') !== App.HostComponentStatus.stopped &&
         _component.get('workStatus') !== App.HostComponentStatus.install_failed &&
-        _component.get('workStatus') !== App.HostComponentStatus.unknown
+        _component.get('workStatus') !== App.HostComponentStatus.unknown &&
+        _component.get('workStatus') !== App.HostComponentStatus.maintenance
       ) {
         flag = false;
         runningHCs.addObject(_component);
