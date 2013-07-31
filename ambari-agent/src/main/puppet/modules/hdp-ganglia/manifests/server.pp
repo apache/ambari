@@ -106,7 +106,7 @@ class hdp-ganglia::server::packages(
   $service_state = 'installed_and_configured'
 )
 {
-  hdp::package { ['ganglia-server','ganglia-gweb','ganglia-hdp-gweb-addons']: 
+  hdp::package { ['libganglia','ganglia-devel','ganglia-server','ganglia-web']: 
     ensure      => $ensure,
     java_needed => false,
     require => Hdp::Package ['rrdtool-python']

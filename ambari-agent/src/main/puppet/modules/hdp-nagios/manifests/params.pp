@@ -41,7 +41,7 @@ class hdp-nagios::params() inherits hdp::params
   $httpd_conf_file = "/etc/${service_name}/conf.d/nagios.conf"
 
   $plugins_dir = "/usr/lib64/nagios/plugins"
-  $eventhandlers_dir = "/usr/lib64/nagios/eventhandlers"  # Does not exist yet
+  $eventhandlers_dir = "/usr/lib/nagios/eventhandlers"  # Does not exist yet
   $nagios_pid_dir = "/var/run/nagios"
   $nagios_log_dir = '/var/log/nagios'
   $nagios_log_archives_dir = "${nagios_log_dir}/archives"

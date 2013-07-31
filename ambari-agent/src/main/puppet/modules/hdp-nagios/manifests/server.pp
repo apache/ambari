@@ -256,7 +256,17 @@ class hdp-nagios::server::web_permisssions()
     mode  => '0640'
   }
 
-  Hdp::Exec[$cmd] -> File["/etc/nagios/htpasswd.users"]
+  if ($hdp::params::hdp_os_type == "suse") {
+    $command = "usermod -G $hdp-nagios::params::nagios_group wwwrun"
+  } else {
+    $command = "usermod -a -G $hdp-nagios::params::nagios_group apache"
+  }
+
+  hdp::exec { "apache_permissions_htpasswd.users" :
+    command => $command  
+  }
+
+  Hdp::Exec[$cmd] -> File["/etc/nagios/htpasswd.users"] -> Hdp::Exec["apache_permissions_htpasswd.users"]
 }
 
 class hdp-nagios::server::services($ensure)
