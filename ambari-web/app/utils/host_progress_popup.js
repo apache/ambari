@@ -192,8 +192,7 @@ App.HostPopup = Em.Object.create({
    */
   setBackgroundOperationHeader: function () {
     if (this.get("showServices")) {
-      var numRunning = this.get('categories').findProperty("value", 'pending').get("count");
-      numRunning += this.get('categories').findProperty("value", 'in_progress').get("count");
+      var numRunning =  App.router.get('backgroundOperationsController.allOperationsCount');
       this.set("popupHeaderName", numRunning + Em.I18n.t('hostPopup.header.postFix'));
     } else {
       this.set("popupHeaderName", this.get("serviceName"));
