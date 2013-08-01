@@ -19,7 +19,9 @@
 
 var App = require('app');
 
-App.HighAvailabilityWizardStep2View = Em.View.extend({
+require('views/wizard/step5_view');
+
+App.HighAvailabilityWizardStep2View = App.WizardStep5View.extend({
 
   templateName: require('templates/main/admin/highAvailability/step2')
 

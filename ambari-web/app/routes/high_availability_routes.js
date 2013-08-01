@@ -68,10 +68,13 @@ module.exports = Em.Route.extend({
       controller.setCurrentStep('2');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
-        controller.connectOutlet('highAvailabilityWizardStep2');
+        controller.connectOutlet('highAvailabilityWizardStep2', controller.get('content'));
       })
     },
     next: function (router) {
+      var controller = router.get('highAvailabilityWizardController');
+      var highAvailabilityWizardStep2Controller = router.get('highAvailabilityWizardStep2Controller');
+      controller.saveMasterComponentHosts(highAvailabilityWizardStep2Controller);
       router.transitionTo('step3');
     },
     back: function (router) {
@@ -86,7 +89,7 @@ module.exports = Em.Route.extend({
       controller.setCurrentStep('3');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
-        controller.connectOutlet('highAvailabilityWizardStep3');
+        controller.connectOutlet('highAvailabilityWizardStep3',  controller.get('content'));
       })
     },
     next: function (router) {
@@ -104,7 +107,7 @@ module.exports = Em.Route.extend({
       controller.setCurrentStep('4');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
-        controller.connectOutlet('highAvailabilityWizardStep4');
+        controller.connectOutlet('highAvailabilityWizardStep4',  controller.get('content'));
       })
     },
     back: function (router) {

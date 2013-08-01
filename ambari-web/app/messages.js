@@ -645,6 +645,18 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step3.header':'Review',
   'admin.highAvailability.wizard.step4.header':'Apply',
 
+  'admin.highAvailability.wizard.step2.body':'Select a host that will be running an additional NameNode.<br/> In addition,' +
+  ' select 3 hosts that will be running JournalNodes to store NameNode edit logs in a fault tolerant maner.',
+  'admin.highAvailability.wizard.step1.body':'We will walk you through enabling NameNode HA with this wizard.<br/>' +
+  'In NameNode HA, you will be running one more NameNode in addition to the current NameNode.  This allows for an ' +
+  'active-standby configuration that automatically fails over if the active NameNode fails.<br/>' +
+  'Note that your current Secondary NameNode will be disabled.<br/>' +
+  'In addition, the NameNodes will be storing the edit logs on multiple JournalNodes for fault tolerance.<br/>' +
+  'Once you make your host selection for NameNodes and JournalNodes and confirm your selection, the wizard ' +
+  'will make necessary changes to enable NameNode HA.<br/>' +
+  'You will be prompted to run manual steps as needed.<br/>' +
+  'Let"s get started.',
+
   'admin.security.title':'Kerberos Security has not been enabled on this cluster.',
   'admin.security.enabled': 'Kerberos security is enabled on the cluster',
   'admin.security.disabled': 'Kerberos security is disabled on the cluster',
