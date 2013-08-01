@@ -19,7 +19,7 @@
 var configs = [
   /**********************************************core-site***************************************/
   {
-    "name": "fs.default.name",
+    "name": "fs.defaultFS",
     "templateName": ["namenode_host"],
     "foreignKey": null,
     "value": "hdfs://<templateName[0]>:8020",
