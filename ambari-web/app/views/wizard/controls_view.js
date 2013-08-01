@@ -70,7 +70,7 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
   textFieldClassName: function () {
     // sets the width of the field depending on display type
     if (['directory', 'url', 'email', 'user', 'host','advanced'].contains(this.get('serviceConfig.displayType'))) {
-      return ['span6'];
+      return ['span9'];
     } else if (this.get('serviceConfig.displayType') === 'principal'){
       return ['span12'];
     } else {
@@ -110,7 +110,7 @@ App.ServiceConfigPasswordField = Ember.TextField.extend({
   serviceConfig: null,
   type: 'password',
   valueBinding: 'serviceConfig.value',
-  classNames: [ 'span3' ],
+  classNames: [ 'span4' ],
   placeholder: Em.I18n.t('form.item.placeholders.typePassword'),
 
   template: Ember.Handlebars.compile('{{view view.retypePasswordView}}'),
@@ -124,7 +124,7 @@ App.ServiceConfigPasswordField = Ember.TextField.extend({
   retypePasswordView: Ember.TextField.extend({
     placeholder: Em.I18n.t('form.passwordRetype'),
     type: 'password',
-    classNames: [ 'span3', 'retyped-password' ],
+    classNames: [ 'span4', 'retyped-password' ],
     keyPress: function (event) {
       if (event.keyCode == 13) {
         return false;
@@ -150,7 +150,7 @@ App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSuppor
 
   valueBinding: 'serviceConfig.value',
   rows: 4,
-  classNames: ['span6', 'directories'],
+  classNames: ['span9', 'directories'],
   placeholderBinding: 'serviceConfig.defaultValue',
 
   disabled: function () {
