@@ -16,7 +16,28 @@
 * limitations under the License.
 }}
 
+
 <h2>{{t admin.highAvailability.wizard.step3.header}}</h2>
-<div class="btn-area">
-  <a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>
+
+<div class="alert alert-info">
+  {{t admin.highAvailability.wizard.step3.body}}
 </div>
+
+<div id="step8-content" class="well pre-scrollable">
+  <div id="step8-info">
+    {{view.curNameNode}} <br/>
+    {{view.addNameNode}} <br/>
+    {{view.secondaryNameNode}} <br/>
+    {{t admin.highAvailability.wizard.step3.jn}} <br/>
+    <ul>
+      {{#each item in view.journalNodes}}
+        <li>{{item.hostName}}</li>
+      {{/each}}
+    </ul>
+  </div>
+</div>
+
+
+ <div class="btn-area">
+   <a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>
+ </div>

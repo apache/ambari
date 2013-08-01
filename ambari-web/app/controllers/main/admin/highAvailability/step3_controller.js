@@ -18,5 +18,7 @@
 
 var App = require('app');
 
-App.HighAvailabilityWizardStep3Controller = Em.Controller.extend();
+App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
+  name:"highAvailabilityWizardStep3Controller"
+});
 
