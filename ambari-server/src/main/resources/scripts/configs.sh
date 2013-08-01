@@ -73,7 +73,7 @@ doConfigUpdate () {
   currentSiteTag
   echo "########## Performing '$MODE' $CONFIGKEY:$CONFIGVALUE on (Site:$SITE, Tag:$SITETAG)";
   propertiesStarted=0;
-  curl -s -u $USERID:$PASSWD "$AMBARIURL/api/v1/clusters/$CLUSTER/configurations?type=$SITE&tag=$SITETAG" | while read line; do
+  curl -s -u $USERID:$PASSWD "$AMBARIURL/api/v1/clusters/$CLUSTER/configurations?type=$SITE&tag=$SITETAG" | while read -r line; do
     ## echo ">>> $line";
     if [ "$propertiesStarted" -eq 0 -a "`echo $line | grep "\"properties\""`" ]; then
       propertiesStarted=1
@@ -120,7 +120,7 @@ doGet () {
   currentSiteTag
   echo "########## Performing 'GET' on (Site:$SITE, Tag:$SITETAG)";
   propertiesStarted=0;
-  curl -s -u $USERID:$PASSWD "$AMBARIURL/api/v1/clusters/$CLUSTER/configurations?type=$SITE&tag=$SITETAG" | while read line; do
+  curl -s -u $USERID:$PASSWD "$AMBARIURL/api/v1/clusters/$CLUSTER/configurations?type=$SITE&tag=$SITETAG" | while read -r line; do
     ## echo ">>> $line";
     if [ "$propertiesStarted" -eq 0 -a "`echo $line | grep "\"properties\""`" ]; then
       propertiesStarted=1
