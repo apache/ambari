@@ -645,12 +645,6 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step3.header':'Review',
   'admin.highAvailability.wizard.step4.header':'Apply',
 
-  'admin.highAvailability.wizard.step3.nn1':'Current NameNode is on {0}.',
-  'admin.highAvailability.wizard.step3.nn2':'Additional NameNode will be installed on {0}.',
-  'admin.highAvailability.wizard.step3.sn':'Existing Secondary NameNode on {0} will be disabled.',
-  'admin.highAvailability.wizard.step3.jn':'JournalNode will be installed on following hosts:',
-
-  'admin.highAvailability.wizard.step3.body':'Confirm your host selection and click Deploy to activate NameNode HA.',
   'admin.highAvailability.wizard.step2.body':'Select a host that will be running an additional NameNode.<br/> In addition,' +
   ' select 3 hosts that will be running JournalNodes to store NameNode edit logs in a fault tolerant maner.',
   'admin.highAvailability.wizard.step1.body':'We will walk you through enabling NameNode HA with this wizard.<br/>' +
