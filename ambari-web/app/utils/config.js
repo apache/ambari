@@ -785,7 +785,7 @@ App.config = Em.Object.create({
       "isVisible": true,
       "serviceName": "YARN",
       "filename": "capacity-scheduler.xml",
-      "category": "CapacityScheduler"
+      "category": "ResourceManager"
     }
   ],
 
