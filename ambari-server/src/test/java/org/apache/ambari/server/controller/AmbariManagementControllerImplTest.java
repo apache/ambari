@@ -55,6 +55,7 @@ import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -68,7 +69,6 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceede
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.easymock.Capture;
-import org.easymock.EasyMock;
 import org.junit.Test;
 
 import com.google.gson.Gson;
@@ -2061,5 +2061,112 @@ public class AmbariManagementControllerImplTest {
     }
   }
 
-  //todo other resources
+  
+  @Test
+  public void testDeleteClusterCreateHost() throws Exception {
+    
+    Injector injector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        Properties properties = new Properties();
+        properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
+
+        properties.setProperty(Configuration.METADETA_DIR_PATH,
+            "src/main/resources/stacks");
+        properties.setProperty(Configuration.SERVER_VERSION_FILE,
+                "../version");
+        properties.setProperty(Configuration.OS_VERSION_KEY, "centos6");
+        
+        try {
+          install(new ControllerModule(properties));
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
+    injector.getInstance(GuiceJpaInitializer.class);
+    
+    
+    String STACK_ID = "HDP-2.0.3";
+    String CLUSTER_NAME = "c1";
+    String HOST1 = "h1";
+    String HOST2 = "h2";
+    
+    try {
+      Clusters clusters = injector.getInstance(Clusters.class);
+      
+      clusters.addHost(HOST1);
+      Host host = clusters.getHost(HOST1);
+      host.setOsType("centos6");
+      host.persist();      
+      
+      clusters.addHost(HOST2);
+      host = clusters.getHost(HOST2);
+      host.setOsType("centos6");
+      host.persist();      
+
+      AmbariManagementController amc = injector.getInstance(AmbariManagementController.class);
+    
+      ClusterRequest cr = new ClusterRequest(null, CLUSTER_NAME, STACK_ID, null);
+      amc.createCluster(cr);
+      
+      ConfigurationRequest configRequest = new ConfigurationRequest(CLUSTER_NAME, "global", "version1",
+          new HashMap<String, String>() {{ put("a", "b"); }});
+      cr.setDesiredConfig(configRequest);
+      amc.updateClusters(Collections.singleton(cr), new HashMap<String, String>());
+      
+      // add some hosts
+      Set<HostRequest> hrs = new HashSet<HostRequest>();
+      hrs.add(new HostRequest(HOST1, CLUSTER_NAME, null));
+      amc.createHosts(hrs);
+      
+      Set<ServiceRequest> serviceRequests = new HashSet<ServiceRequest>();
+      serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "HDFS", null, null));
+      serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "MAPREDUCE2", null, null));
+      serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "YARN", null, null));
+  
+      amc.createServices(serviceRequests);
+  
+      Set<ServiceComponentRequest> serviceComponentRequests = new HashSet<ServiceComponentRequest>();
+      serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "HDFS", "NAMENODE", null, null));
+      serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "HDFS", "SECONDARY_NAMENODE", null, null));
+      serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "HDFS", "DATANODE", null, null));
+      serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "MAPREDUCE2", "HISTORYSERVER", null, null));
+      serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "YARN", "RESOURCEMANAGER", null, null));
+      serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "YARN", "NODEMANAGER", null, null));
+      serviceComponentRequests.add(new ServiceComponentRequest(CLUSTER_NAME, "HDFS", "HDFS_CLIENT", null, null));
+  
+      amc.createComponents(serviceComponentRequests);
+  
+      Set<ServiceComponentHostRequest> componentHostRequests = new HashSet<ServiceComponentHostRequest>();
+      componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, null, "DATANODE", HOST1, null, null));
+      componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, null, "NAMENODE", HOST1, null, null));
+      componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, null, "SECONDARY_NAMENODE", HOST1, null, null));
+      componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, null, "HISTORYSERVER", HOST1, null, null));
+      componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, null, "RESOURCEMANAGER", HOST1, null, null));
+      componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, null, "NODEMANAGER", HOST1, null, null));
+      componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, null, "HDFS_CLIENT", HOST1, null, null));
+  
+      amc.createHostComponents(componentHostRequests);
+      
+      ActionRequest ar = new ActionRequest(CLUSTER_NAME, "HDFS", Role.HDFS_SERVICE_CHECK.name(), new HashMap<String, String>());
+      amc.createActions(Collections.singleton(ar), null);
+  
+      // change mind, delete the cluster
+      amc.deleteCluster(cr);
+      
+      assertNotNull(clusters.getHost(HOST1));
+      assertNotNull(clusters.getHost(HOST2));
+      
+      HostDAO dao = injector.getInstance(HostDAO.class);
+      
+      assertNotNull(dao.findByName(HOST1));
+      assertNotNull(dao.findByName(HOST2));
+      
+    } finally {
+      injector.getInstance(PersistService.class).stop();
+    }     
+    
+  }
+
 }
