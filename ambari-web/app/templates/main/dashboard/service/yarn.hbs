@@ -104,7 +104,7 @@
       <!-- Queues -->
       <tr>
           <td>{{t dashboard.services.yarn.queues}}</td>
-          <td><a href="#" {{action showQueues target="view"}}>{{view.queues}}</a></td>
+          <td><span rel="queue-tooltip" class="text-tooltip" {{bindAttr data-original-title="view.service.queueFormatted" }}>{{view.queues}}</span></td>
       </tr>
     {{#unless view.showOnlyRows}}
       </tbody>

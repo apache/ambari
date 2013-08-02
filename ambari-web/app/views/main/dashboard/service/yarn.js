@@ -116,17 +116,9 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
   queues: function() {
     return Em.I18n.t('dashboard.services.yarn.queues.msg').format(this.get('service.queuesCount'));
   }.property('service.queuesCount'),
-
-  showQueues: function() {
-    var self = this;
-    return App.ModalPopup.show({
-      secondary: null,
-      header: Em.I18n.t('dashboard.services.yarn.queues'),
-      bodyClass: Em.View.extend({
-        template: Em.Handlebars.compile('{{{view.queues}}}'),
-        queues: self.get('service.queueFormatted')
-      })
-    });
+  
+  didInsertElement: function(){
+    $("[rel='queue-tooltip']").tooltip({html: true, placement: "right"});
   }
 
 });

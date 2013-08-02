@@ -268,6 +268,11 @@ h1 {
   border-left-color: #dedede;
 }
 
+.text-tooltip {
+  border-bottom: 1px silver dotted;
+  cursor: pointer;
+}
+
 .wizard {
   h2 {
     margin-top: 0;
@@ -1539,6 +1544,12 @@ width:100%;
   .summary-view-host{
     float: right;
     padding-right: 20px;
+    a {
+      text-decoration: none;
+      &:hover {
+        text-decoration: underline;
+      }
+    }
   }
 }
 
