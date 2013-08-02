@@ -105,10 +105,6 @@ App.servicesMapper = App.QuickDataMapper.create({
     node_managers_count_unhealthy: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.unhealthyNMcount',
     node_managers_count_rebooted: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.rebootedNMcount',
     node_managers_count_decommissioned: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.decommissionedNMcount',
-    allocated_memory: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.AllocatedMB',
-    reserved_memory: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.ReservedMB',
-    available_memory: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.AvailableMB',
-    queue: 'resourceManagerComponent.queue'
   },
   mapReduce2Config: {
     version: 'jobHistoryServerComponent.ServiceComponentInfo.Version',
@@ -374,7 +370,6 @@ App.servicesMapper = App.QuickDataMapper.create({
   },
   yarnMapper: function (item) {
     var result = [];
-    var self = this;
     var finalConfig = jQuery.extend({}, this.config);
     // Change the JSON so that it is easy to map
     var yarnConfig = this.yarnConfig;
@@ -394,12 +389,6 @@ App.servicesMapper = App.QuickDataMapper.create({
             item.node_manager_live_nodes.push(nm.HostName);
           }
         });
-
-        var root = component.host_components[0].metrics.yarn.Queue.root;
-        var queue = JSON.stringify({
-          'root': self.parseObject(root)
-        });
-        component.queue = queue;
         // extend config
         finalConfig = jQuery.extend(finalConfig, yarnConfig);
       }
@@ -430,19 +419,6 @@ App.servicesMapper = App.QuickDataMapper.create({
 
     return finalJson;
   },
-
-  parseObject: function(obj) {
-    var res = {};
-    for (var p in obj) {
-      if (obj.hasOwnProperty(p)) {
-        if (obj[p] instanceof Object) {
-          res[p] = this.parseObject(obj[p]);
-        }
-      }
-    }
-    return res;
-  },
-
   mapreduce2Mapper: function (item) {
     var result = [];
     var finalConfig = jQuery.extend({}, this.config);

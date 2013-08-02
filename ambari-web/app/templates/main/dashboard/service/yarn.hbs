@@ -96,16 +96,6 @@
         <td>{{t dashboard.services.yarn.apps}}</td>
         <td>{{view.apps}}</td>
       </tr>
-      <!-- Memory -->
-      <tr>
-          <td>{{t dashboard.services.yarn.memory}}</td>
-          <td>{{view.memory}}</td>
-      </tr>
-      <!-- Queues -->
-      <tr>
-          <td>{{t dashboard.services.yarn.queues}}</td>
-          <td><a href="#" {{action showQueues target="view"}}>{{view.queues}}</a></td>
-      </tr>
     {{#unless view.showOnlyRows}}
       </tbody>
     </table>

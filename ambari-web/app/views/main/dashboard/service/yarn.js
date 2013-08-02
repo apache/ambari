@@ -105,28 +105,4 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
     return this.t('dashboard.services.yarn.apps.msg').format(appsSubmitted, appsRunning, appsPending, appsCompleted, appsKilled, appsFailed);
   }.property('service.appsSubmitted', 'service.appsRunning', 'service.appsPending', 'service.appsCompleted', 'service.appsKilled', 'service.appsFailed'),
 
-  memory: function() {
-    return Em.I18n.t('dashboard.services.yarn.memory.msg').format(
-      this.get('service.allocatedMemory').bytesToSize(1, 'parseFloat'),
-      this.get('service.reservedMemory').bytesToSize(1, 'parseFloat'),
-      this.get('service.availableMemory').bytesToSize(1, 'parseFloat')
-    );
-  }.property('service.allocatedMemory', 'service.reservedMemory', 'service.availableMemory'),
-
-  queues: function() {
-    return Em.I18n.t('dashboard.services.yarn.queues.msg').format(this.get('service.queuesCount'));
-  }.property('service.queuesCount'),
-
-  showQueues: function() {
-    var self = this;
-    return App.ModalPopup.show({
-      secondary: null,
-      header: Em.I18n.t('dashboard.services.yarn.queues'),
-      bodyClass: Em.View.extend({
-        template: Em.Handlebars.compile('{{{view.queues}}}'),
-        queues: self.get('service.queueFormatted')
-      })
-    });
-  }
-
 });
