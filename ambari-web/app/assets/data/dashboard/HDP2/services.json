@@ -1,135 +1,135 @@
 {
-  "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles",
-  "items": [
+  "href" : "http://dev01:8080/api/v1/clusters/vm/services?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles,components/host_components/metrics/jvm/memHeapUsedM,components/host_components/metrics/jvm/memHeapCommittedM,components/host_components/metrics/mapred/jobtracker/trackers_decommissioned,components/host_components/metrics/cpu/cpu_wio,components/host_components/metrics/rpc/RpcQueueTime_avg_time,components/host_components/metrics/flume/flume,components/host_components/metrics/yarn/Queue&_=1375467778021",
+  "items" : [
     {
-      "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/GANGLIA",
-      "ServiceInfo": {
-        "cluster_name": "c1",
-        "service_name": "GANGLIA"
+      "href" : "http://dev01:8080/api/v1/clusters/vm/services/GANGLIA",
+      "ServiceInfo" : {
+        "cluster_name" : "vm",
+        "service_name" : "GANGLIA"
       },
-      "components": [
+      "components" : [
         {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/GANGLIA/components/GANGLIA_MONITOR",
-          "ServiceComponentInfo": {
-            "cluster_name": "c1",
-            "component_name": "GANGLIA_MONITOR",
-            "service_name": "GANGLIA",
-            "state": "STARTED",
-            "desired_configs": { }
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/GANGLIA/components/GANGLIA_MONITOR",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "GANGLIA_MONITOR",
+            "service_name" : "GANGLIA",
+            "state" : "STARTED",
+            "desired_configs" : { }
           },
-          "host_components": [
+          "host_components" : [
             {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/GANGLIA_MONITOR",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "GANGLIA_MONITOR",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "STARTED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "GANGLIA",
-                "stack_id": "HDP-2.0.3",
-                "state": "STARTED",
-                "actual_configs": {
-                  "capacity-scheduler": {
-                    "tag": "version1"
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/GANGLIA_MONITOR",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "GANGLIA_MONITOR",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "STARTED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "GANGLIA",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "STARTED",
+                "actual_configs" : {
+                  "capacity-scheduler" : {
+                    "tag" : "version1"
                   },
-                  "core-site": {
-                    "tag": "version1"
+                  "core-site" : {
+                    "tag" : "version1"
                   },
-                  "global": {
-                    "tag": "version1"
+                  "global" : {
+                    "tag" : "version1"
                   },
-                  "hbase-site": {
-                    "tag": "version1"
+                  "hbase-site" : {
+                    "tag" : "version1"
                   },
-                  "hdfs-site": {
-                    "tag": "version1"
+                  "hdfs-site" : {
+                    "tag" : "version1"
                   },
-                  "hive-site": {
-                    "tag": "version1"
+                  "hive-site" : {
+                    "tag" : "version1"
                   },
-                  "mapred-queue-acls": {
-                    "tag": "version1"
+                  "mapred-queue-acls" : {
+                    "tag" : "version1"
                   },
-                  "mapred-site": {
-                    "tag": "version1"
+                  "mapred-site" : {
+                    "tag" : "version1"
                   },
-                  "oozie-site": {
-                    "tag": "version1"
+                  "oozie-site" : {
+                    "tag" : "version1"
                   },
-                  "webhcat-site": {
-                    "tag": "version1"
+                  "webhcat-site" : {
+                    "tag" : "version1"
                   },
-                  "yarn-site": {
-                    "tag": "version1"
+                  "yarn-site" : {
+                    "tag" : "version1"
                   }
                 },
-                "configs": { },
-                "desired_configs": { }
+                "configs" : { },
+                "desired_configs" : { }
               }
             }
           ]
         },
         {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/GANGLIA/components/GANGLIA_SERVER",
-          "ServiceComponentInfo": {
-            "cluster_name": "c1",
-            "component_name": "GANGLIA_SERVER",
-            "service_name": "GANGLIA",
-            "state": "STARTED",
-            "desired_configs": { }
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/GANGLIA/components/GANGLIA_SERVER",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "GANGLIA_SERVER",
+            "service_name" : "GANGLIA",
+            "state" : "STARTED",
+            "desired_configs" : { }
           },
-          "host_components": [
+          "host_components" : [
             {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/GANGLIA_SERVER",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "GANGLIA_SERVER",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "STARTED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "GANGLIA",
-                "stack_id": "HDP-2.0.3",
-                "state": "STARTED",
-                "actual_configs": {
-                  "capacity-scheduler": {
-                    "tag": "version1"
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/GANGLIA_SERVER",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "GANGLIA_SERVER",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "STARTED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "GANGLIA",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "STARTED",
+                "actual_configs" : {
+                  "capacity-scheduler" : {
+                    "tag" : "version1"
                   },
-                  "core-site": {
-                    "tag": "version1"
+                  "core-site" : {
+                    "tag" : "version1"
                   },
-                  "global": {
-                    "tag": "version1"
+                  "global" : {
+                    "tag" : "version1"
                   },
-                  "hbase-site": {
-                    "tag": "version1"
+                  "hbase-site" : {
+                    "tag" : "version1"
                   },
-                  "hdfs-site": {
-                    "tag": "version1"
+                  "hdfs-site" : {
+                    "tag" : "version1"
                   },
-                  "hive-site": {
-                    "tag": "version1"
+                  "hive-site" : {
+                    "tag" : "version1"
                   },
-                  "mapred-queue-acls": {
-                    "tag": "version1"
+                  "mapred-queue-acls" : {
+                    "tag" : "version1"
                   },
-                  "mapred-site": {
-                    "tag": "version1"
+                  "mapred-site" : {
+                    "tag" : "version1"
                   },
-                  "oozie-site": {
-                    "tag": "version1"
+                  "oozie-site" : {
+                    "tag" : "version1"
                   },
-                  "webhcat-site": {
-                    "tag": "version1"
+                  "webhcat-site" : {
+                    "tag" : "version1"
                   },
-                  "yarn-site": {
-                    "tag": "version1"
+                  "yarn-site" : {
+                    "tag" : "version1"
                   }
                 },
-                "configs": { },
-                "desired_configs": { }
+                "configs" : { },
+                "desired_configs" : { }
               }
             }
           ]
@@ -137,173 +137,186 @@
       ]
     },
     {
-      "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/HBASE",
-      "ServiceInfo": {
-        "cluster_name": "c1",
-        "service_name": "HBASE"
+      "href" : "http://dev01:8080/api/v1/clusters/vm/services/HBASE",
+      "ServiceInfo" : {
+        "cluster_name" : "vm",
+        "service_name" : "HBASE"
       },
-      "components": [
+      "components" : [
         {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/HBASE/components/HBASE_CLIENT",
-          "ServiceComponentInfo": {
-            "cluster_name": "c1",
-            "component_name": "HBASE_CLIENT",
-            "service_name": "HBASE",
-            "state": "INSTALLED",
-            "desired_configs": { }
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/HBASE/components/HBASE_CLIENT",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "HBASE_CLIENT",
+            "service_name" : "HBASE",
+            "state" : "INSTALLED",
+            "desired_configs" : { }
           },
-          "host_components": [
+          "host_components" : [
             {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/HBASE_CLIENT",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "HBASE_CLIENT",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "INSTALLED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "HBASE",
-                "stack_id": "HDP-2.0.3",
-                "state": "INSTALLED",
-                "actual_configs": { },
-                "configs": { },
-                "desired_configs": { }
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/HBASE_CLIENT",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "HBASE_CLIENT",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "INSTALLED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "HBASE",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "INSTALLED",
+                "actual_configs" : { },
+                "configs" : { },
+                "desired_configs" : { }
+              },
+              "metrics" : {
+                "cpu" : {
+                  "cpu_wio" : 0.1
+                },
+                "jvm" : {
+                  "memHeapCommittedM" : 28.5041666667,
+                  "memHeapUsedM" : 11.9096411333
+                }
               }
             }
           ]
         },
         {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/HBASE/components/HBASE_MASTER",
-          "ServiceComponentInfo": {
-            "AverageLoad": 2.0,
-            "HeapMemoryMax": 1071579136,
-            "HeapMemoryUsed": 12600208,
-            "MasterActiveTime": 1375290042954,
-            "MasterStartTime": 1375290042930,
-            "NonHeapMemoryMax": 136314880,
-            "NonHeapMemoryUsed": 38262016,
-            "RegionsInTransition": [ ],
-            "Revision": "1a62b76bde7776a433ee069ab47ee6270f8992d4",
-            "Version": "0.94.6.2.0.3.0-116",
-            "cluster_name": "c1",
-            "component_name": "HBASE_MASTER",
-            "service_name": "HBASE",
-            "state": "STARTED",
-            "desired_configs": { }
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/HBASE/components/HBASE_MASTER",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "HBASE_MASTER",
+            "service_name" : "HBASE",
+            "state" : "STARTED",
+            "desired_configs" : { }
           },
-          "host_components": [
+          "host_components" : [
             {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/HBASE_MASTER",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "HBASE_MASTER",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "STARTED",
-                "ha_status": "active",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "HBASE",
-                "stack_id": "HDP-2.0.3",
-                "state": "STARTED",
-                "actual_configs": {
-                  "capacity-scheduler": {
-                    "tag": "version1"
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/HBASE_MASTER",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "HBASE_MASTER",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "STARTED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "HBASE",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "INSTALLED",
+                "actual_configs" : {
+                  "capacity-scheduler" : {
+                    "tag" : "version1"
                   },
-                  "core-site": {
-                    "tag": "version1"
+                  "core-site" : {
+                    "tag" : "version1"
                   },
-                  "global": {
-                    "tag": "version1"
+                  "global" : {
+                    "tag" : "version1"
                   },
-                  "hbase-site": {
-                    "tag": "version1"
+                  "hbase-site" : {
+                    "tag" : "version1"
                   },
-                  "hdfs-site": {
-                    "tag": "version1"
+                  "hdfs-site" : {
+                    "tag" : "version1"
                   },
-                  "hive-site": {
-                    "tag": "version1"
+                  "hive-site" : {
+                    "tag" : "version1"
                   },
-                  "mapred-queue-acls": {
-                    "tag": "version1"
+                  "mapred-queue-acls" : {
+                    "tag" : "version1"
                   },
-                  "mapred-site": {
-                    "tag": "version1"
+                  "mapred-site" : {
+                    "tag" : "version1"
                   },
-                  "oozie-site": {
-                    "tag": "version1"
+                  "oozie-site" : {
+                    "tag" : "version1"
                   },
-                  "webhcat-site": {
-                    "tag": "version1"
+                  "webhcat-site" : {
+                    "tag" : "version1"
                   },
-                  "yarn-site": {
-                    "tag": "version1"
+                  "yarn-site" : {
+                    "tag" : "version1"
                   }
                 },
-                "configs": { },
-                "desired_configs": { }
+                "configs" : { },
+                "desired_configs" : { }
+              },
+              "metrics" : {
+                "cpu" : {
+                  "cpu_wio" : 0.1
+                }
               }
             }
           ]
         },
         {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/HBASE/components/HBASE_REGIONSERVER",
-          "ServiceComponentInfo": {
-            "cluster_name": "c1",
-            "component_name": "HBASE_REGIONSERVER",
-            "service_name": "HBASE",
-            "state": "STARTED",
-            "desired_configs": { }
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/HBASE/components/HBASE_REGIONSERVER",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "HBASE_REGIONSERVER",
+            "service_name" : "HBASE",
+            "state" : "STARTED",
+            "desired_configs" : { }
           },
-          "host_components": [
+          "host_components" : [
             {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/HBASE_REGIONSERVER",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "HBASE_REGIONSERVER",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "STARTED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "HBASE",
-                "stack_id": "HDP-2.0.3",
-                "state": "STARTED",
-                "actual_configs": {
-                  "capacity-scheduler": {
-                    "tag": "version1"
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/HBASE_REGIONSERVER",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "HBASE_REGIONSERVER",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "STARTED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "HBASE",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "INSTALLED",
+                "actual_configs" : {
+                  "capacity-scheduler" : {
+                    "tag" : "version1"
                   },
-                  "core-site": {
-                    "tag": "version1"
+                  "core-site" : {
+                    "tag" : "version1"
                   },
-                  "global": {
-                    "tag": "version1"
+                  "global" : {
+                    "tag" : "version1"
                   },
-                  "hbase-site": {
-                    "tag": "version1"
+                  "hbase-site" : {
+                    "tag" : "version1"
                   },
-                  "hdfs-site": {
-                    "tag": "version1"
+                  "hdfs-site" : {
+                    "tag" : "version1"
                   },
-                  "hive-site": {
-                    "tag": "version1"
+                  "hive-site" : {
+                    "tag" : "version1"
                   },
-                  "mapred-queue-acls": {
-                    "tag": "version1"
+                  "mapred-queue-acls" : {
+                    "tag" : "version1"
                   },
-                  "mapred-site": {
-                    "tag": "version1"
+                  "mapred-site" : {
+                    "tag" : "version1"
                   },
-                  "oozie-site": {
-                    "tag": "version1"
+                  "oozie-site" : {
+                    "tag" : "version1"
                   },
-                  "webhcat-site": {
-                    "tag": "version1"
+                  "webhcat-site" : {
+                    "tag" : "version1"
                   },
-                  "yarn-site": {
-                    "tag": "version1"
+                  "yarn-site" : {
+                    "tag" : "version1"
                   }
                 },
-                "configs": { },
-                "desired_configs": { }
+                "configs" : { },
+                "desired_configs" : { }
+              },
+              "metrics" : {
+                "cpu" : {
+                  "cpu_wio" : 0.1
+                },
+                "jvm" : {
+                  "memHeapCommittedM" : 28.5041666667,
+                  "memHeapUsedM" : 11.9096411333
+                }
               }
             }
           ]
@@ -311,37 +324,37 @@
       ]
     },
     {
-      "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/HCATALOG",
-      "ServiceInfo": {
-        "cluster_name": "c1",
-        "service_name": "HCATALOG"
+      "href" : "http://dev01:8080/api/v1/clusters/vm/services/HCATALOG",
+      "ServiceInfo" : {
+        "cluster_name" : "vm",
+        "service_name" : "HCATALOG"
       },
-      "components": [
+      "components" : [
         {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/HCATALOG/components/HCAT",
-          "ServiceComponentInfo": {
-            "cluster_name": "c1",
-            "component_name": "HCAT",
-            "service_name": "HCATALOG",
-            "state": "INSTALLED",
-            "desired_configs": { }
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/HCATALOG/components/HCAT",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "HCAT",
+            "service_name" : "HCATALOG",
+            "state" : "INSTALLED",
+            "desired_configs" : { }
           },
-          "host_components": [
+          "host_components" : [
             {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/HCAT",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "HCAT",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "INSTALLED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "HCATALOG",
-                "stack_id": "HDP-2.0.3",
-                "state": "INSTALLED",
-                "actual_configs": { },
-                "configs": { },
-                "desired_configs": { }
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/HCAT",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "HCAT",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "INSTALLED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "HCATALOG",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "INSTALLED",
+                "actual_configs" : { },
+                "configs" : { },
+                "desired_configs" : { }
               }
             }
           ]
@@ -349,248 +362,266 @@
       ]
     },
     {
-      "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/HDFS",
-      "ServiceInfo": {
-        "cluster_name": "c1",
-        "service_name": "HDFS"
+      "href" : "http://dev01:8080/api/v1/clusters/vm/services/HDFS",
+      "ServiceInfo" : {
+        "cluster_name" : "vm",
+        "service_name" : "HDFS"
       },
-      "components": [
+      "components" : [
         {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/HDFS/components/DATANODE",
-          "ServiceComponentInfo": {
-            "cluster_name": "c1",
-            "component_name": "DATANODE",
-            "service_name": "HDFS",
-            "state": "STARTED",
-            "desired_configs": { }
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/HDFS/components/DATANODE",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "DATANODE",
+            "service_name" : "HDFS",
+            "state" : "STARTED",
+            "desired_configs" : { }
           },
-          "host_components": [
+          "host_components" : [
             {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/DATANODE",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "DATANODE",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "STARTED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "HDFS",
-                "stack_id": "HDP-2.0.3",
-                "state": "STARTED",
-                "actual_configs": {
-                  "capacity-scheduler": {
-                    "tag": "version1"
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/DATANODE",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "DATANODE",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "STARTED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "HDFS",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "STARTED",
+                "actual_configs" : {
+                  "capacity-scheduler" : {
+                    "tag" : "version1"
                   },
-                  "core-site": {
-                    "tag": "version1"
+                  "core-site" : {
+                    "tag" : "version1"
                   },
-                  "global": {
-                    "tag": "version1"
+                  "global" : {
+                    "tag" : "version1"
                   },
-                  "hbase-site": {
-                    "tag": "version1"
+                  "hbase-site" : {
+                    "tag" : "version1"
                   },
-                  "hdfs-site": {
-                    "tag": "version1"
+                  "hdfs-site" : {
+                    "tag" : "version1"
                   },
-                  "hive-site": {
-                    "tag": "version1"
+                  "hive-site" : {
+                    "tag" : "version1"
                   },
-                  "mapred-queue-acls": {
-                    "tag": "version1"
+                  "mapred-queue-acls" : {
+                    "tag" : "version1"
                   },
-                  "mapred-site": {
-                    "tag": "version1"
+                  "mapred-site" : {
+                    "tag" : "version1"
                   },
-                  "oozie-site": {
-                    "tag": "version1"
+                  "oozie-site" : {
+                    "tag" : "version1"
                   },
-                  "webhcat-site": {
-                    "tag": "version1"
+                  "webhcat-site" : {
+                    "tag" : "version1"
                   },
-                  "yarn-site": {
-                    "tag": "version1"
+                  "yarn-site" : {
+                    "tag" : "version1"
                   }
                 },
-                "configs": { },
-                "desired_configs": { }
+                "configs" : { },
+                "desired_configs" : { }
+              },
+              "metrics" : {
+                "cpu" : {
+                  "cpu_wio" : 0.1
+                },
+                "jvm" : {
+                  "memHeapCommittedM" : 28.4375,
+                  "memHeapUsedM" : 13.903183
+                }
               }
             }
           ]
         },
         {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/HDFS/components/HDFS_CLIENT",
-          "ServiceComponentInfo": {
-            "cluster_name": "c1",
-            "component_name": "HDFS_CLIENT",
-            "service_name": "HDFS",
-            "state": "INSTALLED",
-            "desired_configs": { }
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/HDFS/components/HDFS_CLIENT",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "HDFS_CLIENT",
+            "service_name" : "HDFS",
+            "state" : "INSTALLED",
+            "desired_configs" : { }
           },
-          "host_components": [
+          "host_components" : [
             {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/HDFS_CLIENT",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "HDFS_CLIENT",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "INSTALLED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "HDFS",
-                "stack_id": "HDP-2.0.3",
-                "state": "INSTALLED",
-                "actual_configs": { },
-                "configs": { },
-                "desired_configs": { }
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/HDFS_CLIENT",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "HDFS_CLIENT",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "INSTALLED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "HDFS",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "INSTALLED",
+                "actual_configs" : { },
+                "configs" : { },
+                "desired_configs" : { }
               }
             }
           ]
         },
         {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/HDFS/components/NAMENODE",
-          "ServiceComponentInfo": {
-            "BlocksTotal": 379,
-            "CapacityRemaining": 45343223808,
-            "CapacityTotal": 52844687359,
-            "CapacityUsed": 182407168,
-            "CorruptBlocks": 0,
-            "DeadNodes": "{}",
-            "DecomNodes": "{}",
-            "HeapMemoryMax": 1006632960,
-            "HeapMemoryUsed": 495427800,
-            "LiveNodes": "{\"dev01.hortonworks.com\":{\"numBlocks\":379,\"usedSpace\":182407168,\"lastContact\":1,\"capacity\":52844687359,\"nonDfsUsedSpace\":7319056383,\"adminState\":\"In Service\"}}",
-            "MissingBlocks": 0,
-            "NonDfsUsedSpace": 7319056383,
-            "NonHeapMemoryMax": 136314880,
-            "NonHeapMemoryUsed": 42028744,
-            "PercentRemaining": 85.8047,
-            "PercentUsed": 0.34517598,
-            "Safemode": "",
-            "StartTime": 1375289702242,
-            "TotalFiles": 617,
-            "UnderReplicatedBlocks": 379,
-            "UpgradeFinalized": true,
-            "Version": "2.1.0.2.0.3.0-116, r707031d22de185c6af3023b0689578b9ec743113",
-            "cluster_name": "c1",
-            "component_name": "NAMENODE",
-            "service_name": "HDFS",
-            "state": "STARTED",
-            "desired_configs": { }
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/HDFS/components/NAMENODE",
+          "ServiceComponentInfo" : {
+            "BlocksTotal" : 379,
+            "CapacityRemaining" : 490802069504,
+            "CapacityTotal" : 525282689023,
+            "CapacityUsed" : 182407168,
+            "CorruptBlocks" : 0,
+            "DeadNodes" : "{}",
+            "DecomNodes" : "{}",
+            "HeapMemoryMax" : 1006632960,
+            "HeapMemoryUsed" : 194751064,
+            "LiveNodes" : "{\"dev01.ambari.apache.org\":{\"numBlocks\":379,\"usedSpace\":182407168,\"lastContact\":1,\"capacity\":525282689023,\"nonDfsUsedSpace\":34298212351,\"adminState\":\"In Service\"}}",
+            "MissingBlocks" : 0,
+            "NonDfsUsedSpace" : 34298212351,
+            "NonHeapMemoryMax" : 136314880,
+            "NonHeapMemoryUsed" : 42712328,
+            "PercentRemaining" : 93.4358,
+            "PercentUsed" : 0.034725524,
+            "Safemode" : "",
+            "StartTime" : 1375383936364,
+            "TotalFiles" : 617,
+            "UnderReplicatedBlocks" : 379,
+            "UpgradeFinalized" : true,
+            "Version" : "2.1.0.2.0.3.0-116, r707031d22de185c6af3023b0689578b9ec743113",
+            "cluster_name" : "vm",
+            "component_name" : "NAMENODE",
+            "service_name" : "HDFS",
+            "state" : "STARTED",
+            "desired_configs" : { }
           },
-          "host_components": [
+          "host_components" : [
             {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/NAMENODE",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "NAMENODE",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "STARTED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "HDFS",
-                "stack_id": "HDP-2.0.3",
-                "state": "STARTED",
-                "actual_configs": {
-                  "capacity-scheduler": {
-                    "tag": "version1"
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/NAMENODE",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "NAMENODE",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "STARTED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "HDFS",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "STARTED",
+                "actual_configs" : {
+                  "capacity-scheduler" : {
+                    "tag" : "version1"
                   },
-                  "core-site": {
-                    "tag": "version1"
+                  "core-site" : {
+                    "tag" : "version1"
                   },
-                  "global": {
-                    "tag": "version1"
+                  "global" : {
+                    "tag" : "version1"
                   },
-                  "hbase-site": {
-                    "tag": "version1"
+                  "hbase-site" : {
+                    "tag" : "version1"
                   },
-                  "hdfs-site": {
-                    "tag": "version1"
+                  "hdfs-site" : {
+                    "tag" : "version1"
                   },
-                  "hive-site": {
-                    "tag": "version1"
+                  "hive-site" : {
+                    "tag" : "version1"
                   },
-                  "mapred-queue-acls": {
-                    "tag": "version1"
+                  "mapred-queue-acls" : {
+                    "tag" : "version1"
                   },
-                  "mapred-site": {
-                    "tag": "version1"
+                  "mapred-site" : {
+                    "tag" : "version1"
                   },
-                  "oozie-site": {
-                    "tag": "version1"
+                  "oozie-site" : {
+                    "tag" : "version1"
                   },
-                  "webhcat-site": {
-                    "tag": "version1"
+                  "webhcat-site" : {
+                    "tag" : "version1"
                   },
-                  "yarn-site": {
-                    "tag": "version1"
+                  "yarn-site" : {
+                    "tag" : "version1"
                   }
                 },
-                "configs": { },
-                "desired_configs": { }
+                "configs" : { },
+                "desired_configs" : { }
+              },
+              "metrics" : {
+                "cpu" : {
+                  "cpu_wio" : 0.3
+                },
+                "jvm" : {
+                  "memHeapCommittedM" : 960.0,
+                  "memHeapUsedM" : 186.13074
+                }
               }
             }
           ]
         },
         {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/HDFS/components/SECONDARY_NAMENODE",
-          "ServiceComponentInfo": {
-            "cluster_name": "c1",
-            "component_name": "SECONDARY_NAMENODE",
-            "service_name": "HDFS",
-            "state": "STARTED",
-            "desired_configs": { }
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/HDFS/components/SECONDARY_NAMENODE",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "SECONDARY_NAMENODE",
+            "service_name" : "HDFS",
+            "state" : "STARTED",
+            "desired_configs" : { }
           },
-          "host_components": [
+          "host_components" : [
             {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/SECONDARY_NAMENODE",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "SECONDARY_NAMENODE",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "STARTED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "HDFS",
-                "stack_id": "HDP-2.0.3",
-                "state": "STARTED",
-                "actual_configs": {
-                  "capacity-scheduler": {
-                    "tag": "version1"
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/SECONDARY_NAMENODE",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "SECONDARY_NAMENODE",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "STARTED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "HDFS",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "STARTED",
+                "actual_configs" : {
+                  "capacity-scheduler" : {
+                    "tag" : "version1"
                   },
-                  "core-site": {
-                    "tag": "version1"
+                  "core-site" : {
+                    "tag" : "version1"
                   },
-                  "global": {
-                    "tag": "version1"
+                  "global" : {
+                    "tag" : "version1"
                   },
-                  "hbase-site": {
-                    "tag": "version1"
+                  "hbase-site" : {
+                    "tag" : "version1"
                   },
-                  "hdfs-site": {
-                    "tag": "version1"
+                  "hdfs-site" : {
+                    "tag" : "version1"
                   },
-                  "hive-site": {
-                    "tag": "version1"
+                  "hive-site" : {
+                    "tag" : "version1"
                   },
-                  "mapred-queue-acls": {
-                    "tag": "version1"
+                  "mapred-queue-acls" : {
+                    "tag" : "version1"
                   },
-                  "mapred-site": {
-                    "tag": "version1"
+                  "mapred-site" : {
+                    "tag" : "version1"
                   },
-                  "oozie-site": {
-                    "tag": "version1"
+                  "oozie-site" : {
+                    "tag" : "version1"
                   },
-                  "webhcat-site": {
-                    "tag": "version1"
+                  "webhcat-site" : {
+                    "tag" : "version1"
                   },
-                  "yarn-site": {
-                    "tag": "version1"
+                  "yarn-site" : {
+                    "tag" : "version1"
                   }
                 },
-                "configs": { },
-                "desired_configs": { }
+                "configs" : { },
+                "desired_configs" : { }
               }
             }
           ]
@@ -598,226 +629,226 @@
       ]
     },
     {
-      "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/HIVE",
-      "ServiceInfo": {
-        "cluster_name": "c1",
-        "service_name": "HIVE"
+      "href" : "http://dev01:8080/api/v1/clusters/vm/services/HIVE",
+      "ServiceInfo" : {
+        "cluster_name" : "vm",
+        "service_name" : "HIVE"
       },
-      "components": [
+      "components" : [
         {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/HIVE/components/HIVE_CLIENT",
-          "ServiceComponentInfo": {
-            "cluster_name": "c1",
-            "component_name": "HIVE_CLIENT",
-            "service_name": "HIVE",
-            "state": "INSTALLED",
-            "desired_configs": { }
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/HIVE/components/HIVE_CLIENT",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "HIVE_CLIENT",
+            "service_name" : "HIVE",
+            "state" : "INSTALLED",
+            "desired_configs" : { }
           },
-          "host_components": [
+          "host_components" : [
             {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/HIVE_CLIENT",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "HIVE_CLIENT",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "INSTALLED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "HIVE",
-                "stack_id": "HDP-2.0.3",
-                "state": "INSTALLED",
-                "actual_configs": { },
-                "configs": { },
-                "desired_configs": { }
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/HIVE_CLIENT",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "HIVE_CLIENT",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "INSTALLED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "HIVE",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "INSTALLED",
+                "actual_configs" : { },
+                "configs" : { },
+                "desired_configs" : { }
               }
             }
           ]
         },
         {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/HIVE/components/HIVE_METASTORE",
-          "ServiceComponentInfo": {
-            "cluster_name": "c1",
-            "component_name": "HIVE_METASTORE",
-            "service_name": "HIVE",
-            "state": "STARTED",
-            "desired_configs": { }
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/HIVE/components/HIVE_METASTORE",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "HIVE_METASTORE",
+            "service_name" : "HIVE",
+            "state" : "STARTED",
+            "desired_configs" : { }
           },
-          "host_components": [
+          "host_components" : [
             {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/HIVE_METASTORE",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "HIVE_METASTORE",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "STARTED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "HIVE",
-                "stack_id": "HDP-2.0.3",
-                "state": "STARTED",
-                "actual_configs": {
-                  "capacity-scheduler": {
-                    "tag": "version1"
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/HIVE_METASTORE",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "HIVE_METASTORE",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "STARTED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "HIVE",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "STARTED",
+                "actual_configs" : {
+                  "capacity-scheduler" : {
+                    "tag" : "version1"
                   },
-                  "core-site": {
-                    "tag": "version1"
+                  "core-site" : {
+                    "tag" : "version1"
                   },
-                  "global": {
-                    "tag": "version1"
+                  "global" : {
+                    "tag" : "version1"
                   },
-                  "hbase-site": {
-                    "tag": "version1"
+                  "hbase-site" : {
+                    "tag" : "version1"
                   },
-                  "hdfs-site": {
-                    "tag": "version1"
+                  "hdfs-site" : {
+                    "tag" : "version1"
                   },
-                  "hive-site": {
-                    "tag": "version1"
+                  "hive-site" : {
+                    "tag" : "version1"
                   },
-                  "mapred-queue-acls": {
-                    "tag": "version1"
+                  "mapred-queue-acls" : {
+                    "tag" : "version1"
                   },
-                  "mapred-site": {
-                    "tag": "version1"
+                  "mapred-site" : {
+                    "tag" : "version1"
                   },
-                  "oozie-site": {
-                    "tag": "version1"
+                  "oozie-site" : {
+                    "tag" : "version1"
                   },
-                  "webhcat-site": {
-                    "tag": "version1"
+                  "webhcat-site" : {
+                    "tag" : "version1"
                   },
-                  "yarn-site": {
-                    "tag": "version1"
+                  "yarn-site" : {
+                    "tag" : "version1"
                   }
                 },
-                "configs": { },
-                "desired_configs": { }
+                "configs" : { },
+                "desired_configs" : { }
               }
             }
           ]
         },
         {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/HIVE/components/HIVE_SERVER",
-          "ServiceComponentInfo": {
-            "cluster_name": "c1",
-            "component_name": "HIVE_SERVER",
-            "service_name": "HIVE",
-            "state": "STARTED",
-            "desired_configs": { }
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/HIVE/components/HIVE_SERVER",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "HIVE_SERVER",
+            "service_name" : "HIVE",
+            "state" : "STARTED",
+            "desired_configs" : { }
           },
-          "host_components": [
+          "host_components" : [
             {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/HIVE_SERVER",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "HIVE_SERVER",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "STARTED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "HIVE",
-                "stack_id": "HDP-2.0.3",
-                "state": "STARTED",
-                "actual_configs": {
-                  "capacity-scheduler": {
-                    "tag": "version1"
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/HIVE_SERVER",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "HIVE_SERVER",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "STARTED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "HIVE",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "STARTED",
+                "actual_configs" : {
+                  "capacity-scheduler" : {
+                    "tag" : "version1"
                   },
-                  "core-site": {
-                    "tag": "version1"
+                  "core-site" : {
+                    "tag" : "version1"
                   },
-                  "global": {
-                    "tag": "version1"
+                  "global" : {
+                    "tag" : "version1"
                   },
-                  "hbase-site": {
-                    "tag": "version1"
+                  "hbase-site" : {
+                    "tag" : "version1"
                   },
-                  "hdfs-site": {
-                    "tag": "version1"
+                  "hdfs-site" : {
+                    "tag" : "version1"
                   },
-                  "hive-site": {
-                    "tag": "version1"
+                  "hive-site" : {
+                    "tag" : "version1"
                   },
-                  "mapred-queue-acls": {
-                    "tag": "version1"
+                  "mapred-queue-acls" : {
+                    "tag" : "version1"
                   },
-                  "mapred-site": {
-                    "tag": "version1"
+                  "mapred-site" : {
+                    "tag" : "version1"
                   },
-                  "oozie-site": {
-                    "tag": "version1"
+                  "oozie-site" : {
+                    "tag" : "version1"
                   },
-                  "webhcat-site": {
-                    "tag": "version1"
+                  "webhcat-site" : {
+                    "tag" : "version1"
                   },
-                  "yarn-site": {
-                    "tag": "version1"
+                  "yarn-site" : {
+                    "tag" : "version1"
                   }
                 },
-                "configs": { },
-                "desired_configs": { }
+                "configs" : { },
+                "desired_configs" : { }
               }
             }
           ]
         },
         {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/HIVE/components/MYSQL_SERVER",
-          "ServiceComponentInfo": {
-            "cluster_name": "c1",
-            "component_name": "MYSQL_SERVER",
-            "service_name": "HIVE",
-            "state": "STARTED",
-            "desired_configs": { }
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/HIVE/components/MYSQL_SERVER",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "MYSQL_SERVER",
+            "service_name" : "HIVE",
+            "state" : "STARTED",
+            "desired_configs" : { }
           },
-          "host_components": [
+          "host_components" : [
             {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/MYSQL_SERVER",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "MYSQL_SERVER",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "STARTED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "HIVE",
-                "stack_id": "HDP-2.0.3",
-                "state": "STARTED",
-                "actual_configs": {
-                  "capacity-scheduler": {
-                    "tag": "version1"
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/MYSQL_SERVER",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "MYSQL_SERVER",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "STARTED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "HIVE",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "STARTED",
+                "actual_configs" : {
+                  "capacity-scheduler" : {
+                    "tag" : "version1"
                   },
-                  "core-site": {
-                    "tag": "version1"
+                  "core-site" : {
+                    "tag" : "version1"
                   },
-                  "global": {
-                    "tag": "version1"
+                  "global" : {
+                    "tag" : "version1"
                   },
-                  "hbase-site": {
-                    "tag": "version1"
+                  "hbase-site" : {
+                    "tag" : "version1"
                   },
-                  "hdfs-site": {
-                    "tag": "version1"
+                  "hdfs-site" : {
+                    "tag" : "version1"
                   },
-                  "hive-site": {
-                    "tag": "version1"
+                  "hive-site" : {
+                    "tag" : "version1"
                   },
-                  "mapred-queue-acls": {
-                    "tag": "version1"
+                  "mapred-queue-acls" : {
+                    "tag" : "version1"
                   },
-                  "mapred-site": {
-                    "tag": "version1"
+                  "mapred-site" : {
+                    "tag" : "version1"
                   },
-                  "oozie-site": {
-                    "tag": "version1"
+                  "oozie-site" : {
+                    "tag" : "version1"
                   },
-                  "webhcat-site": {
-                    "tag": "version1"
+                  "webhcat-site" : {
+                    "tag" : "version1"
                   },
-                  "yarn-site": {
-                    "tag": "version1"
+                  "yarn-site" : {
+                    "tag" : "version1"
                   }
                 },
-                "configs": { },
-                "desired_configs": { }
+                "configs" : { },
+                "desired_configs" : { }
               }
             }
           ]
@@ -825,100 +856,106 @@
       ]
     },
     {
-      "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/MAPREDUCE2",
-      "ServiceInfo": {
-        "cluster_name": "c1",
-        "service_name": "MAPREDUCE2"
+      "href" : "http://dev01:8080/api/v1/clusters/vm/services/MAPREDUCE2",
+      "ServiceInfo" : {
+        "cluster_name" : "vm",
+        "service_name" : "MAPREDUCE2"
       },
-      "components": [
+      "components" : [
         {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/MAPREDUCE2/components/HISTORYSERVER",
-          "ServiceComponentInfo": {
-            "cluster_name": "c1",
-            "component_name": "HISTORYSERVER",
-            "service_name": "MAPREDUCE2",
-            "state": "STARTED",
-            "desired_configs": { }
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/MAPREDUCE2/components/HISTORYSERVER",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "HISTORYSERVER",
+            "service_name" : "MAPREDUCE2",
+            "state" : "STARTED",
+            "desired_configs" : { }
           },
-          "host_components": [
+          "host_components" : [
             {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/HISTORYSERVER",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "HISTORYSERVER",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "STARTED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "MAPREDUCE2",
-                "stack_id": "HDP-2.0.3",
-                "state": "STARTED",
-                "actual_configs": {
-                  "capacity-scheduler": {
-                    "tag": "version1"
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/HISTORYSERVER",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "HISTORYSERVER",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "STARTED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "MAPREDUCE2",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "STARTED",
+                "actual_configs" : {
+                  "capacity-scheduler" : {
+                    "tag" : "version1"
                   },
-                  "core-site": {
-                    "tag": "version1"
+                  "core-site" : {
+                    "tag" : "version1"
                   },
-                  "global": {
-                    "tag": "version1"
+                  "global" : {
+                    "tag" : "version1"
                   },
-                  "hbase-site": {
-                    "tag": "version1"
+                  "hbase-site" : {
+                    "tag" : "version1"
                   },
-                  "hdfs-site": {
-                    "tag": "version1"
+                  "hdfs-site" : {
+                    "tag" : "version1"
                   },
-                  "hive-site": {
-                    "tag": "version1"
+                  "hive-site" : {
+                    "tag" : "version1"
                   },
-                  "mapred-queue-acls": {
-                    "tag": "version1"
+                  "mapred-queue-acls" : {
+                    "tag" : "version1"
                   },
-                  "mapred-site": {
-                    "tag": "version1"
+                  "mapred-site" : {
+                    "tag" : "version1"
                   },
-                  "oozie-site": {
-                    "tag": "version1"
+                  "oozie-site" : {
+                    "tag" : "version1"
                   },
-                  "webhcat-site": {
-                    "tag": "version1"
+                  "webhcat-site" : {
+                    "tag" : "version1"
                   },
-                  "yarn-site": {
-                    "tag": "version1"
+                  "yarn-site" : {
+                    "tag" : "version1"
                   }
                 },
-                "configs": { },
-                "desired_configs": { }
+                "configs" : { },
+                "desired_configs" : { }
+              },
+              "metrics" : {
+                "jvm" : {
+                  "memHeapCommittedM" : 28.5625,
+                  "memHeapUsedM" : 10.363014
+                }
               }
             }
           ]
         },
         {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/MAPREDUCE2/components/MAPREDUCE2_CLIENT",
-          "ServiceComponentInfo": {
-            "cluster_name": "c1",
-            "component_name": "MAPREDUCE2_CLIENT",
-            "service_name": "MAPREDUCE2",
-            "state": "INSTALLED",
-            "desired_configs": { }
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/MAPREDUCE2/components/MAPREDUCE2_CLIENT",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "MAPREDUCE2_CLIENT",
+            "service_name" : "MAPREDUCE2",
+            "state" : "INSTALLED",
+            "desired_configs" : { }
           },
-          "host_components": [
+          "host_components" : [
             {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/MAPREDUCE2_CLIENT",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "MAPREDUCE2_CLIENT",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "INSTALLED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "MAPREDUCE2",
-                "stack_id": "HDP-2.0.3",
-                "state": "INSTALLED",
-                "actual_configs": { },
-                "configs": { },
-                "desired_configs": { }
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/MAPREDUCE2_CLIENT",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "MAPREDUCE2_CLIENT",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "INSTALLED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "MAPREDUCE2",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "INSTALLED",
+                "actual_configs" : { },
+                "configs" : { },
+                "desired_configs" : { }
               }
             }
           ]
@@ -926,711 +963,695 @@
       ]
     },
     {
-      "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/NAGIOS",
-      "ServiceInfo": {
-        "cluster_name": "c1",
-        "service_name": "NAGIOS"
+      "href" : "http://dev01:8080/api/v1/clusters/vm/services/NAGIOS",
+      "ServiceInfo" : {
+        "cluster_name" : "vm",
+        "service_name" : "NAGIOS"
       },
-      "components": [
+      "components" : [
         {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/NAGIOS/components/NAGIOS_SERVER",
-          "ServiceComponentInfo": {
-            "cluster_name": "c1",
-            "component_name": "NAGIOS_SERVER",
-            "service_name": "NAGIOS",
-            "state": "STARTED",
-            "desired_configs": { }
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/NAGIOS/components/NAGIOS_SERVER",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "NAGIOS_SERVER",
+            "service_name" : "NAGIOS",
+            "state" : "STARTED",
+            "desired_configs" : { }
           },
-          "host_components": [
+          "host_components" : [
             {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/NAGIOS_SERVER",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "NAGIOS_SERVER",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "STARTED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "nagios_alerts": {
-                  "alerts": [
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/NAGIOS_SERVER",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "NAGIOS_SERVER",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "STARTED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "nagios_alerts" : {
+                  "alerts" : [
                     {
-                      "service_description": "Check ambari-agent process",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "OK: Ambari agent is running [PID:15240]",
-                      "last_hard_state_change": "1375289689",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291189",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291189",
-                      "service_type": "AMBARI"
+                      "service_description" : "Check ambari-agent process",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "OK: Ambari agent is running [PID:8339]",
+                      "last_hard_state_change" : "1375462335",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467735",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467735",
+                      "service_type" : "AMBARI"
                     },
                     {
-                      "service_description": "DataNode process down",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "TCP OK - 0.000 second response time on port 50075",
-                      "last_hard_state_change": "1375289692",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291252",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291252",
-                      "service_type": "HDFS"
+                      "service_description" : "DataNode process down",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "TCP OK - 0.001 second response time on port 50075",
+                      "last_hard_state_change" : "1375462338",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467858",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467858",
+                      "service_type" : "HDFS"
                     },
                     {
-                      "service_description": "DataNode storage full",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "OK: Capacity:[52844687359], Remaining Capacity:[45343248384], percent_full:[14.195256609314]",
-                      "last_hard_state_change": "1375289695",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291195",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291195",
-                      "service_type": "HDFS"
+                      "service_description" : "DataNode storage full",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "OK: Capacity:[525282689023], Remaining Capacity:[490802098176], percent_full:[6.5641970633246]",
+                      "last_hard_state_change" : "1375462341",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467741",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467741",
+                      "service_type" : "HDFS"
                     },
                     {
-                      "service_description": "Ganglia Collector [gmond] process down alert for HBase Master",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "TCP OK - 0.001 second response time on port 8663",
-                      "last_hard_state_change": "1375289698",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291273",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291273",
-                      "service_type": "GANGLIA"
+                      "service_description" : "Ganglia Collector [gmond] process down alert for HBase Master",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "TCP OK - 0.001 second response time on port 8663",
+                      "last_hard_state_change" : "1375462344",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467894",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467894",
+                      "service_type" : "GANGLIA"
                     },
                     {
-                      "service_description": "Ganglia Collector [gmond] process down alert for History Server 2",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "TCP OK - 0.001 second response time on port 8666",
-                      "last_hard_state_change": "1375289701",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291276",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291276",
-                      "service_type": "GANGLIA"
+                      "service_description" : "Ganglia Collector [gmond] process down alert for History Server 2",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "TCP OK - 0.003 second response time on port 8666",
+                      "last_hard_state_change" : "1375462347",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375388826",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467237",
+                      "service_type" : "GANGLIA"
                     },
                     {
-                      "service_description": "Ganglia Collector [gmond] process down alert for JobTracker",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "4",
-                      "current_state": "2",
-                      "plugin_output": "Connection refused",
-                      "last_hard_state_change": "1375289749",
-                      "last_hard_state": "2",
-                      "last_time_ok": "0",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "1375291279",
-                      "is_flapping": "0",
-                      "last_check": "1375291279",
-                      "service_type": "GANGLIA"
+                      "service_description" : "Ganglia Collector [gmond] process down alert for NameNode",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "TCP OK - 0.005 second response time on port 8661",
+                      "last_hard_state_change" : "1375462350",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375388829",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467240",
+                      "service_type" : "GANGLIA"
                     },
                     {
-                      "service_description": "Ganglia Collector [gmond] process down alert for NameNode",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "TCP OK - 0.001 second response time on port 8661",
-                      "last_hard_state_change": "1375289707",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291282",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291282",
-                      "service_type": "GANGLIA"
+                      "service_description" : "Ganglia Collector [gmond] process down alert for Node Manager",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "TCP OK - 0.002 second response time on port 8660",
+                      "last_hard_state_change" : "1375462353",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467889",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467889",
+                      "service_type" : "GANGLIA"
                     },
                     {
-                      "service_description": "Ganglia Collector [gmond] process down alert for Node Manager",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "TCP OK - 0.000 second response time on port 8660",
-                      "last_hard_state_change": "1375289710",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291285",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291285",
-                      "service_type": "GANGLIA"
+                      "service_description" : "Ganglia Collector [gmond] process down alert for Resource Manager",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "TCP OK - 0.001 second response time on port 8664",
+                      "last_hard_state_change" : "1375462356",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467891",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467891",
+                      "service_type" : "GANGLIA"
                     },
                     {
-                      "service_description": "Ganglia Collector [gmond] process down alert for Resource Manager",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "TCP OK - 0.001 second response time on port 8664",
-                      "last_hard_state_change": "1375289713",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291273",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291273",
-                      "service_type": "GANGLIA"
+                      "service_description" : "Ganglia Collector [gmond] process down alert for slaves",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "TCP OK - 0.003 second response time on port 8660",
+                      "last_hard_state_change" : "1375462359",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467894",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467894",
+                      "service_type" : "GANGLIA"
                     },
                     {
-                      "service_description": "Ganglia Collector [gmond] process down alert for slaves",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "TCP OK - 0.006 second response time on port 8660",
-                      "last_hard_state_change": "1375289716",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291276",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291276",
-                      "service_type": "GANGLIA"
+                      "service_description" : "Ganglia [gmetad] process down",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "TCP OK - 0.001 second response time on port 8651",
+                      "last_hard_state_change" : "1375462362",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375388826",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467237",
+                      "service_type" : "GANGLIA"
                     },
                     {
-                      "service_description": "Ganglia [gmetad] process down",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "TCP OK - 0.009 second response time on port 8651",
-                      "last_hard_state_change": "1375289719",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291279",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291279",
-                      "service_type": "GANGLIA"
+                      "service_description" : "Percent RegionServers down",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "OK: total:&lt;1&gt;, affected:&lt;0&gt;",
+                      "last_hard_state_change" : "1375462935",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375388814",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "1375384494",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467225",
+                      "service_type" : "HBASE"
                     },
                     {
-                      "service_description": "Percent RegionServers down",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "OK: total:&lt;1&gt;, affected:&lt;0&gt;",
-                      "last_hard_state_change": "1375290292",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291282",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "1375290262",
-                      "is_flapping": "0",
-                      "last_check": "1375291282",
-                      "service_type": "HBASE"
+                      "service_description" : "HBase Master CPU utilization",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "1 CPU, load 13.0% &lt; 200% : OK",
+                      "last_hard_state_change" : "1375462368",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467768",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467768",
+                      "service_type" : "HBASE"
                     },
                     {
-                      "service_description": "HBase Master CPU utilization",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "1 CPU, load 30.0% &lt; 200% : OK",
-                      "last_hard_state_change": "1375289724",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291224",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291224",
-                      "service_type": "HBASE"
+                      "service_description" : "HBase Master Web UI down",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "3",
+                      "current_state" : "1",
+                      "plugin_output" : "WARNING: HBase Master web UI not accessible : http://dev01.ambari.apache.org:60010/master-status",
+                      "last_hard_state_change" : "1375467711",
+                      "last_hard_state" : "1",
+                      "last_time_ok" : "1375467531",
+                      "last_time_warning" : "1375467891",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467891",
+                      "service_type" : "HBASE"
                     },
                     {
-                      "service_description": "HBase Master Web UI down",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "OK: Successfully accessed hbase Web UI",
-                      "last_hard_state_change": "1375290087",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291227",
-                      "last_time_warning": "1375290027",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291227",
-                      "service_type": "HBASE"
+                      "service_description" : "HBase Master process down",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "4",
+                      "current_state" : "2",
+                      "plugin_output" : "Connection refused",
+                      "last_hard_state_change" : "1375467625",
+                      "last_hard_state" : "2",
+                      "last_time_ok" : "1375467550",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "1375467895",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467895",
+                      "service_type" : "HBASE"
                     },
                     {
-                      "service_description": "HBase Master process down",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "TCP OK - 0.001 second response time on port 60010",
-                      "last_hard_state_change": "1375290075",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291275",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "1375290045",
-                      "is_flapping": "0",
-                      "last_check": "1375291275",
-                      "service_type": "HBASE"
+                      "service_description" : "Corrupt/Missing blocks",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "OK: corrupt_blocks:&lt;&gt;, missing_blocks:&lt;&gt;, total_blocks:&lt;&gt;",
+                      "last_hard_state_change" : "1375462378",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467898",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467898",
+                      "service_type" : "HDFS"
                     },
                     {
-                      "service_description": "Corrupt/Missing blocks",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "OK: corrupt_blocks:&lt;&gt;, missing_blocks:&lt;&gt;, total_blocks:&lt;&gt;",
-                      "last_hard_state_change": "1375289733",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291173",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291173",
-                      "service_type": "HDFS"
+                      "service_description" : "HDFS capacity utilization",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "OK: DFSUsedGB:&lt;0.2&gt;, DFSTotalGB:&lt;457.3&gt;",
+                      "last_hard_state_change" : "1375462381",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467781",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467781",
+                      "service_type" : "HDFS"
                     },
                     {
-                      "service_description": "HDFS capacity utilization",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "OK: DFSUsedGB:&lt;0.2&gt;, DFSTotalGB:&lt;42.4&gt;",
-                      "last_hard_state_change": "1375289736",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375290936",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375290936",
-                      "service_type": "HDFS"
+                      "service_description" : "NameNode RPC latency",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "OK: RpcQueueTime_avg_time:&lt;0&gt; Secs, RpcProcessingTime_avg_time:&lt;0&gt; Secs",
+                      "last_hard_state_change" : "1375462384",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467784",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467784",
+                      "service_type" : "HDFS"
                     },
                     {
-                      "service_description": "NameNode RPC latency",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "OK: RpcQueueTime_avg_time:&lt;0&gt; Secs, RpcProcessingTime_avg_time:&lt;0&gt; Secs",
-                      "last_hard_state_change": "1375289739",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291239",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291239",
-                      "service_type": "HDFS"
+                      "service_description" : "Percent DataNodes down",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "OK: total:&lt;1&gt;, affected:&lt;0&gt;",
+                      "last_hard_state_change" : "1375462387",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467877",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467877",
+                      "service_type" : "HDFS"
                     },
                     {
-                      "service_description": "Percent DataNodes down",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "OK: total:&lt;1&gt;, affected:&lt;0&gt;",
-                      "last_hard_state_change": "1375289742",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291272",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291272",
-                      "service_type": "HDFS"
+                      "service_description" : "Percent DataNodes storage full",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "OK: total:&lt;1&gt;, affected:&lt;0&gt;",
+                      "last_hard_state_change" : "1375462390",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467790",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467790",
+                      "service_type" : "HDFS"
                     },
                     {
-                      "service_description": "Percent DataNodes storage full",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "OK: total:&lt;1&gt;, affected:&lt;0&gt;",
-                      "last_hard_state_change": "1375289745",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291185",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291185",
-                      "service_type": "HDFS"
+                      "service_description" : "Hive Metastore status check",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "OK: Hive metaserver status OK",
+                      "last_hard_state_change" : "1375462723",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375388812",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "1375384282",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467223",
+                      "service_type" : "HIVE"
                     },
                     {
-                      "service_description": "Hive Metastore status check",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "OK: Hive metaserver status OK",
-                      "last_hard_state_change": "1375290078",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291248",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "1375290048",
-                      "is_flapping": "0",
-                      "last_check": "1375291248",
-                      "service_type": "HIVE"
+                      "service_description" : "History Server 2 CPU utilization",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "1 CPU, load 12.0% &lt; 200% : OK",
+                      "last_hard_state_change" : "1375462396",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467796",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467796",
+                      "service_type" : "UNKNOWN"
                     },
                     {
-                      "service_description": "History Server 2 CPU utilization",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "1 CPU, load 25.0% &lt; 200% : OK",
-                      "last_hard_state_change": "1375289751",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291251",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291251",
-                      "service_type": "UNKNOWN"
+                      "service_description" : "History Server 2 RPC latency",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "OK: RpcQueueTime_avg_time:&lt;0&gt; Secs, RpcProcessingTime_avg_time:&lt;0&gt; Secs",
+                      "last_hard_state_change" : "1375462399",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467799",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467799",
+                      "service_type" : "UNKNOWN"
                     },
                     {
-                      "service_description": "History Server 2 RPC latency",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "OK: RpcQueueTime_avg_time:&lt;0&gt; Secs, RpcProcessingTime_avg_time:&lt;0&gt; Secs",
-                      "last_hard_state_change": "1375289754",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291254",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291254",
-                      "service_type": "UNKNOWN"
+                      "service_description" : "History Server 2 Web UI down",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "OK: Successfully accessed historyserver2 Web UI",
+                      "last_hard_state_change" : "1375462762",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467862",
+                      "last_time_warning" : "1375384291",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467862",
+                      "service_type" : "UNKNOWN"
                     },
                     {
-                      "service_description": "History Server 2 Web UI down",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "OK: Successfully accessed historyserver2 Web UI",
-                      "last_hard_state_change": "1375290117",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291257",
-                      "last_time_warning": "1375290057",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291257",
-                      "service_type": "UNKNOWN"
+                      "service_description" : "Percent TaskTrackers down",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "OK: total:&lt;0&gt;, affected:&lt;0&gt;",
+                      "last_hard_state_change" : "1375462405",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467895",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467895",
+                      "service_type" : "MAPREDUCE"
                     },
                     {
-                      "service_description": "Percent TaskTrackers down",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "OK: total:&lt;0&gt;, affected:&lt;0&gt;",
-                      "last_hard_state_change": "1375289759",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291259",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291259",
-                      "service_type": "MAPREDUCE"
+                      "service_description" : "Nagios status log staleness",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "NAGIOS OK: 2 processes, status log updated 6 seconds ago",
+                      "last_hard_state_change" : "1375462408",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467808",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467808",
+                      "service_type" : "NAGIOS"
                     },
                     {
-                      "service_description": "Nagios status log staleness",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "NAGIOS OK: 2 processes, status log updated 5 seconds ago",
-                      "last_hard_state_change": "1375289762",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291262",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291262",
-                      "service_type": "NAGIOS"
+                      "service_description" : "NameNode Web UI down",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "OK: Successfully accessed namenode Web UI",
+                      "last_hard_state_change" : "1375462411",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467871",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467871",
+                      "service_type" : "HDFS"
                     },
                     {
-                      "service_description": "NameNode Web UI down",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "OK: Successfully accessed namenode Web UI",
-                      "last_hard_state_change": "1375289765",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291265",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291265",
-                      "service_type": "HDFS"
+                      "service_description" : "NameNode edit logs directory status",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "OK: All Namenode directories are active",
+                      "last_hard_state_change" : "1375462415",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467875",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467875",
+                      "service_type" : "HDFS"
                     },
                     {
-                      "service_description": "NameNode edit logs directory status",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "OK: All Namenode directories are active",
-                      "last_hard_state_change": "1375289768",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291268",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291268",
-                      "service_type": "HDFS"
+                      "service_description" : "NameNode host CPU utilization",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "1 CPU, load 12.0% &lt; 200% : OK",
+                      "last_hard_state_change" : "1375462418",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467818",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467818",
+                      "service_type" : "HDFS"
                     },
                     {
-                      "service_description": "NameNode host CPU utilization",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "1 CPU, load 32.0% &lt; 200% : OK",
-                      "last_hard_state_change": "1375289771",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291271",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291271",
-                      "service_type": "HDFS"
+                      "service_description" : "NameNode process down",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "TCP OK - 0.001 second response time on port 8020",
+                      "last_hard_state_change" : "1375462421",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467881",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467881",
+                      "service_type" : "HDFS"
                     },
                     {
-                      "service_description": "NameNode process down",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "TCP OK - 0.000 second response time on port 8020",
-                      "last_hard_state_change": "1375289774",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291274",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291274",
-                      "service_type": "HDFS"
+                      "service_description" : "Node Manager process down",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "TCP OK - 0.001 second response time on port 8042",
+                      "last_hard_state_change" : "1375462964",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467884",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "1375384493",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467884",
+                      "service_type" : "UNKNOWN"
                     },
                     {
-                      "service_description": "Node Manager process down",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "TCP OK - 0.001 second response time on port 8042",
-                      "last_hard_state_change": "1375290377",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291277",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "1375290317",
-                      "is_flapping": "0",
-                      "last_check": "1375291277",
-                      "service_type": "UNKNOWN"
+                      "service_description" : "Oozie Server status check",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "OK: Oozie server status [System mode: NORMAL]",
+                      "last_hard_state_change" : "1375462787",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467887",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "1375384316",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467887",
+                      "service_type" : "OOZIE"
                     },
                     {
-                      "service_description": "Oozie Server status check",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "OK: Oozie server status [System mode: NORMAL]",
-                      "last_hard_state_change": "1375290140",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291280",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "1375290080",
-                      "is_flapping": "0",
-                      "last_check": "1375291280",
-                      "service_type": "OOZIE"
+                      "service_description" : "RegionServer process down",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "3",
+                      "current_state" : "2",
+                      "plugin_output" : "Connection refused",
+                      "last_hard_state_change" : "1375467350",
+                      "last_hard_state" : "2",
+                      "last_time_ok" : "1375388819",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "1375467890",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467890",
+                      "service_type" : "HBASE"
                     },
                     {
-                      "service_description": "RegionServer process down",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "TCP OK - 0.000 second response time on port 60030",
-                      "last_hard_state_change": "1375290263",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291283",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "1375290203",
-                      "is_flapping": "0",
-                      "last_check": "1375291283",
-                      "service_type": "HBASE"
+                      "service_description" : "Resource Manager CPU utilization",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "1 CPU, load 11.0% &lt; 200% : OK",
+                      "last_hard_state_change" : "1375462433",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467833",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467833",
+                      "service_type" : "UNKNOWN"
                     },
                     {
-                      "service_description": "Resource Manager CPU utilization",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "1 CPU, load 31.0% &lt; 200% : OK",
-                      "last_hard_state_change": "1375289786",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291286",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291286",
-                      "service_type": "UNKNOWN"
+                      "service_description" : "Resource Manager RPC latency",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "OK: RpcQueueTime_avg_time:&lt;0&gt; Secs, RpcProcessingTime_avg_time:&lt;0&gt; Secs",
+                      "last_hard_state_change" : "1375462436",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467836",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467836",
+                      "service_type" : "UNKNOWN"
                     },
                     {
-                      "service_description": "Resource Manager RPC latency",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "OK: RpcQueueTime_avg_time:&lt;0&gt; Secs, RpcProcessingTime_avg_time:&lt;0&gt; Secs",
-                      "last_hard_state_change": "1375289789",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375290989",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375290989",
-                      "service_type": "UNKNOWN"
+                      "service_description" : "Resource Manager Web UI down",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "OK: Successfully accessed resorcemanager Web UI",
+                      "last_hard_state_change" : "1375462859",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467899",
+                      "last_time_warning" : "1375384388",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "0",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467899",
+                      "service_type" : "UNKNOWN"
                     },
                     {
-                      "service_description": "Resource Manager Web UI down",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "OK: Successfully accessed resorcemanager Web UI",
-                      "last_hard_state_change": "1375290212",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291232",
-                      "last_time_warning": "1375290152",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "0",
-                      "is_flapping": "0",
-                      "last_check": "1375291232",
-                      "service_type": "UNKNOWN"
+                      "service_description" : "WebHCat Server status check",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "",
+                      "last_hard_state_change" : "1375463162",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467842",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "1375384691",
+                      "is_flapping" : "",
+                      "last_check" : "",
+                      "service_type" : "WEBHCAT"
                     },
                     {
-                      "service_description": "WebHCat Server status check",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "",
-                      "last_hard_state_change": "1375290575",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291235",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "1375290515",
-                      "is_flapping": "",
-                      "last_check": "",
-                      "service_type": "WEBHCAT"
+                      "service_description" : "Percent ZooKeeper Servers down",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "OK: total:&lt;1&gt;, affected:&lt;0&gt;",
+                      "last_hard_state_change" : "1375462715",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467875",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "1375384274",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467875",
+                      "service_type" : "ZOOKEEPER"
                     },
                     {
-                      "service_description": "Percent ZooKeeper Servers down",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "OK: total:&lt;1&gt;, affected:&lt;0&gt;",
-                      "last_hard_state_change": "1375290067",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291267",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "1375290037",
-                      "is_flapping": "0",
-                      "last_check": "1375291267",
-                      "service_type": "ZOOKEEPER"
-                    },
-                    {
-                      "service_description": "ZooKeeper Server process down",
-                      "host_name": "dev01.hortonworks.com",
-                      "current_attempt": "1",
-                      "current_state": "0",
-                      "plugin_output": "TCP OK - 0.002 second response time on port 2181",
-                      "last_hard_state_change": "1375290040",
-                      "last_hard_state": "0",
-                      "last_time_ok": "1375291240",
-                      "last_time_warning": "0",
-                      "last_time_unknown": "0",
-                      "last_time_critical": "1375289980",
-                      "is_flapping": "0",
-                      "last_check": "1375291240",
-                      "service_type": "ZOOKEEPER"
+                      "service_description" : "ZooKeeper Server process down",
+                      "host_name" : "dev01.ambari.apache.org",
+                      "current_attempt" : "1",
+                      "current_state" : "0",
+                      "plugin_output" : "TCP OK - 0.001 second response time on port 2181",
+                      "last_hard_state_change" : "1375462688",
+                      "last_hard_state" : "0",
+                      "last_time_ok" : "1375467848",
+                      "last_time_warning" : "0",
+                      "last_time_unknown" : "0",
+                      "last_time_critical" : "1375384217",
+                      "is_flapping" : "0",
+                      "last_check" : "1375467848",
+                      "service_type" : "ZOOKEEPER"
                     }
                   ],
-                  "hostcounts": {
-                    "up_hosts": "1",
-                    "down_hosts": "0"
+                  "hostcounts" : {
+                    "up_hosts" : "1",
+                    "down_hosts" : "0"
                   },
-                  "servicestates": {
-                    "PUPPET": "0",
-                    "HIVE-METASTORE": "0",
-                    "HDFS": "0",
-                    "OOZIE": "0",
-                    "WEBHCAT": "0",
-                    "ZOOKEEPER": "0"
+                  "servicestates" : {
+                    "PUPPET" : "0",
+                    "HIVE-METASTORE" : "0",
+                    "HDFS" : "0",
+                    "OOZIE" : "0",
+                    "WEBHCAT" : "0",
+                    "ZOOKEEPER" : "0"
                   }
                 },
-                "service_name": "NAGIOS",
-                "stack_id": "HDP-2.0.3",
-                "state": "STARTED",
-                "actual_configs": {
-                  "capacity-scheduler": {
-                    "tag": "version1"
+                "service_name" : "NAGIOS",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "STARTED",
+                "actual_configs" : {
+                  "capacity-scheduler" : {
+                    "tag" : "version1"
                   },
-                  "core-site": {
-                    "tag": "version1"
+                  "core-site" : {
+                    "tag" : "version1"
                   },
-                  "global": {
-                    "tag": "version1"
+                  "global" : {
+                    "tag" : "version1"
                   },
-                  "hbase-site": {
-                    "tag": "version1"
+                  "hbase-site" : {
+                    "tag" : "version1"
                   },
-                  "hdfs-site": {
-                    "tag": "version1"
+                  "hdfs-site" : {
+                    "tag" : "version1"
                   },
-                  "hive-site": {
-                    "tag": "version1"
+                  "hive-site" : {
+                    "tag" : "version1"
                   },
-                  "mapred-queue-acls": {
-                    "tag": "version1"
+                  "mapred-queue-acls" : {
+                    "tag" : "version1"
                   },
-                  "mapred-site": {
-                    "tag": "version1"
+                  "mapred-site" : {
+                    "tag" : "version1"
                   },
-                  "oozie-site": {
-                    "tag": "version1"
+                  "oozie-site" : {
+                    "tag" : "version1"
                   },
-                  "webhcat-site": {
-                    "tag": "version1"
+                  "webhcat-site" : {
+                    "tag" : "version1"
                   },
-                  "yarn-site": {
-                    "tag": "version1"
+                  "yarn-site" : {
+                    "tag" : "version1"
                   }
                 },
-                "configs": { },
-                "desired_configs": { }
+                "configs" : { },
+                "desired_configs" : { }
               }
             }
           ]
@@ -1638,100 +1659,100 @@
       ]
     },
     {
-      "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/OOZIE",
-      "ServiceInfo": {
-        "cluster_name": "c1",
-        "service_name": "OOZIE"
+      "href" : "http://dev01:8080/api/v1/clusters/vm/services/OOZIE",
+      "ServiceInfo" : {
+        "cluster_name" : "vm",
+        "service_name" : "OOZIE"
       },
-      "components": [
+      "components" : [
         {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/OOZIE/components/OOZIE_CLIENT",
-          "ServiceComponentInfo": {
-            "cluster_name": "c1",
-            "component_name": "OOZIE_CLIENT",
-            "service_name": "OOZIE",
-            "state": "INSTALLED",
-            "desired_configs": { }
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/OOZIE/components/OOZIE_CLIENT",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "OOZIE_CLIENT",
+            "service_name" : "OOZIE",
+            "state" : "INSTALLED",
+            "desired_configs" : { }
           },
-          "host_components": [
+          "host_components" : [
             {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/OOZIE_CLIENT",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "OOZIE_CLIENT",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "INSTALLED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "OOZIE",
-                "stack_id": "HDP-2.0.3",
-                "state": "INSTALLED",
-                "actual_configs": { },
-                "configs": { },
-                "desired_configs": { }
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/OOZIE_CLIENT",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "OOZIE_CLIENT",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "INSTALLED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "OOZIE",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "INSTALLED",
+                "actual_configs" : { },
+                "configs" : { },
+                "desired_configs" : { }
               }
             }
           ]
         },
         {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/OOZIE/components/OOZIE_SERVER",
-          "ServiceComponentInfo": {
-            "cluster_name": "c1",
-            "component_name": "OOZIE_SERVER",
-            "service_name": "OOZIE",
-            "state": "STARTED",
-            "desired_configs": { }
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/OOZIE/components/OOZIE_SERVER",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "OOZIE_SERVER",
+            "service_name" : "OOZIE",
+            "state" : "STARTED",
+            "desired_configs" : { }
           },
-          "host_components": [
+          "host_components" : [
             {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/OOZIE_SERVER",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "OOZIE_SERVER",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "STARTED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "OOZIE",
-                "stack_id": "HDP-2.0.3",
-                "state": "STARTED",
-                "actual_configs": {
-                  "capacity-scheduler": {
-                    "tag": "version1"
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/OOZIE_SERVER",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "OOZIE_SERVER",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "STARTED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "OOZIE",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "STARTED",
+                "actual_configs" : {
+                  "capacity-scheduler" : {
+                    "tag" : "version1"
                   },
-                  "core-site": {
-                    "tag": "version1"
+                  "core-site" : {
+                    "tag" : "version1"
                   },
-                  "global": {
-                    "tag": "version1"
+                  "global" : {
+                    "tag" : "version1"
                   },
-                  "hbase-site": {
-                    "tag": "version1"
+                  "hbase-site" : {
+                    "tag" : "version1"
                   },
-                  "hdfs-site": {
-                    "tag": "version1"
+                  "hdfs-site" : {
+                    "tag" : "version1"
                   },
-                  "hive-site": {
-                    "tag": "version1"
+                  "hive-site" : {
+                    "tag" : "version1"
                   },
-                  "mapred-queue-acls": {
-                    "tag": "version1"
+                  "mapred-queue-acls" : {
+                    "tag" : "version1"
                   },
-                  "mapred-site": {
-                    "tag": "version1"
+                  "mapred-site" : {
+                    "tag" : "version1"
                   },
-                  "oozie-site": {
-                    "tag": "version1"
+                  "oozie-site" : {
+                    "tag" : "version1"
                   },
-                  "webhcat-site": {
-                    "tag": "version1"
+                  "webhcat-site" : {
+                    "tag" : "version1"
                   },
-                  "yarn-site": {
-                    "tag": "version1"
+                  "yarn-site" : {
+                    "tag" : "version1"
                   }
                 },
-                "configs": { },
-                "desired_configs": { }
+                "configs" : { },
+                "desired_configs" : { }
               }
             }
           ]
@@ -1739,37 +1760,37 @@
       ]
     },
     {
-      "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/PIG",
-      "ServiceInfo": {
-        "cluster_name": "c1",
-        "service_name": "PIG"
+      "href" : "http://dev01:8080/api/v1/clusters/vm/services/PIG",
+      "ServiceInfo" : {
+        "cluster_name" : "vm",
+        "service_name" : "PIG"
       },
-      "components": [
+      "components" : [
         {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/PIG/components/PIG",
-          "ServiceComponentInfo": {
-            "cluster_name": "c1",
-            "component_name": "PIG",
-            "service_name": "PIG",
-            "state": "INSTALLED",
-            "desired_configs": { }
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/PIG/components/PIG",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "PIG",
+            "service_name" : "PIG",
+            "state" : "INSTALLED",
+            "desired_configs" : { }
           },
-          "host_components": [
+          "host_components" : [
             {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/PIG",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "PIG",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "INSTALLED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "PIG",
-                "stack_id": "HDP-2.0.3",
-                "state": "INSTALLED",
-                "actual_configs": { },
-                "configs": { },
-                "desired_configs": { }
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/PIG",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "PIG",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "INSTALLED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "PIG",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "INSTALLED",
+                "actual_configs" : { },
+                "configs" : { },
+                "desired_configs" : { }
               }
             }
           ]
@@ -1777,71 +1798,71 @@
       ]
     },
     {
-      "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/WEBHCAT",
-      "ServiceInfo": {
-        "cluster_name": "c1",
-        "service_name": "WEBHCAT"
+      "href" : "http://dev01:8080/api/v1/clusters/vm/services/WEBHCAT",
+      "ServiceInfo" : {
+        "cluster_name" : "vm",
+        "service_name" : "WEBHCAT"
       },
-      "components": [
+      "components" : [
         {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/WEBHCAT/components/WEBHCAT_SERVER",
-          "ServiceComponentInfo": {
-            "cluster_name": "c1",
-            "component_name": "WEBHCAT_SERVER",
-            "service_name": "WEBHCAT",
-            "state": "STARTED",
-            "desired_configs": { }
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/WEBHCAT/components/WEBHCAT_SERVER",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "WEBHCAT_SERVER",
+            "service_name" : "WEBHCAT",
+            "state" : "STARTED",
+            "desired_configs" : { }
           },
-          "host_components": [
+          "host_components" : [
             {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/WEBHCAT_SERVER",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "WEBHCAT_SERVER",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "STARTED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "WEBHCAT",
-                "stack_id": "HDP-2.0.3",
-                "state": "STARTED",
-                "actual_configs": {
-                  "capacity-scheduler": {
-                    "tag": "version1"
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/WEBHCAT_SERVER",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "WEBHCAT_SERVER",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "STARTED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "WEBHCAT",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "STARTED",
+                "actual_configs" : {
+                  "capacity-scheduler" : {
+                    "tag" : "version1"
                   },
-                  "core-site": {
-                    "tag": "version1"
+                  "core-site" : {
+                    "tag" : "version1"
                   },
-                  "global": {
-                    "tag": "version1"
+                  "global" : {
+                    "tag" : "version1"
                   },
-                  "hbase-site": {
-                    "tag": "version1"
+                  "hbase-site" : {
+                    "tag" : "version1"
                   },
-                  "hdfs-site": {
-                    "tag": "version1"
+                  "hdfs-site" : {
+                    "tag" : "version1"
                   },
-                  "hive-site": {
-                    "tag": "version1"
+                  "hive-site" : {
+                    "tag" : "version1"
                   },
-                  "mapred-queue-acls": {
-                    "tag": "version1"
+                  "mapred-queue-acls" : {
+                    "tag" : "version1"
                   },
-                  "mapred-site": {
-                    "tag": "version1"
+                  "mapred-site" : {
+                    "tag" : "version1"
                   },
-                  "oozie-site": {
-                    "tag": "version1"
+                  "oozie-site" : {
+                    "tag" : "version1"
                   },
-                  "webhcat-site": {
-                    "tag": "version1"
+                  "webhcat-site" : {
+                    "tag" : "version1"
                   },
-                  "yarn-site": {
-                    "tag": "version1"
+                  "yarn-site" : {
+                    "tag" : "version1"
                   }
                 },
-                "configs": { },
-                "desired_configs": { }
+                "configs" : { },
+                "desired_configs" : { }
               }
             }
           ]
@@ -1849,416 +1870,349 @@
       ]
     },
     {
-      "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/YARN",
-      "ServiceInfo": {
-        "cluster_name": "c1",
-        "service_name": "YARN"
+      "href" : "http://dev01:8080/api/v1/clusters/vm/services/YARN",
+      "ServiceInfo" : {
+        "cluster_name" : "vm",
+        "service_name" : "YARN"
       },
-      "components": [
+      "components" : [
         {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/YARN/components/NODEMANAGER",
-          "ServiceComponentInfo": {
-            "cluster_name": "c1",
-            "component_name": "NODEMANAGER",
-            "service_name": "YARN",
-            "state": "STARTED",
-            "desired_configs": { }
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/YARN/components/NODEMANAGER",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "NODEMANAGER",
+            "service_name" : "YARN",
+            "state" : "STARTED",
+            "desired_configs" : { }
           },
-          "host_components": [
+          "host_components" : [
             {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/NODEMANAGER",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "NODEMANAGER",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "STARTED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "YARN",
-                "stack_id": "HDP-2.0.3",
-                "state": "STARTED",
-                "actual_configs": {
-                  "capacity-scheduler": {
-                    "tag": "version1"
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/NODEMANAGER",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "NODEMANAGER",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "STARTED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "YARN",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "STARTED",
+                "actual_configs" : {
+                  "capacity-scheduler" : {
+                    "tag" : "version1"
                   },
-                  "core-site": {
-                    "tag": "version1"
+                  "core-site" : {
+                    "tag" : "version1"
                   },
-                  "global": {
-                    "tag": "version1"
+                  "global" : {
+                    "tag" : "version1"
                   },
-                  "hbase-site": {
-                    "tag": "version1"
+                  "hbase-site" : {
+                    "tag" : "version1"
                   },
-                  "hdfs-site": {
-                    "tag": "version1"
+                  "hdfs-site" : {
+                    "tag" : "version1"
                   },
-                  "hive-site": {
-                    "tag": "version1"
+                  "hive-site" : {
+                    "tag" : "version1"
                   },
-                  "mapred-queue-acls": {
-                    "tag": "version1"
+                  "mapred-queue-acls" : {
+                    "tag" : "version1"
                   },
-                  "mapred-site": {
-                    "tag": "version1"
+                  "mapred-site" : {
+                    "tag" : "version1"
                   },
-                  "oozie-site": {
-                    "tag": "version1"
+                  "oozie-site" : {
+                    "tag" : "version1"
                   },
-                  "webhcat-site": {
-                    "tag": "version1"
+                  "webhcat-site" : {
+                    "tag" : "version1"
                   },
-                  "yarn-site": {
-                    "tag": "version1"
+                  "yarn-site" : {
+                    "tag" : "version1"
                   }
                 },
-                "configs": { },
-                "desired_configs": { }
-              }
-            }
-          ]
-        },
-        {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/YARN/components/RESOURCEMANAGER",
-          "ServiceComponentInfo": {
-            "StartTime": 1375290150095,
-            "cluster_name": "c1",
-            "component_name": "RESOURCEMANAGER",
-            "service_name": "YARN",
-            "state": "STARTED",
-            "desired_configs": { },
-            "rm_metrics": {
-              "cluster": {
-                "activeNMcount": 1,
-                "decommissionedNMcount": 0,
-                "lostNMcount": 0,
-                "nodeManagers": "[{\"HostName\":\"dev01.hortonworks.com\",\"Rack\":\"/default-rack\",\"State\":\"RUNNING\",\"NodeId\":\"dev01.hortonworks.com:45454\",\"NodeHTTPAddress\":\"dev01.hortonworks.com:8042\",\"LastHealthUpdate\":1375291175321,\"HealthReport\":\"\",\"NumContainers\":0,\"UsedMemoryMB\":0,\"AvailableMemoryMB\":8192}]",
-                "rebootedNMcount": 0,
-                "unhealthyNMcount": 0
-              }
-            }
-          },
-          "host_components": [
-            {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/RESOURCEMANAGER",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "RESOURCEMANAGER",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "STARTED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "YARN",
-                "stack_id": "HDP-2.0.3",
-                "state": "STARTED",
-                "actual_configs": {
-                  "capacity-scheduler": {
-                    "tag": "version1"
-                  },
-                  "core-site": {
-                    "tag": "version1"
-                  },
-                  "global": {
-                    "tag": "version1"
-                  },
-                  "hbase-site": {
-                    "tag": "version1"
-                  },
-                  "hdfs-site": {
-                    "tag": "version1"
-                  },
-                  "hive-site": {
-                    "tag": "version1"
-                  },
-                  "mapred-queue-acls": {
-                    "tag": "version1"
-                  },
-                  "mapred-site": {
-                    "tag": "version1"
-                  },
-                  "oozie-site": {
-                    "tag": "version1"
-                  },
-                  "webhcat-site": {
-                    "tag": "version1"
-                  },
-                  "yarn-site": {
-                    "tag": "version1"
-                  }
-                },
-                "configs": { },
-                "desired_configs": { }
-              }
-            }
-          ]
-        },
-        {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/YARN/components/YARN_CLIENT",
-          "ServiceComponentInfo": {
-            "cluster_name": "c1",
-            "component_name": "YARN_CLIENT",
-            "service_name": "YARN",
-            "state": "INSTALLED",
-            "desired_configs": { }
-          },
-          "host_components": [
-            {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/YARN_CLIENT",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "YARN_CLIENT",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "INSTALLED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "YARN",
-                "stack_id": "HDP-2.0.3",
-                "state": "INSTALLED",
-                "actual_configs": { },
-                "configs": { },
-                "desired_configs": { }
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/ZOOKEEPER",
-      "ServiceInfo": {
-        "cluster_name": "c1",
-        "service_name": "ZOOKEEPER"
-      },
-      "components": [
-        {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/ZOOKEEPER/components/ZOOKEEPER_CLIENT",
-          "ServiceComponentInfo": {
-            "cluster_name": "c1",
-            "component_name": "ZOOKEEPER_CLIENT",
-            "service_name": "ZOOKEEPER",
-            "state": "INSTALLED",
-            "desired_configs": { }
-          },
-          "host_components": [
-            {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/ZOOKEEPER_CLIENT",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "ZOOKEEPER_CLIENT",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "INSTALLED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "ZOOKEEPER",
-                "stack_id": "HDP-2.0.3",
-                "state": "INSTALLED",
-                "actual_configs": { },
-                "configs": { },
-                "desired_configs": { }
-              }
-            }
-          ]
-        },
-        {
-          "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/services/ZOOKEEPER/components/ZOOKEEPER_SERVER",
-          "ServiceComponentInfo": {
-            "cluster_name": "c1",
-            "component_name": "ZOOKEEPER_SERVER",
-            "service_name": "ZOOKEEPER",
-            "state": "STARTED",
-            "desired_configs": { }
-          },
-          "host_components": [
-            {
-              "href": "http://dev01.hortonworks.com:8080/api/v1/clusters/c1/hosts/dev01.hortonworks.com/host_components/ZOOKEEPER_SERVER",
-              "HostRoles": {
-                "cluster_name": "c1",
-                "component_name": "ZOOKEEPER_SERVER",
-                "desired_stack_id": "HDP-2.0.3",
-                "desired_state": "STARTED",
-                "ha_status": "passive",
-                "host_name": "dev01.hortonworks.com",
-                "service_name": "ZOOKEEPER",
-                "stack_id": "HDP-2.0.3",
-                "state": "STARTED",
-                "actual_configs": {
-                  "capacity-scheduler": {
-                    "tag": "version1"
-                  },
-                  "core-site": {
-                    "tag": "version1"
-                  },
-                  "global": {
-                    "tag": "version1"
-                  },
-                  "hbase-site": {
-                    "tag": "version1"
-                  },
-                  "hdfs-site": {
-                    "tag": "version1"
-                  },
-                  "hive-site": {
-                    "tag": "version1"
-                  },
-                  "mapred-queue-acls": {
-                    "tag": "version1"
-                  },
-                  "mapred-site": {
-                    "tag": "version1"
-                  },
-                  "oozie-site": {
-                    "tag": "version1"
-                  },
-                  "webhcat-site": {
-                    "tag": "version1"
-                  },
-                  "yarn-site": {
-                    "tag": "version1"
-                  }
-                },
-                "configs": { },
-                "desired_configs": { }
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "href": "http://ec2-54-226-143-119.compute-1.amazonaws.com:8080/api/v1/clusters/fc/services/FLUME?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles",
-      "ServiceInfo": {
-        "cluster_name": "fc",
-        "service_name": "FLUME"
-      },
-      "components": [
-        {
-          "href": "http://ec2-54-226-143-119.compute-1.amazonaws.com:8080/api/v1/clusters/fc/services/FLUME/components/FLUME_SERVER",
-          "ServiceComponentInfo": {
-            "cluster_name": "fc",
-            "component_name": "FLUME_SERVER",
-            "service_name": "FLUME",
-            "state": "STARTED",
-            "desired_configs": { }
-          },
-          "host_components": [
-            {
-              "href": "http://ec2-54-226-143-119.compute-1.amazonaws.com:8080/api/v1/clusters/fc/hosts/ip-10-204-21-198.ec2.internal/host_components/FLUME_SERVER",
-              "HostRoles": {
-                "cluster_name": "fc",
-                "component_name": "FLUME_SERVER",
-                "desired_stack_id": "HDP-1.3.0",
-                "desired_state": "STARTED",
-                "ha_status": "passive",
-                "host_name": "ip-10-204-21-198.ec2.internal",
-                "service_name": "FLUME",
-                "stack_id": "HDP-1.3.0",
-                "state": "STARTED",
-                "configs": { },
-                "desired_configs": { }
+                "configs" : { },
+                "desired_configs" : { }
               },
-              "metrics": {
-                "flume": {
-                  "flume": {
-                    "CHANNEL": {
-                      "c1": {
-                        "ChannelCapacity": 10000.0,
-                        "ChannelFillPercentage": 0.0,
-                        "ChannelSize": 0.0,
-                        "EventPutAttemptCount": 5899.83333333,
-                        "EventPutSuccessCount": 5899.83333333,
-                        "EventTakeAttemptCount": 8363.175,
-                        "EventTakeSuccessCount": 5899.83333333,
-                        "StartTime": 1.37123650642E12,
-                        "StopTime": 0.0
-                      },
-                      "c2": {
-                        "ChannelCapacity": 10000.0,
-                        "ChannelFillPercentage": 0.0,
-                        "ChannelSize": 0.0,
-                        "EventPutAttemptCount": 5899.83333333,
-                        "EventPutSuccessCount": 5899.83333333,
-                        "EventTakeAttemptCount": 8363.175,
-                        "EventTakeSuccessCount": 5899.83333333,
-                        "StartTime": 1.37123650642E12,
-                        "StopTime": 0.0
-                      }
-                    },
-                    "SINK": {
-                      "sink1": {
-                        "BatchCompleteCount": 0.0,
-                        "BatchEmptyCount": 2167.68888889,
-                        "BatchUnderflowCount": 294.991666667,
-                        "ConnectionClosedCount": 798.766666667,
-                        "ConnectionCreatedCount": 799.6,
-                        "ConnectionFailedCount": 0.0,
-                        "EventDrainAttemptCount": 5899.83333333,
-                        "EventDrainSuccessCount": 5899.83333333,
-                        "StartTime": 1.37123650643E12,
-                        "StopTime": 0.0
+              "metrics" : {
+                "cpu" : {
+                  "cpu_wio" : 0.1
+                },
+                "jvm" : {
+                  "memHeapCommittedM" : 28.5625,
+                  "memHeapUsedM" : 11.703217
+                }
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/YARN/components/RESOURCEMANAGER",
+          "ServiceComponentInfo" : {
+            "StartTime" : 1375384390054,
+            "cluster_name" : "vm",
+            "component_name" : "RESOURCEMANAGER",
+            "service_name" : "YARN",
+            "state" : "STARTED",
+            "desired_configs" : { },
+            "rm_metrics" : {
+              "cluster" : {
+                "activeNMcount" : 1,
+                "decommissionedNMcount" : 0,
+                "lostNMcount" : 0,
+                "nodeManagers" : "[{\"HostName\":\"dev01.ambari.apache.org\",\"Rack\":\"/default-rack\",\"State\":\"RUNNING\",\"NodeId\":\"dev01.ambari.apache.org:45454\",\"NodeHTTPAddress\":\"dev01.ambari.apache.org:8042\",\"LastHealthUpdate\":1375467828765,\"HealthReport\":\"\",\"NumContainers\":0,\"UsedMemoryMB\":0,\"AvailableMemoryMB\":8192}]",
+                "rebootedNMcount" : 0,
+                "unhealthyNMcount" : 0
+              }
+            }
+          },
+          "host_components" : [
+            {
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/RESOURCEMANAGER",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "RESOURCEMANAGER",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "STARTED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "YARN",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "STARTED",
+                "actual_configs" : {
+                  "capacity-scheduler" : {
+                    "tag" : "version1"
+                  },
+                  "core-site" : {
+                    "tag" : "version1"
+                  },
+                  "global" : {
+                    "tag" : "version1"
+                  },
+                  "hbase-site" : {
+                    "tag" : "version1"
+                  },
+                  "hdfs-site" : {
+                    "tag" : "version1"
+                  },
+                  "hive-site" : {
+                    "tag" : "version1"
+                  },
+                  "mapred-queue-acls" : {
+                    "tag" : "version1"
+                  },
+                  "mapred-site" : {
+                    "tag" : "version1"
+                  },
+                  "oozie-site" : {
+                    "tag" : "version1"
+                  },
+                  "webhcat-site" : {
+                    "tag" : "version1"
+                  },
+                  "yarn-site" : {
+                    "tag" : "version1"
+                  }
+                },
+                "configs" : { },
+                "desired_configs" : { }
+              },
+              "metrics" : {
+                "cpu" : {
+                  "cpu_wio" : 0.193333333333
+                },
+                "jvm" : {
+                  "memHeapCommittedM" : 28.625,
+                  "memHeapUsedM" : 17.415817
+                },
+                "yarn" : {
+                  "Queue" : {
+                    "root" : {
+                      "ActiveApplications" : 0,
+                      "ActiveUsers" : 0,
+                      "AggregateContainersAllocated" : 0,
+                      "AggregateContainersReleased" : 0,
+                      "AllocatedContainers" : 0,
+                      "AllocatedMB" : 0,
+                      "AllocatedVCores" : 0,
+                      "AppsCompleted" : 0,
+                      "AppsFailed" : 0,
+                      "AppsKilled" : 0,
+                      "AppsPending" : 0,
+                      "AppsRunning" : 0,
+                      "AppsSubmitted" : 0,
+                      "AvailableMB" : 8192,
+                      "AvailableVCores" : 1,
+                      "PendingContainers" : 0,
+                      "PendingMB" : 0,
+                      "PendingVCores" : 0,
+                      "ReservedContainers" : 0,
+                      "ReservedMB" : 0,
+                      "ReservedVCores" : 0,
+                      "running_1440" : 0,
+                      "running_300" : 0,
+                      "running_60" : 0,
+                      "default" : {
+                        "ActiveApplications" : 0,
+                        "ActiveUsers" : 0,
+                        "AggregateContainersAllocated" : 0,
+                        "AggregateContainersReleased" : 0,
+                        "AllocatedContainers" : 0,
+                        "AllocatedMB" : 0,
+                        "AllocatedVCores" : 0,
+                        "AppsCompleted" : 0,
+                        "AppsFailed" : 0,
+                        "AppsKilled" : 0,
+                        "AppsPending" : 0,
+                        "AppsRunning" : 0,
+                        "AppsSubmitted" : 0,
+                        "AvailableMB" : 8192,
+                        "AvailableVCores" : 1,
+                        "PendingContainers" : 0,
+                        "PendingMB" : 0,
+                        "PendingVCores" : 0,
+                        "ReservedContainers" : 0,
+                        "ReservedMB" : 0,
+                        "ReservedVCores" : 0,
+                        "running_1440" : 0,
+                        "running_300" : 0,
+                        "running_60" : 0
                       }
                     }
                   }
                 }
               }
-            },
+            }
+          ]
+        },
+        {
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/YARN/components/YARN_CLIENT",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "YARN_CLIENT",
+            "service_name" : "YARN",
+            "state" : "INSTALLED",
+            "desired_configs" : { }
+          },
+          "host_components" : [
             {
-              "href": "http://ec2-54-226-143-119.compute-1.amazonaws.com:8080/api/v1/clusters/fc/hosts/ip-10-38-6-229.ec2.internal/host_components/FLUME_SERVER",
-              "HostRoles": {
-                "cluster_name": "fc",
-                "component_name": "FLUME_SERVER",
-                "desired_stack_id": "HDP-1.3.0",
-                "desired_state": "STARTED",
-                "ha_status": "passive",
-                "host_name": "ip-10-38-6-229.ec2.internal",
-                "service_name": "FLUME",
-                "stack_id": "HDP-1.3.0",
-                "state": "STARTED",
-                "configs": { },
-                "desired_configs": { }
-              },
-              "metrics": {
-                "flume": {
-                  "flume": {
-                    "CHANNEL": {
-                      "c1": {
-                        "ChannelCapacity": 10000.0,
-                        "ChannelFillPercentage": 0.0,
-                        "ChannelSize": 0.0,
-                        "EventPutAttemptCount": 5899.83333333,
-                        "EventPutSuccessCount": 5899.83333333,
-                        "EventTakeAttemptCount": 8363.175,
-                        "EventTakeSuccessCount": 5899.83333333,
-                        "StartTime": 1.37123650642E12,
-                        "StopTime": 0.0
-                      },
-                      "c4": {
-                        "ChannelCapacity": 10000.0,
-                        "ChannelFillPercentage": 0.0,
-                        "ChannelSize": 0.0,
-                        "EventPutAttemptCount": 5899.83333333,
-                        "EventPutSuccessCount": 5899.83333333,
-                        "EventTakeAttemptCount": 8363.175,
-                        "EventTakeSuccessCount": 5899.83333333,
-                        "StartTime": 1.37123650642E12,
-                        "StopTime": 0.0
-                      }
-                    },
-                    "SINK": {
-                      "sink1": {
-                        "BatchCompleteCount": 0.0,
-                        "BatchEmptyCount": 2167.68888889,
-                        "BatchUnderflowCount": 294.991666667,
-                        "ConnectionClosedCount": 798.766666667,
-                        "ConnectionCreatedCount": 799.6,
-                        "ConnectionFailedCount": 0.0,
-                        "EventDrainAttemptCount": 5899.83333333,
-                        "EventDrainSuccessCount": 5899.83333333,
-                        "StartTime": 1.37123650643E12,
-                        "StopTime": 0.0
-                      }
-                    }
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/YARN_CLIENT",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "YARN_CLIENT",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "INSTALLED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "YARN",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "INSTALLED",
+                "actual_configs" : { },
+                "configs" : { },
+                "desired_configs" : { }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "href" : "http://dev01:8080/api/v1/clusters/vm/services/ZOOKEEPER",
+      "ServiceInfo" : {
+        "cluster_name" : "vm",
+        "service_name" : "ZOOKEEPER"
+      },
+      "components" : [
+        {
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/ZOOKEEPER/components/ZOOKEEPER_CLIENT",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "ZOOKEEPER_CLIENT",
+            "service_name" : "ZOOKEEPER",
+            "state" : "INSTALLED",
+            "desired_configs" : { }
+          },
+          "host_components" : [
+            {
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/ZOOKEEPER_CLIENT",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "ZOOKEEPER_CLIENT",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "INSTALLED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "ZOOKEEPER",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "INSTALLED",
+                "actual_configs" : { },
+                "configs" : { },
+                "desired_configs" : { }
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://dev01:8080/api/v1/clusters/vm/services/ZOOKEEPER/components/ZOOKEEPER_SERVER",
+          "ServiceComponentInfo" : {
+            "cluster_name" : "vm",
+            "component_name" : "ZOOKEEPER_SERVER",
+            "service_name" : "ZOOKEEPER",
+            "state" : "STARTED",
+            "desired_configs" : { }
+          },
+          "host_components" : [
+            {
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/ZOOKEEPER_SERVER",
+              "HostRoles" : {
+                "cluster_name" : "vm",
+                "component_name" : "ZOOKEEPER_SERVER",
+                "desired_stack_id" : "HDP-2.0.3",
+                "desired_state" : "STARTED",
+                "ha_status" : "passive",
+                "host_name" : "dev01.ambari.apache.org",
+                "service_name" : "ZOOKEEPER",
+                "stack_id" : "HDP-2.0.3",
+                "state" : "STARTED",
+                "actual_configs" : {
+                  "capacity-scheduler" : {
+                    "tag" : "version1"
+                  },
+                  "core-site" : {
+                    "tag" : "version1"
+                  },
+                  "global" : {
+                    "tag" : "version1"
+                  },
+                  "hbase-site" : {
+                    "tag" : "version1"
+                  },
+                  "hdfs-site" : {
+                    "tag" : "version1"
+                  },
+                  "hive-site" : {
+                    "tag" : "version1"
+                  },
+                  "mapred-queue-acls" : {
+                    "tag" : "version1"
+                  },
+                  "mapred-site" : {
+                    "tag" : "version1"
+                  },
+                  "oozie-site" : {
+                    "tag" : "version1"
+                  },
+                  "webhcat-site" : {
+                    "tag" : "version1"
+                  },
+                  "yarn-site" : {
+                    "tag" : "version1"
                   }
-                }
+                },
+                "configs" : { },
+                "desired_configs" : { }
               }
             }
           ]
