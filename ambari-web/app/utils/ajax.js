@@ -426,26 +426,6 @@ var urls = {
     'mock': '/data/services/metrics/yarn/jvm_heap.json',
     'testInProduction': true
   },
-  'service.metrics.yarn.queue.allocated': {
-    'real': '/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/yarn/Queue/AvailableMB[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/Queue/PendingMB[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/Queue/AllocatedMB[{fromSeconds},{toSeconds},{stepSeconds}]',
-    'mock': '',
-    'testInProduction': true
-  },
-  'service.metrics.yarn.queue.allocated.container': {
-    'real': '/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/yarn/Queue/AllocatedContainers[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/Queue/ReservedContainers[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/Queue/PendingContainers[{fromSeconds},{toSeconds},{stepSeconds}]',
-    'mock': '',
-    'testInProduction': true
-  },
-  'service.metrics.yarn.node.manager.statuses': {
-    'real': '/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/yarn/ClusterMetrics/NumActiveNMs[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/ClusterMetrics/NumDecommissionedNMs[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/ClusterMetrics/NumLostNMs[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/ClusterMetrics/NumRebootedNMs[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/ClusterMetrics/NumUnhealthyNMs[{fromSeconds},{toSeconds},{stepSeconds}]',
-    'mock': '',
-    'testInProduction': true
-  },
-  'service.metrics.yarn.queue.memory.resource': {
-    'real': '/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/yarn/Queue/root/AllocatedMB[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/Queue/root/AvailableMB[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/Queue/root/default/AllocatedMB[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/Queue/root/default/AvailableMB[{fromSeconds},{toSeconds},{stepSeconds}]',
-    'mock': '',
-    'testInProduction': true
-  },
   'dashboard.cluster_metrics.cpu': {
     'real': '/clusters/{clusterName}/?fields=metrics/cpu[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/cluster_metrics/cpu_1hr.json',
