@@ -15,8 +15,27 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
+<div id="ha-step4">
+  <h2>{{t admin.highAvailability.wizard.step4.header}}</h2>
 
-<h2>{{t admin.highAvailability.wizard.step4.header}}</h2>
-<div class="btn-area">
-  <a class="btn btn-success pull-right" {{action complete}}>{{t common.complete}}</a>
+  <div class="alert alert-info">{{t admin.highAvailability.wizard.step4.notice}}</div>
+  {{#each task in controller.tasks}}
+  {{#view view.taskView contentBinding="task"}}
+  <div class="item">
+    <i {{bindAttr class="view.icon view.iconColor"}}></i>
+    <a href="javascript:void(0)">{{task.title}}</a>
+  </div>
+  <div {{bindAttr class="view.showProgressBar::hide :row :span12" }}>
+    <div class="progress-bar span4">
+      <div class="progress-striped active progress-info progress">
+        <div class="bar" {{bindAttr style="view.barWidth"}}></div>
+      </div>
+    </div>
+    <div class="span1">{{task.progress}}&#37;</div>
+  </div>
+  {{/view}}
+  {{/each}}
+  <div class="btn-area">
+    <a {{bindAttr class=":btn controller.isSubmitDisabled:disabled :btn-success :pull-right"}} {{action done target="controller"}}>{{t common.done}}</a>
+  </div>
 </div>

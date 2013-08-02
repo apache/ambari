@@ -23,6 +23,8 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
 
   securityEnabled: false,
 
+  tag: null,
+
   dataIsLoaded: false,
 
   enableHighAvailability: function () {
@@ -64,20 +66,21 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
   getSecurityStatusFromServerSuccessCallback: function (data) {
     var configs = data.Clusters.desired_configs;
     if ('global' in configs) {
-      this.getServiceConfigsFromServer(configs['global'].tag);
+      this.set('tag', configs['global'].tag);
+      this.getServiceConfigsFromServer();
     }
     else {
       this.showErrorPopup(Em.I18n.t('admin.security.status.error'));
     }
   },
 
-  getServiceConfigsFromServer: function (tag) {
+  getServiceConfigsFromServer: function () {
     App.ajax.send({
       name: 'admin.service_config',
       sender: this,
       data: {
         siteName: 'global',
-        tagName: tag
+        tagName: this.get('tag')
       },
       success: 'getServiceConfigsFromServerSuccessCallback',
       error: 'errorCallback'

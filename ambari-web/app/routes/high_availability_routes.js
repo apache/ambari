@@ -103,8 +103,10 @@ module.exports = Em.Route.extend({
   step4: Em.Route.extend({
     route: '/step4',
     connectOutlets: function (router) {
+      $('a.close').hide();
       var controller = router.get('highAvailabilityWizardController');
       controller.setCurrentStep('4');
+      controller.setLowerStepsDisable(4);
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
         controller.connectOutlet('highAvailabilityWizardStep4',  controller.get('content'));
@@ -113,10 +115,7 @@ module.exports = Em.Route.extend({
     back: function (router) {
       router.transitionTo('step3');
     },
-    complete: function (router, context) {
-      $(context.currentTarget).parents("#modal").find(".close").trigger('click');
-      router.transitionTo('main.admin.adminHighAvailability');
-    }
+    next: function (router) {}
   }),
 
   gotoStep1: Em.Router.transitionTo('step1'),

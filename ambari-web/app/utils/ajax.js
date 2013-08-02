@@ -552,6 +552,97 @@ var urls = {
       };
     }
   },
+  'admin.high_availability.stop_all_services': {
+    'real': '/clusters/{clusterName}/services?ServiceInfo/state=STARTED',
+    'mock': 'fsdfs',
+    'format': function (data, opt) {
+      return {
+        type: 'PUT',
+        data: {
+          "RequestInfo": {
+            "context": "Stop all services"
+          },
+          "Body": {
+            "ServiceInfo": {
+              "state": "INSTALLED"
+            }
+          }
+        }
+      }
+    }
+  },
+  'admin.high_availability.polling': {
+    'real': '/clusters/{clusterName}/requests/{requestId}?fields=tasks/*',
+    'mock': '',
+    'type': 'GET'
+  },
+  'admin.high_availability.create_component': {
+    'real': '/clusters/{clusterName}/hosts?Hosts/host_name={hostName}',
+    'mock': '',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          "host_components": [
+            {
+              "HostRoles": {
+                "component_name": data.componentName
+              }
+            }
+          ]
+        })
+      }
+    }
+  },
+  'admin.high_availability.install_component': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          RequestInfo: {
+            "context": "Install " + data.displayName
+          },
+          Body: {
+            "HostRoles": {
+              "state": "INSTALLED"
+            }
+          }
+        })
+      }
+    }
+  },
+  'admin.high_availability.start_component': {
+    'real': '/clusters/{clusterName}/services/{serviceName}',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          RequestInfo: {
+            "context": "Start service " + data.displayName
+          },
+          Body: {
+            ServiceInfo: {
+              "state": "STARTED"
+            }
+          }
+        })
+      }
+    }
+  },
+  'admin.high_availability.maintenance_mode': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
+    'type': 'PUT',
+    'format': function () {
+      return {
+        data: {
+          "HostRoles": {
+            "state": "MAINTENANCE"
+          }
+        }
+      }
+    }
+  },
   'admin.security.cluster_configs': {
     'real': '/clusters/{clusterName}',
     'format': function (data, opt) {

@@ -28,6 +28,7 @@ require('controllers/main');
 require('controllers/main/admin');
 require('controllers/main/admin/highAvailability_controller');
 require('controllers/main/admin/highAvailability/wizard_controller');
+require('controllers/main/admin/highAvailability/progress_controller');
 require('controllers/main/admin/highAvailability/step1_controller');
 require('controllers/main/admin/highAvailability/step2_controller');
 require('controllers/main/admin/highAvailability/step3_controller');
