@@ -16,6 +16,7 @@
  */
 
 var App = require('app');
+var objectUtils = require('utils/object_utils');
 
 App.YARNService = App.Service.extend({
   version: DS.attr('string'),
@@ -39,7 +40,19 @@ App.YARNService = App.Service.extend({
   yarnClientNodes: DS.hasMany('App.Host'),
   resourceManagerStartTime: DS.attr('number'),
   jvmMemoryHeapUsed: DS.attr('number'),
-  jvmMemoryHeapCommitted: DS.attr('number')
+  jvmMemoryHeapCommitted: DS.attr('number'),
+  allocatedMemory: DS.attr('number'),
+  reservedMemory: DS.attr('number'),
+  availableMemory: DS.attr('number'),
+  queue: DS.attr('string'),
+  queueFormatted: function() {
+    var queue = JSON.parse(this.get('queue'));
+    return objectUtils.recursiveTree(queue);
+  }.property('queue'),
+  queuesCount: function() {
+    var queue = JSON.parse(this.get('queue'));
+    return objectUtils.recursiveKeysCount(queue);
+  }.property('queue')
 });
 
 App.YARNService.FIXTURES = [];
