@@ -78,14 +78,23 @@ App.UpdateController = Em.Controller.extend({
   updateServiceMetric: function (callback, isInitialLoad) {
     var self = this;
     self.set('isUpdated', false);
-    
+
     var conditionalFields = [];
-    if (App.Service.find().findProperty('serviceName', 'FLUME')) {
-      conditionalFields.push("components/host_components/metrics/flume/flume");
-    }
-    if (App.Service.find().findProperty('serviceName', 'YARN')) {
-      conditionalFields.push("components/host_components/metrics/yarn/Queue");
-    }
+    var services = [
+        {
+            name: 'FLUME',
+            urlParam: 'flume/flume'
+        },
+        {
+            name: 'YARN',
+            urlParam: 'yarn/Queue'
+        }
+    ];
+    services.forEach(function(service) {
+        if (App.Service.find(service.name)) {
+            conditionalFields.push("components/host_components/metrics/" + service.urlParam);
+        }
+    });
     var conditionalFieldsString = conditionalFields.length > 0 ? ',' + conditionalFields.join(',') : '';
     var methodStartTs = new Date().getTime();
     var testUrl = App.testHadoop2Stack ? '/data/dashboard/HDP2/services.json':'/data/dashboard/services.json';

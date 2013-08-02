@@ -23,8 +23,8 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
   serviceName: 'YARN',
 
   nodeHeap: function () {
-    var memUsed = this.get('service').get('jvmMemoryHeapUsed') * 1000000;
-    var memCommitted = this.get('service').get('jvmMemoryHeapCommitted') * 1000000;
+    var memUsed = this.get('service').get('jvmMemoryHeapUsed') * 1024 * 1024;
+    var memCommitted = this.get('service').get('jvmMemoryHeapCommitted') * 1024 * 1024;
     var percent = memCommitted > 0 ? ((100 * memUsed) / memCommitted) : 0;
     return this.t('dashboard.services.hdfs.nodes.heapUsed').format(memUsed.bytesToSize(1, 'parseFloat'), memCommitted.bytesToSize(1, 'parseFloat'), percent.toFixed(1));
 
@@ -65,13 +65,6 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
     }
     return this.t('services.service.summary.notRunning');
   }.property("service.resourceManagerStartTime"),
-
-  nodeHeap: function () {
-    var memUsed = this.get('service').get('jvmMemoryHeapUsed') * 1000000;
-    var memCommitted = this.get('service').get('jvmMemoryHeapCommitted') * 1000000;
-    var percent = memCommitted > 0 ? ((100 * memUsed) / memCommitted) : 0;
-    return this.t('dashboard.services.hdfs.nodes.heapUsed').format(memUsed.bytesToSize(1, 'parseFloat'), memCommitted.bytesToSize(1, 'parseFloat'), percent.toFixed(1));
-  }.property('service.jvmMemoryHeapUsed', 'service.jvmMemoryHeapCommitted'),
 
   nodeManagersLive: function () {
     return this.get('service.nodeManagerLiveNodes.length');

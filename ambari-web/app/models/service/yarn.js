@@ -39,7 +39,7 @@ App.YARNService = App.Service.extend({
   yarnClientNodes: DS.hasMany('App.Host'),
   resourceManagerStartTime: DS.attr('number'),
   jvmMemoryHeapUsed: DS.attr('number'),
-  jvmMemoryHeapCommitted: DS.attr('number'),
+  jvmMemoryHeapCommitted: DS.attr('number')
 });
 
 App.YARNService.FIXTURES = [];
