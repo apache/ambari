@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var numberUtils = require('utils/number_utils');
 
 App.JobTrackerHeapPieChartView = App.DashboardWidgetView.extend({
 
@@ -30,12 +31,12 @@ App.JobTrackerHeapPieChartView = App.DashboardWidgetView.extend({
   model_type: 'mapreduce',
 
   hiddenInfo: function () {
-    var heapUsed = this.get('model').get('jobTrackerHeapUsed') || 0;
-    var heapMax = this.get('model').get('jobTrackerHeapMax') || 0;
+    var heapUsed = this.get('model').get('jobTrackerHeapUsed');
+    var heapMax = this.get('model').get('jobTrackerHeapMax');
     var percent = heapMax > 0 ? 100 * heapUsed / heapMax : 0;
     var result = [];
     result.pushObject(percent.toFixed(1) + '% used');
-    result.pushObject(heapUsed.bytesToSize(1, "parseFloat") + ' of ' + heapMax.bytesToSize(1, "parseFloat"));
+    result.pushObject(numberUtils.bytesToSize(heapUsed, 1, "parseFloat") + ' of ' + numberUtils.bytesToSize(heapMax, 1, "parseFloat"));
     return result;
   }.property('model.jobTrackerHeapUsed', 'model.jobTrackerHeapMax'),
 

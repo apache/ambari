@@ -17,6 +17,7 @@
 
 var App = require('app');
 var date = require('utils/date');
+var numberUtils = require('utils/number_utils');
 
 App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/dashboard/service/hdfs'),
@@ -89,11 +90,13 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   }.property('service.nameNode'),
 
   nodeHeap: function () {
-    var memUsed = this.get('service').get('jvmMemoryHeapUsed') * 1024 * 1024;
-    var memCommitted = this.get('service').get('jvmMemoryHeapCommitted') * 1024 * 1024;
+    var memUsed = this.get('service').get('jvmMemoryHeapUsed');
+    var memCommitted = this.get('service').get('jvmMemoryHeapCommitted');
     var percent = memCommitted > 0 ? ((100 * memUsed) / memCommitted) : 0;
-    return this.t('dashboard.services.hdfs.nodes.heapUsed').format(memUsed.bytesToSize(1, 'parseFloat'), memCommitted.bytesToSize(1, 'parseFloat'), percent.toFixed(1));
-
+    return this.t('dashboard.services.hdfs.nodes.heapUsed').format(
+        numberUtils.bytesToSize(memUsed, 1, 'parseFloat', 1024 * 1024), 
+        numberUtils.bytesToSize(memCommitted, 1, 'parseFloat', 1024 * 1024), 
+        percent.toFixed(1));
   }.property('service.jvmMemoryHeapUsed', 'service.jvmMemoryHeapCommitted'),
 
   summaryHeader: function () {
@@ -113,20 +116,14 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
 
   capacity: function () {
     var text = this.t("dashboard.services.hdfs.capacityUsed");
-    var total = this.get('service.capacityTotal') + 0;
-    var remaining = this.get('service.capacityRemaining') + 0;
-    var used = total - remaining;
+    var total = this.get('service.capacityTotal');
+    var remaining = this.get('service.capacityRemaining');
+    var used = total !== null && remaining !== null ? total - remaining : null;
     var percent = total > 0 ? ((used * 100) / total).toFixed(1) : 0;
     if (percent == "NaN" || percent < 0) {
       percent = Em.I18n.t('services.service.summary.notAvailable') + " ";
     }
-    if (used < 0) {
-      used = 0;
-    }
-    if (total < 0) {
-      total = 0;
-    }
-    return text.format(used.bytesToSize(1, 'parseFloat'), total.bytesToSize(1, 'parseFloat'), percent);
+    return text.format(numberUtils.bytesToSize(used, 1, 'parseFloat'), numberUtils.bytesToSize(total, 1, 'parseFloat'), percent);
   }.property('service.capacityUsed', 'service.capacityTotal'),
 
   dataNodeComponent: function () {

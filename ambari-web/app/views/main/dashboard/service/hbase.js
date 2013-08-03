@@ -17,6 +17,7 @@
 
 var App = require('app');
 var date = require('utils/date');
+var numberUtils = require('utils/number_utils');
 
 App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/dashboard/service/hbase'),
@@ -79,8 +80,8 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
     var heapUsed = this.get('service').get('heapMemoryUsed');
     var heapMax = this.get('service').get('heapMemoryMax');
     var percent = heapMax > 0 ? 100 * heapUsed / heapMax : 0;
-    var heapString = heapUsed > 0 ? heapUsed.bytesToSize(1, "parseFloat") : 0;
-    var heapMaxString = heapMax > 0 ? heapMax.bytesToSize(1, "parseFloat") : 0;
+    var heapString = numberUtils.bytesToSize(heapUsed, 1, "parseFloat");
+    var heapMaxString = numberUtils.bytesToSize(heapMax, 1, "parseFloat");
     return this.t('dashboard.services.hbase.masterServerHeap.summary').format(heapString, heapMaxString, percent.toFixed(1));
   }.property('service.heapMemoryUsed', 'service.heapMemoryMax'),
 

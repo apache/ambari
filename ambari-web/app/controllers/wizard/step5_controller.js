@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var numberUtils = require('utils/number_utils');
 
 App.WizardStep5Controller = Em.Controller.extend({
 
@@ -120,7 +121,7 @@ App.WizardStep5Controller = Em.Controller.extend({
           cpu:_host.cpu,
           memory:_host.memory,
           disk_info:_host.disk_info,
-          host_info: Em.I18n.t('installer.step5.hostInfo').fmt(_host.name, (_host.memory * 1024).bytesToSize(1, 'parseFloat'), _host.cpu)
+          host_info: Em.I18n.t('installer.step5.hostInfo').fmt(_host.name, numberUtils.bytesToSize(_host.memory, 1, 'parseFloat', 1024), _host.cpu)
         }));
       }
     }

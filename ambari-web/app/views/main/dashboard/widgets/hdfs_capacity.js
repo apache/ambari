@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var numberUtils = require('utils/number_utils');
 
 App.NameNodeCapacityPieChartView = App.DashboardWidgetView.extend({
 
@@ -31,22 +32,16 @@ App.NameNodeCapacityPieChartView = App.DashboardWidgetView.extend({
 
   hiddenInfo: function () {
     var text = this.t("dashboard.services.hdfs.capacityUsed");
-    var total = this.get('model.capacityTotal') + 0;
-    var remaining = this.get('model.capacityRemaining') + 0;
-    var used = total - remaining;
+    var total = this.get('model.capacityTotal');
+    var remaining = this.get('model.capacityRemaining');
+    var used = total !== null && remaining !== null ? total - remaining : null;
     var percent = total > 0 ? ((used * 100) / total).toFixed(1) : 0;
     if (percent == "NaN" || percent < 0) {
       percent = Em.I18n.t('services.service.summary.notAvailable') + " ";
     }
-    if (used < 0) {
-      used = 0;
-    }
-    if (total < 0) {
-      total = 0;
-    }
     var result = [];
     result.pushObject(percent + '% used');
-    result.pushObject(used.bytesToSize(1, 'parseFloat') + ' of ' + total.bytesToSize(1, 'parseFloat'));
+    result.pushObject(numberUtils.bytesToSize(used, 1, 'parseFloat') + ' of ' + numberUtils.bytesToSize(total, 1, 'parseFloat'));
     return result;
   }.property('model.capacityUsed', 'model.capacityTotal'),
 

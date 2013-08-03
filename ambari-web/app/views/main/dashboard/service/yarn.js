@@ -17,16 +17,20 @@
 
 var App = require('app');
 var date = require('utils/date');
+var numberUtils = require('utils/number_utils');
 
 App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/dashboard/service/yarn'),
   serviceName: 'YARN',
 
   nodeHeap: function () {
-    var memUsed = this.get('service').get('jvmMemoryHeapUsed') * 1024 * 1024;
-    var memCommitted = this.get('service').get('jvmMemoryHeapCommitted') * 1024 * 1024;
+    var memUsed = this.get('service').get('jvmMemoryHeapUsed');
+    var memCommitted = this.get('service').get('jvmMemoryHeapCommitted');
     var percent = memCommitted > 0 ? ((100 * memUsed) / memCommitted) : 0;
-    return this.t('dashboard.services.hdfs.nodes.heapUsed').format(memUsed.bytesToSize(1, 'parseFloat'), memCommitted.bytesToSize(1, 'parseFloat'), percent.toFixed(1));
+    return this.t('dashboard.services.hdfs.nodes.heapUsed').format(
+        numberUtils.bytesToSize(memUsed, 1, 'parseFloat', 1024 * 1024), 
+        numberUtils.bytesToSize(memCommitted, 1, 'parseFloat', 1024 * 1024), 
+        percent.toFixed(1));
 
   }.property('service.jvmMemoryHeapUsed', 'service.jvmMemoryHeapCommitted'),
 
@@ -105,12 +109,11 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
     return this.t('dashboard.services.yarn.apps.msg').format(appsSubmitted, appsRunning, appsPending, appsCompleted, appsKilled, appsFailed);
   }.property('service.appsSubmitted', 'service.appsRunning', 'service.appsPending', 'service.appsCompleted', 'service.appsKilled', 'service.appsFailed'),
 
-  memory: function() {
+  memory: function () {
     return Em.I18n.t('dashboard.services.yarn.memory.msg').format(
-      this.get('service.allocatedMemory').bytesToSize(1, 'parseFloat'),
-      this.get('service.reservedMemory').bytesToSize(1, 'parseFloat'),
-      this.get('service.availableMemory').bytesToSize(1, 'parseFloat')
-    );
+        numberUtils.bytesToSize(this.get('service.allocatedMemory'), 1, 'parseFloat', 1024 * 1024), 
+        numberUtils.bytesToSize(this.get('service.reservedMemory'), 1, 'parseFloat', 1024 * 1024), 
+        numberUtils.bytesToSize(this.get('service.availableMemory'), 1, 'parseFloat', 1024 * 1024));
   }.property('service.allocatedMemory', 'service.reservedMemory', 'service.availableMemory'),
 
   queues: function() {

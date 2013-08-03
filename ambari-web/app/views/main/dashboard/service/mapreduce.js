@@ -17,6 +17,7 @@
 
 var App = require('app');
 var date = require('utils/date');
+var numberUtils = require('utils/number_utils');
 
 App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/dashboard/service/mapreduce'),
@@ -72,10 +73,10 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
   }.property('service.aliveTrackers.length', 'service.taskTrackers.length'),
 
   trackersHeapSummary: function () {
-    var heapUsed = this.get('service').get('jobTrackerHeapUsed') || 0;
-    var heapMax = this.get('service').get('jobTrackerHeapMax') || 0;
+    var heapUsed = this.get('service').get('jobTrackerHeapUsed');
+    var heapMax = this.get('service').get('jobTrackerHeapMax');
     var percent = heapMax > 0 ? 100 * heapUsed / heapMax : 0;
-    return this.t('dashboard.services.mapreduce.jobTrackerHeapSummary').format(heapUsed.bytesToSize(1, "parseFloat"), heapMax.bytesToSize(1, "parseFloat"), percent.toFixed(1));
+    return this.t('dashboard.services.mapreduce.jobTrackerHeapSummary').format(numberUtils.bytesToSize(heapUsed, 1, "parseFloat"), numberUtils.bytesToSize(heapMax, 1, "parseFloat"), percent.toFixed(1));
   }.property('service.jobTrackerHeapUsed', 'service.jobTrackerHeapMax'),
 
   jobsSummary: function () {

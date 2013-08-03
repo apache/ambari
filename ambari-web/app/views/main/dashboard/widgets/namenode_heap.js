@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var numberUtils = require('utils/number_utils');
 
 App.NameNodeHeapPieChartView = App.DashboardWidgetView.extend({
 
@@ -30,12 +31,12 @@ App.NameNodeHeapPieChartView = App.DashboardWidgetView.extend({
   model_type: 'hdfs',
 
   hiddenInfo: function () {
-  var memUsed = this.get('model').get('jvmMemoryHeapUsed') * 1000000;
-  var memCommitted = this.get('model').get('jvmMemoryHeapCommitted') * 1000000;
+  var memUsed = this.get('model').get('jvmMemoryHeapUsed');
+  var memCommitted = this.get('model').get('jvmMemoryHeapCommitted');
   var percent = memCommitted > 0 ? ((100 * memUsed) / memCommitted) : 0;
   var result = [];
   result.pushObject(percent.toFixed(1) + '% used');
-  result.pushObject(memUsed.bytesToSize(1, 'parseFloat') + ' of ' + memCommitted.bytesToSize(1, 'parseFloat'));
+  result.pushObject(numberUtils.bytesToSize(memUsed, 1, 'parseFloat', 1000000) + ' of ' + numberUtils.bytesToSize(memCommitted, 1, 'parseFloat', 1000000));
   return result;
   }.property('model.jvmMemoryHeapUsed', 'model.jvmMemoryHeapCommitted'),
 

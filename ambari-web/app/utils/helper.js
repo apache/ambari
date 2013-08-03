@@ -123,31 +123,6 @@ String.prototype.highlight = function (words, highlightTemplate) {
   return self;
 };
 
-/**
- * Convert byte size to other metrics.
- * @param {Number} precision  Number to adjust precision of return value. Default is 0.
- * @param {String} parseType  JS method name for parse string to number. Default is "parseInt".
- * @remarks The parseType argument can be "parseInt" or "parseFloat".
- * @return {String) Returns converted value with abbreviation.
- */
-Number.prototype.bytesToSize = function (precision, parseType/* = 'parseInt' */) {
-  if (arguments[1] === undefined) {
-    parseType = 'parseInt';
-  }
-
-  var value = this;
-  var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
-  var posttxt = 0;
-  if (this == 0) return 'n/a';
-  while (value >= 1024) {
-    posttxt++;
-    value = value / 1024;
-  }
-  var parsedValue = window[parseType](value);
-
-  return parsedValue.toFixed(precision) + " " + sizes[posttxt];
-}
-
 Number.prototype.toDaysHoursMinutes = function () {
   var formatted = {},
     dateDiff = this,

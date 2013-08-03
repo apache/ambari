@@ -1220,7 +1220,7 @@ Em.I18n.translations = {
   'dashboard.services.yarn.containers.msg': '{0} allocated / {1} pending / {2} reserved',
   'dashboard.services.yarn.apps': 'Applications',
   'dashboard.services.yarn.apps.msg': '{0} submitted / {1} running / {2} pending / {3} completed / {4} killed / {5} failed',
-  'dashboard.services.yarn.memory': 'Memory',
+  'dashboard.services.yarn.memory': 'Cluster Memory',
   'dashboard.services.yarn.memory.msg': '{0} used / {1} reserved / {2} total',
   'dashboard.services.yarn.queues': 'Queues',
   'dashboard.services.yarn.queues.msg': '{0} Queues',
