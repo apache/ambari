@@ -26,6 +26,7 @@ App.AddSecurityController = App.WizardController.extend({
 
   content: Em.Object.create({
     services: [],
+    isNnHa: 'false',
     serviceConfigProperties: null,
     controllerName: 'addSecurityController'
   }),
@@ -46,6 +47,7 @@ App.AddSecurityController = App.WizardController.extend({
         this.loadServiceConfigs();
       case '1':
         this.loadServices();
+        this.loadNnHastatus();
     }
   },
 
@@ -62,9 +64,9 @@ App.AddSecurityController = App.WizardController.extend({
     this.clearServices();
     var secureServices;
     if(App.get('isHadoop2Stack')) {
-      secureServices = require('data/HDP2/secure_configs');
+      secureServices = $.extend(true, [], require('data/HDP2/secure_configs'));
     } else {
-      secureServices = require('data/secure_configs');
+      secureServices = $.extend(true, [], require('data/secure_configs'));
     }
 
     var installedServices = this.get('installedServices');
@@ -77,6 +79,11 @@ App.AddSecurityController = App.WizardController.extend({
       }
     }, this);
 
+  },
+
+  loadNnHastatus: function() {
+    var isNnHa = App.db.getIsNameNodeHa();
+    this.set('content.isNnHa', isNnHa);
   },
 
   saveServiceConfigProperties: function (stepController) {

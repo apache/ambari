@@ -671,6 +671,7 @@ module.exports = Em.Route.extend({
             controller.setAddSecurityWizardStatus(currentClusterStatus.localdb.status);
             App.db.setSecureConfigProperties(currentClusterStatus.localdb.secureConfigProperties);
             App.db.setWizardCurrentStep('AddSecurity', currentClusterStatus.localdb.currentStep);
+            App.db.setIsNameNodeHa(currentClusterStatus.localdb.haStatus);
             App.db.setDisableSecurityStatus(currentClusterStatus.localdb.disableSecurityStatus);
           }
         }

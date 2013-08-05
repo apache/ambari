@@ -197,7 +197,8 @@ App.ClusterController = Em.Controller.extend({
    */
   loadAlerts:function (callback) {
     if (this.get('isNagiosInstalled')) {
-      var dataUrl = this.getUrl('/data/alerts/alerts.json', '/host_components?fields=HostRoles/nagios_alerts&HostRoles/component_name=NAGIOS_SERVER');
+      var testUrl = App.testHadoop2Stack ? '/data/alerts/HDP2/alerts.json':'/data/alerts/alerts.json';
+      var dataUrl = this.getUrl(testUrl, '/host_components?fields=HostRoles/nagios_alerts&HostRoles/component_name=NAGIOS_SERVER');
       var self = this;
       var ajaxOptions = {
         dataType:"json",
@@ -284,9 +285,9 @@ App.ClusterController = Em.Controller.extend({
     if(this.get('isLoaded')) { // do not load data repeatedly
       return;
     }
-
     var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
-    var hostsUrl = this.getUrl('/data/hosts/hosts.json', '/hosts?fields=Hosts/host_name,Hosts/public_host_name,Hosts/disk_info,Hosts/cpu_count,Hosts/total_mem,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components,metrics/disk,metrics/load/load_one');
+    var testHostUrl =  App.testHadoop2Stack ? '/data/hosts/HDP2/hosts.json':'/data/hosts/hosts.json';
+    var hostsUrl = this.getUrl(testHostUrl, '/hosts?fields=Hosts/host_name,Hosts/public_host_name,Hosts/disk_info,Hosts/cpu_count,Hosts/total_mem,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components,metrics/disk,metrics/load/load_one');
     var usersUrl = App.testMode ? '/data/users/users.json' : App.apiPrefix + '/users/?fields=*';
     var racksUrl = "/data/racks/racks.json";
     var dataSetUrl = "/data/mirroring/all_datasets.json";
@@ -364,7 +365,8 @@ App.ClusterController = Em.Controller.extend({
   }.property('cluster'),
   
   updateClusterData: function () {
-    var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
+    var testUrl = App.testHadoop2Stack ? '/data/clusters/HDP2/cluster.json':'/data/clusters/cluster.json';
+    var clusterUrl = this.getUrl(testUrl, '?fields=Clusters');
     App.HttpClient.get(clusterUrl, App.clusterMapper, {
       complete:function(){}
     });

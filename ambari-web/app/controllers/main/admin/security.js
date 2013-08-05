@@ -23,7 +23,7 @@ App.MainAdminSecurityController = Em.Controller.extend({
   securityEnabled: false,
   dataIsLoaded: false,
   serviceUsers: [],
-  tag: null,
+  tag: {},
   getAddSecurityWizardStatus: function () {
     return App.db.getSecurityWizardStatus();
   },
@@ -96,8 +96,9 @@ App.MainAdminSecurityController = Em.Controller.extend({
 
   getSecurityStatusFromServerSuccessCallback: function (data) {
     var configs = data.Clusters.desired_configs;
-    if ('global' in configs) {
-      this.set('tag', configs['global'].tag);
+    if ('global' in configs && 'core-site' in configs) {
+      this.set('tag.global', configs['global'].tag);
+      this.set('tag.core-site', configs['core-site'].tag);
       this.getServiceConfigsFromServer();
     }
     else {
@@ -106,12 +107,14 @@ App.MainAdminSecurityController = Em.Controller.extend({
   },
 
   getServiceConfigsFromServer: function () {
+    var urlParams = [];
+    urlParams.push('(type=global&tag=' + this.get('tag.global') + ')');
+    urlParams.push('(type=core-site&tag=' + this.get('tag.core-site') + ')');
     App.ajax.send({
-      name: 'admin.service_config',
+      name: 'admin.security.all_configurations',
       sender: this,
       data: {
-        siteName: 'global',
-        tagName: this.get('tag')
+        urlParams: urlParams.join('|')
       },
       success: 'getServiceConfigsFromServerSuccessCallback',
       error: 'errorCallback'
@@ -120,15 +123,25 @@ App.MainAdminSecurityController = Em.Controller.extend({
 
   getServiceConfigsFromServerSuccessCallback: function (data) {
     console.log("TRACE: In success function for the GET getServiceConfigsFromServer call");
-    var configs = data.items.findProperty('tag', this.get('tag')).properties;
+    var configs = data.items.findProperty('tag', this.get('tag.global')).properties;
     if (configs && (configs['security_enabled'] === 'true' || configs['security_enabled'] === true)) {
       this.set('securityEnabled', true);
     }
     else {
       this.set('securityEnabled', false);
+      var coreConfigs = data.items.findProperty('tag', this.get('tag.core-site')).properties;
+      this.setNnHaStatus(coreConfigs);
     }
     this.loadUsers(configs);
     this.set('dataIsLoaded', true);
+  },
+
+  setNnHaStatus: function(coreConfigs) {
+    if(coreConfigs && coreConfigs['dfs.nameservices'] && coreConfigs['dfs.ha.namenodes.mycluster']) {
+      App.db.setIsNameNodeHa('true');
+    } else {
+      App.db.setIsNameNodeHa('false');
+    }
   },
 
   loadUsers: function (configs) {

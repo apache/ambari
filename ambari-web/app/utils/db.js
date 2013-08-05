@@ -341,6 +341,14 @@ App.db.setSecureConfigProperties  = function (secureConfigs) {
   localStorage.setObject('ambari', App.db.data);
 };
 
+App.db.setIsNameNodeHa = function (haStatus) {
+  App.db.data = localStorage.getObject('ambari');
+  if (!App.db.data.AddSecurity) {
+    App.db.data.AddSecurity = {};
+  }
+  App.db.data.AddSecurity.haStatus = haStatus;
+  localStorage.setObject('ambari', App.db.data);
+};
 
 /*
  *  getter methods
@@ -543,6 +551,11 @@ App.db.getSecurityDeployStages = function () {
 App.db.getSecureConfigProperties = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.AddSecurity.secureConfigProperties;
+};
+
+App.db.getIsNameNodeHa = function (haStatus) {
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.AddSecurity.haStatus;
 };
 
 App.db.getStacks = function () {

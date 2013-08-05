@@ -39,9 +39,10 @@ module.exports = [
     displayName: 'HDFS',
     filename: 'hdfs-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
+      App.ServiceConfigCategory.create({ name: 'General', displayName: 'General', exclude:'HA'}),
       App.ServiceConfigCategory.create({ name: 'NameNode', displayName: 'NameNode'}),
-      App.ServiceConfigCategory.create({ name: 'SNameNode', displayName: 'Secondary NameNode'}),
+      App.ServiceConfigCategory.create({ name: 'SNameNode', displayName: 'Secondary NameNode',exclude:'HA'}),
+      App.ServiceConfigCategory.create({ name: 'JournalNode', displayName: 'JournalNode',exclude:'non-HA'}),
       App.ServiceConfigCategory.create({ name: 'DataNode', displayName: 'DataNode'})
     ],
     sites: ['core-site', 'hdfs-site'],

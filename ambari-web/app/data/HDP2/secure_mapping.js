@@ -122,6 +122,30 @@ module.exports = [
     "serviceName": "HDFS"
   },
   {
+    "name": "dfs.journalnode.kerberos.principal",
+    "templateName": ["journalnode_principal_name"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "hdfs-site.xml",
+    "serviceName": "HDFS"
+  },
+  {
+    "name": "dfs.journalnode.kerberos.internal.spnego.principal",
+    "templateName": ["journalnode_http_principal_name"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "hdfs-site.xml",
+    "serviceName": "HDFS"
+  },
+  {
+    "name": "dfs.journalnode.keytab.file",
+    "templateName": ["journalnode_keytab"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "hdfs-site.xml",
+    "serviceName": "HDFS"
+  },
+  {
     "name": "dfs.datanode.address",
     "templateName": ["dfs_datanode_address"],
     "foreignKey": null,

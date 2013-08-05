@@ -125,6 +125,10 @@ module.exports = Em.Route.extend({
       })
     },
 
+    unroutePath: function () {
+      return false;
+    },
+
     next: function (router) {
       var addSecurityController = router.get('addSecurityController');
       addSecurityController.get('content').set('serviceConfigProperties', null);
@@ -154,6 +158,9 @@ module.exports = Em.Route.extend({
         controller.loadAllPriorSteps();
         controller.connectOutlet('mainAdminSecurityAddStep2', controller.get('content'));
       })
+    },
+    unroutePath: function () {
+      return false;
     },
     back: Em.Router.transitionTo('step1'),
     next: function (router) {
@@ -185,6 +192,9 @@ module.exports = Em.Route.extend({
         controller.loadAllPriorSteps();
         controller.connectOutlet('mainAdminSecurityAddStep3', controller.get('content'));
       })
+    },
+    unroutePath: function () {
+      return false;
     },
     back: Em.Router.transitionTo('step2'),
     next: function (router) {

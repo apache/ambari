@@ -47,6 +47,7 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     this.addUserPrincipals(this.get('content.services'));
     this.addMasterHostToGlobals(this.get('content.services'));
     this.addSlaveHostToGlobals(this.get('content.services'));
+    this.changeCategoryOnHa(this.get('content.services'));
     this.renderServiceConfigs(this.get('content.services'));
     var storedServices = this.get('content.serviceConfigProperties');
     if (storedServices) {
@@ -119,10 +120,10 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
    * @param configName
    * @param componentName
    */
-  setHostsToConfig: function(service, configName, componentName){
-    if(service){
+  setHostsToConfig: function (service, configName, componentName) {
+    if (service) {
       var hosts = service.configs.findProperty('name', configName);
-      if(hosts){
+      if (hosts) {
         hosts.defaultValue = App.Service.find(service.serviceName)
           .get('hostComponents')
           .filterProperty('componentName', componentName)
@@ -131,7 +132,7 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     }
   },
 
-  loadUsers: function() {
+  loadUsers: function () {
     var securityUsers = App.router.get('mainAdminSecurityController').get('serviceUsers');
     if (!securityUsers || securityUsers.length < 1) { // Page could be refreshed in middle
       if (App.testMode) {
@@ -145,10 +146,10 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
         securityUsers = App.router.get('mainAdminSecurityController').get('serviceUsers');
       }
     }
-    this.set('securityUsers',securityUsers);
+    this.set('securityUsers', securityUsers);
   },
 
-  addUserPrincipals: function(serviceConfigs) {
+  addUserPrincipals: function (serviceConfigs) {
     var securityUsers = this.get('securityUsers');
     var smokeUser = securityUsers.findProperty('name', 'smokeuser');
     var hdfsUser = securityUsers.findProperty('name', 'hdfs_user');
@@ -159,20 +160,20 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     var hbaseUserPrincipal = generalService.configs.findProperty('name', 'hbase_principal_name');
     var hbaseUserKeytab = generalService.configs.findProperty('name', 'hbase_user_keytab');
     var hbaseService = serviceConfigs.findProperty('serviceName', 'HBASE');
-    if(smokeUser && smokeUserPrincipal) {
+    if (smokeUser && smokeUserPrincipal) {
       smokeUserPrincipal.defaultValue = smokeUser.value;
     }
-    if(hdfsUser && hdfsUserPrincipal) {
+    if (hdfsUser && hdfsUserPrincipal) {
       hdfsUserPrincipal.defaultValue = hdfsUser.value;
     }
-    if(hbaseService && hbaseUser && hbaseUserPrincipal) {
+    if (hbaseService && hbaseUser && hbaseUserPrincipal) {
       hbaseUserPrincipal.defaultValue = hbaseUser.value;
       hbaseUserPrincipal.isVisible = true;
       hbaseUserKeytab.isVisible = true;
     }
   },
 
-  addSlaveHostToGlobals: function(serviceConfigs){
+  addSlaveHostToGlobals: function (serviceConfigs) {
     var hdfsService = serviceConfigs.findProperty('serviceName', 'HDFS');
     var mapReduceService = serviceConfigs.findProperty('serviceName', 'MAPREDUCE');
     var yarnService = serviceConfigs.findProperty('serviceName', 'YARN');
@@ -197,7 +198,7 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     if (oozieService) {
       var oozieServerHost = oozieService.configs.findProperty('name', 'oozie_servername');
       var oozieServerPrincipal = oozieService.configs.findProperty('name', 'oozie_principal_name');
-      var oozieSpnegoPrincipal =  oozieService.configs.findProperty('name', 'oozie_http_principal_name');
+      var oozieSpnegoPrincipal = oozieService.configs.findProperty('name', 'oozie_http_principal_name');
       if (oozieServerHost && oozieServerPrincipal && oozieSpnegoPrincipal) {
         oozieServerHost.defaultValue = App.Service.find('OOZIE').get('hostComponents').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
         oozieServerPrincipal.defaultValue = 'oozie/' + oozieServerHost.defaultValue;
@@ -210,16 +211,16 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
         hiveServerHost.defaultValue = App.Service.find('HIVE').get('hostComponents').findProperty('componentName', 'HIVE_SERVER').get('host.hostName');
       }
     }
-    if(webHcatService) {
-      var webHcatHost =  webHcatService.configs.findProperty('name', 'webhcatserver_host');
-      var webHcatSpnegoPrincipal =  webHcatService.configs.findProperty('name', 'webHCat_http_principal_name');
-      if(webHcatHost && webHcatSpnegoPrincipal) {
-        webHcatHost.defaultValue =  App.Service.find('WEBHCAT').get('hostComponents').findProperty('componentName', 'WEBHCAT_SERVER').get('host.hostName');
+    if (webHcatService) {
+      var webHcatHost = webHcatService.configs.findProperty('name', 'webhcatserver_host');
+      var webHcatSpnegoPrincipal = webHcatService.configs.findProperty('name', 'webHCat_http_principal_name');
+      if (webHcatHost && webHcatSpnegoPrincipal) {
+        webHcatHost.defaultValue = App.Service.find('WEBHCAT').get('hostComponents').findProperty('componentName', 'WEBHCAT_SERVER').get('host.hostName');
         webHcatSpnegoPrincipal.defaultValue = 'HTTP/' + webHcatHost.defaultValue;
       }
     }
 
-    if(nagiosService) {
+    if (nagiosService) {
       var nagiosServerHost = nagiosService.configs.findProperty('name', 'nagios_server');
       var nagiosServerPrincipal = nagiosService.configs.findProperty('name', 'nagios_principal_name');
       if (nagiosServerHost && nagiosServerPrincipal) {
@@ -227,7 +228,7 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
         nagiosServerPrincipal.defaultValue = 'nagios/' + nagiosServerHost.defaultValue;
       }
     }
-    if(hdfsService){
+    if (hdfsService) {
       var namenodeHost = hdfsService.configs.findProperty('name', 'namenode_host');
       var sNamenodeHost = hdfsService.configs.findProperty('name', 'snamenode_host');
       if (namenodeHost && sNamenodeHost) {
@@ -235,19 +236,19 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
         sNamenodeHost.defaultValue = App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'SECONDARY_NAMENODE').get('host.hostName');
       }
     }
-    if(mapReduceService){
+    if (mapReduceService) {
       var jobTrackerHost = mapReduceService.configs.findProperty('name', 'jobtracker_host');
       if (jobTrackerHost) {
         jobTrackerHost.defaultValue = App.Service.find('MAPREDUCE').get('hostComponents').findProperty('componentName', 'JOBTRACKER').get('host.hostName');
       }
     }
-    if(mapReduce2Service){
+    if (mapReduce2Service) {
       var jobHistoryServerHost = mapReduce2Service.configs.findProperty('name', 'jobhistoryserver_host');
       if (jobHistoryServerHost) {
         jobHistoryServerHost.defaultValue = App.Service.find('MAPREDUCE2').get('hostComponents').findProperty('componentName', 'HISTORYSERVER').get('host.hostName');
       }
     }
-    if(yarnService){
+    if (yarnService) {
       var resourceManagerHost = yarnService.configs.findProperty('name', 'resourcemanager_host');
       if (resourceManagerHost) {
         resourceManagerHost.defaultValue = App.Service.find('YARN').get('hostComponents').findProperty('componentName', 'RESOURCEMANAGER').get('host.hostName');
@@ -255,6 +256,38 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     }
     this.setHostsToConfig(hbaseService, 'hbasemaster_host', 'HBASE_MASTER');
     this.setHostsToConfig(zooKeeperService, 'zookeeperserver_hosts', 'ZOOKEEPER_SERVER');
+  },
+
+  changeCategoryOnHa: function (serviceConfigs) {
+    var hdfsService = serviceConfigs.findProperty('serviceName', 'HDFS');
+    if (hdfsService) {
+      var secureProperties = require('data/HDP2/secure_properties').configProperties;
+      var configCategories = hdfsService.configCategories;
+      var dfsHttpPrincipal = secureProperties.findProperty('name', 'hadoop_http_principal_name');
+      var dfsHttpKeytab = secureProperties.findProperty('name', 'hadoop_http_keytab');
+      if ((App.testMode && App.testNameNodeHA) || (this.get('content.isNnHa') === 'true')) {
+        if (dfsHttpPrincipal && dfsHttpKeytab) {
+          dfsHttpPrincipal.category = 'NameNode';
+          dfsHttpKeytab.category = 'NameNode';
+        } else {
+          dfsHttpPrincipal.category = 'General';
+          dfsHttpKeytab.category = 'General';
+        }
+        var generalCategory = configCategories.findProperty('name','General');
+        var snCategory = configCategories.findProperty('name','SNameNode');
+        if(generalCategory) {
+          configCategories.removeObject(generalCategory);
+        }
+        if(snCategory) {
+          configCategories.removeObject(snCategory);
+        }
+      } else {
+        var jnCategory = configCategories.findProperty('name','JournalNode');
+        if(jnCategory) {
+          configCategories.removeObject(jnCategory);
+        }
+      }
+    }
   },
 
   /**
