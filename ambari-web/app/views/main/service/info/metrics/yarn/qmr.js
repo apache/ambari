@@ -5,9 +5,9 @@
  * licenses this file to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -16,12 +16,13 @@
  */
 
 var App = require('app');
+var objUtils = require('utils/object_utils');
 
 /**
  * @class
- *
+ * 
  * This is a view for showing cluster CPU metrics
- *
+ * 
  * @extends App.ChartLinearTimeView
  * @extends Ember.Object
  * @extends Ember.View
@@ -31,40 +32,52 @@ App.ChartServiceMetricsYARN_QMR = App.ChartLinearTimeView.extend({
   title: Em.I18n.t('services.service.info.metrics.yarn.queueMemoryResource'),
   renderer: 'line',
   ajaxIndex: 'service.metrics.yarn.queue.memory.resource',
+  yAxisFormatter: App.ChartLinearTimeView.PercentageFormatter,
+
+  getDataForAjaxRequest: function () {
+    var data = this._super();
+    var svc = App.YARNService.find().objectAt(0);
+    var queueNames = [];
+    if (svc != null) {
+      queueNames = svc.get('queueNames');
+    }
+    data.queueNames = queueNames;
+    return data;
+  },
 
   transformToSeries: function (jsonData) {
+    var self = this;
     var seriesArray = [];
-    if (jsonData && jsonData.metrics && jsonData.metrics.yarn.Queue.root) {
-      for (var name in jsonData.metrics.yarn.Queue.root) {
+    var MB = Math.pow(2, 20);
+    var svc = App.YARNService.find().objectAt(0);
+    var queueNames = [];
+    if (svc != null) {
+      queueNames = svc.get('queueNames');
+    }
+    if (jsonData && jsonData.metrics && jsonData.metrics.yarn.Queue) {
+      queueNames.forEach(function (qName) {
+        var qPath = qName.replace('/', '.');
         var displayName;
-        var seriesData = jsonData.metrics.yarn.Queue.root[name];
-        switch (name) {
-          case "AllocatedMB":
-            displayName = Em.I18n.t('services.service.info.metrics.yarn.queueMemoryResource.displayNames.allocated');
-            break;
-          case "AvailableMB":
-            displayName = Em.I18n.t('services.service.info.metrics.yarn.queueMemoryResource.displayNames.available');
-            break;
-          default:
-            for (var name in jsonData.metrics.yarn.Queue.root.default) {
-              seriesData = jsonData.metrics.yarn.Queue.root.default[name];
-              switch (name) {
-                case "AllocatedMB":
-                  displayName = Em.I18n.t('services.service.info.metrics.yarn.queueMemoryResource.displayNames.allocated.default');
-                  break;
-                case "AvailableMB":
-                  displayName = Em.I18n.t('services.service.info.metrics.yarn.queueMemoryResource.displayNames.available.default');
-                  break;
-                default:
-                  break;
-              }
+        var allocatedData = objUtils.getProperty(jsonData.metrics.yarn.Queue, qPath + '.AllocatedMB');
+        var availableData = objUtils.getProperty(jsonData.metrics.yarn.Queue, qPath + '.AvailableMB');
+        displayName = Em.I18n.t('services.service.info.metrics.yarn.queueMemoryResource.displayName').format(qName);
+        var seriesData = null;
+        if (allocatedData != null && availableData != null) {
+          if (typeof allocatedData == "number" && typeof availableData == "number") {
+            seriesData = (allocatedData * 100) / availableData;
+          } else if (allocatedData.length == availableData.length) {
+            seriesData = [];
+            for ( var c = 0; c < allocated.length; c++) {
+              seriesData.push([ (allocatedData[c][0] * 100) / availableData[c][0] ], allocatedData[c][1]);
             }
-            break;
+          } else {
+            console.log("Skipping data series for Queue " + qName);
+          }
         }
-        if (seriesData) {
-          seriesArray.push(this.transformData(seriesData, displayName));
+        if (seriesData != null) {
+          seriesArray.push(self.transformData(seriesData, displayName));
         }
-      }
+      });
     }
     return seriesArray;
   }

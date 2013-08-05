@@ -57,7 +57,7 @@ App.ChartServiceMetricsYARN_NMS = App.ChartLinearTimeView.extend({
           default:
             break;
         }
-        if (seriesData) {
+        if (seriesData != null) {
           seriesArray.push(this.transformData(seriesData, displayName));
         }
       }

@@ -442,8 +442,19 @@ var urls = {
     'testInProduction': true
   },
   'service.metrics.yarn.queue.memory.resource': {
-    'real': '/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/yarn/Queue/root/AllocatedMB[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/Queue/root/AvailableMB[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/Queue/root/default/AllocatedMB[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/Queue/root/default/AvailableMB[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=',
     'mock': '',
+    'format': function (data, opt) {
+      var field1 = 'metrics/yarn/Queue/{queueName}/AllocatedMB[{fromSeconds},{toSeconds},{stepSeconds}]';
+      var field2 = 'metrics/yarn/Queue/{queueName}/AvailableMB[{fromSeconds},{toSeconds},{stepSeconds}]';
+      if (opt.url != null && data.queueNames != null) {
+        data.queueNames.forEach(function (q) {
+          data.queueName = q;
+          opt.url += (formatUrl(field1, data) + ",");
+          opt.url += (formatUrl(field2, data) + ",");
+        });
+      }
+    },
     'testInProduction': true
   },
   'dashboard.cluster_metrics.cpu': {

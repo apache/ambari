@@ -241,10 +241,18 @@ App.ChartLinearTimeView = Ember.View.extend({
    */
   transformData: function (seriesData, displayName) {
     var seriesArray = [];
-    if (seriesData) {
+    if (seriesData != null) {
       // Is it a string?
       if ("string" == typeof seriesData) {
         seriesData = JSON.parse(seriesData);
+      }
+      // Is it a number?
+      if ("number" == typeof seriesData) {
+        // Same number applies to all time.
+        var number = seriesData;
+        seriesData = [];
+        seriesData.push([number, new Date().getTime()-(60*60)]);
+        seriesData.push([number, new Date().getTime()]);
       }
       // We have valid data
       var series = {};

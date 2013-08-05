@@ -334,14 +334,14 @@ App.MainServiceInfoSummaryView = Em.View.extend({
             App.ChartServiceMetricsYARN_TasksRunningWaiting.extend(),
             App.ChartServiceMetricsYARN_MapSlots.extend(),
             App.ChartServiceMetricsYARN_ReduceSlots.extend()]*/
-            [[App.ChartServiceMetricsYARN_RPC.extend(),
+            [[App.ChartServiceMetricsYARN_AllocatedMemory.extend(),
+              App.ChartServiceMetricsYARN_QMR.extend(),
+              App.ChartServiceMetricsYARN_AllocatedContainer.extend(),
+              App.ChartServiceMetricsYARN_NMS.extend()],
+            [App.ChartServiceMetricsYARN_RPC.extend(),
             App.ChartServiceMetricsYARN_GC.extend(),
             App.ChartServiceMetricsYARN_JVMHeap.extend(),
-            App.ChartServiceMetricsYARN_JVMThreads.extend()],
-            [App.ChartServiceMetricsYARN_AllocatedMemory.extend(),
-             App.ChartServiceMetricsYARN_AllocatedContainer.extend(),
-             App.ChartServiceMetricsYARN_NMS.extend(),
-             App.ChartServiceMetricsYARN_QMR.extend()]];
+            App.ChartServiceMetricsYARN_JVMThreads.extend()]];
           break;
         case 'mapreduce':
           graphs = [ [App.ChartServiceMetricsMapReduce_JobsStatus.extend(),

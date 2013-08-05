@@ -34,10 +34,10 @@ App.ChartServiceMetricsYARN_AllocatedContainer = App.ChartLinearTimeView.extend(
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];
-    if (jsonData && jsonData.metrics && jsonData.metrics.yarn.Queue.root) {
-      for (var name in jsonData.metrics.yarn.Queue.root) {
+    if (jsonData && jsonData.metrics && jsonData.metrics.yarn.Queue) {
+      for (var name in jsonData.metrics.yarn.Queue) {
         var displayName;
-        var seriesData = jsonData.metrics.yarn.Queue.root[name];
+        var seriesData = jsonData.metrics.yarn.Queue[name];
         switch (name) {
           case "ReservedContainers":
             displayName = Em.I18n.t('services.service.info.metrics.yarn.allocated.container.displayNames.reserved');
@@ -51,7 +51,7 @@ App.ChartServiceMetricsYARN_AllocatedContainer = App.ChartLinearTimeView.extend(
           default:
             break;
         }
-        if (seriesData) {
+        if (seriesData != null) {
           seriesArray.push(this.transformData(seriesData, displayName));
         }
       }

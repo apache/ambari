@@ -52,7 +52,32 @@ App.YARNService = App.Service.extend({
   queuesCount: function() {
     var queue = JSON.parse(this.get('queue'));
     return objectUtils.recursiveKeysCount(queue);
-  }.property('queue')
+  }.property('queue'),
+  /** 
+   * Provides a flat array of queue names.
+   * Example: root, root/default
+   */
+  queueNames: function () {
+    var queueString = this.get('queue');
+    var queueNames = [];
+    if (queueString != null) {
+      var queues = JSON.parse(queueString);
+      var addQueues = function (queuesObj, path){
+        var names = [];
+        for ( var subQueue in queuesObj) {
+          if (queuesObj[subQueue] instanceof Object) {
+            var qFN = path=='' ? subQueue : path+'/'+subQueue;
+            names.push(qFN);
+            var subNames = addQueues(queuesObj[subQueue], qFN);
+            names = names.concat(subNames);
+          }
+        }
+        return names;
+      }
+      queueNames = addQueues(queues, '');
+    }
+    return queueNames;
+  }.property('queue'),
 });
 
 App.YARNService.FIXTURES = [];
