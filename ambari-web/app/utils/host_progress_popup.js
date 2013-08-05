@@ -753,6 +753,9 @@ App.HostPopup = Em.Object.create({
          * Onclick handler for selected Task
          */
         openTaskLogInDialog: function () {
+          if ($(".task-detail-log-clipboard").length > 0) {
+            this.destroyClipBoard();
+          }
           var newWindow = window.open();
           var newDocument = newWindow.document;
           newDocument.write($(".task-detail-log-info").html());
@@ -779,6 +782,9 @@ App.HostPopup = Em.Object.create({
         toggleTaskLog: function (event, context) {
           var taskInfo = event.context;
           this.set("isLogWrapHidden", false);
+          if ($(".task-detail-log-clipboard").length > 0) {
+            this.destroyClipBoard();
+          }
           this.set("isHostListHidden", true);
           this.set("isTaskListHidden", true);
           this.set('openedTaskId', taskInfo.id);
