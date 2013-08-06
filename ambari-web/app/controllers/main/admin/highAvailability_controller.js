@@ -28,18 +28,25 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
   dataIsLoaded: false,
 
   enableHighAvailability: function () {
+    var message = [];
     //Prerequisite Checks
-    if (App.Host.find().content.length < 3) {
-      this.showErrorPopup(Em.I18n.t('admin.highAvailability.error.hostsNum'));
-      return;
-    }
-    if (App.HostComponent.find().filterProperty('componentName', 'ZOOKEEPER_SERVER').length < 3) {
-      this.showErrorPopup(Em.I18n.t('admin.highAvailability.error.zooKeeperNum'));
-      return;
-    }
     if (this.get('securityEnabled')) {
       this.showErrorPopup(Em.I18n.t('admin.highAvailability.error.security'));
       return;
+    } else {
+      if (App.Host.find().content.length < 3) {
+        message.push(Em.I18n.t('admin.highAvailability.error.hostsNum'));
+      }
+      if (App.HostComponent.find().filterProperty('componentName', 'ZOOKEEPER_SERVER').length < 3) {
+        message.push(Em.I18n.t('admin.highAvailability.error.zooKeeperNum'));
+      }
+      if (App.HostComponent.find().findProperty('componentName', 'NAMENODE').get('workStatus') !== 'STARTED') {
+        message.push(Em.I18n.t('admin.highAvailability.error.namenodeStarted'));
+      }
+      if (message.length > 0) {
+        this.showErrorPopup(message);
+        return;
+      }
     }
     App.router.transitionTo('enableHighAvailability');
   },
@@ -100,10 +107,15 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
   },
 
   showErrorPopup: function (message) {
+    if(Array.isArray(message)){
+      message = message.join('<br/>');
+    } else {
+      message = '<p>' + message + '</p>';
+    }
     App.ModalPopup.show({
       header: Em.I18n.t('common.error'),
       bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile('<p>' + message + '</p>')
+        template: Ember.Handlebars.compile(message)
       }),
       onPrimary: function () {
         this.hide();
