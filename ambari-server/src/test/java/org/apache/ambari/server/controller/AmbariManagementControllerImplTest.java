@@ -1926,7 +1926,7 @@ public class AmbariManagementControllerImplTest {
 
     final String HOST1 = "host1";
     final String OS_TYPE = "centos5";
-    final String STACK_ID = "HDP-2.0.3";
+    final String STACK_ID = "HDP-2.0.1";
     final String CLUSTER_NAME = "c1";
     final String HDFS_SERVICE_CHECK_ROLE = "HDFS_SERVICE_CHECK";
     final String MAPREDUCE2_SERVICE_CHECK_ROLE = "MAPREDUCE2_SERVICE_CHECK";
@@ -1940,7 +1940,7 @@ public class AmbariManagementControllerImplTest {
         properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
 
         properties.setProperty(Configuration.METADETA_DIR_PATH,
-            "src/main/resources/stacks");
+            "src/test/resources/stacks");
         properties.setProperty(Configuration.SERVER_VERSION_FILE,
                 "../version");
         properties.setProperty(Configuration.OS_VERSION_KEY, OS_TYPE);
@@ -2072,7 +2072,7 @@ public class AmbariManagementControllerImplTest {
         properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
 
         properties.setProperty(Configuration.METADETA_DIR_PATH,
-            "src/main/resources/stacks");
+            "src/test/resources/stacks");
         properties.setProperty(Configuration.SERVER_VERSION_FILE,
                 "../version");
         properties.setProperty(Configuration.OS_VERSION_KEY, "centos6");
@@ -2087,7 +2087,7 @@ public class AmbariManagementControllerImplTest {
     injector.getInstance(GuiceJpaInitializer.class);
     
     
-    String STACK_ID = "HDP-2.0.3";
+    String STACK_ID = "HDP-2.0.1";
     String CLUSTER_NAME = "c1";
     String HOST1 = "h1";
     String HOST2 = "h2";
