@@ -101,4 +101,19 @@ define hdp-yarn::generate_common_configs() {
     owner          => $hdp-yarn::params::yarn_user,
     mode           => 755
   }
+  if ($hdp::params::security_enabled == true) {
+    $container_executor = "${hdp::params::yarn_container_bin}/container-executor"
+    file { $container_executor:
+      ensure => present,
+      group => 'hadoop',
+      mode => 6050
+    }
+
+    hdp::configfile { "${yarn_config_dir}/container-executor.cfg" :
+      component => 'yarn',
+      owner => 'root',
+      group   => $hdp::params::user_group,
+      mode  => '0644'
+    }
+  }
 }

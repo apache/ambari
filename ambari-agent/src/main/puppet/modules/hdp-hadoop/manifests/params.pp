@@ -83,6 +83,13 @@ class hdp-hadoop::params(
 
   $mapred_pid_dir_prefix = hdp_default("mapred_pid_dir_prefix","/var/run/hadoop-mapreduce")
 
+  ### JSVC_HOME path is correct for AMD64 only, but can be changed through API
+  if ($hdp::params::hdp_os_type == "suse") {
+    $jsvc_path = hdp_default("jsvc_path","/usr/lib/hadoop/sbin/Linux-amd64-64/")
+  } else {
+    $jsvc_path = hdp_default("jsvc_path","/usr/libexec/bigtop-utils")
+  }
+
   ### compression related
   if (($hdp::params::lzo_enabled == true) and ($hdp::params::snappy_enabled == true)) {
     $mapred_compress_map_output = true

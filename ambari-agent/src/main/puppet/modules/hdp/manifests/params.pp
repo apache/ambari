@@ -231,6 +231,7 @@ class hdp::params()
   $hive_apps_whs_dir = hdp_default("hive_apps_whs_dir", "/apps/hive/warehouse")
   $webhcat_apps_dir = hdp_default("webhcat_apps_dir", "/apps/webhcat")
   $hbase_hdfs_root_dir = hdp_default("hbase-site/hbase.hdfs.root.dir","/apps/hbase/data")
+  $hbase_staging_dir = hdp_default("hbase-site/hbase.bulkload.staging.dir","/apps/hbase/staging")
 
   $yarn_nm_app_log_dir = hdp_default("yarn-site/yarn.nodemanager.remote-app-log-dir","/app-logs")
 
@@ -353,6 +354,7 @@ class hdp::params()
       $hadoop_deps = ['hadoop','hadoop-libhdfs','hadoop-native','hadoop-pipes','hadoop-sbin','hadoop-lzo', 'hadoop-lzo-native']
     }
     $yarn_bin = "/usr/lib/hadoop-yarn/sbin"
+    $yarn_container_bin = "/usr/lib/hadoop-yarn/bin"
     $mapred_bin = "/usr/lib/hadoop-mapreduce/sbin"
     $hadoop_conf_dir = "/etc/hadoop/conf"
     $yarn_conf_dir = "/etc/hadoop/conf"

@@ -22,9 +22,14 @@ class hdp-yarn::params(
 ) inherits hdp-hadoop::params 
 {
 
-  $conf_dir = $hdp::params::yarn_conf_dir 
+  $conf_dir = $hdp::params::yarn_conf_dir
   $stack_version = $hdp::params::stack_version
-    
+  $smoke_test_user = $hdp::params::smokeuser
+  ## security params
+  $security_enabled = $hdp::params::security_enabled
+  $smoke_user_keytab = $hdp::params::smokeuser_keytab
+  $kinit_cmd = "${hdp::params::kinit_path_local} -kt ${smoke_user_keytab} ${smoke_test_user};"
+
   ## yarn-env 
   $hadoop_libexec_dir = hdp_default("yarn/yarn-env/hadoop_libexec_dir","/usr/lib/hadoop/libexec")
   
