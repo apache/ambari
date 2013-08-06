@@ -196,8 +196,8 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
       var oozieSpnegoPrincipal =  oozieService.configs.findProperty('name', 'oozie_http_principal_name');
       if (oozieServerHost && oozieServerPrincipal && oozieSpnegoPrincipal) {
         oozieServerHost.defaultValue = App.Service.find('OOZIE').get('hostComponents').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');
-        oozieServerPrincipal.defaultValue = 'oozie/' + oozieServerHost.defaultValue;
-        oozieSpnegoPrincipal.defaultValue = 'HTTP/' + oozieServerHost.defaultValue;
+        oozieServerPrincipal.defaultValue = 'oozie/' + oozieServerHost.defaultValue.toLowerCase();
+        oozieSpnegoPrincipal.defaultValue = 'HTTP/' + oozieServerHost.defaultValue.toLowerCase();
       }
     }
     if (hiveService) {
@@ -207,11 +207,12 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
       }
     }
     if(webHcatService) {
-      var webHcatHost =  webHcatService.configs.findProperty('name', 'webhcatserver_host');
-      var webHcatSpnegoPrincipal =  webHcatService.configs.findProperty('name', 'webHCat_http_principal_name');
-      if(webHcatHost && webHcatSpnegoPrincipal) {
-        webHcatHost.defaultValue =  App.Service.find('WEBHCAT').get('hostComponents').findProperty('componentName', 'WEBHCAT_SERVER').get('host.hostName');
-        webHcatSpnegoPrincipal.defaultValue = 'HTTP/' + webHcatHost.defaultValue;
+      var webHcatHost = webHcatService.configs.findProperty('name', 'webhcatserver_host');
+      var webHcatSpnegoPrincipal = webHcatService.configs.findProperty('name', 'webHCat_http_principal_name');
+      if (webHcatHost && webHcatSpnegoPrincipal) {
+        webHcatHost.defaultValue = App.Service.find('WEBHCAT').get('hostComponents').findProperty('componentName', 'WEBHCAT_SERVER').get('host.hostName');
+        webHcatSpnegoPrincipal.defaultValue = 'HTTP/' + webHcatHost.defaultValue.toLowerCase();
+
       }
     }
 
@@ -220,7 +221,7 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
       var nagiosServerPrincipal = nagiosService.configs.findProperty('name', 'nagios_principal_name');
       if (nagiosServerHost && nagiosServerPrincipal) {
         nagiosServerHost.defaultValue = App.Service.find('NAGIOS').get('hostComponents').findProperty('componentName', 'NAGIOS_SERVER').get('host.hostName');
-        nagiosServerPrincipal.defaultValue = 'nagios/' + nagiosServerHost.defaultValue;
+        nagiosServerPrincipal.defaultValue = 'nagios/' + nagiosServerHost.defaultValue.toLowerCase();
       }
     }
     if(hdfsService){

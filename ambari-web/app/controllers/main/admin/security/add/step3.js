@@ -135,7 +135,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         result.push({
           host: host.get('hostName'),
           component: Em.I18n.t('admin.addSecurity.hdfs.user.httpUser'),
-          principal: hadoopHttpPrincipal.value.replace('_HOST', host.get('hostName')) + hadoopHttpPrincipal.unit,
+          principal: hadoopHttpPrincipal.value.replace('_HOST', host.get('hostName').toLowerCase()) + hadoopHttpPrincipal.unit,
           keytabFile: stringUtils.getFileFromPath(hadoopHttpKeytabPath),
           keytab: hadoopHttpKeytabPath,
           owner: 'root',
@@ -150,7 +150,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         result.push({
           host: host.get('hostName'),
           component: Em.I18n.t('admin.addSecurity.webhcat.user.httpUser'),
-          principal: webHCatHttpPrincipal.value.replace('_HOST', host.get('hostName')) + webHCatHttpPrincipal.unit,
+          principal: webHCatHttpPrincipal.value.replace('_HOST', host.get('hostName').toLowerCase()) + webHCatHttpPrincipal.unit,
           keytabFile: stringUtils.getFileFromPath(webHCatHttpKeytabPath),
           keytab: webHCatHttpKeytabPath,
           owner: 'root',
@@ -165,7 +165,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         result.push({
           host: host.get('hostName'),
           component: Em.I18n.t('admin.addSecurity.oozie.user.httpUser'),
-          principal: oozieHttpPrincipal.value.replace('_HOST', host.get('hostName')) + oozieHttpPrincipal.unit,
+          principal: oozieHttpPrincipal.value.replace('_HOST', host.get('hostName').toLowerCase()) + oozieHttpPrincipal.unit,
           keytabFile: stringUtils.getFileFromPath(oozieHttpKeytabPath),
           keytab: oozieHttpKeytabPath,
           owner: 'root',
@@ -180,13 +180,13 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
           serviceConfigs.forEach(function (config) {
             if (config.component && config.component === hostComponent.get('componentName')) {
               if (config.name.endsWith('_principal_name')) {
-                principal = config.value.replace('_HOST', host.get('hostName')) + config.unit;
+                principal = config.value.replace('_HOST', host.get('hostName').toLowerCase()) + config.unit;
               } else if (config.name.endsWith('_keytab') || config.name.endsWith('_keytab_path')) {
                 keytab = config.value;
               }
             } else if (config.components && config.components.contains(hostComponent.get('componentName'))) {
               if (config.name.endsWith('_principal_name')) {
-                principal = config.value.replace('_HOST', host.get('hostName')) + config.unit;
+                principal = config.value.replace('_HOST', host.get('hostName').toLowerCase()) + config.unit;
               } else if (config.name.endsWith('_keytab') || config.name.endsWith('_keytab_path')) {
                 keytab = config.value;
               }
