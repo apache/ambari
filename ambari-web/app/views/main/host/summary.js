@@ -136,6 +136,7 @@ App.MainHostSummaryView = Em.View.extend({
     var dataNodeExists = false;
     var taskTrackerExists = false;
     var regionServerExists = false;
+    var zookeeperServerExists = false;
 
     this.get('content.hostComponents').forEach(function (component) {
       switch (component.get('componentName')) {
@@ -148,6 +149,9 @@ App.MainHostSummaryView = Em.View.extend({
         case 'HBASE_REGIONSERVER':
           regionServerExists = true;
           break;
+        case 'ZOOKEEPER_SERVER':
+          zookeeperServerExists = true;
+          break;
       }
     }, this);
 
@@ -159,6 +163,9 @@ App.MainHostSummaryView = Em.View.extend({
     }
     if (!regionServerExists && services.findProperty('serviceName', 'HBASE')) {
       components.pushObject(this.addableComponentObject.create({ 'componentName': 'HBASE_REGIONSERVER' }));
+    }
+    if (!zookeeperServerExists && services.findProperty('serviceName', 'ZOOKEEPER')) {
+      components.pushObject(this.addableComponentObject.create({ 'componentName': 'ZOOKEEPER_SERVER' }));
     }
     return components;
   }.property('content', 'content.hostComponents.length'),
