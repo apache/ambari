@@ -41,9 +41,9 @@ App.YARNService = App.Service.extend({
   resourceManagerStartTime: DS.attr('number'),
   jvmMemoryHeapUsed: DS.attr('number'),
   jvmMemoryHeapCommitted: DS.attr('number'),
-  allocatedMemory: DS.attr('number'),
+  //allocatedMemory: DS.attr('number'),
   reservedMemory: DS.attr('number'),
-  availableMemory: DS.attr('number'),
+  //availableMemory: DS.attr('number'),
   queue: DS.attr('string'),
   queueFormatted: function() {
     var queue = JSON.parse(this.get('queue'));
@@ -53,6 +53,8 @@ App.YARNService = App.Service.extend({
     var queue = JSON.parse(this.get('queue'));
     return objectUtils.recursiveKeysCount(queue);
   }.property('queue'),
+  yarnMemoryAllocated: DS.attr('number'),
+  yarnMemoryAvailable: DS.attr('number'),
   /** 
    * Provides a flat array of queue names.
    * Example: root, root/default

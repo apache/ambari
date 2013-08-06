@@ -121,6 +121,7 @@ require('views/main/dashboard/widgets/hbase_master_uptime');
 require('views/main/dashboard/widgets/resource_manager_heap');
 require('views/main/dashboard/widgets/resource_manager_uptime');
 require('views/main/dashboard/widgets/node_managers_live');
+require('views/main/dashboard/widgets/yarn_memory');
 
 
 require('views/main/service');

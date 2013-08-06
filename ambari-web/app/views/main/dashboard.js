@@ -93,7 +93,7 @@ App.MainDashboardView = Em.View.extend({
       '18', '1', '6', '5', '9',
       '3', '7', '15', '16', '20',
       '19', '21', '23',
-      '24', '25', '26' // all yarn
+      '24', '25', '26', '27'// all yarn
     ]; // all in order
     var hiddenFull = [['22','Region In Transition']];
     if (this.get('hdfs_model') == null) {
@@ -118,7 +118,7 @@ App.MainDashboardView = Em.View.extend({
       }, this);
       hiddenFull = [];
     }if (this.get('yarn_model') == null) {
-      var yarn = ['24', '25', '26'];
+      var yarn = ['24', '25', '26', '27'];
       yarn.forEach ( function (item) {
         var index = visibleFull.indexOf(item);
         visibleFull.splice(index, 1);
@@ -275,6 +275,7 @@ App.MainDashboardView = Em.View.extend({
       case '24': return App.ResourceManagerHeapPieChartView;
       case '25': return App.ResourceManagerUptimeView;
       case '26': return App.NodeManagersLiveView;
+      case '27': return App.YARNMemoryPieChartView;
     }
   },
 
@@ -285,7 +286,7 @@ App.MainDashboardView = Em.View.extend({
     hidden: [],
     threshold: {1: [80, 90], 2: [85, 95], 3: [90, 95], 4: [80, 90], 5: [1000, 3000], 6: [70, 90], 7: [90, 95], 8: [50, 75], 9: [30000, 120000],
       10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: [], 17: [], 18: [], 19: [], 20: [70, 90], 21: [10, 19.2], 22: [3, 10], 23: [],
-      24: [70, 90], 25: [], 26: [50, 75]} // id:[thresh1, thresh2]
+      24: [70, 90], 25: [], 26: [50, 75], 27: [50, 75]} // id:[thresh1, thresh2]
   }),
   persistKey: function () {
     var loginName = App.router.get('loginName');

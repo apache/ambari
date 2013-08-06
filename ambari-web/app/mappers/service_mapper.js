@@ -78,7 +78,6 @@ App.servicesMapper = App.QuickDataMapper.create({
     dfs_total_files: 'nameNodeComponent.ServiceComponentInfo.TotalFiles',
     upgrade_status: 'nameNodeComponent.ServiceComponentInfo.UpgradeFinalized',
     safe_mode_status: 'nameNodeComponent.ServiceComponentInfo.Safemode',
-
     name_node_cpu: 'nameNodeComponent.host_components[0].metrics.cpu.cpu_wio',
     name_node_rpc: 'nameNodeComponent.host_components[0].metrics.rpc.RpcQueueTime_avg_time'
   },
@@ -105,9 +104,9 @@ App.servicesMapper = App.QuickDataMapper.create({
     node_managers_count_unhealthy: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.unhealthyNMcount',
     node_managers_count_rebooted: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.rebootedNMcount',
     node_managers_count_decommissioned: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.decommissionedNMcount',
-    allocated_memory: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.AllocatedMB',
+    yarn_memory_allocated: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.AllocatedMB',
+    yarn_memory_available: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.AvailableMB',
     reserved_memory: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.ReservedMB',
-    available_memory: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.AvailableMB',
     queue: 'resourceManagerComponent.queue'
   },
   mapReduce2Config: {
@@ -138,7 +137,6 @@ App.servicesMapper = App.QuickDataMapper.create({
     reduces_running: 'jobTrackerComponent.ServiceComponentInfo.jobtracker.running_reduces',
     reduces_waiting: 'jobTrackerComponent.ServiceComponentInfo.jobtracker.waiting_reduces',
     trackers_decommissioned: 'jobTrackerComponent.host_components[0].metrics.mapred.jobtracker.trackers_decommissioned',
-
     job_tracker_cpu: 'jobTrackerComponent.host_components[0].metrics.cpu.cpu_wio',
     job_tracker_rpc: 'jobTrackerComponent.host_components[0].metrics.rpc.RpcQueueTime_avg_time'
   },

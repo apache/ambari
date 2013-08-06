@@ -1182,6 +1182,7 @@ Em.I18n.translations = {
   'dashboard.widgets.ResourceManagerHeap': 'ResourceManager Heap',
   'dashboard.widgets.ResourceManagerUptime': 'ResourceManager Uptime',
   'dashboard.widgets.NodeManagersLive': 'NodeManagers Live',
+  'dashboard.widgets.YARNMemory': 'YARN Memory',
 
   'dashboard.services':'Services',
   'dashboard.services.hosts':'Hosts',
