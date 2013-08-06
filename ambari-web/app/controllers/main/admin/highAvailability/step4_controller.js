@@ -18,57 +18,11 @@
 
 var App = require('app');
 
-App.HighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageController.extend({
+require('controllers/main/admin/misc_controller');
 
-  commands: ['stopAllServices', 'installNameNode', 'installJournalNode', 'startJournalNode', 'disableSNameNode', 'reconfigureHDFS'],
+App.HighAvailabilityWizardStep4Controller = App.MainAdminMiscController.extend({
 
-  stopAllServices: function () {
-    App.ajax.send({
-      name: 'admin.high_availability.stop_all_services',
-      sender: this,
-      success: 'startPolling',
-      error: 'onTaskError'
-    });
-  },
+  name:"highAvailabilityWizardStep4Controller"
 
-  installNameNode: function () {
-    var hostName = this.get('content.masterComponentHosts').findProperty('isAddNameNode').hostName;
-    this.createComponent('NAMENODE', hostName);
-  },
-
-  installJournalNode: function () {
-    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName');
-    this.createComponent('JOURNALNODE', hostNames);
-  },
-
-  startJournalNode: function () {
-    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName');
-    this.startComponent('JOURNALNODE', hostNames);
-  },
-
-  disableSNameNode: function () {
-    var hostName = this.get('content.masterComponentHosts').findProperty('component', 'SECONDARY_NAMENODE').hostName;
-    App.ajax.send({
-      name: 'admin.high_availability.maintenance_mode',
-      sender: this,
-      data: {
-        hostName: hostName,
-        componentName: 'SECONDARY_NAMENODE'
-      },
-      success: 'onTaskCompleted',
-      error: 'onTaskError'
-    });
-  },
-
-  reconfigureHDFS: function () {
-    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
-    var params = {
-      data: {
-        hostName: hostNames,
-        componentName: 'HDFS_CLIENT'
-      }
-    };
-    this.installComponent(null, params);
-  }
-});
+})
 

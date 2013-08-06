@@ -23,40 +23,10 @@ App.HighAvailabilityWizardStep4View = Em.View.extend({
 
   templateName: require('templates/main/admin/highAvailability/step4'),
 
-  didInsertElement: function () {
-    this.get('controller').loadStep();
-  },
+  step4BodyText: function () {
+    this.get('controller').loadUsers();
+    var nN = this.get('controller.content.masterComponentHosts').findProperty('isCurNameNode', true);
+    return Em.I18n.t('admin.highAvailability.wizard.step4.body').format("hdfs", nN.hostName);
+  }.property('controller.content.masterComponentHosts')
 
-  taskView: Em.View.extend({
-    icon: '',
-    iconColor: '',
-
-    didInsertElement: function () {
-      this.onStatus();
-    },
-
-    barWidth: function () {
-      return 'width: ' + this.get('content.progress') + '%;';
-    }.property('content.progress'),
-
-    onStatus: function () {
-      if (this.get('content.status') === 'IN_PROGRESS') {
-        this.set('icon', 'icon-cog');
-        this.set('iconColor', 'text-info');
-      } else if (this.get('content.status') === 'FAILED') {
-        this.set('icon', 'icon-exclamation-sign');
-        this.set('iconColor', 'text-error');
-      } else if (this.get('content.status') === 'COMPLETED') {
-        this.set('icon', 'icon-ok');
-        this.set('iconColor', 'text-success');
-      } else {
-        this.set('icon', 'icon-cog');
-        this.set('iconColor', '');
-      }
-    }.observes('content.status'),
-
-    showProgressBar: function () {
-      return this.get('content.status') === "IN_PROGRESS";
-    }.property('content.status')
-  })
 });

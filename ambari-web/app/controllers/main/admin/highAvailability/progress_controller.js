@@ -42,7 +42,7 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
     var commands = this.get('commands');
     for (var i = 0; i < commands.length; i++) {
       this.get('tasks').pushObject(Ember.Object.create({
-        title: Em.I18n.t('admin.highAvailability.wizard.step4.task' + i + '.title'),
+        title: Em.I18n.t('admin.highAvailability.wizard.step5.task' + i + '.title'),
         status: 'PENDING',
         id: i,
         command: commands[i]

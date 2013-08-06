@@ -644,20 +644,29 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step1.header':'Get Started',
   'admin.highAvailability.wizard.step2.header':'Select Hosts',
   'admin.highAvailability.wizard.step3.header':'Review',
-  'admin.highAvailability.wizard.step4.header':'Deploy',
-  'admin.highAvailability.wizard.step4.notice':'Please wait while NameNode HA is being deployed.',
-  'admin.highAvailability.wizard.step4.task0.title':'Stop all services',
-  'admin.highAvailability.wizard.step4.task1.title':'Install Additional NameNode',
-  'admin.highAvailability.wizard.step4.task2.title':'Install JournalNodes',
-  'admin.highAvailability.wizard.step4.task3.title':'Start JournalNodes',
-  'admin.highAvailability.wizard.step4.task4.title':'Disable Secondary NameNode',
-  'admin.highAvailability.wizard.step4.task5.title':'Reconfigure HDFS',
+  'admin.highAvailability.wizard.step4.header':'Create Checkpoint',
+  'admin.highAvailability.wizard.step5.header':'Deploy',
+
+  'admin.highAvailability.wizard.step5.notice':'Please wait while NameNode HA is being deployed.',
+  'admin.highAvailability.wizard.step5.task0.title':'Stop all services',
+  'admin.highAvailability.wizard.step5.task1.title':'Install Additional NameNode',
+  'admin.highAvailability.wizard.step5.task2.title':'Install JournalNodes',
+  'admin.highAvailability.wizard.step5.task3.title':'Start JournalNodes',
+  'admin.highAvailability.wizard.step5.task4.title':'Disable Secondary NameNode',
+  'admin.highAvailability.wizard.step5.task5.title':'Reconfigure HDFS',
 
   'admin.highAvailability.wizard.step3.nn1':'Current NameNode is on {0}.',
   'admin.highAvailability.wizard.step3.nn2':'Additional NameNode will be installed on {0}.',
   'admin.highAvailability.wizard.step3.sn':'Existing Secondary NameNode on {0} will be disabled.',
   'admin.highAvailability.wizard.step3.jn':'JournalNode will be installed on following hosts:',
+  'admin.highAvailability.wizard.step4.ckNotCreated':'Checkpoint not created yet',
 
+  'admin.highAvailability.wizard.step4.body':'Note: The following commands must be run as the user {0} on {1} <br/>' +
+  '1. Put the NameNode in safe mode (read-only-mode) by running: <br/>' +
+  '$ hdfs dfsadmin -safemode enter <br/>' +
+  '2. Once NameNode is in Safe Mode, create a checkpoint by running: <br/>' +
+  '$ TDB COMMAND <br/>' +
+  '3. You will be able to proceed to the next step once we detect that the NameNode is in Safe Mode and that the checkpoint has been created successfully.',
   'admin.highAvailability.wizard.step3.body':'Confirm your host selection and click Deploy to activate NameNode HA.',
   'admin.highAvailability.wizard.step2.body':'Select a host that will be running an additional NameNode.<br/> In addition,' +
   ' select 3 hosts that will be running JournalNodes to store NameNode edit logs in a fault tolerant maner.',
@@ -910,25 +919,7 @@ Em.I18n.translations = {
 
   'services.service.info.metrics.yarn.gc': 'Garbage Collection',
   'services.service.info.metrics.yarn.gc.displayNames.gcTimeMillis':'Time',
-  'services.service.info.metrics.yarn.allocated.memory': 'Cluster Memory',
-  'services.service.info.metrics.yarn.allocated.memory.displayNames.allocated': 'Allocated',
-  'services.service.info.metrics.yarn.allocated.memory.displayNames.available': 'Available',
-  'services.service.info.metrics.yarn.allocated.memory.displayNames.pending': 'Pending',
-  'services.service.info.metrics.yarn.allocated.container': 'Containers',
-  'services.service.info.metrics.yarn.allocated.container.displayNames.allocated': 'Allocated',
-  'services.service.info.metrics.yarn.allocated.container.displayNames.reserved': 'Reserved',
-  'services.service.info.metrics.yarn.allocated.container.displayNames.pending': 'Pending',
-  'services.service.info.metrics.yarn.nodemanager.statuses':'NodeManagers',
-  'services.service.info.metrics.yarn.nodemanager.statuses.displayNames.active':'Active Nodemanagers',
-  'services.service.info.metrics.yarn.nodemanager.statuses.displayNames.decommissioned':'Decommissioned Nodemanagers',
-  'services.service.info.metrics.yarn.nodemanager.statuses.displayNames.lost':'Lost Nodemanagers',
-  'services.service.info.metrics.yarn.nodemanager.statuses.displayNames.rebooted':'Rebooted Nodemanagers',
-  'services.service.info.metrics.yarn.nodemanager.statuses.displayNames.unhealthy':'Unhealthy Nodemanagers',
-  'services.service.info.metrics.yarn.queueMemoryResource':'Queue Memory',
-  'services.service.info.metrics.yarn.queueMemoryResource.displayNames.allocated':'Allocated ({0})',
-  'services.service.info.metrics.yarn.queueMemoryResource.displayNames.available':'Available ({0})',
-  'services.service.info.metrics.yarn.queueMemoryResource.displayName':'Queue Memory ({0})',
-
+  
   'services.service.info.menu.summary':'Summary',
   'services.service.info.menu.configs':'Configs',
   'services.service.info.summary.hostsRunningMonitor':'{0}/{1}',
@@ -1183,7 +1174,6 @@ Em.I18n.translations = {
   'dashboard.widgets.ResourceManagerHeap': 'ResourceManager Heap',
   'dashboard.widgets.ResourceManagerUptime': 'ResourceManager Uptime',
   'dashboard.widgets.NodeManagersLive': 'NodeManagers Live',
-  'dashboard.widgets.YARNMemory': 'YARN Memory',
 
   'dashboard.services':'Services',
   'dashboard.services.hosts':'Hosts',
@@ -1221,10 +1211,6 @@ Em.I18n.translations = {
   'dashboard.services.yarn.containers.msg': '{0} allocated / {1} pending / {2} reserved',
   'dashboard.services.yarn.apps': 'Applications',
   'dashboard.services.yarn.apps.msg': '{0} submitted / {1} running / {2} pending / {3} completed / {4} killed / {5} failed',
-  'dashboard.services.yarn.memory': 'Cluster Memory',
-  'dashboard.services.yarn.memory.msg': '{0} used / {1} reserved / {2} total',
-  'dashboard.services.yarn.queues': 'Queues',
-  'dashboard.services.yarn.queues.msg': '{0} Queues',
 
   'dashboard.services.mapreduce.summary':'{0} of {1} trackers live, {2} jobs running, {3} jobs waiting',
   'dashboard.services.mapreduce.taskTrackers':'TaskTrackers',
