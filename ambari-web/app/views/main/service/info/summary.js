@@ -436,18 +436,38 @@ App.MainServiceInfoSummaryView = Em.View.extend({
       var rows = $(summaryTable).find('tr');
       if (rows != null && rows.length > 0) {
         var minimumHeightSum = 20;
-        var minimumHeightAlert = 50;
-        var calculatedHeight = summaryTable.clientHeight;
-        if (calculatedHeight < minimumHeightAlert) {
-          $(alertsList).attr('style', "height:" + minimumHeightAlert + "px;");
+        var summaryActualHeight = summaryTable.clientHeight;
+        // for summary window
+        if (summaryActualHeight <= minimumHeightSum) {
           $(summaryTable).attr('style', "height:" + minimumHeightSum + "px;");
-        } else {
-          $(alertsList).attr('style', "height:" + calculatedHeight + "px;");
         }
       } else if (alertsList.clientHeight > 0) {
         $(summaryTable).append('<tr><td></td></tr>');
         $(summaryTable).attr('style', "height:" + alertsList.clientHeight + "px;");
       }
+      Ember.run.next(this, 'setAlertsWindowSize');
+    }
+  },
+  setAlertsWindowSize: function() {
+    // for alerts window
+    var summaryTable = document.getElementById('summary-info');
+    var alertsList = document.getElementById('summary-alerts-list');
+    var summaryActualHeight = summaryTable.clientHeight;
+    var alertsNum = App.router.get('mainServiceInfoSummaryController.alerts.length');
+    var alertsActualHeight = alertsNum * 60;
+    var alertsMinHeight = 58;
+    if (alertsNum == 0) {
+      $(alertsList).attr('style', "height:" + alertsMinHeight + "px;");
+    } else if ( alertsNum <= 4) {
+      // set window size to actual alerts height
+      $(alertsList).attr('style', "height:" + alertsActualHeight + "px;");
+    } else {
+      // set window size : sum of first 4 alerts height
+      $(alertsList).attr('style', "height:" + 240 + "px;");
+    }
+    var curSize = alertsList.clientHeight;
+    if ( summaryActualHeight >= curSize) {
+      $(alertsList).attr('style', "height:" + summaryActualHeight + "px;");
     }
   },
 
