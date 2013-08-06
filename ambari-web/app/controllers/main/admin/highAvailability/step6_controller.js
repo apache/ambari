@@ -16,20 +16,13 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
 
-App.HighAvailabilityWizardStep4View = Em.View.extend({
+require('controllers/main/admin/misc_controller');
 
-  templateName: require('templates/main/admin/highAvailability/step4'),
+App.HighAvailabilityWizardStep6Controller = App.MainAdminMiscController.extend({
 
-  didInsertElement: function() {
-    this.get('controller').loadUsers();
-  },
+  name:"highAvailabilityWizardStep6Controller"
 
-  step4BodyText: function () {
-    var nN = this.get('controller.content.masterComponentHosts').findProperty('isCurNameNode', true);
-    return Em.I18n.t('admin.highAvailability.wizard.step4.body').format(this.get('controller.content.hdfsUser'), nN.hostName);
-  }.property('controller.content.masterComponentHosts')
+})
 
-});

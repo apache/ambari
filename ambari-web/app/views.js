@@ -60,6 +60,7 @@ require('views/main/admin/highAvailability/step2_view');
 require('views/main/admin/highAvailability/step3_view');
 require('views/main/admin/highAvailability/step4_view');
 require('views/main/admin/highAvailability/step5_view');
+require('views/main/admin/highAvailability/step6_view');
 require('views/main/admin/cluster');
 require('views/main/admin/misc_view');
 require('views/main/admin/stack_upgrade');

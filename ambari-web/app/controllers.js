@@ -34,6 +34,7 @@ require('controllers/main/admin/highAvailability/step2_controller');
 require('controllers/main/admin/highAvailability/step3_controller');
 require('controllers/main/admin/highAvailability/step4_controller');
 require('controllers/main/admin/highAvailability/step5_controller');
+require('controllers/main/admin/highAvailability/step6_controller');
 require('controllers/main/admin/cluster');
 require('controllers/main/admin/stack_upgrade_controller');
 require('controllers/main/admin/user');

@@ -645,7 +645,10 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step2.header':'Select Hosts',
   'admin.highAvailability.wizard.step3.header':'Review',
   'admin.highAvailability.wizard.step4.header':'Create Checkpoint',
+  'admin.highAvailability.wizard.step4.bodyHeader':'Manual Steps Required: Create Checkpoint on NameNode',
+  'admin.highAvailability.wizard.step6.bodyHeader':'Manual Steps Required: Initialize JournalNodes',
   'admin.highAvailability.wizard.step5.header':'Deploy',
+  'admin.highAvailability.wizard.step6.header':'Initialize JournalNodes',
 
   'admin.highAvailability.wizard.step5.notice':'Please wait while NameNode HA is being deployed.',
   'admin.highAvailability.wizard.step5.task0.title':'Stop all services',
@@ -660,25 +663,31 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step3.sn':'Existing Secondary NameNode on {0} will be disabled.',
   'admin.highAvailability.wizard.step3.jn':'JournalNode will be installed on following hosts:',
   'admin.highAvailability.wizard.step4.ckNotCreated':'Checkpoint not created yet',
+  'admin.highAvailability.wizard.step6.jsNoInit':'JournalNodes not initialized yet',
 
+
+  'admin.highAvailability.wizard.step6.body':'Note: The following commands must be run as the user {0} on {1} <br/>' +
+    '1. Initialize the JournalNodes by running: <br/>' +
+    '$ hdfs namenode -initializeSharedEdits<br/>' +
+    '2. You will be able to proceed to the next step once we detect that the JournalNodes have been initialized successfuly.<br/>',
   'admin.highAvailability.wizard.step4.body':'Note: The following commands must be run as the user {0} on {1} <br/>' +
-  '1. Put the NameNode in safe mode (read-only-mode) by running: <br/>' +
-  '$ hdfs dfsadmin -safemode enter <br/>' +
-  '2. Once NameNode is in Safe Mode, create a checkpoint by running: <br/>' +
-  '$ TDB COMMAND <br/>' +
-  '3. You will be able to proceed to the next step once we detect that the NameNode is in Safe Mode and that the checkpoint has been created successfully.',
+    '1. Put the NameNode in safe mode (read-only-mode) by running: <br/>' +
+    '$ hdfs dfsadmin -safemode enter <br/>' +
+    '2. Once NameNode is in Safe Mode, create a checkpoint by running: <br/>' +
+    '$ TDB COMMAND <br/>' +
+    '3. You will be able to proceed to the next step once we detect that the NameNode is in Safe Mode and that the checkpoint has been created successfully.',
   'admin.highAvailability.wizard.step3.body':'Confirm your host selection and click Deploy to activate NameNode HA.',
   'admin.highAvailability.wizard.step2.body':'Select a host that will be running an additional NameNode.<br/> In addition,' +
-  ' select 3 hosts that will be running JournalNodes to store NameNode edit logs in a fault tolerant maner.',
+    ' select 3 hosts that will be running JournalNodes to store NameNode edit logs in a fault tolerant maner.',
   'admin.highAvailability.wizard.step1.body':'We will walk you through enabling NameNode HA with this wizard.<br/>' +
-  'In NameNode HA, you will be running one more NameNode in addition to the current NameNode.  This allows for an ' +
-  'active-standby configuration that automatically fails over if the active NameNode fails.<br/>' +
-  'Note that your current Secondary NameNode will be disabled.<br/>' +
-  'In addition, the NameNodes will be storing the edit logs on multiple JournalNodes for fault tolerance.<br/>' +
-  'Once you make your host selection for NameNodes and JournalNodes and confirm your selection, the wizard ' +
-  'will make necessary changes to enable NameNode HA.<br/>' +
-  'You will be prompted to run manual steps as needed.<br/>' +
-  'Let"s get started.',
+    'In NameNode HA, you will be running one more NameNode in addition to the current NameNode.  This allows for an ' +
+    'active-standby configuration that automatically fails over if the active NameNode fails.<br/>' +
+    'Note that your current Secondary NameNode will be disabled.<br/>' +
+    'In addition, the NameNodes will be storing the edit logs on multiple JournalNodes for fault tolerance.<br/>' +
+    'Once you make your host selection for NameNodes and JournalNodes and confirm your selection, the wizard ' +
+    'will make necessary changes to enable NameNode HA.<br/>' +
+    'You will be prompted to run manual steps as needed.<br/>' +
+    'Let"s get started.',
 
   'admin.security.title':'Kerberos Security has not been enabled on this cluster.',
   'admin.security.enabled': 'Kerberos security is enabled on the cluster',
