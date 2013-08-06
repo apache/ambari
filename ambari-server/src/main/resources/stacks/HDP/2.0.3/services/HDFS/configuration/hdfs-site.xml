@@ -455,5 +455,20 @@ don't exist, they will be created with this permission.</description>
     <value>30000</value>
     <description>Datanode is stale after not getting a heartbeat in this interval in ms</description>
   </property>
+  
+  <property>
+    <name>dfs.journalnode.http-address</name>
+    <value>0.0.0.0:8480</value>
+    <description>The address and port the JournalNode web UI listens on.
+     If the port is 0 then the server will start on a free port. </description>
+  </property>
+  
+  <property>
+    <name>dfs.journalnode.edits.dir</name>
+    <value>/grid/0/hdfs/journal</value>
+    <description>The path where the JournalNode daemon will store its local state. </description>
+  </property>
+  
+  
 
 </configuration>

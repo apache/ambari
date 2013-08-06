@@ -40,6 +40,12 @@
             <name>HDFS_CLIENT</name>
             <category>CLIENT</category>
         </component>
+        
+        <component>
+            <name>JOURNALNODE</name>
+            <category>SLAVE</category>
+        </component>
+        
     </components>
 
 

@@ -131,6 +131,9 @@ class hdp-hadoop::params(
   $dfs_support_append = hdp_default("hdfs-site/dfs.support.append",true)
 
   $dfs_webhdfs_enabled = hdp_default("hdfs-site/dfs.webhdfs.enabled",false)
+  
+  $jn_edits_dir = hdp_default("hdfs-site/dfs.journalnode.edits.dir", "/grid/0/hdfs/journal")
+  
 
 
  ######### mapred #######

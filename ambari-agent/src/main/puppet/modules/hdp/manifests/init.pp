@@ -39,10 +39,12 @@ class hdp(
     $namenode_port = hdp_get_port_from_url($hdfs-site["dfs.http.address"])
     $snamenode_port = hdp_get_port_from_url($hdfs-site["dfs.secondary.http.address"])
     $datanode_port = hdp_get_port_from_url($hdfs-site["dfs.datanode.http.address"])
+    $journalnode_port = hdp_get_port_from_url($hdfs-site["dfs.journalnode.http-address"])
   } else {
     $namenode_port = "50070"
     $snamenode_port = "50090"
     $datanode_port = "50075"
+    $journalnode_port = "8480"
   }
 
   if has_key($configuration, 'mapred-site') {

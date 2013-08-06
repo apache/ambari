@@ -134,7 +134,9 @@ rolesToClass = {
   'HISTORYSERVER_SERVICE_CHECK': 'hdp-yarn::historyserver::service_check',
   'TEZ_CLIENT': 'hdp-tez::tez_client',
   'YARN_SERVICE_CHECK': 'hdp-yarn::yarn::service_check',
-  'FLUME_SERVER': 'hdp-flume'
+  'FLUME_SERVER': 'hdp-flume',
+  'JOURNALNODE': 'hdp-hadoop::journalnode',
+  'JOURNALNODE_SERVICE_CHECK': 'hdp-hadoop::journalnode::service_check'
 }
 
 serviceStates = {
@@ -153,6 +155,7 @@ servicesToPidNames = {
   'RESOURCEMANAGER': 'yarn-{USER}-resourcemanager.pid$',
   'NODEMANAGER': 'yarn-{USER}-nodemanager.pid$',
   'HISTORYSERVER': 'mapred-{USER}-historyserver.pid$',
+  'JOURNALNODE': 'hadoop-{USER}-journalnode.pid$',
   'OOZIE_SERVER': 'oozie.pid',
   'ZOOKEEPER_SERVER': 'zookeeper_server.pid',
   'FLUME_SERVER': 'flume-node.pid',
@@ -176,6 +179,7 @@ servicesToLinuxUser = {
   'NAMENODE': 'hdfs_user',
   'SECONDARY_NAMENODE': 'hdfs_user',
   'DATANODE': 'hdfs_user',
+  'JOURNALNODE': 'hdfs_user',
   'JOBTRACKER': 'mapred_user',
   'TASKTRACKER': 'mapred_user',
   'RESOURCEMANAGER': 'yarn_user',

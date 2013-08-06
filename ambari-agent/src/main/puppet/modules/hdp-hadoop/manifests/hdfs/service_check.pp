@@ -62,14 +62,7 @@ class hdp-hadoop::hdfs::service_check()
     notify    => Hdp-hadoop::Exec-hadoop['hdfs::service_check::test']
   }
 
-  hdp-hadoop::exec-hadoop { 'hdfs::service_check::test':
-    command     => $test_cmd,
-    refreshonly => true,
-    user      => $hdp::params::smokeuser,
-    require     => Hdp-hadoop::Exec-hadoop['hdfs::service_check::create_file'],
-    #notify      => Hdp-hadoop::Exec-hadoop['hdfs::service_check::cleanup']  #TODO: put in after testing
-    before      => Anchor['hdp-hadoop::hdfs::service_check::end'] #TODO: remove after testing
-  }
+
 
    #TODO: put in after testing
  #  hdp-hadoop::exec-hadoop { 'hdfs::service_check::cleanup':
@@ -78,6 +71,61 @@ class hdp-hadoop::hdfs::service_check()
  #   require     => Hdp-hadoop::Exec-hadoop['hdfs::service_check::test'],
  #   before      => Anchor['hdp-hadoop::hdfs::service_check::end']
   #}
+  
+  if hdp_is_empty($hdp::params::journalnode_hosts) {
+    ##No journalnode hosts, just run hdfs test
+    hdp-hadoop::exec-hadoop { 'hdfs::service_check::test':
+      command     => $test_cmd,
+      refreshonly => true,
+      user      => $hdp::params::smokeuser,
+      require     => Hdp-hadoop::Exec-hadoop['hdfs::service_check::create_file'],
+      before      => Anchor['hdp-hadoop::hdfs::service_check::end']
+    } 
+  }
+  else {
+  ## Cluster has journalnode hosts, run hdfs test and test of journalnodes
+    hdp-hadoop::exec-hadoop { 'hdfs::service_check::test':
+      command     => $test_cmd,
+      refreshonly => true,
+      user      => $hdp::params::smokeuser,
+      require     => Hdp-hadoop::Exec-hadoop['hdfs::service_check::create_file'],
+      before      => Class['hdp-hadoop::journalnode::service_check']
+    } 
+    class { 'hdp-hadoop::journalnode::service_check':
+      journalnode_host => $hdp::params::journalnode_hosts,
+      require          => Hdp-hadoop::Exec-hadoop['hdfs::service_check::test'],
+      before           => Anchor['hdp-hadoop::hdfs::service_check::end']
+    }
+  }
+  
+
   anchor{ 'hdp-hadoop::hdfs::service_check::end':}
 
+}
+
+class hdp-hadoop::journalnode::service_check($journalnode_host)
+{
+  
+  $journalnode_port = $hdp::params::journalnode_port
+  $smoke_test_user = $hdp::params::smokeuser
+  
+  $checkWebUIFileName = "checkWebUI.py"
+  $checkWebUIFilePath = "/tmp/$checkWebUIFileName"
+
+  $checkWebUICmd = "su - ${smoke_test_user} -c 'python $checkWebUIFilePath -u $journalnode_host:$journalnode_port'"
+
+  file { $checkWebUIFilePath:
+    ensure => present,
+    source => "puppet:///modules/hdp-hadoop/$checkWebUIFileName",
+    mode => '0755'
+  }
+
+  exec { $checkWebUIFilePath:
+    command   => $checkWebUICmd,
+    tries     => 3,
+    try_sleep => 5,
+    path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+    logoutput => "true"
+}
+  anchor{"hdp-hadoop::smoketest::begin":} -> File[$checkWebUIFilePath] -> Exec[$checkWebUIFilePath] -> anchor{"hdp-hadoop::smoketest::end":}
 }
