@@ -93,6 +93,15 @@ App.WizardStep7Controller = Em.Controller.extend({
     this.set('stepConfigs', serviceConfigs);
     this.activateSpecialConfigs();
     this.set('selectedService', this.get('stepConfigs').filterProperty('showConfig', true).objectAt(0));
+    this.get('stepConfigs').forEach(function(stepConfig) {
+      stepConfig.get('configs').forEach(function(config) {
+        var displayType = config.get('displayType');
+        if (displayType == 'directory' || displayType == 'directories') {
+          var value = config.get('value').replace(/,/g, "\n");
+          config.set('value', value);
+        }
+      });
+    });
   },
 
    /**
