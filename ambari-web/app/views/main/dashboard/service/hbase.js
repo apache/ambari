@@ -39,9 +39,9 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   }.property('masters'),
 
 
-  liveRegionServes: function () {
+  liveRegionServers: function () {
     return App.HostComponent.find().filterProperty('componentName', 'HBASE_REGIONSERVER').filterProperty("workStatus","STARTED");
-  }.property(),
+  }.property('service.hostComponents.@each'),
 
   regionServesText: function () {
     if(this.get('service.regionServers').get("length") > 1){

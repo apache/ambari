@@ -39,10 +39,10 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
 
   dataNodesLive: function(){
     return App.HostComponent.find().filterProperty('componentName', 'DATANODE').filterProperty("workStatus","STARTED");
-  }.property('service'),
+  }.property('service.hostComponents.@each'),
   dataNodesDead: function(){
     return App.HostComponent.find().filterProperty('componentName', 'DATANODE').filterProperty("workStatus","INSTALLED");
-  }.property('service'),
+  }.property('service.hostComponents.@each'),
 
   dataNodeHostText: function () {
     if(this.get("service.dataNodes") > 1){
