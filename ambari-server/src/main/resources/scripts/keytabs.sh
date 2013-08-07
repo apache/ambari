@@ -75,7 +75,7 @@ processCSVFile () {
               echo "mkdir -p ./keytabs_$hostName" >> commands.mkdir;
               echo "chmod 755 ./keytabs_$hostName" >> commands.chmod;
               echo "chown -R root:$group `pwd`/keytabs_$hostName" >> commands.chown.1
-              echo "tar -cvf keytabs_$hostName.tar keytabs_$hostName" >> commands.tar
+              echo "tar -cvf keytabs_$hostName.tar -C keytabs_$hostName ." >> commands.tar
               seenHosts="$seenHosts$hostName";
         fi
         
