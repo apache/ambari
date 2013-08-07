@@ -16838,6 +16838,11 @@
         "pointInTime":false,
         "temporal":true
       },
+      "metrics/yarn/Queue/ReservedContainers":{
+        "metric":"yarn.QueueMetrics.ReservedContainers",
+        "pointInTime":false,
+        "temporal":true
+      },
       "metrics/yarn/Queue/ActiveUsers":{
         "metric":"yarn.QueueMetrics.ActiveUsers",
         "pointInTime":false,
