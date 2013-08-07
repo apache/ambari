@@ -26,6 +26,7 @@ require('test/controllers/main/admin/security/add/step3_test');
 require('test/controllers/main/admin/security/add/step4_test');
 require('test/controllers/main/charts/heatmap_test');
 require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_test');
+require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_yarn_ResourceUsed_test');
 require('test/controllers/main/service/reassign_controller_test');
 require('test/controllers/main/dashboard_test');
 require('test/controllers/main/host_test');

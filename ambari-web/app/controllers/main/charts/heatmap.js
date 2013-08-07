@@ -68,7 +68,8 @@ App.MainChartsHeatmapController = Em.Controller.extend({
           category: 'yarn',
           items: [
             App.MainChartHeatmapYarnGCTimeMillisMetric.create(),
-            App.MainChartHeatmapYarnMemHeapUsedMetric.create()
+            App.MainChartHeatmapYarnMemHeapUsedMetric.create(),
+            App.MainChartHeatmapYarnResourceUsedMetric.create()
           ]
         })
       );

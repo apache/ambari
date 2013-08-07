@@ -1141,6 +1141,7 @@ Em.I18n.translations = {
   'charts.heatmap.metrics.reducesRunning' :'MapReduce Reduces Running',
   'charts.heatmap.metrics.memoryUsed' :'Host Memory Used %',
   'charts.heatmap.metrics.processRun' :'Total Running Processes',
+  'charts.heatmap.metrics.YarnResourceUsed' :'YARN Resource used %',
   'charts.heatmap.metrics.cpuWaitIO':'Host CPU Wait I/O %',
   'charts.heatmap.metrics.HbaseRegionServerReadCount': 'HBase Read Request Count',
   'charts.heatmap.metrics.HbaseRegionServerWriteCount': 'HBase Write Request Count',
