@@ -399,7 +399,7 @@ module.exports = [
     "templateName": ["hivemetastore_host","hive_metastore_principal_name","kerberos_domain"],
     "foreignKey": null,
     "value": "hive.metastore.local=false,hive.metastore.uris=thrift://<templateName[0]>:9083,hive." +
-      "metastore.sasl.enabled=true,hive.metastore.execute.setugi=true,hive.exec.mode.local.auto=false,hive.metastore.kerberos.principal=<templateName[1]>@<templateName[2]>",
+      "metastore.sasl.enabled=true,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse,hive.exec.mode.local.auto=false,hive.metastore.kerberos.principal=<templateName[1]>@<templateName[2]>",
     "filename": "webhcat-site.xml",
     "serviceName": "WEBHCAT"
   },
