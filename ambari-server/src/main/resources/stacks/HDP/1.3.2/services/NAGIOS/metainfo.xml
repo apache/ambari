@@ -18,7 +18,7 @@
 <metainfo>
     <user>root</user>
     <comment>Nagios Monitoring and Alerting system</comment>
-    <version>3.2.3</version>
+    <version>3.5.0</version>
 
     <components>
         <component>
