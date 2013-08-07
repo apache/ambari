@@ -569,7 +569,7 @@ var urls = {
     'format': function (data, opt) {
       return {
         type: 'PUT',
-        data: {
+        data:  JSON.stringify({
           "RequestInfo": {
             "context": "Stop all services"
           },
@@ -578,7 +578,7 @@ var urls = {
               "state": "INSTALLED"
             }
           }
-        }
+        })
       }
     }
   },

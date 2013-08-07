@@ -19,7 +19,7 @@
 
 var App = require('app');
 
-App.HighAvailabilityWizardStep5View = App.HighAvailabilityProgressPageView.extend({
+App.HighAvailabilityWizardStep7View = App.HighAvailabilityProgressPageView.extend({
 
-  templateName: require('templates/main/admin/highAvailability/step5')
+  templateName: require('templates/main/admin/highAvailability/step7')
 });

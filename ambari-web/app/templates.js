@@ -26,3 +26,4 @@ require('templates/main/service/info/summary/zookeeper');
 require('templates/main/service/info/summary/mapreduce2');
 require('templates/main/service/info/summary/hive');
 require('templates/main/service/info/summary/hue');
+require('templates/main/admin/highAvailability/progress');

@@ -40,9 +40,10 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
     this.get('tasks').clear();
     this.get('logs').clear();
     var commands = this.get('commands');
+    var currentStep = App.router.get('highAvailabilityWizardController.currentStep');
     for (var i = 0; i < commands.length; i++) {
       this.get('tasks').pushObject(Ember.Object.create({
-        title: Em.I18n.t('admin.highAvailability.wizard.step5.task' + i + '.title'),
+        title: Em.I18n.t('admin.highAvailability.wizard.step' + currentStep + '.task' + i + '.title'),
         status: 'PENDING',
         id: i,
         command: commands[i]
@@ -104,14 +105,19 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
           componentName: componentName,
           taskNum: hostName.length
         },
-        success: 'installComponent',
+        success: 'onCreateComponent',
         error: 'onTaskError'
       });
     }
   },
 
-  installComponent: function (data, params) {
-    var hostName = params.data.hostName;
+  onCreateComponent: function () {
+    var hostName = arguments[2].data.hostName;
+    var componentName = arguments[2].data.componentName;
+    this.installComponent(componentName, hostName);
+  },
+
+  installComponent: function (componentName, hostName) {
     if (!(hostName instanceof Array)) {
       hostName = [hostName];
     }
@@ -121,9 +127,9 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
         sender: this,
         data: {
           hostName: hostName[i],
-          componentName: params.data.componentName,
-          displayName: App.format.role(params.data.componentName),
-          taskNum: params.data.taskNum || hostName.length
+          componentName: componentName,
+          displayName: App.format.role(componentName),
+          taskNum: hostName.length
         },
         success: 'startPolling',
         error: 'onTaskError'
@@ -142,7 +148,8 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
         data: {
           hostName: hostName[i],
           componentName: componentName,
-          displayName: App.format.role(componentName)
+          displayName: App.format.role(componentName),
+          taskNum: hostName.length
         },
         success: 'startPolling',
         error: 'onTaskError'
@@ -150,15 +157,15 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
     }
   },
 
-  startPolling: function (data, params) {
+  startPolling: function (data) {
     if (data) {
       this.get('currentRequestIds').push(data.Requests.id);
-      var tasksCount = params.data.taskNum || 1;
+      var tasksCount = arguments[2].data ? arguments[2].data.taskNum : 1;
       if (tasksCount === this.get('currentRequestIds').length) {
         this.doPolling();
       }
     } else {
-      this.onTaskError();
+      this.onTaskCompleted();
     }
   },
 
@@ -180,7 +187,10 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
   parseLogs: function (logs) {
     this.get('logs').push(logs.tasks);
     if (this.get('currentRequestIds').length === this.get('logs').length) {
-      var tasks = this.get('logs');
+      var tasks = [];
+      this.get('logs').forEach(function (logs) {
+        tasks.pushObjects(logs);
+      }, this);
       var self = this;
       var currentTaskId = this.get('currentTaskId');
       if (!tasks.someProperty('Tasks.status', 'PENDING') && !tasks.someProperty('Tasks.status', 'QUEUED') && !tasks.someProperty('Tasks.status', 'IN_PROGRESS')) {

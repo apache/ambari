@@ -20,7 +20,7 @@ var App = require('app');
 
 App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageController.extend({
 
-  commands: ['stopAllServices', 'installNameNode', 'installJournalNode', 'startJournalNode', 'disableSNameNode', 'reconfigureHDFS'],
+  commands: ['stopAllServices', 'installNameNode', 'installJournalNodes', 'startJournalNodes', 'disableSNameNode', 'reconfigureHDFS'],
 
   stopAllServices: function () {
     App.ajax.send({
@@ -36,12 +36,12 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
     this.createComponent('NAMENODE', hostName);
   },
 
-  installJournalNode: function () {
+  installJournalNodes: function () {
     var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName');
     this.createComponent('JOURNALNODE', hostNames);
   },
 
-  startJournalNode: function () {
+  startJournalNodes: function () {
     var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName');
     this.startComponent('JOURNALNODE', hostNames);
   },
@@ -62,13 +62,7 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
 
   reconfigureHDFS: function () {
     var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
-    var params = {
-      data: {
-        hostName: hostNames,
-        componentName: 'HDFS_CLIENT'
-      }
-    };
-    this.installComponent(null, params);
+    this.installComponent('HDFS_CLIENT', hostNames);
   }
 });
 

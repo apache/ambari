@@ -16,10 +16,20 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
 
-App.HighAvailabilityWizardStep5View = App.HighAvailabilityProgressPageView.extend({
+App.HighAvailabilityWizardStep7Controller = App.HighAvailabilityProgressPageController.extend({
 
-  templateName: require('templates/main/admin/highAvailability/step5')
+  commands: ['startZooKeeperServers', 'startNameNode'],
+
+  startZooKeeperServers: function () {
+    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'ZOOKEEPER').mapProperty('hostName');
+    this.startComponent('ZOOKEEPER_SERVER', hostNames);
+  },
+
+  startNameNode: function () {
+    var hostName = this.get('content.masterComponentHosts').findProperty('isCurNameNode').mapProperty('hostName');
+    this.startComponent('NAMENODE', hostName);
+  }
 });
+
