@@ -700,7 +700,7 @@ App.WizardController = Em.Controller.extend({
       _content.get('configs').forEach(function (_configProperties) {
         var displayType = _configProperties.get('displayType');
         if (displayType === 'directories' || displayType === 'directory') {
-          var value = _configProperties.get('value').trim().split(/\s+/g).join(',');
+          var value = _configProperties.get('value').split(/\s+/g).join(',');
           _configProperties.set('value', value);
         }
         var overrides = _configProperties.get('overrides');

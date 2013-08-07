@@ -258,6 +258,7 @@ App.config = Em.Object.create({
       if (preDefined && stored) {
         configData = preDefined;
         configData.value = stored.value;
+        configData.defaultValue = stored.defaultValue;
         configData.overrides = stored.overrides;
       } else if (!preDefined && stored) {
         configData = {
