@@ -1023,7 +1023,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         "name": "templeton.hive.properties",
         "templateName": ["hivemetastore_host"],
         "foreignKey": null,
-        "value": "hive.metastore.local=false,hive.metastore.uris=thrift://<templateName[0]>:9083,hive.metastore.sasl.enabled=yes,hive.metastore.execute.setugi=true",
+        "value": "hive.metastore.local=false,hive.metastore.uris=thrift://<templateName[0]>:9083,hive.metastore.sasl.enabled=yes,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse",
         "filename": "webhcat-site.xml"
       });
     }
