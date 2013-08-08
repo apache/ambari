@@ -26,7 +26,7 @@ import re
 import time
 import subprocess
 import threading
-import AmbariConfig
+import shlex
 from PackagesAnalyzer import PackagesAnalyzer
 from HostCheckReportFileHandler import HostCheckReportFileHandler
 from Hardware import Hardware
@@ -151,7 +151,9 @@ class HostInfo:
       svcCheckResult['status'] = "UNKNOWN"
       svcCheckResult['desc'] = ""
       try:
-        osStat = subprocess.Popen(["service", service, "status"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        cmd = "service " + service + " status"
+        osStat = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                                  stderr=subprocess.PIPE)
         out, err = osStat.communicate()
         if 0 != osStat.returncode:
           svcCheckResult['status'] = "Unhealthy"
