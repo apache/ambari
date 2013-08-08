@@ -82,7 +82,7 @@
   </property>
 
   <property>
-    <name>security.job.submission.protocol.acl</name>
+    <name>security.job.client.protocol.acl</name>
     <value>*</value>
     <description>ACL for JobSubmissionProtocol, used by job clients to
     communciate with the jobtracker for job submission, querying job status etc.
@@ -92,7 +92,7 @@
   </property>
 
   <property>
-    <name>security.task.umbilical.protocol.acl</name>
+    <name>security.job.task.protocol.acl</name>
     <value>*</value>
     <description>ACL for TaskUmbilicalProtocol, used by the map and reduce
     tasks to communicate with the parent tasktracker.

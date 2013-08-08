@@ -298,7 +298,11 @@ class hdp::params()
   $exec_path = ["/bin","/usr/bin", "/usr/sbin"]
 
   #### params used on multiple modules
-  $dfs_data_dir = hdp_default("hdfs-site/dfs.data.dir","/tmp/hadoop-hdfs/dfs/data")
+  if (hdp_get_major_stack_version($stack_version) >= 2) {
+    $dfs_data_dir = hdp_default("hdfs-site/dfs.datanode.data.dir","/tmp/hadoop-hdfs/dfs/data")
+  } else {
+    $dfs_data_dir = hdp_default("hdfs-site/dfs.data.dir","/tmp/hadoop-hdfs/dfs/data")
+  }
 
   ### artifact dir
   $artifact_dir = hdp_default("artifact_dir","/tmp/HDP-artifacts/")

@@ -36,8 +36,15 @@ class hdp(
  ## Port settings
   if has_key($configuration, 'hdfs-site') {
     $hdfs-site = $configuration['hdfs-site']
-    $namenode_port = hdp_get_port_from_url($hdfs-site["dfs.http.address"])
-    $snamenode_port = hdp_get_port_from_url($hdfs-site["dfs.secondary.http.address"])
+
+    if (hdp_get_major_stack_version($stack_version) >= 2) {
+      $namenode_port = hdp_get_port_from_url($hdfs-site["dfs.namenode.http-address"])
+      $snamenode_port = hdp_get_port_from_url($hdfs-site["dfs.namenode.secondary.http-address"])
+    } else {
+      $namenode_port = hdp_get_port_from_url($hdfs-site["dfs.http.address"])
+      $snamenode_port = hdp_get_port_from_url($hdfs-site["dfs.secondary.http.address"])
+    }
+
     $datanode_port = hdp_get_port_from_url($hdfs-site["dfs.datanode.http.address"])
     $journalnode_port = hdp_get_port_from_url($hdfs-site["dfs.journalnode.http-address"])
   } else {
@@ -49,8 +56,14 @@ class hdp(
 
   if has_key($configuration, 'mapred-site') {
     $mapred-site = $configuration['mapred-site']
-    $jtnode_port = hdp_get_port_from_url($mapred-site["mapred.job.tracker.http.address"],"50030")
-    $tasktracker_port = hdp_get_port_from_url($mapred-site["mapred.task.tracker.http.address"],"50060")
+
+    if (hdp_get_major_stack_version($stack_version) >= 2) {
+      $jtnode_port = hdp_get_port_from_url($mapred-site["mapreduce.jobtracker.http.address"],"50030")
+      $tasktracker_port = hdp_get_port_from_url($mapred-site["mapreduce.tasktracker.http.address"],"50060")
+    } else {
+      $jtnode_port = hdp_get_port_from_url($mapred-site["mapred.job.tracker.http.address"],"50030")
+      $tasktracker_port = hdp_get_port_from_url($mapred-site["mapred.task.tracker.http.address"],"50060")
+    }
     $jobhistory_port = hdp_get_port_from_url($mapred-site["mapreduce.history.server.http.address"],"51111")
 
     $hs_port = hdp_get_port_from_url($mapred-site["mapreduce.jobhistory.webapp.address"],"19888")

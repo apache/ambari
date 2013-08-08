@@ -25,7 +25,7 @@
 <!-- i/o properties -->
 
   <property>
-    <name>io.sort.mb</name>
+    <name>mapreduce.task.io.sort.mb</name>
     <value>100</value>
     <description>No description</description>
   </property>
@@ -37,13 +37,13 @@
   </property>
 
   <property>
-    <name>io.sort.spill.percent</name>
+    <name>mapreduce.map.sort.spill.percent</name>
     <value>0.1</value>
     <description>No description</description>
   </property>
 
   <property>
-    <name>io.sort.factor</name>
+    <name>mapreduce.task.io.sort.factor</name>
     <value>100</value>
     <description>No description</description>
   </property>
@@ -51,7 +51,7 @@
 <!-- map/reduce properties -->
 
   <property>
-    <name>mapred.system.dir</name>
+    <name>mapreduce.jobtracker.system.dir</name>
     <value></value>
     <description>No description</description>
     <final>true</final>
@@ -59,45 +59,45 @@
 
   <property>
     <!-- cluster specific -->
-    <name>mapred.local.dir</name>
+    <name>mapreduce.cluster.local.dir</name>
     <value></value>
     <description>No description</description>
     <final>true</final>
   </property>
 
   <property>
-    <name>mapred.reduce.parallel.copies</name>
+    <name>mapreduce.reduce.shuffle.parallelcopies</name>
     <value>30</value>
     <description>No description</description>
   </property>
 
   <property>
-    <name>mapred.tasktracker.map.tasks.maximum</name>
+    <name>mapreduce.tasktracker.map.tasks.maximum</name>
     <value></value>
     <description>No description</description>
   </property>
 
   <property>
-    <name>mapred.map.tasks.speculative.execution</name>
+    <name>mapreduce.map.speculative</name>
     <value>false</value>
     <description>If true, then multiple instances of some map tasks
                may be executed in parallel.</description>
   </property>
 
   <property>
-    <name>mapred.reduce.tasks.speculative.execution</name>
+    <name>mapreduce.reduce.speculative</name>
     <value>false</value>
     <description>If true, then multiple instances of some reduce tasks
                may be executed in parallel.</description>
   </property>
 
   <property>
-    <name>mapred.reduce.slowstart.completed.maps</name>
+    <name>mapreduce.job.reduce.slowstart.completedmaps</name>
     <value>0.05</value>
   </property>
 
   <property>
-    <name>mapred.inmem.merge.threshold</name>
+    <name>mapreduce.reduce.merge.inmem.threshold</name>
     <value>1000</value>
     <description>The threshold, in terms of the number of files
   for the in-memory merge process. When we accumulate threshold number of files
@@ -108,17 +108,17 @@
   </property>
 
   <property>
-    <name>mapred.job.shuffle.merge.percent</name>
+    <name>mapreduce.reduce.shuffle.merge.percent</name>
     <value>0.66</value>
     <description>The usage threshold at which an in-memory merge will be
   initiated, expressed as a percentage of the total memory allocated to
   storing in-memory map outputs, as defined by
-  mapred.job.shuffle.input.buffer.percent.
+  mapreduce.reduce.shuffle.input.buffer.percent.
   </description>
   </property>
 
   <property>
-    <name>mapred.job.shuffle.input.buffer.percent</name>
+    <name>mapreduce.reduce.shuffle.input.buffer.percent</name>
     <value>0.7</value>
     <description>The percentage of memory to be allocated from the maximum heap
   size to storing map outputs during the shuffle.
@@ -126,7 +126,7 @@
   </property>
 
   <property>
-    <name>mapred.map.output.compression.codec</name>
+    <name>mapreduce.map.output.compress.codec</name>
     <value></value>
     <description>If the map outputs are compressed, how should they be
       compressed
@@ -134,7 +134,7 @@
   </property>
 
 <property>
-  <name>mapred.output.compression.type</name>
+  <name>mapreduce.output.fileoutputformat.compress.type</name>
   <value>BLOCK</value>
   <description>If the job outputs are to compressed as SequenceFiles, how should
                they be compressed? Should be one of NONE, RECORD or BLOCK.
@@ -142,7 +142,7 @@
 </property>
 
   <property>
-    <name>mapred.job.reduce.input.buffer.percent</name>
+    <name>mapreduce.reduce.input.buffer.percent</name>
     <value>0.0</value>
     <description>The percentage of memory- relative to the maximum heap size- to
   retain map outputs during the reduce. When the shuffle is concluded, any
@@ -163,13 +163,13 @@
 
   <!-- copied from kryptonite configuration -->
   <property>
-    <name>mapred.compress.map.output</name>
+    <name>mapreduce.map.output.compress</name>
     <value></value>
   </property>
 
 
   <property>
-    <name>mapred.task.timeout</name>
+    <name>mapreduce.task.timeout</name>
     <value>600000</value>
     <description>The number of milliseconds before a task will be
   terminated if it neither reads an input, writes an output, nor
@@ -195,22 +195,22 @@
   </property>
 
   <property>
-    <name>mapred.cluster.reduce.memory.mb</name>
+    <name>mapreduce.cluster.reducememory.mb</name>
     <value>2048</value>
   </property>
 
   <property>
-    <name>mapred.job.map.memory.mb</name>
+    <name>mapreduce.map.memory.mb</name>
     <value>1536</value>
   </property>
 
   <property>
-    <name>mapred.job.reduce.memory.mb</name>
+    <name>mapreduce.reduce.memory.mb</name>
     <value>1024</value>
   </property>
 
   <property>
-    <name>mapred.max.tracker.blacklists</name>
+    <name>mapreduce.jobtracker.tasktracker.maxblacklists</name>
     <value>16</value>
     <description>
       if node is reported blacklisted by 16 successful jobs within timeout-window, it will be graylisted
@@ -218,12 +218,12 @@
   </property>
 
   <property>
-    <name>mapred.healthChecker.script.path</name>
+    <name>mapreduce.tasktracker.healthchecker.script.path</name>
     <value></value>
   </property>
 
   <property>
-    <name>mapred.healthChecker.script.timeout</name>
+    <name>mapreduce.tasktracker.healthchecker.script.timeout</name>
     <value>60000</value>
   </property>
 

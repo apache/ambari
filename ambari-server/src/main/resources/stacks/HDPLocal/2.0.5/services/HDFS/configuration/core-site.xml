@@ -54,7 +54,7 @@
 <!-- file system properties -->
 
   <property>
-    <name>fs.default.name</name>
+    <name>fs.defaultFS</name>
     <!-- cluster variant -->
     <value></value>
     <description>The name of the default file system.  Either the
@@ -71,7 +71,7 @@
   </property>
 
   <property>
-    <name>fs.checkpoint.dir</name>
+    <name>dfs.namenode.checkpoint.dir</name>
     <value></value>
     <description>Determines where on the local filesystem the DFS secondary
         name node should store the temporary images to merge.
@@ -81,13 +81,13 @@
   </property>
 
   <property>
-    <name>fs.checkpoint.edits.dir</name>
-    <value>${fs.checkpoint.dir}</value>
+    <name>dfs.namenode.checkpoint.edits.dir</name>
+    <value>${dfs.namenode.checkpoint.dir}</value>
     <description>Determines where on the local filesystem the DFS secondary
         name node should store the temporary edits to merge.
         If this is a comma-delimited list of directoires then teh edits is
         replicated in all of the directoires for redundancy.
-        Default value is same as fs.checkpoint.dir
+        Default value is same as dfs.namenode.checkpoint.dir
     </description>
   </property>
 

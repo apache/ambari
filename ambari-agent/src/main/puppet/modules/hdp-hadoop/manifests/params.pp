@@ -110,7 +110,11 @@ class hdp-hadoop::params(
   }
 
   ### core-site
-  $fs_checkpoint_dir = hdp_default("core-site/fs.checkpoint.dir","/tmp/hadoop-hdfs/dfs/namesecondary")
+  if (hdp_get_major_stack_version($stack_version) >= 2) {
+    $fs_checkpoint_dir = hdp_default("core-site/dfs.namenode.checkpoint.dir","/tmp/hadoop-hdfs/dfs/namesecondary")
+  } else {
+    $fs_checkpoint_dir = hdp_default("core-site/fs.checkpoint.dir","/tmp/hadoop-hdfs/dfs/namesecondary")
+  }
 
   $proxyuser_group = hdp_default("core-site/proxyuser.group","users")
   
@@ -131,7 +135,11 @@ class hdp-hadoop::params(
 
   $dfs_include = hdp_default("hdfs-site/dfs.include","dfs.include")
   
-  $dfs_name_dir = hdp_default("hdfs-site/dfs.name.dir","/tmp/hadoop-hdfs/dfs/name")
+  if (hdp_get_major_stack_version($stack_version) >= 2) {
+    $dfs_name_dir = hdp_default("hdfs-site/dfs.namenode.name.dir","/tmp/hadoop-hdfs/dfs/name")
+  } else {
+    $dfs_name_dir = hdp_default("hdfs-site/dfs.name.dir","/tmp/hadoop-hdfs/dfs/name")
+  }
   
   $dfs_replication = hdp_default("hdfs-site/dfs.replication",3)
 
@@ -148,10 +156,6 @@ class hdp-hadoop::params(
 
   $mapred_system_dir = '/mapred/system'
 
-  $io_sort_mb = hdp_default("mapred-site/io.sort.mb","200")
-
-  $io_sort_spill_percent = hdp_default("mapred-site/io.sort.spill.percent","0.9")
-
   $mapred_child_java_opts_sz = hdp_default("mapred-site/mapred.child.java.opts.sz","-Xmx768m")
 
   $mapred_cluster_map_mem_mb = hdp_default("mapred-site/mapred.cluster.map.mem.mb","-1")
@@ -162,22 +166,18 @@ class hdp-hadoop::params(
 
   $mapred_cluster_red_mem_mb = hdp_default("mapred-site/mapred.cluster.red.mem.mb","-1")
 
-  $mapred_hosts_exclude = hdp_default("mapred-site/mapred.hosts.exclude","mapred.exclude")
-
-  $mapred_hosts_include = hdp_default("mapred-site/mapred.hosts.include","mapred.include")
-
   $mapred_job_map_mem_mb = hdp_default("mapred-site/mapred.job.map.mem.mb","-1")
 
   $mapred_job_red_mem_mb = hdp_default("mapred-site/mapred.job.red.mem.mb","-1")
 
   $mapred_jobstatus_dir = hdp_default("mapred-site/mapred.jobstatus.dir","file:////mapred/jobstatus")
 
-  $mapred_local_dir = hdp_default("mapred-site/mapred.local.dir","/tmp/hadoop-mapred/mapred/local")
+  if (hdp_get_major_stack_version($stack_version) >= 2) {
+    $mapred_local_dir = hdp_default("mapred-site/mapreduce.cluster.local.dir","/tmp/hadoop-mapred/mapred/local")
+  } else {
+    $mapred_local_dir = hdp_default("mapred-site/mapred.local.dir","/tmp/hadoop-mapred/mapred/local")
+  }
    
-  $mapred_map_tasks_max = hdp_default("mapred-site/mapred.map.tasks.max",4)
-
-  $mapred_red_tasks_max = hdp_default("mapred-site/mapred.red.tasks.max",4)
-
   $mapreduce_userlog_retainhours = hdp_default("mapred-site/mapreduce.userlog.retainhours",24)
 
   $maxtasks_per_job = hdp_default("mapred-site/maxtasks.per.job","-1")

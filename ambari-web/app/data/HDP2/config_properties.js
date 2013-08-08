@@ -93,7 +93,7 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "dfs_name_dir",
+      "name": "dfs_namenode_name_dir",
       "displayName": "NameNode directories",
       "description": "NameNode directories for HDFS to store the file system image",
       "defaultValue": "",
@@ -153,7 +153,7 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "fs_checkpoint_dir",
+      "name": "dfs_namenode_checkpoint_dir",
       "displayName": "SecondaryNameNode Checkpoint directory",
       "description": "Directory on the local filesystem where the Secondary NameNode should store the temporary images to merge",
       "defaultValue": "",
@@ -184,7 +184,7 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "dfs_data_dir",
+      "name": "dfs_datanode_data_dir",
       "displayName": "DataNode directories",
       "description": "DataNode directories for HDFS to store the data blocks",
       "defaultValue": "",
@@ -264,7 +264,7 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "fs_checkpoint_period",
+      "name": "dfs_namenode_checkpoint_period",
       "displayName": "HDFS Maximum Checkpoint Delay",
       "description": "Maximum delay between two consecutive checkpoints for HDFS",
       "defaultValue": "21600",
@@ -458,7 +458,7 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "mapred_local_dir",
+      "name": "mapreduce_cluster_local_dir",
       "displayName": "MapReduce local directories",
       "description": "Directories for MapReduce to store intermediate data files",
       "defaultValue": "",
@@ -471,7 +471,7 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "mapred_cluster_red_mem_mb",
+      "name": "mapreduce_cluster_reducememory_mb",
       "displayName": "Cluster's Reduce slot size (virtual memory)",
       "description": "The virtual memory size of a single Reduce slot in the MapReduce framework",
       "defaultValue": "2048",
@@ -483,7 +483,7 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "mapred_map_tasks_max",
+      "name": "mapreduce_tasktracker_map_tasks_maximum",
       "displayName": "Number of Map slots per node",
       "description": "Number of slots that Map tasks that run simultaneously can occupy on a TaskTracker",
       "defaultValue": "4",
@@ -494,7 +494,7 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "mapred_job_map_mem_mb",
+      "name": "mapreduce_map_memory_mb",
       "displayName": "Default virtual memory for a job's map-task",
       "description": "Virtual memory for single Map task",
       "defaultValue": "1536",
@@ -506,7 +506,7 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "mapred_job_red_mem_mb",
+      "name": "mapreduce_reduce_memory_mb",
       "displayName": "Default virtual memory for a job's reduce-task",
       "description": "Virtual memory for single Reduce task",
       "defaultValue": "2048",
@@ -600,7 +600,7 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "mapred_system_dir",
+      "name": "mapreduce_jobtracker_system_dir",
       "displayName": "MapReduce system directories",
       "description": "",
       "defaultValue": "/mapred/system",

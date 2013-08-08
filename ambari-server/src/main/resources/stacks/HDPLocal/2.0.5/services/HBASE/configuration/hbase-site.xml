@@ -363,5 +363,16 @@
     </description>
   </property>
 
+  <property>
+    <name>hbase.defaults.for.version.skip</name>
+    <value>true</value>
+    <description>Disables version verification.</description>
+  </property>
+
+  <property>
+    <name>dfs.domain.socket.path</name>
+    <value>/var/lib/hadoop-hdfs/dn_socket</value>
+    <description>Path to domain socket.</description>
+  </property>
 
 </configuration>

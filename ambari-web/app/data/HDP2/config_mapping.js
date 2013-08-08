@@ -26,15 +26,15 @@ var configs = [
     "filename": "core-site.xml"
   },
   {
-    "name": "fs.checkpoint.dir",
-    "templateName": ["fs_checkpoint_dir"],
+    "name": "dfs.namenode.checkpoint.dir",
+    "templateName": ["dfs_namenode_checkpoint_dir"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "core-site.xml"
   },
   {
-    "name": "fs.checkpoint.period",
-    "templateName": ["fs_checkpoint_period"],
+    "name": "dfs.namenode.checkpoint.period",
+    "templateName": ["dfs_namenode_checkpoint_period"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "core-site.xml"
@@ -48,7 +48,7 @@ var configs = [
   },
   {
     "name": "fs.checkpoint.edits.dir",
-    "templateName": ["fs_checkpoint_dir"],
+    "templateName": ["dfs_namenode_checkpoint_dir"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "core-site.xml"
@@ -103,8 +103,8 @@ var configs = [
   },
   /**********************************************hdfs-site***************************************/
   {
-    "name": "dfs.name.dir",
-    "templateName": ["dfs_name_dir"],
+    "name": "dfs.namenode.name.dir",
+    "templateName": ["dfs_namenode_name_dir"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "hdfs-site.xml"
@@ -131,8 +131,8 @@ var configs = [
     "filename": "hdfs-site.xml"
   },
   {
-    "name": "dfs.data.dir",
-    "templateName": ["dfs_data_dir"],
+    "name": "dfs.datanode.data.dir",
+    "templateName": ["dfs_datanode_data_dir"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "hdfs-site.xml"
@@ -173,7 +173,7 @@ var configs = [
     "filename": "hdfs-site.xml"
   },
   {
-    "name": "dfs.http.address",
+    "name": "dfs.namenode.http-address",
     "templateName": ["namenode_host"],
     "foreignKey": null,
     "value": "<templateName[0]>:50070",
@@ -188,14 +188,14 @@ var configs = [
   },
 
   {
-    "name": "dfs.secondary.http.address",
+    "name": "dfs.namenode.secondary.http-address",
     "templateName": ["snamenode_host"],
     "foreignKey": null,
     "value": "<templateName[0]>:50090",
     "filename": "hdfs-site.xml"
   },
   {
-    "name": "dfs.https.address",
+    "name": "dfs.https.namenode.https-address",
     "templateName": ["namenode_host"],
     "foreignKey": null,
     "value": "<templateName[0]>:50470",
@@ -361,19 +361,18 @@ var configs = [
   },
   {
     "name": "mapreduce.map.memory.mb",
-    "templateName": ["mapred_job_map_mem_mb"],
+    "templateName": ["mapreduce_map_memory_mb"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "mapred-site.xml"
   },
   {
     "name": "mapreduce.reduce.memory.mb",
-    "templateName": ["mapred_job_red_mem_mb"],
+    "templateName": ["mapreduce_reduce_memory_mb"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "mapred-site.xml"
   },
-  //io.sort.mb -> mapreduce.task.io.sort.mb
   {
     "name": "mapreduce.task.io.sort.mb",
     "templateName": ["mapreduce_task_io_sort_mb"],
@@ -382,15 +381,15 @@ var configs = [
     "filename": "mapred-site.xml"
   },
   {
-    "name": "mapred.system.dir",
-    "templateName": ["mapred_system_dir"],
+    "name": "mapreduce.jobtracker.system.dir",
+    "templateName": ["mapreduce_jobtracker_system_dir"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "mapred-site.xml"
   },
   {
-    "name": "mapred.cluster.reduce.memory.mb",
-    "templateName": ["mapred_cluster_red_mem_mb"],
+    "name": "mapreduce.cluster.reducememory.mb",
+    "templateName": ["mapreduce_cluster_reducememory_mb"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "mapred-site.xml"
@@ -417,8 +416,8 @@ var configs = [
     "filename": "mapred-site.xml"
   },
   {
-    "name": "mapred.local.dir",
-    "templateName": ["mapred_local_dir"],
+    "name": "mapreduce.cluster.local.dir",
+    "templateName": ["mapreduce_cluster_local_dir"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "mapred-site.xml"
@@ -431,8 +430,8 @@ var configs = [
     "filename": "mapred-site.xml"
   },
   {
-    "name": "mapred.tasktracker.map.tasks.maximum",
-    "templateName": ["mapred_map_tasks_max"],
+    "name": "mapreduce.tasktracker.map.tasks.maximum",
+    "templateName": ["mapreduce_tasktracker_map_tasks_maximum"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "mapred-site.xml"
@@ -466,7 +465,7 @@ var configs = [
     "filename": "mapred-site.xml"
   },
   {
-    "name": "mapred.healthChecker.script.path",
+    "name": "mapreduce.tasktracker.healthchecker.script.path",
     "templateName": ["mapred_jobstatus_dir"],
     "foreignKey": null,
     "value": "<templateName[0]>",

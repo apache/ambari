@@ -31,7 +31,7 @@
 
   <property>
     <name>oozie.system.id</name>
-    <value>oozie-${user.name}</value>
+    <value>oozie-${mapreduce.job.user.name}</value>
     <description>
     The Oozie system ID.
     </description>
@@ -133,7 +133,7 @@
 
     <property>
       <name>oozie.service.WorkflowAppService.system.libpath</name>
-      <value>/user/${user.name}/share/lib</value>
+      <value>/user/${mapreduce.job.user.name}/share/lib</value>
       <description>
       System library path to use for workflow applications.
       This path is added to workflow application if their job properties sets

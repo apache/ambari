@@ -27,7 +27,7 @@
     <description>NameNode Host.</description>
   </property>
   <property>
-    <name>dfs_name_dir</name>
+    <name>dfs_namenode_name_dir</name>
     <value>/hadoop/hdfs/namenode</value>
     <description>NameNode Directories.</description>
   </property>
@@ -37,7 +37,7 @@
     <description>Secondary NameNode.</description>
   </property>
   <property>
-    <name>fs_checkpoint_dir</name>
+    <name>dfs_namenode_checkpoint_dir</name>
     <value>/hadoop/hdfs/namesecondary</value>
     <description>Secondary NameNode checkpoint dir.</description>
   </property>
@@ -47,7 +47,7 @@
     <description>List of Datanode Hosts.</description>
   </property>
   <property>
-    <name>dfs_data_dir</name>
+    <name>dfs_datanode_data_dir</name>
     <value>/hadoop/hdfs/data</value>
     <description>Data directories for Data Nodes.</description>
   </property>
@@ -102,7 +102,7 @@
     <description>DataNode volumes failure toleration</description>
   </property>
   <property>
-    <name>fs_checkpoint_period</name>
+    <name>dfs_namenode_checkpoint_period</name>
     <value>21600</value>
     <description>HDFS Maximum Checkpoint Delay</description>
   </property>

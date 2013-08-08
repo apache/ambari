@@ -25,7 +25,7 @@
 <!-- file system properties -->
 
   <property>
-    <name>dfs.name.dir</name>
+    <name>dfs.namenode.name.dir</name>
     <!-- cluster variant -->
     <value></value>
     <description>Determines where on the local filesystem the DFS name node
@@ -74,7 +74,7 @@
   </property>
 
   <property>
-    <name>dfs.data.dir</name>
+    <name>dfs.datanode.data.dir</name>
     <value></value>
     <description>Determines where on the local filesystem an DFS data node
   should store its blocks.  If this is a comma-delimited
@@ -141,18 +141,18 @@
   </property>
 
   <property>
-    <name>dfs.safemode.threshold.pct</name>
+    <name>dfs.namenode.safemode.threshold-pct</name>
     <value>1.0f</value>
     <description>
         Specifies the percentage of blocks that should satisfy
-        the minimal replication requirement defined by dfs.replication.min.
+        the minimal replication requirement defined by dfs.namenode.replication.min.
         Values less than or equal to 0 mean not to start in safe mode.
         Values greater than 1 will make safe mode permanent.
         </description>
   </property>
 
   <property>
-    <name>dfs.balance.bandwidthPerSec</name>
+    <name>dfs.datanode.balance.bandwidthPerSec</name>
     <value>6250000</value>
     <description>
         Specifies the maximum amount of bandwidth that each datanode
@@ -172,13 +172,13 @@
   </property>
 
   <property>
-    <name>dfs.block.size</name>
+    <name>dfs.blocksize</name>
     <value>134217728</value>
     <description>The default block size for new files.</description>
   </property>
 
   <property>
-    <name>dfs.http.address</name>
+    <name>dfs.namenode.http-address</name>
     <value></value>
 <description>The name of the default file system.  Either the
 literal string "local" or a host:port for NDFS.</description>
@@ -222,7 +222,7 @@ If the port is 0 then the server will start on a free port.
 </property>
 
 <property>
-<name>dfs.datanode.max.xcievers</name>
+<name>dfs.datanode.max.transfer.threads</name>
 <value>1024</value>
 <description>PRIVATE CONFIG VARIABLE</description>
 </property>
@@ -230,7 +230,7 @@ If the port is 0 then the server will start on a free port.
 <!-- Permissions configuration -->
 
 <property>
-<name>dfs.umaskmode</name>
+<name>fs.permissions.umask-mode</name>
 <value>022</value>
 <description>
 The octal umask used when creating files and directories.
@@ -247,7 +247,7 @@ Syntax: USERNAME,GROUP1,GROUP2, ...
 </property>
 
 <property>
-<name>dfs.permissions</name>
+<name>dfs.permissions.enabled</name>
 <value>true</value>
 <description>
 If "true", enable permission checking in HDFS.
@@ -259,7 +259,7 @@ owner or group of files or directories.
 </property>
 
 <property>
-<name>dfs.permissions.supergroup</name>
+<name>dfs.permissions.enabled.superusergroup</name>
 <value>hdfs</value>
 <description>The name of the group of super-users.</description>
 </property>
@@ -319,7 +319,7 @@ Kerberos principal name for the NameNode
 
   <property>
     <!-- cluster variant -->
-    <name>dfs.secondary.http.address</name>
+    <name>dfs.namenode.secondary.http-address</name>
     <value></value>
     <description>Address of secondary namenode web server</description>
   </property>
@@ -389,7 +389,7 @@ Kerberos principal name for the NameNode
   </property>
 
   <property>
-    <name>dfs.https.address</name>
+    <name>dfs.namenode.https-address</name>
     <value></value>
   <description>The https address where namenode binds</description>
 
@@ -398,14 +398,14 @@ Kerberos principal name for the NameNode
   <property>
     <name>dfs.datanode.data.dir.perm</name>
     <value>750</value>
-<description>The permissions that should be there on dfs.data.dir
+<description>The permissions that should be there on dfs.datanode.data.dir
 directories. The datanode will not come up if the permissions are
-different on existing dfs.data.dir directories. If the directories
+different on existing dfs.datanode.data.dir directories. If the directories
 don't exist, they will be created with this permission.</description>
   </property>
 
   <property>
-    <name>dfs.access.time.precision</name>
+    <name>dfs.namenode.accesstime.precision</name>
     <value>0</value>
     <description>The access time for HDFS file is precise upto this value.
                  The default value is 1 hour. Setting a value of 0 disables

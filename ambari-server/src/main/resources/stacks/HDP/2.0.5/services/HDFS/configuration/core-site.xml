@@ -54,7 +54,7 @@
 <!-- file system properties -->
 
   <property>
-    <name>fs.default.name</name>
+    <name>fs.defaultFS</name>
     <!-- cluster variant -->
     <value></value>
     <description>The name of the default file system.  Either the
@@ -71,7 +71,7 @@
   </property>
 
   <property>
-    <name>fs.checkpoint.dir</name>
+    <name>dfs.namenode.checkpoint.dir</name>
     <value></value>
     <description>Determines where on the local filesystem the DFS secondary
         name node should store the temporary images to merge.
@@ -81,18 +81,18 @@
   </property>
 
   <property>
-    <name>fs.checkpoint.edits.dir</name>
-    <value>${fs.checkpoint.dir}</value>
+    <name>dfs.namenode.checkpoint.edits.dir</name>
+    <value>${dfs.namenode.checkpoint.dir}</value>
     <description>Determines where on the local filesystem the DFS secondary
         name node should store the temporary edits to merge.
         If this is a comma-delimited list of directoires then teh edits is
         replicated in all of the directoires for redundancy.
-        Default value is same as fs.checkpoint.dir
+        Default value is same as dfs.namenode.checkpoint.dir
     </description>
   </property>
 
   <property>
-    <name>fs.checkpoint.period</name>
+    <name>dfs.namenode.checkpoint.period</name>
     <value>21600</value>
     <description>The number of seconds between two periodic checkpoints.
   </description>
@@ -102,7 +102,7 @@
     <name>fs.checkpoint.size</name>
     <value>536870912</value>
     <description>The size of the current edit log (in bytes) that triggers
-       a periodic checkpoint even if the fs.checkpoint.period hasn't expired.
+       a periodic checkpoint even if the dfs.namenode.checkpoint.period hasn't expired.
   </description>
   </property>
 
@@ -131,7 +131,7 @@
 
   <!-- Web Interface Configuration -->
   <property>
-    <name>webinterface.private.actions</name>
+    <name>mapreduce.jobtracker.webinterface.trusted</name>
     <value>false</value>
     <description> If set to true, the web interfaces of JT and NN may contain
                 actions, such as kill job, delete file, etc., that should
@@ -166,7 +166,7 @@
         RULE:[2:$1@$0](rs@.*)s/.*/hbase/
         DEFAULT
     </value>
-<description>The mapping from kerberos principal names to local OS user names.
+<description>The mapping from kerberos principal names to local OS mapreduce.job.user.names.
   So the default rule is just "DEFAULT" which takes all principals in your default domain to their first component.
   "omalley@APACHE.ORG" and "omalley/admin@APACHE.ORG" to "omalley", if your default domain is APACHE.ORG.
 The translations rules have 3 sections:

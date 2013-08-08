@@ -285,12 +285,16 @@ App.ServiceConfigProperty = Ember.Object.extend({
         this.set('value', masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName'));
         break;
       case 'dfs_name_dir':
+      case 'dfs_namenode_name_dir':
       case 'dfs_data_dir':
+      case 'dfs_datanode_data_dir':
       case 'yarn_nodemanager_local-dirs':
       case 'mapred_local_dir':
+      case 'mapreduce_cluster_local_dir':
         this.unionAllMountPoints(!isOnlyFirstOneNeeded, localDB);
         break;
       case 'fs_checkpoint_dir':
+      case 'dfs_namenode_checkpoint_dir':
       case 'zk_data_dir':
       case 'oozie_data_dir':
         this.unionAllMountPoints(isOnlyFirstOneNeeded, localDB);
@@ -320,6 +324,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
     var temp = '';
     var setOfHostNames = [];
     switch (this.get('name')) {
+      case 'dfs_namenode_name_dir':
       case 'dfs_name_dir':
         var components = masterComponentHostsInDB.filterProperty('component', 'NAMENODE');
         components.forEach(function (component) {
@@ -327,18 +332,21 @@ App.ServiceConfigProperty = Ember.Object.extend({
         }, this);
         break;
       case 'fs_checkpoint_dir':
+      case 'dfs_namenode_checkpoint_dir':
         var components = masterComponentHostsInDB.filterProperty('component', 'SECONDARY_NAMENODE');
         components.forEach(function (component) {
           setOfHostNames.push(component.hostName);
         }, this);
         break;
       case 'dfs_data_dir':
+      case 'dfs_datanode_data_dir':
         temp = slaveComponentHostsInDB.findProperty('componentName', 'DATANODE');
         temp.hosts.forEach(function (host) {
           setOfHostNames.push(host.hostName);
         }, this);
         break;
       case 'mapred_local_dir':
+      case 'mapreduce_cluster_local_dir':
         temp = slaveComponentHostsInDB.findProperty('componentName', 'TASKTRACKER') || slaveComponentHostsInDB.findProperty('componentName', 'NODEMANAGER');
         temp.hosts.forEach(function (host) {
           setOfHostNames.push(host.hostName);
