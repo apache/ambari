@@ -698,11 +698,6 @@ App.WizardController = Em.Controller.extend({
       }
 
       _content.get('configs').forEach(function (_configProperties) {
-        var displayType = _configProperties.get('displayType');
-        if (displayType === 'directories' || displayType === 'directory') {
-          var value = _configProperties.get('value').split(/\s+/g).join(',');
-          _configProperties.set('value', value);
-        }
         var overrides = _configProperties.get('overrides');
         var overridesArray = [];
         if(overrides!=null){
@@ -726,6 +721,7 @@ App.WizardController = Em.Controller.extend({
           serviceName: _configProperties.get('serviceName'),
           domain:  _configProperties.get('domain'),
           filename: _configProperties.get('filename'),
+          displayType: _configProperties.get('displayType'),
           overrides: overridesArray
         };
         serviceConfigProperties.push(configProperty);

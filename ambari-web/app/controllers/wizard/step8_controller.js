@@ -63,10 +63,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     return this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false);
   }.property('content.services').cacheable(),
 
-  configMapping: function() {
-    return App.config.get('configMapping').all();
-  }.property('App.config.configMapping'),
-
   clearStep: function () {
     this.get('services').clear();
     this.get('configs').clear();
@@ -81,11 +77,24 @@ App.WizardStep8Controller = Em.Controller.extend({
       this.set('securityEnabled', App.router.get('mainAdminSecurityController').getUpdatedSecurityStatus());
     }
     this.clearStep();
+    this.formatDirectories();
     this.loadGlobals();
     this.loadConfigs();
     this.loadClusterInfo();
     this.loadServices();
     this.set('isSubmitDisabled', false);
+  },
+  /**
+   * replace whitespace character with coma between directories
+   */
+  formatDirectories: function(){
+    this.get('content.serviceConfigProperties').forEach(function(_configProperty){
+      var displayType = _configProperty.displayType;
+      if (displayType === 'directories' || displayType === 'directory') {
+        var value = _configProperty.value.trim().split(/\s+/g).join(',');
+        _configProperty.value = value;
+      }
+    });
   },
 
   loadGlobals: function () {
