@@ -18,6 +18,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
@@ -73,12 +74,16 @@ class HostComponentResourceProvider extends AbstractControllerResourceProvider {
   private static final int HOST_COMPONENT_HTTP_PROPERTY_REQUEST_READ_TIMEOUT    = 10000;
 
   static {
+    ComponentSSLConfiguration configuration = ComponentSSLConfiguration.instance();
+    URLStreamProvider streamProvider = new URLStreamProvider(
+        HOST_COMPONENT_HTTP_PROPERTY_REQUEST_CONNECT_TIMEOUT,
+        HOST_COMPONENT_HTTP_PROPERTY_REQUEST_READ_TIMEOUT,
+        configuration.getTruststorePath(), configuration.getTruststorePassword(), configuration.getTruststoreType());
+
     HOST_COMPONENT_PROPERTIES_PROVIDER.put(
         "NAGIOS_SERVER",
         new HttpProxyPropertyProvider(
-            new URLStreamProvider(
-              HOST_COMPONENT_HTTP_PROPERTY_REQUEST_CONNECT_TIMEOUT,
-              HOST_COMPONENT_HTTP_PROPERTY_REQUEST_READ_TIMEOUT),
+            streamProvider, configuration,
             PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
             PropertyHelper.getPropertyId("HostRoles", "host_name"),
             PropertyHelper.getPropertyId("HostRoles", "component_name")));

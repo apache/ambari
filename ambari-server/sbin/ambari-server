@@ -110,8 +110,16 @@ case "$1" in
         echo -e "Setting up HTTPS properties..."
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
+  setup-ganglia-https)
+        echo -e "Setting up HTTPS properties for Ganglia..."
+        $PYTHON /usr/sbin/ambari-server.py $@
+        ;;
+  setup-nagios-https)
+        echo -e "Setting up HTTPS properties for Nagios..."
+        $PYTHON /usr/sbin/ambari-server.py $@
+        ;;
   *)
-        echo "Usage: /usr/sbin/ambari-server {start|stop|restart|setup|upgrade|status|upgradestack|setup-ldap|setup-https|encrypt-passwords} [options]"
+        echo "Usage: /usr/sbin/ambari-server {start|stop|restart|setup|upgrade|status|upgradestack|setup-ldap|setup-https|setup-ganglia_https|setup-nagios_https|encrypt-passwords} [options]"
         exit 1
 esac
 

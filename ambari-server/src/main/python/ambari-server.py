@@ -58,6 +58,8 @@ UPDATE_METAINFO_ACTION = "update-metainfo"
 STATUS_ACTION = "status"
 SETUP_HTTPS_ACTION = "setup-https"
 LDAP_SETUP_ACTION = "setup-ldap"
+SETUP_GANGLIA_HTTPS_ACTION = "setup-ganglia-https"
+SETUP_NAGIOS_HTTPS_ACTION  = "setup-nagios-https"
 ENCRYPT_PASSWORDS_ACTION = "encrypt-passwords"
 
 # selinux commands
@@ -99,6 +101,11 @@ VALIDATE_KEYSTORE_CMD = "openssl pkcs12 -info -in '{0}' -password file:'{1}' -pa
 EXPRT_KSTR_CMD = "openssl pkcs12 -export -in '{0}' -inkey '{1}' -certfile '{0}' -out '{4}' -password file:'{2}' -passin file:'{3}'"
 CHANGE_KEY_PWD_CND = 'openssl rsa -in {0} -des3 -out {0}.secured -passout pass:{1}'
 GET_CRT_INFO_CMD = 'openssl x509 -dates -subject -in {0}'
+
+#keytool commands
+KEYTOOL_IMPORT_CERT_CMD="{0}" + os.sep + "bin" + os.sep + "keytool -import -alias '{1}' -storetype '{2}' -file '{3}' -storepass '{4}' -noprompt"
+KEYTOOL_DELETE_CERT_CMD="{0}" + os.sep + "bin" + os.sep + "keytool -delete -alias '{1}' -storepass '{2}' -noprompt"
+KEYTOOL_KEYSTORE=" -keystore '{0}'"
 
 # constants
 STACK_NAME_VER_SEP = "-"
@@ -179,6 +186,9 @@ SSL_KEY_PASSWORD_FILE_NAME = "https.pass.txt"
 SSL_KEY_PASSWORD_LENGTH = 50
 DEFAULT_SSL_API_PORT = 8443
 SSL_DATE_FORMAT = '%b  %d %H:%M:%S %Y GMT'
+
+GANGLIA_HTTPS = 'ganglia.https'
+NAGIOS_HTTPS  = 'nagios.https'
 
 JDBC_RCA_PASSWORD_ALIAS = "ambari.db.password"
 CLIENT_SECURITY_KEY = "client.security"
@@ -630,6 +640,9 @@ def adjust_directory_permissions(ambari_user):
   credStoreFile = get_credential_store_location(properties)
   if os.path.exists(credStoreFile):
     NR_ADJUST_OWNERSHIP_LIST.append((credStoreFile, "600", "{0}", "{0}", False))
+  trust_store_location = properties[SSL_TRUSTSTORE_PATH_PROPERTY]
+  if trust_store_location:
+    NR_ADJUST_OWNERSHIP_LIST.append((trust_store_location, "600", "{0}", "{0}", False))
   print "Adjusting ambari-server permissions and ownership..."
   for pack in NR_ADJUST_OWNERSHIP_LIST:
     file = pack[0]
@@ -2599,6 +2612,10 @@ def decrypt_password_for_alias(alias):
   if properties == -1:
     raise FatalException(1, None)
 
+  return get_encrypted_password(alias, password, properties)
+
+def get_encrypted_password(alias, password, properties):
+
   isSecure = get_is_secure(properties)
   (isPersisted, masterKeyFile) = get_is_persisted(properties)
   if isSecure:
@@ -3033,6 +3050,125 @@ def is_server_runing():
     return False, None
  
 
+def setup_component_https(component, command, property, alias):
+
+  if not SILENT:
+
+    jdk_path = find_jdk()
+    if jdk_path is None:
+      err = "No JDK found, please run the \"ambari-server setup\" " \
+                      "command to install a JDK automatically or install any " \
+                      "JDK manually to " + JDK_INSTALL_DIR
+      raise FatalException(1, err)
+
+    properties = get_ambari_properties()
+
+    use_https = properties.get_property(property) in ['true']
+
+    if use_https:
+      if get_YN_input("Do you want to disable HTTPS for " + component + " [y/n] (n)? ", False):
+
+        truststore_path     = get_truststore_path(properties)
+        truststore_password = get_truststore_password(properties)
+
+        run_component_https_cmd(get_delete_cert_command(jdk_path, alias, truststore_path, truststore_password))
+
+        properties.process_pair(property, "false")
+
+      else:
+        return
+    else:
+      if get_YN_input("Do you want to configure HTTPS for " + component + " [y/n] (y)? ", True):
+
+        truststore_type     = get_truststore_type(properties)
+        truststore_path     = get_truststore_path(properties)
+        truststore_password = get_truststore_password(properties)
+        
+        run_os_command(get_delete_cert_command(jdk_path, alias, truststore_path, truststore_password))
+
+        import_cert_path = get_validated_filepath_input(\
+                          "Enter path to " + component + " Certificate: ",\
+                          "Certificate not found")
+
+        run_component_https_cmd(get_import_cert_command(jdk_path, alias, truststore_type, import_cert_path, truststore_path, truststore_password))
+
+        properties.process_pair(property, "true")
+
+      else:
+        return
+
+    conf_file = find_properties_file()
+    f = open(conf_file, 'w')
+    properties.store(f, "Changed by 'ambari-server " + command + "' command")
+
+  else:
+    print command + " is not enabled in silent mode."
+
+def get_truststore_type(properties):
+
+  truststore_type = properties.get_property(SSL_TRUSTSTORE_TYPE_PROPERTY)
+  if not truststore_type:
+    SSL_TRUSTSTORE_TYPE_DEFAULT = get_value_from_properties(properties, SSL_TRUSTSTORE_TYPE_PROPERTY, "jks")
+
+    truststore_type = get_validated_string_input(
+      "TrustStore type [jks/jceks/pkcs12] {0}:".format(get_prompt_default(SSL_TRUSTSTORE_TYPE_DEFAULT)),
+      SSL_TRUSTSTORE_TYPE_DEFAULT,
+      "^(jks|jceks|pkcs12)?$", "Wrong type", False)
+
+    if truststore_type:
+      properties.process_pair(SSL_TRUSTSTORE_TYPE_PROPERTY, truststore_type)
+
+  return truststore_type
+
+def get_truststore_path(properties):
+
+  truststore_path = properties.get_property(SSL_TRUSTSTORE_PATH_PROPERTY)
+  if not truststore_path:
+    SSL_TRUSTSTORE_PATH_DEFAULT = get_value_from_properties(properties, SSL_TRUSTSTORE_PATH_PROPERTY)
+
+    while not truststore_path:
+      truststore_path = get_validated_string_input(
+        "Path to TrustStore file {0}:".format(get_prompt_default(SSL_TRUSTSTORE_PATH_DEFAULT)),
+        SSL_TRUSTSTORE_PATH_DEFAULT,
+        ".*", False, False)
+
+    if truststore_path:
+      properties.process_pair(SSL_TRUSTSTORE_PATH_PROPERTY, truststore_path)
+
+  return truststore_path
+
+def get_truststore_password(properties):
+  truststore_password = properties.get_property(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
+  if truststore_password:
+    truststore_password = decrypt_password_for_alias(SSL_TRUSTSTORE_PASSWORD_ALIAS)
+  else:
+    truststore_password = read_password("", ".*", "Password for TrustStore:", "Invalid characters in password")
+    if truststore_password:
+      properties.process_pair(SECURITY_IS_ENCRYPTION_ENABLED, "true")
+      encrypted_password = get_encrypted_password(SSL_TRUSTSTORE_PASSWORD_ALIAS, truststore_password, properties)
+      properties.process_pair(SSL_TRUSTSTORE_PASSWORD_PROPERTY, encrypted_password)
+
+  return truststore_password
+  
+def run_component_https_cmd(cmd):
+  retcode, out, err = run_os_command(cmd)
+
+  if not retcode == 0:
+    err = 'Error occured during truststore setup ! :' + out + " : " + err
+    raise FatalException(1, err)
+    
+def get_delete_cert_command(jdk_path, alias, truststore_path, truststore_password):
+  cmd = KEYTOOL_DELETE_CERT_CMD.format(jdk_path, alias, truststore_password)
+  if truststore_path:
+    cmd += KEYTOOL_KEYSTORE.format(truststore_path)
+  return cmd
+    
+def get_import_cert_command(jdk_path, alias, truststore_type, import_cert_path, truststore_path, truststore_password):
+  cmd = KEYTOOL_IMPORT_CERT_CMD.format(jdk_path, alias, truststore_type, import_cert_path, truststore_password)
+  if truststore_path:
+    cmd += KEYTOOL_KEYSTORE.format(truststore_path)
+  return cmd
+
 def import_cert_and_key_action(security_server_keys_dir, properties):
   if import_cert_and_key(security_server_keys_dir):
    properties.process_pair(SSL_SERVER_CERT_NAME, SSL_CERT_FILE_NAME)
@@ -3422,7 +3558,11 @@ def main():
     elif action == UPDATE_METAINFO_ACTION:
       update_metainfo(options)
     elif action == SETUP_HTTPS_ACTION:
-      setup_https(options)     
+      setup_https(options)
+    elif action == SETUP_GANGLIA_HTTPS_ACTION:
+      setup_component_https("Ganglia", "setup-ganglia-https", GANGLIA_HTTPS, "ganglia_cert")
+    elif action == SETUP_NAGIOS_HTTPS_ACTION:
+      setup_component_https("Nagios", "setup-nagios-https", NAGIOS_HTTPS, "nagios_cert")
     else:
       parser.error("Invalid action")
   except FatalException as e:

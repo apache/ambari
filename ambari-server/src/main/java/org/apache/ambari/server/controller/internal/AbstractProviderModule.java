@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.ganglia.GangliaComponentPropertyProvider;
 import org.apache.ambari.server.controller.ganglia.GangliaHostComponentPropertyProvider;
@@ -246,14 +247,18 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
 
     List<PropertyProvider> providers = new LinkedList<PropertyProvider>();
 
+    ComponentSSLConfiguration configuration = ComponentSSLConfiguration.instance();
+
     URLStreamProvider streamProvider = new URLStreamProvider(
-        PROPERTY_REQUEST_CONNECT_TIMEOUT, PROPERTY_REQUEST_READ_TIMEOUT);
+        PROPERTY_REQUEST_CONNECT_TIMEOUT, PROPERTY_REQUEST_READ_TIMEOUT,
+        configuration.getTruststorePath(), configuration.getTruststorePassword(), configuration.getTruststoreType());
 
     switch (type){
       case Cluster :
         providers.add(new GangliaReportPropertyProvider(
             PropertyHelper.getGangliaPropertyIds(type),
             streamProvider,
+            configuration,
             this,
             PropertyHelper.getPropertyId("Clusters", "cluster_name")));
         break;
@@ -261,6 +266,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
         providers.add(new GangliaHostPropertyProvider(
             PropertyHelper.getGangliaPropertyIds(type),
             streamProvider,
+            configuration,
             this,
             PropertyHelper.getPropertyId("Hosts", "cluster_name"),
             PropertyHelper.getPropertyId("Hosts", "host_name")
@@ -280,6 +286,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
         providers.add(new GangliaComponentPropertyProvider(
             PropertyHelper.getGangliaPropertyIds(type),
             streamProvider,
+            configuration,
             this,
             PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
             PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name")));
@@ -298,6 +305,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
         providers.add(new GangliaHostComponentPropertyProvider(
             PropertyHelper.getGangliaPropertyIds(type),
             streamProvider,
+            configuration,
             this,
             PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
             PropertyHelper.getPropertyId("HostRoles", "host_name"),

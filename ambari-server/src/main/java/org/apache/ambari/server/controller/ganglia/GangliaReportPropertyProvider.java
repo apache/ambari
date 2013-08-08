@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller.ganglia;
 
 import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
@@ -46,6 +47,8 @@ public class GangliaReportPropertyProvider extends AbstractPropertyProvider {
 
   private final String clusterNamePropertyId;
 
+  private final ComponentSSLConfiguration configuration;
+
 
   // ----- Constants --------------------------------------------------------
 
@@ -57,6 +60,7 @@ public class GangliaReportPropertyProvider extends AbstractPropertyProvider {
 
   public GangliaReportPropertyProvider(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
                                        StreamProvider streamProvider,
+                                       ComponentSSLConfiguration configuration,
                                        GangliaHostProvider hostProvider,
                                        String clusterNamePropertyId) {
     super(componentPropertyInfoMap);
@@ -64,6 +68,7 @@ public class GangliaReportPropertyProvider extends AbstractPropertyProvider {
     this.streamProvider        = streamProvider;
     this.hostProvider          = hostProvider;
     this.clusterNamePropertyId = clusterNamePropertyId;
+    this.configuration         = configuration;
   }
 
 
@@ -213,8 +218,13 @@ public class GangliaReportPropertyProvider extends AbstractPropertyProvider {
 
     StringBuilder sb = new StringBuilder();
 
-    sb.append("http://").
-        append(hostProvider.getGangliaCollectorHostName(clusterName)).
+    if (configuration.isGangliaSSL()) {
+      sb.append("https://");
+    } else {
+      sb.append("http://");
+    }
+
+    sb.append(hostProvider.getGangliaCollectorHostName(clusterName)).
         append("/ganglia/graph.php?g=").
         append(report).
         append("&json=1");

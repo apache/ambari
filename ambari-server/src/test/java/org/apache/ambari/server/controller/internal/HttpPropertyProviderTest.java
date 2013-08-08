@@ -21,19 +21,26 @@ package org.apache.ambari.server.controller.internal;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.configuration.ComponentSSLConfigurationTest;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+@RunWith(Parameterized.class)
 public class HttpPropertyProviderTest {
   private static final String PROPERTY_ID_CLUSTER_NAME = PropertyHelper.getPropertyId("HostRoles", "cluster_name");
   private static final String PROPERTY_ID_HOST_NAME = PropertyHelper.getPropertyId("HostRoles", "host_name");
@@ -41,13 +48,42 @@ public class HttpPropertyProviderTest {
   
   private static final String PROPERTY_ID_NAGIOS_ALERTS = PropertyHelper.getPropertyId("HostRoles", "nagios_alerts");
 
+  private ComponentSSLConfiguration configuration;
+
+  @Parameterized.Parameters
+  public static Collection<Object[]> configs() {
+    ComponentSSLConfiguration configuration1 =
+        ComponentSSLConfigurationTest.getConfiguration("tspath", "tspass", "tstype", false, false);
+
+    ComponentSSLConfiguration configuration2 =
+        ComponentSSLConfigurationTest.getConfiguration("tspath", "tspass", "tstype", true, false);
+
+    ComponentSSLConfiguration configuration3 =
+        ComponentSSLConfigurationTest.getConfiguration("tspath", "tspass", "tstype", false, true);
+
+    return Arrays.asList(new Object[][]{
+        {configuration1},
+        {configuration2},
+        {configuration3}
+    });
+  }
+
+
+  public HttpPropertyProviderTest(ComponentSSLConfiguration configuration) {
+    this.configuration = configuration;
+  }
+
   @Test
   public void testReadNagiosServer() throws Exception {
 
-    Resource resource = doPopulate("NAGIOS_SERVER", Collections.<String>emptySet());
+    TestStreamProvider streamProvider = new TestStreamProvider(false);
+
+    Resource resource = doPopulate("NAGIOS_SERVER", Collections.<String>emptySet(), streamProvider);
     
     Assert.assertNotNull("Expected non-null for 'nagios_alerts'",
       resource.getPropertyValue(PROPERTY_ID_NAGIOS_ALERTS));
+
+    Assert.assertEquals(configuration.isNagiosSSL(), streamProvider.getLastSpec().startsWith("https"));
   }
   
   @Test
@@ -57,7 +93,7 @@ public class HttpPropertyProviderTest {
    propertyIds.add(PropertyHelper.getPropertyId("HostRoles", "state"));
    propertyIds.add(PROPERTY_ID_COMPONENT_NAME);
    
-   Resource resource = doPopulate("NAGIOS_SERVER", propertyIds);
+   Resource resource = doPopulate("NAGIOS_SERVER", propertyIds, new TestStreamProvider(false));
    
    Assert.assertNull("Expected null for 'nagios_alerts'",
      resource.getPropertyValue(PROPERTY_ID_NAGIOS_ALERTS));    
@@ -70,7 +106,7 @@ public class HttpPropertyProviderTest {
    propertyIds.add(PropertyHelper.getPropertyId("HostRoles", "nagios_alerts"));
    propertyIds.add(PROPERTY_ID_COMPONENT_NAME);
    
-   Resource resource = doPopulate("NAGIOS_SERVER", propertyIds);
+   Resource resource = doPopulate("NAGIOS_SERVER", propertyIds, new TestStreamProvider(false));
    
    Assert.assertNotNull("Expected non-null for 'nagios_alerts'",
      resource.getPropertyValue(PROPERTY_ID_NAGIOS_ALERTS));        
@@ -83,7 +119,7 @@ public class HttpPropertyProviderTest {
    propertyIds.add(PropertyHelper.getPropertyId("HostRoles", "nagios_alerts"));
    propertyIds.add(PROPERTY_ID_COMPONENT_NAME);
    
-   Resource resource = doPopulate("NAGIOS_SERVER", propertyIds, true);
+   Resource resource = doPopulate("NAGIOS_SERVER", propertyIds, new TestStreamProvider(true));
 
    Assert.assertNull("Expected null for 'nagios_alerts'",
        resource.getPropertyValue(PROPERTY_ID_NAGIOS_ALERTS));        
@@ -96,7 +132,7 @@ public class HttpPropertyProviderTest {
     Set<String> propertyIds = new HashSet<String>();
     propertyIds.add(PropertyHelper.getPropertyId("HostRoles", "nagios_alerts"));
     propertyIds.add(PROPERTY_ID_COMPONENT_NAME);
-    Resource resource = doPopulate("NAGIOS_SERVER", propertyIds);
+    Resource resource = doPopulate("NAGIOS_SERVER", propertyIds, new TestStreamProvider(false));
     Object propertyValue = resource.getPropertyValue(PROPERTY_ID_NAGIOS_ALERTS);
 
     Assert.assertNotNull("Expected non-null for 'nagios_alerts'", propertyValue);
@@ -125,7 +161,7 @@ public class HttpPropertyProviderTest {
   @Test
   public void testReadGangliaServer() throws Exception {
     
-    Resource resource = doPopulate("GANGLIA_SERVER", Collections.<String>emptySet());
+    Resource resource = doPopulate("GANGLIA_SERVER", Collections.<String>emptySet(), new TestStreamProvider(false));
 
     // !!! GANGLIA_SERVER has no current http lookup
     Assert.assertNull("Expected null, was: " +
@@ -133,15 +169,11 @@ public class HttpPropertyProviderTest {
       resource.getPropertyValue(PROPERTY_ID_NAGIOS_ALERTS));
   }
   
-  private Resource doPopulate(String componentName, Set<String> requestProperties) throws Exception {
-    return doPopulate(componentName, requestProperties, false);
-  }
-  
   private Resource doPopulate(String componentName,
-      Set<String> requestProperties, boolean throwException) throws Exception {
-    
+      Set<String> requestProperties, StreamProvider streamProvider) throws Exception {
+
     HttpProxyPropertyProvider propProvider = new HttpProxyPropertyProvider(
-       new TestStreamProvider(throwException),
+       streamProvider, configuration,
        PROPERTY_ID_CLUSTER_NAME,
        PROPERTY_ID_HOST_NAME,
        PROPERTY_ID_COMPONENT_NAME);
@@ -160,13 +192,16 @@ public class HttpPropertyProviderTest {
   
   private static class TestStreamProvider implements StreamProvider {
     private boolean throwError = false;
-    
+    private String lastSpec = null;
+
     private TestStreamProvider(boolean throwErr) {
       throwError = throwErr;
     }
     
     @Override
     public InputStream readFrom(String spec) throws IOException {
+      lastSpec = spec;
+
       if (throwError) {
         throw new IOException("Fake error");
       }
@@ -174,6 +209,10 @@ public class HttpPropertyProviderTest {
       String responseStr = "{\"alerts\": [{\"Alert Body\": \"Body\"}],"
           + " \"hostcounts\": {\"up_hosts\":\"1\", \"down_hosts\":\"0\"}}";
         return new ByteArrayInputStream(responseStr.getBytes("UTF-8"));
+    }
+
+    public String getLastSpec() {
+      return lastSpec;
     }
   }
   

@@ -175,6 +175,8 @@ public class Configuration {
   public static final String JAVAX_SSL_TRUSTSTORE_TYPE = "javax.net.ssl.trustStoreType";
 
 
+  public static final String GANGLIA_HTTPS_KEY = "ganglia.https";
+  public static final String NAGIOS_HTTPS_KEY  = "nagios.https";
   private static final String SRVR_TWO_WAY_SSL_DEFAULT = "false";
   private static final String SRVR_KSTR_DIR_DEFAULT = ".";
   public static final String SRVR_CRT_NAME_DEFAULT = "ca.crt";
@@ -350,9 +352,18 @@ public class Configuration {
   }
 
   /**
+   * Get the property value for the given key.
+   *
+   * @return the property value
+   */
+  public String getProperty(String key) {
+    return properties.getProperty(key);
+  }
+
+  /**
    * Loads trusted certificates store properties
    */
-  void loadSSLParams(){
+  protected void loadSSLParams(){
     if (properties.getProperty(SSL_TRUSTSTORE_PATH_KEY) != null) {
       System.setProperty(JAVAX_SSL_TRUSTSTORE, properties.getProperty(SSL_TRUSTSTORE_PATH_KEY));
     }
