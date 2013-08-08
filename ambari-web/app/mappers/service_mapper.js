@@ -104,8 +104,8 @@ App.servicesMapper = App.QuickDataMapper.create({
     node_managers_count_unhealthy: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.unhealthyNMcount',
     node_managers_count_rebooted: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.rebootedNMcount',
     node_managers_count_decommissioned: 'resourceManagerComponent.ServiceComponentInfo.rm_metrics.cluster.decommissionedNMcount',
-    yarn_memory_allocated: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.AllocatedMB',
-    yarn_memory_available: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.AvailableMB',
+    allocated_memory: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.AllocatedMB',
+    available_memory: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.AvailableMB',
     reserved_memory: 'resourceManagerComponent.host_components[0].metrics.yarn.Queue.root.ReservedMB',
     queue: 'resourceManagerComponent.queue'
   },
@@ -393,7 +393,7 @@ App.servicesMapper = App.QuickDataMapper.create({
           }
         });
 
-        if (component.host_components[0].metrics.yarn) {
+        if (component.host_components[0].metrics && component.host_components[0].metrics.yarn) {
           var root = component.host_components[0].metrics.yarn.Queue.root;
           var queue = JSON.stringify({
             'root': self.parseObject(root)
