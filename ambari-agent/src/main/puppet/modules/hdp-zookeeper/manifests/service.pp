@@ -36,7 +36,7 @@ class hdp-zookeeper::service(
     $no_op_test = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
     #not using $no_op_test = "su - ${user} -c  '${cmd} status'" because checks more than whether there is a service started up
   } elsif ($ensure == 'stopped') {
-    $daemon_cmd = "su - ${user} -c  'source ${conf_dir}/zookeeper-env.sh ; ${cmd} stop'"
+    $daemon_cmd = "su - ${user} -c  'source ${conf_dir}/zookeeper-env.sh ; ${cmd} stop' && rm -f ${pid_file}"
     #TODO: put in no_op_test for stopped
     $no_op_test = undef
   } else {

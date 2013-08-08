@@ -29,7 +29,7 @@ class hdp-nagios::server(
   $nagios_obj_dir = $hdp-nagios::params::nagios_obj_dir
   $check_result_path = $hdp-nagios::params::check_result_path
   $nagios_httpd_config_file = $hdp-nagios::params::httpd_conf_file
-
+  $pid_file = $hdp-nagios::params::nagios_pid_file
 
   if hdp_is_empty($hdp::params::pathes[nagios_p1_pl]) {
     hdp_fail("There is no path to p1.pl file for nagios")
@@ -274,7 +274,7 @@ class hdp-nagios::server::services($ensure)
    if ($ensure == 'running') {
      $command = "service nagios start"
    } elsif ($ensure == 'stopped') {
-     $command = "service nagios stop"
+     $command = "service nagios stop && rm -f ${pid_file}"
    }
 
    if ($ensure in ['running','stopped']) {

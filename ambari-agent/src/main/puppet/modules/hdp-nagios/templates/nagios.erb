@@ -46,7 +46,7 @@ exec_prefix="/usr"
 exec="/usr/sbin/nagios"
 prog="nagios"
 config="/etc/nagios/nagios.cfg"
-pidfile="/var/nagios/nagios.pid"
+pidfile="<%=scope.function_hdp_template_var("nagios_pid_file")%>"
 user="<%=scope.function_hdp_template_var("nagios_user")%>"
 
 [ -e /etc/sysconfig/$prog ] && . /etc/sysconfig/$prog

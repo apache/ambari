@@ -60,9 +60,9 @@ define hdp-hadoop::service(
     $service_is_up = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
   } elsif ($ensure == 'stopped') {
     if ($run_as_root == true) {
-      $daemon_cmd = "su - root -c  '${cmd} stop ${name}'"
+      $daemon_cmd = "su - root -c  '${cmd} stop ${name}' && rm -f ${pid_file}"
     } else {
-      $daemon_cmd = "su - ${user} -c  '${cmd} stop ${name}'"
+      $daemon_cmd = "su - ${user} -c  '${cmd} stop ${name}' && rm -f ${pid_file}"
     }
     $service_is_up = undef
   } else {

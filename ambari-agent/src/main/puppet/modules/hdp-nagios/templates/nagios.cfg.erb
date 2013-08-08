@@ -215,7 +215,7 @@ external_command_buffer_slots=4096
 # This is the lockfile that Nagios will use to store its PID number
 # in when it is running in daemon mode.
 
-lock_file=/var/run/nagios/nagios.pid
+lock_file=<%=scope.function_hdp_template_var("nagios_pid_file")%>
 
 
 
