@@ -456,6 +456,11 @@ collection_group {
   }
 }
 
+udp_recv_channel {
+    port = 0
+}
+
+
 include ("${GANGLIA_CONF_DIR}/${gmondClusterName}/conf.d/*.conf")
 END_OF_GMOND_CORE_CONF
         else
