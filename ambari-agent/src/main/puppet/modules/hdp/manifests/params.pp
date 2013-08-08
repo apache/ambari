@@ -465,7 +465,7 @@ class hdp::params()
     yarn-nodemanager => { 
       'ALL' => {
         64 => {
-          'ALL' => ['hadoop-yarn-nodemanager']
+          'ALL' => ['hadoop-yarn-nodemanager', 'hadoop-mapreduce']
         }
       }
     },
