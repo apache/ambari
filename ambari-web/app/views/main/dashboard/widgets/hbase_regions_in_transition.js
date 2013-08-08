@@ -18,15 +18,11 @@
 
 var App = require('app');
 
-App.HBaseRegionsInTransitionView = App.DashboardWidgetView.extend({
+App.HBaseRegionsInTransitionView = App.TextDashboardWidgetView.extend({
 
-  templateName: require('templates/main/dashboard/widgets/simple_text'),
   title: Em.I18n.t('dashboard.widgets.HBaseRegionsInTransition'),
   id: '22',
 
-  isPieChart: false,
-  isText: true,
-  isProgressBar: false,
   model_type: 'hbase',
   hiddenInfo: function () {
     var result = [];
@@ -37,20 +33,14 @@ App.HBaseRegionsInTransitionView = App.DashboardWidgetView.extend({
 
   classNameBindings: ['isRed', 'isOrange', 'isGreen', 'isNA'],
   isGreen: function () {
-    var thresh1 = this.get('thresh1');
-    var thresh2 = this.get('thresh2');
-    return this.get('data') <= thresh1? true: false;
-  }.property('data','thresh1','thresh2'),
+    return this.get('data') <= this.get('thresh1');
+  }.property('data','thresh1'),
   isOrange: function () {
-    var thresh1 = this.get('thresh1');
-    var thresh2 = this.get('thresh2');
-    return (this.get('data') <= thresh2 && this.get('data') > thresh1 )? true: false;
+    return (this.get('data') <= this.get('thresh2') && this.get('data') > this.get('thresh1') );
   }.property('data','thresh1','thresh2'),
   isRed: function () {
-    var thresh1 = this.get('thresh1');
-    var thresh2 = this.get('thresh2');
-    return this.get('data') > thresh2? true: false;
-  }.property('data','thresh1','thresh2'),
+    return this.get('data') > this.get('thresh2');
+  }.property('data','thresh2'),
   isNA: function () {
     return this.get('data') === null;
   }.property('data'),
@@ -72,9 +62,7 @@ App.HBaseRegionsInTransitionView = App.DashboardWidgetView.extend({
     var configObj = Ember.Object.create({
       thresh1: parent.get('thresh1') + '',
       thresh2: parent.get('thresh2') + '',
-      hintInfo: 'Edit the thresholds to change the color of current widget. ' +
-
-        ' So enter two numbers larger than 0. ',
+      hintInfo: Em.I18n.t('dashboard.widgets.hintInfo.hint2'),
       isThresh1Error: false,
       isThresh2Error: false,
       errorMessage1: "",
@@ -117,7 +105,7 @@ App.HBaseRegionsInTransitionView = App.DashboardWidgetView.extend({
 
     var browserVerion = this.getInternetExplorerVersion();
     App.ModalPopup.show({
-      header: 'Customize Widget',
+      header: Em.I18n.t('dashboard.widgets.popupHeader'),
       classNames: [ 'sixty-percent-width-modal-edit-widget'],
       bodyClass: Ember.View.extend({
         templateName: require('templates/main/dashboard/edit_widget_popup'),
@@ -141,10 +129,6 @@ App.HBaseRegionsInTransitionView = App.DashboardWidgetView.extend({
           this.hide();
         }
       },
-      secondary : Em.I18n.t('common.cancel'),
-      onSecondary: function () {
-        this.hide();
-      },
 
       didInsertElement: function () {
         var colors = ['#95A800', '#FF8E00', '#B80000']; //color green, orange ,red
@@ -160,28 +144,9 @@ App.HBaseRegionsInTransitionView = App.DashboardWidgetView.extend({
             max: 100,
             values: handlers,
             create: function (event, ui) {
-              updateColors(handlers);
+              parent.updateColors(handlers, colors);
             }
           });
-
-          function updateColors (handlers) {
-            var colorstops = colors[0] + ", "; // start with the first color
-            for (var i = 0; i < handlers.length; i++) {
-              colorstops += colors[i] + " " + handlers[i] + "%,";
-              colorstops += colors[i+1] + " " + handlers[i] + "%,";
-            }
-            // end with the last color
-            colorstops += colors[colors.length - 1];
-            var css1 = '-webkit-linear-gradient(left,' + colorstops + ')'; // chrome & safari
-            $('#slider-range').css('background-image', css1);
-            var css2 = '-ms-linear-gradient(left,' + colorstops + ')'; // IE 10+
-            $('#slider-range').css('background-image', css2);
-            //$('#slider-range').css('filter', 'progid:DXImageTransform.Microsoft.gradient( startColorStr= ' + colors[0] + ', endColorStr= ' + colors[2] +',  GradientType=1 )' ); // IE 10-
-            var css3 = '-moz-linear-gradient(left,' + colorstops + ')'; // Firefox
-            $('#slider-range').css('background-image', css3);
-
-            $('#slider-range .ui-widget-header').css({'background-color': '#FF8E00', 'background-image': 'none'}); // change the  original ranger color
-          }
         } else {
           configObj.set('isIE9', true);
           configObj.set('isGreenOrangeRed', true);
@@ -190,4 +155,4 @@ App.HBaseRegionsInTransitionView = App.DashboardWidgetView.extend({
     });
   }
 
-})
+});

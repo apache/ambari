@@ -18,19 +18,13 @@
 
 var App = require('app');
 
-App.ChartClusterMetricsCPUWidgetView = App.DashboardWidgetView.extend({
+App.ChartClusterMetricsCPUWidgetView = App.ClusterMetricsDashboardWidgetView.extend({
 
-  templateName: require('templates/main/dashboard/widgets/cluster_metrics'),
   title: Em.I18n.t('dashboard.clusterMetrics.cpu'),
   id: '13',
-
-  isClusterMetrics: true,
-  isPieChart: false,
-  isText: false,
-  isProgressBar: false,
 
   content: App.ChartClusterMetricsCPU.extend({
     noTitleUnderGraph: true,
     inWidget: true
   })
-})
+});

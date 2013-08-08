@@ -125,8 +125,8 @@ App.MainDashboardView = Em.View.extend({
       }, this);
     }
     var obj = this.get('initPrefObject');
-    obj.visible = visibleFull;
-    obj.hidden = hiddenFull;
+    obj.set('visible', visibleFull);
+    obj.set('hidden', hiddenFull);
   },
   
   hdfs_model: null,
@@ -491,10 +491,7 @@ App.MainDashboardView = Em.View.extend({
         },
         templateName: require('templates/main/dashboard/alert_notification_popup')
       }),
-      primary: 'Close',
-      onPrimary: function() {
-        this.hide();
-      },
+      primary: Em.I18n.t('common.close'),
       secondary : null,
       didInsertElement: function () {
         this.$().find('.modal-footer').addClass('align-center');

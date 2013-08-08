@@ -18,17 +18,17 @@
 
 var App = require('app');
 
-App.HBaseLinksView = App.DashboardWidgetView.extend({
+App.HBaseLinksView = App.LinkDashboardWidgetView.extend({
 
   templateName: require('templates/main/dashboard/widgets/hbase_links'),
   title: Em.I18n.t('dashboard.widgets.HBaseLinks'),
   id: '19',
 
-  isPieChart: false,
-  isText: false,
-  isProgressBar: false,
-  isLinks: true,
   model_type: 'hbase',
+
+  port: '60010',
+
+  componentName: 'HBASE_REGIONSERVER',
 
   /**
    * All master components
@@ -70,18 +70,15 @@ App.HBaseLinksView = App.DashboardWidgetView.extend({
     }
   }.property('activeMaster'),
 
-  regionServerComponent: function () {
-    return App.HostComponent.find().findProperty('componentName', 'HBASE_REGIONSERVER');
-  }.property(),
-
   hbaseMasterWebUrl: function () {
     if (this.get('activeMaster.host') && this.get('activeMaster.host').get('publicHostName')) {
-      return "http://" + this.get('activeMaster.host').get('publicHostName') + ":60010";
+      return "http://" + this.get('activeMaster.host').get('publicHostName') + ':' + this.get('port');
     }
-  }.property('activeMaster')
+    return '';
+  }.property('activeMaster'),
 
-})
+  calcWebUrl: function() {
+    return '';
+  }
 
-App.HBaseLinksView.reopenClass({
-  isLinks: true
-})
+});

@@ -18,19 +18,8 @@
 
 var App = require('app');
 
-App.JobTrackerUptimeView = App.UptimeTextDashboardWidgetView.extend({
+App.ClusterMetricsDashboardWidgetView = App.DashboardWidgetView.extend({
 
-  title: Em.I18n.t('dashboard.widgets.JobTrackerUptime'),
-  id: '16',
-
-  model_type: 'mapreduce',
-
-  component: 'JobTracker',
-  modelField: 'jobTrackerStartTime',
-
-  didInsertElement: function() {
-    this._super();
-    this.calc();
-  }
+  templateName: require('templates/main/dashboard/widgets/cluster_metrics')
 
 });

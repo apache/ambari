@@ -18,9 +18,8 @@
 
 var App = require('app');
 
-App.DataNodeUpView = App.DashboardWidgetView.extend({
+App.DataNodeUpView = App.TextDashboardWidgetView.extend({
 
-  templateName: require('templates/main/dashboard/widgets/simple_text'),
   title: Em.I18n.t('dashboard.widgets.DataNodeUp'),
   id: '4',
 
@@ -32,30 +31,13 @@ App.DataNodeUpView = App.DashboardWidgetView.extend({
   hiddenInfo: function () {
     var result = [];
     result.pushObject( App.HostComponent.find().filterProperty('componentName', 'DATANODE').filterProperty("workStatus","STARTED").length
-      + ' ' + this.t('dashboard.services.hdfs.nodes.live'));
+      + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.live'));
     result.pushObject( App.HostComponent.find().filterProperty('componentName', 'DATANODE').filterProperty("workStatus","INSTALLED").length
-      + ' ' + this.t('dashboard.services.hdfs.nodes.dead'));
-    result.pushObject(this.get('model.decommissionDataNodes.length')+ ' ' + this.t('dashboard.services.hdfs.nodes.decom'));
+      + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.dead'));
+    result.pushObject(this.get('model.decommissionDataNodes.length')+ ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.decom'));
     return result;
   }.property('model', 'model.decommissionDataNodes.length'),
   hiddenInfoClass: "hidden-info-three-line",
-
-  classNameBindings: ['isRed', 'isOrange', 'isGreen'],
-  isRed: function () {
-    var thresh1 = this.get('thresh1');
-    var thresh2 = this.get('thresh2');
-    return this.get('data') <= thresh1? true: false;
-  }.property('data','thresh1','thresh2'),
-  isOrange: function () {
-    var thresh1 = this.get('thresh1');
-    var thresh2 = this.get('thresh2');
-    return (this.get('data') <= thresh2 && this.get('data') > thresh1 )? true: false;
-  }.property('data','thresh1','thresh2'),
-  isGreen: function () {
-    var thresh1 = this.get('thresh1');
-    var thresh2 = this.get('thresh2');
-    return this.get('data') > thresh2? true: false;
-  }.property('data','thresh1','thresh2'),
 
   thresh1: 40,
   thresh2: 70,
@@ -75,9 +57,7 @@ App.DataNodeUpView = App.DashboardWidgetView.extend({
     var configObj = Ember.Object.create({
       thresh1: parent.get('thresh1') + '',
       thresh2: parent.get('thresh2') + '',
-      hintInfo: 'Edit the percentage of thresholds to change the color of current widget. ' +
-        ' Assume all data nodes UP is 100, and all DOWN is 0. '+
-        ' So enter two numbers between 0 to ' + max_tmp,
+      hintInfo: Em.I18n.t('dashboard.widgets.hintInfo.hint1').format(max_tmp),
       isThresh1Error: false,
       isThresh2Error: false,
       errorMessage1: "",
@@ -126,7 +106,7 @@ App.DataNodeUpView = App.DashboardWidgetView.extend({
 
     var browserVerion = this.getInternetExplorerVersion();
     App.ModalPopup.show({
-      header: 'Customize Widget',
+      header: Em.I18n.t('dashboard.widgets.popupHeader'),
       classNames: [ 'sixty-percent-width-modal-edit-widget'],
       bodyClass: Ember.View.extend({
         templateName: require('templates/main/dashboard/edit_widget_popup'),
@@ -148,10 +128,6 @@ App.DataNodeUpView = App.DashboardWidgetView.extend({
           this.hide();
         }
       },
-      secondary : Em.I18n.t('common.cancel'),
-      onSecondary: function () {
-        this.hide();
-      },
 
       didInsertElement: function () {
         var handlers = [configObj.get('thresh1'), configObj.get('thresh2')];
@@ -166,36 +142,17 @@ App.DataNodeUpView = App.DashboardWidgetView.extend({
             max: max_tmp,
             values: handlers,
             create: function (event, ui) {
-              updateColors(handlers);
+              parent.updateColors(handlers, colors);
             },
             slide: function (event, ui) {
-              updateColors(ui.values);
+              parent.updateColors(ui.values, colors);
               configObj.set('thresh1', ui.values[0] + '');
               configObj.set('thresh2', ui.values[1] + '');
             },
             change: function (event, ui) {
-              updateColors(ui.values);
+              parent.updateColors(ui.values, colors);
             }
           });
-
-          function updateColors(handlers) {
-            var colorstops = colors[0] + ", "; // start with the first color
-            for (var i = 0; i < handlers.length; i++) {
-              colorstops += colors[i] + " " + handlers[i] + "%,";
-              colorstops += colors[i+1] + " " + handlers[i] + "%,";
-            }
-            // end with the last color
-            colorstops += colors[colors.length - 1];
-            var css1 = '-webkit-linear-gradient(left,' + colorstops + ')'; // chrome & safari
-            $('#slider-range').css('background-image', css1);
-            var css2 = '-ms-linear-gradient(left,' + colorstops + ')'; // IE 10+
-            $('#slider-range').css('background-image', css2);
-            //$('#slider-range').css('filter', 'progid:DXImageTransform.Microsoft.gradient( startColorStr= ' + colors[0] + ', endColorStr= ' + colors[2] +',  GradientType=1 )' ); // IE 10-
-            var css3 = '-moz-linear-gradient(left,' + colorstops + ')'; // Firefox
-            $('#slider-range').css('background-image', css3);
-
-            $('#slider-range .ui-widget-header').css({'background-color': '#FF8E00', 'background-image': 'none'}); // change the  original ranger color
-          }
         } else {
           configObj.set('isIE9', true);
           configObj.set('isGreenOrangeRed', false);
@@ -203,5 +160,4 @@ App.DataNodeUpView = App.DashboardWidgetView.extend({
       }
     });
   }
-
-})
+});

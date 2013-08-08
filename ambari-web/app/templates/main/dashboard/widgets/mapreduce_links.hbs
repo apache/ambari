@@ -31,11 +31,11 @@
         </tr>
         <!--taskTrackers-->
         <tr>
-          <td><a href="#" {{action filterHosts view.taskTrackerComponent}}>{{view.model.taskTrackers.length}} {{t dashboard.services.mapreduce.taskTrackers}}</a></td>
+          <td><a href="#" {{action filterHosts view.component}}>{{view.model.taskTrackers.length}} {{t dashboard.services.mapreduce.taskTrackers}}</a></td>
         </tr>
         <!--jobTracker Web UI-->
         <tr>
-          <td><a {{bindAttr href="view.jobTrackerWebUrl"}} target="_blank">{{t services.service.summary.jobTrackerWebUI}}</a></td>
+          <td><a {{bindAttr href="view.webUrl"}} target="_blank">{{t services.service.summary.jobTrackerWebUI}}</a></td>
         </tr>
       </table>
     </div>

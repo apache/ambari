@@ -33,11 +33,11 @@ App.DashboardWidgetView = Em.View.extend({
     } else if (this.get('model_type') == 'yarn') {
       return this.get('parentView').get('yarn_model');
     }
-  }.property(''), //data bind from parent view
+  }.property(), //data bind from parent view
 
   id: null, // id 1-10 used to identify
   viewID: function(){ // used by re-sort
-    return 'widget-' + this.id;
+    return 'widget-' + this.get('id');
   }.property('id'),  //html id bind to view-class: widget-(1)
   attributeBindings: ['viewID'],
 
@@ -64,12 +64,12 @@ App.DashboardWidgetView = Em.View.extend({
       //update view on dashboard
       var objClass = parent.widgetsMapper(this.id);
       parent.get('visibleWidgets').removeObject(objClass);
-      parent.get('hiddenWidgets').pushObject(Em.Object.create({displayName: this.title, id: this.id, checked: false}));
+      parent.get('hiddenWidgets').pushObject(Em.Object.create({displayName: this.get('title'), id: this.get('id'), checked: false}));
     } else {
       //reconstruct new persist value then post in persist
       parent.getUserPref(parent.get('persistKey'));
       var oldValue = parent.get('currentPrefObject');
-      var deletedId = this.id;
+      var deletedId = this.get('id');
       var newValue = Em.Object.create({
         dashboardVersion: oldValue.dashboardVersion,
         visible: [],
@@ -81,7 +81,7 @@ App.DashboardWidgetView = Em.View.extend({
           newValue.visible.push(oldValue.visible[i]);
         }
       }
-      newValue.hidden.push([deletedId, this.title]);
+      newValue.hidden.push([deletedId, this.get('title')]);
       parent.postUserPref(parent.get('persistKey'), newValue);
       parent.translateToReal(newValue);
     }
@@ -93,8 +93,7 @@ App.DashboardWidgetView = Em.View.extend({
     var configObj = Ember.Object.create({
       thresh1: self.get('thresh1') + '',
       thresh2: self.get('thresh2') + '',
-      hintInfo: 'Edit the percentage thresholds to change the color of current pie chart. ' + ' '+
-        ' Enter two numbers between 0 to ' + max_tmp,
+      hintInfo: Em.I18n.t('dashboard.widgets.hintInfo.common').format(max_tmp),
       isThresh1Error: false,
       isThresh2Error: false,
       errorMessage1: "",
@@ -143,7 +142,7 @@ App.DashboardWidgetView = Em.View.extend({
 
     var browserVerion = this.getInternetExplorerVersion();
     App.ModalPopup.show({
-      header: 'Customize Widget',
+      header: Em.I18n.t('dashboard.widgets.popupHeader'),
       classNames: [ 'sixty-percent-width-modal-edit-widget' ],
       bodyClass: Ember.View.extend({
         templateName: require('templates/main/dashboard/edit_widget_popup'),
@@ -161,16 +160,12 @@ App.DashboardWidgetView = Em.View.extend({
             var parent = self.get('parentView');
             parent.getUserPref(parent.get('persistKey'));
             var oldValue = parent.get('currentPrefObject');
-            oldValue.threshold[parseInt(self.id)] = [configObj.get('thresh1'), configObj.get('thresh2')];
+            oldValue.threshold[parseInt(self.get('id'))] = [configObj.get('thresh1'), configObj.get('thresh2')];
             parent.postUserPref(parent.get('persistKey'), oldValue);
           }
 
           this.hide();
         }
-      },
-      secondary : Em.I18n.t('common.cancel'),
-      onSecondary: function () {
-        this.hide();
       },
 
       didInsertElement: function () {
@@ -198,7 +193,7 @@ App.DashboardWidgetView = Em.View.extend({
             }
           });
 
-          function updateColors (handlers) {
+          function updateColors(handlers) {
             var colorstops = colors[0] + ", "; // start with the first color
             for (var i = 0; i < handlers.length; i++) {
               colorstops += colors[i] + " " + handlers[i]*100/max_tmp + "%,";
@@ -255,8 +250,12 @@ App.DashboardWidgetView = Em.View.extend({
     } else if (lineNum == 5) {
       return "simple-text-hidden-five-line";
     }
-  }.property('this.hiddenInfo.length')
+    return '';
+  }.property('hiddenInfo.length')
 
 });
 
 
+App.DashboardWidgetView.reopenClass({
+  class: 'span2p4'
+});

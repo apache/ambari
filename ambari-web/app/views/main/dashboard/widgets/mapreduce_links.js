@@ -18,28 +18,23 @@
 
 var App = require('app');
 
-App.MapReduceLinksView = App.DashboardWidgetView.extend({
+App.MapReduceLinksView = App.LinkDashboardWidgetView.extend({
 
   templateName: require('templates/main/dashboard/widgets/mapreduce_links'),
   title: Em.I18n.t('dashboard.widgets.MapReduceLinks'),
   id: '18',
 
-  isPieChart: false,
-  isText: false,
-  isProgressBar: false,
-  isLinks: true,
   model_type: 'mapreduce',
 
-  taskTrackerComponent: function () {
-    return App.HostComponent.find().findProperty('componentName', 'TASKTRACKER');
-  }.property(),
+  port: '50030',
 
-  jobTrackerWebUrl: function () {
-    return "http://" + this.get('model').get('jobTracker').get('publicHostName') + ":50030";
-  }.property('model.jobTracker')
+  componentName: 'TASKTRACKER',
 
-})
+  modelField: 'jobTracker',
 
-App.MapReduceLinksView. reopenClass({
-  isLinks: true
-})
+  didInsertElement: function() {
+    this._super();
+    this.calc();
+  }
+
+});

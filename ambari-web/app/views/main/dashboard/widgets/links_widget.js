@@ -17,20 +17,33 @@
  */
 
 var App = require('app');
+var date = require('utils/date');
 
-App.JobTrackerUptimeView = App.UptimeTextDashboardWidgetView.extend({
+App.LinkDashboardWidgetView = App.DashboardWidgetView.extend({
 
-  title: Em.I18n.t('dashboard.widgets.JobTrackerUptime'),
-  id: '16',
+  componentName: null,
 
-  model_type: 'mapreduce',
+  component: function() {
+    return App.HostComponent.find().findProperty('componentName', this.get('componentName'));
+  }.property(),
 
-  component: 'JobTracker',
-  modelField: 'jobTrackerStartTime',
+  port: null,
+
+  modelField: null,
+
+  webUrl: null,
 
   didInsertElement: function() {
     this._super();
-    this.calc();
+    this.addObserver('model.' + this.get('modelField'), this, this.calc);
+  },
+  calc: function() {
+    this.set('webUrl', this.calcWebUrl());
+  },
+  calcWebUrl: function() {
+    if (this.get('model')) {
+      return "http://" + this.get('model').get(this.get('modelField')).get('publicHostName') + ':' + this.get('port');
+    }
+    return '';
   }
-
 });

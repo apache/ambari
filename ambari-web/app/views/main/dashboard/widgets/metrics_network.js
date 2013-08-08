@@ -18,19 +18,13 @@
 
 var App = require('app');
 
-App.ChartClusterMetricsNetworkWidgetView = App.DashboardWidgetView.extend({
+App.ChartClusterMetricsNetworkWidgetView = App.ClusterMetricsDashboardWidgetView.extend({
 
-  templateName: require('templates/main/dashboard/widgets/cluster_metrics'),
   title: Em.I18n.t('dashboard.clusterMetrics.network'),
   id: '12',
-
-  isClusterMetrics: true,
-  isPieChart: false,
-  isText:false,
-  isProgressBar:false,
 
   content: App.ChartClusterMetricsNetwork.extend({
     noTitleUnderGraph: true,
     inWidget: true
   })
-})
+});

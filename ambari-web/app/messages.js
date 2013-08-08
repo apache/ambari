@@ -1142,6 +1142,9 @@ Em.I18n.translations = {
   'charts.heatmap.metrics.MRMemHeapUsed' :'MapReduce JVM Heap Memory Used',
   'charts.heatmap.metrics.YarnMemHeapUsed' :'YARN JVM Heap Memory Used',
   'charts.heatmap.metrics.reducesRunning' :'MapReduce Reduces Running',
+
+  'charts.heatmap.metrics.YarnResourceUsed' :'YARN Resource used %',
+
   'charts.heatmap.metrics.memoryUsed' :'Host Memory Used %',
   'charts.heatmap.metrics.processRun' :'Total Running Processes',
   'charts.heatmap.metrics.YarnResourceUsed' :'YARN Resource used %',
@@ -1206,6 +1209,18 @@ Em.I18n.translations = {
   'dashboard.widgets.ResourceManagerUptime': 'ResourceManager Uptime',
   'dashboard.widgets.NodeManagersLive': 'NodeManagers Live',
   'dashboard.widgets.YARNMemory': 'YARN Memory',
+
+  'dashboard': {
+    'widgets': {
+      'popupHeader': 'Customize Widget',
+      'hintInfo': {
+        'common': 'Edit the percentage thresholds to change the color of current pie chart. <br />Enter two numbers between 0 to {0}',
+        'hint1': 'Edit the percentage of thresholds to change the color of current widget. <br />Assume all components UP is 100, and all DOWN is 0. <br /> So enter two numbers between 0 to {0}',
+        'hint2': 'Edit the thresholds to change the color of current widget.<br /><br />So enter two numbers larger than 0.',
+        'hint3': 'Edit the thresholds to change the color of current widget.<br />The unit is milli-second. <br />So enter two numbers larger than 0. '
+      }
+    }
+  },
 
   'dashboard.services':'Services',
   'dashboard.services.hosts':'Hosts',

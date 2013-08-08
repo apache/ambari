@@ -18,28 +18,23 @@
 
 var App = require('app');
 
-App.HDFSLinksView = App.DashboardWidgetView.extend({
+App.HDFSLinksView = App.LinkDashboardWidgetView.extend({
 
   templateName: require('templates/main/dashboard/widgets/hdfs_links'),
   title: Em.I18n.t('dashboard.widgets.HDFSLinks'),
   id: '17',
 
-  isPieChart: false,
-  isText: false,
-  isProgressBar: false,
-  isLinks: true,
   model_type: 'hdfs',
 
-  dataNodeComponent: function () {
-    return App.HostComponent.find().findProperty('componentName', 'DATANODE');
-  }.property(),
+  port: '50070',
 
-  nodeWebUrl: function () {
-    return "http://" + this.get('model').get('nameNode').get('publicHostName') + ":50070";
-  }.property('model.nameNode')
+  componentName: 'DATANODE',
 
-})
+  modelField: 'nameNode',
 
-App.HDFSLinksView. reopenClass({
-  isLinks: true
-})
+  didInsertElement: function() {
+    this._super();
+    this.calc();
+  }
+
+});

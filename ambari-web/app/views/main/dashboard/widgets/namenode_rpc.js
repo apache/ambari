@@ -18,15 +18,11 @@
 
 var App = require('app');
 
-App.NameNodeRpcView = App.DashboardWidgetView.extend({
+App.NameNodeRpcView = App.TextDashboardWidgetView.extend({
 
-  templateName: require('templates/main/dashboard/widgets/simple_text'),
   title: Em.I18n.t('dashboard.widgets.NameNodeRpc'),
   id: '5',
 
-  isPieChart: false,
-  isText: true,
-  isProgressBar: false,
   model_type: 'hdfs',
   hiddenInfo: function () {
     var result = [];
@@ -34,26 +30,6 @@ App.NameNodeRpcView = App.DashboardWidgetView.extend({
     result.pushObject('queue wait time');
     return result;
   }.property('model.nameNodeRpc'),
-
-  classNameBindings: ['isRed', 'isOrange', 'isGreen', 'isNA'],
-  isGreen: function () {
-    var thresh1 = this.get('thresh1');
-    var thresh2 = this.get('thresh2');
-    return this.get('data') <= thresh1? true: false;
-  }.property('data','thresh1','thresh2'),
-  isOrange: function () {
-    var thresh1 = this.get('thresh1');
-    var thresh2 = this.get('thresh2');
-    return (this.get('data') <= thresh2 && this.get('data') > thresh1 )? true: false;
-  }.property('data','thresh1','thresh2'),
-  isRed: function () {
-    var thresh1 = this.get('thresh1');
-    var thresh2 = this.get('thresh2');
-    return this.get('data') > thresh2? true: false;
-  }.property('data','thresh1','thresh2'),
-  isNA: function () {
-    return this.get('data') === null;
-  }.property('data'),
 
   thresh1: 0.5,
   thresh2: 2,
@@ -74,8 +50,9 @@ App.NameNodeRpcView = App.DashboardWidgetView.extend({
   content: function () {
     if (this.get('data') || this.get('data') == 0) {
       return this.get('data') + " ms";
-    } else {
-      return this.t('services.service.summary.notAvailable');
+    }
+    else {
+      return Em.I18n.t('services.service.summary.notAvailable');
     }
   }.property('model.nameNodeRpc'),
 
@@ -84,9 +61,7 @@ App.NameNodeRpcView = App.DashboardWidgetView.extend({
     var configObj = Ember.Object.create({
       thresh1: parent.get('thresh1') + '',
       thresh2: parent.get('thresh2') + '',
-      hintInfo: 'Edit the thresholds to change the color of current widget. ' +
-        ' The unit is milli-second. '+
-        ' So enter two numbers larger than 0. ',
+      hintInfo: Em.I18n.t('dashboard.widgets.hintInfo.hint3'),
       isThresh1Error: false,
       isThresh2Error: false,
       errorMessage1: "",
@@ -129,7 +104,7 @@ App.NameNodeRpcView = App.DashboardWidgetView.extend({
 
     var browserVerion = this.getInternetExplorerVersion();
     App.ModalPopup.show({
-      header: 'Customize Widget',
+      header: Em.I18n.t('dashboard.widgets.popupHeader'),
       classNames: ['sixty-percent-width-modal-edit-widget'],
       bodyClass: Ember.View.extend({
         templateName: require('templates/main/dashboard/edit_widget_popup'),
@@ -153,10 +128,6 @@ App.NameNodeRpcView = App.DashboardWidgetView.extend({
           this.hide();
         }
       },
-      secondary : Em.I18n.t('common.cancel'),
-      onSecondary: function () {
-        this.hide();
-      },
 
       didInsertElement: function () {
         var colors = ['#95A800', '#FF8E00', '#B80000']; //color green, orange ,red
@@ -172,28 +143,9 @@ App.NameNodeRpcView = App.DashboardWidgetView.extend({
             max: 100,
             values: handlers,
             create: function (event, ui) {
-              updateColors(handlers);
+              parent.updateColors(handlers, colors);
             }
           });
-
-          function updateColors (handlers) {
-            var colorstops = colors[0] + ", "; // start with the first color
-            for (var i = 0; i < handlers.length; i++) {
-              colorstops += colors[i] + " " + handlers[i] + "%,";
-              colorstops += colors[i+1] + " " + handlers[i] + "%,";
-            }
-            // end with the last color
-            colorstops += colors[colors.length - 1];
-            var css1 = '-webkit-linear-gradient(left,' + colorstops + ')'; // chrome & safari
-            $('#slider-range').css('background-image', css1);
-            var css2 = '-ms-linear-gradient(left,' + colorstops + ')'; // IE 10+
-            $('#slider-range').css('background-image', css2);
-            //$('#slider-range').css('filter', 'progid:DXImageTransform.Microsoft.gradient( startColorStr= ' + colors[0] + ', endColorStr= ' + colors[2] +',  GradientType=1 )' ); // IE 10-
-            var css3 = '-moz-linear-gradient(left,' + colorstops + ')'; // Firefox
-            $('#slider-range').css('background-image', css3);
-
-            $('#slider-range .ui-widget-header').css({'background-color': '#FF8E00', 'background-image': 'none'}); // change the  original ranger color
-          }
         } else {
           configObj.set('isIE9', true);
           configObj.set('isGreenOrangeRed', true);
@@ -202,4 +154,4 @@ App.NameNodeRpcView = App.DashboardWidgetView.extend({
     });
   }
 
-})
+});

@@ -18,19 +18,28 @@
 
 var App = require('app');
 
-App.JobTrackerUptimeView = App.UptimeTextDashboardWidgetView.extend({
+require('models/host_component');
+require('views/main/dashboard/widget');
+require('views/main/dashboard/widgets/links_widget');
 
-  title: Em.I18n.t('dashboard.widgets.JobTrackerUptime'),
-  id: '16',
+describe('App.LinkDashboardWidgetView', function() {
 
-  model_type: 'mapreduce',
-
-  component: 'JobTracker',
-  modelField: 'jobTrackerStartTime',
-
-  didInsertElement: function() {
-    this._super();
-    this.calc();
-  }
+  var model = Em.Object.create({
+    field: Em.Object.create({
+      publicHostName: 'host1'
+    })
+  });
+  var linkDashboardWidgetView = App.LinkDashboardWidgetView.create({
+    model_type: null,
+    model: model,
+    port: 1234,
+    modelField: 'field'
+  });
+  linkDashboardWidgetView.calc();
+  describe('#webUrl', function() {
+    it('calc', function() {
+      expect(linkDashboardWidgetView.get('webUrl')).to.equal('http://host1:1234');
+    });
+  });
 
 });

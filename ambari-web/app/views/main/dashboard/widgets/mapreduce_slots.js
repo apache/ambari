@@ -24,18 +24,17 @@ App.MapReduceSlotsView = App.DashboardWidgetView.extend({
   title: Em.I18n.t('dashboard.widgets.MapReduceSlots'),
   id:'10',
 
-  isPieChart: false,
-  isText: false,
   isProgressBar: true,
   model_type: 'mapreduce',
-  hiddenInfo: function (){
+  hiddenInfo: function () {
     var result = [];
-    if(this.get('isViewExist')){
+    if(this.get('isViewExist')) {
       var line1 = "Map: " + this.get('model.mapSlotsOccupied') + " Occupied / " + this.get('model.mapSlotsReserved') + " Reserved / " + this.get('model.mapSlots') + " Total";
       result.pushObject(line1);
       var line2 = "Reduce: " + this.get('model.reduceSlotsOccupied') + " Occupied / " + this.get('model.reduceSlotsReserved') + " Reserved / " + this.get('model.reduceSlots') + " Total";
       result.pushObject(line2);
-    }else{
+    }
+    else {
       result.pushObject('MapReduce Not Started');
     }
     return result;
@@ -81,8 +80,8 @@ App.MapReduceSlotsView = App.DashboardWidgetView.extend({
     return this.get('model.reduceSlotsOccupied') + "/" + this.get('model.reduceSlotsReserved') + "/" + this.get('model.reduceSlots');
   }.property('model.reduceSlotsReserved','model.reduceSlotsOccupied','model.reduceSlots')
 
-})
+});
 
 App.MapReduceSlotsView.reopenClass({
-  isProgressBar: true
-})
+  class: 'span4p8'
+});

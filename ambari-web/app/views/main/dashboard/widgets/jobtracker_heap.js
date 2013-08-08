@@ -19,18 +19,14 @@
 var App = require('app');
 var numberUtils = require('utils/number_utils');
 
-App.JobTrackerHeapPieChartView = App.DashboardWidgetView.extend({
+App.JobTrackerHeapPieChartView = App.PieChartDashboardWidgetView.extend({
 
-  templateName: require('templates/main/dashboard/widgets/pie_chart'),
   title: Em.I18n.t('dashboard.widgets.JobTrackerHeap'),
   id: '6',
 
-  isPieChart: true,
-  isText: false,
-  isProgressBar: false,
   model_type: 'mapreduce',
 
-  hiddenInfo: function () {
+ /* hiddenInfo: function () {
     var heapUsed = this.get('model').get('jobTrackerHeapUsed');
     var heapMax = this.get('model').get('jobTrackerHeapMax');
     var percent = heapMax > 0 ? 100 * heapUsed / heapMax : 0;
@@ -38,75 +34,14 @@ App.JobTrackerHeapPieChartView = App.DashboardWidgetView.extend({
     result.pushObject(percent.toFixed(1) + '% used');
     result.pushObject(numberUtils.bytesToSize(heapUsed, 1, "parseFloat") + ' of ' + numberUtils.bytesToSize(heapMax, 1, "parseFloat"));
     return result;
-  }.property('model.jobTrackerHeapUsed', 'model.jobTrackerHeapMax'),
+  }.property('model.jobTrackerHeapUsed', 'model.jobTrackerHeapMax'),*/
+  modelFieldMax: 'jobTrackerHeapMax',
+  modelFieldUsed: 'jobTrackerHeapUsed',
 
-  thresh1: 40,// can be customized
-  thresh2: 70,
-  maxValue: 100,
+  widgetHtmlId: 'widget-jt-heap',
 
-  isPieExist: function () {
-    var total = this.get('model.jobTrackerHeapMax') * 1000000;
-    return total > 0 ;
-  }.property('model.jobTrackerHeapMax'),
-
-  content: App.ChartPieView.extend({
-
-    model: null,  //data bind here
-    id: 'widget-jt-heap', // id in html
-    stroke: '#D6DDDF', //light grey
-    thresh1: null,
-    thresh2: null,
-    innerR: 25,
-
-    existCenterText: true,
-    centerTextColor: function () {
-      return this.get('contentColor');
-    }.property('contentColor'),
-
-    palette: new Rickshaw.Color.Palette({
-      scheme: [ '#FFFFFF', '#D6DDDF'].reverse()
-    }),
-
-    data: function () {
-      var used = this.get('model.jobTrackerHeapUsed') * 1000000;
-      var total = this.get('model.jobTrackerHeapMax') * 1000000;
-      var percent = total > 0 ? ((used)*100 / total).toFixed() : 0;
-      return [ percent, 100 - percent];
-    }.property('model.jobTrackerHeapUsed', 'model.jobTrackerHeapMax'),
-
-    contentColor: function (){
-      var used = parseFloat(this.get('data')[0]);
-      var thresh1 = parseFloat(this.get('thresh1'));
-      var thresh2 = parseFloat(this.get('thresh2'));
-      var color_green = '#95A800';
-      var color_red = '#B80000';
-      var color_orange = '#FF8E00';
-      if (used <= thresh1) {
-        this.set('palette', new Rickshaw.Color.Palette({
-          scheme: [ '#FFFFFF', color_green  ].reverse()
-        }))
-        return color_green;
-      } else if (used <= thresh2) {
-        this.set('palette', new Rickshaw.Color.Palette({
-          scheme: [ '#FFFFFF', color_orange  ].reverse()
-        }))
-        return color_orange;
-      } else {
-        this.set('palette', new Rickshaw.Color.Palette({
-          scheme: [ '#FFFFFF', color_red  ].reverse()
-        }))
-        return color_red;
-      }
-    }.property('data', 'this.thresh1', 'this.thresh2'),
-
-    refreshSvg: function () {
-      // remove old svg
-      var old_svg =  $("#" + this.id);
-      old_svg.remove();
-
-      // draw new svg
-      this.appendSvg();
-    }.observes('this.data', 'this.thresh1', 'this.thresh2')
-  })
-
-})
+  didInsertElement: function() {
+    this._super();
+    this.calc();
+  }
+});

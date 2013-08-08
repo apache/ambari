@@ -18,22 +18,29 @@
 
 var App = require('app');
 
-App.JobTrackerCpuPieChartView = App.DashboardWidgetView.extend({
+App.JobTrackerCpuPieChartView = App.PieChartDashboardWidgetView.extend({
 
-  templateName: require('templates/main/dashboard/widgets/pie_chart'),
   title: Em.I18n.t('dashboard.widgets.JobTrackerCpu'),
   id: '7',
 
-  isPieChart: true,
-  isText: false,
-  isProgressBar: false,
   model_type: 'mapreduce',
-  hiddenInfo: function () {
-    var value = this.get('model.jobTrackerCpu');
+
+  widgetHtmlId: 'widget-jt-cpu',
+
+  modelFieldUsed: 'jobTrackerCpu',
+
+  didInsertElement: function() {
+    this._super();
+    this.calc();
+  },
+
+  calcHiddenInfo: function() {
+    var value = this.get('model').get(this.get('modelFieldUsed'));
     var obj1;
     if( value == null) {
       obj1 = Em.I18n.t('services.service.summary.notAvailable');
-    }else{
+    }
+    else {
       value = value >= 100 ? 100: value;
       obj1 = (value + 0).toFixed(2) + '%';
     }
@@ -41,76 +48,17 @@ App.JobTrackerCpuPieChartView = App.DashboardWidgetView.extend({
     result.pushObject(obj1);
     result.pushObject('CPU wait I/O');
     return result;
-  }.property('model.jobTrackerCpu'),
+  },
 
-  thresh1: 40,// can be customized
-  thresh2: 70,
-  maxValue: 100,
+  calcIsPieExists: function() {
+    return (this.get('model').get(this.get('modelFieldUsed')) != null);
+  },
 
-  isPieExist: function () {
-    var total = this.get('model.jobTrackerCpu');
-    return total !== null ;
-  }.property('model.jobTrackerCpu'),
+  calcDataForPieChart: function() {
+    var value = this.get('model').get(this.get('modelFieldUsed'));
+    value = value >= 100 ? 100: value;
+    var percent = (value + 0).toFixed(1);
+    return [ percent, 100 - percent];
+  }
 
-  content: App.ChartPieView.extend({
-
-    model: null,  //data bind here
-    id: 'widget-jt-cpu', // html id
-    stroke: '#D6DDDF', //light grey
-    thresh1: 50,  // can be customized later
-    thresh2: 80,
-    innerR: 25,
-
-    existCenterText: true,
-    centerTextColor: function () {
-      return this.get('contentColor');
-    }.property('contentColor'),
-
-    palette: new Rickshaw.Color.Palette({
-      scheme: [ '#FFFFFF', '#D6DDDF'].reverse()
-    }),
-
-    data: function () {
-      var value = this.get('model.jobTrackerCpu');
-      value = value >= 100 ? 100: value;
-      var percent = (value + 0).toFixed(1);
-      return [ percent, 100 - percent];
-    }.property('model.jobTrackerCpu'),
-
-    contentColor: function () {
-      var used = parseFloat(this.get('data')[0]);
-      var thresh1 = parseFloat(this.get('thresh1'));
-      var thresh2 = parseFloat(this.get('thresh2'));
-      var color_green = '#95A800';
-      var color_red = '#B80000';
-      var color_orange = '#FF8E00';
-      if (used <= thresh1) {
-        this.set('palette', new Rickshaw.Color.Palette({
-          scheme: [ '#FFFFFF', color_green  ].reverse()
-        }))
-        return color_green;
-      } else if (used <= thresh2) {
-        this.set('palette', new Rickshaw.Color.Palette({
-          scheme: [ '#FFFFFF', color_orange  ].reverse()
-        }))
-        return color_orange;
-      } else {
-        this.set('palette', new Rickshaw.Color.Palette({
-          scheme: [ '#FFFFFF', color_red  ].reverse()
-        }))
-        return color_red;
-      }
-    }.property('data', 'thresh1', 'thresh2'),
-
-    // refresh text and color when data in model changed
-    refreshSvg: function () {
-      // remove old svg
-      var old_svg =  $("#" + this.id);
-      old_svg.remove();
-
-      // draw new svg
-      this.appendSvg();
-    }.observes('model.jobTrackerCpu', 'thresh1', 'thresh2')
-  })
-
-})
+});

@@ -99,6 +99,11 @@ require('views/main/dashboard/cluster_metrics/memory');
 require('views/main/dashboard/cluster_metrics/network');
 
 require('views/main/dashboard/widget');
+require('views/main/dashboard/widgets/text_widget');
+require('views/main/dashboard/widgets/uptime_text_widget');
+require('views/main/dashboard/widgets/links_widget');
+require('views/main/dashboard/widgets/pie_chart_widget');
+require('views/main/dashboard/widgets/cluster_metrics_widget');
 require('views/main/dashboard/widgets/namenode_heap');
 require('views/main/dashboard/widgets/namenode_cpu');
 require('views/main/dashboard/widgets/hdfs_capacity');

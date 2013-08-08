@@ -17,107 +17,20 @@
  */
 
 var App = require('app');
-var date = require('utils/date');
 
-App.NameNodeUptimeView = App.DashboardWidgetView.extend({
+App.NameNodeUptimeView = App.UptimeTextDashboardWidgetView.extend({
 
-  templateName: require('templates/main/dashboard/widgets/uptime'),
   title: Em.I18n.t('dashboard.widgets.NameNodeUptime'),
   id: '15',
 
-  isPieChart: false,
-  isText: true,
-  isProgressBar: false,
   model_type: 'hdfs',
-  hiddenInfo: [],
-  hiddenInfoClass: "hidden-info-three-line",
 
-  classNameBindings: ['isRed', 'isOrange', 'isGreen', 'isNA'],
-  isGreen: function () {
-    return this.get('data') != null;
-  }.property('data'),
-  isOrange: function () {
-    return false;
-  }.property('data'),
-  isRed: function () {
-    return false;
-  }.property('data'),
-  isNA: function () {
-    return this.get('data') == null;
-  }.property('data'),
+  component: 'NameNode',
+  modelField: 'nameNodeStartTime',
 
-  thresh1: 5,
-  thresh2: 10,
-  maxValue: 'infinity',
-
-  data: function () {
-    var uptime = this.get('model.nameNodeStartTime');
-    if (uptime && uptime > 0) {
-      var uptimeString = this.timeConverter(uptime);
-      var diff = (new Date()).getTime() - uptime;
-      if (diff < 0) {
-        diff = 0;
-      }
-      var formatted = date.timingFormat(diff); //17.67 days
-      var timeUnit = null;
-      switch (formatted.split(" ")[1]) {
-        case 'secs':
-          timeUnit = 's';
-          break;
-        case 'hours':
-          timeUnit = 'hr';
-          break;
-        case 'days':
-          timeUnit = 'd';
-          break;
-        case 'mins':
-          timeUnit = 'min';
-          break;
-        default:
-          timeUnit = formatted.split(" ")[1];
-      }
-      this.set('timeUnit', timeUnit);
-      this.set('hiddenInfo', []);
-      this.get('hiddenInfo').pushObject(formatted);
-      this.get('hiddenInfo').pushObject(uptimeString[0]);
-      this.get('hiddenInfo').pushObject(uptimeString[1]);
-      return parseFloat(formatted.split(" ")[0]);
-    }
-    this.set('hiddenInfo', []);
-    this.set('hiddenInfo', ['NameNode','Not Running']);
-    return null;
-  }.property('model.nameNodeStartTime'),
-
-  timeUnit: null,
-
-  content: function () {
-    var data = this.get('data');
-    if (data) {
-      return data.toFixed(1) + ' '+ this.get('timeUnit');
-    } else {
-      return this.t('services.service.summary.notAvailable');
-    }
-  }.property('model.nameNodeStartTime'),
-
-  timeConverter: function (timestamp){
-    var origin = new Date(timestamp);
-    origin = origin.toString();
-    var result = [];
-    var start = origin.indexOf('GMT');
-    if (start == -1) { // ie
-      var arr = origin.split(" ");
-      result.pushObject(arr[0] + " " + arr[1] + " " + arr[2] + " " + arr[3]);
-      var second = '';
-      for (var i = 4; i < arr.length; i++) {
-        second = second + " " + arr[i];
-      }
-      result.pushObject(second);
-    } else { // other browsers
-      var end = origin.indexOf(" ", start);
-      result.pushObject(origin.slice(0, start-10));
-      result.pushObject(origin.slice(start-9));
-    }
-    return result;
+  didInsertElement: function() {
+    this._super();
+    this.calc();
   }
 
-})
+});

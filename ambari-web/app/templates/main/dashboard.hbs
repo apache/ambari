@@ -88,13 +88,13 @@
                   </button>
                   <ul class="dropdown-menu right-align-dropdown">
                     <li>
-                      <a {{action "resetAllWidgets" target="view"}}>
+                      <a href="#" {{action "resetAllWidgets" target="view"}}>
                         <i class="icon-refresh"></i>
                         {{t dashboard.button.reset}}
                       </a>
                     </li>
                     <li>
-                      <a {{action "switchToClassic" target="view"}}>
+                      <a href="#" {{action "switchToClassic" target="view"}}>
                         <i class="icon-backward"></i>
                         {{t dashboard.button.switch}}
                       </a>
@@ -114,15 +114,9 @@
             <div class="thumbnails row-fluid" id="sortable">
               {{#if view.visibleWidgets.length}}
                 {{#each widgetClass in view.visibleWidgets}}
-                  {{#if widgetClass.isProgressBar}}
-                    <div class="span4p8">
-                      {{view widgetClass }}
-                    </div>
-                  {{else}}
-                    <div class="span2p4">
-                      {{view widgetClass }}
-                    </div>
-                  {{/if}}
+                  <div {{bindAttr class="widgetClass.class"}}>
+                    {{view widgetClass }}
+                  </div>
                 {{/each}}
               {{/if}}
             </div>
