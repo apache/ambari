@@ -2606,11 +2606,9 @@ def encrypt_password(alias, password):
   properties = get_ambari_properties()
   if properties == -1:
     raise FatalException(1, None)
-
   return get_encrypted_password(alias, password, properties)
 
 def get_encrypted_password(alias, password, properties):
-
   isSecure = get_is_secure(properties)
   (isPersisted, masterKeyFile) = get_is_persisted(properties)
   if isSecure:
@@ -3155,17 +3153,18 @@ def get_truststore_path(properties):
 
 def get_truststore_password(properties):
   truststore_password = properties.get_property(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
+  isSecure = get_is_secure(properties)
   if truststore_password:
-    truststore_password = decrypt_password_for_alias(SSL_TRUSTSTORE_PASSWORD_ALIAS)
+    if isSecure:
+      truststore_password = decrypt_password_for_alias(SSL_TRUSTSTORE_PASSWORD_ALIAS)
   else:
     truststore_password = read_password("", ".*", "Password for TrustStore:", "Invalid characters in password")
     if truststore_password:
-      properties.process_pair(SECURITY_IS_ENCRYPTION_ENABLED, "true")
       encrypted_password = get_encrypted_password(SSL_TRUSTSTORE_PASSWORD_ALIAS, truststore_password, properties)
       properties.process_pair(SSL_TRUSTSTORE_PASSWORD_PROPERTY, encrypted_password)
 
   return truststore_password
-  
+
 def run_component_https_cmd(cmd):
   retcode, out, err = run_os_command(cmd)
 
