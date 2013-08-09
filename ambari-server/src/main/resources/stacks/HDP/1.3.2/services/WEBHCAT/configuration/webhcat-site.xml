@@ -43,7 +43,7 @@ limitations under the License.
 
   <property>
     <name>templeton.libjars</name>
-    <value>/usr/lib/zookeeper/zookeeper.jar,/usr/lib/hcatalog/share/hcatalog/hcatalog-core.jar,/usr/lib/hive/lib/hive-exec-0.11.0.1.3.1.0-61.jar,/usr/lib/hive/lib/hive-metastore-0.11.0.1.3.1.0-61.jar,/usr/lib/hive/lib/libfb303-0.9.0.jar,/usr/lib/hive/lib/libthrift-0.9.0.jar,/usr/lib/hive/lib/jdo2-api-2.3-ec.jar,/usr/lib/hive/lib/slf4j-api-1.6.1.jar,/usr/lib/hcatalog/share/webhcat/svr/lib/antlr-runtime-3.4.jar,/usr/lib/hive/lib/datanucleus-api-jdo-3.0.7.jar,/usr/lib/hive/lib/datanucleus-api-jdo-3.0.7.jar,/usr/lib/hive/lib/datanucleus-core-3.0.9.jar,/usr/lib/hive/lib/datanucleus-enhancer-3.0.1.jar,/usr/lib/hive/lib/datanucleus-rdbms-3.0.8.jar</value>
+    <value>/usr/lib/zookeeper/zookeeper.jar</value>
     <description>Jars to add the the classpath.</description>
   </property>
 
