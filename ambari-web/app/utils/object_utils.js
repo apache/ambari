@@ -20,23 +20,34 @@ var stringUtils = require('utils/string_utils');
 
 module.exports = {
 
+  isChild: function(obj)
+  {
+    for (var k in obj) {
+      if (obj.hasOwnProperty(k)) {
+        if (obj[k] instanceof Object) {
+          return false;
+        }
+      }
+    }
+    return true;
+  },
+
   recursiveKeysCount: function(obj) {
     if (!(obj instanceof Object)) {
       return null;
     }
-
+    var self = this;
     function r(obj) {
       var count = 0;
       for (var k in obj) {
-        if (obj.hasOwnProperty(k)) {
-          if (obj[k] instanceof Object) {
-            count += 1 + r(obj[k]);
-          }
+        if(self.isChild(obj[k])){
+          count++;
+        } else {
+          count += r(obj[k]);
         }
       }
       return count;
     }
-
     return r(obj);
   },
 
@@ -44,20 +55,19 @@ module.exports = {
     if (!(obj instanceof Object)) {
       return null;
     }
-    function r(obj, indx) {
-      var str = '';
+    var self = this;
+    function r(obj,parent) {
+      var leaf = '';
       for (var k in obj) {
-        if (obj.hasOwnProperty(k)) {
-          if (obj[k] instanceof Object) {
-            var spaces = (new Array(indx + 1).join('&nbsp;'));
-            var bull = (indx != 0 ? '&bull; ' : ' '); // empty for "root" element
-            str += spaces + bull + k + '<br />' + r(obj[k], indx + 1);
-          }
+        if(self.isChild(obj[k])){
+          leaf += k + ' ('+parent+')' + '<br/>';
+        } else {
+          leaf += r(obj[k],parent +'/' + k);
         }
       }
-      return str;
+      return leaf;
     }
-    return r(obj, 0);
+    return r(obj,'');
   },
   
   /**
