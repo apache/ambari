@@ -27,7 +27,7 @@ class hdp-hadoop::hdfs::service_check()
   $safemode_command = "dfsadmin -safemode get | grep OFF"
 
   $create_dir_cmd = "fs -mkdir ${dir} ; hadoop fs -chmod -R 777 ${dir}"
-  $test_dir_exists = "hadoop fs -test -e ${dir}" #TODO: may fix up fact that test needs explicit hadoop while omamnd does not
+  $test_dir_exists = "hadoop fs -test -e ${dir}" #TODO: may fix up fact that test needs explicit hadoop while command does not
   $cleanup_cmd = "fs -rm ${tmp_file}"
   #cleanup put below to handle retries; if retrying there wil be a stale file that needs cleanup; exit code is fn of second command
   $create_file_cmd = "${cleanup_cmd}; hadoop fs -put /etc/passwd ${tmp_file}" #TODO: inconsistent that second comamnd needs hadoop
@@ -63,7 +63,6 @@ class hdp-hadoop::hdfs::service_check()
   }
 
 
-
    #TODO: put in after testing
  #  hdp-hadoop::exec-hadoop { 'hdfs::service_check::cleanup':
  #   command     => $cleanup_cmd,
@@ -71,44 +70,58 @@ class hdp-hadoop::hdfs::service_check()
  #   require     => Hdp-hadoop::Exec-hadoop['hdfs::service_check::test'],
  #   before      => Anchor['hdp-hadoop::hdfs::service_check::end']
   #}
-  
-  if hdp_is_empty($hdp::params::journalnode_hosts) {
-    ##No journalnode hosts, just run hdfs test
-    hdp-hadoop::exec-hadoop { 'hdfs::service_check::test':
-      command     => $test_cmd,
-      refreshonly => true,
-      user      => $hdp::params::smokeuser,
-      require     => Hdp-hadoop::Exec-hadoop['hdfs::service_check::create_file'],
-      before      => Anchor['hdp-hadoop::hdfs::service_check::end']
-    } 
+
+  hdp-hadoop::exec-hadoop { 'hdfs::service_check::test':
+    command     => $test_cmd,
+    refreshonly => true,
+    user      => $hdp::params::smokeuser,
+    require     => Hdp-hadoop::Exec-hadoop['hdfs::service_check::create_file'],
+    before      => Anchor['hdp-hadoop::hdfs::service_check::journalnode_check:begin']
   }
-  else {
-  ## Cluster has journalnode hosts, run hdfs test and test of journalnodes
-    hdp-hadoop::exec-hadoop { 'hdfs::service_check::test':
-      command     => $test_cmd,
-      refreshonly => true,
-      user      => $hdp::params::smokeuser,
-      require     => Hdp-hadoop::Exec-hadoop['hdfs::service_check::create_file'],
-      before      => Class['hdp-hadoop::journalnode::service_check']
-    } 
-    
+
+  anchor { 'hdp-hadoop::hdfs::service_check::journalnode_check:begin':}
+
+  if hdp_is_empty($hdp::params::journalnode_hosts) {
+    ##No journalnode hosts
+    Anchor['hdp-hadoop::hdfs::service_check::journalnode_check:begin'] ->
+      Anchor['hdp-hadoop::hdfs::service_check::journalnode_check:end']
+
+  } else {
+    ## Cluster has journalnode hosts, run test of journalnodes
     $journalnode_hosts_comma_sep = hdp_comma_list_from_array($hdp::params::journalnode_hosts)
-    
     class { 'hdp-hadoop::journalnode::service_check':
       journalnode_hosts => $journalnode_hosts_comma_sep,
-      require          => Hdp-hadoop::Exec-hadoop['hdfs::service_check::test'],
-      before           => Anchor['hdp-hadoop::hdfs::service_check::end']
+      require          => Anchor['hdp-hadoop::hdfs::service_check::journalnode_check:begin'],
+      before           => Anchor['hdp-hadoop::hdfs::service_check::journalnode_check:end']
     }
   }
-  
 
-  anchor{ 'hdp-hadoop::hdfs::service_check::end':}
+  anchor { 'hdp-hadoop::hdfs::service_check::journalnode_check:end':} ->
+    anchor { 'hdp-hadoop::hdfs::service_check::zkfc_check:begin':}
+
+  if hdp_is_empty($hdp::params::zkfc_hosts) {
+    ## No zkfc hosts
+    Anchor['hdp-hadoop::hdfs::service_check::zkfc_check:begin'] ->
+      Anchor['hdp-hadoop::hdfs::service_check::zkfc_check:end']
+  } else {
+    ## Cluster has zkfc hosts, run test of local zkfc daemon if current host
+    ## is namenode. If namenode has not ZKFC installed, it is also considered
+    ## as a misconfiguration.
+    if ($hdp::params::is_namenode_master) {
+      class { 'hdp-hadoop::zkfc::service_check':
+        require          => Anchor['hdp-hadoop::hdfs::service_check::zkfc_check:begin'],
+        before           => Anchor['hdp-hadoop::hdfs::service_check::zkfc_check:end']
+      }
+    }
+  }
+
+  anchor { 'hdp-hadoop::hdfs::service_check::zkfc_check:end':} ->
+    anchor{ 'hdp-hadoop::hdfs::service_check::end':}
 
 }
 
 class hdp-hadoop::journalnode::service_check($journalnode_hosts)
 {
-  
   $journalnode_port = $hdp::params::journalnode_port
   $smoke_test_user = $hdp::params::smokeuser
   
@@ -131,4 +144,27 @@ class hdp-hadoop::journalnode::service_check($journalnode_hosts)
     logoutput => "true"
 }
   anchor{"hdp-hadoop::smoketest::begin":} -> File[$checkWebUIFilePath] -> Exec[$checkWebUIFilePath] -> anchor{"hdp-hadoop::smoketest::end":}
+}
+
+class hdp-hadoop::zkfc::service_check() inherits hdp-hadoop::params
+{
+  $hdfs_user = $hdp::params::hdfs_user
+  $pid_dir = "${hdp-hadoop::params::hadoop_pid_dir_prefix}/${hdfs_user}"
+  $pid_file = "${pid_dir}/hadoop-${hdfs_user}-zkfc.pid"
+
+  # Here we check if pid file exists and if yes, then we run 'ps pid' command
+  # that returns 1 if process is not running
+  $check_zkfc_process_cmd = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
+
+  exec { $check_zkfc_process_cmd:
+    command   => $check_zkfc_process_cmd,
+    tries     => 3,
+    try_sleep => 5,
+    path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+    logoutput => "true"
+  }
+
+  anchor{"hdp-hadoop::zkfc::service_check::begin":} -> Exec[$check_zkfc_process_cmd] ->
+    anchor{"hdp-hadoop::zkfc::service_check::end":}
+
 }

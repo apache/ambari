@@ -45,6 +45,8 @@ class LiveStatus:
        "componentName" : "SECONDARY_NAMENODE"},
       {"serviceName" : "HDFS",
        "componentName" : "JOURNALNODE"},
+      {"serviceName" : "HDFS",
+       "componentName" : "ZKFC"},
 
       {"serviceName" : "MAPREDUCE",
        "componentName" : "JOBTRACKER"},

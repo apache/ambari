@@ -57,6 +57,8 @@ define hdp-hadoop::service(
     } else {
       $daemon_cmd = "su - ${user} -c  '${cmd} start ${name}'"
     }
+    # Here we check if pid file exists and if yes, then we run 'ps pid' command
+    # that returns 1 if process is not running
     $service_is_up = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
   } elsif ($ensure == 'stopped') {
     if ($run_as_root == true) {

@@ -45,6 +45,11 @@
             <name>JOURNALNODE</name>
             <category>SLAVE</category>
         </component>
+
+        <component>
+          <name>ZKFC</name>
+          <category>SLAVE</category>
+        </component>
         
     </components>
 

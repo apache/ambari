@@ -136,7 +136,7 @@ rolesToClass = {
   'YARN_SERVICE_CHECK': 'hdp-yarn::yarn::service_check',
   'FLUME_SERVER': 'hdp-flume',
   'JOURNALNODE': 'hdp-hadoop::journalnode',
-  'JOURNALNODE_SERVICE_CHECK': 'hdp-hadoop::journalnode::service_check'
+  'ZKFC': 'hdp-hadoop::zkfc'
 }
 
 serviceStates = {
@@ -156,6 +156,7 @@ servicesToPidNames = {
   'NODEMANAGER': 'yarn-{USER}-nodemanager.pid$',
   'HISTORYSERVER': 'mapred-{USER}-historyserver.pid$',
   'JOURNALNODE': 'hadoop-{USER}-journalnode.pid$',
+  'ZKFC': 'hadoop-{USER}-zkfc.pid$',
   'OOZIE_SERVER': 'oozie.pid',
   'ZOOKEEPER_SERVER': 'zookeeper_server.pid',
   'FLUME_SERVER': 'flume-node.pid',
@@ -180,6 +181,7 @@ servicesToLinuxUser = {
   'SECONDARY_NAMENODE': 'hdfs_user',
   'DATANODE': 'hdfs_user',
   'JOURNALNODE': 'hdfs_user',
+  'ZKFC': 'hdfs_user',
   'JOBTRACKER': 'mapred_user',
   'TASKTRACKER': 'mapred_user',
   'RESOURCEMANAGER': 'yarn_user',
