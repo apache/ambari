@@ -51,6 +51,9 @@ App.HighAvailabilityWizardView = Em.View.extend({
     return this.isStepDisabled(7);
   }.property('controller.isStepDisabled.@each.value').cacheable(),
 
+  isStep8Disabled: function () {
+    return this.isStepDisabled(8);
+  }.property('controller.isStepDisabled.@each.value').cacheable(),
 
   isStepDisabled: function (index) {
     return this.get('controller.isStepDisabled').findProperty('step', index).get('value');

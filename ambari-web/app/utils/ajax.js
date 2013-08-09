@@ -646,11 +646,11 @@ var urls = {
     'type': 'PUT',
     'format': function () {
       return {
-        data: {
+        data: JSON.stringify({
           "HostRoles": {
             "state": "MAINTENANCE"
           }
-        }
+        })
       }
     }
   },

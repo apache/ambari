@@ -170,6 +170,27 @@ module.exports = Em.Route.extend({
       router.transitionTo('step6');
     },
     next: function (router) {
+      router.transitionTo('step8');
+    }
+  }),
+
+  step8: Em.Route.extend({
+    route: '/step8',
+    connectOutlets: function (router) {
+      $('a.close').hide();
+      var controller = router.get('highAvailabilityWizardController');
+      controller.setCurrentStep('8');
+      controller.setLowerStepsDisable(8);
+      controller.dataLoading().done(function () {
+        controller.loadAllPriorSteps();
+        controller.connectOutlet('highAvailabilityWizardStep8',  controller.get('content'));
+      })
+    },
+    back: function (router) {
+      router.transitionTo('step7');
+    },
+    next: function (router) {
+      router.transitionTo('step9');
     }
   }),
 
@@ -185,5 +206,7 @@ module.exports = Em.Route.extend({
 
   gotoStep6: Em.Router.transitionTo('step6'),
 
-  gotoStep7: Em.Router.transitionTo('step7')
+  gotoStep7: Em.Router.transitionTo('step7'),
+
+  gotoStep8: Em.Router.transitionTo('step8')
 });
