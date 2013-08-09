@@ -23,7 +23,7 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
 
   name: 'highAvailabilityWizardController',
 
-  totalSteps: 8,
+  totalSteps: 9,
 
   /**
    * Used for hiding back button in wizard
@@ -165,6 +165,7 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
   loadAllPriorSteps: function () {
     var step = this.get('currentStep');
     switch (step) {
+      case '9':
       case '8':
       case '7':
       case '6':

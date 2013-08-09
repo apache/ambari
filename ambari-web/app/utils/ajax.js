@@ -565,7 +565,6 @@ var urls = {
   },
   'admin.high_availability.stop_all_services': {
     'real': '/clusters/{clusterName}/services?ServiceInfo/state=STARTED',
-    'mock': 'fsdfs',
     'format': function (data, opt) {
       return {
         type: 'PUT',
@@ -576,6 +575,24 @@ var urls = {
           "Body": {
             "ServiceInfo": {
               "state": "INSTALLED"
+            }
+          }
+        })
+      }
+    }
+  },
+  'admin.high_availability.start_all_services': {
+    'real': '/clusters/{clusterName}/services?ServiceInfo/state=INSTALLED',
+    'format': function (data, opt) {
+      return {
+        type: 'PUT',
+        data:  JSON.stringify({
+          "RequestInfo": {
+            "context": "Start all services"
+          },
+          "Body": {
+            "ServiceInfo": {
+              "state": "STARTED"
             }
           }
         })

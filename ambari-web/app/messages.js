@@ -664,6 +664,11 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step7.task0.title':'Start ZooKeeper Servers',
   'admin.highAvailability.wizard.step7.task1.title':'Start NameNode',
 
+  'admin.highAvailability.wizard.step9.task0.title':'Start Additional NameNode',
+  'admin.highAvailability.wizard.step9.task1.title':'Install Failover Controllers',
+  'admin.highAvailability.wizard.step9.task2.title':'Start Failover Controllers',
+  'admin.highAvailability.wizard.step9.task3.title':'Start All Services',
+
   'admin.highAvailability.wizard.step3.nn1':'Current NameNode is on {0}.',
   'admin.highAvailability.wizard.step3.nn2':'Additional NameNode will be installed on {0}.',
   'admin.highAvailability.wizard.step3.sn':'Existing Secondary NameNode on {0} will be disabled.',
