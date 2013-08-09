@@ -435,6 +435,27 @@ define service {
         max_check_attempts      5
 }
 
+define service {
+        hostgroup_name          resourcemanager
+        use                     hadoop-service
+        service_description     RESOURCEMANAGER::Resource Manager percent nodemanager down
+        servicegroups           YARN
+        check_command           check_resourcemanager_nodes_percentage!<%=scope.function_hdp_template_var("::hdp::rm_port")%>!lost!10!30
+        normal_check_interval   1
+        retry_check_interval    1
+        max_check_attempts      3
+}
+
+define service {
+        hostgroup_name          resourcemanager
+        use                     hadoop-service
+        service_description     RESOURCEMANAGER::Resource Manager percent nodemanager unhealthy
+        servicegroups           YARN
+        check_command           check_resourcemanager_nodes_percentage!<%=scope.function_hdp_template_var("::hdp::rm_port")%>!unhealthy!10!30
+        normal_check_interval   1
+        retry_check_interval    1
+        max_check_attempts      3
+}
 <% end %>
 
 <%if scope.function_hdp_nagios_members_exist('nodemanagers')-%>
@@ -447,6 +468,17 @@ define service {
         check_command           check_tcp!<%=scope.function_hdp_template_var("nm_port")%>!-w 1 -c 1
         normal_check_interval   1
         retry_check_interval    0.5
+        max_check_attempts      3
+}
+
+define service {
+        hostgroup_name          nodemanagers
+        use                     hadoop-service
+        service_description     NODEMANAGER::Node Manager unhealthy
+        servicegroups           YARN
+        check_command           check_nodemanager_health!<%=scope.function_hdp_template_var("nm_port")%>
+        normal_check_interval   1
+        retry_check_interval    1
         max_check_attempts      3
 }
 <% end %>
