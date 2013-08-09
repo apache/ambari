@@ -106,7 +106,7 @@ class hdp-hbase(
       override_owner => true
     }
 
-   hdp-hbase::configfile { ['hbase-env.sh','log4j.properties','hadoop-metrics.properties']: 
+   hdp-hbase::configfile { ['hbase-env.sh','hadoop-metrics.properties']: 
       type => $type
     }
 
