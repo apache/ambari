@@ -65,10 +65,12 @@ module.exports = {
    * 1000000 ms = 16.66 mins
    * 3500000 secs = 58.33 mins
    * @param time
+   * @param zeroValid, for the case to show 0 when time is 0, not null
    * @return string formatted date
    */
-  timingFormat:function (time) {
+  timingFormat:function (time, /* optional */ zeroValid) {
     var intTime  = parseInt(time);
+    if (zeroValid && intTime == 0) return 0 + '';
     if (!intTime) return null;
     var timeStr = intTime.toString();
     var lengthOfNumber = timeStr.length;

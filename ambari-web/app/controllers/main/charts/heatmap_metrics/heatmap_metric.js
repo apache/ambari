@@ -126,7 +126,7 @@ App.MainChartHeatmapMetric = Em.Object.extend({
       var from = this.formatLegendNumber(c * delta);
       var to = this.formatLegendNumber((c + 1) * delta);
       if ($.trim(labelSuffix) == 'ms') {
-      	var label = date.timingFormat(from) + " - " + date.timingFormat(to);
+      	var label = date.timingFormat(from, 'zeroValid') + " - " + date.timingFormat(to, 'zeroValid');
       } else {
 	      var label = from + labelSuffix + " - " + to + labelSuffix;
       }
@@ -142,7 +142,7 @@ App.MainChartHeatmapMetric = Em.Object.extend({
     to = this.formatLegendNumber(max);
 
     if ($.trim(labelSuffix) == 'ms') {
-      var label = date.timingFormat(from) + " - " + date.timingFormat(to);
+      var label = date.timingFormat(from, 'zeroValid') + " - " + date.timingFormat(to, 'zeroValid');
     } else {
       var label = from + labelSuffix + " - " + to + labelSuffix;
     }
