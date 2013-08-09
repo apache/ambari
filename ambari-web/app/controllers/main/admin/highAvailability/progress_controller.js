@@ -37,8 +37,8 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
 
   clearStep: function () {
     this.set('isSubmitDisabled', true);
-    this.get('tasks').clear();
-    this.get('logs').clear();
+    this.set('tasks', []);
+    this.set('logs', []);
     var commands = this.get('commands');
     var currentStep = App.router.get('highAvailabilityWizardController.currentStep');
     for (var i = 0; i < commands.length; i++) {
@@ -112,8 +112,8 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
   },
 
   onCreateComponent: function () {
-    var hostName = arguments[2].data.hostName;
-    var componentName = arguments[2].data.componentName;
+    var hostName = arguments[2].hostName;
+    var componentName = arguments[2].componentName;
     this.installComponent(componentName, hostName);
   },
 
@@ -160,7 +160,7 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
   startPolling: function (data) {
     if (data) {
       this.get('currentRequestIds').push(data.Requests.id);
-      var tasksCount = arguments[2].data ? arguments[2].data.taskNum : 1;
+      var tasksCount = arguments[2].taskNum || 1;
       if (tasksCount === this.get('currentRequestIds').length) {
         this.doPolling();
       }
@@ -199,20 +199,22 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
         } else {
           this.setTaskStatus(currentTaskId, 'COMPLETED');
         }
+        this.set('currentRequestIds', []);
       } else {
-        var progress = Math.round(tasks.filterProperty('Tasks.status', 'COMPLETED').length / tasks.length * 100);
+        var progress = Math.round((tasks.filterProperty('Tasks.status', 'COMPLETED').length + tasks.filterProperty('Tasks.status', 'IN_PROGRESS').length / 2) / tasks.length * 100);
         this.get('tasks').findProperty('id', currentTaskId).set('progress', progress);
         this.setTaskStatus(currentTaskId, 'IN_PROGRESS');
         window.setTimeout(function () {
           self.doPolling()
         }, self.POLL_INTERVAL);
       }
-      this.get('logs').clear();
+      this.set('logs', []);
     }
   },
 
   done: function () {
     if (!this.get('isSubmitDisabled')) {
+      this.removeObserver('tasks.@each.status', this, 'onTaskStatusChange');
       App.router.send('next');
     }
   }

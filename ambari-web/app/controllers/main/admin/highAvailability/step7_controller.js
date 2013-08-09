@@ -23,12 +23,12 @@ App.HighAvailabilityWizardStep7Controller = App.HighAvailabilityProgressPageCont
   commands: ['startZooKeeperServers', 'startNameNode'],
 
   startZooKeeperServers: function () {
-    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'ZOOKEEPER').mapProperty('hostName');
+    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
     this.startComponent('ZOOKEEPER_SERVER', hostNames);
   },
 
   startNameNode: function () {
-    var hostName = this.get('content.masterComponentHosts').findProperty('isCurNameNode').mapProperty('hostName');
+    var hostName = this.get('content.masterComponentHosts').findProperty('isCurNameNode').hostName;
     this.startComponent('NAMENODE', hostName);
   }
 });
