@@ -296,6 +296,8 @@
         "dfs.hosts" : "/etc/hadoop/dfs.include",
         "dfs.block.local-path-access.user" : "hbase",
         "dfs.namenode.kerberos.principal" : "nn/_HOST@EXAMPLE.COM"
+        "dfs.client.read.shortcircuit.skip.checksum" : "false",
+        "dfs.client.read.shortcircuit" : "true",
       }
     },
     {
@@ -353,13 +355,11 @@
         "hfile.block.cache.size" : "0.25",
         "hbase.hregion.max.filesize" : "1073741824",
         "hbase.master.lease.thread.wakefrequency" : "3000",
-        "dfs.client.read.shortcircuit.skip.checksum" : "false",
         "hbase.hregion.memstore.block.multiplier" : "2",
         "hbase.master.kerberos.principal" : "hm/_HOST@EXAMPLE.COM",
         "hbase.zookeeper.property.clientPort" : "2181",
         "zookeeper.session.timeout" : "60000",
         "hbase.master.keytab.file" : "/etc/security/keytabs/hm.service.keytab",
-        "dfs.client.read.shortcircuit" : "true",
         "hbase.zookeeper.quorum" : "dev.hortonworks.com"
       }
     },

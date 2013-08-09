@@ -624,7 +624,7 @@ var configs = [
     "templateName": ["hdfs_enable_shortcircuit_read"],
     "foreignKey": null,
     "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
+    "filename": "hdfs-site.xml"
   },
   {
     "name": "hbase.security.authentication",

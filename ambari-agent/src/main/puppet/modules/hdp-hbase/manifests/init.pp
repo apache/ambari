@@ -49,6 +49,22 @@ class hdp-hbase(
     }
   }
 
+  if has_key($configuration, 'hdfs-site') {
+    configgenerator::configfile{'hdfs-site':
+      modulespath => $hdp-hbase::params::conf_dir,
+      filename => 'hdfs-site.xml',
+      module => 'hdp-hbase',
+      configuration => $configuration['hdfs-site'],
+      owner => $hbase_user,
+      group => $hdp::params::user_group
+    }
+  } else { # Manually overriding ownership of file installed by hadoop package
+    file { "${hdp-hbase::params::conf_dir}/hdfs-site.xml":
+      owner => $hbase_user,
+      group => $hdp::params::user_group
+    }
+  }
+
   if has_key($configuration, 'hbase-policy') {
     configgenerator::configfile{'hbase-policy': 
       modulespath => $hdp-hbase::params::conf_dir,

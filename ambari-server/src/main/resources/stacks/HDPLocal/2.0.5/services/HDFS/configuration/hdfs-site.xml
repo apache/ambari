@@ -456,4 +456,36 @@ don't exist, they will be created with this permission.</description>
     <description>Datanode is stale after not getting a heartbeat in this interval in ms</description>
   </property>
 
+  <!-- HDFS Short-Circuit Local Reads -->
+
+  <property>
+    <name>dfs.client.read.shortcircuit</name>
+    <value>true</value>
+    <description>
+      This configuration parameter turns on short-circuit local reads.
+    </description>
+  </property>
+
+  <property>
+    <name>dfs.client.read.shortcircuit.skip.checksum</name>
+    <value></value>
+    <description>Enable/disbale skipping the checksum check</description>
+  </property>
+
+  <property>
+    <name>dfs.domain.socket.path</name>
+    <value>/var/lib/hadoop-hdfs/dn_socket</value>
+  </property>
+
+  <property>
+    <name>dfs.client.read.shortcircuit.streams.cache.size</name>
+    <value>4096</value>
+    <description>
+      The DFSClient maintains a cache of recently opened file descriptors. This
+      parameter controls the size of that cache. Setting this higher will use
+      more file descriptors, but potentially provide better performance on
+      workloads involving lots of seeks.
+    </description>
+  </property>
+
 </configuration>

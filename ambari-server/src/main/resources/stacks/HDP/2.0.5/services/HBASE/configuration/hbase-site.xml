@@ -328,21 +328,6 @@
   </property>
 
   <property>
-    <name>dfs.client.read.shortcircuit</name>
-    <value></value>
-    <description>Enable/Disable short circuit read for your client.
-    Hadoop servers should be configured to allow short circuit read
-    for the hbase user for this to take effect
-    </description>
-  </property>
-
-  <property>
-    <name>dfs.client.read.shortcircuit.skip.checksum</name>
-    <value></value>
-    <description>Enable/disbale skipping the checksum check</description>
-  </property>
-  
-  <property>
     <name>hbase.zookeeper.useMulti</name>
     <value>true</value>
     <description>Instructs HBase to make use of ZooKeeper's multi-update functionality.
