@@ -98,7 +98,11 @@ App.PieChartDashboardWidgetView = App.DashboardWidgetView.extend({
 
     data: function() {
       return this.get('parentView.dataForPieChart');
-    }.property('parentView.dataForPieChart'),
+    }.property(),
+
+    setData: function() {
+      this.set('data', this.get('parentView.dataForPieChart'));
+    }.observes('parentView.dataForPieChart'),
 
     contentColor: function () {
       var used = parseFloat(this.get('data')[0]);

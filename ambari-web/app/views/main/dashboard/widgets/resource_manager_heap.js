@@ -25,16 +25,6 @@ App.ResourceManagerHeapPieChartView = App.PieChartDashboardWidgetView.extend({
   id: '24',
   model_type: 'yarn',
 
-  /*hiddenInfo: function () {
-    var memUsed = this.get('model').get('jvmMemoryHeapUsed');
-    var memCommitted = this.get('model').get('jvmMemoryHeapCommitted');
-    var percent = memCommitted > 0 ? ((100 * memUsed) / memCommitted) : 0;
-    var result = [];
-    result.pushObject(percent.toFixed(1) + '% used');
-    result.pushObject(numberUtils.bytesToSize(memUsed, 1, "parseFloat", 1000000) + ' of ' + numberUtils.bytesToSize(memCommitted, 1, "parseFloat", 1000000));
-    return result;
-  }.property('model.jvmMemoryHeapUsed', 'model.jvmMemoryHeapCommitted'),*/
-
   modelFieldMax: 'jvmMemoryHeapCommitted',
   modelFieldUsed: 'jvmMemoryHeapUsed',
 
