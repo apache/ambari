@@ -687,12 +687,22 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
       if (serviceName === 'HDFS') {
         var hdfsConfigs = self.get('stepConfigs').findProperty('serviceName', 'HDFS').get('configs');
-        if (
-          hdfsConfigs.findProperty('name', 'dfs_name_dir').get('isNotDefaultValue') ||
-          hdfsConfigs.findProperty('name', 'fs_checkpoint_dir').get('isNotDefaultValue') ||
-          hdfsConfigs.findProperty('name', 'dfs_data_dir').get('isNotDefaultValue')
-        ) {
-          dirChanged = true;
+        if (App.get('isHadoop2Stack')) {
+          if (
+            hdfsConfigs.findProperty('name', 'dfs_namenode_name_dir').get('isNotDefaultValue') ||
+            hdfsConfigs.findProperty('name', 'dfs_namenode_checkpoint_dir').get('isNotDefaultValue') ||
+            hdfsConfigs.findProperty('name', 'dfs_datanode_data_dir').get('isNotDefaultValue')
+          ) {
+            dirChanged = true;
+          }
+        } else {
+          if (
+            hdfsConfigs.findProperty('name', 'dfs_name_dir').get('isNotDefaultValue') ||
+            hdfsConfigs.findProperty('name', 'fs_checkpoint_dir').get('isNotDefaultValue') ||
+            hdfsConfigs.findProperty('name', 'dfs_data_dir').get('isNotDefaultValue')
+          ) {
+            dirChanged = true;
+          }
         }
       } else if (serviceName === 'MAPREDUCE') {
         var mapredConfigs = self.get('stepConfigs').findProperty('serviceName', 'MAPREDUCE').get('configs');
