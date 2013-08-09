@@ -43,9 +43,9 @@ class HostInfo:
     "sqoop-ambari-qa", "sqoop-ambari_qa"
   ]
 
-  # List of live services checked for on the host
+  # List of live services checked for on the host, takes a map of plan strings
   DEFAULT_LIVE_SERVICES = [
-    "ntpd"
+    {"redhat":"ntpd", "suse":"ntp"}
   ]
 
   # Set of default users (need to be replaced with the configured user names)
@@ -144,14 +144,24 @@ class HostInfo:
         result['target'] = realConf
         etcResults.append(result)
 
+  def get_os_type(self):
+    os_info = platform.linux_distribution(None, None, None, ['SuSE',
+                                          'redhat' ], 0)
+    return os_info[0].lower()
+
   def checkLiveServices(self, services, result):
+    osType = self.get_os_type()
     for service in services:
       svcCheckResult = {}
       svcCheckResult['name'] = service
       svcCheckResult['status'] = "UNKNOWN"
       svcCheckResult['desc'] = ""
+      if isinstance(service, dict):
+        serviceName = service[osType]
+      else:
+        serviceName = service
       try:
-        cmd = "service " + service + " status"
+        cmd = "/sbin/service " + serviceName + " status"
         osStat = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE)
         out, err = osStat.communicate()
