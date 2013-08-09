@@ -1022,6 +1022,7 @@ Em.I18n.translations = {
 
   'services.mapreduce2.history.running': 'History server is running',
   'services.mapreduce2.history.stopped': 'History server is stopped',
+  'services.mapreduce2.smokeTest.requirement': 'MapReduce2 smoke test requires YARN service be started',
 
   'services.mapReduce.config.addQueue':'Add Queue',
   'services.mapReduce.config.editQueue':'Edit Queue',

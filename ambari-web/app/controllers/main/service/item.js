@@ -162,6 +162,10 @@ App.MainServiceItemController = Em.Controller.extend({
    */
   runSmokeTest: function (event) {
     var self = this;
+    if (this.get('content.serviceName') === 'MAPREDUCE2' && !App.Service.find('YARN').get('isStarted')) {
+      App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('services.mapreduce2.smokeTest.requirement'));
+      return;
+    }
     App.showConfirmationPopup(function() {
       self.runSmokeTestPrimary();
     });
