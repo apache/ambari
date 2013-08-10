@@ -410,14 +410,16 @@ class TestHostInfo(TestCase):
     self.assertEquals(result, {})
 
 
+  @patch.object(HostInfo, "get_os_type")
   @patch("subprocess.Popen")
-  def test_checkLiveServices(self, subproc_popen):
+  def test_checkLiveServices(self, subproc_popen, get_os_type_method):
     hostInfo = HostInfo()
     p = MagicMock()
     p.returncode = 0
     p.communicate.return_value = ('', 'err')
     subproc_popen.return_value = p
     result = []
+    get_os_type_method.return_value = 'redhat'
     hostInfo.checkLiveServices(['service1'], result)
 
     self.assertEquals(result[0]['status'], 'Healthy')

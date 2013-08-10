@@ -21,18 +21,20 @@ limitations under the License.
 from unittest import TestCase
 import os
 import tempfile
-
+from mock.mock import patch
+from mock.mock import MagicMock
 from ambari_agent.Register import Register
 from ambari_agent.AmbariConfig import AmbariConfig
-
+from ambari_agent.HostInfo import HostInfo
 
 class TestRegistration(TestCase):
 
-  def test_registration_build(self):
+  @patch.object(HostInfo, 'get_os_type')
+  def test_registration_build(self, get_os_type_method):
     config = AmbariConfig().getConfig()
     tmpdir = tempfile.gettempdir()
     config.set('agent', 'prefix', tmpdir)
-
+    get_os_type_method.return_value = 'redhat'
     ver_file = os.path.join(tmpdir, "version")
     with open(ver_file, "w") as text_file:
       text_file.write("1.3.0")

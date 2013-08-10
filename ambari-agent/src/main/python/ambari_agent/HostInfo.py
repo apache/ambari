@@ -27,6 +27,7 @@ import time
 import subprocess
 import threading
 import shlex
+import platform
 from PackagesAnalyzer import PackagesAnalyzer
 from HostCheckReportFileHandler import HostCheckReportFileHandler
 from Hardware import Hardware
