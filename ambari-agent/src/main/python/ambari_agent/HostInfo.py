@@ -154,13 +154,14 @@ class HostInfo:
     osType = self.get_os_type()
     for service in services:
       svcCheckResult = {}
-      svcCheckResult['name'] = service
-      svcCheckResult['status'] = "UNKNOWN"
-      svcCheckResult['desc'] = ""
       if isinstance(service, dict):
         serviceName = service[osType]
       else:
         serviceName = service
+
+      svcCheckResult['name'] = serviceName
+      svcCheckResult['status'] = "UNKNOWN"
+      svcCheckResult['desc'] = ""
       try:
         cmd = "/sbin/service " + serviceName + " status"
         osStat = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
