@@ -13,7 +13,7 @@ define servicegroup {
   alias  MAPREDUCE Checks
 }
 <% end -%>
-<%if scope.function_hdp_nagios_members_exist('resorcemanager') ||
+<%if scope.function_hdp_nagios_members_exist('resourcemanager') ||
   scope.function_hdp_nagios_members_exist('nodemanagers') -%>
 define servicegroup {
   servicegroup_name  YARN

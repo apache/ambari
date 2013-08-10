@@ -64,7 +64,7 @@ hbase)
       exit 1;
     fi
     ;;
-resorcemanager)
+resourcemanager)
     rmweburl="http://$host:$port/cluster"
     if [[ `checkurl "$rmweburl"` -ne 0 ]]; then 
       echo "WARNING: ResourceManager web UI not accessible : $rmweburl";
@@ -78,7 +78,7 @@ historyserver2)
       exit 1;
     fi
     ;;
-*) echo "UNKNOWN: Invalid service name [$service], valid options [jobtracker|jobhistory|hbase|namenode|resorcemanager|historyserver2]"
+*) echo "UNKNOWN: Invalid service name [$service], valid options [jobtracker|jobhistory|hbase|namenode|resourcemanager|historyserver2]"
    exit 3
    ;;
 esac

@@ -180,7 +180,7 @@ define service {
 }
 <%end-%>
 
-<%if scope.function_hdp_nagios_members_exist('resorcemanager')-%>
+<%if scope.function_hdp_nagios_members_exist('resourcemanager')-%>
 define service {
         hostgroup_name          ganglia-server
         use                     hadoop-service
@@ -400,21 +400,21 @@ define service {
 
 <%end-%>
 
-<%if scope.function_hdp_nagios_members_exist('resorcemanager')-%>
+<%if scope.function_hdp_nagios_members_exist('resourcemanager')-%>
 # YARN::RESOURCEMANAGER Checks 
 define service {
-        hostgroup_name          resorcemanager
+        hostgroup_name          resourcemanager
         use                     hadoop-service
         service_description     RESOURCEMANAGER::Resource Manager Web UI down
         servicegroups           YARN
-        check_command           check_webui!resorcemanager!<%=scope.function_hdp_template_var("::hdp::rm_port")%>
+        check_command           check_webui!resourcemanager!<%=scope.function_hdp_template_var("::hdp::rm_port")%>
         normal_check_interval   1
         retry_check_interval    1
         max_check_attempts      3
 }
 
 define service {
-        hostgroup_name          resorcemanager
+        hostgroup_name          resourcemanager
         use                     hadoop-service
         service_description     RESOURCEMANAGER::Resource Manager CPU utilization
         servicegroups           YARN
@@ -425,7 +425,7 @@ define service {
 }
 
 define service {
-        hostgroup_name          resorcemanager
+        hostgroup_name          resourcemanager
         use                     hadoop-service
         service_description     RESOURCEMANAGER::Resource Manager RPC latency
         servicegroups           YARN
