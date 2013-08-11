@@ -39,11 +39,8 @@ class hdp-yarn::nodemanager(
 
     include hdp-yarn::initialize
 
-    hdp::directory_recursive_create { $nm_local_dirs: 
-      owner       => $yarn_user,
-      context_tag => 'yarn_service',
-      service_state => $service_state,
-      force => true
+    hdp-yarn::nodemanager::create_nm_dirs { $nm_local_dirs:
+      service_state => $service_state
     }
 
     hdp::directory_recursive_create { $nm_log_dirs: 
@@ -58,9 +55,21 @@ class hdp-yarn::nodemanager(
       user         => $yarn_user
     }
 
-    anchor{"hdp-yarn::nodemanager::begin":} -> Hdp::Directory_recursive_create[$nm_local_dirs] -> Hdp-yarn::Service['nodemanager'] -> anchor{"hdp-yarn::nodemanager::end":}
+    anchor{"hdp-yarn::nodemanager::begin":} ->
+    Hdp-yarn::Nodemanager::Create_nm_dirs<||> ->
+    Hdp-yarn::Service['nodemanager'] -> anchor{"hdp-yarn::nodemanager::end":}
 
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
+  }
+}
+
+define hdp-yarn::nodemanager::create_nm_dirs($service_state) {
+  $dirs = hdp_array_from_comma_list($name)
+  hdp::directory_recursive_create { $dirs :
+    owner => $hdp-yarn::params::yarn_user,
+    context_tag => 'yarn_service',
+    service_state => $service_state,
+    force => true
   }
 }

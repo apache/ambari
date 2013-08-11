@@ -46,7 +46,7 @@ class hdp-yarn::params(
   $nm_webui_address = hdp_default("yarn-site/yarn.nodemanager.webapp.address", "0.0.0.0:8042")
   $hs_webui_address = hdp_default("mapred-site/mapreduce.jobhistory.webapp.address", "0.0.0.0:19888")
   
-  $nm_local_dirs = hdp_default("yarn-site/yarn.nodemanager.local-dirs", "$hadoop_tmp_dir/nm-local-dir")
+  $nm_local_dirs = hdp_default("yarn-site/yarn.nodemanager.local-dirs", "${hadoop_tmp_dir}/nm-local-dir")
   $nm_log_dirs = hdp_default("yarn-site/yarn.nodemanager.log-dirs", "/var/log/hadoop-yarn/yarn")
 
   ##smoke test configs
