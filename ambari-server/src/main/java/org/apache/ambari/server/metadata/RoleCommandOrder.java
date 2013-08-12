@@ -337,7 +337,9 @@ public class RoleCommandOrder {
       addDependency(Role.MAPREDUCE2_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.RESOURCEMANAGER, RoleCommand.START);
       addDependency(Role.MAPREDUCE2_SERVICE_CHECK, RoleCommand.EXECUTE,
-        Role.HISTORYSERVER, RoleCommand.START);
+          Role.HISTORYSERVER, RoleCommand.START);
+      addDependency(Role.MAPREDUCE2_SERVICE_CHECK, RoleCommand.EXECUTE,
+          Role.YARN_SERVICE_CHECK, RoleCommand.EXECUTE);
       addDependency(Role.YARN_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.NODEMANAGER, RoleCommand.START);
       addDependency(Role.YARN_SERVICE_CHECK, RoleCommand.EXECUTE,
