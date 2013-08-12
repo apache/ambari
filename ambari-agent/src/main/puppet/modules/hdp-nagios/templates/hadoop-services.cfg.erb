@@ -64,17 +64,6 @@ define service {
         max_check_attempts      3
 }
 
-# NAGIOS SERVER MAPREDUCE Checks
-define service {
-        hostgroup_name          nagios-server
-        use                     hadoop-service
-        service_description     MAPREDUCE::Percent TaskTrackers down
-        servicegroups           MAPREDUCE
-        check_command           check_aggregate!"TASKTRACKER::TaskTracker process down"!10%!30%
-        normal_check_interval   0.5
-        retry_check_interval    0.25
-        max_check_attempts      3
-}
 
 # AMBARI AGENT Checks
 define service {
@@ -374,6 +363,20 @@ define service {
         max_check_attempts      5
 }
 
+<%end-%>
+
+<%if scope.function_hdp_nagios_members_exist('tasktracker')-%>
+define service {
+        hostgroup_name          nagios-server
+        use                     hadoop-service
+        service_description     MAPREDUCE::Percent TaskTrackers down
+        servicegroups           MAPREDUCE
+        check_command           check_aggregate!"TASKTRACKER::TaskTracker process down"!10%!30%
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      3
+}
+
 # MAPREDUCE::TASKTRACKER Checks 
 define service {
         hostgroup_name          tasktracker-servers
@@ -386,7 +389,7 @@ define service {
         max_check_attempts      3
 }
 
-# MAPREDUCE::TASKTRACKER Mapreduuce locad dir used space
+# MAPREDUCE::TASKTRACKER Mapreduce local dir used space
 define service {
         hostgroup_name          tasktracker-servers
         use                     hadoop-service
@@ -399,6 +402,7 @@ define service {
 }
 
 <%end-%>
+
 
 <%if scope.function_hdp_nagios_members_exist('resourcemanager')-%>
 # YARN::RESOURCEMANAGER Checks 
