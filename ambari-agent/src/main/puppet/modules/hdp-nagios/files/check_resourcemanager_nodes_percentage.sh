@@ -26,18 +26,27 @@ NODE_STATUS=$3
 WARN_PERCENT=$4
 CRIT_PERCENT=$5
 NODES="Nodes"
+
 RESOURCEMANAGER_URL="http://$HOST:$PORT/ws/v1/cluster/metrics"
 export PATH="/usr/bin:$PATH"
-RESPONSE=`curl $RESOURCEMANAGER_URL`
-#code below is parsing RESPONSE that we get from resourcemanager api, for number between "totalNodes": and ','
-TOTAL_NODES_NUM=`echo "$RESPONSE" | sed -nre 's/^.*"totalNodes":([[:digit:]]+).*$/\1/gp'`
+RESPONSE=`curl -s $RESOURCEMANAGER_URL`
+
+#code below is parsing RESPONSE that we get from resourcemanager api, for number between "activeNodes": and ','
+ACTIVE_NODES=`echo "$RESPONSE" | sed -nre 's/^.*"activeNodes":([[:digit:]]+).*$/\1/gp'`
+LOST_NODES=`echo "$RESPONSE" | sed -nre 's/^.*"lostNodes":([[:digit:]]+).*$/\1/gp'`
+UNHEALTHY_NODES=`echo "$RESPONSE" | sed -nre 's/^.*"unhealthyNodes":([[:digit:]]+).*$/\1/gp'`
+DECOMMISSIONED_NODES=`echo "$RESPONSE" | sed -nre 's/^.*"decommissionedNodes":([[:digit:]]+).*$/\1/gp'`
+REBOOTED_NODES=`echo "$RESPONSE" | sed -nre 's/^.*"rebootedNodes":([[:digit:]]+).*$/\1/gp'`
+
+TOTAL_NODES_NUM=$(($ACTIVE_NODES+$LOST_NODES+$UNHEALTHY_NODES+$DECOMMISSIONED_NODES+$REBOOTED_NODES))
 NODES_NUM=`echo "$RESPONSE" | sed -nre "s/^.*\"$NODE_STATUS$NODES\":([[:digit:]]+).*$/\1/gp"`
 PERCENT=$(($NODES_NUM*100/$TOTAL_NODES_NUM))
+
 if [[ "$PERCENT" -lt "$WARN_PERCENT" ]]; then
   echo "OK: total:<$TOTAL_NODES_NUM>, affected:<$NODES_NUM>"
   exit 0;
 elif [[ "$PERCENT" -lt "$CRIT_PERCENT" ]]; then
-  echo "WARN: total:<$TOTAL_NODES_NUM>, affected:<$NODES_NUM>"
+  echo "WARNING: total:<$TOTAL_NODES_NUM>, affected:<$NODES_NUM>"
   exit 1;
 else 
   echo "CRITICAL: total:<$TOTAL_NODES_NUM>, affected:<$NODES_NUM>"
