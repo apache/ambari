@@ -47,6 +47,8 @@ define hdp-oozie::smoke_shell_file(
   $conf_dir = $hdp::params::oozie_conf_dir
   $hadoopconf_dir = $hdp::params::hadoop_conf_dir 
   $security_enabled=$hdp::params::security_enabled
+  $jt_host=$hdp::params::jtnode_host
+  $nn_host=$hdp::params::namenode_host
   if ($security_enabled == true) {
     $security = "true"
   } else {
@@ -54,9 +56,6 @@ define hdp-oozie::smoke_shell_file(
   }
   $smoke_user_keytab = $hdp::params::smokeuser_keytab
   $realm=$hdp::params::kerberos_domain
-  $kinit_path = $hdp::params::kinit_path_local
-  $nn_principal = $hdp::params::nn_principal
-  $jt_principal = $hdp::params::jt_principal
 
   file { "/tmp/${smoke_shell_file_name}":
     ensure => present,
