@@ -28,6 +28,7 @@ App.HostPopup = Em.Object.create({
   inputData: null,
   serviceName: "",
   currentServiceId: null,
+  previousServiceId: null,
   popupHeaderName: "",
   serviceController: null,
   showServices: false,
@@ -298,7 +299,7 @@ App.HostPopup = Em.Object.create({
       var existedHosts = self.get('hosts');
 
       if (hosts) {
-        if (existedHosts && existedHosts.length === hosts.length) {
+        if (existedHosts && this.get('currentServiceId') === this.get('previousServiceId')) {
           existedHosts.forEach(function (host) {
             var newHostInfo = hosts.findProperty('name', host.get('name'));
             if (newHostInfo) {
@@ -428,6 +429,7 @@ App.HostPopup = Em.Object.create({
             hostsArr.push(hostInfo);
           }, this);
           self.set("hosts", hostsArr);
+          self.set('previousServiceId', this.get('currentServiceId'));
         }
       }
     }
