@@ -85,7 +85,7 @@ App.WizardStep7Controller = Em.Controller.extend({
     //STEP 5: Add custom configs
     App.config.addCustomConfigs(configs);
     //put properties from capacity-scheduler.xml into one config with textarea view
-    if(this.get('selectedServiceNames').contains('YARN') && !App.supports.capacitySchedulerUi){
+    if(this.get('allInstalledServiceNames').contains('YARN') && !App.supports.capacitySchedulerUi){
       configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml');
     }
     //STEP 6: Distribute configs by service and wrap each one in App.ServiceConfigProperty (configs -> serviceConfigs)

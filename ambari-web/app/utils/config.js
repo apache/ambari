@@ -828,25 +828,29 @@ App.config = Em.Object.create({
   textareaIntoFileConfigs: function(configs, filename){
     var complexConfigName = this.get('complexConfigs').findProperty('filename', filename).name;
     var configsTextarea = configs.findProperty('name', complexConfigName);
-    var properties = configsTextarea.get('value').replace(/( |\n)+/g, '\n').split('\n');
+    if (configsTextarea) {
+      var properties = configsTextarea.get('value').replace(/( |\n)+/g, '\n').split('\n');
 
-    properties.forEach(function(_property){
-      var name, value;
-      if(_property){
-        _property = _property.split('=');
-        name = _property[0];
-        value = (_property[1]) ? _property[1] : "";
-        configs.push(Em.Object.create({
-          id: configsTextarea.get('id'),
-          name: name,
-          value: value,
-          defaultValue: value,
-          serviceName: configsTextarea.get('serviceName'),
-          filename: filename
-        }));
-      }
-    });
-    return configs.without(configsTextarea);
+      properties.forEach(function (_property) {
+        var name, value;
+        if (_property) {
+          _property = _property.split('=');
+          name = _property[0];
+          value = (_property[1]) ? _property[1] : "";
+          configs.push(Em.Object.create({
+            id: configsTextarea.get('id'),
+            name: name,
+            value: value,
+            defaultValue: value,
+            serviceName: configsTextarea.get('serviceName'),
+            filename: filename
+          }));
+        }
+      });
+      return configs.without(configsTextarea);
+    }
+    console.log('ERROR: textarea config - ' + complexConfigName + ' is missing');
+    return configs;
   }
 
 });
