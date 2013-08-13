@@ -195,6 +195,14 @@ class hdp(
       Anchor['hdp::begin'] -> Hdp::Group['hdp_user_group'] -> Hdp::User['hive_user'] -> Anchor['hdp::end']  
     }
 
+    if ($hdp::params::rm_host != "") {
+      hdp::user { 'yarn_user':
+        user_name => $hdp::params::yarn_user
+      }
+      
+      Anchor['hdp::begin'] -> Hdp::Group['hdp_user_group'] -> Hdp::User['yarn_user'] -> Anchor['hdp::end']
+    }
+
 }
 
 class hdp::pre_install_pkgs
