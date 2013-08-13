@@ -73,6 +73,9 @@ module.exports = {
     if (!(typeof first === 'string' && typeof second === 'string')) {
       return false;
     }
+    if (first === '' || second === '') {
+      return false;
+    }
     var firstNumbers = first.split('.');
     var secondNumbers = second.split('.');
     var length = 0;

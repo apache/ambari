@@ -45,7 +45,7 @@ App.UpdateController = Em.Controller.extend({
 
   updateHost:function(callback) {
     var self = this;
-    var testUrl =  App.testHadoop2Stack ? '/data/hosts/HDP2/hosts.json':'/data/hosts/hosts.json';
+    var testUrl =  App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hosts.json':'/data/hosts/hosts.json';
       var hostsUrl = this.getUrl(testUrl, '/hosts?fields=Hosts/host_name,Hosts/public_host_name,Hosts/disk_info,Hosts/cpu_count,Hosts/total_mem,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components,metrics/disk,metrics/load/load_one');
       App.HttpClient.get(hostsUrl, App.hostsMapper, {
         complete: callback
@@ -98,7 +98,7 @@ App.UpdateController = Em.Controller.extend({
     });
     var conditionalFieldsString = conditionalFields.length > 0 ? ',' + conditionalFields.join(',') : '';
     var methodStartTs = new Date().getTime();
-    var testUrl = App.testHadoop2Stack ? '/data/dashboard/HDP2/services.json':'/data/dashboard/services.json';
+    var testUrl = App.get('isHadoop2Stack') ? '/data/dashboard/HDP2/services.json':'/data/dashboard/services.json';
     var servicesUrl = isInitialLoad ? 
       //this.getUrl('/data/dashboard/services.json', '/services?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles') :
       this.getUrl(testUrl, '/services?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles,components/host_components/metrics/jvm/memHeapUsedM,components/host_components/metrics/jvm/memHeapCommittedM,components/host_components/metrics/mapred/jobtracker/trackers_decommissioned,components/host_components/metrics/cpu/cpu_wio,components/host_components/metrics/rpc/RpcQueueTime_avg_time'+conditionalFieldsString) :

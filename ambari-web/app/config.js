@@ -23,7 +23,6 @@ App.testModeDelayForActions = 10000;
 App.skipBootstrap = false;
 App.alwaysGoToInstaller = false;
 App.testEnableSecurity = true; // By default enable security is tested; turning it false tests disable security
-App.testHadoop2Stack = true;
 App.testNameNodeHA = true;
 App.apiPrefix = '/api/v1';
 App.defaultStackVersion = 'HDP-1.3.0';

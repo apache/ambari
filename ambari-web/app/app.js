@@ -58,9 +58,6 @@ module.exports = Em.Application.create({
     return this.get('currentStackVersion').replace(/HDP(Local)?-/, '');
   }.property('currentStackVersion'),
   isHadoop2Stack: function(){
-    if(App.testHadoop2Stack && !App.alwaysGoToInstaller) {
-      return true;
-    }
     return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") === 1 ||
       stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") === 0)
   }.property('currentStackVersionNumber')
