@@ -22,7 +22,7 @@ var App = require('app');
  */
 App.MainChartHeatmapYarnResourceUsedMetric = App.MainChartHeatmapYarnMetrics.extend({
   metricUrlTemplate: '/clusters/{clusterName}/services/YARN/components/RESOURCEMANAGER?fields=ServiceComponentInfo/rm_metrics',
-  name: Em.I18n.t('charts.heatmap.metrics.YarnResourceUsed'),
+  name: Em.I18n.t('charts.heatmap.metrics.YarnMemoryUsed'),
   maximumValue: 100,
   defaultMetric: 'ServiceComponentInfo.rm_metrics.cluster.nodeManagers',
   units: ' %',
