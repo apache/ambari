@@ -565,6 +565,7 @@ var urls = {
   },
   'admin.high_availability.stop_all_services': {
     'real': '/clusters/{clusterName}/services?ServiceInfo/state=STARTED',
+    'mock': '',
     'format': function (data, opt) {
       return {
         type: 'PUT',
@@ -583,6 +584,7 @@ var urls = {
   },
   'admin.high_availability.start_all_services': {
     'real': '/clusters/{clusterName}/services?ServiceInfo/state=INSTALLED',
+    'mock': '',
     'format': function (data, opt) {
       return {
         type: 'PUT',
@@ -622,8 +624,27 @@ var urls = {
       }
     }
   },
+  'admin.high_availability.create_journalnode': {
+    'real': '/clusters/{clusterName}/services?ServiceInfo/service_name=HDFS',
+    'mock': '',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          "components": [
+            {
+              "ServiceComponentInfo": {
+                "component_name": "JOURNALNODE"
+              }
+            }
+          ]
+        })
+      }
+    }
+  },
   'admin.high_availability.install_component': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
+    'mock': '',
     'type': 'PUT',
     'format': function (data) {
       return {
@@ -641,16 +662,17 @@ var urls = {
     }
   },
   'admin.high_availability.start_component': {
-    'real': '/clusters/{clusterName}/services/{serviceName}',
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
+    'mock': '',
     'type': 'PUT',
     'format': function (data) {
       return {
         data: JSON.stringify({
           RequestInfo: {
-            "context": "Start service " + data.displayName
+            "context": "Start " + data.displayName
           },
           Body: {
-            ServiceInfo: {
+            "HostRoles": {
               "state": "STARTED"
             }
           }
@@ -660,12 +682,37 @@ var urls = {
   },
   'admin.high_availability.maintenance_mode': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
+    'mock': '',
     'type': 'PUT',
     'format': function () {
       return {
         data: JSON.stringify({
           "HostRoles": {
             "state": "MAINTENANCE"
+          }
+        })
+      }
+    }
+  },
+  'admin.high_availability.load_configs': {
+    'real': '/clusters/{clusterName}/configurations?(type=core-site&tag={coreSiteTag})|(type=hdfs-site&tag={hdfsSiteTag})',
+    'mock': '',
+    'type': 'GET'
+  },
+  'admin.high_availability.save_configs': {
+    'real': '/clusters/{clusterName}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        async: false,
+        data: JSON.stringify({
+          Clusters: {
+            desired_config: {
+              "type": data.siteName,
+              "tag": 'version' + (new Date).getTime(),
+              "properties": data.properties
+            }
           }
         })
       }

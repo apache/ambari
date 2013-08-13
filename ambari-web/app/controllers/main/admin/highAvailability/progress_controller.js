@@ -39,6 +39,7 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
     this.set('isSubmitDisabled', true);
     this.set('tasks', []);
     this.set('logs', []);
+    this.set('currentRequestIds', []);
     var commands = this.get('commands');
     var currentStep = App.router.get('highAvailabilityWizardController.currentStep');
     for (var i = 0; i < commands.length; i++) {
@@ -46,7 +47,8 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
         title: Em.I18n.t('admin.highAvailability.wizard.step' + currentStep + '.task' + i + '.title'),
         status: 'PENDING',
         id: i,
-        command: commands[i]
+        command: commands[i],
+        showRetry: false
       }));
     }
   },
@@ -60,7 +62,13 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
   },
 
   showRetry: function (taskId) {
-    //show retry button for selected task
+    this.get('tasks').findProperty('id', taskId).set('showRetry', true);
+  },
+
+  retryTask: function () {
+    var task = this.get('tasks').findProperty('status', 'FAILED');
+    task.set('showRetry', false);
+    task.set('status', 'PENDING');
   },
 
   onTaskStatusChange: function () {
@@ -96,7 +104,10 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
     if (!(hostName instanceof Array)) {
       hostName = [hostName];
     }
+    var hostComponents = [];
     for (var i = 0; i < hostName.length; i++) {
+      hostComponents = App.HostComponent.find().filterProperty('componentName', componentName);
+      if (!hostComponents.length || !hostComponents.mapProperty('host.hostName').contains(hostName[i])) {
       App.ajax.send({
         name: 'admin.high_availability.create_component',
         sender: this,
@@ -108,16 +119,21 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
         success: 'onCreateComponent',
         error: 'onTaskError'
       });
+      } else {
+        var taskNum = hostName.length;
+        this.installComponent(componentName, hostName[i], taskNum);
+      }
     }
   },
 
   onCreateComponent: function () {
     var hostName = arguments[2].hostName;
     var componentName = arguments[2].componentName;
-    this.installComponent(componentName, hostName);
+    var taskNum = arguments[2].taskNum;
+    this.installComponent(componentName, hostName, taskNum);
   },
 
-  installComponent: function (componentName, hostName) {
+  installComponent: function (componentName, hostName, taskNum) {
     if (!(hostName instanceof Array)) {
       hostName = [hostName];
     }
@@ -129,7 +145,7 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
           hostName: hostName[i],
           componentName: componentName,
           displayName: App.format.role(componentName),
-          taskNum: hostName.length
+          taskNum: taskNum || hostName.length
         },
         success: 'startPolling',
         error: 'onTaskError'

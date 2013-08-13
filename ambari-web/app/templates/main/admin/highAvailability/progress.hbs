@@ -24,6 +24,12 @@
   <div class="item">
     <i {{bindAttr class="view.icon view.iconColor"}}></i>
     <a href="javascript:void(0)">{{task.title}}</a>
+    {{#if task.showRetry}}
+    <a {{action retryTask target="controller"}} class="btn btn-primary retry">
+      <i class="icon-repeat icon-white"></i>
+      {{t common.retry}}
+    </a>
+    {{/if}}
   </div>
   <div {{bindAttr class="view.showProgressBar::hide :row :span12" }}>
     <div class="progress-bar span4">
