@@ -761,4 +761,12 @@ class hdp::params()
   $is_rmnode_master   = $hdp::params::hostname in $rm_host
   $is_hsnode_master   = $hdp::params::hostname in $hs_host
   $is_hbase_master    = $hdp::params::hostname in $hbase_master_hosts
+  $is_slave           = $hdp::params::hostname in $slave_hosts
+  
+  $has_namenodes = hdp_is_empty($namenode_host) == false
+  $has_jobtracker = hdp_is_empty($jtnode_host) == false
+  $has_resourcemanager = hdp_is_empty($rm_host) == false
+  $has_histroryserver = hdp_is_empty($hs_host) == false
+  $has_hbase_masters = hdp_is_empty($hbase_master_hosts) == false
+  $has_slaves = hdp_is_empty($slave_hosts) == false
 }

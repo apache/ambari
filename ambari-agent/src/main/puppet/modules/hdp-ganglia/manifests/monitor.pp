@@ -82,44 +82,32 @@ class hdp-ganglia::monitor::config-gen()
 
   $service_exists = $hdp::params::service_exists
 
-   #FIXME currently hacking this to make it work
-
-#  if ($service_exists['hdp-hadoop::namenode'] == true) {
-#    hdp-ganglia::config::generate_monitor { 'HDPNameNode':}
-#  }
-#  if ($service_exists['hdp-hadoop::jobtracker'] == true){
-#    hdp-ganglia::config::generate_monitor { 'HDPJobTracker':}
-#  }
-#  if ($service_exists['hdp-hbase::master'] == true) {
-#    hdp-ganglia::config::generate_monitor { 'HDPHBaseMaster':}
-#  }
-#  if ($service_exists['hdp-hadoop::datanode'] == true) {
-#    hdp-ganglia::config::generate_monitor { 'HDPSlaves':}
-#  }
-
   if ($hdp::params::is_namenode_master) {
-    hdp-ganglia::config::generate_monitor { 'HDPNameNode':}
+    hdp-ganglia::config::generate_daemon { 'HDPNameNode':}
   }
   if ($hdp::params::is_jtnode_master) {
-    hdp-ganglia::config::generate_monitor { 'HDPJobTracker':}
+    hdp-ganglia::config::generate_daemon { 'HDPJobTracker':}
   }
   if ($hdp::params::is_rmnode_master) {
-    hdp-ganglia::config::generate_monitor { 'HDPResourceManager':}
+    hdp-ganglia::config::generate_daemon { 'HDPResourceManager':}
   }
   if ($hdp::params::is_hsnode_master) {
-    hdp-ganglia::config::generate_monitor { 'HDPHistoryServer':}
+    hdp-ganglia::config::generate_daemon { 'HDPHistoryServer':}
   }
   if ($hdp::params::is_hbase_master) {
-    hdp-ganglia::config::generate_monitor { 'HDPHBaseMaster':}
+    hdp-ganglia::config::generate_daemon { 'HDPHBaseMaster':}
   }
-  hdp-ganglia::config::generate_monitor { 'HDPSlaves':}
+  
+  if ($hdp::params::is_slave) {
+    hdp-ganglia::config::generate_daemon { 'HDPSlaves':}
+  }
 
-  Hdp-ganglia::Config::Generate_monitor<||>{
+  Hdp-ganglia::Config::Generate_daemon<||>{
     ganglia_service => 'gmond',
     role => 'monitor'
   }
    # 
-  anchor{'hdp-ganglia::monitor::config-gen::begin':} -> Hdp-ganglia::Config::Generate_monitor<||> -> anchor{'hdp-ganglia::monitor::config-gen::end':}
+  anchor{'hdp-ganglia::monitor::config-gen::begin':} -> Hdp-ganglia::Config::Generate_daemon<||> -> anchor{'hdp-ganglia::monitor::config-gen::end':}
 }
 
 class hdp-ganglia::monitor::gmond(

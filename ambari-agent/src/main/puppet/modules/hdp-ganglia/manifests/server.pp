@@ -52,45 +52,49 @@ class hdp-ganglia::server(
     service_state       => $service_state 
   }
 
-  if ($hdp::params::is_namenode_master) {
-    hdp-ganglia::config::generate_server { 'HDPNameNode':
-      ganglia_service => 'gmond',
-      role => 'server'
-    }
-  }
-  if ($hdp::params::is_jtnode_master) {
-    hdp-ganglia::config::generate_server { 'HDPJobTracker':
-      ganglia_service => 'gmond',
-      role => 'server'
-    }
-  }
-  if ($hdp::params::is_hbase_master) {
-    hdp-ganglia::config::generate_server { 'HDPHBaseMaster':
-      ganglia_service => 'gmond',
-      role => 'server'
-    }
-  }
-
-  if ($hdp::params::is_rmnode_master) {
-    hdp-ganglia::config::generate_server { 'HDPResourceManager':
+  if ($hdp::params::has_namenodes) {
+    hdp-ganglia::config::generate_daemon { 'HDPNameNode':
       ganglia_service => 'gmond',
       role => 'server'
     }
   }
   
-  if ($hdp::params::is_hsnode_master) {
-    hdp-ganglia::config::generate_server { 'HDPHistoryServer':
+  if ($hdp::params::has_jobtracker) {
+    hdp-ganglia::config::generate_daemon { 'HDPJobTracker':
       ganglia_service => 'gmond',
       role => 'server'
     }
   }
-	
-  hdp-ganglia::config::generate_server { 'HDPSlaves':
-    ganglia_service => 'gmond',
-    role => 'server'
+  
+  if ($hdp::params::has_hbase_masters) {
+    hdp-ganglia::config::generate_daemon { 'HDPHBaseMaster':
+      ganglia_service => 'gmond',
+      role => 'server'
+    }
   }
 
-  hdp-ganglia::config::generate_server { 'gmetad':
+  if ($hdp::params::has_resourcemanager) {
+    hdp-ganglia::config::generate_daemon { 'HDPResourceManager':
+      ganglia_service => 'gmond',
+      role => 'server'
+    }
+  }
+  
+  if ($hdp::params::has_histroryserver) {
+    hdp-ganglia::config::generate_daemon { 'HDPHistoryServer':
+      ganglia_service => 'gmond',
+      role => 'server'
+    }
+  }
+
+  if ($hdp::params::has_slaves) {
+    hdp-ganglia::config::generate_daemon { 'HDPSlaves':
+      ganglia_service => 'gmond',
+      role => 'server'
+    }
+  }
+
+  hdp-ganglia::config::generate_daemon { 'gmetad':
     ganglia_service => 'gmetad',
     role => 'server'
   }
@@ -121,7 +125,7 @@ class hdp-ganglia::server(
 
   #top level does not need anchors
   Class['hdp-ganglia'] -> Class['hdp-ganglia::server::packages'] -> Class['hdp-ganglia::config'] ->
-    Hdp-ganglia::Config::Generate_server<||> ->
+    Hdp-ganglia::Config::Generate_daemon<||> ->
     File["${hdp-ganglia::params::ganglia_dir}/gmetad.conf"] -> Class['hdp-ganglia::service::change_permission'] ->
     Class['hdp-ganglia::server::files'] -> Class['hdp-ganglia::server::gmetad'] -> Class['hdp-monitor-webserver']
  }

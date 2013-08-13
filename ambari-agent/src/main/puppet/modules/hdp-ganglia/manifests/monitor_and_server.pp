@@ -61,7 +61,7 @@ class hdp-ganglia::monitor_and_server(
     class {'hdp-ganglia::monitor::config-gen': }      
     
     
-    hdp-ganglia::config::generate_server { 'gmetad':
+    hdp-ganglia::config::generate_daemon { 'gmetad':
       ganglia_service => 'gmetad'
     }
 
@@ -71,7 +71,7 @@ class hdp-ganglia::monitor_and_server(
 
     #top level no anchors needed
     Class['hdp-ganglia'] -> Class['hdp-ganglia::server::packages'] -> Class['hdp-ganglia::config'] -> 
-      Class['hdp-ganglia::monitor::config-gen'] -> Hdp-ganglia::Config::Generate_server['gmetad'] ->
+      Class['hdp-ganglia::monitor::config-gen'] -> Hdp-ganglia::Config::Generate_daemon['gmetad'] ->
       Class['hdp-ganglia::service::change_permission']
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")

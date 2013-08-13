@@ -18,8 +18,8 @@
 # under the License.
 #
 #
-#TODO: these scripts called shoudl be converetd to native puppet
-define hdp-ganglia::config::generate_server(
+#TODO: these scripts called should be converted to native puppet
+define hdp-ganglia::config::generate_daemon(
   $ganglia_service,
   $role,
   $owner = 'root',
@@ -27,7 +27,6 @@ define hdp-ganglia::config::generate_server(
 )
 {
   $shell_cmds_dir = $hdp-ganglia::params::ganglia_shell_cmds_dir
-
   $cmd = $ganglia_service ? {
     'gmond'  => $role ? {
       'server' => "${shell_cmds_dir}/setupGanglia.sh -c ${name} -m -o ${owner} -g ${group}",
