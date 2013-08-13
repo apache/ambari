@@ -61,6 +61,6 @@ class hdp-hbase::master(
 #assumes that master and regionserver will not be on same machine
 class hdp-hbase::master::enable-ganglia()
 {
-  Hdp-hbase::Configfile<|title  == 'hadoop-metrics.properties'|>{template_tag => 'GANGLIA-MASTER'}
+  Hdp-hbase::Configfile<|title  == $metric-prop-file-name |>{template_tag => 'GANGLIA-MASTER'}
 }
 

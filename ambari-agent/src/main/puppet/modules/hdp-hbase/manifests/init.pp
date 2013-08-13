@@ -106,7 +106,7 @@ class hdp-hbase(
       override_owner => true
     }
 
-   hdp-hbase::configfile { ['hbase-env.sh','hadoop-metrics.properties']: 
+   hdp-hbase::configfile { ['hbase-env.sh',  $hdp-hbase::params::metric-prop-file-name ]: 
       type => $type
     }
 
@@ -135,7 +135,7 @@ define hdp-hbase::configfile(
   $conf_dir = $hdp-hbase::params::conf_dir
 ) 
 {
-  if ($name == 'hadoop-metrics.properties') {
+  if ($name == $hdp-hbase::params::metric-prop-file-name) {
     if ($type == 'master') {
       $tag = GANGLIA-MASTER
     } else {

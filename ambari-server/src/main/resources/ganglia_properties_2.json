@@ -7444,12 +7444,12 @@
         "temporal":true
       },
       "metrics/hbase/master/cluster_requests":{
-        "metric":"hbase.master.cluster_requests",
+        "metric":"master.Server.clusterRequests",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/master/splitSize_avg_time":{
-        "metric":"hbase.master.splitSize_avg_time",
+        "metric":"master.Server.HlogSplitSize_mean",
         "pointInTime":true,
         "temporal":true
       },
@@ -7459,7 +7459,7 @@
         "temporal":true
       },
       "metrics/hbase/master/splitTime_avg_time":{
-        "metric":"hbase.master.splitTime_avg_time",
+        "metric":"master.Server.HlogSplitTime_mean",
         "pointInTime":true,
         "temporal":true
       },
@@ -10107,7 +10107,7 @@
         "temporal":true
       },
       "metrics/hbase/regionserver/compactionQueueSize":{
-        "metric":"hbase.regionserver.compactionQueueSize",
+        "metric":"regionserver.Server.compactionQueueLength",
         "pointInTime":true,
         "temporal":true
       },
@@ -10177,7 +10177,7 @@
         "temporal":true
       },
       "metrics/hbase/regionserver/flushQueueSize":{
-        "metric":"hbase.regionserver.flushQueueSize",
+        "metric":"regionserver.Server.flushQueueLength",
         "pointInTime":true,
         "temporal":true
       },
@@ -10427,12 +10427,12 @@
         "temporal":true
       },
       "metrics/hbase/regionserver/readRequestsCount":{
-        "metric":"hbase.regionserver.readRequestsCount",
+        "metric":"regionserver.Server.readRequestCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/regions":{
-        "metric":"hbase.regionserver.regions",
+        "metric":"regionserver.Server.regionCount",
         "pointInTime":true,
         "temporal":true
       },
@@ -10472,7 +10472,7 @@
         "temporal":true
       },
       "metrics/hbase/regionserver/writeRequestsCount":{
-        "metric":"hbase.regionserver.writeRequestsCount",
+        "metric":"regionserver.Server.writeRequestCount",
         "pointInTime":true,
         "temporal":true
       },
@@ -17303,12 +17303,12 @@
         "temporal":true
       },
       "metrics/hbase/master/cluster_requests":{
-        "metric":"hbase.master.cluster_requests",
+        "metric":"master.Server.clusterRequests",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/master/splitSize_avg_time":{
-        "metric":"hbase.master.splitSize_avg_time",
+        "metric":"master.Server.HlogSplitTime_mean",
         "pointInTime":true,
         "temporal":true
       },
@@ -17318,7 +17318,7 @@
         "temporal":true
       },
       "metrics/hbase/master/splitTime_avg_time":{
-        "metric":"hbase.master.splitTime_avg_time",
+        "metric": "master.Server.HlogSplitTime_mean",
         "pointInTime":true,
         "temporal":true
       },
@@ -19876,7 +19876,7 @@
         "temporal":true
       },
       "metrics/hbase/regionserver/compactionQueueSize":{
-        "metric":"hbase.regionserver.compactionQueueSize",
+        "metric":"regionserver.Server.compactionQueueLength",
         "pointInTime":true,
         "temporal":true
       },
@@ -19946,7 +19946,7 @@
         "temporal":true
       },
       "metrics/hbase/regionserver/flushQueueSize":{
-        "metric":"hbase.regionserver.flushQueueSize",
+        "metric":"regionserver.Server.flushQueueLength",
         "pointInTime":true,
         "temporal":true
       },
@@ -20196,12 +20196,12 @@
         "temporal":true
       },
       "metrics/hbase/regionserver/readRequestsCount":{
-        "metric":"hbase.regionserver.readRequestsCount",
+        "metric":"regionserver.Server.readRequestCount",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/regionserver/regions":{
-        "metric":"hbase.regionserver.regions",
+        "metric":"regionserver.Server.regionCount",
         "pointInTime":true,
         "temporal":true
       },
@@ -20241,7 +20241,7 @@
         "temporal":true
       },
       "metrics/hbase/regionserver/writeRequestsCount":{
-        "metric":"hbase.regionserver.writeRequestsCount",
+        "metric":"regionserver.Server.writeRequestCount",
         "pointInTime":true,
         "temporal":true
       },

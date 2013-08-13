@@ -103,5 +103,10 @@ class hdp-hbase::params() inherits hdp::params
     $hbase_regionserver_jaas_princ = "${hbase_regionserver_primary_name}@${kerberos_domain}"
   }
 
+  if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
+    $metric-prop-file-name = "hadoop-metrics2-hbase.properties"
+  } else {
+    $metric-prop-file-name = "hadoop-metrics.properties"
+  }
   $smokeuser_permissions = hdp_default("smokeuser_permissions", "RWXCA")
 }
