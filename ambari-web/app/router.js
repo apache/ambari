@@ -182,6 +182,7 @@ App.Router = Em.Router.extend({
     var d = data;
     var isAdmin = data.Users.roles.indexOf('admin') >= 0;
     if (isAdmin) {
+      App.set('isAdmin', true);
       var controller = this.get('loginController');
       this.setAuthenticated(true);
       this.setLoginName(params.loginName);

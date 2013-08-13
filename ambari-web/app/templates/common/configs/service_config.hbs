@@ -110,13 +110,15 @@
                   {{/each}}
 
                   {{! For Advanced, Advanced Core Site, Advanced HDFS Site sections, show the 'Add Property' link.}}
-                  {{#if view.canEdit}}
-	                  {{#if category.canAddProperty }}
-	                      <div>
-	                          <a href="#" {{action "showAddPropertyWindow" this target="view" }} >{{t installer.step7.config.addProperty}}...</a>
-	                      </div>
-	                  {{/if}}
-	                {{/if}}
+                  {{#if App.isAdmin}}
+                    {{#if view.canEdit}}
+                      {{#if category.canAddProperty }}
+                        <div>
+                          <a href="#" {{action "showAddPropertyWindow" this target="view" }} >{{t installer.step7.config.addProperty}}...</a>
+                        </div>
+                      {{/if}}
+                    {{/if}}
+                  {{/if}}
                 </form>
               </div>
             </div>
