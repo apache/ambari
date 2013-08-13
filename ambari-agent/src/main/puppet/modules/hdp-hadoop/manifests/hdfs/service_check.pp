@@ -91,8 +91,11 @@ class hdp-hadoop::hdfs::service_check()
       require     => Hdp-hadoop::Exec-hadoop['hdfs::service_check::create_file'],
       before      => Class['hdp-hadoop::journalnode::service_check']
     } 
+    
+    $journalnode_hosts_comma_sep = hdp_comma_list_from_array($hdp::params::journalnode_hosts)
+    
     class { 'hdp-hadoop::journalnode::service_check':
-      journalnode_host => $hdp::params::journalnode_hosts,
+      journalnode_hosts => $journalnode_hosts_comma_sep,
       require          => Hdp-hadoop::Exec-hadoop['hdfs::service_check::test'],
       before           => Anchor['hdp-hadoop::hdfs::service_check::end']
     }
@@ -103,7 +106,7 @@ class hdp-hadoop::hdfs::service_check()
 
 }
 
-class hdp-hadoop::journalnode::service_check($journalnode_host)
+class hdp-hadoop::journalnode::service_check($journalnode_hosts)
 {
   
   $journalnode_port = $hdp::params::journalnode_port
@@ -112,7 +115,7 @@ class hdp-hadoop::journalnode::service_check($journalnode_host)
   $checkWebUIFileName = "checkWebUI.py"
   $checkWebUIFilePath = "/tmp/$checkWebUIFileName"
 
-  $checkWebUICmd = "su - ${smoke_test_user} -c 'python $checkWebUIFilePath -u $journalnode_host:$journalnode_port'"
+  $checkWebUICmd = "su - ${smoke_test_user} -c 'python $checkWebUIFilePath -m $journalnode_hosts -p $journalnode_port'"
 
   file { $checkWebUIFilePath:
     ensure => present,

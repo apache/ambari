@@ -122,7 +122,7 @@
                 <argument>unitTests.py</argument>
               </arguments>
               <environmentVariables>
-                <PYTHONPATH>${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python/ambari_agent:$PYTHONPATH</PYTHONPATH>
+                <PYTHONPATH>${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python/ambari_agent:${project.basedir}/src/main/puppet/modules/hdp-hadoop/files:$PYTHONPATH</PYTHONPATH>
               </environmentVariables>
               <skip>${skipTests}</skip>
             </configuration>

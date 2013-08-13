@@ -26,21 +26,25 @@ import urllib
 #
 def main():
   parser = optparse.OptionParser(usage="usage: %prog [options] component ")
-  parser.add_option("-u", "--url", dest="url", help="Host:Port for WEB UI to check it availability")
+  parser.add_option("-m", "--hosts", dest="hosts", help="Comma separated hosts list for WEB UI to check it availability")
+  parser.add_option("-p", "--port", dest="port", help="Port of WEB UI to check it availability")
 
   (options, args) = parser.parse_args()
   
-  url = options.url
+  hosts = options.hosts.split(',')
+  port = options.port
 
-  try:
-    httpCode = urllib.urlopen('http://' + url).getcode()
-  except Exception:
-    httpCode = 404
+  for host in hosts:
+    try:
+      url = 'http://' + host + ':' + port
+      httpCode = urllib.urlopen(url).getcode()
+    except Exception:
+      httpCode = 404
 
-  if httpCode != 200:
-    exit(1)
-  else:
-    exit(0)
+    if httpCode != 200:
+      print "Cannot access WEB UI on: " + url
+      exit(1)
+      
 
 if __name__ == "__main__":
   main()
