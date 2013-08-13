@@ -201,7 +201,7 @@ App.WizardStep8Controller = Em.Controller.extend({
         "overrides": valueWithOverrides.overrides
       });
     }, this);
-    var dependentConfig = this.get('configMapping').filterProperty('foreignKey');
+    var dependentConfig = $.extend(true, [], this.get('configMapping').filterProperty('foreignKey'));
     dependentConfig.forEach(function (_config) {
       App.config.setConfigValue(uiConfig, this.get('content.serviceConfigProperties'), _config, this.get('globals'));
       uiConfig.pushObject({
