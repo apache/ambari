@@ -619,6 +619,7 @@ module.exports =
       "defaultValue": "/var/log/hadoop-mapreduce",
       "displayType": "directory",
       "isVisible": true,
+      "isReconfigurable": false,
       "domain": "global",
       "serviceName": "MAPREDUCE2",
       "category": "Advanced"
@@ -631,6 +632,7 @@ module.exports =
       "defaultValue": "/var/run/hadoop-mapreduce",
       "displayType": "directory",
       "isVisible": true,
+      "isReconfigurable": false,
       "domain": "global",
       "serviceName": "MAPREDUCE2",
       "category": "Advanced"
@@ -719,6 +721,7 @@ module.exports =
       "description": "",
       "defaultValue": "/var/log/hadoop-yarn",
       "displayType": "directory",
+      "isReconfigurable": false,
       "isVisible": true,
       "domain": "global",
       "serviceName": "YARN",
@@ -732,6 +735,7 @@ module.exports =
       "defaultValue": "/var/run/hadoop-yarn",
       "displayType": "directory",
       "isVisible": true,
+      "isReconfigurable": false,
       "domain": "global",
       "serviceName": "YARN",
       "category": "Advanced"
