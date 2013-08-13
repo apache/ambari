@@ -37,7 +37,7 @@ class hdp-hadoop::hdfs::service_check()
 
   hdp-hadoop::exec-hadoop { 'hdfs::service_check::check_safemode':
     command   => $safemode_command,
-    tries     => 40,
+    tries     => 20,
     try_sleep => 15,
     logoutput => true,
     user      => $hdp::params::smokeuser,
