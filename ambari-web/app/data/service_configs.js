@@ -82,8 +82,8 @@ module.exports = [
     displayName: 'YARN',
     filename: 'yarn-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'ResourceManager', displayName : 'Resource Manager', hostComponentNames : ['RESOURCEMANAGER']}),
-      App.ServiceConfigCategory.create({ name: 'NodeManager', displayName : 'Node Manager', hostComponentNames : ['NODEMANAGER']}),
+      App.ServiceConfigCategory.create({ name: 'ResourceManager', displayName : 'ResourceManager', hostComponentNames : ['RESOURCEMANAGER']}),
+      App.ServiceConfigCategory.create({ name: 'NodeManager', displayName : 'NodeManager', hostComponentNames : ['NODEMANAGER']}),
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
       App.ServiceConfigCategory.create({ name: 'CapacityScheduler', displayName : 'Capacity Scheduler', isCapacityScheduler : true, isCustomView: true, siteFileName: 'capacity-scheduler.xml', siteFileNames: ['capacity-scheduler.xml', 'mapred-queue-acls.xml'], canAddProperty: App.supports.capacitySchedulerUi}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),

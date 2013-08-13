@@ -63,8 +63,8 @@ module.exports = [
     displayName: 'YARN',
     filename: 'yarn-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'ResourceManager', displayName : 'Resource Manager'}),
-      App.ServiceConfigCategory.create({ name: 'NodeManager', displayName : 'Node Manager'})
+      App.ServiceConfigCategory.create({ name: 'ResourceManager', displayName : 'ResourceManager'}),
+      App.ServiceConfigCategory.create({ name: 'NodeManager', displayName : 'NodeManager'})
       ],
     sites: ['yarn-site'],
     configs: configProperties.filterProperty('serviceName', 'YARN')

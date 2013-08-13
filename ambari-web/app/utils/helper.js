@@ -248,9 +248,9 @@ App.format = {
       case 'HISTORYSERVER':
         return 'History Server';
       case 'NODEMANAGER':
-        return 'Node Manager';
+        return 'NodeManager';
       case 'RESOURCEMANAGER':
-        return 'Resource Manager';
+        return 'ResourceManager';
       case 'TEZ_CLIENT':
         return 'Tez Client';
       case 'MAPREDUCE2_CLIENT':

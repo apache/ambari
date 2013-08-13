@@ -555,10 +555,10 @@ App.WizardStep8Controller = Em.Controller.extend({
   loadYARN: function(mrObj){
     mrObj.get('service_components').forEach(function (_component) {
       switch (_component.get('display_name')) {
-        case 'Node Manager':
+        case 'NodeManager':
           this.loadNMValue(_component);
           break;
-        case 'Resource Manager':
+        case 'ResourceManager':
           _component.set('component_value', this.get('content.masterComponentHosts').findProperty('component', 'RESOURCEMANAGER').hostName);
           break;
         case 'History Server':

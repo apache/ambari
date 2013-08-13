@@ -689,8 +689,8 @@ module.exports =
     {
       "id": "puppet var",
       "name": "rm_host",
-      "displayName": "Resource Manager",
-      "description": "Resource Manager",
+      "displayName": "ResourceManager",
+      "description": "ResourceManager",
       "defaultValue": "",
       "isOverridable": false,
       "displayType": "masterHost",
@@ -703,8 +703,8 @@ module.exports =
     {
       "id": "puppet var",
       "name": "nm_hosts",
-      "displayName": "Node Manager",
-      "description": "List of Node Manager Hosts.",
+      "displayName": "NodeManager",
+      "description": "List of NodeManager Hosts.",
       "defaultValue": "",
       "isOverridable": false,
       "displayType": "slaveHosts",

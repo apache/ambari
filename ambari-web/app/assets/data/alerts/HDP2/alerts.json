@@ -122,7 +122,7 @@
               "service_type" : "GANGLIA"
             },
             {
-              "service_description" : "Ganglia Collector [gmond] process down alert for Node Manager",
+              "service_description" : "Ganglia Collector [gmond] process down alert for NodeManager",
               "host_name" : "dev01.hortonworks.com",
               "current_attempt" : "1",
               "current_state" : "0",
@@ -138,7 +138,7 @@
               "service_type" : "GANGLIA"
             },
             {
-              "service_description" : "Ganglia Collector [gmond] process down alert for Resource Manager",
+              "service_description" : "Ganglia Collector [gmond] process down alert for ResourceManager",
               "host_name" : "dev01.hortonworks.com",
               "current_attempt" : "1",
               "current_state" : "0",
@@ -490,7 +490,7 @@
               "service_type" : "HDFS"
             },
             {
-              "service_description" : "Node Manager process down",
+              "service_description" : "NodeManager process down",
               "host_name" : "dev01.hortonworks.com",
               "current_attempt" : "1",
               "current_state" : "0",
@@ -538,7 +538,7 @@
               "service_type" : "HBASE"
             },
             {
-              "service_description" : "Resource Manager CPU utilization",
+              "service_description" : "ResourceManager CPU utilization",
               "host_name" : "dev01.hortonworks.com",
               "current_attempt" : "1",
               "current_state" : "0",
@@ -554,7 +554,7 @@
               "service_type" : "UNKNOWN"
             },
             {
-              "service_description" : "Resource Manager RPC latency",
+              "service_description" : "ResourceManager RPC latency",
               "host_name" : "dev01.hortonworks.com",
               "current_attempt" : "1",
               "current_state" : "0",
@@ -570,7 +570,7 @@
               "service_type" : "UNKNOWN"
             },
             {
-              "service_description" : "Resource Manager Web UI down",
+              "service_description" : "ResourceManager Web UI down",
               "host_name" : "dev01.hortonworks.com",
               "current_attempt" : "1",
               "current_state" : "0",

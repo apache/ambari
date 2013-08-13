@@ -101,7 +101,7 @@ module.exports = new Ember.Set([
   {
     service_name: 'YARN',
     component_name: 'RESOURCEMANAGER',
-    display_name: 'Resource Manager',
+    display_name: 'ResourceManager',
     isMaster: true,
     isClient: false,
     description: ''
@@ -117,7 +117,7 @@ module.exports = new Ember.Set([
   {
     service_name: 'YARN',
     component_name: 'NODEMANAGER',
-    display_name: 'Node Manager',
+    display_name: 'NodeManager',
     isMaster: false,
     isClient: false,
     description: ''

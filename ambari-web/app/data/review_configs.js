@@ -89,11 +89,11 @@ module.exports = [
         display_name: 'YARN + MapReduce2',
         service_components: [
           Ember.Object.create({
-            display_name: 'Node Manager',
+            display_name: 'NodeManager',
             component_value: ''
           }),
           Ember.Object.create({
-            display_name: 'Resource Manager',
+            display_name: 'ResourceManager',
             component_value: ''
           }),
           Ember.Object.create({
