@@ -82,6 +82,15 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
     }
   }.property("service.nodeManagerNodes"),
 
+  nodeManagersLiveTextView: App.ComponentLiveTextView.extend({
+    liveComponents: function() {
+      return this.get("service.nodeManagerLiveNodes.length");
+    }.property('service.nodeManagerNodes', 'service.nodeManagerLiveNodes', 'service.nodeManagerLiveNodes.length'),
+    totalComponents: function() {
+      return this.get("service.nodeManagerNodes.length");
+    }.property("service.nodeManagerNodes.length")
+  }),
+
   nodeManagersStatus: function () {
     var nmActive = this.get('service.nodeManagersCountActive');
     var nmLost = this.get('service.nodeManagersCountLost');

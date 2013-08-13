@@ -48,7 +48,11 @@
       <tr>
         <td>{{t dashboard.services.yarn.nodeManagers}}</td>
         <td>
-          <span class="green-live">{{view.nodeManagersLive}}/{{view.service.nodeManagerNodes.length}}</span> {{t services.service.summary.nodeManagersLive}}
+          <span>
+            {{#view view.nodeManagersLiveTextView}}
+              {{view.liveComponents}}/{{view.totalComponents}}
+            {{/view}}
+          </span>{{t services.service.summary.nodeManagersLive}}
           <div class="summary-view-host">
             <a href="#" {{action filterHosts view.nodeManagerComponent}}>{{view.nodeManagerText}}</a>
           </div>

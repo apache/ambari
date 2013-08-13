@@ -138,12 +138,36 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     if (service.get("id") == "GANGLIA") {
       var monitors = service.get('hostComponents').filterProperty('isMaster', false);
       var liveMonitors = monitors.filterProperty("workStatus","STARTED").length;
+      this.set("liveMonitors", liveMonitors);
       if (monitors.length) {
         result = Em.I18n.t('services.service.info.summary.hostsRunningMonitor').format(liveMonitors, monitors.length);
       }
     }
     return result;
   }.property('controller.content'),
+
+  monitorsLiveTextView: App.ComponentLiveTextView.extend({
+    liveComponents: function () {
+      var service = this.get('service');
+      if (service.get("id") == "GANGLIA") {
+        return service.get('hostComponents').filterProperty('isMaster', false).filterProperty("workStatus","STARTED").length;
+      } else {
+        return null;
+      }
+    }.property('service.hostComponents.@each'),
+    monitors: function () {
+      var result = '';
+      var service = this.get('parentView.controller.content');
+      if (service.get("id") == "GANGLIA") {
+        var monitors = service.get('hostComponents').filterProperty('isMaster', false);
+        var liveMonitors = monitors.filterProperty("workStatus","STARTED").length;
+        if (monitors.length) {
+          result = Em.I18n.t('services.service.info.summary.hostsRunningMonitor').format(liveMonitors, monitors.length);
+        }
+      }
+      return result;
+    }.property('service.hostComponents.@each')
+  }),
 
   hasManyMonitors: function () {
     var service = this.get('controller.content');

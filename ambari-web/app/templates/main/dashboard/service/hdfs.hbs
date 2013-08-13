@@ -43,12 +43,15 @@
     {{/unless}}
 
       {{view view.dashboardMasterComponentView}}
-
       <!-- Data Nodes -->
       <tr>
         <td>{{t dashboard.services.hdfs.datanodes}}</td>
         <td>
-          <span class="green-live">{{view.dataNodesLive.length}}/{{view.service.dataNodes.length}}</span> {{t services.service.summary.DataNodesLive}}
+          <span>
+            {{#view view.dataNodesLiveTextView}}
+              {{view.liveComponents}}/{{view.totalComponents}}
+            {{/view}}
+          </span>  {{t services.service.summary.DataNodesLive}}
           <div class="summary-view-host">
             <a href="#" {{action filterHosts view.dataNodeComponent}}>{{view.dataNodeHostText}}</a>
           </div>

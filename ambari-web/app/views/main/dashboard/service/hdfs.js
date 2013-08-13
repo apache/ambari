@@ -52,6 +52,15 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     }
   }.property("service"),
 
+  dataNodesLiveTextView: App.ComponentLiveTextView.extend({
+    liveComponents: function() {
+      return App.HostComponent.find().filterProperty('componentName', 'DATANODE').filterProperty("workStatus","STARTED").get("length");
+    }.property("service.hostComponents.@each"),
+    totalComponents: function() {
+      return this.get("service.dataNodes.length");
+    }.property("service.dataNodes.length")
+  }),
+
   dfsTotalBlocks: function(){
     return this.formatUnavailable(this.get('service.dfsTotalBlocks'));
   }.property('service.dfsTotalBlocks'),

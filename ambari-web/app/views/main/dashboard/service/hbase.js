@@ -51,6 +51,15 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
     }
   }.property("service"),
 
+  regionServersLiveTextView: App.ComponentLiveTextView.extend({
+    liveComponents: function() {
+      return App.HostComponent.find().filterProperty('componentName', 'HBASE_REGIONSERVER').filterProperty("workStatus","STARTED").get('length');
+    }.property("service.hostComponents.@each"),
+    totalComponents: function() {
+      return this.get("service.regionServers.length");
+    }.property("service.regionServers.length")
+  }),
+
   /**
    * Formatted output for passive master components
    */

@@ -23,7 +23,11 @@
 <tr>
   <td class="summary-label">{{t services.ganglia.monitors}}</td>
   <td>
-    <span class="green-live">{{view.monitors}} </span>{{t services.service.summary.GangliaMonitorsLIVE}}
+    <span>
+      {{#view view.monitorsLiveTextView}}
+        {{view.monitors}}
+      {{/view}}
+    </span> {{t services.service.summary.GangliaMonitorsLIVE}}
     <div class="summary-view-host">
        <a {{action filterHosts view.monitorsObj}} href="javascript:void(null)" >{{view.hasManyMonitors}}</a>
     </div>
