@@ -66,7 +66,7 @@ export kinit_path_local=$9
 export OOZIE_EXIT_CODE=0
 export JOBTRACKER=`getValueFromField ${hadoop_conf_dir}/mapred-site.xml mapred.job.tracker`
 export NAMENODE=`getValueFromField ${hadoop_conf_dir}/core-site.xml fs.default.name`
-export OOZIE_SERVER=`getValueFromField ${oozie_conf_dir}/oozie-site.xml oozie.base.url`
+export OOZIE_SERVER=`getValueFromField ${oozie_conf_dir}/oozie-site.xml oozie.base.url | tr '[:upper:]' '[:lower:]'`
 export OOZIE_EXAMPLES_DIR=`rpm -ql oozie-client | grep 'oozie-examples.tar.gz$' | xargs dirname`
 cd $OOZIE_EXAMPLES_DIR
 

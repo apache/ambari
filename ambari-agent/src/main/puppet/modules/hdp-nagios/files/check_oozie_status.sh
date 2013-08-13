@@ -20,7 +20,7 @@
 #
 #
 # OOZIE_URL is of the form http://<hostname>:<port>/oozie
-HOST=$1
+HOST=`echo $1 | tr '[:upper:]' '[:lower:]'`
 PORT=$2
 JAVA_HOME=$3
 SEC_ENABLED=$4
