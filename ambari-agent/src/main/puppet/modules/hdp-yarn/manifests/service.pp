@@ -45,11 +45,6 @@ define hdp-yarn::service(
    
   $cmd = "export HADOOP_LIBEXEC_DIR=${hadoop_libexec_dir} && ${daemon} --config ${hdp-yarn::params::conf_dir}"
   
-  
-
-  
-  
-  
   if ($ensure == 'running') {
     if ($run_as_root == true) {
       $daemon_cmd = "${cmd} start ${name}"

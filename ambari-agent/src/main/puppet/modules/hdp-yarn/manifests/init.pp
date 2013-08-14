@@ -22,19 +22,31 @@
 class hdp-yarn::initialize()
 {
   $mapred_user = $hdp-yarn::params::mapred_user
-  
+  $hdfs_user = $hdp::params::hdfs_user
+  $yarn_user = $hdp::params::yarn_user
+
   ##Process package
   hdp-yarn::package{'yarn-common':}
   
-  # Create mapred user
+  # Create users
   hdp::user { 'mapred_user':
      user_name => $mapred_user
   }
-  
+
+  hdp::user { 'hdfs_user':
+     user_name => $hdfs_user
+  }
+
+  hdp::user { 'yarn_user':
+    user_name => $yarn_user
+  }
+
   #Generate common configs
   hdp-yarn::generate_common_configs{'yarn-common-configs':}
   
-  anchor{ 'hdp-yarn::initialize::begin': } Hdp::Package['yarn-common'] -> Hdp-yarn::Generate_common_configs['yarn-common-configs'] -> anchor{ 'hdp-yarn::initialize::end': }
+  anchor{ 'hdp-yarn::initialize::begin': } Hdp::Package['yarn-common'] ->
+  Hdp::User<|title == $hdfs_user or title == $mapred_user or title == $yarn_user|> ->
+  Hdp-yarn::Generate_common_configs['yarn-common-configs'] -> anchor{ 'hdp-yarn::initialize::end': }
 }
 
 define hdp-yarn::generate_common_configs() {
@@ -42,6 +54,24 @@ define hdp-yarn::generate_common_configs() {
   $yarn_config_dir = $hdp-yarn::params::conf_dir
 
   # Generate configs
+  if has_key($::configuration, 'core-site') {
+      configgenerator::configfile{'core-site':
+        modulespath => $yarn_config_dir,
+        filename => 'core-site.xml',
+        module => 'hdp-hadoop',
+        configuration => $::configuration['core-site'],
+        owner => $hdp::params::hdfs_user,
+        group => $hdp::params::user_group,
+        mode => 644
+      }
+  } else { # Manually overriding ownership of file installed by hadoop package
+    file { "${yarn_config_dir}/core-site.xml":
+      owner => $hdp::params::hdfs_user,
+      group => $hdp::params::user_group,
+      mode => 644
+    }
+  }
+
   if has_key($::configuration, 'mapred-site') {
     configgenerator::configfile{'mapred-site': 
       modulespath => $yarn_config_dir,
@@ -49,11 +79,13 @@ define hdp-yarn::generate_common_configs() {
       module => 'hdp-yarn',
       configuration => $::configuration['mapred-site'],
       owner => $hdp-yarn::params::yarn_user,
+      group => $hdp::params::user_group,
       mode => 644
     }
   } else { # Manually overriding ownership of file installed by hadoop package
     file { "${yarn_config_dir}/mapred-site.xml":
       owner => $hdp-yarn::params::yarn_user,
+      group => $hdp::params::user_group,
       mode => 644
     }
   }
@@ -65,11 +97,13 @@ define hdp-yarn::generate_common_configs() {
       module => 'hdp-yarn',
       configuration => $::configuration['yarn-site'],
       owner => $hdp-yarn::params::yarn_user,
+      group => $hdp::params::user_group,
       mode => 644
     }
   } else { # Manually overriding ownership of file installed by hadoop package
     file { "${yarn_config_dir}/yarn-site.xml":
       owner => $hdp-yarn::params::yarn_user,
+      group => $hdp::params::user_group,
       mode => 644
     }
   }
@@ -81,20 +115,31 @@ define hdp-yarn::generate_common_configs() {
       module => 'hdp-yarn',
       configuration => $::configuration['capacity-scheduler'],
       owner => $hdp-yarn::params::yarn_user,
+      group => $hdp::params::user_group,
       mode => 644
     }
   } else { # Manually overriding ownership of file installed by hadoop package
     file { "${yarn_config_dir}/capacity-scheduler.xml":
       owner => $hdp-yarn::params::yarn_user,
+      group => $hdp::params::user_group,
       mode => 644
     }
   }
 
   hdp::configfile {"${yarn_config_dir}/yarn-env.sh":
-    component      => 'yarn',
-    owner          => $hdp-yarn::params::yarn_user,
-    mode           => 755
+    component => 'yarn',
+    owner => $hdp-yarn::params::yarn_user,
+    group => $hdp::params::user_group,
+    mode => 755
   }
+
+  hdp::configfile { "${yarn_config_dir}/hadoop-env.sh":
+    mode => 755,
+    owner => $hdp::params::hdfs_user,
+    group => $hdp::params::user_group,
+    component => 'hadoop'
+  }
+
   if ($hdp::params::security_enabled == true) {
     $container_executor = "${hdp::params::yarn_container_bin}/container-executor"
     file { $container_executor:
