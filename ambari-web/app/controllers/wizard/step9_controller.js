@@ -353,7 +353,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       data = {
         "RequestInfo": {
           "context": Em.I18n.t("requestInfo.startHostComponents"),
-          "query": "HostRoles/component_name.in(GANGLIA_MONITOR,HBASE_REGIONSERVER,DATANODE,TASKTRACKER)&HostRoles/state=INSTALLED&HostRoles/host_name.in(" + hostnames.join(',') + ")"
+          "query": "HostRoles/component_name.in(GANGLIA_MONITOR,HBASE_REGIONSERVER,DATANODE,TASKTRACKER,NODEMANAGER)&HostRoles/state=INSTALLED&HostRoles/host_name.in(" + hostnames.join(',') + ")"
         },
         "Body": {
           "HostRoles": { "state": "STARTED" }
