@@ -24,12 +24,12 @@
   <property>
     <name>rm_host</name>
     <value></value>
-    <description>Resource Manager.</description>
+    <description>ResourceManager.</description>
   </property>
   <property>
     <name>nm_hosts</name>
     <value></value>
-    <description>List of Node Manager Hosts.</description>
+    <description>List of NodeManager Hosts.</description>
   </property>
   <property>
     <name>yarn_log_dir_prefix</name>

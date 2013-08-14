@@ -173,7 +173,7 @@ define service {
 define service {
         hostgroup_name          ganglia-server
         use                     hadoop-service
-        service_description     GANGLIA::Ganglia Collector [gmond] process down alert for Resource Manager
+        service_description     GANGLIA::Ganglia Collector [gmond] process down alert for ResourceManager
         servicegroups           GANGLIA
         check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::ganglia_collector_rm_port")%>!-w 1 -c 1
         normal_check_interval   0.25
@@ -186,7 +186,7 @@ define service {
 define service {
         hostgroup_name          ganglia-server
         use                     hadoop-service
-        service_description     GANGLIA::Ganglia Collector [gmond] process down alert for Node Manager
+        service_description     GANGLIA::Ganglia Collector [gmond] process down alert for NodeManager
         servicegroups           GANGLIA
         check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::ganglia_collector_nm_port")%>!-w 1 -c 1
         normal_check_interval   0.25
@@ -409,7 +409,7 @@ define service {
 define service {
         hostgroup_name          resourcemanager
         use                     hadoop-service
-        service_description     RESOURCEMANAGER::Resource Manager Web UI down
+        service_description     RESOURCEMANAGER::ResourceManager Web UI down
         servicegroups           YARN
         check_command           check_webui!resourcemanager!<%=scope.function_hdp_template_var("::hdp::rm_port")%>
         normal_check_interval   1
@@ -420,7 +420,7 @@ define service {
 define service {
         hostgroup_name          resourcemanager
         use                     hadoop-service
-        service_description     RESOURCEMANAGER::Resource Manager CPU utilization
+        service_description     RESOURCEMANAGER::ResourceManager CPU utilization
         servicegroups           YARN
         check_command           check_cpu!200%!250%
         normal_check_interval   5
@@ -431,7 +431,7 @@ define service {
 define service {
         hostgroup_name          resourcemanager
         use                     hadoop-service
-        service_description     RESOURCEMANAGER::Resource Manager RPC latency
+        service_description     RESOURCEMANAGER::ResourceManager RPC latency
         servicegroups           YARN
         check_command           check_rpcq_latency!ResorceManager!<%=scope.function_hdp_template_var("::hdp::rm_port")%>!3000!5000
         normal_check_interval   5
@@ -442,7 +442,7 @@ define service {
 define service {
         hostgroup_name          resourcemanager
         use                     hadoop-service
-        service_description     RESOURCEMANAGER::Resource Manager percent nodemanager down
+        service_description     RESOURCEMANAGER::Percent NodeManager down
         servicegroups           YARN
         check_command           check_resourcemanager_nodes_percentage!<%=scope.function_hdp_template_var("::hdp::rm_port")%>!lost!10!30
         normal_check_interval   1
@@ -453,7 +453,7 @@ define service {
 define service {
         hostgroup_name          resourcemanager
         use                     hadoop-service
-        service_description     RESOURCEMANAGER::Resource Manager percent nodemanager unhealthy
+        service_description     RESOURCEMANAGER::Percent NodeManager unhealthy
         servicegroups           YARN
         check_command           check_resourcemanager_nodes_percentage!<%=scope.function_hdp_template_var("::hdp::rm_port")%>!unhealthy!10!30
         normal_check_interval   1
@@ -467,7 +467,7 @@ define service {
 define service {
         hostgroup_name          nodemanagers
         use                     hadoop-service
-        service_description     NODEMANAGER::Node Manager process down
+        service_description     NODEMANAGER::NodeManager process down
         servicegroups           YARN
         check_command           check_tcp!<%=scope.function_hdp_template_var("nm_port")%>!-w 1 -c 1
         normal_check_interval   1
@@ -478,7 +478,7 @@ define service {
 define service {
         hostgroup_name          nodemanagers
         use                     hadoop-service
-        service_description     NODEMANAGER::Node Manager unhealthy
+        service_description     NODEMANAGER::NodeManager unhealthy
         servicegroups           YARN
         check_command           check_nodemanager_health!<%=scope.function_hdp_template_var("nm_port")%>
         normal_check_interval   1
