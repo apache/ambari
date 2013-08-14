@@ -19,16 +19,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/GANGLIA_MONITOR",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/GANGLIA_MONITOR",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "GANGLIA_MONITOR",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "STARTED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "GANGLIA",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "STARTED",
                 "actual_configs" : {
                   "capacity-scheduler" : {
@@ -82,16 +82,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/GANGLIA_SERVER",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/GANGLIA_SERVER",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "GANGLIA_SERVER",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "STARTED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "GANGLIA",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "STARTED",
                 "actual_configs" : {
                   "capacity-scheduler" : {
@@ -154,16 +154,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/HBASE_CLIENT",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/HBASE_CLIENT",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "HBASE_CLIENT",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "INSTALLED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "HBASE",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "INSTALLED",
                 "actual_configs" : { },
                 "configs" : { },
@@ -192,16 +192,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/HBASE_MASTER",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/HBASE_MASTER",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "HBASE_MASTER",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "STARTED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "HBASE",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "INSTALLED",
                 "actual_configs" : {
                   "capacity-scheduler" : {
@@ -260,16 +260,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/HBASE_REGIONSERVER",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/HBASE_REGIONSERVER",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "HBASE_REGIONSERVER",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "STARTED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "HBASE",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "INSTALLED",
                 "actual_configs" : {
                   "capacity-scheduler" : {
@@ -341,16 +341,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/HCAT",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/HCAT",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "HCAT",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "INSTALLED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "HCATALOG",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "INSTALLED",
                 "actual_configs" : { },
                 "configs" : { },
@@ -379,16 +379,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/DATANODE",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/DATANODE",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "DATANODE",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "STARTED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "HDFS",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "STARTED",
                 "actual_configs" : {
                   "capacity-scheduler" : {
@@ -451,16 +451,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/HDFS_CLIENT",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/HDFS_CLIENT",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "HDFS_CLIENT",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "INSTALLED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "HDFS",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "INSTALLED",
                 "actual_configs" : { },
                 "configs" : { },
@@ -481,7 +481,7 @@
             "DecomNodes" : "{}",
             "HeapMemoryMax" : 1006632960,
             "HeapMemoryUsed" : 194751064,
-            "LiveNodes" : "{\"dev01.ambari.apache.org\":{\"numBlocks\":379,\"usedSpace\":182407168,\"lastContact\":1,\"capacity\":525282689023,\"nonDfsUsedSpace\":34298212351,\"adminState\":\"In Service\"}}",
+            "LiveNodes" : "{\"dev01.hortonworks.com\":{\"numBlocks\":379,\"usedSpace\":182407168,\"lastContact\":1,\"capacity\":525282689023,\"nonDfsUsedSpace\":34298212351,\"adminState\":\"In Service\"}}",
             "MissingBlocks" : 0,
             "NonDfsUsedSpace" : 34298212351,
             "NonHeapMemoryMax" : 136314880,
@@ -502,16 +502,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/NAMENODE",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/NAMENODE",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "NAMENODE",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "STARTED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "HDFS",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "STARTED",
                 "actual_configs" : {
                   "capacity-scheduler" : {
@@ -574,16 +574,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/SECONDARY_NAMENODE",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/SECONDARY_NAMENODE",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "SECONDARY_NAMENODE",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "STARTED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "HDFS",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "STARTED",
                 "actual_configs" : {
                   "capacity-scheduler" : {
@@ -646,16 +646,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/HIVE_CLIENT",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/HIVE_CLIENT",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "HIVE_CLIENT",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "INSTALLED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "HIVE",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "INSTALLED",
                 "actual_configs" : { },
                 "configs" : { },
@@ -675,16 +675,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/HIVE_METASTORE",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/HIVE_METASTORE",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "HIVE_METASTORE",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "STARTED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "HIVE",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "STARTED",
                 "actual_configs" : {
                   "capacity-scheduler" : {
@@ -738,16 +738,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/HIVE_SERVER",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/HIVE_SERVER",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "HIVE_SERVER",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "STARTED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "HIVE",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "STARTED",
                 "actual_configs" : {
                   "capacity-scheduler" : {
@@ -801,16 +801,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/MYSQL_SERVER",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/MYSQL_SERVER",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "MYSQL_SERVER",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "STARTED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "HIVE",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "STARTED",
                 "actual_configs" : {
                   "capacity-scheduler" : {
@@ -873,16 +873,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/HISTORYSERVER",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/HISTORYSERVER",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "HISTORYSERVER",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "STARTED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "MAPREDUCE2",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "STARTED",
                 "actual_configs" : {
                   "capacity-scheduler" : {
@@ -942,16 +942,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/MAPREDUCE2_CLIENT",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/MAPREDUCE2_CLIENT",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "MAPREDUCE2_CLIENT",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "INSTALLED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "MAPREDUCE2",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "INSTALLED",
                 "actual_configs" : { },
                 "configs" : { },
@@ -980,19 +980,19 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/NAGIOS_SERVER",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/NAGIOS_SERVER",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "NAGIOS_SERVER",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "STARTED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "nagios_alerts" : {
                   "alerts" : [
                     {
                       "service_description" : "Check ambari-agent process",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "OK: Ambari agent is running [PID:8339]",
@@ -1008,7 +1008,7 @@
                     },
                     {
                       "service_description" : "DataNode process down",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "TCP OK - 0.001 second response time on port 50075",
@@ -1024,7 +1024,7 @@
                     },
                     {
                       "service_description" : "DataNode storage full",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "OK: Capacity:[525282689023], Remaining Capacity:[490802098176], percent_full:[6.5641970633246]",
@@ -1040,7 +1040,7 @@
                     },
                     {
                       "service_description" : "Ganglia Collector [gmond] process down alert for HBase Master",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "TCP OK - 0.001 second response time on port 8663",
@@ -1056,7 +1056,7 @@
                     },
                     {
                       "service_description" : "Ganglia Collector [gmond] process down alert for History Server 2",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "TCP OK - 0.003 second response time on port 8666",
@@ -1072,7 +1072,7 @@
                     },
                     {
                       "service_description" : "Ganglia Collector [gmond] process down alert for NameNode",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "TCP OK - 0.005 second response time on port 8661",
@@ -1088,7 +1088,7 @@
                     },
                     {
                       "service_description" : "Ganglia Collector [gmond] process down alert for NodeManager",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "TCP OK - 0.002 second response time on port 8660",
@@ -1104,7 +1104,7 @@
                     },
                     {
                       "service_description" : "Ganglia Collector [gmond] process down alert for ResourceManager",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "TCP OK - 0.001 second response time on port 8664",
@@ -1120,7 +1120,7 @@
                     },
                     {
                       "service_description" : "Ganglia Collector [gmond] process down alert for slaves",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "TCP OK - 0.003 second response time on port 8660",
@@ -1136,7 +1136,7 @@
                     },
                     {
                       "service_description" : "Ganglia [gmetad] process down",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "TCP OK - 0.001 second response time on port 8651",
@@ -1152,7 +1152,7 @@
                     },
                     {
                       "service_description" : "Percent RegionServers down",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "OK: total:&lt;1&gt;, affected:&lt;0&gt;",
@@ -1168,7 +1168,7 @@
                     },
                     {
                       "service_description" : "HBase Master CPU utilization",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "1 CPU, load 13.0% &lt; 200% : OK",
@@ -1184,10 +1184,10 @@
                     },
                     {
                       "service_description" : "HBase Master Web UI down",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "3",
                       "current_state" : "1",
-                      "plugin_output" : "WARNING: HBase Master web UI not accessible : http://dev01.ambari.apache.org:60010/master-status",
+                      "plugin_output" : "WARNING: HBase Master web UI not accessible : http://dev01.hortonworks.com:60010/master-status",
                       "last_hard_state_change" : "1375467711",
                       "last_hard_state" : "1",
                       "last_time_ok" : "1375467531",
@@ -1200,7 +1200,7 @@
                     },
                     {
                       "service_description" : "HBase Master process down",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "4",
                       "current_state" : "2",
                       "plugin_output" : "Connection refused",
@@ -1216,7 +1216,7 @@
                     },
                     {
                       "service_description" : "Corrupt/Missing blocks",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "OK: corrupt_blocks:&lt;&gt;, missing_blocks:&lt;&gt;, total_blocks:&lt;&gt;",
@@ -1232,7 +1232,7 @@
                     },
                     {
                       "service_description" : "HDFS capacity utilization",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "OK: DFSUsedGB:&lt;0.2&gt;, DFSTotalGB:&lt;457.3&gt;",
@@ -1248,7 +1248,7 @@
                     },
                     {
                       "service_description" : "NameNode RPC latency",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "OK: RpcQueueTime_avg_time:&lt;0&gt; Secs, RpcProcessingTime_avg_time:&lt;0&gt; Secs",
@@ -1264,7 +1264,7 @@
                     },
                     {
                       "service_description" : "Percent DataNodes down",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "OK: total:&lt;1&gt;, affected:&lt;0&gt;",
@@ -1280,7 +1280,7 @@
                     },
                     {
                       "service_description" : "Percent DataNodes storage full",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "OK: total:&lt;1&gt;, affected:&lt;0&gt;",
@@ -1296,7 +1296,7 @@
                     },
                     {
                       "service_description" : "Hive Metastore status check",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "OK: Hive metaserver status OK",
@@ -1312,7 +1312,7 @@
                     },
                     {
                       "service_description" : "History Server 2 CPU utilization",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "1 CPU, load 12.0% &lt; 200% : OK",
@@ -1328,7 +1328,7 @@
                     },
                     {
                       "service_description" : "History Server 2 RPC latency",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "OK: RpcQueueTime_avg_time:&lt;0&gt; Secs, RpcProcessingTime_avg_time:&lt;0&gt; Secs",
@@ -1344,7 +1344,7 @@
                     },
                     {
                       "service_description" : "History Server 2 Web UI down",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "OK: Successfully accessed historyserver2 Web UI",
@@ -1360,7 +1360,7 @@
                     },
                     {
                       "service_description" : "Percent TaskTrackers down",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "OK: total:&lt;0&gt;, affected:&lt;0&gt;",
@@ -1376,7 +1376,7 @@
                     },
                     {
                       "service_description" : "Nagios status log staleness",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "NAGIOS OK: 2 processes, status log updated 6 seconds ago",
@@ -1392,7 +1392,7 @@
                     },
                     {
                       "service_description" : "NameNode Web UI down",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "OK: Successfully accessed namenode Web UI",
@@ -1408,7 +1408,7 @@
                     },
                     {
                       "service_description" : "NameNode edit logs directory status",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "OK: All Namenode directories are active",
@@ -1424,7 +1424,7 @@
                     },
                     {
                       "service_description" : "NameNode host CPU utilization",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "1 CPU, load 12.0% &lt; 200% : OK",
@@ -1440,7 +1440,7 @@
                     },
                     {
                       "service_description" : "NameNode process down",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "TCP OK - 0.001 second response time on port 8020",
@@ -1456,7 +1456,7 @@
                     },
                     {
                       "service_description" : "NodeManager process down",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "TCP OK - 0.001 second response time on port 8042",
@@ -1472,7 +1472,7 @@
                     },
                     {
                       "service_description" : "Oozie Server status check",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "OK: Oozie server status [System mode: NORMAL]",
@@ -1488,7 +1488,7 @@
                     },
                     {
                       "service_description" : "RegionServer process down",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "3",
                       "current_state" : "2",
                       "plugin_output" : "Connection refused",
@@ -1504,7 +1504,7 @@
                     },
                     {
                       "service_description" : "ResourceManager CPU utilization",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "1 CPU, load 11.0% &lt; 200% : OK",
@@ -1520,7 +1520,7 @@
                     },
                     {
                       "service_description" : "ResourceManager RPC latency",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "OK: RpcQueueTime_avg_time:&lt;0&gt; Secs, RpcProcessingTime_avg_time:&lt;0&gt; Secs",
@@ -1536,7 +1536,7 @@
                     },
                     {
                       "service_description" : "ResourceManager Web UI down",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "OK: Successfully accessed resorcemanager Web UI",
@@ -1552,7 +1552,7 @@
                     },
                     {
                       "service_description" : "WebHCat Server status check",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "",
@@ -1568,7 +1568,7 @@
                     },
                     {
                       "service_description" : "Percent ZooKeeper Servers down",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "OK: total:&lt;1&gt;, affected:&lt;0&gt;",
@@ -1584,7 +1584,7 @@
                     },
                     {
                       "service_description" : "ZooKeeper Server process down",
-                      "host_name" : "dev01.ambari.apache.org",
+                      "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
                       "plugin_output" : "TCP OK - 0.001 second response time on port 2181",
@@ -1613,7 +1613,7 @@
                   }
                 },
                 "service_name" : "NAGIOS",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "STARTED",
                 "actual_configs" : {
                   "capacity-scheduler" : {
@@ -1676,16 +1676,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/OOZIE_CLIENT",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/OOZIE_CLIENT",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "OOZIE_CLIENT",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "INSTALLED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "OOZIE",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "INSTALLED",
                 "actual_configs" : { },
                 "configs" : { },
@@ -1705,16 +1705,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/OOZIE_SERVER",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/OOZIE_SERVER",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "OOZIE_SERVER",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "STARTED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "OOZIE",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "STARTED",
                 "actual_configs" : {
                   "capacity-scheduler" : {
@@ -1777,16 +1777,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/PIG",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/PIG",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "PIG",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "INSTALLED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "PIG",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "INSTALLED",
                 "actual_configs" : { },
                 "configs" : { },
@@ -1815,16 +1815,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/WEBHCAT_SERVER",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/WEBHCAT_SERVER",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "WEBHCAT_SERVER",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "STARTED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "WEBHCAT",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "STARTED",
                 "actual_configs" : {
                   "capacity-scheduler" : {
@@ -1887,17 +1887,17 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/NODEMANAGER",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/NODEMANAGER",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "NODEMANAGER",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "STARTED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "YARN",
-                "stack_id" : "HDP-2.0.3",
-                "state" : "STARTED",
+                "stack_id" : "HDP-2.0.5",
+                "state" : "INSTALLED",
                 "actual_configs" : {
                   "capacity-scheduler" : {
                     "tag" : "version1"
@@ -1962,7 +1962,7 @@
                 "activeNMcount" : 1,
                 "decommissionedNMcount" : 0,
                 "lostNMcount" : 0,
-                "nodeManagers" : "[{\"HostName\":\"dev01.ambari.apache.org\",\"Rack\":\"/default-rack\",\"State\":\"RUNNING\",\"NodeId\":\"dev01.ambari.apache.org:45454\",\"NodeHTTPAddress\":\"dev01.ambari.apache.org:8042\",\"LastHealthUpdate\":1375467828765,\"HealthReport\":\"\",\"NumContainers\":0,\"UsedMemoryMB\":0,\"AvailableMemoryMB\":8192}]",
+                "nodeManagers" : "[{\"HostName\":\"dev01.hortonworks.com\",\"Rack\":\"/default-rack\",\"State\":\"RUNNING\",\"NodeId\":\"dev01.hortonworks.com:45454\",\"NodeHTTPAddress\":\"dev01.hortonworks.com:8042\",\"LastHealthUpdate\":1375467828765,\"HealthReport\":\"\",\"NumContainers\":0,\"UsedMemoryMB\":0,\"AvailableMemoryMB\":8192}]",
                 "rebootedNMcount" : 0,
                 "unhealthyNMcount" : 0
               }
@@ -1970,16 +1970,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/RESOURCEMANAGER",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/RESOURCEMANAGER",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "RESOURCEMANAGER",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "STARTED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "YARN",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "STARTED",
                 "actual_configs" : {
                   "capacity-scheduler" : {
@@ -2098,16 +2098,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/YARN_CLIENT",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/YARN_CLIENT",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "YARN_CLIENT",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "INSTALLED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "YARN",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "INSTALLED",
                 "actual_configs" : { },
                 "configs" : { },
@@ -2136,16 +2136,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/ZOOKEEPER_CLIENT",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/ZOOKEEPER_CLIENT",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "ZOOKEEPER_CLIENT",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "INSTALLED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "ZOOKEEPER",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "INSTALLED",
                 "actual_configs" : { },
                 "configs" : { },
@@ -2165,16 +2165,16 @@
           },
           "host_components" : [
             {
-              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.ambari.apache.org/host_components/ZOOKEEPER_SERVER",
+              "href" : "http://dev01:8080/api/v1/clusters/vm/hosts/dev01.hortonworks.com/host_components/ZOOKEEPER_SERVER",
               "HostRoles" : {
                 "cluster_name" : "vm",
                 "component_name" : "ZOOKEEPER_SERVER",
-                "desired_stack_id" : "HDP-2.0.3",
+                "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "STARTED",
                 "ha_status" : "passive",
-                "host_name" : "dev01.ambari.apache.org",
+                "host_name" : "dev01.hortonworks.com",
                 "service_name" : "ZOOKEEPER",
-                "stack_id" : "HDP-2.0.3",
+                "stack_id" : "HDP-2.0.5",
                 "state" : "STARTED",
                 "actual_configs" : {
                   "capacity-scheduler" : {
