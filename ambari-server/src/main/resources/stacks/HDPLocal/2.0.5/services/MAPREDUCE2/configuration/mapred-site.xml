@@ -31,12 +31,6 @@
   </property>
 
   <property>
-    <name>io.sort.record.percent</name>
-    <value>.2</value>
-    <description>No description</description>
-  </property>
-
-  <property>
     <name>mapreduce.map.sort.spill.percent</name>
     <value>0.1</value>
     <description>No description</description>
@@ -178,17 +172,6 @@
   </property>
 
   <property>
-    <name>jetty.connector</name>
-    <value>org.mortbay.jetty.nio.SelectChannelConnector</value>
-    <description>No description</description>
-  </property>
-
-  <property>
-    <name>mapred.child.root.logger</name>
-    <value>INFO,TLA</value>
-  </property>
-
-  <property>
     <name>mapred.child.java.opts</name>
     <value>-Xmx512m</value>
     <description>No description</description>
@@ -228,30 +211,9 @@
   </property>
 
   <property>
-    <name>mapred.task.maxvmem</name>
-    <value></value>
-    <final>true</final>
-    <description>No description</description>
-  </property>
-
-  <property>
-    <name>mapreduce.fileoutputcommitter.marksuccessfuljobs</name>
-    <value>false</value>
-  </property>
-
-  <property>
     <name>mapreduce.tasktracker.keytab.file</name>
     <value></value>
     <description>The filename of the keytab for the task tracker</description>
-  </property>
-
-  <property>
-    <name>mapreduce.jobtracker.split.metainfo.maxsize</name>
-    <value>50000000</value>
-    <final>true</final>
-     <description>If the size of the split metainfo file is larger than this, the JobTracker will fail the job during
-    initialize.
-   </description>
   </property>
 
  <property>

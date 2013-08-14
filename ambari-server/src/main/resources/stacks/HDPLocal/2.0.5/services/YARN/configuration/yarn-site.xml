@@ -101,11 +101,6 @@
   </property>
 
   <property>
-    <name>yarn.nodemanager.aux-services.class</name>
-    <value>org.apache.hadoop.mapred.ShuffleHandler</value>
-  </property>
-
-  <property>
     <name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>
     <value>org.apache.hadoop.mapred.ShuffleHandler</value>
   </property>

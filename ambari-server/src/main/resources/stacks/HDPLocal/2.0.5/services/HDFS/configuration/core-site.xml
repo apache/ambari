@@ -45,12 +45,6 @@
                  for compression/decompression.</description>
   </property>
 
-  <property>
-    <name>io.compression.codec.lzo.class</name>
-    <value>com.hadoop.compression.lzo.LzoCodec</value>
-    <description>The implementation for lzo codec.</description>
-  </property>
-
 <!-- file system properties -->
 
   <property>
@@ -95,14 +89,6 @@
     <name>fs.checkpoint.period</name>
     <value>21600</value>
     <description>The number of seconds between two periodic checkpoints.
-  </description>
-  </property>
-
-  <property>
-    <name>fs.checkpoint.size</name>
-    <value>536870912</value>
-    <description>The size of the current edit log (in bytes) that triggers
-       a periodic checkpoint even if the fs.checkpoint.period hasn't expired.
   </description>
   </property>
 
@@ -205,53 +191,4 @@ DEFAULT
     </description>
   </property>
 
-<!--
-<property>
-  <name>hadoop.proxyuser.scope.function_hdp_user("hcat_user").groups</name>
-  <value></value>
-  <description>
-     Proxy group for Hadoop.
-  </description>
-</property>
-
-<property>
-  <name>hadoop.proxyuser.scope.function_hdp_user("hcat_user").hosts</name>
-  <value></value>
-  <description>
-     Proxy host for Hadoop.
-  </description>
-</property>
-
-<property>
-  <name>hadoop.proxyuser.scope.function_hdp_user("oozie_user").groups</name>
-  <value></value>
-  <description>
-     Proxy group for Hadoop.
-  </description>
-</property>
-
-<property>
-  <name>hadoop.proxyuser.scope.function_hdp_user("oozie_user").hosts</name>
-  <value></value>
-  <description>
-     Proxy host for Hadoop.
-  </description>
-</property>
-
-<property>
-  <name>hadoop.proxyuser.scope.function_hdp_user("templeton_user").groups</name>
-  <value></value>
-  <description>
-    Proxy group for templeton.
-  </description>
-</property>
-
-<property>
-  <name>hadoop.proxyuser.scope.function_hdp_user("templeton_user").hosts</name>
-  <value></value>
-  <description>
-    Proxy host for templeton.
-  </description>
-</property>
--->
 </configuration>

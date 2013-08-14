@@ -49,27 +49,10 @@
     <final>true</final>
   </property>
 
-<!--
- <property>
-    <name>dfs.datanode.socket.write.timeout</name>
-    <value>0</value>
-    <description>DFS Client write socket timeout</description>
-  </property>
--->
-
   <property>
     <name>dfs.datanode.failed.volumes.tolerated</name>
     <value>0</value>
     <description>#of failed disks dn would tolerate</description>
-    <final>true</final>
-  </property>
-
-  <property>
-    <name>dfs.block.local-path-access.user</name>
-    <value>hbase</value>
-    <description>the user who is allowed to perform short
-    circuit reads.
-    </description>
     <final>true</final>
   </property>
 
@@ -104,15 +87,6 @@
     permitted.</description>
   </property>
 -->
-
-  <property>
-    <name>dfs.checksum.type</name>
-    <value>CRC32</value>
-    <description>The checksum method to be used by default. To maintain
-    compatibility, it is being set to CRC32. Once all migration steps
-    are complete, we can change it to CRC32C and take advantage of the
-    additional performance benefit.</description>
-  </property>
 
   <property>
     <name>dfs.replication.max</name>
@@ -209,13 +183,6 @@ If the port is 0 then the server will start on a free port.
 </property>
 
 <property>
-<name>dfs.datanode.du.pct</name>
-<value>0.85f</value>
-<description>When calculating remaining space, only use this percentage of the real available space
-</description>
-</property>
-
-<property>
 <name>dfs.namenode.handler.count</name>
 <value>40</value>
 <description>The number of server threads for the namenode.</description>
@@ -238,15 +205,6 @@ The octal umask used when creating files and directories.
 </property>
 
 <property>
-<name>dfs.web.ugi</name>
-<!-- cluster variant -->
-<value>gopher,gopher</value>
-<description>The user account used by the web interface.
-Syntax: USERNAME,GROUP1,GROUP2, ...
-</description>
-</property>
-
-<property>
 <name>dfs.permissions.enabled</name>
 <value>true</value>
 <description>
@@ -259,7 +217,7 @@ owner or group of files or directories.
 </property>
 
 <property>
-<name>dfs.permissions.enabled.superusergroup</name>
+<name>dfs.permissions.superusergroup</name>
 <value>hdfs</value>
 <description>The name of the group of super-users.</description>
 </property>
@@ -270,10 +228,6 @@ owner or group of files or directories.
 <description>Added to grow Queue size so that more client connections are allowed</description>
 </property>
 
-<property>
-<name>ipc.server.max.response.size</name>
-<value>5242880</value>
-</property>
 <property>
 <name>dfs.block.access.token.enable</name>
 <value>true</value>
@@ -322,12 +276,6 @@ Kerberos principal name for the NameNode
     <name>dfs.namenode.secondary.http-address</name>
     <value></value>
     <description>Address of secondary namenode web server</description>
-  </property>
-
-  <property>
-    <name>dfs.secondary.https.port</name>
-    <value>50490</value>
-    <description>The https port where secondary-namenode binds</description>
   </property>
 
   <property>
@@ -382,13 +330,6 @@ Kerberos principal name for the NameNode
   </property>
 
   <property>
-    <name>dfs.https.port</name>
-    <value>50470</value>
- <description>The https port where namenode binds</description>
-
-  </property>
-
-  <property>
     <name>dfs.namenode.https-address</name>
     <value></value>
   <description>The https address where namenode binds</description>
@@ -417,12 +358,6 @@ don't exist, they will be created with this permission.</description>
    <name>dfs.cluster.administrators</name>
    <value> hdfs</value>
    <description>ACL for who all can view the default servlets in the HDFS</description>
-  </property>
-
-  <property>
-    <name>ipc.server.read.threadpool.size</name>
-    <value>5</value>
-    <description></description>
   </property>
 
   <property>

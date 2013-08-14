@@ -101,11 +101,6 @@
   </property>
 
   <property>
-    <name>yarn.nodemanager.aux-services.class</name>
-    <value>org.apache.hadoop.mapred.ShuffleHandler</value>
-  </property>
-
-  <property>
     <name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>
     <value>org.apache.hadoop.mapred.ShuffleHandler</value>
   </property>
@@ -118,12 +113,6 @@
   <property>
     <name>yarn.nodemanager.local-dirs</name>
     <value></value>
-  </property>
-
-  <property>
-    <name>yarn.nodemanager.linux-container-executor.group</name>
-    <value>hadoop</value>
-    <description>Unix group of the NodeManager</description>
   </property>
 
   <property>
