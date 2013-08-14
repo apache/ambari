@@ -23,30 +23,30 @@ class hdp-yarn::initialize()
 {
   $mapred_user = $hdp-yarn::params::mapred_user
   $hdfs_user = $hdp::params::hdfs_user
-  $yarn_user = $hdp::params::yarn_user
+  $yarn_user = $hdp-yarn::params::yarn_user
 
   ##Process package
   hdp-yarn::package{'yarn-common':}
-  
+
   # Create users
-  hdp::user { 'mapred_user':
+  hdp::user { 'yarn_mapred_user':
      user_name => $mapred_user
   }
 
-  hdp::user { 'hdfs_user':
+  hdp::user { 'yarn_hdfs_user':
      user_name => $hdfs_user
   }
 
-  hdp::user { 'yarn_user':
-    user_name => $yarn_user
+  hdp::user { 'yarn_yarn_user':
+     user_name => $yarn_user
   }
 
   #Generate common configs
   hdp-yarn::generate_common_configs{'yarn-common-configs':}
-  
+
   anchor{ 'hdp-yarn::initialize::begin': } Hdp::Package['yarn-common'] ->
-  Hdp::User<|title == $hdfs_user or title == $mapred_user or title == $yarn_user|> ->
-  Hdp-yarn::Generate_common_configs['yarn-common-configs'] -> anchor{ 'hdp-yarn::initialize::end': }
+    Hdp::User<|title == 'yarn_hdfs_user' or title == 'yarn_mapred_user' or title == 'yarn_yarn_user'|> ->
+      Hdp-yarn::Generate_common_configs['yarn-common-configs'] -> anchor{ 'hdp-yarn::initialize::end': }
 }
 
 define hdp-yarn::generate_common_configs() {
