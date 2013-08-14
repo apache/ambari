@@ -50,13 +50,13 @@ App.NodeManagersLiveView = App.TextDashboardWidgetView.extend({
     var nodeManagers = this.get('model.nodeManagerNodes.length');
     var nodeManagersLive = this.get('model.nodeManagerLiveNodes.length');
     return (nodeManagersLive / nodeManagers).toFixed(2) * 100;
-  }.property('model.nodeManagerNodes', 'model.nodeManagerLiveNodes'),
+  }.property('model.nodeManagerNodes.length', 'model.nodeManagerLiveNodes.length'),
 
   content: function () {
     var nodeManagers = this.get('model.nodeManagerNodes.length');
     var nodeManagersLive = this.get('model.nodeManagerLiveNodes.length');
     return nodeManagersLive + '/' + nodeManagers;
-  }.property('model.nodeManagerNodes', 'model.nodeManagerLiveNodes'),
+  }.property('model.nodeManagerNodes.length', 'model.nodeManagerLiveNodes.length'),
 
   editWidget: function (event) {
     var parent = this;
