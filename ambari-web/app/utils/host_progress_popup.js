@@ -53,11 +53,12 @@ App.HostPopup = Em.Object.create({
    * @param showServices
    */
   initPopup: function (serviceName, controller, showServices) {
-    this.set("serviceName", serviceName);
-    this.set("serviceController", controller);
     if (!showServices) {
+      this.clearHostPopup();
       this.set("popupHeaderName", serviceName);
     }
+    this.set("serviceName", serviceName);
+    this.set("serviceController", controller);
     this.set("showServices", showServices);
     this.set("inputData", this.get("serviceController.services"));
     if(this.get('showServices')){
@@ -66,6 +67,19 @@ App.HostPopup = Em.Object.create({
       this.onHostUpdate();
     }
     return this.createPopup();
+  },
+
+  clearHostPopup: function () {
+    this.set('servicesInfo', null);
+    this.set('hosts', null);
+    this.set('inputData', null);
+    this.set('serviceName', "");
+    this.set('currentServiceId', null);
+    this.set('previousServiceId', null);
+    this.set('popupHeaderName', "");
+    this.set('serviceController', null);
+    this.set('showServices', false);
+    this.set('currentHostName', null);
   },
 
   /**
@@ -298,7 +312,7 @@ App.HostPopup = Em.Object.create({
 
       var existedHosts = self.get('hosts');
 
-      if (hosts) {
+      if (hosts.length > 0) {
         if (existedHosts && this.get('currentServiceId') === this.get('previousServiceId')) {
           existedHosts.forEach(function (host) {
             var newHostInfo = hosts.findProperty('name', host.get('name'));
