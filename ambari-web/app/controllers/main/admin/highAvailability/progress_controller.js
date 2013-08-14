@@ -27,6 +27,7 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
   currentTaskId: null,
   POLL_INTERVAL: 4000,
   isSubmitDisabled: true,
+  serviceTimestamp: null,
 
   loadStep: function () {
     this.clearStep();
@@ -48,17 +49,41 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
         status: 'PENDING',
         id: i,
         command: commands[i],
-        showRetry: false
+        showRetry: false,        
+        name: Em.I18n.t('admin.highAvailability.wizard.step' + currentStep + '.task' + i + '.title'),
+        displayName: Em.I18n.t('admin.highAvailability.wizard.step' + currentStep + '.task' + i + '.title'),
+        progress: 0,
+        isRunning: false,
+        hosts: []
       }));
     }
   },
+
+  services: function(){
+    return this.get('tasks');
+  }.property('tasks'),
 
   loadTasks: function () {
     //load and set tasks statuses form server
   },
 
   setTaskStatus: function (taskId, status) {
-    this.get('tasks').findProperty('id', taskId).set('status', status)
+    this.get('tasks').findProperty('id', taskId).set('status', status);
+  },
+
+  setTaskLogs: function (taskId, tasks) {
+    var hosts = [];
+    tasks.forEach(function (task) {
+      hosts.push(
+       {
+          name: task.Tasks.host_name,
+          publicName: task.Tasks.host_name,
+          logTasks: [task]
+        }
+      );
+    });
+    this.get('tasks').findProperty('id', taskId).set('hosts', hosts);
+    this.set('serviceTimestamp', new Date().getTime());
   },
 
   showRetry: function (taskId) {
@@ -212,18 +237,27 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
       if (!tasks.someProperty('Tasks.status', 'PENDING') && !tasks.someProperty('Tasks.status', 'QUEUED') && !tasks.someProperty('Tasks.status', 'IN_PROGRESS')) {
         if (tasks.someProperty('Tasks.status', 'FAILED')) {
           this.setTaskStatus(currentTaskId, 'FAILED');
+          this.showRetry(currentTaskId);
         } else {
           this.setTaskStatus(currentTaskId, 'COMPLETED');
         }
         this.set('currentRequestIds', []);
       } else {
-        var progress = Math.round((tasks.filterProperty('Tasks.status', 'COMPLETED').length + tasks.filterProperty('Tasks.status', 'IN_PROGRESS').length / 2) / tasks.length * 100);
+        var actionsPerHost = tasks.length;
+        var completedActions = tasks.filterProperty('Tasks.status', 'COMPLETED').length
+          + tasks.filterProperty('Tasks.status', 'FAILED').length
+          + tasks.filterProperty('Tasks.status', 'ABORTED').length
+          + tasks.filterProperty('Tasks.status', 'TIMEDOUT').length;
+        var queuedActions = tasks.filterProperty('Tasks.status', 'QUEUED').length;
+        var inProgressActions = tasks.filterProperty('Tasks.status', 'IN_PROGRESS').length;
+        var progress = Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsPerHost * 100);
         this.get('tasks').findProperty('id', currentTaskId).set('progress', progress);
         this.setTaskStatus(currentTaskId, 'IN_PROGRESS');
         window.setTimeout(function () {
           self.doPolling()
         }, self.POLL_INTERVAL);
       }
+      this.setTaskLogs(currentTaskId, tasks);
       this.set('logs', []);
     }
   },

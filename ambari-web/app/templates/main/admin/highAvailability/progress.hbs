@@ -23,7 +23,7 @@
   {{#view view.taskView contentBinding="task"}}
   <div class="item">
     <i {{bindAttr class="view.icon view.iconColor"}}></i>
-    <a href="javascript:void(0)">{{task.title}}</a>
+    <a {{bindAttr class="view.linkClass"}} {{action "hostsLogPopup" task target="view"}} >{{task.title}}</a>
     {{#if task.showRetry}}
     <a {{action retryTask target="controller"}} class="btn btn-primary retry">
       <i class="icon-repeat icon-white"></i>

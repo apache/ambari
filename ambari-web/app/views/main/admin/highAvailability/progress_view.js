@@ -30,6 +30,7 @@ App.HighAvailabilityProgressPageView = Em.View.extend({
   taskView: Em.View.extend({
     icon: '',
     iconColor: '',
+    linkClass: '',
 
     didInsertElement: function () {
       this.onStatus();
@@ -40,6 +41,7 @@ App.HighAvailabilityProgressPageView = Em.View.extend({
     }.property('content.progress'),
 
     onStatus: function () {
+      this.set('linkClass', 'active-link');
       if (this.get('content.status') === 'IN_PROGRESS') {
         this.set('icon', 'icon-cog');
         this.set('iconColor', 'text-info');
@@ -52,11 +54,24 @@ App.HighAvailabilityProgressPageView = Em.View.extend({
       } else {
         this.set('icon', 'icon-cog');
         this.set('iconColor', '');
+        this.set('linkClass', 'not-active-link');
       }
     }.observes('content.status'),
 
     showProgressBar: function () {
       return this.get('content.status') === "IN_PROGRESS";
-    }.property('content.status')
+    }.property('content.status'),
+
+    /**
+     * open popup with list of hosts, that associated to service
+     * @param event
+     */
+    hostsLogPopup: function(event){
+      if(event.contexts[0].linkClass != "not-active-link"){
+        var serviceName = event.contexts[0].title;
+        var controller = this.get("controller");
+        App.HostPopup.initPopup(serviceName, controller);
+      }
+    }
   })
 });

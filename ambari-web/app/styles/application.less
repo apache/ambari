@@ -452,15 +452,27 @@ h1 {
       i {
         font-size: 20px;
       }
+      .not-active-link{
+        text-decoration: none;
+        pointer-events: none;
+        color: black;
+        cursor: default;
+      }
+      .active-link{
+        pointer-events: auto;
+        color: #0088cc;
+        cursor: pointer;
+      }
+      .retry {
+        cursor: pointer;
+        margin-left: 15px;
+        i {
+          font-size: 14px;
+        }
+      }
     }
     .row {
       margin-left: 0;
-    }
-    .retry {
-      margin-left: 15px;
-      i {
-        font-size: 14px;
-      }
     }
   }
 }
