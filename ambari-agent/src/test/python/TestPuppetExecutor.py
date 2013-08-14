@@ -30,6 +30,7 @@ import json
 from AmbariConfig import AmbariConfig
 from mock.mock import patch, MagicMock, call
 from threading import Thread
+from shell import shellRunner
 
 class TestPuppetExecutor(TestCase):
 
@@ -42,9 +43,22 @@ class TestPuppetExecutor(TestCase):
     self.assertEquals("--confdir=/tmp", command[2],"conf dir tmp")
     self.assertEquals("--detailed-exitcodes", command[3], "make sure output \
     correct")
-
+    
+  @patch.object(shellRunner,'run')
+  def test_isJavaAvailable(self, cmdrun_mock):
+    puppetInstance = PuppetExecutor("/tmp", "/x", "/y", '/tmpdir', None)
+    command = {'configurations':{'global':{'java64_home':'/usr/jdk/jdk123'}}}
+    
+    cmdrun_mock.return_value = {'exitCode': 1, 'output': 'Command not found', 'error': ''}
+    self.assertEquals(puppetInstance.isJavaAvailable(command), False)
+    
+    cmdrun_mock.return_value = {'exitCode': 0, 'output': 'OK', 'error': ''}
+    self.assertEquals(puppetInstance.isJavaAvailable(command), True)
+    
+    
+  @patch.object(PuppetExecutor, 'isJavaAvailable')
   @patch.object(PuppetExecutor, 'runPuppetFile')
-  def test_run_command(self, runPuppetFileMock):
+  def test_run_command(self, runPuppetFileMock, isJavaAvailableMock):
     tmpdir = AmbariConfig().getConfig().get("stack", "installprefix")
     puppetInstance = PuppetExecutor("/tmp", "/x", "/y", tmpdir, AmbariConfig().getConfig())
     jsonFile = open('../../main/python/ambari_agent/test.json', 'r')
@@ -55,6 +69,7 @@ class TestPuppetExecutor(TestCase):
         result["exitcode"] = 0
     runPuppetFileMock.side_effect = side_effect1
     puppetInstance.reposInstalled = False
+    isJavaAvailableMock.return_value = True
     res = puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
     self.assertEquals(res["exitcode"], 0)
     self.assertTrue(puppetInstance.reposInstalled)
@@ -63,14 +78,31 @@ class TestPuppetExecutor(TestCase):
         result["exitcode"] = 999
     runPuppetFileMock.side_effect = side_effect2
     puppetInstance.reposInstalled = False
+    isJavaAvailableMock.return_value = True
     res = puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
     self.assertEquals(res["exitcode"], 999)
     self.assertFalse(puppetInstance.reposInstalled)
     os.unlink(tmpdir + os.sep + 'site-' + str(parsedJson["taskId"]) + '.pp')
+    
+    def side_effect2(puppetFile, result, puppetEnv, tmpoutfile, tmperrfile):
+        result["exitcode"] = 0
+    runPuppetFileMock.side_effect = side_effect2
+    puppetInstance.reposInstalled = False
+    isJavaAvailableMock.return_value = False
+    parsedJson['roleCommand'] = "START"
+    parsedJson['configurations'] = {'global':{'java64_home':'/usr/jdk/jdk123'}}
+    res = puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
+    
+    JAVANOTVALID_MSG = "Cannot access JDK! Make sure you have permission to execute {0}/bin/java"
+    errMsg = JAVANOTVALID_MSG.format('/usr/jdk/jdk123')
+    self.assertEquals(res["exitcode"], 1)
+    self.assertEquals(res["stderr"], errMsg)
+    self.assertFalse(puppetInstance.reposInstalled)
 
+  @patch.object(PuppetExecutor, 'isJavaAvailable')
   @patch.object(RepoInstaller, 'generate_repo_manifests')
   @patch.object(PuppetExecutor, 'runPuppetFile')
-  def test_overwrite_repos(self, runPuppetFileMock, generateRepoManifestMock):
+  def test_overwrite_repos(self, runPuppetFileMock, generateRepoManifestMock, isJavaAvailableMock):
     tmpdir = AmbariConfig().getConfig().get("stack", "installprefix")
     puppetInstance = PuppetExecutor("/tmp", "/x", "/y", tmpdir, AmbariConfig().getConfig())
     jsonFile = open('../../main/python/ambari_agent/test.json', 'r')
@@ -80,6 +112,8 @@ class TestPuppetExecutor(TestCase):
     def side_effect(puppetFile, result, puppetEnv, tmpoutfile, tmperrfile):
       result["exitcode"] = 0
     runPuppetFileMock.side_effect = side_effect
+    
+    isJavaAvailableMock.return_value = True
 
     #If ambari-agent has been just started and no any commands were executed by
     # PuppetExecutor.runCommand, then no repo files were updated by

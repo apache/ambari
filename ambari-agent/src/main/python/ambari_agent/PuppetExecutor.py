@@ -25,11 +25,13 @@ import pprint
 import threading
 from threading import Thread
 
+from shell import shellRunner
 from manifestGenerator import generateManifest
 from RepoInstaller import RepoInstaller
 from Grep import Grep
 import shell
 
+JAVANOTVALID_MSG = "Cannot access JDK! Make sure you have permission to execute {0}/bin/java"
 
 logger = logging.getLogger()
 
@@ -54,6 +56,7 @@ class PuppetExecutor:
     self.reposInstalled = False
     self.config = config
     self.modulesdir = self.puppetModule + "/modules"
+    self.sh = shellRunner()
 
   def configureEnviron(self, environ):
     if not self.config.has_option("puppet", "ruby_home"):
@@ -143,8 +146,17 @@ class PuppetExecutor:
 
     logger.info("ExitCode : "  + str(result["exitcode"]))
     return result
-
+  
+  def isJavaAvailable(self, command):
+    javaExecutablePath = "{0}/bin/java".format(command['configurations']['global']['java64_home'])
+    return not self.sh.run([javaExecutablePath, '-version'])['exitCode']
+    
   def runCommand(self, command, tmpoutfile, tmperrfile):
+    # After installing we must have jdk available for start/stop/smoke
+    if command['roleCommand']!="INSTALL" and not self.isJavaAvailable(command):
+      errMsg = JAVANOTVALID_MSG.format(command['configurations']['global']['java64_home'])
+      return {'stdout': '', 'stderr': errMsg, 'exitcode': 1}
+
     taskId = 0
     if command.has_key("taskId"):
       taskId = command['taskId']
