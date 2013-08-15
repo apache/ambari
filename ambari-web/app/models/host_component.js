@@ -43,6 +43,7 @@ App.HostComponent = DS.Model.extend({
       case 'NAMENODE':
       case 'SECONDARY_NAMENODE':
       case 'SNAMENODE':
+      case 'JOURNALNODE':
       case 'JOBTRACKER':
       case 'ZOOKEEPER_SERVER':
       case 'HIVE_SERVER':

@@ -454,7 +454,7 @@ module.exports =
       "name": "resourcemanager_principal_name",
       "displayName": "Principal name",
       "value": "",
-      "defaultValue": "rs/_HOST",
+      "defaultValue": "rm/_HOST",
       "description": "Principal name for ResourceManager. _HOST will get automatically replaced with actual hostname at an instance of ResourceManager",
       "displayType": "principal",
       "isVisible": true,
@@ -468,7 +468,7 @@ module.exports =
       "name": "resourcemanager_keytab",
       "displayName": "Path to keytab file",
       "value": "",
-      "defaultValue": "/etc/security/keytabs/rs.service.keytab",
+      "defaultValue": "/etc/security/keytabs/rm.service.keytab",
       "description": "Path to ResourceManager keytab file",
       "displayType": "directory",
       "isVisible": true,
@@ -652,6 +652,8 @@ module.exports =
       "isVisible": true,
       "isOverridable": false,
       "serviceName": "HBASE",
+      "category": "RegionServer",
+      "components": ["HBASE_REGIONSERVER"]
     },
 
     //HIVE

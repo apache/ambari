@@ -47,8 +47,8 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     this.addUserPrincipals(this.get('content.services'));
     this.addMasterHostToGlobals(this.get('content.services'));
     this.addSlaveHostToGlobals(this.get('content.services'));
-    this.changeCategoryOnHa(this.get('content.services'));
     this.renderServiceConfigs(this.get('content.services'));
+    this.changeCategoryOnHa(this.get('content.services'));
     var storedServices = this.get('content.serviceConfigProperties');
     if (storedServices) {
       var configs = new Ember.Set();
@@ -231,9 +231,14 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     if (hdfsService) {
       var namenodeHost = hdfsService.configs.findProperty('name', 'namenode_host');
       var sNamenodeHost = hdfsService.configs.findProperty('name', 'snamenode_host');
+      var jnHosts = hdfsService.configs.findProperty('name', 'journalnode_hosts');
       if (namenodeHost && sNamenodeHost) {
         namenodeHost.defaultValue = App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'NAMENODE').get('host.hostName');
         sNamenodeHost.defaultValue = App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'SECONDARY_NAMENODE').get('host.hostName');
+      }
+      var jnComponent = App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'JOURNALNODE');
+      if(jnHosts && jnComponent) {
+        this.setHostsToConfig(hdfsService, 'journalnode_hosts', 'JOURNALNODE');
       }
     }
     if (mapReduceService) {
@@ -261,17 +266,17 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
   changeCategoryOnHa: function (serviceConfigs) {
     var hdfsService = serviceConfigs.findProperty('serviceName', 'HDFS');
     if (hdfsService) {
-      var secureProperties = require('data/HDP2/secure_properties').configProperties;
+      var hdfsProperties = this.get('stepConfigs').findProperty('serviceName','HDFS').get('configs');
       var configCategories = hdfsService.configCategories;
-      var dfsHttpPrincipal = secureProperties.findProperty('name', 'hadoop_http_principal_name');
-      var dfsHttpKeytab = secureProperties.findProperty('name', 'hadoop_http_keytab');
+      var dfsHttpPrincipal = hdfsProperties.findProperty('name', 'hadoop_http_principal_name');
+      var dfsHttpKeytab = hdfsProperties.findProperty('name', 'hadoop_http_keytab');
       if ((App.testMode && App.testNameNodeHA) || (this.get('content.isNnHa') === 'true')) {
         if (dfsHttpPrincipal && dfsHttpKeytab) {
-          dfsHttpPrincipal.category = 'NameNode';
-          dfsHttpKeytab.category = 'NameNode';
+          dfsHttpPrincipal.set('category','NameNode');
+          dfsHttpKeytab.set('category','NameNode');
         } else {
-          dfsHttpPrincipal.category = 'General';
-          dfsHttpKeytab.category = 'General';
+          dfsHttpPrincipal.set('category','General');
+          dfsHttpKeytab.set('category','General');
         }
         var generalCategory = configCategories.findProperty('name','General');
         var snCategory = configCategories.findProperty('name','SNameNode');

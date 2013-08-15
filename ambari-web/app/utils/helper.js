@@ -227,6 +227,8 @@ App.format = {
         return 'NameNode Check';
       case 'DATANODE':
         return 'DataNode';
+      case 'JOURNALNODE':
+        return 'JournalNode';
       case 'HDFS_SERVICE_CHECK':
         return 'HDFS Check';
       case 'SECONDARY_NAMENODE':

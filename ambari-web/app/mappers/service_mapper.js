@@ -62,6 +62,7 @@ App.servicesMapper = App.QuickDataMapper.create({
     name_node_id: 'nameNodeComponent.host_components[0].HostRoles.host_name',
     sname_node_id: 'snameNodeComponent.host_components[0].HostRoles.host_name',
     data_nodes: 'data_nodes',
+    journal_nodes: 'journal_nodes',
     name_node_start_time: 'nameNodeComponent.ServiceComponentInfo.StartTime',
     jvm_memory_heap_used: 'nameNodeComponent.host_components[0].metrics.jvm.memHeapUsedM',
     jvm_memory_heap_committed: 'nameNodeComponent.host_components[0].metrics.jvm.memHeapCommittedM',
@@ -352,6 +353,16 @@ App.servicesMapper = App.QuickDataMapper.create({
       }
       if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "SECONDARY_NAMENODE") {
         item.snameNodeComponent = component;
+      }
+      if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "JOURNALNODE") {
+        if (!item.journal_nodes) {
+          item.journal_nodes = [];
+        }
+        if (component.host_components) {
+          component.host_components.forEach(function (hc) {
+            item.journal_nodes.push(hc.HostRoles.host_name);
+          });
+        }
       }
       if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "DATANODE") {
         if (!item.data_nodes) {

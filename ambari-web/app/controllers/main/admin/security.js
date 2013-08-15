@@ -96,9 +96,9 @@ App.MainAdminSecurityController = Em.Controller.extend({
 
   getSecurityStatusFromServerSuccessCallback: function (data) {
     var configs = data.Clusters.desired_configs;
-    if ('global' in configs && 'core-site' in configs) {
+    if ('global' in configs && 'hdfs-site' in configs) {
       this.set('tag.global', configs['global'].tag);
-      this.set('tag.core-site', configs['core-site'].tag);
+      this.set('tag.hdfs-site', configs['hdfs-site'].tag);
       this.getServiceConfigsFromServer();
     }
     else {
@@ -109,7 +109,7 @@ App.MainAdminSecurityController = Em.Controller.extend({
   getServiceConfigsFromServer: function () {
     var urlParams = [];
     urlParams.push('(type=global&tag=' + this.get('tag.global') + ')');
-    urlParams.push('(type=core-site&tag=' + this.get('tag.core-site') + ')');
+    urlParams.push('(type=hdfs-site&tag=' + this.get('tag.hdfs-site') + ')');
     App.ajax.send({
       name: 'admin.security.all_configurations',
       sender: this,
@@ -129,15 +129,20 @@ App.MainAdminSecurityController = Em.Controller.extend({
     }
     else {
       this.set('securityEnabled', false);
-      var coreConfigs = data.items.findProperty('tag', this.get('tag.core-site')).properties;
-      this.setNnHaStatus(coreConfigs);
+      var hdfsConfigs = data.items.findProperty('tag', this.get('tag.hdfs-site')).properties;
+      this.setNnHaStatus(hdfsConfigs);
     }
     this.loadUsers(configs);
     this.set('dataIsLoaded', true);
   },
 
-  setNnHaStatus: function(coreConfigs) {
-    if(coreConfigs && coreConfigs['dfs.nameservices'] && coreConfigs['dfs.ha.namenodes.mycluster']) {
+  setNnHaStatus: function(hdfsConfigs) {
+    var nnHaStatus = hdfsConfigs && hdfsConfigs['dfs.nameservices'];
+    var namenodes;
+    if (nnHaStatus) {
+      namenodesKey = 'dfs.ha.namenodes.' + hdfsConfigs['dfs.nameservices'];
+    }
+    if(nnHaStatus && hdfsConfigs[namenodesKey]) {
       App.db.setIsNameNodeHa('true');
     } else {
       App.db.setIsNameNodeHa('false');

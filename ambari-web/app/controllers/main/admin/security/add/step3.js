@@ -45,7 +45,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
     var hosts = App.Host.find();
     var result = [];
     var componentsToDisplay = ['NAMENODE', 'SECONDARY_NAMENODE', 'DATANODE', 'JOBTRACKER', 'ZOOKEEPER_SERVER', 'HIVE_SERVER', 'TASKTRACKER',
-      'OOZIE_SERVER', 'NAGIOS_SERVER', 'HBASE_MASTER', 'HBASE_REGIONSERVER','HISTORYSERVER','RESOURCEMANAGER','NODEMANAGER'];
+      'OOZIE_SERVER', 'NAGIOS_SERVER', 'HBASE_MASTER', 'HBASE_REGIONSERVER','HISTORYSERVER','RESOURCEMANAGER','NODEMANAGER','JOURNALNODE'];
     var securityUsers = [];
     if (!securityUsers || securityUsers.length < 1) { // Page could be refreshed in middle
       securityUsers = this.getSecurityUsers();
@@ -77,6 +77,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       'NAMENODE': hdfsUserId,
       'SECONDARY_NAMENODE': hdfsUserId,
       'DATANODE': hdfsUserId,
+      'JOURNALNODE': hdfsUserId,
       'TASKTRACKER': mapredUserId,
       'JOBTRACKER': mapredUserId,
       'HISTORYSERVER': mapredUserId,
@@ -126,7 +127,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
         });
       }
       if(host.get('hostComponents').someProperty('componentName', 'NAMENODE') ||
-        host.get('hostComponents').someProperty('componentName', 'SECONDARY_NAMENODE')){
+        host.get('hostComponents').someProperty('componentName', 'SECONDARY_NAMENODE') ||  host.get('hostComponents').someProperty('componentName', 'JOURNALNODE')){
         result.push({
           host: host.get('hostName'),
           component: Em.I18n.t('admin.addSecurity.hdfs.user.httpUser'),
@@ -138,6 +139,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
           acl: '440'
         });
       }
+
       if (host.get('hostComponents').someProperty('componentName', 'WEBHCAT_SERVER')) {
         var webHcatConfigs = configs.filterProperty('serviceName', 'WEBHCAT');
         var webHCatHttpPrincipal = webHcatConfigs.findProperty('name', 'webHCat_http_principal_name');
