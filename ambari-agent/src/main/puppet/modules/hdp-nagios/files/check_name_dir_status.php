@@ -36,12 +36,12 @@
   $json_array = json_decode($json_string, true);
   $object = $json_array['beans'][0];
   if ($object['NameDirStatuses'] == "") {
-    echo "WARNING: Namenode directory status not available via http://".$host.":".$port."/jmx url" . "\n";
+    echo "WARNING: NameNode directory status not available via http://".$host.":".$port."/jmx url" . "\n";
     exit(1);
   }
   $NameDirStatuses = json_decode($object['NameDirStatuses'], true);
   $failed_dir_count = count($NameDirStatuses['failed']);
-  $out_msg = "CRITICAL: Offline Namenode directories: ";
+  $out_msg = "CRITICAL: Offline NameNode directories: ";
   if ($failed_dir_count > 0) {
     foreach ($NameDirStatuses['failed'] as $key => $value) {
       $out_msg = $out_msg . $key . ":" . $value . ", ";
@@ -49,7 +49,7 @@
     echo $out_msg . "\n";
     exit (2);
   }
-  echo "OK: All Namenode directories are active" . "\n";
+  echo "OK: All NameNode directories are active" . "\n";
   exit(0);
 
   /* print usage */

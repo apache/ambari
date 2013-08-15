@@ -31,9 +31,9 @@ fi
 
 if [ $RES -eq "2" ]
 then
-  echo "OK: Ambari agent is running [PID:$AMBARI_AGENT_PID]";
+  echo "OK: Ambari Agent is running [PID:$AMBARI_AGENT_PID]";
   exit 0;
 else
-  echo "CRITICAL: Ambari agent is not running [$AMBARI_AGENT_PID_PATH not found]";
+  echo "CRITICAL: Ambari Agent is not running [$AMBARI_AGENT_PID_PATH not found]";
   exit 2;
 fi

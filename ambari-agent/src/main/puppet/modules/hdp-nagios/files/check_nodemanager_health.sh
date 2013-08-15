@@ -25,8 +25,8 @@ NODEMANAGER_URL="http://$HOST:$PORT/ws/v1/node/info"
 export PATH="/usr/bin:$PATH"
 RESPONSE=`curl -s $NODEMANAGER_URL`
 if [[ "$RESPONSE" == *'"nodeHealthy":true'* ]]; then 
-  echo "OK: nodemanager healthy true";
+  echo "OK: NodeManager healthy";
   exit 0;
 fi
-echo "CRITICAL: nodemanager healthy false";
+echo "CRITICAL: NodeManager unhealthy";
 exit 2;

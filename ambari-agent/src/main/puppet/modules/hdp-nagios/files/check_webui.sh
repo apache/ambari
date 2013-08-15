@@ -46,35 +46,35 @@ jobtracker)
 namenode)
     nnweburl="http://$host:$port"
     if [[ `checkurl "$nnweburl"` -ne 0 ]] ; then 
-      echo "WARNING: NameNode web UI not accessible : $nnweburl";
+      echo "WARNING: NameNode Web UI not accessible : $nnweburl";
       exit 1;
     fi
     ;;
 jobhistory)
     jhweburl="http://$host:$port/jobhistoryhome.jsp"
     if [[ `checkurl "$jhweburl"` -ne 0 ]]; then 
-      echo "WARNING: Jobhistory web UI not accessible : $jhweburl";
+      echo "WARNING: HistoryServer Web UI not accessible : $jhweburl";
       exit 1;
     fi
     ;;
 hbase)
     hbaseweburl="http://$host:$port/master-status"
     if [[ `checkurl "$hbaseweburl"` -ne 0 ]]; then 
-      echo "WARNING: HBase Master web UI not accessible : $hbaseweburl"; 
+      echo "WARNING: HBase Master Web UI not accessible : $hbaseweburl";
       exit 1;
     fi
     ;;
 resourcemanager)
     rmweburl="http://$host:$port/cluster"
     if [[ `checkurl "$rmweburl"` -ne 0 ]]; then 
-      echo "WARNING: ResourceManager web UI not accessible : $rmweburl";
+      echo "WARNING: ResourceManager Web UI not accessible : $rmweburl";
       exit 1;
     fi
     ;;
 historyserver2)
     hsweburl="http://$host:$port/jobhistory"
     if [[ `checkurl "$hsweburl"` -ne 0 ]]; then 
-      echo "WARNING: HistoryServer2 web UI not accessible : $hsweburl";
+      echo "WARNING: HistoryServer Web UI not accessible : $hsweburl";
       exit 1;
     fi
     ;;

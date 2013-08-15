@@ -26,9 +26,9 @@ for mapred_dir in $MAPRED_LOCAL_DIRS
 do
   percent=`df -hl $mapred_dir | awk '{percent=$5;} END{print percent}' | cut -d % -f 1`
   if [ $percent -ge $CRITICAL ]; then
-    echo "CRITICAL: Mapreduce local dir is full."
+    echo "CRITICAL: MapReduce local dir is full."
     exit 2
   fi
 done
-echo "OK: Mapreduce local dir space is available."
+echo "OK: MapReduce local dir space is available."
 exit 0

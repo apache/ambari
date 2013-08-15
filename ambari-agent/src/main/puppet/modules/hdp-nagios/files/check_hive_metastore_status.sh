@@ -38,8 +38,8 @@ HCAT_URL=-Dhive.metastore.uris="thrift://$HOST:$PORT"
 export JAVA_HOME=$JAVA_HOME
 out=`hcat $HCAT_URL -e "show databases" 2>&1`
 if [[ "$?" -ne 0 ]]; then
-  echo "CRITICAL: Error accessing hive-metaserver status [$out]";
+  echo "CRITICAL: Error accessing Hive Metastore status [$out]";
   exit 2;
 fi
-echo "OK: Hive metaserver status OK";
+echo "OK: Hive Metastore status OK";
 exit 0;
