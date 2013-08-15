@@ -1390,7 +1390,7 @@
 
     "HBASE_MASTER":{
       "ServiceComponentInfo/AverageLoad":{
-        "metric" : "hadoop:service=Master,name=Master.AverageLoad",
+        "metric" : "Hadoop:service=HBase,name=Master,sub=Server.averageLoad",
         "pointInTime" : true,
         "temporal" : false
       },
@@ -1415,92 +1415,72 @@
         "temporal" : false
       },
       "ServiceComponentInfo/MasterActiveTime":{
-        "metric" : "hadoop:service=Master,name=Master.MasterActiveTime",
+        "metric" : "Hadoop:service=HBase,name=Master,sub=Server.masterActiveTime",
         "pointInTime" : true,
         "temporal" : false
       },
       "ServiceComponentInfo/MasterStartTime":{
-        "metric" : "hadoop:service=Master,name=Master.MasterStartTime",
+        "metric" : "Hadoop:service=HBase,name=Master,sub=Server.masterStartTime",
         "pointInTime" : true,
         "temporal" : false
       },
       "ServiceComponentInfo/RegionsInTransition":{
-        "metric" : "hadoop:service=Master,name=Master.RegionsInTransition",
-        "pointInTime" : true,
-        "temporal" : false
-      },
-      "ServiceComponentInfo/Revision":{
-        "metric" : "hadoop:service=HBase,name=Info.revision",
-        "pointInTime" : true,
-        "temporal" : false
-      },
-      "ServiceComponentInfo/Version":{
-        "metric" : "hadoop:service=HBase,name=Info.version",
+        "metric" : "Hadoop:service=HBase,name=Master,sub=Server.ritCount",
         "pointInTime" : true,
         "temporal" : false
       },
       "metrics/hbase/master/ClusterId":{
-        "metric":"hadoop:service=Master,name=Master.ClusterId",
+        "metric":"Hadoop:service=HBase,name=Master,sub=Server.tag.clusterId",
         "pointInTime":true,
         "temporal":false
       },
       "metrics/hbase/master/MasterStartTime":{
-        "metric":"hadoop:service=Master,name=Master.MasterStartTime",
+        "metric":"Hadoop:service=HBase,name=Master,sub=Server.masterStartTime",
         "pointInTime":true,
         "temporal":false
       },
       "metrics/hbase/master/MasterActiveTime":{
-        "metric":"hadoop:service=Master,name=Master.MasterActiveTime",
-        "pointInTime":true,
-        "temporal":false
-      },
-      "metrics/hbase/master/Coprocessors":{
-        "metric":"hadoop:service=Master,name=Master.Coprocessors",
+        "metric":"Hadoop:service=HBase,name=Master,sub=Server.masterActiveTime",
         "pointInTime":true,
         "temporal":false
       },
       "metrics/hbase/master/ServerName":{
-        "metric":"hadoop:service=Master,name=Master.ServerName",
+        "metric":"Hadoop:service=HBase,name=Master,sub=Server.tag.serverName",
         "pointInTime":true,
         "temporal":false
       },
       "metrics/hbase/master/AverageLoad":{
-        "metric":"hadoop:service=Master,name=Master.AverageLoad",
-        "pointInTime":true,
-        "temporal":false
-      },
-      "metrics/hbase/master/RegionsInTransition":{
-        "metric":"hadoop:service=Master,name=Master.RegionsInTransition",
+        "metric":"Hadoop:service=HBase,name=Master,sub=Server.averageLoad",
         "pointInTime":true,
         "temporal":false
       },
       "metrics/hbase/master/RegionServers":{
-        "metric":"hadoop:service=Master,name=Master.RegionServers",
+        "metric":"Hadoop:service=HBase,name=Master,sub=Server.numRegionServers",
         "pointInTime":true,
         "temporal":false
       },
       "metrics/hbase/master/ZookeeperQuorum":{
-        "metric":"hadoop:service=Master,name=Master.ZookeeperQuorum",
+        "metric":"Hadoop:service=HBase,name=Master,sub=Server.tag.zookeeperQuorum",
         "pointInTime":true,
         "temporal":false
       },
       "metrics/hbase/master/DeadRegionServers":{
-        "metric":"hadoop:service=Master,name=Master.DeadRegionServers",
+        "metric":"Hadoop:service=HBase,name=Master,sub=Server.numDeadRegionServers",
         "pointInTime":true,
         "temporal":false
       },
       "metrics/hbase/master/IsActiveMaster":{
-        "metric":"hadoop:service=Master,name=Master.IsActiveMaster",
+        "metric":"Hadoop:service=HBase,name=Master,sub=Server.tag.isActiveMaster",
         "pointInTime":true,
         "temporal":false
       },
       "metrics/hbase/master/splitTimeNumOps":{
-        "metric":"hadoop:service=Master,name=MasterStatistics.splitTimeNumOps",
+        "metric":"Hadoop:service=HBase,name=Master,sub=Server.HlogSplitTime_num_ops",
         "pointInTime":true,
         "temporal":false
       },
       "metrics/hbase/master/splitTimeAvgTime":{
-        "metric":"hadoop:service=Master,name=MasterStatistics.splitTimeAvgTime",
+        "metric":"Hadoop:service=HBase,name=Master,sub=Server.HlogSplitTime_mean",
         "pointInTime":true,
         "temporal":false
       },
