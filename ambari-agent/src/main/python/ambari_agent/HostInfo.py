@@ -52,7 +52,7 @@ class HostInfo:
   # Set of default users (need to be replaced with the configured user names)
   DEFAULT_USERS = [
     "nagios", "hive", "ambari-qa", "oozie", "hbase", "hcat", "mapred",
-    "hdfs", "rrdcached", "zookeeper", "mysql", "flume", "sqoop", "sqoop2",
+    "hdfs", "rrdcached", "zookeeper", "flume", "sqoop", "sqoop2",
     "hue", "yarn"
   ]
 
@@ -79,7 +79,7 @@ class HostInfo:
   # Additional packages to look for (search packages that start with these)
   ADDITIONAL_PACKAGES = [
     "rrdtool", "rrdtool-python", "nagios", "ganglia", "gmond", "gweb", "libconfuse", "ambari-log4j",
-    "mysql", "hadoop", "zookeeper"
+    "hadoop", "zookeeper"
   ]
 
   # ignore packages from repos whose names start with these strings
