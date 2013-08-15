@@ -32,12 +32,11 @@ class hdp-yarn::params(
 
   ## yarn-env 
   $hadoop_libexec_dir = hdp_default("yarn/yarn-env/hadoop_libexec_dir","/usr/lib/hadoop/libexec")
-  
-  $hadoop_common_home = hdp_default("yarn/yarn-env/hadoop_common_home","/usr/lib/hadoop")
-  $hadoop_hdfs_home = hdp_default("yarn/yarn-env/hadoop_hdfs_home","/usr/lib/hadoop-hdfs")
-  $hadoop_mapred_home = hdp_default("yarn/yarn-env/hadoop_mapred_home","/usr/lib/hadoop-mapreduce")
   $hadoop_yarn_home = hdp_default("yarn/yarn-env/hadoop_yarn_home","/usr/lib/hadoop-yarn")
-  
+  $yarn_heapsize = hdp_default("yarn/yarn-env/yarn_heapsize","1024")
+  $resourcemanager_heapsize = hdp_default("yarn/yarn-env/resourcemanager_heapsize","1024")
+  $nodemanager_heapsize = hdp_default("yarn/yarn-env/nodemanager_heapsize","1024")
+
   $yarn_log_dir_prefix = hdp_default("hadoop/yarn-env/yarn_log_dir_prefix","/var/log/hadoop-yarn")
   $yarn_pid_dir_prefix = hdp_default("hadoop/yarn-env/yarn_pid_dir_prefix","/var/run/hadoop-yarn")
   
