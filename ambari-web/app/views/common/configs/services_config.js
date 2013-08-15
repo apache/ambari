@@ -97,16 +97,17 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
       var stepConfigs = this.get("controller.stepConfigs");
       this.affectedProperties = [];
       var curConfigs = "";
+      var affectedPropertyName = App.get('isHadoop2Stack') ? "dfs.permissions.superusergroup" : "dfs.permissions.supergroup";
       if (changedProperty.get("name") == "hdfs_user") {
         curConfigs = stepConfigs.findProperty("serviceName", "HDFS").get("configs");
-        if (newValue != curConfigs.findProperty("name", "dfs.permissions.supergroup").get("value")) {
+        if (newValue != curConfigs.findProperty("name", affectedPropertyName).get("value")) {
           this.affectedProperties.push(
             {
               serviceName: "HDFS",
-              propertyName: "dfs.permissions.supergroup",
-              propertyDisplayName: "dfs.permissions.supergroup",
+              propertyName: affectedPropertyName,
+              propertyDisplayName: affectedPropertyName,
               newValue: newValue,
-              curValue: curConfigs.findProperty("name", "dfs.permissions.supergroup").get("value"),
+              curValue: curConfigs.findProperty("name", affectedPropertyName).get("value"),
               changedPropertyName: "hdfs_user"
             }
           );
