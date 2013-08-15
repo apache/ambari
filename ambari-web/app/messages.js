@@ -964,7 +964,7 @@ Em.I18n.translations = {
   'services.service.info.metrics.yarn.queueMemoryResource':'Queue Memory',
   'services.service.info.metrics.yarn.queueMemoryResource.displayNames.allocated':'Allocated ({0})',
   'services.service.info.metrics.yarn.queueMemoryResource.displayNames.available':'Available ({0})',
-  'services.service.info.metrics.yarn.queueMemoryResource.displayName':'Queue Memory ({0})',
+  'services.service.info.metrics.yarn.queueMemoryResource.displayName':'Queue: {0}',
 
   'services.service.info.menu.summary':'Summary',
   'services.service.info.menu.configs':'Configs',

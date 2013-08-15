@@ -39,7 +39,7 @@ App.ChartServiceMetricsYARN_QMR = App.ChartLinearTimeView.extend({
     var svc = App.YARNService.find().objectAt(0);
     var queueNames = [];
     if (svc != null) {
-      queueNames = svc.get('queueNames');
+      queueNames = svc.get('childQueueNames');
     }
     data.queueNames = queueNames;
     return data;
@@ -52,11 +52,11 @@ App.ChartServiceMetricsYARN_QMR = App.ChartLinearTimeView.extend({
     var svc = App.YARNService.find().objectAt(0);
     var queueNames = [];
     if (svc != null) {
-      queueNames = svc.get('queueNames');
+      queueNames = svc.get('childQueueNames');
     }
     if (jsonData && jsonData.metrics && jsonData.metrics.yarn.Queue) {
       queueNames.forEach(function (qName) {
-        var qPath = qName.replace('/', '.');
+        var qPath = qName.replace(/\//g, '.')
         var displayName;
         var allocatedData = objUtils.getProperty(jsonData.metrics.yarn.Queue, qPath + '.AllocatedMB');
         var availableData = objUtils.getProperty(jsonData.metrics.yarn.Queue, qPath + '.AvailableMB');
@@ -65,10 +65,10 @@ App.ChartServiceMetricsYARN_QMR = App.ChartLinearTimeView.extend({
         if (allocatedData != null && availableData != null) {
           if (typeof allocatedData == "number" && typeof availableData == "number") {
             seriesData = (allocatedData * 100) / availableData;
-          } else if (allocatedData.length == availableData.length) {
+          } else if (allocatedData.length > 0 && availableData.length > 0) {
             seriesData = [];
-            for ( var c = 0; c < allocated.length; c++) {
-              seriesData.push([ (allocatedData[c][0] * 100) / availableData[c][0] ], allocatedData[c][1]);
+            for ( var c = 0; c < Math.min(availableData.length, allocatedData.length); c++) {
+              seriesData.push([ (allocatedData[c][0] * 100) / availableData[c][0], allocatedData[c][1] ]);
             }
           } else {
             console.log("Skipping data series for Queue " + qName);
