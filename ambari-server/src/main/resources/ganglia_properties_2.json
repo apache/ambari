@@ -6722,7 +6722,38 @@
         "metric":"ugi.ugi.LoginFailureAvgTime",
         "pointInTime":false,
         "temporal":true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AvailableMB":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).AvailableMB",
+        "pointInTime" : false,
+        "temporal" : true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/PendingMB":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).PendingMB",
+        "pointInTime" : false,
+        "temporal" : true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AllocatedMB":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).AllocatedMB",
+        "pointInTime" : false,
+        "temporal" : true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AllocatedContainers":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).AllocatedContainers",
+        "pointInTime" : false,
+        "temporal" : true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/ReservedContainers":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).ReservedContainers",
+        "pointInTime" : false,
+        "temporal" : true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/PendingContainers":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).PendingContainers",
+        "pointInTime" : false,
+        "temporal" : true
       }
+
     },
     "NODEMANAGER":{
       "metrics/boottime":{
@@ -16877,6 +16908,36 @@
         "metric":"ugi.ugi.LoginFailureAvgTime",
         "pointInTime":false,
         "temporal":true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AvailableMB":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).AvailableMB",
+        "pointInTime" : false,
+        "temporal" : true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/PendingMB":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).PendingMB",
+        "pointInTime" : false,
+        "temporal" : true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AllocatedMB":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).AllocatedMB",
+        "pointInTime" : false,
+        "temporal" : true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AllocatedContainers":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).AllocatedContainers",
+        "pointInTime" : false,
+        "temporal" : true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/ReservedContainers":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).ReservedContainers",
+        "pointInTime" : false,
+        "temporal" : true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/PendingContainers":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).PendingContainers",
+        "pointInTime" : false,
+        "temporal" : true
       }
     },
 

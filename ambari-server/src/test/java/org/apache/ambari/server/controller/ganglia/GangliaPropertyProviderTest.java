@@ -56,7 +56,10 @@ public class GangliaPropertyProviderTest {
   private static final String CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "cluster_name");
   private static final String HOST_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "host_name");
   private static final String COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "component_name");
-
+  
+  private static final String RM_CATEGORY_1 = "metrics/yarn/Queue/root/default";
+  private static final String RM_AVAILABLE_MEMORY_PROPERTY = PropertyHelper.getPropertyId(RM_CATEGORY_1, "AvailableMB");
+  
   private ComponentSSLConfiguration configuration;
 
   @Parameterized.Parameters
@@ -534,6 +537,43 @@ public class GangliaPropertyProviderTest {
     Assert.assertEquals(11, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(FLUME_CHANNEL_CAPACITY_PROPERTY));
   }
+  
+  @Test
+  public void testPopulateResources_params_category5() throws Exception {
+    TestStreamProvider streamProvider  = new TestStreamProvider("temporal_ganglia_data_yarn_queues.txt");
+    TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
+
+    GangliaPropertyProvider propertyProvider = new GangliaHostComponentPropertyProvider(
+        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, MetricsVersion.HDP2),
+        streamProvider,
+        configuration,
+        hostProvider,
+        CLUSTER_NAME_PROPERTY_ID,
+        HOST_NAME_PROPERTY_ID,
+        COMPONENT_NAME_PROPERTY_ID);
+    
+    Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+
+    resource.setProperty(HOST_NAME_PROPERTY_ID, "dev01.ambari.apache.org");
+    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
+
+    // only ask for one property
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    temporalInfoMap.put(RM_CATEGORY_1, new TemporalInfoImpl(10L, 20L, 1L));
+    
+    Request  request = PropertyHelper.getReadRequest(Collections.singleton(RM_CATEGORY_1), temporalInfoMap);
+
+    Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
+
+    String expected = (configuration.isGangliaSSL() ? "https" : "http") +
+        "://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPResourceManager&h=dev01.ambari.apache.org&s=10&e=20&r=1";
+    Assert.assertEquals(expected, streamProvider.getLastSpec());    
+    
+    System.out.println(PropertyHelper.getProperties(resource));
+    
+    Assert.assertEquals(14, PropertyHelper.getProperties(resource).size());
+    Assert.assertNotNull(resource.getPropertyValue(RM_AVAILABLE_MEMORY_PROPERTY));
+  }  
 
   private static class TestGangliaHostProvider implements GangliaHostProvider {
 
