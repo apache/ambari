@@ -440,6 +440,19 @@ module.exports =
       "serviceName": "HDFS",
       "category": "Advanced"
     },
+    {
+      "id": "puppet var",
+      "name": "hdfs_enable_shortcircuit_read",
+      "displayName": "HDFS Short-circuit read",
+      "description": "",
+      "defaultValue": true,
+      "isRequired": false,
+      "displayType": "checkbox",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "HDFS",
+      "category": "Advanced"
+    },
 
   /**********************************************MAPREDUCE2***************************************/
     {
@@ -1038,19 +1051,6 @@ module.exports =
       "isRequired": false,
       "displayType": "advanced",
       "isVisible": false,
-      "domain": "global",
-      "serviceName": "HBASE",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
-      "name": "hdfs_enable_shortcircuit_read",
-      "displayName": "HDFS Short-circuit read",
-      "description": "",
-      "defaultValue": true,
-      "isRequired": false,
-      "displayType": "checkbox",
-      "isVisible": true,
       "domain": "global",
       "serviceName": "HBASE",
       "category": "Advanced"
