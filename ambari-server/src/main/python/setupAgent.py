@@ -51,17 +51,6 @@ def installAgentSuse(projectVersion):
   zypperCommand = ["zypper", "install", "-y", "ambari-agent" + projectVersion]
   return execOsCommand(zypperCommand)
 
-def installPreReq():
-  """ required for ruby deps """
-  checkepel = ["yum", "repolist", "enabled"]
-  retval = execOsCommand(checkepel)
-  logval = str(retval["log"])
-  if not "epel" in logval:
-    yumCommand = ["yum", "-y", "install", "epel-release"]
-  else:
-    yumCommand = ["echo", "Epel already exists"]
-  return execOsCommand(yumCommand)
-
 def installAgent(projectVersion):
   """ Run yum install and make sure the agent install alright """
   # The command doesn't work with file mask ambari-agent*.rpm, so rename it on agent host
@@ -185,9 +174,6 @@ def main(argv=None):
     if (not ret["exitstatus"]==0):
       sys.exit(ret)
   else:
-    ret = installPreReq()
-    if (not ret["exitstatus"]==0):
-      sys.exit(ret)
     ret = installAgent(projectVersion)
     if (not ret["exitstatus"]==0):
       sys.exit(ret)

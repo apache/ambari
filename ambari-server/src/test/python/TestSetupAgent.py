@@ -279,18 +279,9 @@ class TestSetupAgent(TestCase):
   def test_installAgentSuse(self, Popen_mock):
     self.assertFalse(setup_agent.installAgentSuse("1") == None)
 
-  @patch.object(setup_agent, 'execOsCommand')
-  def test_installPreReq(self, execOsCommand_mock):
-    execOsCommand_mock.side_effect = [{"log": " epel "}, "hostname -f", {"log": " something "}, "hostname -f"]
-    setup_agent.installPreReq()
-    setup_agent.installPreReq()
-    self.assertTrue(execOsCommand_mock.call_count == 4)
-
-
   @patch.object(setup_agent, 'runAgent')
   @patch.object(setup_agent, 'configureAgent')
   @patch.object(setup_agent, 'installAgent')
-  @patch.object(setup_agent, 'installPreReq')
   @patch.object(setup_agent, 'installAgentSuse')
   @patch.object(setup_agent, 'is_suse')
   @patch.object(setup_agent, 'getOptimalVersion')
@@ -299,9 +290,8 @@ class TestSetupAgent(TestCase):
   @patch("os.path.dirname")
   @patch("os.path.realpath")
   def test_setup_agent_main(self, dirname_mock, realpath_mock, exit_mock, checkServerReachability_mock,
-                            getOptimalVersion_mock, is_suse_mock, installAgentSuse_mock, installPreReq_mock,
+                            getOptimalVersion_mock, is_suse_mock, installAgentSuse_mock,
                             installAgent_mock, configureAgent_mock, runAgent_mock):
-    installPreReq_mock.return_value = {'log': 'log', 'exitstatus': 0}
     installAgent_mock.return_value = {'log': 'log', 'exitstatus': 0}
     installAgentSuse_mock.return_value = {'log': 'log', 'exitstatus': 0}
     runAgent_mock.return_value = 0
@@ -318,19 +308,7 @@ class TestSetupAgent(TestCase):
     def side_effect(retcode):
       raise Exception(retcode, "sys.exit")
     exit_mock.side_effect = side_effect
-    #BUG-6769 Bootstrap does not fail on yum error
-    #if "yum -y install epel-release" return not 0 result
-    installPreReq_mock.return_value = {'log': 'log', 'exitstatus': 1}
-    try:
-        setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","1.1.1","8080"))
-        self.fail("Should throw exception")
-    except Exception:
-        # Expected
-        pass
-    self.assertTrue(exit_mock.called)
-    exit_mock.reset()
     #if "yum -y install --nogpgcheck ambari-agent" return not 0 result
-    installPreReq_mock.return_value = {'log': 'log', 'exitstatus': 0}
     installAgent_mock.return_value = {'log': 'log', 'exitstatus': 1}
     try:
         setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","1.1.1","8080"))
