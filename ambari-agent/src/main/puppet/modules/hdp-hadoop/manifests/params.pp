@@ -149,7 +149,7 @@ class hdp-hadoop::params(
   
   $jn_edits_dir = hdp_default("hdfs-site/dfs.journalnode.edits.dir", "/grid/0/hdfs/journal")
   
-
+  $dfs_domain_socket_path = hdp_default("hdfs-site/dfs.domain.socket.path","/var/lib/hadoop-hdfs/dn_socket")
 
  ######### mapred #######
    ### mapred-site
