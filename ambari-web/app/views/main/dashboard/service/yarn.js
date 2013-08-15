@@ -50,11 +50,7 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
   }.property(),
 
   hasManyYarnClients: function () {
-    if(this.get('service.yarnClientNodes') > 1){
-      return true;
-    }else{
-      return false;
-    }
+    return (this.get('service.yarnClientNodes') > 1);
   }.property('service.yarnClientNodes'),
 
   nodeUptime: function () {
@@ -97,7 +93,13 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
     var nmUnhealthy = this.get('service.nodeManagersCountUnhealthy');
     var nmRebooted = this.get('service.nodeManagersCountRebooted');
     var nmDecom = this.get('service.nodeManagersCountDecommissioned');
-    return this.t('dashboard.services.yarn.nodeManagers.status.msg').format(nmActive, nmLost, nmUnhealthy, nmRebooted, nmDecom);
+    return this.t('dashboard.services.yarn.nodeManagers.status.msg').format(
+      this.formatUnavailable(nmActive),
+      this.formatUnavailable(nmLost),
+      this.formatUnavailable(nmUnhealthy),
+      this.formatUnavailable(nmRebooted),
+      this.formatUnavailable(nmDecom)
+    );
   }.property('service.nodeManagersCountActive', 'service.nodeManagersCountLost', 
       'service.nodeManagersCountUnhealthy', 'service.nodeManagersCountRebooted', 'service.nodeManagersCountDecommissioned'),
 
@@ -105,7 +107,11 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
     var allocated = this.get('service.containersAllocated');
     var pending = this.get('service.containersPending');
     var reserved = this.get('service.containersReserved');
-    return this.t('dashboard.services.yarn.containers.msg').format(allocated, pending, reserved);
+    return this.t('dashboard.services.yarn.containers.msg').format(
+      this.formatUnavailable(allocated),
+      this.formatUnavailable(pending),
+      this.formatUnavailable(reserved)
+    );
   }.property('service.containersAllocated', 'service.containersPending', 'service.containersReserved'),
 
   apps: function () {
@@ -115,7 +121,13 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
     var appsCompleted = this.get('service.appsCompleted');
     var appsKilled = this.get('service.appsKilled');
     var appsFailed = this.get('service.appsFailed');
-    return this.t('dashboard.services.yarn.apps.msg').format(appsSubmitted, appsRunning, appsPending, appsCompleted, appsKilled, appsFailed);
+    return this.t('dashboard.services.yarn.apps.msg').format(
+      this.formatUnavailable(appsSubmitted),
+      this.formatUnavailable(appsRunning),
+      this.formatUnavailable(appsPending),
+      this.formatUnavailable(appsCompleted),
+      this.formatUnavailable(appsKilled),
+      this.formatUnavailable(appsFailed));
   }.property('service.appsSubmitted', 'service.appsRunning', 'service.appsPending', 'service.appsCompleted', 'service.appsKilled', 'service.appsFailed'),
 
   memory: function () {
@@ -126,7 +138,7 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
   }.property('service.allocatedMemory', 'service.reservedMemory', 'service.availableMemory'),
 
   queues: function() {
-    return Em.I18n.t('dashboard.services.yarn.queues.msg').format(this.get('service.queuesCount'));
+    return Em.I18n.t('dashboard.services.yarn.queues.msg').format(this.formatUnavailable(this.get('service.queuesCount')));
   }.property('service.queuesCount'),
   
   didInsertElement: function(){
