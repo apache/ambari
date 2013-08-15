@@ -31,13 +31,15 @@ App.ChartServiceMetricsYARN_AllocatedMemory = App.ChartLinearTimeView.extend({
   title: Em.I18n.t('services.service.info.metrics.yarn.allocated.memory'),
   renderer: 'line',
   ajaxIndex: 'service.metrics.yarn.queue.allocated',
+  yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];
-    if (jsonData && jsonData.metrics && jsonData.metrics.yarn.Queue) {
-      for (var name in jsonData.metrics.yarn.Queue) {
-        var displayName;
-        var seriesData = jsonData.metrics.yarn.Queue[name];
+    var MB = Math.pow(2, 20);
+    if (jsonData && jsonData.metrics && jsonData.metrics.yarn.Queue && jsonData.metrics.yarn.Queue.root) {
+      for (var name in jsonData.metrics.yarn.Queue.root) {
+        var displayName = null;
+        var seriesData = jsonData.metrics.yarn.Queue.root[name];
         switch (name) {
           case "AvailableMB":
             displayName = Em.I18n.t('services.service.info.metrics.yarn.allocated.memory.displayNames.available');
@@ -51,8 +53,12 @@ App.ChartServiceMetricsYARN_AllocatedMemory = App.ChartLinearTimeView.extend({
           default:
             break;
         }
-        if (seriesData) {
-          seriesArray.push(this.transformData(seriesData, displayName));
+        if (seriesData && displayName) {
+          var s = this.transformData(seriesData, displayName);
+          for (var i = 0; i < s.data.length; i++) {
+            s.data[i].y *= MB;
+          }
+          seriesArray.push(s);
         }
       }
     }
