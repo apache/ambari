@@ -38,6 +38,7 @@ class hdp-oozie::service(
   } else {
     $ext_js_path = "/usr/share/HDP-oozie/ext.zip"
   }
+  $oozie_libext_dir = "/usr/lib/oozie/libext"
 
   $lzo_enabled = $hdp::params::lzo_enabled
 
@@ -94,12 +95,16 @@ class hdp-oozie::service(
        
   $cmd1 = "cd /usr/lib/oozie && tar -xvf oozie-sharelib.tar.gz"
   $cmd2 =  "cd /usr/lib/oozie && mkdir -p ${oozie_tmp}"
-  $cmd3 =  "cd /usr/lib/oozie && chown ${user}:${hdp::params::user_group} ${oozie_tmp}" 
+  if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
+    $cmd3 =  "cd /usr/lib/oozie && chown ${user}:${hdp::params::user_group} ${oozie_tmp} && mkdir -p ${oozie_libext_dir} && cp ${$ext_js_path} ${oozie_libext_dir}" 
+  } else {
+    $cmd3 =  "cd /usr/lib/oozie && chown ${user}:${hdp::params::user_group} ${oozie_tmp}" 
+  }
      
   if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
     $cmd4 = $jdbc_driver_name ? {
-        /(com.mysql.jdbc.Driver|oracle.jdbc.driver.OracleDriver)/ => "cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 2.x /usr/lib/ -extjs $ext_js_path $jar_option $jar_path",
-        default            => "cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-setup.sh -hadoop 2.x /usr/lib/ -extjs $ext_js_path $jar_option $jar_path",
+        /(com.mysql.jdbc.Driver|oracle.jdbc.driver.OracleDriver)/ => "cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-setup.sh prepare-war",
+        default            => "cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-setup.sh prepare-war",
     }
   } else {
     $cmd4 = $jdbc_driver_name ? {
