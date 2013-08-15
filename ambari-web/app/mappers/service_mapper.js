@@ -548,7 +548,12 @@ App.servicesMapper = App.QuickDataMapper.create({
         item.masterComponent = component;
         finalConfig = jQuery.extend(finalConfig, hbaseConfig);
         var regionsArray = App.parseJSON(component.ServiceComponentInfo.RegionsInTransition);
-        item.regions_in_transition = regionsArray == null ? 0 : regionsArray.length;
+        //regions_in_transition can have various type of value: null, array or int
+        if (Array.isArray(regionsArray)) {
+          item.regions_in_transition = regionsArray.length;
+        } else {
+          item.regions_in_transition = regionsArray == null ? 0 : regionsArray;
+        }
       }
       if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "HBASE_REGIONSERVER") {
         if (!item.region_servers) {
