@@ -22,101 +22,93 @@
 
 <configuration xmlns:xi="http://www.w3.org/2001/XInclude">
 
-<!-- i/o properties -->
+  <!-- i/o properties -->
 
   <property>
     <name>mapreduce.task.io.sort.mb</name>
     <value>100</value>
-    <description>No description</description>
+    <description>
+      The total amount of buffer memory to use while sorting files, in megabytes.
+      By default, gives each merge stream 1MB, which should minimize seeks.
+    </description>
   </property>
 
   <property>
     <name>mapreduce.map.sort.spill.percent</name>
     <value>0.1</value>
-    <description>No description</description>
+    <description>
+      The soft limit in the serialization buffer. Once reached, a thread will
+      begin to spill the contents to disk in the background. Note that
+      collection will not block if this threshold is exceeded while a spill
+      is already in progress, so spills may be larger than this threshold when
+      it is set to less than .5
+    </description>
   </property>
 
   <property>
     <name>mapreduce.task.io.sort.factor</name>
     <value>100</value>
-    <description>No description</description>
+    <description>
+      The number of streams to merge at once while sorting files.
+      This determines the number of open file handles.
+    </description>
   </property>
 
-<!-- map/reduce properties -->
-
-  <property>
-    <name>mapreduce.jobtracker.system.dir</name>
-    <value></value>
-    <description>No description</description>
-    <final>true</final>
-  </property>
-
-  <property>
-    <!-- cluster specific -->
-    <name>mapreduce.cluster.local.dir</name>
-    <value></value>
-    <description>No description</description>
-    <final>true</final>
-  </property>
-
+  <!-- map/reduce properties -->
   <property>
     <name>mapreduce.reduce.shuffle.parallelcopies</name>
     <value>30</value>
-    <description>No description</description>
-  </property>
-
-  <property>
-    <name>mapreduce.tasktracker.map.tasks.maximum</name>
-    <value></value>
-    <description>No description</description>
+    <description>
+      The default number of parallel transfers run by reduce during
+      the copy(shuffle) phase.
+    </description>
   </property>
 
   <property>
     <name>mapreduce.map.speculative</name>
     <value>false</value>
-    <description>If true, then multiple instances of some map tasks
-               may be executed in parallel.</description>
+    <description>
+      If true, then multiple instances of some map tasks
+      may be executed in parallel.
+    </description>
   </property>
 
   <property>
     <name>mapreduce.reduce.speculative</name>
     <value>false</value>
-    <description>If true, then multiple instances of some reduce tasks
-               may be executed in parallel.</description>
+    <description>
+      If true, then multiple instances of some reduce tasks may be
+      executed in parallel.
+    </description>
   </property>
 
   <property>
     <name>mapreduce.job.reduce.slowstart.completedmaps</name>
     <value>0.05</value>
-  </property>
-
-  <property>
-    <name>mapreduce.reduce.merge.inmem.threshold</name>
-    <value>1000</value>
-    <description>The threshold, in terms of the number of files
-  for the in-memory merge process. When we accumulate threshold number of files
-  we initiate the in-memory merge and spill to disk. A value of 0 or less than
-  0 indicates we want to DON'T have any threshold and instead depend only on
-  the ramfs's memory consumption to trigger the merge.
-  </description>
+    <description>
+      Fraction of the number of maps in the job which should be complete before
+      reduces are scheduled for the job.
+    </description>
   </property>
 
   <property>
     <name>mapreduce.reduce.shuffle.merge.percent</name>
     <value>0.66</value>
-    <description>The usage threshold at which an in-memory merge will be
-  initiated, expressed as a percentage of the total memory allocated to
-  storing in-memory map outputs, as defined by
-  mapreduce.reduce.shuffle.input.buffer.percent.
-  </description>
+    <description>
+      The usage threshold at which an in-memory merge will be
+      initiated, expressed as a percentage of the total memory allocated to
+      storing in-memory map outputs, as defined by
+      mapreduce.reduce.shuffle.input.buffer.percent.
+    </description>
   </property>
 
   <property>
     <name>mapreduce.reduce.shuffle.input.buffer.percent</name>
     <value>0.7</value>
-    <description>The percentage of memory to be allocated from the maximum heap
-  size to storing map outputs during the shuffle.
-  </description>
+    <description>
+      The percentage of memory to be allocated from the maximum heap
+      size to storing map outputs during the shuffle.
+    </description>
   </property>
 
   <property>
@@ -127,33 +119,25 @@
     </description>
   </property>
 
-<property>
-  <name>mapreduce.output.fileoutputformat.compress.type</name>
-  <value>BLOCK</value>
-  <description>If the job outputs are to compressed as SequenceFiles, how should
-               they be compressed? Should be one of NONE, RECORD or BLOCK.
-  </description>
-</property>
+  <property>
+    <name>mapreduce.output.fileoutputformat.compress.type</name>
+    <value>BLOCK</value>
+    <description>
+      If the job outputs are to compressed as SequenceFiles, how should
+      they be compressed? Should be one of NONE, RECORD or BLOCK.
+    </description>
+  </property>
 
   <property>
     <name>mapreduce.reduce.input.buffer.percent</name>
     <value>0.0</value>
-    <description>The percentage of memory- relative to the maximum heap size- to
-  retain map outputs during the reduce. When the shuffle is concluded, any
-  remaining map outputs in memory must consume less than this threshold before
-  the reduce can begin.
-  </description>
+    <description>
+      The percentage of memory- relative to the maximum heap size- to
+      retain map outputs during the reduce. When the shuffle is concluded, any
+      remaining map outputs in memory must consume less than this threshold before
+      the reduce can begin.
+    </description>
   </property>
-
- <property>
-  <name>mapreduce.reduce.input.limit</name>
-  <value>10737418240</value>
-  <description>The limit on the input size of the reduce. (This value
-  is 10 Gb.)  If the estimated input size of the reduce is greater than
-  this value, job is failed. A value of -1 means that there is no limit
-  set. </description>
-</property>
-
 
   <!-- copied from kryptonite configuration -->
   <property>
@@ -161,25 +145,14 @@
     <value></value>
   </property>
 
-
   <property>
     <name>mapreduce.task.timeout</name>
     <value>600000</value>
-    <description>The number of milliseconds before a task will be
-  terminated if it neither reads an input, writes an output, nor
-  updates its status string.
-  </description>
-  </property>
-
-  <property>
-    <name>mapred.child.java.opts</name>
-    <value>-Xmx512m</value>
-    <description>No description</description>
-  </property>
-
-  <property>
-    <name>mapreduce.cluster.reducememory.mb</name>
-    <value>2048</value>
+    <description>
+      The number of milliseconds before a task will be
+      terminated if it neither reads an input, writes an output, nor
+      updates its status string.
+    </description>
   </property>
 
   <property>
@@ -193,78 +166,207 @@
   </property>
 
   <property>
-    <name>mapreduce.jobtracker.tasktracker.maxblacklists</name>
-    <value>16</value>
-    <description>
-      if node is reported blacklisted by 16 successful jobs within timeout-window, it will be graylisted
-    </description>
-  </property>
-
-  <property>
-    <name>mapreduce.tasktracker.healthchecker.script.path</name>
-    <value></value>
-  </property>
-
-  <property>
-    <name>mapreduce.tasktracker.healthchecker.script.timeout</name>
-    <value>60000</value>
-  </property>
-
-  <property>
     <name>mapreduce.tasktracker.keytab.file</name>
     <value></value>
     <description>The filename of the keytab for the task tracker</description>
   </property>
 
- <property>
-   <name>mapreduce.jobhistory.keytab.file</name>
+  <property>
+    <name>mapreduce.jobhistory.keytab.file</name>
     <!-- cluster variant -->
-   <value></value>
-   <description>The keytab for the job history server principal.</description>
- </property>
+    <value></value>
+    <description>The keytab for the job history server principal.</description>
+  </property>
 
-<property>
-  <name>mapreduce.shuffle.port</name>
-  <value>8081</value>
-  <description>Default port that the ShuffleHandler will run on. ShuffleHandler is a service run at the NodeManager to facilitate transfers of intermediate Map outputs to requesting Reducers.</description>
-</property>
+  <property>
+    <name>mapreduce.shuffle.port</name>
+    <value>13562</value>
+    <description>
+      Default port that the ShuffleHandler will run on.
+      ShuffleHandler is a service run at the NodeManager to facilitate
+      transfers of intermediate Map outputs to requesting Reducers.
+    </description>
+  </property>
 
-<property>
-  <name>mapreduce.jobhistory.intermediate-done-dir</name>
-  <value>/mr-history/tmp</value>
-  <description>Directory where history files are written by MapReduce jobs.</description>
-</property>
+  <property>
+    <name>mapreduce.jobhistory.intermediate-done-dir</name>
+    <value>/mr-history/tmp</value>
+    <description>
+      Directory where history files are written by MapReduce jobs.
+    </description>
+  </property>
 
-<property>
-  <name>mapreduce.jobhistory.done-dir</name>
-  <value>/mr-history/done</value>
-  <description>Directory where history files are managed by the MR JobHistory Server.</description>
-</property>
+  <property>
+    <name>mapreduce.jobhistory.done-dir</name>
+    <value>/mr-history/done</value>
+    <description>
+      Directory where history files are managed by the MR JobHistory Server.
+    </description>
+  </property>
 
-<property>       
-  <name>mapreduce.jobhistory.address</name>       
-  <value>localhost:10020</value>  
-  <description>Enter your JobHistoryServer hostname.</description>
-</property>
+  <property>       
+    <name>mapreduce.jobhistory.address</name>
+    <value>localhost:10020</value>
+    <description>Enter your JobHistoryServer hostname.</description>
+  </property>
 
-<property>       
-  <name>mapreduce.jobhistory.webapp.address</name>       
-  <value>localhost:19888</value>  
-  <description>Enter your JobHistoryServer hostname.</description>
-</property>
+  <property>       
+    <name>mapreduce.jobhistory.webapp.address</name>
+    <value>localhost:19888</value>
+    <description>Enter your JobHistoryServer hostname.</description>
+  </property>
 
-<property>
-  <name>mapreduce.framework.name</name>
-  <value>yarn</value>
-  <description>No description</description>
-</property>
+  <property>
+    <name>mapreduce.framework.name</name>
+    <value>yarn</value>
+    <description>
+      The runtime framework for executing MapReduce jobs. Can be one of local,
+      classic or yarn.
+    </description>
+  </property>
 
-<property>
-  <name>yarn.app.mapreduce.am.staging-dir</name>
-  <value>/user</value>
-  <description>
-    The staging dir used while submitting jobs.
-  </description>
-</property>
+  <property>
+    <name>yarn.app.mapreduce.am.staging-dir</name>
+    <value>/user</value>
+    <description>
+      The staging dir used while submitting jobs.
+    </description>
+  </property>
+
+  <property>
+    <name>yarn.app.mapreduce.am.resource.mb</name>
+    <value>1024</value>
+    <description>The amount of memory the MR AppMaster needs.</description>
+  </property>
+
+  <property>
+    <name>yarn.app.mapreduce.am.command-opts</name>
+    <value>-Xmx756m</value>
+    <description>
+      Java opts for the MR App Master processes.
+      The following symbol, if present, will be interpolated: @taskid@ is replaced
+      by current TaskID. Any other occurrences of '@' will go unchanged.
+      For example, to enable verbose gc logging to a file named for the taskid in
+      /tmp and to set the heap maximum to be a gigabyte, pass a 'value' of:
+      -Xmx1024m -verbose:gc -Xloggc:/tmp/@taskid@.gc
+
+      Usage of -Djava.library.path can cause programs to no longer function if
+      hadoop native libraries are used. These values should instead be set as part
+      of LD_LIBRARY_PATH in the map / reduce JVM env using the mapreduce.map.env and
+      mapreduce.reduce.env config settings.
+    </description>
+  </property>
+
+  <property>
+    <name>yarn.app.mapreduce.am.admin-command-opts</name>
+    <value>-Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN</value>
+    <description>
+      Java opts for the MR App Master processes for admin purposes.
+      It will appears before the opts set by yarn.app.mapreduce.am.command-opts and
+      thus its options can be overridden user.
+
+      Usage of -Djava.library.path can cause programs to no longer function if
+      hadoop native libraries are used. These values should instead be set as part
+      of LD_LIBRARY_PATH in the map / reduce JVM env using the mapreduce.map.env and
+      mapreduce.reduce.env config settings.
+    </description>
+  </property>
+
+  <property>
+    <name>yarn.app.mapreduce.am.log.level</name>
+    <value>INFO</value>
+    <description>MR App Master process log level.</description>
+  </property>
+
+  <property>
+    <name>yarn.app.mapreduce.am.env</name>
+    <value></value>
+    <description>
+      User added environment variables for the MR App Master
+      processes. Example :
+      1) A=foo  This will set the env variable A to foo
+      2) B=$B:c This is inherit tasktracker's B env variable.
+    </description>
+  </property>
+
+  <property>
+    <name>mapreduce.admin.map.child.java.opts</name>
+    <value>-Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN</value>
+  </property>
+
+  <property>
+    <name>mapreduce.admin.reduce.child.java.opts</name>
+    <value>-Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN</value>
+  </property>
+
+  <property>
+    <name>mapreduce.application.classpath</name>
+    <value>$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*,$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*</value>
+    <description>
+      CLASSPATH for MR applications. A comma-separated list of CLASSPATH
+      entries.
+    </description>
+  </property>
+
+  <property>
+    <name>mapreduce.am.max-attempts</name>
+    <value>2</value>
+    <description>
+      The maximum number of application attempts. It is a
+      application-specific setting. It should not be larger than the global number
+      set by resourcemanager. Otherwise, it will be override. The default number is
+      set to 2, to allow at least one retry for AM.
+    </description>
+  </property>
+
+  <property>
+    <name>mapreduce.map.memory.mb</name>
+    <value>512</value>
+    <description>
+      Larger resource limit for maps.
+    </description>
+  </property>
+
+  <property>
+    <name>mapreduce.map.java.opts</name>
+    <value>-Xmx320m</value>
+    <description>
+      Larger heap-size for child jvms of maps.
+    </description>
+  </property>
+
+  <property>
+    <name>mapreduce.reduce.memory.mb</name>
+    <value>1024</value>
+    <description>
+      Larger resource limit for reduces.
+    </description>
+  </property>
+
+  <property>
+    <name>mapreduce.reduce.java.opts</name>
+    <value>-Xmx756m</value>
+    <description>
+      Larger heap-size for child jvms of reduces.
+    </description>
+  </property>
+
+  <property>
+    <name>mapreduce.map.log.level</name>
+    <value>INFO</value>
+    <description>
+      The logging level for the map task. The allowed levels are:
+      OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE and ALL.
+    </description>
+  </property>
+
+  <property>
+    <name>mapreduce.reduce.log.level</name>
+    <value>INFO</value>
+    <description>
+      The logging level for the reduce task. The allowed levels are:
+      OFF, FATAL, ERROR, WARN, INFO, DEBUG, TRACE and ALL.
+    </description>
+  </property>
 
 </configuration>
