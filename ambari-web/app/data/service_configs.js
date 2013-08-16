@@ -47,6 +47,7 @@ module.exports = [
     sites: ['core-site'],
     configs: []
   },
+
   {
     serviceName: 'MAPREDUCE',
     displayName: 'MapReduce',
@@ -64,20 +65,6 @@ module.exports = [
   },
 
   {
-    serviceName: 'MAPREDUCE2',
-    displayName: 'MapReduce 2',
-    filename: 'mapred-site',
-    configCategories: [
-      App.ServiceConfigCategory.create({ name: 'HistoryServer', displayName : 'History Server', hostComponentNames : ['HISTORYSERVER']}),
-      App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
-      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
-      App.ServiceConfigCategory.create({ name: 'AdvancedMapredSite', displayName : 'Custom mapred-site.xml', siteFileName: 'mapred-site.xml', canAddProperty: true})
-    ],
-    sites: ['global', 'mapred-site', 'mapred-queue-acls'],
-    configs: []
-  },
-
-  {
     serviceName: 'YARN',
     displayName: 'YARN',
     filename: 'yarn-site',
@@ -90,6 +77,20 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'AdvancedYARNSite', displayName : 'Custom yarn-site.xml', siteFileName: 'yarn-site.xml', canAddProperty: true})
     ],
     sites: ['global', 'yarn-site', 'capacity-scheduler'],
+    configs: []
+  },
+
+  {
+    serviceName: 'MAPREDUCE2',
+    displayName: 'MapReduce 2',
+    filename: 'mapred-site',
+    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'HistoryServer', displayName : 'History Server', hostComponentNames : ['HISTORYSERVER']}),
+      App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedMapredSite', displayName : 'Custom mapred-site.xml', siteFileName: 'mapred-site.xml', canAddProperty: true})
+    ],
+    sites: ['global', 'mapred-site', 'mapred-queue-acls'],
     configs: []
   },
 
