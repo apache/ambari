@@ -122,11 +122,6 @@
     <description>HDFS Exclude hosts.</description>
   </property>
   <property>
-    <name>dfs_include</name>
-    <value></value>
-    <description>HDFS Include hosts.</description>
-  </property>
-  <property>
     <name>dfs_replication</name>
     <value>3</value>
     <description>Default Block Replication.</description>

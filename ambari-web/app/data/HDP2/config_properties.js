@@ -347,19 +347,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "dfs_include",
-      "displayName": "Include hosts",
-      "description": "Names a file that contains a list of hosts that are permitted to connect to the namenode.  This file will be placed inside the Hadoop conf directory.",
-      "defaultValue": "dfs.include",
-      "displayType": "advanced",
-      "isVisible": true,
-      "filename": "hdfs-site.xml",
-      "domain": "global",
-      "serviceName": "HDFS",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
       "name": "dfs_replication",
       "displayName": "Block replication",
       "description": "Default block replication.",

@@ -145,13 +145,6 @@ var configs = [
     "filename": "hdfs-site.xml"
   },
   {
-    "name": "dfs.hosts",
-    "templateName": ["hadoop_conf_dir", "dfs_include"],
-    "foreignKey": null,
-    "value": "<templateName[0]>\/<templateName[1]>",
-    "filename": "hdfs-site.xml"
-  },
-  {
     "name": "dfs.replication",
     "templateName": ["dfs_replication"],
     "foreignKey": null,
