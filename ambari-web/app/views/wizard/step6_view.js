@@ -76,7 +76,7 @@ App.WizardStep6HostView = Em.View.extend({
           return App.format.role(_component);
         });
         components = components.join(" /\n");
-        this.$().popover({
+        App.popover(this.$(), {
           title: Em.I18n.t('installer.step6.wizardStep6Host.title').format(this.get('host.hostName')),
           content: components,
           placement: 'right',

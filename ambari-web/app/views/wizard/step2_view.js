@@ -49,7 +49,7 @@ App.WizardStep2View = Em.View.extend({
 
   didInsertElement: function () {
     //TODO: move it to separate function in Ember.View using reopenClass
-    $("[rel=popover]").popover({'placement': 'right', 'trigger': 'hover'});
+    App.popover($("[rel=popover]"), {'placement': 'right', 'trigger': 'hover'});
 
     //todo: move them to conroller
     this.set('controller.hostsError',null);

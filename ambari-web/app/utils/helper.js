@@ -351,3 +351,16 @@ App.format = {
     return _taskStatus.toLowerCase();
   }
 };
+
+/**
+ * wrapper to bootstrap popover
+ * fix issue when popover stuck on view routing
+ * @param self
+ * @param options
+ */
+App.popover = function(self, options) {
+  self.popover(options);
+  self.on("remove", function () {
+    $(this).trigger('mouseleave');
+  });
+}

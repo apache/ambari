@@ -22,6 +22,6 @@ var App = require('app');
 App.StackUpgradeStep2View = Em.View.extend({
   templateName: require('templates/wizard/stack_upgrade/step2'),
   didInsertElement: function(){
-    $("[rel=popover]").popover({'placement': 'right', 'trigger': 'hover'});
+    App.popover($("[rel=popover]"), {'placement': 'right', 'trigger': 'hover'});
   }
 });

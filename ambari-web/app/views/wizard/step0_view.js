@@ -29,7 +29,7 @@ App.WizardStep0View = Em.View.extend({
   //todo: create property for placeholder(go to template)
 
   didInsertElement: function () {
-    $("[rel=popover]").popover({'placement': 'right', 'trigger': 'hover'});
+    App.popover($("[rel=popover]"), {'placement': 'right', 'trigger': 'hover'});
     this.get('controller').loadStep();
   },
 

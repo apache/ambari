@@ -33,7 +33,7 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
 
   didInsertElement: function () {
     if (this.get('isPopoverEnabled') !== 'false') {
-      this.$().popover({
+      App.popover(this.$(), {
         title: Em.I18n.t('installer.controls.serviceConfigPopover.title').format(this.get('serviceConfig.displayName'), this.get('serviceConfig.name')),
         content: this.get('serviceConfig.description'),
         placement: 'right',
@@ -356,7 +356,7 @@ App.ServiceConfigHostPopoverSupport = Ember.Mixin.create({
   serviceConfig: null,
 
   didInsertElement: function () {
-    this.$().popover({
+    App.popover(this.$(), {
       title: this.get('serviceConfig.displayName'),
       content: this.get('serviceConfig.description'),
       placement: 'right',
@@ -485,7 +485,7 @@ App.AddSlaveComponentGroupButton = Ember.View.extend({
   slaveComponentName: null,
 
   didInsertElement: function () {
-    this.$().popover({
+    App.popover(this.$(), {
       title: Em.I18n.t('installer.controls.addSlaveComponentGroupButton.title').format(this.get('slaveComponentName')),
       content: Em.I18n.t('installer.controls.addSlaveComponentGroupButton.content').format(this.get('slaveComponentName'), this.get('slaveComponentName'), this.get('slaveComponentName')),
       placement: 'right',
