@@ -350,6 +350,18 @@ App.db.setIsNameNodeHa = function (haStatus) {
   localStorage.setObject('ambari', App.db.data);
 };
 
+App.db.setHighAvailabilityWizardTasksStatuses = function (tasksStatuses) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.HighAvailabilityWizard.tasksStatuses = tasksStatuses;
+  localStorage.setObject('ambari', App.db.data);
+};
+
+App.db.setHighAvailabilityWizardRequestIds = function (requestIds) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.HighAvailabilityWizard.requestIds = requestIds;
+  localStorage.setObject('ambari', App.db.data);
+};
+
 /*
  *  getter methods
  */
@@ -561,6 +573,16 @@ App.db.getIsNameNodeHa = function (haStatus) {
 App.db.getStacks = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.app.stacksVersions;
+};
+
+App.db.getHighAvailabilityWizardTasksStatuses = function () {
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.HighAvailabilityWizard.tasksStatuses;
+};
+
+App.db.getHighAvailabilityWizardRequestIds = function () {
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.HighAvailabilityWizard.requestIds;
 };
 
 module.exports = App.db;

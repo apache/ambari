@@ -32,6 +32,9 @@ module.exports = Em.Route.extend({
         primary: Em.I18n.t('form.cancel'),
         showFooter: false,
         secondary: null,
+        hideCloseButton: function () {
+          this.set('showCloseButton', App.router.get('highAvailabilityWizardController.currentStep') < 5);
+        }.observes('App.router.highAvailabilityWizardController.currentStep'),
 
         onClose: function () {
           this.hide();
@@ -42,7 +45,20 @@ module.exports = Em.Route.extend({
           this.fitHeight();
         }
       });
-      router.transitionTo('step1');
+      App.clusterStatus.updateFromServer();
+      var currentClusterStatus = App.clusterStatus.get('value');
+      if (currentClusterStatus) {
+        switch (currentClusterStatus.clusterState) {
+          case 'HIGH_AVAILABILITY_DEPLOY' :
+            App.db.data = currentClusterStatus.localdb;
+            highAvailabilityWizardController.setCurrentStep(currentClusterStatus.localdb.HighAvailabilityWizard.currentStep);
+            break;
+          default:
+            highAvailabilityWizardController.setCurrentStep('1');
+            break;
+        }
+      }
+      router.transitionTo('step' + highAvailabilityWizardController.get('currentStep'));
     });
   },
 
@@ -111,6 +127,9 @@ module.exports = Em.Route.extend({
         controller.connectOutlet('highAvailabilityWizardStep4',  controller.get('content'));
       })
     },
+    unroutePath: function () {
+      return false;
+    },
     next: function (router) {
       router.transitionTo('step5');
     }
@@ -119,7 +138,6 @@ module.exports = Em.Route.extend({
   step5: Em.Route.extend({
     route: '/step5',
     connectOutlets: function (router) {
-      $('a.close').hide();
       var controller = router.get('highAvailabilityWizardController');
       controller.setCurrentStep('5');
       controller.setLowerStepsDisable(5);
@@ -127,6 +145,9 @@ module.exports = Em.Route.extend({
         controller.loadAllPriorSteps();
         controller.connectOutlet('highAvailabilityWizardStep5',  controller.get('content'));
       })
+    },
+    unroutePath: function () {
+      return false;
     },
     back: function (router) {
       router.transitionTo('step4');
@@ -139,13 +160,16 @@ module.exports = Em.Route.extend({
   step6: Em.Route.extend({
     route: '/step6',
     connectOutlets: function (router) {
-      $('a.close').hide();
       var controller = router.get('highAvailabilityWizardController');
       controller.setCurrentStep('6');
+      controller.setLowerStepsDisable(6);
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
         controller.connectOutlet('highAvailabilityWizardStep6',  controller.get('content'));
       })
+    },
+    unroutePath: function () {
+      return false;
     },
     back: function (router) {
       router.transitionTo('step5');
@@ -166,6 +190,9 @@ module.exports = Em.Route.extend({
         controller.connectOutlet('highAvailabilityWizardStep7',  controller.get('content'));
       })
     },
+    unroutePath: function () {
+      return false;
+    },
     back: function (router) {
       router.transitionTo('step6');
     },
@@ -177,7 +204,6 @@ module.exports = Em.Route.extend({
   step8: Em.Route.extend({
     route: '/step8',
     connectOutlets: function (router) {
-      $('a.close').hide();
       var controller = router.get('highAvailabilityWizardController');
       controller.setCurrentStep('8');
       controller.setLowerStepsDisable(8);
@@ -185,6 +211,9 @@ module.exports = Em.Route.extend({
         controller.loadAllPriorSteps();
         controller.connectOutlet('highAvailabilityWizardStep8',  controller.get('content'));
       })
+    },
+    unroutePath: function () {
+      return false;
     },
     back: function (router) {
       router.transitionTo('step7');
@@ -204,6 +233,9 @@ module.exports = Em.Route.extend({
         controller.loadAllPriorSteps();
         controller.connectOutlet('highAvailabilityWizardStep9',  controller.get('content'));
       })
+    },
+    unroutePath: function () {
+      return false;
     },
     back: function (router) {
       router.transitionTo('step8');

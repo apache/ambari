@@ -21,6 +21,13 @@ var App = require('app');
 
 App.HighAvailabilityWizardView = Em.View.extend({
 
+  didInsertElement: function() {
+    var currentStep = this.get('controller.currentStep');
+    if (currentStep > 4) {
+      this.get('controller').setLowerStepsDisable(currentStep);
+    }
+  },
+
   templateName: require('templates/main/admin/highAvailability/wizard'),
 
   isStep1Disabled: function () {

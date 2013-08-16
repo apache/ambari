@@ -152,11 +152,24 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
     this.set('content.masterComponentHosts', masterComponentHosts);
   },
 
-  loadComponentToReassign: function () {
-    var masterComponent = App.db.getMasterToReassign();
-    if (masterComponent) {
-      this.set('content.reassign', masterComponent);
-    }
+  saveTasksStatuses: function(statuses){
+    App.db.setHighAvailabilityWizardTasksStatuses(statuses);
+    this.set('content.tasksStatuses', statuses);
+  },
+
+  loadTasksStatuses: function(){
+    var statuses = App.db.getHighAvailabilityWizardTasksStatuses();
+    this.set('content.tasksStatuses', statuses);
+  },
+
+  saveRequestIds: function(requestIds){
+    App.db.setHighAvailabilityWizardRequestIds(requestIds);
+    this.set('content.requestIds', requestIds);
+  },
+
+  loadRequestIds: function(){
+    var requestIds = App.db.getHighAvailabilityWizardRequestIds();
+    this.set('content.requestIds', requestIds);
   },
 
   /**
@@ -170,6 +183,8 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
       case '7':
       case '6':
       case '5':
+        this.loadTasksStatuses();
+        this.loadRequestIds();
       case '4':
       case '3':
       case '2':

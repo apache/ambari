@@ -64,7 +64,20 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
   }.property('tasks'),
 
   loadTasks: function () {
-    //load and set tasks statuses form server
+    var loadedStauses = this.get('content.tasksStatuses');
+    if (loadedStauses && loadedStauses.length === this.get('tasks').length) {
+      for (var i = 0; i < loadedStauses.length; i++) {
+        this.setTaskStatus(i, loadedStauses[i]);
+      }
+      if (loadedStauses.contains('FAILED')) {
+        this.showRetry();
+      }
+      if (loadedStauses.contains('IN_PROGRESS')) {
+        this.set('currentRequestIds', this.get('content.requestIds'));
+        this.set('currentTaskId', loadedStauses.indexOf('IN_PROGRESS'));
+        this.doPolling();
+      }
+    }
   },
 
   setTaskStatus: function (taskId, status) {
@@ -86,8 +99,8 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
     this.set('serviceTimestamp', new Date().getTime());
   },
 
-  showRetry: function (taskId) {
-    this.get('tasks').findProperty('id', taskId).set('showRetry', true);
+  showRetry: function () {
+    this.get('tasks').findProperty('status', 'FAILED').set('showRetry', true);
   },
 
   retryTask: function () {
@@ -107,6 +120,17 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
         this.set('isSubmitDisabled', false);
       }
     }
+
+    var statuses = this.get('tasks').mapProperty('status');
+    var requestIds = this.get('currentRequestIds');
+    App.router.get(this.get('content.controllerName')).saveTasksStatuses(statuses);
+    App.router.get(this.get('content.controllerName')).saveRequestIds(requestIds);
+    App.clusterStatus.setClusterStatus({
+      clusterName: this.get('content.cluster.name'),
+      clusterState: 'HIGH_AVAILABILITY_DEPLOY',
+      wizardControllerName: this.get('content.controllerName'),
+      localdb: App.db.data
+    });
   },
 
   /*
@@ -118,7 +142,7 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
 
   onTaskError: function () {
     this.setTaskStatus(this.get('currentTaskId'), 'FAILED');
-    this.showRetry(this.get('currentTaskId'));
+    this.showRetry();
   },
 
   onTaskCompleted: function () {
@@ -211,6 +235,7 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
   },
 
   doPolling: function () {
+    this.setTaskStatus(this.get('currentTaskId'), 'IN_PROGRESS');
     var requestIds = this.get('currentRequestIds');
     for (var i = 0; i < requestIds.length; i++) {
       App.ajax.send({
@@ -235,13 +260,13 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
       var self = this;
       var currentTaskId = this.get('currentTaskId');
       if (!tasks.someProperty('Tasks.status', 'PENDING') && !tasks.someProperty('Tasks.status', 'QUEUED') && !tasks.someProperty('Tasks.status', 'IN_PROGRESS')) {
+        this.set('currentRequestIds', []);
         if (tasks.someProperty('Tasks.status', 'FAILED')) {
           this.setTaskStatus(currentTaskId, 'FAILED');
-          this.showRetry(currentTaskId);
+          this.showRetry();
         } else {
           this.setTaskStatus(currentTaskId, 'COMPLETED');
         }
-        this.set('currentRequestIds', []);
       } else {
         var actionsPerHost = tasks.length;
         var completedActions = tasks.filterProperty('Tasks.status', 'COMPLETED').length
@@ -252,7 +277,6 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
         var inProgressActions = tasks.filterProperty('Tasks.status', 'IN_PROGRESS').length;
         var progress = Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsPerHost * 100);
         this.get('tasks').findProperty('id', currentTaskId).set('progress', progress);
-        this.setTaskStatus(currentTaskId, 'IN_PROGRESS');
         window.setTimeout(function () {
           self.doPolling()
         }, self.POLL_INTERVAL);

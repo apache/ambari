@@ -642,6 +642,24 @@ var urls = {
       }
     }
   },
+  'admin.high_availability.create_zkfc': {
+    'real': '/clusters/{clusterName}/services?ServiceInfo/service_name=ZOOKEEPER',
+    'mock': '',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          "components": [
+            {
+              "ServiceComponentInfo": {
+                "component_name": "ZKFC"
+              }
+            }
+          ]
+        })
+      }
+    }
+  },
   'admin.high_availability.install_component': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
     'mock': '',
