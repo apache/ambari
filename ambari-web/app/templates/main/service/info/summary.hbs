@@ -17,117 +17,112 @@
 }}
 
 <div class="row-fluid service-block">
-<div class="span6">
-{{#if view.service.quickLinks.length}}
-{{#view App.QuickViewLinks contentBinding="view.service"}}
-<ul class="nav nav-pills move">
-  <li class="dropdown">
-    <a class="dropdown-toggle" data-toggle="dropdown" href="#">{{t common.quickLinks}}<b class="caret"></b></a>
-    <ul class="dropdown-menu">
-     {{#each view.quickLinks}}
-      <a {{bindAttr href="url"}} {{bindAttr target="view.linkTarget"}}>{{label}}</a>
-      {{/each}}
-    </ul>
-  </li>
-</ul>
-{{/view}}
-{{/if}}
+  <div class="span6">
+    {{#if view.service.quickLinks.length}}
+      {{#view App.QuickViewLinks contentBinding="view.service"}}
+        <ul class="nav nav-pills move">
+          <li class="dropdown">
+            <a class="dropdown-toggle" data-toggle="dropdown" href="#">{{t common.quickLinks}}<b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              {{#each view.quickLinks}}
+                <a {{bindAttr href="url"}} {{bindAttr target="view.linkTarget"}}>{{label}}</a>
+              {{/each}}
+            </ul>
+          </li>
+        </ul>
+      {{/view}}
+    {{/if}}
 
-<div class="box">
-  <div class="box-header">
-    <h4>{{controller.content.label}} {{t services.service.info.menu.summary}}</h4>
-  </div>
-  <div class="service-content">
-    <table id="summary-info" class="table no-borders table-condensed">
-      <tbody>
-        {{#if view.noTemplateService}}
-          {{#each component in view.components}}
-            {{#if component.isMaster}}
-             {{view view.sumMasterComponentView}}
-            {{else}}
-              <tr>
-                <td class="summary-label">{{component.displayName}}{{#if view.hasManyClients}}s{{/if}}</td>
-                <td>
-                  <span class="green-live">{{view.clients.length}}</span>
-                  {{component.displayName}} {{#if view.hasManyClients}}s{{/if}} {{t common.installed}}
-                  <div class="summary-view-host">
-                    <a {{action filterHosts component}} href="javascript:void(null)>{{view.clientsHostText}}</a>
-                  </div>
-                </td>
-              </tr>
-            {{/if}}
-          {{/each}}
-        {{/if}}
-        {{#if view.serviceStatus.hdfs}}
-          {{view App.MainDashboardServiceHdfsView showOnlyRows=true serviceBinding="view.service"}}
-        {{/if}}
-        {{#if view.serviceStatus.mapreduce}}
-          {{view App.MainDashboardServiceMapreduceView showOnlyRows=true serviceBinding="view.service"}}
-        {{/if}}
-        {{#if view.serviceStatus.yarn}}
-          {{view App.MainDashboardServiceYARNView showOnlyRows=true serviceBinding="view.service"}}
-        {{/if}}
-        {{#if view.serviceStatus.mapreduce2}}
-          {{template "templates/main/service/info/summary/mapreduce2"}}
-        {{/if}}
-        {{#if view.serviceStatus.hbase}}
-          {{view App.MainDashboardServiceHbaseView showOnlyRows=true serviceBinding="view.service"}}
-        {{/if}}
-        {{#if view.serviceStatus.zookeeper}}
-          {{template "templates/main/service/info/summary/zookeeper"}}
-        {{/if}}
-        {{#if view.serviceStatus.oozie}}
-          {{template "templates/main/service/info/summary/oozie"}}
-        {{/if}}
-        {{#if view.serviceStatus.ganglia}}
-          {{template "templates/main/service/info/summary/ganglia"}}
-        {{/if}}
-        {{#if view.serviceStatus.hive}}
-          {{template "templates/main/service/info/summary/hive"}}
-        {{/if}}
-        {{#if view.serviceStatus.hue}}
-          {{template "templates/main/service/info/summary/hue"}}
-        {{/if}}
-        {{#if view.serviceStatus.flume}}
-          {{view App.MainDashboardServiceFlumeView showOnlyRows=true serviceBinding="view.service"}}
-        {{/if}}
-      </tbody>
-    </table>
-    {{!view view.moreStatsView}}
-  </div>
-  {{!
-      <div class="box-footer">
+    <div class="box">
+      <div class="box-header">
+        <h4>{{controller.content.label}} {{t services.service.info.menu.summary}}</h4>
       </div>
-      }}
-</div>
-</div>
-<div class="span6">
-	<div class="box">
-		<div class="box-header">
-			<h4>{{t services.alerts.headingOfList}}</h4>
-			<div class="btn-group">
-        <a class="btn" target="_blank" rel="tooltip" title="Go to Nagios" {{bindAttr href="controller.nagiosUrl"}}><i class="icon-link"></i></a>
-			</div>
-		</div>
-		<ul id='summary-alerts-list' class="alerts">
-		  {{#if controller.alerts.length}}
-				{{#each controller.alerts}}
-          {{view App.AlertItemView contentBinding="this"}}
-				{{/each}}
-			{{else}}
-		    {{#if controller.isNagiosInstalled}}
-			    <div class="alert alert-info">
-			      {{t services.service.info.summary.nagios.noAlerts}}
-			    </div>
-			  {{else}}
-			    <div class="alert">
-			      {{t services.service.info.summary.nagios.alerts}}
-			    </div>
-			  {{/if}}
-			{{/if}}
-		</ul>
-	</div>
-</div>
+      <div class="service-content">
+        <table id="summary-info" class="table no-borders table-condensed">
+          <tbody>
+            {{#if view.noTemplateService}}
+              {{#each component in view.components}}
+                {{#if component.isMaster}}
+                 {{view view.sumMasterComponentView}}
+                {{else}}
+                  <tr>
+                    <td class="summary-label">{{component.displayName}}{{#if view.hasManyClients}}s{{/if}}</td>
+                    <td>
+                      <span class="green-live">{{view.clients.length}}</span>
+                      {{component.displayName}} {{#if view.hasManyClients}}s{{/if}} {{t common.installed}}
+                      <div class="summary-view-host">
+                        <a {{action filterHosts component}} href="javascript:void(null)>{{view.clientsHostText}}</a>
+                      </div>
+                    </td>
+                  </tr>
+                {{/if}}
+              {{/each}}
+            {{/if}}
+            {{#if view.serviceStatus.hdfs}}
+              {{view App.MainDashboardServiceHdfsView showOnlyRows=true serviceBinding="view.service"}}
+            {{/if}}
+            {{#if view.serviceStatus.mapreduce}}
+              {{view App.MainDashboardServiceMapreduceView showOnlyRows=true serviceBinding="view.service"}}
+            {{/if}}
+            {{#if view.serviceStatus.yarn}}
+              {{view App.MainDashboardServiceYARNView showOnlyRows=true serviceBinding="view.service"}}
+            {{/if}}
+            {{#if view.serviceStatus.mapreduce2}}
+              {{template "templates/main/service/info/summary/mapreduce2"}}
+            {{/if}}
+            {{#if view.serviceStatus.hbase}}
+              {{view App.MainDashboardServiceHbaseView showOnlyRows=true serviceBinding="view.service"}}
+            {{/if}}
+            {{#if view.serviceStatus.zookeeper}}
+              {{template "templates/main/service/info/summary/zookeeper"}}
+            {{/if}}
+            {{#if view.serviceStatus.oozie}}
+              {{template "templates/main/service/info/summary/oozie"}}
+            {{/if}}
+            {{#if view.serviceStatus.ganglia}}
+              {{template "templates/main/service/info/summary/ganglia"}}
+            {{/if}}
+            {{#if view.serviceStatus.hive}}
+              {{template "templates/main/service/info/summary/hive"}}
+            {{/if}}
+            {{#if view.serviceStatus.hue}}
+              {{template "templates/main/service/info/summary/hue"}}
+            {{/if}}
+            {{#if view.serviceStatus.flume}}
+              {{view App.MainDashboardServiceFlumeView showOnlyRows=true serviceBinding="view.service"}}
+            {{/if}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="span6">
+    <div class="box">
+      <div class="box-header">
+        <h4>{{t services.alerts.headingOfList}}</h4>
+        <div class="btn-group">
+          <a class="btn" target="_blank" rel="tooltip" title="Go to Nagios" {{bindAttr href="controller.nagiosUrl"}}><i class="icon-link"></i></a>
+        </div>
+      </div>
+      <ul id='summary-alerts-list' class="alerts">
+        {{#if controller.alerts.length}}
+          {{#each controller.alerts}}
+            {{view App.AlertItemView contentBinding="this"}}
+          {{/each}}
+        {{else}}
+          {{#if controller.isNagiosInstalled}}
+            <div class="alert alert-info">
+              {{t services.service.info.summary.nagios.noAlerts}}
+            </div>
+          {{else}}
+            <div class="alert">
+              {{t services.service.info.summary.nagios.alerts}}
+            </div>
+          {{/if}}
+        {{/if}}
+      </ul>
+    </div>
+  </div>
 </div>
 {{#if view.serviceMetricGraphs.length}}
 <div class="row-fluid">
