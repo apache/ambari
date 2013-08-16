@@ -62,6 +62,10 @@ class TestMain(unittest.TestCase):
     urlopen_mock.return_value = get_code_mock
     
     parse_args_mock.return_value = (options, MagicMock)
-    with self.assertRaises(SystemExit) as e:
+    try:
       checkWebUI.main()
-    self.assertEqual(e.exception.code, 1)
+    except SystemExit, e:
+      self.assertEqual(e.code, 1)
+
+if __name__ == "__main__":
+  unittest.main()
