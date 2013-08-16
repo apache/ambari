@@ -32,6 +32,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Utility class that provides Property helper methods.
@@ -52,6 +54,11 @@ public class PropertyHelper {
   private static final Map<Resource.Type, Map<String, Map<String, PropertyInfo>>> GANGLIA_PROPERTY_IDS = readPropertyProviderIds(GANGLIA_PROPERTIES_FILE);
   private static final Map<Resource.Type, Map<String, Map<String, PropertyInfo>>> GANGLIA_PROPERTY_IDS_2 = readPropertyProviderIds(GANGLIA_PROPERTIES_FILE_2);
   private static final Map<Resource.Type, Map<Resource.Type, String>> KEY_PROPERTY_IDS = readKeyPropertyIds(KEY_PROPERTIES_FILE);
+
+  /**
+   * Regular expression to check for replacement arguments (e.g. $1) in a property id.
+   */
+  private static final Pattern CHECK_FOR_METRIC_ARGUMENTS_REGEX = Pattern.compile(".*\\$\\d+.*");
 
   /**
    * Metrics versions.
@@ -139,7 +146,21 @@ public class PropertyHelper {
    * @return the property category; null if there is no category
    */
   public static String getPropertyCategory(String absProperty) {
-    int lastPathSep = absProperty.lastIndexOf(EXTERNAL_PATH_SEP);
+
+    int lastPathSep;
+    if (containsArguments(absProperty)) {
+      boolean inString = false;
+      for (lastPathSep = absProperty.length() - 1; lastPathSep > 0; --lastPathSep) {
+        char c = absProperty.charAt(lastPathSep);
+        if (c == '"') {
+          inString = !inString;
+        } else if (c == EXTERNAL_PATH_SEP && !inString) {
+          break;
+        }
+      }
+    } else {
+      lastPathSep = absProperty.lastIndexOf(EXTERNAL_PATH_SEP);
+    }
     return lastPathSep == -1 ? null : absProperty.substring(0, lastPathSep);
   }
 
@@ -161,6 +182,19 @@ public class PropertyHelper {
     }
     return categories;
   }
+
+  /**
+   * Check to see if the given property id contains replacement arguments (e.g. $1)
+   *
+   * @param propertyId  the property id to check
+   *
+   * @return true if the given property id contains any replacement arguments
+   */
+  public static boolean containsArguments(String propertyId) {
+    Matcher matcher = CHECK_FOR_METRIC_ARGUMENTS_REGEX.matcher(propertyId);
+    return matcher.find();
+  }
+
 
   /**
    * Get all of the property ids associated with the given request.

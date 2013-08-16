@@ -60,11 +60,6 @@ public abstract class BaseProvider {
   private final Map<String, Pattern> patterns;
 
   /**
-   * Regular expression to check for replacement arguments (e.g. $1) in a property id.
-   */
-  private static final Pattern CHECK_FOR_METRIC_ARGUMENTS_REGEX = Pattern.compile(".*\\$\\d+.*");
-
-  /**
    * The logger.
    */
   protected final static Logger LOG =
@@ -228,8 +223,7 @@ public abstract class BaseProvider {
    * @return true if the given property id contains any replacement arguments
    */
   protected boolean containsArguments(String propertyId) {
-    Matcher matcher = CHECK_FOR_METRIC_ARGUMENTS_REGEX.matcher(propertyId);
-    return matcher.find();
+    return PropertyHelper.containsArguments(propertyId);
   }
 
   /**
