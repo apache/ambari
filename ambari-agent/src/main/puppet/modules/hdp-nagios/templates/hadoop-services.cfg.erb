@@ -460,6 +460,17 @@ define service {
         retry_check_interval    1
         max_check_attempts      3
 }
+
+define service {
+        hostgroup_name          resourcemanager
+        use                     hadoop-service
+        service_description     RESOURCEMANAGER::ResourceManager process down
+        servicegroups           YARN
+        check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::rm_port")%>!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
 <% end %>
 
 <%if scope.function_hdp_nagios_members_exist('nodemanagers')-%>
