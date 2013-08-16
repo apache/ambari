@@ -162,11 +162,13 @@
     </description>
   </property>
 
+  <!-- 
   <property>
     <name>yarn.nodemanager.health-checker.script.path</name>
-    <value>/etc/hadoop/conf/health_check</value>
+    <value>/etc/hadoop/conf/health_check_nodemanager</value>
     <description>The health check script to run.</description>
   </property>
+   -->
 
   <property>
     <name>yarn.nodemanager.health-checker.interval-ms</name>
