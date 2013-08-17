@@ -71,7 +71,7 @@ App.Alert = DS.Model.extend({
    * Used to show only required alerts at the service level
    */
   ignoredForServices: function() {
-    return ['NodeManager unhealthy', 'NodeManager process down', 'Node Manager unhealthy', 'Node Manager process down', 'TaskTracker process down', 'RegionServer process down', 'DataNode process down', 'DataNode storage full', 'ZooKeeper Server process down'].contains(this.get('title'));
+    return ['NodeManager health', 'NodeManager process', 'TaskTracker process', 'RegionServer process', 'DataNode process', 'DataNode space', 'ZooKeeper Server process'].contains(this.get('title'));
   }.property('title'),
 
   /**

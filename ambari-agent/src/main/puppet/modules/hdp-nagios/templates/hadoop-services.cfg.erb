@@ -464,7 +464,7 @@ define service {
 define service {
         hostgroup_name          resourcemanager
         use                     hadoop-service
-        service_description     RESOURCEMANAGER::ResourceManager process down
+        service_description     RESOURCEMANAGER::ResourceManager process
         servicegroups           YARN
         check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::rm_port")%>!-w 1 -c 1
         normal_check_interval   1
