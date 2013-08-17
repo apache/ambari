@@ -1185,7 +1185,6 @@ App.WizardStep8Controller = Em.Controller.extend({
                 hostNames.pushObject(_masterHost.hostName);
               }, this);
               break;
-
             case 'HIVE_CLIENT':
               //install HIVE client on NAGIOS_SERVER host
               masterHosts.filterProperty('component', 'NAGIOS_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
@@ -1195,9 +1194,14 @@ App.WizardStep8Controller = Em.Controller.extend({
                 hostNames.pushObject(_masterHost.hostName);
               }, this);
               break;
-
             case 'HCAT':
               // install HCAT (client) on NAGIOS_SERVER host
+              masterHosts.filterProperty('component', 'NAGIOS_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              break;
+            case 'YARN_CLIENT':
+              // install YARN_CLIENT on NAGIOS_SERVER host
               masterHosts.filterProperty('component', 'NAGIOS_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
                 hostNames.pushObject(_masterHost.hostName);
               }, this);
