@@ -214,11 +214,11 @@ pidPathesVars = [
    'defaultValue' : '/var/run/hive'},                      
   {'var' : 'mysqld_pid_dir',
    'defaultValue' : '/var/run/mysqld'},
-  {'var' : 'webhcat_pid_dir',
+  {'var' : 'hcat_pid_dir',
    'defaultValue' : '/var/run/webhcat'},                      
   {'var' : 'yarn_pid_dir_prefix',
    'defaultValue' : '/var/run/hadoop-yarn'},
-  {'var' : 'mapreduce2_pid_dir',
+  {'var' : 'mapred_pid_dir_prefix',
    'defaultValue' : '/var/run/hadoop-mapreduce'},
 ]
 
