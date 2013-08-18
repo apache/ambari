@@ -31,14 +31,14 @@ class hdp-yarn::params(
   $kinit_cmd = "${hdp::params::kinit_path_local} -kt ${smoke_user_keytab} ${smoke_test_user};"
 
   ## yarn-env 
-  $hadoop_libexec_dir = hdp_default("yarn/yarn-env/hadoop_libexec_dir","/usr/lib/hadoop/libexec")
-  $hadoop_yarn_home = hdp_default("yarn/yarn-env/hadoop_yarn_home","/usr/lib/hadoop-yarn")
-  $yarn_heapsize = hdp_default("yarn/yarn-env/yarn_heapsize","1024")
-  $resourcemanager_heapsize = hdp_default("yarn/yarn-env/resourcemanager_heapsize","1024")
-  $nodemanager_heapsize = hdp_default("yarn/yarn-env/nodemanager_heapsize","1024")
+  $hadoop_libexec_dir = $hdp-hadoop::params::hadoop_libexec_dir
+  $hadoop_yarn_home = hdp_default("hadoop_yarn_home","/usr/lib/hadoop-yarn")
+  $yarn_heapsize = hdp_default("yarn_heapsize","1024")
+  $resourcemanager_heapsize = hdp_default("resourcemanager_heapsize","1024")
+  $nodemanager_heapsize = hdp_default("nodemanager_heapsize","1024")
 
-  $yarn_log_dir_prefix = hdp_default("hadoop/yarn-env/yarn_log_dir_prefix","/var/log/hadoop-yarn")
-  $yarn_pid_dir_prefix = hdp_default("hadoop/yarn-env/yarn_pid_dir_prefix","/var/run/hadoop-yarn")
+  $yarn_log_dir_prefix = hdp_default("yarn_log_dir_prefix","/var/log/hadoop-yarn")
+  $yarn_pid_dir_prefix = hdp_default("yarn_pid_dir_prefix","/var/run/hadoop-yarn")
   
   ## yarn-site
   $rm_webui_address = hdp_default("yarn-site/yarn.resourcemanager.webapp.address", "0.0.0.0:8088")
