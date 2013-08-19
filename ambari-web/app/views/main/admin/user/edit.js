@@ -74,12 +74,13 @@ App.MainAdminUserEditView = Em.View.extend({
   didInsertElement: function() {
     var form = this.get('userForm');
     if (form.getField("isLdap").get("value")) {
-      form.getField("old_password").set("disabled",true);
-      form.getField("new_password").set("disabled",true);
-    }
-    else {
-      form.getField("old_password").set("disabled",false);
-      form.getField("new_password").set("disabled",false);
+      form.getField("old_password").set("disabled", true);
+      form.getField("new_password").set("disabled", true);
+      form.getField("new_passwordRetype").set("disabled", true);
+    } else {
+      form.getField("old_password").set("disabled", false);
+      form.getField("new_password").set("disabled", false);
+      form.getField("new_passwordRetype").set("disabled", false);
     }
     form.propertyDidChange('object');
   }
