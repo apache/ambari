@@ -694,7 +694,7 @@ Em.I18n.translations = {
     '1. Put the NameNode in safe mode (read-only-mode) by running: <br/><br/>' +
     '$ hdfs dfsadmin -safemode enter <br/><br/>' +
     '2. Once NameNode is in Safe Mode, create a checkpoint by running: <br/><br/>' +
-    '$ TDB COMMAND <br/><br/>' +
+    '$ hdfs dfsadmin -saveNamespace <br/><br/>' +
     '3. You will be able to proceed to the next step once we detect that the NameNode is in Safe Mode and that the checkpoint has been created successfully.',
   'admin.highAvailability.wizard.step3.body':'Confirm your host selection and click Deploy to activate NameNode HA.',
   'admin.highAvailability.wizard.step2.body':'Select a host that will be running an additional NameNode.<br/> In addition,' +
