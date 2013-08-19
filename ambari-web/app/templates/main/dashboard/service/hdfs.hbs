@@ -57,6 +57,20 @@
           </div>
         </td>
       </tr>
+      <!-- Journal Nodes -->
+      <tr>
+        <td>{{t dashboard.services.hdfs.journalnodes}}</td>
+        <td>
+              <span>
+                {{#view view.journalNodesLiveTextView}}
+                  {{view.liveComponents}}/{{view.totalComponents}}
+                {{/view}}
+              </span>  {{t services.service.summary.JournalNodesLive}}
+          <div class="summary-view-host">
+            <a href="#" {{action filterHosts view.journalNodeComponent}}>{{view.journalNodeHostText}}</a>
+          </div>
+        </td>
+      </tr>
       <!-- NameNode Uptime -->
       <tr>
         <td>{{t dashboard.services.hdfs.nodes.uptime}}</td>

@@ -37,6 +37,15 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     }.property('service.capacityUsed', 'service.capacityTotal')
   }),
 
+  dashboardMasterComponentView: Em.View.extend({
+    templateName: require('templates/main/service/info/summary/master_components'),
+    mastersComp : function() {
+      return this.get('parentView.service.hostComponents').filter(function(comp){
+        return comp.get('isMaster') && comp.get('componentName') !== 'JOURNALNODE';
+      });
+    }.property("service")
+  }),
+
   dataNodesLive: function(){
     return App.HostComponent.find().filterProperty('componentName', 'DATANODE').filterProperty("workStatus","STARTED");
   }.property('service.hostComponents.@each'),
@@ -45,7 +54,15 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   }.property('service.hostComponents.@each'),
 
   dataNodeHostText: function () {
-    if(this.get("service.dataNodes") > 1){
+    if(this.get("service.dataNodes").content.length > 1){
+      return Em.I18n.t('services.service.summary.viewHosts');
+    }else{
+      return Em.I18n.t('services.service.summary.viewHost');
+    }
+  }.property("service"),
+
+  journalNodeHostText: function () {
+    if(this.get("service.journalNodes").content.length > 1){
       return Em.I18n.t('services.service.summary.viewHosts');
     }else{
       return Em.I18n.t('services.service.summary.viewHost');
@@ -59,6 +76,15 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     totalComponents: function() {
       return this.get("service.dataNodes.length");
     }.property("service.dataNodes.length")
+  }),
+
+  journalNodesLiveTextView: App.ComponentLiveTextView.extend({
+    liveComponents: function() {
+      return App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').filterProperty("workStatus","STARTED").get("length");
+    }.property("service.hostComponents.@each"),
+    totalComponents: function() {
+      return this.get("service.journalNodes.length");
+    }.property("service.journalNodes.length")
   }),
 
   dfsTotalBlocks: function(){
@@ -137,6 +163,10 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
 
   dataNodeComponent: function () {
     return App.HostComponent.find().findProperty('componentName', 'DATANODE');
+  }.property(),
+
+   journalNodeComponent: function () {
+    return App.HostComponent.find().findProperty('componentName', 'JOURNALNODE');
   }.property(),
 
   isSafeMode: function () {
