@@ -320,6 +320,9 @@
                 <source>
                   <location>src/main/resources/scripts/keytabs.sh</location>
                 </source>
+                <source>
+                  <location>src/main/resources/scripts/distribute_keytabs.py</location>
+                </source>
               </sources>
             </mapping>
             <mapping>
