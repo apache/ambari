@@ -86,12 +86,14 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
 
   setTaskLogs: function (taskId, tasks) {
     var hosts = [];
-    tasks.forEach(function (task) {
+    var uniqHosts = tasks.mapProperty('Tasks.host_name').uniq();
+    uniqHosts.forEach(function (host) {
+      var curHostTasks = tasks.filterProperty('Tasks.host_name', host);
       hosts.push(
        {
-          name: task.Tasks.host_name,
-          publicName: task.Tasks.host_name,
-          logTasks: [task]
+          name: host,
+          publicName: host,
+          logTasks: curHostTasks
         }
       );
     });
