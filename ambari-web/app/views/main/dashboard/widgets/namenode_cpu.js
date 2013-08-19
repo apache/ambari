@@ -24,9 +24,7 @@ App.NameNodeCpuPieChartView = App.PieChartDashboardWidgetView.extend({
   id: '3',
 
   model_type: 'hdfs',
-
   widgetHtmlId: 'widget-nn-cpu',
-
   modelFieldUsed: 'nameNodeCpu',
 
   didInsertElement: function() {
@@ -58,7 +56,7 @@ App.NameNodeCpuPieChartView = App.PieChartDashboardWidgetView.extend({
     var value = this.get('model').get(this.get('modelFieldUsed'));
     value = value >= 100 ? 100: value;
     var percent = (value + 0).toFixed(1);
-    return [ percent, 100 - percent];
+    var percent_precise = (value + 0).toFixed(2);
+    return [ percent, percent_precise];
   }
-
 });

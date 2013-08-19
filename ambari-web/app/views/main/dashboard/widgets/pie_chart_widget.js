@@ -62,7 +62,8 @@ App.PieChartDashboardWidgetView = App.DashboardWidgetView.extend({
     var used = this.get('model').get(this.get('modelFieldUsed'));
     var total = this.get('model').get(this.get('modelFieldMax'));
     var percent = total > 0 ? ((used)*100 / total).toFixed() : 0;
-    return [ percent, 100 - percent];
+    var percent_precise = total > 0 ? ((used)*100 / total).toFixed(1) : 0;
+    return [percent, percent_precise];
   },
 
   calc: function() {
@@ -97,7 +98,8 @@ App.PieChartDashboardWidgetView = App.DashboardWidgetView.extend({
     }),
 
     data: function() {
-      return this.get('parentView.dataForPieChart');
+      var ori_data = this.get('parentView.dataForPieChart');
+      return [ ori_data[0], 100 - ori_data[0]];
     }.property(),
 
     setData: function() {
@@ -105,7 +107,7 @@ App.PieChartDashboardWidgetView = App.DashboardWidgetView.extend({
     }.observes('parentView.dataForPieChart'),
 
     contentColor: function () {
-      var used = parseFloat(this.get('data')[0]);
+      var used = parseFloat(this.get('parentView.dataForPieChart')[1]);
       var thresh1 = parseFloat(this.get('thresh1'));
       var thresh2 = parseFloat(this.get('thresh2'));
       var color_green = '#95A800';

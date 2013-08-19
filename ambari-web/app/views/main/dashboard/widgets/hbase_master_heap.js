@@ -25,30 +25,12 @@ App.HBaseMasterHeapPieChartView = App.PieChartDashboardWidgetView.extend({
   id: '20',
 
   model_type: 'hbase',
-
   modelFieldMax: 'heapMemoryMax',
   modelFieldUsed: 'heapMemoryUsed',
-  hiddenInfo: function () {
-    var heapUsed = this.get('model').get('heapMemoryUsed');
-    var heapMax = this.get('model').get('heapMemoryMax');
-    var percent = heapMax > 0 ? 100 * heapUsed / heapMax : 0;
-    var result = [];
-    result.pushObject(percent.toFixed(1) + '% used');
-    result.pushObject(numberUtils.bytesToSize(heapUsed, 1, "parseFloat") + ' of ' + numberUtils.bytesToSize(heapMax, 1, "parseFloat"));
-    return result;
-  }.property('model.heapMemoryUsed', 'model.heapMemoryMax'),
-
   widgetHtmlId: 'widget-hbase-heap',
 
   didInsertElement: function() {
     this._super();
     this.calc();
-  },
-
-  calcDataForPieChart: function() {
-    var used = this.get('model').get(this.get('modelFieldUsed'));
-    var total = this.get('model').get(this.get('modelFieldMax'));
-    var percent = total > 0 ? ((used)*100 / total).toFixed() : 0;
-    return [ percent, 100 - percent];
   }
 });

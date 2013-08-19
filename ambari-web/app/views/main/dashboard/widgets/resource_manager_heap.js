@@ -23,11 +23,10 @@ App.ResourceManagerHeapPieChartView = App.PieChartDashboardWidgetView.extend({
 
   title: Em.I18n.t('dashboard.widgets.ResourceManagerHeap'),
   id: '24',
-  model_type: 'yarn',
 
+  model_type: 'yarn',
   modelFieldMax: 'jvmMemoryHeapCommitted',
   modelFieldUsed: 'jvmMemoryHeapUsed',
-
   widgetHtmlId: 'widget-rm-heap',
 
   didInsertElement: function() {

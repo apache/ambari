@@ -25,13 +25,11 @@ App.NameNodeCapacityPieChartView = App.PieChartDashboardWidgetView.extend({
   id: '2',
 
   model_type: 'hdfs',
-
   modelFieldMax: 'capacityTotal',
   /**
    * HDFS model has 'remaining' value, but not 'used'
    */
   modelFieldUsed: 'capacityRemaining',
-
   widgetHtmlId: 'widget-nn-capacity',
 
   didInsertElement: function() {
@@ -40,10 +38,8 @@ App.NameNodeCapacityPieChartView = App.PieChartDashboardWidgetView.extend({
   },
 
   calcHiddenInfo: function () {
-    var text = this.t("dashboard.services.hdfs.capacityUsed");
     var total = this.get('model').get(this.get('modelFieldMax')) + 0;
     var used = total - this.get('model').get(this.get('modelFieldUsed')) + 0;
-    var total = this.get('model.capacityTotal');
     var remaining = this.get('model.capacityRemaining');
     var used = total !== null && remaining !== null ? total - remaining : null;
     var percent = total > 0 ? ((used * 100) / total).toFixed(1) : 0;
@@ -60,7 +56,8 @@ App.NameNodeCapacityPieChartView = App.PieChartDashboardWidgetView.extend({
     var total = this.get('model').get(this.get('modelFieldMax')) * 1024 * 1024;
     var used = total - this.get('model').get(this.get('modelFieldUsed')) * 1024 * 1024;
     var percent = total > 0 ? ((used)*100 / total).toFixed() : 0;
-    return [ percent, 100 - percent];
+    var percent_precise = total > 0 ? ((used)*100 / total).toFixed(1) : 0;
+    return [percent, percent_precise];
   }
 
 });

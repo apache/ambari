@@ -25,20 +25,8 @@ App.NameNodeHeapPieChartView = App.PieChartDashboardWidgetView.extend({
   id: '1',
 
   model_type: 'hdfs',
-
- /* hiddenInfo: function () {
-    var memUsed = this.get('model').get('jvmMemoryHeapUsed');
-    var memCommitted = this.get('model').get('jvmMemoryHeapCommitted');
-    var percent = memCommitted > 0 ? ((100 * memUsed) / memCommitted) : 0;
-    var result = [];
-    result.pushObject(percent.toFixed(1) + '% used');
-    result.pushObject(numberUtils.bytesToSize(memUsed, 1, 'parseFloat', 1024 * 1024) + ' of ' + numberUtils.bytesToSize(memCommitted, 1, 'parseFloat', 1024 * 1024));
-    return result;
-  }.property('model.jvmMemoryHeapUsed', 'model.jvmMemoryHeapCommitted'),*/
-
   modelFieldMax: 'jvmMemoryHeapCommitted',
   modelFieldUsed: 'jvmMemoryHeapUsed',
-
   widgetHtmlId: 'widget-nn-heap',
 
   didInsertElement: function() {

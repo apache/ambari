@@ -25,16 +25,6 @@ App.JobTrackerHeapPieChartView = App.PieChartDashboardWidgetView.extend({
   id: '6',
 
   model_type: 'mapreduce',
-
- /* hiddenInfo: function () {
-    var heapUsed = this.get('model').get('jobTrackerHeapUsed');
-    var heapMax = this.get('model').get('jobTrackerHeapMax');
-    var percent = heapMax > 0 ? 100 * heapUsed / heapMax : 0;
-    var result = [];
-    result.pushObject(percent.toFixed(1) + '% used');
-    result.pushObject(numberUtils.bytesToSize(heapUsed, 1, "parseFloat") + ' of ' + numberUtils.bytesToSize(heapMax, 1, "parseFloat"));
-    return result;
-  }.property('model.jobTrackerHeapUsed', 'model.jobTrackerHeapMax'),*/
   modelFieldMax: 'jobTrackerHeapMax',
   modelFieldUsed: 'jobTrackerHeapUsed',
 
