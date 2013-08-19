@@ -295,9 +295,9 @@
         "dfs.replication.max" : "50",
         "dfs.hosts" : "/etc/hadoop/dfs.include",
         "dfs.block.local-path-access.user" : "hbase",
-        "dfs.namenode.kerberos.principal" : "nn/_HOST@EXAMPLE.COM"
+        "dfs.namenode.kerberos.principal" : "nn/_HOST@EXAMPLE.COM",
         "dfs.client.read.shortcircuit.skip.checksum" : "false",
-        "dfs.client.read.shortcircuit" : "true",
+        "dfs.client.read.shortcircuit" : "true"
       }
     },
     {

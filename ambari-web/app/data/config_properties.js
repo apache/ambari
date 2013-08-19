@@ -1860,22 +1860,22 @@ module.exports =
       "index": 7
     },
     {
-          "id": "puppet var",
-          "name": "oozie_data_dir",
-          "displayName": "Oozie Data Dir",
-          "description": "Data directory in which the Oozie DB exists",
-          "defaultValue": "",
-          "defaultDirectory": "/hadoop/oozie/data",
-          "isReconfigurable": false,
-          "displayType": "directory",
-          "isOverridable": false,
-          "isVisible": true,
-          "isRequired": false,
-          "domain": "global",
-          "serviceName": "OOZIE",
-          "category": "Oozie Server",
-          "index": 8
-      },
+      "id": "puppet var",
+      "name": "oozie_data_dir",
+      "displayName": "Oozie Data Dir",
+      "description": "Data directory in which the Oozie DB exists",
+      "defaultValue": "",
+      "defaultDirectory": "/hadoop/oozie/data",
+      "isReconfigurable": true,
+      "displayType": "directory",
+      "isOverridable": false,
+      "isVisible": true,
+      "isRequired": false,
+      "domain": "global",
+      "serviceName": "OOZIE",
+      "category": "Oozie Server",
+      "index": 8
+    },
 
     {
       "id": "puppet var",
