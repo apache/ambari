@@ -389,6 +389,7 @@ Em.I18n.translations = {
   'installer.step3.warnings.allFailed':'Host checks were skipped on {0} hosts that failed to register.',
   'installer.step3.warnings.updateChecks.success':'Host Checks successfully updated',
   'installer.step3.warnings.updateChecks.failed':'Host Checks update failed',
+  'installer.step3.warnings.missingHosts':'There is no registered host',
   'installer.step3.removeSelected':'Remove Selected',
   'installer.step3.retryFailed':'Retry Failed',
   'installer.step3.hosts.status.registering':'Registering',
