@@ -1232,6 +1232,11 @@
         "pointInTime" : true,
         "temporal" : false
       },
+      "metrics/dfs/namenode/JournalTransactionInfo":{
+        "metric" : "Hadoop:service=NameNode,name=NameNodeInfo.JournalTransactionInfo",
+        "pointInTime" : true,
+        "temporal" : false
+      },
       "metrics/jvm/gcCount":{
         "metric" : "Hadoop:service=NameNode,name=JvmMetrics.GcCount",
         "pointInTime" : true,
