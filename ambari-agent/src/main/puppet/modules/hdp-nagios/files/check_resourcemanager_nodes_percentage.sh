@@ -31,6 +31,11 @@ RESOURCEMANAGER_URL="http://$HOST:$PORT/ws/v1/cluster/metrics"
 export PATH="/usr/bin:$PATH"
 RESPONSE=`curl -s $RESOURCEMANAGER_URL`
 
+if [ -z "$RESPONSE" ]; then 
+  echo "CRITICAL: Can't get data from http://$HOST:$PORT/ws/v1/cluster/metrics" 
+  exit 2;
+fi 
+
 #code below is parsing RESPONSE that we get from resourcemanager api, for number between "activeNodes": and ','
 ACTIVE_NODES=`echo "$RESPONSE" | sed -nre 's/^.*"activeNodes":([[:digit:]]+).*$/\1/gp'`
 LOST_NODES=`echo "$RESPONSE" | sed -nre 's/^.*"lostNodes":([[:digit:]]+).*$/\1/gp'`
