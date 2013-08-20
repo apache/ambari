@@ -381,13 +381,6 @@ var configs = [
     "filename": "mapred-site.xml"
   },
   {
-    "name": "mapreduce.cluster.reducememory.mb",
-    "templateName": ["mapreduce_cluster_reducememory_mb"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
     "name": "mapred.hosts",
     "templateName": ["hadoop_conf_dir", "mapred_hosts_include"],
     "foreignKey": null,
@@ -404,13 +397,6 @@ var configs = [
   {
     "name": "mapred.userlog.retain.hours",
     "templateName": ["mapreduce_userlog_retainhours"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapreduce.cluster.local.dir",
-    "templateName": ["mapreduce_cluster_local_dir"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "mapred-site.xml"
@@ -437,20 +423,6 @@ var configs = [
     "filename": "mapred-site.xml"
   },
   {
-    "name": "mapred.cluster.max.map.memory.mb",
-    "templateName": ["mapred_cluster_max_map_mem_mb"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapred.cluster.max.reduce.memory.mb",
-    "templateName": ["mapred_cluster_max_red_mem_mb"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
     "name": "mapred.jobtracker.taskScheduler",
     "templateName": ["scheduler_name"],
     "foreignKey": null,
@@ -460,13 +432,6 @@ var configs = [
   {
     "name": "mapreduce.tasktracker.healthchecker.script.path",
     "templateName": ["mapred_jobstatus_dir"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapred.cluster.map.memory.mb",
-    "templateName": ["mapred_cluster_map_mem_mb"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "mapred-site.xml"

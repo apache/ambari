@@ -458,31 +458,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "mapreduce_cluster_local_dir",
-      "displayName": "MapReduce local directories",
-      "description": "Directories for MapReduce to store intermediate data files",
-      "defaultValue": "",
-      "defaultDirectory": "/hadoop/mapred",
-      "displayType": "directories",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "MAPREDUCE2"
-    },
-    {
-      "id": "puppet var",
-      "name": "mapreduce_cluster_reducememory_mb",
-      "displayName": "Cluster's Reduce slot size (virtual memory)",
-      "description": "The virtual memory size of a single Reduce slot in the MapReduce framework",
-      "defaultValue": "2048",
-      "displayType": "int",
-      "unit": "MB",
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "MAPREDUCE2"
-    },
-    {
-      "id": "puppet var",
       "name": "mapreduce_tasktracker_map_tasks_maximum",
       "displayName": "Number of Map slots per node",
       "description": "Number of slots that Map tasks that run simultaneously can occupy on a TaskTracker",
@@ -553,30 +528,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "mapred_cluster_max_map_mem_mb",
-      "displayName": "Upper limit on virtual memory for single Map task",
-      "description": "Upper limit on virtual memory size for a single Map task of any MapReduce job",
-      "defaultValue": "6144",
-      "displayType": "int",
-      "unit": "MB",
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "MAPREDUCE2"
-    },
-    {
-      "id": "puppet var",
-      "name": "mapred_cluster_max_red_mem_mb",
-      "displayName": "Upper limit on virtual memory for single Reduce task",
-      "description": "Upper limit on virtual memory size for a single Reduce task of any MapReduce job",
-      "defaultValue": "4096",
-      "displayType": "int",
-      "unit": "MB",
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "MAPREDUCE2"
-    },
-    {
-      "id": "puppet var",
       "name": "scheduler_name",
       "displayName": "MapReduce Capacity Scheduler",
       "description": "The scheduler to use for scheduling of MapReduce jobs",
@@ -584,18 +535,6 @@ module.exports =
       "displayType": "advanced",
       "isOverridable": false,
       "isVisible": true,
-      "serviceName": "MAPREDUCE2"
-    },
-    {
-      "id": "puppet var",
-      "name": "mapred_cluster_map_mem_mb",
-      "displayName": "Cluster's Map slot size (virtual memory)",
-      "description": "The virtual memory size of a single Map slot in the MapReduce framework",
-      "defaultValue": "1536",
-      "displayType": "int",
-      "unit": "MB",
-      "isVisible": true,
-      "domain": "global",
       "serviceName": "MAPREDUCE2"
     },
     {
