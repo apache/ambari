@@ -20,7 +20,7 @@ var App = require('app');
 
 require('controllers/main/admin/misc_controller');
 
-App.HighAvailabilityWizardStep4Controller = App.MainAdminMiscController.extend({
+App.HighAvailabilityWizardStep4Controller = Em.Controller.extend({
 
   name:"highAvailabilityWizardStep4Controller"
 

@@ -69,7 +69,7 @@ module.exports = Em.Route.extend({
       controller.setCurrentStep('1');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
-        controller.connectOutlet('highAvailabilityWizardStep1');
+        controller.connectOutlet('highAvailabilityWizardStep1', controller.get('content'));
       })
     },
     next: function (router) {

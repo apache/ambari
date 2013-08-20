@@ -21,6 +21,10 @@ var App = require('app');
 
 App.HighAvailabilityWizardStep1View = Em.View.extend({
 
-  templateName: require('templates/main/admin/highAvailability/step1')
+  templateName: require('templates/main/admin/highAvailability/step1'),
+
+  didInsertElement: function() {
+    this.get('controller').loadUsers();
+  }
 
 });

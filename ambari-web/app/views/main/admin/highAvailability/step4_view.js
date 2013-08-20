@@ -23,10 +23,6 @@ App.HighAvailabilityWizardStep4View = Em.View.extend({
 
   templateName: require('templates/main/admin/highAvailability/step4'),
 
-  didInsertElement: function() {
-    this.get('controller').loadUsers();
-  },
-
   step4BodyText: function () {
     var nN = this.get('controller.content.masterComponentHosts').findProperty('isCurNameNode', true);
     return Em.I18n.t('admin.highAvailability.wizard.step4.body').format(this.get('controller.content.hdfsUser'), nN.hostName);

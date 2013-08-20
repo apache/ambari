@@ -18,5 +18,9 @@
 
 var App = require('app');
 
-App.HighAvailabilityWizardStep1Controller = Em.Controller.extend();
+require('controllers/main/admin/misc_controller');
+
+App.HighAvailabilityWizardStep1Controller = App.MainAdminMiscController.extend({
+  name:"highAvailabilityWizardStep1Controller"
+});
 
