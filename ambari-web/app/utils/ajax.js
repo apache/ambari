@@ -643,7 +643,7 @@ var urls = {
     }
   },
   'admin.high_availability.create_zkfc': {
-    'real': '/clusters/{clusterName}/services?ServiceInfo/service_name=ZOOKEEPER',
+    'real': '/clusters/{clusterName}/services?ServiceInfo/service_name=HDFS',
     'mock': '',
     'type': 'POST',
     'format': function (data) {
