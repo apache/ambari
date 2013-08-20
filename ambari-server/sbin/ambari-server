@@ -119,7 +119,7 @@ case "$1" in
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
   *)
-        echo "Usage: /usr/sbin/ambari-server {start|stop|restart|setup|upgrade|status|upgradestack|setup-ldap|setup-https|encrypt-passwords} [options]"
+        echo "Usage: /usr/sbin/ambari-server {start|stop|restart|setup|upgrade|status|upgradestack|setup-ldap|setup-https|setup-ganglia-https|setup-nagios-https|encrypt-passwords} [options]"
         exit 1
 esac
 
