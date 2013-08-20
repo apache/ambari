@@ -18,7 +18,7 @@
 <div id="ha-progress-page">
   <h2>{{t admin.highAvailability.wizard.progressPage.header}}</h2>
 
-  <div class="alert alert-info">{{view.notice}}</div>
+  <div {{bindAttr class="view.noticeClass"}}>{{view.notice}}</div>
   {{#each task in controller.tasks}}
   {{#view view.taskView contentBinding="task"}}
   <div class="item">

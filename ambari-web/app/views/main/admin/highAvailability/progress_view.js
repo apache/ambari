@@ -25,7 +25,23 @@ App.HighAvailabilityProgressPageView = Em.View.extend({
     this.get('controller').loadStep();
   },
 
-  notice: Em.I18n.t('admin.highAvailability.wizard.progressPage.notice'),
+  notice: Em.I18n.t('admin.highAvailability.wizard.progressPage.notice.inProgress'),
+
+  noticeClass: 'alert alert-info',
+
+  onStatusChange: function () {
+    var status = this.get('controller.status');
+    if (status === 'COMPLETED') {
+      this.set('notice', Em.I18n.t('admin.highAvailability.wizard.progressPage.notice.completed'));
+      this.set('noticeClass', 'alert alert-success');
+    } else if (status === 'FAILED') {
+      this.set('notice', Em.I18n.t('admin.highAvailability.wizard.progressPage.notice.failed'));
+      this.set('noticeClass', 'alert alert-error');
+    } else {
+      this.set('notice', Em.I18n.t('admin.highAvailability.wizard.progressPage.notice.inProgress'));
+      this.set('noticeClass', 'alert alert-info');
+    }
+  }.observes('controller.status'),
 
   taskView: Em.View.extend({
     icon: '',

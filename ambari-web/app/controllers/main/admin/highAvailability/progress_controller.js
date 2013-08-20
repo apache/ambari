@@ -20,6 +20,7 @@ var App = require('app');
 
 App.HighAvailabilityProgressPageController = Em.Controller.extend({
 
+  status: 'IN_PROGRESS',
   tasks: [],
   commands: [],
   currentRequestIds: [],
@@ -69,9 +70,6 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
       for (var i = 0; i < loadedStauses.length; i++) {
         this.setTaskStatus(i, loadedStauses[i]);
       }
-      if (loadedStauses.contains('FAILED')) {
-        this.showRetry();
-      }
       if (loadedStauses.contains('IN_PROGRESS')) {
         this.set('currentRequestIds', this.get('content.requestIds'));
         this.set('currentTaskId', loadedStauses.indexOf('IN_PROGRESS'));
@@ -101,10 +99,6 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
     this.set('serviceTimestamp', new Date().getTime());
   },
 
-  showRetry: function () {
-    this.get('tasks').findProperty('status', 'FAILED').set('showRetry', true);
-  },
-
   retryTask: function () {
     var task = this.get('tasks').findProperty('status', 'FAILED');
     task.set('showRetry', false);
@@ -115,12 +109,17 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
     if (!this.get('tasks').someProperty('status', 'IN_PROGRESS') && !this.get('tasks').someProperty('status', 'QUEUED') && !this.get('tasks').someProperty('status', 'FAILED')) {
       var nextTask = this.get('tasks').findProperty('status', 'PENDING');
       if (nextTask) {
+        this.set('status', 'IN_PROGRESS');
         this.setTaskStatus(nextTask.get('id'), 'QUEUED');
         this.set('currentTaskId', nextTask.get('id'));
         this.runTask(nextTask.get('id'));
       } else {
+        this.set('status', 'COMPLETED');
         this.set('isSubmitDisabled', false);
       }
+    } else if (this.get('tasks').someProperty('status', 'FAILED')) {
+      this.set('status', 'FAILED');
+      this.get('tasks').findProperty('status', 'FAILED').set('showRetry', true);
     }
 
     var statuses = this.get('tasks').mapProperty('status');
@@ -144,7 +143,6 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
 
   onTaskError: function () {
     this.setTaskStatus(this.get('currentTaskId'), 'FAILED');
-    this.showRetry();
   },
 
   onTaskCompleted: function () {
@@ -265,7 +263,6 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
         this.set('currentRequestIds', []);
         if (tasks.someProperty('Tasks.status', 'FAILED')) {
           this.setTaskStatus(currentTaskId, 'FAILED');
-          this.showRetry();
         } else {
           this.setTaskStatus(currentTaskId, 'COMPLETED');
         }
