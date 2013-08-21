@@ -48,7 +48,13 @@ class hdp::params()
   $public_hostname = hdp_default("public_hostname")
 
   ##### for secure install
-  $security_enabled = hdp_default("security_enabled",false)
+  $hadoop_security_authenticatoin = hdp_default("core-site/hadoop.security.authentication", "simple")
+  
+  $security_enabled = $hadoop_security_authenticatoin ? {
+    'kerberos' => true,
+    default => false,
+  }
+  
   $kerberos_domain = hdp_default("kerberos_domain","EXAMPLE.COM")
   $kinit_path_local = hdp_get_kinit_path(hdp_default("kinit_path_local"), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin")
   $keytab_path = hdp_default("keytab_path", "/etc/security/keytabs")

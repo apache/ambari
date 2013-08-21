@@ -645,7 +645,7 @@ define service {
         use                     hadoop-service
         service_description     HIVE-METASTORE::Hive Metastore status
         servicegroups           HIVE-METASTORE
-        <%if scope.function_hdp_template_var("security_enabled")-%>
+        <%if scope.function_hdp_template_var("::hdp::params::security_enabled")-%>
         check_command           check_hive_metastore_status!<%=scope.function_hdp_template_var("::hive_metastore_port")%>!<%=scope.function_hdp_template_var("java64_home")%>!true!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>
         <%else-%>
         check_command           check_hive_metastore_status!<%=scope.function_hdp_template_var("::hive_metastore_port")%>!<%=scope.function_hdp_template_var("java64_home")%>!false
@@ -662,7 +662,7 @@ define service {
         use                     hadoop-service
         service_description     OOZIE::Oozie Server status
         servicegroups           OOZIE
-        <%if scope.function_hdp_template_var("security_enabled")-%>
+        <%if scope.function_hdp_template_var("::hdp::params::security_enabled")-%>
         check_command           check_oozie_status!<%=scope.function_hdp_template_var("::hdp::oozie_server_port")%>!<%=scope.function_hdp_template_var("java64_home")%>!true!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>
         <%else-%>
         check_command           check_oozie_status!<%=scope.function_hdp_template_var("::hdp::oozie_server_port")%>!<%=scope.function_hdp_template_var("java64_home")%>!false
@@ -679,7 +679,7 @@ define service {
         use                     hadoop-service
         service_description     WEBHCAT::WebHCat Server status
         servicegroups           WEBHCAT 
-        <%if scope.function_hdp_template_var("security_enabled")-%>
+        <%if scope.function_hdp_template_var("::hdp::params::security_enabled")-%>
         check_command           check_templeton_status!<%=scope.function_hdp_template_var("::hdp::templeton_port")%>!v1!true!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>
         <%else-%>
         check_command           check_templeton_status!<%=scope.function_hdp_template_var("::hdp::templeton_port")%>!v1!false

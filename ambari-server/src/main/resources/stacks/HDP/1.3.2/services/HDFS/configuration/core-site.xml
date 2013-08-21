@@ -144,7 +144,7 @@
 
  <property>
    <name>hadoop.security.authentication</name>
-   <value></value>
+   <value>simple</value>
    <description>
    Set the authentication for the cluster. Valid values are: simple or
    kerberos.
