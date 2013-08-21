@@ -421,10 +421,22 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
         reader = new BufferedReader(new InputStreamReader(
             getStreamProvider().readFrom(spec)));
 
-        int startTime = convertToNumber(reader.readLine()).intValue();
+        String feedStart = reader.readLine();
+        if (feedStart == null || feedStart.isEmpty()) {
+          LOG.info("Empty feed while getting ganglia metrics for spec => "+
+            spec);
+          return Collections.emptySet();
+        }
+        int startTime = convertToNumber(feedStart).intValue();
 
         String dsName = reader.readLine();
-        while(! dsName.equals("[AMBARI_END]")) {
+        if (dsName == null || dsName.isEmpty()) {
+          LOG.info("Feed without body while reading ganglia metrics for spec " +
+            "=> " + spec);
+          return Collections.emptySet();
+        }
+
+        while(!dsName.equals("[AMBARI_END]")) {
           GangliaMetric metric = new GangliaMetric();
           List<GangliaMetric.TemporalMetric> listTemporalMetrics =
               new ArrayList<GangliaMetric.TemporalMetric>();
@@ -456,12 +468,23 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
           }
 
           dsName = reader.readLine();
+          if (dsName == null || dsName.isEmpty()) {
+            LOG.info("Unexpected end of stream reached while getting ganglia " +
+              "metrics for spec => " + spec);
+            return Collections.emptySet();
+          }
         }
-        int endTime = convertToNumber(reader.readLine()).intValue();
+        String feedEnd = reader.readLine();
+        if (feedEnd == null || feedEnd.isEmpty()) {
+          LOG.info("Error reading end of feed while getting ganglia metrics " +
+            "for spec => " + spec);
+        } else {
 
-        int totalTime = endTime - startTime;
-        if (LOG.isInfoEnabled() && totalTime > POPULATION_TIME_UPPER_LIMIT) {
-          LOG.info("Ganglia resource population time: " + totalTime);
+          int endTime = convertToNumber(feedEnd).intValue();
+          int totalTime = endTime - startTime;
+          if (LOG.isInfoEnabled() && totalTime > POPULATION_TIME_UPPER_LIMIT) {
+            LOG.info("Ganglia resource population time: " + totalTime);
+          }
         }
       } catch (IOException e) {
         if (LOG.isErrorEnabled()) {
