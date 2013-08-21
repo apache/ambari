@@ -61,6 +61,10 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     }
   }.property("service"),
 
+  showJournalNodes: function () {
+    return App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').get('length') > 0;
+  }.property('service.hostComponents.@each'),
+
   journalNodeHostText: function () {
     if(this.get("service.journalNodes").content.length > 1){
       return Em.I18n.t('services.service.summary.viewHosts');
@@ -165,7 +169,7 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     return App.HostComponent.find().findProperty('componentName', 'DATANODE');
   }.property(),
 
-   journalNodeComponent: function () {
+  journalNodeComponent: function () {
     return App.HostComponent.find().findProperty('componentName', 'JOURNALNODE');
   }.property(),
 
