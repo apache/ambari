@@ -23,6 +23,7 @@ App.WizardStep3Controller = Em.Controller.extend({
   hosts: [],
   content: [],
   bootHosts: [],
+  registeredHosts: [],
   registrationStartedAt: null,
   registrationTimeoutSecs: 120,
   stopBootstrap: false,
@@ -452,6 +453,31 @@ App.WizardStep3Controller = Em.Controller.extend({
         _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + Em.I18n.t('installer.step3.hosts.bootLog.failed'));
       });
       this.getHostInfo();
+    }
+  },
+
+  hasMoreRegisteredHosts: false,
+
+  getAllRegisteredHosts: function() {
+    App.ajax.send({
+      name: 'wizard.step3.is_hosts_registered',
+      sender: this,
+      success: 'getAllRegisteredHostsCallback'
+    });
+  }.observes('bootHosts.@each.name'),
+
+  getAllRegisteredHostsCallback: function(hosts) {
+    var registeredHosts = [];
+    var addedHosts = this.get('bootHosts').getEach('name');
+    hosts.items.forEach(function(host){
+      (addedHosts.contains(host.Hosts.host_name)) ? null : registeredHosts.push(host.Hosts.host_name);
+    });
+    if(registeredHosts.length) {
+      this.set('hasMoreRegisteredHosts',true);
+      this.set('registeredHosts',registeredHosts);
+    } else {
+      this.set('hasMoreRegisteredHosts',false);
+      this.set('registeredHosts','');
     }
   },
 
@@ -1081,6 +1107,24 @@ App.WizardStep3Controller = Em.Controller.extend({
           newDocument.write(this.get('contentInDetails'));
           newWindow.focus();
         }
+      })
+    })
+  },
+
+  registeredHostsPopup: function(){
+    var self = this;
+    App.ModalPopup.show({
+      header: Em.I18n.t('installer.step3.warning.registeredHosts').format(this.get('registeredHosts').length),
+      secondary: null,
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile([
+          '<p>{{view.message}}</p>',
+          '<ul>{{#each host in view.registeredHosts}}',
+              '<li>{{host}}</li>',
+          '{{/each}}</ul>'
+        ].join('')),
+        message: Em.I18n.t('installer.step3.registeredHostsPopup'),
+        registeredHosts: self.get('registeredHosts')
       })
     })
   },

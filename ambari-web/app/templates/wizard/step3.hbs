@@ -114,6 +114,11 @@
       </div>
     </div>
   </div>
+    {{#if hasMoreRegisteredHosts}}
+        <div {{bindAttr class=":alert alert-warn"}}>
+          <a href="#" {{action registeredHostsPopup target="controller"}}>{{view.registeredHostsMessage}}</a>
+        </div>
+    {{/if}}
     {{#if isWarningsBoxVisible}}
       <div {{bindAttr class=":alert view.status"}}>
         {{view.message}}

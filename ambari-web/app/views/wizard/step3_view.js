@@ -32,6 +32,12 @@ App.WizardStep3View = Em.View.extend({
   linkText: '',
   status: '',
 
+  registeredHostsMessage: '',
+
+  setRegisteredHosts: function(){
+    this.set('registeredHostsMessage',Em.I18n.t('installer.step3.warning.registeredHosts').format(this.get('controller.registeredHosts').length));
+  }.observes('controller.registeredHosts'),
+
   monitorStatuses: function() {
     var failedHosts = 0;
     var hosts = this.get('controller.bootHosts');
