@@ -1147,7 +1147,7 @@ App.WizardStep8Controller = Em.Controller.extend({
           var hostNames = _slave.hosts.mapProperty('hostName');
           switch (_client.component_name) {
             case 'HDFS_CLIENT':
-              // install HDFS_CLIENT on HBASE_MASTER, HBASE_REGIONSERVER, and WEBHCAT_SERVER hosts
+              // install HDFS_CLIENT on HBASE_MASTER, HBASE_REGIONSERVER, WEBHCAT_SERVER, and HISTORYSERVER hosts
               masterHosts.filterProperty('component', 'HBASE_MASTER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
                 hostNames.pushObject(_masterHost.hostName);
               }, this);
@@ -1155,6 +1155,9 @@ App.WizardStep8Controller = Em.Controller.extend({
                 hostNames.pushObject(_masterHost.hostName);
               }, this);
               masterHosts.filterProperty('component', 'WEBHCAT_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              masterHosts.filterProperty('component', 'HISTORYSERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
                 hostNames.pushObject(_masterHost.hostName);
               }, this);
               break;
