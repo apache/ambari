@@ -44,11 +44,11 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     console.log("TRACE: Loading addSecurity step2: Configure Services");
     this.clearStep();
     this.loadUsers();
-    this.addUserPrincipals(this.get('content.services'));
+    this.addUserPrincipals(this.get('content.services'), this.get('securityUsers'));
     this.addMasterHostToGlobals(this.get('content.services'));
     this.addSlaveHostToGlobals(this.get('content.services'));
     this.renderServiceConfigs(this.get('content.services'));
-    this.changeCategoryOnHa(this.get('content.services'));
+    this.changeCategoryOnHa(this.get('content.services'), this.get('stepConfigs'));
     var storedServices = this.get('content.serviceConfigProperties');
     if (storedServices) {
       var configs = new Ember.Set();
@@ -149,8 +149,7 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     this.set('securityUsers', securityUsers);
   },
 
-  addUserPrincipals: function (serviceConfigs) {
-    var securityUsers = this.get('securityUsers');
+  addUserPrincipals: function (serviceConfigs, securityUsers) {
     var smokeUser = securityUsers.findProperty('name', 'smokeuser');
     var hdfsUser = securityUsers.findProperty('name', 'hdfs_user');
     var hbaseUser = securityUsers.findProperty('name', 'hbase_user');
@@ -263,10 +262,10 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
     this.setHostsToConfig(zooKeeperService, 'zookeeperserver_hosts', 'ZOOKEEPER_SERVER');
   },
 
-  changeCategoryOnHa: function (serviceConfigs) {
+  changeCategoryOnHa: function (serviceConfigs, stepConfigs) {
     var hdfsService = serviceConfigs.findProperty('serviceName', 'HDFS');
     if (hdfsService) {
-      var hdfsProperties = this.get('stepConfigs').findProperty('serviceName','HDFS').get('configs');
+      var hdfsProperties = stepConfigs.findProperty('serviceName','HDFS').get('configs');
       var configCategories = hdfsService.configCategories;
       var dfsHttpPrincipal = hdfsProperties.findProperty('name', 'hadoop_http_principal_name');
       var dfsHttpKeytab = hdfsProperties.findProperty('name', 'hadoop_http_keytab');

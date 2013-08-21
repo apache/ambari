@@ -39,6 +39,9 @@ App.ServiceConfigView = Em.View.extend({
     this.set('isRestartMessageCollapsed', !this.get('isRestartMessageCollapsed'));
   },
   didInsertElement: function () {
+    if(this.get('isNotEditable') === true) {
+      this.set('canEdit', false);
+    }
     this.$('.service-body').hide();
     $(".restart-required-property").tooltip({html: true});
     $(".icon-lock").tooltip({placement: 'right'});

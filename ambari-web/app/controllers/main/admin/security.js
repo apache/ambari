@@ -41,6 +41,178 @@ App.MainAdminSecurityController = Em.Controller.extend({
   notifySecurityOff: false,
   notifySecurityAdd: false,
 
+  stepConfigs: [],
+  desiredConfigs: [],
+  securityUsers: [],
+  serviceConfigTags: [],
+  selectedService: null,
+  isNotEditable: true,
+  services: function(){
+    var secureServices;
+    var services = [];
+    if(App.get('isHadoop2Stack')) {
+      secureServices = $.extend(true, [], require('data/HDP2/secure_configs'));
+    } else {
+      secureServices = $.extend(true, [], require('data/secure_configs'));
+    }
+
+    var installedServices = App.Service.find().mapProperty('serviceName');
+    //General (only non service tab) tab is always displayed
+    services.push(secureServices.findProperty('serviceName', 'GENERAL'));
+    installedServices.forEach(function (_service) {
+      var secureService = secureServices.findProperty('serviceName', _service);
+      if (secureService) {
+        services.push(secureService);
+      }
+    }, this);
+    return services;
+  }.property(),
+
+  loadStep: function(){
+    var step2Controller = App.router.get('mainAdminSecurityAddStep2Controller');
+    var services = this.get('services');
+    this.get('stepConfigs').clear();
+    this.get('securityUsers').clear();
+    this.get('serviceConfigTags').clear();
+    this.loadSecurityUsers();
+    //loadSecurityUsers - desired configs fetched from server
+    step2Controller.addUserPrincipals(services, this.get('securityUsers'));
+    step2Controller.addMasterHostToGlobals(services);
+    step2Controller.addSlaveHostToGlobals(services);
+    this.renderServiceConfigs(services);
+    step2Controller.changeCategoryOnHa(services, this.get('stepConfigs'));
+
+    services.forEach(function (_secureService) {
+      this.setServiceTagNames(_secureService, this.get('desiredConfigs'));
+    }, this);
+    var serverConfigs = App.config.loadConfigsByTags(this.get('serviceConfigTags'));
+    this.setConfigValuesFromServer(this.get('stepConfigs'), serverConfigs);
+
+    this.set('installedServices', App.Service.find().mapProperty('serviceName'));
+  },
+
+  /**
+   * get actual values of configurations from server
+   * @param stepConfigs
+   * @param serverConfigs
+   */
+  setConfigValuesFromServer: function(stepConfigs, serverConfigs){
+    var allConfigs = {};
+    serverConfigs.mapProperty('properties').forEach(function(_properties){
+      allConfigs = $.extend(allConfigs, _properties);
+    }, this);
+    // for all services`
+    stepConfigs.forEach(function (_content) {
+      //for all components
+      _content.get('configs').forEach(function (_config) {
+
+        var componentVal = allConfigs[_config.get('name')];
+        //if we have config for specified component
+        if (componentVal) {
+          //set it
+          _config.set('value', componentVal);
+        }
+      }, this);
+    }, this);
+
+  },
+
+  /**
+   * set tag names according to installed services and desired configs
+   * @param secureService
+   * @param configs
+   * @return {Object}
+   */
+  setServiceTagNames: function (secureService, configs) {
+    //var serviceConfigTags = this.get('serviceConfigTags');
+    for (var index in configs) {
+      if (secureService.sites && secureService.sites.contains(index)) {
+        var serviceConfigObj = {
+          siteName: index,
+          tagName: configs[index].tag,
+          newTagName: null,
+          configs: {}
+        };
+        console.log("The value of serviceConfigTags[index]: " + configs[index]);
+        this.get('serviceConfigTags').pushObject(serviceConfigObj);
+      }
+    }
+    return serviceConfigObj;
+  },
+
+  loadSecurityUsers: function () {
+    var securityUsers = this.get('serviceUsers');
+    if (!securityUsers || securityUsers.length < 1) { // Page could be refreshed in middle
+      if (App.testMode) {
+        securityUsers.pushObject({id: 'puppet var', name: 'hdfs_user', value: 'hdfs'});
+        securityUsers.pushObject({id: 'puppet var', name: 'mapred_user', value: 'mapred'});
+        securityUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: 'hbase'});
+        securityUsers.pushObject({id: 'puppet var', name: 'hive_user', value: 'hive'});
+        securityUsers.pushObject({id: 'puppet var', name: 'smokeuser', value: 'ambari-qa'});
+      } else {
+        this.setSecurityStatus();
+        securityUsers = this.get('serviceUsers');
+      }
+    }
+    this.set('securityUsers', securityUsers);
+  },
+  /**
+   * fill config with hosts of component
+   * @param service
+   * @param configName
+   * @param componentName
+   */
+  setHostsToConfig: function (service, configName, componentName) {
+    if (service) {
+      var hosts = service.configs.findProperty('name', configName);
+      if (hosts) {
+        hosts.defaultValue = App.Service.find(service.serviceName)
+          .get('hostComponents')
+          .filterProperty('componentName', componentName)
+          .mapProperty('host.hostName');
+      }
+    }
+  },
+
+  /**
+   * Load child components to service config object
+   * @param _componentConfig
+   * @param componentConfig
+   */
+  loadComponentConfigs: function (_componentConfig, componentConfig) {
+    _componentConfig.configs.forEach(function (_serviceConfigProperty) {
+      var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
+      componentConfig.configs.pushObject(serviceConfigProperty);
+      serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
+      serviceConfigProperty.validate();
+    }, this);
+  },
+
+  /**
+   * Render configs for active services
+   * @param serviceConfigs
+   */
+  renderServiceConfigs: function (serviceConfigs) {
+    serviceConfigs.forEach(function (_serviceConfig) {
+
+      var serviceConfig = App.ServiceConfig.create({
+        filename: _serviceConfig.filename,
+        serviceName: _serviceConfig.serviceName,
+        displayName: _serviceConfig.displayName,
+        configCategories: _serviceConfig.configCategories,
+        showConfig: true,
+        configs: []
+      });
+
+      this.loadComponentConfigs(_serviceConfig, serviceConfig);
+
+      console.log('pushing ' + serviceConfig.serviceName, serviceConfig);
+
+      this.get('stepConfigs').pushObject(serviceConfig);
+    }, this);
+    this.set('selectedService', this.get('stepConfigs').filterProperty('showConfig', true).objectAt(0));
+  },
+
   notifySecurityOffPopup: function () {
     var self = this;
     if (!this.get('isSubmitDisabled')) {
@@ -96,6 +268,7 @@ App.MainAdminSecurityController = Em.Controller.extend({
 
   getSecurityStatusFromServerSuccessCallback: function (data) {
     var configs = data.Clusters.desired_configs;
+    this.set('desiredConfigs', configs);
     if ('global' in configs && 'hdfs-site' in configs) {
       this.set('tag.global', configs['global'].tag);
       this.set('tag.hdfs-site', configs['hdfs-site'].tag);
@@ -138,7 +311,7 @@ App.MainAdminSecurityController = Em.Controller.extend({
 
   setNnHaStatus: function(hdfsConfigs) {
     var nnHaStatus = hdfsConfigs && hdfsConfigs['dfs.nameservices'];
-    var namenodes;
+    var namenodesKey;
     if (nnHaStatus) {
       namenodesKey = 'dfs.ha.namenodes.' + hdfsConfigs['dfs.nameservices'];
     }

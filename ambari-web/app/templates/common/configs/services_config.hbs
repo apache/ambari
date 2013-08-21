@@ -28,7 +28,7 @@
     {{/if}}
   {{/each}}
 </ul>
-{{view App.ServiceConfigView}}
+{{view App.ServiceConfigView isNotEditableBinding="controller.isNotEditable"}}
 {{#if isSubmitDisabled}}
   <div class="alert">{{t installer.step7.attentionNeeded}}</div>
 {{/if}}
