@@ -17,7 +17,6 @@
 -->
 <metainfo>
     <versions>
-	  <upgrade>1.2.0</upgrade>
 	  <active>false</active>
     </versions>
 </metainfo>

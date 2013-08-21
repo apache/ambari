@@ -5884,7 +5884,7 @@ public class AmbariManagementControllerTest {
     Assert.assertTrue(c.getCurrentStackVersion().equals(newStackId));
   }
 
-  @Test
+  //@Test - disabled as upgrade feature is disabled
   public void testUpdateClusterVersionBasic() throws AmbariException {
     String clusterName = "foo1";
     String serviceName = "MAPREDUCE";
@@ -6056,7 +6056,7 @@ public class AmbariManagementControllerTest {
     }
   }
 
-  @Test
+  //@Test - disabled as cluster upgrade feature is disabled
   public void testUpdateClusterVersionCombinations() throws AmbariException {
     String clusterName = "foo1";
     String pigServiceName = "PIG";

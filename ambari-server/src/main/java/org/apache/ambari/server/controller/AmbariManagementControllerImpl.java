@@ -1517,134 +1517,18 @@ public class AmbariManagementControllerImpl implements
 
     StackId currentVersion = cluster.getCurrentStackVersion();
     StackId desiredVersion = cluster.getDesiredStackVersion();
-    String requestedVersionString = request.getStackVersion();
-    StackId requestedVersion = null;
 
     // Set the current version value if its not already set
     if (currentVersion == null) {
       cluster.setCurrentStackVersion(desiredVersion);
-      currentVersion = cluster.getCurrentStackVersion();
     }
 
     boolean requiresHostListUpdate =
         request.getHostNames() != null && !request.getHostNames().isEmpty();
-    // TODO Should upgrade be allowed to upgrade all un-upgraded hosts
-    // even if the cluster says its upgraded
-    boolean requiresVersionUpdate = requestedVersionString != null
-        && !requestedVersionString.isEmpty();
-    if (requiresVersionUpdate) {
-      LOG.info("Received a cluster update request"
-          + ", clusterName=" + request.getClusterName()
-          + ", request=" + request);
-      requestedVersion = new StackId(requestedVersionString);
-      if (!requestedVersion.getStackName().equals(currentVersion.getStackName())) {
-        throw new AmbariException("Upgrade not possible between different stacks.");
-      }
-      requiresVersionUpdate = !currentVersion.equals(requestedVersion);
-      if(!requiresVersionUpdate) {
-        LOG.info("The cluster is already at " + currentVersion);
-      }
-    }
-
-    if (requiresVersionUpdate && requiresHostListUpdate) {
-      throw new IllegalArgumentException("Invalid arguments, "
-          + "cluster version cannot be upgraded"
-          + " along with host list modifications");
-    }
 
     if (requiresHostListUpdate) {
       clusters.mapHostsToCluster(
           request.getHostNames(), request.getClusterName());
-    }
-
-    if (requiresVersionUpdate) {
-      LOG.info("Upgrade cluster request received for stack " + requestedVersion);
-      boolean retry = false;
-      if (0 == currentVersion.compareTo(desiredVersion)) {
-        if (1 != requestedVersion.compareTo(currentVersion)) {
-          throw new AmbariException("Target version : " + requestedVersion
-              + " must be greater than current version : " + currentVersion);
-        } else {
-          StackInfo stackInfo =
-              ambariMetaInfo.getStackInfo(requestedVersion.getStackName(), requestedVersion.getStackVersion());
-          if (stackInfo == null) {
-            throw new AmbariException("Target version : " + requestedVersion
-                + " is not a recognized version");
-          }
-          if(!isUpgradeAllowed(stackInfo, currentVersion))
-          {
-            throw new AmbariException("Upgrade is not allowed from " + currentVersion
-                + " to the target version " + requestedVersion);
-          }
-        }
-      } else {
-        retry = true;
-        LOG.info("Received upgrade request is a retry.");
-        if (0 != requestedVersion.compareTo(desiredVersion)) {
-          throw new AmbariException("Upgrade in progress to target version : "
-              + desiredVersion
-              + ". Illegal request to upgrade to : " + requestedVersion);
-        }
-      }
-
-      checkIfActiveComponentsExist(cluster, currentVersion);
-
-      checkIfAnotherUpgradeCommandIsActive();
-
-      // TODO Ensure no other upgrade is active
-      /**
-       * There exists no active upgrade. Perform a final check of current stack version
-       * and proceed if upgrade is still required. Upgrade is idempotent so this check
-       * is only to avoid potentially expensive stage creation.
-       */
-      cluster.refresh();
-      if (requestedVersion.equals(cluster.getCurrentStackVersion())) {
-        LOG.info("Update cluster request version matches the current"
-                  + ", version=" + request);
-        return null;
-      }
-
-      if (!retry) {
-        cluster.setDesiredStackVersion(requestedVersion);
-        for (Service service : cluster.getServices().values()) {
-          service.setDesiredStackVersion(requestedVersion);
-          for (ServiceComponent component : service.getServiceComponents().values()) {
-            component.setDesiredStackVersion(requestedVersion);
-            for (ServiceComponentHost componentHost : component.getServiceComponentHosts().values()) {
-              componentHost.setDesiredStackVersion(requestedVersion);
-            }
-          }
-        }
-      }
-
-      Map<State, List<Service>> changedServices
-          = new HashMap<State, List<Service>>();
-      Map<State, List<ServiceComponent>> changedComps =
-          new HashMap<State, List<ServiceComponent>>();
-      Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts =
-          new HashMap<String, Map<State, List<ServiceComponentHost>>>();
-
-      LOG.info("Identifying components to upgrade.");
-      fillComponentsToUpgrade(request, cluster, changedServices, changedComps, changedScHosts);
-      Map<String, String> requestParameters = new HashMap<String, String>();
-      requestParameters.put(Configuration.UPGRADE_TO_STACK, gson.toJson(requestedVersion));
-      requestParameters.put(Configuration.UPGRADE_FROM_STACK, gson.toJson(currentVersion));
-
-      LOG.info("Creating stages for upgrade.");
-      List<Stage> stages = doStageCreation(cluster, changedServices, changedComps, changedScHosts,
-          requestParameters, requestProperties.get(REQUEST_CONTEXT_PROPERTY),
-          false, false);
-
-      if (stages == null || stages.isEmpty()) {
-        return null;
-      }
-
-      addFinalizeUpgradeAction(cluster, stages);
-      persistStages(stages);
-      updateServiceStates(changedServices, changedComps, changedScHosts);
-      long requestId = stages.get(0).getRequestId();
-      LOG.info(stages.size() + " stages created for upgrade and the request id is " + requestId);
-      return getRequestStatusResponse(requestId);
     }
 
     return null;

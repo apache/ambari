@@ -116,6 +116,7 @@ public class ClusterRequest {
     sb.append("{"
         + " clusterName=" + clusterName
         + ", clusterId=" + clusterId
+        + ", stackVersion=" + stackVersion
         + ", hosts=[");
     if (hostNames != null) {
       int i = 0;
