@@ -22,14 +22,15 @@ class hdp-yarn::yarn::service_check() inherits hdp-yarn::params
 {
 
   $jar_path = "$hadoop_yarn_home/$distrAppJarName"
-  $run_dist_shell_app_cmd = "jar $jar_path -appname yarnservicecheck -master_memory 512 -container_memory 128 -num_containers 2 -shell_command \"ls\" -jar $jar_path"
+  $run_yarn_check_cmd = "node -list"
   
   ## Check availability of REST api
   hdp-yarn::smoketest{'hdp-yarn::smoketest:rm': component_name => 'resourcemanager'}
   
   ## Run distributed shell application check
   hdp-hadoop::exec-hadoop { 'hdp-yarn::yarn::service_check':
-    command     => $run_dist_shell_app_cmd,
+    path        => '/usr/bin/yarn',
+    command     => $run_yarn_check_cmd,
     user        => $smoke_test_user
   }
   

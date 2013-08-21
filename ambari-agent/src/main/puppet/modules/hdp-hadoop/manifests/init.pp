@@ -439,17 +439,17 @@ define hdp-hadoop::exec-hadoop(
   } else {
     $kinit_if_needed = ""
   }
-
+  
   if ($path == undef) {
     if ($echo_yes == true) {
       $cmd = "yes Y | hadoop --config ${conf_dir} ${command}"
     } else {
       $cmd = "hadoop --config ${conf_dir} ${command}"
+    } 
+    } else {
+      $cmd = "${path} ${command}"
     }
-  } else {
-    $cmd = "${path} ${command}"
-  }
-
+  
   if ($kinit_if_needed != "") {
     exec { "kinit_before_${cmd}":
       command => $kinit_if_needed,
@@ -467,6 +467,6 @@ define hdp-hadoop::exec-hadoop(
     timeout     => $timeout,
     try_sleep   => $try_sleep,
     logoutput   => $logoutput,
-    onlyif      => $onlyif
+    onlyif      => $onlyif,
   }
 }
