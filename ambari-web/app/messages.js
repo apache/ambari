@@ -686,7 +686,7 @@ Em.I18n.translations = {
     '$ hdfs namenode -bootstrapStandby<br/><br/>' +
     'Note: The following command must be run as the user {0} on {1}, not {2} <br/><br/>' +
     '2. Initialize the metadata for NameNode automatic failover by running:<br/>' +
-    '$ hdfs -zkfc formatZK<br/><br/>' +
+    '$ hdfs zkfc -formatZK<br/><br/>' +
     '3. You will be able to proceed to the next step once we detect that the steps were completed successfully.',
   'admin.highAvailability.wizard.step6.body':'Note: The following commands must be run as the user {0} on {1} <br/><br/>' +
     '1. Initialize the JournalNodes by running: <br/><br/>' +
