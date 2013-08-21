@@ -23,7 +23,7 @@ App.AddHostController = App.WizardController.extend({
 
   name: 'addHostController',
 
-  totalSteps: 7,
+  totalSteps: 6,
 
   /**
    * Used for hiding back button in wizard
@@ -117,7 +117,6 @@ App.AddHostController = App.WizardController.extend({
     console.log('AddHostController.loadServices: loaded data ', servicesInfo);
     var serviceNames = servicesInfo.filterProperty('isSelected', true).mapProperty('serviceName');
     console.log('selected services ', serviceNames);
-    this.set('content.skipMasterStep', (!serviceNames.contains('HBASE') && !serviceNames.contains('ZOOKEEPER')) || !App.supports.addMasters);
   },
 
   /**
@@ -301,13 +300,10 @@ App.AddHostController = App.WizardController.extend({
   loadAllPriorSteps: function () {
     var step = this.get('currentStep');
     switch (step) {
-      case '9':
-      case '8':
-      case '7':
       case '6':
       case '5':
-        this.loadServiceConfigProperties();
       case '4':
+        this.loadServiceConfigProperties();
       case '3':
         this.loadClients();
         this.loadServices();
