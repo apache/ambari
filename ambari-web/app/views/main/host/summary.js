@@ -137,6 +137,7 @@ App.MainHostSummaryView = Em.View.extend({
     var taskTrackerExists = false;
     var regionServerExists = false;
     var zookeeperServerExists = false;
+    var nodeManagerExists = false;
 
     this.get('content.hostComponents').forEach(function (component) {
       switch (component.get('componentName')) {
@@ -152,6 +153,9 @@ App.MainHostSummaryView = Em.View.extend({
         case 'ZOOKEEPER_SERVER':
           zookeeperServerExists = true;
           break;
+        case 'NODEMANAGER':
+          nodeManagerExists = true;
+          break;
       }
     }, this);
 
@@ -166,6 +170,9 @@ App.MainHostSummaryView = Em.View.extend({
     }
     if (!zookeeperServerExists && services.findProperty('serviceName', 'ZOOKEEPER')) {
       components.pushObject(this.addableComponentObject.create({ 'componentName': 'ZOOKEEPER_SERVER' }));
+    }
+    if (!nodeManagerExists && services.findProperty('serviceName', 'YARN')) {
+      components.pushObject(this.addableComponentObject.create({ 'componentName': 'NODEMANAGER' }));
     }
     return components;
   }.property('content', 'content.hostComponents.length'),
