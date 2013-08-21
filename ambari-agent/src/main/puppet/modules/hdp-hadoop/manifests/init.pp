@@ -408,7 +408,8 @@ define hdp-hadoop::exec-hadoop(
   $try_sleep = undef,
   $user = undef,
   $logoutput = undef,
-  $onlyif = undef
+  $onlyif = undef,
+  $path = undef
 )
 {
   include hdp-hadoop::params
@@ -439,10 +440,14 @@ define hdp-hadoop::exec-hadoop(
     $kinit_if_needed = ""
   }
 
-  if ($echo_yes == true) {
-    $cmd = "yes Y | hadoop --config ${conf_dir} ${command}"
+  if ($path == undef) {
+    if ($echo_yes == true) {
+      $cmd = "yes Y | hadoop --config ${conf_dir} ${command}"
+    } else {
+      $cmd = "hadoop --config ${conf_dir} ${command}"
+    }
   } else {
-    $cmd = "hadoop --config ${conf_dir} ${command}"
+    $cmd = "${path} ${command}"
   }
 
   if ($kinit_if_needed != "") {

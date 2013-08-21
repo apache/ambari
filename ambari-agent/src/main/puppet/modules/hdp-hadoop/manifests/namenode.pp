@@ -63,7 +63,7 @@ class hdp-hadoop::namenode(
         group => $hdp::params::user_group
       }
     }
- 
+
     hdp-hadoop::namenode::create_name_dirs { $dfs_name_dir: 
       service_state => $service_state
     }
@@ -82,20 +82,26 @@ class hdp-hadoop::namenode(
     }
 
     hdp-hadoop::namenode::create_app_directories { 'create_app_directories' :
-       service_state => $service_state
+      service_state => $service_state
     }
 
     hdp-hadoop::namenode::create_user_directories { 'create_user_directories' :
-       service_state => $service_state
+      service_state => $service_state
     }
 
-    #top level does not need anchors
-    Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Namenode::Create_name_dirs<||> -> Hdp-hadoop::Service['namenode'] ->
-      # Now, creating directories inside HDFS
-      Hdp-hadoop::Namenode::Create_app_directories<||> -> Hdp-hadoop::Namenode::Create_user_directories<||> -> Anchor['hdp-hadoop::end']
+    Anchor['hdp-hadoop::begin'] ->
+    Hdp-hadoop::Namenode::Create_name_dirs<||> ->
+    Hdp-hadoop::Service['namenode'] ->
+    Hdp-hadoop::Namenode::Create_app_directories<||> ->
+    Hdp-hadoop::Namenode::Create_user_directories<||> ->
+    Anchor['hdp-hadoop::end']
+
     if ($service_state == 'running' and $format == true) {
-      Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Namenode::Create_name_dirs<||> ->
-        Class['hdp-hadoop::namenode::format'] -> Hdp-hadoop::Service['namenode'] -> Anchor['hdp-hadoop::end']
+      Anchor['hdp-hadoop::begin'] ->
+      Hdp-hadoop::Namenode::Create_name_dirs<||> ->
+      Class['hdp-hadoop::namenode::format'] ->
+      Hdp-hadoop::Service['namenode'] ->
+      Anchor['hdp-hadoop::end']
     }
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
@@ -128,10 +134,12 @@ define hdp-hadoop::namenode::create_app_directories($service_state)
       service_state => $service_state,
       owner         => $hdp-hadoop::params::mapred_user
     }
+
     hdp-hadoop::hdfs::directory{ '/mapred/system' :
       service_state => $service_state,
       owner         => $hdp-hadoop::params::mapred_user
     }
+
     Hdp-hadoop::Hdfs::Directory['/mapred'] -> Hdp-hadoop::Hdfs::Directory['/mapred/system']
 
     if ($hdp::params::hbase_master_hosts != "") {
@@ -140,12 +148,13 @@ define hdp-hadoop::namenode::create_app_directories($service_state)
         owner         => $hdp::params::hbase_user,
         service_state => $service_state
       }
+
       $hbase_staging_dir = $hdp::params::hbase_staging_dir
-        hdp-hadoop::hdfs::directory { $hbase_staging_dir:
-          owner         => $hdp::params::hbase_user,
-          service_state => $service_state,
-          mode             => '711',
-        }
+      hdp-hadoop::hdfs::directory { $hbase_staging_dir:
+        owner         => $hdp::params::hbase_user,
+        service_state => $service_state,
+        mode             => '711'
+      }
     }
 
     if ($hdp::params::hive_server_host != "") {
@@ -224,7 +233,7 @@ define hdp-hadoop::namenode::create_user_directories($service_state)
       $hive_hdfs_user_dir = $hdp::params::hive_hdfs_user_dir
       $hive_dir_item="$hive_hdfs_user_dir,"
     } else {
-    $hive_dir_item=""
+      $hive_dir_item=""
     }
 
     if ($hdp::params::oozie_server != "") {
@@ -252,8 +261,9 @@ define hdp-hadoop::namenode::create_user_directories($service_state)
     #Get unique users directories set
     $users_dirs_set = hdp_set_from_comma_list($users_dir_list_comm_sep)
 
-    hdp-hadoop::namenode::create_user_directory{$users_dirs_set:
-      service_state => $service_state}
+    hdp-hadoop::namenode::create_user_directory{ $users_dirs_set:
+      service_state => $service_state
+    }
   }
   
 }

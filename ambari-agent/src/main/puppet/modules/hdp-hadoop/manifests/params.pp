@@ -202,4 +202,9 @@ class hdp-hadoop::params(
   $ambari_db_rca_username = hdp_default("ambari_db_rca_username", "mapred")
   $ambari_db_rca_password = hdp_default("ambari_db_rca_password", "mapred")
 
+  if ($hdp::params::dfs_ha_enabled == true) {
+    $nameservice = $hdp::params::dfs_ha_nameservices
+    $namenode_id = hdp_hadoop_get_namenode_id("dfs.namenode.rpc-address.${nameservice}", "hdfs-site")
+  }
+
 }

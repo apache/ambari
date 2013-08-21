@@ -32,22 +32,31 @@ define hdp-hadoop::hdfs::directory(
   $namenode_safe_mode_off = "hadoop dfsadmin -safemode get|grep 'Safe mode is OFF'"
   $tries = 30
   $try_sleep = 10
- 
+
+  if ($hdp::params::dfs_ha_enabled == true) {
+     $namenode_id = $hdp-hadoop::params::namenode_id
+     if (hdp_is_empty($namenode_id) == false) {
+       $dfs_check_nn_status_cmd = "hdfs haadmin -getServiceState $namenode_id | grep active > /dev/null"
+     }
+   } else {
+     $dfs_check_nn_status_cmd = "true"
+   }
+
   if ($service_state == 'running') {
-
-
     if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
       $mkdir_cmd = "fs -mkdir -p ${name}"
     } else {
       $mkdir_cmd = "fs -mkdir ${name}"
     }
+
     hdp-hadoop::exec-hadoop { $mkdir_cmd:
       command   => $mkdir_cmd,
-      unless    => $dir_exists,
-      onlyif    => $namenode_safe_mode_off,
+      unless    => "$dfs_check_nn_status_cmd && $dir_exists",
+      onlyif    => "$dfs_check_nn_status_cmd && $namenode_safe_mode_off",
       try_sleep => $try_sleep,
       tries     => $tries
     }
+
     if ($owner == unset) {
       $chown = ""
     } else {
@@ -67,7 +76,7 @@ define hdp-hadoop::hdfs::directory(
       }
       hdp-hadoop::exec-hadoop {$chown_cmd :
         command   => $chown_cmd,
-        onlyif    => "$namenode_safe_mode_off && $dir_exists",
+        onlyif    => "$dfs_check_nn_status_cmd && $namenode_safe_mode_off && $dir_exists",
         try_sleep => $try_sleep,
         tries     => $tries
       }
@@ -83,7 +92,7 @@ define hdp-hadoop::hdfs::directory(
       }
       hdp-hadoop::exec-hadoop {$chmod_cmd :
         command   => $chmod_cmd,
-        onlyif    => "$namenode_safe_mode_off && $dir_exists",
+        onlyif    => "$dfs_check_nn_status_cmd && $namenode_safe_mode_off && $dir_exists",
         try_sleep => $try_sleep,
         tries     => $tries
       }
