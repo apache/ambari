@@ -21,6 +21,17 @@ var App = require('app');
 require('controllers/main/admin/misc_controller');
 
 App.HighAvailabilityWizardStep1Controller = App.MainAdminMiscController.extend({
-  name:"highAvailabilityWizardStep1Controller"
+  name: "highAvailabilityWizardStep1Controller",
+
+  isNameServiceIdValid: function () {
+    return /^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])$/.test(this.get('content.nameServiceId'));
+  }.property('content.nameServiceId'),
+
+  next: function () {
+    if (this.get('isNameServiceIdValid')) {
+      App.router.send('next');
+    }
+  }
+
 });
 

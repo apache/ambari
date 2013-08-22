@@ -38,7 +38,8 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
     slaveComponentHosts: null,
     masterComponentHosts: null,
     serviceName: 'MISC',
-    hdfsUser:"hdfs"
+    hdfsUser:"hdfs",
+    nameServiceId: ''
   }),
 
   /**
@@ -172,6 +173,16 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
     this.set('content.requestIds', requestIds);
   },
 
+  saveNameServiceId: function(nameServiceId){
+    App.db.setHighAvailabilityWizardNameServiceId(nameServiceId);
+    this.set('content.nameServiceId', nameServiceId);
+  },
+
+  loadNameServiceId: function(){
+    var nameServiceId = App.db.getHighAvailabilityWizardNameServiceId();
+    this.set('content.nameServiceId', nameServiceId);
+  },
+
   /**
    * Load data for all steps until <code>current step</code>
    */
@@ -183,6 +194,7 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
       case '7':
       case '6':
       case '5':
+        this.loadNameServiceId();
         this.loadTasksStatuses();
         this.loadRequestIds();
       case '4':

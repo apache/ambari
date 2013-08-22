@@ -24,7 +24,12 @@ App.HighAvailabilityWizardStep1View = Em.View.extend({
   templateName: require('templates/main/admin/highAvailability/step1'),
 
   didInsertElement: function() {
+    App.popover($("[rel=popover]"), {'placement': 'right', 'trigger': 'hover'});
     this.get('controller').loadUsers();
-  }
+  },
+
+  showInputError: function () {
+    return !this.get('controller.isNameServiceIdValid') && this.get('controller.content.nameServiceId').length;
+  }.property('controller.isNameServiceIdValid', 'controller.nameServiceId')
 
 });

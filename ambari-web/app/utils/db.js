@@ -362,6 +362,12 @@ App.db.setHighAvailabilityWizardRequestIds = function (requestIds) {
   localStorage.setObject('ambari', App.db.data);
 };
 
+App.db.setHighAvailabilityWizardNameServiceId = function (nameServiceId) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.HighAvailabilityWizard.nameServiceId = nameServiceId;
+  localStorage.setObject('ambari', App.db.data);
+};
+
 /*
  *  getter methods
  */
@@ -583,6 +589,11 @@ App.db.getHighAvailabilityWizardTasksStatuses = function () {
 App.db.getHighAvailabilityWizardRequestIds = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.HighAvailabilityWizard.requestIds;
+};
+
+App.db.getHighAvailabilityWizardNameServiceId = function () {
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.HighAvailabilityWizard.nameServiceId;
 };
 
 module.exports = App.db;

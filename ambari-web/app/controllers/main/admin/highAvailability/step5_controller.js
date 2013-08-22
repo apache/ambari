@@ -105,23 +105,24 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
     var newNameNodeHost = this.get('content.masterComponentHosts').findProperty('isAddNameNode').hostName;
     var journalNodeHosts = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName');
     var zooKeeperHosts = this.get('content.masterComponentHosts').filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
+    var nameServiceId = this.get('content.nameServiceId');
 
     //hdfs-site configs changes
-    hdfsSiteProperties['dfs.nameservices'] = 'mycluster';
-    hdfsSiteProperties['dfs.ha.namenodes.mycluster'] = 'nn1,nn2';
-    hdfsSiteProperties['dfs.namenode.rpc-address.mycluster.nn1'] = currentNameNodeHost + ':8020';
-    hdfsSiteProperties['dfs.namenode.rpc-address.mycluster.nn2'] = newNameNodeHost + ':8020';
-    hdfsSiteProperties['dfs.namenode.http-address.mycluster.nn1'] = currentNameNodeHost + ':50070';
-    hdfsSiteProperties['dfs.namenode.http-address.mycluster.nn2'] = newNameNodeHost + ':50070';
-    hdfsSiteProperties['dfs.namenode.shared.edits.dir'] = 'qjournal://' + journalNodeHosts[0] + ':8485;' + journalNodeHosts[1] + ':8485;' + journalNodeHosts[2] + ':8485/mycluster';
-    hdfsSiteProperties['dfs.client.failover.proxy.provider.mycluster'] = 'org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider';
+    hdfsSiteProperties['dfs.nameservices'] = nameServiceId;
+    hdfsSiteProperties['dfs.ha.namenodes.' + nameServiceId] = 'nn1,nn2';
+    hdfsSiteProperties['dfs.namenode.rpc-address.' + nameServiceId + '.nn1'] = currentNameNodeHost + ':8020';
+    hdfsSiteProperties['dfs.namenode.rpc-address.' + nameServiceId + '.nn2'] = newNameNodeHost + ':8020';
+    hdfsSiteProperties['dfs.namenode.http-address.' + nameServiceId + '.nn1'] = currentNameNodeHost + ':50070';
+    hdfsSiteProperties['dfs.namenode.http-address.' + nameServiceId + '.nn2'] = newNameNodeHost + ':50070';
+    hdfsSiteProperties['dfs.namenode.shared.edits.dir'] = 'qjournal://' + journalNodeHosts[0] + ':8485;' + journalNodeHosts[1] + ':8485;' + journalNodeHosts[2] + ':8485/' + nameServiceId;
+    hdfsSiteProperties['dfs.client.failover.proxy.provider.' + nameServiceId] = 'org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider';
     hdfsSiteProperties['dfs.ha.fencing.methods'] = 'shell(/bin/true)';
     hdfsSiteProperties['dfs.journalnode.edits.dir'] = '/grid/0/hdfs/journal';
     hdfsSiteProperties['dfs.ha.automatic-failover.enabled'] = 'true';
 
     //core-site configs changes
     coreSiteProperties['ha.zookeeper.quorum'] = zooKeeperHosts[0] + ':2181,' + zooKeeperHosts[1] + ':2181,' + zooKeeperHosts[2] + ':2181';
-    coreSiteProperties['fs.defaultFS'] = 'hdfs://mycluster';
+    coreSiteProperties['fs.defaultFS'] = 'hdfs://' + nameServiceId;
     this.set('configsSaved', false);
     App.ajax.send({
       name: 'admin.high_availability.save_configs',

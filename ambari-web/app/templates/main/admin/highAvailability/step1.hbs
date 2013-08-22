@@ -15,11 +15,22 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
+<div id="ha-step1">
+  <h2>{{t admin.highAvailability.wizard.step1.header}}</h2>
 
-<h2>{{t admin.highAvailability.wizard.step1.header}}</h2>
-<p class="alert alert-info">
-  {{t admin.highAvailability.wizard.step1.body}}
-</p>
-<div class="btn-area">
-  <a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>
+  <p class="alert alert-info">
+    {{t admin.highAvailability.wizard.step1.body}}
+  </p>
+
+  <div {{bindAttr class=":control-group view.showInputError:error :form-horizontal :nameserviceid-input"}} rel="popover" {{translateAttr title="admin.highAvailability.wizard.step1.nameserviceid.tooltip.title"
+       data-content="admin.highAvailability.wizard.step1.nameserviceid.tooltip.content"}}>
+    <label class="control-label">{{t admin.highAvailability.wizard.step1.nameserviceid}}:</label>
+
+    <div class="controls">
+      {{view Ember.TextField valueBinding="content.nameServiceId"}}
+    </div>
+  </div>
+  <div class="btn-area">
+    <a {{bindAttr class=":btn controller.isNameServiceIdValid::disabled :btn-success :pull-right"}} {{action next target="controller"}}>{{t common.next}} &rarr;</a>
+  </div>
 </div>

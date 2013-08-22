@@ -73,6 +73,8 @@ module.exports = Em.Route.extend({
       })
     },
     next: function (router) {
+      var controller = router.get('highAvailabilityWizardController');
+      controller.saveNameServiceId(router.get('highAvailabilityWizardStep1Controller.content.nameServiceId'));
       router.transitionTo('step2');
     }
   }),
