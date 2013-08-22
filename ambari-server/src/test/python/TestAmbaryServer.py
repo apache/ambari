@@ -1582,6 +1582,15 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       rcode = ambari_server.download_jdk(args)
       self.assertTrue(download_jce_policy_mock.called)
 
+    # Test case: Update JAVA_HOME location using command: ambari-server setup -j %NEW_LOCATION%
+    write_property_mock.reset_mock()
+    args.java_home = "somewhere"
+    path_existsMock.return_value = True
+    path_existsMock.side_effect = None
+    get_JAVA_HOME_mock.return_value = True
+    install_jce_manualy_mock.return_value = 0
+    rcode = ambari_server.download_jdk(args)
+    self.assertTrue(write_property_mock.called)
 
 
   @patch.object(ambari_server, "run_os_command")

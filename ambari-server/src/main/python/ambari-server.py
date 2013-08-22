@@ -1522,7 +1522,7 @@ def download_jdk(args):
     raise FatalException(-1, err)
   conf_file = properties.fileName
   ok = False
-  if get_JAVA_HOME():
+  if get_JAVA_HOME() and not args.java_home:
     pass # do nothing
   elif args.java_home and os.path.exists(args.java_home):
     print_warning_msg("JAVA_HOME " + args.java_home
