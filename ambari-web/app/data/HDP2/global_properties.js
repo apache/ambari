@@ -58,7 +58,7 @@
  *
  *   serviceName:
  *     The service that the config property belongs to.
- *     E.g., "HDFS", "MAPREDUCE", "ZOOKEEPER", etc.
+ *     E.g., "HDFS", "MAPREDUCE2", "ZOOKEEPER", etc.
  *
  *   category: the category that the config property belongs to (used for grouping config properties in the UI).
  *     if unspecified, "General" is assumed.
@@ -253,10 +253,10 @@ module.exports =
       "id": "puppet var",
       "name": "datanode_du_reserved",
       "displayName": "Reserved space for HDFS",
-      "description": "Reserved space in bytes per volume. Always leave this much space free for non dfs use.",
-      "defaultValue": "0",
+      "description": "Reserved space in GB per volume",
+      "defaultValue": "1",
       "displayType": "int",
-      "unit": "bytes",
+      "unit": "GB",
       "isVisible": true,
       "domain": "global",
       "serviceName": "HDFS",
@@ -281,9 +281,9 @@ module.exports =
       "name": "fs_checkpoint_size",
       "displayName": "HDFS Maximum Edit Log Size for Checkpointing",
       "description": "Maximum size of the edits log file that forces an urgent checkpoint even if the maximum checkpoint delay is not reached",
-      "defaultValue": "67108864",
+      "defaultValue": "0.5",
       "displayType": "float",
-      "unit": "bytes",
+      "unit": "GB",
       "isVisible": true,
       "domain": "global",
       "filename": "core-site.xml",
@@ -318,25 +318,12 @@ module.exports =
       "serviceName": "HDFS",
       "category": "Advanced"
     },
-    /*
-     {
-     "id": "puppet var",
-     "name": "dfs_support_append",
-     "displayName": "Append enabled",
-     "description": "Whether to enable HDFS Append feature",
-     "defaultValue": true,
-     "displayType": "checkbox",
-     "isVisible": true,
-     "domain": "global",
-     "serviceName": "HDFS"
-     },
-     */
     {
       "id": "puppet var",
       "name": "namenode_opt_maxnewsize",
       "displayName": "NameNode maximum new generation size",
       "description": "",
-      "defaultValue": "200",
+      "defaultValue": "640",
       "displayType": "int",
       "unit": "MB",
       "isOverridable": false,
@@ -453,166 +440,20 @@ module.exports =
       "serviceName": "HDFS",
       "category": "Advanced"
     },
-    /**********************************************HCFS***************************************/    
+
+  /**********************************************MAPREDUCE2***************************************/
     {
       "id": "puppet var",
-      "name": "fs_glusterfs_server",
-      "displayName": "Gluster server",
-      "description": "Gluster server (Slave FQDN)",
-      "defaultValue": "{firstHost}",
-      "displayType": "string",
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "HCFS",
-      "category": "General"
-    },
-    {
-      "id": "puppet var",
-      "name": "fs_glusterfs_default_name",
-      "displayName": "Gluster default fs name",
-      "description": "Gluster default filesystem name (glusterfs://{MasterFQDN}:9000)",
-      "defaultValue": "glusterfs://{firstHost}:9000",
-      "displayType": "string",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "HCFS",
-      "category": "General"
-    },
-    {
-      "id": "puppet var",
-      "name": "fs_glusterfs_volname",
-      "displayName": "Gluster volume name",
-      "description": "Gluster volume name",
-      "defaultValue": "HadoopVol",
-      "displayType": "string",
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "HCFS",
-      "category": "General"
-    },
-    {
-      "id": "puppet var",
-      "name": "fs_glusterfs_mount",
-      "displayName": "Gluster mount point",
-      "description": "Gluster mount point",
-      "defaultValue": "/mnt/glusterfs",
-      "displayType": "string",
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "HCFS",
-      "category": "General"
-    },
-    {
-      "id": "puppet var",
-      "name": "fs_glusterfs_automount",
-      "displayName": "Automount HCFS",
-      "description": "Automount the HCFS Volume",
-      "defaultValue": "false",
-      "displayType": "string",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "HCFS",
-      "category": "General"
-    },
-    {
-      "id": "puppet var",
-      "name": "fs_glusterfs_impl",
-      "displayName": "Gluster fs impl",
-      "description": "Gluster fs impl",
-      "defaultValue": "org.apache.hadoop.fs.glusterfs.GlusterFileSystem",
-      "displayType": "string",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "HCFS",
-      "category": "General"
-    },
-    {
-      "id": "puppet var",
-      "name": "fs_glusterfs_getfattrcmd",
-      "displayName": "Gluster getfattr command",
-      "description": "Gluster getfattr command",
-      "defaultValue": "sudo getfattr -m . -n trusted.glusterfs.pathinfo",
-      "displayType": "string",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "HCFS",
-      "category": "General"
-    },
-  /**********************************************MAPREDUCE***************************************/
-    {
-      "id": "puppet var",
-      "name": "jobtracker_host",
-      "displayName": "JobTracker host",
-      "value": "",
+      "name": "hs_host",
+      "displayName": "History Server",
+      "description": "History Server",
       "defaultValue": "",
-      "description": "The host that has been assigned to run JobTracker",
+      "isOverridable": false,
       "displayType": "masterHost",
-      "isOverridable": false,
       "isVisible": true,
       "domain": "global",
-      "serviceName": "MAPREDUCE",
-      "category": "JobTracker",
-      "index": 0
-    },
-    {
-      "id": "puppet var",
-      "name": "jtnode_opt_newsize",
-      "displayName": "JobTracker new generation size",
-      "description": "Default size of Java new generation size for JobTracker in MB (Java option -XX:NewSize)",
-      "defaultValue": "200",
-      "displayType": "int",
-      "unit": "MB",
-      "isOverridable": false,
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "MAPREDUCE",
-      "category": "JobTracker",
-      "index": 1
-    },
-    {
-      "id": "puppet var",
-      "name": "jtnode_opt_maxnewsize",
-      "displayName": "JobTracker maximum new generation size",
-      "description": "Maximum size of Java new generation for JobTracker in MB (Java option -XX:MaxNewSize)",
-      "defaultValue": "200",
-      "displayType": "int",
-      "unit": "MB",
-      "isOverridable": false,
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "MAPREDUCE",
-      "category": "JobTracker",
-      "index": 2
-    },
-    {
-      "id": "puppet var",
-      "name": "jtnode_heapsize",
-      "displayName": "JobTracker maximum Java heap size",
-      "description": "Maximum Java heap size for JobTracker in MB (Java option -Xmx)",
-      "defaultValue": "1024",
-      "displayType": "int",
-      "unit": "MB",
-      "isOverridable": false,
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "MAPREDUCE",
-      "category": "JobTracker",
-      "index": 3
-    },
-    {
-      "id": "puppet var",
-      "name": "tasktracker_hosts",
-      "displayName": "TaskTracker hosts",
-      "value": "",
-      "defaultValue": "",
-      "description": "The hosts that have been assigned to run TaskTracker",
-      "displayType": "slaveHosts",
-      "isOverridable": false,
-      "isVisible": true,
-      "isRequired": false,
-      "domain": "tasktracker-global",
-      "serviceName": "MAPREDUCE",
-      "category": "TaskTracker",
+      "serviceName": "MAPREDUCE2",
+      "category": "HistoryServer",
       "index": 0
     },
     {
@@ -625,76 +466,8 @@ module.exports =
       "displayType": "directories",
       "isReconfigurable": true,
       "isVisible": true,
-      "domain": "tasktracker-global",
-      "serviceName": "MAPREDUCE",
-      "category": "TaskTracker",
-      "index": 1
-    },
-    {
-      "id": "puppet var",
-      "name": "mapred_map_tasks_max",
-      "displayName": "Number of Map slots per node",
-      "description": "Number of slots that Map tasks that run simultaneously can occupy on a TaskTracker",
-      "defaultValue": "4",
-      "displayType": "int",
-      "isVisible": true,
-      "domain": "tasktracker-global",
-      "serviceName": "MAPREDUCE",
-      "category": "TaskTracker",
-      "index": 2
-    },
-    {
-      "id": "puppet var",
-      "name": "mapred_red_tasks_max",
-      "displayName": "Number of Reduce slots per node",
-      "description": "Number of slots that Reduce tasks that run simultaneously can occupy on a TaskTracker.",
-      "defaultValue": "2",
-      "displayType": "int",
-      "isVisible": true,
-      "isRequired": false,
-      "domain": "tasktracker-global",
-      "serviceName": "MAPREDUCE",
-      "category": "TaskTracker",
-      "index": 3
-    },
-    {
-      "id": "puppet var",
-      "name": "mapred_child_java_opts_sz",
-      "displayName": "Java options for MapReduce tasks",
-      "description": "Java options for the TaskTracker child processes.",
-      "defaultValue": "768",
-      "displayType": "int",
-      "unit": "MB",
-      "isVisible": true,
-      "domain": "tasktracker-global",
-      "serviceName": "MAPREDUCE",
-      "category": "TaskTracker",
-      "index": 4
-    },
-    {
-      "id": "puppet var",
-      "name": "scheduler_name",
-      "displayName": "MapReduce Capacity Scheduler",
-      "description": "The scheduler to use for scheduling of MapReduce jobs",
-      "defaultValue": "org.apache.hadoop.mapred.CapacityTaskScheduler",
-      "displayType": "advanced",
-      "isOverridable": false,
-      "isVisible": true,
-      "serviceName": "MAPREDUCE",
-      "index": 0
-    },
-    {
-      "id": "puppet var",
-      "name": "mapred_cluster_map_mem_mb",
-      "displayName": "Cluster's Map slot size (virtual memory)",
-      "description": "The virtual memory size of a single Map slot in the MapReduce framework",
-      "defaultValue": "1536",
-      "displayType": "int",
-      "unit": "MB",
-      "isVisible": true,
       "domain": "global",
-      "serviceName": "MAPREDUCE",
-      "index": 1
+      "serviceName": "MAPREDUCE2"
     },
     {
       "id": "puppet var",
@@ -706,34 +479,18 @@ module.exports =
       "unit": "MB",
       "isVisible": true,
       "domain": "global",
-      "serviceName": "MAPREDUCE",
-      "index": 2
+      "serviceName": "MAPREDUCE2"
     },
     {
       "id": "puppet var",
-      "name": "mapred_cluster_max_map_mem_mb",
-      "displayName": "Upper limit on virtual memory for single Map task",
-      "description": "Upper limit on virtual memory size for a single Map task of any MapReduce job",
-      "defaultValue": "6144",
+      "name": "mapred_map_tasks_max",
+      "displayName": "Number of Map slots per node",
+      "description": "Number of slots that Map tasks that run simultaneously can occupy on a TaskTracker",
+      "defaultValue": "4",
       "displayType": "int",
-      "unit": "MB",
       "isVisible": true,
       "domain": "global",
-      "serviceName": "MAPREDUCE",
-      "index": 3
-    },
-    {
-      "id": "puppet var",
-      "name": "mapred_cluster_max_red_mem_mb",
-      "displayName": "Upper limit on virtual memory for single Reduce task",
-      "description": "Upper limit on virtual memory size for a single Reduce task of any MapReduce job",
-      "defaultValue": "4096",
-      "displayType": "int",
-      "unit": "MB",
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "MAPREDUCE",
-      "index": 4
+      "serviceName": "MAPREDUCE2"
     },
     {
       "id": "puppet var",
@@ -745,8 +502,7 @@ module.exports =
       "unit": "MB",
       "isVisible": true,
       "domain": "global",
-      "serviceName": "MAPREDUCE",
-      "index": 5
+      "serviceName": "MAPREDUCE2"
     },
     {
       "id": "puppet var",
@@ -758,12 +514,11 @@ module.exports =
       "unit": "MB",
       "isVisible": true,
       "domain": "global",
-      "serviceName": "MAPREDUCE",
-      "index": 6
+      "serviceName": "MAPREDUCE2"
     },
     {
       "id": "puppet var",
-      "name": "io_sort_mb",
+      "name": "mapreduce_task_io_sort_mb",
       "displayName": "Map-side sort buffer memory",
       "description": "The total amount of Map-side buffer memory to use while sorting files (Expert-only configuration)",
       "defaultValue": "200",
@@ -771,20 +526,7 @@ module.exports =
       "unit": "MB",
       "isVisible": true,
       "domain": "global",
-      "serviceName": "MAPREDUCE",
-      "index": 7
-    },
-    {
-      "id": "puppet var",
-      "name": "io_sort_spill_percent",
-      "displayName": "Limit on buffer",
-      "description": "Percentage of sort buffer used for record collection (Expert-only configuration)",
-      "defaultValue": "0.9",
-      "displayType": "float",
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "MAPREDUCE",
-      "index": 8
+      "serviceName": "MAPREDUCE2"
     },
     {
       "id": "puppet var",
@@ -796,8 +538,7 @@ module.exports =
       "unit": "hours",
       "isVisible": true,
       "domain": "global",
-      "serviceName": "MAPREDUCE",
-      "index": 9
+      "serviceName": "MAPREDUCE2"
     },
     {
       "id": "puppet var",
@@ -808,49 +549,54 @@ module.exports =
       "displayType": "int",
       "isVisible": true,
       "domain": "global",
-      "serviceName": "MAPREDUCE",
-      "index": 10
+      "serviceName": "MAPREDUCE2"
     },
     {
       "id": "puppet var",
-      "name": "lzo_enabled",
-      "displayName": "LZO compression",
-      "description": "LZO compression enabled",
-      "defaultValue": true,
-      "displayType": "checkbox",
-      "isOverridable": false,
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MAPREDUCE",
-      "index": 11
-    },
-    {
-      "id": "puppet var",
-      "name": "snappy_enabled",
-      "displayName": "Snappy compression",
-      "description": "Snappy compression enabled",
-      "defaultValue": true,
-      "isReconfigurable": false,
-      "displayType": "checkbox",
-      "isOverridable": false,
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MAPREDUCE",
-      "index": 12
-    },
-    {
-      "id": "puppet var",
-      "name": "rca_enabled",
-      "displayName": "Enable Job Diagnostics",
-      "description": "Tools for tracing the path and troubleshooting the performance of MapReduce jobs",
-      "defaultValue": true,
-      "isReconfigurable": true,
-      "isOverridable": false,
-      "displayType": "checkbox",
+      "name": "mapred_cluster_max_map_mem_mb",
+      "displayName": "Upper limit on virtual memory for single Map task",
+      "description": "Upper limit on virtual memory size for a single Map task of any MapReduce job",
+      "defaultValue": "6144",
+      "displayType": "int",
+      "unit": "MB",
       "isVisible": true,
       "domain": "global",
-      "serviceName": "MAPREDUCE",
-      "index": 13
+      "serviceName": "MAPREDUCE2"
+    },
+    {
+      "id": "puppet var",
+      "name": "mapred_cluster_max_red_mem_mb",
+      "displayName": "Upper limit on virtual memory for single Reduce task",
+      "description": "Upper limit on virtual memory size for a single Reduce task of any MapReduce job",
+      "defaultValue": "4096",
+      "displayType": "int",
+      "unit": "MB",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "MAPREDUCE2"
+    },
+    {
+      "id": "puppet var",
+      "name": "scheduler_name",
+      "displayName": "MapReduce Capacity Scheduler",
+      "description": "The scheduler to use for scheduling of MapReduce jobs",
+      "defaultValue": "org.apache.hadoop.mapred.CapacityTaskScheduler",
+      "displayType": "advanced",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "MAPREDUCE2"
+    },
+    {
+      "id": "puppet var",
+      "name": "mapred_cluster_map_mem_mb",
+      "displayName": "Cluster's Map slot size (virtual memory)",
+      "description": "The virtual memory size of a single Map slot in the MapReduce framework",
+      "defaultValue": "1536",
+      "displayType": "int",
+      "unit": "MB",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "MAPREDUCE2"
     },
     {
       "id": "puppet var",
@@ -862,19 +608,31 @@ module.exports =
       "isReconfigurable": true,
       "isVisible": true,
       "domain": "global",
-      "serviceName": "MAPREDUCE",
+      "serviceName": "MAPREDUCE2",
       "category": "Advanced"
     },
     {
       "id": "puppet var",
-      "name": "mapred_hosts_exclude",
-      "displayName": "Exclude hosts",
-      "description": "Exclude entered hosts",
-      "defaultValue": "mapred.exclude",
-      "displayType": "directories",
-      "isVisible": false,
-      "serviceName": "MAPREDUCE",
+      "name": "mapred_log_dir_prefix",
+      "displayName": "Mapreduce Log Dir Prefix",
+      "description": "",
+      "defaultValue": "/var/log/hadoop-mapreduce",
+      "displayType": "directory",
+      "isVisible": true,
       "domain": "global",
+      "serviceName": "MAPREDUCE2",
+      "category": "Advanced"
+    },
+    {
+      "id": "puppet var",
+      "name": "mapred_pid_dir_prefix",
+      "displayName": "Mapreduce PID Dir Prefix",
+      "description": "",
+      "defaultValue": "/var/run/hadoop-mapreduce",
+      "displayType": "directory",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "MAPREDUCE2",
       "category": "Advanced"
     },
     {
@@ -885,7 +643,31 @@ module.exports =
       "defaultValue": "mapred.include",
       "displayType": "directories",
       "isVisible": false,
-      "serviceName": "MAPREDUCE",
+      "serviceName": "MAPREDUCE2",
+      "domain": "global",
+      "category": "Advanced"
+    },
+    {
+      "id": "puppet var",
+      "name": "task_controller",
+      "displayName": "task_controller",
+      "description": "",
+      "defaultValue": "org.apache.hadoop.mapred.DefaultTaskController",
+      "displayType": "advanced",
+      "isVisible": false,
+      "serviceName": "MAPREDUCE2",
+      "domain": "global",
+      "category": "Advanced"
+    },
+    {
+      "id": "puppet var",
+      "name": "mapred_hosts_exclude",
+      "displayName": "Exclude hosts",
+      "description": "Exclude entered hosts",
+      "defaultValue": "mapred.exclude",
+      "displayType": "directories",
+      "isVisible": false,
+      "serviceName": "MAPREDUCE2",
       "domain": "global",
       "category": "Advanced"
     },
@@ -897,25 +679,74 @@ module.exports =
       "defaultValue": "file:////mapred/jobstatus",
       "displayType": "advanced",
       "isVisible": false,
-      "serviceName": "MAPREDUCE",
+      "serviceName": "MAPREDUCE2",
       "domain": "global",
       "category": "Advanced"
     },
+  /**********************************************YARN***************************************/
     {
-      "id": "site property",
-      "name": "mapred.capacity-scheduler.maximum-system-jobs",
-      "displayName": "Max system jobs",
-      "displayType": "int",
-      "value": '3000',
-      "defaultValue": '3000',
-      "description": "Maximum number of jobs in the system which can be initialized, concurrently, by the " +
-        "CapacityScheduler. Individual queue limits on initialized jobs are directly proportional to their queue " +
-        "capacities.",
+      "id": "puppet var",
+      "name": "rm_host",
+      "displayName": "Resource Manager",
+      "description": "Resource Manager",
+      "defaultValue": "",
+      "isOverridable": false,
+      "displayType": "masterHost",
       "isVisible": true,
-      "isRequired": true,
-      "serviceName": "MAPREDUCE",
-      "category": "CapacityScheduler",
-      "filename": "capacity-scheduler.xml"
+      "domain": "global",
+      "serviceName": "YARN",
+      "category": "ResourceManager",
+      "index": 0
+    },
+    {
+      "id": "puppet var",
+      "name": "nm_hosts",
+      "displayName": "Node Manager",
+      "description": "List of Node Manager Hosts.",
+      "defaultValue": "",
+      "isOverridable": false,
+      "displayType": "slaveHosts",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "YARN",
+      "category": "NodeManager",
+      "index": 0
+    },
+    {
+      "id": "puppet var",
+      "name": "yarn_log_dir_prefix",
+      "displayName": "YARN Log Dir Prefix",
+      "description": "",
+      "defaultValue": "/var/log/hadoop-yarn",
+      "displayType": "directory",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "YARN",
+      "category": "Advanced"
+    },
+    {
+      "id": "puppet var",
+      "name": "yarn_pid_dir_prefix",
+      "displayName": "YARN PID Dir Prefix",
+      "description": "",
+      "defaultValue": "/var/run/hadoop-yarn",
+      "displayType": "directory",
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "YARN",
+      "category": "Advanced"
+    },
+    {
+      "id": "puppet var",
+      "name": "yarn_nodemanager_local-dirs",
+      "displayName": "YARN local directories",
+      "defaultValue": "",
+      "defaultDirectory": "/hadoop/yarn",
+      "displayType": "directories",
+      "isReconfigurable": true,
+      "isVisible": true,
+      "serviceName": "YARN",
+      "category": "Advanced"
     },
   /**********************************************HBASE***************************************/
     {
@@ -1394,7 +1225,7 @@ module.exports =
       "value": "",
       "defaultValue": "",
       "displayName": "Database Host",
-      "description": "The host where Hive Metastore database is located",
+      "description": "Host on which the database will be created by Ambari",
       "isReconfigurable": false,
       "displayType": "masterHost",
       "isOverridable": false,
@@ -1410,7 +1241,7 @@ module.exports =
       "displayName": "Database Name",
       "description": "Database name used as the Hive Metastore",
       "defaultValue": "hive",
-      "isReconfigurable": true,
+      "isReconfigurable": false,
       "displayType": "host",
       "isOverridable": false,
       "isVisible": true,
@@ -1426,8 +1257,8 @@ module.exports =
       "displayName": "Database Username",
       "description": "Database user name to use to connect to the database",
       "defaultValue": "hive",
-      "isReconfigurable": true,
-      "displayType": "host",  // don't apply user validation
+      "isReconfigurable": false,
+      "displayType": "user",
       "isOverridable": false,
       "isVisible": true,
       "domain": "global",
@@ -1441,7 +1272,7 @@ module.exports =
       "displayName": "Database Password",
       "description": "Database password to use to connect to the PostgreSQL database",
       "defaultValue": "",
-      "isReconfigurable": true,
+      "isReconfigurable": false,
       "displayType": "password",
       "isOverridable": false,
       "isVisible": true,
@@ -1649,7 +1480,7 @@ module.exports =
       "index": 1
     },
     // for new MySQL
-    /*{
+    {
       "id": "puppet var",
       "name": "oozie_ambari_database",
       "displayName": "Database Type",
@@ -1663,7 +1494,7 @@ module.exports =
       "serviceName": "OOZIE",
       "category": "Oozie Server",
       "index": 1
-    },*/
+    },
     // for current derby
     {
       "id": "puppet var",
@@ -1707,9 +1538,9 @@ module.exports =
       "options": [
         {
           displayName: 'New Derby Database',
-          foreignKeys: ['oozie_derby_database','oozie_ambari_host']
+          foreignKeys: ['oozie_derby_database']
         },
-         /*{
+        /*{
           displayName: 'New MySQL Database',
           foreignKeys: ['oozie_ambari_database', 'oozie_ambari_host'],
           hidden: !App.supports.hiveOozieExtraDatabases
@@ -1738,6 +1569,83 @@ module.exports =
     },
     {
       "id": "puppet var",
+      "name": "oozie_database_name",
+      "displayName": "Database Name",
+      "description": "Database name used for the Oozie",
+      "defaultValue": "oozie",
+      "isReconfigurable": false,
+      "isOverridable": false,
+      "displayType": "host",
+      "isVisible": true,
+      "isObserved": true,
+      //"domain": "global",
+      "serviceName": "OOZIE",
+      "category": "Oozie Server",
+      "index": 3
+    },
+    {
+      "id": "puppet var",
+      "name": "oozie_metastore_user_name",
+      "displayName": "Database Username",
+      "description": "Database user name to use to connect to the database",
+      "defaultValue": "oozie",
+      "isReconfigurable": false,
+      "isOverridable": false,
+      "displayType": "user",
+      "isVisible": true,
+      //"domain": "global",
+      "serviceName": "OOZIE",
+      "category": "Oozie Server",
+      "index": 4
+    },
+    {
+      "id": "puppet var",
+      "name": "oozie_metastore_user_passwd",
+      "displayName": "Database Password",
+      "description": "Database password to use to connect to the database",
+      "defaultValue": "",
+      "isReconfigurable": false,
+      "isOverridable": false,
+      "displayType": "password",
+      "isVisible": true,
+      //"domain": "global",
+      "serviceName": "OOZIE",
+      "category": "Oozie Server",
+      "index": 5
+    },
+    {
+      "id": "puppet var",
+      "name": "oozie_jdbc_connection_url",
+      "displayName": "Database URL",
+      "description": "The JDBC connection URL to the database",
+      "defaultValue": " ",  // set to a space to not include this in initial error count
+      "isReconfigurable": true,
+      "isOverridable": false,
+      "displayType": "advanced",
+      "isVisible": true,
+      "serviceName": "OOZIE",
+      "category": "Oozie Server",
+      "index": 6
+    },
+    {
+      "id": "puppet var",
+      "name": "oozie_data_dir",
+      "displayName": "Oozie Data Dir",
+      "description": "Data directory in which the Oozie DB exists",
+      "defaultValue": "",
+      "defaultDirectory": "/hadoop/oozie/data",
+      "isReconfigurable": false,
+      "displayType": "directory",
+      "isOverridable": false,
+      "isVisible": true,
+      "isRequired": false,
+      "domain": "global",
+      "serviceName": "OOZIE",
+      "category": "Oozie Server",
+      "index": 7
+    },
+    {
+      "id": "puppet var",
       "name": "oozie_hostname",
       "defaultValue": "",
       "displayName": "Database Host",
@@ -1751,132 +1659,51 @@ module.exports =
       "category": "Oozie Server",
       "index": 3
     },
-      {
-          "id": "puppet var",
-          "name": "oozie_existing_mysql_host",
-          "displayName": "Database Host",
-          "description": "Specify the host on which the existing database is hosted",
-          "defaultValue": "",
-          "isReconfigurable": false,
-          "isOverridable": false,
-          "displayType": "host",
-          "isVisible": false,
-          "isObserved": true,
-          "domain": "global",
-          "serviceName": "OOZIE",
-          "category": "Oozie Server",
-          "index": 3
-      },
-      {
-          "id": "puppet var",
-          "name": "oozie_existing_oracle_host",
-          "displayName": "Database Host",
-          "description": "Specify the host on which the existing database is hosted",
-          "defaultValue": "",
-          "isReconfigurable": false,
-          "isOverridable": false,
-          "displayType": "host",
-          "isVisible": false,
-          "isObserved": true,
-          "domain": "global",
-          "serviceName": "OOZIE",
-          "category": "Oozie Server",
-          "index": 3
-      },
-      {
-          "id": "puppet var",
-          "name": "oozie_ambari_host",
-          "value": "",
-          "defaultValue": "",
-          "displayName": "Database Host",
-          "description": "Host on which the database will be created by Ambari",
-          "isReconfigurable": false,
-          "isOverridable": false,
-          "displayType": "masterHost",
-          "isVisible": false,
-          "domain": "global",
-          "serviceName": "OOZIE",
-          "category": "Oozie Server",
-          "index": 3
-      },
-      {
-          "id": "puppet var",
-          "name": "oozie_database_name",
-          "displayName": "Database Name",
-          "description": "Database name used for the Oozie",
-          "defaultValue": "oozie",
-          "isReconfigurable": true,
-          "isOverridable": false,
-          "displayType": "host",
-          "isVisible": true,
-          "isObserved": true,
-          //"domain": "global",
-          "serviceName": "OOZIE",
-          "category": "Oozie Server",
-          "index": 4
-      },
-      {
-          "id": "puppet var",
-          "name": "oozie_metastore_user_name",
-          "displayName": "Database Username",
-          "description": "Database user name to use to connect to the database",
-          "defaultValue": "oozie",
-          "isReconfigurable": true,
-          "isOverridable": false,
-          "displayType": "host",  // don't apply user validation
-          "isVisible": true,
-          //"domain": "global",
-          "serviceName": "OOZIE",
-          "category": "Oozie Server",
-          "index": 5
-      },
-      {
-          "id": "puppet var",
-          "name": "oozie_metastore_user_passwd",
-          "displayName": "Database Password",
-          "description": "Database password to use to connect to the database",
-          "defaultValue": "",
-          "isReconfigurable": true,
-          "isOverridable": false,
-          "displayType": "password",
-          "isVisible": true,
-          //"domain": "global",
-          "serviceName": "OOZIE",
-          "category": "Oozie Server",
-          "index": 6
-      },
     {
       "id": "puppet var",
-      "name": "oozie_jdbc_connection_url",
-      "displayName": "Database URL",
-      "description": "The JDBC connection URL to the database",
-      "defaultValue": " ",  // set to a space to not include this in initial error count
-      "isReconfigurable": true,
-      "isOverridable": false,
-      "displayType": "advanced",
-      "isVisible": true,
-      "serviceName": "OOZIE",
-      "category": "Oozie Server",
-      "index": 7
-    },
-    {
-      "id": "puppet var",
-      "name": "oozie_data_dir",
-      "displayName": "Oozie Data Dir",
-      "description": "Data directory in which the Oozie DB exists",
+      "name": "oozie_existing_mysql_host",
+      "displayName": "Database Host",
+      "description": "Specify the host on which the existing database is hosted",
       "defaultValue": "",
-      "defaultDirectory": "/hadoop/oozie/data",
-      "isReconfigurable": true,
-      "displayType": "directory",
+      "isReconfigurable": false,
       "isOverridable": false,
-      "isVisible": true,
-      "isRequired": false,
-      "domain": "global",
+      "displayType": "host",
+      "isVisible": false,
+      "isObserved": true,
+      //"domain": "global",
       "serviceName": "OOZIE",
-      "category": "Oozie Server",
-      "index": 8
+      "category": "Oozie Server"
     },
-
+    {
+      "id": "puppet var",
+      "name": "oozie_existing_oracle_host",
+      "displayName": "Database Host",
+      "description": "Specify the host on which the existing database is hosted",
+      "defaultValue": "",
+      "isReconfigurable": false,
+      "isOverridable": false,
+      "displayType": "host",
+      "isVisible": false,
+      "isObserved": true,
+      //"domain": "global",
+      "serviceName": "OOZIE",
+      "category": "Oozie Server"
+    },
+    {
+      "id": "puppet var",
+      "name": "oozie_ambari_host",
+      "value": "",
+      "defaultValue": "",
+      "displayName": "Database Host",
+      "description": "Host on which the database will be created by Ambari",
+      "isReconfigurable": false,
+      "isOverridable": false,
+      "displayType": "masterHost",
+      "isVisible": false,
+      //"domain": "global",
+      "serviceName": "OOZIE",
+      "category": "Oozie Server"
+    },
     {
       "id": "puppet var",
       "name": "oozie_log_dir",
@@ -1905,80 +1732,6 @@ module.exports =
       "serviceName": "OOZIE",
       "category": "Advanced"
     },
-    /*  {
-     "id": "puppet var",
-     "name": "oozie_database",
-     "displayName": "Oozie Database",
-     "value": "",
-     "defaultValue": "New PostgreSQL Database",
-     "options": [
-     {
-     displayName: 'New PostgreSQL Database',
-     foreignKeys: ['oozie_ambari_database', 'oozie_ambari_host']
-     },
-     {
-     displayName: 'Existing Database',
-     foreignKeys: ['oozie_existing_database', 'oozie_existing_host']
-     }
-     ],
-     "description": "PostgreSQL will be installed by ambari. Any other database will have to be installed by the user.",
-     "displayType": "radio button",
-     "radioName": "oozie-database",
-     "isVisible": true,
-     "serviceName": "OOZIE",
-     "category": "Oozie Server"
-     },
-     {
-     "id": "puppet var",
-     "name": "oozie_existing_database",
-     "displayName": "Oozie Database",
-     "value": "",
-     "defaultValue": "MySQL",
-     "description": "Select the database, if you already have existing one for Oozie.",
-     "displayType": "combobox",
-     "isVisible": false,
-     "options": ['MySQL', 'PostgreSQL'],
-     "serviceName": "OOZIE",
-     "category": "Oozie Server"
-     },
-     {
-     "id": "puppet var",
-     "name": "oozie_existing_host",
-     "displayName": "Database Host",
-     "description": "Select the host on which the existing database is hosted.",
-     "defaultValue": "",
-     "isReconfigurable": false,
-     "displayType": "host",
-     "isVisible": false,
-     "serviceName": "OOZIE",
-     "category": "Oozie Server"
-     },
-     {
-     "id": "puppet var",
-     "name": "oozie_ambari_database",
-     "displayName": "Oozie Database",
-     "value": "",
-     "defaultValue": "PostgreSQL",
-     "description": "PostgreSQL will be installed by ambari.",
-     "displayType": "masterHost",
-     "isVisible": true,
-     "serviceName": "OOZIE",
-     "category": "Oozie Server"
-     },
-     {
-     "id": "puppet var",
-     "name": "oozie_ambari_host",
-     "value": "",
-     "defaultValue": "",
-     "displayName": "PostgreSQL host",
-     "description": "Host  on which the PostgreSQL database will be created by ambari. ",
-     "isReconfigurable": false,
-     "displayType": "masterHost",
-     "isVisible": true,
-     "serviceName": "OOZIE",
-     "category": "Oozie Server"
-     },
-     */
   /**********************************************NAGIOS***************************************/
     {
       "id": "puppet var",
@@ -2312,48 +2065,6 @@ module.exports =
       "category": "General",
       "belongsToService":[]
     },
-    /*
-    {
-      "id": "puppet var",
-      "name": "ganglia_shell_cmds_dir",
-      "displayName": "ganglia_shell_cmds_dir",
-      "description": "",
-      "defaultValue": "/usr/libexec/hdp/ganglia",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "General"
-    },
-    {
-      "id": "puppet var",
-      "name": "webserver_group",
-      "displayName": "ganglia_shell_cmds_dir",
-      "description": "",
-      "defaultValue": "apache",
-      "isReconfigurable": false,
-      "displayType": "advanced",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "General"
-    },
-    */
-    /*
-    {
-      "id": "puppet var",
-      "name": "jdk_location",
-      "displayName": "URL to download 64-bit JDK",
-      "description": "URL from where the 64-bit JDK binary can be downloaded",
-      "defaultValue": "",
-      "isRequired": false,
-      "isReconfigurable": false,
-      "displayType": "url",
-      "isVisible": true,
-      "serviceName": "MISC"
-    },
-    */
     {
       "id": "puppet var",
       "name": "java64_home",
@@ -2398,108 +2109,6 @@ module.exports =
       "category": "Advanced",
       "belongsToService":[]
     },
-    /*
-    {
-      "id": "puppet var",
-      "name": "hcat_metastore_port",
-      "displayName": "hcat_metastore_port",
-      "description": "",
-      "defaultValue": "/usr/lib/hcatalog/share/hcatalog",
-      "isRequired": true,
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC"
-    },
-    {
-      "id": "puppet var",
-      "name": "hcat_lib",
-      "displayName": "hcat_lib",
-      "description": "",
-      "defaultValue": "/usr/lib/hcatalog/share/hcatalog",
-      "isRequired": true,
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC"
-    },
-
-    {
-      "id": "puppet var",
-      "name": "hcat_dbroot",
-      "displayName": "hcat_dbroot",
-      "description": "",
-      "defaultValue": "/usr/lib/hcatalog/share/hcatalog",
-      "isRequired": true,
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC"
-    },
-    {
-      "id": "puppet var",
-      "name": "hcat_dbroot",
-      "displayName": "hcat_dbroot",
-      "description": "",
-      "defaultValue": "/usr/lib/hcatalog/share/hcatalog",
-      "isRequired": true,
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC"
-    },
-
-     {
-     "id": "puppet var",
-     "name": "hadoop_log_dir",
-     "displayName": "Hadoop Log Dir",
-     "description": "Directory for Hadoop log files",
-     "defaultValue": "/var/log/hadoop",
-     "isReconfigurable": false,
-     "displayType": "directory",
-     "isVisible":  true, "serviceName": "MISC",
-     "category": "Advanced"
-     },
-     {
-     "id": "puppet var",
-     "name": "hadoop_pid_dir",
-     "displayName": "Hadoop PID Dir",
-     "description": "Directory in which the pid files for Hadoop processes will be created",
-     "defaultValue": "/var/run/hadoop",
-     "isReconfigurable": false,
-     "displayType": "directory",
-     "isVisible":  true, "serviceName": "MISC",
-     "category": "Advanced"
-     },
-    {
-      "id": "puppet var",
-      "name": "using_local_repo",
-      "displayName": "Whether a local repo is being used",
-      "description": "Whether a local repo is being used",
-      "defaultValue": false,
-      "isReconfigurable": false,
-      "displayType": "checkbox",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC"
-    },
-    {
-      "id": "puppet var",
-      "name": "yum_repo_file",
-      "displayName": "Path to local repo file",
-      "description": "Path to local repository file that configures from where to download software packages",
-      "defaultValue": "/etc/yum.repos.d/hdp.repo",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "MISC"
-    },
-    */
     {
       "id": "puppet var",
       "name": "hdfs_user",
@@ -2528,7 +2137,22 @@ module.exports =
       "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups",
-      "belongsToService":["MAPREDUCE"]
+      "belongsToService":["MAPREDUCE2"]
+    },
+    {
+      "id": "puppet var",
+      "name": "yarn_user",
+      "displayName": "YARN User",
+      "description": "User to run YARN as",
+      "defaultValue": "yarn",
+      "isReconfigurable": false,
+      "displayType": "user",
+      "isOverridable": false,
+      "isVisible": true,
+      "domain": "global",
+      "serviceName": "MISC",
+      "category": "Users and Groups",
+      "belongsToService":["YARN"]
     },
     {
       "id": "puppet var",
@@ -2605,63 +2229,6 @@ module.exports =
       "category": "Users and Groups",
       "belongsToService":["OOZIE"]
     },
-    /*
-    {
-      "id": "puppet var",
-      "name": "oozie_conf_dir",
-      "displayName": "Oozie conf dir",
-      "description": "",
-      "defaultValue": "/etc/oozie",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "General"
-    },
-
-    {
-      "id": "puppet var",
-      "name": "pig_conf_dir",
-      "displayName": "Pig conf dir",
-      "description": "",
-      "defaultValue": "/etc/pig",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "General"
-    },
-    */
-    /*
-    {
-      "id": "puppet var",
-      "name": "sqoop_conf_dir",
-      "displayName": "sqoop conf dir",
-      "description": "",
-      "defaultValue": "/etc/sqoop",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "General"
-    },
-    {
-      "id": "puppet var",
-      "name": "sqoop_lib",
-      "displayName": "sqoop conf dir",
-      "description": "",
-      "defaultValue": "/usr/lib/sqoop/lib/",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "General"
-    },
-    */
     {
       "id": "puppet var",
       "name": "zk_user",
@@ -2767,20 +2334,6 @@ module.exports =
       "category": "Users and Groups",
       "belongsToService":["HDFS"]
     },
-    /*
-    {
-      "id": "puppet var",
-      "name": "zk_conf_dir",
-      "displayName": "zk_conf_dir",
-      "description": "",
-      "defaultValue": "/etc/conf/",
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "General"
-    },
-    */
     {
       "id": "puppet var",
       "name": "rrdcached_base_dir",
