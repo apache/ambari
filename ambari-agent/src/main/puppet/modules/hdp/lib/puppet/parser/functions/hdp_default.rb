@@ -25,7 +25,10 @@ module Puppet::Parser::Functions
     var_parts = scoped_var_name.split("/")
     var_name = var_parts.last    
     default = args[1]    
-    val = lookupvar("::#{var_name}")    
+    val = lookupvar("::#{var_name}") 
+    if function_hdp_is_empty(val) == false and val.class == String
+      val = val.strip
+    end      
     # Lookup value inside a hash map.
     if var_parts.length > 1 and function_hdp_is_empty(val) and function_hdp_is_empty(lookupvar("::configuration")) == false and function_hdp_is_empty(lookupvar("#{var_parts[-2]}")) == false
       keyHash = var_parts[-2]

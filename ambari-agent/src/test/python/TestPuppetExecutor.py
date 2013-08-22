@@ -109,6 +109,7 @@ class TestPuppetExecutor(TestCase):
     jsonStr = jsonFile.read()
     parsedJson = json.loads(jsonStr)
     parsedJson["taskId"] = 77
+    parsedJson['roleCommand'] = "START"
     def side_effect(puppetFile, result, puppetEnv, tmpoutfile, tmperrfile):
       result["exitcode"] = 0
     runPuppetFileMock.side_effect = side_effect
@@ -126,6 +127,7 @@ class TestPuppetExecutor(TestCase):
     puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
     self.assertTrue(puppetInstance.reposInstalled)
     self.assertEquals(1, generateRepoManifestMock.call_count)
+    isJavaAvailableMock.assert_called_with("java64_home")
 
     # After executing of the next commands, repo manifest aren't generated again
     puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')

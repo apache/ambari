@@ -148,13 +148,14 @@ class PuppetExecutor:
     return result
   
   def isJavaAvailable(self, command):
-    javaExecutablePath = "{0}/bin/java".format(command['configurations']['global']['java64_home'])
+    javaExecutablePath = "{0}/bin/java".format(command)
     return not self.sh.run([javaExecutablePath, '-version'])['exitCode']
     
   def runCommand(self, command, tmpoutfile, tmperrfile):
     # After installing we must have jdk available for start/stop/smoke
-    if command['roleCommand']!="INSTALL" and not self.isJavaAvailable(command):
-      errMsg = JAVANOTVALID_MSG.format(command['configurations']['global']['java64_home'])
+    java64_home = str(command['configurations']['global']['java64_home']).strip()
+    if command['roleCommand']!="INSTALL" and not self.isJavaAvailable(java64_home):
+      errMsg = JAVANOTVALID_MSG.format(java64_home)
       return {'stdout': '', 'stderr': errMsg, 'exitcode': 1}
 
     taskId = 0

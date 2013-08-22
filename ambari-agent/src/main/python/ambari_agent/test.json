@@ -53,7 +53,8 @@
 "hadoop_metrics" : {"ganglia_server_host" : "localhost"},
 "hive-site" : {"hive.exec.scratchdir" : "/tmp"},
 "oozie-site" : {"oozie.service.ActionService.executor.ext.classes" : "org.apache.oozie.action.hadoop.HiveActionExecutor, org.apache.oozie.action.hadoop.SqoopActionExecutor,org.apache.oozie.action.email.EmailActionExecutor,"},
-"templeton-site" : {"templeton.override.enabled" : "true"}
+"templeton-site" : {"templeton.override.enabled" : "true"},
+"global" : {"java64_home" : " java64_home "}
 },
 
 "role": "NAMENODE",
