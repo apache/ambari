@@ -250,4 +250,12 @@ limitations under the License.
     <value>true</value>
   </property>
 
+  <property>
+    <name>hive.optimize.index.filter</name>
+    <value>true</value>
+    <description>
+    Whether to enable automatic use of indexes
+    </description>
+  </property>
+
 </configuration>
