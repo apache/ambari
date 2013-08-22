@@ -20,8 +20,6 @@ var App = require('app');
 
 App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageController.extend({
 
-  name:"highAvailabilityWizardStep5Controller",
-
   commands: ['stopAllServices', 'installNameNode', 'installJournalNodes', 'startJournalNodes', 'disableSNameNode', 'reconfigureHDFS'],
 
   stopAllServices: function () {
