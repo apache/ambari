@@ -88,9 +88,7 @@ public class URLStreamProvider implements StreamProvider {
 
     String appCookie = appCookieManager.getCachedAppCookie(spec);
     if (appCookie != null) {
-      if (LOG.isInfoEnabled()) {
-        LOG.info("Using cached app cookie for URL:" + spec);
-      }
+      LOG.debug("Using cached app cookie for URL:" + spec);
       connection.setRequestProperty(COOKIE, appCookie);
     }
     connection.setConnectTimeout(connTimeout);
