@@ -21,27 +21,31 @@
   <div {{bindAttr class="view.noticeClass"}}>{{view.notice}}</div>
   {{#each task in controller.tasks}}
   {{#view view.taskView contentBinding="task"}}
-  <div class="item">
-    <i {{bindAttr class="view.icon view.iconColor"}}></i>
-    <a {{bindAttr class="view.linkClass"}} {{action "hostsLogPopup" task target="view"}} >{{task.title}}</a>
-    {{#if task.showRetry}}
-    <a {{action retryTask target="controller"}} class="btn btn-primary retry">
-      <i class="icon-repeat icon-white"></i>
-      {{t common.retry}}
-    </a>
-    {{/if}}
-  </div>
-  <div {{bindAttr class="view.showProgressBar::hide :row :span12" }}>
-    <div class="progress-bar span4">
-      <div class="progress-striped active progress-info progress">
-        <div class="bar" {{bindAttr style="view.barWidth"}}></div>
+    <div class="item">
+      <div class="pull-left span4">
+        <i {{bindAttr class="view.icon view.iconColor"}}></i>
+        <a {{bindAttr class="view.linkClass"}} {{action "hostsLogPopup" task target="view"}} >{{task.title}}</a>
+      </div>
+      <div {{bindAttr class="view.showProgressBar::hide :row :span5 :pull-left" }}>
+        <div class="progress-bar span8">
+          <div class="progress-striped active progress-info progress">
+            <div class="bar" {{bindAttr style="view.barWidth"}}></div>
+          </div>
+        </div>
+        <div class="span1">{{task.progress}}&#37;</div>
+      </div>
+      <div>
+      {{#if task.showRetry}}
+        <a {{action retryTask target="controller"}} class="btn btn-primary retry">
+          <i class="icon-repeat icon-white"></i>
+          {{t common.retry}}
+        </a>
+      {{/if}}
       </div>
     </div>
-    <div class="span1">{{task.progress}}&#37;</div>
-  </div>
   {{/view}}
   {{/each}}
   <div class="btn-area">
-    <a {{bindAttr class=":btn controller.isSubmitDisabled:disabled :btn-success :pull-right"}} {{action done target="controller"}}>{{t common.done}}</a>
+    <a {{bindAttr class=":btn controller.isSubmitDisabled:disabled :btn-success :pull-right"}} {{action done target="controller"}}>{{t common.next}}</a>
   </div>
 </div>

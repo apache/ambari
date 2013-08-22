@@ -446,16 +446,30 @@ h1 {
       }
     }
   }
-  #step14, #ha-progress-page {
+  #step14 {
     .item {
       line-height: 30px;
+      i {
+        font-size: 20px;
+      }
+    }
+    .row {
+      margin-left: 0;
+    }
+  }
+  #ha-progress-page {
+    .item {
+      line-height: 40px;
+      width:100%;
+      float:left;
+
       i {
         font-size: 20px;
       }
       .not-active-link{
         text-decoration: none;
         pointer-events: none;
-        color: black;
+        color: #999;
         cursor: default;
       }
       .active-link{
@@ -470,6 +484,17 @@ h1 {
           font-size: 14px;
         }
       }
+      .pull-left{
+        float: left;
+      }
+      .progress-bar{
+        margin-top: 10px;
+
+        .progress{
+          margin-bottom: 0px;
+        }
+      }
+
     }
     .row {
       margin-left: 0;
@@ -3991,7 +4016,7 @@ i.icon-asterisks {
   //when screen is wide, the modal width is fixed
   .full-width-modal {
     .modal{
-      width: 1170px;
+      width: 1155px;
       margin: -350px 0 0 -583px;
     }
   }

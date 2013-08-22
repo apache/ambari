@@ -20,6 +20,8 @@ var App = require('app');
 
 App.HighAvailabilityWizardStep7Controller = App.HighAvailabilityProgressPageController.extend({
 
+  name:"highAvailabilityWizardStep7Controller",
+
   commands: ['startZooKeeperServers', 'startNameNode'],
 
   startZooKeeperServers: function () {

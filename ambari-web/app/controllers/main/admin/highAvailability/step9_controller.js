@@ -20,6 +20,8 @@ var App = require('app');
 
 App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageController.extend({
 
+  name:"highAvailabilityWizardStep9Controller",
+
   commands: ['startSecondNameNode', 'installZKFC', 'startZKFC', 'startAllServices'],
 
   startSecondNameNode: function () {
