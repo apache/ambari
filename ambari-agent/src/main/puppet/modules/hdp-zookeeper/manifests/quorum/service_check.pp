@@ -43,7 +43,7 @@ define hdp-zookeeper::quorum_smoke_shell_file()
   $smoke_script = $hdp::params::zk_smoke_test_script
   $smoke_user_keytab = $hdp::params::smokeuser_keytab
   $kinit_path = $hdp::params::kinit_path_local
-
+  $security_enabled =  $hdp::params::security_enabled
   file { '/tmp/zkSmoke.sh':
     ensure => present,
     source => "puppet:///modules/hdp-zookeeper/zkSmoke.sh",
@@ -51,7 +51,7 @@ define hdp-zookeeper::quorum_smoke_shell_file()
   }
 
   exec { '/tmp/zkSmoke.sh':
-   command   => "sh /tmp/zkSmoke.sh ${smoke_script} ${smoke_test_user} ${conf_dir} ${::clientPort} ${::security_enabled} ${kinit_path} ${smoke_user_keytab}",
+   command   => "sh /tmp/zkSmoke.sh ${smoke_script} ${smoke_test_user} ${conf_dir} ${::clientPort} ${security_enabled} ${kinit_path} ${smoke_user_keytab}",
     tries     => 3,
     try_sleep => 5,
     require   => File['/tmp/zkSmoke.sh'],
