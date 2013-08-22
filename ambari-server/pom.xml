@@ -237,6 +237,9 @@
                 <source>
                   <location>conf/unix/log4j.properties</location>
                 </source>
+                <source>
+                  <location>conf/unix/krb5JAASLogin.conf</location>
+                </source>
               </sources>
             </mapping>
             <mapping>
