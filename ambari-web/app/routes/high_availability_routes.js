@@ -72,6 +72,9 @@ module.exports = Em.Route.extend({
         controller.connectOutlet('highAvailabilityWizardStep1', controller.get('content'));
       })
     },
+    unroutePath: function () {
+      return false;
+    },
     next: function (router) {
       var controller = router.get('highAvailabilityWizardController');
       controller.saveNameServiceId(router.get('highAvailabilityWizardStep1Controller.content.nameServiceId'));
@@ -88,6 +91,9 @@ module.exports = Em.Route.extend({
         controller.loadAllPriorSteps();
         controller.connectOutlet('highAvailabilityWizardStep2', controller.get('content'));
       })
+    },
+    unroutePath: function () {
+      return false;
     },
     next: function (router) {
       var controller = router.get('highAvailabilityWizardController');
@@ -109,6 +115,9 @@ module.exports = Em.Route.extend({
         controller.loadAllPriorSteps();
         controller.connectOutlet('highAvailabilityWizardStep3',  controller.get('content'));
       })
+    },
+    unroutePath: function () {
+      return false;
     },
     next: function (router) {
       router.transitionTo('step4');
