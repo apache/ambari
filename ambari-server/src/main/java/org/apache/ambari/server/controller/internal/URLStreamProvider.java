@@ -22,21 +22,35 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.KeyStore;
-
-import org.apache.ambari.server.controller.utilities.StreamProvider;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
+import org.apache.ambari.server.controller.utilities.StreamProvider;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicHeader;
+
 /**
  * URL based implementation of a stream provider.
  */
 public class URLStreamProvider implements StreamProvider {
+
+  private static final String COOKIE = "Cookie";
+  private static final String WWW_AUTHENTICATE = "WWW-Authenticate";
+  private static final String NEGOTIATE = "Negotiate";
+  private static Log LOG = LogFactory.getLog(URLStreamProvider.class);
 
   private final int connTimeout;
   private final int readTimeout;
@@ -44,35 +58,76 @@ public class URLStreamProvider implements StreamProvider {
   private final String password;
   private final String type;
   private volatile SSLSocketFactory sslSocketFactory = null;
+  private AppCookieManager appCookieManager;
 
   /**
    * Provide the connection timeout for the underlying connection.
-   *
-   * @param connectionTimeout  time, in milliseconds, to attempt a connection
-   * @param readTimeout        the read timeout in milliseconds
+   * 
+   * @param connectionTimeout
+   *          time, in milliseconds, to attempt a connection
+   * @param readTimeout
+   *          the read timeout in milliseconds
    */
-  public URLStreamProvider(int connectionTimeout, int readTimeout,
-                           String path, String password, String type) {
+  public URLStreamProvider(int connectionTimeout, int readTimeout, String path,
+      String password, String type) {
+
     this.connTimeout = connectionTimeout;
     this.readTimeout = readTimeout;
-    this.path        = path;
-    this.password    = password;
-    this.type        = type;
+    this.path = path;
+    this.password = password;
+    this.type = type;
+    appCookieManager = new AppCookieManager();
   }
-  
+
   @Override
   public InputStream readFrom(String spec) throws IOException {
 
-    URLConnection connection = spec.startsWith("https") ?
-        getSSLConnection(spec) : getConnection(spec);
+    HttpURLConnection connection = spec.startsWith("https") ? 
+        (HttpURLConnection)getSSLConnection(spec)
+        : (HttpURLConnection)getConnection(spec);
 
+    String appCookie = appCookieManager.getCachedAppCookie(spec);
+    if (appCookie != null) {
+      if (LOG.isInfoEnabled()) {
+        LOG.info("Using cached app cookie for URL:" + spec);
+      }
+      connection.setRequestProperty(COOKIE, appCookie);
+    }
     connection.setConnectTimeout(connTimeout);
     connection.setReadTimeout(readTimeout);
     connection.setDoOutput(true);
 
-    return connection.getInputStream();
-  }
+    int statusCode = connection.getResponseCode();
+    if (statusCode == HttpStatus.SC_UNAUTHORIZED ) {
+      String wwwAuthHeader = connection.getHeaderField(WWW_AUTHENTICATE);
+      if (LOG.isInfoEnabled()) {
+        LOG.info("Received WWW-Authentication header:" + wwwAuthHeader + ", for URL:" + spec);
+      }
+      if (wwwAuthHeader != null && 
+          wwwAuthHeader.trim().startsWith(NEGOTIATE)) {
+        //connection.getInputStream().close();
+        connection = spec.startsWith("https") ? 
+            (HttpURLConnection)getSSLConnection(spec)
+            : (HttpURLConnection)getConnection(spec);
+        appCookie = appCookieManager.getAppCookie(spec, true);
+        connection.setRequestProperty(COOKIE, appCookie);
+        connection.setConnectTimeout(connTimeout);
+        connection.setReadTimeout(readTimeout);
+        connection.setDoOutput(true);
+        return connection.getInputStream();
+      } else {
+        // no supported authentication type found
+        // we would let the original response propogate
+        LOG.error("Unsupported WWW-Authentication header:" + wwwAuthHeader+ ", for URL:" + spec);
+        return connection.getInputStream();
+      }
+    } else {
+      // not a 401 Unauthorized status code
+      // we would let the original response propogate
+      return connection.getInputStream();
+    }
 
+  }
 
   // ----- helper methods ----------------------------------------------------
 
@@ -88,14 +143,15 @@ public class URLStreamProvider implements StreamProvider {
       synchronized (this) {
         if (sslSocketFactory == null) {
           try {
-            FileInputStream in    = new FileInputStream(new File(path));
-            KeyStore        store = KeyStore.getInstance(type == null ? KeyStore.getDefaultType() : type);
+            FileInputStream in = new FileInputStream(new File(path));
+            KeyStore store = KeyStore.getInstance(type == null ? KeyStore
+                .getDefaultType() : type);
 
             store.load(in, password.toCharArray());
             in.close();
 
-            TrustManagerFactory tmf =
-                TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            TrustManagerFactory tmf = TrustManagerFactory
+                .getInstance(TrustManagerFactory.getDefaultAlgorithm());
 
             tmf.init(store);
             SSLContext context = SSLContext.getInstance("TLS");
@@ -108,7 +164,8 @@ public class URLStreamProvider implements StreamProvider {
         }
       }
     }
-    HttpsURLConnection connection = (HttpsURLConnection)(new URL(spec).openConnection());
+    HttpsURLConnection connection = (HttpsURLConnection) (new URL(spec)
+        .openConnection());
 
     connection.setSSLSocketFactory(sslSocketFactory);
 
