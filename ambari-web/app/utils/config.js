@@ -26,31 +26,25 @@ var globalPropertyToServicesMap = null;
 App.config = Em.Object.create({
 
   preDefinedServiceConfigs: function(){
-    var configs = this.get('preDefinedGlobalProperties');
+    var configs = this.get('preDefinedConfigProperties');
     var services = [];
     require('data/service_configs').forEach(function(service){
       service.configs = configs.filterProperty('serviceName', service.serviceName);
       services.push(service);
     });
     return services;
-  }.property('preDefinedGlobalProperties'),
+  }.property('preDefinedConfigProperties'),
   configMapping: function() {
       if (App.get('isHadoop2Stack')) {
         return require('data/HDP2/config_mapping');
       }
     return require('data/config_mapping');
   }.property('App.isHadoop2Stack'),
-  preDefinedGlobalProperties: function() {
+  preDefinedConfigProperties: function() {
     if (App.get('isHadoop2Stack')) {
-      return require('data/HDP2/global_properties').configProperties;
+      return require('data/HDP2/config_properties').configProperties;
     }
-    return require('data/global_properties').configProperties;
-  }.property('App.isHadoop2Stack'),
-  preDefinedSiteProperties: function() {
-    if (App.get('isHadoop2Stack')) {
-      return require('data/HDP2/site_properties').configProperties;
-    }
-    return require('data/site_properties').configProperties;
+    return require('data/config_properties').configProperties;
   }.property('App.isHadoop2Stack'),
   preDefinedCustomConfigs: function () {
     if (App.get('isHadoop2Stack')) {
@@ -168,7 +162,7 @@ App.config = Em.Object.create({
   mergePreDefinedWithLoaded: function (configGroups, advancedConfigs, tags, serviceName) {
     var configs = [];
     var globalConfigs = [];
-    var preDefinedConfigs = this.get('preDefinedGlobalProperties').concat(this.get('preDefinedSiteProperties'));
+    var preDefinedConfigs = this.get('preDefinedConfigProperties');
     var mappingConfigs = [];
 
     tags.forEach(function (_tag) {
@@ -212,7 +206,7 @@ App.config = Em.Object.create({
           if (configsPropertyDef) {
             this.handleSpecialProperties(serviceConfigObj);
           } else {
-            serviceConfigObj.isVisible = false;  // if the global property is not defined on ui metadata global_properties.js then it shouldn't be a part of errorCount
+            serviceConfigObj.isVisible = false;  // if the global property is not defined on ui metadata config_properties.js then it shouldn't be a part of errorCount
           }
           serviceConfigObj.id = 'puppet var';
           serviceConfigObj.displayName = configsPropertyDef ? configsPropertyDef.displayName : null;
@@ -246,14 +240,14 @@ App.config = Em.Object.create({
    */
   mergePreDefinedWithStored: function (storedConfigs, advancedConfigs) {
     var mergedConfigs = [];
-    var preDefinedConfigs = $.extend(true, [], this.get('preDefinedGlobalProperties').concat(this.get('preDefinedSiteProperties')));
+    var preDefinedConfigs = $.extend(true, [], this.get('preDefinedConfigProperties'));
     var preDefinedNames = [];
     var storedNames = [];
     var names = [];
     var categoryMetaData = null;
     storedConfigs = (storedConfigs) ? storedConfigs : [];
 
-    preDefinedNames = preDefinedConfigs.mapProperty('name');
+    preDefinedNames = this.get('preDefinedConfigProperties').mapProperty('name');
     storedNames = storedConfigs.mapProperty('name');
     names = preDefinedNames.concat(storedNames).uniq();
     names.forEach(function (name) {
