@@ -21,6 +21,10 @@ PREPARE clusters (text, text) AS
   UPDATE ambari.clusters
     SET desired_stack_version = '{"stackName":"' || $1 || '","stackVersion":"' || $2 || '"}';
 
+PREPARE clusterstate (text, text) AS
+  UPDATE ambari.clusterstate
+    SET current_stack_version = '{"stackName":"' || $1 || '","stackVersion":"' || $2 || '"}';
+
 PREPARE hostcomponentdesiredstate (text, text) AS
   UPDATE ambari.hostcomponentdesiredstate
     SET desired_stack_version = '{"stackName":"' || $1 || '","stackVersion":"' || $2 || '"}';
@@ -37,8 +41,14 @@ PREPARE servicedesiredstate (text, text) AS
   UPDATE ambari.servicedesiredstate
     SET desired_stack_version = '{"stackName":"' || $1 || '","stackVersion":"' || $2 || '"}';
 
+PREPARE resetcomponentstate AS
+  UPDATE ambari.hostcomponentstate
+    SET current_state = 'INSTALLED' where current_state = 'UPGRADING';
+
 EXECUTE clusters(:stack_name, :stack_version);
+EXECUTE clusterstate(:stack_name, :stack_version);
 EXECUTE hostcomponentdesiredstate(:stack_name, :stack_version);
 EXECUTE hostcomponentstate(:stack_name, :stack_version);
 EXECUTE servicecomponentdesiredstate(:stack_name, :stack_version);
 EXECUTE servicedesiredstate(:stack_name, :stack_version);
+EXECUTE resetcomponentstate;
