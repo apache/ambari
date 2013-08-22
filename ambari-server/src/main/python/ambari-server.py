@@ -3029,11 +3029,11 @@ def setup_https(args):
         str(client_api_ssl_port), "^[0-9]{1,5}$", "Invalid port.", False, validatorFunction = is_valid_https_port))
         cert_was_imported = import_cert_and_key_action(security_server_keys_dir, properties)
        else:
-        return
+        return False
       
       if cert_must_import and not cert_was_imported:
         print 'Setup of HTTPS failed. Exiting.'
-        return
+        return False
 
       conf_file = find_properties_file()
       f = open(conf_file, 'w')
@@ -3042,6 +3042,7 @@ def setup_https(args):
       ambari_user = read_ambari_user()
       if ambari_user:
         adjust_directory_permissions(ambari_user)
+      return True
     except (KeyError), e:
       err = 'Property ' + str(e) + ' is not defined at ' + conf_file
       raise FatalException(1, err)
@@ -3573,6 +3574,7 @@ def main():
     parser.error("Invalid number of arguments. Entered: " + str(len(args)) + ", required: " + str(args_number_required))
 
   options.exit_message = "Ambari Server '%s' completed successfully." % action
+  need_restart = True
   try:
     if action == SETUP_ACTION:
       setup(options)
@@ -3596,7 +3598,7 @@ def main():
     elif action == UPDATE_METAINFO_ACTION:
       update_metainfo(options)
     elif action == SETUP_HTTPS_ACTION:
-      setup_https(options)
+      need_restart = setup_https(options)
     elif action == SETUP_GANGLIA_HTTPS_ACTION:
       setup_component_https("Ganglia", "setup-ganglia-https", GANGLIA_HTTPS, "ganglia_cert")
     elif action == SETUP_NAGIOS_HTTPS_ACTION:
@@ -3604,7 +3606,7 @@ def main():
     else:
       parser.error("Invalid action")
 
-    if action in ACTION_REQUIRE_RESTART:
+    if action in ACTION_REQUIRE_RESTART and need_restart:
       if is_server_runing():
         print 'NOTE: Restart Ambari Server to apply changes'+ \
               ' ("ambari-server restart|stop|start")'

@@ -204,6 +204,35 @@ class TestAmbariServer(TestCase):
     pass
 
 
+  @patch.object(ambari_server, 'is_server_runing')
+  @patch.object(ambari_server, 'setup_https')
+  @patch.object(ambari_server, 'setup')
+  @patch.object(ambari_server, 'start')
+  @patch.object(ambari_server, 'stop')
+  @patch.object(ambari_server, 'reset')
+  @patch('optparse.OptionParser')
+  def test_main_test_setup_https(self, OptionParserMock, reset_method, stop_method,
+                           start_method, setup_method, setup_https_method, is_server_runing_method):
+      opm = OptionParserMock.return_value
+      options = MagicMock()
+      args = ["setup-https"]
+      opm.parse_args.return_value = (options, args)
+      setup_https_method.return_value = False
+
+      options.database=None
+      options.sid_or_sname = "sid"
+      ambari_server.main()
+
+      self.assertTrue(setup_https_method.called)
+      self.assertEqual(is_server_runing_method.call_count, 0)
+      is_server_runing_method.reset()
+      setup_https_method.return_value = True
+      ambari_server.main()
+      self.assertTrue(setup_https_method.called)
+      self.assertEqual(is_server_runing_method.call_count, 1)
+      self.assertFalse(False, ambari_server.VERBOSE)
+      self.assertFalse(False, ambari_server.SILENT)
+
   @patch.object(ambari_server, 'setup')
   @patch.object(ambari_server, 'start')
   @patch.object(ambari_server, 'stop')
