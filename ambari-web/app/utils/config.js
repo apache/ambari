@@ -135,6 +135,7 @@ App.config = Em.Object.create({
       }
     } else {
       config.category = 'Advanced';
+      config.description = isAdvanced && advancedConfigs.findProperty('name', config.name).description;
       config.filename = isAdvanced && advancedConfigs.findProperty('name', config.name).filename;
       config.isRequired = true;
     }
