@@ -25,6 +25,14 @@ App.HighAvailabilityProgressPageView = Em.View.extend({
     this.get('controller').loadStep();
   },
 
+  submitButtonText: Em.I18n.t('common.next'),
+
+  noticeCompleted: Em.I18n.t('admin.highAvailability.wizard.progressPage.notice.completed'),
+
+  noticeFailed: Em.I18n.t('admin.highAvailability.wizard.progressPage.notice.failed'),
+
+  noticeInProgress: Em.I18n.t('admin.highAvailability.wizard.progressPage.notice.inProgress'),
+
   notice: Em.I18n.t('admin.highAvailability.wizard.progressPage.notice.inProgress'),
 
   noticeClass: 'alert alert-info',
@@ -32,13 +40,13 @@ App.HighAvailabilityProgressPageView = Em.View.extend({
   onStatusChange: function () {
     var status = this.get('controller.status');
     if (status === 'COMPLETED') {
-      this.set('notice', Em.I18n.t('admin.highAvailability.wizard.progressPage.notice.completed'));
+      this.set('notice', this.get('noticeCompleted'));
       this.set('noticeClass', 'alert alert-success');
     } else if (status === 'FAILED') {
-      this.set('notice', Em.I18n.t('admin.highAvailability.wizard.progressPage.notice.failed'));
+      this.set('notice', this.get('noticeFailed'));
       this.set('noticeClass', 'alert alert-error');
     } else {
-      this.set('notice', Em.I18n.t('admin.highAvailability.wizard.progressPage.notice.inProgress'));
+      this.set('notice', this.get('noticeInProgress'));
       this.set('noticeClass', 'alert alert-info');
     }
   }.observes('controller.status'),

@@ -676,6 +676,8 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step9.task1.title':'Install Failover Controllers',
   'admin.highAvailability.wizard.step9.task2.title':'Start Failover Controllers',
   'admin.highAvailability.wizard.step9.task3.title':'Start All Services',
+  'admin.highAvailability.wizard.step9.task4.title':'Delete Secondary NameNode',
+  'admin.highAvailability.wizard.step9.notice.completed':'"NameNode HA has been enabled successfully.',
 
   'admin.highAvailability.wizard.step3.nn1':'Current NameNode is on {0}.',
   'admin.highAvailability.wizard.step3.nn2':'Additional NameNode will be installed on {0}.',

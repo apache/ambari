@@ -22,7 +22,7 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
 
   name:"highAvailabilityWizardStep9Controller",
 
-  commands: ['startSecondNameNode', 'installZKFC', 'startZKFC', 'startAllServices'],
+  commands: ['startSecondNameNode', 'installZKFC', 'startZKFC', 'startAllServices', 'deleteSNameNode'],
 
   startSecondNameNode: function () {
     var hostName = this.get('content.masterComponentHosts').findProperty('isAddNameNode', true).hostName;
@@ -39,12 +39,12 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
   },
 
   onZKFCCreate: function () {
-    var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName')
+    var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
     this.createComponent('ZKFC', hostName);
   },
 
   startZKFC: function () {
-    var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName')
+    var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
     this.startComponent('ZKFC', hostName);
   },
 
@@ -53,6 +53,19 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
       name: 'admin.high_availability.start_all_services',
       sender: this,
       success: 'startPolling',
+      error: 'onTaskError'
+    });
+  },
+
+  deleteSNameNode: function () {
+    var hostName = this.get('content.masterComponentHosts').findProperty('component', 'SECONDARY_NAMENODE').hostName;
+    App.ajax.send({
+      name: 'admin.high_availability.delete_snamenode',
+      sender: this,
+      data: {
+        hostName: hostName
+      },
+      success: 'onTaskCompleted',
       error: 'onTaskError'
     });
   }

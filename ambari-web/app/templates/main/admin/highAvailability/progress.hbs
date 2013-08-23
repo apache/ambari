@@ -46,6 +46,6 @@
   {{/view}}
   {{/each}}
   <div class="btn-area">
-    <a {{bindAttr class=":btn controller.isSubmitDisabled:disabled :btn-success :pull-right"}} {{action done target="controller"}}>{{t common.next}}</a>
+    <a {{bindAttr class=":btn controller.isSubmitDisabled:disabled :btn-success :pull-right"}} {{action done target="controller"}}>{{view.submitButtonText}}</a>
   </div>
 </div>

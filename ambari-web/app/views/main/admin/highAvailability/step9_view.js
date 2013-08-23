@@ -21,5 +21,9 @@ var App = require('app');
 
 App.HighAvailabilityWizardStep9View = App.HighAvailabilityProgressPageView.extend({
 
-  templateName: require('templates/main/admin/highAvailability/step9')
+  templateName: require('templates/main/admin/highAvailability/step9'),
+
+  submitButtonText: Em.I18n.t('common.done'),
+
+  noticeCompleted: Em.I18n.t('admin.highAvailability.wizard.step9.notice.completed')
 });

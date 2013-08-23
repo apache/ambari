@@ -736,6 +736,11 @@ var urls = {
       }
     }
   },
+  'admin.high_availability.delete_snamenode': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/SECONDARY_NAMENODE',
+    'mock': '',
+    'type': 'DELETE'
+  },
   'admin.security.cluster_configs': {
     'real': '/clusters/{clusterName}',
     'format': function (data, opt) {

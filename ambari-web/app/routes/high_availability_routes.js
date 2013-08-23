@@ -23,7 +23,7 @@ module.exports = Em.Route.extend({
     Em.run.next(function () {
       var highAvailabilityWizardController = router.get('highAvailabilityWizardController');
       App.router.get('updateController').set('isWorking', false);
-      App.ModalPopup.show({
+      var popup = App.ModalPopup.show({
         classNames: ['full-width-modal'],
         header: Em.I18n.t('admin.highAvailability.wizard.header'),
         bodyClass: App.HighAvailabilityWizardView.extend({
@@ -45,6 +45,7 @@ module.exports = Em.Route.extend({
           this.fitHeight();
         }
       });
+      highAvailabilityWizardController.set('popup', popup);
       App.clusterStatus.updateFromServer();
       var currentClusterStatus = App.clusterStatus.get('value');
       if (currentClusterStatus) {
@@ -160,9 +161,6 @@ module.exports = Em.Route.extend({
     unroutePath: function () {
       return false;
     },
-    back: function (router) {
-      router.transitionTo('step4');
-    },
     next: function (router) {
       router.transitionTo('step6');
     }
@@ -181,9 +179,6 @@ module.exports = Em.Route.extend({
     },
     unroutePath: function () {
       return false;
-    },
-    back: function (router) {
-      router.transitionTo('step5');
     },
     next: function (router) {
       router.transitionTo('step7');
@@ -204,9 +199,6 @@ module.exports = Em.Route.extend({
     unroutePath: function () {
       return false;
     },
-    back: function (router) {
-      router.transitionTo('step6');
-    },
     next: function (router) {
       router.transitionTo('step8');
     }
@@ -225,9 +217,6 @@ module.exports = Em.Route.extend({
     },
     unroutePath: function () {
       return false;
-    },
-    back: function (router) {
-      router.transitionTo('step7');
     },
     next: function (router) {
       router.transitionTo('step9');
@@ -248,10 +237,17 @@ module.exports = Em.Route.extend({
     unroutePath: function () {
       return false;
     },
-    back: function (router) {
-      router.transitionTo('step8');
-    },
     next: function (router) {
+      var controller = router.get('highAvailabilityWizardController');
+      controller.finish();
+      controller.get('popup').hide();
+      App.clusterStatus.setClusterStatus({
+        clusterName: controller.get('content.cluster.name'),
+        clusterState: 'HIGH_AVAILABILITY_COMPLETED',
+        wizardControllerName: 'highAvailabilityWizardController',
+        localdb: App.db.data
+      });
+      router.transitionTo('main.index');
     }
   }),
 
