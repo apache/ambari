@@ -901,7 +901,7 @@ module.exports =
       "domain": "global",
       "category": "Advanced"
     },
-    {
+    /*{
       "id": "site property",
       "name": "mapred.capacity-scheduler.maximum-system-jobs",
       "displayName": "Max system jobs",
@@ -916,7 +916,7 @@ module.exports =
       "serviceName": "MAPREDUCE",
       "category": "CapacityScheduler",
       "filename": "capacity-scheduler.xml"
-    },
+    },*/
   /**********************************************HBASE***************************************/
     {
       "id": "puppet var",
