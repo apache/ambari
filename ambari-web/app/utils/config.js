@@ -287,7 +287,10 @@ App.config = Em.Object.create({
       } else if (preDefined && !stored) {
         configData = preDefined;
         if (isAdvanced) {
-          configData.filename = advancedConfigs.findProperty('name', configData.name).filename;
+          var advanced = advancedConfigs.findProperty('name', configData.name);
+          configData.value = advanced.value;
+          configData.defaultValue = advanced.value;
+          configData.filename = advanced.filename;
         }
       }
       mergedConfigs.push(configData);

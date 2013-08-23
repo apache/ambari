@@ -18,5 +18,124 @@
 module.exports =
 {
   "configProperties": [
+    {
+      "id": "site property",
+      "name": "yarn.acl.enable",
+      "displayName": "yarn.acl.enable",
+      "value": "",
+      "defaultValue": "",
+      "serviceName": "YARN",
+      "category": "ResourceManager"
+    },
+    {
+      "id": "site property",
+      "name": "yarn.admin.acl",
+      "displayName": "yarn.admin.acl",
+      "value": "",
+      "defaultValue": "",
+      "serviceName": "YARN",
+      "category": "ResourceManager"
+    },
+    {
+      "id": "site property",
+      "name": "yarn.log-aggregation-enable",
+      "displayName": "yarn.log-aggregation-enable",
+      "value": "",
+      "defaultValue": "",
+      "serviceName": "YARN",
+      "category": "ResourceManager"
+    },
+    {
+      "id": "site property",
+      "name": "yarn.resourcemanager.scheduler.class",
+      "displayName": "yarn.resourcemanager.scheduler.class",
+      "value": "",
+      "defaultValue": "",
+      "serviceName": "YARN",
+      "category": "CapacityScheduler"
+    },
+    {
+      "id": "site property",
+      "name": "yarn.scheduler.minimum-allocation-mb",
+      "displayName": "yarn.scheduler.minimum-allocation-mb",
+      "value": "",
+      "defaultValue": "",
+      "serviceName": "YARN",
+      "category": "CapacityScheduler"
+    },
+    {
+      "id": "site property",
+      "name": "yarn.scheduler.maximum-allocation-mb",
+      "displayName": "yarn.scheduler.maximum-allocation-mb",
+      "value": "",
+      "defaultValue": "",
+      "serviceName": "YARN",
+      "category": "CapacityScheduler"
+    },
+    {
+      "id": "site property",
+      "name": "yarn.nodemanager.resource.memory-mb",
+      "displayName": "yarn.nodemanager.resource.memory-mb",
+      "value": "",
+      "defaultValue": "",
+      "serviceName": "YARN",
+      "category": "NodeManager"
+    },
+    {
+      "id": "site property",
+      "name": "yarn.nodemanager.vmem-pmem-ratio",
+      "displayName": "yarn.nodemanager.vmem-pmem-ratio",
+      "value": "",
+      "defaultValue": "",
+      "serviceName": "YARN",
+      "category": "NodeManager"
+    },
+    {
+      "id": "site property",
+      "name": "yarn.nodemanager.log-dirs",
+      "displayName": "yarn.nodemanager.log-dirs",
+      "value": "",
+      "defaultValue": "",
+      "displayType": "directories",
+      "serviceName": "YARN",
+      "category": "NodeManager"
+    },
+    {
+      "id": "site property",
+      "name": "yarn.nodemanager.remote-app-log-dir",
+      "displayName": "yarn.nodemanager.remote-app-log-dir",
+      "value": "",
+      "defaultValue": "",
+      "displayType": "directory",
+      "serviceName": "YARN",
+      "category": "NodeManager"
+    },
+    {
+      "id": "site property",
+      "name": "yarn.nodemanager.remote-app-log-dir-suffix",
+      "displayName": "yarn.nodemanager.remote-app-log-dir-suffix",
+      "value": "",
+      "defaultValue": "",
+      "serviceName": "YARN",
+      "category": "NodeManager"
+    },
+    {
+      "id": "site property",
+      "name": "yarn.nodemanager.aux-services",
+      "displayName": "yarn.nodemanager.aux-services",
+      "value": "",
+      "defaultValue": "",
+      "serviceName": "YARN",
+      "category": "NodeManager"
+    },
+    {
+      "id": "site property",
+      "name": "yarn.nodemanager.log.retain-second",
+      "displayName": "yarn.nodemanager.log.retain-second",
+      "value": "",
+      "defaultValue": "",
+      "serviceName": "YARN",
+      "category": "NodeManager"
+    }
   ]
 };

@@ -74,6 +74,16 @@
       and will get capped to this value.
     </description>
   </property>
+  
+  <property>
+    <name>yarn.acl.enable</name>
+    <value>true</value>
+  </property>
+  
+  <property>
+    <name>yarn.admin.acl</name>
+    <value>*</value>
+  </property>
 
   <!-- NodeManager -->
 
