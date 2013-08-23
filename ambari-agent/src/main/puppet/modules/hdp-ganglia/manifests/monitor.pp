@@ -98,7 +98,12 @@ class hdp-ganglia::monitor::config-gen()
     hdp-ganglia::config::generate_daemon { 'HDPHBaseMaster':}
   }
   
-  if ($hdp::params::is_slave) {
+  if (($hdp::params::is_slave == true) 
+    or (($hdp::params::is_namenode_master == false) 
+      and ($hdp::params::is_jtnode_master == false) 
+      and ($hdp::params::is_rmnode_master == false) 
+      and ($hdp::params::is_hsnode_master == false) 
+      and ($hdp::params::is_hbase_master ==  false))) {
     hdp-ganglia::config::generate_daemon { 'HDPSlaves':}
   }
 

@@ -87,11 +87,9 @@ class hdp-ganglia::server(
     }
   }
 
-  if ($hdp::params::has_slaves) {
-    hdp-ganglia::config::generate_daemon { 'HDPSlaves':
-      ganglia_service => 'gmond',
-      role => 'server'
-    }
+  hdp-ganglia::config::generate_daemon { 'HDPSlaves':
+    ganglia_service => 'gmond',
+    role => 'server'
   }
 
   hdp-ganglia::config::generate_daemon { 'gmetad':

@@ -19,9 +19,9 @@
 #########################################################
 ### ClusterName           GmondMasterHost   GmondPort ###
 #########################################################
-<% if (scope.function_hdp_default('slave_hosts') != '')%>
+
     HDPSlaves       	<%=scope.function_hdp_host("ganglia_server_host")%>  8660
-<%end-%>
+
 <% if (scope.function_hdp_default('namenode_host') != '')%>
     HDPNameNode         <%=scope.function_hdp_host("ganglia_server_host")%>  8661
 <%end-%>
