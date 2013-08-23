@@ -215,9 +215,9 @@ AMBARI_PROPERTIES_RPMSAVE_FILE="ambari.properties.rpmsave"
 RESOURCES_DIR_PROPERTY="resources.dir"
 
 SETUP_DB_CMD = ['su', '-', 'postgres',
-        '--command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'"']
+        '--command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'" -v dbname="{3}"']
 UPGRADE_STACK_CMD = ['su', 'postgres',
-        '--command=psql -f {0} -v stack_name="\'{1}\'"  -v stack_version="\'{2}\'"']
+        '--command=psql -f {0} -v stack_name="\'{1}\'"  -v stack_version="\'{2}\'" -v dbname="{3}']
 UPDATE_METAINFO_CMD = 'curl -X PUT "http://{0}:{1}/api/v1/stacks2" -u "{2}":"{3}"'
 PG_ST_CMD = "/sbin/service postgresql status"
 PG_INITDB_CMD = "/sbin/service postgresql initdb"
@@ -872,8 +872,11 @@ def setup_db(args):
   scriptFile = args.init_script_file
   username = args.database_username
   password = args.database_password
+
+  #setup DB
   command = SETUP_DB_CMD[:]
-  command[-1] = command[-1].format(scriptFile, username, password)
+  command[-1] = command[-1].format(scriptFile, username, password, dbname)
+
   retcode, outdata, errdata = run_os_command(command)
   if not retcode == 0:
     print errdata
@@ -914,7 +917,7 @@ def execute_db_script(args, file):
   username = args.database_username
   password = args.database_password
   command = SETUP_DB_CMD[:]
-  command[-1] = command[-1].format(file, username, password)
+  command[-1] = command[-1].format(file, username, password, dbname)
   retcode, outdata, errdata = run_os_command(command)
   if not retcode == 0:
     print errdata
@@ -928,7 +931,7 @@ def check_db_consistency(args, file):
   username = args.database_username
   password = args.database_password
   command = SETUP_DB_CMD[:]
-  command[-1] = command[-1].format(file, username, password)
+  command[-1] = command[-1].format(file, username, password, dbname)
   retcode, outdata, errdata = run_os_command(command)
   if not retcode == 0:
     print errdata
@@ -1329,6 +1332,25 @@ def configure_database_username_password(args):
   else:
     print_error_msg("Connection properties not set in config file.")
 
+# Check if jdbc user is changed
+def is_jdbc_user_changed(args):
+  properties = get_ambari_properties()
+  if properties == -1:
+    print_error_msg ("Error getting ambari properties")
+    return None
+
+  previos_user = properties[JDBC_USER_NAME_PROPERTY]
+  new_user = args.database_username
+
+  if previos_user and new_user:
+    if previos_user != new_user:
+      return True
+  else:
+    print_error_msg("Connection properties not set in config file.")
+    return None
+
+  return False
+
 # Store local database connection properties
 def store_local_properties(args):
   properties = get_ambari_properties()
@@ -1340,15 +1362,14 @@ def store_local_properties(args):
 
   properties.removeOldProp(JDBC_SCHEMA_PROPERTY)
   properties.removeOldProp(JDBC_HOSTNAME_PROPERTY)
-  properties.removeOldProp(JDBC_DATABASE_PROPERTY)
   properties.removeOldProp(JDBC_RCA_DRIVER_PROPERTY)
   properties.removeOldProp(JDBC_RCA_URL_PROPERTY)
   properties.removeOldProp(JDBC_PORT_PROPERTY)
-  properties.removeOldProp(JDBC_PORT_PROPERTY)
   properties.removeOldProp(JDBC_DRIVER_PROPERTY)
   properties.removeOldProp(JDBC_URL_PROPERTY)
-  properties.removeOldProp(JDBC_DATABASE_PROPERTY)
+  #properties.removeOldProp(JDBC_DATABASE_PROPERTY)
   properties.process_pair(PERSISTENCE_TYPE_PROPERTY, "local")
+  properties.process_pair(JDBC_DATABASE_PROPERTY, args.database_name)
   properties.process_pair(JDBC_USER_NAME_PROPERTY, args.database_username)
   properties.process_pair(JDBC_PASSWORD_PROPERTY,
       store_password_file(args.database_password, JDBC_PASSWORD_FILENAME))
@@ -1408,7 +1429,7 @@ def parse_properties_file(args):
       pass
 
   args.database_username = properties[JDBC_USER_NAME_PROPERTY]
-
+  args.database_name = properties[JDBC_DATABASE_PROPERTY]
   args.database_password_file = properties[JDBC_PASSWORD_PROPERTY]
   if args.database_password_file:
     if not is_alias_string(args.database_password_file):
@@ -1727,9 +1748,6 @@ def install_jdk(dest_file):
     raise FatalException(retcode, err)
   return out, ok
 
-
-
-
 #
 # Configures the OS settings in ambari properties.
 #
@@ -1799,8 +1817,7 @@ def find_jdk():
 def is_local_database(options):
   if options.database == DATABASE_NAMES[0] \
     and options.database_host == "localhost" \
-    and options.database_port == DATABASE_PORTS[0] \
-    and options.database_name == "ambari":
+    and options.database_port == DATABASE_PORTS[0]:
     return True
   return False
 
@@ -1948,6 +1965,9 @@ def setup(args):
   #DB setup should be done last after doing any setup.
   
   if is_local_database(args):
+    #check if jdbc user is changed
+    is_user_changed = is_jdbc_user_changed(args)
+
     print 'Default properties detected. Using built-in database.'
     store_local_properties(args)
 
@@ -1962,6 +1982,10 @@ def setup(args):
     if not retcode == 0:
       err = 'Running database init script was failed. Exiting.'
       raise FatalException(retcode, err)
+
+    if is_user_changed:
+      #remove backup for pg_hba in order to reconfigure postgres
+      remove_file(PG_HBA_CONF_FILE_BACKUP)
 
     print 'Configuring PostgreSQL...'
     retcode = configure_postgres()
@@ -1987,8 +2011,6 @@ def setup(args):
       err = 'Error while configuring connection properties. Exiting'
       raise FatalException(retcode, err)
     check_jdbc_drivers(args)
-
-
 
 #
 # Resets the Ambari Server.
@@ -2070,7 +2092,7 @@ def reset(args):
     username = args.database_username
     password = args.database_password
     command = SETUP_DB_CMD[:]
-    command[-1] = command[-1].format(filename, username, password)
+    command[-1] = command[-1].format(filename, username, password, dbname)
     retcode, outdata, errdata = run_os_command(command)
     if not retcode == 0:
       raise FatalException(1, errdata)
@@ -2238,7 +2260,7 @@ def upgrade_stack(args, stack_id):
   file = args.upgrade_stack_script_file
   stack_name, stack_version = stack_id.split(STACK_NAME_VER_SEP)
   command = UPGRADE_STACK_CMD[:]
-  command[-1] = command[-1].format(file, stack_name, stack_version)
+  command[-1] = command[-1].format(file, stack_name, stack_version, dbname)
   retcode, outdata, errdata = run_os_command(command)
   if not retcode == 0:
     raise FatalException(retcode, errdata)

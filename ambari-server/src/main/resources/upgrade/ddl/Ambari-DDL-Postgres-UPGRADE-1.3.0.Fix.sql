@@ -15,7 +15,7 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 --
-\connect ambari;
+\connect :dbname;
 
 INSERT INTO ambari.serviceconfigmapping (cluster_id, service_name, config_type, config_tag, timestamp)
     SELECT cluster_id, 'MAPREDUCE', type_name, version_tag, create_timestamp from ambari.clusterconfig 

@@ -15,7 +15,7 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 --
-\connect ambari;
+\connect :dbname;
 
 PREPARE clusters (text, text) AS
   UPDATE ambari.clusters

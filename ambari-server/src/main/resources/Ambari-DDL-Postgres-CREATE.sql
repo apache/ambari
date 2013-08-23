@@ -15,90 +15,74 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 --
-CREATE DATABASE ambari;
+CREATE DATABASE :dbname;
+\connect :dbname;
 
-\connect ambari;
-
-ALTER USER :username WITH ENCRYPTED PASSWORD :password;
-
+ALTER ROLE :username LOGIN ENCRYPTED PASSWORD :password;
 CREATE ROLE :username LOGIN ENCRYPTED PASSWORD :password;
 
-CREATE SCHEMA ambari
-  AUTHORIZATION :username;
+GRANT ALL PRIVILEGES ON DATABASE :dbname TO :username;
 
-ALTER ROLE :username SET search_path to 'ambari';
+CREATE SCHEMA ambari AUTHORIZATION :username;
+ALTER SCHEMA ambari OWNER TO :username;
+ALTER ROLE :username SET search_path TO 'ambari';
 
+------create tables ang grant privileges to db user---------
 CREATE TABLE ambari.clusters (cluster_id BIGINT NOT NULL, cluster_info VARCHAR(255) NOT NULL, cluster_name VARCHAR(100) NOT NULL UNIQUE, desired_cluster_state VARCHAR(255) NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id));
-
 GRANT ALL PRIVILEGES ON TABLE ambari.clusters TO :username;
 
 CREATE TABLE ambari.clusterconfig (version_tag VARCHAR(255) NOT NULL, type_name VARCHAR(255) NOT NULL, cluster_id BIGINT NOT NULL, config_data VARCHAR(32000) NOT NULL, create_timestamp BIGINT NOT NULL, PRIMARY KEY (cluster_id, type_name, version_tag));
-
 GRANT ALL PRIVILEGES ON TABLE ambari.clusterconfig TO :username;
 
-CREATE TABLE ambari.clusterconfigmapping (cluster_id bigint NOT NULL, type_name VARCHAR(255) NOT NULL, version_tag VARCHAR(255) NOT NULL, create_timestamp BIGINT NOT NULL, selected INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL DEFAULT '_db', PRIMARY KEY (cluster_id, type_name, create_timestamp));
-
+CREATE TABLE ambari.clusterconfigmapping (cluster_id BIGINT NOT NULL, type_name VARCHAR(255) NOT NULL, version_tag VARCHAR(255) NOT NULL, create_timestamp BIGINT NOT NULL, selected INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL DEFAULT '_db', PRIMARY KEY (cluster_id, type_name, create_timestamp));
 GRANT ALL PRIVILEGES ON TABLE ambari.clusterconfigmapping TO :username;
 
 CREATE TABLE ambari.clusterservices (service_name VARCHAR(255) NOT NULL, cluster_id BIGINT NOT NULL, service_enabled INTEGER NOT NULL, PRIMARY KEY (service_name, cluster_id));
-
 GRANT ALL PRIVILEGES ON TABLE ambari.clusterservices TO :username;
 
 CREATE TABLE ambari.clusterstate (cluster_id BIGINT NOT NULL, current_cluster_state VARCHAR(255) NOT NULL, current_stack_version VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id));
-
 GRANT ALL PRIVILEGES ON TABLE ambari.clusterstate TO :username;
 
 CREATE TABLE ambari.componentconfigmapping (cluster_id BIGINT NOT NULL, component_name VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, config_type VARCHAR(255) NOT NULL, timestamp BIGINT NOT NULL, config_tag VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id, component_name, service_name, config_type));
-
 GRANT ALL PRIVILEGES ON TABLE ambari.componentconfigmapping TO :username;
 
 CREATE TABLE ambari.hostcomponentconfigmapping (cluster_id BIGINT NOT NULL, component_name VARCHAR(255) NOT NULL, host_name VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, config_type VARCHAR(255) NOT NULL, timestamp BIGINT NOT NULL, config_tag VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id, component_name, host_name, service_name, config_type));
-
 GRANT ALL PRIVILEGES ON TABLE ambari.hostcomponentconfigmapping TO :username;
 
 CREATE TABLE ambari.hcdesiredconfigmapping (cluster_id BIGINT NOT NULL, component_name VARCHAR(255) NOT NULL, host_name VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, config_type VARCHAR(255) NOT NULL, timestamp BIGINT NOT NULL, config_tag VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id, component_name, host_name, service_name, config_type));
-
 GRANT ALL PRIVILEGES ON TABLE ambari.hcdesiredconfigmapping TO :username;
 
 CREATE TABLE ambari.hostcomponentdesiredstate (cluster_id BIGINT NOT NULL, component_name VARCHAR(255) NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, desired_state VARCHAR(255) NOT NULL, host_name VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id, component_name, host_name, service_name));
-
 GRANT ALL PRIVILEGES ON TABLE ambari.hostcomponentdesiredstate TO :username;
 
 CREATE TABLE ambari.hostcomponentstate (cluster_id BIGINT NOT NULL, component_name VARCHAR(255) NOT NULL, current_stack_version VARCHAR(255) NOT NULL, current_state VARCHAR(255) NOT NULL, host_name VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id, component_name, host_name, service_name));
-
 GRANT ALL PRIVILEGES ON TABLE ambari.hostcomponentstate TO :username;
 
 CREATE TABLE ambari.hosts (host_name VARCHAR(255) NOT NULL, cpu_count INTEGER NOT NULL, ph_cpu_count INTEGER, cpu_info VARCHAR(255) NOT NULL, discovery_status VARCHAR(2000) NOT NULL, disks_info VARCHAR(10000) NOT NULL, host_attributes VARCHAR(20000) NOT NULL, ipv4 VARCHAR(255), ipv6 VARCHAR(255), public_host_name VARCHAR(255), last_registration_time BIGINT NOT NULL, os_arch VARCHAR(255) NOT NULL, os_info VARCHAR(1000) NOT NULL, os_type VARCHAR(255) NOT NULL, rack_info VARCHAR(255) NOT NULL, total_mem BIGINT NOT NULL, PRIMARY KEY (host_name));
-
 GRANT ALL PRIVILEGES ON TABLE ambari.hosts TO :username;
 
-CREATE TABLE ambari.hoststate (agent_version VARCHAR(255) NOT NULL, available_mem BIGINT NOT NULL, current_state VARCHAR(255) NOT NULL, health_status VARCHAR(255), host_name VARCHAR(255) NOT NULL, time_in_state BIGINT NOT NULL,  PRIMARY KEY (host_name));
-
+CREATE TABLE ambari.hoststate (agent_version VARCHAR(255) NOT NULL, available_mem BIGINT NOT NULL, current_state VARCHAR(255) NOT NULL, health_status VARCHAR(255), host_name VARCHAR(255) NOT NULL, time_in_state BIGINT NOT NULL, PRIMARY KEY (host_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.hoststate TO :username;
 
 CREATE TABLE ambari.servicecomponentdesiredstate (component_name VARCHAR(255) NOT NULL, cluster_id BIGINT NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, desired_state VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, PRIMARY KEY (component_name, cluster_id, service_name));
-
 GRANT ALL PRIVILEGES ON TABLE ambari.servicecomponentdesiredstate TO :username;
 
 CREATE TABLE ambari.serviceconfigmapping (cluster_id BIGINT NOT NULL, service_name VARCHAR(255) NOT NULL, config_type VARCHAR(255) NOT NULL, timestamp BIGINT NOT NULL, config_tag VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id, service_name, config_type));
-
 GRANT ALL PRIVILEGES ON TABLE ambari.serviceconfigmapping TO :username;
 
 CREATE TABLE ambari.servicedesiredstate (cluster_id BIGINT NOT NULL, desired_host_role_mapping INTEGER NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, desired_state VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id, service_name));
-
 GRANT ALL PRIVILEGES ON TABLE ambari.servicedesiredstate TO :username;
 
 CREATE TABLE ambari.roles (role_name VARCHAR(255) NOT NULL, PRIMARY KEY (role_name));
-
 GRANT ALL PRIVILEGES ON TABLE ambari.roles TO :username;
 
 CREATE TABLE ambari.users (user_id INTEGER, ldap_user INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL, create_time TIMESTAMP DEFAULT NOW(), user_password VARCHAR(255), PRIMARY KEY (user_id), UNIQUE (ldap_user, user_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.users TO :username;
 
-CREATE TABLE ambari.execution_command (command bytea, task_id BIGINT NOT NULL, PRIMARY KEY (task_id));
+CREATE TABLE ambari.execution_command (command BYTEA, task_id BIGINT NOT NULL, PRIMARY KEY (task_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.execution_command TO :username;
 
-CREATE TABLE ambari.host_role_command (task_id BIGINT NOT NULL, attempt_count SMALLINT NOT NULL, event VARCHAR(32000) NOT NULL, exitcode INTEGER NOT NULL, host_name VARCHAR(255) NOT NULL, last_attempt_time BIGINT NOT NULL, request_id BIGINT NOT NULL, role VARCHAR(255), stage_id BIGINT NOT NULL, start_time BIGINT NOT NULL, status VARCHAR(255), std_error bytea, std_out bytea, role_command VARCHAR(255), PRIMARY KEY (task_id));
+CREATE TABLE ambari.host_role_command (task_id BIGINT NOT NULL, attempt_count SMALLINT NOT NULL, event VARCHAR(32000) NOT NULL, exitcode INTEGER NOT NULL, host_name VARCHAR(255) NOT NULL, last_attempt_time BIGINT NOT NULL, request_id BIGINT NOT NULL, role VARCHAR(255), stage_id BIGINT NOT NULL, start_time BIGINT NOT NULL, status VARCHAR(255), std_error BYTEA, std_out BYTEA, role_command VARCHAR(255), PRIMARY KEY (task_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.host_role_command TO :username;
 
 CREATE TABLE ambari.role_success_criteria (role VARCHAR(255) NOT NULL, request_id BIGINT NOT NULL, stage_id BIGINT NOT NULL, success_factor FLOAT NOT NULL, PRIMARY KEY (role, request_id, stage_id));
@@ -113,20 +97,19 @@ GRANT ALL PRIVILEGES ON TABLE ambari.ClusterHostMapping TO :username;
 CREATE TABLE ambari.user_roles (role_name VARCHAR(255) NOT NULL, user_id INTEGER NOT NULL, PRIMARY KEY (role_name, user_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.user_roles TO :username;
 
-CREATE TABLE ambari.key_value_store ("key" VARCHAR(255), "value" VARCHAR, PRIMARY KEY("key"));
+CREATE TABLE ambari.key_value_store ("key" VARCHAR(255), "value" VARCHAR, PRIMARY KEY ("key"));
 GRANT ALL PRIVILEGES ON TABLE ambari.key_value_store TO :username;
 
-CREATE TABLE ambari.hostconfigmapping (cluster_id bigint NOT NULL, host_name VARCHAR(255) NOT NULL, type_name VARCHAR(255) NOT NULL, version_tag VARCHAR(255) NOT NULL, service_name VARCHAR(255), create_timestamp BIGINT NOT NULL, selected INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL DEFAULT '_db', PRIMARY KEY (cluster_id, host_name, type_name, create_timestamp));
-
+CREATE TABLE ambari.hostconfigmapping (cluster_id BIGINT NOT NULL, host_name VARCHAR(255) NOT NULL, type_name VARCHAR(255) NOT NULL, version_tag VARCHAR(255) NOT NULL, service_name VARCHAR(255), create_timestamp BIGINT NOT NULL, selected INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL DEFAULT '_db', PRIMARY KEY (cluster_id, host_name, type_name, create_timestamp));
 GRANT ALL PRIVILEGES ON TABLE ambari.hostconfigmapping TO :username;
 
-CREATE TABLE ambari.metainfo ("metainfo_key" VARCHAR(255), "metainfo_value" VARCHAR, PRIMARY KEY("metainfo_key"));
+CREATE TABLE ambari.metainfo ("metainfo_key" VARCHAR(255), "metainfo_value" VARCHAR, PRIMARY KEY ("metainfo_key"));
 GRANT ALL PRIVILEGES ON TABLE ambari.metainfo TO :username;
 
 CREATE TABLE ambari.ambari_sequences (sequence_name VARCHAR(255) PRIMARY KEY, "value" BIGINT NOT NULL);
 GRANT ALL PRIVILEGES ON TABLE ambari.ambari_sequences TO :username;
 
-
+--------altering tables by creating foreign keys----------
 ALTER TABLE ambari.clusterconfig ADD CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
 ALTER TABLE ambari.clusterservices ADD CONSTRAINT FK_clusterservices_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
 ALTER TABLE ambari.clusterconfigmapping ADD CONSTRAINT FK_clusterconfigmapping_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
@@ -158,141 +141,135 @@ ALTER TABLE ambari.user_roles ADD CONSTRAINT FK_user_roles_role_name FOREIGN KEY
 ALTER TABLE ambari.hostconfigmapping ADD CONSTRAINT FK_hostconfigmapping_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
 ALTER TABLE ambari.hostconfigmapping ADD CONSTRAINT FK_hostconfigmapping_host_name FOREIGN KEY (host_name) REFERENCES ambari.hosts (host_name);
 
+---------inserting some data-----------
 BEGIN;
+  INSERT INTO ambari.ambari_sequences (sequence_name, "value")
+  SELECT 'cluster_id_seq', 1
+  UNION ALL
+  SELECT 'user_id_seq', 2
+  UNION ALL
+  SELECT 'host_role_command_id_seq', 1;
 
-insert into ambari.ambari_sequences(sequence_name, "value")
-select 'cluster_id_seq', 1
-union all
-select 'user_id_seq', 2
-union all
-select 'host_role_command_id_seq', 1;
+  INSERT INTO ambari.Roles (role_name)
+  SELECT 'admin'
+  UNION ALL
+  SELECT 'user';
 
-insert into ambari.Roles(role_name)
-select 'admin'
-union all
-select 'user';
+  INSERT INTO ambari.Users (user_id, user_name, user_password)
+  SELECT 1, 'admin', '538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00';
 
-insert into ambari.Users(user_id, user_name, user_password)
-select 1,'admin','538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00';
+  INSERT INTO ambari.user_roles (role_name, user_id)
+  SELECT 'admin', 1;
 
-insert into ambari.user_roles(role_name, user_id)
-select 'admin',1;
-
-insert into ambari.metainfo(metainfo_key, metainfo_value)
-select 'version','${ambariVersion}';
-
+  INSERT INTO ambari.metainfo (metainfo_key, metainfo_value)
+  SELECT 'version', '${ambariVersion}';
 COMMIT;
+
 
 -- ambari log4j DDL
 
+--------------------------------------------------
+----------initialisation of mapred db-------------
+--------------------------------------------------
 CREATE DATABASE ambarirca;
-
 \connect ambarirca;
 
+--CREATE ROLE "mapred" LOGIN ENCRYPTED PASSWORD 'mapred';
 CREATE USER "mapred" WITH PASSWORD 'mapred';
-
 GRANT ALL PRIVILEGES ON DATABASE ambarirca TO "mapred";
 
+------create tables ang grant privileges to db user---------
 CREATE TABLE workflow (
-  workflowId TEXT, workflowName TEXT,
-  parentWorkflowId TEXT,  
-  workflowContext TEXT, userName TEXT,
-  startTime BIGINT, lastUpdateTime BIGINT,
-  numJobsTotal INTEGER, numJobsCompleted INTEGER,
-  inputBytes BIGINT, outputBytes BIGINT,
-  duration BIGINT, workflowTags TEXT,
+  workflowId       TEXT, workflowName TEXT,
+  parentWorkflowId TEXT,
+  workflowContext  TEXT, userName TEXT,
+  startTime        BIGINT, lastUpdateTime BIGINT,
+  numJobsTotal     INTEGER, numJobsCompleted INTEGER,
+  inputBytes       BIGINT, outputBytes BIGINT,
+  duration         BIGINT, workflowTags TEXT,
   PRIMARY KEY (workflowId),
-  FOREIGN KEY (parentWorkflowId) REFERENCES workflow(workflowId)
+  FOREIGN KEY (parentWorkflowId) REFERENCES workflow (workflowId)
 );
-
 GRANT ALL PRIVILEGES ON TABLE workflow TO "mapred";
 
 CREATE TABLE application (
-  appId TEXT,
-  workflowId TEXT,
-  appName TEXT,
+  appId              TEXT,
+  workflowId         TEXT,
+  appName            TEXT,
   workflowEntityName TEXT,
-  userName TEXT, queue TEXT,
-  submitTime BIGINT, launchTime BIGINT, finishTime BIGINT,
-  appType TEXT,
-  status TEXT,
-  appInfo TEXT,
-  PRIMARY KEY(appId), FOREIGN KEY(workflowId) REFERENCES workflow(workflowId)
+  userName           TEXT, queue TEXT,
+  submitTime         BIGINT, launchTime BIGINT, finishTime BIGINT,
+  appType            TEXT,
+  status             TEXT,
+  appInfo            TEXT,
+  PRIMARY KEY (appId), FOREIGN KEY (workflowId) REFERENCES workflow (workflowId)
 );
-
 GRANT ALL PRIVILEGES ON TABLE application TO "mapred";
 
 CREATE TABLE job (
-  jobId TEXT, workflowId TEXT, jobName TEXT, workflowEntityName TEXT,
-  userName TEXT, queue TEXT, acls TEXT, confPath TEXT, 
-  submitTime BIGINT, launchTime BIGINT, finishTime BIGINT, 
-  maps INTEGER, reduces INTEGER, status TEXT, priority TEXT, 
-  finishedMaps INTEGER, finishedReduces INTEGER, 
-  failedMaps INTEGER, failedReduces INTEGER, 
-  mapsRuntime BIGINT, reducesRuntime BIGINT,
-  mapCounters TEXT, reduceCounters TEXT, jobCounters TEXT, 
-  inputBytes BIGINT, outputBytes BIGINT,
-  PRIMARY KEY(jobId),
-  FOREIGN KEY(workflowId) REFERENCES workflow(workflowId)
+  jobId        TEXT, workflowId TEXT, jobName TEXT, workflowEntityName TEXT,
+  userName     TEXT, queue TEXT, acls TEXT, confPath TEXT,
+  submitTime   BIGINT, launchTime BIGINT, finishTime BIGINT,
+  maps         INTEGER, reduces INTEGER, status TEXT, priority TEXT,
+  finishedMaps INTEGER, finishedReduces INTEGER,
+  failedMaps   INTEGER, failedReduces INTEGER,
+  mapsRuntime  BIGINT, reducesRuntime BIGINT,
+  mapCounters  TEXT, reduceCounters TEXT, jobCounters TEXT,
+  inputBytes   BIGINT, outputBytes BIGINT,
+  PRIMARY KEY (jobId),
+  FOREIGN KEY (workflowId) REFERENCES workflow (workflowId)
 );
-
 GRANT ALL PRIVILEGES ON TABLE job TO "mapred";
 
 CREATE TABLE task (
-  taskId TEXT, jobId TEXT, taskType TEXT, splits TEXT, 
-  startTime BIGINT, finishTime BIGINT, status TEXT, error TEXT, counters TEXT, 
-  failedAttempt TEXT, 
-  PRIMARY KEY(taskId), 
-  FOREIGN KEY(jobId) REFERENCES job(jobId)
+  taskId        TEXT, jobId TEXT, taskType TEXT, splits TEXT,
+  startTime     BIGINT, finishTime BIGINT, status TEXT, error TEXT, counters TEXT,
+  failedAttempt TEXT,
+  PRIMARY KEY (taskId),
+  FOREIGN KEY (jobId) REFERENCES job (jobId)
 );
-
 GRANT ALL PRIVILEGES ON TABLE task TO "mapred";
 
 CREATE TABLE taskAttempt (
-  taskAttemptId TEXT, taskId TEXT, jobId TEXT, taskType TEXT, taskTracker TEXT, 
-  startTime BIGINT, finishTime BIGINT, 
-  mapFinishTime BIGINT, shuffleFinishTime BIGINT, sortFinishTime BIGINT, 
-  locality TEXT, avataar TEXT, 
-  status TEXT, error TEXT, counters TEXT, 
-  inputBytes BIGINT, outputBytes BIGINT,
-  PRIMARY KEY(taskAttemptId), 
-  FOREIGN KEY(jobId) REFERENCES job(jobId), 
-  FOREIGN KEY(taskId) REFERENCES task(taskId)
-); 
-
+  taskAttemptId TEXT, taskId TEXT, jobId TEXT, taskType TEXT, taskTracker TEXT,
+  startTime     BIGINT, finishTime BIGINT,
+  mapFinishTime BIGINT, shuffleFinishTime BIGINT, sortFinishTime BIGINT,
+  locality      TEXT, avataar TEXT,
+  status        TEXT, error TEXT, counters TEXT,
+  inputBytes    BIGINT, outputBytes BIGINT,
+  PRIMARY KEY (taskAttemptId),
+  FOREIGN KEY (jobId) REFERENCES job (jobId),
+  FOREIGN KEY (taskId) REFERENCES task (taskId)
+);
 GRANT ALL PRIVILEGES ON TABLE taskAttempt TO "mapred";
 
 CREATE TABLE hdfsEvent (
-  timestamp BIGINT,
-  userName TEXT,
-  clientIP TEXT,
-  operation TEXT,
-  srcPath TEXT,
-  dstPath TEXT,
+  timestamp   BIGINT,
+  userName    TEXT,
+  clientIP    TEXT,
+  operation   TEXT,
+  srcPath     TEXT,
+  dstPath     TEXT,
   permissions TEXT
 );
-
 GRANT ALL PRIVILEGES ON TABLE hdfsEvent TO "mapred";
 
 CREATE TABLE mapreduceEvent (
-  timestamp BIGINT,
-  userName TEXT,
-  clientIP TEXT,
-  operation TEXT,
-  target TEXT,
-  result TEXT,
+  timestamp   BIGINT,
+  userName    TEXT,
+  clientIP    TEXT,
+  operation   TEXT,
+  target      TEXT,
+  result      TEXT,
   description TEXT,
   permissions TEXT
 );
-
 GRANT ALL PRIVILEGES ON TABLE mapreduceEvent TO "mapred";
 
 CREATE TABLE clusterEvent (
-  timestamp BIGINT, 
-  service TEXT, status TEXT, 
-  error TEXT, data TEXT , 
-  host TEXT, rack TEXT
+  timestamp BIGINT,
+  service   TEXT, status TEXT,
+  error     TEXT, data TEXT,
+  host      TEXT, rack TEXT
 );
-
 GRANT ALL PRIVILEGES ON TABLE clusterEvent TO "mapred";
-

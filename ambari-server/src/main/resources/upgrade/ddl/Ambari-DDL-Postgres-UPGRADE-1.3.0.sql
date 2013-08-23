@@ -15,7 +15,7 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 --
-\connect ambari;
+\connect :dbname;
 
 -- Upgrade from 1.2.0
 ALTER TABLE ambari.hosts

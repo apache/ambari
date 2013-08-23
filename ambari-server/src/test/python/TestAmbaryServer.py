@@ -1803,6 +1803,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertNotEqual(None, result)
 
   @patch("os.path.exists")
+  @patch.object(ambari_server, "remove_file")
+  @patch.object(ambari_server, "is_jdbc_user_changed")
   @patch.object(ambari_server, 'verify_setup_allowed')
   @patch.object(ambari_server, "get_YN_input")
   @patch.object(ambari_server, "configure_os_settings")
@@ -1823,13 +1825,16 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                  setup_remote_db_mock, check_selinux_mock, check_jdbc_drivers_mock, check_ambari_user_mock,
                  check_iptables_mock, check_postgre_up_mock, setup_db_mock, configure_postgres_mock,
                  download_jdk_mock, configure_os_settings_mock,get_YN_input,
-                 verify_setup_allowed_method, exists_mock):
+                 verify_setup_allowed_method, is_jdbc_user_changed_mock, remove_file_mock, exists_mock):
     args = MagicMock()
     failed = False
     get_YN_input.return_value = False
     verify_setup_allowed_method.return_value = 0
     exists_mock.return_value = False
+    remove_file_mock.return_value = 0
+
     def reset_mocks():
+      is_jdbc_user_changed_mock.reset_mock()
       is_root_mock.reset_mock()
       store_local_properties_mock.reset_mock()
       store_remote_properties_mock.reset_mock()
@@ -1842,7 +1847,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       check_postgre_up_mock.reset_mock()
       setup_db_mock.reset_mock()
       configure_postgres_mock.reset_mock()
-      download_jdk_mock.reset_mock()
       configure_os_settings_mock.reset_mock()
       pass
 
@@ -1885,6 +1889,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     #Local case
     reset_mocks()
     is_local_database_mock.return_value = True
+    is_jdbc_user_changed_mock.return_value = False
 
     try:
       result = ambari_server.setup(args)
@@ -1893,6 +1898,23 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEqual(None, result)
     self.assertEquals(True, store_local_properties_mock.called)
     self.assertEquals(False, store_remote_properties_mock.called)
+    self.assertEquals(True, is_jdbc_user_changed_mock.called)
+    self.assertEquals(False, remove_file_mock.called)
+
+    #if DB user name was changed
+    reset_mocks()
+    is_local_database_mock.return_value = True
+    is_jdbc_user_changed_mock.return_value = True
+
+    try:
+      result = ambari_server.setup(args)
+    except FatalException:
+      self.fail("Setup should be successful")
+    self.assertEqual(None, result)
+    self.assertEquals(True, store_local_properties_mock.called)
+    self.assertEquals(False, store_remote_properties_mock.called)
+    self.assertEquals(True, is_jdbc_user_changed_mock.called)
+    self.assertEquals(True, remove_file_mock.called)
 
     #negative case
     reset_mocks()
@@ -3892,3 +3914,31 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     testdir = os.path.dirname(__file__)
     return os.path.dirname(testdir) + os.sep + "resources" + os.sep \
            + 'TestAmbaryServer.samples/' + sample
+
+
+  @patch.object(ambari_server, "get_ambari_properties")
+  def test_is_jdbc_user_changed(self, get_ambari_properties_mock):
+    previous_user = "previous_user"
+    new_user = "new_user"
+    get_ambari_properties_mock.return_value = {ambari_server.JDBC_USER_NAME_PROPERTY : previous_user}
+
+    args = MagicMock()
+
+    #check if users are different
+    args.database_username = new_user
+    result = ambari_server.is_jdbc_user_changed(args)
+    self.assertEqual(args.database_username, new_user)
+    self.assertTrue(result)
+
+    #check if users are equal
+    args.database_username = previous_user
+    result = ambari_server.is_jdbc_user_changed(args)
+    self.assertEqual(args.database_username, previous_user)
+    self.assertFalse(result)
+
+    #check if one of users is None
+    args.database_username = None
+    result = ambari_server.is_jdbc_user_changed(args)
+    self.assertEqual(None, args.database_username)
+    self.assertEqual(None, result)
+

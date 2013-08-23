@@ -146,7 +146,7 @@ public class Configuration {
 
   public static final String JDBC_UNIT_NAME = "ambari-server";
 
-  public static final String JDBC_LOCAL_URL = "jdbc:postgresql://localhost/ambari";
+  public static final String JDBC_LOCAL_URL = "jdbc:postgresql://localhost/";
   public static final String JDBC_LOCAL_DRIVER = "org.postgresql.Driver";
 
   public static final String JDBC_IN_MEMORY_URL = "jdbc:derby:memory:myDB/ambari;create=true";
@@ -569,6 +569,10 @@ public class Configuration {
 
   public String getDatabaseUrl() {
     return properties.getProperty(SERVER_JDBC_URL_KEY);
+  }
+
+  public String getLocalDatabaseUrl() {
+    return JDBC_LOCAL_URL + properties.getProperty(SERVER_DB_NAME_KEY);
   }
 
   public String getDatabaseUser() {

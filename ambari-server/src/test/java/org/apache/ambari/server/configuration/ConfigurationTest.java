@@ -184,4 +184,12 @@ public class ConfigurationTest {
     Assert.assertEquals("mapred", conf.getRcaDatabasePassword());
   }
 
+  @Test
+  public void testGetLocalDatabaseUrl() {
+    Properties ambariProperties = new Properties();
+    ambariProperties.setProperty("server.jdbc.database", "ambaritestdatabase");
+    Configuration conf = new Configuration(ambariProperties);
+    Assert.assertEquals(conf.getLocalDatabaseUrl(), Configuration.JDBC_LOCAL_URL.concat("ambaritestdatabase"));
+  }
+
 }

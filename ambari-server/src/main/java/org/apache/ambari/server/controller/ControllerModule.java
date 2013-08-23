@@ -114,7 +114,7 @@ public class ControllerModule extends AbstractModule {
         properties.put("javax.persistence.jdbc.driver", configuration.getDatabaseDriver());
         break;
       case LOCAL:
-        properties.put("javax.persistence.jdbc.url", Configuration.JDBC_LOCAL_URL);
+        properties.put("javax.persistence.jdbc.url", configuration.getLocalDatabaseUrl());
         properties.put("javax.persistence.jdbc.driver", Configuration.JDBC_LOCAL_DRIVER);
         break;
     }
