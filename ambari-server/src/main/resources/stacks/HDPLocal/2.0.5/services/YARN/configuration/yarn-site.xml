@@ -123,6 +123,12 @@
   </property>
 
   <property>
+    <name>yarn.nodemanager.linux-container-executor.group</name>
+    <value>hadoop</value>
+    <description>Unix group of the NodeManager</description>
+  </property>
+
+  <property>
     <name>yarn.nodemanager.aux-services</name>
     <value>mapreduce.shuffle</value>
     <description>Auxilliary services of NodeManager</description>
@@ -155,12 +161,6 @@
       Individual containers' work directories, called container_${contid}, will
       be subdirectories of this.
     </description>
-  </property>
-
-  <property>
-    <name>yarn.nodemanager.container-executor.class</name>
-    <value>org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor</value>
-    <description>Executor(launcher) of the containers</description>
   </property>
 
   <property>
