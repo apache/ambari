@@ -14,11 +14,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-'''
 
-
-
-'''
 import logging
 import posixpath
 import sys
@@ -30,7 +26,7 @@ try:
   import json
 except ImportError:
   import simplejson as json
-from ambari_client.http_utils import uri_encoding
+from ambari_client.core.http_utils import uri_encoding
 
 __docformat__ = "epytext"
 

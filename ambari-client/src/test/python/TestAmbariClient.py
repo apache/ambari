@@ -49,7 +49,7 @@ class TestAmbariClient(unittest.TestCase):
     
   
     
-  @patch("ambari_client.http_client.HttpClient")  
+  @patch("ambari_client.core.http_client.HttpClient")  
   def test_get_all_clusters_valid(self ,http_client):
     """
     Get all clusters.
@@ -74,7 +74,7 @@ class TestAmbariClient(unittest.TestCase):
     self.assertEqual(all_clusters.to_json_dict(), expected_output, "to_json_dict should convert ModelList")
     
    
-  @patch("ambari_client.http_client.HttpClient")  
+  @patch("ambari_client.core.http_client.HttpClient")  
   def test_get_cluster_valid(self ,http_client):
     """
     Get all clusters.
@@ -98,7 +98,7 @@ class TestAmbariClient(unittest.TestCase):
 
 
 
-  @patch("ambari_client.http_client.HttpClient")  
+  @patch("ambari_client.core.http_client.HttpClient")  
   def test_get_all_services_valid(self ,http_client):
     """
     Get all services.
@@ -120,7 +120,7 @@ class TestAmbariClient(unittest.TestCase):
     self.assertEqual(cluster.to_json_dict(), expected_dict_output, "to_json_dict should convert ClusterModel")
     self.assertEqual(len(serviceList), 3, "There should be a 3 services from the response")
  
-  @patch("ambari_client.http_client.HttpClient")  
+  @patch("ambari_client.core.http_client.HttpClient")  
   def test_get_service_valid(self ,http_client):
     """
     Get the service.

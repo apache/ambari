@@ -14,13 +14,11 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-'''
 
-
-
-'''
 CLUSTERS_PATH = "/clusters"
 SERVICES_PATH = "/clusters/%s/services"
 SERVICE_PATH = "/clusters/%s/services/%s"
-
-
+HOSTS_PATH = "/hosts"
+CLUSTER_HOSTS_PATH = "/clusters/%s/hosts"
+CLUSTER_HOST_PATH = "/clusters/%s/hosts/%s"
+BOOTSTRAP_PATH="/bootstrap"

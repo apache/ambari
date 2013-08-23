@@ -14,27 +14,27 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from ambari_client.model import  service
-__docformat__ = "epytext"
-
-
-def get_service(resource_root, service_name, cluster_name="default"):
-  """
-  Get a service by service_name
-  @param resource_root: The root Resource .
-  @param service_name: Service service_name.
-  @param cluster_name: Cluster service_name.
-  @return: ServiceModel object.
-  """
-  return  service.get_service(resource_root, service_name, cluster_name)
+import logging
+from ambari_client.model.base_model import  BaseModel 
+from ambari_client.model.utils import retain_self_helper
+from ambari_client.model.paths import BOOTSTRAP_PATH
+LOG = logging.getLogger(__name__)
 
 
 
-def get_all_services(resource_root, cluster_name="default"):
-  """
-  Get all services.
-  @param resource_root: The root Resource.
-  @param cluster_name: Cluster name.
-  @return: A list of ServiceModel objects in ModelList.
-  """
-  return service.get_all_services(resource_root, cluster_name)
+
+class StatusModel(BaseModel):
+  RO_ATTR = ()
+  RW_ATTR = ('status','requestId')
+  REF_ATTR = ('cluster_name',)
+
+  def __init__(self, resource_root, status ,requestId=None):
+    #BaseModel.__init__(self, **locals())
+    retain_self_helper(**locals())
+
+  def __str__(self):
+    return "<<StatusModel>> = %s (requestId = %s)" % (self.status, self.requestId)
+
+  def get_request_path(self):
+    return BOOTSTRAP_PATH + '/' + self.requestId
+

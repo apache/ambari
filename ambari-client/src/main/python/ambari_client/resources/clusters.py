@@ -14,12 +14,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-'''
 
-
-
-'''
-  
 from ambari_client.model import  cluster
 __docformat__ = "epytext"
 
@@ -42,3 +37,42 @@ def get_all_clusters(root_resource):
   @return: A list of ClusterModel objects in ModelList.
   """
   return cluster.get_all_clusters(root_resource)
+
+ 
+def create_cluster(root_resource, cluster_name, version):
+  """
+  Create a cluster
+  @param root_resource: The root Resource.
+  @param cluster_name: Cluster cluster_name
+  @param version: HDP version
+  @return: An ClusterModel object
+  """
+  return cluster.create_cluster(root_resource, cluster_name, version)
+  
+  
+def delete_cluster(root_resource, cluster_name):
+  """
+  Create a cluster
+  @param root_resource: The root Resource.
+  @param cluster_name: Cluster cluster_name
+  """
+  return cluster.delete_cluster(root_resource, cluster_name)
+ 
+def create_cluster(root_resource, cluster_name, version):
+  """
+  Create a cluster
+  @param root_resource: The root Resource.
+  @param cluster_name: Cluster cluster_name
+  @param version: HDP version
+  @return: An ClusterModel object
+  """
+  return cluster.create_cluster(root_resource, cluster_name, version)
+  
+  
+def delete_cluster(root_resource, cluster_name):
+  """
+  Create a cluster
+  @param root_resource: The root Resource.
+  @param cluster_name: Cluster cluster_name
+  """
+  return cluster.delete_cluster(root_resource, cluster_name)

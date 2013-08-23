@@ -14,15 +14,12 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-'''
 
-
-
-'''
 import logging
+import time
 from ambari_client.model.base_model import  BaseModel 
 from ambari_client.model.paths import CLUSTERS_PATH 
-from ambari_client.model import service
+from ambari_client.model import service ,host
 from ambari_client.model.utils import ModelUtils ,retain_self_helper
 
 
@@ -50,8 +47,30 @@ def get_all_clusters(root_resource, details=None):
 
 
 
+def create_cluster(root_resource, cluster_name, version):
+  """
+  Create a cluster
+  @param root_resource: The root Resource.
+  @param cluster_name: Cluster cluster_name
+  @param version: HDP version
+  @return: An ClusterModel object
+  """
+  data={"Clusters":{"version":str(version)}}
+  cluster = ClusterModel(root_resource, cluster_name, version)
+  path = CLUSTERS_PATH+"/%s" % (cluster_name)
+  root_resource.post(path=path , payload=data)
+  return get_cluster(root_resource, cluster_name)
 
-    
+def delete_cluster(root_resource, cluster_name):
+  """
+  Delete a cluster by name
+  @param root_resource: The root Resource object.
+  @param name: Cluster name
+  """
+  root_resource.delete("%s/%s" % (CLUSTERS_PATH, cluster_name))
+  time.sleep(3)
+  return None
+
     
 class ClusterModel(BaseModel):
 
@@ -82,7 +101,20 @@ class ClusterModel(BaseModel):
     """
     return service.get_all_services(self._get_resource_root(), self.cluster_name)
 
+  def get_all_hosts(self, detail = None):
+    """
+    Get all hosts in this cluster.
+    @return: A list of HostModel objects.
+    """
+    return host.get_all_cluster_hosts(self._get_resource_root(), self.cluster_name)
 
+
+  def get_host(self, hostname , detail = None):
+    """
+    Get a specific hosts in this cluster.
+    @return: A HostModel object.
+    """
+    return host.get_host(self._get_resource_root(), self.cluster_name, hostname)
 
 class ClusterModelRef(BaseModel):
   RW_ATTR = ('cluster_name',)

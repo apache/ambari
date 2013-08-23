@@ -14,15 +14,11 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-'''
 
-
-
-'''
 import logging
-from ambari_client.http_client import HttpClient
-from ambari_client.resources import  clusters
-from ambari_client.rest_resource import RestResource
+from ambari_client.core.http_client import HttpClient
+from ambari_client.resources import  clusters ,hosts
+from ambari_client.core.rest_resource import RestResource
 
 __docformat__ = "epytext"
 
@@ -78,6 +74,9 @@ class AmbariClient(RestResource):
     """
     return clusters.get_all_clusters(self)
 
+
+
+
   def get_cluster(self, cluster_name):
     """
     Get a cluster by cluster_name.
@@ -87,7 +86,51 @@ class AmbariClient(RestResource):
     """
     return clusters.get_cluster(self, cluster_name)
 
-  
+
+
+  def get_all_hosts(self):
+    """
+    Get all hosts
+    @return: A list of HostModel objects.
+    """
+    return hosts.get_all_hosts(self)
+
+
+  def get_request_status(self , request_path):
+    """
+    Get request status
+    @return: A  StatusModel object.
+    """
+    return "TODO"
+
+
+  def bootstrap_hosts(self , hosts_list ,ssh_key):
+    """
+    Bootstrap hosts.
+    @param hosts list of host_names.
+    @return: A  StatusModel object.
+    """
+    return hosts.bootstrap_hosts(self, hosts_list ,ssh_key)
+
+
+  def create_cluster(self, cluster_name, version):
+    """
+    Create a new cluster.
+    @param name Cluster name.
+    @param version HDP version.
+    @return  ClusterModel object.
+    """
+    return clusters.create_cluster(self, cluster_name, version)  
+
+
+
+  def delete_cluster(self ,cluster_name):
+    """
+    Create a cluster
+    @param root_resource: The root Resource.
+    @param cluster_name: Cluster cluster_name
+    """
+    return clusters.delete_cluster(self, cluster_name)
 
 
 

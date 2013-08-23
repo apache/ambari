@@ -14,11 +14,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-'''
 
-
-
-'''
 try:
   import json
 except ImportError:
@@ -68,10 +64,13 @@ class RestResource(object):
 
     LOG.debug ("RESPONSE from the REST request >>>>>>> \n"+str(resp) )
     LOG.debug ("\n===========================================================")
-    if not resp and code!=200:
-        raise Exception("Command '%s %s' failed" %(http_method, path))
+    #take care of REST calls with no response
+    if not resp and (code!=200 and code!=201):
+        raise Exception("Command '%s %s' failed with error %s" %(http_method, path,code))
+    if resp and (code==404 or code==405):
+        raise Exception("Command '%s %s' failed with error %s" %(http_method, path,code))
     try:
-        if code==200 and not resp:
+        if (code==200 or code==201) and not resp:
           return {}
         json_dict = json.loads(resp)
         return json_dict
@@ -101,4 +100,22 @@ class RestResource(object):
     return self.invoke("PUT", path, payload,self._set_headers(content_type))
 
 
+  def post(self, path=None, payload=None, content_type=None):
+    """
+    Invoke the POST method on a resource.
+    @param path: resource path
+    @param payload: Body of the request.
+    @param content_type: 
+    @return: A dictionary of the REST result.
+    """
+    return self.invoke("POST", path, payload,self._set_headers(content_type))
 
+
+  def delete(self, path=None, payload=None,):
+    """
+    Invoke the DELETE method on a resource.
+    @param path: resource path
+    @param payload: Body of the request.
+    @return: A dictionary of the REST result.
+    """
+    return self.invoke("DELETE", path, payload)

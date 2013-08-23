@@ -13,13 +13,9 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-'''
 
-
-
-'''
 import logging
-
+import time
 from ambari_client.model.base_model import  BaseModel 
 from ambari_client.model.paths import SERVICES_PATH ,SERVICE_PATH 
 from ambari_client.model.utils import ModelUtils ,retain_self_helper
@@ -39,18 +35,32 @@ def get_service(resource_root, service_name, cluster_name="default"):
   dic = resource_root.get(path)
   return ModelUtils.create_model(ServiceModel ,dic, resource_root,"ServiceInfo") 
 
+def create_service(root_resource, service_name, cluster_name):
+  """
+  Create a service
+  @param root_resource: The root Resource object.
+  @param service_name: Service service_name
+  @param cluster_name: Cluster service_name
+  @return: An ServiceModel object
+  """
+  data ={"ServiceInfo":{"service_name":str(service_name)}}
+  service = ServiceModel(root_resource, service_name,cluster_name)
+  path = SERVICE_PATH
+  root_resource.post(path=SERVICE_PATH , payload=data)
+  return get_service(root_resource, service_name, cluster_name)
+    
 
-    
-    
+   
     
 class ServiceModel(BaseModel):
   RO_ATTR = ('state',  'cluster_name')
   RW_ATTR = ('service_name', 'type')
   REF_ATTR = ('cluster_name',)
 
-  def __init__(self, resource_root, service_name):
+  def __init__(self, resource_root, service_name ):
     #BaseModel.__init__(self, **locals())
     retain_self_helper(**locals())
+
 
   def __str__(self):
     return "<<ServiceModel>> = %s (cluster_name = %s)" % (self.service_name, self._get_cluster_name())
