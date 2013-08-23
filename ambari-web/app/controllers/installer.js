@@ -81,14 +81,18 @@ App.InstallerController = App.WizardController.extend({
    */
   loadServices: function () {
     var servicesInfo = App.db.getService();
-    servicesInfo.forEach(function (item, index) {
-      servicesInfo[index] = Em.Object.create(item);
-      servicesInfo[index].isInstalled = false;
-    });
-    this.set('content.services', servicesInfo);
-    console.log('installerController.loadServices: loaded data ', JSON.stringify(servicesInfo));
-    console.log("The type odf serviceInfo: " + typeof servicesInfo);
-    console.log('selected services ', servicesInfo.filterProperty('isSelected', true).mapProperty('serviceName'));
+    if(servicesInfo && servicesInfo.length) {
+      servicesInfo.forEach(function (item, index) {
+        servicesInfo[index] = Em.Object.create(item);
+        servicesInfo[index].isInstalled = false;
+      });
+      this.set('content.services', servicesInfo);
+      console.log('installerController.loadServices: loaded data ', JSON.stringify(servicesInfo));
+      console.log("The type odf serviceInfo: " + typeof servicesInfo);
+      console.log('selected services ', servicesInfo.filterProperty('isSelected', true).mapProperty('serviceName'));
+    } else {
+      console.log("Failed to load Services");
+   }
   },
 
   stacks: [],
