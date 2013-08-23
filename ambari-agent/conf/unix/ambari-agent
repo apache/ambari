@@ -19,6 +19,20 @@
 
 # /etc/init.d/ambari-agent
 
+VERSION="${ambariVersion}"
+HASH="${buildNumber}"
+
+case "$1" in
+  --version)
+        echo -e $VERSION
+        exit 0
+        ;;
+  --hash)
+        echo -e $HASH
+        exit 0
+        ;;
+esac
+
 export PATH=/usr/lib/ambari-server/*:$PATH
 export AMBARI_CONF_DIR=/etc/ambari-server/conf:$PATH
 
