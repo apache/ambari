@@ -19,7 +19,7 @@ then
 fi
 
 getent group puppet >/dev/null || groupadd -r puppet
-getent passwd puppet >/dev/null || /usr/sbin/useradd -g puppet puppet
+getent passwd puppet >/dev/null || /usr/sbin/useradd -g puppet -M -d / puppet
 
 BAK=/etc/ambari-agent/conf/ambari-agent.ini.old
 ORIG=/etc/ambari-agent/conf/ambari-agent.ini
