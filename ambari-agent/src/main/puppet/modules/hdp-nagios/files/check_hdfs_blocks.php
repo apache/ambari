@@ -22,9 +22,9 @@
  * check_jmx -H hostaddress -p port -w 1% -c 1%
  */
 
-  $options = getopt ("h:p:w:c:");
+  $options = getopt ("h:p:w:c:s:");
   if (!array_key_exists('h', $options) || !array_key_exists('p', $options) || !array_key_exists('w', $options)
-      || !array_key_exists('c', $options)) {
+      || !array_key_exists('c', $options) || !array_key_exists('s', $options)) {
     usage();
     exit(3);
   }
@@ -33,9 +33,10 @@
   $port=$options['p'];
   $warn=$options['w']; $warn = preg_replace('/%$/', '', $warn);
   $crit=$options['c']; $crit = preg_replace('/%$/', '', $crit);
+  $nn_jmx_property=$options['s'];
 
   /* Get the json document */
-  $json_string = file_get_contents("http://".$host.":".$port."/jmx?qry=Hadoop:service=NameNode,name=FSNamesystemMetrics");
+  $json_string = file_get_contents("http://".$host.":".$port."/jmx?qry=Hadoop:service=NameNode,name=".$nn_jmx_property);
   $json_array = json_decode($json_string, true);
   $m_percent = 0;
   $c_percent = 0;
@@ -67,6 +68,6 @@
 
   /* print usage */
   function usage () {
-    echo "Usage: $0 -h <host> -p port -w <warn%> -c <crit%>\n";
+    echo "Usage: $0 -h <host> -p port -w <warn%> -c <crit%> -s <namenode bean name>\n";
   }
 ?>

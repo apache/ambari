@@ -275,7 +275,7 @@ define service {
         use                     hadoop-service
         service_description     HDFS::Blocks health
         servicegroups           HDFS
-        check_command           check_hdfs_blocks!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>!0%!0%
+        check_command           check_hdfs_blocks!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>!0%!0%!<%=scope.function_hdp_template_var("::hdp-nagios::params::nn_metrics_property")%>
         normal_check_interval   2
         retry_check_interval    1 
         max_check_attempts      1

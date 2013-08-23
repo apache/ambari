@@ -22,6 +22,12 @@ class hdp-nagios::params() inherits hdp::params
 {   
   $conf_dir = hdp_default("nagios_conf_dir","/etc/nagios")
 
+  if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
+    $nn_metrics_property = "FSNamesystem"
+  } else {
+    $nn_metrics_property = "FSNamesystemMetrics"
+  }
+
   if hdp_is_empty($hdp::params::services_names[httpd]) {
     hdp_fail("There is no service name for service httpd")
   } else {
