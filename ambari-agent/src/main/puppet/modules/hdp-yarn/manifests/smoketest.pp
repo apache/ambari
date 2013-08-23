@@ -48,7 +48,7 @@ define hdp-yarn::smoketest(
   $validateStatusFileName = "validateYarnComponentStatus.py"
   $validateStatusFilePath = "/tmp/$validateStatusFileName"
 
-  $validateStatusCmd = "python $validateStatusFilePath $component_type -p $component_address"
+  $validateStatusCmd = "$validateStatusFilePath $component_type -p $component_address"
 
     if ($security_enabled == true) {
          $smoke_cmd = "${kinit_cmd}  $validateStatusCmd"
