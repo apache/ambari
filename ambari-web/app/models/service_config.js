@@ -543,6 +543,29 @@ App.ServiceConfigProperty = Ember.Object.extend({
             isError = true;
           }
           break;
+        case 'host':
+          var hiveOozieHostNames = ['hive_hostname','hive_existing_mysql_host','hive_existing_oracle_host','hive_ambari_host',
+          'oozie_hostname','oozie_existing_mysql_host','oozie_existing_oracle_host','oozie_ambari_host']
+          if(hiveOozieHostNames.contains(this.get('name'))) {
+            if (validator.hasSpaces(value)) {
+              this.set('errorMessage', Em.I18n.t('host.spacesValidation'));
+              isError = true;
+            }
+          } else {
+            if (validator.isNotTrimmed(value)) {
+              this.set('errorMessage', Em.I18n.t('host.trimspacesValidation'));
+              isError = true;
+            }
+          }
+          break;
+        case 'advanced':
+          if(this.get('name')=='hive_jdbc_connection_url' || this.get('name')=='oozie_jdbc_connection_url') {
+            if (validator.isNotTrimmed(value)) {
+              this.set('errorMessage', Em.I18n.t('host.trimspacesValidation'));
+              isError = true;
+            }
+          }
+          break;
         case 'password':
           // retypedPassword is set by the retypePasswordView child view of App.ServiceConfigPasswordField
           if (value !== this.get('retypedPassword')) {

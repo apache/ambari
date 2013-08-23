@@ -90,11 +90,7 @@ App.AddSecurityController = App.WizardController.extend({
     var serviceConfigProperties = [];
     stepController.get('stepConfigs').forEach(function (_content) {
       _content.get('configs').forEach(function (_configProperties) {
-        var displayType = _configProperties.get('displayType');
-        if (displayType === 'directories' || displayType === 'directory') {
-          var value = _configProperties.get('value').trim().split(/\s+/g).join(',');
-          _configProperties.set('value', value);
-        }
+        _configProperties.set('value', App.config.trimProperty(_configProperties,true));
         var overrides = _configProperties.get('overrides');
         var overridesArray = [];
         if(overrides!=null){

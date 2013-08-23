@@ -857,6 +857,39 @@ App.config = Em.Object.create({
     }
     console.log('ERROR: textarea config - ' + complexConfigName + ' is missing');
     return configs;
+  },
+
+  /**
+   * trim trailing spaces for all properties.
+   * trim both trailing and leading spaces for host displayType and hive/oozie datebases url.
+   * for directory or directories displayType format string for further using.
+   * for password and values with spaces only do nothing.
+   * @param property
+   * @returns {*}
+   */
+  trimProperty: function(property, isEmberObject){
+    var displayType = (isEmberObject) ? property.get('displayType') : property.displayType;
+    var value = (isEmberObject) ? property.get('value') : property.value;
+    var rez;
+    switch (displayType){
+      case 'directories':
+      case 'directory':
+        rez = value.trim().split(/\s+/g).join(',');
+        break;
+      case 'host':
+        rez = value.trim();
+        break;
+      case 'advanced':
+        if(this.get('name')=='hive_jdbc_connection_url' || this.get('name')=='oozie_jdbc_connection_url') {
+          rez = value.trim();
+        }
+        break;
+      case 'password':
+        break;
+      default:
+        rez = value.toString().replace(/(\s+$)/g, '');
+    }
+    return (rez == '') ? value : rez;
   }
 
 });

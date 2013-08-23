@@ -89,11 +89,7 @@ App.WizardStep8Controller = Em.Controller.extend({
    */
   formatDirectories: function(){
     this.get('content.serviceConfigProperties').forEach(function(_configProperty){
-      var displayType = _configProperty.displayType;
-      if (displayType === 'directories' || displayType === 'directory') {
-        var value = _configProperty.value.trim().split(/\s+/g).join(',');
-        _configProperty.value = value;
-      }
+        _configProperty.value = App.config.trimProperty(_configProperty,false);
     });
   },
 

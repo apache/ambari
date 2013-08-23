@@ -199,6 +199,8 @@ Em.I18n.translations = {
   'graphs.timeRange.year': 'Last 1 year',
 
   'users.userName.validationFail': 'Only lowercase letters and numbers are allowed; must start with a letter',
+  'host.spacesValidation': 'Can\'t contain whitespaces',
+  'host.trimspacesValidation': 'Can\'t contain leading or trailing whitespaces',
 
   'services.nagios.description':'Nagios Monitoring and Alerting system',
   'services.ganglia.description':'Ganglia Metrics Collection system',

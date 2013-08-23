@@ -76,6 +76,15 @@ module.exports = {
     return regex.test(value);
   },
 
+  hasSpaces: function(value) {
+    var regex = /(\s+)/;
+    return regex.test(value);
+  },
+
+  isNotTrimmed: function(value) {
+    var regex = /(^\s+|\s+$)/;
+    return regex.test(value);
+  },
   /**
    * validate domain name with port
    * @param value
