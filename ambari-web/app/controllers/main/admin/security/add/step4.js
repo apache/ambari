@@ -366,7 +366,7 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
   loadGlobals: function () {
     var globals = this.get('content.serviceConfigProperties').filterProperty('id', 'puppet var');
     this.set('globalProperties', globals);
-    this.loadStaticGlobal(); //Hack for properties which are declared in config_properties.js and not able to retrieve values declared in secure_properties.js
+    this.loadStaticGlobal(); //Hack for properties which are declared in global_properties.js and not able to retrieve values declared in secure_properties.js
     this.loadUsersToGlobal();
     this.loadHostNamesToGlobal();
     this.loadPrimaryNamesToGlobals();

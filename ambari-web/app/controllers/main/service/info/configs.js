@@ -39,8 +39,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return App.config.get('configMapping');
   }.property('App.config.configMapping'),
   configs: function() {
-    return  App.config.get('preDefinedConfigProperties');
-  }.property('App.config.preDefinedConfigProperties'),
+    return  App.config.get('preDefinedGlobalProperties');
+  }.property('App.config.preDefinedGlobalProperties'),
 
   secureConfigs: require('data/secure_mapping'),
 
