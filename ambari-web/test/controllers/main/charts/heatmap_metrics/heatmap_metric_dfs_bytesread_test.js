@@ -16,25 +16,30 @@
  */
 
 var App = require('app');
+require('messages');
+require('controllers/main/charts/heatmap_metrics/heatmap_metric');
+require('controllers/main/charts/heatmap_metrics/heatmap_metric_dfs');
+require('controllers/main/charts/heatmap_metrics/heatmap_metric_dfs_bytesread');
 
-/**
- * Base class for any HDFS metric.
- */
-App.MainChartHeatmapHbaseMetrics = App.MainChartHeatmapMetric.extend({
-  metricUrlTemplate: "/clusters/{clusterName}/services/HBASE/components/HBASE_REGIONSERVER?fields=host_components/{metricName}",
+describe('App.MainChartHeatmapDFSBytesReadMetric', function () {
 
-  /**
-   * Custom mapper for HBase metrics
-   */
-  metricMapper: function(json) {
-    return this.metricMapperWithTransform(json, this.get('defaultMetric'), this.get('transformValue'));
-  },
+  var tests = [
+    {i: 0, e: 0},
+    {i: 0.5 * 1024* 1024, e: 0.5},
+    {i: 1024* 1024, e: 1},
+    {i: 10.5 * 1024 * 1024,e: 10.5}
+  ];
 
-  /**
-   * Utility function which allows extending classes to transform the value
-   * assigned to a host.
-   *
-   * @type Function
-   */
-  transformValue: null
+  describe('#transformValue()', function() {
+    var mainChartHeatmapDFSBytesReadMetric = App.MainChartHeatmapDFSBytesReadMetric.create();
+
+    tests.forEach(function(test) {
+      it(test.i + ' bytes to ' + test.e + ' MB', function() {
+        var r = mainChartHeatmapDFSBytesReadMetric.transformValue(test.i);
+        expect(r).to.eql(test.e);
+      });
+    });
+
+  });
+
 });

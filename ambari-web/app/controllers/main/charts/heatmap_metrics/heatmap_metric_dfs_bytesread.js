@@ -27,6 +27,6 @@ App.MainChartHeatmapDFSBytesReadMetric = App.MainChartHeatmapDFSMetrics.extend({
   units: 'MB',
   slotDefinitionLabelSuffix: 'MB',
   transformValue: function (value) {
-    return value / (1 << 6); // bytes divided by 1MB.
+    return value / (1024 * 1024); // bytes divided by 1MB.
   }
 });

@@ -26,38 +26,14 @@ App.MainChartHeatmapDFSMetrics = App.MainChartHeatmapMetric.extend({
   /**
    * Custom mapper for DFS metrics
    */
-  metricMapper: function (json) {
-    var hostToValueMap = {};
-    var metricName = this.get('defaultMetric');
-    if (json.host_components) {
-      var props = metricName.split('.');
-      transformValueFunction = this.get('transformValue');
-      json.host_components.forEach(function (hc) {
-        var value = hc;
-        props.forEach(function (prop) {
-          if (value != null && prop in value) {
-            value = value[prop];
-          } else {
-            value = null;
-          }
-        });
-        if (value != null) {
-          if (transformValueFunction) {
-            value = transformValueFunction(value);
-          }
-          var hostName = hc.HostRoles.host_name;
-          hostToValueMap[hostName] = value;
-        }
-      });
-    }
-    return hostToValueMap;
+  metricMapper: function(json) {
+    return this.metricMapperWithTransform(json, this.get('defaultMetric'), this.get('transformValue'));
   },
-
   /**
    * Utility function which allows extending classes to transform the value
    * assigned to a host.
    * 
    * @type Function
    */
-  tranformValue: null
+  transformValue: null
 });

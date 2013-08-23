@@ -18,6 +18,8 @@
 var App = require('app');
 var date = require('utils/date');
 
+var heatmap = require('utils/heatmap');
+
 /**
  * Base class for any heatmap metric.
  * 
@@ -30,7 +32,7 @@ var date = require('utils/date');
  * </ul>
  * 
  */
-App.MainChartHeatmapMetric = Em.Object.extend({
+App.MainChartHeatmapMetric = Em.Object.extend(heatmap.mappers, {
   /**
    * Name of this metric
    */
