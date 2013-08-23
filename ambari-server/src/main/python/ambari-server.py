@@ -2518,13 +2518,16 @@ def setup_ldap():
         SSL_TRUSTSTORE_TYPE_DEFAULT,
         "^(jks|jceks|pkcs12)?$", "Wrong type", False)
       ts_path = None
-      while not ts_path:
+      while True:
         ts_path = get_validated_string_input(
           "Path to TrustStore file {0}:".format(get_prompt_default(SSL_TRUSTSTORE_PATH_DEFAULT)),
           SSL_TRUSTSTORE_PATH_DEFAULT,
           ".*", False, False)
-        if not os.path.exists(ts_path):
+        if os.path.exists(ts_path):
+          break
+        else:
           print 'File not found.'
+
       ts_password = read_password("", ".*", "Password for TrustStore:", "Invalid characters in password")
 
       ldap_property_value_map[SSL_TRUSTSTORE_TYPE_PROPERTY] = ts_type

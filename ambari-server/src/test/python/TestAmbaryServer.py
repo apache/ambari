@@ -3595,7 +3595,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, 'search_file')
   @patch.object(ambari_server, 'get_ambari_properties')
   @patch.object(ambari_server, 'is_root')
-  def test_setup_ldap(self, is_root_method, get_ambari_properties_method,
+  @patch.object(ambari_server, 'read_password')
+  @patch("os.path.exists")
+  def test_setup_ldap(self, exists_method, read_password_method, is_root_method, get_ambari_properties_method,
                 search_file_message, setup_master_key_method,
                 get_validated_string_input_method,
                 configure_ldap_password_method, update_properties_method,
@@ -3603,6 +3605,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                 encrypt_password_method, get_is_secure_method):
     out = StringIO.StringIO()
     sys.stdout = out
+
 
     # Testing call under non-root
     is_root_method.return_value = False
@@ -3674,6 +3677,68 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(configure_ldap_password_method.called)
     self.assertTrue(get_validated_string_input_method.called)
     self.assertTrue(get_YN_input_method.called)
+
+    # truststore not found case
+
+    def os_path_exists(*args, **kwargs):
+      if "bogus" in args[0]:
+        return False
+      else:
+        return True
+      pass
+
+    def input_enable_ssl(*args, **kwargs):
+      if 'Bind anonymously' in args[0]:
+        return 'false'
+      if "SSL" in args[0]:
+        return "true"
+      if "Path to TrustStore file" in args[0]:
+        if input_enable_ssl.path_counter < 2:
+          input_enable_ssl.path_counter += 1
+          return "bogus"
+        else:
+          return "valid"
+      if args[1] == "true" or args[1] == "false":
+        return args[1]
+      else:
+        return "test"
+      pass
+
+    input_enable_ssl.path_counter = 0
+
+
+    exists_method.side_effect = os_path_exists
+    get_validated_string_input_method.side_effect = input_enable_ssl
+    read_password_method.return_value = "password"
+    get_YN_input_method.reset_mock()
+    get_YN_input_method.side_effect = [True, True]
+    update_properties_method.reset_mock()
+
+
+    ambari_server.setup_ldap()
+
+    self.assertTrue(read_password_method.called)
+
+    ldap_properties_map = \
+      {
+        "authentication.ldap.primaryUrl" : "test",
+        "authentication.ldap.secondaryUrl" : "test",
+        "authentication.ldap.useSSL" : "true",
+        "authentication.ldap.usernameAttribute" : "test",
+        "authentication.ldap.baseDn" : "test",
+        "authentication.ldap.bindAnonymously" : "false",
+        "authentication.ldap.managerDn" : "test",
+        "client.security" : "ldap",
+        "ssl.trustStore.type" : "test",
+        "ssl.trustStore.path" : "valid",
+        "ssl.trustStore.password" : "password",
+        ambari_server.LDAP_MGR_PASSWORD_PROPERTY : ambari_server.get_alias_string( \
+          ambari_server.LDAP_MGR_PASSWORD_ALIAS)
+      }
+
+    sorted_x = sorted(ldap_properties_map.iteritems(), key=operator.itemgetter(0))
+    sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
+                      key=operator.itemgetter(0))
 
     sys.stdout = sys.__stdout__
 
