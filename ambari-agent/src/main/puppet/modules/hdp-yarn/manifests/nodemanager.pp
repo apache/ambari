@@ -43,11 +43,16 @@ class hdp-yarn::nodemanager(
       service_state => $service_state
     }
 
-    hdp::directory_recursive_create { $nm_log_dirs: 
-      owner       => $yarn_user,
-      context_tag => 'yarn_service',
-      service_state => $service_state,
-      force => true
+    if ($nm_local_dirs != $nm_log_dirs) {
+      hdp::directory_recursive_create { $nm_log_dirs:
+        owner       => $yarn_user,
+        context_tag => 'yarn_service',
+        service_state => $service_state,
+        force => true
+      }
+      Hdp-yarn::Nodemanager::Create_nm_dirs<||> ->
+      Hdp::Directory_recursive_create[ $nm_log_dirs ] ->
+      Hdp-yarn::Service['nodemanager']
     }
 
     hdp-yarn::service{ 'nodemanager':
