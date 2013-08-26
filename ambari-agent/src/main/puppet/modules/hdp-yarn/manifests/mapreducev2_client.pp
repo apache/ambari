@@ -27,6 +27,8 @@ class hdp-yarn::mapreducev2_client(
   if ($service_state == 'no_op') {
   } elsif ($service_state in 'installed_and_configured') {
 
+    include hdp-yarn::initialize
+
     hdp-yarn::package{'hadoop-mapreduce-client':}
 
   }
