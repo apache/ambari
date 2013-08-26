@@ -18,16 +18,17 @@
 package org.apache.ambari.server.security.authorization;
 
 import com.google.inject.Inject;
+import java.util.List;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.security.ClientSecurityType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
 import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
 
@@ -76,8 +77,10 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
   private LdapAuthenticationProvider loadLdapAuthenticationProvider() {
     if (reloadLdapServerProperties()) {
       log.info("LDAP Properties changed - rebuilding Context");
-      DefaultSpringSecurityContextSource springSecurityContextSource =
-              new DefaultSpringSecurityContextSource(ldapServerProperties.get().getLdapUrls(), ldapServerProperties.get().getBaseDN());
+      LdapContextSource springSecurityContextSource = new LdapContextSource();
+      List<String> ldapUrls = ldapServerProperties.get().getLdapUrls();
+      springSecurityContextSource.setUrls(ldapUrls.toArray(new String[ldapUrls.size()]));
+      springSecurityContextSource.setBase(ldapServerProperties.get().getBaseDN());
 
       if (!ldapServerProperties.get().isAnonymousBind()) {
         springSecurityContextSource.setUserDn(ldapServerProperties.get().getManagerDn());
