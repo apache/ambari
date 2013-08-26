@@ -337,6 +337,13 @@ var configs = [
     "value": "<templateName[0]>",
     "filename": "yarn-site.xml"
   },
+  {
+    "name": "yarn.resourcemanager.hostname",
+    "templateName": ["rm_host"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "yarn-site.xml"
+  },
 /**********************************************mapred-site***************************************/
   {
     "name": "mapreduce.jobhistory.webapp.address",
@@ -432,6 +439,13 @@ var configs = [
   {
     "name": "mapreduce.tasktracker.healthchecker.script.path",
     "templateName": ["mapred_jobstatus_dir"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "mapred-site.xml"
+  },
+  {
+    "name": "mapreduce.fileoutputcommitter.marksuccessfuljobs",
+    "templateName": ["mapreduce_fileoutputcommitter_marksuccessfuljobs"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "mapred-site.xml"

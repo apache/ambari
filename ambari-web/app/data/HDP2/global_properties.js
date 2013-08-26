@@ -624,6 +624,18 @@ module.exports =
       "domain": "global",
       "category": "Advanced"
     },
+    {
+      "id": "puppet var",
+      "name": "mapreduce_fileoutputcommitter_marksuccessfuljobs",
+      "displayName": "mapreduce.fileoutputcommitter.marksuccessfuljobs",
+      "description": "Mark output directory on successful jobs",
+      "defaultValue": false,
+      "displayType": "checkbox",
+      "isReconfigurable": true,
+      "isVisible": true,
+      "serviceName": "MAPREDUCE2",
+      "category": "Advanced"
+    },
   /**********************************************YARN***************************************/
     {
       "id": "puppet var",
