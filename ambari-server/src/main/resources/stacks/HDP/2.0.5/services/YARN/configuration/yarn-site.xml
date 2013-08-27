@@ -231,7 +231,7 @@
 
   <property>
     <name>yarn.nodemanager.delete.debug-delay-sec</name>
-    <value>36000</value>
+    <value>0</value>
     <description>
       Number of seconds after an application finishes before the nodemanager's
       DeletionService will delete the application's localized file directory
