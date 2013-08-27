@@ -35,6 +35,7 @@ App.InstallerController = App.WizardController.extend({
     serviceConfigProperties: null,
     advancedServiceConfig: null,
     slaveGroupProperties: null,
+    stacks: null,
     controllerName: 'installerController'
   }),
 
@@ -45,6 +46,16 @@ App.InstallerController = App.WizardController.extend({
       step: 0,
       value: false
     }));
+  },
+  /**
+   * redefined connectOutlet method to avoid view loading by unauthorized user
+   * @param view
+   * @param content
+   */
+  connectOutlet: function(view, content) {
+    if(App.db.getAuthenticated()) {
+      this._super(view, content);
+    }
   },
 
   getCluster: function(){
