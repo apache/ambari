@@ -911,6 +911,7 @@ App.config = Em.Object.create({
   trimProperty: function(property, isEmberObject){
     var displayType = (isEmberObject) ? property.get('displayType') : property.displayType;
     var value = (isEmberObject) ? property.get('value') : property.value;
+    var name = (isEmberObject) ? property.get('name') : property.name;
     var rez;
     switch (displayType){
       case 'directories':
@@ -921,7 +922,7 @@ App.config = Em.Object.create({
         rez = value.trim();
         break;
       case 'advanced':
-        if(this.get('name')=='hive_jdbc_connection_url' || this.get('name')=='oozie_jdbc_connection_url') {
+        if(name == 'hive_jdbc_connection_url' || name == 'oozie_jdbc_connection_url') {
           rez = value.trim();
         }
         break;
@@ -930,7 +931,7 @@ App.config = Em.Object.create({
       default:
         rez = (value instanceof String) ? value.replace(/(\s+$)/g, '') : value;
     }
-    return (rez == '') ? value : rez;
+    return ((rez == '') || (rez == undefined)) ? value : rez;
   }
 
 });
