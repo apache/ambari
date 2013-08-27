@@ -22,10 +22,13 @@
 require 'set'
 module Puppet::Parser::Functions
   newfunction(:hdp_set_from_comma_list, :type => :rvalue) do |args|
-    list = function_hdp_array_from_comma_list(args)
+    dir_list = args[0]
+    reject_items = args[1].nil? ? [] : function_hdp_array_from_comma_list(args[1])
+
+    list = function_hdp_array_from_comma_list(dir_list)
     list.each_index {|i| list [i]=list [i].strip}
     #Delete empty strings
-    list.reject! { |e| e.empty? }
+    list.reject! { |e| e.empty? or reject_items.include?(e) }
     list.uniq   
   end
 end

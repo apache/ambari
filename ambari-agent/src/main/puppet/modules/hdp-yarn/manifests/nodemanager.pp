@@ -26,6 +26,7 @@ class hdp-yarn::nodemanager(
   $yarn_user = $hdp-yarn::params::yarn_user
   $nm_local_dirs = $hdp-yarn::params::nm_local_dirs
   $nm_log_dirs = $hdp-yarn::params::nm_log_dirs
+  $yarn_log_dir_prefix = $hdp-yarn::params::yarn_log_dir_prefix
 
   if ($service_state == 'no_op') {
   } elsif ($service_state in 'installed_and_configured') {
@@ -39,20 +40,11 @@ class hdp-yarn::nodemanager(
 
     include hdp-yarn::initialize
 
-    hdp-yarn::nodemanager::create_nm_dirs { $nm_local_dirs:
-      service_state => $service_state
-    }
+    # To avoid duplicate resource definitions
+    $nm_dirs = hdp_set_from_comma_list("${nm_local_dirs},${nm_log_dirs}", "$yarn_log_dir_prefix")
 
-    if ($nm_local_dirs != $nm_log_dirs) {
-      hdp::directory_recursive_create { $nm_log_dirs:
-        owner       => $yarn_user,
-        context_tag => 'yarn_service',
-        service_state => $service_state,
-        force => true
-      }
-      Hdp-yarn::Nodemanager::Create_nm_dirs<||> ->
-      Hdp::Directory_recursive_create[ $nm_log_dirs ] ->
-      Hdp-yarn::Service['nodemanager']
+    hdp-yarn::nodemanager::create_nm_dirs { $nm_dirs:
+      service_state => $service_state
     }
 
     hdp-yarn::service{ 'nodemanager':
@@ -60,14 +52,16 @@ class hdp-yarn::nodemanager(
       user         => $yarn_user
     }
 
-    anchor{"hdp-yarn::nodemanager::begin":} ->
+    anchor{"hdp-yarn::nodemanager::begin" : } ->
     Hdp-yarn::Nodemanager::Create_nm_dirs<||> ->
-    Hdp-yarn::Service['nodemanager'] -> anchor{"hdp-yarn::nodemanager::end":}
+    Hdp-yarn::Service['nodemanager'] ->
+    anchor{"hdp-yarn::nodemanager::end": }
 
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
   }
 }
+
 
 define hdp-yarn::nodemanager::create_nm_dirs($service_state) {
   $dirs = hdp_array_from_comma_list($name)
