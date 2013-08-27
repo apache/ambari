@@ -1345,11 +1345,10 @@ def is_jdbc_user_changed(args):
   if previos_user and new_user:
     if previos_user != new_user:
       return True
-  else:
-    print_error_msg("Cannot find jdbc username in config file.")
-    return None
+    else:
+      return False
 
-  return False
+  return None
 
 # Store local database connection properties
 def store_local_properties(args):
@@ -1965,6 +1964,8 @@ def setup(args):
   #DB setup should be done last after doing any setup.
   
   if is_local_database(args):
+    #check if jdbc user is changed
+    is_user_changed = is_jdbc_user_changed(args)
 
     print 'Default properties detected. Using built-in database.'
     store_local_properties(args)
@@ -1981,7 +1982,7 @@ def setup(args):
       err = 'Running database init script was failed. Exiting.'
       raise FatalException(retcode, err)
 
-    if is_jdbc_user_changed(args):
+    if is_user_changed:
       #remove backup for pg_hba in order to reconfigure postgres
       remove_file(PG_HBA_CONF_FILE_BACKUP)
 
