@@ -34,6 +34,7 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   slaveComponentConfig: null,
   isSubmitDisabled: false,
+  isBackBtnDisabled: false,
   hasErrorOccurred: false,
   servicesInstalled: false,
   securityEnabled: false,
@@ -83,6 +84,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.loadClusterInfo();
     this.loadServices();
     this.set('isSubmitDisabled', false);
+    this.set('isBackBtnDisabled', false);
   },
   /**
    * replace whitespace character with coma between directories
@@ -831,6 +833,10 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   submitProceed: function() {
     this.set('isSubmitDisabled', true);
+    this.set('isBackBtnDisabled', true);
+    if (this.get('content.controllerName') == 'addHostController') {
+      App.router.get('addHostController').setLowerStepsDisable(4);
+    }
 
     // checkpoint the cluster status on the server so that the user can resume from where they left off
     switch (this.get('content.controllerName')) {
@@ -1710,6 +1716,8 @@ App.WizardStep8Controller = Em.Controller.extend({
       self.set('hasErrorOccurred', true);
       // an error will break the ajax call chain and allow submission again
       self.set('isSubmitDisabled', false);
+      self.set('isBackBtnDisabled', false);
+      App.router.get(self.get('content.controllerName')).setStepsEnable();
       self.get('ajaxQueue').clear();
       self.set('ajaxBusy', false);
     }

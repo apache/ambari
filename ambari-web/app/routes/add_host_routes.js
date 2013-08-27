@@ -199,7 +199,11 @@ module.exports = Em.Route.extend({
         controller.connectOutlet('wizardStep8', controller.get('content'));
       })
     },
-    back: Em.Router.transitionTo('step3'),
+    back: function(router){
+      if(!router.get('wizardStep8Controller.isBackBtnDisabled')) {
+        router.transitionTo('step3');
+      }
+    },
     next: function (router) {
       var addHostController = router.get('addHostController');
       var wizardStep8Controller = router.get('wizardStep8Controller');
