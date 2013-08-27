@@ -36,6 +36,7 @@ import org.apache.ambari.server.controller.AmbariServer;
 
 @Singleton
 public class BootStrapImpl {
+  public static final String DEV_VERSION = "${ambariVersion}";
   private File bootStrapDir;
   private String bootScript;
   private String bootSetupAgentScript;
@@ -64,6 +65,7 @@ public class BootStrapImpl {
         InetAddress.getLocalHost().getCanonicalHostName());
     this.clusterOsType = conf.getServerOsType();
     this.projectVersion = ambariMetaInfo.getServerVersion();
+    this.projectVersion = (this.projectVersion.equals(DEV_VERSION)) ? DEV_VERSION.replace("$", "") : this.projectVersion;
     this.serverPort = (conf.getApiSSLAuthentication())? conf.getClientSSLApiPort() : conf.getClientApiPort();
   }
 

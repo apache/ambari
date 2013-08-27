@@ -158,16 +158,16 @@ def main(argv=None):
   try:
     server_port = int(server_port)
   except (Exception), e:
-    server_port = 8080	 
-      
-  if projectVersion is None or projectVersion == "null":
-    projectVersion = ""
+    server_port = 8080
 
   checkServerReachability(hostname, server_port)
 
-  projectVersion = getOptimalVersion(projectVersion)
-  if projectVersion != "":
+  if projectVersion is None or projectVersion == "null":
+    projectVersion = getOptimalVersion("")
+  elif (projectVersion != "" and projectVersion != "{ambariVersion}"):
     projectVersion = "-" + projectVersion
+  elif projectVersion == "{ambariVersion}":
+    projectVersion = ""
 
   if is_suse():
     ret = installAgentSuse(projectVersion)

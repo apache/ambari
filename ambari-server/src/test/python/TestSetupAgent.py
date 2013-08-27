@@ -297,9 +297,17 @@ class TestSetupAgent(TestCase):
     runAgent_mock.return_value = 0
     setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","1.1.1","8080"))
     self.assertTrue(exit_mock.called)
+    self.assertFalse(getOptimalVersion_mock.called)
     exit_mock.reset()
+    getOptimalVersion_mock.reset()
+    setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","{ambariVersion}","8080"))
+    self.assertFalse(getOptimalVersion_mock.called)
+    self.assertTrue(exit_mock.called)
+    exit_mock.reset()
+    getOptimalVersion_mock.reset()
     setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","null","8080"))
     self.assertTrue(exit_mock.called)
+    self.assertTrue(getOptimalVersion_mock.called)
     exit_mock.reset()
     is_suse_mock.return_value = False
     setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","null","null"))

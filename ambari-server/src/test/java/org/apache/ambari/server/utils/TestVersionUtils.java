@@ -18,6 +18,7 @@
 package org.apache.ambari.server.utils;
 
 import junit.framework.Assert;
+import org.apache.ambari.server.bootstrap.BootStrapImpl;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -34,6 +35,9 @@ public class TestVersionUtils {
     Assert.assertTrue(VersionUtils.areVersionsEqual("1.2.3", "1.2.3", true));
     Assert.assertTrue(VersionUtils.areVersionsEqual("", "", true));
     Assert.assertTrue(VersionUtils.areVersionsEqual(null, null, true));
+    Assert.assertTrue(VersionUtils.areVersionsEqual(BootStrapImpl.DEV_VERSION, "1.2.3", false));
+    Assert.assertTrue(VersionUtils.areVersionsEqual(BootStrapImpl.DEV_VERSION, "", true));
+    Assert.assertTrue(VersionUtils.areVersionsEqual(BootStrapImpl.DEV_VERSION, null, true));
 
     Assert.assertFalse(VersionUtils.areVersionsEqual("1.2.3.1", "1.2.3", false));
     Assert.assertFalse(VersionUtils.areVersionsEqual("2.1.3", "1.2.3", false));

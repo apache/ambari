@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.utils;
 
+import org.apache.ambari.server.bootstrap.BootStrapImpl;
+
 /**
  * Provides various utility functions to be used for version handling.
  * The compatibility matrix between server, agent, store can also be maintained
@@ -44,6 +46,9 @@ public class VersionUtils {
       throw new IllegalArgumentException("maxLengthToCompare cannot be less than 0");
     }
 
+    
+    if(BootStrapImpl.DEV_VERSION.equals(version1.trim())) return 0;
+    
     String[] version1Parts = version1.split("\\.");
     String[] version2Parts = version2.split("\\.");
 
@@ -75,6 +80,7 @@ public class VersionUtils {
    */
   public static int compareVersions(String version1, String version2, boolean allowEmptyVersions) {
     if (allowEmptyVersions) {
+      if (version1 != null && version1.equals(BootStrapImpl.DEV_VERSION)) return 0;
       if (version1 == null && version2 == null) {
         return 0;
       } else {
