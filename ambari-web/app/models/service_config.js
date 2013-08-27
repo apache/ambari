@@ -289,6 +289,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'dfs_data_dir':
       case 'dfs_datanode_data_dir':
       case 'yarn_nodemanager_local-dirs':
+      case 'yarn_nodemanager_log-dirs':
       case 'mapred_local_dir':
       case 'mapreduce_cluster_local_dir':
         this.unionAllMountPoints(!isOnlyFirstOneNeeded, localDB);
@@ -352,6 +353,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
           setOfHostNames.push(host.hostName);
         }, this);
         break;
+      case 'yarn_nodemanager_log-dirs':
       case 'yarn_nodemanager_local-dirs':
         temp = slaveComponentHostsInDB.findProperty('componentName', 'NODEMANAGER');
         temp.hosts.forEach(function (host) {

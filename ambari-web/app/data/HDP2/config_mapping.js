@@ -344,6 +344,13 @@ var configs = [
     "value": "<templateName[0]>",
     "filename": "yarn-site.xml"
   },
+  {
+    "name": "yarn.nodemanager.log-dirs",
+    "templateName": ["yarn_nodemanager_log-dirs"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "yarn-site.xml"
+  },
 /**********************************************mapred-site***************************************/
   {
     "name": "mapreduce.jobhistory.webapp.address",
