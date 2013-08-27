@@ -289,6 +289,13 @@ var configs = [
   },
 /**********************************************yarn-site***************************************/
   {
+    "name": "yarn.resourcemanager.hostname",
+    "templateName": ["rm_host"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "yarn-site.xml"
+  },
+  {
     "name": "yarn.resourcemanager.webapp.address",
     "templateName": ["rm_host"],
     "foreignKey": null,
@@ -333,13 +340,6 @@ var configs = [
   {
     "name": "yarn.nodemanager.local-dirs",
     "templateName": ["yarn_nodemanager_local-dirs"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "yarn-site.xml"
-  },
-  {
-    "name": "yarn.resourcemanager.hostname",
-    "templateName": ["rm_host"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "yarn-site.xml"
@@ -450,13 +450,7 @@ var configs = [
     "value": "<templateName[0]>",
     "filename": "mapred-site.xml"
   },
-  {
-    "name": "mapreduce.fileoutputcommitter.marksuccessfuljobs",
-    "templateName": ["mapreduce_fileoutputcommitter_marksuccessfuljobs"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
+
   /**********************************************hbase-site***************************************/
   {
     "name": "hbase.rootdir",
