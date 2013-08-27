@@ -24,7 +24,44 @@ var configGroupsByTag = [];
 var globalPropertyToServicesMap = null;
 
 App.config = Em.Object.create({
-
+  /**
+   * XML characters which should be escaped in values
+   * http://en.wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references#Predefined_entities_in_XML
+   */
+  xmlEscapeMap: {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': '&quot;',
+    "'": '&apos;'
+  },
+  xmlUnEscapeMap: {
+    "&amp;": "&",
+    "&lt;": "<",
+    "&gt;": ">",
+    "&quot;": '"',
+    "&apos;": "'"
+  },
+  
+  /**
+   * Since values end up in XML files (core-sit.xml, etc.), certain
+   * XML sensitive characters should be escaped. If not we will have
+   * an invalid XML document, and services will fail to start. 
+   * 
+   * Special characters in XML are defined at
+   * http://en.wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references#Predefined_entities_in_XML
+   */
+  escapeXMLCharacters: function(value) {
+    var self = this;
+    // To prevent double/triple replacing '&gt;' to '&gt;gt;' to '&gt;gt;gt', we need
+    // to first unescape all XML chars, and then escape them again.
+    var newValue = String(value).replace(/(&amp;|&lt;|&gt;|&quot;|&apos;)/g, function (s) {
+      return self.xmlUnEscapeMap[s];
+    });
+    return String(newValue).replace(/[&<>"']/g, function (s) {
+      return self.xmlEscapeMap[s];
+    });
+  },
   preDefinedServiceConfigs: function(){
     var configs = this.get('preDefinedGlobalProperties');
     var services = [];

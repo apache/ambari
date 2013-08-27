@@ -1350,7 +1350,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         if (/_heapsize|_newsize|_maxnewsize$/.test(_globalSiteObj.name) && !heapsizeException.contains(_globalSiteObj.name)) {
           _globalSiteObj.value += "m";
         }
-        globalSiteProperties[_globalSiteObj.name] = _globalSiteObj.value;
+        globalSiteProperties[_globalSiteObj.name] = App.config.escapeXMLCharacters(_globalSiteObj.value);
         this.recordHostOverride(_globalSiteObj, 'global', tagName, this);
         //console.log("TRACE: name of the global property is: " + _globalSiteObj.name);
         //console.log("TRACE: value of the global property is: " + _globalSiteObj.value);
@@ -1424,7 +1424,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var coreSiteObj = this.get('uiConfigs').filterProperty('filename', 'core-site.xml');
     var coreSiteProperties = {};
     coreSiteObj.forEach(function (_coreSiteObj) {
-      coreSiteProperties[_coreSiteObj.name] = _coreSiteObj.value;
+      coreSiteProperties[_coreSiteObj.name] = App.config.escapeXMLCharacters(_coreSiteObj.value);
       this.recordHostOverride(_coreSiteObj, 'core-site', tagName, this);
     }, this);
     return {"type": "core-site", "tag": tagName, "properties": coreSiteProperties};
@@ -1445,12 +1445,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       siteObj = this.getHiveSiteObj(siteObj);
     }
     siteObj.forEach(function (_siteObj) {
-      siteProperties[_siteObj.name] = _siteObj.value;
+      siteProperties[_siteObj.name] = App.config.escapeXMLCharacters(_siteObj.value);
       this.recordHostOverride(_siteObj, siteName, tagName, this);
     }, this);
     return {"type": siteName, "tag": tagName, "properties": siteProperties};
   },
-
+  
   /**
    * create site object for Oozie
    * @param siteObj
