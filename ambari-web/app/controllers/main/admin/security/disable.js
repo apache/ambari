@@ -286,6 +286,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
       _tag.configs = data.items.findProperty('type', _tag.siteName).properties;
     }, this);
     if (this.removeSecureConfigs()) {
+      this.escapeXMLCharacters(this.get('serviceConfigTags'));
       this.applyConfigurationsToCluster();
     }
   },
@@ -355,6 +356,17 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
     }
   },
 
+  /*
+   Iterate over keys of all configurations and escape xml characters in their values
+   */
+  escapeXMLCharacters: function(serviceConfigTags) {
+    serviceConfigTags.forEach(function (_serviceConfigTags) {
+      var configs = _serviceConfigTags.configs;
+      for (var key in configs) {
+        configs[key] =  App.config.escapeXMLCharacters(configs[key]);
+      }
+    },this);
+  },
 
   removeSecureConfigs: function () {
     try {

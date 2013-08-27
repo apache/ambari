@@ -598,6 +598,7 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
       _tag.configs = data.items.findProperty('type', _tag.siteName).properties;
     }, this);
     if (this.addSecureConfigs()) {
+      this.escapeXMLCharacters(this.get('serviceConfigTags'));
       this.applyConfigurationsToCluster();
     }
   },
@@ -610,6 +611,18 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
     }
     console.log("TRACE: In error function for the getServiceConfigsFromServer call");
     console.log("TRACE: error code status is: " + request.status);
+  },
+
+  /*
+    Iterate over keys of all configurations and escape xml characters in their values
+   */
+  escapeXMLCharacters: function(serviceConfigTags) {
+    serviceConfigTags.forEach(function (_serviceConfigTags) {
+      var configs = _serviceConfigTags.configs;
+        for (var key in configs) {
+          configs[key] =  App.config.escapeXMLCharacters(configs[key]);
+        }
+    },this);
   },
 
   addSecureConfigs: function () {
