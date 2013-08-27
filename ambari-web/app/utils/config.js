@@ -928,7 +928,7 @@ App.config = Em.Object.create({
       case 'password':
         break;
       default:
-        rez = value.toString().replace(/(\s+$)/g, '');
+        rez = (value instanceof String) ? value.replace(/(\s+$)/g, '') : value;
     }
     return (rez == '') ? value : rez;
   }
