@@ -71,6 +71,7 @@ class TestHostCheckReportFileHandler(TestCase):
     configPath = os.path.join(os.path.dirname(tmpfile), HostCheckReportFileHandler.HOST_CHECK_FILE)
     configValidator.read(configPath)
     users = configValidator.get('users', 'usr_list')
+    users = configValidator.get('users', 'usr_homedir_list')
     self.assertEquals(users, '')
     names = configValidator.get('alternatives', 'symlink_list')
     targets = configValidator.get('alternatives', 'target_list')
@@ -124,7 +125,9 @@ class TestHostCheckReportFileHandler(TestCase):
     configPath = os.path.join(os.path.dirname(tmpfile), HostCheckReportFileHandler.HOST_CHECK_FILE)
     configValidator.read(configPath)
     users = configValidator.get('users', 'usr_list')
+    homedirs = configValidator.get('users', 'usr_homedir_list')
     self.assertEquals(users, 'user1')
+    self.assertEquals(homedirs, '/var/log')
 
     names = configValidator.get('alternatives', 'symlink_list')
     targets = configValidator.get('alternatives', 'target_list')

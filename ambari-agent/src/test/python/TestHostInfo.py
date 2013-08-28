@@ -196,18 +196,6 @@ class TestHostInfo(TestCase):
     packageAnalyzer.allInstalledPackages(installedPackages)
     self.assertEqual(installedPackages, [])
 
-  @patch('os.path.exists')
-  def test_checkFoldersBasedOnNames(self, path_mock):
-    path_mock.return_value = True
-    hostInfo = HostInfo()
-    results = []
-    existingUsers = [{'name':'a1', 'homeDir':'/home/a1'}, {'name':'b1', 'homeDir':'/home/b1'}]
-    hostInfo.checkFoldersBasedOnNames(["/etc/conf", "/var/lib_", "/home/"], ["a1", "b1"], existingUsers, results)
-    self.assertEqual(4, len(results))
-    names = [i['name'] for i in results]
-    for item in ['/etc/confa1', '/var/lib_a1', '/etc/confb1', '/var/lib_b1']:
-      self.assertTrue(item in names)
-
 
   @patch('os.path.exists')
   def test_checkFolders(self, path_mock):

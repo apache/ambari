@@ -41,7 +41,8 @@ class HostInfo:
     "hadoop*", "hadoop", "hbase", "hcatalog", "hive", "ganglia", "nagios",
     "oozie", "sqoop", "hue", "zookeeper", "mapred", "hdfs", "flume",
     "ambari_qa", "hadoop_deploy", "rrdcached", "hcat", "ambari-qa",
-    "sqoop-ambari-qa", "sqoop-ambari_qa"
+    "sqoop-ambari-qa", "sqoop-ambari_qa", "webhcat", "hadoop-hdfs", "hadoop-yarn",
+    "hadoop-mapreduce"
   ]
 
   # List of live services checked for on the host, takes a map of plan strings
@@ -219,22 +220,6 @@ class HostInfo:
     except:
       pass
 
-  def checkFoldersBasedOnNames(self, basePaths, projectNames, existingUsers, dirs):
-    foldersToIgnore = []
-    for user in existingUsers:
-      foldersToIgnore.append(user['homeDir'])
-    try:
-      for dirName in basePaths:
-        for project in projectNames:
-          path = dirName.strip() + project.strip()
-          if not path in foldersToIgnore and os.path.exists(path):
-            obj = {}
-            obj['type'] = self.dirType(path)
-            obj['name'] = path
-            dirs.append(obj)
-    except:
-      pass
-
   def javaProcs(self, list):
     try:
       pids = [pid for pid in os.listdir('/proc') if pid.isdigit()]
@@ -321,7 +306,6 @@ class HostInfo:
 
       dirs = []
       self.checkFolders(self.DEFAULT_DIRS, self.DEFAULT_PROJECT_NAMES, existingUsers, dirs)
-      self.checkFoldersBasedOnNames(self.DIRNAME_PATTERNS, self.DEFAULT_PROJECT_NAMES, existingUsers, dirs)
       dict['stackFoldersAndFiles'] = dirs
 
       installedPackages = []

@@ -42,6 +42,7 @@ PROCESS_KEY = "proc_list"
 ALT_SECTION = "alternatives"
 ALT_KEYS = ["symlink_list", "target_list"]
 ALT_ERASE_CMD = "alternatives --remove {0} {1}"
+USER_HOMEDIR_SECTION = "usr_homedir"
 
 class TestHostCleanup(TestCase):
 
@@ -148,7 +149,7 @@ created = 2013-07-02 20:39:22.162757"""
                    REPO_SECTION:['abcd', 'pqrst'], DIR_SECTION:['abcd', 'pqrst'],
                    PROCESS_SECTION:['abcd', 'pqrst'],
                    ALT_SECTION:{ALT_KEYS[0]:['alt1','alt2'], ALT_KEYS[1]:[
-                     'dir1']}}
+                     'dir1']}, USER_HOMEDIR_SECTION:['decf']}
     get_os_type_method.return_value = 'redhat'
     find_repo_files_for_repos_method.return_value = ['abcd', 'pqrst']
 
@@ -160,7 +161,8 @@ created = 2013-07-02 20:39:22.162757"""
     self.assertTrue(do_erase_packages_method.called)
     self.assertTrue(do_kill_processes_method.called)
     self.assertTrue(do_erase_alternatives_method.called)
-    do_erase_dir_silent_method.assert_called_once_with(['abcd', 'pqrst'])
+    calls = [call(['decf']), call(['abcd', 'pqrst'])]
+    do_erase_dir_silent_method.assert_has_calls(calls)
     do_erase_packages_method.assert_called_once_with(['abcd', 'pqrst'])
     do_erase_files_silent_method.assert_called_once_with(['abcd', 'pqrst'])
     do_delete_users_method.assert_called_once_with(['abcd', 'pqrst'])
@@ -172,6 +174,8 @@ created = 2013-07-02 20:39:22.162757"""
     sys.stdout = sys.__stdout__
 
 
+  @patch.object(HostCleanup.HostCleanup, 'do_delete_by_owner')
+  @patch.object(HostCleanup.HostCleanup, 'get_user_ids')
   @patch.object(HostCleanup.HostCleanup, 'do_erase_alternatives')
   @patch.object(HostCleanup.HostCleanup, 'find_repo_files_for_repos')
   @patch.object(HostCleanup.HostCleanup, 'get_os_type')
@@ -184,7 +188,8 @@ created = 2013-07-02 20:39:22.162757"""
                       do_erase_dir_silent_method,
                       do_erase_files_silent_method, do_kill_processes_method,
                       get_os_type_method, find_repo_files_for_repos_method,
-                      do_erase_alternatives_method):
+                      do_erase_alternatives_method, get_user_ids_method,
+                      do_delete_by_owner_method):
 
     out = StringIO.StringIO()
     sys.stdout = out
@@ -198,6 +203,8 @@ created = 2013-07-02 20:39:22.162757"""
 
     self.hostcleanup.do_cleanup(propertyMap)
 
+    self.assertFalse(do_delete_by_owner_method.called)
+    self.assertFalse(get_user_ids_method.called)
     self.assertFalse(do_delete_users_method.called)
     self.assertTrue(do_erase_dir_silent_method.called)
     self.assertTrue(do_erase_files_silent_method.called)
@@ -235,12 +242,35 @@ created = 2013-07-02 20:39:22.162757"""
     self.assertFalse(do_erase_files_silent_method.called)
     self.assertFalse(do_erase_packages_method.called)
     self.assertTrue(do_kill_processes_method.called)
-    do_erase_dir_silent_method.assert_called_once_with(['abcd', 'pqrst'])
+    calls = [call(None), call(['abcd', 'pqrst'])]
+    do_erase_dir_silent_method.assert_has_calls(calls)
     do_delete_users_method.assert_called_once_with(['abcd', 'pqrst'])
     do_kill_processes_method.assert_called_once_with(['abcd', 'pqrst'])
 
     sys.stdout = sys.__stdout__
 
+  @patch.object(HostCleanup.HostCleanup, 'do_erase_dir_silent')
+  @patch("os.stat")
+  @patch("os.path.join")
+  @patch("os.listdir")
+  def test_do_delete_by_owner(self, listdir_mock, join_mock, stat_mock, do_erase_dir_silent_method):
+    listdir_mock.return_value = ["k", "j"]
+    join_mock.return_value = "path"
+    response = MagicMock()
+    response.st_uid = 1
+    stat_mock.return_value = response
+    self.hostcleanup.do_delete_by_owner([1, 2], ["a"])
+    self.assertTrue(do_erase_dir_silent_method.called)
+    calls = [call(["path"]), call(["path"])]
+    do_erase_dir_silent_method.assert_has_calls(calls)
+
+  @patch.object(HostCleanup.HostCleanup, 'run_os_command')
+  def test_do_delete_users(self, run_os_command_mock):
+    run_os_command_mock.return_value = (1, "", "")
+    self.hostcleanup.do_delete_users(["a", "b"])
+    self.assertTrue(run_os_command_mock.called)
+    calls = [call('userdel -rf a'), call('userdel -rf b'), call('groupdel hadoop')]
+    run_os_command_mock.assert_has_calls(calls)
 
   @patch("ConfigParser.RawConfigParser")
   @patch("__builtin__.open")

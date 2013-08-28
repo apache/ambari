@@ -30,6 +30,7 @@ import shlex
 import sys
 import datetime
 import AmbariConfig
+from pwd import getpwnam
 
 logger = logging.getLogger()
 configFile = "/etc/ambari-agent/conf/ambari-agent.ini"
@@ -37,6 +38,7 @@ configFile = "/etc/ambari-agent/conf/ambari-agent.ini"
 PACKAGE_ERASE_CMD_RHEL = "yum erase -y {0}"
 PACKAGE_ERASE_CMD_SUSE = "zypper -n -q remove {0}"
 USER_ERASE_CMD = "userdel -rf {0}"
+GROUP_ERASE_CMD = "groupdel {0}"
 PROC_KILL_CMD = "kill -9 {0}"
 ALT_DISP_CMD = "alternatives --display {0}"
 ALT_ERASE_CMD = "alternatives --remove {0} {1}"
@@ -51,6 +53,8 @@ PACKAGE_SECTION = "packages"
 PACKAGE_KEY = "pkg_list"
 USER_SECTION = "users"
 USER_KEY = "usr_list"
+USER_HOMEDIR_KEY = "usr_homedir_list"
+USER_HOMEDIR_SECTION = "usr_homedir"
 REPO_SECTION = "repositories"
 REPOS_KEY = "repo_list"
 DIR_SECTION = "directories"
@@ -59,6 +63,8 @@ PROCESS_SECTION = "processes"
 PROCESS_KEY = "proc_list"
 ALT_SECTION = "alternatives"
 ALT_KEYS = ["symlink_list", "target_list"]
+HADOOP_GROUP = "hadoop"
+FOLDER_LIST = ["/tmp"]
 
 # resources that should not be cleaned
 REPOSITORY_BLACK_LIST = ["ambari.repo"]
@@ -83,11 +89,14 @@ class HostCleanup:
     if argMap:
       packageList = argMap.get(PACKAGE_SECTION)
       userList = argMap.get(USER_SECTION)
+      homeDirList = argMap.get(USER_HOMEDIR_SECTION)
       dirList = argMap.get(DIR_SECTION)
       repoList = argMap.get(REPO_SECTION)
       procList = argMap.get(PROCESS_SECTION)
       alt_map = argMap.get(ALT_SECTION)
 
+      if userList and not USER_SECTION in SKIP_LIST:
+        userIds = self.get_user_ids(userList)
       if procList and not PROCESS_SECTION in SKIP_LIST:
         logger.info("\n" + "Killing pid's: " + str(procList) + "\n")
         self.do_kill_processes(procList)
@@ -97,6 +106,8 @@ class HostCleanup:
       if userList and not USER_SECTION in SKIP_LIST:
         logger.info("\n" + "Deleting users: " + str(userList))
         self.do_delete_users(userList)
+        self.do_erase_dir_silent(homeDirList)
+        self.do_delete_by_owner(userIds, FOLDER_LIST)
       if dirList and not DIR_SECTION in SKIP_LIST:
         logger.info("\n" + "Deleting directories: " + str(dirList))
         self.do_erase_dir_silent(dirList)
@@ -137,6 +148,12 @@ class HostCleanup:
         propertyMap[USER_SECTION] = config.get(USER_SECTION, USER_KEY).split(',')
     except:
       logger.warn("Cannot read user list: " + str(sys.exc_info()[0]))
+
+    try:
+      if config.has_option(USER_SECTION, USER_HOMEDIR_KEY):
+        propertyMap[USER_HOMEDIR_SECTION] = config.get(USER_SECTION, USER_HOMEDIR_KEY).split(',')
+    except:
+      logger.warn("Cannot read user homedir list: " + str(sys.exc_info()[0]))
 
     try:
       if config.has_option(REPO_SECTION, REPOS_KEY):
@@ -327,6 +344,34 @@ class HostCleanup:
           logger.info("File doesn't exists: " + path)
     return 0
 
+  def do_delete_group(self):
+    groupDelCommand = GROUP_ERASE_CMD.format(HADOOP_GROUP)
+    (returncode, stdoutdata, stderrdata) = self.run_os_command(groupDelCommand)
+    if returncode != 0:
+      logger.warn("Cannot delete group : " + HADOOP_GROUP + ", " + stderrdata)
+    else:
+      logger.info("Successfully deleted group: " + HADOOP_GROUP)
+
+  def do_delete_by_owner(self, userIds, folders):
+    for folder in folders:
+      for filename in os.listdir(folder):
+        fileToCheck = os.path.join(folder, filename)
+        stat = os.stat(fileToCheck)
+        if stat.st_uid in userIds:
+          self.do_erase_dir_silent([fileToCheck])
+          logger.info("Deleting file/folder: " + fileToCheck)
+
+  def get_user_ids(self, userList):
+    userIds = []
+    if userList:
+      for user in userList:
+        if user:
+          try:
+            userIds.append(getpwnam(user).pw_uid)
+          except Exception:
+            logger.warn("Cannot find user : " + user)
+    return userIds
+
   def do_delete_users(self, userList):
     if userList:
       for user in userList:
@@ -337,6 +382,7 @@ class HostCleanup:
             logger.warn("Cannot delete user : " + user + ", " + stderrdata)
           else:
             logger.info("Successfully deleted user: " + user)
+      self.do_delete_group()
     return 0
 
   def is_current_user_root(self):
@@ -401,7 +447,7 @@ def main():
     help="log file to store results.", metavar="FILE")
   parser.add_option("-k", "--skip", dest="skip",
     help="(packages|users|directories|repositories|processes|alternatives)." +\
-         " separator = ,")
+         " Use , as separator. Use empty string to clean all (by default users are skipped)")
 
   (options, args) = parser.parse_args()
   # set output file

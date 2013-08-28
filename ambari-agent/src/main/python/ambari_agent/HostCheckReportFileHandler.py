@@ -47,10 +47,13 @@ class HostCheckReportFileHandler:
 
       if 'existingUsers' in hostInfo.keys():
         items = []
+        items2 = []
         for itemDetail in hostInfo['existingUsers']:
           items.append(itemDetail['name'])
+          items2.append(itemDetail['homeDir'])
         config.add_section('users')
         config.set('users', 'usr_list', ','.join(items))
+        config.set('users', 'usr_homedir_list', ','.join(items2))
 
       if 'alternatives' in hostInfo.keys():
         items = []
