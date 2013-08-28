@@ -2755,7 +2755,7 @@ module.exports =
     {
       "id": "puppet var",
       "name": "user_group",
-      "displayName": "Group",
+      "displayName": "Hadoop Group",
       "description": "Group that the users specified above belong to",
       "defaultValue": "hadoop",
       "isReconfigurable": false,
