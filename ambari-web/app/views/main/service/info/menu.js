@@ -36,7 +36,7 @@ App.MainServiceInfoMenuView = Em.CollectionView.extend({
     $.each(this._childViews, function () {
       this.set('active', (document.URL.endsWith(this.get('content.routing')) ? "active" : ""));
     });
-  },
+  }.observes('App.router.location.lastSetURL'),
 
   deactivateChildViews: function() {
     $.each(this._childViews, function(){
