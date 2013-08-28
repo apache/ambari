@@ -28,6 +28,10 @@ App.clusterStatus = Ember.Object.create({
   wizardControllerName: null,
   localdb: null,
   key: 'CLUSTER_CURRENT_STATUS',
+  isInstalled: function(){
+    var notInstalledStates = ['CLUSTER_NOT_CREATED_1', 'CLUSTER_DEPLOY_PREP_2', 'CLUSTER_INSTALLING_3', 'SERVICE_STARTING_3'];
+    return !notInstalledStates.contains(this.get('clusterState'));
+  }.property('clusterState'),
   /**
    * get cluster data from server and update cluster status
    * @param isAsync: set this to true if the call is to be made asynchronously.  if unspecified, false is assumed

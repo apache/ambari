@@ -89,9 +89,11 @@ App.MainController = Em.Controller.extend({
 
     this.set('reloadTimeOut',
         setTimeout(function () {
-          location.reload()
+          if (App.clusterStatus.get('isInstalled')) {
+            location.reload();
+          }
         }, App.pageReloadTime)
     );
-  }.observes("App.router.location.lastSetURL")
+  }.observes("App.router.location.lastSetURL", "App.clusterStatus.isInstalled")
 
 })
