@@ -22,7 +22,45 @@ require('controllers/main/admin/misc_controller');
 
 App.HighAvailabilityWizardStep4Controller = Em.Controller.extend({
 
-  name:"highAvailabilityWizardStep4Controller"
+  name:"highAvailabilityWizardStep4Controller",
+
+  POLL_INTERVAL: 1000,
+
+  isNextEnabled: false,
+
+  pullCheckPointStatus: function () {
+    var hostName = this.get('content.masterComponentHosts').findProperty('isCurNameNode', true).hostName;
+    App.ajax.send({
+      name: 'admin.high_availability.getNnCheckPointStatus',
+      sender: this,
+      data: {
+        hostName: hostName
+      },
+      success: 'checkNnCheckPointStatus'
+    });
+  },
+
+  checkNnCheckPointStatus: function (data) {
+    var self = this;
+    var journalTransactionInfo =  $.parseJSON(data.metrics.dfs.namenode.JournalTransactionInfo);
+    journalTransactionInfo = parseInt(journalTransactionInfo.LastAppliedOrWrittenTxId) - parseInt(journalTransactionInfo.MostRecentCheckpointTxId);
+    if(journalTransactionInfo <= 1){
+      this.set("isNextEnabled", true);
+      return;
+    }
+
+    window.setTimeout(function () {
+      self.pullCheckPointStatus()
+    }, self.POLL_INTERVAL);
+  },
+
+  done: function () {
+    if (this.get('isNextEnabled')) {
+      App.router.send('next');
+    }
+  }
+
+
 
 })
 

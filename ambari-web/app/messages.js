@@ -687,6 +687,7 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step3.sn':'Existing Secondary NameNode on {0} will be disabled.',
   'admin.highAvailability.wizard.step3.jn':'JournalNode will be installed on following hosts:',
   'admin.highAvailability.wizard.step4.ckNotCreated':'Checkpoint not created yet',
+  'admin.highAvailability.wizard.step4.ckCreated':'Checkpoint created',
   'admin.highAvailability.wizard.step6.jsNoInit':'JournalNodes not initialized yet',
   'admin.highAvailability.wizard.step8.metaNoInit':'Metadata not initialized yet',
 

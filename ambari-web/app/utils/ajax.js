@@ -606,6 +606,11 @@ var urls = {
     'mock': '',
     'type': 'GET'
   },
+  'admin.high_availability.getNnCheckPointStatus': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/NAMENODE',
+    'mock': '',
+    'type': 'GET'
+  },
   'admin.high_availability.create_component': {
     'real': '/clusters/{clusterName}/hosts?Hosts/host_name={hostName}',
     'mock': '',
