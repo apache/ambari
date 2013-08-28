@@ -22,7 +22,14 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
 
   name:"highAvailabilityWizardStep9Controller",
 
-  commands: ['startSecondNameNode', 'installZKFC', 'startZKFC', 'startAllServices', 'deleteSNameNode'],
+  commands: ['startSecondNameNode', 'installZKFC', 'startZKFC', 'reconfigureHBase', 'startAllServices', 'deleteSNameNode'],
+
+  clearStep: function () {
+    this._super();
+    if (!App.Service.find().someProperty('serviceName', 'HBASE')) {
+      this.get('tasks').splice(this.get('tasks').findProperty('command', 'reconfigureHBase').get('id'), 1);
+    }
+  },
 
   startSecondNameNode: function () {
     var hostName = this.get('content.masterComponentHosts').findProperty('isAddNameNode', true).hostName;
@@ -46,6 +53,51 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
   startZKFC: function () {
     var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
     this.startComponent('ZKFC', hostName);
+  },
+
+  reconfigureHBase: function () {
+    this.loadConfigsTags();
+  },
+
+  loadConfigsTags: function () {
+    App.ajax.send({
+      name: 'config.tags',
+      sender: this,
+      success: 'onLoadConfigsTags',
+      error: 'onTaskError'
+    });
+  },
+
+  onLoadConfigsTags: function (data) {
+    var hbaseSiteTag = data.Clusters.desired_configs['hbase-site'].tag;
+    App.ajax.send({
+      name: 'admin.high_availability.load_hbase_configs',
+      sender: this,
+      data: {
+        hbaseSiteTag: hbaseSiteTag
+      },
+      success: 'onLoadConfigs',
+      error: 'onTaskError'
+    });
+  },
+
+  onLoadConfigs: function (data) {
+    var hbaseSiteProperties = data.items.findProperty('type', 'hbase-site').properties;
+    var nameServiceId = this.get('content.nameServiceId');
+
+    //hbase-site configs changes
+    hbaseSiteProperties['hbase.rootdir'] = hbaseSiteProperties['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + nameServiceId);
+
+    App.ajax.send({
+      name: 'admin.high_availability.save_configs',
+      sender: this,
+      data: {
+        siteName: 'hbase-site',
+        properties: hbaseSiteProperties
+      },
+      success: 'onTaskCompleted',
+      error: 'onTaskError'
+    });
   },
 
   startAllServices: function () {

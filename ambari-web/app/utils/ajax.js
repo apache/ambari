@@ -736,6 +736,11 @@ var urls = {
       }
     }
   },
+  'admin.high_availability.load_hbase_configs': {
+    'real': '/clusters/{clusterName}/configurations?type=hbase-site&tag={hbaseSiteTag}',
+    'mock': '',
+    'type': 'GET'
+  },
   'admin.high_availability.delete_snamenode': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/SECONDARY_NAMENODE',
     'mock': '',
