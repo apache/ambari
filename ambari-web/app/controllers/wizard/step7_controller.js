@@ -196,10 +196,27 @@ App.WizardStep7Controller = Em.Controller.extend({
 
   submit: function () {
     if (!this.get('isSubmitDisabled')) {
-      App.router.send('next');
+      if(!this.isGangliaPartitionGood()){
+        this.showRddWarningPopup();
+      } else {
+        App.router.send('next');
+      }
     }
-  }, 
-  
+  },
+
+  showRddWarningPopup: function() {
+    App.ModalPopup.show({
+      header: Em.I18n.t('installer.step7.popup.rddWarning.header').format(16),
+      body: Em.I18n.t('installer.step7.popup.rddWarning.body'),
+      onPrimary: function () {
+        this.hide();
+        App.router.send('next');
+      },
+      onSecondary: function () {
+        this.hide();
+      }
+    });
+  },
   /**
    * Provides service component name and display-name information for 
    * the current selected service. 
@@ -239,7 +256,27 @@ App.WizardStep7Controller = Em.Controller.extend({
     });
     return validComponents;
   }.property('content'),
-  
+
+  gangliaHostDiskInfo: function(){
+    var gangliaGarbageHost = this.get('content.masterComponentHosts').findProperty('component','GANGLIA_SERVER').hostName;
+    var gangliaPartition = this.get('content.hosts')[gangliaGarbageHost].disk_info;
+    return gangliaPartition;
+  }.property('content'),
+
+  isGangliaPartitionGood: function() {
+    var gangliaDiskInfo = this.get('gangliaHostDiskInfo');
+    var miscCoinfigs = this.get('stepConfigs').findProperty('serviceName','MISC').get('configs');
+    var rddDir = miscCoinfigs.findProperty('name', 'rrdcached_base_dir').value;
+    var available = 0;
+    gangliaDiskInfo.forEach(function(diskInfo) {
+      var mount = rddDir.indexOf(diskInfo.mountpoint);
+      if(mount==0 && diskInfo.mountpoint!="/") {
+        available = diskInfo.available;
+      }
+    });
+    available = (!available) ? gangliaDiskInfo.findProperty("mountpoint","/").available : available;
+    return available > (16*1024*1024) ? true : false;
+  },
 
   getAllHosts: function () {
     // Load hosts
