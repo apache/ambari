@@ -258,13 +258,16 @@ App.WizardStep7Controller = Em.Controller.extend({
   }.property('content'),
 
   gangliaHostDiskInfo: function(){
-    var gangliaGarbageHost = this.get('content.masterComponentHosts').findProperty('component','GANGLIA_SERVER').hostName;
+    var ganglia = this.get('content.masterComponentHosts').findProperty('component','GANGLIA_SERVER');
+    if(!ganglia) return false;
+    var gangliaGarbageHost = ganglia.hostName;
     var gangliaPartition = this.get('content.hosts')[gangliaGarbageHost].disk_info;
     return gangliaPartition;
   }.property('content'),
 
   isGangliaPartitionGood: function() {
     var gangliaDiskInfo = this.get('gangliaHostDiskInfo');
+    if(!gangliaDiskInfo) return true;
     var miscCoinfigs = this.get('stepConfigs').findProperty('serviceName','MISC').get('configs');
     var rddDir = miscCoinfigs.findProperty('name', 'rrdcached_base_dir').value;
     var available = 0;
