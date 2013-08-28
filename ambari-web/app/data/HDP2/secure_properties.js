@@ -163,7 +163,7 @@ module.exports =
       "category": "AMBARI"
     },
 
-    //HDFS
+  /**********************************************HDFS***************************************/
     {
       "id": "puppet var",
       "name": "namenode_host",
@@ -393,7 +393,8 @@ module.exports =
       "serviceName": "HDFS",
       "category": "General"
     },
-    //MAPREDUCE 2
+
+  /**********************************************MAPREDUCE2***************************************/
     {
       "id": "puppet var",
       "name": "jobhistoryserver_host",
@@ -435,7 +436,34 @@ module.exports =
       "category": "JobHistoryServer",
       "component": "HISTORYSERVER"
     },
-    //YARN
+    {
+      "id": "puppet var",
+      "name": "jobhistory_http_principal_name",
+      "displayName": "Web principal name",
+      "value": "",
+      "defaultValue": "HTTP/_HOST",
+      "description": "Principal name for spnego access to Job History Server. _HOST will get automatically replaced with actual hostname at an instance of Job History Server",
+      "displayType": "principal",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "MAPREDUCE2",
+      "category": "JobHistoryServer"
+    },
+    {
+      "id": "puppet var",
+      "name": "jobhistory_http_keytab",
+      "displayName": "Path to spnego keytab file",
+      "value": "",
+      "defaultValue": "/etc/security/keytabs/spnego.service.keytab",
+      "description": "Path to spnego keytab file for Job History Server",
+      "displayType": "directory",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "MAPREDUCE2",
+      "category": "JobHistoryServer"
+    },
+
+  /**********************************************YARN***************************************/
     {
       "id": "puppet var",
       "name": "resourcemanager_host",
@@ -476,6 +504,32 @@ module.exports =
       "serviceName": "YARN",
       "category": "ResourceManager",
       "component": "RESOURCEMANAGER"
+    },
+    {
+      "id": "puppet var",
+      "name": "resourcemanager_http_principal_name",
+      "displayName": "Web principal name",
+      "value": "",
+      "defaultValue": "HTTP/_HOST",
+      "description": "Principal name for spnego access to ResourceManager. _HOST will get automatically replaced with actual hostname at an instance of ResourceManager",
+      "displayType": "principal",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "YARN",
+      "category": "ResourceManager"
+    },
+    {
+      "id": "puppet var",
+      "name": "resourcemanager_http_keytab",
+      "displayName": "Path to spnego keytab file",
+      "value": "",
+      "defaultValue": "/etc/security/keytabs/spnego.service.keytab",
+      "description": "Path to spnego keytab file for ResourceManager",
+      "displayType": "directory",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "YARN",
+      "category": "ResourceManager"
     },
     {
       "id": "puppet var",
@@ -520,6 +574,32 @@ module.exports =
     },
     {
       "id": "puppet var",
+      "name": "nodemanager_http_principal_name",
+      "displayName": "Web principal name",
+      "value": "",
+      "defaultValue": "HTTP/_HOST",
+      "description": "Principal name for spnego access to NodeManager. _HOST will get automatically replaced with actual hostname at all instances of NodeManager",
+      "displayType": "principal",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "YARN",
+      "category": "NodeManager"
+    },
+    {
+      "id": "puppet var",
+      "name": "nodemanager_http_keytab",
+      "displayName": "Path to keytab file",
+      "value": "",
+      "defaultValue": "/etc/security/keytabs/spnego.service.keytab",
+      "description": "Path to spnego keytab file for NodeManager",
+      "displayType": "directory",
+      "isVisible": true,
+      "isOverridable": false,
+      "serviceName": "YARN",
+      "category": "NodeManager"
+    },
+    {
+      "id": "puppet var",
       "name": "yarn_nodemanager_container-executor_class",
       "displayName": "yarn.nodemanager.container-executor.class",
       "value": "",
@@ -532,7 +612,7 @@ module.exports =
       "category": "NodeManager"
     },
 
-    //WEBHCAT
+  /**********************************************WEBHCAT***************************************/
     {
       "id": "puppet var",
       "name": "webhcatserver_host",
@@ -572,7 +652,8 @@ module.exports =
       "serviceName": "WEBHCAT",
       "category": "WebHCat Server"
     },
-    //HBASE
+
+  /**********************************************HBASE***************************************/
     {
       "id": "puppet var",
       "name": "hbasemaster_host",
@@ -656,7 +737,7 @@ module.exports =
       "components": ["HBASE_REGIONSERVER"]
     },
 
-    //HIVE
+  /**********************************************HIVE***************************************/
     {
       "id": "puppet var",
       "name": "hive_metastore",
@@ -699,7 +780,7 @@ module.exports =
       "component": "HIVE_SERVER"
     },
 
-    //OOZIE
+  /**********************************************OOZIE***************************************/
     {
       "id": "puppet var",
       "name": "oozie_servername",
@@ -768,7 +849,7 @@ module.exports =
       "category": "Oozie Server"
     },
 
-    //ZooKeeper
+  /**********************************************ZOOKEEPER***************************************/
     {
       "id": "puppet var",
       "name": "zookeeperserver_hosts",
@@ -810,7 +891,8 @@ module.exports =
       "category": "ZooKeeper Server",
       "component": "ZOOKEEPER_SERVER"
     },
-    //NAGIOS
+
+  /**********************************************NAGIOS***************************************/
     {
       "id": "puppet var",
       "name": "nagios_server",

@@ -178,6 +178,22 @@ module.exports = [
     "serviceName": "MAPREDUCE2"
   },
   {
+    "name": "jobhistoryserver.webapp.spnego-principal",
+    "templateName": ["jobhistory_http_principal_name", "kerberos_domain"],
+    "foreignKey": null,
+    "value": "<templateName[0]>@<templateName[1]>",
+    "filename": "mapred-site.xml",
+    "serviceName": "MAPREDUCE2"
+  },
+  {
+    "name": "jobhistoryserver.webapp.spnego-keytab-file",
+    "templateName": ["jobhistory_http_keytab"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "mapred-site.xml",
+    "serviceName": "MAPREDUCE2"
+  },
+  {
     "name": "yarn.resourcemanager.principal",
     "templateName": ["resourcemanager_principal_name", "kerberos_domain"],
     "foreignKey": null,
@@ -204,6 +220,38 @@ module.exports = [
   {
     "name": "yarn.nodemanager.keytab",
     "templateName": ["nodemanager_keytab"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "yarn-site.xml",
+    "serviceName": "YARN"
+  },
+  {
+    "name": "yarn.resourcemanager.webapp.spnego-principal",
+    "templateName": ["resourcemanager_http_principal_name", "kerberos_domain"],
+    "foreignKey": null,
+    "value": "<templateName[0]>@<templateName[1]>",
+    "filename": "yarn-site.xml",
+    "serviceName": "YARN"
+  },
+  {
+    "name": "yarn.resourcemanager.webapp.spnego-keytab-file",
+    "templateName": ["resourcemanager_http_keytab"],
+    "foreignKey": null,
+    "value": "<templateName[0]>",
+    "filename": "yarn-site.xml",
+    "serviceName": "YARN"
+  },
+  {
+    "name": "yarn.nodemanager.webapp.spnego-principal",
+    "templateName": ["nodemanager_http_principal_name", "kerberos_domain"],
+    "foreignKey": null,
+    "value": "<templateName[0]>@<templateName[1]>",
+    "filename": "yarn-site.xml",
+    "serviceName": "YARN"
+  },
+  {
+    "name": "yarn.nodemanager.webapp.spnego-keytab-file",
+    "templateName": ["nodemanager_http_keytab"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "yarn-site.xml",

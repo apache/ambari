@@ -170,6 +170,10 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
           acl: '440'
         });
       }
+      this.setComponentConfig(result,host,'HISTORYSERVER','MAPREDUCE2','jobhistory_http_principal_name','jobhistory_http_keytab',Em.I18n.t('admin.addSecurity.historyServer.user.httpUser'),hadoopGroupId);
+      this.setComponentConfig(result,host,'RESOURCEMANAGER','YARN','resourcemanager_http_principal_name','resourcemanager_http_keytab',Em.I18n.t('admin.addSecurity.rm.user.httpUser'),hadoopGroupId);
+      this.setComponentConfig(result,host,'NODEMANAGER','YARN','nodemanager_http_principal_name','nodemanager_http_keytab',Em.I18n.t('admin.addSecurity.nm.user.httpUser'),hadoopGroupId);
+
       host.get('hostComponents').forEach(function(hostComponent){
         if(componentsToDisplay.contains(hostComponent.get('componentName'))){
           var serviceConfigs = configs.filterProperty('serviceName', hostComponent.get('service.serviceName'));
@@ -232,6 +236,25 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       securityUsers = App.router.get('mainAdminSecurityController').get('serviceUsers');
     }
     return securityUsers;
+  },
+
+  setComponentConfig: function(hostComponents,host,componentName,serviceName,principal,keytab,displayName,groupId) {
+    if (host.get('hostComponents').someProperty('componentName', componentName)) {
+      var result = {};
+      var configs = this.get('content.serviceConfigProperties');
+      var serviceConfigs = configs.filterProperty('serviceName', serviceName);
+      var servicePrincipal = serviceConfigs.findProperty('name', principal);
+      var serviceKeytabPath = serviceConfigs.findProperty('name', keytab).value;
+      result.host = host.get('hostName');
+      result.component = displayName;
+      result.principal = servicePrincipal.value.replace('_HOST', host.get('hostName').toLowerCase()) + servicePrincipal.unit;
+      result.keytabfile = stringUtils.getFileFromPath(serviceKeytabPath);
+      result.keytab = stringUtils.getPath(serviceKeytabPath);
+      result.owner = 'root';
+      result.group = groupId;
+      result.acl = '440';
+      hostComponents.push(result);
+    }
   },
 
   changeDisplayName: function (name) {

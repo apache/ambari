@@ -3,7 +3,7 @@
   "Clusters" : {
     "cluster_id" : 2,
     "cluster_name" : "c1",
-    "version" : "HDP-2.0.3",
+    "version" : "HDP-2.0.5",
     "desired_configs" : {
       "capacity-scheduler" : {
         "user" : "admin",

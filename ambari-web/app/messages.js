@@ -767,6 +767,9 @@ Em.I18n.translations = {
   'admin.addSecurity.user.hdfsUser': 'HDFS User',
   'admin.addSecurity.user.hbaseUser': 'HBase User',
   'admin.addSecurity.hdfs.user.httpUser': 'HDFS SPNEGO User',
+  'admin.addSecurity.rm.user.httpUser': 'ResourceManager SPNEGO User',
+  'admin.addSecurity.nm.user.httpUser': 'NodeManager SPNEGO User',
+  'admin.addSecurity.historyServer.user.httpUser': 'History server SPNEGO User',
   'admin.addSecurity.webhcat.user.httpUser': 'WebHCat SPNEGO User',
   'admin.addSecurity.oozie.user.httpUser': 'Oozie SPNEGO User',
   'admin.addSecurity.enable.onClose': 'You are in the process of enabling security on your cluster. ' +
