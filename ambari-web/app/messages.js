@@ -438,6 +438,8 @@ Em.I18n.translations = {
   'installer.step7.ConfigErrMsg.message':'Error in custom configuration. Some properties entered in the box are already exposed on this page',
   'installer.step7.popup.currentValue':'Current Value',
   'installer.step7.popup.adjustedValue':'Adjusted Value',
+  'installer.step7.popup.rddWarning.header':'Warning: disk space low on {0}',
+  'installer.step7.popup.rddWarning.body':'A minimum of 16GB is recommended for the Ganglia Server logs but the disk mount "{0}" on {1} does not have enough space ({2} free). Go to the Misc tab and change Ganglia rrdcached base directory with more than 16GB of disk space. If you proceed without changing it, {1} will likely run out of disk space and become inoperable.',
 
   'installer.step8.header':'Review',
   'installer.step8.body':'Please review the configuration before installation',
