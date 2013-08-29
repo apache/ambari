@@ -178,7 +178,7 @@ module.exports = [
     "serviceName": "MAPREDUCE2"
   },
   {
-    "name": "jobhistoryserver.webapp.spnego-principal",
+    "name": "mapreduce.jobhistory.webapp.spnego-principal",
     "templateName": ["jobhistory_http_principal_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
@@ -186,7 +186,7 @@ module.exports = [
     "serviceName": "MAPREDUCE2"
   },
   {
-    "name": "jobhistoryserver.webapp.spnego-keytab-file",
+    "name": "mapreduce.jobhistory.webapp.spnego-keytab-file",
     "templateName": ["jobhistory_http_keytab"],
     "foreignKey": null,
     "value": "<templateName[0]>",
