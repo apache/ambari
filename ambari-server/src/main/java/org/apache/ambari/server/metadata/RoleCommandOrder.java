@@ -93,10 +93,17 @@ public class RoleCommandOrder {
 
   public void initialize(Cluster cluster) {
     Boolean hasHCFS = false;
+    Boolean isHAEnabled = false;
     
     try {
       if (cluster != null && cluster.getService("HCFS") != null) {
     	  hasHCFS = true;
+      } 
+    } catch (AmbariException e) {
+    }
+    try {
+      if (cluster != null && cluster.getService("HDFS").getServiceComponent("JOURNALNODE") != null) {
+        isHAEnabled = true;
       } 
     } catch (AmbariException e) {
     }
@@ -113,6 +120,14 @@ public class RoleCommandOrder {
         RoleCommand.INSTALL);
 
       // Starts
+      if (isHAEnabled) {
+        addDependency(Role.NAMENODE, RoleCommand.START, Role.JOURNALNODE,
+            RoleCommand.START);
+        addDependency(Role.NAMENODE, RoleCommand.START, Role.ZOOKEEPER_SERVER,
+            RoleCommand.START);
+        addDependency(Role.ZKFC, RoleCommand.START, Role.NAMENODE,
+            RoleCommand.START);
+      }
       addDependency(Role.HBASE_MASTER, RoleCommand.START, Role.ZOOKEEPER_SERVER,
           RoleCommand.START);
       addDependency(Role.HBASE_MASTER, RoleCommand.START, Role.PEERSTATUS,
@@ -262,6 +277,16 @@ public class RoleCommandOrder {
         RoleCommand.INSTALL);
 
       // Starts
+      
+      if (isHAEnabled) {
+        addDependency(Role.NAMENODE, RoleCommand.START, Role.JOURNALNODE,
+            RoleCommand.START);
+        addDependency(Role.NAMENODE, RoleCommand.START, Role.ZOOKEEPER_SERVER,
+            RoleCommand.START);
+        addDependency(Role.ZKFC, RoleCommand.START, Role.NAMENODE,
+            RoleCommand.START);
+      }
+      
       addDependency(Role.SECONDARY_NAMENODE, RoleCommand.START, Role.NAMENODE,
         RoleCommand.START);
       addDependency(Role.RESOURCEMANAGER, RoleCommand.START, Role.NAMENODE,

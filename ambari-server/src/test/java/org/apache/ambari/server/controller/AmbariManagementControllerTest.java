@@ -107,7 +107,7 @@ public class AmbariManagementControllerTest {
   private static final String REPO_ID = "HDP-1.1.1.16";
   private static final String PROPERTY_NAME = "hbase.regionserver.msginterval";
   private static final String SERVICE_NAME = "HDFS";
-  private static final int STACK_VERSIONS_CNT = 6;
+  private static final int STACK_VERSIONS_CNT = 7;
   private static final int REPOS_CNT = 3;
   private static final int STACKS_CNT = 1;
   private static final int STACK_SERVICES_CNT = 5 ;

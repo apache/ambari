@@ -21,22 +21,20 @@ package org.apache.ambari.server.metadata;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import junit.framework.Assert;
+
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.stageplanner.RoleGraphNode;
 import org.junit.Test;
-import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
-import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
@@ -60,6 +58,7 @@ public class RoleGraphTest {
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterName("test_cluster1");
     clusterEntity.setClusterInfo("test_cluster_info1");
+    clusterEntity.setClusterId(1l);
 
     HostEntity host1 = new HostEntity();
     HostEntity host2 = new HostEntity();
@@ -92,6 +91,7 @@ public class RoleGraphTest {
     host2.setHostStateEntity(hostStateEntity2);
 
     ClusterServiceEntity clusterServiceEntity = new ClusterServiceEntity();
+        
     clusterServiceEntity.setServiceName("HDFS");
     clusterServiceEntity.setClusterEntity(clusterEntity);
     clusterServiceEntity.setServiceComponentDesiredStateEntities(
@@ -99,12 +99,14 @@ public class RoleGraphTest {
     clusterServiceEntity.setServiceConfigMappings(Collections.EMPTY_LIST);
     ServiceDesiredStateEntity stateEntity = mock(ServiceDesiredStateEntity.class);
     Gson gson = new Gson();
-    when(stateEntity.getDesiredStackVersion()).thenReturn(gson.toJson(new StackId("HDP-0.1"),
+    when(stateEntity.getDesiredStackVersion()).thenReturn(gson.toJson(new StackId("HDP-2.0.5"),
         StackId.class));
     clusterServiceEntity.setServiceDesiredStateEntity(stateEntity);
     List<ClusterServiceEntity> clusterServiceEntities = new ArrayList<ClusterServiceEntity>();
     clusterServiceEntities.add(clusterServiceEntity);
     clusterEntity.setClusterServiceEntities(clusterServiceEntities);
+    
+    
     return clusterEntity;
   }
 
@@ -199,5 +201,26 @@ public class RoleGraphTest {
     Assert.assertEquals(-1, rco.order(hs_start, mapred2_service_check));
     Assert.assertEquals(-1, rco.order(hs_start, mapred2_service_check));
     Assert.assertEquals(1, rco.order(nm_start, rm_start));
+    
+    //Non-HA mode
+    RoleGraphNode nn_start = new RoleGraphNode(Role.NAMENODE, RoleCommand.START);
+    RoleGraphNode jn_start = new RoleGraphNode(Role.JOURNALNODE, RoleCommand.START);
+    RoleGraphNode zk_server_start = new RoleGraphNode(Role.ZOOKEEPER_SERVER, RoleCommand.START);
+    RoleGraphNode zkfc_start = new RoleGraphNode(Role.ZKFC, RoleCommand.START);
+    
+    Assert.assertEquals(0, rco.order(nn_start, jn_start));
+    Assert.assertEquals(0, rco.order(nn_start, zk_server_start));
+    Assert.assertEquals(0, rco.order(zkfc_start, nn_start));
+    
+    //Enable HA for cluster
+    try {
+      cluster.getService("HDFS").addServiceComponent("JOURNALNODE");
+    } catch (AmbariException e) {
+      Assert.fail("Failed to add journal node for cluster.");
+    }
+    rco.initialize(cluster);
+    Assert.assertEquals(1, rco.order(nn_start, jn_start));
+    Assert.assertEquals(1, rco.order(nn_start, zk_server_start));
+    Assert.assertEquals(1, rco.order(zkfc_start, nn_start));
   }
 }
