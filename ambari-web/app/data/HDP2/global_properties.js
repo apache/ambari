@@ -2330,7 +2330,7 @@ module.exports =
     {
       "id": "puppet var",
       "name": "rrdcached_base_dir",
-      "displayName": "Ganglia rrdcached base directory",
+      "displayName": "Ganglia rrd cached base directory",
       "description": "Default directory for saving the rrd files on ganglia server",
       "defaultValue": "/var/lib/ganglia/rrds",
       "displayType": "directory",

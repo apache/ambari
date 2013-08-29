@@ -17,7 +17,7 @@
  */
 
 var App = require('app');
-var numberUtils = require('utils/number_utils');
+
 /**
  * By Step 7, we have the following information stored in App.db and set on this
  * controller by the router.
@@ -41,10 +41,6 @@ App.WizardStep7Controller = Em.Controller.extend({
   secureConfigs: require('data/secure_mapping'),
 
   miscModalVisible: false, //If miscConfigChange Modal is shown
-
-  gangliaAvailableSpace: null,
-
-  gangliaMoutDir:'/',
 
   isSubmitDisabled: function () {
     return (!this.stepConfigs.filterProperty('showConfig', true).everyProperty('errorCount', 0) || this.get("miscModalVisible"));
