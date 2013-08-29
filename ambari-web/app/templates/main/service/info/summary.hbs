@@ -41,10 +41,9 @@
         <table id="summary-info" class="table no-borders table-condensed">
           <tbody>
             {{#if view.noTemplateService}}
+              {{view view.sumMasterComponentView}}
               {{#each component in view.components}}
-                {{#if component.isMaster}}
-                 {{view view.sumMasterComponentView}}
-                {{else}}
+                {{#unless component.isMaster}}
                   <tr>
                     <td class="summary-label">{{component.displayName}}{{#if view.hasManyClients}}s{{/if}}</td>
                     <td>
@@ -55,7 +54,7 @@
                       </div>
                     </td>
                   </tr>
-                {{/if}}
+                {{/unless}}
               {{/each}}
             {{/if}}
             {{#if view.serviceStatus.hdfs}}
