@@ -130,6 +130,18 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
       case TaskAttempt:
         resourceDefinition = new TaskAttemptResourceDefinition();
         break;
+        
+      case RootService:
+        resourceDefinition = new RootServiceResourceDefinition();
+        break;
+        
+      case RootServiceComponent:
+        resourceDefinition = new RootServiceComponentResourceDefinition();
+        break;
+        
+      case RootServiceHostComponent:
+        resourceDefinition = new RootServiceHostComponentResourceDefinition();
+        break;
 
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);

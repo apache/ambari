@@ -145,6 +145,8 @@ public class AmbariManagementControllerImpl implements
   private HostsMap hostsMap;
   @Inject
   private Configuration configs;
+  @Inject
+  private AbstractRootServiceResponseFactory rootServiceResponseFactory;
 
   final private String masterHostname;
   final private Integer masterPort;
@@ -4624,5 +4626,79 @@ public class AmbariManagementControllerImpl implements
   private String getAuthName() {
     return AuthorizationHelper.getAuthenticatedName(configs.getAnonymousAuditName());
   }
-  
+
+  @Override
+  public Set<RootServiceResponse> getRootServices(
+      Set<RootServiceRequest> requests) throws AmbariException {
+    Set<RootServiceResponse> response = new HashSet<RootServiceResponse>();
+    for (RootServiceRequest request : requests) {
+      try {
+        response.addAll(getRootServices(request));
+      } catch (AmbariException e) {
+        if (requests.size() == 1) {
+          // only throw exception if 1 request.
+          // there will be > 1 request in case of OR predicate
+          throw e;
+        }
+      }
+    }
+    return response;
+  }
+
+  private Set<RootServiceResponse> getRootServices (RootServiceRequest request)
+      throws AmbariException{
+    Set<RootServiceResponse> response = this.rootServiceResponseFactory.getRootServices(request);
+    return response;
+  }
+
+  @Override
+  public Set<RootServiceComponentResponse> getRootServiceComponents(
+      Set<RootServiceComponentRequest> requests) throws AmbariException {
+    Set<RootServiceComponentResponse> response = new HashSet<RootServiceComponentResponse>();
+    for (RootServiceComponentRequest request : requests) {
+      try {
+        response.addAll(getRootServiceComponents(request));
+      } catch (AmbariException e) {
+        if (requests.size() == 1) {
+          // only throw exception if 1 request.
+          // there will be > 1 request in case of OR predicate
+          throw e;
+        }
+      }
+    }
+    return response;
+  }
+
+  private Set<RootServiceComponentResponse> getRootServiceComponents(
+      RootServiceComponentRequest request) throws AmbariException{
+    Set<RootServiceComponentResponse> response = this.rootServiceResponseFactory.getRootServiceComponents(request);
+    return response;
+  }
+
+  @Override
+  public Set<RootServiceHostComponentResponse> getRootServiceHostComponents(
+      Set<RootServiceHostComponentRequest> requests) throws AmbariException {
+    Set<RootServiceHostComponentResponse> response = new HashSet<RootServiceHostComponentResponse>();
+    for (RootServiceHostComponentRequest request : requests) {
+      try {
+        response.addAll(getRootServiceHostComponents(request));
+      } catch (AmbariException e) {
+        if (requests.size() == 1) {
+          // only throw exception if 1 request.
+          // there will be > 1 request in case of OR predicate
+          throw e;
+        }
+      }
+    }
+    return response;
+  }
+
+  private Set<RootServiceHostComponentResponse> getRootServiceHostComponents(RootServiceHostComponentRequest request) throws AmbariException{
+
+    //Get all hosts of all clusters
+    Set<HostResponse> hosts = getHosts(new HostRequest(request.getHostName(), null, null));
+    
+    Set<RootServiceHostComponentResponse> response = this.rootServiceResponseFactory.getRootServiceHostComponent(request, hosts);
+    return response;
+  }
 }

@@ -36,7 +36,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.Map.Entry;
 
 
@@ -77,6 +76,7 @@ public class Configuration {
   public static final String METADETA_DIR_PATH = "metadata.path";
   public static final String SERVER_VERSION_FILE = "server.version.file";
   public static final String SERVER_VERSION_KEY = "version";
+  public static final String JAVA_HOME_KEY = "java.home";
 
   public static final String CLIENT_SECURITY_KEY = "client.security";
   public static final String CLIENT_API_PORT_KEY = "client.api.port";
@@ -200,6 +200,8 @@ public class Configuration {
   private static final String PASSPHRASE_ENV_DEFAULT = "AMBARI_PASSPHRASE";
   private static final String RESOURCES_DIR_DEFAULT =
       "/var/share/ambari/resources/";
+  
+  public static final String JAVA_HOME_DEFAULT = "/usr/jdk64/jdk1.6.0_31";
 
   private static final String  ANONYMOUS_AUDIT_NAME_KEY = "anonymous.audit.name";
       
@@ -305,6 +307,8 @@ public class Configuration {
       CLIENT_API_SSL_KEY_NAME_KEY, CLIENT_API_SSL_KEY_NAME_DEFAULT));
     configsMap.put(CLIENT_API_SSL_CRT_NAME_KEY, properties.getProperty(
       CLIENT_API_SSL_CRT_NAME_KEY, CLIENT_API_SSL_CRT_NAME_DEFAULT));
+    configsMap.put(JAVA_HOME_KEY, properties.getProperty(
+        JAVA_HOME_KEY, JAVA_HOME_DEFAULT));
 
     File passFile = new File(configsMap.get(SRVR_KSTR_DIR_KEY) + File.separator
         + configsMap.get(SRVR_CRT_PASS_FILE_KEY));

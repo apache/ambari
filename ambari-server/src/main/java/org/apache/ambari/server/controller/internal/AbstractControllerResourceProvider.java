@@ -119,6 +119,12 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
         return new OperatingSystemResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Repository:
         return new RepositoryResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case RootService:
+        return new RootServiceResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case RootServiceComponent:
+        return new RootServiceComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case RootServiceHostComponent:
+        return new RootServiceHostComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
       default:
         throw new IllegalArgumentException("Unknown type " + type);
     }

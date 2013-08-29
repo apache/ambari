@@ -92,6 +92,9 @@ public interface Resource {
     DRInstance,
     Workflow,
     Job,
-    TaskAttempt
+    TaskAttempt,
+    RootService,
+    RootServiceComponent,
+    RootServiceHostComponent
   }
 }

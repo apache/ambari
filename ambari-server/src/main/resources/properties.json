@@ -238,5 +238,20 @@
         "TaskAttempt/output_bytes",
         "TaskAttempt/status",
         "TaskAttempt/locality"
+     ],
+     "RootService":[
+        "RootService/service_name"
+     ],
+    "RootServiceComponent":[
+        "RootServiceComponents/service_name",
+        "RootServiceComponents/component_name",
+        "RootServiceComponents/properties"
+     ],
+    "RootServiceHostComponent":[
+        "RootServiceHostComponents/service_name",
+        "RootServiceHostComponents/component_name",
+        "RootServiceHostComponents/host_name",
+        "RootServiceHostComponents/component_state",
+        "RootServiceHostComponents/properties"
      ]
 }

@@ -122,6 +122,8 @@ public class AmbariManagementControllerTest {
   
   private static final String REQUEST_CONTEXT_PROPERTY = "context";
 
+  private static final int CONFIG_MAP_CNT = 21;
+
   private AmbariManagementController controller;
   private Clusters clusters;
   private ActionDBAccessor actionDB;
@@ -6989,4 +6991,50 @@ public class AmbariManagementControllerTest {
 
   }
   
+  @Test
+  public void testGetRootServices() throws Exception {
+
+    RootServiceRequest request = new RootServiceRequest(null);
+    Set<RootServiceResponse> responses = controller.getRootServices(Collections.singleton(request));
+    Assert.assertEquals(RootServiceResponseFactory.Services.values().length, responses.size());
+
+    RootServiceRequest requestWithParams = new RootServiceRequest(RootServiceResponseFactory.Services.AMBARI.toString());
+    Set<RootServiceResponse> responsesWithParams = controller.getRootServices(Collections.singleton(requestWithParams));
+    Assert.assertEquals(1, responsesWithParams.size());
+    for (RootServiceResponse responseWithParams: responsesWithParams) {
+      Assert.assertEquals(responseWithParams.getServiceName(), RootServiceResponseFactory.Services.AMBARI.toString());
+    }
+
+    RootServiceRequest invalidRequest = new RootServiceRequest(NON_EXT_VALUE);
+    try {
+      controller.getRootServices(Collections.singleton(invalidRequest));
+    } catch (ObjectNotFoundException e) {
+      Assert.assertTrue(e instanceof ObjectNotFoundException);
+    }
+  }
+  
+  @Test
+  public void testGetRootServiceComponents() throws Exception {
+
+    RootServiceComponentRequest request = new RootServiceComponentRequest(RootServiceResponseFactory.Services.AMBARI.toString(), null);
+    Set<RootServiceComponentResponse> responses = controller.getRootServiceComponents(Collections.singleton(request));
+    Assert.assertEquals(RootServiceResponseFactory.Services.AMBARI.getComponents().length, responses.size());
+
+    RootServiceComponentRequest requestWithParams = new RootServiceComponentRequest(
+        RootServiceResponseFactory.Services.AMBARI.toString(),
+        RootServiceResponseFactory.Services.AMBARI.getComponents()[0].toString());
+    
+    Set<RootServiceComponentResponse> responsesWithParams = controller.getRootServiceComponents(Collections.singleton(requestWithParams));
+    Assert.assertEquals(1, responsesWithParams.size());
+    for (RootServiceComponentResponse responseWithParams: responsesWithParams) {
+      Assert.assertEquals(responseWithParams.getComponentName(), RootServiceResponseFactory.Services.AMBARI.getComponents()[0].toString());
+    }
+
+    RootServiceComponentRequest invalidRequest = new RootServiceComponentRequest(NON_EXT_VALUE, NON_EXT_VALUE);
+    try {
+      controller.getRootServiceComponents(Collections.singleton(invalidRequest));
+    } catch (ObjectNotFoundException e) {
+      Assert.assertTrue(e instanceof ObjectNotFoundException);
+    }
+  }
 }

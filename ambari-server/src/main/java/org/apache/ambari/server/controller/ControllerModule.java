@@ -81,6 +81,7 @@ public class ControllerModule extends AbstractModule {
     bindConstant().annotatedWith(Names.named("actionTimeout")).to(600000L);
     bind(AmbariManagementController.class)
         .to(AmbariManagementControllerImpl.class);
+    bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
     bind(HBaseMasterPortScanner.class).in(Singleton.class);
     bind(ServerActionManager.class).to(ServerActionManagerImpl.class);
   }

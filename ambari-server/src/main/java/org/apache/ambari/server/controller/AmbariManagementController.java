@@ -511,4 +511,38 @@ public interface AmbariManagementController {
    * @throws  AmbariException if the resources cannot be read
    */
   public Set<OperatingSystemResponse> getStackOperatingSystems(Set<OperatingSystemRequest> requests) throws AmbariException;
+
+  /**
+   * Get all top-level services of Ambari, not related to certain cluster.
+   * 
+   * @param requests the top-level services 
+   * 
+   * @return a set of top-level services 
+   * 
+   * @throws  AmbariException if the resources cannot be read
+   */
+  
+  public Set<RootServiceResponse> getRootServices(Set<RootServiceRequest> requests) throws AmbariException;
+  /**
+   * Get all components of top-level services of Ambari, not related to certain cluster.
+   * 
+   * @param requests the components of top-level services 
+   * 
+   * @return a set of components 
+   * 
+   * @throws  AmbariException if the resources cannot be read
+   */
+  public Set<RootServiceComponentResponse> getRootServiceComponents(Set<RootServiceComponentRequest> requests) throws AmbariException;
+
+  /**
+   * Get all hosts components of top-level services of Ambari, not related to certain cluster.
+   * 
+   * @param requests the host components of top-level services 
+   * 
+   * @return a set of host components 
+   * 
+   * @throws  AmbariException if the resources cannot be read
+   */
+  public Set<RootServiceHostComponentResponse> getRootServiceHostComponents(Set<RootServiceHostComponentRequest> requests) throws AmbariException;
 }
+  

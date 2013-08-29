@@ -87,5 +87,18 @@
   "DRInstance":{
     "DRFeed":"Instance/feedName",
     "DRInstance":"Instance/id"
+  },
+  "RootService":{
+    "RootService":"RootService/service_name"
+  },
+  "RootServiceComponent":{
+    "RootService":"RootServiceComponents/service_name",
+    "RootServiceComponent":"RootServiceComponents/component_name"
+  },
+  "RootServiceHostComponent":{
+    "RootService":"RootServiceHostComponents/service_name",
+    "Host":"RootServiceHostComponents/host_name",
+    "RootServiceComponent":"RootServiceHostComponents/component_name",
+    "RootServiceHostComponent":"RootServiceHostComponents/component_name"
   }
 }
