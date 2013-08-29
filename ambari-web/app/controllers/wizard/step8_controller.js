@@ -1024,7 +1024,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     var clusterName = this.get('clusterName');
     var url = App.apiPrefix + '/clusters/' + clusterName;
 
-    var stackVersion = (this.get('content.installOptions.localRepo')) ? App.defaultLocalStackVersion : App.currentStackVersion;
+    var stackVersion = (this.get('content.installOptions.localRepo')) ? App.currentStackVersion.replace(/(-\d+(\.\d)*)/ig, "Local$&") : App.currentStackVersion;
 
     this.ajax({
       type: 'POST',
