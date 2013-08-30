@@ -210,7 +210,7 @@ module.exports =
       "name": "snamenode_host",
       "displayName": "SNameNode host",
       "value": "",
-      "defaultValue": "",
+      "defaultValue": "localhost",
       "description": "The host that has been assigned to run SecondaryNameNode",
       "displayType": "masterHost",
       "isOverridable": false,

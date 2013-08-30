@@ -231,11 +231,14 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
       var namenodeHost = hdfsService.configs.findProperty('name', 'namenode_host');
       var sNamenodeHost = hdfsService.configs.findProperty('name', 'snamenode_host');
       var jnHosts = hdfsService.configs.findProperty('name', 'journalnode_hosts');
+      var snComponent = App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'SECONDARY_NAMENODE');
+      var jnComponent = App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'JOURNALNODE');
       if (namenodeHost && sNamenodeHost) {
         namenodeHost.defaultValue = App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'NAMENODE').get('host.hostName');
-        sNamenodeHost.defaultValue = App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'SECONDARY_NAMENODE').get('host.hostName');
       }
-      var jnComponent = App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'JOURNALNODE');
+      if(sNamenodeHost && snComponent) {
+        sNamenodeHost.defaultValue = snComponent.get('host.hostName');
+      }
       if(jnHosts && jnComponent) {
         this.setHostsToConfig(hdfsService, 'journalnode_hosts', 'JOURNALNODE');
       }
@@ -277,6 +280,9 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
           dfsHttpPrincipal.set('category','General');
           dfsHttpKeytab.set('category','General');
         }
+        hdfsProperties.filterProperty('category','SNameNode').forEach(function(_snConfig){
+          _snConfig.set('isVisible',false);
+        },this);
         var generalCategory = configCategories.findProperty('name','General');
         var snCategory = configCategories.findProperty('name','SNameNode');
         if(generalCategory) {
@@ -286,6 +292,9 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
           configCategories.removeObject(snCategory);
         }
       } else {
+        hdfsProperties.filterProperty('category','JournalNode').forEach(function(_jnConfig){
+          _jnConfig.set('isVisible',false);
+        },this);
         var jnCategory = configCategories.findProperty('name','JournalNode');
         if(jnCategory) {
           configCategories.removeObject(jnCategory);
