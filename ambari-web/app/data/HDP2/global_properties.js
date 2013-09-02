@@ -1262,7 +1262,7 @@ module.exports =
       "name": "hive_jdbc_connection_url",
       "displayName": "Database URL",
       "value": "",
-      "defaultValue": " ", // set to a space to not include this in initial error count
+      "defaultValue": "jdbc", // set to a 'jdbc' to not include this in initial error count
       "description": "The JDBC connection URL to the database",
       "displayType": "advanced",
       "isOverridable": false,
@@ -1594,7 +1594,7 @@ module.exports =
       "name": "oozie_jdbc_connection_url",
       "displayName": "Database URL",
       "description": "The JDBC connection URL to the database",
-      "defaultValue": " ",  // set to a space to not include this in initial error count
+      "defaultValue": "jdbc",  // set to a 'jdbc' to not include this in initial error count
       "isReconfigurable": true,
       "isOverridable": false,
       "displayType": "advanced",
