@@ -36,6 +36,14 @@ class hdp-yarn::nodemanager(
     ##Process package
     hdp-yarn::package{'yarn-nodemanager':}
 
+    hdp::configfile {"${hdp::params::limits_conf_dir}/mapreduce.conf":
+      component => 'yarn',
+      owner => 'root',
+      group => 'root',
+      mode => 644,
+      require => Hdp-yarn::Package['yarn-nodemanager']
+    }
+
   } elsif ($service_state in ['running','stopped']) {
 
     include hdp-yarn::initialize

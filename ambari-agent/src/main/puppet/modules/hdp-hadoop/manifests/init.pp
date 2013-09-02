@@ -241,6 +241,15 @@ class hdp-hadoop(
     
     hdp-hadoop::package { 'hadoop':}
 
+    #Replace limits config file
+    hdp::configfile {"${hdp::params::limits_conf_dir}/hdfs.conf":
+      component => 'hadoop',
+      owner => 'root',
+      group => 'root',
+      require => Hdp-hadoop::Package['hadoop'],
+      before  => Anchor['hdp-hadoop::end'],
+      mode => 644    
+    }
 
     hdp::directory_recursive_create { $hadoop_config_dir:
       service_state => $::service_state,

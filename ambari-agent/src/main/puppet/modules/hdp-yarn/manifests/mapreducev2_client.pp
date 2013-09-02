@@ -31,5 +31,13 @@ class hdp-yarn::mapreducev2_client(
 
     hdp-yarn::package{'hadoop-mapreduce-client':}
 
+    hdp::configfile {"${hdp::params::limits_conf_dir}/mapreduce.conf":
+      component => 'yarn',
+      owner => 'root',
+      group => 'root',
+      mode => 644,
+      require => Hdp-yarn::Package['hadoop-mapreduce-client']
+    }
+
   }
 }

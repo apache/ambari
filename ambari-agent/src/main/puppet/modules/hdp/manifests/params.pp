@@ -332,6 +332,9 @@ class hdp::params()
     $dfs_ha_enabled = false
   }
 
+  # Directory for limits configurations
+  $limits_conf_dir = "/etc/security/limits.d"
+
   $packages = 'bigtop' 
   if ($packages == 'hdp') {
     $mapred_smoke_test_script = "/usr/sbin/hadoop-validate-setup.sh"

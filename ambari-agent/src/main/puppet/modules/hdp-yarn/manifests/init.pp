@@ -28,6 +28,14 @@ class hdp-yarn::initialize()
   ##Process package
   hdp-yarn::package{'yarn-common':}
 
+  #Replace limits config file
+  hdp::configfile {"${hdp::params::limits_conf_dir}/yarn.conf":
+    component => 'yarn',
+    owner => 'root',
+    group => 'root',
+    mode => 644    
+  }
+
   # Create users
   hdp::user { 'yarn_mapred_user':
      user_name => $mapred_user
@@ -44,7 +52,7 @@ class hdp-yarn::initialize()
   #Generate common configs
   hdp-yarn::generate_common_configs{'yarn-common-configs':}
 
-  anchor{ 'hdp-yarn::initialize::begin': } Hdp::Package['yarn-common'] ->
+  anchor{ 'hdp-yarn::initialize::begin': } Hdp::Package['yarn-common'] -> Hdp::Configfile ["${hdp::params::limits_conf_dir}/yarn.conf"] ->
     Hdp::User<|title == 'yarn_hdfs_user' or title == 'yarn_mapred_user' or title == 'yarn_yarn_user'|> ->
       Hdp-yarn::Generate_common_configs['yarn-common-configs'] -> anchor{ 'hdp-yarn::initialize::end': }
 }
