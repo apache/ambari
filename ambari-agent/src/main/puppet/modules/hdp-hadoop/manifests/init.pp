@@ -268,10 +268,11 @@ class hdp-hadoop(
         owner => 'root'
     }
 
-    $dfs_domain_socket_path_dir = regsubst($hdp-hadoop::params::dfs_domain_socket_path, '/[^\/]+$', '')
+    $dfs_domain_socket_path_dir = hdp_get_directory_from_filepath($hdp-hadoop::params::dfs_domain_socket_path)
     hdp::directory_recursive_create { $dfs_domain_socket_path_dir:
       owner => $hdfs_user,
-      group => $hdp::params::user_group
+      group => $hdp::params::user_group,
+      mode  => '0644'
     }
  
     #taskcontroller.cfg properties conditional on security
