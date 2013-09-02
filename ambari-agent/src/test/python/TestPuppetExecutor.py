@@ -163,11 +163,13 @@ class TestPuppetExecutor(TestCase):
     stripped_string = string_err.strip()
     lines = stripped_string.splitlines(True)
     d = lines[1:6]
+    d = grep.cleanByTemplate("".join(d).strip(), "warning").splitlines(True)
     result_check = True
     for l in d:
       result_check &= grep.filterMarkup(l) in result
     self.assertEquals(result_check, True, "Failed to condence fail log")
-    self.assertEquals(len(result.splitlines(True)), 6, "Failed to condence fail log")
+    self.assertEquals(('warning' in result.lower()), False, "Failed to condence fail log")
+    self.assertEquals(len(result.splitlines(True)), 5, "Failed to condence fail log")
 
   def test_condense_bad3(self):
     puppetexecutor = PuppetExecutor("/tmp", "/x", "/y", "/z", AmbariConfig().getConfig())
@@ -179,11 +181,13 @@ class TestPuppetExecutor(TestCase):
     lines = stripped_string.splitlines(True)
     #sys.stderr.write(result)
     d = lines[0:31]
+    d = grep.cleanByTemplate("".join(d).strip(), "warning").splitlines(True)
     result_check = True
     for l in d:
       result_check &= grep.filterMarkup(l) in result
     self.assertEquals(result_check, True, "Failed to condence fail log")
-    self.assertEquals(len(result.splitlines(True)), 33, "Failed to condence fail log")
+    self.assertEquals(('warning' in result.lower()), False, "Failed to condence fail log")
+    self.assertEquals(len(result.splitlines(True)), 19, "Failed to condence fail log")
 
   def test_condense_good(self):
     puppetexecutor = PuppetExecutor("/tmp", "/x", "/y", "/z", AmbariConfig().getConfig())

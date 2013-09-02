@@ -114,8 +114,10 @@ class PuppetExecutor:
       result = grep.tail(stdout, grep.OUTPUT_LAST_LINES)
     else:
       result = grep.grep(stdout, "fail", grep.ERROR_LAST_LINES_BEFORE, grep.ERROR_LAST_LINES_AFTER)
+      result = grep.cleanByTemplate(result, "warning")
       if result is None: # Second try
        result = grep.grep(stdout, "err", grep.ERROR_LAST_LINES_BEFORE, grep.ERROR_LAST_LINES_AFTER)
+       result = grep.cleanByTemplate(result, "warning")
     filteredresult = grep.filterMarkup(result)
     return filteredresult
 

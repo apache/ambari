@@ -54,7 +54,16 @@ class Grep:
       result = lines[first_occurence - bound_a : first_occurence + after + 1]
     return "".join(result).strip()
 
-
+  def cleanByTemplate(self, string, template):
+    if string is not None:
+      stripped_string = string.strip()
+      lines = stripped_string.splitlines(True)
+      for line in lines[:]:
+        if template.lower() in line.lower():
+          lines.remove(line)
+      return "".join(lines).strip()
+    else:
+      return string
   def tail(self, string, n):
     """
     Copies last n lines from string to result. Also, string trim is performed.

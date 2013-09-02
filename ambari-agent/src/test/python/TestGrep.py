@@ -105,4 +105,13 @@ debug: Processing report from ambari-dmi with processor Puppet::Reports::Store
   def tearDown(self):
     pass
 
+  def test_cleanByTemplate(self):
+    fragment = self.grep.cleanByTemplate(self.string_bad, "debug")
+    desired = """
+info: Applying configuration version '1352127563'
+err: /Stage[main]//Exec[command_good]/returns: change from notrun to 0 failed: wget e432423423xample.com/badurl444111 returned 4 instead of one of [0] at /root/puppet-learn/2-bad.pp:5
+notice: Finished catalog run in 0.23 seconds
+""".strip()
+    self.assertEquals(fragment, desired, 'Grep cleanByTemplate function should return string without debug lines.')
+
 
