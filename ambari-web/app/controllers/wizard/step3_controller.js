@@ -25,7 +25,12 @@ App.WizardStep3Controller = Em.Controller.extend({
   bootHosts: [],
   registeredHosts: [],
   registrationStartedAt: null,
-  registrationTimeoutSecs: 120,
+  registrationTimeoutSecs: function(){
+    if(this.get('content.installOptions.manualInstall')){
+      return 15;
+    }
+    return 120;
+  }.property('content.installOptions.manualInstall'),
   stopBootstrap: false,
   isSubmitDisabled: true,
 
