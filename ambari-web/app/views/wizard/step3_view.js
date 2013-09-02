@@ -53,7 +53,7 @@ App.WizardStep3View = Em.View.extend({
     } else if (this.get('controller.isHostHaveWarnings')) {
       this.set('status', 'alert-warn');
       this.set('linkText', Em.I18n.t('installer.step3.warnings.linkText'));
-      this.set('message', Em.I18n.t('installer.step3.warnings.fails').format(hosts.length, failedHosts));
+      this.set('message', Em.I18n.t('installer.step3.warnings.fails').format(hosts.length - failedHosts));
     } else {
       this.set('status', 'alert-success');
       this.set('linkText', Em.I18n.t('installer.step3.noWarnings.linkText'));
