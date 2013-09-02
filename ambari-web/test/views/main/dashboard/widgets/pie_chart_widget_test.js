@@ -137,7 +137,7 @@ describe('App.PieChartDashboardWidgetView', function() {
           max: 10,
           used: 0
         }),
-        e: ['0', 100],
+        e: ['0', '0.0'],
         m: 'Nothing is used'
       },
       {
@@ -145,7 +145,7 @@ describe('App.PieChartDashboardWidgetView', function() {
           max: 10,
           used: 10
         }),
-        e: ['100', 0],
+        e: ['100', '100.0'],
         m: 'All is used'
       },
       {
@@ -153,7 +153,7 @@ describe('App.PieChartDashboardWidgetView', function() {
           max: 10,
           used: 5
         }),
-        e: ['50', 50],
+        e: ['50', '50.0'],
         m: 'Half is used'
       }
     ];

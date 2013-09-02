@@ -77,21 +77,21 @@ describe('App.NameNodeCpuPieChartView', function() {
         model: Em.Object.create({
           used: 0
         }),
-        e: ['0.0', 100],
+        e: ['0.0', '0.00'],
         m: 'Nothing is used'
       },
       {
         model: Em.Object.create({
           used: 100
         }),
-        e: ['100.0', 0],
+        e: ['100.0', '100.00'],
         m: 'All is used'
       },
       {
         model: Em.Object.create({
           used: 50
         }),
-        e: ['50.0', 50],
+        e: ['50.0', '50.00'],
         m: 'Half is used'
       }
     ];

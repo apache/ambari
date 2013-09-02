@@ -36,9 +36,9 @@ describe('App.config', function () {
       }
       expect(App.config.identifyCategory(data).name).to.equal('AdvancedCoreSite');
     });
-    it('should return "CapacityScheduler" if filename "capacity-scheduler.xml" and serviceName "MAPREDUCE"', function () {
+    it('should return "CapacityScheduler" if filename "capacity-scheduler.xml" and serviceName "YARN"', function () {
       data = {
-        serviceName: 'MAPREDUCE',
+        serviceName: 'YARN',
         filename: 'capacity-scheduler.xml'
       }
       expect(App.config.identifyCategory(data).name).to.equal('CapacityScheduler');

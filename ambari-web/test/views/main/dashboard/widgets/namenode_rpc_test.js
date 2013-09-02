@@ -44,9 +44,9 @@ describe('App.NameNodeRpcView', function() {
         nameNodeRpc: 10
       },
       e: {
-        isRed: false,
+        isRed: true,
         isOrange: false,
-        isGreen: true,
+        isGreen: false,
         isNA: false,
         content: '10.00 ms',
         data: '10.00'
@@ -57,9 +57,9 @@ describe('App.NameNodeRpcView', function() {
         nameNodeRpc: 0
       },
       e: {
-        isRed: true,
+        isRed: false,
         isOrange: false,
-        isGreen: false,
+        isGreen: true,
         isNA: false,
         content: '0 ms',
         data: 0
@@ -70,9 +70,9 @@ describe('App.NameNodeRpcView', function() {
         nameNodeRpc: null
       },
       e: {
-        isRed: true,
+        isRed: false,
         isOrange: false,
-        isGreen: false,
+        isGreen: true,
         isNA: true,
         content: Em.I18n.t('services.service.summary.notAvailable'),
         data: null
