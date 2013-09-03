@@ -3958,7 +3958,7 @@
       },
       "metrics/hbase/master/splitSize_avg_time":{
         "metric":"master.Server.HlogSplitSize_mean",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/master/splitSize_num_ops":{
@@ -3968,12 +3968,12 @@
       },
       "metrics/hbase/master/splitTime_avg_time":{
         "metric":"master.Server.HlogSplitTime_mean",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/master/splitTime_num_ops":{
         "metric":"master.Server.HlogSplitTime_num_ops",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/gcCount":{
@@ -4440,7 +4440,8 @@
         "temporal":true
       }
     },
-        "HBASE_REGIONSERVER":{
+    
+    "HBASE_REGIONSERVER":{
 
       "metrics/boottime":{
         "metric":"boottime",
@@ -4504,114 +4505,254 @@
       },
       "metrics/hbase/regionserver/blockCacheCount":{
         "metric":"regionserver.Server.blockCacheCount",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheEvictedCount":{
         "metric":"regionserver.Server.blockCacheEvictionCount",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheFree":{
         "metric":"regionserver.Server.blockCacheFreeSize",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheHitCount":{
         "metric":"regionserver.Server.blockCacheHitCount",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheMissCount":{
         "metric":"regionserver.Server.blockCacheMissCount",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheSize":{
         "metric":"regionserver.Server.blockCacheSize",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/compactionQueueSize":{
         "metric":"regionserver.Server.compactionQueueLength",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_75th_percentile":{
         "metric":"regionserver.Server.Delete_75th_percentile",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_95th_percentile":{
         "metric":"regionserver.Server.Delete_95th_percentile",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_99th_percentile":{
         "metric":"regionserver.Server.Delete_99th_percentile",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_max":{
         "metric":"regionserver.Server.Delete_max",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_mean":{
         "metric":"regionserver.Server.Delete_mean",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_median":{
         "metric":"regionserver.Server.Delete_median",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_min":{
         "metric":"regionserver.Server.Delete_min",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_num_ops":{
         "metric":"regionserver.Server.Delete_num_ops",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/flushQueueSize":{
         "metric":"regionserver.Server.flushQueueLength",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/memstoreSizeMB":{
         "metric":"regionserver.Server.memStoreSize",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/readRequestsCount":{
         "metric":"regionserver.Server.readRequestCount",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/regions":{
         "metric":"regionserver.Server.regionCount",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/storefileIndexSizeMB":{
         "metric":"regionserver.Server.storeFileIndexSize",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/totalStaticBloomSizeKB":{
         "metric":"regionserver.Server.staticBloomSize",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/writeRequestsCount":{
         "metric":"regionserver.Server.writeRequestCount",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
+      "metrics/hbase/regionserver/getRequestLatency_75th_percentile":{
+        "metric":"regionserver.Server.Get_75th_percentile",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/getRequestLatency_95th_percentile":{
+        "metric":"regionserver.Server.Get_95th_percentile",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/getRequestLatency_99th_percentile":{
+        "metric":"regionserver.Server.Get_99th_percentile",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/getRequestLatency_max":{
+        "metric":"regionserver.Server.Get_max",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/getRequestLatency_mean":{
+        "metric":"regionserver.Server.Get_mean",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/getRequestLatency_median":{
+        "metric":"regionserver.Server.Get_median",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/getRequestLatency_min":{
+        "metric":"regionserver.Server.Get_min",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/getRequestLatency_num_ops":{
+        "metric":"regionserver.Server.Get_num_ops",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/putRequestLatency_75th_percentile":{
+        "metric":"regionserver.Server.Mutate_75th_percentile",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/putRequestLatency_95th_percentile":{
+        "metric":"regionserver.Server.Mutate_95th_percentile",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/putRequestLatency_99th_percentile":{
+        "metric":"regionserver.Server.Mutate_99th_percentile",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/putRequestLatency_max":{
+        "metric":"regionserver.Server.Mutate_max",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/putRequestLatency_mean":{
+        "metric":"regionserver.Server.Mutate_mean",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/putRequestLatency_median":{
+        "metric":"regionserver.Server.Mutate_median",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/putRequestLatency_min":{
+        "metric":"regionserver.Server.Mutate_min",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/putRequestLatency_num_ops":{
+        "metric":"regionserver.Server.Mutate_num_ops",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/requests":{
+        "metric":"regionserver.Server.totalRequestCount",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/storefiles":{
+        "metric":"regionserver.Server.storeFileCount",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/stores":{
+        "metric":"regionserver.Server.storeCount",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/totalStaticIndexSizeKB":{
+        "metric":"regionserver.Server.staticIndexSize",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/slowPutCount":{
+        "metric":"regionserver.Server.slowPutCount",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/slowDeleteCount":{
+        "metric":"regionserver.Server.slowDeleteCount",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/slowIncrementCount":{
+        "metric":"regionserver.Server.slowIncrementCount",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/slowGetCount":{
+        "metric":"regionserver.Server.slowGetCount",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/slowAppendCount":{
+        "metric":"regionserver.Server.slowAppendCount",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/percentFilesLocal":{
+        "metric":"regionserver.Server.percentFilesLocal",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/mutationsWithoutWALSize":{
+        "metric":"regionserver.Server.mutationsWithoutWALSize",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/mutationsWithoutWALCount":{
+        "metric":"regionserver.Server.mutationsWithoutWALCount",
+        "pointInTime":false,
+        "temporal":true
+      },      
       "metrics/jvm/gcCount":{
         "metric":"jvm.JvmMetrics.GcCount",
         "pointInTime":true,
@@ -6941,7 +7082,7 @@
       },
       "metrics/hbase/master/splitSize_avg_time":{
         "metric":"master.Server.HlogSplitSize_mean",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/master/splitSize_num_ops":{
@@ -6951,12 +7092,12 @@
       },
       "metrics/hbase/master/splitTime_avg_time":{
         "metric":"master.Server.HlogSplitTime_mean",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/master/splitTime_num_ops":{
         "metric":"master.Server.HlogSplitTime_num_ops",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/gcCount":{
@@ -7424,7 +7565,8 @@
         "temporal":true
       }
     },
-        "HBASE_REGIONSERVER":{
+        
+    "HBASE_REGIONSERVER":{
 
       "metrics/boottime":{
         "metric":"boottime",
@@ -7488,114 +7630,254 @@
       },
       "metrics/hbase/regionserver/blockCacheCount":{
         "metric":"regionserver.Server.blockCacheCount",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheEvictedCount":{
         "metric":"regionserver.Server.blockCacheEvictionCount",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheFree":{
         "metric":"regionserver.Server.blockCacheFreeSize",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheHitCount":{
         "metric":"regionserver.Server.blockCacheHitCount",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheMissCount":{
         "metric":"regionserver.Server.blockCacheMissCount",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/blockCacheSize":{
         "metric":"regionserver.Server.blockCacheSize",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/compactionQueueSize":{
         "metric":"regionserver.Server.compactionQueueLength",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_75th_percentile":{
         "metric":"regionserver.Server.Delete_75th_percentile",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_95th_percentile":{
         "metric":"regionserver.Server.Delete_95th_percentile",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_99th_percentile":{
         "metric":"regionserver.Server.Delete_99th_percentile",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
-      },
+      },     
       "metrics/hbase/regionserver/deleteRequestLatency_max":{
         "metric":"regionserver.Server.Delete_max",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_mean":{
         "metric":"regionserver.Server.Delete_mean",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_median":{
         "metric":"regionserver.Server.Delete_median",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_min":{
         "metric":"regionserver.Server.Delete_min",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/deleteRequestLatency_num_ops":{
         "metric":"regionserver.Server.Delete_num_ops",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/flushQueueSize":{
         "metric":"regionserver.Server.flushQueueLength",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/memstoreSizeMB":{
         "metric":"regionserver.Server.memStoreSize",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/readRequestsCount":{
         "metric":"regionserver.Server.readRequestCount",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/regions":{
         "metric":"regionserver.Server.regionCount",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/storefileIndexSizeMB":{
         "metric":"regionserver.Server.storeFileIndexSize",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/totalStaticBloomSizeKB":{
         "metric":"regionserver.Server.staticBloomSize",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/regionserver/writeRequestsCount":{
         "metric":"regionserver.Server.writeRequestCount",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
+      "metrics/hbase/regionserver/getRequestLatency_75th_percentile":{
+        "metric":"regionserver.Server.Get_75th_percentile",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/getRequestLatency_95th_percentile":{
+        "metric":"regionserver.Server.Get_95th_percentile",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/getRequestLatency_99th_percentile":{
+        "metric":"regionserver.Server.Get_99th_percentile",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/getRequestLatency_max":{
+        "metric":"regionserver.Server.Get_max",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/getRequestLatency_mean":{
+        "metric":"regionserver.Server.Get_mean",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/getRequestLatency_median":{
+        "metric":"regionserver.Server.Get_median",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/getRequestLatency_min":{
+        "metric":"regionserver.Server.Get_min",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/getRequestLatency_num_ops":{
+        "metric":"regionserver.Server.Get_num_ops",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/putRequestLatency_75th_percentile":{
+        "metric":"regionserver.Server.Mutate_75th_percentile",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/putRequestLatency_95th_percentile":{
+        "metric":"regionserver.Server.Mutate_95th_percentile",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/putRequestLatency_99th_percentile":{
+        "metric":"regionserver.Server.Mutate_99th_percentile",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/putRequestLatency_max":{
+        "metric":"regionserver.Server.Mutate_max",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/putRequestLatency_mean":{
+        "metric":"regionserver.Server.Mutate_mean",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/putRequestLatency_median":{
+        "metric":"regionserver.Server.Mutate_median",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/putRequestLatency_min":{
+        "metric":"regionserver.Server.Mutate_min",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/putRequestLatency_num_ops":{
+        "metric":"regionserver.Server.Mutate_num_ops",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/requests":{
+        "metric":"regionserver.Server.totalRequestCount",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/storefiles":{
+        "metric":"regionserver.Server.storeFileCount",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/stores":{
+        "metric":"regionserver.Server.storeCount",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/totalStaticIndexSizeKB":{
+        "metric":"regionserver.Server.staticIndexSize",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/slowPutCount":{
+        "metric":"regionserver.Server.slowPutCount",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/slowDeleteCount":{
+        "metric":"regionserver.Server.slowDeleteCount",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/slowIncrementCount":{
+        "metric":"regionserver.Server.slowIncrementCount",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/slowGetCount":{
+        "metric":"regionserver.Server.slowGetCount",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/slowAppendCount":{
+        "metric":"regionserver.Server.slowAppendCount",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/percentFilesLocal":{
+        "metric":"regionserver.Server.percentFilesLocal",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/mutationsWithoutWALSize":{
+        "metric":"regionserver.Server.mutationsWithoutWALSize",
+        "pointInTime":false,
+        "temporal":true
+      },
+      "metrics/hbase/regionserver/mutationsWithoutWALCount":{
+        "metric":"regionserver.Server.mutationsWithoutWALCount",
+        "pointInTime":false,
+        "temporal":true
+      },      
       "metrics/jvm/gcCount":{
         "metric":"jvm.JvmMetrics.GcCount",
         "pointInTime":true,
