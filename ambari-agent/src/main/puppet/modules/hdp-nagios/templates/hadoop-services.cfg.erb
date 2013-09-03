@@ -535,6 +535,21 @@ define service {
 
 <% end %>
 
+# Journalnode checks
+<%scope.function_hdp_template_var("::hdp::journalnode_hosts").each do |hostname|-%>
+define service {
+        hostgroup_name          slaves
+        use                     hadoop-service
+        service_description     JOURNALNODE::JournalNode process on <%=hostname%>
+        servicegroups           HDFS
+        check_command           check_tcp_on_host!<%=hostname%>!<%=scope.function_hdp_template_var("::hdp::journalnode_port")%>!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+
+<% end %>
+
 <%if scope.function_hdp_nagios_members_exist('slaves')-%>
 # HDFS::DATANODE Checks
 define service {
