@@ -233,13 +233,15 @@ public class StageUtils {
       }
     }
 
-    // Add a list of all host for agent and host monitoring
+    // Add a lists of all hosts and all ping ports for agents and hosts monitoring
     List<String> allHostNames = new ArrayList<String>();
+    List<String> allHostPingPorts = new ArrayList<String>();
     for (Host host : allHosts.values()) {
       allHostNames.add(host.getHostName());
+      allHostPingPorts.add(host.getCurrentPingPort() == null ? null : host.getCurrentPingPort().toString());
     }
     info.put("all_hosts", allHostNames);
-
+    info.put("all_ping_ports", allHostPingPorts);
     return info;
   }
 

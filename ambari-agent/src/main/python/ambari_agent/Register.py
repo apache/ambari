@@ -43,10 +43,12 @@ class Register:
     hostInfo.register(agentEnv, False, False)
 
     version = self.read_agent_version()
+    current_ping_port = self.config.get('agent','current_ping_port')
     
     register = { 'responseId'        : int(id),
                  'timestamp'         : timestamp,
                  'hostname'          : hostname.hostname(),
+                 'currentPingPort'   : int(current_ping_port),
                  'publicHostname'    : hostname.public_hostname(),
                  'hardwareProfile'   : self.hardware.get(),
                  'agentEnv'          : agentEnv,

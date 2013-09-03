@@ -77,6 +77,20 @@ define service {
         max_check_attempts      2
 }
 
+<%scope.function_hdp_template_var("all_hosts").each_with_index do |hostname, index|-%>
+define service {
+        hostgroup_name          agent-servers
+        use                     hadoop-service
+        service_description     AMBARI::Ambari Agent process on <%=hostname%>
+        servicegroups           AMBARI
+        check_command           check_tcp_on_host!<%=hostname%>!<%=scope.function_hdp_template_var("all_ping_ports")[index]%>!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.25
+        max_check_attempts      4
+}
+
+<%end-%>
+
 # NAGIOS SERVER ZOOKEEPER Checks
 <%if scope.function_hdp_nagios_members_exist('zookeeper-servers')-%>
 define service {

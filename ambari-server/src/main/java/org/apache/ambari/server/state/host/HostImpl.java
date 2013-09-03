@@ -90,6 +90,7 @@ public class HostImpl implements Host {
   private long lastHeartbeatTime = 0L;
   private AgentEnv lastAgentEnv = null;
   private boolean persisted = false;
+  private Integer currentPingPort = null;
 
   private static final String HARDWAREISA = "hardware_isa";
   private static final String HARDWAREMODEL = "hardware_model";
@@ -567,6 +568,28 @@ public class HostImpl implements Host {
     }
   }
   
+  @Override
+  public Integer getCurrentPingPort() {
+    try {
+      readLock.lock();
+      return currentPingPort;
+    }
+    finally {
+      readLock.unlock();
+    }
+  }
+
+  @Override
+  public void setCurrentPingPort(Integer currentPingPort) {
+    try {
+      writeLock.lock();
+      this.currentPingPort = currentPingPort;
+    }
+    finally {
+      writeLock.unlock();
+    }
+  }
+
   @Override
   public void setPublicHostName(String hostName) {
     try {

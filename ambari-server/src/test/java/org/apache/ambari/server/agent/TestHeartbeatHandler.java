@@ -31,6 +31,7 @@ import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS_CLIENT;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.NAMENODE;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.SECONDARY_NAMENODE;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyCurrentPingPort;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -477,11 +478,13 @@ public class TestHeartbeatHandler {
     hi.setHostName(DummyHostname1);
     hi.setOS(DummyOsType);
     reg.setHostname(DummyHostname1);
+    reg.setCurrentPingPort(DummyCurrentPingPort);
     reg.setHardwareProfile(hi);
     reg.setAgentVersion(metaInfo.getServerVersion());
     handler.handleRegistration(reg);
     assertEquals(hostObject.getState(), HostState.HEALTHY);
     assertEquals(DummyOsType, hostObject.getOsType());
+    assertEquals(DummyCurrentPingPort, hostObject.getCurrentPingPort());
     assertTrue(hostObject.getLastRegistrationTime() != 0);
     assertEquals(hostObject.getLastHeartbeatTime(),
         hostObject.getLastRegistrationTime());

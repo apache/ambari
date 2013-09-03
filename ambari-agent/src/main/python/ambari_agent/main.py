@@ -33,6 +33,7 @@ from shell import killstaleprocesses
 import AmbariConfig
 from security import CertificateManager
 from NetUtil import NetUtil
+from PingPortListener import PingPortListener
 import security
 import hostname
 from DataCleaner import DataCleaner
@@ -208,6 +209,10 @@ def main():
   daemonize()
 
   killstaleprocesses()
+
+  # Starting ping port listener
+  ping_port_listener = PingPortListener(config)
+  ping_port_listener.start()
 
   update_log_level(config)
 

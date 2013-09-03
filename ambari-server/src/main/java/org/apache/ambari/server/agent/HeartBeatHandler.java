@@ -395,6 +395,7 @@ public class HeartBeatHandler {
   public RegistrationResponse handleRegistration(Register register)
       throws InvalidStateTransitionException, AmbariException {
     String hostname = register.getHostname();
+    int currentPingPort = register.getCurrentPingPort();
     long now = System.currentTimeMillis();
 
     String agentVersion = register.getAgentVersion();
@@ -436,6 +437,9 @@ public class HeartBeatHandler {
     }
     // Resetting host state
     hostObject.setState(HostState.INIT);
+
+    // Set ping port for agent
+    hostObject.setCurrentPingPort(currentPingPort);
 
     // Get status of service components
     List<StatusCommand> cmds = heartbeatMonitor.generateStatusCommands(hostname);

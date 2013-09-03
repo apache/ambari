@@ -40,6 +40,16 @@ public interface Host {
   public void setHostName(String hostName);
 
   /**
+   * @return the currentPingPort
+   */
+  public Integer getCurrentPingPort();
+
+  /**
+   * @param currentPingPort the currentPingPort to set
+   */
+  public void setCurrentPingPort(Integer currentPingPort);
+
+  /**
    * Gets the public-facing host name.
    */
   public void setPublicHostName(String hostName);

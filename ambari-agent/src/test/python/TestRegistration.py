@@ -34,6 +34,7 @@ class TestRegistration(TestCase):
     config = AmbariConfig().getConfig()
     tmpdir = tempfile.gettempdir()
     config.set('agent', 'prefix', tmpdir)
+    config.set('agent', 'current_ping_port', '33777')
     get_os_type_method.return_value = 'redhat'
     ver_file = os.path.join(tmpdir, "version")
     with open(ver_file, "w") as text_file:
@@ -51,6 +52,7 @@ class TestRegistration(TestCase):
     self.assertEquals(data['agentVersion'], '1.3.0', "agentVersion should not be empty")
     print data['agentEnv']['umask']
     self.assertEquals(not data['agentEnv']['umask']== "", True, "agents umask should not be empty")
-    self.assertEquals(len(data), 7)
+    self.assertEquals(data['currentPingPort'] == 33777, True, "current ping port should be 33777")
+    self.assertEquals(len(data), 8)
 
     os.remove(ver_file)

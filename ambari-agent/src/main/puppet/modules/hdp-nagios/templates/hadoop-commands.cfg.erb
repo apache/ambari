@@ -106,3 +106,8 @@ define command{
         command_name    check_resourcemanager_nodes_percentage
         command_line    $USER1$/check_resourcemanager_nodes_percentage.sh $HOSTADDRESS$ $ARG1$ $ARG2$ $ARG3$ $ARG4$
        }
+
+define command{
+	command_name	check_tcp_on_host
+	command_line	$USER1$/check_tcp -H $ARG1$ -p $ARG2$ $ARG3$
+	}
