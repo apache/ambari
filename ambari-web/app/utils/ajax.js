@@ -998,6 +998,10 @@ var urls = {
         async: false
       };
     }
+  },
+  'ambari.service': {
+    'real': '/services/AMBARI/components/AMBARI_SERVER',
+    'mock': ''
   }
 };
 /**

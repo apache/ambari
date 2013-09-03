@@ -333,8 +333,27 @@ App.WizardStep2Controller = Em.Controller.extend({
     return (this.get('hostsError') || this.get('sshKeyError') || this.get('sshUserError'))  ;
   }.property('hostsError', 'sshKeyError', 'sshUserError'),
 
+  setAmbariJavaHome: function(){
+    App.ajax.send({
+      name: 'ambari.service',
+      sender: this,
+      success: 'onGetAmbariJavaHomeSuccess',
+      error: 'onGetAmbariJavaHomeError'
+    });
+  },
+
+  onGetAmbariJavaHomeSuccess: function(data) {
+    this.set('content.installOptions.javaHome',data.RootServiceComponents.properties['java.home']);
+  },
+
+  onGetAmbariJavaHomeError: function() {
+    console.warn('can\'t get java.home value from server');
+    this.set('content.installOptions.javaHome',App.defaultJavaHome);
+  },
+
   saveHosts: function(){
     this.set('content.hosts', this.getHostInfo());
+    this.setAmbariJavaHome();
     App.router.send('next');
   }
 

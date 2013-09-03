@@ -438,7 +438,6 @@ App.WizardController = Em.Controller.extend({
     hostNames: "", //string
     manualInstall: false, //true, false
     useSsh: true, //bool
-    isJavaHome : false, //bool
     javaHome: App.defaultJavaHome, //string
     localRepo: false, //true, false
     sshKey: "", //string

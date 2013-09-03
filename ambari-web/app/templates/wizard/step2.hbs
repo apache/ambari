@@ -114,21 +114,6 @@
     </label>
     {{/unless}}
     
-    {{#if isInstaller}}
-    <label {{bindAttr class=":checkbox"}}>
-      <div class="java-home">
-      {{view Ember.Checkbox checkedBinding="content.installOptions.isJavaHome"}}
-        {{t installer.step2.javaHome.label}}
-        <a href="javascript:void(null)"
-           rel="popover"
-          {{translateAttr title="installer.step2.javaHome.tooltip.title" data-content="installer.step2.javaHome.tooltip.content"}}>
-            {{t installer.step2.javaHome.tooltip.title}}</a>
-      </div>
-    </label>
-    <label class="checkbox">
-      {{view view.textFieldView valueBinding="content.installOptions.javaHome" isEnabledBinding="content.installOptions.isJavaHome" placeholderName="installer.step2.javaHome.tooltip.placeholder"}}
-    </label>
-    {{/if}}
   </div>
   <div class="btn-area">
     {{#unless view.parentView.controller.hideBackButton}}
