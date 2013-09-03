@@ -2108,8 +2108,10 @@ def start(args):
   current_user = getpass.getuser()
   ambari_user = read_ambari_user()
   if ambari_user is None:
-    err = "Unable to detect a system user for Ambari Server. " \
-          "Please run \"ambari-server setup\" command to create user "
+    err = "Unable to detect a system user for Ambari Server.\n" \
+          "If it is a new setup then only run \"ambari-server setup\" command to create user\n" \
+          "If it is an upgrade then run \"ambari-server upgrade\" command.\n" \
+          "See documentation at http://docs.hortonworks.com/HDPDocuments/HDP1/HDP-1.3.2/bk_using_Ambari_book/content/ambari-chap9-3.html"
     raise FatalException(1, err)
   if current_user != ambari_user and not is_root():
     err = "Unable to start Ambari Server as user {0}. Please either run \"ambari-server start\" " \
