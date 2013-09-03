@@ -668,7 +668,7 @@ module.exports =
       "domain": "global",
       "serviceName": "YARN",
       "category": "ResourceManager",
-      "index": 0
+      "index": 1
     },
     {
       "id": "puppet var",

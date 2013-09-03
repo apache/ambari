@@ -171,7 +171,7 @@ App.config = Em.Object.create({
         if(!isAdvanced) config.isUserProperty = true;
       }
     } else {
-      config.category = 'Advanced';
+      config.category = config.category ? config.category : 'Advanced';
       config.description = isAdvanced && advancedConfigs.findProperty('name', config.name).description;
       config.filename = isAdvanced && advancedConfigs.findProperty('name', config.name).filename;
       config.isRequired = true;
@@ -241,10 +241,7 @@ App.config = Em.Object.create({
           serviceConfigObj.index = configsPropertyDef.index;
           serviceConfigObj.isSecureConfig = configsPropertyDef.isSecureConfig === undefined ? false : configsPropertyDef.isSecureConfig;
           serviceConfigObj.belongsToService = configsPropertyDef.belongsToService;
-        }
-        // MAPREDUCE contains core-site properties but doesn't show them
-        if(serviceConfigObj.serviceName === 'MAPREDUCE' && serviceConfigObj.filename === 'core-site.xml'){
-          serviceConfigObj.isVisible = false;
+          serviceConfigObj.category = configsPropertyDef.category;
         }
         if (_tag.siteName === 'global') {
           if (configsPropertyDef) {
@@ -254,7 +251,6 @@ App.config = Em.Object.create({
           }
           serviceConfigObj.id = 'puppet var';
           serviceConfigObj.displayName = configsPropertyDef ? configsPropertyDef.displayName : null;
-          serviceConfigObj.category = configsPropertyDef ? configsPropertyDef.category : null;
           serviceConfigObj.options = configsPropertyDef ? configsPropertyDef.options : null;
           globalConfigs.push(serviceConfigObj);
         } else if (!this.get('configMapping').computed().someProperty('name', index)) {
@@ -273,6 +269,46 @@ App.config = Em.Object.create({
       configs: configs,
       globalConfigs: globalConfigs,
       mappingConfigs: mappingConfigs
+    }
+  },
+  /**
+   * synchronize order of config properties with order, that on UI side
+   * @param configSet
+   * @return {Object}
+   */
+  syncOrderWithPredefined: function(configSet){
+    var globalConfigs = configSet.globalConfigs,
+        siteConfigs = configSet.configs,
+        globalStart = [],
+        siteStart = [];
+
+    this.get('preDefinedGlobalProperties').mapProperty('name').forEach(function(name){
+      var _global = globalConfigs.findProperty('name', name);
+      if(_global){
+        globalStart.push(_global);
+        globalConfigs = globalConfigs.without(_global);
+      }
+    }, this);
+
+    this.get('preDefinedSiteProperties').mapProperty('name').forEach(function(name){
+      var _site = siteConfigs.findProperty('name', name);
+      if(_site){
+        siteStart.push(_site);
+        siteConfigs = siteConfigs.without(_site);
+      }
+    }, this);
+
+    var alphabeticalSort = function(a, b){
+      if (a.name < b.name) return -1;
+      if (a.name > b.name) return 1;
+      return 0;
+    }
+
+
+    return {
+      globalConfigs: globalStart.concat(globalConfigs.sort(alphabeticalSort)),
+      configs: siteStart.concat(siteConfigs.sort(alphabeticalSort)),
+      mappingConfigs: configSet.mappingConfigs
     }
   },
 

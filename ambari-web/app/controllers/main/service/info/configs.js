@@ -429,7 +429,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var configGroups = App.config.loadConfigsByTags(this.get('serviceConfigTags'));
     //STEP 5: Merge global and on-site configs with pre-defined
     var configSet = App.config.mergePreDefinedWithLoaded(configGroups, advancedConfigs, this.get('serviceConfigTags'), serviceName);
-
+    configSet = App.config.syncOrderWithPredefined(configSet);
     //var serviceConfigs = this.getSitesConfigProperties(advancedConfigs);
     var configs = configSet.configs;
     //put global configs into globalConfigs to save them separately
