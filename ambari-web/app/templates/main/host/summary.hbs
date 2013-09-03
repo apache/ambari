@@ -24,8 +24,8 @@
         <div class="box-header">
           <h4>{{t common.components}}</h4>
         </div>
-        {{#if view.sortedComponents.length}}
         <div class="host-components">
+        {{#if view.sortedComponents.length}}
           {{#each component in view.sortedComponents}}
           <div class="row-fluid">
           {{#view view.ComponentView contentBinding="component" decommissionDataNodeHostNamesBinding="view.decommissionDataNodeHostNames"}}
@@ -108,6 +108,7 @@
           {{/view}}
           </div>
           {{/each}}
+        {{/if}}
           {{!clients and add component button}}
           <div class="clients row-fluid">
             <div class="span7 row">
@@ -147,7 +148,6 @@
             </div>
           </div>
         </div>
-        {{/if}}
       </div>
       <div class="host-configuration">
             <div class="box">

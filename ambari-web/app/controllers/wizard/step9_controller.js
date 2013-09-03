@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 var App = require('app');
+var serviceComponents = require('data/service_components');
 
 App.WizardStep9Controller = Em.Controller.extend({
   name: 'wizardStep9Controller',
@@ -379,26 +380,56 @@ App.WizardStep9Controller = Em.Controller.extend({
   },
 
   launchStartServicesSuccessCallback: function (jsonData) {
-    console.log("TRACE: Step9 -> In success function for the startService call");
-    console.log("TRACE: Step9 -> value of the received data is: " + jsonData);
-    var requestId = jsonData.Requests.id;
-    console.log('requestId is: ' + requestId);
-    var clusterStatus = {
-      status: 'INSTALLED',
-      requestId: requestId,
-      isStartError: false,
-      isCompleted: false
-    };
-
-    App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
-
+    if (jsonData) {
+      console.log("TRACE: Step9 -> In success function for the startService call");
+      console.log("TRACE: Step9 -> value of the received data is: " + jsonData);
+      var requestId = jsonData.Requests.id;
+      console.log('requestId is: ' + requestId);
+      var clusterStatus = {
+        status: 'INSTALLED',
+        requestId: requestId,
+        isStartError: false,
+        isCompleted: false
+      };
+      this.hostHasClientsOnly(false);
+      App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
+    } else {
+      console.log('ERROR: Error occurred in parsing JSON data');
+      this.hostHasClientsOnly(true);
+      var clusterStatus = {
+        status: 'STARTED',
+        isStartError: false,
+        isCompleted: true
+      };
+      App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
+      this.set('status', 'success');
+      this.set('progress', '100');
+      this.set('isStepCompleted', true);
+    }
     // We need to do recovery if there is a browser crash
     App.clusterStatus.setClusterStatus({
       clusterState: 'SERVICE_STARTING_3',
       localdb: App.db.data
     });
 
-    this.startPolling();
+    if(jsonData) {
+      this.startPolling();
+    }
+  },
+
+  hostHasClientsOnly: function(jsonError) {
+    this.hosts.forEach(function(host){
+      var OnlyClients = true;
+      var tasks = host.get('logTasks');
+      tasks.forEach(function(task){
+        var component = serviceComponents.findProperty('component_name',task.Tasks.role);
+        (component && component.isClient) ? null : OnlyClients = false;
+      });
+      if (OnlyClients || jsonError) {
+        host.set('status', 'success');
+        host.set('progress', '100');
+      }
+    });
   },
 
   launchStartServicesErrorCallback: function () {
