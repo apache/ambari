@@ -42,7 +42,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class RootServiceHostComponentResourceProviderTest {
-  
+    
   @Test
   public void testGetResources() throws Exception{
     Resource.Type type = Resource.Type.RootServiceHostComponent;
@@ -50,12 +50,12 @@ public class RootServiceHostComponentResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
     Set<RootServiceHostComponentResponse> allResponse = new HashSet<RootServiceHostComponentResponse>();
-    allResponse.add(new RootServiceHostComponentResponse("host1", "component1", "HEALTHY", Collections.<String,String>emptyMap()));
-    allResponse.add(new RootServiceHostComponentResponse("host2", "component2", "HEALTHY", Collections.<String,String>emptyMap()));
-    allResponse.add(new RootServiceHostComponentResponse("host3", "component3", "HEARBEAT_LOST", Collections.<String,String>emptyMap()));
+    allResponse.add(new RootServiceHostComponentResponse("host1", "component1", "HEALTHY", "1.1.1", Collections.<String,String>emptyMap()));
+    allResponse.add(new RootServiceHostComponentResponse("host2", "component2", "HEALTHY", "1.1.1", Collections.<String,String>emptyMap()));
+    allResponse.add(new RootServiceHostComponentResponse("host3", "component3", "HEARBEAT_LOST", "1.1.1", Collections.<String,String>emptyMap()));
 
     Set<RootServiceHostComponentResponse> nameResponse = new HashSet<RootServiceHostComponentResponse>();
-    nameResponse.add(new RootServiceHostComponentResponse("host4", "component4", "HEALTHY", Collections.<String,String>emptyMap()));
+    nameResponse.add(new RootServiceHostComponentResponse("host4", "component4", "HEALTHY", "1.1.1", Collections.<String,String>emptyMap()));
 
 
     // set expectations
@@ -77,6 +77,7 @@ public class RootServiceHostComponentResourceProviderTest {
     propertyIds.add(RootServiceHostComponentResourceProvider.COMPONENT_NAME_PROPERTY_ID);
     propertyIds.add(RootServiceHostComponentResourceProvider.COMPONENT_STATE_PROPERTY_ID);
     propertyIds.add(RootServiceHostComponentResourceProvider.PROPERTIES_PROPERTY_ID);
+    propertyIds.add(RootServiceHostComponentResourceProvider.COMPONENT_VERSION_PROPERTY_ID);
     
     
     // create the request
@@ -90,7 +91,8 @@ public class RootServiceHostComponentResourceProviderTest {
       String hostName = (String) resource.getPropertyValue(RootServiceHostComponentResourceProvider.HOST_NAME_PROPERTY_ID);
       String componentName = (String) resource.getPropertyValue(RootServiceHostComponentResourceProvider.COMPONENT_NAME_PROPERTY_ID);
       String componentState = (String) resource.getPropertyValue(RootServiceHostComponentResourceProvider.COMPONENT_STATE_PROPERTY_ID);
-      Assert.assertTrue(allResponse.contains(new RootServiceHostComponentResponse(hostName, componentName, componentState,
+      String componentVersion = (String) resource.getPropertyValue(RootServiceHostComponentResourceProvider.COMPONENT_VERSION_PROPERTY_ID);
+      Assert.assertTrue(allResponse.contains(new RootServiceHostComponentResponse(hostName, componentName, componentState, componentVersion,
           Collections.<String, String>emptyMap())));
     }
 

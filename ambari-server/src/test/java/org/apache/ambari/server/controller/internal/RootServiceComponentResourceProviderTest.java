@@ -49,12 +49,12 @@ public class RootServiceComponentResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
     Set<RootServiceComponentResponse> allResponse = new HashSet<RootServiceComponentResponse>();
-    allResponse.add(new RootServiceComponentResponse("component1", Collections.<String,String>emptyMap()));
-    allResponse.add(new RootServiceComponentResponse("component2", Collections.<String,String>emptyMap()));
-    allResponse.add(new RootServiceComponentResponse("component3", Collections.<String,String>emptyMap()));
+    allResponse.add(new RootServiceComponentResponse("component1", "1.1.1", Collections.<String,String>emptyMap()));
+    allResponse.add(new RootServiceComponentResponse("component2", "1.1.1", Collections.<String,String>emptyMap()));
+    allResponse.add(new RootServiceComponentResponse("component3", "1.1.1", Collections.<String,String>emptyMap()));
 
     Set<RootServiceComponentResponse> nameResponse = new HashSet<RootServiceComponentResponse>();
-    nameResponse.add(new RootServiceComponentResponse("component4", Collections.<String,String>emptyMap()));
+    nameResponse.add(new RootServiceComponentResponse("component4", "1.1.1", Collections.<String,String>emptyMap()));
 
 
     // set expectations
@@ -74,6 +74,7 @@ public class RootServiceComponentResourceProviderTest {
     propertyIds.add(RootServiceComponentResourceProvider.SERVICE_NAME_PROPERTY_ID);
     propertyIds.add(RootServiceComponentResourceProvider.COMPONENT_NAME_PROPERTY_ID);
     propertyIds.add(RootServiceComponentResourceProvider.PROPERTIES_PROPERTY_ID);
+    propertyIds.add(RootServiceComponentResourceProvider.COMPONENT_VERSION_PROPERTY_ID);
 
     // create the request
     Request request = PropertyHelper.getReadRequest(propertyIds);
@@ -84,7 +85,8 @@ public class RootServiceComponentResourceProviderTest {
     Assert.assertEquals(allResponse.size(), resources.size());
     for (Resource resource : resources) {
       String componentName = (String) resource.getPropertyValue(RootServiceComponentResourceProvider.COMPONENT_NAME_PROPERTY_ID);
-      Assert.assertTrue(allResponse.contains(new RootServiceComponentResponse(componentName, Collections.<String,String>emptyMap())));
+      String componentVersion = (String) resource.getPropertyValue(RootServiceComponentResourceProvider.COMPONENT_VERSION_PROPERTY_ID);
+      Assert.assertTrue(allResponse.contains(new RootServiceComponentResponse(componentName, componentVersion, Collections.<String,String>emptyMap())));
     }
 
     // get service named service4

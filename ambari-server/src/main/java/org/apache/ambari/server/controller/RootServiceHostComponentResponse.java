@@ -25,13 +25,17 @@ public class RootServiceHostComponentResponse {
   private String hostName;
   private String componentName;
   private String componentState;
+  private String componentVersion;
   private Map<String, String> properties;
 
+
   public RootServiceHostComponentResponse(String hostName, String componentName, String componentState,
+      String componentVersion,
       Map<String, String> properties) {
     this.hostName = hostName;
     this.componentName = componentName;
     this.componentState = componentState;
+    this.componentVersion = componentVersion;
     this.properties = properties;
   }
 
@@ -77,6 +81,11 @@ public class RootServiceHostComponentResponse {
       return false;
     }
     
+    if (componentVersion != null ?
+        !componentVersion.equals(that.componentVersion) : that.componentVersion != null) {
+      return false;
+    }
+    
     if (properties != null ?
         !properties.equals(that.properties) : that.properties != null) {
       return false;
@@ -91,6 +100,7 @@ public class RootServiceHostComponentResponse {
     result = 31 + (hostName != null ? hostName.hashCode() : 0);
     result = result + (componentName != null ? componentName.hashCode() : 0);
     result = result + (componentState != null ? componentState.hashCode() : 0);
+    result = result + (componentVersion != null ? componentVersion.hashCode() : 0);
     return result;
   }
 
@@ -102,4 +112,11 @@ public class RootServiceHostComponentResponse {
     this.componentState = componentState;
   }
 
+  public String getComponentVersion() {
+    return componentVersion;
+  }
+
+  public void setComponentVersion(String componentVersion) {
+    this.componentVersion = componentVersion;
+  }
 }

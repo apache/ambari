@@ -245,13 +245,15 @@
     "RootServiceComponent":[
         "RootServiceComponents/service_name",
         "RootServiceComponents/component_name",
-        "RootServiceComponents/properties"
+        "RootServiceComponents/properties",
+        "RootServiceComponents/component_version"
      ],
     "RootServiceHostComponent":[
         "RootServiceHostComponents/service_name",
         "RootServiceHostComponents/component_name",
         "RootServiceHostComponents/host_name",
         "RootServiceHostComponents/component_state",
+        "RootServiceHostComponents/component_version",
         "RootServiceHostComponents/properties"
      ]
 }

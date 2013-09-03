@@ -48,6 +48,8 @@ public class RootServiceHostComponentResourceProvider extends
       .getPropertyId("RootServiceHostComponents", "host_name");
   public static final String COMPONENT_NAME_PROPERTY_ID = PropertyHelper
       .getPropertyId("RootServiceHostComponents", "component_name");
+  public static final String COMPONENT_VERSION_PROPERTY_ID = PropertyHelper
+      .getPropertyId("RootServiceHostComponents", "component_version");
   public static final String COMPONENT_STATE_PROPERTY_ID = PropertyHelper
       .getPropertyId("RootServiceHostComponents", "component_state");
   public static final String PROPERTIES_PROPERTY_ID = PropertyHelper
@@ -97,6 +99,9 @@ public class RootServiceHostComponentResourceProvider extends
       
       setResourceProperty(resource, COMPONENT_STATE_PROPERTY_ID,
           response.getComponentState(), requestedIds);
+      
+      setResourceProperty(resource, COMPONENT_VERSION_PROPERTY_ID,
+          response.getComponentVersion(), requestedIds);
       
       setResourceProperty(resource, PROPERTIES_PROPERTY_ID,
           response.getProperties(), requestedIds);

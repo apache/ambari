@@ -25,10 +25,13 @@ public class RootServiceComponentResponse {
 
   private String componentName;
   private Map<String, String> properties;
+  private String componentVersion;
 
-  public RootServiceComponentResponse(String componentName, Map<String, String> properties) {
+  public RootServiceComponentResponse(String componentName, String componentVersion, Map<String, String> properties) {
     this.componentName = componentName;
+    this.setComponentVersion(componentVersion); 
     this.setProperties(properties);
+    
   }
 
   public String getComponentName() {
@@ -43,6 +46,14 @@ public class RootServiceComponentResponse {
     this.properties = properties;
   }
   
+  public String getComponentVersion() {
+    return componentVersion;
+  }
+
+  public void setComponentVersion(String componentVersion) {
+    this.componentVersion = componentVersion;
+  }
+  
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -52,6 +63,11 @@ public class RootServiceComponentResponse {
 
     if (componentName != null ?
         !componentName.equals(that.componentName) : that.componentName != null) {
+      return false;
+    }
+    
+    if (componentVersion != null ?
+        !componentVersion.equals(that.componentVersion) : that.componentVersion != null) {
       return false;
     }
     
@@ -67,8 +83,7 @@ public class RootServiceComponentResponse {
   public int hashCode() {
     int result = 1;
     result = 31 + (componentName != null ? componentName.hashCode() : 0);
+    result += (componentVersion != null ? componentVersion.hashCode() : 0);
     return result;
   }
-
-
 }

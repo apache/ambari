@@ -21,28 +21,50 @@ package org.apache.ambari.server.controller;
 import java.util.Collections;
 import java.util.Set;
 import org.apache.ambari.server.ObjectNotFoundException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class RootServiceResponseFactoryTest {
 
-  private RootServiceResponseFactory responseFactory;
+  private AbstractRootServiceResponseFactory responseFactory;
   private Injector injector;
-  private Configuration configs;
-
+  
+  @Inject
+  Configuration configs;
+  
+  @Inject
+  AmbariMetaInfo ambariMetaInfo;
+  
+  public class MockModule extends AbstractModule {
+    
+    @Override
+    protected void configure() {
+      AmbariMetaInfo ambariMetaInfo = mock(AmbariMetaInfo.class);
+      bind(AmbariMetaInfo.class).toInstance(ambariMetaInfo);
+    }
+  }
+  
   @Before
-  public void setUp() {
-    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+  public void setUp() throws Exception{
+    injector = Guice.createInjector(new InMemoryDefaultTestModule(), new MockModule());
+    injector.injectMembers(this);
     responseFactory = injector.getInstance(RootServiceResponseFactory.class);
-    configs = injector.getInstance(Configuration.class);
+    
+    when(ambariMetaInfo.getServerVersion()).thenReturn("1.2.3");
   }
 
   @Test
@@ -123,10 +145,12 @@ public class RootServiceResponseFactoryTest {
           RootServiceResponseFactory.Components.AMBARI_SERVER.name()))
         assertTrue(rootServiceComponents
             .contains(new RootServiceComponentResponse(component.name(),
+                ambariMetaInfo.getServerVersion(),
                 configs.getConfigsMap())));
       else
         assertTrue(rootServiceComponents
             .contains(new RootServiceComponentResponse(component.name(),
+                RootServiceResponseFactory.NOT_APPLICABLE,
                 Collections.<String, String> emptyMap())));
     }
 
@@ -140,6 +164,7 @@ public class RootServiceResponseFactoryTest {
     assertEquals(1, rootServiceComponents.size());
     assertTrue(rootServiceComponents.contains(new RootServiceComponentResponse(
         RootServiceResponseFactory.Services.AMBARI.getComponents()[0].name(),
+        ambariMetaInfo.getServerVersion(),
         configs.getConfigsMap())));
     
     // Request existent service name, and component, not belongs to requested service
