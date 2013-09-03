@@ -72,7 +72,7 @@ public class PostgresConnector implements DBConnector {
         + getAvg(WorkflowFields.INPUTBYTES, SummaryFields.avgInput, SummaryFields.minInput, SummaryFields.maxInput) + ", "
         + getAvg(WorkflowFields.OUTPUTBYTES, SummaryFields.avgOutput, SummaryFields.minOutput, SummaryFields.maxOutput) + ", "
         + getAvg(WorkflowFields.DURATION, SummaryFields.avgDuration, SummaryFields.minDuration, SummaryFields.maxDuration) + ", min("
-        + WorkflowFields.STARTTIME + ") as " + SummaryFields.youngest + ", max(" + WorkflowFields.STARTTIME + ") as " + SummaryFields.oldest + " FROM "
+        + WorkflowFields.STARTTIME + ") as " + SummaryFields.oldest + ", max(" + WorkflowFields.STARTTIME + ") as " + SummaryFields.youngest + " FROM "
         + WORKFLOW_TABLE_NAME),
     FAD_PS("SELECT " + Apps.AppDBEntry.APP_FIELDS + " FROM " + APP_TABLE_NAME + " WHERE " + Apps.AppDBEntry.AppFields.WORKFLOWID.toString() + " = ?"),
     FJD_PS("SELECT " + JobDBEntry.JOB_FIELDS + " FROM " + JOB_TABLE_NAME + " WHERE " + JobFields.WORKFLOWID.toString() + " = ?"),
