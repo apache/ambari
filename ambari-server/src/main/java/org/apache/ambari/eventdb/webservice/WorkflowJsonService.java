@@ -166,19 +166,13 @@ public class WorkflowJsonService {
       case 5: // numJobsTotal
         field = WorkflowFields.NUMJOBSTOTAL;
         break;
-      case 6: // inputBytes
-        field = WorkflowFields.INPUTBYTES;
-        break;
-      case 7: // outputBytes
-        field = WorkflowFields.OUTPUTBYTES;
-        break;
-      case 8: // duration
+      case 6: // duration
         field = WorkflowFields.DURATION;
         break;
-      case 9: // startTime
+      case 7: // startTime
         field = WorkflowFields.STARTTIME;
         break;
-      case 10: // lastUpdateTime
+      case 8: // lastUpdateTime
         field = WorkflowFields.LASTUPDATETIME;
         break;
       default:
