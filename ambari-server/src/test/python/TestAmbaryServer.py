@@ -522,7 +522,31 @@ class TestAmbariServer(TestCase):
     self.assertTrue(configure_database_username_password_mock.called)
     self.assertEqual(0, result)
 
+  @patch.object(ambari_server, "configure_database_username_password")
+  @patch("time.sleep")
+  @patch.object(ambari_server, "run_os_command")
+  def test_setup_db_connect_attempts_fail(self, run_os_command_mock,
+                                          sleep_mock, config_db_mock):
+    run_os_command_mock.side_effect = [(1, "error", "error"),(1, "error", "error"),
+                                       (1, "error", "error")]
+    result = ambari_server.setup_db(MagicMock())
+    self.assertTrue(run_os_command_mock.called)
+    self.assertEqual(1, result)
+    self.assertEqual(3, sleep_mock.call_count)
+    pass
 
+  @patch.object(ambari_server, "configure_database_username_password")
+  @patch("time.sleep")
+  @patch.object(ambari_server, "run_os_command")
+  def test_setup_db_connect_attempts_success(self, run_os_command_mock,
+                                             sleep_mock, config_db_mock):
+    run_os_command_mock.side_effect = [(1, "error", "error"),(0, None, None),
+                                       (0, None, None)]
+    result = ambari_server.setup_db(MagicMock())
+    self.assertTrue(run_os_command_mock.called)
+    self.assertEqual(0, result)
+    self.assertEqual(1, sleep_mock.call_count)
+    pass
 
   @patch.object(ambari_server, "get_YN_input")
   @patch.object(ambari_server, "run_os_command")

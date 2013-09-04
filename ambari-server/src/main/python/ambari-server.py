@@ -214,6 +214,8 @@ AMBARI_PROPERTIES_FILE="ambari.properties"
 AMBARI_PROPERTIES_RPMSAVE_FILE="ambari.properties.rpmsave"
 RESOURCES_DIR_PROPERTY="resources.dir"
 
+SETUP_DB_CONNECT_TIMEOUT = 5
+SETUP_DB_CONNECT_ATTEMPTS = 3
 SETUP_DB_CMD = ['su', '-', 'postgres',
         '--command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'" -v dbname="{3}"']
 UPGRADE_STACK_CMD = ['su', 'postgres',
@@ -877,9 +879,14 @@ def setup_db(args):
   command = SETUP_DB_CMD[:]
   command[-1] = command[-1].format(scriptFile, username, password, dbname)
 
-  retcode, outdata, errdata = run_os_command(command)
-  if not retcode == 0:
-    print errdata
+  for i in range(SETUP_DB_CONNECT_ATTEMPTS):
+    print 'Connecting to the database. Attempt %d...' % (i+1)
+    retcode, outdata, errdata = run_os_command(command)
+    if retcode == 0:
+      return retcode
+    time.sleep(SETUP_DB_CONNECT_TIMEOUT)
+
+  print_error_msg(errdata)
   return retcode
 
 
