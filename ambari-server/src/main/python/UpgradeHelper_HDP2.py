@@ -532,19 +532,22 @@ def modify_configs(options):
   update_config(options, MAPRED_SITE, MAPRED_SITE_TAG)
 
   # Update global config, hdfs-site, core-site
-  update_config_using_existing(options, GLOBAL_TAG, GLOBAL)
+  update_config_using_existing(options, GLOBAL_TAG, GLOBAL, True)
   update_config_using_existing(options, HDFS_SITE_TAG, HDFS_SITE)
   update_config_using_existing(options, CORE_SITE_TAG, CORE_SITE)
   pass
 
 
-def update_config_using_existing(options, type, properties_template):
+def update_config_using_existing(options, type, properties_template, append_unprocessed=False):
   site_properties = get_config(options, type)
+  keys_processed = []
   for key in properties_template.keys():
+    keys_processed.append(key)
     if properties_template[key].find(REPLACE_WITH_TAG) == 0:
       name_to_lookup = key
       if len(properties_template[key]) > len(REPLACE_WITH_TAG):
         name_to_lookup = properties_template[key][len(REPLACE_WITH_TAG):]
+        keys_processed.append(name_to_lookup)
       value = ""
       if name_to_lookup in site_properties.keys():
         value = site_properties[name_to_lookup]
@@ -552,6 +555,14 @@ def update_config_using_existing(options, type, properties_template):
       else:
         logger.warn("Unable to find the equivalent for " + key + ". Looked for " + name_to_lookup)
       properties_template[key] = value
+      pass
+    pass
+  pass
+  if append_unprocessed:
+    for key in site_properties.keys():
+      if key not in keys_processed:
+        properties_template[key] = site_properties[key]
+        pass
       pass
     pass
   pass
