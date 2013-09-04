@@ -190,6 +190,7 @@ define hdp-hadoop::namenode::create_app_directories($service_state)
           hdp-hadoop::hdfs::directory{ $yarn_nm_app_log_dir:
             service_state => $service_state,
             owner => $yarn_user,
+            group => $hdp::params::user_group,
             mode  => '1777',
             recursive_chmod => true
           }
