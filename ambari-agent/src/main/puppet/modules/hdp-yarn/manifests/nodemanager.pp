@@ -73,7 +73,7 @@ class hdp-yarn::nodemanager(
 
 define hdp-yarn::nodemanager::create_nm_dirs($service_state) {
   $dirs = hdp_array_from_comma_list($name)
-  hdp::directory_recursive_create { $dirs :
+  hdp::directory_recursive_create_ignore_failure { $dirs :
     owner => $hdp-yarn::params::yarn_user,
     context_tag => 'yarn_service',
     service_state => $service_state,
