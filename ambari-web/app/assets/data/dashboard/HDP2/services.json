@@ -1039,7 +1039,7 @@
                       "service_type" : "HDFS"
                     },
                     {
-                      "service_description" : "Ganglia Collector [gmond] process down alert for HBase Master",
+                      "service_description" : "Ganglia Server [gmond] process down alert for HBase Master",
                       "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
@@ -1055,7 +1055,7 @@
                       "service_type" : "GANGLIA"
                     },
                     {
-                      "service_description" : "Ganglia Collector [gmond] process down alert for History Server 2",
+                      "service_description" : "Ganglia Server [gmond] process down alert for History Server 2",
                       "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
@@ -1071,7 +1071,7 @@
                       "service_type" : "GANGLIA"
                     },
                     {
-                      "service_description" : "Ganglia Collector [gmond] process down alert for NameNode",
+                      "service_description" : "Ganglia Server [gmond] process down alert for NameNode",
                       "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
@@ -1087,7 +1087,7 @@
                       "service_type" : "GANGLIA"
                     },
                     {
-                      "service_description" : "Ganglia Collector [gmond] process down alert for NodeManager",
+                      "service_description" : "Ganglia Server [gmond] process down alert for NodeManager",
                       "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
@@ -1103,7 +1103,7 @@
                       "service_type" : "GANGLIA"
                     },
                     {
-                      "service_description" : "Ganglia Collector [gmond] process down alert for ResourceManager",
+                      "service_description" : "Ganglia Server [gmond] process down alert for ResourceManager",
                       "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",
@@ -1119,7 +1119,7 @@
                       "service_type" : "GANGLIA"
                     },
                     {
-                      "service_description" : "Ganglia Collector [gmond] process down alert for slaves",
+                      "service_description" : "Ganglia Server [gmond] process down alert for slaves",
                       "host_name" : "dev01.hortonworks.com",
                       "current_attempt" : "1",
                       "current_state" : "0",

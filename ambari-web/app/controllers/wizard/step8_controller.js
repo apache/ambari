@@ -801,7 +801,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   loadGangliaServerValue: function (gangliaServer) {
-    var gangliaServerName = this.get('content.masterComponentHosts').findProperty('display_name', 'Ganglia Collector');
+    var gangliaServerName = this.get('content.masterComponentHosts').findProperty('display_name', 'Ganglia Server');
     gangliaServer.set('component_value', gangliaServerName.hostName);
   },
 

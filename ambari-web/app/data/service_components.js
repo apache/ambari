@@ -261,7 +261,7 @@ module.exports = new Ember.Set([
   {
     service_name: 'GANGLIA',
     component_name: 'GANGLIA_SERVER',
-    display_name: 'Ganglia Collector',
+    display_name: 'Ganglia Server',
     isMaster: true,
     isClient: false,
     description: ''
