@@ -328,6 +328,23 @@ App.WizardStep2Controller = Em.Controller.extend({
       })
     });
   },
+  /**
+   * warn to manually install ambari-agent on each host
+   */
+  manualInstallWarningPopup: function(){
+    if(!this.get('content.installOptions.useSsh')){
+      App.ModalPopup.show({
+        header: Em.I18n.t('common.warning'),
+        body: Em.I18n.t('installer.step2.manualInstall.info'),
+        encodeBody: false,
+        onPrimary: function () {
+          this.hide();
+        },
+        secondary: null
+      });
+    }
+    this.set('content.installOptions.manualInstall', !this.get('content.installOptions.useSsh'));
+  }.observes('content.installOptions.useSsh'),
 
   isSubmitDisabled: function () {
     return (this.get('hostsError') || this.get('sshKeyError') || this.get('sshUserError'))  ;

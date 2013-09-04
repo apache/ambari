@@ -65,21 +65,6 @@ App.WizardStep2View = Em.View.extend({
     return (window.File && window.FileReader && window.FileList) ? true : false ;
   }.property(),
 
-  manualInstallPopup: function(){
-    if(!this.get('controller.content.installOptions.useSsh')){
-      App.ModalPopup.show({
-        header: Em.I18n.t('common.warning'),
-        body: Em.I18n.t('installer.step2.manualInstall.info'),
-        encodeBody: false,
-        onPrimary: function () {
-          this.hide();
-        },
-        secondary: null
-      });
-    }
-    this.set('controller.content.installOptions.manualInstall', !this.get('controller.content.installOptions.useSsh'));
-  }.observes('controller.content.installOptions.useSsh'),
-
   //TODO: replace next 2 properties with new one used in both places
   providingSSHKeyRadioButton: Ember.Checkbox.extend({
     tagName: 'input',
