@@ -32,13 +32,5 @@ App.NameNodeHeapPieChartView = App.PieChartDashboardWidgetView.extend({
   didInsertElement: function() {
     this._super();
     this.calc();
-  },
-
-  getUsed: function() {
-    return this.get('model').get(this.get('modelFieldUsed')) * 1024 * 1024 || 0;
-  },
-
-  getMax: function() {
-    return this.get('model').get(this.get('modelFieldMax')) * 1024 * 1024 || 0;
   }
 });
