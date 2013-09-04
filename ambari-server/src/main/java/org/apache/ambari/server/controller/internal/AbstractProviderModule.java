@@ -33,6 +33,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import com.google.inject.Inject;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -200,7 +201,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     Service.Type service = componentServiceMap.get(componentName);
     if (service != null) {
       try {
-        String currVersion = getDesiredConfigVersion(clusterName, service.name(),
+        String currVersion = getDesiredConfigVersion(clusterName,
           serviceConfigTypes.get(service));
 
         String oldVersion = serviceConfigVersions.get(service);
@@ -447,33 +448,37 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   }
 
   private String getDesiredConfigVersion(String clusterName,
-      String serviceName, String configType) throws
+                                         String configType) throws
       NoSuchParentResourceException, UnsupportedPropertyException,
       SystemException {
 
     // Get config version tag
-    ResourceProvider serviceResourceProvider = getResourceProvider(Resource.Type.Service);
+    ResourceProvider clusterResourceProvider = getResourceProvider(Resource
+      .Type.Cluster);
     Predicate basePredicate = new PredicateBuilder().property
-      (ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID).equals(clusterName).and()
-      .property(ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID).equals(serviceName).toPredicate();
+      (ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID).equals(clusterName)
+      .toPredicate();
 
-    Set<Resource> serviceResource = null;
+    Set<Resource> clusterResource = null;
     try {
-      serviceResource = serviceResourceProvider.getResources(
-        PropertyHelper.getReadRequest(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID,
-          ServiceResourceProvider.SERVICE_SERVICE_NAME_PROPERTY_ID,
-          ServiceResourceProvider.SERVICE_DESIRED_CONFIGS_PROPERTY_ID), basePredicate);
+      clusterResource = clusterResourceProvider.getResources(
+        PropertyHelper.getReadRequest(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID,
+          ClusterResourceProvider.CLUSTER_DESIRED_CONFIGS_PROPERTY_ID), basePredicate);
     } catch (NoSuchResourceException e) {
       LOG.error("Resource for the desired config not found. " + e);
     }
 
     String versionTag = "version1";
-    if (serviceResource != null) {
-      for (Resource res : serviceResource) {
-        Map<String, String> configs = (Map<String, String>)
-            res.getPropertyValue(ServiceResourceProvider.SERVICE_DESIRED_CONFIGS_PROPERTY_ID);
+    if (clusterResource != null) {
+      for (Resource resource : clusterResource) {
+        Map<String, Object> configs =
+        resource.getPropertiesMap().get(ClusterResourceProvider
+          .CLUSTER_DESIRED_CONFIGS_PROPERTY_ID);
         if (configs != null) {
-          versionTag = configs.get(configType);
+          DesiredConfig config = (DesiredConfig) configs.get(configType);
+          if (config != null) {
+            versionTag = config.getVersion();
+          }
         }
       }
     }
@@ -519,13 +524,13 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   /**
    * Create the JMX property provider for the given type.
    */
-  private PropertyProvider createJMXPropertyProvider( Resource.Type type, StreamProvider streamProvider,
-                                                      JMXHostProvider jmxHostProvider,
-                                                      String clusterNamePropertyId,
-                                                      String hostNamePropertyId,
-                                                      String componentNamePropertyId,
-                                                      String statePropertyId,
-                                                      Set<String> healthyStates) {
+  private PropertyProvider createJMXPropertyProvider(Resource.Type type, StreamProvider streamProvider,
+                                                     JMXHostProvider jmxHostProvider,
+                                                     String clusterNamePropertyId,
+                                                     String hostNamePropertyId,
+                                                     String componentNamePropertyId,
+                                                     String statePropertyId,
+                                                     Set<String> healthyStates) {
     updateClusterVersion();
 
     Map<PropertyHelper.MetricsVersion, AbstractPropertyProvider> providers =
