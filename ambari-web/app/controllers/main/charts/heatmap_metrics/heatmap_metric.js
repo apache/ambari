@@ -116,7 +116,7 @@ App.MainChartHeatmapMetric = Em.Object.extend(heatmap.mappers, {
    */
   slotDefinitions: function () {
     var min = this.get('minimumValue');
-    var max = this.get('maximumValue');
+    var max = parseFloat(this.get('maximumValue'));
     var slotCount = this.get('numberOfSlots');
     var labelSuffix = this.get('slotDefinitionLabelSuffix');
     var delta = (max - min) / slotCount;
@@ -309,7 +309,7 @@ App.MainChartHeatmapMetric = Em.Object.extend(heatmap.mappers, {
   formatLegendNumber: function (num) {
     var fraction = num % 1;
     if (fraction > 0) {
-      return num.toFixed(1);
+      return parseFloat(num.toFixed(1));
     }
     return num;
   }
