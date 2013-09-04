@@ -42,7 +42,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     return  App.config.get('preDefinedGlobalProperties');
   }.property('App.config.preDefinedGlobalProperties'),
 
-  secureConfigs: require('data/secure_mapping'),
+  secureConfigs: function() {
+    if(App.get('isHadoop2Stack')) {
+      return require('data/HDP2/secure_mapping');
+    } else {
+      return require('data/secure_mapping');
+    }
+  }.property('App.isHadoop2Stack'),
 
   /**
    * During page load time, we get the host overrides from the server.

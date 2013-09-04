@@ -26,14 +26,14 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
     } else {
       return require('data/secure_mapping');
     }
-  }.property(App.isHadoop2Stack),
+  }.property('App.isHadoop2Stack'),
   secureProperties: function() {
     if(App.get('isHadoop2Stack')) {
       return require('data/HDP2/secure_properties').configProperties;
     } else {
       return require('data/secure_properties').configProperties;
     }
-  }.property(App.isHadoop2Stack),
+  }.property('App.isHadoop2Stack'),
 
   stages: [],
   configs: [],
