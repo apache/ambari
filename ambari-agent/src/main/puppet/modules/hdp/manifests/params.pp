@@ -717,6 +717,10 @@ class hdp::params()
           suse => ['apache2', 'apache2-mod_php5']
         }
       }
+    },
+    
+    unzip => {
+      'ALL' => {'ALL' => {'ALL' => 'unzip'}}
     }
 }
 

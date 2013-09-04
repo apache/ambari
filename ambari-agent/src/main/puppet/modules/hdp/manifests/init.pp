@@ -118,6 +118,14 @@ class hdp(
       @hdp::lzo::package{ 32:}
       @hdp::lzo::package{ 64:}
     }
+    if ($hdp::params::security_enabled) {
+      hdp::package{ 'unzip':
+        ensure       => 'present',
+        size         => $size,
+        java_needed  => false,
+        lzo_needed   => false
+      }
+    }
   }
 
   #TODO: treat consistently 
