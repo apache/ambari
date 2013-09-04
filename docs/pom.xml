@@ -122,6 +122,30 @@
             </organization>
         </developer>
         <developer>
+            <id>akovalenko</id>
+            <name>Aleksandr Kovalenko</name>
+            <email>akovalenko@apache.org</email>
+            <timezone>+2</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>alexantonenko</id>
+            <name>Alex Antonenko</name>
+            <email>alexantonenko@apache.org</email>
+            <timezone>+2</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>berndf</id>
             <name>Bernd Fondermann</name>
             <email>berndf@apache.org</email>
