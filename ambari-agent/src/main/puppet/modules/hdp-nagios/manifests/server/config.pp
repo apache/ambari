@@ -52,6 +52,7 @@ class hdp-nagios::server::config()
   hdp-nagios::server::check { 'check_mapred_local_dir_used.sh': }
   hdp-nagios::server::check { 'check_nodemanager_health.sh': }
   hdp-nagios::server::check { 'check_resourcemanager_nodes_percentage.sh': }
+  hdp-nagios::server::check { 'check_namenodes_ha.sh': }
 
   anchor{'hdp-nagios::server::config::begin':} -> Hdp-nagios::Server::Configfile<||> -> anchor{'hdp-nagios::server::config::end':}
   Anchor['hdp-nagios::server::config::begin'] -> Hdp-nagios::Server::Check<||> -> Anchor['hdp-nagios::server::config::end']

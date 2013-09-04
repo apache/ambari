@@ -63,7 +63,18 @@ define service {
         retry_check_interval    0.25
         max_check_attempts      3
 }
-
+<% if scope.function_hdp_nagios_members_exist('namenode') && (scope.function_hdp_get_major_stack_version([scope.function_hdp_template_var("stack_version")]) >= 2)%>
+define service {
+        hostgroup_name          nagios-server
+        use                     hadoop-service
+        service_description     HDFS::NameNode HA Healthy
+        servicegroups           HDFS
+        check_command           check_namenodes_ha!$HOSTGROUPMEMBERS:namenode$!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>
+        normal_check_interval   0.5
+        retry_check_interval    0.25
+        max_check_attempts      5
+}
+<%end-%>
 
 # AMBARI AGENT Checks
 define service {

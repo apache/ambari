@@ -98,6 +98,11 @@ define command{
        }
 
 define command{
+       command_name    check_namenodes_ha
+       command_line    $USER1$/check_namenodes_ha.sh $ARG1$ $ARG2$
+       }
+
+define command{
         command_name    check_nodemanager_health
         command_line    $USER1$/check_nodemanager_health.sh $HOSTADDRESS$ $ARG1$
        }
