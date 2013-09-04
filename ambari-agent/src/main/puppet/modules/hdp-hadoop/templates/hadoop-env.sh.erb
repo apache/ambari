@@ -31,8 +31,11 @@ export HADOOP_HOME_WARN_SUPPRESS=1
 #TODO: if env var set that can cause problems
 export HADOOP_CONF_DIR=${HADOOP_CONF_DIR:-<%=scope.function_hdp_template_var("conf_dir")%>}
 
+<% if scope.function_hdp_template_var("::hdp::params::isHadoop2Stack") == true %>
 # Path to jsvc required by secure HDP 2.0 datanode
 export JSVC_HOME=<%=scope.function_hdp_template_var("jsvc_path")%>
+<% end %>
+
 
 # The maximum amount of heap to use, in MB. Default is 1000.
 export HADOOP_HEAPSIZE="<%=scope.function_hdp_template_var("hadoop_heapsize")%>"

@@ -39,6 +39,14 @@ class hdp::params()
     $yarn-site = $configuration['yarn-site']
   }
 
+  ## Stack version
+    $stack_version = hdp_default("stack_version", "1.3.0")
+    if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
+      $isHadoop2Stack = true
+    } else {
+      $isHadoop2Stack = false
+    }
+
   ##### global state defaults ####
   $cluster_service_state = hdp_default("cluster_service_state","running")
   $cluster_client_state = hdp_default("cluster_client_state","installed_and_configured")
@@ -54,7 +62,7 @@ class hdp::params()
     'kerberos' => true,
     default => false,
   }
-  
+
   $kerberos_domain = hdp_default("kerberos_domain","EXAMPLE.COM")
   $kinit_path_local = hdp_get_kinit_path(hdp_default("kinit_path_local"), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin")
   $keytab_path = hdp_default("keytab_path", "/etc/security/keytabs")
@@ -72,6 +80,12 @@ class hdp::params()
   $slave_hosts = hdp_default("slave_hosts")
   $journalnode_hosts = hdp_default("journalnode_hosts")
   $zkfc_hosts = hdp_default("zkfc_hosts")
+  $rm_host = hdp_default("rm_host")
+  $nm_hosts = hdp_default("nm_hosts")
+  $hs_host = hdp_default("hs_host")
+  $zookeeper_hosts = hdp_default("zookeeper_hosts")
+  $flume_hosts = hdp_default("flume_hosts")
+
 
   $nn_principal_str = hdp_default("hdfs-site/dfs.namenode.kerberos.principal", "nn/_HOST@EXAMPLE.COM")
   if ("_HOST" in $nn_principal_str and hdp_is_empty($namenode_host) == false) {
@@ -85,14 +99,6 @@ class hdp::params()
   } else {
     $jt_principal = $jt_principal_str
   }
-
-  $rm_host = hdp_default("rm_host")
-  $nm_hosts = hdp_default("nm_hosts")
-  $hs_host = hdp_default("hs_host")
-
-  $zookeeper_hosts = hdp_default("zookeeper_hosts")
-
-  $flume_hosts = hdp_default("flume_hosts")
 
   $flume_port = hdp_default("flume_port", "4159")
 
@@ -119,10 +125,6 @@ class hdp::params()
 
   $hdp_os = $::operatingsystem
   $hdp_os_version = $::operatingsystemrelease
-  
-  
-  ## Stack version
-  $stack_version = hdp_default("stack_version", "1.3.0")
 
   
   case $::operatingsystem {
