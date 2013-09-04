@@ -27,25 +27,29 @@ App.TaskTrackerUpView = App.TextDashboardWidgetView.extend({
 
   hiddenInfo: function () {
     var svc = this.get('model');
-    var liveCount = App.HostComponent.find().filterProperty('componentName', 'TASKTRACKER').filterProperty("workStatus","STARTED").length;
+    var liveCount = this.get('taskTrackersLive').length;
     var totalCount = svc.get('taskTrackers').get('length');
     var result = [];
     result.pushObject(liveCount + " live");
     result.pushObject(totalCount + " total");
     return result;
-  }.property('model.aliveTrackers.length', 'model.taskTrackers.length'),
+  }.property('model.taskTrackers.length', 'taskTrackersLive'),
 
   thresh1: 40,
   thresh2: 70,
   maxValue: 100,
 
+  taskTrackersLive: function(){
+    return App.HostComponent.find().filterProperty('componentName', 'TASKTRACKER').filterProperty("workStatus","STARTED");
+  }.property('model.hostComponents.@each'),
+
   data: function () {
-    return ( App.HostComponent.find().filterProperty('componentName', 'TASKTRACKER').filterProperty("workStatus","STARTED").length / this.get('model.taskTrackers.length')).toFixed(2) * 100;
-  }.property('model.taskTrackers.length', 'model.aliveTrackers.length'),
+    return (this.get('taskTrackersLive').length / this.get('model.taskTrackers.length')).toFixed(2) * 100;
+  }.property('model.taskTrackers.length', 'taskTrackersLive'),
 
   content: function () {
-    return App.HostComponent.find().filterProperty('componentName', 'TASKTRACKER').filterProperty("workStatus","STARTED").length + "/" + this.get('model.taskTrackers.length');
-  }.property('model.taskTrackers.length', 'model.aliveTrackers.length'),
+    return this.get('taskTrackersLive').length + "/" + this.get('model.taskTrackers.length');
+  }.property('model.taskTrackers.length', 'taskTrackersLive'),
 
   editWidget: function (event) {
     var parent = this;

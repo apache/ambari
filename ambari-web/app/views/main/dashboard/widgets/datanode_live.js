@@ -30,26 +30,31 @@ App.DataNodeUpView = App.TextDashboardWidgetView.extend({
 
   hiddenInfo: function () {
     var result = [];
-    result.pushObject( App.HostComponent.find().filterProperty('componentName', 'DATANODE').filterProperty("workStatus","STARTED").length
-      + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.live'));
-    result.pushObject( App.HostComponent.find().filterProperty('componentName', 'DATANODE').filterProperty("workStatus","INSTALLED").length
-      + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.dead'));
+    result.pushObject(this.get('dataNodesLive').length + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.live'));
+    result.pushObject(this.get('dataNodesDead').length + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.dead'));
     result.pushObject(this.get('model.decommissionDataNodes.length')+ ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.decom'));
     return result;
-  }.property('model', 'model.decommissionDataNodes.length'),
+  }.property('dataNodesLive', 'dataNodesDead', 'model.decommissionDataNodes.length'),
   hiddenInfoClass: "hidden-info-three-line",
 
   thresh1: 40,
   thresh2: 70,
   maxValue: 100,
 
+  dataNodesLive: function(){
+    return App.HostComponent.find().filterProperty('componentName', 'DATANODE').filterProperty("workStatus","STARTED");
+  }.property('model.hostComponents.@each'),
+  dataNodesDead: function(){
+    return App.HostComponent.find().filterProperty('componentName', 'DATANODE').filterProperty("workStatus","INSTALLED");
+  }.property('model.hostComponents.@each'),
+
   data: function () {
-    return ((App.HostComponent.find().filterProperty('componentName', 'DATANODE').filterProperty("workStatus","STARTED").length / this.get('model.dataNodes.length')).toFixed(2)) * 100;
-  }.property('model.dataNodes.length', 'model'),
+    return ((this.get('dataNodesLive').length / this.get('model.dataNodes.length')).toFixed(2)) * 100;
+  }.property('model.dataNodes.length', 'dataNodesLive'),
 
   content: function () {
-    return App.HostComponent.find().filterProperty('componentName', 'DATANODE').filterProperty("workStatus","STARTED").length + "/" + this.get('model.dataNodes.length');
-  }.property('model.dataNodes.length', 'model'),
+    return this.get('dataNodesLive').length + "/" + this.get('model.dataNodes.length');
+  }.property('model.dataNodes.length', 'dataNodesLive'),
 
   editWidget: function (event) {
     var parent = this;
