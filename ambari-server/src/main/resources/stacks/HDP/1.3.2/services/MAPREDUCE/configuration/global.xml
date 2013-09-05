@@ -118,7 +118,7 @@
   </property>
   <property>
     <name>lzo_enabled</name>
-    <value>false</value>
+    <value>true</value>
     <description>LZO compression enabled</description>
   </property>
   <property>
