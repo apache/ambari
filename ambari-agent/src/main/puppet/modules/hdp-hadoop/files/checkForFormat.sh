@@ -38,21 +38,6 @@ if [[ -f ${mark_file} ]] ; then
   mkdir -p ${mark_dir}
 fi
 
-#---Additional check, to format namenode directories if their pathes were changed.
-for dir in `echo $name_dirs | tr ',' ' '` ; do
-  cmd="ls $dir | wc -l  | grep -q ^0$"
-  eval $cmd
-  if [[ $? -eq 0 ]] ; then
-    list_of_empty_dirs="$list_of_empty_dirs $dir"
-  fi
-done
-
-if [[ -d $mark_dir ]] && [[ ! -z $list_of_empty_dirs ]]; then
-  echo "Removing mark directory: ${mark_dir}"
-  rm -rf ${mark_dir}
-fi
-#---
-
 if [[ ! -d $mark_dir ]] ; then
   for dir in `echo $name_dirs | tr ',' ' '` ; do
     echo "NameNode Dirname = $dir"
