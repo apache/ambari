@@ -238,12 +238,59 @@ App.MainDashboardView = Em.View.extend({
           currentPrefObject.dashboardVersion = 'new';
           this.postUserPref(this.get('persistKey'), currentPrefObject);
         }
+        this.hasUpgraded(currentPrefObject);
         this.translateToReal(currentPrefObject);
       } else {
         // post persist then translate init object
         this.postUserPref(this.get('persistKey'), this.get('initPrefObject'));
         this.translateToReal(this.get('initPrefObject'));
       }
+    }
+  },
+  /**
+   * check id stack has upgraded from HDP 1.0 to 2.0. Update the value on server if true.
+   */
+  hasUpgraded: function (value) {
+    var visible = value.visible;
+    var hidden = value.hidden;
+    var mapWidgets = ['6', '7', '8', '9', '10', '16', '18'];
+    var yarnWidgets = ['24', '25', '26', '27'];
+
+    // check if cur_value has mapReduce
+    var curhasMapreduce = false;
+    for (var j = 0; j <= visible.length -1; j++) {
+      if (visible[j] == mapWidgets[0]) {
+        curhasMapreduce = true;
+        break;
+      }
+    }
+    for (var j = 0; j <= hidden.length -1; j++) {
+      if ( !curhasMapreduce && hidden[j][0] == mapWidgets[0]) {
+        curhasMapreduce = true;
+        break;
+      }
+    }
+    // check if stack upgrade from 1.0 to 2.0.
+    if ( this.get('yarn_model') != null && curhasMapreduce) {
+      // Remove all Mapreduce widgets and add Yarn widgets as visible
+      mapWidgets.forEach ( function (item) {
+        for (var j = 0; j <= visible.length -1; j++) {
+          if (visible[j] == item) {
+            visible.splice(j, 1);
+          }
+        }
+        for (var j = 0; j <= hidden.length -1; j++) {
+          if (hidden[j][0] == item) {
+            hidden.splice(j, 1);
+          }
+        }
+      }, this);
+      visible = visible.concat (yarnWidgets);
+      //post to server
+      var obj = this.get('currentPrefObject');
+      obj.visible = visible;
+      obj.hidden = hidden;
+      this.postUserPref(this.get('persistKey'), obj);
     }
   },
 
