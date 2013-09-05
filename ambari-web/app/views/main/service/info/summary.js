@@ -476,24 +476,26 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     // for alerts window
     var summaryTable = document.getElementById('summary-info');
     var alertsList = document.getElementById('summary-alerts-list');
-    var summaryActualHeight = summaryTable.clientHeight;
     var alertsNum = App.router.get('mainServiceInfoSummaryController.alerts.length');
-    var alertsActualHeight = alertsNum * 60;
-    var alertsMinHeight = 58;
-    if (alertsNum == 0) {
-      $(alertsList).attr('style', "height:" + alertsMinHeight + "px;");
-    } else if ( alertsNum <= 4) {
-      // set window size to actual alerts height
-      $(alertsList).attr('style', "height:" + alertsActualHeight + "px;");
-    } else {
-      // set window size : sum of first 4 alerts height
-      $(alertsList).attr('style', "height:" + 240 + "px;");
+    if (summaryTable && alertsList && alertsNum != null) {
+      var summaryActualHeight = summaryTable.clientHeight;
+      var alertsActualHeight = alertsNum * 60;
+      var alertsMinHeight = 58;
+      if (alertsNum == 0) {
+        $(alertsList).attr('style', "height:" + alertsMinHeight + "px;");
+      } else if ( alertsNum <= 4) {
+        // set window size to actual alerts height
+        $(alertsList).attr('style', "height:" + alertsActualHeight + "px;");
+      } else {
+        // set window size : sum of first 4 alerts height
+        $(alertsList).attr('style', "height:" + 240 + "px;");
+      }
+      var curSize = alertsList.clientHeight;
+      if ( summaryActualHeight >= curSize) {
+        $(alertsList).attr('style', "height:" + summaryActualHeight + "px;");
+      }
     }
-    var curSize = alertsList.clientHeight;
-    if ( summaryActualHeight >= curSize) {
-      $(alertsList).attr('style', "height:" + summaryActualHeight + "px;");
-    }
-  },
+  }.observes('App.router.mainServiceInfoSummaryController.alerts.length'),
 
   clientHosts:App.Host.find(),
 
