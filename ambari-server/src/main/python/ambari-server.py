@@ -1740,7 +1740,8 @@ def install_jdk(dest_file):
                   "cancel the Ambari Server setup.\nDo you accept the "
                   "Oracle Binary Code License Agreement [y/n] (y)? ", True)
   if not ok:
-    raise FatalException(1, None)
+    print 'Exiting...'
+    sys.exit(1)
 
   print "Installing JDK to {0}".format(JDK_INSTALL_DIR)
   retcode, out, err = run_os_command(CREATE_JDK_DIR_CMD)

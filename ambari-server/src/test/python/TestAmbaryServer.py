@@ -1521,7 +1521,36 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     os_path_exists_mock.return_value = False
     status, pid = ambari_server.is_server_runing()
     self.assertFalse(status)
-  
+
+
+  @patch("os.chdir")
+  @patch.object(ambari_server, "run_os_command")
+  @patch("sys.exit")
+  @patch.object(ambari_server, "get_YN_input")
+  def test_install_jdk(self, get_YN_input_mock, exit_mock, run_os_command_mock, os_chdir_mock):
+    get_YN_input_mock.return_value = False
+    JDK_INSTALL_DIR = "JDK_INSTALL_DIR"
+    run_os_command_mock.return_value = 0, "", ""
+    ambari_server.install_jdk(MagicMock())
+    self.assertTrue(exit_mock.called)
+    exit_mock.reset()
+    run_os_command_mock.reset()
+    exit_mock.called = False
+    run_os_command_mock.call_count = 0
+    get_YN_input_mock.return_value = True
+    ambari_server.install_jdk(MagicMock())
+    self.assertFalse(exit_mock.called)
+    self.assertEquals(3, run_os_command_mock.call_count)
+    run_os_command_mock.return_value = 1, "", ""
+    failed = False
+    try:
+        ambari_server.install_jdk(MagicMock())
+        self.fail("Exception was not rised!")
+    except FatalException:
+        failed = True
+    self.assertTrue(failed)
+
+
   @patch.object(ambari_server, "install_jce_manualy")
   @patch("os.stat")
   @patch("os.path.isfile")
