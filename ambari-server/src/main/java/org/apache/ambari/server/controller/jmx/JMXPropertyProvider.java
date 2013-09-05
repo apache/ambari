@@ -101,6 +101,7 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
     DEFAULT_JMX_PORTS.put("RESOURCEMANAGER",     "8088");
     DEFAULT_JMX_PORTS.put("HISTORYSERVER",      "19888");
     DEFAULT_JMX_PORTS.put("NODEMANAGER",         "8042");
+    DEFAULT_JMX_PORTS.put("JOURNALNODE",         "8480");
 
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.configure(DeserializationConfig.Feature.USE_ANNOTATIONS, false);

@@ -37,6 +37,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -574,6 +575,150 @@ public class GangliaPropertyProviderTest {
     Assert.assertEquals(14, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(RM_AVAILABLE_MEMORY_PROPERTY));
   }  
+
+  @Test
+  public void testPopulateResources_journalNode() throws Exception {
+    TestStreamProvider streamProvider = new TestStreamProvider("journalnode_ganglia_data.txt");
+    TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
+
+    GangliaPropertyProvider propertyProvider = new GangliaHostComponentPropertyProvider(
+        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, MetricsVersion.HDP2),
+        streamProvider,
+        configuration,
+        hostProvider,
+        CLUSTER_NAME_PROPERTY_ID,
+        HOST_NAME_PROPERTY_ID,
+        COMPONENT_NAME_PROPERTY_ID);
+
+    Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+
+    resource.setProperty(HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
+    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "JOURNALNODE");
+
+
+    Object[][] testData = {
+      {"metrics", "boottime", 1378290058.0},
+      {"metrics/cpu", "cpu_aidle", 0.0},
+      {"metrics/cpu", "cpu_idle", 88.2},
+      {"metrics/cpu", "cpu_nice", 0.0},
+      {"metrics/cpu", "cpu_num", 2.0},
+      {"metrics/cpu", "cpu_speed", 3583.0},
+      {"metrics/cpu", "cpu_system", 8.4},
+      {"metrics/cpu", "cpu_user", 3.3},
+      {"metrics/cpu", "cpu_wio", 0.1},
+      {"metrics/disk", "disk_free", 92.428},
+      {"metrics/disk", "disk_total", 101.515},
+      {"metrics/disk", "part_max_used", 12.8},
+      {"metrics/jvm", "gcCount", 0.0},
+      {"metrics/jvm", "gcTimeMillis", 0.0},
+      {"metrics/jvm", "logError", 0.0},
+      {"metrics/jvm", "logFatal", 0.0},
+      {"metrics/jvm", "logInfo", 0.0},
+      {"metrics/jvm", "logWarn", 0.0},
+      {"metrics/jvm", "memMaxM", 910.25},
+      {"metrics/jvm", "memHeapCommittedM", 48.8125},
+      {"metrics/jvm", "memHeapUsedM", 9.5575423},
+      {"metrics/jvm", "memNonHeapCommittedM", 23.5625},
+      {"metrics/jvm", "memNonHeapUsedM", 22.78144},
+      {"metrics/jvm", "threadsBlocked", 0.0},
+      {"metrics/jvm", "threadsNew", 0.0},
+      {"metrics/jvm", "threadsRunnable", 6.0},
+      {"metrics/jvm", "threadsTerminated", 0.0},
+      {"metrics/jvm", "threadsTimedWaiting", 3.0},
+      {"metrics/jvm", "threadsWaiting", 9.0},
+      {"metrics/load", "load_fifteen", 0.026},
+      {"metrics/load", "load_five", 0.114},
+      {"metrics/load", "load_one", 0.226},
+      {"metrics/memory", "mem_buffers", 129384.0},
+      {"metrics/memory", "mem_cached", 589576.0},
+      {"metrics/memory", "mem_free", 1365496.0},
+      {"metrics/memory", "mem_shared", 0.0},
+      {"metrics/memory", "mem_total", 4055144.0},
+      {"metrics/memory", "swap_free", 4128760.0},
+      {"metrics/memory", "swap_total", 4128760.0},
+      {"metrics/network", "bytes_in", 22547.48},
+      {"metrics/network", "bytes_out", 5772.33},
+      {"metrics/network", "pkts_in", 24.0},
+      {"metrics/network", "pkts_out", 35.4},
+      {"metrics/process", "proc_run", 4.0},
+      {"metrics/process", "proc_total", 657.0},
+      {"metrics/rpc", "numOpenConnections", 1.0},
+      {"metrics/rpc", "receivedBytes", 6.34666666667},
+      {"metrics/rpc", "rpcProcessingTime_avg_time", 2.0},
+      {"metrics/rpc", "rpcProcessingTime_num_ops", 0.0266666666667},
+      {"metrics/rpc", "rpcQueueTime_avg_time", 0.0},
+      {"metrics/rpc", "rpcQueueTime_num_ops", 0.0266666666667},
+      {"metrics/rpc", "sentBytes", 1.01333333333},
+      {"metrics/rpc", "callQueueLength", 0.0},
+      {"metrics/rpc", "rpcAuthenticationFailures", 0.0},
+      {"metrics/rpc", "rpcAuthenticationSuccesses", 0.0},
+      {"metrics/rpc", "rpcAuthorizationFailures", 0.0},
+      {"metrics/rpc", "rpcAuthorizationSuccesses", 0.0266666666667},
+      {"metrics/ugi", "loginFailure_avg_time", 0.0},
+      {"metrics/ugi", "loginFailure_num_ops", 0.0},
+      {"metrics/ugi", "loginSuccess_avg_time", 0.0},
+      {"metrics/ugi", "loginSuccess_num_ops", 0.0},
+      {"metrics/rpcdetailed", "acceptRecovery_avg_time", 0},
+      {"metrics/rpcdetailed", "acceptRecovery_num_ops", 0},
+      {"metrics/rpcdetailed", "finalizeLogSegment_avg_time", 0},
+      {"metrics/rpcdetailed", "finalizeLogSegment_num_ops", 0},
+      {"metrics/rpcdetailed", "getEditLogManifest_avg_time", 2.0},
+      {"metrics/rpcdetailed", "getEditLogManifest_num_ops", 0.0266666666667},
+      {"metrics/rpcdetailed", "getJournalState_avg_time", 0},
+      {"metrics/rpcdetailed", "getJournalState_num_ops", 0},
+      {"metrics/rpcdetailed", "journal_avg_time", 0},
+      {"metrics/rpcdetailed", "journal_num_ops", 0},
+      {"metrics/rpcdetailed", "newEpoch_avg_time", 0},
+      {"metrics/rpcdetailed", "newEpoch_num_ops", 0},
+      {"metrics/rpcdetailed", "prepareRecovery_avg_time", 0},
+      {"metrics/rpcdetailed", "prepareRecovery_num_ops", 0},
+      {"metrics/rpcdetailed", "startLogSegment_avg_time", 0},
+      {"metrics/rpcdetailed", "startLogSegment_num_ops", 0},
+      {"metrics/dfs/journalNode", "batchesWritten", 0.0},
+      {"metrics/dfs/journalNode", "batchesWrittenWhileLagging", 0.0},
+      {"metrics/dfs/journalNode", "bytesWritten", 0.0},
+      {"metrics/dfs/journalNode", "currentLagTxns", 0.0},
+      {"metrics/dfs/journalNode", "lastPromisedEpoch", 5.0},
+      {"metrics/dfs/journalNode", "lastWriterEpoch", 5.0},
+      {"metrics/dfs/journalNode", "lastWrittenTxId", 613.0},
+      {"metrics/dfs/journalNode", "syncs60s50thPercentileLatencyMicros", 0.0},
+      {"metrics/dfs/journalNode", "syncs60s75thPercentileLatencyMicros", 0.0},
+      {"metrics/dfs/journalNode", "syncs60s90thPercentileLatencyMicros", 0.0},
+      {"metrics/dfs/journalNode", "syncs60s95thPercentileLatencyMicros", 0.0},
+      {"metrics/dfs/journalNode", "syncs60s99thPercentileLatencyMicros", 0.0},
+      {"metrics/dfs/journalNode", "syncs60s_num_ops", 0.0},
+      {"metrics/dfs/journalNode", "syncs300s50thPercentileLatencyMicros", 0.0},
+      {"metrics/dfs/journalNode", "syncs300s75thPercentileLatencyMicros", 0.0},
+      {"metrics/dfs/journalNode", "syncs300s90thPercentileLatencyMicros", 0.0},
+      {"metrics/dfs/journalNode", "syncs300s95thPercentileLatencyMicros", 0.0},
+      {"metrics/dfs/journalNode", "syncs300s99thPercentileLatencyMicros", 0.0},
+      {"metrics/dfs/journalNode", "syncs300s_num_ops", 0.0},
+      {"metrics/dfs/journalNode", "syncs3600s50thPercentileLatencyMicros", 0.0},
+      {"metrics/dfs/journalNode", "syncs3600s75thPercentileLatencyMicros", 0.0},
+      {"metrics/dfs/journalNode", "syncs3600s90thPercentileLatencyMicros", 0.0},
+      {"metrics/dfs/journalNode", "syncs3600s95thPercentileLatencyMicros", 0.0},
+      {"metrics/dfs/journalNode", "syncs3600s99thPercentileLatencyMicros", 0.0},
+      {"metrics/dfs/journalNode", "syncs3600s_num_ops", 0.0},
+      {"metrics/dfs/journalNode", "txnsWritten", 0.0}
+    };
+
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    Set<String> properties = new LinkedHashSet<String>();
+
+    for (Object[] row : testData) {
+      properties.add(PropertyHelper.getPropertyId(row[0].toString(), row[1].toString()));
+    }
+
+    Request request = PropertyHelper.getReadRequest(properties, temporalInfoMap);
+
+    Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
+    Assert.assertEquals(properties.size() + 2, PropertyHelper.getProperties(resource).size());
+
+    int i = 0;
+    for (String property : properties) {
+      Assert.assertEquals(testData[i++][2], resource.getPropertyValue(property));
+    }
+  }
 
   private static class TestGangliaHostProvider implements GangliaHostProvider {
 
