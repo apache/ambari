@@ -88,7 +88,14 @@ define hdp-hadoop::service(
       force => true
     }
   }
-  if ($daemon_cmd != undef) {  
+  if ($daemon_cmd != undef) {
+    if ($name == 'datanode' and $ensure == 'running') {
+      exec { 'delete_pid_before_datanode_start':
+        command  => "rm -f ${pid_file}",
+        unless       => $service_is_up,
+        path => $hdp::params::exec_path
+      }
+    }
     hdp::exec { $daemon_cmd:
       command      => $daemon_cmd,
       unless       => $service_is_up,
@@ -106,6 +113,9 @@ define hdp-hadoop::service(
     }
      if ($create_log_dir == true) {
       Anchor["hdp-hadoop::service::${name}::begin"] -> Hdp::Directory_recursive_create[$log_dir] -> Hdp::Exec[$daemon_cmd] 
+    }
+    if ($name == 'datanode' and $ensure == 'running') {
+      Anchor["hdp-hadoop::service::${name}::begin"] -> Exec['delete_pid_before_datanode_start'] -> Hdp::Exec[$daemon_cmd]
     }
   }
   if ($ensure == 'running') {
