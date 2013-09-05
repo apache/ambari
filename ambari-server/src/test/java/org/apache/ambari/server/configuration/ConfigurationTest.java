@@ -31,14 +31,26 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.api.support.membermodification.MemberMatcher;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import static org.mockito.Mockito.*;
-import static org.mockito.Matchers.*;
+import static org.powermock.api.easymock.PowerMock.mockStatic;
+import static org.powermock.api.easymock.PowerMock.replayAll;
+import static org.powermock.api.easymock.PowerMock.verifyAll;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.Properties;
 
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ Configuration.class })
 public class ConfigurationTest {
 
   private Injector injector;
@@ -193,6 +205,20 @@ public class ConfigurationTest {
     ambariProperties.setProperty("server.jdbc.database", "ambaritestdatabase");
     Configuration conf = new Configuration(ambariProperties);
     Assert.assertEquals(conf.getLocalDatabaseUrl(), Configuration.JDBC_LOCAL_URL.concat("ambaritestdatabase"));
+  }
+  
+  @Test
+  public void testGetAmbariProperties() throws Exception {
+    Properties ambariProperties = new Properties();
+    ambariProperties.setProperty("name", "value");
+    Configuration conf = new Configuration(ambariProperties);
+    mockStatic(Configuration.class);
+    Method[] methods = MemberMatcher.methods(Configuration.class, "readConfigFile");
+    PowerMock.expectPrivate(Configuration.class, methods[0]).andReturn(ambariProperties);
+    replayAll();
+    Map<String, String> props = conf.getAmbariProperties();
+    verifyAll();
+    Assert.assertEquals("value", props.get("name"));
   }
 
   @Rule

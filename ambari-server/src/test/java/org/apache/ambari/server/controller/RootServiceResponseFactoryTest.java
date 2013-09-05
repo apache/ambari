@@ -146,7 +146,7 @@ public class RootServiceResponseFactoryTest {
         assertTrue(rootServiceComponents
             .contains(new RootServiceComponentResponse(component.name(),
                 ambariMetaInfo.getServerVersion(),
-                configs.getConfigsMap())));
+                configs.getAmbariProperties())));
       else
         assertTrue(rootServiceComponents
             .contains(new RootServiceComponentResponse(component.name(),
@@ -165,7 +165,7 @@ public class RootServiceResponseFactoryTest {
     assertTrue(rootServiceComponents.contains(new RootServiceComponentResponse(
         RootServiceResponseFactory.Services.AMBARI.getComponents()[0].name(),
         ambariMetaInfo.getServerVersion(),
-        configs.getConfigsMap())));
+        configs.getAmbariProperties())));
     
     // Request existent service name, and component, not belongs to requested service
     request =

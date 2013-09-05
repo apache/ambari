@@ -433,6 +433,7 @@ public class Configuration {
     // load the properties
     try {
       properties.load(inputStream);
+      inputStream.close();
     } catch (FileNotFoundException fnf) {
       LOG.info("No configuration file " + CONFIG_FILE + " found in classpath.", fnf);
     } catch (IOException ie) {
@@ -791,6 +792,17 @@ public class Configuration {
     }
     
     return customDbProperties;
+  }
+
+  public Map<String, String> getAmbariProperties() {
+    
+    Properties properties = readConfigFile();
+    Map<String, String> ambariPropertiesMap = new HashMap<String, String>();
+    
+    for(String key : properties.stringPropertyNames()) {
+      ambariPropertiesMap.put(key, properties.getProperty(key));
+    }
+    return ambariPropertiesMap;
   }
 
 }

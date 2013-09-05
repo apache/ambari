@@ -151,7 +151,7 @@ public class RootServiceResponseFactory extends
       
       switch (component) {
       case AMBARI_SERVER:
-        response = configs.getConfigsMap();
+        response = configs.getAmbariProperties();
         break;
 
       default:
