@@ -105,6 +105,23 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
     task.set('status', 'PENDING');
   },
 
+  rollback: function () {
+    var task = this.get('tasks').findProperty('status', 'FAILED');
+    App.ModalPopup.show({
+      header: Em.I18n.t('admin.highAvailability.confirmRollbackHeader'),
+      primary: Em.I18n.t('common.confirm'),
+      onPrimary: function () {
+        //App.router.send();
+        this.hide();
+      },
+      secondary : Em.I18n.t('common.cancel'),
+      onSecondary: function(){
+        this.hide();
+      },
+      body: Em.I18n.t('admin.highAvailability.confirmRollbackBody')
+    });
+  },
+
   onTaskStatusChange: function () {
     if (!this.get('tasks').someProperty('status', 'IN_PROGRESS') && !this.get('tasks').someProperty('status', 'QUEUED') && !this.get('tasks').someProperty('status', 'FAILED')) {
       var nextTask = this.get('tasks').findProperty('status', 'PENDING');
