@@ -516,7 +516,7 @@ define service {
         use                     hadoop-service
         service_description     NODEMANAGER::NodeManager health
         servicegroups           YARN
-        check_command           check_nodemanager_health!<%=scope.function_hdp_template_var("nm_port")%>
+        check_command           check_nodemanager_health!<%=scope.function_hdp_template_var("nm_port")%>!<%=scope.function_hdp_template_var("::hdp::params::security_enabled")%>!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>
         normal_check_interval   1
         retry_check_interval    1
         max_check_attempts      3
@@ -720,7 +720,7 @@ define service {
         service_description     WEBHCAT::WebHCat Server status
         servicegroups           WEBHCAT 
         <%if scope.function_hdp_template_var("::hdp::params::security_enabled")-%>
-        check_command           check_templeton_status!<%=scope.function_hdp_template_var("::hdp::templeton_port")%>!v1!true!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>
+        check_command           check_templeton_status!<%=scope.function_hdp_template_var("::hdp::templeton_port")%>!v1!<%=scope.function_hdp_template_var("::hdp::params::security_enabled")%>!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>
         <%else-%>
         check_command           check_templeton_status!<%=scope.function_hdp_template_var("::hdp::templeton_port")%>!v1!false
         <%end-%>

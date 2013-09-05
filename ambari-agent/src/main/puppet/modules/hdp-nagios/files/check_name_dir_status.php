@@ -32,7 +32,14 @@
   $port=$options['p'];
 
   /* Get the json document */
-  $json_string = file_get_contents("http://".$host.":".$port."/jmx?qry=Hadoop:service=NameNode,name=NameNodeInfo");
+  $ch = curl_init();
+  $username = rtrim(`id -un`, "\n");
+  curl_setopt_array($ch, array( CURLOPT_URL => "http://".$host.":".$port."/jmx?qry=Hadoop:service=NameNode,name=NameNodeInfo",
+                                CURLOPT_RETURNTRANSFER => true,
+                                CURLOPT_HTTPAUTH => CURLAUTH_ANY,
+                                CURLOPT_USERPWD => "$username:" ));
+  $json_string = curl_exec($ch);
+  curl_close($ch);
   $json_array = json_decode($json_string, true);
   $object = $json_array['beans'][0];
   if ($object['NameDirStatuses'] == "") {
