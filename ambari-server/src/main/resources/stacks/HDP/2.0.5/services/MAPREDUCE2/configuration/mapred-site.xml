@@ -56,6 +56,14 @@
 
 <!-- map/reduce properties -->
   <property>
+    <name>mapreduce.cluster.administrators</name>
+    <value> hadoop</value>
+    <description>
+      Administrators for MapReduce applications.
+    </description>
+  </property>
+
+  <property>
     <name>mapreduce.reduce.shuffle.parallelcopies</name>
     <value>30</value>
     <description>
