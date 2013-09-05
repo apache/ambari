@@ -1479,8 +1479,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       readLock.lock();
       try {
 
-        return (getDesiredState().isRemovableState() &&
-            getState().isRemovableState());
+        return (getState().isRemovableState());
 
       } finally {
         readLock.unlock();

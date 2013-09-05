@@ -6852,7 +6852,92 @@ public class AmbariManagementControllerTest {
     assertEquals(original, repo.getBaseUrl());
     assertEquals(original, repo.getDefaultBaseUrl());
   }
-  
+
+  @Test
+  public void testDeleteHostComponentInVariousStates() throws Exception {
+    String clusterName = "foo1";
+    createCluster(clusterName);
+    clusters.getCluster(clusterName)
+        .setDesiredStackVersion(new StackId("HDP-1.3.1"));
+    String serviceName = "HDFS";
+    String mapred = "MAPREDUCE";
+    createService(clusterName, serviceName, null);
+    createService(clusterName, mapred, null);
+    String componentName1 = "NAMENODE";
+    String componentName2 = "DATANODE";
+    String componentName3 = "HDFS_CLIENT";
+    String componentName4 = "JOBTRACKER";
+    String componentName5 = "TASKTRACKER";
+    String componentName6 = "MAPREDUCE_CLIENT";
+
+    createServiceComponent(clusterName, serviceName, componentName1, State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName2, State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName3, State.INIT);
+    createServiceComponent(clusterName, mapred, componentName4, State.INIT);
+    createServiceComponent(clusterName, mapred, componentName5, State.INIT);
+    createServiceComponent(clusterName, mapred, componentName6, State.INIT);
+
+    String host1 = "h1";
+    clusters.addHost(host1);
+    clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").setState(HostState.HEALTHY);
+    clusters.getHost("h1").persist();
+
+    clusters.mapHostToCluster(host1, clusterName);
+
+    createServiceComponentHost(clusterName, serviceName, componentName1, host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2, host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3, host1, null);
+    createServiceComponentHost(clusterName, mapred, componentName4, host1, null);
+    createServiceComponentHost(clusterName, mapred, componentName5, host1, null);
+    createServiceComponentHost(clusterName, mapred, componentName6, host1, null);
+
+    // Install
+    installService(clusterName, serviceName, false, false);
+    installService(clusterName, mapred, false, false);
+
+    Cluster cluster = clusters.getCluster(clusterName);
+    Service s1 = cluster.getService(serviceName);
+    Service s2 = cluster.getService(mapred);
+    ServiceComponent sc1 = s1.getServiceComponent(componentName1);
+    sc1.getServiceComponentHosts().values().iterator().next().setState(State.INSTALLED);
+
+    Set<ServiceComponentHostRequest> schRequests = new HashSet<ServiceComponentHostRequest>();
+    // delete HC
+    schRequests.clear();
+    schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName1, host1, null, null));
+    try {
+      controller.deleteHostComponents(schRequests);
+      Assert.fail("Expect failure while deleting.");
+    } catch (Exception ex) {
+      Assert.assertTrue(ex.getMessage().contains(
+          "remove master or slave components they must be in MAINTENANCE/INIT/INSTALL_FAILED/UNKNOWN"));
+    }
+
+    sc1.getServiceComponentHosts().values().iterator().next().setDesiredState(State.STARTED);
+    sc1.getServiceComponentHosts().values().iterator().next().setState(State.UNKNOWN);
+    ServiceComponent sc2 = s1.getServiceComponent(componentName2);
+    sc2.getServiceComponentHosts().values().iterator().next().setState(State.INIT);
+    ServiceComponent sc3 = s1.getServiceComponent(componentName3);
+    sc3.getServiceComponentHosts().values().iterator().next().setState(State.INSTALL_FAILED);
+    ServiceComponent sc4 = s2.getServiceComponent(componentName4);
+    sc4.getServiceComponentHosts().values().iterator().next().setDesiredState(State.INSTALLED);
+    sc4.getServiceComponentHosts().values().iterator().next().setState(State.MAINTENANCE);
+    ServiceComponent sc5 = s2.getServiceComponent(componentName5);
+    sc5.getServiceComponentHosts().values().iterator().next().setState(State.INSTALL_FAILED);
+    ServiceComponent sc6 = s2.getServiceComponent(componentName6);
+    sc6.getServiceComponentHosts().values().iterator().next().setState(State.INIT);
+
+    schRequests.clear();
+    schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName1, host1, null, null));
+    schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName2, host1, null, null));
+    schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName3, host1, null, null));
+    schRequests.add(new ServiceComponentHostRequest(clusterName, mapred, componentName4, host1, null, null));
+    schRequests.add(new ServiceComponentHostRequest(clusterName, mapred, componentName5, host1, null, null));
+    schRequests.add(new ServiceComponentHostRequest(clusterName, mapred, componentName6, host1, null, null));
+    controller.deleteHostComponents(schRequests);
+  }
+
   @Test
   public void testDeleteHost() throws Exception {
     String clusterName = "foo1";

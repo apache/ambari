@@ -3687,12 +3687,13 @@ public class AmbariManagementControllerImpl implements
             + ", request=" + request);
       }
 
-      // Only allow removing master/slave components in MAINTENANCE state without stages generation.
+      // Only allow removing master/slave components in MAINTENANCE/UNKNOWN/INSTALL_FAILED/INIT state without stages
+      // generation.
       // Clients may be removed without a state check.
       if (!component.isClientComponent() &&
-          componentHost.getState() != State.MAINTENANCE) {
-        throw new AmbariException("To remove master or slave components they must be in a " +
-            "MAINTENANCE state. Current=" + componentHost.getState() + ".");
+          !componentHost.getState().isHardDeletableState()) {
+        throw new AmbariException("To remove master or slave components they must be in " +
+            "MAINTENANCE/INIT/INSTALL_FAILED/UNKNOWN state. Current=" + componentHost.getState() + ".");
       }
 
       if (!safeToRemoveSCHs.containsKey(component)) {
