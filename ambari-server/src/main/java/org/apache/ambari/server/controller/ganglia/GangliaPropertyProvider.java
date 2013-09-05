@@ -222,7 +222,9 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
           Map<String, PropertyInfo> componentMetricMap =
             getComponentMetrics().get(getComponentName(resource));
 
-          if (!componentMetricMap.containsKey(id)) {
+          // Not all components have metrics
+          if (componentMetricMap != null &&
+              !componentMetricMap.containsKey(id)) {
             updateComponentMetricMap(componentMetricMap, id);
           }
 
