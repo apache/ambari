@@ -275,8 +275,10 @@ public class AmbariMetaInfo {
   public boolean isSupportedStack(String stackName, String version) throws AmbariException {
     boolean exist = false;
     try {
-      getStackInfo(stackName, version);
-      exist = true;
+      StackInfo stackInfo = getStackInfo(stackName, version);
+      if (stackInfo != null) {
+        exist = true;
+      }
     } catch (ObjectNotFoundException e) {
     }
     return exist;
@@ -290,8 +292,10 @@ public class AmbariMetaInfo {
 
     boolean exist = false;
     try {
-      getServiceInfo(stackName, version, serviceName);
-      exist = true;
+      ServiceInfo info= getServiceInfo(stackName, version, serviceName);
+      if (info != null) {
+        exist = true;
+      }
     } catch (ObjectNotFoundException e) {
     }
     return exist;

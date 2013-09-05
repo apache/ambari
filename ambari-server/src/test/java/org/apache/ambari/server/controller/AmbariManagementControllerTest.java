@@ -606,7 +606,7 @@ public class AmbariManagementControllerTest {
     controller.createServices(set1);
 
     try {
-      valid1 = new ServiceRequest("foo", "bar", null, null);
+      valid1 = new ServiceRequest("foo", "PIG", null, null);
       valid2 = new ServiceRequest("foo", "MAPREDUCE", null, null);
       set1.add(valid1);
       set1.add(valid2);

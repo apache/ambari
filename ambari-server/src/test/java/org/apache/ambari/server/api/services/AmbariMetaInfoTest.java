@@ -134,7 +134,7 @@ public class AmbariMetaInfoTest {
         SERVICE_NAME_HDFS);
     assertTrue(valid);
 
-    boolean invalid = metaInfo.isValidService(STACK_NAME_HDP, NON_EXT_VALUE, NON_EXT_VALUE);
+    boolean invalid = metaInfo.isValidService(STACK_NAME_HDP, STACK_VERSION_HDP, NON_EXT_VALUE);
     assertFalse(invalid);
   }
 
