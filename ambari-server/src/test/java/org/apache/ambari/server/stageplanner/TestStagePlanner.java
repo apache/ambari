@@ -246,6 +246,6 @@ public class TestStagePlanner {
     for (Stage s: outStages) {
       System.out.println(s.toString());
     }
-    assertEquals(4, outStages.size());
+    assertEquals(5, outStages.size());
   }
 }

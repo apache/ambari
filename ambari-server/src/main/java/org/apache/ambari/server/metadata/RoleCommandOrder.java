@@ -127,6 +127,10 @@ public class RoleCommandOrder {
             RoleCommand.START);
         addDependency(Role.ZKFC, RoleCommand.START, Role.NAMENODE,
             RoleCommand.START);
+        addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.ZKFC,
+                RoleCommand.START);
+        addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.JOURNALNODE,
+                RoleCommand.START);
       }
       addDependency(Role.HBASE_MASTER, RoleCommand.START, Role.ZOOKEEPER_SERVER,
           RoleCommand.START);
@@ -160,6 +164,43 @@ public class RoleCommandOrder {
           RoleCommand.START); 
       addDependency(Role.FLUME_SERVER, RoleCommand.START, Role.OOZIE_SERVER,
           RoleCommand.START);
+      // Nagios
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.HBASE_MASTER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.HBASE_REGIONSERVER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.GANGLIA_SERVER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.GANGLIA_MONITOR,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.HCAT,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.HIVE_SERVER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.HIVE_METASTORE,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.HUE_SERVER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.JOBTRACKER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.TASKTRACKER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.ZOOKEEPER_SERVER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.MYSQL_SERVER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.OOZIE_SERVER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.PIG,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.SQOOP,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.WEBHCAT_SERVER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.FLUME_SERVER,
+              RoleCommand.START);
+
+
 
       // Service checks
       addDependency(Role.HCFS_SERVICE_CHECK, RoleCommand.EXECUTE, Role.PEERSTATUS,
@@ -285,6 +326,10 @@ public class RoleCommandOrder {
             RoleCommand.START);
         addDependency(Role.ZKFC, RoleCommand.START, Role.NAMENODE,
             RoleCommand.START);
+        addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.ZKFC,
+                RoleCommand.START);
+        addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.JOURNALNODE,
+                RoleCommand.START);
       }
       
       addDependency(Role.SECONDARY_NAMENODE, RoleCommand.START, Role.NAMENODE,
@@ -345,6 +390,54 @@ public class RoleCommandOrder {
         RoleCommand.START);
       addDependency(Role.FLUME_SERVER, RoleCommand.START, Role.OOZIE_SERVER,
         RoleCommand.START);
+      // Nagios
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.NAMENODE,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.SECONDARY_NAMENODE,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.DATANODE,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.RESOURCEMANAGER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.NODEMANAGER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.HBASE_MASTER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.HBASE_REGIONSERVER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.GANGLIA_SERVER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.GANGLIA_MONITOR,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.HCAT,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.HISTORYSERVER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.HIVE_SERVER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.HIVE_METASTORE,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.HUE_SERVER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.JOBTRACKER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.TASKTRACKER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.ZOOKEEPER_SERVER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.MYSQL_SERVER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.OOZIE_SERVER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.PIG,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.SQOOP,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.WEBHCAT_SERVER,
+              RoleCommand.START);
+      addDependency(Role.NAGIOS_SERVER, RoleCommand.START, Role.FLUME_SERVER,
+              RoleCommand.START);
+
 
       // Service checks
       addDependency(Role.HDFS_SERVICE_CHECK, RoleCommand.EXECUTE, Role.NAMENODE,
