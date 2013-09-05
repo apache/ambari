@@ -576,6 +576,10 @@ public class Configuration {
   }
 
   public String getLocalDatabaseUrl() {
+    String dbName = properties.getProperty(SERVER_DB_NAME_KEY);
+    if(dbName == null || dbName.isEmpty())
+      throw new RuntimeException("Server DB Name is not configured!");
+
     return JDBC_LOCAL_URL + properties.getProperty(SERVER_DB_NAME_KEY);
   }
 

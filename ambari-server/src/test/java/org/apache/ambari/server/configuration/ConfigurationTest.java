@@ -28,7 +28,10 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
 import static org.mockito.Mockito.*;
 import static org.mockito.Matchers.*;
 
@@ -190,6 +193,18 @@ public class ConfigurationTest {
     ambariProperties.setProperty("server.jdbc.database", "ambaritestdatabase");
     Configuration conf = new Configuration(ambariProperties);
     Assert.assertEquals(conf.getLocalDatabaseUrl(), Configuration.JDBC_LOCAL_URL.concat("ambaritestdatabase"));
+  }
+
+  @Rule
+  public ExpectedException exception = ExpectedException.none();
+
+  @Test()
+  public void testGetLocalDatabaseUrlThrowException() {
+    Properties ambariProperties = new Properties();
+    Configuration conf = new Configuration(ambariProperties);
+    exception.expect(RuntimeException.class);
+    exception.expectMessage("Server DB Name is not configured!");
+    conf.getLocalDatabaseUrl();
   }
 
 }

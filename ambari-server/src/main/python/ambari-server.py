@@ -219,7 +219,7 @@ SETUP_DB_CONNECT_ATTEMPTS = 3
 SETUP_DB_CMD = ['su', '-', 'postgres',
         '--command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'" -v dbname="{3}"']
 UPGRADE_STACK_CMD = ['su', 'postgres',
-        '--command=psql -f {0} -v stack_name="\'{1}\'"  -v stack_version="\'{2}\'" -v dbname="{3}']
+        '--command=psql -f {0} -v stack_name="\'{1}\'"  -v stack_version="\'{2}\'" -v dbname="{3}"']
 UPDATE_METAINFO_CMD = 'curl -X PUT "http://{0}:{1}/api/v1/stacks2" -u "{2}":"{3}"'
 PG_ST_CMD = "/sbin/service postgresql status"
 PG_INITDB_CMD = "/sbin/service postgresql initdb"
@@ -343,6 +343,8 @@ JDK_DOWNLOAD_SIZE_CMD = "curl -I {0}"
 JCE_POLICY_FILENAME = "jce_policy-6.zip"
 JCE_DOWNLOAD_CMD = "curl -o {0} {1}"
 JCE_MIN_FILESIZE = 5000
+
+DEFAULT_DB_NAME = "ambari"
 
 #Apache License Header
 ASF_LICENSE_HEADER = '''
@@ -1062,7 +1064,7 @@ def load_default_db_properties(args):
   args.database=DATABASE_NAMES[DATABASE_INDEX]
   args.database_host = "localhost"
   args.database_port = DATABASE_PORTS[DATABASE_INDEX]
-  args.database_name = "ambari"
+  args.database_name = DEFAULT_DB_NAME
   args.database_username = "ambari"
   args.database_password = "bigdata"
   args.sid_or_sname = "sname"
@@ -1315,6 +1317,17 @@ def configure_database_password(showDefault=True):
 
   return password
 
+def check_database_name_property():
+  properties = get_ambari_properties()
+  if properties == -1:
+    print_error_msg ("Error getting ambari properties")
+    return -1
+
+  dbname = properties[JDBC_DATABASE_PROPERTY]
+  if dbname is None or dbname == "":
+    raise FatalException(-1, 'DB Name property not set in config file. '\
+                             'If you recently upgraded, ensure that you ran "ambari-server upgrade". '\
+                             'Otherwise, if it is a new installation, please run "ambari-server setup" first.')
 
 def configure_database_username_password(args):
   properties = get_ambari_properties()
@@ -1324,10 +1337,12 @@ def configure_database_username_password(args):
 
   username = properties[JDBC_USER_NAME_PROPERTY]
   passwordProp = properties[JDBC_PASSWORD_PROPERTY]
+  dbname = properties[JDBC_DATABASE_PROPERTY]
 
-  if username and passwordProp:
+  if username and passwordProp and dbname:
     print_info_msg("Database username + password already configured")
     args.database_username=username
+    args.database_name = dbname
     if is_alias_string(passwordProp):
       args.database_password = decrypt_password_for_alias(JDBC_RCA_PASSWORD_ALIAS)
     else:
@@ -1373,7 +1388,6 @@ def store_local_properties(args):
   properties.removeOldProp(JDBC_PORT_PROPERTY)
   properties.removeOldProp(JDBC_DRIVER_PROPERTY)
   properties.removeOldProp(JDBC_URL_PROPERTY)
-  #properties.removeOldProp(JDBC_DATABASE_PROPERTY)
   properties.process_pair(PERSISTENCE_TYPE_PROPERTY, "local")
   properties.process_pair(JDBC_DATABASE_PROPERTY, args.database_name)
   properties.process_pair(JDBC_USER_NAME_PROPERTY, args.database_username)
@@ -2048,6 +2062,7 @@ def reset(args):
 
   print "Resetting the Server database..."
 
+  check_database_name_property()
   parse_properties_file(args)
 
   # configure_database_username_password(args)
@@ -2126,6 +2141,7 @@ def start(args):
           "command as root, as sudo or as user \"{1}\"".format(current_user, ambari_user)
     raise FatalException(1, err)
 
+  check_database_name_property()
   parse_properties_file(args)
   if os.path.exists(PID_DIR + os.sep + PID_NAME):
     f = open(PID_DIR + os.sep + PID_NAME, "r")
@@ -2263,6 +2279,7 @@ def upgrade_stack(args, stack_id):
     err = 'Ambari-server upgradestack should be run with ' \
           'root-level privileges'
     raise FatalException(4, err)
+  check_database_name_property()
   #password access to ambari-server and mapred
   configure_database_username_password(args)
   dbname = args.database_name
@@ -2290,6 +2307,21 @@ def upgrade(args):
   if not retcode == 0:
     err = AMBARI_PROPERTIES_FILE + ' file can\'t be updated. Exiting'
     raise FatalException(retcode, err)
+
+  try:
+    check_database_name_property()
+  except FatalException:
+    properties = get_ambari_properties()
+    if properties == -1:
+      print_error_msg ("Error getting ambari properties")
+      return -1
+    properties.process_pair(JDBC_DATABASE_PROPERTY, DEFAULT_DB_NAME)
+    conf_file = find_properties_file()
+    try:
+      properties.store(open(conf_file, "w"))
+    except Exception, e:
+      print_error_msg('Could not write ambari config file "%s": %s' % (conf_file, e))
+    return -1
 
   parse_properties_file(args)
   if args.persistence_type == "remote":
