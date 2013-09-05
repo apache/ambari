@@ -56,9 +56,7 @@ HADOOP_BALANCER_OPTS="-server -Xmx<%=scope.function_hdp_template_var("hadoop_hea
 export HADOOP_SECONDARYNAMENODE_OPTS="-server -XX:ParallelGCThreads=8 -XX:+UseConcMarkSweepGC -XX:ErrorFile=<%=scope.function_hdp_template_var("hdfs_log_dir_prefix")%>/$USER/hs_err_pid%p.log -XX:NewSize=<%=scope.function_hdp_template_var("namenode_opt_newsize")%> -XX:MaxNewSize=<%=scope.function_hdp_template_var("namenode_opt_maxnewsize")%> -Xloggc:<%=scope.function_hdp_template_var("hdfs_log_dir_prefix")%>/$USER/gc.log-`date +'%Y%m%d%H%M'` -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps ${HADOOP_NAMENODE_INIT_HEAPSIZE} -Xmx<%=scope.function_hdp_template_var("namenode_heapsize")%> -Dhadoop.security.logger=INFO,DRFAS -Dhdfs.audit.logger=INFO,DRFAAUDIT ${HADOOP_SECONDARYNAMENODE_OPTS}"
 
 # The following applies to multiple commands (fs, dfs, fsck, distcp etc)
-export HADOOP_CLIENT_OPTS="-Xmx128m ${HADOOP_CLIENT_OPTS}"
-#HADOOP_JAVA_PLATFORM_OPTS="-XX:-UsePerfData ${HADOOP_JAVA_PLATFORM_OPTS}"
-
+export HADOOP_CLIENT_OPTS="-Xmx${HADOOP_HEAPSIZE}m $HADOOP_CLIENT_OPTS"
 # On secure datanodes, user to run the datanode as after dropping privileges
 export HADOOP_SECURE_DN_USER=<%=scope.function_hdp_template_var("hdfs_user")%>
 
