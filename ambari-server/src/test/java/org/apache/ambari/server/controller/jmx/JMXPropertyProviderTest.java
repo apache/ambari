@@ -813,5 +813,10 @@ public class JMXPropertyProviderTest {
         return null;
     }
 
+    @Override
+    public String getJMXProtocol(String clusterName, String componentName) {
+      return "http";
+    }
+    
   }
 }

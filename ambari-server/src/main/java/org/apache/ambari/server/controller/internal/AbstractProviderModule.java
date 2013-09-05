@@ -71,12 +71,16 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     HashMap<Service.Type, Map<String, String>>();
   private static final Map<String, Service.Type> componentServiceMap = new
     HashMap<String, Service.Type>();
-
+  
+  private static final Map<String, Map<String, String>> jmxDesiredProperties = new HashMap<String, Map<String,String>>();
+  private volatile Map<String, String> clusterCoreSiteConfigVersionMap = new HashMap<String, String>();
+  private volatile Map<String, String> clusterJmxProtocolMap = new HashMap<String, String>();
+  
   static {
     serviceConfigTypes.put(Service.Type.HDFS, "hdfs-site");
     serviceConfigTypes.put(Service.Type.MAPREDUCE, "mapred-site");
     serviceConfigTypes.put(Service.Type.HBASE, "hbase-site");
-
+ 
     componentServiceMap.put("NAMENODE", Service.Type.HDFS);
     componentServiceMap.put("DATANODE", Service.Type.HDFS);
     componentServiceMap.put("JOBTRACKER", Service.Type.MAPREDUCE);
@@ -94,6 +98,10 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     initPropMap = new HashMap<String, String>();
     initPropMap.put("HBASE_MASTER", "hbase.master.info.port");
     serviceDesiredProperties.put(Service.Type.HBASE, initPropMap);
+    
+    initPropMap = new HashMap<String, String>();
+    initPropMap.put("NAMENODE", "hadoop.ssl.enabled");
+    jmxDesiredProperties.put("NAMENODE", initPropMap);
   }
 
   /**
@@ -709,4 +717,42 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
 
     return new VersioningPropertyProvider(clusterVersionsMap, providers, lastProvider, clusterNamePropertyId);
   }
+  
+  @Override
+  public String getJMXProtocol(String clusterName, String componentName) {
+    String jmxProtocolString = clusterJmxProtocolMap.get(clusterName);
+    try {
+      String newCoreSiteConfigVersion = getDesiredConfigVersion(clusterName, "core-site");
+      String cachedCoreSiteConfigVersion = clusterCoreSiteConfigVersionMap.get(clusterName);
+      if (!newCoreSiteConfigVersion.equals(cachedCoreSiteConfigVersion)) {
+        clusterCoreSiteConfigVersionMap.put(clusterName, newCoreSiteConfigVersion);
+        
+        // Getting protocolMap for NAMENODE as it is the same property hadoop.ssl.enabled for all components
+        Map<String, String> protocolMap = getDesiredConfigMap(
+            clusterName,
+            newCoreSiteConfigVersion, "core-site",
+            jmxDesiredProperties.get("NAMENODE")); 
+        jmxProtocolString = getJMXProtocolString(protocolMap.get("NAMENODE"), componentName);
+        clusterJmxProtocolMap.put(clusterName, jmxProtocolString);
+      }
+
+    } catch (Exception e) {
+      LOG.error("Exception while detecting JMX protocol for component: " +
+          componentName, e);
+      LOG.error("Defaulting to HTTP protocol for component: " +
+          componentName);
+      jmxProtocolString = "http";
+    }
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("JMXProtocol = " + jmxProtocolString + ", for clusterName=" + clusterName +
+          ", componentName = " + componentName);
+    }
+    return jmxProtocolString;
+  }
+
+  private String getJMXProtocolString(String value, String componentName) {
+    return Boolean.valueOf(value) ? "https" : "http";
+  }
+  
 }

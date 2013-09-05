@@ -40,10 +40,12 @@ import java.util.regex.Pattern;
 
 import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -166,8 +168,7 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
     this.statePropertyId          = statePropertyId;
     this.healthyStates            = healthyStates;
   }
-
-
+  
   // ----- PropertyProvider --------------------------------------------------
 
   @Override
@@ -225,15 +226,28 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
   /**
    * Get the spec to locate the JMX stream from the given host and port
    *
+   ** @param protocol  the protocol, one of http or https
+   * @param hostName  the host name
+   * @param port      the port
+   *
+   * @return the spec
+   */
+  protected String getSpec(String protocol, String hostName, String port) {
+      return protocol + "://" + hostName + ":" + port + "/jmx";
+  }
+
+  /**
+   * Get the spec to locate the JMX stream from the given host and port
+   *
    * @param hostName  the host name
    * @param port      the port
    *
    * @return the spec
    */
   protected String getSpec(String hostName, String port) {
-    return "http://" + hostName + ":" + port + "/jmx";
+      return getSpec("http", hostName, port);
   }
-
+  
   /**
    * Get a callable that can be used to populate the given resource.
    *
@@ -298,9 +312,15 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
       throw new SystemException(
           "Unable to get JMX metrics.  No host name for " + componentName, null);
     }
+    
+    String protocol = getJMXProtocol(clusterName, componentName);
+    if (protocol == null) {
+      throw new SystemException(
+          "Unable to get JMX metrics.  No protocol name for " + componentName, null);
+    }
 
     try {
-      InputStream in = streamProvider.readFrom(getSpec(hostName, port));
+      InputStream in = streamProvider.readFrom(getSpec(protocol, hostName, port));
 
       try {
         JMXMetricHolder metricHolder = objectReader.readValue(in);
@@ -410,6 +430,11 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
     return port == null ? DEFAULT_JMX_PORTS.get(componentName) : port;
   }
 
+  private String getJMXProtocol(String clusterName, String componentName) {
+    String protocol = jmxHostProvider.getJMXProtocol(clusterName, componentName);
+    return protocol;
+  }
+  
   private String getHost(Resource resource, String clusterName, String componentName) throws SystemException {
     return hostNamePropertyId == null ?
         jmxHostProvider.getHostName(clusterName, componentName) :
@@ -466,5 +491,6 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
       throw (SystemException) throwable;
     }
     throw new SystemException (msg, throwable);
-  }
+  }  
+  
 }

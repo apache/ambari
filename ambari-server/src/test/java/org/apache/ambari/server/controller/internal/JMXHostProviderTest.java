@@ -303,5 +303,11 @@ public class JMXHostProviderTest {
         return configResourceProvider;
       return null;
     }
+    
+    @Override
+    public String getJMXProtocol(String clusterName, String componentName) {
+      return "http";
+    }
+    
   }
 }

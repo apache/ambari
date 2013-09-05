@@ -68,15 +68,19 @@ public class URLStreamProvider implements StreamProvider {
 
     this.connTimeout = connectionTimeout;
     this.readTimeout = readTimeout;
-    this.path = path;
-    this.password = password;
-    this.type = type;
+    this.path = path;          // truststroe path
+    this.password = password;  // truststore password
+    this.type = type;          // truststroe type
     appCookieManager = new AppCookieManager();
   }
 
   @Override
   public InputStream readFrom(String spec) throws IOException {
-
+    
+    if (LOG.isInfoEnabled()) {
+      LOG.info("readFrom spec:" + spec);
+    }
+    
     HttpURLConnection connection = spec.startsWith("https") ? 
         (HttpURLConnection)getSSLConnection(spec)
         : (HttpURLConnection)getConnection(spec);
@@ -161,7 +165,7 @@ public class URLStreamProvider implements StreamProvider {
         .openConnection());
 
     connection.setSSLSocketFactory(sslSocketFactory);
-
+ 
     return connection;
   }
 }
