@@ -158,6 +158,11 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
     this.set('content.tasksStatuses', statuses);
   },
 
+  saveConfigTag: function(tag){
+    App.db.setHighAvailabilityWizardConfigTag(tag);
+    this.set('content.'+[tag.name], tag.value);
+  },
+
   loadTasksStatuses: function(){
     var statuses = App.db.getHighAvailabilityWizardTasksStatuses();
     this.set('content.tasksStatuses', statuses);

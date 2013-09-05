@@ -117,7 +117,7 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
         this.set('status', 'COMPLETED');
         this.set('isSubmitDisabled', false);
       }
-    } else if (this.get('tasks').someProperty('status', 'FAILED')) {
+    } else if (this.get('tasks').someProperty('status', 'FAILED') || this.get('tasks').someProperty('status', 'TIMEDOUT') || this.get('tasks').someProperty('status', 'ABORTED')) {
       this.set('status', 'FAILED');
       this.get('tasks').findProperty('status', 'FAILED').set('showRetry', true);
     }

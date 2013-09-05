@@ -350,6 +350,12 @@ App.db.setIsNameNodeHa = function (haStatus) {
   localStorage.setObject('ambari', App.db.data);
 };
 
+App.db.setHighAvailabilityWizardConfigTag = function (tag) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.HighAvailabilityWizard[tag.name] = tag.value;
+  localStorage.setObject('ambari', App.db.data);
+};
+
 App.db.setHighAvailabilityWizardTasksStatuses = function (tasksStatuses) {
   App.db.data = localStorage.getObject('ambari');
   App.db.data.HighAvailabilityWizard.tasksStatuses = tasksStatuses;

@@ -24,6 +24,9 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
 
   commands: ['stopAllServices', 'installNameNode', 'installJournalNodes', 'startJournalNodes', 'disableSNameNode', 'reconfigureHDFS'],
 
+  hdfsSiteTag : "",
+  coreSiteTag : "",
+
   stopAllServices: function () {
     App.ajax.send({
       name: 'admin.high_availability.stop_all_services',
@@ -87,6 +90,8 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
   onLoadConfigsTags: function (data) {
     var hdfsSiteTag = data.Clusters.desired_configs['hdfs-site'].tag;
     var coreSiteTag = data.Clusters.desired_configs['core-site'].tag;
+    this.set("hdfsSiteTag", {name : "hdfsSiteTag", value : hdfsSiteTag});
+    this.set("coreSiteTag", {name : "coreSiteTag", value : coreSiteTag});
     App.ajax.send({
       name: 'admin.high_availability.load_configs',
       sender: this,
@@ -157,6 +162,15 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
     }
     var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
     this.createComponent('HDFS_CLIENT', hostNames);
+    //highAvailabilityWizardController
+    App.router.get(this.get('content.controllerName')).saveConfigTag(this.get("hdfsSiteTag"));
+    App.router.get(this.get('content.controllerName')).saveConfigTag(this.get("coreSiteTag"));
+    App.clusterStatus.setClusterStatus({
+      clusterName: this.get('content.cluster.name'),
+      clusterState: 'HIGH_AVAILABILITY_DEPLOY',
+      wizardControllerName: this.get('content.controllerName'),
+      localdb: App.db.data
+    });
   }
 });
 

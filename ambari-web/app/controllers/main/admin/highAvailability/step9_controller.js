@@ -24,6 +24,8 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
 
   commands: ['startSecondNameNode', 'installZKFC', 'startZKFC', 'reconfigureHBase', 'startAllServices', 'deleteSNameNode'],
 
+  hbaseSiteTag: "",
+
   clearStep: function () {
     this._super();
     if (!App.Service.find().someProperty('serviceName', 'HBASE')) {
@@ -70,6 +72,7 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
 
   onLoadConfigsTags: function (data) {
     var hbaseSiteTag = data.Clusters.desired_configs['hbase-site'].tag;
+    this.set("hbaseSiteTag", {name : "hbaseSiteTag", value : hbaseSiteTag});
     App.ajax.send({
       name: 'admin.high_availability.load_hbase_configs',
       sender: this,
@@ -95,9 +98,20 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
         siteName: 'hbase-site',
         properties: hbaseSiteProperties
       },
-      success: 'onTaskCompleted',
+      success: 'saveConfigTag',
       error: 'onTaskError'
     });
+  },
+
+  saveConfigTag: function () {
+    App.router.get(this.get('content.controllerName')).saveConfigTag(this.get("hbaseSiteTag"));
+    App.clusterStatus.setClusterStatus({
+      clusterName: this.get('content.cluster.name'),
+      clusterState: 'HIGH_AVAILABILITY_DEPLOY',
+      wizardControllerName: this.get('content.controllerName'),
+      localdb: App.db.data
+    });
+    this.onTaskCompleted();
   },
 
   startAllServices: function () {
