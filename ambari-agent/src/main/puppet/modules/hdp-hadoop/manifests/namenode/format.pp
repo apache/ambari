@@ -45,7 +45,6 @@ class hdp-hadoop::namenode::format(
 
       exec { '/tmp/checkForFormat.sh':
         command   => "sh /tmp/checkForFormat.sh ${hdfs_user} ${hadoop_conf_dir} ${mark_dir} ${dfs_name_dir} ",
-        unless   => "test -d ${mark_dir}",
         require   => File['/tmp/checkForFormat.sh'],
         path      => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
         logoutput => "true",
