@@ -927,6 +927,7 @@ Em.I18n.translations = {
   'services.service.info.metrics.hbase.regionServerRegions':'RegionServer Regions',
   'services.service.info.metrics.hbase.regionServerRegions.displayNames.regions':'Regions',
   'services.service.info.metrics.hbase.regionServerRequests':'Cumulative Requests',
+  'services.service.info.metrics.hbase.regionServerRequests.2':'RegionServer Requests',
   'services.service.info.metrics.hbase.regionServerRequests.displayNames.writeRequests':'Write Requests',
   'services.service.info.metrics.hbase.regionServerRequests.displayNames.readRequests':'Read Requests',
 

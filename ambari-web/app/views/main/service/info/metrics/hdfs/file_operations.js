@@ -32,6 +32,8 @@ App.ChartServiceMetricsHDFS_FileOperations = App.ChartLinearTimeView.extend({
   renderer: 'line',
 
   ajaxIndex: 'service.metrics.hdfs.file_operations',
+  yAxisFormatter: App.ChartLinearTimeView.CreateRateFormatter('ops', 
+      App.ChartLinearTimeView.DefaultFormatter),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];

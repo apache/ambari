@@ -271,28 +271,13 @@ App.ChartLinearTimeView = Ember.View.extend({
   /**
    * Provides the formatter to use in displaying Y axis.
    *
-   * The default is Rickshaw.Fixtures.Number.formatKMBT which shows 10K,
+   * Uses the App.ChartLinearTimeView.DefaultFormatter which shows 10K,
    * 300M etc.
    *
    * @type Function
    */
   yAxisFormatter: function(y) {
-    if(isNaN(y)){
-      return 0;
-    }
-    var value = Rickshaw.Fixtures.Number.formatKMBT(y);
-    if (value == '') return '0';
-    value = String(value);
-    var c = value[value.length - 1];
-    if (!isNaN(parseInt(c))) {
-      // c is digit
-      value = parseFloat(value).toFixed(3).replace(/0+$/, '').replace(/\.$/, '');
-    }
-    else {
-      // c in not digit
-      value = parseFloat(value.substr(0, value.length - 1)).toFixed(3).replace(/0+$/, '').replace(/\.$/, '') + c;
-    }
-    return value;
+    return App.ChartLinearTimeView.DefaultFormatter(y);
   },
 
   /**
@@ -850,4 +835,48 @@ App.ChartLinearTimeView.TimeElapsedFormatter = function (millis) {
     }
   }
   return value;
+};
+
+/**
+ * The default formatter which uses Rickshaw.Fixtures.Number.formatKMBT 
+ * which shows 10K, 300M etc.
+ *
+ * @type Function
+ */
+App.ChartLinearTimeView.DefaultFormatter = function(y) {
+  if(isNaN(y)){
+    return 0;
+  }
+  var value = Rickshaw.Fixtures.Number.formatKMBT(y);
+  if (value == '') return '0';
+  value = String(value);
+  var c = value[value.length - 1];
+  if (!isNaN(parseInt(c))) {
+    // c is digit
+    value = parseFloat(value).toFixed(3).replace(/0+$/, '').replace(/\.$/, '');
+  }
+  else {
+    // c in not digit
+    value = parseFloat(value.substr(0, value.length - 1)).toFixed(3).replace(/0+$/, '').replace(/\.$/, '') + c;
+  }
+  return value;
+};
+
+
+/**
+ * Creates and returns a formatter that can convert a 'value' 
+ * to 'value units/s'. 
+ * 
+ * @param unitsPrefix Prefix which will be used in 'unitsPrefix/s'
+ * @param valueFormatter  Value itself will need further processing 
+ *        via provided formatter. Ex: '10M requests/s'. Generally
+ *        should be App.ChartLinearTimeView.DefaultFormatter. 
+ * @return Function
+ */
+App.ChartLinearTimeView.CreateRateFormatter = function (unitsPrefix, valueFormatter) {
+  var suffix = " "+unitsPrefix+"/s";
+  return function (value) {
+    value = valueFormatter(value) + suffix;
+    return value;
+  };
 };
