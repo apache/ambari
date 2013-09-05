@@ -26,11 +26,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -81,7 +77,7 @@ public abstract class BaseProvider {
     this.patterns = new HashMap<String, Pattern>();
     for (String id : this.combinedIds) {
       if (containsArguments(id)) {
-        String pattern = id.replaceAll("\\$\\d+(\\.\\S+\\(\\S+\\))*", "\\\\S+");
+        String pattern = id.replaceAll("\\$\\d+(\\.\\S+\\(\\S+\\))*", "(\\\\S+)");
         patterns.put(id, Pattern.compile(pattern));
       }
     }
@@ -209,6 +205,29 @@ public abstract class BaseProvider {
       }
     }
     return regExpKey;
+  }
+
+  /**
+   * Extracts set of matcher.group() from id
+   * @param regExpKey
+   * @param id
+   * @return extracted regex groups from id
+   */
+  protected List<String> getRegexGroups(String regExpKey, String id) {
+    Pattern pattern = patterns.get(regExpKey);
+    List<String> regexGroups = new ArrayList<String>();
+
+    if (pattern != null) {
+      Matcher matcher = pattern.matcher(id);
+
+      if (matcher.matches()) {
+        for (int i=0; i<matcher.groupCount(); i++){
+          regexGroups.add(matcher.group(i + 1));
+        }
+      }
+    }
+
+    return regexGroups;
   }
 
   protected boolean isPatternKey(String id) {

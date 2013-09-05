@@ -89,6 +89,62 @@ public class AbstractPropertyProviderTest {
     Assert.assertEquals("category/name1/oo_post/name2/bar_post", newPropertyId);
   }
 
+  @Test
+  public void testUpdateComponentMetricMapHDP1() {
+    Map<String, Map<String, PropertyInfo>> componentMetrics =
+      PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent,
+      PropertyHelper.MetricsVersion.HDP1);
+
+    AbstractPropertyProvider provider = new TestPropertyProvider(componentMetrics);
+
+    Map<String, PropertyInfo> flumeMetrics = provider.getComponentMetrics().get(
+      "FLUME_SERVER");
+
+    int metricsBefore = flumeMetrics.size();
+    String specificMetric = "metrics/flume/arg1/CHANNEL/arg2/ChannelCapacity";
+    String specificPropertyInfoId = "arg1.CHANNEL.arg2.ChannelCapacity";
+    Map<String, PropertyInfo> componentMetricMap =
+      provider.getComponentMetrics().get("FLUME_SERVER");
+
+    Assert.assertNull(flumeMetrics.get(specificMetric));
+
+    provider.updateComponentMetricMap(componentMetricMap, specificMetric);
+
+    Assert.assertEquals(metricsBefore + 1, flumeMetrics.size());
+    Assert.assertNotNull(flumeMetrics.get(specificMetric));
+    Assert.assertEquals(specificPropertyInfoId,
+      flumeMetrics.get(specificMetric).getPropertyId());
+  }
+
+  @Test
+  public void testUpdateComponentMetricMapHDP2() {
+    Map<String, Map<String, PropertyInfo>> componentMetrics =
+      PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent,
+      PropertyHelper.MetricsVersion.HDP2);
+
+    AbstractPropertyProvider provider = new TestPropertyProvider(componentMetrics);
+
+    Map<String, PropertyInfo> resourceManagerMetrics = provider.getComponentMetrics().get(
+      "RESOURCEMANAGER");
+
+    int metricsBefore = resourceManagerMetrics.size();
+    String specificMetric =
+      "metrics/yarn/Queue/specificQueue1/specificQueue2/AvailableMB";
+    String specificPropertyInfoId =
+      "yarn.QueueMetrics.Queue=specificQueue1.specificQueue2.AvailableMB";
+    Map<String, PropertyInfo> componentMetricMap =
+      provider.getComponentMetrics().get("RESOURCEMANAGER");
+
+    Assert.assertNull(resourceManagerMetrics.get(specificMetric));
+
+    provider.updateComponentMetricMap(componentMetricMap, specificMetric);
+
+    Assert.assertEquals(metricsBefore + 1, resourceManagerMetrics.size());
+    Assert.assertNotNull(resourceManagerMetrics.get(specificMetric));
+    Assert.assertEquals(specificPropertyInfoId,
+      resourceManagerMetrics.get(specificMetric).getPropertyId());
+  }
+
   static class TestPropertyProvider extends AbstractPropertyProvider {
 
     public TestPropertyProvider(Map<String, Map<String, PropertyInfo>> componentMetrics) {

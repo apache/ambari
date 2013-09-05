@@ -218,6 +218,13 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
         for (String id : ids) {
           Map<String, PropertyInfo> propertyInfoMap = new HashMap<String, PropertyInfo>();
 
+          Map<String, PropertyInfo> componentMetricMap =
+            getComponentMetrics().get(getComponentName(resource));
+
+          if (!componentMetricMap.containsKey(id)) {
+            updateComponentMetricMap(componentMetricMap, id);
+          }
+
           boolean requestAll = getPropertyInfoMap(getComponentName(resource), id, propertyInfoMap);
 
           for (Map.Entry<String, PropertyInfo> entry : propertyInfoMap.entrySet()) {

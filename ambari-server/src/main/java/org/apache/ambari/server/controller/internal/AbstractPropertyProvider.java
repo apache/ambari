@@ -58,6 +58,10 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
    */
   private static final Pattern FIND_ARGUMENT_METHOD_ARGUMENTS_REGEX = Pattern.compile("\".*?\"|[0-9]+");
 
+  /**
+   * Supported any regex inside ()
+   */
+  private static final String FIND_REGEX_IN_METRIC_REGEX = "\\([^)]+\\)";
 
   // ----- Constructors ------------------------------------------------------
 
@@ -265,5 +269,36 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
     Method method = String.class.getMethod(methodName, paramTypes.toArray(new Class<?>[paramTypes.size()]));
 
     return (String) method.invoke(argValue, argList.toArray(new Object[argList.size()]));
+  }
+
+  /**
+   * Adds to the componentMetricMap a specific(not regexp)
+   * metric for the propertyId
+   *
+   * @param componentMetricMap
+   * @param propertyId
+   */
+  protected void updateComponentMetricMap(
+    Map<String, PropertyInfo> componentMetricMap, String propertyId) {
+
+    String regExpKey = getRegExpKey(propertyId);
+
+
+    if (!componentMetricMap.containsKey(propertyId) && regExpKey != null &&
+      !regExpKey.equals(propertyId)) {
+
+      PropertyInfo propertyInfo = componentMetricMap.get(regExpKey);
+      if (propertyInfo != null) {
+        List<String> regexGroups = getRegexGroups(regExpKey, propertyId);
+        String key = propertyInfo.getPropertyId();
+        for (String regexGroup : regexGroups) {
+          regexGroup = regexGroup.replace("/", ".");
+          key = key.replaceFirst(FIND_REGEX_IN_METRIC_REGEX, regexGroup);
+        }
+        componentMetricMap.put(propertyId, new PropertyInfo(key,
+          propertyInfo.isTemporal(), propertyInfo.isPointInTime()));
+      }
+
+    }
   }
 }
