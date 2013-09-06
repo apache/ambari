@@ -90,6 +90,8 @@ public class ControllerModule extends AbstractModule {
     bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
     bind(HBaseMasterPortScanner.class).in(Singleton.class);
     bind(ServerActionManager.class).to(ServerActionManagerImpl.class);
+
+    requestStaticInjection(ExecutionCommandWrapper.class);
   }
 
   private JpaPersistModule buildJpaPersistModule() {

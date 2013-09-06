@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
@@ -65,7 +67,8 @@ public class HostRoleCommand {
     this.roleCommand = command;
   }
 
-  public HostRoleCommand(HostRoleCommandEntity hostRoleCommandEntity, Injector injector) {
+  @AssistedInject
+  public HostRoleCommand(@Assisted HostRoleCommandEntity hostRoleCommandEntity, Injector injector) {
     taskId = hostRoleCommandEntity.getTaskId();
     stageId = hostRoleCommandEntity.getStage().getStageId();
     requestId = hostRoleCommandEntity.getStage().getRequestId();

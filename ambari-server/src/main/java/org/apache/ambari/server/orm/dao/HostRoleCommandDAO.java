@@ -34,8 +34,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @Singleton
 public class HostRoleCommandDAO {
@@ -109,6 +108,27 @@ public class HostRoleCommandDAO {
   }
 
   @Transactional
+  public Map<String, List<HostRoleCommandEntity>> findSortedCommandsByStage(StageEntity stageEntity) {
+    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery("SELECT hostRoleCommand " +
+        "FROM HostRoleCommandEntity hostRoleCommand " +
+        "WHERE hostRoleCommand.stage=?1 " +
+        "ORDER BY hostRoleCommand.hostName, hostRoleCommand.taskId", HostRoleCommandEntity.class);
+    List<HostRoleCommandEntity> commandEntities = daoUtils.selectList(query, stageEntity);
+
+    Map<String, List<HostRoleCommandEntity>> hostCommands = new HashMap<String, List<HostRoleCommandEntity>>();
+
+    for (HostRoleCommandEntity commandEntity : commandEntities) {
+      if (!hostCommands.containsKey(commandEntity.getHostName())) {
+        hostCommands.put(commandEntity.getHostName(), new ArrayList<HostRoleCommandEntity>());
+      }
+
+      hostCommands.get(commandEntity.getHostName()).add(commandEntity);
+    }
+
+    return hostCommands;
+  }
+
+  @Transactional
   public List<HostRoleCommandEntity> findByHostRole(String hostName, long requestId, long stageId, Role role) {
     TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery("SELECT command " +
         "FROM HostRoleCommandEntity command " +
@@ -134,11 +154,18 @@ public class HostRoleCommandDAO {
    * NB: You cannot rely on return value if batch write is enabled
    */
   public int updateStatusByRequestId(long requestId, HostRoleStatus target, Collection<HostRoleStatus> sources) {
-    Query query = entityManagerProvider.get().createQuery("UPDATE HostRoleCommandEntity command " +
-        "SET command.status=?1 " +
-        "WHERE command.requestId=?2 AND command.status IN ?3");
+    TypedQuery<HostRoleCommandEntity> selectQuery = entityManagerProvider.get().createQuery("SELECT command " +
+        "FROM HostRoleCommandEntity command " +
+        "WHERE command.requestId=?1 AND command.status IN ?2", HostRoleCommandEntity.class);
 
-    return daoUtils.executeUpdate(query, target, requestId, sources);
+    List<HostRoleCommandEntity> commandEntities = daoUtils.selectList(selectQuery, requestId, sources);
+
+    for (HostRoleCommandEntity entity : commandEntities) {
+      entity.setStatus(target);
+      merge(entity);
+    }
+
+    return commandEntities.size();
   }
 
   @Transactional

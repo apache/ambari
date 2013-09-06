@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import org.apache.commons.lang.StringUtils;
-
 import javax.persistence.*;
 import java.util.Collection;
 

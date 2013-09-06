@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import com.google.gson.reflect.TypeToken;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.ExecutionCommand;
@@ -44,15 +46,19 @@ import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 
+import javax.annotation.Nullable;
+
 //This class encapsulates the stage. The stage encapsulates all the information
 //required to persist an action.
 public class Stage {
+
   private static Logger LOG = LoggerFactory.getLogger(Stage.class);
   private final long requestId;
   private final String clusterName;
   private long stageId = -1;
   private final String logDir;
   private final String requestContext;
+
   private int taskTimeout = -1;
   private int perTaskTimeFactor = 60000;
 
@@ -67,7 +73,7 @@ public class Stage {
 
   @AssistedInject
   public Stage(@Assisted long requestId, @Assisted("logDir") String logDir, @Assisted("clusterName") String clusterName,
-               @Assisted("requestContext") String requestContext) {
+               @Assisted("requestContext") @Nullable String requestContext) {
     this.requestId = requestId;
     this.logDir = logDir;
     this.clusterName = clusterName;
@@ -95,14 +101,19 @@ public class Stage {
     clusterName = stageEntity.getCluster().getClusterName();
     requestContext = stageEntity.getRequestContext();
 
-    for (HostEntity hostEntity : hostDAO.findByStage(stageEntity)) {
-      List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findSortedCommandsByStageAndHost(stageEntity, hostEntity);
-      commandsToSend.put(hostEntity.getHostName(), new ArrayList<ExecutionCommandWrapper>());
-      hostRoleCommands.put(hostEntity.getHostName(), new TreeMap<String, HostRoleCommand>());
-      for (HostRoleCommandEntity command : commands) {
-        HostRoleCommand hostRoleCommand = hostRoleCommandFactory.createExisting(command);
-        hostRoleCommands.get(hostEntity.getHostName()).put(hostRoleCommand.getRole().toString(), hostRoleCommand);
-        commandsToSend.get(hostEntity.getHostName()).add(hostRoleCommand.getExecutionCommandWrapper());
+
+    Map<String, List<HostRoleCommandEntity>> hostCommands = hostRoleCommandDAO.findSortedCommandsByStage(stageEntity);
+
+    for (Map.Entry<String, List<HostRoleCommandEntity>> entry : hostCommands.entrySet()) {
+      String hostname = entry.getKey();
+      commandsToSend.put(hostname, new ArrayList<ExecutionCommandWrapper>());
+      hostRoleCommands.put(hostname, new TreeMap<String, HostRoleCommand>());
+      for (HostRoleCommandEntity hostRoleCommandEntity : entry.getValue()) {
+        HostRoleCommand hostRoleCommand = hostRoleCommandFactory.createExisting(hostRoleCommandEntity);
+
+
+        hostRoleCommands.get(hostname).put(hostRoleCommand.getRole().toString(), hostRoleCommand);
+        commandsToSend.get(hostname).add(hostRoleCommand.getExecutionCommandWrapper());
       }
     }
 

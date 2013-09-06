@@ -946,7 +946,7 @@ public class AmbariManagementControllerImpl implements
 
   private Stage createNewStage(Cluster cluster, long requestId, String requestContext) {
     String logDir = baseLogDir + File.pathSeparator + requestId;
-    Stage stage = new Stage(requestId, logDir, cluster.getClusterName(), requestContext);
+    Stage stage = stageFactory.createNew(requestId, logDir, cluster.getClusterName(), requestContext);
     return stage;
   }
 
@@ -1900,6 +1900,8 @@ public class AmbariManagementControllerImpl implements
       Config svcConfig = service.getDesiredConfigs().get(type);
       if (null != svcConfig && !svcConfig.getVersionTag().equals(tag)) {
         props.putAll(svcConfig.getProperties());
+        //TODO why don't update tags with service overrides?
+        tags.put("service_override_tag", svcConfig.getVersionTag());
       }
 
       // 3) apply the host overrides, if any
@@ -1913,7 +1915,8 @@ public class AmbariManagementControllerImpl implements
         }
       }
 
-      configurations.put(type, props);
+      //TODO store empty map for now
+//      configurations.put(type, props);
       configTags.put(type, tags);
     }
 
@@ -4165,6 +4168,7 @@ public class AmbariManagementControllerImpl implements
       actionRequest.getActionName()).getExecutionCommand();
 
     execCmd.setConfigurations(configurations);
+    execCmd.setConfigurationTags(configTags);
 
     Map<String, String> params = new TreeMap<String, String>();
     params.put("jdk_location", this.jdkResourceUrl);

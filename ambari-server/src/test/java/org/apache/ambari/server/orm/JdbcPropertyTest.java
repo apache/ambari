@@ -30,10 +30,11 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 public class JdbcPropertyTest {
-  Properties properties = new Properties();
+  Properties properties;
 
   @Before
   public void configure() {
+    properties = new Properties();
     properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
     properties.setProperty(Configuration.METADETA_DIR_PATH, "src/test/resources/stacks");
     properties.setProperty(Configuration.SERVER_VERSION_FILE, "target/version");

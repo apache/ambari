@@ -60,7 +60,9 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.RoleDAO;
+import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
 import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.serveraction.ServerAction;
@@ -3558,6 +3560,15 @@ public class AmbariManagementControllerTest {
 
     List<HostRoleCommand> storedTasks = actionDB.getRequestTasks(response.getRequestId());
     Stage stage = actionDB.getAllStages(response.getRequestId()).get(0);
+
+    //Check configs not stored with execution command
+    ExecutionCommandDAO executionCommandDAO = injector.getInstance(ExecutionCommandDAO.class);
+    ExecutionCommandEntity commandEntity = executionCommandDAO.findByPK(task.getTaskId());
+    ExecutionCommand executionCommand =
+        StageUtils.fromJson(new String(commandEntity.getCommand()), ExecutionCommand.class);
+
+    assertFalse(executionCommand.getConfigurationTags().isEmpty());
+    assertTrue(executionCommand.getConfigurations() == null || executionCommand.getConfigurations().isEmpty());
 
     assertEquals(1, storedTasks.size());
     HostRoleCommand hostRoleCommand = storedTasks.get(0);
