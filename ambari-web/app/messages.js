@@ -750,9 +750,9 @@ Em.I18n.translations = {
     '<b>manual steps</b> (that you must perform in sequence as instructed by the wizard).<br/><br/>' +
     '<b>You should plan a cluster maintanance window and prepare for cluster downtime when enabling NameNode HA.</b>',
   'admin.highAvailability.wizard.step1.alert':'As part of this process, your current Secondary NameNode will be disabled and new JournalNodes will be introduced into the cluster.',
-  'admin.security.title':'Kerberos Security has not been enabled on this cluster.',
-  'admin.security.enabled': 'Kerberos security is enabled on the cluster',
-  'admin.security.disabled': 'Kerberos security is disabled on the cluster',
+  'admin.security.title':'Kerberos Security has not been enabled',
+  'admin.security.enabled': 'Kerberos security is enabled',
+  'admin.security.disabled': 'Kerberos security is disabled',
   'admin.security.button.enable':'Enable Security',
   'admin.security.button.disable':'Disable Security',
   'admin.security.enable.popup.body': 'We will walk you through add security wizard',
