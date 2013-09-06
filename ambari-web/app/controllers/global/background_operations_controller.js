@@ -111,7 +111,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
    */
   showPopup: function(){
     App.updater.immediateRun('requestMostRecent');
-    if(this.get('popupView')){
+    if(this.get('popupView') && App.HostPopup.get('showServices')){
       this.set('popupView.isOpen', true);
       $(this.get('popupView.element')).appendTo('#wrapper');
     } else {
