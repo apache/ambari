@@ -2369,20 +2369,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "jce_policy_url",
-      "displayName": "jce_policy_url",
-      "description": " ",
-      "defaultValue": " ",
-      "isRequired": true,
-      "isReconfigurable": false,
-      "displayType": "advanced",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "belongsToService":[]
-    },
-    {
-      "id": "puppet var",
       "name": "run_dir",
       "displayName": "Hadoop run directory",
       "description": "",

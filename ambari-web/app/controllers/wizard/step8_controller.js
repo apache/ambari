@@ -1390,9 +1390,6 @@ App.WizardStep8Controller = Em.Controller.extend({
       if (_globalSiteObj.name == 'java64_home') {
         globalSiteProperties['java64_home'] = ambariProperties['java.home'] ? ambariProperties['java.home'] : App.defaultJavaHome ;
       }
-      if (_globalSiteObj.name == 'jce_policy_url') {
-        globalSiteProperties['jce_policy_url'] = ambariProperties['jce_policy.url'] ? ambariProperties['jce_policy.url'] : App.defaultJCE ;
-      }
       this._recordHostOverrideFromObj(_globalSiteObj, 'global', 'version1', this);
     }, this);
     // we don't expose gmond_user to the user; it needs to be the same as gmetad_user

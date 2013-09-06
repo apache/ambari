@@ -28,7 +28,6 @@ App.apiPrefix = '/api/v1';
 App.defaultStackVersion = 'HDP-2.0.5';
 App.defaultLocalStackVersion = 'HDPLocal-2.0.5';
 App.defaultJavaHome = '/usr/jdk/jdk1.6.0_31';
-App.defaultJCE = 'http://public-repo-1.hortonworks.com/ARTIFACTS/jce_policy-6.zip';
 App.timeout = 180000; // default AJAX timeout
 App.maxRetries = 3; // max number of retries for certain AJAX calls
 App.bgOperationsUpdateInterval = 6000;
