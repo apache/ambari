@@ -40,8 +40,9 @@ module.exports = Em.Route.extend({
 
         onClose: function () {
           this.hide();
+          App.router.get('highAvailabilityWizardController').setCurrentStep('1');
           App.router.get('updateController').set('isWorking', true);
-          App.router.transitionTo('main.admin.adminHighAvailability')
+          App.router.transitionTo('main.admin.adminHighAvailability');
         },
         didInsertElement: function () {
           this.fitHeight();
@@ -57,7 +58,8 @@ module.exports = Em.Route.extend({
             highAvailabilityWizardController.setCurrentStep(currentClusterStatus.localdb.HighAvailabilityWizard.currentStep);
             break;
           default:
-            highAvailabilityWizardController.setCurrentStep('1');
+            var currStep = App.router.get('highAvailabilityWizardController.currentStep');
+            highAvailabilityWizardController.setCurrentStep(currStep);
             break;
         }
       }
