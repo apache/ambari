@@ -111,7 +111,7 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
       header: Em.I18n.t('admin.highAvailability.confirmRollbackHeader'),
       primary: Em.I18n.t('common.confirm'),
       onPrimary: function () {
-        //App.router.send();
+        App.router.transitionTo('root.main.admin.adminHighAvailability.rollback');
         this.hide();
       },
       secondary : Em.I18n.t('common.cancel'),

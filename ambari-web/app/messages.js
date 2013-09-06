@@ -699,6 +699,20 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step6.jsNoInit':'JournalNodes not initialized yet',
   'admin.highAvailability.wizard.step8.metaNoInit':'Metadata not initialized yet',
 
+  'admin.highAvailability.rollback.header':'Disable NameNode HA Wizard',
+  'admin.highAvailability.rollback.task0.title':'Stop all services',
+  'admin.highAvailability.rollback.task1.title':'Restore HBASE configurations',
+  'admin.highAvailability.rollback.task2.title':'Stop Failover controllers',
+  'admin.highAvailability.rollback.task3.title':'Delete Failover controllers',
+  'admin.highAvailability.rollback.task4.title':'Stop stand by NameNode',
+  'admin.highAvailability.rollback.task5.title':'Stop NameNode',
+  'admin.highAvailability.rollback.task6.title':'Restore HDFS configurations',
+  'admin.highAvailability.rollback.task7.title':'Enable Secondary NameNode',
+  'admin.highAvailability.rollback.task8.title':'Stop JournalNodes',
+  'admin.highAvailability.rollback.task9.title':'Delete JournalNodes',
+  'admin.highAvailability.rollback.task10.title':'Delete additional NameNode',
+  'admin.highAvailability.rollback.task11.title':'Start all services',
+  'admin.highAvailability.rollback.notice.inProgress': 'Please wait while NameNode HA is being disabled.',
 
   'admin.highAvailability.wizard.step8.body':
     '<ol>' +

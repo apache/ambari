@@ -652,7 +652,61 @@ module.exports = Em.Route.extend({
       connectOutlets: function (router) {
         router.set('mainAdminController.category', "highAvailability");
         router.get('mainAdminController').connectOutlet('mainAdminHighAvailability');
-      }
+      },
+
+      rollback: Ember.Route.extend({
+        route: '/rollback',
+        enter: function (router) {
+          //after refresh check if the wizard is open then restore it
+          Ember.run.next(function () {
+            App.router.get('updateController').set('isWorking', false);
+
+
+            var highAvailabilityWizardController = router.get('highAvailabilityWizardController');
+            highAvailabilityWizardController.finish();
+            highAvailabilityWizardController.get('popup').hide();
+
+            var popup = App.ModalPopup.show({
+              classNames: ['full-width-modal'],
+              header: Em.I18n.t('admin.highAvailability.rollback.header'),
+              bodyClass: App.HighAvailabilityRollbackView.extend({
+                controllerBinding: 'App.router.highAvailabilityRollbackController'
+              }),
+              primary: Em.I18n.t('form.cancel'),
+              secondary: null,
+              showFooter: false,
+
+              onClose: function () {
+                var self = this;
+                var controller = router.get('highAvailabilityRollbackController');
+//                if (!controller.get('isSubmitDisabled')) {
+                  self.proceedOnClose();
+//                }
+              },
+              proceedOnClose: function () {
+                App.router.get('updateController').set('isWorking', true);
+                /*App.clusterStatus.setClusterStatus({
+                  clusterName: router.get('content.cluster.name'),
+                  clusterState: 'HIGH_AVAILABILITY_DISABLED',
+                  wizardControllerName: router.get('highAvailabilityRollbackController.name'),
+                  localdb: App.db.data
+                });*/
+                this.hide();
+                router.transitionTo('main.admin.adminHighAvailability');
+              },
+              didInsertElement: function () {
+                this.fitHeight();
+              }
+            });
+            router.set('highAvailabilityRollbackController.popup', popup);
+          });
+
+        },
+
+        unroutePath: function () {
+          return false;
+        }
+      })
     }),
 
     enableHighAvailability: require('routes/high_availability_routes'),

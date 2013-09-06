@@ -56,6 +56,7 @@ require('views/main/admin');
 require('views/main/admin/highAvailability_view');
 require('views/main/admin/highAvailability/wizard_view');
 require('views/main/admin/highAvailability/progress_view');
+require('views/main/admin/highAvailability/rollback_view');
 require('views/main/admin/highAvailability/step1_view');
 require('views/main/admin/highAvailability/step2_view');
 require('views/main/admin/highAvailability/step3_view');
