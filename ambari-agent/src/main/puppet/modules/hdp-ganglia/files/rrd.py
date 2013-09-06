@@ -140,7 +140,7 @@ else:
   pointInTime = False
 
 for cluster in clusterParts:
-  for path, dirs, files in os.walk(rrdPath + cluster):
+  for path, dirs, files in os.walk(rrdPath + cluster,followlinks=True):
     pathParts = path.split("/")
     if len(hostParts) == 0 or pathParts[-1] in hostParts:
       for file in files:
