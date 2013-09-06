@@ -28,181 +28,181 @@ App.QuickLinks.FIXTURES = [
   {
     id:1,
     label:'NameNode UI',
-    url:'http://%@:50070/dfshealth.jsp',
+    url:'%@://%@:50070/dfshealth.jsp',
     service_id: 'HDFS'
   },
   {
     id:2,
     label:'NameNode logs',
-    url:'http://%@:50070/logs',
+    url:'%@://%@:50070/logs',
     service_id: 'HDFS'
   },
   {
     id:3,
     label:'NameNode JMX',
-    url:'http://%@:50070/jmx',
+    url:'%@://%@:50070/jmx',
     service_id: 'HDFS'
   },
   {
     id:4,
     label:'Thread Stacks',
-    url:'http://%@:50070/stacks',
+    url:'%@://%@:50070/stacks',
     service_id: 'HDFS'
   },
   {
     id:5,
     label:'JobTracker UI',
-    url:'http://%@:50030/jobtracker.jsp',
+    url:'%@://%@:50030/jobtracker.jsp',
     service_id: 'MAPREDUCE'
   },
   {
     id:6,
     label:'Scheduling Info',
-    url:'http://%@:50030/scheduler',
+    url:'%@://%@:50030/scheduler',
     service_id: 'MAPREDUCE'
   },
   {
     id:7,
     label:'Running Jobs',
-    url:'http://%@:50030/jobtracker.jsp#running_jobs',
+    url:'%@://%@:50030/jobtracker.jsp#running_jobs',
     service_id: 'MAPREDUCE'
   },
   {
     id:8,
     label:'Retired Jobs',
-    url:'http://%@:50030/jobtracker.jsp#retired_jobs',
+    url:'%@://%@:50030/jobtracker.jsp#retired_jobs',
     service_id: 'MAPREDUCE'
   },
   {
     id:9,
     label:'JobHistory Server',
-    url:'http://%@:51111/jobhistoryhome.jsp',
+    url:'%@://%@:51111/jobhistoryhome.jsp',
     service_id: 'MAPREDUCE'
   },
   {
     id:10,
     label:'JobTracker Logs',
-    url:'http://%@:50030/logs',
+    url:'%@://%@:50030/logs',
     service_id: 'MAPREDUCE'
   },
   {
     id:11,
     label:'JobTracker JMX',
-    url:'http://%@:50030/jmx',
+    url:'%@://%@:50030/jmx',
     service_id: 'MAPREDUCE'
   },
   {
     id:12,
     label:'Thread Stacks',
-    url:'http://%@:50030/stacks',
+    url:'%@://%@:50030/stacks',
     service_id: 'MAPREDUCE'
   },
   {
     id:13,
     label:'HBase Master UI',
-    url:'http://%@:60010/master-status',
+    url:'%@://%@:60010/master-status',
     service_id: 'HBASE'
   },
   {
     id:14,
     label:'HBase Logs',
-    url:'http://%@:60010/logs',
+    url:'%@://%@:60010/logs',
     service_id: 'HBASE'
   },
   {
     id:15,
     label:'Zookeeper Info',
-    url:'http://%@:60010/zk.jsp',
+    url:'%@://%@:60010/zk.jsp',
     service_id: 'HBASE'
   },
   {
     id:16,
     label:'HBase Master JMX',
-    url:'http://%@:60010/jmx',
+    url:'%@://%@:60010/jmx',
     service_id: 'HBASE'
   },
   {
     id:17,
     label:'Debug Dump',
-    url:'http://%@:60010/dump',
+    url:'%@://%@:60010/dump',
     service_id: 'HBASE'
   },
   {
     id:18,
     label:'Thread Stacks',
-    url:'http://%@:60010/stacks',
+    url:'%@://%@:60010/stacks',
     service_id: 'HBASE'
   },
   {
     id:19,
     label:'Oozie Web UI',
-    url:'http://%@:11000/oozie',
+    url:'%@://%@:11000/oozie',
     service_id: 'OOZIE'
   },
   {
     id:20,
     label:'Ganglia Web UI',
-    url:'http://%@/ganglia',
+    url:'%@://%@/ganglia',
     service_id: 'GANGLIA'
   },
   {
     id:21,
     label:'Nagios Web UI',
-    url:'http://%@/nagios',
+    url:'%@://%@/nagios',
     service_id: 'NAGIOS'
   },
   {
     id:22,
     label:'Hue Web UI',
-    url:'http://%@/hue',
+    url:'%@://%@/hue',
     service_id: 'HUE'
   },
   {
     id:23,
     label:'ResourceManager UI',
-    url:'http://%@:8088',
+    url:'%@://%@:8088',
     service_id: 'YARN'
   },
   {
     id:24,
     label:'ResourceManager logs',
-    url:'http://%@:8088/logs',
+    url:'%@://%@:8088/logs',
     service_id: 'YARN'
   },
   {
     id:25,
     label:'ResourceManager JMX',
-    url:'http://%@:8088/jmx',
+    url:'%@://%@:8088/jmx',
     service_id: 'YARN'
   },
   {
     id:26,
     label:'Thread Stacks',
-    url:'http://%@:8088/stacks',
+    url:'%@://%@:8088/stacks',
     service_id: 'YARN'
   },
   {
     id:27,
     label:'JobHistory UI',
-    url:'http://%@:19888',
+    url:'%@://%@:19888',
     service_id: 'MAPREDUCE2'
   },
   {
     id:28,
     label:'JobHistory logs',
-    url:'http://%@:19888/logs',
+    url:'%@://%@:19888/logs',
     service_id: 'MAPREDUCE2'
   },
   {
     id:29,
     label:'JobHistory JMX',
-    url:'http://%@:19888/jmx',
+    url:'%@://%@:19888/jmx',
     service_id: 'MAPREDUCE2'
   },
   {
     id:30,
     label:'Thread Stacks',
-    url:'http://%@:19888/stacks',
+    url:'%@://%@:19888/stacks',
     service_id: 'MAPREDUCE2'
   }
 ];

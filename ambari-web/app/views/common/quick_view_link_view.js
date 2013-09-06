@@ -20,6 +20,9 @@ var App = require('app');
 
 App.QuickViewLinks = Em.View.extend({
 
+  ambariProperties: function() {
+    return App.router.get('clusterController.ambariProperties');
+  },
   /**
    * Updated quick links. Here we put correct hostname to url
    */
@@ -27,6 +30,7 @@ App.QuickViewLinks = Em.View.extend({
     var serviceName = this.get('content.serviceName');
     var components = this.get('content.hostComponents');
     var host;
+    var self = this;
 
     switch (serviceName) {
       case "HDFS":
@@ -71,12 +75,27 @@ App.QuickViewLinks = Em.View.extend({
       ];
     }
     return this.get('content.quickLinks').map(function (item) {
+      var protocol = self.setProtocol(item.get('service_id'));
       if (item.get('url')) {
-        item.set('url', item.get('url').fmt(host));
+        item.set('url', item.get('url').fmt(protocol,host));
       }
       return item;
     });
   }.property('content.quickLinks.@each.label'),
+
+  setProtocol: function(service_id){
+    var properties  = this.ambariProperties();
+    switch(service_id){
+      case "GANGLIA":
+        return (properties && properties.hasOwnProperty('ganglia.https') && properties['ganglia.https']) ? "https" : "http";
+        break;
+      case "NAGIOS":
+        return (properties && properties.hasOwnProperty('nagios.https') && properties['nagios.https']) ? "https" : "http";
+        break;
+      default:
+        return "http";
+    }
+  },
 
   linkTarget: function () {
     switch (this.get('content.serviceName').toLowerCase()) {
