@@ -25,15 +25,15 @@ App.HighAvailabilityWizardStep3View = Em.View.extend({
 
   curNameNode: function () {
     var nN = this.get('controller.content.masterComponentHosts').findProperty('isCurNameNode', true);
-    return Em.I18n.t('admin.highAvailability.wizard.step3.nn1').format(nN.hostName);
+    return nN.hostName;
   }.property('controller.content.masterComponentHosts'),
   addNameNode: function () {
     var addNN = this.get('controller.content.masterComponentHosts').findProperty('isAddNameNode', true);
-    return Em.I18n.t('admin.highAvailability.wizard.step3.nn2').format(addNN.hostName);
+    return addNN.hostName;
   }.property('controller.content.masterComponentHosts'),
   secondaryNameNode: function () {
     var sn = this.get('controller.content.masterComponentHosts').findProperty('component', "SECONDARY_NAMENODE");
-    return Em.I18n.t('admin.highAvailability.wizard.step3.sn').format(sn.hostName);
+    return sn.hostName;
   }.property('controller.content.masterComponentHosts'),
   journalNodes: function () {
     return this.get('controller.content.masterComponentHosts').filterProperty('component', "JOURNALNODE");

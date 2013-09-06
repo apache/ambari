@@ -25,15 +25,39 @@
 
 <div id="step8-content" class="well pre-scrollable">
   <div id="step8-info">
-    {{view.curNameNode}} <br/>
-    {{view.addNameNode}} <br/>
-    {{view.secondaryNameNode}} <br/>
-    {{t admin.highAvailability.wizard.step3.jn}} <br/>
-    <ul>
-      {{#each item in view.journalNodes}}
-        <li>{{item.hostName}}</li>
-      {{/each}}
-    </ul>
+    <table id="ha-step3-review-table">
+      <tr>
+        <td>{{t admin.highAvailability.wizard.step3.curNameNode}}</td>
+        <td>{{view.curNameNode}}</td><td></td>
+      </tr>
+      <tr>
+        <td>{{t admin.highAvailability.wizard.step3.secNameNode}}</td>
+        <td>{{view.secondaryNameNode}}</td>
+        <td class="to-be-disabled-red"><i class="icon-minus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeDisabled}}</td>
+      </tr>
+      <tr>
+        <td>{{t admin.highAvailability.wizard.step3.addNameNode}}</td>
+        <td>{{view.addNameNode}}</td>
+        <td class="to-be-installed-green"><i class="icon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</td>
+      </tr>
+      <tr>
+        <td>{{t admin.highAvailability.wizard.step3.journalNode}}</td>
+        <td>
+          <ul>
+            {{#each item in view.journalNodes}}
+              <li>{{item.hostName}}</li>
+            {{/each}}
+          </ul>
+        </td>
+        <td>
+          <ul>
+            <div class="to-be-installed-green"><i class="icon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</div>
+            <div class="to-be-installed-green"><i class="icon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</div>
+            <div class="to-be-installed-green"><i class="icon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</div>
+          </ul>
+        </td>
+      </tr>
+    </table>
   </div>
 </div>
 
