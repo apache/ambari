@@ -5,9 +5,9 @@
  * licenses this file to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -19,37 +19,44 @@ var App = require('app');
 
 /**
  * @class
- * 
+ *
  * This is a view for showing cluster CPU metrics
- * 
+ *
  * @extends App.ChartLinearTimeView
  * @extends Ember.Object
  * @extends Ember.View
  */
-App.ChartServiceMetricsYARN_MapSlots = App.ChartLinearTimeView.extend({
-  id: "service-metrics-yarn-map-slots",
-  title: Em.I18n.t('services.service.info.metrics.mapreduce.mapSlots'),
+App.ChartServiceMetricsYARN_ApplicationFinishedStates = App.ChartLinearTimeView.extend({
+  id: "service-metrics-yarn-apps-finished-states",
+  title: Em.I18n.t('services.service.info.metrics.yarn.apps.states.finished.title'),
   renderer: 'line',
-
-  ajaxIndex: 'service.metrics.mapreduce.map_slots',
+  ajaxIndex: 'service.metrics.yarn.queue.apps.states.finished',
+  yAxisFormatter: App.ChartLinearTimeView.CreateRateFormatter('apps', 
+      App.ChartLinearTimeView.DefaultFormatter),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];
-    if (jsonData && jsonData.metrics && jsonData.metrics.mapred && jsonData.metrics.mapred.jobtracker) {
-      for ( var name in jsonData.metrics.mapred.jobtracker) {
-        var displayName;
-        var seriesData = jsonData.metrics.mapred.jobtracker[name];
+    if (jsonData && jsonData.metrics && jsonData.metrics.yarn.Queue && jsonData.metrics.yarn.Queue.root) {
+      for (var name in jsonData.metrics.yarn.Queue.root) {
+        var displayName = null;
+        var seriesData = jsonData.metrics.yarn.Queue.root[name];
         switch (name) {
-          case "reserved_map_slots":
-            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.mapSlots.displayNames.reservedMapSlots');
+          case "AppsCompleted":
+            displayName = Em.I18n.t('services.service.info.metrics.yarn.apps.states.completed');
             break;
-          case "occupied_map_slots":
-            displayName = Em.I18n.t('services.service.info.metrics.mapreduce.mapSlots.displayNames.occupiedMapSlots');
+          case "AppsFailed":
+            displayName = Em.I18n.t('services.service.info.metrics.yarn.apps.states.failed');
+            break;
+          case "AppsKilled":
+            displayName = Em.I18n.t('services.service.info.metrics.yarn.apps.states.killed');
+            break;
+          case "AppsSubmitted":
+            displayName = Em.I18n.t('services.service.info.metrics.yarn.apps.states.submitted');
             break;
           default:
             break;
         }
-        if (seriesData) {
+        if (seriesData != null && displayName) {
           seriesArray.push(this.transformData(seriesData, displayName));
         }
       }

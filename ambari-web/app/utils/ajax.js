@@ -457,6 +457,16 @@ var urls = {
     },
     'testInProduction': true
   },
+  'service.metrics.yarn.queue.apps.states.current': {
+    'real': '/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/yarn/Queue/root/AppsPending[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/Queue/root/AppsRunning[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'mock': '',
+    'testInProduction': true
+  },
+  'service.metrics.yarn.queue.apps.states.finished': {
+    'real': '/clusters/{clusterName}/hosts/{resourceManager}/host_components/RESOURCEMANAGER?fields=metrics/yarn/Queue/root/AppsKilled[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/Queue/root/AppsFailed[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/Queue/root/AppsSubmitted[{fromSeconds},{toSeconds},{stepSeconds}],metrics/yarn/Queue/root/AppsCompleted[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'mock': '',
+    'testInProduction': true
+  },
   'dashboard.cluster_metrics.cpu': {
     'real': '/clusters/{clusterName}/?fields=metrics/cpu[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/cluster_metrics/cpu_1hr.json',

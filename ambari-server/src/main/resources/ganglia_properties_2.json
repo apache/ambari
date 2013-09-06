@@ -3746,8 +3746,37 @@
         "metric":"yarn.QueueMetrics.Queue=(.+).PendingContainers",
         "pointInTime" : false,
         "temporal" : true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsCompleted":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).AppsCompleted",
+        "pointInTime" : false,
+        "temporal" : true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsFailed":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).AppsFailed",
+        "pointInTime" : false,
+        "temporal" : true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsKilled":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).AppsKilled",
+        "pointInTime" : false,
+        "temporal" : true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsPending":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).AppsPending",
+        "pointInTime" : false,
+        "temporal" : true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsRunning":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).AppsRunning",
+        "pointInTime" : false,
+        "temporal" : true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsSubmitted":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).AppsSubmitted",
+        "pointInTime" : false,
+        "temporal" : true
       }
-
     },
     "NODEMANAGER":{
       "metrics/boottime":{
@@ -7682,6 +7711,36 @@
       },
       "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/PendingContainers":{
         "metric":"yarn.QueueMetrics.Queue=(.+).PendingContainers",
+        "pointInTime" : false,
+        "temporal" : true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsCompleted":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).AppsCompleted",
+        "pointInTime" : false,
+        "temporal" : true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsFailed":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).AppsFailed",
+        "pointInTime" : false,
+        "temporal" : true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsKilled":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).AppsKilled",
+        "pointInTime" : false,
+        "temporal" : true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsPending":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).AppsPending",
+        "pointInTime" : false,
+        "temporal" : true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsRunning":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).AppsRunning",
+        "pointInTime" : false,
+        "temporal" : true
+      },
+      "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsSubmitted":{
+        "metric":"yarn.QueueMetrics.Queue=(.+).AppsSubmitted",
         "pointInTime" : false,
         "temporal" : true
       }
