@@ -162,7 +162,7 @@ App.CreateUserForm = App.Form.extend({
     });
 
     if (this.get('className')) {
-      App.store.load(this.get('className'), formValues.user_name, formValues);
+      App.store.load(this.get('className'), (new Date()).getTime(), formValues);
     }
     else {
       console.log("Please define class name for your form " + this.constructor);
