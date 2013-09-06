@@ -662,14 +662,17 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step2.header':'Select Hosts',
   'admin.highAvailability.wizard.step3.header':'Review',
   'admin.highAvailability.wizard.step4.header':'Create Checkpoint',
+  'admin.highAvailability.wizard.step5.header':'Configure Components',
   'admin.highAvailability.wizard.step6.header':'Initialize JournalNodes',
+  'admin.highAvailability.wizard.step7.header':'Start Components',
   'admin.highAvailability.wizard.step8.header':'Initialize Metadata',
+  'admin.highAvailability.wizard.step9.header':'Finalize HA Setup',
   'admin.highAvailability.wizard.step4.bodyHeader':'Manual Steps Required: Create Checkpoint on NameNode',
   'admin.highAvailability.wizard.step6.bodyHeader':'Manual Steps Required: Initialize JournalNodes',
   'admin.highAvailability.wizard.step8.bodyHeader':'Manual Steps Required: Initialize NameNode HA Metadata',
 
 
-  'admin.highAvailability.wizard.step5.task0.title':'Stop all services',
+  'admin.highAvailability.wizard.step5.task0.title':'Stop All Services',
   'admin.highAvailability.wizard.step5.task1.title':'Install Additional NameNode',
   'admin.highAvailability.wizard.step5.task2.title':'Install JournalNodes',
   'admin.highAvailability.wizard.step5.task3.title':'Start JournalNodes',
@@ -685,7 +688,7 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step9.task3.title':'Reconfigure HBase',
   'admin.highAvailability.wizard.step9.task4.title':'Start All Services',
   'admin.highAvailability.wizard.step9.task5.title':'Delete Secondary NameNode',
-  'admin.highAvailability.wizard.step9.notice.completed':'"NameNode HA has been enabled successfully.',
+  'admin.highAvailability.wizard.step9.notice.completed':'NameNode HA has been enabled successfully.',
 
   'admin.highAvailability.wizard.step3.nn1':'Current NameNode is on {0}.',
   'admin.highAvailability.wizard.step3.nn2':'Additional NameNode will be installed on {0}.',
@@ -697,36 +700,42 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step8.metaNoInit':'Metadata not initialized yet',
 
 
-  'admin.highAvailability.wizard.step8.body':'Note: The following command must be run as the user {0} on {2}, not {1} <br/><br/>' +
-    '1. Initialize the metadata for additional NameNode by running: <br/><br/>' +
-    '$ hdfs namenode -bootstrapStandby<br/><br/>' +
-    'Note: The following command must be run as the user {0} on {1}, not {2} <br/><br/>' +
-    '2. Initialize the metadata for NameNode automatic failover by running:<br/>' +
-    '$ hdfs zkfc -formatZK<br/><br/>' +
-    '3. You will be able to proceed to the next step once we detect that the steps were completed successfully.',
-  'admin.highAvailability.wizard.step6.body':'Note: The following commands must be run as the user {0} on {1} <br/><br/>' +
-    '1. Initialize the JournalNodes by running: <br/><br/>' +
-    '$ hdfs namenode -initializeSharedEdits<br/><br/>' +
-    '2. You will be able to proceed to the next step once we detect that the JournalNodes have been initialized successfully.',
-  'admin.highAvailability.wizard.step4.body':'Note: The following commands must be run as the user {0} on {1} <br/><br/>' +
-    '1. Put the NameNode in safe mode (read-only-mode) by running: <br/><br/>' +
-    '$ hdfs dfsadmin -safemode enter <br/><br/>' +
-    '2. Once NameNode is in Safe Mode, create a checkpoint by running: <br/><br/>' +
-    '$ hdfs dfsadmin -saveNamespace <br/><br/>' +
-    '3. You will be able to proceed to the next step once we detect that the NameNode is in Safe Mode and that the checkpoint has been created successfully.',
-  'admin.highAvailability.wizard.step3.body':'Confirm your host selection and click Deploy to activate NameNode HA.',
-  'admin.highAvailability.wizard.step2.body':'Select a host that will be running an additional NameNode.<br/> In addition,' +
-    ' select 3 hosts that will be running JournalNodes to store NameNode edit logs in a fault tolerant maner.',
-  'admin.highAvailability.wizard.step1.body':'We will walk you through enabling NameNode HA with this wizard.<br/>' +
-    'In NameNode HA, you will be running one more NameNode in addition to the current NameNode.  This allows for an ' +
-    'active-standby configuration that automatically fails over if the active NameNode fails.<br/>' +
-    'Note that your current Secondary NameNode will be disabled.<br/>' +
-    'In addition, the NameNodes will be storing the edit logs on multiple JournalNodes for fault tolerance.<br/>' +
-    'Once you make your host selection for NameNodes and JournalNodes and confirm your selection, the wizard ' +
-    'will make necessary changes to enable NameNode HA.<br/>' +
-    'You will be prompted to run manual steps as needed.<br/>' +
-    'Let"s get started.',
-
+  'admin.highAvailability.wizard.step8.body':
+    '<ol>' +
+    '<li>Login to the additional NameNode host <b>{2}</b> as user <b>{0}</b>.</li>' +
+    '<li>Initialize the metadata for the additional NameNode by running:' +
+    '<div class="code-snippet">hdfs namenode -bootstrapStandby</div></li>' +
+    '<li>Login to the NameNode host <b>{1}</b> as user <b>{0}</b>.</li>' +
+    '<li>Initialize the metadata for NameNode automatic failover by running:' +
+    '<div class="code-snippet">hdfs zkfc -formatZK</div></li>' +
+    '<li>You will be able to proceed once Ambari detects that the steps were completed successfully.</li>' +
+    '</ol>',
+  'admin.highAvailability.wizard.step6.body':
+    '<ol>' +
+    '<li>Login to the NameNode host <b>{1}</b> as user <b>{0}</b>.</li>' +
+    '<li>Initialize the JournalNodes by running:' +
+    '<div class="code-snippet">hdfs namenode -initializeSharedEdits</div></li>' +
+    '<li>You will be able to proceed once Ambari detects that the JournalNodes have been initialized successfully.</li>' +
+    '</ol>',
+  'admin.highAvailability.wizard.step4.body':
+    '<ol>' +
+    '<li>Login to the NameNode host <b>{1}</b> as user <b>{0}</b>.</li>' +
+    '<li>Put the NameNode in safe mode (read-only-mode):' +
+    '<div class="code-snippet">hdfs dfsadmin -safemode enter</div></li>' +
+    '<li>Once in Safe Mode, create a checkpoint:' +
+    '<div class="code-snippet">hdfs dfsadmin -saveNamespace</div></li>' +
+    '<li>You will be able to proceed once Ambari detects that the NameNode is in Safe Mode and the checkpoint has been created successfully.</li>' +
+    '</ol>',
+  'admin.highAvailability.wizard.step3.body':'Confirm your host selections.',
+  'admin.highAvailability.wizard.step2.body':'Select a host that will be running the additional NameNode.<br/> In addition,' +
+    ' select the hosts to run JournalNodes, which store NameNode edit logs in a fault tolerant manner.',
+  'admin.highAvailability.wizard.step1.body':'This wizard will walk you through enabling NameNode HA on your cluster.<br/>' +
+    'Once enabled, you will be running a Standby NameNode in addition to your Active NameNode.<br/>' +
+    'This allows for an Active-Standby NameNode configuration that automatically performs failover.<br/><br/>' +
+    'The process to enable HA involves a combination of <b>automated steps</b> (that will be handled by the wizard) and ' +
+    '<b>manual steps</b> (that you must perform in sequence as instructed by the wizard).<br/><br/>' +
+    '<b>You should plan a cluster maintanance window and prepare for cluster downtime when enabling NameNode HA.</b>',
+  'admin.highAvailability.wizard.step1.alert':'As part of this process, your current Secondary NameNode will be disabled and new JournalNodes will be introduced into the cluster.',
   'admin.security.title':'Kerberos Security has not been enabled on this cluster.',
   'admin.security.enabled': 'Kerberos security is enabled on the cluster',
   'admin.security.disabled': 'Kerberos security is disabled on the cluster',
