@@ -28,9 +28,14 @@ App.HttpClient = Em.Object.create({
    * @param jqXHR
    * @param textStatus
    * @param errorThrown
+   * @url api that invoked this callback function
    */
-  defaultErrorHandler: function (jqXHR, textStatus, errorThrown) {
-    var json = $.parseJSON(jqXHR.responseText);
+  defaultErrorHandler: function (jqXHR, textStatus, errorThrown, url) {
+    try {
+      var json = $.parseJSON(jqXHR.responseText);
+    } catch (err) {
+    }
+    App.ajax.defaultErrorHandler(jqXHR, url);
     if (json) {
       Em.assert("HttpClient:", json);
     } else {
@@ -59,14 +64,14 @@ App.HttpClient = Em.Object.create({
     xhr.open('GET', url + (url.indexOf('?') >= 0 ? '&_=' : '?_=') + curTime, true);
     xhr.send(null);
 
-    this.onReady(xhr, "", ajaxOptions, mapper, errorHandler);
+    this.onReady(xhr, "", ajaxOptions, mapper, errorHandler, url);
   },
 
   /*
    This function checks if we get response from server
    Not using onreadystatechange cuz of possible closure
    */
-  onReady: function (xhr, tm, tmp_val, mapper, errorHandler) {
+  onReady: function (xhr, tm, tmp_val, mapper, errorHandler, url) {
     var self = this;
     clearTimeout(tm);
     var timeout = setTimeout(function () {
@@ -74,12 +79,13 @@ App.HttpClient = Em.Object.create({
         if (xhr.status == 200) {
           try {
             App.store.commit();
-          } catch (err) {}
+          } catch (err) {
+          }
           mapper.map($.parseJSON(xhr.responseText));
           tmp_val.complete.call(self);
           xhr.abort();
         } else {
-          errorHandler(xhr , "error", xhr.statusText);
+          errorHandler(xhr, "error", xhr.statusText, url);
         }
 
         tmp_val = null;
@@ -88,7 +94,7 @@ App.HttpClient = Em.Object.create({
         timeout = null;
 
       } else {
-        self.onReady(xhr, timeout, tmp_val, mapper, errorHandler);
+        self.onReady(xhr, timeout, tmp_val, mapper, errorHandler, url);
       }
     }, 10);
   },
@@ -108,10 +114,10 @@ App.HttpClient = Em.Object.create({
     var client = this;
     var request = function () {
       client.request(url, data, mapper, errorHandler);
-      url=null;
-      data=null;
-      mapper=null;
-      errorHandler=null;
+      url = null;
+      data = null;
+      mapper = null;
+      errorHandler = null;
     }
 
     interval = "" + interval;

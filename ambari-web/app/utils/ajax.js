@@ -1098,6 +1098,8 @@ App.ajax = {
     var opt = {};
     opt = formatRequest.call(urls[config.name], params);
 
+    opt.context = this;
+
     // object sender should be provided for processing beforeSend, success and error responses
     opt.beforeSend = function (xhr) {
       if (config.beforeSend) {
@@ -1113,6 +1115,8 @@ App.ajax = {
     opt.error = function (request, ajaxOptions, error) {
       if (config.error) {
         config.sender[config.error](request, ajaxOptions, error, opt);
+      } else {
+       this.defaultErrorHandler(request,opt.url,opt.type);
       }
     };
     opt.complete = function () {
@@ -1124,5 +1128,51 @@ App.ajax = {
       opt.url = 'http://' + $.hostName + opt.url;
     }
     return $.ajax(opt);
+  },
+
+  // A single instance of App.ModalPopup view
+  modalPopup: null,
+  /**
+   * defaultErrorHandler function is referred from App.ajax.send function and App.HttpClient.defaultErrorHandler function
+   * @jqXHR {jqXHR Object}
+   * @url {string}
+   * @method {String} Http method
+   */
+  defaultErrorHandler: function(jqXHR,url,method) {
+    method = method || 'GET';
+    var self = this;
+    var api = " received on " + method + " method for API: " + url;
+    var showMessage = true;
+    try {
+      var json = $.parseJSON(jqXHR.responseText);
+      var message = json.message;
+    } catch (err) {
+    }
+
+    if (message === undefined) {
+      showMessage = false;
+    }
+    var statusCode = jqXHR.status + " status code";
+    if (jqXHR.status === 500 && !this.modalPopup) {
+      this.modalPopup = App.ModalPopup.show({
+        header: jqXHR.statusText,
+        secondary: false,
+        onPrimary: function () {
+          this.hide();
+          self.modalPopup = null;
+        },
+        bodyClass: Ember.View.extend({
+          classNames: ['api-error'],
+          template: Ember.Handlebars.compile(['<span class="text-error">{{view.statusCode}}</span><span>{{view.api}}</span>',
+            '{{#if view.showMessage}}',
+            '<br><br><pre><strong>Error message: </strong><span class="text-error">{{view.message}}</span></pre>',
+            '{{/if}}'].join('\n')),
+          api: api,
+          statusCode: statusCode,
+          message: message,
+          showMessage: showMessage
+        })
+      });
+    }
   }
-}
+};
