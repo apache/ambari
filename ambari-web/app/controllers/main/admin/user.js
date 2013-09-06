@@ -57,7 +57,7 @@ App.MainAdminUserController = Em.Controller.extend({
             event.context.deleteRecord();
 
             try {
-              App.store.commit()
+              App.store.commit();
             } catch (err) {
 
             }
@@ -97,8 +97,10 @@ App.MainAdminUserController = Em.Controller.extend({
       },
 
       error: function (request, ajaxOptions, error) {
-        callback(false, error);
-        console.log('error on change component host status')
+        var message = $.parseJSON(request.responseText).message;
+        message = message.substr(message.lastIndexOf(':') + 1);
+        callback(false, message);
+        console.log(message);
       },
 
       statusCode: require('data/statusCodes')
