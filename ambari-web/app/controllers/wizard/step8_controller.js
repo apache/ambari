@@ -1365,6 +1365,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     var globalSiteProperties = {};
     var globalSiteObj = this.get('globals');
     var isHCFSSelected = this.get('selectedServices').someProperty('serviceName', 'HCFS');
+    var ambariProperties = App.router.get('clusterController.ambariProperties');
     
     // screen out the HCFS-specific global config entries when they are not required
     if (!isHCFSSelected) {
@@ -1387,7 +1388,10 @@ App.WizardStep8Controller = Em.Controller.extend({
         console.log("STEP8: value of the global property is: " + _globalSiteObj.value);
       }
       if (_globalSiteObj.name == 'java64_home') {
-        globalSiteProperties['java64_home'] = this.get('content.installOptions.javaHome');
+        globalSiteProperties['java64_home'] = ambariProperties['java.home'] ? ambariProperties['java.home'] : App.defaultJavaHome ;
+      }
+      if (_globalSiteObj.name == 'jce_policy_url') {
+        globalSiteProperties['jce_policy_url'] = ambariProperties['jce_policy.url'] ? ambariProperties['jce_policy.url'] : App.defaultJCE ;
       }
       this._recordHostOverrideFromObj(_globalSiteObj, 'global', 'version1', this);
     }, this);
