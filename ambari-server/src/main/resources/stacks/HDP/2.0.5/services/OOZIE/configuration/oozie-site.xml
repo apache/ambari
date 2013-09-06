@@ -242,4 +242,42 @@
              Max number of connections.
         </description>
     </property>
+
+    <property>
+      <name>oozie.services</name>
+      <value>
+        org.apache.oozie.service.SchedulerService,
+        org.apache.oozie.service.InstrumentationService,
+        org.apache.oozie.service.CallableQueueService,
+        org.apache.oozie.service.UUIDService,
+        org.apache.oozie.service.ELService,
+        org.apache.oozie.service.AuthorizationService,
+        org.apache.oozie.service.UserGroupInformationService,
+        org.apache.oozie.service.HadoopAccessorService,
+        org.apache.oozie.service.URIHandlerService,
+        org.apache.oozie.service.MemoryLocksService,
+        org.apache.oozie.service.DagXLogInfoService,
+        org.apache.oozie.service.SchemaService,
+        org.apache.oozie.service.LiteWorkflowAppService,
+        org.apache.oozie.service.JPAService,
+        org.apache.oozie.service.StoreService,
+        org.apache.oozie.service.CoordinatorStoreService,
+        org.apache.oozie.service.SLAStoreService,
+        org.apache.oozie.service.DBLiteWorkflowStoreService,
+        org.apache.oozie.service.CallbackService,
+        org.apache.oozie.service.ActionService,
+        org.apache.oozie.service.ActionCheckerService,
+        org.apache.oozie.service.RecoveryService,
+        org.apache.oozie.service.PurgeService,
+        org.apache.oozie.service.CoordinatorEngineService,
+        org.apache.oozie.service.BundleEngineService,
+        org.apache.oozie.service.DagEngineService,
+        org.apache.oozie.service.CoordMaterializeTriggerService,
+        org.apache.oozie.service.StatusTransitService,
+        org.apache.oozie.service.PauseTransitService,
+        org.apache.oozie.service.GroupsService,
+        org.apache.oozie.service.ProxyUserService
+      </value>
+      <description>List of Oozie services</description>
+    </property>
 </configuration>
