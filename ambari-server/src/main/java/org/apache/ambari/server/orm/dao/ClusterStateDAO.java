@@ -20,11 +20,13 @@ package org.apache.ambari.server.orm.dao;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 
 import javax.persistence.EntityManager;
 
+@Singleton
 public class ClusterStateDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;

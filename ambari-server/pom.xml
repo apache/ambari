@@ -150,6 +150,26 @@
         <!--</executions>-->
       <!--</plugin>-->
       <plugin>
+        <!--Static -->
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>process-classes</phase>
+            <configuration>
+              <tasks>
+                <java classname="org.eclipse.persistence.tools.weaving.jpa.StaticWeave"
+                      classpathref="maven.runtime.classpath" fork="true">
+                  <arg line="-loglevel FINE -persistenceinfo src/main/resources target/classes target/classes"/>
+                </java>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>rpm-maven-plugin</artifactId>
         <version>2.0.1</version>
@@ -740,6 +760,11 @@
 	  <groupId>org.apache.httpcomponents</groupId>
 	  <artifactId>httpclient</artifactId>
 	  <version>4.2.5</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>14.0.1</version>
     </dependency>
   </dependencies>
   <!--<reporting>

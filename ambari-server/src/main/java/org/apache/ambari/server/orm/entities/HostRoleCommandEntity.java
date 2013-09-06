@@ -30,7 +30,6 @@ import static org.apache.commons.lang.StringUtils.defaultString;
 
 @Table(name = "host_role_command")
 @Entity
-@Cacheable(false)
 @TableGenerator(name = "host_role_command_id_generator",
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "value"
     , pkColumnValue = "host_role_command_id_seq"
@@ -100,7 +99,7 @@ public class HostRoleCommandEntity {
   @Enumerated(EnumType.STRING)
   private RoleCommand roleCommand;
 
-  @OneToOne(mappedBy = "hostRoleCommand", cascade = CascadeType.REMOVE)
+  @OneToOne(mappedBy = "hostRoleCommand", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
   private ExecutionCommandEntity executionCommand;
 
   @ManyToOne(cascade = {CascadeType.MERGE})

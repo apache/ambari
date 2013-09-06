@@ -129,6 +129,9 @@ public class Configuration {
   public static final String ADMIN_ROLE_NAME_KEY =
       "authorization.adminRoleName";
 
+  public static final String SERVER_EC_CACHE_SIZE = "server.ecCacheSize";
+  private static final long SERVER_EC_CACHE_SIZE_DEFAULT = 10000L;
+
   public static final String SERVER_PERSISTENCE_TYPE_KEY = "server.persistence.type";
   public static final String SERVER_JDBC_USER_NAME_KEY = "server.jdbc.user.name";
   public static final String SERVER_JDBC_USER_PASSWD_KEY = "server.jdbc.user.passwd";
@@ -803,6 +806,20 @@ public class Configuration {
       ambariPropertiesMap.put(key, properties.getProperty(key));
     }
     return ambariPropertiesMap;
+  }
+
+  public long getExecutionCommandsCacheSize() {
+    String stringValue = properties.getProperty(SERVER_EC_CACHE_SIZE);
+    long value = SERVER_EC_CACHE_SIZE_DEFAULT;
+    if (stringValue != null) {
+      try {
+        value = Long.getLong(stringValue);
+      } catch (NumberFormatException ignored) {
+      }
+
+    }
+
+    return value;
   }
 
 }

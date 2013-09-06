@@ -19,6 +19,7 @@ package org.apache.ambari.server.actionmanager;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
@@ -26,8 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Injector;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
 
 /**
  * This class encapsulates the information for an task on a host for a
@@ -56,6 +55,8 @@ public class HostRoleCommand {
 
   private ExecutionCommandWrapper executionCommandWrapper;
 
+  private ExecutionCommandDAO executionCommandDAO;
+
   public HostRoleCommand(String host, Role role,
       ServiceComponentHostEvent event, RoleCommand command) {
     this.hostName = host;
@@ -64,8 +65,7 @@ public class HostRoleCommand {
     this.roleCommand = command;
   }
 
-  @AssistedInject
-  public HostRoleCommand(@Assisted HostRoleCommandEntity hostRoleCommandEntity, Injector injector) {
+  public HostRoleCommand(HostRoleCommandEntity hostRoleCommandEntity, Injector injector) {
     taskId = hostRoleCommandEntity.getTaskId();
     stageId = hostRoleCommandEntity.getStage().getStageId();
     requestId = hostRoleCommandEntity.getStage().getRequestId();
@@ -80,10 +80,13 @@ public class HostRoleCommand {
     attemptCount = hostRoleCommandEntity.getAttemptCount();
     roleCommand = hostRoleCommandEntity.getRoleCommand();
     event = new ServiceComponentHostEventWrapper(hostRoleCommandEntity.getEvent());
-    executionCommandWrapper = new ExecutionCommandWrapper(new String(
-        hostRoleCommandEntity
-            .getExecutionCommand().getCommand()
-    ));
+    //make use of lazy loading
+
+    executionCommandDAO = injector.getInstance(ExecutionCommandDAO.class);
+//    executionCommandWrapper = new ExecutionCommandWrapper(new String(
+//        hostRoleCommandEntity
+//            .getExecutionCommand().getCommand()
+//    ));
   }
 
   HostRoleCommandEntity constructNewPersistenceEntity() {
@@ -198,6 +201,16 @@ public class HostRoleCommand {
   }
 
   public ExecutionCommandWrapper getExecutionCommandWrapper() {
+    if (taskId != -1 && executionCommandWrapper == null) {
+      ExecutionCommandEntity commandEntity = executionCommandDAO.findByPK(taskId);
+      if (commandEntity == null) {
+        throw new RuntimeException("Invalid DB state, broken one-to-one relation for taskId=" + taskId);
+      }
+      executionCommandWrapper = new ExecutionCommandWrapper(new String(
+          commandEntity.getCommand()
+      ));
+    }
+
     return executionCommandWrapper;
   }
 

@@ -20,6 +20,7 @@ package org.apache.ambari.server.orm.dao;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -36,6 +37,7 @@ import javax.persistence.TypedQuery;
 import java.util.Collection;
 import java.util.List;
 
+@Singleton
 public class HostRoleCommandDAO {
 
   @Inject
@@ -69,11 +71,30 @@ public class HostRoleCommandDAO {
   }
 
   @Transactional
+  public List<Long> findTaskIdsByRequestIds(Collection<Long> requestIds) {
+    TypedQuery<Long> query = entityManagerProvider.get().createQuery(
+        "SELECT task.taskId FROM HostRoleCommandEntity task " +
+            "WHERE task.requestId IN ?1 " +
+            "ORDER BY task.taskId", Long.class);
+    return daoUtils.selectList(query, requestIds);
+  }
+
+  @Transactional
   public List<HostRoleCommandEntity> findByRequestAndTaskIds(Collection<Long> requestIds, Collection<Long> taskIds) {
     TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery(
         "SELECT DISTINCT task FROM HostRoleCommandEntity task " +
             "WHERE task.requestId IN ?1 AND task.taskId IN ?2 " +
             "ORDER BY task.taskId", HostRoleCommandEntity.class
+    );
+    return daoUtils.selectList(query, requestIds, taskIds);
+  }
+
+  @Transactional
+  public List<Long> findTaskIdsByRequestAndTaskIds(Collection<Long> requestIds, Collection<Long> taskIds) {
+    TypedQuery<Long> query = entityManagerProvider.get().createQuery(
+        "SELECT DISTINCT task.taskId FROM HostRoleCommandEntity task " +
+            "WHERE task.requestId IN ?1 AND task.taskId IN ?2 " +
+            "ORDER BY task.taskId", Long.class
     );
     return daoUtils.selectList(query, requestIds, taskIds);
   }
@@ -125,6 +146,14 @@ public class HostRoleCommandDAO {
     TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery("SELECT command " +
         "FROM HostRoleCommandEntity command " +
         "WHERE command.requestId=?1 ORDER BY command.taskId", HostRoleCommandEntity.class);
+    return daoUtils.selectList(query, requestId);
+  }
+  
+  @Transactional
+  public List<Long> findTaskIdsByRequest(long requestId) {
+    TypedQuery<Long> query = entityManagerProvider.get().createQuery("SELECT command.taskId " +
+        "FROM HostRoleCommandEntity command " +
+        "WHERE command.requestId=?1 ORDER BY command.taskId", Long.class);
     return daoUtils.selectList(query, requestId);
   }
 

@@ -191,6 +191,9 @@ public class PropertyHelper {
    * @return true if the given property id contains any replacement arguments
    */
   public static boolean containsArguments(String propertyId) {
+    if (!propertyId.contains("$")) {
+      return false;
+    }
     Matcher matcher = CHECK_FOR_METRIC_ARGUMENTS_REGEX.matcher(propertyId);
     return matcher.find();
   }

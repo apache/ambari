@@ -20,6 +20,7 @@ package org.apache.ambari.server.orm.dao;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.orm.entities.StageEntity;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.Collection;
 import java.util.Map;
 
+@Singleton
 public class StageDAO {
 
   @Inject

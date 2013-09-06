@@ -79,6 +79,12 @@ public class ControllerModule extends AbstractModule {
     bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
     bindConstant().annotatedWith(Names.named("schedulerSleeptime")).to(10000L);
     bindConstant().annotatedWith(Names.named("actionTimeout")).to(600000L);
+
+    //ExecutionCommands cache size
+
+    bindConstant().annotatedWith(Names.named("executionCommandCacheSize")).
+        to(configuration.getExecutionCommandsCacheSize());
+
     bind(AmbariManagementController.class)
         .to(AmbariManagementControllerImpl.class);
     bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
@@ -158,7 +164,7 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().implement(
         Config.class, ConfigImpl.class).build(ConfigFactory.class));
     install(new FactoryModuleBuilder().build(StageFactory.class));
-    install(new FactoryModuleBuilder().build(HostRoleCommandFactory.class));
+    bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
   }
 
 }
