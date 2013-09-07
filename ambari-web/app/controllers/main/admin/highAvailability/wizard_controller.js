@@ -39,7 +39,8 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
     masterComponentHosts: null,
     serviceName: 'MISC',
     hdfsUser:"hdfs",
-    nameServiceId: ''
+    nameServiceId: '',
+    failedTask : null
   }),
 
   /**
@@ -156,6 +157,11 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
   saveTasksStatuses: function(statuses){
     App.db.setHighAvailabilityWizardTasksStatuses(statuses);
     this.set('content.tasksStatuses', statuses);
+  },
+
+  saveFailedTask: function(task){
+    App.db.setHighAvailabilityWizardFailedTask(task);
+    this.set('content.failedTask', task);
   },
 
   saveConfigTag: function(tag){

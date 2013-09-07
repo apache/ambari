@@ -661,17 +661,18 @@ module.exports = Em.Route.extend({
           Ember.run.next(function () {
             App.router.get('updateController').set('isWorking', false);
 
-
             var highAvailabilityWizardController = router.get('highAvailabilityWizardController');
-            highAvailabilityWizardController.finish();
-            highAvailabilityWizardController.get('popup').hide();
-
+            if(highAvailabilityWizardController.get('popup')){
+              highAvailabilityWizardController.finish();
+              highAvailabilityWizardController.get('popup').hide();
+            }
             var popup = App.ModalPopup.show({
               classNames: ['full-width-modal'],
               header: Em.I18n.t('admin.highAvailability.rollback.header'),
               bodyClass: App.HighAvailabilityRollbackView.extend({
                 controllerBinding: 'App.router.highAvailabilityRollbackController'
               }),
+              showCloseButton: false,
               primary: Em.I18n.t('form.cancel'),
               secondary: null,
               showFooter: false,

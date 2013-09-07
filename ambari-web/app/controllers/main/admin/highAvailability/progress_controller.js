@@ -20,6 +20,8 @@ var App = require('app');
 
 App.HighAvailabilityProgressPageController = Em.Controller.extend({
 
+  name: 'highAvailabilityProgressPageController',
+
   status: 'IN_PROGRESS',
   tasks: [],
   commands: [],
@@ -107,9 +109,11 @@ App.HighAvailabilityProgressPageController = Em.Controller.extend({
 
   rollback: function () {
     var task = this.get('tasks').findProperty('status', 'FAILED');
+    App.router.get(this.get('content.controllerName')).saveFailedTask(task);
     App.ModalPopup.show({
       header: Em.I18n.t('admin.highAvailability.confirmRollbackHeader'),
       primary: Em.I18n.t('common.confirm'),
+      showCloseButton: false,
       onPrimary: function () {
         App.router.transitionTo('root.main.admin.adminHighAvailability.rollback');
         this.hide();

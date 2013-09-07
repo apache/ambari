@@ -23,13 +23,15 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
 
   name: "highAvailabilityRollbackController",
 
+  failedTask: null,
+
   commands: [
     'stopAllServices',
     'restoreHBaseConfigs',
     'stopFailoverControllers',
     'deleteFailoverControllers',
     'stopStandbyNameNode',
-    'stopNamenode',
+    'stopNameNode',
     'restoreHDFSConfigs',
     'enableSecondaryNameNode',
     'stopJournalNodes',
@@ -38,8 +40,42 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
     'startAllServices'
   ],
 
-  getStartingPoint: function() {
+  loadStep: function () {
+    this.loadFailedTask();
+    this.clearStep();
+    this.loadTasks();
+    this.addObserver('tasks.@each.status', this, 'onTaskStatusChange');
+    this.onTaskStatusChange();
+  },
 
+  setCommandsAndTasks: function(tmpTasks) {
+    var fTask = this.get('failedTask');
+    var newCommands = [];
+    var newTasks = [];
+    var index = [
+      'deleteSNameNode',
+      'startAllServices',
+      'reconfigureHBase',
+      'startZKFC',
+      'installZKFC',
+      'startSecondNameNode',
+      'startNameNode',
+      'startZooKeeperServers',
+      'reconfigureHDFS',
+      'disableSNameNode',
+      'startJournalNodes',
+      'installJournalNodes',
+      'installNameNode',
+      'stopAllServices'
+    ].indexOf(fTask.command);
+
+    if(index > 6){
+      --index;
+    }
+    newCommands = this.get('commands').splice(index);
+    this.set('commands', newCommands);
+    newTasks = tmpTasks.splice(index);
+    this.set('tasks', newTasks);
   },
 
   clearStep: function () {
@@ -48,8 +84,9 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
     this.set('logs', []);
     this.set('currentRequestIds', []);
     var commands = this.get('commands');
+    var tmpTasks = [];
     for (var i = 0; i < commands.length; i++) {
-      this.get('tasks').pushObject(Ember.Object.create({
+      tmpTasks.pushObject(Ember.Object.create({
         title: Em.I18n.t('admin.highAvailability.rollback.task' + i + '.title'),
         status: 'PENDING',
         id: i,
@@ -62,6 +99,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
         hosts: []
       }));
     }
+    this.setCommandsAndTasks(tmpTasks);
   },
 
   onTaskStatusChange: function () {
@@ -103,6 +141,11 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
     //this.set('content.tasksStatuses', statuses);
   },
 
+  loadFailedTask: function(){
+    var failedTask = App.db.getHighAvailabilityWizardFailedTask();
+    this.set('failedTask', failedTask);
+  },
+
   saveRequestIds: function(requestIds){
     App.db.setHighAvailabilityWizardRequestIds(requestIds);
     //this.set('content.requestIds', requestIds);
@@ -137,7 +180,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   stopStandbyNameNode: function(){
 
   },
-  stopNamenode: function(){
+  stopNameNode: function(){
 
   },
   restoreHDFSConfigs: function(){

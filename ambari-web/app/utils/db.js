@@ -355,6 +355,11 @@ App.db.setHighAvailabilityWizardConfigTag = function (tag) {
   App.db.data.HighAvailabilityWizard[tag.name] = tag.value;
   localStorage.setObject('ambari', App.db.data);
 };
+App.db.setHighAvailabilityWizardFailedTask = function (task) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.HighAvailabilityWizard.failedTask = task;
+  localStorage.setObject('ambari', App.db.data);
+};
 
 App.db.setHighAvailabilityWizardTasksStatuses = function (tasksStatuses) {
   App.db.data = localStorage.getObject('ambari');
@@ -590,6 +595,11 @@ App.db.getStacks = function () {
 App.db.getHighAvailabilityWizardTasksStatuses = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.HighAvailabilityWizard.tasksStatuses;
+};
+
+App.db.getHighAvailabilityWizardFailedTask = function () {
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.HighAvailabilityWizard.failedTask;
 };
 
 App.db.getHighAvailabilityWizardRequestIds = function () {
