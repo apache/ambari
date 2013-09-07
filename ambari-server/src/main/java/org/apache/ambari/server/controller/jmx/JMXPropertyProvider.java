@@ -58,7 +58,7 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
 
   private static final String NAME_KEY = "name";
   private static final String PORT_KEY = "tag.port";
-
+  private static final String DOT_REPLACEMENT_CHAR = "#";
   private static final long DEFAULT_POPULATE_TIMEOUT_MILLIS = 10000L;
 
   public static final String TIMED_OUT_MSG = "Timed out waiting for JMX metrics.";
@@ -384,7 +384,9 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
   private void setResourceValue(Resource resource, Map<String, Map<String, Object>> categories, String propertyId,
                                 String category, String property, List<String> keyList) {
     Map<String, Object> properties = categories.get(category);
-    
+    if (property.contains(DOT_REPLACEMENT_CHAR)) {
+      property = property.replaceAll(DOT_REPLACEMENT_CHAR, ".");
+    }
     if (properties != null && properties.containsKey(property)) {
       Object value = properties.get(property);
       if (keyList.size() > 0 && value instanceof Map) {

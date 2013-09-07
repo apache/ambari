@@ -1335,6 +1335,11 @@
         "pointInTime" : true,
         "temporal" : false
       },
+      "metrics/dfs/FSNamesystem/HAState":{
+        "metric" : "Hadoop:service=NameNode,name=FSNamesystem.tag#HAState",
+        "pointInTime" : true,
+        "temporal" : false
+      },
       "metrics/dfs/namenode/AddBlockOps":{
         "metric" : "Hadoop:service=NameNode,name=NameNodeActivity.AddBlockOps",
         "pointInTime" : true,

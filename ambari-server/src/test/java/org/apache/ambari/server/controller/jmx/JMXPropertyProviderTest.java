@@ -85,7 +85,6 @@ public class JMXPropertyProviderTest {
     Assert.assertEquals(842207944704L, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/dfs/FSNamesystem", "CapacityRemaining")));
     Assert.assertEquals(45509562366L, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/dfs/FSNamesystem", "CapacityNonDFSUsed")));
 
-
     // datanode
     resource = new ResourceImpl(Resource.Type.HostComponent);
 
@@ -355,7 +354,7 @@ public class JMXPropertyProviderTest {
         PropertyHelper.getPropertyId("HostRoles", "state"),
         Collections.singleton("STARTED"));
 
-    // namenode
+    // resourcemanager
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
@@ -381,6 +380,23 @@ public class JMXPropertyProviderTest {
     Assert.assertEquals(0,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/ClusterMetrics", "NumLostNMs")));
     Assert.assertEquals(0,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/ClusterMetrics", "NumUnhealthyNMs")));
     Assert.assertEquals(0,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/ClusterMetrics", "NumRebootedNMs")));
+
+    //namenode
+    resource = new ResourceImpl(Resource.Type.HostComponent);
+
+    resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
+    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "NAMENODE");
+    resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+
+    // request with an empty set should get all supported properties
+    request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+
+    Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
+
+    Assert.assertEquals(propertyProvider.getSpec("domu-12-31-39-0e-34-e1" +
+      ".compute-1.internal", "50070"), streamProvider.getLastSpec());
+    Assert.assertEquals("active", resource.getPropertyValue(PropertyHelper
+      .getPropertyId("metrics/dfs/FSNamesystem", "HAState")));
   }
   
   @Test
