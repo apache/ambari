@@ -396,7 +396,7 @@ var urls = {
     'testInProduction': true
   },
   'service.start_stop': {
-    'real': '/clusters/{clusterName}/services?ServiceInfo',
+    'real': '/clusters/{clusterName}/services?params/run_smoke_test=true',
     'mock': '/data/mirroring/poll/poll_6.json',
     'format': function (data, opt) {
       return {
