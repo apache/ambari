@@ -47,8 +47,7 @@ define hdp-oozie::smoke_shell_file(
   $conf_dir = $hdp::params::oozie_conf_dir
   $hadoopconf_dir = $hdp::params::hadoop_conf_dir 
   $security_enabled=$hdp::params::security_enabled
-  $jt_host=$hdp::params::jtnode_host
-  $nn_host=$hdp::params::namenode_host
+  $kinit_path_local = $hdp::params::kinit_path_local
   if ($security_enabled == true) {
     $security = "true"
   } else {
@@ -64,7 +63,7 @@ define hdp-oozie::smoke_shell_file(
   }
 
   exec { "/tmp/${smoke_shell_file_name}":
-    command   => "sh /tmp/${smoke_shell_file_name} ${conf_dir} ${hadoopconf_dir} ${smoke_test_user} ${security} ${smoke_user_keytab} ${realm} $jt_host $nn_host",
+    command   => "sh /tmp/${smoke_shell_file_name} ${conf_dir} ${hadoopconf_dir} ${smoke_test_user} ${security} ${smoke_user_keytab} ${kinit_path_local}",
     tries     => 3,
     try_sleep => 5,
     require   => File["/tmp/${smoke_shell_file_name}"],
