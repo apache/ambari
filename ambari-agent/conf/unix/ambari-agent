@@ -138,6 +138,7 @@ case "$1" in
           echo "Found $AMBARI_AGENT PID: $PID"
           if [ -z "`ps ax -o pid | grep $PID`" ]; then
             echo "$AMBARI_AGENT not running. Stale PID File at: $PIDFILE"
+            retcode=2
           else
             tput bold
             echo "$AMBARI_AGENT running."
@@ -151,6 +152,7 @@ case "$1" in
           echo "$AMBARI_AGENT currently not running"
           tput sgr0
           echo "Usage: /usr/sbin/ambari-agent {start|stop|restart|status}"
+          retcode=3
         fi
         ;;
   stop)
