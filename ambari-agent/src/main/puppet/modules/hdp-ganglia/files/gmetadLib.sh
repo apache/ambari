@@ -109,8 +109,16 @@ END_OF_GMETAD_CONF_1
 # Round-Robin Archives
 # You can specify custom Round-Robin archives here (defaults are listed below)
 #
+# Old Default RRA: Keep 1 hour of metrics at 15 second resolution. 1 day at 6 minute
 # RRAs "RRA:AVERAGE:0.5:1:244" "RRA:AVERAGE:0.5:24:244" "RRA:AVERAGE:0.5:168:244" "RRA:AVERAGE:0.5:672:244" \
 #      "RRA:AVERAGE:0.5:5760:374"
+# New Default RRA
+# Keep 5856 data points at 15 second resolution assuming 15 second (default) polling. That's 1 day
+# Two weeks of data points at 1 minute resolution (average)
+#RRAs "RRA:AVERAGE:0.5:1:5856" "RRA:AVERAGE:0.5:4:20160" "RRA:AVERAGE:0.5:40:52704"
+# Retaining existing resolution
+RRAs "RRA:AVERAGE:0.5:1:244" "RRA:AVERAGE:0.5:24:244" "RRA:AVERAGE:0.5:168:244" "RRA:AVERAGE:0.5:672:244" \
+     "RRA:AVERAGE:0.5:5760:374"
 #
 #-------------------------------------------------------------------------------
 # Scalability mode. If on, we summarize over downstream grids, and respect
