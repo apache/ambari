@@ -35,6 +35,7 @@ import static org.junit.Assert.fail;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -2169,4 +2170,72 @@ public class AmbariManagementControllerImplTest {
     
   }
 
+  @Test
+  public void testApplyConfigurationWithTheSameTag() {
+    Injector injector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        Properties properties = new Properties();
+        properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
+        properties.setProperty(Configuration.METADETA_DIR_PATH,
+            "src/main/resources/stacks");
+        properties.setProperty(Configuration.SERVER_VERSION_FILE,
+            "target/version");
+        properties.setProperty(Configuration.OS_VERSION_KEY,
+            "centos6");
+        try {
+          install(new ControllerModule(properties));
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
+    injector.getInstance(GuiceJpaInitializer.class);
+
+    String tag = "version1";
+    String type = "core-site";
+    AmbariException exception = null;
+    try {
+      AmbariManagementController amc = injector.getInstance(AmbariManagementController.class);
+      Clusters clusters = injector.getInstance(Clusters.class);
+      Gson gson = new Gson();
+
+      clusters.addHost("host1");
+      clusters.addHost("host2");
+      clusters.addHost("host3");
+      Host host = clusters.getHost("host1");
+      host.setOsType("centos6");
+      host.persist();
+      host = clusters.getHost("host2");
+      host.setOsType("centos6");
+      host.persist();
+      host = clusters.getHost("host3");
+      host.setOsType("centos6");
+      host.persist();
+
+      ClusterRequest clusterRequest = new ClusterRequest(null, "c1", "HDP-1.2.0", null);
+      amc.createCluster(clusterRequest);
+
+      Set<ServiceRequest> serviceRequests = new HashSet<ServiceRequest>();
+      serviceRequests.add(new ServiceRequest("c1", "HDFS", null, null));
+
+      amc.createServices(serviceRequests);
+
+      Type confType = new TypeToken<Map<String, String>>() {
+      }.getType();
+
+      ConfigurationRequest configurationRequest = new ConfigurationRequest("c1", type, tag,
+          gson.<Map<String, String>>fromJson("{ \"fs.default.name\" : \"localhost:8020\"}", confType));
+      amc.createConfiguration(configurationRequest);
+
+      amc.createConfiguration(configurationRequest);
+    } catch (AmbariException e) {
+      exception = e;
+    }
+
+    assertNotNull(exception);
+    String exceptionMessage = MessageFormat.format("Configuration with tag ''{0}'' exists for ''{1}''",
+        tag, type);
+    assertEquals(exceptionMessage, exception.getMessage());
+  }
 }

@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller;
 
 import java.io.File;
 import java.net.InetAddress;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -903,8 +904,9 @@ public class AmbariManagementControllerImpl implements
 
     Config config = configs.get(request.getVersionTag());
     if (configs.containsKey(request.getVersionTag())) {
-      throw new AmbariException("Configuration with that tag exists for '"
-          + request.getType() + "'");
+      throw new AmbariException(MessageFormat.format("Configuration with tag ''{0}'' exists for ''{1}''",
+          request.getVersionTag(),
+          request.getType()));
     }
 
     config = configFactory.createNew (cluster, request.getType(),
@@ -1498,6 +1500,10 @@ public class AmbariManagementControllerImpl implements
       ConfigurationRequest cr = request.getDesiredConfig();
 
       if (null != cr.getProperties() && cr.getProperties().size() > 0) {
+        LOG.info(MessageFormat.format("Applying configuration with tag ''{0}'' to cluster ''{1}''",
+            cr.getVersionTag(),
+            request.getClusterName()));
+
         cr.setClusterName(cluster.getClusterName());
         createConfiguration(cr);
       }
@@ -3052,6 +3058,11 @@ public class AmbariManagementControllerImpl implements
           ConfigurationRequest cr = request.getDesiredConfig();
 
           if (null != cr.getProperties() && cr.getProperties().size() > 0) {
+            LOG.info(MessageFormat.format("Applying configuration with tag ''{0}'' to host ''{1}'' in cluster ''{2}''",
+                cr.getVersionTag(),
+                request.getHostname(),
+                request.getClusterName()));
+
             cr.setClusterName(c.getClusterName());
             createConfiguration(cr);
           }
