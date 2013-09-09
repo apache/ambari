@@ -20,7 +20,57 @@ var App = require('app');
 
 App.HighAvailabilityWizardStep6Controller = Em.Controller.extend({
 
-  name:"highAvailabilityWizardStep6Controller"
+  name:"highAvailabilityWizardStep6Controller",
+
+  POLL_INTERVAL: 1000,
+
+  isNextEnabled: function(){
+    //only 3 JournalNodes could be installed
+    return (this.get('initJnCounter') === 3);
+  }.property('initJnCounter'),
+
+  initJnCounter: 0,
+
+  pullCheckPointStatus: function () {
+    this.set('initJnCounter', 0);
+    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', "JOURNALNODE").mapProperty('hostName');
+    hostNames.forEach(function (hostName) {
+      this.pullEachJnStatus(hostName);
+    }, this);
+  },
+
+  pullEachJnStatus: function(hostName){
+    App.ajax.send({
+      name: 'admin.high_availability.getJnCheckPointStatus',
+      sender: this,
+      data: {
+        hostName: hostName
+      },
+      success: 'checkJnCheckPointStatus'
+    });
+  },
+
+  checkJnCheckPointStatus: function (data) {
+    var self = this;
+    var journalStatusInfo;
+    if (data.metrics) {
+      journalStatusInfo = $.parseJSON(data.metrics.dfs.journalnode.journalsStatus);
+      if (journalStatusInfo[this.get('content.nameServiceId')] && journalStatusInfo[this.get('content.nameServiceId')].Formatted === "true") {
+        this.set("initJnCounter", (this.get('initJnCounter') + 1));
+        return;
+      }
+    }
+
+    window.setTimeout(function () {
+      self.pullEachJnStatus(data.HostRoles.host_name);
+    }, self.POLL_INTERVAL);
+  },
+
+  done: function () {
+    if (this.get('isNextEnabled')) {
+      App.router.send('next');
+    }
+  }
 
 })
 

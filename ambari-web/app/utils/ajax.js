@@ -621,6 +621,10 @@ var urls = {
     'mock': '',
     'type': 'GET'
   },
+  'admin.high_availability.getJnCheckPointStatus': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/JOURNALNODE?fields=metrics',
+    'mock': ''
+  },
   'admin.high_availability.create_component': {
     'real': '/clusters/{clusterName}/hosts?Hosts/host_name={hostName}',
     'mock': '',

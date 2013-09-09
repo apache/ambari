@@ -23,9 +23,22 @@ App.HighAvailabilityWizardStep6View = Em.View.extend({
 
   templateName: require('templates/main/admin/highAvailability/step6'),
 
+  didInsertElement: function() {
+    this.get('controller').pullCheckPointStatus();
+  },
+
   step6BodyText: function () {
     var nN = this.get('controller.content.masterComponentHosts').findProperty('isCurNameNode', true);
     return Em.I18n.t('admin.highAvailability.wizard.step6.body').format(this.get('controller.content.hdfsUser'), nN.hostName);
-  }.property('controller.content.masterComponentHosts')
+  }.property('controller.content.masterComponentHosts'),
+
+  jnCheckPointText: function () {
+    var curStatus = this.get('controller.isNextEnabled');
+    if (curStatus) {
+      return Em.I18n.t('admin.highAvailability.wizard.step6.jsInit');
+    } else {
+      return Em.I18n.t('admin.highAvailability.wizard.step6.jsNoInit');
+    }
+  }.property('controller.isNextEnabled')
 
 });

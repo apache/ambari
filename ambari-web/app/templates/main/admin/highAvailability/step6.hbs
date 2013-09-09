@@ -21,7 +21,7 @@
     {{{view.step6BodyText}}}
   </div>
   <div class="btn-area">
-    <a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>
-    <span class="pull-right btn-extra-info">{{t admin.highAvailability.wizard.step6.jsNoInit}}</span>
+    <a {{bindAttr class="controller.isNextEnabled::disabled :btn :btn-success :pull-right"}} {{action done target="controller"}}>{{t common.next}} &rarr;</a>
+    <span class="pull-right btn-extra-info">{{view.jnCheckPointText}}</span>
   </div>
 </div>

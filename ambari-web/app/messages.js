@@ -699,6 +699,7 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step4.ckNotCreated':'Checkpoint not created yet',
   'admin.highAvailability.wizard.step4.ckCreated':'Checkpoint created',
   'admin.highAvailability.wizard.step6.jsNoInit':'JournalNodes not initialized yet',
+  'admin.highAvailability.wizard.step6.jsInit':'JournalNodes initialized',
   'admin.highAvailability.wizard.step8.metaNoInit':'Metadata not initialized yet',
 
   'admin.highAvailability.rollback.header':'Disable NameNode HA Wizard',
