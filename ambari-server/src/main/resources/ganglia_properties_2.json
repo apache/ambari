@@ -2460,7 +2460,7 @@
       },
       "metrics/jvm/gcTimeMillis":{
         "metric":"jvm.JvmMetrics.GcTimeMillis",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logError":{
@@ -2767,7 +2767,7 @@
       },
       "metrics/jvm/gcTimeMillis":{
         "metric":"jvm.JvmMetrics.GcTimeMillis",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logError":{
@@ -6416,7 +6416,7 @@
       },
       "metrics/jvm/gcTimeMillis":{
         "metric":"jvm.JvmMetrics.GcTimeMillis",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logError":{
@@ -6724,7 +6724,7 @@
       },
       "metrics/jvm/gcTimeMillis":{
         "metric":"jvm.JvmMetrics.GcTimeMillis",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logError":{

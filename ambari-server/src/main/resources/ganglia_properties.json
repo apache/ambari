@@ -2505,7 +2505,7 @@
       },
       "metrics/jvm/gcTimeMillis":{
         "metric":"jvm.metrics.gcTimeMillis",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logError":{
@@ -4733,7 +4733,7 @@
       },
       "metrics/jvm/gcTimeMillis":{
         "metric":"jvm.metrics.gcTimeMillis",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logError":{
