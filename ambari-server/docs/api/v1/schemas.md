@@ -320,7 +320,7 @@ GET cluster
               "type":"number",
               "title":"ClusterId",
               "description":"The unique cluster ID.",
-              "required":true
+              "required":false
             },
             "cluster_name":{
               "type":"string",
@@ -343,7 +343,7 @@ GET cluster
         "configurations":{
           "type":"array",
           "title":"Configuration set",
-          "required":true,
+          "required":false,
           "items":{
             "type":"object",
             "title":"Configuration",
@@ -426,7 +426,7 @@ GET cluster
         "requests":{
           "type":"array",
           "title":"Request set",
-          "required":true,
+          "required":false,
           "items":{
             "type":"object",
             "title":"Request",
@@ -500,7 +500,7 @@ GET cluster
         "workflows":{
           "type":"array",
           "title":"Workflow set",
-          "required":true,
+          "required":false,
           "items":{
             "type":"object",
             "title":"Workflow",
@@ -1794,7 +1794,7 @@ GET host
             },
             "cpu_count": {
               "type":"number",
-              "required":true
+              "required":false
             },
             "desired_configs":{
               "type":"object",
@@ -1826,12 +1826,12 @@ GET host
               "type":"string",
               "title": "HostState",
               "description": "The state of the host.",
-              "required":true
+              "required":false
             },
             "host_status": {
               "type":"string",
               "title": "HostStatus",
-              "required":true
+              "required":false
             },
             "ip": {
               "type":"string",
@@ -1843,11 +1843,11 @@ GET host
             },
             "last_heartbeat_time": {
               "type":"number",
-              "required":true
+              "required":false
             },
             "last_registration_time": {
               "type":"number",
-              "required":true
+              "required":false
             },
             "os_arch": {
               "type":"string",
@@ -1859,19 +1859,19 @@ GET host
             },
             "ph_cpu_count": {
               "type":"number",
-              "required":true
+              "required":false
             },
             "public_host_name": {
               "type":"string",
-              "required":true
+              "required":false
             },
             "rack_info": {
               "type":"string",
-              "required":true
+              "required":false
             },
             "total_mem": {
               "type":"number",
-              "required":true
+              "required":false
             }
           }
         },
@@ -2405,7 +2405,7 @@ GET host_component
             },
             "stack_id": {
               "type":"string",
-              "required":true
+              "required":false
             },
             "state": {
               "type":"string",
