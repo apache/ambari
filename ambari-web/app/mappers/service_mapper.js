@@ -333,6 +333,18 @@ App.servicesMapper = App.QuickDataMapper.create({
     var hdfsConfig = this.hdfsConfig;
     item.components.forEach(function (component) {
       if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "NAMENODE") {
+        // make active nameNode as host_components[0].
+        if ( component.host_components.length == 2) { //enabled HA
+          var haState2;
+          if (component.host_components[1].metrics.dfs) {
+            haState2 = component.host_components[1].metrics.dfs.FSNamesystem.HAState;
+          }
+          if (haState2 == "active") { // change places
+            var tmp = component.host_components[1];
+            component.host_components[1] = component.host_components[0];
+            component.host_components[0] = tmp;
+          }
+        }
         item.nameNodeComponent = component;
         finalConfig = jQuery.extend(finalConfig, hdfsConfig);
         // Get the live, dead & decommission nodes from string json
