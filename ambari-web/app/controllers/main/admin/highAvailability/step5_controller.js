@@ -162,9 +162,9 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
     }
     var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
     this.createComponent('HDFS_CLIENT', hostNames);
-    //highAvailabilityWizardController
     App.router.get(this.get('content.controllerName')).saveConfigTag(this.get("hdfsSiteTag"));
     App.router.get(this.get('content.controllerName')).saveConfigTag(this.get("coreSiteTag"));
+    App.router.get(this.get('content.controllerName')).saveHdfsClientHosts(hostNames);
     App.clusterStatus.setClusterStatus({
       clusterName: this.get('content.cluster.name'),
       clusterState: 'HIGH_AVAILABILITY_DEPLOY',

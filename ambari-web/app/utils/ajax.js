@@ -731,6 +731,25 @@ var urls = {
       }
     }
   },
+  'admin.high_availability.stop_component': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          RequestInfo: {
+            "context": "Stop " + data.displayName
+          },
+          Body: {
+            "HostRoles": {
+              "state": "INSTALLED"
+            }
+          }
+        })
+      }
+    }
+  },
   'admin.high_availability.load_configs': {
     'real': '/clusters/{clusterName}/configurations?(type=core-site&tag={coreSiteTag})|(type=hdfs-site&tag={hdfsSiteTag})',
     'mock': '',
@@ -760,8 +779,8 @@ var urls = {
     'mock': '',
     'type': 'GET'
   },
-  'admin.high_availability.delete_snamenode': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/SECONDARY_NAMENODE',
+  'admin.high_availability.delete_component': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
     'mock': '',
     'type': 'DELETE'
   },

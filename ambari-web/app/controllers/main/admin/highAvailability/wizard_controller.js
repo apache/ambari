@@ -169,6 +169,24 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
     this.set('content.'+[tag.name], tag.value);
   },
 
+  saveHdfsClientHosts: function(hostNames){
+    App.db.setHighAvailabilityWizardHdfsClientHosts(hostNames);
+    this.set('content.hdfsClientHostNames', hostNames);
+  },
+
+  loadHdfsClientHosts: function(){
+    var hostNames = App.db.getHighAvailabilityWizardHdfsClientHosts();
+    if (!(hostNames instanceof Array)) {
+      hostNames = [hostNames];
+    }
+    this.set('content.hdfsClientHostNames', hostNames);
+  },
+
+  loadConfigTag: function(tag){
+    var tagVal = App.db.getHighAvailabilityWizardConfigTag(tag);
+    this.set('content.'+tag, tagVal);
+  },
+
   loadTasksStatuses: function(){
     var statuses = App.db.getHighAvailabilityWizardTasksStatuses();
     this.set('content.tasksStatuses', statuses);
@@ -235,8 +253,6 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
   finish: function () {
     this.setCurrentStep('1');
     this.clearAllSteps();
-    this.clearStorageData();
     App.router.get('updateController').updateAll();
   }
-
 });

@@ -24,6 +24,14 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   name: "highAvailabilityRollbackController",
 
   failedTask: null,
+  configsSaved: false,
+  deletedHdfsClients: 0,
+  numOfDelOperations: 0,
+
+
+  content: Em.Object.create({
+    masterComponentHosts: null
+  }),
 
   commands: [
     'stopAllServices',
@@ -41,11 +49,17 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   ],
 
   loadStep: function () {
-    this.loadFailedTask();
+    this.initData();
     this.clearStep();
     this.loadTasks();
     this.addObserver('tasks.@each.status', this, 'onTaskStatusChange');
     this.onTaskStatusChange();
+  },
+
+  initData: function () {
+    this.loadMasterComponentHosts();
+    this.loadFailedTask();
+    this.loadHdfsClientHosts();
   },
 
   setCommandsAndTasks: function(tmpTasks) {
@@ -184,13 +198,15 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
 
   },
   restoreHDFSConfigs: function(){
-
+    this.unInstallHDFSClients();
   },
   enableSecondaryNameNode: function(){
-
+    var hostName = this.get('content.masterComponentHosts').findProperty('component', 'SECONDARY_NAMENODE').hostName;
+    this.installComponent('SECONDARY_NAMENODE', hostName, hostName.length);
   },
   stopJournalNodes: function(){
-
+    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName');
+    this.stopComponent('JOURNALNODE', hostNames);
   },
   deleteJournalNodes: function(){
 
@@ -200,6 +216,173 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   },
   startAllServices: function(){
 
+  },
+
+  onLoadHbaseConfigs: function (data) {
+    var hbaseSiteProperties = data.items.findProperty('type', 'hbase-site').properties;
+    App.ajax.send({
+      name: 'admin.high_availability.save_configs',
+      sender: this,
+      data: {
+        siteName: 'hbase-site',
+        properties: hbaseSiteProperties
+      },
+      success: 'onTaskCompleted',
+      error: 'onTaskError'
+    });
+  },
+
+  stopComponent: function (componentName, hostName) {
+    if (!(hostName instanceof Array)) {
+      hostName = [hostName];
+    }
+    for (var i = 0; i < hostName.length; i++) {
+      App.ajax.send({
+        name: 'admin.high_availability.stop_component',
+        sender: this,
+        data: {
+          hostName: hostName[i],
+          componentName: componentName,
+          displayName: App.format.role(componentName),
+          taskNum: hostName.length
+        },
+        success: 'startPolling',
+        error: 'onTaskError'
+      });
+    }
+  },
+
+  onDeletedHDFSClient: function () {
+    var deletedHdfsClients = this.get('deletedHdfsClients');
+    var hostName = this.get("content.hdfsClientHostNames");
+    var notDeletedHdfsClients = hostName.length - deletedHdfsClients;
+    if (notDeletedHdfsClients > 1 && hostName.length != 1 ) {
+      this.set('deletedHdfsClients', deletedHdfsClients+1);
+      return;
+    }
+    this.loadConfigTag("hdfsSiteTag");
+    this.loadConfigTag("coreSiteTag");
+    var hdfsSiteTag = this.get("content.hdfsSiteTag");
+    var coreSiteTag = this.get("content.coreSiteTag");
+    App.ajax.send({
+      name: 'admin.high_availability.load_configs',
+      sender: this,
+      data: {
+        hdfsSiteTag: hdfsSiteTag,
+        coreSiteTag: coreSiteTag
+      },
+      success: 'onLoadConfigs',
+      error: 'onTaskError'
+    });
+  },
+
+  onLoadConfigs: function (data) {
+    this.set('configsSaved', false);
+    App.ajax.send({
+      name: 'admin.high_availability.save_configs',
+      sender: this,
+      data: {
+        siteName: 'hdfs-site',
+        properties: data.items.findProperty('type', 'hdfs-site').properties
+      },
+      success: 'onHdfsConfigsSaved',
+      error: 'onTaskError'
+    });
+    App.ajax.send({
+      name: 'admin.high_availability.save_configs',
+      sender: this,
+      data: {
+        siteName: 'core-site',
+        properties: data.items.findProperty('type', 'core-site').properties
+      },
+      success: 'onHdfsConfigsSaved',
+      error: 'onTaskError'
+    });
+  },
+
+  onHdfsConfigsSaved: function () {
+    if (!this.get('configsSaved')) {
+      this.set('configsSaved', true);
+      return;
+    }
+    this.onTaskCompleted();
+  },
+
+  unInstallHDFSClients: function () {
+    var hostName = this.get("content.hdfsClientHostNames");
+    for (var i = 0; i < hostName.length; i++) {
+      App.ajax.send({
+        name: 'admin.high_availability.delete_component',
+        sender: this,
+        data: {
+          componentName: 'HDFS_CLIENT',
+          hostName: hostName[i]
+        },
+        success: 'onDeletedHDFSClient',
+        error: 'onTaskError'
+      });
+    }
+  },
+
+  unInstallComponent: function (componentName, hostName) {
+    if (!(hostName instanceof Array)) {
+      hostName = [hostName];
+    }
+    var hostComponents = [];
+    for (var i = 0; i < hostName.length; i++) {
+      hostComponents = App.HostComponent.find().filterProperty('componentName', componentName);
+      if (!hostComponents.length || !hostComponents.mapProperty('host.hostName').contains(hostName[i])) {
+        App.ajax.send({
+          name: 'admin.high_availability.maintenance_mode',
+          sender: this,
+          data: {
+            hostName: hostName[i],
+            componentName: componentName,
+            taskNum: hostName.length
+          },
+          success: 'onMaintenanceComponent',
+          error: 'onTaskError'
+        });
+      } else {
+        var taskNum = hostName.length;
+        this.deleteComponent(componentName, hostName[i], taskNum);
+      }
+    }
+  },
+
+  onMaintenanceComponent: function () {
+    var hostName = arguments[2].hostName;
+    var componentName = arguments[2].componentName;
+    var taskNum = arguments[2].taskNum;
+    this.deleteComponent(componentName, hostName, taskNum);
+  },
+
+  deleteComponent: function (componentName, hostName, taskNum) {
+    if (!(hostName instanceof Array)) {
+      hostName = [hostName];
+    }
+    this.set('numOfDelOperations', hostName.length);
+    for (var i = 0; i < hostName.length; i++) {
+      App.ajax.send({
+        name: 'admin.high_availability.delete_component',
+        sender: this,
+        data: {
+          componentName: componentName,
+          hostName: hostName[i]
+        },
+        success: 'onDeleteComplete',
+        error: 'onTaskError'
+      });
+    }
+  },
+
+  onDeleteComplete: function () {
+    var leftOp = this.get('numOfDelOperations');
+    if(leftOp > 1){
+      this.set('numOfDelOperations', leftOp-1);
+      return;
+    }
+    this.onTaskCompleted();
   }
 
 });

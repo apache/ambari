@@ -355,9 +355,15 @@ App.db.setHighAvailabilityWizardConfigTag = function (tag) {
   App.db.data.HighAvailabilityWizard[tag.name] = tag.value;
   localStorage.setObject('ambari', App.db.data);
 };
+
 App.db.setHighAvailabilityWizardFailedTask = function (task) {
   App.db.data = localStorage.getObject('ambari');
   App.db.data.HighAvailabilityWizard.failedTask = task;
+  localStorage.setObject('ambari', App.db.data);
+};
+App.db.setHighAvailabilityWizardHdfsClientHosts = function (hostNames) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.HighAvailabilityWizard.hdfsClientHostNames = hostNames;
   localStorage.setObject('ambari', App.db.data);
 };
 
@@ -600,6 +606,16 @@ App.db.getHighAvailabilityWizardTasksStatuses = function () {
 App.db.getHighAvailabilityWizardFailedTask = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.HighAvailabilityWizard.failedTask;
+};
+
+App.db.getHighAvailabilityWizardHdfsClientHosts = function () {
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.HighAvailabilityWizard.hdfsClientHostNames;
+};
+
+App.db.getHighAvailabilityWizardConfigTag = function (tag) {
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.HighAvailabilityWizard[tag];
 };
 
 App.db.getHighAvailabilityWizardRequestIds = function () {

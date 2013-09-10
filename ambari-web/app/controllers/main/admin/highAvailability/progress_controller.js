@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-App.HighAvailabilityProgressPageController = Em.Controller.extend({
+App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardController.extend({
 
   name: 'highAvailabilityProgressPageController',
 

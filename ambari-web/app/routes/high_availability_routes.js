@@ -244,6 +244,7 @@ module.exports = Em.Route.extend({
     next: function (router) {
       var controller = router.get('highAvailabilityWizardController');
       controller.finish();
+      controller.clearStorageData();
       controller.get('popup').hide();
       App.clusterStatus.setClusterStatus({
         clusterName: controller.get('content.cluster.name'),
