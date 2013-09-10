@@ -218,6 +218,7 @@ class TestAmbariServer(TestCase):
       args = ["setup-https"]
       opm.parse_args.return_value = (options, args)
       setup_https_method.return_value = False
+      is_server_runing_method.return_value = (False, None)
 
       options.database=None
       options.sid_or_sname = "sid"
