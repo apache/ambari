@@ -169,16 +169,20 @@ log4j.appender.EventCounter=org.apache.hadoop.log.metrics.EventCounter
 # hadoop.mapreduce.jobsummary.log.file rolled daily:
 # hadoop.mapreduce.jobsummary.logger=INFO,JSA
 # 
-hadoop.mapreduce.jobsummary.logger=${hadoop.root.logger}
+hadoop.mapreduce.jobsummary.logger=<%=scope.function_hdp_default(["mapred-site/mapreduce.reduce.log.level","INFO"])%>,JSA
 hadoop.mapreduce.jobsummary.log.file=hadoop-mapreduce.jobsummary.log
 log4j.appender.JSA=org.apache.log4j.DailyRollingFileAppender
-log4j.appender.JSA.File=${hadoop.log.dir}/${hadoop.mapreduce.jobsummary.log.file}
-log4j.appender.JSA.layout=org.apache.log4j.PatternLayout
+log4j.appender.JSA.File=<% if (scope.function_hdp_get_major_stack_version([scope.function_hdp_template_var("stack_version")]) >= 2)%><%=scope.function_hdp_template_var("yarn_log_dir_prefix")%>/<%=scope.function_hdp_template_var("yarn_user")%>/${hadoop.mapreduce.jobsummary.log.file}<% else %><%=scope.function_hdp_template_var("hdfs_log_dir_prefix")%>/<%=scope.function_hdp_template_var("mapred_user")%>/${hadoop.mapreduce.jobsummary.log.file}<%end-%>log4j.appender.JSA.layout=org.apache.log4j.PatternLayout
 log4j.appender.JSA.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n
 log4j.appender.JSA.DatePattern=.yyyy-MM-dd
+log4j.appender.JSA.layout=org.apache.log4j.PatternLayout
+<% if (scope.function_hdp_get_major_stack_version([scope.function_hdp_template_var("stack_version")]) >= 2)%>
+log4j.logger.org.apache.hadoop.yarn.server.resourcemanager.RMAppManager$ApplicationSummary=${hadoop.mapreduce.jobsummary.logger}
+log4j.additivity.org.apache.hadoop.yarn.server.resourcemanager.RMAppManager$ApplicationSummary=false
+<% else %>
 log4j.logger.org.apache.hadoop.mapred.JobInProgress$JobSummary=${hadoop.mapreduce.jobsummary.logger}
 log4j.additivity.org.apache.hadoop.mapred.JobInProgress$JobSummary=false
-
+<%end-%>
 
 <%=scope.function_hdp_template_var("rca_prefix")%>ambari.jobhistory.database=<%=scope.function_hdp_host("ambari_db_rca_url")%>
 <%=scope.function_hdp_template_var("rca_prefix")%>ambari.jobhistory.driver=<%=scope.function_hdp_host("ambari_db_rca_driver")%>
