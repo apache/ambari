@@ -123,6 +123,12 @@ BOLD_OFF='\033[0m'
 #Common messages
 PRESS_ENTER_MSG="Press <enter> to continue."
 
+#Common setup or upgrade message
+SETUP_OR_UPGRADE_MSG = "  If it is a new setup then only run \"ambari-server setup\" command to create user\n" \
+"  If it is an upgrade then run \"ambari-server upgrade\" command.\n" \
+"  For more information, see documentation at http://incubator.apache" \
+".org/ambari/current/installing-hadoop-using-ambari/content/"
+
 #SSL certificate metainfo
 COMMON_NAME_ATTR='CN'
 NOT_BEFORE_ATTR='notBefore'
@@ -1325,9 +1331,8 @@ def check_database_name_property():
 
   dbname = properties[JDBC_DATABASE_PROPERTY]
   if dbname is None or dbname == "":
-    raise FatalException(-1, 'DB Name property not set in config file. '\
-                             'If you recently upgraded, ensure that you ran "ambari-server upgrade". '\
-                             'Otherwise, if it is a new installation, please run "ambari-server setup" first.')
+    err = "DB Name property not set in config file.\n" + SETUP_OR_UPGRADE_MSG
+    raise FatalException(-1, err)
 
 def configure_database_username_password(args):
   properties = get_ambari_properties()
@@ -2131,10 +2136,7 @@ def start(args):
   current_user = getpass.getuser()
   ambari_user = read_ambari_user()
   if ambari_user is None:
-    err = "Unable to detect a system user for Ambari Server.\n" \
-          "If it is a new setup then only run \"ambari-server setup\" command to create user\n" \
-          "If it is an upgrade then run \"ambari-server upgrade\" command.\n" \
-          "See documentation at http://docs.hortonworks.com/HDPDocuments/HDP1/HDP-1.3.2/bk_using_Ambari_book/content/ambari-chap9-3.html"
+    err = "Unable to detect a system user for Ambari Server.\n" + SETUP_OR_UPGRADE_MSG
     raise FatalException(1, err)
   if current_user != ambari_user and not is_root():
     err = "Unable to start Ambari Server as user {0}. Please either run \"ambari-server start\" " \
@@ -2358,8 +2360,7 @@ def upgrade(args):
 
   user = read_ambari_user()
   if user is None:
-    warn = 'Can not determine custom ambari user. Please run ' \
-           '"ambari-server setup" before starting server'
+    warn = "Can not determine custom ambari user.\n" + SETUP_OR_UPGRADE_MSG
     print_warning_msg(warn)
   else:
     adjust_directory_permissions(user)
@@ -3673,7 +3674,8 @@ def main():
       parser.error("Invalid action")
 
     if action in ACTION_REQUIRE_RESTART and need_restart:
-      if is_server_runing():
+      status, pid = is_server_runing()
+      if status:
         print 'NOTE: Restart Ambari Server to apply changes'+ \
               ' ("ambari-server restart|stop|start")'
 
