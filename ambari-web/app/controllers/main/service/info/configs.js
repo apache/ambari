@@ -1591,9 +1591,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
     switch (serviceName) {
       case 'HDFS':
-        var sNameNodeHost = serviceConfigs.findProperty('name', 'snamenode_host');
-        sNameNodeHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'SECONDARY_NAMENODE').get('host.hostName');
-        globalConfigs.push(sNameNodeHost);
+        if(this.get('content.hostComponents').findProperty('componentName', 'SECONDARY_NAMENODE') && this.get('content.hostComponents').findProperty('componentName', 'SECONDARY_NAMENODE').get('workStatus') != 'MAINTENANCE') {
+          var sNameNodeHost = serviceConfigs.findProperty('name', 'snamenode_host');
+          sNameNodeHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'SECONDARY_NAMENODE').get('host.hostName');
+          globalConfigs.push(sNameNodeHost);
+        }
         break;
       case 'MAPREDUCE':
         var jobTrackerHost = serviceConfigs.findProperty('name', 'jobtracker_host');
