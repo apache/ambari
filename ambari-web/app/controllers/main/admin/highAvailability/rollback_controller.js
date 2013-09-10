@@ -225,13 +225,20 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
     this.stopComponent('JOURNALNODE', hostNames);
   },
   deleteJournalNodes: function(){
-
+    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName');
+    this.unInstallComponent('JOURNALNODE', hostNames);
   },
   deleteAdditionalNameNode: function(){
-
+    var hostNames = this.get('content.masterComponentHosts').filterProperty('isAddNameNode', true).mapProperty('hostName');
+    this.unInstallComponent('NAMENODE', hostNames);
   },
   startAllServices: function(){
-
+    App.ajax.send({
+      name: 'admin.high_availability.start_all_services',
+      sender: this,
+      success: 'startPolling',
+      error: 'onTaskError'
+    });
   },
 
   onLoadHbaseConfigs: function (data) {
