@@ -147,12 +147,12 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
 
   saveTasksStatuses: function(statuses){
     App.db.setHighAvailabilityWizardTasksStatuses(statuses);
-    //this.set('content.tasksStatuses', statuses);
+    this.set('content.tasksStatuses', statuses);
   },
 
   loadTasksStatuses: function(){
     var statuses = App.db.getHighAvailabilityWizardTasksStatuses();
-    //this.set('content.tasksStatuses', statuses);
+    this.set('content.tasksStatuses', statuses);
   },
 
   loadFailedTask: function(){
@@ -162,12 +162,12 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
 
   saveRequestIds: function(requestIds){
     App.db.setHighAvailabilityWizardRequestIds(requestIds);
-    //this.set('content.requestIds', requestIds);
+    this.set('content.requestIds', requestIds);
   },
 
   loadRequestIds: function(){
     var requestIds = App.db.getHighAvailabilityWizardRequestIds();
-    //this.set('content.requestIds', requestIds);
+    this.set('content.requestIds', requestIds);
   },
 
   done: function () {
@@ -179,14 +179,30 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   },
 
   stopAllServices: function(){
-
+    App.ajax.send({
+      name: 'admin.high_availability.stop_all_services',
+      sender: this,
+      success: 'startPolling',
+      error: 'onTaskError'
+    });
   },
   restoreHBaseConfigs: function(){
-
+    this.loadConfigTag("hbaseSiteTag");
+    var hbaseSiteTag = this.get("content.hbaseSiteTag");
+    App.ajax.send({
+      name: 'admin.high_availability.load_hbase_configs',
+      sender: this,
+      data: {
+        hbaseSiteTag: hbaseSiteTag
+      },
+      success: 'onLoadHbaseConfigs',
+      error: 'onTaskError'
+    });
   },
 
   stopFailoverControllers: function(){
-
+    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
+    this.stopComponent('ZKFC', hostNames);
   },
   deleteFailoverControllers: function(){
 
@@ -328,36 +344,28 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
     if (!(hostName instanceof Array)) {
       hostName = [hostName];
     }
-    var hostComponents = [];
     for (var i = 0; i < hostName.length; i++) {
-      hostComponents = App.HostComponent.find().filterProperty('componentName', componentName);
-      if (!hostComponents.length || !hostComponents.mapProperty('host.hostName').contains(hostName[i])) {
-        App.ajax.send({
-          name: 'admin.high_availability.maintenance_mode',
-          sender: this,
-          data: {
-            hostName: hostName[i],
-            componentName: componentName,
-            taskNum: hostName.length
-          },
-          success: 'onMaintenanceComponent',
-          error: 'onTaskError'
-        });
-      } else {
-        var taskNum = hostName.length;
-        this.deleteComponent(componentName, hostName[i], taskNum);
-      }
+      App.ajax.send({
+        name: 'admin.high_availability.maintenance_mode',
+        sender: this,
+        data: {
+          hostName: hostName[i],
+          componentName: componentName,
+          taskNum: hostName.length
+        },
+        success: 'onMaintenanceComponent',
+        error: 'onTaskError'
+      });
     }
   },
 
   onMaintenanceComponent: function () {
     var hostName = arguments[2].hostName;
     var componentName = arguments[2].componentName;
-    var taskNum = arguments[2].taskNum;
-    this.deleteComponent(componentName, hostName, taskNum);
+    this.deleteComponent(componentName, hostName);
   },
 
-  deleteComponent: function (componentName, hostName, taskNum) {
+  deleteComponent: function (componentName, hostName) {
     if (!(hostName instanceof Array)) {
       hostName = [hostName];
     }
