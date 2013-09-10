@@ -50,11 +50,13 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
     var svc = this.get('service');
     var liveCount = svc.get('aliveTrackers').get('length');
     var allCount = svc.get('taskTrackers').get('length');
-    var runningCount = svc.get('mapsRunning') + svc.get('reducesRunning');
-    var waitingCount = svc.get('mapsWaiting') + svc.get('reducesWaiting');
+    var runningCount = svc.get('jobsRunning');
+    if (runningCount === null) {
+      runningCount = 'n/a';
+    }
     var template = this.t('dashboard.services.mapreduce.summary');
-    return template.format(liveCount, allCount, runningCount, waitingCount);
-  }.property('service.aliveTrackers', 'service.taskTrackers','service.mapsRunning', 'service.mapsWaiting', 'service.reducesRunning', 'service.reducesWaiting'),
+    return template.format(liveCount, allCount, runningCount);
+  }.property('service.aliveTrackers', 'service.taskTrackers', 'service.jobsRunning'),
 
   trackersText: function () {
     if(this.get('service').get('taskTrackers').get('length') > 1){

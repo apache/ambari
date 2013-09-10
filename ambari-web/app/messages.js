@@ -1337,7 +1337,7 @@ Em.I18n.translations = {
   'dashboard.services.yarn.queues': 'Queues',
   'dashboard.services.yarn.queues.msg': '{0} Queues',
 
-  'dashboard.services.mapreduce.summary':'{0} of {1} trackers live, {2} jobs running, {3} jobs waiting',
+  'dashboard.services.mapreduce.summary':'{0} of {1} trackers live, {2} jobs running',
   'dashboard.services.mapreduce.taskTrackers':'TaskTrackers',
   'dashboard.services.mapreduce.taskTrackerCounts':'TaskTrackers Status',
   'dashboard.services.mapreduce.trackers':'Trackers',

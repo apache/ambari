@@ -31,6 +31,7 @@ App.MapReduceService = App.Service.extend({
   reduceSlots: DS.attr('number'),
   jobsSubmitted: DS.attr('number'),
   jobsCompleted: DS.attr('number'),
+  jobsRunning: DS.attr('number'),
   mapSlotsOccupied: DS.attr('number'),
   mapSlotsReserved: DS.attr('number'),
   reduceSlotsOccupied: DS.attr('number'),

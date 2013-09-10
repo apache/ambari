@@ -129,6 +129,7 @@ App.servicesMapper = App.QuickDataMapper.create({
     reduce_slots: 'reduce_slots',
     jobs_submitted: 'jobTrackerComponent.ServiceComponentInfo.jobtracker.jobs_submitted',
     jobs_completed: 'jobTrackerComponent.ServiceComponentInfo.jobtracker.jobs_completed',
+    jobs_running: 'jobTrackerComponent.ServiceComponentInfo.jobtracker.jobs_running',
     map_slots_occupied: 'jobTrackerComponent.ServiceComponentInfo.jobtracker.occupied_map_slots',
     map_slots_reserved: 'jobTrackerComponent.ServiceComponentInfo.jobtracker.reserved_map_slots',
     reduce_slots_occupied: 'jobTrackerComponent.ServiceComponentInfo.jobtracker.occupied_reduce_slots',
