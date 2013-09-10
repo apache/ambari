@@ -111,11 +111,6 @@
     <value>/apps/hbase/data</value>
     <description>HBase Relative Path to HDFS.</description>
   </property>
-    <property>
-    <name>hbase_tmp_dir</name>
-    <value>/var/log/hbase</value>
-    <description>Hbase temp directory</description>
-  </property>
    <property>
     <name>hbase_conf_dir</name>
     <value>/etc/hbase</value>

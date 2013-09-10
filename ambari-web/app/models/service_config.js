@@ -298,6 +298,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'dfs_namenode_checkpoint_dir':
       case 'zk_data_dir':
       case 'oozie_data_dir':
+      case 'hbase_tmp_dir':
         this.unionAllMountPoints(isOnlyFirstOneNeeded, localDB);
         break;
     }
@@ -370,6 +371,12 @@ App.ServiceConfigProperty = Ember.Object.extend({
         var components = masterComponentHostsInDB.filterProperty('component', 'OOZIE_SERVER');
         components.forEach(function (component) {
           setOfHostNames.push(component.hostName);
+        }, this);
+        break;
+      case 'hbase_tmp_dir':
+        var temp = slaveComponentHostsInDB.findProperty('componentName', 'HBASE_REGIONSERVER');
+        temp.hosts.forEach(function (host) {
+          setOfHostNames.push(host.hostName);
         }, this);
         break;
     }
