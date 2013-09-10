@@ -70,6 +70,7 @@ App.HostComponent = DS.Model.extend({
       case 'HBASE_REGIONSERVER':
       case 'GANGLIA_MONITOR':
       case 'NODEMANAGER':
+      case 'ZKFC':
         return true;
       default:
         return false;
