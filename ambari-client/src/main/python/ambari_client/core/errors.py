@@ -17,14 +17,17 @@
 
 class ResourceError(Exception):
 
-    def __init__(self, msg=None, code=None, response=None):
+    def __init__(self, msg=None, http_code=None, response=None):
         self.msg = msg or ''
-        self.status_code = code
+        self.status_code = http_code
         self.response = response
         Exception.__init__(self)
         
     def _get_message(self):
         return self.msg
+    def _set_message(self, msg):
+        self.msg = msg or ''
+    message = property(_get_message, _set_message)    
     
     def __str__(self):
         if self.msg:

@@ -1,0 +1,77 @@
+{
+  "href" : "http://localhost:8080/api/v1/hosts",
+  "items" : [
+    {
+      "href" : "http://localhost:8080/api/v1/hosts/apspal44-83",
+      "Hosts" : {
+        "host_name" : "apspal44-83"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/hosts/apspal44-84",
+      "Hosts" : {
+        "host_name" : "apspal44-84"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/hosts/apspal44-85",
+      "Hosts" : {
+        "host_name" : "apspal44-85"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/hosts/apspal44-86",
+      "Hosts" : {
+        "host_name" : "apspal44-86"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/hosts/apspal44-87",
+      "Hosts" : {
+        "host_name" : "apspal44-87"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/hosts/apspal44-88",
+      "Hosts" : {
+        "host_name" : "apspal44-88"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/hosts/apspal44-89",
+      "Hosts" : {
+        "host_name" : "apspal44-89"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/hosts/r01hn01",
+      "Hosts" : {
+        "host_name" : "r01hn01"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/hosts/r01mgt",
+      "Hosts" : {
+        "host_name" : "r01mgt"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/hosts/r01wn01",
+      "Hosts" : {
+        "host_name" : "r01wn01"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/hosts/r01wn02",
+      "Hosts" : {
+        "host_name" : "r01wn02"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/hosts/r01wn03",
+      "Hosts" : {
+        "host_name" : "r01wn03"
+      }
+    }
+  ]
+}

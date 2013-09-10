@@ -16,54 +16,124 @@
 
 import logging
 import time
-from ambari_client.model.base_model import  BaseModel 
-from ambari_client.model.paths import SERVICES_PATH ,SERVICE_PATH 
-from ambari_client.model.utils import ModelUtils ,retain_self_helper
+from ambari_client.model.base_model import  BaseModel , ModelList
+from ambari_client.model import component , paths , status , stack , utils
+
 
 LOG = logging.getLogger(__name__)
 
 
-def get_all_services(resource_root, cluster_name="default"):
-  path = SERVICES_PATH % (cluster_name,)
-  path = path +'?fields=*'
-  dic = resource_root.get(path)
-  return ModelUtils.get_model_list(ServiceModel, dic, resource_root ,"ServiceInfo")
 
-
-def get_service(resource_root, service_name, cluster_name="default"):
-  path = "%s/%s" % (SERVICES_PATH % (cluster_name,), service_name)
-  dic = resource_root.get(path)
-  return ModelUtils.create_model(ServiceModel ,dic, resource_root,"ServiceInfo") 
-
-def create_service(root_resource, service_name, cluster_name):
+def _get_all_services(resource_root, cluster_name):
   """
-  Create a service
+  Get all services in a cluster.
+  @param cluster_name :Cluster name.
+  @return: A  ModelList object.
+  """
+  path = paths.SERVICES_PATH % (cluster_name,)
+  path = path + '?fields=*'
+  dic = resource_root.get(path)
+  return utils.ModelUtils.get_model_list(ModelList, ServiceModel, dic, resource_root , "ServiceInfo")
+
+
+def _get_service(resource_root, service_name, cluster_name):
+  """
+  Get a specific services in a cluster.
+  @param service_name :Service name.
+  @param cluster_name :Cluster name.
+  @return: A  ServiceModel object.
+  """
+  path = "%s/%s" % (paths.SERVICES_PATH % (cluster_name,), service_name)
+  dic = resource_root.get(path)
+  return utils.ModelUtils.create_model(ServiceModel , dic, resource_root, "ServiceInfo") 
+
+
+def _create_services(root_resource, cluster_name , service_names):
+  """
+  Create services
   @param root_resource: The root Resource object.
-  @param service_name: Service service_name
+  @param service_names: list of service_names
+  @param cluster_name: Cluster name
+  @return: StatusModel
+  """
+  data = [{"ServiceInfo":{"service_name":x}} for x in service_names]
+  cpath = paths.SERVICES_PATH % cluster_name
+  resp = root_resource.post(path=cpath, payload=data)
+  return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
+
+
+def _create_service(root_resource, cluster_name , service_name):
+  """
+  Create a single service
+  @param root_resource: The root Resource object.
+  @param service_name:  service_name
+  @param cluster_name: Cluster name
+  @return: StatusModel
+  """
+  data = {"ServiceInfo":{"service_name":service_name}} 
+  cpath = paths.SERVICES_PATH % cluster_name
+  resp = root_resource.post(path=cpath, payload=data)
+  return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
+
+
+def _create_service_components(root_resource, cluster_name , version , service_name):
+  """
+  Create service with components
+  @param root_resource: The root Resource object.
+  @param service_name:  service_names
   @param cluster_name: Cluster service_name
   @return: An ServiceModel object
   """
-  data ={"ServiceInfo":{"service_name":str(service_name)}}
-  service = ServiceModel(root_resource, service_name,cluster_name)
-  path = SERVICE_PATH
-  root_resource.post(path=SERVICE_PATH , payload=data)
-  return get_service(root_resource, service_name, cluster_name)
-    
+  components = stack._get_components_from_stack(root_resource, version , service_name)
+  list_componnetinfo = [{"ServiceComponentInfo":{"component_name":x.component_name }} for x in components]
+  data = {"components":list_componnetinfo}
+  cpath = paths.SERVICE_CREATE_PATH % (cluster_name, service_name)
+  resp = root_resource.post(path=cpath, payload=data)
+  return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
 
+
+def _create_service_component(root_resource, cluster_name , version , service_name, component_name):
+  """
+  Create service with single component
+  @param root_resource: The root Resource object.
+  @param service_name:  service_names
+  @param cluster_name: Cluster service_name
+  @param component_name: name of component
+  @return: An ServiceModel object
+  """
+  cpath = paths.SERVICE_COMPONENT_PATH % (cluster_name, service_name, component_name)
+  resp = root_resource.post(path=cpath, payload=None)
+  return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
+
+
+def _delete_service(root_resource, service_name, cluster_name):
+  """
+  Delete a service by service_name
+  @param root_resource: The root Resource object.
+  @param service_name: Service service_name
+  @param cluster_name: Cluster service_name
+  @return: The StatusModel object
+  """
+  resp = root_resource.delete("%s/%s" % (paths.SERVICES_PATH % (cluster_name,), service_name))
+  time.sleep(3)
+  return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
+   
    
     
 class ServiceModel(BaseModel):
-  RO_ATTR = ('state',  'cluster_name')
-  RW_ATTR = ('service_name', 'type')
+  """
+  The ServiceModel class
+  """
+  #RO_ATTR = ('state', 'cluster_name')
+  RW_ATTR = ('service_name', 'state')
   REF_ATTR = ('cluster_name',)
 
-  def __init__(self, resource_root, service_name ):
+  def __init__(self, resource_root, service_name , state):
     #BaseModel.__init__(self, **locals())
-    retain_self_helper(**locals())
-
+    utils.retain_self_helper(BaseModel, **locals())
 
   def __str__(self):
-    return "<<ServiceModel>> = %s (cluster_name = %s)" % (self.service_name, self._get_cluster_name())
+    return "<<ServiceModel>> = %s ;state = %s ; cluster_name = %s" % (self.service_name, self.state , self._get_cluster_name())
 
   def _get_cluster_name(self):
     if self.clusterRef:
@@ -72,32 +142,49 @@ class ServiceModel(BaseModel):
 
   def _path(self):
     """
-    Return the API path for this service.
+    Return the API path for this object.
     """
     if self._get_cluster_name():
-      return SERVICE_PATH % (self._get_cluster_name(), self.service_name)
+      return paths.SERVICE_PATH % (self._get_cluster_name(), self.service_name)
     else:
       return ''
 
-
   def _action(self, data=None):
     path = self._path() 
-    self._get_resource_root().put(path, payload=data)
-    return None
-
+    resp = self._get_resource_root().put(path, payload=data)
+    return utils.ModelUtils.create_model(status.StatusModel, resp, self._get_resource_root(), "NO_KEY")
 
   def start(self):
     """
     Start a service.
     """
-    data={"ServiceInfo": {"state": "STARTED"}}
+    data = {"ServiceInfo": {"state": "STARTED"}}
     return self._action(data)
 
   def stop(self):
     """
     Stop a service.
     """
-    data={"ServiceInfo": {"state": "INSTALLED"}}
+    data = {"ServiceInfo": {"state": "INSTALLED"}}
     return self._action(data)
 
+  def install(self):
+    """
+    Install a service.
+    """
+    data = {"ServiceInfo": {"state": "INSTALLED"}}
+    return self._action(data)
 
+  def get_service_components(self, detail=None):
+    """
+    Get a specific services's components.
+    @return: A ComponentModel object.
+    """
+    return component._get_service_components(self._get_resource_root(), self._get_cluster_name(), self.service_name)
+
+  def get_service_component(self, component_name , detail=None):
+    """
+    Get a specific services's components.
+    @return: A ComponentModel object.
+    """
+    return component._get_service_component(self._get_resource_root(), self._get_cluster_name(), self.service_name, component_name)

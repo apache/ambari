@@ -1,3 +1,4 @@
+#
 #  Licensed to the Apache Software Foundation (ASF) under one
 #  or more contributor license agreements.  See the NOTICE file
 #  distributed with this work for additional information
@@ -14,26 +15,27 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+from ambari_client.model import   stack , component
 
-from setuptools import setup, find_packages
+__docformat__ = "epytext"
 
-from sys import version_info, platform
 
-if version_info[:2] > (2, 5):
-    install_requires = []
-else:
-    install_requires = ['simplejson >= 2.0.0']
+def _get_config(root_resource, version, service_name):
+  """
+  Get service configurations from stack
+  @param version: The HDP version.
+  @param service_name: service name
+  @return: A ConfigModel object
+  """
+  return stack._get_configuration_from_stack(root_resource, version, service_name)
 
-# Python 2.6 and below requires argparse
-if version_info[:2] < (2, 7):
-    install_requires += ['argparse']
 
-setup(
-  name = 'ambari_client',
-  author_email = "ambari-dev@incubator.apache.org",
-  version = "1.0.3-SNAPSHOT",
-  packages = ['ambari_client'],
-  install_requires = install_requires,
-  description = 'Ambari python REST API client',
-  license = 'Apache License 2.0'
-)
+def _get_components(root_resource, version, service_name):
+  """
+  Get service components from stack
+  @param version: The HDP version.
+  @param service_name: service name
+  @return: A ComponentModel object
+  """
+  return stack._get_components_from_stack(root_resource, version, service_name)
+

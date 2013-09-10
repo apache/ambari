@@ -51,8 +51,7 @@ class RestResource(object):
       return { 'Content-Type': content_type }
     return None
 
-
-  def make_invoke(self, http_method, payload, headers, path):
+  def _make_invoke(self, http_method, payload, headers, path):
       return self._client.invoke(http_method, path, payload=payload, headers=headers)
 
   def invoke(self, http_method, url_path=None, payload=None, headers=None):
@@ -60,24 +59,27 @@ class RestResource(object):
     Invoke an API http_method.
     """
     path = self._join_uri(url_path)
-    resp ,code , content  = self.make_invoke(http_method, payload, headers, path)
+    resp , code , content = self._make_invoke(http_method, payload, headers, path)
 
-    LOG.debug ("RESPONSE from the REST request >>>>>>> \n"+str(resp) )
+    LOG.debug ("RESPONSE from the REST request >>>>>>> \n" + str(resp))
     LOG.debug ("\n===========================================================")
     #take care of REST calls with no response
-    if not resp and (code!=200 and code!=201):
-        raise Exception("Command '%s %s' failed with error %s" %(http_method, path,code))
-    if resp and (code==404 or code==405):
-        raise Exception("Command '%s %s' failed with error %s" %(http_method, path,code))
+    if not resp and (code != 200 and code != 201):
+        LOG.error("Command '%s %s' failed with error %s" % (http_method, path, code))
+        return {"status":code , "message":"Command '%s %s' failed with error %s" % (http_method, path, code)}
+        #raise Exception("Command '%s %s' failed with error %s" % (http_method, path, code))
+    if resp and (code == 404 or code == 405):
+        LOG.error("Command '%s %s' failed with error %s" % (http_method, path, code))
+        return {"status":code , "message":"Command '%s %s' failed with error %s" % (http_method, path, code)}
+        #raise Exception("Command '%s %s' failed with error %s" % (http_method, path, code))
     try:
-        if (code==200 or code==201) and not resp:
-          return {}
+        if (code == 200 or code == 201) and not resp:
+          return {"status":code}
         json_dict = json.loads(resp)
         return json_dict
     except Exception, ex:
         LOG.error('JSON decode error: %s' % (resp,))
         raise ex
-
 
 
   def get(self, path=None):
@@ -97,7 +99,7 @@ class RestResource(object):
     @param content_type: 
     @return: A dictionary of the REST result.
     """
-    return self.invoke("PUT", path, payload,self._set_headers(content_type))
+    return self.invoke("PUT", path, payload, self._set_headers(content_type))
 
 
   def post(self, path=None, payload=None, content_type=None):
@@ -108,7 +110,7 @@ class RestResource(object):
     @param content_type: 
     @return: A dictionary of the REST result.
     """
-    return self.invoke("POST", path, payload,self._set_headers(content_type))
+    return self.invoke("POST", path, payload, self._set_headers(content_type))
 
 
   def delete(self, path=None, payload=None,):

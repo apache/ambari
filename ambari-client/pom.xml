@@ -39,6 +39,7 @@
     <skipTests>false</skipTests>
     <install.dir>/usr/lib/python2.6/site-packages/ambari_client</install.dir>
     <lib.dir>/usr/lib/ambari-client/lib</lib.dir>
+    <python.ver>python &gt;= 2.6</python.ver>
   </properties>
   <build>
     <plugins>

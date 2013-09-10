@@ -18,7 +18,7 @@
 import sys
 import logging
 import time
-from  ambari_client.model.utils  import get_REF_object,get_unicode,getREF_var_name
+from  ambari_client.model.utils  import get_REF_object, get_unicode, getREF_var_name , LIST_KEY
 
 
 __docformat__ = "epytext"
@@ -35,18 +35,17 @@ class BaseModel(object):
   REF_ATTR - A REF attribute   
 
   """
-  RO_ATTR = ( )         
-  RW_ATTR = ( )         
-  REF_ATTR = ( )        
-
+  RO_ATTR = ()         
+  RW_ATTR = ()         
+  REF_ATTR = ()        
   
   def __init__(self, resource_root, **rw_attrs):
     #print" ================== base_model\n"
-    print locals()
+    #print locals()
     self._resource_root = resource_root
     for k, v in rw_attrs.items():
       if k not in self.RW_ATTR:
-        raise ValueError("Unknown argument '%s' in %s" %
+        raise ValueError("Unknown argument '%s' in %s" % 
                          (k, self.__class__.__name__))
       self._setattr(k, v)
 
@@ -66,27 +65,23 @@ class BaseModel(object):
 
   def _setattr(self, k, v):
     """Set an attribute. """
-    value=v
+    value = v
     if v and k.endswith("Ref"):
-      cls_name =  k[0].upper() + k[1:] 
+      cls_name = k[0].upper() + k[1:] 
       cls_name = cls_name[:-3] + "ModelRef"
-      cls=get_REF_object(cls_name)
-      LOG.debug(str(cls_name) +"  -  "+str(cls))
+      cls = get_REF_object(cls_name)
+      LOG.debug(str(cls_name) + "  -  " + str(cls))
       v = get_unicode(v)
-      var_name=getREF_var_name(cls_name)
-      c={str(var_name):str(v)}
+      var_name = getREF_var_name(cls_name)
+      c = {str(var_name):str(v)}
       LOG.debug(c)
       value = cls(self._get_resource_root(), **c)
     setattr(self, k, value)
 
 
 
-
-
-
 class ModelList(object):
   """A list of Model objects"""
-  LIST_KEY = "items"
 
   def __init__(self, objects):
     self.objects = objects
@@ -97,7 +92,7 @@ class ModelList(object):
         ", ".join([str(item) for item in self.objects]))
 
   def to_json_dict(self):
-    return { ModelList.LIST_KEY :
+    return { LIST_KEY :
             [ x.to_json_dict() for x in self.objects ] }
 
   def __len__(self):

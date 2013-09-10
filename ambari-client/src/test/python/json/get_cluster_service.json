@@ -1,0 +1,27 @@
+{
+  "href" : "http://localhost:8080/api/v1/clusters/test6/services/GANGLIA",
+  "ServiceInfo" : {
+    "cluster_name" : "test6",
+    "service_name" : "GANGLIA",
+    "state" : "INSTALLED",
+    "desired_configs" : { }
+  },
+  "components" : [
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test6/services/GANGLIA/components/GANGLIA_MONITOR",
+      "ServiceComponentInfo" : {
+        "cluster_name" : "test6",
+        "component_name" : "GANGLIA_MONITOR",
+        "service_name" : "GANGLIA"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test6/services/GANGLIA/components/GANGLIA_SERVER",
+      "ServiceComponentInfo" : {
+        "cluster_name" : "test6",
+        "component_name" : "GANGLIA_SERVER",
+        "service_name" : "GANGLIA"
+      }
+    }
+  ]
+}

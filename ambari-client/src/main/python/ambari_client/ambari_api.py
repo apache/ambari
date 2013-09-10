@@ -17,7 +17,7 @@
 
 import logging
 from ambari_client.core.http_client import HttpClient
-from ambari_client.resources import  clusters ,hosts
+from ambari_client.resources import  clusters , hosts , stacks
 from ambari_client.core.rest_resource import RestResource
 
 __docformat__ = "epytext"
@@ -35,8 +35,8 @@ class AmbariClient(RestResource):
   AmbariClient top-level root resources.
   """
 
-  def __init__(self, host_name, port=None,user_name="admin", password="admin",
-               version=API_VERSION , client = None):
+  def __init__(self, host_name, port=None, user_name="admin", password="admin",
+               version=API_VERSION , client=None):
     """
     Creates a RestResource object.
 
@@ -52,9 +52,9 @@ class AmbariClient(RestResource):
     protocol = "http"
     if port is None: 
       port = 8080
-    host_url = "%s://%s:%s/api/v%s" %(protocol, host_name, port, version)
+    host_url = "%s://%s:%s/api/v%s" % (protocol, host_name, port, version)
     if client is None:
-        client = HttpClient(host_url, user_name , password )
+        client = HttpClient(host_url, user_name , password)
     RestResource.__init__(self, client)
 
 
@@ -70,71 +70,97 @@ class AmbariClient(RestResource):
   def get_all_clusters(self):
     """
     Get all clusters.
-    @return: A list of ModelList.
+    @return : A ModelList of ClusterModel.
     """
-    return clusters.get_all_clusters(self)
-
-
+    return clusters._get_all_clusters(self)
 
 
   def get_cluster(self, cluster_name):
     """
     Get a cluster by cluster_name.
 
-    @param cluster_name Cluster cluster_name.
-    @return An ClusterModel.
+    @param cluster_name : Cluster's cluster_name.
+    @return : An ClusterModel.
     """
-    return clusters.get_cluster(self, cluster_name)
-
+    return clusters._get_cluster(self, cluster_name)
 
 
   def get_all_hosts(self):
     """
-    Get all hosts
-    @return: A list of HostModel objects.
+    Get all hosts in the Data Center
+    @return: A ModelList of HostModel objects.
     """
-    return hosts.get_all_hosts(self)
+    return hosts._get_all_hosts(self)
 
 
-  def get_request_status(self , request_path):
+  def get_request_status(self , request_id):
     """
     Get request status
+    @param request_id : request id for the request
     @return: A  StatusModel object.
     """
     return "TODO"
 
 
-  def bootstrap_hosts(self , hosts_list ,ssh_key):
+  def bootstrap_hosts(self , hosts_list , ssh_key=None):
     """
     Bootstrap hosts.
-    @param hosts list of host_names.
+    @param hosts_list :list of host_names.
+    @param ssh_key : ssh key for password-less access
     @return: A  StatusModel object.
     """
-    return hosts.bootstrap_hosts(self, hosts_list ,ssh_key)
+    return hosts._bootstrap_hosts(self, hosts_list , ssh_key)
 
 
   def create_cluster(self, cluster_name, version):
     """
     Create a new cluster.
-    @param name Cluster name.
-    @param version HDP version.
+    @param cluster_name: Cluster name.
+    @param version : HDP version.
     @return  ClusterModel object.
     """
-    return clusters.create_cluster(self, cluster_name, version)  
+    return clusters._create_cluster(self, cluster_name, version)  
 
 
-
-  def delete_cluster(self ,cluster_name):
+  def delete_cluster(self , cluster_name):
     """
-    Create a cluster
-    @param root_resource: The root Resource.
-    @param cluster_name: Cluster cluster_name
+    Delete a cluster
+    @param cluster_name: Cluster to be deleted
     """
-    return clusters.delete_cluster(self, cluster_name)
+    return clusters._delete_cluster(self, cluster_name)
+
+
+  def delete_host(self , host_name):
+    """
+    Delete a cluster
+    @param host_name: host to be deleted
+    """
+    return hosts._delete_host(self, host_name)
+
+
+  def get_config(self, version, service_name):
+    """
+    get configurations from stack
+    @param version: The HDP version.
+    @param service_name: service name
+    @return: A ConfigModel object
+    """
+    return stacks._get_config(self, version, service_name)
+
+
+  def get_components(self, version, service_name):
+    """
+    get components from stack
+    @param version: The HDP version.
+    @param service_name: service name
+    @return: A ConfigModel object
+    """
+    return stacks._get_components(self, version, service_name)
 
 
 
-def get_root_resource(server_host, server_port=None,username="admin", password="admin",
+
+def get_root_resource(server_host, server_port=None, username="admin", password="admin",
                        version=1):
   """
    AmbariClient.

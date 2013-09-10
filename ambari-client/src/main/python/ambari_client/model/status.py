@@ -16,25 +16,43 @@
 
 import logging
 from ambari_client.model.base_model import  BaseModel 
-from ambari_client.model.utils import retain_self_helper
-from ambari_client.model.paths import BOOTSTRAP_PATH
+from ambari_client.model import paths , utils
+
+
 LOG = logging.getLogger(__name__)
 
 
-
-
 class StatusModel(BaseModel):
-  RO_ATTR = ()
-  RW_ATTR = ('status','requestId')
+  """
+  The ServiceModel class
+  """
+  RO_ATTR = ('id',)
+  RW_ATTR = ('status', 'requestId', "message")
   REF_ATTR = ('cluster_name',)
 
-  def __init__(self, resource_root, status ,requestId=None):
+  def __init__(self, resource_root, status , requestId=None, message=None):
     #BaseModel.__init__(self, **locals())
-    retain_self_helper(**locals())
+    utils.retain_self_helper(BaseModel, **locals())
 
   def __str__(self):
-    return "<<StatusModel>> = %s (requestId = %s)" % (self.status, self.requestId)
+    return "<<StatusModel>> status = %s ; requestId = %s ;message = %s" % (self.status, self._get_id() , self._get_message())
+
+  def get_bootstrap_path(self):
+    return paths.BOOTSTRAP_PATH + '/' + self.requestId
 
   def get_request_path(self):
-    return BOOTSTRAP_PATH + '/' + self.requestId
+    return paths.REQUEST_PATH % (self._get_id())
 
+  def _get_message(self):
+    if hasattr(self, 'message'):
+        return self.message
+    else:
+        None
+        
+  def _get_id(self):
+    if hasattr(self, 'requestId') and self.requestId:
+        return self.requestId
+    elif hasattr(self, 'id') and self.id:
+        return self.id
+    else:
+        None

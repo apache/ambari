@@ -1,0 +1,41 @@
+{
+  "href" : "http://localhost:8080/api/v1/clusters/test6/hosts/r01wn01/host_components/NAMENODE",
+  "HostRoles" : {
+    "cluster_name" : "test6",
+    "component_name" : "NAMENODE",
+    "desired_stack_id" : "HDP-1.3.0",
+    "desired_state" : "INSTALLED",
+    "host_name" : "r01wn01",
+    "stack_id" : "HDP-1.3.0",
+    "state" : "INSTALLED",
+    "actual_configs" : {
+      "core-site" : {
+        "tag" : "version1"
+      },
+      "global" : {
+        "tag" : "version1"
+      },
+      "hdfs-site" : {
+        "tag" : "version1"
+      },
+      "mapred-site" : {
+        "tag" : "version1"
+      }
+    },
+    "configs" : { },
+    "desired_configs" : { }
+  },
+  "host" : {
+    "href" : "http://localhost:8080/api/v1/clusters/test6/hosts/r01wn01"
+  },
+  "component" : [
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test6/services/HDFS/components/NAMENODE",
+      "ServiceComponentInfo" : {
+        "cluster_name" : "test6",
+        "component_name" : "NAMENODE",
+        "service_name" : "HDFS"
+      }
+    }
+  ]
+}

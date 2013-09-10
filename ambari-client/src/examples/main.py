@@ -1,4 +1,4 @@
-#
+ #
 #  Licensed to the Apache Software Foundation (ASF) under one
 #  or more contributor license agreements.  See the NOTICE file
 #  distributed with this work for additional information
@@ -43,7 +43,7 @@ def main():
     all_clusters = client.get_all_clusters()
     print all_clusters.to_json_dict()
     print all_clusters
-    print"\n"
+
     
     all_hosts = client.get_all_hosts()
     print all_hosts
@@ -66,14 +66,13 @@ def main():
     print"\n"
 
 
-    #host1 = cluster.get_host('r01wn01')
-    host1 = cluster.get_host('r01hn01')
+    host1 = cluster.get_host('r01wn01')
     print host1
     print host1.clusterRef.cluster_name
     print host1.to_json_dict()
     print"\n"
     
-    
+    print "==================== host components ====================\n"
     host1_comp = host1.get_host_components()
     print host1_comp
     print host1_comp.to_json_dict()
@@ -84,6 +83,8 @@ def main():
     print nn
     print nn.to_json_dict()
     print nn.clusterRef.cluster_name
+    metric_json = nn.get_metrics()
+    print metric_json["metrics"]["cpu"]
     print"\n"
 
 
@@ -99,6 +100,7 @@ def main():
     print"\n"
    
    
+    print "==================== service components ====================\n"
     ganglia_comps = ganglia.get_service_components()
     print ganglia_comps  
     print ganglia_comps.to_json_dict()
@@ -111,18 +113,49 @@ def main():
     print ganglia_comp1.clusterRef.cluster_name
     print"\n"
     
-    s = client.get_config("1.3.0", "HDFS")
-    print s
+    mr = cluster.get_service("MAPREDUCE")     
+    print  mr  
+    print mr.to_json_dict()
     print"\n"
-     
-    s = client.get_components("1.3.0", "HDFS")
-    print s   
     
+    mr_comp1 = mr.get_service_component('TASKTRACKER')
+    print mr_comp1  
+    print mr_comp1.to_json_dict()
+    print mr_comp1.clusterRef.cluster_name
+    metric_json = mr_comp1.get_metrics()
+    print metric_json["metrics"]["cpu"]
+    print"\n"
+    
+    ######################################
+    #    configurations
+    ######################################
+    hdfs_config = cluster.get_hdfs_site_config()
+    print hdfs_config
+    print hdfs_config.properties
+    
+    global_config = cluster.get_global_config()
+    core_config = cluster.get_core_site_config()
+    mapred_config = cluster.get_mapred_site_config()
+    print global_config 
+    print core_config 
+    print mapred_config
+    print global_config.clusterRef.cluster_name
+    print core_config.clusterRef.cluster_name
+    print mapred_config.clusterRef.cluster_name
+    
+    hdfs_config.properties["dfs.replication.max"] = 51
+    #print hdfs_config.properties 
+    hdfs_config1 = cluster.update_hdfs_site_config(hdfs_config)
+    print hdfs_config1.properties 
+    
+    
+    ######################################
+    #    create cluster
+    ######################################
 #    ganglia.stop()
 #    ganglia.start()
        
 
-    
 ########################################################################
 #
 # The "main" entry

@@ -16,9 +16,32 @@
 #  limitations under the License.
 
 CLUSTERS_PATH = "/clusters"
-SERVICES_PATH = "/clusters/%s/services"
-SERVICE_PATH = "/clusters/%s/services/%s"
-HOSTS_PATH = "/hosts"
+CLUSTERS_CONFIG_PATH = "/clusters/%s"
 CLUSTER_HOSTS_PATH = "/clusters/%s/hosts"
 CLUSTER_HOST_PATH = "/clusters/%s/hosts/%s"
-BOOTSTRAP_PATH="/bootstrap"
+CLUSTER_START_ALL_SERVICES = "/clusters/%s/services?ServiceInfo/state=INSTALLED"
+CLUSTER_STOP_ALL_SERVICES = "/clusters/%s/services?ServiceInfo"
+
+
+SERVICES_PATH = "/clusters/%s/services"
+SERVICE_PATH = "/clusters/%s/services/%s"
+SERVICE_CREATE_PATH = "/clusters/%s/services/?ServiceInfo/service_name=%s"
+SERVICE_COMPONENTS_PATH = "/clusters/%s/services/%s/components?fields=*"
+SERVICE_COMPONENT_PATH = "/clusters/%s/services/%s/components/%s"
+
+
+HOSTS_PATH = "/hosts?fields=*"
+HOSTS_CREATE_PATH = "/clusters/%s/hosts"
+HOSTS_COMPONENTS_PATH = "/clusters/%s/hosts/%s/host_components?ServiceComponentInfo"
+HOSTS_COMPONENT_PATH = "/clusters/%s/hosts/%s/host_components/%s" 
+HOSTS_ASSIGN_ROLE = "/clusters/%s/hosts?Hosts/host_name=%s"
+
+BOOTSTRAP_PATH = "/bootstrap"
+REQUEST_STATUS_PATH = "/clusters/%s/requests/%s?fields=tasks/Tasks/status"
+REQUEST_PATH = "clusters/%s/requests/%s"
+
+CONFIGURATION_PATH = "/clusters/%s/configurations?type=%s&tag=%s"
+CREATE_CONFIGURATION_PATH = "/clusters/%s/configurations"
+
+STACK_SERVICES_COMPONENTS_PATH = "/stacks2/HDP/versions/%s/stackServices/%s/serviceComponents?fields=*"
+STACK_SERVICES_CONFIG_PATH = "/stacks2/HDP/versions/%s/stackServices/%s/configurations?fields=*"

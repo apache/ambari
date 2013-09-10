@@ -19,27 +19,26 @@ from ambari_client.model import  cluster
 __docformat__ = "epytext"
 
 
-def get_cluster(resource_root, cluster_name):
+def _get_cluster(resource_root, cluster_name):
   """
   Get a cluster by cluster_name
   @param resource_root: The root Resource.
-  @param cluster_name: Cluster cluster_name
+  @param cluster_name: Cluster's name
   @return: ClusterModel object
   """
-  return cluster.get_cluster(resource_root, cluster_name)
+  return cluster._get_cluster(resource_root, cluster_name)
 
 
-
-def get_all_clusters(root_resource):
+def _get_all_clusters(root_resource):
   """
   Get all clusters in Ambari.
   @param root_resource: The root Resource object.
   @return: A list of ClusterModel objects in ModelList.
   """
-  return cluster.get_all_clusters(root_resource)
+  return cluster._get_all_clusters(root_resource)
 
  
-def create_cluster(root_resource, cluster_name, version):
+def _create_cluster(root_resource, cluster_name, version):
   """
   Create a cluster
   @param root_resource: The root Resource.
@@ -47,32 +46,13 @@ def create_cluster(root_resource, cluster_name, version):
   @param version: HDP version
   @return: An ClusterModel object
   """
-  return cluster.create_cluster(root_resource, cluster_name, version)
+  return cluster._create_cluster(root_resource, cluster_name, version)
   
   
-def delete_cluster(root_resource, cluster_name):
+def _delete_cluster(root_resource, cluster_name):
   """
   Create a cluster
   @param root_resource: The root Resource.
   @param cluster_name: Cluster cluster_name
   """
-  return cluster.delete_cluster(root_resource, cluster_name)
- 
-def create_cluster(root_resource, cluster_name, version):
-  """
-  Create a cluster
-  @param root_resource: The root Resource.
-  @param cluster_name: Cluster cluster_name
-  @param version: HDP version
-  @return: An ClusterModel object
-  """
-  return cluster.create_cluster(root_resource, cluster_name, version)
-  
-  
-def delete_cluster(root_resource, cluster_name):
-  """
-  Create a cluster
-  @param root_resource: The root Resource.
-  @param cluster_name: Cluster cluster_name
-  """
-  return cluster.delete_cluster(root_resource, cluster_name)
+  return cluster._delete_cluster(root_resource, cluster_name)
