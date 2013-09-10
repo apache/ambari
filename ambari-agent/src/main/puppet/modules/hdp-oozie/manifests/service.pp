@@ -101,7 +101,10 @@ class hdp-oozie::service(
         default            => "cd /usr/lib/oozie && chown ${user}:${hdp::params::user_group} ${oozie_tmp} && mkdir -p ${oozie_libext_dir} && cp ${$ext_js_path} ${oozie_libext_dir}",
     }
   } else {
-    $cmd3 =  "cd /usr/lib/oozie && chown ${user}:${hdp::params::user_group} ${oozie_tmp}" 
+    $cmd3 = $jdbc_driver_name ? {
+        /(com.mysql.jdbc.Driver|oracle.jdbc.driver.OracleDriver)/ => "cd /usr/lib/oozie && chown ${user}:${hdp::params::user_group} ${oozie_tmp} && mkdir -p ${oozie_libext_dir} && cp ${$jdbc_driver_jar} ${oozie_libext_dir}",
+        default            => "cd /usr/lib/oozie && chown ${user}:${hdp::params::user_group} ${oozie_tmp}",
+    }
   }
      
   if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
@@ -120,8 +123,9 @@ class hdp-oozie::service(
 
   if ($ensure == 'installed_and_configured') {
     $sh_cmds = [$cmd1, $cmd2, $cmd3]
-    $user_cmds = [$cmd4, $cmd5]
-  } elsif ($ensure == 'running') {   
+    $user_cmds_on_install = [$cmd4]
+  } elsif ($ensure == 'running') {
+    $user_cmds_on_run = [$cmd5]   
     $start_cmd = "su - ${user} -c  'cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-start.sh'"
     $no_op_test = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
   } elsif ($ensure == 'stopped') {
@@ -142,9 +146,10 @@ class hdp-oozie::service(
   
   if ($ensure == 'installed_and_configured') {
     hdp-oozie::service::exec_sh{$sh_cmds:}
-    hdp-oozie::service::exec_user{$user_cmds:}
-    Hdp-oozie::Service::Directory<||> -> Hdp-oozie::Service::Exec_sh[$cmd1] -> Hdp-oozie::Service::Exec_sh[$cmd2] ->Hdp-oozie::Service::Exec_sh[$cmd3] -> Hdp-oozie::Service::Exec_user[$cmd4] ->Hdp-oozie::Service::Exec_user[$cmd5] -> Anchor['hdp-oozie::service::end']
+    hdp-oozie::service::exec_user{$user_cmds_on_install:}
+    Hdp-oozie::Service::Directory<||> -> Hdp-oozie::Service::Exec_sh[$cmd1] -> Hdp-oozie::Service::Exec_sh[$cmd2] ->Hdp-oozie::Service::Exec_sh[$cmd3] -> Hdp-oozie::Service::Exec_user[$cmd4] -> Anchor['hdp-oozie::service::end']
   } elsif ($ensure == 'running') {
+    hdp-oozie::service::exec_user{$user_cmds_on_run:}
     hdp::exec { "exec $cmd6" :
       command => $cmd6,
       unless => "${kinit_if_needed}; hadoop dfs -ls /user/oozie/share | awk 'BEGIN {count=0;} /share/ {count++} END {if (count > 0) {exit 0} else {exit 1}}'"
@@ -155,7 +160,7 @@ class hdp-oozie::service(
       initial_wait => $initial_wait,
       require => Exec["exec $cmd6"]
     }
-    Hdp-oozie::Service::Directory<||> -> Hdp::Exec["exec $cmd6"] -> Hdp::Exec["exec $start_cmd"] -> Anchor['hdp-oozie::service::end']
+    Hdp-oozie::Service::Directory<||> -> Hdp-oozie::Service::Exec_user[$cmd5] -> Hdp::Exec["exec $cmd6"] -> Hdp::Exec["exec $start_cmd"] -> Anchor['hdp-oozie::service::end']
   } elsif ($ensure == 'stopped') {
     hdp::exec { "exec $stop_cmd":
       command => $stop_cmd,
