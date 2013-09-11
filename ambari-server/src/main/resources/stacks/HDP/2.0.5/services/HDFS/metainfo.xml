@@ -43,7 +43,7 @@
         
         <component>
             <name>JOURNALNODE</name>
-            <category>SLAVE</category>
+            <category>MASTER</category>
         </component>
 
         <component>
