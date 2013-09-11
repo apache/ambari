@@ -108,6 +108,26 @@ App.config = Em.Object.create({
       return [];
     }
   }.property('App.isHadoop2Stack'),
+
+  /**
+   *
+   * @param siteNames
+   * @returns {Array}
+   */
+  getBySitename: function (siteNames) {
+    var computedConfigs = this.get('configMapping').computed();
+    var siteProperties = [];
+    if (typeof siteNames === "string") {
+      siteProperties = computedConfigs.filterProperty('filename', siteNames);
+    } else if (siteNames instanceof Array) {
+      siteNames.forEach(function (_siteName) {
+        siteProperties = siteProperties.concat(computedConfigs.filterProperty('filename', _siteName));
+      }, this);
+    }
+    return siteProperties;
+  },
+
+
   /**
    * Cache of loaded configurations. This is useful in not loading
    * same configuration multiple times. It is populated in multiple
@@ -253,7 +273,7 @@ App.config = Em.Object.create({
           serviceConfigObj.displayName = configsPropertyDef ? configsPropertyDef.displayName : null;
           serviceConfigObj.options = configsPropertyDef ? configsPropertyDef.options : null;
           globalConfigs.push(serviceConfigObj);
-        } else if (!this.get('configMapping').computed().someProperty('name', index)) {
+        } else if (!this.getBySitename(serviceConfigObj.get('filename')).someProperty('name', index)) {
           isAdvanced = advancedConfigs.someProperty('name', index);
           serviceConfigObj.id = 'site property';
           serviceConfigObj.displayType = stringUtils.isSingleLine(serviceConfigObj.value) ? 'advanced' : 'multiLine';

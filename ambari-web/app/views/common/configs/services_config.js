@@ -368,6 +368,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
   },
   showAddPropertyWindow: function (event) {
     var configsOfFile = this.get('service.configs').filterProperty('filename', this.get('category.siteFileName'));
+    var self =this;
     var serviceConfigObj = Ember.Object.create({
       name: '',
       value: '',
@@ -380,7 +381,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
         var name = this.get('name');
         if (name.trim() != "") {
           if (validator.isValidConfigKey(name)) {
-            var configMappingProperty = App.config.get('configMapping').all().findProperty('name', name);
+            var configMappingProperty = App.config.get('configMapping').all().filterProperty('filename',self.get('category.siteFileName')).findProperty('name', name);
             if ((configMappingProperty == null) && (!configsOfFile.findProperty('name', name))) {
               this.set("isKeyError", false);
               this.set("errorMessage", "");
