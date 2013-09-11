@@ -18,8 +18,14 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.Role;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.HostRequest;
+import org.apache.ambari.server.controller.HostResponse;
+import org.apache.ambari.server.controller.ServiceComponentHostRequest;
+import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.ganglia.GangliaComponentPropertyProvider;
 import org.apache.ambari.server.controller.ganglia.GangliaHostComponentPropertyProvider;
 import org.apache.ambari.server.controller.ganglia.GangliaHostPropertyProvider;
@@ -34,7 +40,10 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import com.google.inject.Inject;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.State;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -230,6 +239,63 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   public String getGangliaCollectorHostName(String clusterName) throws SystemException {
     checkInit();
     return clusterGangliaCollectorMap.get(clusterName);
+  }
+  
+  @Override
+  public boolean isGangliaCollectorHostLive(String clusterName) throws SystemException {
+    
+    HostResponse gangliaCollectorHost = null;
+    
+    try {
+      HostRequest hostRequest = new HostRequest(null, clusterName, Collections.<String, String>emptyMap());
+      Set<HostResponse> hosts = managementController.getHosts(Collections.singleton(hostRequest));
+      
+      final String gangliaCollectorHostName = getGangliaCollectorHostName(clusterName);
+      
+      gangliaCollectorHost = (HostResponse) CollectionUtils.find(hosts, new org.apache.commons.collections.Predicate() {
+        
+        @Override
+        public boolean evaluate(Object hostResponse) {
+          return ((HostResponse) hostResponse).getHostname().equals(gangliaCollectorHostName);
+        }
+      });      
+    } catch (AmbariException e) {
+      LOG.debug("Error checking of Ganglia server host live status: ", e);
+      return false;
+    }
+    
+    LOG.debug("Host state: " + gangliaCollectorHost.getHostState());
+    
+    return !gangliaCollectorHost.getHostState().equals(HostState.HEARTBEAT_LOST.name());
+  }
+  
+  @Override
+  public boolean isGangliaCollectorComponentLive(String clusterName) throws SystemException {
+
+
+    ServiceComponentHostResponse gangliaCollectorHostComponent = null;
+    
+    try {
+      final String gangliaCollectorHostName = getGangliaCollectorHostName(clusterName);
+      ServiceComponentHostRequest componentRequest = new ServiceComponentHostRequest(clusterName, "GANGLIA",
+                                                                                     Role.GANGLIA_SERVER.name(),
+                                                                                     gangliaCollectorHostName,
+                                                                                     Collections.<String, String>emptyMap(), null);
+      
+      Set<ServiceComponentHostResponse> hostComponents = managementController.getHostComponents(Collections.singleton(componentRequest));
+       gangliaCollectorHostComponent = (ServiceComponentHostResponse) CollectionUtils.find(hostComponents,
+           new org.apache.commons.collections.Predicate() {
+        @Override
+        public boolean evaluate(Object arg0) {
+          return ((ServiceComponentHostResponse) arg0).getHostname().equals(gangliaCollectorHostName);
+        }
+      });
+    } catch (AmbariException e) {
+      LOG.debug("Error checking of Ganglia server host component state: ", e);
+      return false;
+    }
+    
+    return gangliaCollectorHostComponent.getLiveState().equals(State.STARTED.name());
   }
 
 

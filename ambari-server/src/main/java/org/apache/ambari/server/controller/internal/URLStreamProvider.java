@@ -35,12 +35,7 @@ import javax.net.ssl.TrustManagerFactory;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicHeader;
 
 /**
  * URL based implementation of a stream provider.

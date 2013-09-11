@@ -34,4 +34,26 @@ public interface GangliaHostProvider {
    * @throws SystemException if unable to get the Ganglia server host name
    */
   public String getGangliaCollectorHostName(String clusterName) throws SystemException;
+  
+  /**
+   * Get the status of Ganglia server host for the given cluster name.
+   *
+   * @param clusterName the cluster name
+   *
+   * @return true if heartbeat with Ganglia server host wasn't lost
+   *
+   * @throws SystemException if unable to get the status of Ganglia server host
+   */
+  public boolean isGangliaCollectorHostLive(String clusterName) throws SystemException;
+  
+  /**
+   * Get the status of Ganglia server component for the given cluster name.
+   *
+   * @param clusterName the cluster name
+   *
+   * @return true if Ganglia server component is started
+   *
+   * @throws SystemException if unable to get the status of Ganglia server component
+   */
+  public boolean isGangliaCollectorComponentLive(String clusterName) throws SystemException;
 }

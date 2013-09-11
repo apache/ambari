@@ -23,6 +23,7 @@ import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.junit.Assert;
@@ -105,6 +106,18 @@ public class GangliaReportPropertyProviderTest {
     @Override
     public String getGangliaCollectorHostName(String clusterName) {
       return "domU-12-31-39-0E-34-E1.compute-1.internal";
+    }
+
+    @Override
+    public boolean isGangliaCollectorHostLive(String clusterName)
+        throws SystemException {
+      return true;
+    }
+
+    @Override
+    public boolean isGangliaCollectorComponentLive(String clusterName)
+        throws SystemException {
+      return true;
     }
   }
 }

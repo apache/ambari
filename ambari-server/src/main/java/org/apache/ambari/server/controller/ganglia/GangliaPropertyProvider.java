@@ -428,6 +428,20 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
           requestAll ? Collections.<String>emptySet() : metrics.keySet(), temporalInfo);
       BufferedReader reader = null;
       try {
+        
+        //Check if host is live
+        if (!hostProvider.isGangliaCollectorHostLive(clusterName)) {
+          LOG.info("Ganglia host is not live");
+            return Collections.emptySet();
+        }
+        
+        //Check if Ganglia server component is live
+        if (!hostProvider.isGangliaCollectorComponentLive(clusterName)) {
+          LOG.info("Ganglia server component is not live");
+            return Collections.emptySet();
+        }
+        
+
         reader = new BufferedReader(new InputStreamReader(
             getStreamProvider().readFrom(spec)));
 
@@ -514,6 +528,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
       //todo: filter out resources and return keepers
       return Collections.emptySet();
     }
+
 
     /**
      * Populate the given resource with the given Ganglia metric.

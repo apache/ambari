@@ -31,6 +31,11 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.anyObject;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -45,6 +50,7 @@ import java.util.Set;
  * Test the Ganglia property provider.
  */
 @RunWith(Parameterized.class)
+@PrepareForTest({ GangliaHostProvider.class })
 public class GangliaPropertyProviderTest {
 
   private static final String PROPERTY_ID = PropertyHelper.getPropertyId("metrics/jvm", "gcCount");
@@ -160,6 +166,47 @@ public class GangliaPropertyProviderTest {
     Assert.assertNotNull(resource.getPropertyValue(shuffle_failed_outputs));
     Assert.assertNotNull(resource.getPropertyValue(shuffle_output_bytes));
     Assert.assertNotNull(resource.getPropertyValue(shuffle_success_outputs));
+  }
+  
+  @Test
+  public void testPopulateResources_checkHostComponent() throws Exception {
+    TestStreamProvider streamProvider  = new TestStreamProvider("temporal_ganglia_data.txt");
+    GangliaHostProvider hostProvider =  PowerMock.createPartialMock(GangliaHostProvider.class,
+        "isGangliaCollectorHostLive", "isGangliaCollectorComponentLive");
+
+    GangliaPropertyProvider propertyProvider = new GangliaHostComponentPropertyProvider(
+        PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP1),
+        streamProvider,
+        configuration,
+        hostProvider,
+        CLUSTER_NAME_PROPERTY_ID,
+        HOST_NAME_PROPERTY_ID,
+        COMPONENT_NAME_PROPERTY_ID);
+
+    // datanode
+    Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+
+    resource.setProperty(HOST_NAME_PROPERTY_ID, "domU-12-31-39-0E-34-E1.compute-1.internal");
+    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "DATANODE");
+
+    // only ask for one property
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    temporalInfoMap.put(PROPERTY_ID, new TemporalInfoImpl(10L, 20L, 1L));
+    Request  request = PropertyHelper.getReadRequest(Collections.singleton(PROPERTY_ID), temporalInfoMap);
+    
+    expect(hostProvider.getGangliaCollectorHostName(anyObject(String.class))).andReturn("ganglia-host");
+    expect(hostProvider.isGangliaCollectorComponentLive(anyObject(String.class))).andReturn(true).once();
+    expect(hostProvider.isGangliaCollectorHostLive(anyObject(String.class))).andReturn(true).once();
+    
+    
+    PowerMock.replay(hostProvider);
+    
+    Set<Resource> populateResources = propertyProvider.populateResources(Collections.singleton(resource), request, null);
+    
+    PowerMock.verify(hostProvider);
+    
+    Assert.assertEquals(1, populateResources.size());
+    
   }
 
 
@@ -719,9 +766,33 @@ public class GangliaPropertyProviderTest {
 
   private static class TestGangliaHostProvider implements GangliaHostProvider {
 
+    private boolean isHostLive;
+    private boolean isComponentLive;
+    
+    public TestGangliaHostProvider() {
+      this(true, true);
+    }
+
+    public TestGangliaHostProvider(boolean isHostLive, boolean isComponentLive) {
+      this.isHostLive = isHostLive;
+      this.isComponentLive = isComponentLive;
+    }
+
     @Override
     public String getGangliaCollectorHostName(String clusterName) {
       return "domU-12-31-39-0E-34-E1.compute-1.internal";
+    }
+
+    @Override
+    public boolean isGangliaCollectorHostLive(String clusterName)
+        throws SystemException {
+      return isHostLive;
+    }
+
+    @Override
+    public boolean isGangliaCollectorComponentLive(String clusterName)
+        throws SystemException {
+      return isComponentLive;
     }
   }
 }
