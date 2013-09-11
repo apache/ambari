@@ -77,12 +77,12 @@ MAPRED_QUEUE_ACLS = {
   "mapred.queue.default.acl-administer-jobs": "*", "mapred.queue.default.acl-submit-job": "*"}
 
 MAPRED_SITE = {
-  "mapred.hosts": "/etc/hadoop/conf/mapred.include",
-  "mapred.hosts.exclude": "/etc/hadoop/conf/mapred.exclude",
-  "mapred.jobtracker.maxtasks.per.job": "-1",
-  "mapred.jobtracker.taskScheduler": "org.apache.hadoop.mapred.CapacityTaskScheduler",
-  "mapred.task.tracker.task-controller": "org.apache.hadoop.mapred.DefaultTaskController",
-  "mapred.userlog.retain.hours": "24",
+  "mapred.hosts": "REPLACE_WITH_",
+  "mapred.hosts.exclude": "REPLACE_WITH_",
+  "mapred.jobtracker.maxtasks.per.job": "REPLACE_WITH_",
+  "mapred.jobtracker.taskScheduler": "REPLACE_WITH_",
+  "mapred.task.tracker.task-controller": "REPLACE_WITH_",
+  "mapred.userlog.retain.hours": "REPLACE_WITH_",
   "mapreduce.admin.map.child.java.opts": "-Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN",
   "mapreduce.admin.reduce.child.java.opts": "-Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN",
   "mapreduce.admin.user.env": "LD_LIBRARY_PATH=/usr/lib/hadoop/lib/native:/usr/lib/hadoop/lib/native/`$JAVA_HOME/bin/java -d32 -version &amp;&gt; /dev/null;if [ $? -eq 0 ]; then echo Linux-i386-32; else echo Linux-amd64-64;fi`",
@@ -315,7 +315,7 @@ def backup_file(filePath):
       shutil.copyfile(filePath, filePath + "." + timestamp.strftime(format))
       os.remove(filePath)
     except (Exception), e:
-      logger.warn('Could not backup file "%s": %s' % (str(filePath, e)))
+      logger.warn('Could not backup file "%s": %s' % (filePath, str(e)))
   return 0
 
 
@@ -371,7 +371,31 @@ def get_mr1_mapping(options):
   write_mapping(hostmapping)
 
 
+def get_YN_input(prompt, default):
+  yes = set(['yes', 'ye', 'y'])
+  no = set(['no', 'n'])
+  return get_choice_string_input(prompt, default, yes, no)
+
+
+def get_choice_string_input(prompt, default, firstChoice, secondChoice):
+  choice = raw_input(prompt).lower()
+  if choice in firstChoice:
+    return True
+  elif choice in secondChoice:
+    return False
+  elif choice is "": # Just enter pressed
+    return default
+  else:
+    print "input not recognized, please try again: "
+    return get_choice_string_input(prompt, default, firstChoice, secondChoice)
+
+
 def delete_mr(options):
+  saved_mr_mapping = get_YN_input("Have you saved MR host mapping using action save-mr-mapping [y/n] (n)? ", False)
+  if not saved_mr_mapping:
+    raise FatalException(1, "Ensure MAPREDUCE host component mapping is saved before deleting it. Use action "
+                            "save-mr-mapping.")
+
   SERVICE_URL_FORMAT = URL_FORMAT + '/services/MAPREDUCE'
   COMPONENT_URL_FORMAT = URL_FORMAT + '/hosts/{2}/host_components/{3}'
   NON_CLIENTS = ["JOBTRACKER", "TASKTRACKER"]
@@ -511,30 +535,51 @@ def get_config_resp(options, type, error_if_na=True):
   pass
 
 
-def modify_configs(options):
+def modify_configs(options, config_type):
   hostmapping = read_mapping()
   # Add capacity-scheduler, mapred-queue-acls, yarn-site
-  update_config(options, CAPACITY_SCHEDULER, CAPACITY_SCHEDULER_TAG)
-  update_config(options, MAPRED_QUEUE_ACLS, MAPRED_QUEUE_ACLS_TAG)
+  if (config_type is None) or (config_type == CAPACITY_SCHEDULER_TAG):
+    update_config(options, CAPACITY_SCHEDULER, CAPACITY_SCHEDULER_TAG)
+    pass
+
+  if (config_type is None) or (config_type == MAPRED_QUEUE_ACLS_TAG):
+    update_config(options, MAPRED_QUEUE_ACLS, MAPRED_QUEUE_ACLS_TAG)
+    pass
   jt_host = hostmapping["JOBTRACKER"][0]
 
-  for key in YARN_SITE.keys():
-    if REPLACE_JH_HOST_NAME_TAG in YARN_SITE[key]:
-      YARN_SITE[key] = YARN_SITE[key].replace(REPLACE_JH_HOST_NAME_TAG, jt_host, 1)
-    if REPLACE_RM_HOST_NAME_TAG in YARN_SITE[key]:
-      YARN_SITE[key] = YARN_SITE[key].replace(REPLACE_RM_HOST_NAME_TAG, jt_host, 1)
-  update_config(options, YARN_SITE, YARN_SITE_TAG)
+  if (config_type is None) or (config_type == YARN_SITE_TAG):
+    for key in YARN_SITE.keys():
+      if REPLACE_JH_HOST_NAME_TAG in YARN_SITE[key]:
+        YARN_SITE[key] = YARN_SITE[key].replace(REPLACE_JH_HOST_NAME_TAG, jt_host, 1)
+      if REPLACE_RM_HOST_NAME_TAG in YARN_SITE[key]:
+        YARN_SITE[key] = YARN_SITE[key].replace(REPLACE_RM_HOST_NAME_TAG, jt_host, 1)
+        pass
+      pass
+    pass
+    update_config(options, YARN_SITE, YARN_SITE_TAG)
+    pass
 
   # Update mapred-site config
-  for key in MAPRED_SITE.keys():
-    if REPLACE_JH_HOST_NAME_TAG in MAPRED_SITE[key]:
-      MAPRED_SITE[key] = MAPRED_SITE[key].replace(REPLACE_JH_HOST_NAME_TAG, jt_host, 1)
-  update_config(options, MAPRED_SITE, MAPRED_SITE_TAG)
+  if (config_type is None) or (config_type == MAPRED_SITE_TAG):
+    for key in MAPRED_SITE.keys():
+      if REPLACE_JH_HOST_NAME_TAG in MAPRED_SITE[key]:
+        MAPRED_SITE[key] = MAPRED_SITE[key].replace(REPLACE_JH_HOST_NAME_TAG, jt_host, 1)
+        pass
+      pass
+    pass
+    update_config_using_existing(options, MAPRED_SITE_TAG, MAPRED_SITE)
+    pass
 
   # Update global config, hdfs-site, core-site
-  update_config_using_existing(options, GLOBAL_TAG, GLOBAL, True)
-  update_config_using_existing(options, HDFS_SITE_TAG, HDFS_SITE)
-  update_config_using_existing(options, CORE_SITE_TAG, CORE_SITE)
+  if (config_type is None) or (config_type == GLOBAL_TAG):
+    update_config_using_existing(options, GLOBAL_TAG, GLOBAL, True)
+    pass
+  if (config_type is None) or (config_type == HDFS_SITE_TAG):
+    update_config_using_existing(options, HDFS_SITE_TAG, HDFS_SITE)
+    pass
+  if (config_type is None) or (config_type == CORE_SITE_TAG):
+    update_config_using_existing(options, CORE_SITE_TAG, CORE_SITE)
+    pass
   pass
 
 
@@ -633,7 +678,8 @@ def curl(*args):
 # Main.
 #
 def main():
-  parser = optparse.OptionParser(usage="usage: %prog [options] action\n  Valid actions: " + VALID_ACTIONS, )
+  parser = optparse.OptionParser(usage="usage: %prog [options] action\n  Valid actions: " + VALID_ACTIONS
+                                 + "\n  update-configs accepts type, e.g. hdfs-site to update specific configs",)
 
   parser.add_option("-n", "--printonly",
                     action="store_true", dest="printonly", default=False,
@@ -684,12 +730,17 @@ def main():
   try:
     if action == GET_MR_MAPPING_ACTION:
       get_mr1_mapping(options)
+      pprint("File mr_mapping contains the host mapping for mapreduce components. This file is critical for later "
+             "steps.")
     elif action == DELETE_MR_ACTION:
       delete_mr(options)
     elif action == ADD_YARN_MR2_ACTION:
       add_services(options)
     elif action == MODIFY_CONFIG_ACTION:
-      modify_configs(options)
+      config_type = None
+      if len(args) > 1:
+        config_type = args[1]
+      modify_configs(options, config_type)
     elif action == INSTALL_YARN_MR2_ACTION:
       install_services(options)
     elif action == BACKUP_CONFIG_ACTION:
@@ -699,7 +750,9 @@ def main():
 
   except FatalException as e:
     if e.reason is not None:
-      pprint("ERROR: Exiting with exit code {0}. Reason: {1}".format(e.code, e.reason))
+      error = "ERROR: Exiting with exit code {0}. Reason: {1}".format(e.code, e.reason)
+      pprint(error)
+      logger.error(error)
     sys.exit(e.code)
 
   if options.exit_message is not None:
