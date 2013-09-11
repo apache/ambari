@@ -228,9 +228,9 @@ App.MainServiceItemController = Em.Controller.extend({
         var backgroundOperations = App.router.get('backgroundOperationsController.services');
         if(backgroundOperations.length>0) {
             for (var i = 0; i < backgroundOperations.length; i++) {
-                var hosts = backgroundOperations[i].hosts;
-                for (var j = 0; j < hosts.length; j++) {
-                    var logTasks = hosts[j].logTasks;
+                var hostsMap = backgroundOperations[i].hostsMap;
+                for (var hostName in hostsMap) {
+                    var logTasks = hostsMap[hostName].logTasks;
                     for (var k = 0; k < logTasks.length; k++) {
                         var service = service_components.findProperty('component_name', logTasks[k].Tasks.role);
                         if (service && serviceName == service.service_name) {

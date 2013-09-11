@@ -83,10 +83,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
           };
         }
       }, this);
-      var hosts = [];
-      for(var hostName in hostsMap){
-        hosts.push(hostsMap[hostName]);
-      }
+
       var rq = Em.Object.create({
         id: request.Requests.id,
         name: request.Requests.request_context || 'Request name not specified',
@@ -94,7 +91,8 @@ App.BackgroundOperationsController = Em.Controller.extend({
         progress: 10,
         status: "",
         isRunning: isRunningTasks,
-        hosts: hosts
+        hostsMap: hostsMap,
+        tasks: request.tasks
       });
       runningServices += ~~isRunningTasks;
       self.get("services").push(rq);
