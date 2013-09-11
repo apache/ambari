@@ -106,6 +106,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
         id: i,
         command: commands[i],
         showRetry: false,
+        showRollback: false,
         name: Em.I18n.t('admin.highAvailability.rollback.task' + i + '.title'),
         displayName: Em.I18n.t('admin.highAvailability.rollback.task' + i + '.title'),
         progress: 0,

@@ -336,7 +336,7 @@ App.servicesMapper = App.QuickDataMapper.create({
         // make active nameNode as host_components[0].
         if ( component.host_components.length == 2) { //enabled HA
           var haState2;
-          if (component.host_components[1].metrics.dfs) {
+          if (component.host_components[1].metrics && component.host_components[1].metrics.dfs) {
             haState2 = component.host_components[1].metrics.dfs.FSNamesystem.HAState;
           }
           if (haState2 == "active") { // change places

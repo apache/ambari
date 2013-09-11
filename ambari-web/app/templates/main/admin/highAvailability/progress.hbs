@@ -40,6 +40,8 @@
           <i class="icon-repeat icon-white"></i>
           {{t common.retry}}
         </a>
+      {{/if}}
+      {{#if task.showRollback}}
         <a {{action rollback target="controller"}} class="btn btn-primary retry">
           <i class="icon-repeat icon-white"></i>
           {{t common.rollBack}}

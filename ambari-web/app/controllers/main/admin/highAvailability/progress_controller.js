@@ -53,6 +53,7 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
         id: i,
         command: commands[i],
         showRetry: false,        
+        showRollback: false,
         name: Em.I18n.t('admin.highAvailability.wizard.step' + currentStep + '.task' + i + '.title'),
         displayName: Em.I18n.t('admin.highAvailability.wizard.step' + currentStep + '.task' + i + '.title'),
         progress: 0,
@@ -104,6 +105,7 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
   retryTask: function () {
     var task = this.get('tasks').findProperty('status', 'FAILED');
     task.set('showRetry', false);
+    task.set('showRollback', false);
     task.set('status', 'PENDING');
   },
 
@@ -141,6 +143,7 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
     } else if (this.get('tasks').someProperty('status', 'FAILED') || this.get('tasks').someProperty('status', 'TIMEDOUT') || this.get('tasks').someProperty('status', 'ABORTED')) {
       this.set('status', 'FAILED');
       this.get('tasks').findProperty('status', 'FAILED').set('showRetry', true);
+      this.get('tasks').findProperty('status', 'FAILED').set('showRollback', true);
     }
 
     var statuses = this.get('tasks').mapProperty('status');
