@@ -16,31 +16,27 @@
 
 What's New with Ambari?
 
- * The current Ambari 1.2.4 release has the following new features:
-
-   * Ability to use a non-root, sudo user to install Ambari agents
-
-   * Oracle database support for Ambari (in addition to Postgres)
-
-   * Oracle database support for Hive Metastore (in addition to MySQL)
-
-   * MySQL and Oracle database support for Oozie (in addition to Derby)
-
-   * Ability to select which stack to deploy
-
-
- * Ambari 1.2.5 will feature:
+ * The current Ambari 1.2.5 features:
 
    * A wizard to configure and manage a secure cluster via Kerberos
 
-   * Support for configuring and running Ambari Web Server via https
+   * Ability to customize Dashboard Widgets
+
+   * Support for configuring and running Ambari Web Server via HTTPS
+
+   * Support to setup Ganglia and Nagios HTTPS
 
    * Run Ambari Server as a non-root user
 
-   * Audit capture of login and config changes
+   * Ambari Server configuration property encryption
 
+   * Support to configure Ambari Server-Agent Two-Way SSL Communication
 
- * Ambari 1.4.0 will support Hadoop 2.0.  This work is going on under {{{https://git-wip-us.apache.org/repos/asf/incubator-ambari/repo?p=incubator-ambari.git;a=log;h=refs/heads/trunk} trunk}}.
+   * Improved Host Checks during Install Wizard
+
+   * Audit capture of config changes
+
+ * Ambari 1.4.1 will support Hadoop 2.0.  This work is going on under {{{https://git-wip-us.apache.org/repos/asf/incubator-ambari/repo?p=incubator-ambari.git;a=log;h=refs/heads/trunk} trunk}}.
 
 
 Getting Ambari Source
@@ -56,7 +52,7 @@ JIRA
 
 User Guide
 
-  Take a look at {{{http://incubator.apache.org/ambari/1.2.4/installing-hadoop-using-ambari/content/index.html} how to install a Hadoop cluster using Ambari 1.2.4}}.
+  Take a look at {{{http://incubator.apache.org/ambari/1.2.5/installing-hadoop-using-ambari/content/index.html} how to install a Hadoop cluster using Ambari 1.2.5}}.
 
 Stay Tuned
 

@@ -64,7 +64,7 @@ Introduction
 
 Getting Started with Ambari
 
-  Follow the {{{./1.2.4/installing-hadoop-using-ambari/content/index.html} installation guide for Ambari 1.2.4}}.
+  Follow the {{{./1.2.5/installing-hadoop-using-ambari/content/index.html} installation guide for Ambari 1.2.5}}.
 
   Note: Ambari currently supports the 64-bit version of the following Operating Systems:
 
@@ -82,6 +82,9 @@ Get Involved
 
   {{{http://www.meetup.com/Apache-Ambari-User-Group} Join the Ambari User Meetup Group}}.  
   You can {{{http://www.meetup.com/Apache-Ambari-User-Group/events/109316812/} see the slides from April 2, 2013}} and {{{http://www.meetup.com/Apache-Ambari-User-Group/events/119184782/} the slides from June 25, 2013}} meetups.
+
+  {{{http://www.meetup.com/Apache-Ambari-User-Group/events/134373312/}
+  Sign up for the next meetup on September 25, 2013}}.
 
 What's New?
 
