@@ -51,8 +51,8 @@ define hdp-hadoop::hdfs::directory(
 
     hdp-hadoop::exec-hadoop { $mkdir_cmd:
       command   => $mkdir_cmd,
-      unless    => "$dfs_check_nn_status_cmd && $dir_exists",
-      onlyif    => "$dfs_check_nn_status_cmd && $namenode_safe_mode_off",
+      unless    => "$dfs_check_nn_status_cmd && $dir_exists && ! $namenode_safe_mode_off",
+      onlyif    => "$dfs_check_nn_status_cmd && ! $dir_exists",
       try_sleep => $try_sleep,
       tries     => $tries
     }
