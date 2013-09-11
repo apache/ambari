@@ -608,7 +608,6 @@ public class GangliaPropertyProviderTest {
       {"metrics/disk", "disk_total", 101.515},
       {"metrics/disk", "part_max_used", 12.8},
       {"metrics/jvm", "gcCount", 0.0},
-      {"metrics/jvm", "gcTimeMillis", 0.0},
       {"metrics/jvm", "logError", 0.0},
       {"metrics/jvm", "logFatal", 0.0},
       {"metrics/jvm", "logInfo", 0.0},
