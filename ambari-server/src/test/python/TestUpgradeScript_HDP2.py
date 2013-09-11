@@ -93,10 +93,9 @@ class TestUpgradeHDP2Script(TestCase):
     opm = option_parser_mock.return_value
     path_exists_mock.return_value = True
     shutil_copy_mock = MagicMock()
-    options = MagicMock()
+    options = self.get_mock_options()
     args = ["backup-configs"]
     opm.parse_args.return_value = (options, args)
-    options.logfile = "logfile"
 
     def get_config_resp_side_effect(ops, type, error_if_na):
       if type == "global":
@@ -138,23 +137,18 @@ class TestUpgradeHDP2Script(TestCase):
                            backup_file_mock, file_handler_mock):
     file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
     opm = option_parser_mock.return_value
-    options = MagicMock()
+    options = self.get_mock_options()
     args = ["save-mr-mapping"]
     opm.parse_args.return_value = (options, args)
-    options.logfile = "logfile"
-    options.user = "admin"
-    options.password = "admin"
-    options.hostname = "localhost"
-    options.clustername = "c1"
     curl_mock.side_effect = ['"href" : "', '"href" : "', '"href" : "']
     json_loads_mock.return_value = {"host_components": [{"HostRoles": {"host_name": "host1"}}]}
     UpgradeHelper_HDP2.main()
     expected_curl_calls = [
-      call("-u", "admin:admin",
+      call(False, "-u", "admin:admin",
            "http://localhost:8080/api/v1/clusters/c1/services/MAPREDUCE/components/MAPREDUCE_CLIENT"),
-      call("-u", "admin:admin",
+      call(False, "-u", "admin:admin",
            "http://localhost:8080/api/v1/clusters/c1/services/MAPREDUCE/components/TASKTRACKER"),
-      call("-u", "admin:admin",
+      call(False, "-u", "admin:admin",
            "http://localhost:8080/api/v1/clusters/c1/services/MAPREDUCE/components/JOBTRACKER")]
     curl_mock.assert_has_calls(expected_curl_calls, any_order=True)
     self.assertTrue(write_mapping_mock.called)
@@ -177,14 +171,9 @@ class TestUpgradeHDP2Script(TestCase):
                      backup_file_mock, file_handler_mock, read_mapping_mock, get_yn_mock):
     file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
     opm = option_parser_mock.return_value
-    options = MagicMock()
+    options = self.get_mock_options()
     args = ["delete-mr"]
     opm.parse_args.return_value = (options, args)
-    options.logfile = "logfile"
-    options.user = "admin"
-    options.password = "admin"
-    options.hostname = "localhost"
-    options.clustername = "c1"
     curl_mock.return_value = ''
     get_yn_mock.return_value = True
     read_mapping_mock.return_value = {
@@ -193,13 +182,13 @@ class TestUpgradeHDP2Script(TestCase):
       "MAPREDUCE_CLIENT": ["c6401"]}
     UpgradeHelper_HDP2.main()
     expected_curl_calls = [
-      call("-u", "admin:admin", "-X", "PUT", "-d", """{"HostRoles": {"state": "MAINTENANCE"}}""",
+      call(False, "-u", "admin:admin", "-X", "PUT", "-d", """{"HostRoles": {"state": "MAINTENANCE"}}""",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6401/host_components/TASKTRACKER"),
-      call("-u", "admin:admin", "-X", "PUT", "-d", """{"HostRoles": {"state": "MAINTENANCE"}}""",
+      call(False, "-u", "admin:admin", "-X", "PUT", "-d", """{"HostRoles": {"state": "MAINTENANCE"}}""",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6402/host_components/TASKTRACKER"),
-      call("-u", "admin:admin", "-X", "PUT", "-d", """{"HostRoles": {"state": "MAINTENANCE"}}""",
+      call(False, "-u", "admin:admin", "-X", "PUT", "-d", """{"HostRoles": {"state": "MAINTENANCE"}}""",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6401/host_components/JOBTRACKER"),
-      call("-u", "admin:admin", "-X", "DELETE",
+      call(False, "-u", "admin:admin", "-X", "DELETE",
            "http://localhost:8080/api/v1/clusters/c1/services/MAPREDUCE")]
     curl_mock.assert_has_calls(expected_curl_calls, any_order=True)
     pass
@@ -214,14 +203,9 @@ class TestUpgradeHDP2Script(TestCase):
                        backup_file_mock, file_handler_mock, read_mapping_mock):
     file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
     opm = option_parser_mock.return_value
-    options = MagicMock()
+    options = self.get_mock_options()
     args = ["add-yarn-mr2"]
     opm.parse_args.return_value = (options, args)
-    options.logfile = "logfile"
-    options.user = "admin"
-    options.password = "admin"
-    options.hostname = "localhost"
-    options.clustername = "c1"
     curl_mock.return_value = ''
     read_mapping_mock.return_value = {
       "TASKTRACKER": ["c6401", "c6402"],
@@ -229,31 +213,31 @@ class TestUpgradeHDP2Script(TestCase):
       "MAPREDUCE_CLIENT": ["c6403"]}
     UpgradeHelper_HDP2.main()
     expected_curl_calls = [
-      call("-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/services/YARN"),
-      call("-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/services/MAPREDUCE2"),
-      call("-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/services/MAPREDUCE2/components/HISTORYSERVER"),
-      call("-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/services/MAPREDUCE2/components/MAPREDUCE2_CLIENT"),
-      call("-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/services/YARN/components/NODEMANAGER"),
-      call("-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/services/YARN/components/YARN_CLIENT"),
-      call("-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/services/YARN/components/RESOURCEMANAGER"),
-      call("-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6401/host_components/HISTORYSERVER"),
-      call("-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6401/host_components/NODEMANAGER"),
-      call("-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6402/host_components/NODEMANAGER"),
-      call("-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6403/host_components/YARN_CLIENT"),
-      call("-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6403/host_components/MAPREDUCE2_CLIENT"),
-      call("-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6401/host_components/RESOURCEMANAGER")]
     curl_mock.assert_has_calls(expected_curl_calls, any_order=True)
     pass
@@ -267,18 +251,13 @@ class TestUpgradeHDP2Script(TestCase):
                             backup_file_mock, file_handler_mock):
     file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
     opm = option_parser_mock.return_value
-    options = MagicMock()
+    options = self.get_mock_options()
     args = ["install-yarn-mr2"]
     opm.parse_args.return_value = (options, args)
-    options.logfile = "logfile"
-    options.user = "admin"
-    options.password = "admin"
-    options.hostname = "localhost"
-    options.clustername = "c1"
     curl_mock.return_value = '"href" : "'
     UpgradeHelper_HDP2.main()
     expected_curl_calls = [
-      call("-u", "admin:admin", "-X", "PUT", "-d",
+      call(False, "-u", "admin:admin", "-X", "PUT", "-d",
            """{"ServiceInfo": {"state": "INSTALLED"}}""",
            "http://localhost:8080/api/v1/clusters/c1/services?ServiceInfo/state=INIT")]
     curl_mock.assert_has_calls(expected_curl_calls, any_order=True)
@@ -353,22 +332,31 @@ class TestUpgradeHDP2Script(TestCase):
     self.validate_config_replacememt(curl_mock.call_args_list[4], "global")
     pass
 
+  @patch.object(UpgradeHelper_HDP2, "read_mapping")
+  @patch("subprocess.Popen")
+  @patch.object(UpgradeHelper_HDP2, "get_YN_input")
   @patch.object(logging, 'FileHandler')
   @patch.object(UpgradeHelper_HDP2, "backup_file")
   @patch.object(UpgradeHelper_HDP2, 'curl')
   @patch('optparse.OptionParser')
-  def test_get_and_parse_properties(self, option_parser_mock, curl_mock,
+  def test_print_only(self, option_parser_mock, curl_mock,
+                      backup_file_mock, file_handler_mock, get_yn_mock, popen_mock, read_mapping_mock):
+    file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
+    options = self.get_mock_options(True)
+    get_yn_mock.return_value = True
+    read_mapping_mock.return_value = {
+      "TASKTRACKER": ["c6401", "c6402"]}
+    UpgradeHelper_HDP2.delete_mr(options)
+    self.assertFalse(popen_mock.called)
+    pass
+
+  @patch.object(logging, 'FileHandler')
+  @patch.object(UpgradeHelper_HDP2, "backup_file")
+  @patch.object(UpgradeHelper_HDP2, 'curl')
+  def test_get_and_parse_properties(self, curl_mock,
                                     backup_file_mock, file_handler_mock):
     file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
-    opm = option_parser_mock.return_value
-    options = MagicMock()
-    args = ["update-configs"]
-    opm.parse_args.return_value = (options, args)
-    options.logfile = "logfile"
-    options.user = "admin"
-    options.password = "admin"
-    options.hostname = "localhost"
-    options.clustername = "c1"
+    options = self.get_mock_options()
     curl_mock.side_effect = [
       """{ "href" : "http://localhost:8080/api/v1/clusters/c1",
            "Clusters" : {
@@ -420,32 +408,39 @@ class TestUpgradeHDP2Script(TestCase):
 
   def validate_update_config_call(self, call, type):
     args, kargs = call
-    self.assertTrue(args[3] == 'PUT')
-    self.assertTrue(type in args[5])
+    self.assertTrue(args[4] == 'PUT')
+    self.assertTrue(type in args[6])
     pass
 
   def validate_config_replacememt(self, call, type):
     args, kargs = call
-    self.assertFalse("REPLACE_WITH_" in args[5])
-    self.assertFalse("REPLACE_JH_HOST" in args[5])
-    self.assertFalse("REPLACE_RM_HOST" in args[5])
+    self.assertFalse("REPLACE_WITH_" in args[6])
+    self.assertFalse("REPLACE_JH_HOST" in args[6])
+    self.assertFalse("REPLACE_RM_HOST" in args[6])
     if type == "yarn-site":
-      self.assertTrue("c6401" in args[5])
-      self.assertFalse("an_old_value" in args[5])
+      self.assertTrue("c6401" in args[6])
+      self.assertFalse("an_old_value" in args[6])
     elif type == "mapred-site":
-      self.assertTrue("an_old_value" in args[5])
+      self.assertTrue("an_old_value" in args[6])
     elif type == "global":
-      self.assertTrue("global11" in args[5])
-      self.assertTrue("an_old_value" in args[5])
-      self.assertTrue("mapred.hosts.exclude" in args[5])
+      self.assertTrue("global11" in args[6])
+      self.assertTrue("an_old_value" in args[6])
+      self.assertTrue("mapred.hosts.exclude" in args[6])
     elif (type == "core-site") or (type == "hdfs-site"):
-      self.assertTrue("global11" in args[5])
-      self.assertFalse("an_old_value" in args[5])
-      self.assertFalse("mapred.hosts.exclude" in args[5])
+      self.assertTrue("global11" in args[6])
+      self.assertFalse("an_old_value" in args[6])
+      self.assertFalse("mapred.hosts.exclude" in args[6])
     pass
 
-  def test_read_config(self):
-    pass
+  def get_mock_options(self, printonly=False):
+    options = MagicMock()
+    options.logfile = "logfile"
+    options.user = "admin"
+    options.password = "admin"
+    options.hostname = "localhost"
+    options.clustername = "c1"
+    options.printonly = printonly
+    return options
 
 
 if __name__ == "__main__":

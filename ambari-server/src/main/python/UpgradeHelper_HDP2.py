@@ -349,7 +349,7 @@ def get_mr1_mapping(options):
   hostmapping = {}
   for component in components:
     hostlist = []
-    response = curl('-u',
+    response = curl(False, '-u',
                     AUTH_FORMAT.format(options.user, options.password),
                     GET_URL_FORMAT.format(options.hostname, options.clustername, component))
     retcode, errdata = validate_response(response, True)
@@ -405,7 +405,7 @@ def delete_mr(options):
   for key, value in hostmapping.items():
     if (key in NON_CLIENTS) and (len(value) > 0):
       for host in value:
-        response = curl('-u',
+        response = curl(options.printonly, '-u',
                         AUTH_FORMAT.format(options.user, options.password),
                         '-X', 'PUT', '-d',
                         PUT_IN_MAINTENANCE,
@@ -418,7 +418,7 @@ def delete_mr(options):
     pass
   pass
 
-  response = curl('-u',
+  response = curl(options.printonly, '-u',
                   AUTH_FORMAT.format(options.user, options.password),
                   '-X', 'DELETE',
                   SERVICE_URL_FORMAT.format(options.hostname, options.clustername))
@@ -444,7 +444,7 @@ def add_services(options):
   hostmapping = read_mapping()
 
   for service in service_comp.keys():
-    response = curl('-u',
+    response = curl(options.printonly, '-u',
                     AUTH_FORMAT.format(options.user, options.password),
                     '-X', 'POST',
                     SERVICE_URL_FORMAT.format(options.hostname, options.clustername, service))
@@ -452,7 +452,7 @@ def add_services(options):
     if not retcode == 0:
       raise FatalException(retcode, errdata)
     for component in service_comp[service]:
-      response = curl('-u',
+      response = curl(options.printonly, '-u',
                       AUTH_FORMAT.format(options.user, options.password),
                       '-X', 'POST',
                       COMPONENT_URL_FORMAT.format(options.hostname, options.clustername, service, component))
@@ -460,7 +460,7 @@ def add_services(options):
       if not retcode == 0:
         raise FatalException(retcode, errdata)
       for host in hostmapping[new_old_host_map[component]]:
-        response = curl('-u',
+        response = curl(options.printonly, '-u',
                         AUTH_FORMAT.format(options.user, options.password),
                         '-X', 'POST',
                         HOST_COMPONENT_URL_FORMAT.format(options.hostname, options.clustername, host, component))
@@ -476,7 +476,7 @@ def add_services(options):
 def update_config(options, properties, type):
   tag = "version" + str(int(time.time() * 1000))
   properties_payload = {"Clusters": {"desired_config": {"type": type, "tag": tag, "properties": properties}}}
-  response = curl('-u',
+  response = curl(options.printonly, '-u',
                   AUTH_FORMAT.format(options.user, options.password),
                   '-X', 'PUT', '-d',
                   json.dumps(properties_payload),
@@ -503,7 +503,7 @@ def get_config(options, type):
 
 def get_config_resp(options, type, error_if_na=True):
   CONFIG_URL_FORMAT = URL_FORMAT + '/configurations?type={2}&tag={3}'
-  response = curl('-u',
+  response = curl(False, '-u',
                   AUTH_FORMAT.format(options.user, options.password),
                   URL_FORMAT.format(options.hostname, options.clustername))
   retcode, errdata = validate_response(response, True)
@@ -519,7 +519,7 @@ def get_config_resp(options, type, error_if_na=True):
 
   if tag != None:
     # Get the config with the tag and return properties
-    response = curl('-u',
+    response = curl(False, '-u',
                     AUTH_FORMAT.format(options.user, options.password),
                     CONFIG_URL_FORMAT.format(options.hostname, options.clustername, type, tag))
     retcode, errdata = validate_response(response, True)
@@ -638,14 +638,14 @@ def install_services(options):
   SERVICE_URL_FORMAT = URL_FORMAT + '/services?ServiceInfo/state=INIT'
   PUT_IN_INSTALLED = """{"ServiceInfo": {"state": "INSTALLED"}}"""
 
-  response = curl('-u',
+  response = curl(options.printonly, '-u',
                   AUTH_FORMAT.format(options.user, options.password),
                   '-X', 'PUT', '-d',
                   PUT_IN_INSTALLED,
                   SERVICE_URL_FORMAT.format(options.hostname, options.clustername))
-  retcode, errdata = validate_response(response, True)
+  retcode, errdata = validate_response(response, not options.printonly)
   if not retcode == 0:
-    raise FatalException(retcode, errdata)
+    raise FatalException(retcode, errdata + "(Services may already be installed.)")
   pass
 
 
@@ -662,17 +662,26 @@ def validate_response(response, expect_body):
   pass
 
 
-def curl(*args):
+def curl(print_only, *args):
   curl_path = '/usr/bin/curl'
   curl_list = [curl_path]
   for arg in args:
     curl_list.append(arg)
+  if print_only:
+    logger.info("Command to be executed: " + ' '.join(curl_list))
+    return ""
+  pass
   logger.info(' '.join(curl_list))
-  curl_result = subprocess.Popen(
+  osStat = subprocess.Popen(
     curl_list,
     stderr=subprocess.PIPE,
-    stdout=subprocess.PIPE).communicate()[0]
-  return curl_result
+    stdout=subprocess.PIPE)
+  out, err = osStat.communicate()
+  if 0 != osStat.returncode:
+    error = "curl call failed. out: " + out + " err: " + err
+    logger.error(error)
+    raise FatalException(osStat.returncode, error)
+  return out
 
 #
 # Main.
@@ -683,7 +692,7 @@ def main():
 
   parser.add_option("-n", "--printonly",
                     action="store_true", dest="printonly", default=False,
-                    help="Prints all the curl commands to be executed")
+                    help="Prints all the curl commands to be executed (only for write/update actions)")
   parser.add_option("-o", "--log", dest="logfile", default=UPGRADE_LOG_FILE,
                     help="Log file")
 
