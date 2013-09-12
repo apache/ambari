@@ -44,6 +44,20 @@
       <reponame>HDP</reponame>
     </repo>
   </os>
+   <os type="oraclelinux6">
+    <repo>
+      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-2.0.6.0/repos/centos6</baseurl>
+      <repoid>HDP-2.0.6</repoid>
+      <reponame>HDP</reponame>
+    </repo>
+  </os>
+  <os type="oraclelinux5">
+    <repo>
+      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-2.0.6.0/repos/centos5</baseurl>
+      <repoid>HDP-2.0.6</repoid>
+      <reponame>HDP</reponame>
+    </repo>
+  </os>
   <os type="suse11">
     <repo>
       <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-2.0.6.0/repos/suse11</baseurl>
