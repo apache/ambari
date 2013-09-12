@@ -292,8 +292,15 @@ App.HostPopup = Em.Object.create({
           hostsData = hostsData.findProperty("name", this.get("serviceName"));
         }
 
-        if (hostsData && hostsData.hostsMap) {
-          hostsMap = hostsData.hostsMap;
+        if (hostsData) {
+          if (hostsData.hostsMap) {
+            hostsMap = hostsData.hostsMap;
+          } else if (hostsData.hosts) {
+            //hosts data come from wizard as array
+            hostsData.hosts.forEach(function (_host) {
+              hostsMap[_host.name] = _host;
+            });
+          }
         }
       }
       var existedHosts = self.get('hosts');
