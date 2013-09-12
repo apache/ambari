@@ -675,6 +675,9 @@ module.exports = Em.Route.extend({
             highAvailabilityWizardController.finish();
             highAvailabilityWizardController.get('popup').hide();
           }
+            highAvailabilityRollbackController =  router.get('highAvailabilityRollbackController')
+            highAvailabilityRollbackController.loadTasksStatuses();
+            highAvailabilityRollbackController.loadRequestIds();
           var popup = App.ModalPopup.show({
             classNames: ['full-width-modal'],
             header: Em.I18n.t('admin.highAvailability.rollback.header'),
@@ -694,6 +697,8 @@ module.exports = Em.Route.extend({
 //                }
             },
             proceedOnClose: function () {
+                var controller = router.get('highAvailabilityWizardController');
+                controller.clearStorageData();
               App.router.get('updateController').set('isWorking', true);
               App.clusterStatus.setClusterStatus({
                 clusterName: router.get('content.cluster.name'),

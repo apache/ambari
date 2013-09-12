@@ -89,6 +89,9 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
     newCommands = this.get('commands').splice(index);
     this.set('commands', newCommands);
     newTasks = tmpTasks.splice(index);
+    for (var i = 0; i < newTasks.length; i++) {
+      newTasks[i].id = i;
+    };
     this.set('tasks', newTasks);
   },
 
