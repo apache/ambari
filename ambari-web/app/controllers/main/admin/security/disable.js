@@ -316,36 +316,38 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
   },
 
   applyConfigurationsToCluster: function () {
-    this.set('noOfWaitingAjaxCalls', this.get('serviceConfigTags').length);
+    var configData = [];
     this.get('serviceConfigTags').forEach(function (_serviceConfig) {
-      this.applyConfigurationToCluster({type: _serviceConfig.siteName, tag: _serviceConfig.newTagName, properties: _serviceConfig.configs});
+      var Clusters = {
+        Clusters: {
+          desired_config: {
+            type: _serviceConfig.siteName,
+            tag: _serviceConfig.newTagName,
+            properties: _serviceConfig.configs
+          }
+        }
+      };
+      configData.pushObject(JSON.stringify(Clusters));
     }, this);
-  },
 
-  applyConfigurationToCluster: function (data) {
-    var clusterData = {
-      Clusters: {
-        desired_config: data
-      }
+    var data =  {
+      configData: '[' + configData.toString() + ']'
     };
+
     App.ajax.send({
-      name: 'admin.security.apply_configuration',
+      name: 'admin.security.apply_configurations',
       sender: this,
-      data: {
-        clusterData: clusterData
-      },
+      data: data,
+      deferred: true,
       success: 'applyConfigurationToClusterSuccessCallback',
       error: 'applyConfigurationToClusterErrorCallback'
     });
   },
 
   applyConfigurationToClusterSuccessCallback: function (data) {
-    this.set('noOfWaitingAjaxCalls', this.get('noOfWaitingAjaxCalls') - 1);
-    if (this.get('noOfWaitingAjaxCalls') == 0) {
       var currentStage = this.get('stages').findProperty('stage', 'stage3');
       currentStage.set('isSuccess', true);
       currentStage.set('isError', false);
-    }
   },
 
   applyConfigurationToClusterErrorCallback: function (request, ajaxOptions, error) {

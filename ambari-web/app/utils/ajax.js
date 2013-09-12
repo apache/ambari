@@ -809,6 +809,16 @@ var urls = {
       };
     }
   },
+  'admin.security.apply_configurations': {
+    'real': '/clusters/{clusterName}',
+    'format': function (data, opt) {
+      return {
+        type: 'PUT',
+        timeout: 10000,
+        data:data.configData
+      };
+    }
+  },
   'admin.security.apply_configuration': {
     'real': '/clusters/{clusterName}',
     'format': function (data, opt) {
@@ -821,7 +831,7 @@ var urls = {
     }
   },
   'admin.security.add.cluster_configs': {
-    'real': '/clusters/{clusterName}',
+    'real': '/clusters/{clusterName}' + '?fields=Clusters/desired_configs',
     'format': function (data, opt) {
       return {
         timeout: 10000
@@ -1116,6 +1126,7 @@ App.ajax = {
    *  beforeSend - method-name for ajax beforeSend response callback
    *  success - method-name for ajax success response callback
    *  error - method-name for ajax error response callback
+   *  deferred - A flag that will call jquery.when for asynchronous call. This should be used instead of setting async to false
    *  callback - callback from <code>App.updater.run</code> library
    */
   send: function (config) {
@@ -1169,7 +1180,16 @@ App.ajax = {
     if ($.mocho) {
       opt.url = 'http://' + $.hostName + opt.url;
     }
-    return $.ajax(opt);
+    if (config.deferred === true) {
+      var successCallback = opt.success;
+      var errorCallback = opt.error;
+      delete opt['success'];
+      delete opt['error'];
+      delete opt['async'];
+      $.when($.ajax(opt)).then(successCallback,errorCallback);
+    } else {
+      return $.ajax(opt);
+    }
   },
 
   // A single instance of App.ModalPopup view
