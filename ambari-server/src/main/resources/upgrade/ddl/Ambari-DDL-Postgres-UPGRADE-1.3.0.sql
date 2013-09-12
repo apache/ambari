@@ -49,7 +49,7 @@ $_$ LANGUAGE plpgsql;
 -- Upgrade from 1.2.0
 ALTER TABLE ambari.hosts
   ADD COLUMN ph_cpu_count INTEGER,
-  ALTER COLUMN disks_info TYPE VARCHAR(10000);
+  ALTER COLUMN disks_info TYPE VARCHAR(32000);
 
 -- Upgrade to 1.3.0
 

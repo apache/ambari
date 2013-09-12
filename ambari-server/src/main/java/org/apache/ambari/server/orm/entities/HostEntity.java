@@ -65,7 +65,7 @@ public class HostEntity {
 
   @Lob
   @Column(name = "disks_info", nullable = false, insertable = true,
-      updatable = true, length = 10000)
+      updatable = true, length = 32000)
   @Basic
   private String disksInfo = "";
 
