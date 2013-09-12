@@ -24,22 +24,56 @@
     <div class="caption span10"> {{view.title}}</div>
 
     <div class="widget-content" >
-      <table>
-        <!--NameNode-->
-        <tr>
-          <td><a href="#" {{action showDetails view.model.nameNode}}>{{t dashboard.services.hdfs.nanmenode}}</a></td>
-        </tr>
-        <!--SecondaryNameNode-->
-        <tr>
-          <td><a href="#" {{action showDetails view.model.snameNode}}>{{t dashboard.services.hdfs.snanmenode}}</a></td>
-        </tr>
-        <!--Data Nodes-->
-        <tr>
-          <td>
+      {{#if view.isHAEnabled }}
+        <table>
+          <!--Active NameNode-->
+          <tr>
+            {{#if view.isActiveNNValid}}
+              <td><a href="#" {{action showDetails view.model.activeNameNode}}>{{t dashboard.widgets.HDFSLinks.activeNameNode}}</a></td>
+            {{else}}
+              <td><a class="disabled-hdfs-link">{{t dashboard.widgets.HDFSLinks.activeNameNode}}</a></td>
+            {{/if}}
+          </tr>
+          <!--Standby NameNodes-->
+          <tr>
+            {{#if view.isStandbyNNValid}}
+              {{#if view.isTwoStandbyNN}}
+                <!--Two Standby NameNodes-->
+                <td><a href="#" {{action filterHosts view.twoStandbyComponent}}>{{t dashboard.widgets.HDFSLinks.standbyNameNodes}}</a></td>
+              {{else}}
+                <!--One Standby NameNode-->
+                <td><a href="#" {{action showDetails view.model.standbyNameNode}}>{{t dashboard.widgets.HDFSLinks.standbyNameNode}}</a></td>
+              {{/if}}
+            {{else}}
+              <td><a class="disabled-hdfs-link">{{t dashboard.widgets.HDFSLinks.standbyNameNode}}</a></td>
+            {{/if}}
+          </tr>
+          <!--Data Nodes-->
+          <tr>
+            <td>
               <a href="#" {{action filterHosts view.component}}>{{view.model.dataNodes.length}} {{t dashboard.services.hdfs.datanodes}}</a>
-          </td>
-        </tr>
-      </table>
+            </td>
+          </tr>
+        </table>
+      {{else}}
+        <table>
+          <!--NameNode-->
+          <tr>
+            <td><a href="#" {{action showDetails view.model.nameNode}}>{{t dashboard.services.hdfs.nanmenode}}</a></td>
+          </tr>
+          <!--SecondaryNameNode-->
+          <tr>
+            <td><a href="#" {{action showDetails view.model.snameNode}}>{{t dashboard.services.hdfs.snanmenode}}</a></td>
+          </tr>
+          <!--Data Nodes-->
+          <tr>
+            <td>
+              <a href="#" {{action filterHosts view.component}}>{{view.model.dataNodes.length}} {{t dashboard.services.hdfs.datanodes}}</a>
+            </td>
+          </tr>
+        </table>
+      {{/if}}
+
     </div>
 
     <div class="link-button">

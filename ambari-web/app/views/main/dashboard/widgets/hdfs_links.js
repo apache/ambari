@@ -35,6 +35,21 @@ App.HDFSLinksView = App.LinkDashboardWidgetView.extend({
   didInsertElement: function() {
     this._super();
     this.calc();
-  }
+  },
 
+  isHAEnabled: function() {
+    return !this.get('model.snameNode');
+  }.property('model.snameNode'),
+  isActiveNNValid: function () {
+    return this.get('model.activeNameNode') != null;
+  }.property('model.activeNameNode'),
+  isStandbyNNValid: function () {
+    return this.get('model.standbyNameNode') != null;
+  }.property('model.standbyNameNode'),
+  isTwoStandbyNN: function () {
+    return (this.get('model.standbyNameNode') != null && this.get('model.standbyNameNode2') != null);
+  }.property('model.standbyNameNode', 'model.standbyNameNode2'),
+  twoStandbyComponent: function () {
+    return App.HostComponent.find().findProperty('componentName', 'NAMENODE');
+  }.property()
 });

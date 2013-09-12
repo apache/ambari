@@ -61,6 +61,9 @@ App.servicesMapper = App.QuickDataMapper.create({
     version: 'nameNodeComponent.ServiceComponentInfo.Version',
     name_node_id: 'nameNodeComponent.host_components[0].HostRoles.host_name',
     sname_node_id: 'snameNodeComponent.host_components[0].HostRoles.host_name',
+    active_name_node_id: 'active_name_node_id',
+    standby_name_node_id: 'standby_name_node_id',
+    standby_name_node2_id: 'standby_name_node2_id',
     data_nodes: 'data_nodes',
     journal_nodes: 'journal_nodes',
     name_node_start_time: 'nameNodeComponent.ServiceComponentInfo.StartTime',
@@ -333,13 +336,54 @@ App.servicesMapper = App.QuickDataMapper.create({
     var hdfsConfig = this.hdfsConfig;
     item.components.forEach(function (component) {
       if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "NAMENODE") {
-        // make active nameNode as host_components[0].
+
         if ( component.host_components.length == 2) { //enabled HA
+          var haState1;
           var haState2;
           if (component.host_components[1].metrics && component.host_components[1].metrics.dfs) {
             haState2 = component.host_components[1].metrics.dfs.FSNamesystem.HAState;
           }
-          if (haState2 == "active") { // change places
+          if (component.host_components[0].metrics.dfs) {
+            haState1 = component.host_components[0].metrics.dfs.FSNamesystem.HAState;
+          }
+          var active_name_node = [];
+          var standby_name_nodes = [];
+          switch (haState1) {
+            case "active":
+              active_name_node.push(component.host_components[0].HostRoles.host_name);
+              break;
+            case "standby":
+              standby_name_nodes.push(component.host_components[0].HostRoles.host_name);
+              break;
+          }
+          switch (haState2) {
+            case "active":
+              active_name_node.push(component.host_components[1].HostRoles.host_name);
+              break;
+            case "standby":
+              standby_name_nodes.push(component.host_components[1].HostRoles.host_name);
+              break;
+          }
+          item.active_name_node_id = null;
+          item.standby_name_node_id = null;
+          item.standby_name_node2_id = null;
+          switch (active_name_node.length) {
+            case 1:
+              item.active_name_node_id = active_name_node[0];
+              break;
+          }
+          switch (standby_name_nodes.length) {
+            case 1:
+              item.standby_name_node_id = standby_name_nodes[0];
+              break;
+            case 2:
+              item.standby_name_node_id = standby_name_nodes[0];
+              item.standby_name_node2_id = standby_name_nodes[1];
+              break;
+          }
+
+          // make sure: active nameNode always at host_components[0].
+          if (haState2 == "active") { // change places for all model bind with host_component[0]
             var tmp = component.host_components[1];
             component.host_components[1] = component.host_components[0];
             component.host_components[0] = tmp;
