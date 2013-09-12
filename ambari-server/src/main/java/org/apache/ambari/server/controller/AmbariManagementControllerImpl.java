@@ -92,6 +92,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,8 +101,6 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
-
-import org.apache.http.client.utils.URIBuilder;
 
 @Singleton
 public class AmbariManagementControllerImpl implements
@@ -3662,14 +3661,36 @@ public class AmbariManagementControllerImpl implements
       }
     }
   }
-
+  
   @Override
   public RequestStatusResponse deleteHostComponents(
       Set<ServiceComponentHostRequest> requests) throws AmbariException {
 
-    Map<ServiceComponent, Set<ServiceComponentHost>> safeToRemoveSCHs = new HashMap<ServiceComponent, Set<ServiceComponentHost>>();
-
+    Set<ServiceComponentHostRequest> expanded = new HashSet<ServiceComponentHostRequest>();
+    
+    // if any request are for the whole host, they need to be expanded
     for (ServiceComponentHostRequest request : requests) {
+      if (null == request.getComponentName()) {
+        if (null == request.getClusterName() || request.getClusterName().isEmpty() ||
+            null == request.getHostname() || request.getHostname().isEmpty()) {
+          throw new IllegalArgumentException("Cluster name and hostname must be specified.");
+        }
+        Cluster cluster = clusters.getCluster(request.getClusterName());
+        
+        for (ServiceComponentHost sch : cluster.getServiceComponentHosts(request.getHostname())) {
+          ServiceComponentHostRequest schr = new ServiceComponentHostRequest(request.getClusterName(),
+              sch.getServiceName(), sch.getServiceComponentName(), sch.getHostName(), null, null);
+          expanded.add(schr);
+        }
+      }
+      else {
+        expanded.add(request);
+      }
+    }
+    
+    Map<ServiceComponent, Set<ServiceComponentHost>> safeToRemoveSCHs = new HashMap<ServiceComponent, Set<ServiceComponentHost>>();
+    
+    for (ServiceComponentHostRequest request : expanded) {
 
       validateServiceComponentHostRequest(request);
 

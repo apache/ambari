@@ -190,6 +190,23 @@ public class HostComponentService extends BaseService {
     return handleRequest(headers, null, ui, Request.Type.DELETE,
         createHostComponentResource(m_clusterName, m_hostName, hostComponentName));
   }
+  
+  /**
+   * Handles DELETE /clusters/{clusterID}/hosts/{hostID}/host_components
+   * Deletes multiple host_component resources.
+   *
+   * @param headers           http headers
+   * @param ui                uri info
+   *
+   * @return host_component resource representation
+   */
+  @DELETE
+  @Produces("text/plain")
+  public Response deleteHostComponents(@Context HttpHeaders headers, @Context UriInfo ui) {
+
+    return handleRequest(headers, null, ui, Request.Type.DELETE,
+        createHostComponentResource(m_clusterName, m_hostName, null));
+  }  
 
   /**
    * Create a host_component resource instance.
