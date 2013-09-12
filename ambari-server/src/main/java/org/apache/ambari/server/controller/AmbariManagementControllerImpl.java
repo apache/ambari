@@ -3705,9 +3705,9 @@ public class AmbariManagementControllerImpl implements
       // generation.
       // Clients may be removed without a state check.
       if (!component.isClientComponent() &&
-          !componentHost.getState().isHardDeletableState()) {
+          !componentHost.getState().isRemovableState()) {
         throw new AmbariException("To remove master or slave components they must be in " +
-            "MAINTENANCE/INIT/INSTALL_FAILED/UNKNOWN state. Current=" + componentHost.getState() + ".");
+            "MAINTENANCE/INIT/INSTALLED/INSTALL_FAILED/UNKNOWN state. Current=" + componentHost.getState() + ".");
       }
 
       if (!safeToRemoveSCHs.containsKey(component)) {

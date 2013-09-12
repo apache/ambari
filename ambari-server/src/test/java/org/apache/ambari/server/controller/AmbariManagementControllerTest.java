@@ -6911,7 +6911,7 @@ public class AmbariManagementControllerTest {
     Service s1 = cluster.getService(serviceName);
     Service s2 = cluster.getService(mapred);
     ServiceComponent sc1 = s1.getServiceComponent(componentName1);
-    sc1.getServiceComponentHosts().values().iterator().next().setState(State.INSTALLED);
+    sc1.getServiceComponentHosts().values().iterator().next().setState(State.STARTED);
 
     Set<ServiceComponentHostRequest> schRequests = new HashSet<ServiceComponentHostRequest>();
     // delete HC
@@ -6922,7 +6922,7 @@ public class AmbariManagementControllerTest {
       Assert.fail("Expect failure while deleting.");
     } catch (Exception ex) {
       Assert.assertTrue(ex.getMessage().contains(
-          "remove master or slave components they must be in MAINTENANCE/INIT/INSTALL_FAILED/UNKNOWN"));
+          "Host Component cannot be removed"));
     }
 
     sc1.getServiceComponentHosts().values().iterator().next().setDesiredState(State.STARTED);
@@ -6935,7 +6935,7 @@ public class AmbariManagementControllerTest {
     sc4.getServiceComponentHosts().values().iterator().next().setDesiredState(State.INSTALLED);
     sc4.getServiceComponentHosts().values().iterator().next().setState(State.MAINTENANCE);
     ServiceComponent sc5 = s2.getServiceComponent(componentName5);
-    sc5.getServiceComponentHosts().values().iterator().next().setState(State.INSTALL_FAILED);
+    sc5.getServiceComponentHosts().values().iterator().next().setState(State.INSTALLED);
     ServiceComponent sc6 = s2.getServiceComponent(componentName6);
     sc6.getServiceComponentHosts().values().iterator().next().setState(State.INIT);
 

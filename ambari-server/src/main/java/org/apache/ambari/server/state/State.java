@@ -150,22 +150,4 @@ public enum State {
         return false;
     }
   }
-
-  /**
-   * Indicates whether or not the resource with this state can be hard-deleted.
-   *
-   * @return true if this is a hard-deletable state
-   */
-  public boolean isHardDeletableState() {
-    switch (State.values()[this.state]) {
-      case INIT:
-      case INSTALLING:
-      case INSTALL_FAILED:
-      case UNKNOWN:
-      case MAINTENANCE:
-        return true;
-      default:
-        return false;
-    }
-  }
 }
