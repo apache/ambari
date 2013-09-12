@@ -253,6 +253,7 @@ module.exports = Em.Route.extend({
         localdb: App.db.data
       });
       router.transitionTo('main.index');
+      location.reload();
     }
   }),
 
