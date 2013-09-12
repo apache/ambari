@@ -222,6 +222,15 @@ var urls = {
     'real': '/clusters/{clusterName}',
     'mock': '/data/clusters/cluster.json'
   },
+  'config.tags.sync': {
+    'real': '/clusters/{clusterName}',
+    'mock': '/data/clusters/cluster.json',
+    'format': function (data) {
+      return {
+        async: false
+      };
+    }
+  },
   'config.on_site': {
     'real': '/clusters/{clusterName}/configurations?{params}',
     'mock': '/data/configurations/cluster_level_configs.json?{params}',

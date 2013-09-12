@@ -20,6 +20,70 @@ var App = require('app');
 
 App.QuickViewLinks = Em.View.extend({
 
+
+  loadTags: function() {
+    App.ajax.send({
+      name: 'config.tags.sync',
+      sender: this,
+      success: 'loadTagsSuccess',
+      error: 'loadTagsError'
+    });
+  },
+
+  loadTagsSuccess: function(data) {
+    var tags = []
+    for( var prop in data.Clusters.desired_configs){
+      tags.push(Em.Object.create({
+        siteName: prop,
+        tagName: data.Clusters.desired_configs[prop]['tag']
+      }));
+    }
+    var actual = this.get('actualTags');
+    if (JSON.stringify(actual) != JSON.stringify(tags)) {
+      this.set('actualTags',tags);
+      this.getSecurityPropertie();
+    }
+  },
+
+  actualTags: [],
+
+  securityProperties: [],
+
+  /**
+   * list of files that contains properties for enabling/disabling ssl
+   */
+  siteNames: ['core-site'],
+
+  getSecurityPropertie: function() {
+    this.set('securityProperties',[]);
+    this.get('siteNames').forEach(function(name){
+      var tag = this.get('actualTags');
+      if (tag && tag.findProperty('siteName',name)) {
+        var tagName = tag.findProperty('siteName',name).tagName;
+        App.ajax.send({
+          name: 'admin.service_config',
+          sender: this,
+          data: {
+            tagName: tagName,
+            siteName: name
+          },
+          success: 'getSecurityPropertiesSuccess',
+          error: 'getSecurityPropertiesError'
+        });
+      }
+    }, this)
+  },
+
+  getSecurityPropertiesSuccess: function(data) {
+    var properties = this.get('securityProperties');
+    if(data.items[0]) {
+      properties.pushObject(data.items[0].properties);
+      this.set('securityProperties', properties);
+    }
+  },
+  getSecurityPropertiesError: function() {
+    console.warn('can\'t get properties')
+  },
   ambariProperties: function() {
     return App.router.get('clusterController.ambariProperties');
   },
@@ -27,6 +91,7 @@ App.QuickViewLinks = Em.View.extend({
    * Updated quick links. Here we put correct hostname to url
    */
   quickLinks: function () {
+    this.loadTags();
     var serviceName = this.get('content.serviceName');
     var components = this.get('content.hostComponents');
     var host;
@@ -76,21 +141,40 @@ App.QuickViewLinks = Em.View.extend({
     }
     return this.get('content.quickLinks').map(function (item) {
       var protocol = self.setProtocol(item.get('service_id'));
-      if (item.get('url')) {
-        item.set('url', item.get('url').fmt(protocol,host));
+      if (item.get('template')) {
+        item.set('url', item.get('template').fmt(protocol,host));
       }
       return item;
     });
-  }.property('content.quickLinks.@each.label'),
+  }.property('content.quickLinks.@each.label','actualTags'),
 
   setProtocol: function(service_id){
     var properties  = this.ambariProperties();
+    var securityProperties = this.get('securityProperties');
+    var hadoopSslEnabled = false;
+    if(securityProperties) {
+      securityProperties.forEach(function(property){
+        property['hadoop.ssl.enabled'] && property['hadoop.ssl.enabled'] === 'true' ?  hadoopSslEnabled = true : null;
+      });
+    }
     switch(service_id){
       case "GANGLIA":
         return (properties && properties.hasOwnProperty('ganglia.https') && properties['ganglia.https']) ? "https" : "http";
         break;
       case "NAGIOS":
         return (properties && properties.hasOwnProperty('nagios.https') && properties['nagios.https']) ? "https" : "http";
+        break;
+      case "HDFS":
+        return hadoopSslEnabled ? "https" : "http";
+        break;
+      case "YARN":
+        return hadoopSslEnabled ? "https" : "http";
+        break;
+      case "MAPREDUCE":
+        return hadoopSslEnabled ? "https" : "http";
+        break;
+      case "MAPREDUCE2":
+        return hadoopSslEnabled ? "https" : "http";
         break;
       default:
         return "http";
