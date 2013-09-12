@@ -213,11 +213,11 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
     this.unInstallComponent('ZKFC', hostNames);
   },
   stopStandbyNameNode: function(){
-    var hostName = this.get('content.masterComponentHosts').findProperty('isCurNameNode').hostName;
+    var hostName = this.get('content.masterComponentHosts').findProperty('isAddNameNode', true).hostName;;
     this.stopComponent('NAMENODE', hostName);
   },
   stopNameNode: function(){
-    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
+    var hostNames = this.get('content.masterComponentHosts').findProperty('isCurNameNode').hostName;
     this.stopComponent('NAMENODE', hostNames);
   },
   restoreHDFSConfigs: function(){
