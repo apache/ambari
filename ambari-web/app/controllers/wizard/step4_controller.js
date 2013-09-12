@@ -60,9 +60,6 @@ App.WizardStep4Controller = Em.ArrayController.extend({
         zookeeper.set('isSelected', hbase.get('isSelected') || hive.get('isSelected'));
       }
       else {
-        if (!zookeeper.get('isSelected')) {
-          zookeeper.set('isSelected', hbase.get('isSelected'));
-        }
         mapreduce2.set('isSelected', yarn.get('isSelected'));
       }
       hcatalog.set('isSelected', hive.get('isSelected'));
@@ -85,25 +82,51 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   },
 
   /**
+   * Check whether we should turn on <code>serviceName</code> service according to selected <code>dependentServices</code>
+   * @param serviceName checked service
+   * @param dependentServices list of dependent services
+   * @returns {boolean}
+   */
+  needAddService: function(serviceName, dependentServices) {
+    if (!(dependentServices instanceof Array)) {
+      dependentServices = [dependentServices];
+    }
+    if (this.findProperty('serviceName', serviceName) && this.findProperty('serviceName', serviceName).get('isSelected') === false) {
+      var ds = this.filter(function (item) {
+        return dependentServices.contains(item.get('serviceName')) && item.get('isSelected');
+      });
+      return (ds.get('length') > 0);
+    }
+    return false;
+  },
+
+  /**
    * Check whether we should turn on <code>MapReduce</code> service
    * @return {Boolean}
    */
   needToAddMapReduce: function () {
-    if (this.findProperty('serviceName', 'MAPREDUCE') && this.findProperty('serviceName', 'MAPREDUCE').get('isSelected') === false) {
-      var mapreduceDependentServices = this.filter(function (item) {
-        return ['PIG', 'OOZIE', 'HIVE'].contains(item.get('serviceName')) && item.get('isSelected', true);
-      });
-      return (mapreduceDependentServices.get('length') > 0);
-    }
-
-    return false;
+    return this.needAddService('MAPREDUCE', ['PIG', 'OOZIE', 'HIVE']);
+  },
+  /**
+   * Check whether we should turn on <code>MapReduce2</code> service
+   * @return {Boolean}
+   */
+  needToAddYarnMapReduce2: function() {
+    return this.needAddService('YARN', ['PIG', 'OOZIE', 'HIVE']);
+  },
+  /**
+   * Check whether we should turn on <code>ZooKeeper</code> service
+   * @return {Boolean}
+   */
+  needToAddZooKeeper: function() {
+    return this.needAddService('ZOOKEEPER', 'HBASE');
   },
 
   /** 
    * Check whether we should turn on <code>HDFS or HCFS</code> service
    * @return {Boolean}
    */
-  needToAddHDFS: function () {
+  noDFSs: function () {
     return (this.findProperty('serviceName', 'HDFS').get('isSelected') === false &&
     		(!this.findProperty('serviceName', 'HCFS') || this.findProperty('serviceName', 'HCFS').get('isSelected') === false));
   },
@@ -113,7 +136,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @return {Boolean}
    */
   multipleDFSs: function () {
-	return (this.findProperty('serviceName', 'HDFS').get('isSelected') === true &&
+	  return (this.findProperty('serviceName', 'HDFS').get('isSelected') === true &&
 	    	(this.findProperty('serviceName', 'HCFS') && this.findProperty('serviceName', 'HCFS').get('isSelected') === true));
   },
 
@@ -140,67 +163,92 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * Onclick handler for <code>Next</code> button
    */
   submit: function () {
-    if(!this.get("isSubmitDisabled")){
+    if(!this.get("isSubmitDisabled")) {
       if (this.needToAddMapReduce()) {
         this.mapReduceCheckPopup();
-      } else if (this.needToAddHDFS()) {
-        this.needToAddHDFSPopup();
-      } else if (this.multipleDFSs()) {
-        this.multipleDFSPopup();        
       }
-       else {
-        this.validateMonitoring();
+      else {
+        if (this.noDFSs()) {
+          this.needToAddHDFSPopup();
+        }
+        else {
+          if (this.needToAddYarnMapReduce2()) {
+            this.mapReduce2CheckPopup();
+          }
+          else {
+            if (this.needToAddZooKeeper()) {
+              this.zooKeeperCheckPopup();
+            }
+            else {
+              if (this.multipleDFSs()) {
+                this.multipleDFSPopup();
+              }
+               else {
+                this.validateMonitoring();
+              }
+            }
+          }
+        }
       }
     }
   },
   
   multipleDFSPopup: function() {
-    var self = this;
-    App.ModalPopup.show({
-      header: Em.I18n.t('installer.step4.multipleDFS.popup.header'),
-      body: Em.I18n.t('installer.step4.multipleDFS.popup.body'),
-      onPrimary: function () {
-        self.findProperty('serviceName', 'HDFS').set('isSelected', true);
-        self.findProperty('serviceName', 'HCFS').set('isSelected', false);
-        this.hide();
-        self.validateMonitoring();
-      },
-      onSecondary: function () {
-        this.hide();
-      }
-    });    
+    var services = [
+      {serviceName: 'HDFS', selected: true},
+      {serviceName: 'HCFS', selected: false}
+    ];
+    this.needToAddServicePopup(services, 'multipleDFS');
   },
-  
-  needToAddHDFSPopup: function() {
+  /**
+   * Select/deselect services
+   * @param services array of objects
+   *  <code>
+   *    [
+   *      {
+   *        service: 'HDFS',
+   *        selected: true
+   *      },
+   *      ....
+   *    ]
+   *  </code>
+   * @param i18nSuffix
+   */
+  needToAddServicePopup: function(services, i18nSuffix) {
+    if (!(services instanceof Array)) {
+      services = [services];
+    }
     var self = this;
     App.ModalPopup.show({
-      header: Em.I18n.t('installer.step4.hdfsCheck.popup.header'),
-      body: Em.I18n.t('installer.step4.hdfsCheck.popup.body'),
+      header: Em.I18n.t('installer.step4.' + i18nSuffix + '.popup.header'),
+      body: Em.I18n.t('installer.step4.' + i18nSuffix + '.popup.body'),
       onPrimary: function () {
-      self.findProperty('serviceName', 'HDFS').set('isSelected', true);
-      this.hide();
-        self.validateMonitoring();
-      },
-      onSecondary: function () {
-      this.hide();
-      }
-    });    
-  },
-
-  mapReduceCheckPopup: function () {
-    var self = this;
-    App.ModalPopup.show({
-      header: Em.I18n.t('installer.step4.mapreduceCheck.popup.header'),
-      body: Em.I18n.t('installer.step4.mapreduceCheck.popup.body'),
-      onPrimary: function () {
-        self.findProperty('serviceName', 'MAPREDUCE').set('isSelected', true);
+        services.forEach(function(service) {
+          self.findProperty('serviceName', service.serviceName).set('isSelected', service.selected);
+        });
         this.hide();
-        self.validateMonitoring();
+        self.submit();
       },
       onSecondary: function () {
         this.hide();
       }
     });
+  },
+
+  needToAddHDFSPopup: function() {
+    this.needToAddServicePopup({serviceName:'HDFS', selected: true}, 'hdfsCheck');
+  },
+
+  mapReduceCheckPopup: function () {
+    this.needToAddServicePopup({serviceName:'MAPREDUCE', selected: true}, 'mapreduceCheck');
+  },
+
+  mapReduce2CheckPopup: function () {
+    this.needToAddServicePopup({serviceName:'YARN', selected:true}, 'yarnCheck');
+  },
+
+  zooKeeperCheckPopup: function () {
+    this.needToAddServicePopup({serviceName:'ZOOKEEPER', selected: true}, 'zooKeeperCheck');
   },
 
   monitoringCheckPopup: function () {
@@ -216,4 +264,4 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       }
     });
   }
-})
+});
