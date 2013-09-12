@@ -149,6 +149,17 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
     });
   },
 
+  onTaskCompleted: function () {
+    var curTaskStatus = this.getTaskStatus(this.get('currentTaskId'));
+    if (curTaskStatus != 'FAILED' && curTaskStatus != 'TIMEDOUT' && curTaskStatus != 'ABORTED') {
+      this.setTaskStatus(this.get('currentTaskId'), 'COMPLETED');
+    }
+  },
+
+  getTaskStatus: function (taskId) {
+    return this.get('tasks').findProperty('id', taskId).get('status');
+  },
+
   saveTasksStatuses: function(statuses){
     App.db.setHighAvailabilityWizardTasksStatuses(statuses);
     this.set('content.tasksStatuses', statuses);
