@@ -99,10 +99,30 @@ App.UpdateController = Em.Controller.extend({
     var conditionalFieldsString = conditionalFields.length > 0 ? ',' + conditionalFields.join(',') : '';
     var methodStartTs = new Date().getTime();
     var testUrl = App.get('isHadoop2Stack') ? '/data/dashboard/HDP2/services.json':'/data/dashboard/services.json';
-    var servicesUrl = isInitialLoad ? 
-      //this.getUrl('/data/dashboard/services.json', '/services?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles') :
-      this.getUrl(testUrl, '/services?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles,components/host_components/metrics/jvm/memHeapUsedM,components/host_components/metrics/jvm/memHeapCommittedM,components/host_components/metrics/mapred/jobtracker/trackers_decommissioned,components/host_components/metrics/cpu/cpu_wio,components/host_components/metrics/rpc/RpcQueueTime_avg_time,components/host_components/metrics/dfs/FSNamesystem/HAState'+conditionalFieldsString) :
-      this.getUrl(testUrl, '/services?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles,components/host_components/metrics/jvm/memHeapUsedM,components/host_components/metrics/jvm/memHeapCommittedM,components/host_components/metrics/mapred/jobtracker/trackers_decommissioned,components/host_components/metrics/cpu/cpu_wio,components/host_components/metrics/rpc/RpcQueueTime_avg_time,components/host_components/metrics/dfs/FSNamesystem/HAState'+conditionalFieldsString);
+
+    var realUrl = '/services?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles,' +
+      'components/host_components/metrics/jvm/memHeapUsedM,' +
+      'components/host_components/metrics/jvm/memHeapCommittedM,' +
+      'components/host_components/metrics/mapred/jobtracker/trackers_decommissioned,' +
+      'components/host_components/metrics/cpu/cpu_wio,' +
+      'components/host_components/metrics/rpc/RpcQueueTime_avg_time,' +
+      'components/host_components/metrics/dfs/FSNamesystem/HAState,' +
+      'components/host_components/metrics/dfs/FSNamesystem/CapacityUsed,' +
+      'components/host_components/metrics/dfs/FSNamesystem/CapacityTotal,' +
+      'components/host_components/metrics/dfs/FSNamesystem/CapacityRemaining,' +
+      'components/host_components/metrics/dfs/FSNamesystem/BlocksTotal,' +
+      'components/host_components/metrics/dfs/FSNamesystem/CorruptBlocks,' +
+      'components/host_components/metrics/dfs/FSNamesystem/MissingBlocks,' +
+      'components/host_components/metrics/dfs/FSNamesystem/UnderReplicatedBlocks,' +
+      'components/host_components/metrics/dfs/namenode/Version,' +
+      'components/host_components/metrics/dfs/namenode/LiveNodes,' +
+      'components/host_components/metrics/dfs/namenode/DeadNodes,' +
+      'components/host_components/metrics/dfs/namenode/DecomNodes,' +
+      'components/host_components/metrics/dfs/namenode/TotalFiles,' +
+      'components/host_components/metrics/dfs/namenode/UpgradeFinalized,' +
+      'components/host_components/metrics/dfs/namenode/Safemode';
+
+    var servicesUrl = isInitialLoad ? this.getUrl(testUrl, realUrl + conditionalFieldsString) : this.getUrl(testUrl, realUrl + conditionalFieldsString);
     var callback = callback || function (jqXHR, textStatus) {
       self.set('isUpdated', true);
     };

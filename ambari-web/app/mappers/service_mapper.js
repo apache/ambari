@@ -58,7 +58,7 @@ App.servicesMapper = App.QuickDataMapper.create({
     host_components: 'host_components'
   },
   hdfsConfig: {
-    version: 'nameNodeComponent.ServiceComponentInfo.Version',
+    version: 'nameNodeComponent.host_components[0].metrics.dfs.namenode.Version',
     name_node_id: 'nameNodeComponent.host_components[0].HostRoles.host_name',
     sname_node_id: 'snameNodeComponent.host_components[0].HostRoles.host_name',
     active_name_node_id: 'active_name_node_id',
@@ -66,22 +66,22 @@ App.servicesMapper = App.QuickDataMapper.create({
     standby_name_node2_id: 'standby_name_node2_id',
     data_nodes: 'data_nodes',
     journal_nodes: 'journal_nodes',
-    name_node_start_time: 'nameNodeComponent.ServiceComponentInfo.StartTime',
+    name_node_start_time: 'nameNodeComponent.ServiceComponentInfo.StartTime', //// blocked by bug-8787
     jvm_memory_heap_used: 'nameNodeComponent.host_components[0].metrics.jvm.memHeapUsedM',
     jvm_memory_heap_committed: 'nameNodeComponent.host_components[0].metrics.jvm.memHeapCommittedM',
     live_data_nodes: 'live_data_nodes',
     dead_data_nodes: 'dead_data_nodes',
     decommission_data_nodes: 'decommission_data_nodes',
-    capacity_used: 'nameNodeComponent.ServiceComponentInfo.CapacityUsed',
-    capacity_total: 'nameNodeComponent.ServiceComponentInfo.CapacityTotal',
-    capacity_remaining: 'nameNodeComponent.ServiceComponentInfo.CapacityRemaining',
-    dfs_total_blocks: 'nameNodeComponent.ServiceComponentInfo.BlocksTotal',
-    dfs_corrupt_blocks: 'nameNodeComponent.ServiceComponentInfo.CorruptBlocks',
-    dfs_missing_blocks: 'nameNodeComponent.ServiceComponentInfo.MissingBlocks',
-    dfs_under_replicated_blocks: 'nameNodeComponent.ServiceComponentInfo.UnderReplicatedBlocks',
-    dfs_total_files: 'nameNodeComponent.ServiceComponentInfo.TotalFiles',
-    upgrade_status: 'nameNodeComponent.ServiceComponentInfo.UpgradeFinalized',
-    safe_mode_status: 'nameNodeComponent.ServiceComponentInfo.Safemode',
+    capacity_used: 'nameNodeComponent.host_components[0].metrics.dfs.FSNamesystem.CapacityUsed',
+    capacity_total: 'nameNodeComponent.host_components[0].metrics.dfs.FSNamesystem.CapacityTotal',
+    capacity_remaining: 'nameNodeComponent.host_components[0].metrics.dfs.FSNamesystem.CapacityRemaining',
+    dfs_total_blocks: 'nameNodeComponent.host_components[0].metrics.dfs.FSNamesystem.BlocksTotal',
+    dfs_corrupt_blocks: 'nameNodeComponent.host_components[0].metrics.dfs.FSNamesystem.CorruptBlocks',
+    dfs_missing_blocks: 'nameNodeComponent.host_components[0].metrics.dfs.FSNamesystem.MissingBlocks',
+    dfs_under_replicated_blocks: 'nameNodeComponent.host_components[0].metrics.dfs.FSNamesystem.UnderReplicatedBlocks',
+    dfs_total_files: 'nameNodeComponent.host_components[0].metrics.dfs.namenode.TotalFiles',
+    upgrade_status: 'nameNodeComponent.host_components[0].metrics.dfs.namenode.UpgradeFinalized',
+    safe_mode_status: 'nameNodeComponent.host_components[0].metrics.dfs.namenode.Safemode',
     name_node_cpu: 'nameNodeComponent.host_components[0].metrics.cpu.cpu_wio',
     name_node_rpc: 'nameNodeComponent.host_components[0].metrics.rpc.RpcQueueTime_avg_time'
   },
@@ -336,8 +336,8 @@ App.servicesMapper = App.QuickDataMapper.create({
     var hdfsConfig = this.hdfsConfig;
     item.components.forEach(function (component) {
       if (component.ServiceComponentInfo && component.ServiceComponentInfo.component_name == "NAMENODE") {
-
-        if ( component.host_components.length == 2) { //enabled HA
+        //enabled HA
+        if ( component.host_components.length == 2) {
           var haState1;
           var haState2;
           if (component.host_components[1].metrics && component.host_components[1].metrics.dfs) {
@@ -381,8 +381,7 @@ App.servicesMapper = App.QuickDataMapper.create({
               item.standby_name_node2_id = standby_name_nodes[1];
               break;
           }
-
-          // make sure: active nameNode always at host_components[0].
+          // important: active nameNode always at host_components[0]; if no active, then any nameNode could work.
           if (haState2 == "active") { // change places for all model bind with host_component[0]
             var tmp = component.host_components[1];
             component.host_components[1] = component.host_components[0];
@@ -392,9 +391,9 @@ App.servicesMapper = App.QuickDataMapper.create({
         item.nameNodeComponent = component;
         finalConfig = jQuery.extend(finalConfig, hdfsConfig);
         // Get the live, dead & decommission nodes from string json
-        var liveNodesJson = App.parseJSON(component.ServiceComponentInfo.LiveNodes);
-        var deadNodesJson = App.parseJSON(component.ServiceComponentInfo.DeadNodes);
-        var decommissionNodesJson = App.parseJSON(component.ServiceComponentInfo.DecomNodes);
+        var liveNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.LiveNodes);
+        var deadNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.DeadNodes);
+        var decommissionNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.DecomNodes);
         item.live_data_nodes = [];
         item.dead_data_nodes = [];
         item.decommission_data_nodes = [];
