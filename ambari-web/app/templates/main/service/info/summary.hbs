@@ -25,7 +25,11 @@
             <a class="dropdown-toggle" data-toggle="dropdown" href="#">{{t common.quickLinks}}<b class="caret"></b></a>
             <ul class="dropdown-menu">
               {{#each view.quickLinks}}
-                <a {{bindAttr href="url"}} {{bindAttr target="view.linkTarget"}}>{{label}}</a>
+                {{#if disabled}}
+                    <a class="disabled-hdfs-quick-link">{{label}}</a>
+                {{else}}
+                    <a {{bindAttr href="url"}} {{bindAttr target="view.linkTarget"}}>{{label}}</a>
+                {{/if}}
               {{/each}}
             </ul>
           </li>

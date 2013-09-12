@@ -340,7 +340,7 @@ App.servicesMapper = App.QuickDataMapper.create({
         if ( component.host_components.length == 2) {
           var haState1;
           var haState2;
-          if (component.host_components[1].metrics && component.host_components[1].metrics.dfs) {
+          if (component.host_components[1].metrics.dfs) {
             haState2 = component.host_components[1].metrics.dfs.FSNamesystem.HAState;
           }
           if (component.host_components[0].metrics.dfs) {
@@ -391,9 +391,11 @@ App.servicesMapper = App.QuickDataMapper.create({
         item.nameNodeComponent = component;
         finalConfig = jQuery.extend(finalConfig, hdfsConfig);
         // Get the live, dead & decommission nodes from string json
-        var liveNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.LiveNodes);
-        var deadNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.DeadNodes);
-        var decommissionNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.DecomNodes);
+        if (component.host_components[0].metrics.dfs && component.host_components[0].metrics.dfs.namenode) {
+          var liveNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.LiveNodes);
+          var deadNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.DeadNodes);
+          var decommissionNodesJson = App.parseJSON(component.host_components[0].metrics.dfs.namenode.DecomNodes);
+        }
         item.live_data_nodes = [];
         item.dead_data_nodes = [];
         item.decommission_data_nodes = [];

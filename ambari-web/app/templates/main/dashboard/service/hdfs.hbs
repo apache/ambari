@@ -155,7 +155,11 @@
         </a>
         <ul class="dropdown-menu">
           {{#each view.quickLinks}}
-            <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
+            {{#if disabled}}
+                <li><a class="disabled-hdfs-quick-link">{{label}}</a></li>
+            {{else}}
+                <li><a {{bindAttr href="url"}} target="_blank">{{label}}</a></li>
+            {{/if}}
           {{/each}}
         </ul>
       </div>

@@ -2008,6 +2008,11 @@ width:100%;
 
 .service-block {
   margin-top: 20px;
+  .disabled-hdfs-quick-link {
+    pointer-events: none;
+    color: #808080;
+    cursor: default;
+  }
 }
 
 .service-configuration {
@@ -2082,7 +2087,6 @@ table.graphs {
 }
 
 /*Dashboard Widgets Start*/
-
 #dashboard-widgets-container{
   h4{
     line-height: 30px;
@@ -2364,7 +2368,13 @@ table.graphs {
       .link-button{
         padding-top: 7px;
         padding-left: 70px;
+        .disabled-hdfs-quick-link {
+        pointer-events: none;
+        color: #808080;
+        cursor: default;
       }
+      }
+
       .widget-content{
         text-align: center;
         font-weight: none;

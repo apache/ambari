@@ -99,7 +99,16 @@ App.QuickViewLinks = Em.View.extend({
 
     switch (serviceName) {
       case "HDFS":
-        host = App.singleNodeInstall ? App.singleNodeAlias : components.findProperty('componentName', 'NAMENODE').get('host.publicHostName');
+        if ( this.get('content.snameNode')) { // not HA
+          host = App.singleNodeInstall ? App.singleNodeAlias : components.findProperty('componentName', 'NAMENODE').get('host.publicHostName');
+        } else {
+          // HA
+          if (this.get('content.activeNameNode')) {
+            host = this.get('content.activeNameNode.hostName');
+          }else {
+            host = 'noActiveNN';
+          }
+        }
         break;
       case "MAPREDUCE":
       case "OOZIE":
@@ -140,6 +149,10 @@ App.QuickViewLinks = Em.View.extend({
       ];
     }
     return this.get('content.quickLinks').map(function (item) {
+      if (host == 'noActiveNN') {
+        item.set('disabled', true);
+        return item;
+      }
       var protocol = self.setProtocol(item.get('service_id'));
       if (item.get('template')) {
         item.set('url', item.get('template').fmt(protocol,host));
