@@ -21,7 +21,7 @@
 define hdp-hbase::service(
   $ensure = 'running',
   $create_pid_dir = true,
-  $create_log_dir = true,
+  $create_conf_dir = true,
   $initial_wait = undef)
 {
   include hdp-hbase::params
@@ -34,6 +34,8 @@ define hdp-hbase::service(
   $cmd = "$hbase_daemon --config ${conf_dir}"
   $pid_dir = $hdp-hbase::params::hbase_pid_dir
   $pid_file = "${pid_dir}/hbase-hbase-${role}.pid"
+  $hbase_log_dir = $hdp-hbase::params::hbase_log_dir
+  $hbase_tmp_dir = $hdp-hbase::params::hbase_tmp_dir
 
   if ($ensure == 'running') {
     $daemon_cmd = "su - ${user} -c  '${cmd} start ${role}'"
@@ -55,10 +57,13 @@ define hdp-hbase::service(
       force => true
     }
   }
-  if ($create_log_dir == true) {
-    hdp::directory_recursive_create { $hdp-hbase::params::hbase_log_dir: 
+  if ($create_conf_dir == true) {
+   # To avoid duplicate resource definitions
+    $hbase_conf_dirs = hdp_set_from_comma_list("${hbase_tmp_dir},${hbase_log_dir}")
+
+    hdp::directory_recursive_create_ignore_failure { $hbase_conf_dirs:
       owner => $user,
-      tag   => $tag,
+      context_tag => 'hbase_service',
       service_state => $ensure,
       force => true
     }

@@ -46,17 +46,17 @@ class hdp-hbase::regionserver(
         service_state => $service_state
       } 
       $create_pid_dir = true
-      $create_log_dir = true
+      $create_conf_dir = true
     } else {
       $create_pid_dir = false
-      $create_log_dir = false
+      $create_conf_dir = false
     }
 
 
     hdp-hbase::service{ 'regionserver':
       ensure         => $service_state,
       create_pid_dir => $create_pid_dir,
-      create_log_dir => $create_log_dir
+      create_conf_dir => $create_conf_dir
     }
 
     #top level does not need anchors
