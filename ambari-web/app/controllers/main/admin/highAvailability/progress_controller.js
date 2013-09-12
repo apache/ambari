@@ -117,7 +117,7 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
       primary: Em.I18n.t('common.confirm'),
       showCloseButton: false,
       onPrimary: function () {
-        App.router.transitionTo('root.main.admin.adminHighAvailability.rollback');
+        App.router.transitionTo('main.admin.highAvailabilityRollback');
         this.hide();
       },
       secondary : Em.I18n.t('common.cancel'),
