@@ -15,5 +15,5 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 --
-DROP DATABASE IF EXISTS :dbname;
-DROP DATABASE IF EXISTS ambarirca;
+DROP DATABASE :dbname;
+DROP DATABASE ambarirca;

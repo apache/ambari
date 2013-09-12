@@ -2082,7 +2082,7 @@ def reset(args):
       retcode, out, err = execute_remote_script(args, DATABASE_DROP_SCRIPTS[DATABASE_INDEX])
       if not retcode == 0:
         if retcode == -1:
-          print_warning_msg('Cannot find ' + client_desc + 
+          print_warning_msg('Cannot find ' + client_desc +
                             ' client in the path to reset the Ambari Server ' +
                             'schema. To reset Ambari Server schema ' +
                             'you must run the following DDL against the database ' +
@@ -2091,7 +2091,8 @@ def reset(args):
                             + 'against the database to create the schema: ' + os.linesep
                              + client_usage_cmd_init + os.linesep )
         raise NonFatalException(err)
-
+      if err:
+        print_warning_msg(err)
       retcode, out, err = execute_remote_script(args, DATABASE_INIT_SCRIPTS[DATABASE_INDEX])
       if not retcode == 0:
         if retcode == -1:
@@ -2103,7 +2104,8 @@ def reset(args):
                             'against the database to create the schema: ' + os.linesep + 
                             client_usage_cmd_init + os.linesep )
         raise NonFatalException(err)
-
+      if err:
+        print_warning_msg(err)
     else:
       err = 'Cannot find ' + client_desc + ' client in the path to reset the Ambari ' +\
       'Server schema. To reset Ambari Server schema ' + \
@@ -2123,7 +2125,8 @@ def reset(args):
     retcode, outdata, errdata = run_os_command(command)
     if not retcode == 0:
       raise FatalException(1, errdata)
-
+    if errdata:
+      print_warning_msg(errdata)
     print_info_msg ("About to run database setup")
     setup_db(args)
 
@@ -2292,6 +2295,8 @@ def upgrade_stack(args, stack_id):
   retcode, outdata, errdata = run_os_command(command)
   if not retcode == 0:
     raise FatalException(retcode, errdata)
+  if errdata:
+    print_warning_msg(errdata)
   return retcode
 
 
