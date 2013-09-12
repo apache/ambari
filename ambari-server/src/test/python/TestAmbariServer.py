@@ -4051,7 +4051,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, "store_password_file")
   @patch("sys.exit")
   @patch('__builtin__.raw_input')
-  def test_ambariServerSetupWithCustomDbName(self, raw_input, exit_mock, store_password_file_mock, get_is_secure_mock, setup_db_mock, is_root_mock, is_local_database_mock,
+  def test_ambariServerSetupWithCustomDbName(self, raw_input, exit_mock, store_password_file_mock,
+                                              get_is_secure_mock, setup_db_mock, is_root_mock, is_local_database_mock,
                                              check_selinux_mock, check_jdbc_drivers_mock, check_ambari_user_mock,
                                              check_iptables_mock, check_postgre_up_mock, configure_postgres_mock,
                                              download_jdk_mock, configure_os_settings_mock, get_YN_input,
@@ -4085,10 +4086,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     tempdir = tempfile.gettempdir()
     prop_file = os.path.join(tempdir, "ambari.properties")
     with open(prop_file, "w") as f:
-      f.write("server.jdbc.database=oldDBName")
-    f.close()
-
-    with open(ambari_server.AMBARI_PROPERTIES_FILE, "w") as f:
       f.write("server.jdbc.database=oldDBName")
     f.close()
 
