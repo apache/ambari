@@ -230,6 +230,51 @@ class TestHostInfo(TestCase):
     self.assertTrue(newlist[1]['status'], "Invalid home directory")
 
 
+  @patch.object(HostInfo, 'get_os_type')
+  @patch('os.umask')
+  @patch.object(HostInfo, 'osdiskAvailableSpace')
+  @patch.object(HostCheckReportFileHandler, 'writeHostCheckFile')
+  @patch.object(PackagesAnalyzer, 'allAvailablePackages')
+  @patch.object(PackagesAnalyzer, 'allInstalledPackages')
+  @patch.object(PackagesAnalyzer, 'getPackageDetails')
+  @patch.object(PackagesAnalyzer, 'getInstalledPkgsByNames')
+  @patch.object(PackagesAnalyzer, 'getInstalledPkgsByRepo')
+  @patch.object(PackagesAnalyzer, 'getInstalledRepos')
+  @patch.object(HostInfo, 'checkUsers')
+  @patch.object(HostInfo, 'checkLiveServices')
+  @patch.object(HostInfo, 'javaProcs')
+  @patch.object(HostInfo, 'checkFolders')
+  @patch.object(HostInfo, 'etcAlternativesConf')
+  @patch.object(HostInfo, 'hadoopVarRunCount')
+  @patch.object(HostInfo, 'hadoopVarLogCount')
+  def test_hostinfo_register_suse(self, hvlc_mock, hvrc_mock, eac_mock, cf_mock, jp_mock,
+                             cls_mock, cu_mock, gir_mock, gipbr_mock, gipbn_mock,
+                             gpd_mock, aip_mock, aap_mock, whcf_mock, odas_mock,
+                             os_umask_mock, get_os_type_mock):
+    hvlc_mock.return_value = 1
+    hvrc_mock.return_value = 1
+    gipbr_mock.return_value = ["pkg1"]
+    gipbn_mock.return_value = ["pkg2"]
+    gpd_mock.return_value = ["pkg1", "pkg2"]
+    odas_mock.return_value = [{'name':'name1'}]
+    get_os_type_mock.return_value = "suse"
+
+    hostInfo = HostInfo()
+    dict = {}
+    hostInfo.register(dict, False, False)
+    self.assertFalse(gir_mock.called)
+    self.assertFalse(gpd_mock.called)
+    self.assertFalse(aip_mock.called)
+    self.assertFalse(aap_mock.called)
+    self.assertTrue(odas_mock.called)
+    self.assertTrue(os_umask_mock.called)
+    self.assertFalse(whcf_mock.called)
+
+    self.assertTrue(0 == len(dict['installedPackages']))
+    self.assertTrue('agentTimeStampAtReporting' in dict['hostHealth'])
+
+
+  @patch.object(HostInfo, 'get_os_type')
   @patch('os.umask')
   @patch.object(HostInfo, 'osdiskAvailableSpace')
   @patch.object(HostCheckReportFileHandler, 'writeHostCheckFile')
@@ -249,13 +294,14 @@ class TestHostInfo(TestCase):
   def test_hostinfo_register(self, hvlc_mock, hvrc_mock, eac_mock, cf_mock, jp_mock,
                              cls_mock, cu_mock, gir_mock, gipbr_mock, gipbn_mock,
                              gpd_mock, aip_mock, aap_mock, whcf_mock, odas_mock,
-                             os_umask_mock):
+                             os_umask_mock, get_os_type_mock):
     hvlc_mock.return_value = 1
     hvrc_mock.return_value = 1
     gipbr_mock.return_value = ["pkg1"]
     gipbn_mock.return_value = ["pkg2"]
     gpd_mock.return_value = ["pkg1", "pkg2"]
     odas_mock.return_value = [{'name':'name1'}]
+    get_os_type_mock.return_value = "redhat"
 
     hostInfo = HostInfo()
     dict = {}

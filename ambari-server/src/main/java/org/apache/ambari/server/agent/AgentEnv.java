@@ -32,11 +32,6 @@ public class AgentEnv {
   private Directory[] stackFoldersAndFiles = new Directory[0];
 
   /**
-   * Various RPM package versions.
-   */
-  private Rpm[] rpms = new Rpm[0];
-
-  /**
    * Directories that match name <code>/etc/alternatives/*conf</code>
    */
   private Alternative[] alternatives = new Alternative[0];
@@ -77,14 +72,6 @@ public class AgentEnv {
   
   public void setStackFoldersAndFiles(Directory[] dirs) {
     stackFoldersAndFiles = dirs;
-  }
-  
-  public void setRpms(Rpm[] rpm) {
-    rpms = rpm;
-  }
-  
-  public Rpm[] getRpms() {
-    return rpms;
   }
   
   public void setExistingUsers(ExistingUser[] users) {
@@ -196,43 +183,6 @@ public class AgentEnv {
 
     public DiskInfo[] getDiskStatus() {
       return diskStatus;
-    }
-  }
-
-  /**
-   * Represents information about rpm-installed packages
-   */
-  public static class Rpm {
-    @SerializedName("name")
-    private String rpmName;
-    @SerializedName("installed")
-    private boolean rpmInstalled = false;
-    @SerializedName("version")
-    private String rpmVersion;
-    
-    public void setName(String name) {
-      rpmName = name;
-    }
-    
-    public String getName() {
-      return rpmName;
-    }
-    
-    public void setInstalled(boolean installed) {
-      rpmInstalled = installed;
-    }
-    
-    public boolean isInstalled() {
-      return rpmInstalled;
-    }
-    
-    public void setVersion(String version) {
-      rpmVersion = version;
-    }
-    
-    @JsonSerialize(include=Inclusion.NON_NULL)
-    public String getVersion() {
-      return rpmVersion;
     }
   }
 

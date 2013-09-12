@@ -103,18 +103,21 @@ created = 2013-07-02 20:39:22.162757"""
       self.inputfile = inputfile
       self.skip = skip
       self.verbose = False
-      
-  @patch.object(HostCleanup.HostCleanup, 'do_cleanup')  
+
+  @patch.object(HostCleanup, 'get_YN_input')
+  @patch.object(HostCleanup.HostCleanup, 'do_cleanup')
   @patch.object(HostCleanup.HostCleanup, 'is_current_user_root')
   @patch.object(logging.FileHandler, 'setFormatter')
   @patch.object(HostCleanup.HostCleanup,'read_host_check_file')
   @patch.object(logging,'basicConfig')
   @patch.object(logging, 'FileHandler')
   @patch.object(optparse.OptionParser, 'parse_args')
-  def test_options(self, parser_mock, file_handler_mock, logging_mock, read_host_check_file_mock, set_formatter_mock, user_root_mock, do_cleanup_mock):
+  def test_options(self, parser_mock, file_handler_mock, logging_mock, read_host_check_file_mock,
+                   set_formatter_mock, user_root_mock, do_cleanup_mock, get_yn_input_mock):
     parser_mock.return_value = (TestHostCleanup.HostCleanupOptions('/someoutputfile', '/someinputfile', '', False), [])
     file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
     user_root_mock.return_value = True
+    get_yn_input_mock.return_value = True
     HostCleanup.main()
     
     # test --out
@@ -140,9 +143,6 @@ created = 2013-07-02 20:39:22.162757"""
                       do_erase_files_silent_method, do_kill_processes_method,
                       get_os_type_method, find_repo_files_for_repos_method,
                       do_erase_alternatives_method):
-    global SKIP_LIST
-    oldSkipList = HostCleanup.SKIP_LIST
-    HostCleanup.SKIP_LIST = []
     out = StringIO.StringIO()
     sys.stdout = out
     propertyMap = {PACKAGE_SECTION:['abcd', 'pqrst'], USER_SECTION:['abcd', 'pqrst'],
@@ -170,7 +170,6 @@ created = 2013-07-02 20:39:22.162757"""
     do_erase_alternatives_method.assert_called_once_with({ALT_KEYS[0]:['alt1',
                                               'alt2'], ALT_KEYS[1]:['dir1']})
 
-    HostCleanup.SKIP_LIST = oldSkipList
     sys.stdout = sys.__stdout__
 
 
@@ -191,6 +190,9 @@ created = 2013-07-02 20:39:22.162757"""
                       do_erase_alternatives_method, get_user_ids_method,
                       do_delete_by_owner_method):
 
+    global SKIP_LIST
+    oldSkipList = HostCleanup.SKIP_LIST
+    HostCleanup.SKIP_LIST = ["users"]
     out = StringIO.StringIO()
     sys.stdout = out
     propertyMap = {PACKAGE_SECTION:['abcd', 'pqrst'], USER_SECTION:['abcd', 'pqrst'],
@@ -211,6 +213,7 @@ created = 2013-07-02 20:39:22.162757"""
     self.assertTrue(do_erase_packages_method.called)
     self.assertTrue(do_kill_processes_method.called)
     self.assertTrue(do_erase_alternatives_method.called)
+    HostCleanup.SKIP_LIST = oldSkipList
     sys.stdout = sys.__stdout__
 
   @patch.object(HostCleanup.HostCleanup, 'find_repo_files_for_repos')

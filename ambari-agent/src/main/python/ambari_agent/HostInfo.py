@@ -80,7 +80,7 @@ class HostInfo:
   # Additional packages to look for (search packages that start with these)
   ADDITIONAL_PACKAGES = [
     "rrdtool", "rrdtool-python", "nagios", "ganglia", "gmond", "gweb", "libconfuse", "ambari-log4j",
-    "hadoop", "zookeeper"
+    "hadoop", "zookeeper", "oozie", "webhcat"
   ]
 
   # ignore packages from repos whose names start with these strings
@@ -263,8 +263,15 @@ class HostInfo:
      return self.current_umask
     else:
      return self.current_umask
- 
- 
+
+
+  def get_os_type(self):
+    os_info = platform.linux_distribution(
+      None, None, None, ['SuSE', 'redhat' ], 0
+    )
+    return os_info[0].lower()
+
+
   """ Return various details about the host
   componentsMapped: indicates if any components are mapped to this host
   commandsInProgress: indicates if any commands are in progress
@@ -278,17 +285,18 @@ class HostInfo:
 
     dict['hostHealth']['diskStatus'] = [self.osdiskAvailableSpace("/")]
 
-    dict['rpms'] = []
-
     liveSvcs = []
     self.checkLiveServices(self.DEFAULT_LIVE_SERVICES, liveSvcs)
     dict['hostHealth']['liveServices'] = liveSvcs
     
     dict['umask'] = str(self.getUMask())
 
+    # detailed host check is not available for Suse
+    isSuse =  'suse' == self.get_os_type()
+
     # If commands are in progress or components are already mapped to this host
     # Then do not perform certain expensive host checks
-    if componentsMapped or commandsInProgress:
+    if componentsMapped or commandsInProgress or isSuse:
       dict['existingRepos'] = [self.RESULT_UNAVAILABLE]
       dict['installedPackages'] = []
       dict['alternatives'] = []

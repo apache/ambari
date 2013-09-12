@@ -45,7 +45,7 @@ ALT_ERASE_CMD = "alternatives --remove {0} {1}"
 
 REPO_PATH_RHEL = "/etc/yum.repos.d"
 REPO_PATH_SUSE = "/etc/zypp/repos.d/"
-SKIP_LIST = ["users"]
+SKIP_LIST = []
 HOST_CHECK_FILE_NAME = "hostcheck.result"
 OUTPUT_FILE_NAME = "hostcleanup.result"
 
@@ -70,8 +70,8 @@ FOLDER_LIST = ["/tmp"]
 REPOSITORY_BLACK_LIST = ["ambari.repo"]
 PACKAGES_BLACK_LIST = ["ambari-server", "ambari-agent"]
 
-class HostCleanup:
 
+class HostCleanup:
   def resolve_ambari_config(self):
     try:
       config = AmbariConfig.config
@@ -124,7 +124,8 @@ class HostCleanup:
   def read_host_check_file(self, config_file_path):
     propertyMap = {}
     try:
-      with open(config_file_path, 'r'): pass
+      with open(config_file_path, 'r'):
+        pass
     except Exception, e:
       logger.error("Host check result not found at: " + str(config_file_path))
       return None
@@ -196,7 +197,7 @@ class HostCleanup:
       out = p2.communicate()[0]
       logger.debug('alternatives --display ' + alt_name + '\n, out = ' + out)
     except:
-      logger.warn('Cannot process alternative named: ' + alt_name + ',' +\
+      logger.warn('Cannot process alternative named: ' + alt_name + ',' + \
                   'error: ' + str(sys.exc_info()[0]))
 
     return out
@@ -222,8 +223,8 @@ class HostCleanup:
                 for entry in alternates:
                   if entry:
                     alt_path = entry.split()[0]
-                    logger.debug('Erasing alternative named: ' + alt_name + ', '\
-                                  'path: ' + alt_path)
+                    logger.debug('Erasing alternative named: ' + alt_name + ', ' \
+                                                                            'path: ' + alt_path)
 
                     command = ALT_ERASE_CMD.format(alt_name, alt_path)
                     (returncode, stdoutdata, stderrdata) = self.run_os_command(command)
@@ -308,7 +309,7 @@ class HostCleanup:
         logger.warn("Unsupported OS type, cannot remove package.")
 
       if command != '':
-        logger.debug('Executing: '+ str(command))
+        logger.debug('Executing: ' + str(command))
         (returncode, stdoutdata, stderrdata) = self.run_os_command(command)
         if returncode != 0:
           logger.warn("Erasing packages failed: " + stderrdata)
@@ -390,7 +391,7 @@ class HostCleanup:
 
   def get_os_type(self):
     os_info = platform.linux_distribution(
-      None, None, None, ['SuSE', 'redhat' ], 0
+      None, None, None, ['SuSE', 'redhat'], 0
     )
     return os_info[0].lower()
 
@@ -403,9 +404,9 @@ class HostCleanup:
     if type(cmd) == str:
       cmd = shlex.split(cmd)
     process = subprocess.Popen(cmd,
-      stdout=subprocess.PIPE,
-      stdin=subprocess.PIPE,
-      stderr=subprocess.PIPE
+                               stdout=subprocess.PIPE,
+                               stdin=subprocess.PIPE,
+                               stderr=subprocess.PIPE
     )
     (stdoutdata, stderrdata) = process.communicate()
     return process.returncode, stdoutdata, stderrdata
@@ -429,6 +430,27 @@ def backup_file(filePath):
       logger.warn('Could not backup file "%s": %s' % (str(filePath, e)))
   return 0
 
+
+def get_YN_input(prompt, default):
+  yes = set(['yes', 'ye', 'y'])
+  no = set(['no', 'n'])
+  return get_choice_string_input(prompt, default, yes, no)
+
+
+def get_choice_string_input(prompt, default, firstChoice, secondChoice):
+  choice = raw_input(prompt).lower()
+  if choice in firstChoice:
+    return True
+  elif choice in secondChoice:
+    return False
+  elif choice is "": # Just enter pressed
+    return default
+  else:
+    print "input not recognized, please try again: "
+    return get_choice_string_input(prompt, default, firstChoice, secondChoice)
+  pass
+
+
 def main():
   h = HostCleanup()
   config = h.resolve_ambari_config()
@@ -438,16 +460,16 @@ def main():
 
   parser = optparse.OptionParser()
   parser.add_option("-v", "--verbose", dest="verbose", action="store_false",
-    default=False, help="output verbosity.")
+                    default=False, help="output verbosity.")
   parser.add_option("-f", "--file", dest="inputfile",
-    default=hostCheckFilePath,
-    help="host check result file to read.", metavar="FILE")
+                    default=hostCheckFilePath,
+                    help="host check result file to read.", metavar="FILE")
   parser.add_option("-o", "--out", dest="outputfile",
-    default=hostCheckResultPath,
-    help="log file to store results.", metavar="FILE")
+                    default=hostCheckResultPath,
+                    help="log file to store results.", metavar="FILE")
   parser.add_option("-k", "--skip", dest="skip",
-    help="(packages|users|directories|repositories|processes|alternatives)." +\
-         " Use , as separator. Use empty string to clean all (by default users are skipped)")
+                    help="(packages|users|directories|repositories|processes|alternatives)." + \
+                         " Use , as separator.")
 
   (options, args) = parser.parse_args()
   # set output file
@@ -469,10 +491,16 @@ def main():
     global SKIP_LIST
     SKIP_LIST = options.skip.split(',')
 
-
   is_root = h.is_current_user_root()
   if not is_root:
     raise RuntimeError('HostCleanup needs to be run as root.')
+
+  if "users" not in SKIP_LIST:
+    delete_users = get_YN_input('You have elected to remove all users as well. If it is not intended then use '
+                               'option --skip \"users\". Do you want to continue [y/n] (n)', False)
+    if not delete_users:
+      print 'Exiting. Use option --skip="users" to skip deleting users'
+      sys.exit(1)
 
   hostcheckfile = options.inputfile
   propMap = h.read_host_check_file(hostcheckfile)
