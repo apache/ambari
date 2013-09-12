@@ -99,29 +99,25 @@ App.MainDashboardView = Em.View.extend({
     if (this.get('hdfs_model') == null) {
       var hdfs= ['1', '2', '3', '4', '5', '15', '17'];
       hdfs.forEach ( function (item) {
-        var index = visibleFull.indexOf(item);
-        visibleFull.splice(index, 1);
+        visibleFull = visibleFull.without(item);
       }, this);
     }
     if (this.get('mapreduce_model') == null) {
       var map = ['6', '7', '8', '9', '10', '16', '18'];
       map.forEach ( function (item) {
-        var index = visibleFull.indexOf(item);
-        visibleFull.splice(index, 1);
+        visibleFull = visibleFull.without(item);
       }, this);
     }
     if (this.get('hbase_model') == null) {
       var hbase = ['19', '20', '21', '23'];
       hbase.forEach ( function (item) {
-        var index = visibleFull.indexOf(item);
-        visibleFull.splice(index, 1);
+        visibleFull = visibleFull.without(item);
       }, this);
       hiddenFull = [];
     }if (this.get('yarn_model') == null) {
       var yarn = ['24', '25', '26', '27'];
       yarn.forEach ( function (item) {
-        var index = visibleFull.indexOf(item);
-        visibleFull.splice(index, 1);
+        visibleFull = visibleFull.without(item);
       }, this);
     }
     var obj = this.get('initPrefObject');
@@ -238,8 +234,9 @@ App.MainDashboardView = Em.View.extend({
           currentPrefObject.dashboardVersion = 'new';
           this.postUserPref(this.get('persistKey'), currentPrefObject);
         }
-        this.hasUpgraded(currentPrefObject);
-        this.translateToReal(currentPrefObject);
+        this.checkServicesChange();
+        this.getUserPref(this.get('persistKey'));
+        this.translateToReal(this.get('currentPrefObject'));
       } else {
         // post persist then translate init object
         this.postUserPref(this.get('persistKey'), this.get('initPrefObject'));
@@ -247,41 +244,89 @@ App.MainDashboardView = Em.View.extend({
       }
     }
   },
-  /**
-   * check id stack has upgraded from HDP 1.0 to 2.0. Update the value on server if true.
-   */
-  hasUpgraded: function (value) {
-    var visible = value.visible;
-    var hidden = value.hidden;
-    var mapWidgets = ['6', '7', '8', '9', '10', '16', '18'];
-    var yarnWidgets = ['24', '25', '26', '27'];
-
-    // check if cur_value has mapReduce
-    var curhasMapreduce = visible.contains ( mapWidgets[0]);
-    for (var j = 0; j <= hidden.length -1; j++) {
-      if ( !curhasMapreduce && hidden[j][0] == mapWidgets[0]) {
-        curhasMapreduce = true;
+  removeWidget: function (value, itemToRemove) {
+    value.visible = value.visible.without(itemToRemove);
+    for (var j = 0; j <= value.hidden.length -1; j++) {
+      if (value.hidden[j][0] == itemToRemove) {
+        value.hidden.splice(j, 1);
+      }
+    }
+    return value;
+  },
+  containsWidget: function (value, item) {
+    var flag = value.visible.contains (item);
+    for (var j = 0; j <= value.hidden.length -1; j++) {
+      if ( !flag && value.hidden[j][0] == item) {
+        flag = true;
         break;
       }
     }
-    // check if stack upgrade from 1.0 to 2.0.
-    if ( this.get('yarn_model') != null && curhasMapreduce) {
-      // Remove all Mapreduce widgets and add Yarn widgets as visible
-      mapWidgets.forEach ( function (item) {
-        visible = visible.without(item);
-        for (var j = 0; j <= hidden.length -1; j++) {
-          if (hidden[j][0] == item) {
-            hidden.splice(j, 1);
-          }
-        }
+    return flag;
+  },
+  /**
+   * check if stack has upgraded from HDP 1.0 to 2.0 OR add/delete services.
+   * Update the value on server if true.
+   */
+  checkServicesChange: function () {
+    var toDelete =  this.get('currentPrefObject');
+    var toAdd = [];
+    var self = this;
+
+    // check each service, find out the newly added service and already deleted service
+    if (this.get('hdfs_model') != null) {
+      var hdfsAndMetrics= ['1', '2', '3', '4', '5', '15', '17', '11', '12', '13', '14'];
+      hdfsAndMetrics.forEach ( function (item) {
+        toDelete = self.removeWidget(toDelete, item);
       }, this);
-      visible = visible.concat (yarnWidgets);
-      //post to server
-      var obj = this.get('currentPrefObject');
-      obj.visible = visible;
-      obj.hidden = hidden;
-      this.postUserPref(this.get('persistKey'), obj);
     }
+    if (this.get('mapreduce_model') != null) {
+      var map = ['6', '7', '8', '9', '10', '16', '18'];
+      var flag = self.containsWidget(toDelete, map[0]);
+      if (flag) {
+        map.forEach ( function (item) {
+          toDelete = self.removeWidget(toDelete, item);
+        }, this);
+      } else {
+        toAdd = toAdd.concat(map);
+      }
+    }
+    if (this.get('hbase_model') != null) {
+      var hbase = ['19', '20', '21', '22', '23'];
+      var flag = self.containsWidget(toDelete, hbase[0]);
+      if (flag) {
+        hbase.forEach ( function (item) {
+          toDelete = self.removeWidget(toDelete, item);
+        }, this);
+      } else {
+        toAdd = toAdd.concat(hbase);
+      }
+    }
+    if (this.get('yarn_model') != null) {
+      var yarn = ['24', '25', '26', '27'];
+      var flag = self.containsWidget(toDelete, yarn[0]);
+      if (flag) {
+        yarn.forEach ( function (item) {
+          toDelete = self.removeWidget(toDelete, item);
+        }, this);
+      } else {
+        toAdd = toAdd.concat(yarn);
+      }
+    }
+    this.getUserPref(this.get('persistKey'));
+    var value = this.get('currentPrefObject');
+    if (toDelete.visible.length || toDelete.hidden.length) {
+      toDelete.visible.forEach ( function (item) {
+        value = self.removeWidget(value, item);
+      }, this);
+      toDelete.hidden.forEach ( function (item) {
+        value = self.removeWidget(value, item[0]);
+      }, this);
+    }
+    if (toAdd.length) {
+      value.visible = value.visible.concat(toAdd);
+    }
+    //post to server
+    this.postUserPref(this.get('persistKey'), value);
   },
 
   widgetsMapper: function (id) {
