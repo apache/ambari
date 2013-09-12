@@ -19,17 +19,36 @@
 
 /* This plugin makes call to namenode, get the jmx-json document
  * check the NameDirStatuses to find any offline (failed) directories
- * check_jmx -H hostaddress -p port
+ * check_jmx -H hostaddress -p port -k keytab path -r principal name -t kinit path -s security enabled
  */
+ 
+  include "hdp_nagios_init.php";
 
-  $options = getopt ("h:p:");
-  if (!array_key_exists('h', $options) || !array_key_exists('p', $options)) {
+  $options = getopt ("h:p:k:r:t:s:");
+  if (!array_key_exists('h', $options) || !array_key_exists('p', $options)
+    || !array_key_exists('k', $options) || !array_key_exists('r', $options)
+    || !array_key_exists('t', $options) || !array_key_exists('s', $options)
+  ) {
     usage();
     exit(3);
   }
 
   $host=$options['h'];
   $port=$options['p'];
+  $keytab_path=$options['k'];
+  $principal_name=$options['r'];
+  $kinit_path_local=$options['t'];
+  $security_enabled=$options['s'];
+  
+  /* Kinit if security enabled */
+  $status = kinit_if_needed($security_enabled, $kinit_path_local, $keytab_path, $principal_name);
+  $retcode = $status[0];
+  $output = $status[1];
+  
+  if ($output != 0) {
+    echo "CRITICAL: Error doing kinit for nagios. $output";
+    exit (2);
+  }
 
   /* Get the json document */
   $ch = curl_init();
@@ -61,6 +80,6 @@
 
   /* print usage */
   function usage () {
-    echo "Usage: $0 -h <host> -p port\n";
+    echo "Usage: $0 -h <host> -p port -k keytab path -r principal name -t kinit path -s security enabled";
   }
 ?>

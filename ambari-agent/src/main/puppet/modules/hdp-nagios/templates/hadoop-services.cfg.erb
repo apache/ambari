@@ -257,7 +257,7 @@ define service {
         use                     hadoop-service
         service_description     NAMENODE::NameNode edit logs directory status
         servicegroups           HDFS
-        check_command           check_name_dir_status!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>
+        check_command           check_name_dir_status!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>!<%=scope.function_hdp_template_var("::hdp::params::security_enabled")%>
         normal_check_interval   0.5
         retry_check_interval    0.5
         max_check_attempts      3
