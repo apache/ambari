@@ -1141,6 +1141,11 @@
         "metric":"Hadoop:service=NameNode,name=UgiMetrics.LoginSuccessNumOps",
         "pointInTime":true,
         "temporal":false
+      },
+      "metrics/runtime/StartTime":{
+        "metric" : "java.lang:type=Runtime.StartTime",
+        "pointInTime" : true,
+        "temporal" : false
       }
     },
     "DATANODE":{
