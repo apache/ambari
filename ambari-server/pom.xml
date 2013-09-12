@@ -94,6 +94,7 @@
           <descriptors>
             <descriptor>src/main/assemblies/server.xml</descriptor>
           </descriptors>
+          <tarLongFileMode>gnu</tarLongFileMode>
         </configuration>
         <executions>
           <execution>
