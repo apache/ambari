@@ -266,14 +266,16 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
         public boolean evaluate(Object hostResponse) {
           return ((HostResponse) hostResponse).getHostname().equals(gangliaCollectorHostName);
         }
-      });      
+      });
     } catch (AmbariException e) {
       LOG.debug("Error checking of Ganglia server host live status: ", e);
       return false;
     }
     
-    LOG.debug("Host state: " + gangliaCollectorHost.getHostState());
-    
+    //Cluster without Ganglia
+    if (gangliaCollectorHost == null)
+      return false;
+
     return !gangliaCollectorHost.getHostState().equals(HostState.HEARTBEAT_LOST.name());
   }
   
@@ -302,6 +304,10 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
       LOG.debug("Error checking of Ganglia server host component state: ", e);
       return false;
     }
+    
+    //Cluster without Ganglia
+    if (gangliaCollectorHostComponent == null)
+      return false;
     
     return gangliaCollectorHostComponent.getLiveState().equals(State.STARTED.name());
   }
