@@ -47,7 +47,6 @@ class hdp-nagios::server::config()
   hdp-nagios::server::check { 'check_oozie_status.sh': }
   hdp-nagios::server::check { 'check_templeton_status.sh': }
   hdp-nagios::server::check { 'check_hive_metastore_status.sh': }
-  hdp-nagios::server::check { 'check_ambari_agent_status.sh': }
   hdp-nagios::server::check { 'check_hue_status.sh': }
   hdp-nagios::server::check { 'check_mapred_local_dir_used.sh': }
   hdp-nagios::server::check { 'check_nodemanager_health.sh': }

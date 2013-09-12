@@ -33,7 +33,7 @@ secured_url_port=8441
 prefix=/tmp/ambari-agent
 data_cleanup_interval=86400
 data_cleanup_max_age=2592000
-ping_port=0
+ping_port=8670
 
 [services]
 

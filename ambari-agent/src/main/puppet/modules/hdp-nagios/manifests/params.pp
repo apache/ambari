@@ -92,6 +92,7 @@ class hdp-nagios::params() inherits hdp::params
     hue-server => {host_member_info => 'hue_server_host'},
     resourcemanager => {host_member_info => 'rm_host'},
     nodemanagers => {host_member_info => 'nm_hosts'},
-    historyserver2 => {host_member_info => 'hs_host'}
+    historyserver2 => {host_member_info => 'hs_host'},
+    journalnodes => {host_member_info => 'journalnode_hosts'}
   }
 }
