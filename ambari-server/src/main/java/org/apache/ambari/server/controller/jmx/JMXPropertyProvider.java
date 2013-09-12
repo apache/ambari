@@ -314,11 +314,6 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
     }
     
     String protocol = getJMXProtocol(clusterName, componentName);
-    if (protocol == null) {
-      throw new SystemException(
-          "Unable to get JMX metrics.  No protocol name for " + componentName, null);
-    }
-
     try {
       InputStream in = streamProvider.readFrom(getSpec(protocol, hostName, port));
 
