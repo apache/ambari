@@ -85,7 +85,11 @@ class hdp-oozie(
        override_owner => true
      }
 
-     hdp-oozie::configfile { ['oozie-env.sh','oozie-log4j.properties']: }
+     hdp-oozie::configfile { 'oozie-env.sh': }
+
+     if ($service_state == 'installed_and_configured') {
+       hdp-oozie::configfile { 'oozie-log4j.properties': }
+     }
 
      hdp-oozie::ownership { 'ownership': }
 

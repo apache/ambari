@@ -191,10 +191,11 @@ class hdp-hadoop::params(
   $task_bin_exe = hdp_default("task_bin_exe")
 
   $rca_enabled = hdp_default("rca_enabled", false)
+  $rca_disabled_prefix = "###"
   if ($rca_enabled == true) {
     $rca_prefix = ""
   } else {
-    $rca_prefix = "###"
+    $rca_prefix = $rca_disabled_prefix
   }
   # $ambari_db_server_host = hdp_default("ambari_db_server_host", "localhost")
   $ambari_db_rca_url = hdp_default("ambari_db_rca_url", "jdbc:postgresql://localhost/ambarirca")

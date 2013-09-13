@@ -305,11 +305,23 @@ class hdp-hadoop(
       mode  => $tc_mode
     }
 
-    $template_files = [ 'hadoop-env.sh', 'health_check', 'commons-logging.properties', 'log4j.properties', 'slaves']
+    $template_files = [ 'hadoop-env.sh', 'health_check', 'commons-logging.properties', 'slaves']
     hdp-hadoop::configfile { $template_files:
       tag   => 'common', 
       owner => $hdfs_user
     }
+
+    # log4j.properties has to be installed just one time to prevent
+    # manual changes overwriting
+    if ('installed_and_configured' in $service_states) {
+      hdp-hadoop::configfile { 'log4j.properties' :
+        tag   => 'common',
+        owner => $hdfs_user,
+      }
+    }
+
+    # updating log4j.properties with data which is sent from server
+    hdp-hadoop::update-log4j-properties { 'log4j.properties': }
     
     hdp-hadoop::configfile { 'hadoop-metrics2.properties' : 
       tag   => 'common', 
@@ -349,11 +361,11 @@ class hdp-hadoop(
 
     if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
       Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Package<||> ->  Hdp::User<|title == $hdfs_user or title == $mapred_user|>  ->
-      Hdp::Directory_recursive_create[$hadoop_config_dir] -> Hdp-hadoop::Configfile<|tag == 'common'|> ->
+      Hdp::Directory_recursive_create[$hadoop_config_dir] -> Hdp-hadoop::Configfile<|tag == 'common'|> -> Hdp-hadoop::Update-log4j-properties['log4j.properties'] ->
       Hdp::Directory_recursive_create[$logdirprefix] -> Hdp::Directory_recursive_create[$piddirprefix] -> Hdp::Directory_recursive_create["$hadoop_tmp_dir"] -> Anchor['hdp-hadoop::end']
     } else {
       Anchor['hdp-hadoop::begin'] -> Hdp-hadoop::Package<||> ->  Hdp::User<|title == $hdfs_user or title == $mapred_user|>  ->
-      Hdp::Directory_recursive_create[$hadoop_config_dir] -> Hdp-hadoop::Configfile<|tag == 'common'|> ->
+      Hdp::Directory_recursive_create[$hadoop_config_dir] -> Hdp-hadoop::Configfile<|tag == 'common'|> -> Hdp-hadoop::Update-log4j-properties['log4j.properties'] ->
       Hdp::Directory_recursive_create[$logdirprefix] -> Hdp::Directory_recursive_create[$piddirprefix] -> Anchor['hdp-hadoop::end']
     }
 
@@ -478,5 +490,43 @@ define hdp-hadoop::exec-hadoop(
     try_sleep   => $try_sleep,
     logoutput   => $logoutput,
     onlyif      => $onlyif,
+  }
+}
+
+#####
+define hdp-hadoop::update-log4j-properties(
+  $hadoop_conf_dir = $hdp-hadoop::params::conf_dir
+)
+{
+  $properties = [
+    { name => 'ambari.jobhistory.database', value => $hdp-hadoop::params::ambari_db_rca_url },
+    { name => 'ambari.jobhistory.driver', value => $hdp-hadoop::params::ambari_db_rca_driver },
+    { name => 'ambari.jobhistory.user', value => $hdp-hadoop::params::ambari_db_rca_username },
+    { name => 'ambari.jobhistory.password', value => $hdp-hadoop::params::ambari_db_rca_password },
+    { name => 'ambari.jobhistory.logger', value => 'DEBUG,JHA' },
+
+    { name => 'log4j.appender.JHA', value => 'org.apache.ambari.log4j.hadoop.mapreduce.jobhistory.JobHistoryAppender' },
+    { name => 'log4j.appender.JHA.database', value => '${ambari.jobhistory.database}' },
+    { name => 'log4j.appender.JHA.driver', value => '${ambari.jobhistory.driver}' },
+    { name => 'log4j.appender.JHA.user', value => '${ambari.jobhistory.user}' },
+    { name => 'log4j.appender.JHA.password', value => '${ambari.jobhistory.password}' },
+
+    { name => 'log4j.logger.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger', value => '${ambari.jobhistory.logger}' },
+    { name => 'log4j.additivity.org.apache.hadoop.mapred.JobHistory$JobHistoryLogger', value => 'true' }
+  ]
+  hdp-hadoop::update-log4j-property { $properties :
+    log4j_file      => $name,
+    hadoop_conf_dir => $hadoop_conf_dir
+  }
+}
+
+#####
+define hdp-hadoop::update-log4j-property(
+  $log4j_file,
+  $hadoop_conf_dir = $hdp-hadoop::params::conf_dir
+)
+{
+  hdp::exec{ "sed -i 's~\(${hdp-hadoop::params::rca_disabled_prefix}\)\?${name[name]}=.*~${hdp-hadoop::params::rca_prefix}${name[name]}=${name[value]}~' ${hadoop_conf_dir}/${log4j_file}":
+    command => "sed -i 's~\(${hdp-hadoop::params::rca_disabled_prefix}\)\?${name[name]}=.*~${hdp-hadoop::params::rca_prefix}${name[name]}=${name[value]}~' ${hadoop_conf_dir}/${log4j_file}"
   }
 }

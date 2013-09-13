@@ -74,7 +74,11 @@ class hdp-zookeeper(
       owner => $zk_user
      }
 
-     hdp-zookeeper::configfile { ['zoo.cfg','zookeeper-env.sh','configuration.xsl','log4j.properties']: }
+     hdp-zookeeper::configfile { ['zoo.cfg','zookeeper-env.sh','configuration.xsl']: }
+
+     if ($service_state == 'installed_and_configured') {
+       hdp-zookeeper::configfile { 'log4j.properties': }
+     }
  
      if ($hdp::params::update_zk_shell_files == true) {
        hdp-zookeeper::shell_file{ ['zkServer.sh','zkEnv.sh']: }
