@@ -31,6 +31,7 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
   POLL_INTERVAL: 4000,
   isSubmitDisabled: true,
   serviceTimestamp: null,
+  isRollback: false,
 
   loadStep: function () {
     this.clearStep();

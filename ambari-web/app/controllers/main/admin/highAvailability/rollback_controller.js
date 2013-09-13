@@ -27,6 +27,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   configsSaved: false,
   deletedHdfsClients: 0,
   numOfDelOperations: 0,
+  isRollback: true,
 
 
   content: Em.Object.create({
