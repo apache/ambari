@@ -336,11 +336,25 @@ App.Router = Em.Router.extend({
     console.log("failed to invoke logout on the server");
   },
 
+  /**
+   * initialize isAdmin if user is administrator
+   */
+  initAdmin: function(){
+    if(App.db && App.db.getUser() && App.db.getUser().admin) {
+      App.set('isAdmin', true);
+      console.log('Administrator logged in');
+    }
+  },
+
   root: Em.Route.extend({
     index: Em.Route.extend({
       route: '/',
       redirectsTo: 'login'
     }),
+
+    enter: function(router){
+      router.initAdmin();
+    },
 
     login: Em.Route.extend({
       route: '/login',

@@ -31,7 +31,7 @@ module.exports = Em.Route.extend({
       var name = 'Cluster Install Wizard';
       $('title').text('Ambari - ' + name);
 
-      if (App.db.getUser().admin) {
+      if (App.get('isAdmin')) {
         router.get('mainController').stopPolling();
         console.log('In installer with successful authenticated');
         console.log('current step=' + router.get('installerController.currentStep'));

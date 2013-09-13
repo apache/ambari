@@ -23,7 +23,7 @@ module.exports = Em.Route.extend({
 
   enter: function (router) {
     console.log('in /service/add:enter');
-    if (App.db.getUser().admin) {
+    if (App.get('isAdmin')) {
       Em.run.next(function () {
         var addServiceController = router.get('addServiceController');
         App.router.get('updateController').set('isWorking', false);
