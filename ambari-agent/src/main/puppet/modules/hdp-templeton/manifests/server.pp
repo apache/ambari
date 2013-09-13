@@ -58,6 +58,14 @@ class hdp-templeton::server(
     service_state => $service_state,
     server        => true
   }
+  
+  hdp-hadoop::namenode::create_app_directories { 'create_app_directories' :
+      service_state => $service_state
+  }
+
+  hdp-hadoop::namenode::create_user_directories { 'create_user_directories' :
+    service_state => $service_state
+  }
 
   class { 'hdp-templeton::copy-hdfs-directories' :
     service_state => $service_state
@@ -68,7 +76,7 @@ class hdp-templeton::server(
   }
   
   #top level does not need anchors
-  Class['hdp-templeton'] -> Class['hdp-templeton::copy-hdfs-directories'] -> Class['hdp-templeton::service']
+  Class['hdp-templeton'] -> Hdp-Hadoop::Namenode::Create_app_directories['create_app_directories'] -> Hdp-Hadoop::Namenode::Create_user_directories['create_user_directories'] -> Class['hdp-templeton::copy-hdfs-directories'] -> Class['hdp-templeton::service']
   } else { 
   hdp_fail("TODO not implemented yet: service_state = ${service_state}")
   }
