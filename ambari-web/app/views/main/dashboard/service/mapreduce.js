@@ -74,6 +74,15 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
     return template.format(liveCount, totalCount);
   }.property('service.aliveTrackers.length', 'service.taskTrackers.length'),
 
+  trackersLiveTextView: App.ComponentLiveTextView.extend({
+    liveComponents: function() {
+      return App.HostComponent.find().filterProperty('componentName', 'TASKTRACKER').filterProperty("workStatus","STARTED").get("length");
+    }.property("service.hostComponents.@each", "service.aliveTrackers.length"),
+    totalComponents: function() {
+      return this.get("service.taskTrackers.length");
+    }.property('service.taskTrackers.length')
+  }),
+
   trackersHeapSummary: function () {
     var heapUsed = this.get('service').get('jobTrackerHeapUsed');
     var heapMax = this.get('service').get('jobTrackerHeapMax');

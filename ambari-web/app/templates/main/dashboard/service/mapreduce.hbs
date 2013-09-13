@@ -48,8 +48,11 @@
       <tr>
         <td>{{t dashboard.services.mapreduce.taskTrackers}}</td>
         <td>
-
-          <span class="green-live">{{view.trackersSummary}}</span> {{t services.service.summary.TrackersLive}}
+          <span>
+            {{#view view.trackersLiveTextView}}
+              {{view.liveComponents}}/{{view.totalComponents}}
+            {{/view}}
+          </span> {{t services.service.summary.TrackersLive}}
           <div class="summary-view-host">
             <a href="#" {{action filterHosts view.taskTrackerComponent}}>{{view.trackersText}}</a>
           </div>
