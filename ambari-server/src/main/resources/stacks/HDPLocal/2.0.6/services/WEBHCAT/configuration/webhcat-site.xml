@@ -99,7 +99,7 @@ limitations under the License.
 
   <property>
     <name>templeton.storage.class</name>
-    <value>org.apache.hcatalog.templeton.tool.ZooKeeperStorage</value>
+    <value>org.apache.hive.hcatalog.templeton.tool.ZooKeeperStorage</value>
     <description>The class to use as storage</description>
   </property>
 
