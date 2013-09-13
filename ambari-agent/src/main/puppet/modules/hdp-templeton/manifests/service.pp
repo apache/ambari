@@ -41,7 +41,7 @@ class hdp-templeton::service(
   }
 
   hdp-templeton::service::directory { $hdp-templeton::params::templeton_pid_dir : }
-  hdp-templeton::service::directory { $hdp-templeton::params::templeton_log_dir : }
+  hdp-templeton::service::directory { $hdp-templeton::params::hcat_log_dir : }
 
   anchor{'hdp-templeton::service::begin':} -> Hdp-templeton::Service::Directory<||> -> anchor{'hdp-templeton::service::end':}
   
