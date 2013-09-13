@@ -66,7 +66,7 @@ App.servicesMapper = App.QuickDataMapper.create({
     standby_name_node2_id: 'standby_name_node2_id',
     data_nodes: 'data_nodes',
     journal_nodes: 'journal_nodes',
-    name_node_start_time: 'nameNodeComponent.ServiceComponentInfo.StartTime', //// blocked by bug-8787
+    name_node_start_time: 'nameNodeComponent.host_components[0].runtime.StartTime',
     jvm_memory_heap_used: 'nameNodeComponent.host_components[0].metrics.jvm.memHeapUsedM',
     jvm_memory_heap_committed: 'nameNodeComponent.host_components[0].metrics.jvm.memHeapCommittedM',
     live_data_nodes: 'live_data_nodes',
