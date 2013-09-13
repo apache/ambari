@@ -223,7 +223,9 @@ module.exports = Em.Route.extend({
       return false;
     },
     next: function (router) {
-      router.transitionTo('step9');
+      App.showConfirmationPopup(function() {
+        router.transitionTo('step9');
+      }, Em.I18n.t('admin.highAvailability.wizard.step8.confirmPopup.body'));
     }
   }),
 

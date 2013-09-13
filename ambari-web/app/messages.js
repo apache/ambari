@@ -705,6 +705,7 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step6.jsNoInit':'JournalNodes not initialized yet',
   'admin.highAvailability.wizard.step6.jsInit':'JournalNodes initialized',
   'admin.highAvailability.wizard.step8.metaNoInit':'Metadata not initialized yet',
+  'admin.highAvailability.wizard.step8.confirmPopup.body':'Please confirm that you have run the manual steps before continuing.',
 
   'admin.highAvailability.rollback.header':'Disable NameNode HA Wizard',
   'admin.highAvailability.rollback.task0.title':'Stop all services',
@@ -729,7 +730,7 @@ Em.I18n.translations = {
     '<li>Login to the NameNode host <b>{1}</b> as user <b>{0}</b>.</li>' +
     '<li>Initialize the metadata for NameNode automatic failover by running:' +
     '<div class="code-snippet">hdfs zkfc -formatZK</div></li>' +
-    '<li>You will be able to proceed once Ambari detects that the steps were completed successfully.</li>' +
+    '<li>Please proceed once you have completed the steps above.</li>' +
     '</ol>',
   'admin.highAvailability.wizard.step6.body':
     '<ol>' +
