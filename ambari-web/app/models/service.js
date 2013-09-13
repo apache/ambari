@@ -67,6 +67,18 @@ App.Service = DS.Model.extend({
         this.set('healthStatus', 'red');
       }
     }
+
+    if (isGreen && this.get('serviceName') === 'HDFS' && components.length == 5) { // enabled HA
+      var activeNN = this.get('activeNameNode');
+      var nameNode = this.get('nameNode');
+
+      if (nameNode && !activeNN) { //hdfs model but no active NN
+        hdfsHealthStatus = 'red';
+      } else if (nameNode && activeNN) {
+        hdfsHealthStatus = 'green';
+      }
+      this.set('healthStatus', hdfsHealthStatus);
+    }
   },
 
   /**
