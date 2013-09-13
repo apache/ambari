@@ -1019,7 +1019,7 @@ Em.I18n.translations = {
   'services.service.info.metrics.yarn.nodemanager.statuses.displayNames.lost':'Lost NodeManagers',
   'services.service.info.metrics.yarn.nodemanager.statuses.displayNames.rebooted':'Rebooted NodeManagers',
   'services.service.info.metrics.yarn.nodemanager.statuses.displayNames.unhealthy':'Unhealthy NodeManagers',
-  'services.service.info.metrics.yarn.queueMemoryResource':'Queue Memory',
+  'services.service.info.metrics.yarn.queueMemoryResource':'Queue Memory Used',
   'services.service.info.metrics.yarn.queueMemoryResource.displayNames.allocated':'Allocated ({0})',
   'services.service.info.metrics.yarn.queueMemoryResource.displayNames.available':'Available ({0})',
   'services.service.info.metrics.yarn.queueMemoryResource.displayName':'Queue: {0}',
