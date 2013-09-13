@@ -663,6 +663,7 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step1.nameserviceid.tooltip.title':'Nameservice ID',
   'admin.highAvailability.wizard.step1.nameserviceid.tooltip.content':'This will be the ID for the NameNode HA cluster. For example, if you set Nameservice ID to <b>mycluster</b>, the logical URI for HDFS will be <b>hdfs://mycluster</b>.',
   'admin.highAvailability.wizard.step1.nameserviceid':'Nameservice ID',
+  'admin.highAvailability.wizard.step1.nameserviceid.error':'Must consist of letters, numbers, and hyphens. Cannot begin or end with a hyphen.',
   'admin.highAvailability.wizard.step2.header':'Select Hosts',
   'admin.highAvailability.wizard.step3.header':'Review',
   'admin.highAvailability.wizard.step4.header':'Create Checkpoint',

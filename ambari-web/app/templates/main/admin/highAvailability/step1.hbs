@@ -31,6 +31,9 @@
 
     <div class="controls">
       {{view Ember.TextField valueBinding="content.nameServiceId"}}
+      <span  {{bindAttr class=":help-inline view.showInputError::hidden"}}>
+        {{t admin.highAvailability.wizard.step1.nameserviceid.error}}
+      </span>
     </div>
   </div>
   <div class="btn-area">
