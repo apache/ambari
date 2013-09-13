@@ -291,10 +291,12 @@ class TestHostInfo(TestCase):
   @patch.object(HostInfo, 'etcAlternativesConf')
   @patch.object(HostInfo, 'hadoopVarRunCount')
   @patch.object(HostInfo, 'hadoopVarLogCount')
-  def test_hostinfo_register(self, hvlc_mock, hvrc_mock, eac_mock, cf_mock, jp_mock,
+  @patch.object(HostInfo, 'checkIptables')
+  def test_hostinfo_register(self, cit_mock, hvlc_mock, hvrc_mock, eac_mock, cf_mock, jp_mock,
                              cls_mock, cu_mock, gir_mock, gipbr_mock, gipbn_mock,
                              gpd_mock, aip_mock, aap_mock, whcf_mock, odas_mock,
                              os_umask_mock, get_os_type_mock):
+    cit_mock.return_value = True
     hvlc_mock.return_value = 1
     hvrc_mock.return_value = 1
     gipbr_mock.return_value = ["pkg1"]
@@ -322,6 +324,7 @@ class TestHostInfo(TestCase):
     self.assertTrue(gpd_mock.called)
     self.assertTrue(aip_mock.called)
     self.assertTrue(odas_mock.called)
+    self.assertTrue(cit_mock.called)
 
     for existingPkg in ["pkg1", "pkg2"]:
       self.assertTrue(existingPkg in dict['installedPackages'])
@@ -337,6 +340,7 @@ class TestHostInfo(TestCase):
     self.assertEqual(dict['existingRepos'][0], hostInfo.RESULT_UNAVAILABLE)
     self.assertEqual(dict['installedPackages'], [])
     self.assertEqual(1, len(dict['hostHealth']['diskStatus']))
+    self.assertTrue(dict['iptablesIsRunning'])
 
   @patch("os.path.exists")
   @patch("os.path.islink")
@@ -506,6 +510,27 @@ class TestHostInfo(TestCase):
 
     self.assertEquals(result[0]['name'], 'config1')
     self.assertEquals(result[0]['target'], 'real_path_to_conf')
+
+
+  @patch("subprocess.Popen")
+  def test_checkIptables(self, subproc_popen_mock):
+    hostInfo = HostInfo()
+    p = MagicMock()
+    p.communicate.return_value = ['Table: filter']
+    subproc_popen_mock.return_value = p
+    result = hostInfo.checkIptables()
+
+    self.assertTrue(result)
+
+    p.communicate.return_value = ['']
+    result = hostInfo.checkIptables()
+
+    self.assertFalse(result)
+
+    p.communicate.return_value = ['iptables: Firewall is not running.']
+    result = hostInfo.checkIptables()
+
+    self.assertFalse(result)
 
 
 if __name__ == "__main__":

@@ -24,12 +24,8 @@ class hdp::testing_env_patch()
   $repo_target = "/etc/yum.repos.d/${hdp::params::hdp_yum_repo}"
 
   anchor { 'hdp::testing_env_patch::begin' :}
-  class{ 'hdp::iptables': 
-    ensure => stopped,
-    require => Anchor['hdp::testing_env_patch::begin']
-  }
   exec { '/bin/echo 0 > /selinux/enforce':
-    require => Class['hdp::iptables']
+    require => Anchor['hdp::testing_env_patch::begin']
   }
   hdp::testing_env_patch::packages { 'common' :
     require => Exec['/bin/echo 0 > /selinux/enforce']

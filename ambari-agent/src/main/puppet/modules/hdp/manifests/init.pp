@@ -138,13 +138,6 @@ class hdp(
   Hdp::Package<|title == 'hadoop 32'|> ->   Hdp::Package<|title == 'hbase'|>
   Hdp::Package<|title == 'hadoop 64'|> ->   Hdp::Package<|title == 'hbase'|>
 
-  #TODO: just for testing
-  class{ 'hdp::iptables': 
-    ensure => stopped,
-  }
-
-
-  
   hdp::package{ 'glibc':
     ensure       => 'present',
     size         => $size,
@@ -524,12 +517,3 @@ define hdp::set_uid(
   }
 }
 
-##### temp
-
-class hdp::iptables($ensure)
-{
-  #TODO: just temp so not considering things like saving firewall rules
-  service { 'iptables':
-    ensure => $ensure
-  }
-}

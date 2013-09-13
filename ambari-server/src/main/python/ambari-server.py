@@ -73,11 +73,8 @@ SE_MODE_ENFORCING = "enforcing"
 SE_MODE_PERMISSIVE = "permissive"
 
 # iptables commands
-IP_TBLS_ST_CMD = "/sbin/service iptables status"
-IP_TBLS_STOP_CMD = "/sbin/service iptables stop"
-IP_TBLS_ENABLED = "Firewall is running"
-IP_TBLS_DISABLED = "Firewall is stopped.\n"
-IP_TBLS_SRVC_NT_FND = "iptables: unrecognized service"
+IP_TBLS_STATUS_CMD = "/sbin/service iptables status"
+IP_TBLS_IS_NOT_RUNNING = "iptables: Firewall is not running."
 
 # server commands
 ambari_provider_module_option = ""
@@ -751,23 +748,13 @@ def check_ambari_user():
 # Checks iptables
 #
 def check_iptables():
-  # not used
-  # retcode, out, err = run_os_command(IP_TBLS_ST_CMD)
-  ''' This check doesn't work on CentOS 6.2 if firewall AND
-  iptables service are running if out == IP_TBLS_ENABLED:
-    print 'iptables is enabled now'
-    print 'Stopping iptables service'
-  '''
-  retcode, out, err = run_os_command(IP_TBLS_STOP_CMD)
-  print 'iptables is disabled now. please reenable later.'
+  retcode, out, err = run_os_command(IP_TBLS_STATUS_CMD)
 
-  if not retcode == 0 and err and len(err) > 0:
+  if err and len(err) > 0:
     print err
 
-  if err.strip() == IP_TBLS_SRVC_NT_FND:
-    return 0
-  else:
-    return retcode, out
+  if out and len(out) > 0 and not out.strip() == IP_TBLS_IS_NOT_RUNNING:
+    print_warning_msg('Iptables is running.')
 
 
 
@@ -1962,10 +1949,7 @@ def setup(args):
     raise FatalException(retcode, err)
 
   print 'Checking iptables...'
-  retcode, out = check_iptables()
-  if not retcode == 0 and out == IP_TBLS_ENABLED:
-    err = 'Failed to stop iptables. Exiting.'
-    raise FatalException(retcode, err)
+  check_iptables()
 
   print 'Checking JDK...'
   try:
@@ -2181,10 +2165,7 @@ def start(args):
         raise FatalException(retcode, err)
 
     print 'Checking iptables...'
-    retcode, out = check_iptables()
-    if not retcode == 0 and out == IP_TBLS_ENABLED:
-      err = "Failed to stop iptables. Exiting"
-      raise FatalException(retcode, err)
+    check_iptables()
   else: # Skipping actions that require root permissions
     print "Unable to check iptables status when starting "\
       "without root privileges."

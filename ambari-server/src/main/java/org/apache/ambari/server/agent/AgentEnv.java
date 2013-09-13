@@ -58,6 +58,8 @@ public class AgentEnv {
   
   private Integer umask;
 
+  private Boolean iptablesIsRunning;
+
   public Integer getUmask() {
     return umask;
   }
@@ -112,6 +114,14 @@ public class AgentEnv {
 
   public HostHealth getHostHealth() {
     return hostHealth;
+  }
+
+  public Boolean getIptablesIsRunning() {
+    return iptablesIsRunning;
+  }
+
+  public void setIptablesIsRunning(Boolean iptablesIsRunning) {
+    this.iptablesIsRunning = iptablesIsRunning;
   }
 
   public static class HostHealth {

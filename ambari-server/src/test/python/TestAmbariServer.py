@@ -942,17 +942,20 @@ class TestAmbariServer(TestCase):
 
 
   @patch.object(ambari_server, "run_os_command")
-  def test_check_iptables(self, run_os_command_mock):
-    run_os_command_mock.return_value = (1, "test", "")
-    rcode, info = ambari_server.check_iptables()
-    self.assertEqual(1, rcode)
-    self.assertEqual("test", info)
+  @patch.object(ambari_server, "print_warning_msg")
+  def test_check_iptables_is_running(self, print_warning_msg, run_os_command_mock):
+    run_os_command_mock.return_value = (0, "Table: filter", "")
+    ambari_server.check_iptables()
 
-    run_os_command_mock.return_value = (2, "",
-                                        ambari_server.IP_TBLS_SRVC_NT_FND)
-    rcode = ambari_server.check_iptables()
-    self.assertEqual(0, rcode)
+    self.assertEqual(print_warning_msg.call_args_list[0][0][0], "Iptables is running.")
 
+  @patch.object(ambari_server, "run_os_command")
+  @patch.object(ambari_server, "print_warning_msg")
+  def test_check_iptables_is_not_running(self, print_warning_msg, run_os_command_mock):
+    run_os_command_mock.return_value = (3, "iptables: Firewall is not running.", "")
+    ambari_server.check_iptables()
+
+    self.assertFalse(print_warning_msg.called)
 
   def test_dlprogress(self):
 
@@ -2214,19 +2217,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     parse_properties_file_mock.reset_mock()
 
-    # case: iptables failed to stop
     check_postgre_up_mock.return_value = 0
-    check_iptables_mock.return_value = (1, ambari_server.IP_TBLS_ENABLED)
-    try:
-      ambari_server.start(args)
-      self.fail("Should fail with 'Failed to stop iptables'")
-    except FatalException as e:
-      # Expected
-      self.assertTrue('Failed to stop iptables' in e.reason)
 
-    parse_properties_file_mock.reset_mock()
-
-    check_iptables_mock.return_value = (0, None)
     # Case: custom user is "root"
     read_ambari_user_mock.return_value = "root"
     ambari_server.start(args)
