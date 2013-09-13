@@ -33,6 +33,7 @@ App.HostPopup = Em.Object.create({
   serviceController: null,
   showServices: false,
   currentHostName: null,
+  isPopup: null,
 
   /**
    * Sort object array
@@ -80,6 +81,7 @@ App.HostPopup = Em.Object.create({
     this.set('serviceController', null);
     this.set('showServices', false);
     this.set('currentHostName', null);
+    this.get('isPopup')?this.get('isPopup').remove():null;
   },
 
   /**
@@ -468,7 +470,7 @@ App.HostPopup = Em.Object.create({
         return Em.I18n.t(this.get('labelPath')).format(this.get('count'));
       }.property('count')
     });
-    return App.ModalPopup.show({
+    self.set('isPopup', App.ModalPopup.show({
       //no need to track is it loaded when popup contain only list of hosts
       isLoaded: !showServices,
       isOpen: false,
@@ -487,6 +489,7 @@ App.HostPopup = Em.Object.create({
           $(this.get('element')).detach();
         } else {
           this.hide();
+          self.set('isPopup', null);
         }
       },
       onPrimary: function () {
@@ -833,7 +836,8 @@ App.HostPopup = Em.Object.create({
           $(".task-detail-log-maintext").css("display", "block");
         }
       })
-    });
+    }));
+    return self.get('isPopup');
   }
 
 });

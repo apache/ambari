@@ -104,7 +104,7 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
       }, this);
       if (stages.someProperty('isError', true)) {
         this.get('stages').pushObjects(stages);
-        this.addObserver('stages.@each.isSuccess', this.onCompleteStage);
+        this.addObserver('stages.@each.isSuccess', this, 'onCompleteStage');
         return;
       } else if (stages.filterProperty('isStarted', true).someProperty('isCompleted', false)) {
         var runningStage = stages.filterProperty('isStarted', true).findProperty('isCompleted', false);
@@ -123,7 +123,7 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
         stopStage.set('requestId', stopAllOperation.get('id'));
       }
     }
-    this.addObserver('stages.@each.isSuccess', this.onCompleteStage);
+    this.addObserver('stages.@each.isSuccess', this, 'onCompleteStage');
     this.moveToNextStage();
   },
 

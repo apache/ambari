@@ -72,7 +72,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
       if (stages.someProperty('isError', true)) {
         this.get('stages').pushObjects(stages);
         this.loadSecureServices();
-        this.addObserver('stages.@each.isSuccess', this.onCompleteStage);
+        this.addObserver('stages.@each.isSuccess', this, 'onCompleteStage');
         return;
       } else if (stages.filterProperty('isStarted', true).someProperty('isCompleted', false)) {
         var runningStage = stages.filterProperty('isStarted', true).findProperty('isCompleted', false);
@@ -92,7 +92,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
       }
     }
     this.loadSecureServices();
-    this.addObserver('stages.@each.isSuccess', this.onCompleteStage);
+    this.addObserver('stages.@each.isSuccess', this, 'onCompleteStage');
     this.moveToNextStage();
   },
 
