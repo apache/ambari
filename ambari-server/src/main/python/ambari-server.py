@@ -2037,6 +2037,13 @@ def setup(args):
 # Resets the Ambari Server.
 #
 def reset(args):
+  #force reset if silent option provided
+  global SILENT
+  if SILENT:
+    default = "yes"
+  else:
+    default = "no"
+
   if not is_root():
     err = 'Ambari-server reset should be run with ' \
           'root-level privileges'
@@ -2047,14 +2054,14 @@ def reset(args):
                      "You will be required to re-configure the Ambari server "
                      "and re-run the cluster wizard. \n"
                      "Are you SURE you want to perform the reset "
-                     "[yes/no]? ", True)
+                     "[yes/no] ({0})? ".format(default), SILENT)
   okToRun = choice
 
   if not okToRun:
     err =  "Ambari Server 'reset' cancelled"
     raise FatalException(1, err)
 
-  okToRun = get_YN_input("Confirm server reset [yes/no]? ", True)
+  okToRun = get_YN_input("Confirm server reset [yes/no]({0})? ".format(default), SILENT)
 
   if not okToRun:
     err =  "Ambari Server 'reset' cancelled"

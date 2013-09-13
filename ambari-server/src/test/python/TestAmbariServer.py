@@ -2037,6 +2037,23 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEqual(None, rcode)
     self.assertTrue(execute_remote_script_mock.called)
 
+  @patch("__builtin__.raw_input")
+  @patch.object(ambari_server, "is_root")
+  def test_reset_default(self, is_root_mock, raw_input_mock):
+    is_root_mock.return_value=True
+    raw_input_mock.return_value=""
+    args = MagicMock()
+
+    try:
+      ambari_server.reset(args)
+      self.fail("Should throw exception")
+    except FatalException as fe:
+      # Expected
+      self.assertTrue(fe.code == 1)
+      pass
+
+    pass
+
 
   @patch.object(ambari_server, "setup_db")
   @patch.object(ambari_server, "print_info_msg")
