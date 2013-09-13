@@ -118,7 +118,13 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   needToAddZooKeeper: function() {
     return this.needAddService('ZOOKEEPER', 'HBASE');
   },
-
+  /**
+   * Check whether we should turn on <code>ZooKeeper</code> service (on 2.x stack)
+   * @returns {Boolean}
+   */
+  needToAddZooKeeperOnStack2x: function() {
+    return this.findProperty('serviceName', 'ZOOKEEPER') && this.findProperty('serviceName', 'ZOOKEEPER').get('isSelected') === false;
+  },
   /** 
    * Check whether we should turn on <code>HDFS or HCFS</code> service
    * @return {Boolean}
@@ -173,7 +179,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
             this.mapReduce2CheckPopup();
           }
           else {
-            if (this.needToAddZooKeeper()) {
+            if ((!App.get('isHadoop2Stack') && this.needToAddZooKeeper()) || (App.get('isHadoop2Stack') && this.needToAddZooKeeperOnStack2x())) {
               this.zooKeeperCheckPopup();
             }
             else {
@@ -190,13 +196,6 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     }
   },
   
-  multipleDFSPopup: function() {
-    var services = [
-      {serviceName: 'HDFS', selected: true},
-      {serviceName: 'HCFS', selected: false}
-    ];
-    this.needToAddServicePopup(services, 'multipleDFS');
-  },
   /**
    * Select/deselect services
    * @param services array of objects
@@ -232,6 +231,13 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     });
   },
 
+  multipleDFSPopup: function() {
+    var services = [
+      {serviceName: 'HDFS', selected: true},
+      {serviceName: 'HCFS', selected: false}
+    ];
+    this.needToAddServicePopup(services, 'multipleDFS');
+  },
   needToAddHDFSPopup: function() {
     this.needToAddServicePopup({serviceName:'HDFS', selected: true}, 'hdfsCheck');
   },
