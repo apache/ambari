@@ -4503,22 +4503,22 @@
         "temporal":true
       },
       "metrics/hbase/master/splitSize_avg_time":{
-        "metric":"master.Server.HlogSplitSize_mean",
+        "metric":"master.FileSystem.HlogSplitSize_mean",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/master/splitSize_num_ops":{
-        "metric":"master.Server.HlogSplitSize_num_ops",
+        "metric":"master.FileSystem.HlogSplitSize_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/master/splitTime_avg_time":{
-        "metric":"master.Server.HlogSplitTime_mean",
+        "metric":"master.FileSystem.HlogSplitTime_mean",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/master/splitTime_num_ops":{
-        "metric":"master.Server.HlogSplitTime_num_ops",
+        "metric":"master.FileSystem.HlogSplitTime_num_ops",
         "pointInTime":false,
         "temporal":true
       },
@@ -8174,22 +8174,22 @@
         "temporal":true
       },
       "metrics/hbase/master/splitSize_avg_time":{
-        "metric":"master.Server.HlogSplitSize_mean",
+        "metric":"master.FileSystem.HlogSplitSize_mean",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/master/splitSize_num_ops":{
-        "metric":"master.Server.HlogSplitSize_num_ops",
+        "metric":"master.FileSystem.HlogSplitSize_num_ops",
         "pointInTime":true,
         "temporal":true
       },
       "metrics/hbase/master/splitTime_avg_time":{
-        "metric":"master.Server.HlogSplitTime_mean",
+        "metric":"master.FileSystem.HlogSplitSize_mean",
         "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/master/splitTime_num_ops":{
-        "metric":"master.Server.HlogSplitTime_num_ops",
+        "metric":"master.FileSystem.HlogSplitTime_num_ops",
         "pointInTime":false,
         "temporal":true
       },
