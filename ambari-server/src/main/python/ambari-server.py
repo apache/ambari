@@ -237,6 +237,7 @@ PG_HBA_RELOAD_CMD = "su postgres --command='pg_ctl -D {0} reload'"
 PG_DEFAULT_PASSWORD = "bigdata"
 
 JDBC_DATABASE_PROPERTY = "server.jdbc.database"
+JDBC_HOSTNAME_PROPERTY = "server.jdbc.hostname"
 JDBC_PORT_PROPERTY = "server.jdbc.port"
 JDBC_SCHEMA_PROPERTY = "server.jdbc.schema"
 
@@ -259,6 +260,7 @@ JDBC_DRIVER_PROPERTY = "server.jdbc.driver"
 JDBC_URL_PROPERTY = "server.jdbc.url"
 
 JDBC_RCA_DATABASE_PROPERTY = "server.jdbc.database"
+JDBC_RCA_HOSTNAME_PROPERTY = "server.jdbc.hostname"
 JDBC_RCA_PORT_PROPERTY = "server.jdbc.port"
 JDBC_RCA_SCHEMA_PROPERTY = "server.jdbc.schema"
 
@@ -1163,6 +1165,7 @@ def store_remote_properties(args):
   properties.process_pair(PERSISTENCE_TYPE_PROPERTY, "remote")
 
   properties.process_pair(JDBC_DATABASE_PROPERTY, args.database)
+  properties.process_pair(JDBC_HOSTNAME_PROPERTY, args.database_host)
   properties.process_pair(JDBC_PORT_PROPERTY, args.database_port)
   properties.process_pair(JDBC_SCHEMA_PROPERTY, args.database_name)
 
@@ -1371,6 +1374,7 @@ def store_local_properties(args):
   isSecure = get_is_secure(properties)
 
   properties.removeOldProp(JDBC_SCHEMA_PROPERTY)
+  properties.removeOldProp(JDBC_HOSTNAME_PROPERTY)
   properties.removeOldProp(JDBC_RCA_DRIVER_PROPERTY)
   properties.removeOldProp(JDBC_RCA_URL_PROPERTY)
   properties.removeOldProp(JDBC_PORT_PROPERTY)
@@ -1427,6 +1431,7 @@ def parse_properties_file(args):
 
   if args.persistence_type == 'remote':
     args.database = properties[JDBC_DATABASE_PROPERTY]
+    args.database_host = properties[JDBC_HOSTNAME_PROPERTY]
     args.database_port = properties[JDBC_PORT_PROPERTY]
     args.database_name = properties[JDBC_SCHEMA_PROPERTY]
     global DATABASE_INDEX
