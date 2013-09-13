@@ -93,8 +93,8 @@ App.HostStatusView = Em.View.extend({
         this.set('obj.message', Em.I18n.t('installer.step9.host.status.failed'));
       }
     } else if (this.get('obj.status') === 'success') {
-      this.set('barColor', 'progress-success');
-      if (this.get('obj.progress') === '100') {
+      if (this.get('obj.progress') == 100) {
+        this.set('barColor', 'progress-success');
         this.set('obj.message', Em.I18n.t('installer.step9.host.status.success'));
       }
     }
