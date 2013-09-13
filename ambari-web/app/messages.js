@@ -866,6 +866,8 @@ Em.I18n.translations = {
   'services.service.summary.nameNode':'NameNode Web UI',
   'services.service.summary.nameNodeUptime':'NameNode Uptime',
   'services.service.summary.nameNodeHeap':'NameNode Heap',
+  'services.service.summary.nameNode.active':'Active NameNode',
+  'services.service.summary.nameNode.standby':'Standby NameNode',
   'services.service.summary.pendingUpgradeStatus':'Upgrade Status',
   'services.service.summary.pendingUpgradeStatus.pending':'Pending upgrade',
   'services.service.summary.pendingUpgradeStatus.notPending':'No pending upgrade',

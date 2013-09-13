@@ -18,7 +18,13 @@
 
 {{#each masterComp in view.mastersComp}}
   <tr>
-   <td>{{masterComp.displayName}}</td>
+     <td>
+       {{#if masterComp.displayNameAdvanced}}
+         {{masterComp.displayNameAdvanced}}
+       {{else}}
+         {{masterComp.displayName}}
+       {{/if}}
+     </td>
    <td>
      <span {{bindAttr class="masterComp.workStatus"}}></span>
      {{masterComp.componentTextStatus}}

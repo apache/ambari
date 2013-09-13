@@ -40,10 +40,55 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   dashboardMasterComponentView: Em.View.extend({
     templateName: require('templates/main/service/info/summary/master_components'),
     mastersComp : function() {
-      return this.get('parentView.service.hostComponents').filter(function(comp){
+      var masters = this.get('parentView.service.hostComponents').filter(function(comp){
         return comp.get('isMaster') && comp.get('componentName') !== 'JOURNALNODE';
       });
-    }.property("service")
+      // enabled HA
+      if (!masters.findProperty('componentName', 'SECONDARY_NAMENODE') || masters.findProperty('componentName', 'SECONDARY_NAMENODE').get('workStatus') == 'MAINTENANCE') {
+        masters = this.setNNDisplayName();
+      }
+      return masters;
+    }.property('service'),
+    setNNDisplayName: function () {
+      var masters = this.get('parentView.service.hostComponents').filter(function(comp){
+        return comp.get('isMaster') && comp.get('componentName') !== 'JOURNALNODE';
+      });
+      var hostName0 = masters[0].get('host.hostName');
+      var activeNN = this.get('parentView.service.activeNameNode');
+      var standbyNN1 = this.get('parentView.service.standbyNameNode');
+      var standbyNN2 = this.get('parentView.service.standbyNameNode2');
+      if (activeNN) {
+        // 0 is always active
+        if (hostName0 == activeNN.get('hostName')) {
+          masters[0].set('displayNameAdvanced', Em.I18n.t('services.service.summary.nameNode.active'));
+        } else {
+          masters[1].set('displayNameAdvanced', Em.I18n.t('services.service.summary.nameNode.active'));
+          var temp = masters[0];
+          masters[0] = masters[1];
+          masters[1] = temp;
+        }
+        if (standbyNN1) {
+          masters[1].set('displayNameAdvanced', Em.I18n.t('services.service.summary.nameNode.standby'));
+        } else {
+          masters[1].set('displayNameAdvanced', null);
+        }
+      } else if (!activeNN && standbyNN2 && standbyNN1) {
+        masters[0].set('displayNameAdvanced', Em.I18n.t('services.service.summary.nameNode.standby'));
+        masters[1].set('displayNameAdvanced', Em.I18n.t('services.service.summary.nameNode.standby'));
+      } else if (!activeNN && standbyNN1 && !standbyNN2) {
+        if (hostName0 == standbyNN1.get('hostName')) {
+          masters[0].set('displayNameAdvanced', Em.I18n.t('services.service.summary.nameNode.standby'));
+          masters[1].set('displayNameAdvanced', null);
+        } else {
+          masters[1].set('displayNameAdvanced', Em.I18n.t('services.service.summary.nameNode.standby'));
+          masters[0].set('displayNameAdvanced', null);
+        }
+      } else if (!activeNN && !standbyNN1 && !standbyNN2) {
+        masters[0].set('displayNameAdvanced', null);
+        masters[1].set('displayNameAdvanced', null);
+      }
+      return masters;
+    }.observes('parentView.service.activeNameNode', 'parentView.service.standbyNameNode','parentView.service.standbyNameNode2')
   }),
 
   dataNodesLive: function(){
