@@ -357,7 +357,28 @@ App.ClusterController = Em.Controller.extend({
     this.loadAlerts(function(){
         self.updateLoadStatus('alerts');
     });
+    this.loadAmbariProperties();
+  },
 
+  ambariProperties: null,
+
+  loadAmbariProperties: function() {
+    App.ajax.send({
+      name: 'ambari.service',
+      sender: this,
+      success: 'loadAmbariPropertiesSuccess',
+      error: 'loadAmbariPropertiesError'
+    });
+    return this.get('ambariProperties');
+  },
+
+  loadAmbariPropertiesSuccess: function(data) {
+    console.log('loading ambari properties');
+    this.set('ambariProperties', data.RootServiceComponents.properties);
+  },
+
+  loadAmbariPropertiesError: function() {
+    console.warn('can\'t get ambari properties');
   },
 
   clusterName:function () {
