@@ -340,10 +340,10 @@ App.servicesMapper = App.QuickDataMapper.create({
         if ( component.host_components.length == 2) {
           var haState1;
           var haState2;
-          if (component.host_components[1].metrics.dfs) {
+          if (component.host_components[1].metrics && component.host_components[1].metrics.dfs) {
             haState2 = component.host_components[1].metrics.dfs.FSNamesystem.HAState;
           }
-          if (component.host_components[0].metrics.dfs) {
+          if (component.host_components[0].metrics && component.host_components[0].metrics.dfs) {
             haState1 = component.host_components[0].metrics.dfs.FSNamesystem.HAState;
           }
           var active_name_node = [];
