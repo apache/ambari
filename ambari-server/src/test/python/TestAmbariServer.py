@@ -2351,9 +2351,14 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, "run_os_command")
   @patch.object(ambari_server, "is_root")
   @patch.object(ambari_server, "check_database_name_property")
-  def test_upgrade_stack(self, check_database_name_property_mock, is_root_mock, run_os_command_mock,
+  @patch.object(ambari_server, "parse_properties_file")
+  @patch.object(ambari_server, "get_db_cli_tool")
+  @patch.object(ambari_server, "remote_stack_upgrade")
+  def test_upgrade_stack(self, remote_stack_upgrade_mock, get_db_cli_tool_mock, parse_properties_file_mock,
+                         check_database_name_property_mock, is_root_mock, run_os_command_mock,
                          configure_postgres_username_password_mock):
     args = MagicMock()
+    args.persistence_type = "local"
 
     # Testing call under non-root
     is_root_mock.return_value = False
@@ -2374,6 +2379,22 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(configure_postgres_username_password_mock.called)
     self.assertTrue(run_os_command_mock.called)
 
+    # Test remote
+    configure_postgres_username_password_mock.reset_mock()
+    run_os_command_mock.reset_mock()
+    args.persistence_type = "remote"
+    args.database = "oracle"
+
+    get_db_cli_tool_mock.return_value = "psql"
+    remote_stack_upgrade_mock.return_value = (0, "test", "test")
+
+    ambari_server.upgrade_stack(args, 'HDP-2.0')
+
+    self.assertTrue(get_db_cli_tool_mock.called)
+    self.assertTrue(remote_stack_upgrade_mock.called)
+    self.assertFalse(run_os_command_mock.called)
+
+
 
   @patch.object(ambari_server, "adjust_directory_permissions")
   @patch.object(ambari_server, "print_warning_msg")
@@ -2385,7 +2406,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, "parse_properties_file")
   @patch.object(ambari_server, "is_root")
   @patch.object(ambari_server, "get_ambari_properties")
-  def test_upgrade(self, get_ambari_properties_mock, is_root_mock, parse_properties_file_mock,
+  @patch.object(ambari_server, "get_db_cli_tool")
+  @patch.object(ambari_server, "execute_remote_script")
+  def test_upgrade(self, execute_remote_script_mock, get_db_cli_tool_mock, get_ambari_properties_mock, is_root_mock,
+                   parse_properties_file_mock,
                    update_ambari_properties_mock,
                    check_postgre_up_mock, execute_db_script_mock,
                    check_db_consistency_mock, read_ambari_user_mock,
@@ -2434,6 +2458,17 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     check_database_name_property_mock.side_effect = effect
     ambari_server.upgrade(args)
     self.assertTrue(get_ambari_properties_mock.called)
+
+    #Test remote upgrade
+    get_db_cli_tool_mock.return_value = "psql"
+    execute_remote_script_mock.return_value = (0, "test", "test")
+    args.persistence_type = "remote"
+    args.database = "oracle"
+
+    ambari_server.upgrade(args)
+
+    self.assertTrue(get_db_cli_tool_mock.called)
+    self.assertTrue(execute_remote_script_mock.called)
 
   def test_print_info_msg(self):
     out = StringIO.StringIO()

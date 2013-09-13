@@ -287,6 +287,9 @@ DATABASE_CONNECTION_STRINGS_ALT = [
                   "jdbc:postgresql://{0}:{1}/{2}",
                   "jdbc:oracle:thin:@{0}:{1}:{2}",
                   "jdbc:mysql://{0}:{1}/{2}"]
+ORACLE_SID_PATTERN = "jdbc:oracle:thin:@.+:.+/.+"
+ORACLE_SNAME_PATTERN = "jdbc:oracle:thin:@.+:.+:.+"
+
 DATABASE_CLI_TOOLS = [["psql"], ["sqlplus", "sqlplus64"], ["mysql"]]
 DATABASE_CLI_TOOLS_DESC = ["psql", "sqlplus", "mysql"]
 DATABASE_CLI_TOOLS_USAGE = ['su -postgres --command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'"',
@@ -299,6 +302,12 @@ DATABASE_INIT_SCRIPTS = ['/var/lib/ambari-server/resources/Ambari-DDL-Postgres-R
 DATABASE_DROP_SCRIPTS = ['/var/lib/ambari-server/resources/Ambari-DDL-Postgres-REMOTE-DROP.sql',
                          '/var/lib/ambari-server/resources/Ambari-DDL-Oracle-DROP.sql',
                          '/var/lib/ambari-server/resources/Ambari-DDL-MySQL-DROP.sql']
+DATABASE_UPGRADE_SCRIPTS = ['/var/lib/ambari-server/resources/upgrade/ddl/Ambari-DDL-Postgres-REMOTE-UPGRADE.sql',
+                            '/var/lib/ambari-server/resources/upgrade/ddl/Ambari-DDL-Oracle-UPGRADE.sql',
+                            '/var/lib/ambari-server/resources/upgrade/ddl/Ambari-DDL-MySQL-UPGRADE.sql']
+DATABASE_STACK_UPGRADE_SCRIPTS = ['/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-Postgres-REMOTE-UPGRADE_STACK.sql',
+                                  '/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-Oracle-UPGRADE_STACK.sql',
+                                  '/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-MySQL-UPGRADE_STACK.sql']
 
 JDBC_PROPERTIES_PREFIX = "server.jdbc.properties."
 DATABASE_JDBC_PROPERTIES = [
@@ -317,10 +326,13 @@ REGEX_HOSTNAME_PORT = "^(.*:[0-9]{1,5}$)"
 REGEX_TRUE_FALSE = "^(true|false)?$"
 REGEX_ANYTHING = ".*"
 
+
 POSTGRES_EXEC_ARGS = "-h {0} -p {1} -d {2} -U {3} -f {4} -v username='\"{3}\"'"
-ORACLE_EXEC_ARGS = "-S '{0}/{1}@(description=(address=(protocol=TCP)(host={2})(port={3}))(connect_data=(sid={4})))' @{5} {0}"
+ORACLE_EXEC_ARGS = "-S '{0}/{1}@(description=(address=(protocol=TCP)(host={2})(port={3}))(connect_data=({6}={4})))' @{5} {0}"
 MYSQL_EXEC_ARGS = "--host={0} --port={1} --user={2} --password={3} {4} " \
                  "-e\"set @schema=\'{4}\'; set @username=\'{2}\'; source {5};\""
+
+ORACLE_UPGRADE_STACK_ARGS = "-S '{0}/{1}@(description=(address=(protocol=TCP)(host={2})(port={3}))(connect_data=({6}={4})))' @{5} {0} {7}"
 
 JDBC_PATTERNS = {"oracle":"*ojdbc*.jar", "mysql":"*mysql*.jar"}
 DATABASE_FULL_NAMES = {"oracle":"Oracle", "mysql":"MySQL", "postgres":"PostgreSQL"}
@@ -1251,6 +1263,36 @@ def get_db_cli_tool(args):
   return None
 
 
+def remote_stack_upgrade(args, scriptPath, stackId):
+  tool = get_db_cli_tool(args)
+  if not tool:
+    args.warnings.append('{0} not found. Please, run DDL script manually'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
+    if VERBOSE:
+      print_warning_msg('{0} not found'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
+    return -1, "Client wasn't found", "Client wasn't found"
+
+  #TODO add support of other databases with scripts
+  if args.database == "oracle":
+    sid_or_sname = "sid"
+    if args.sid_or_sname == "sname" or (args.jdbc_url and re.match(ORACLE_SNAME_PATTERN, args.jdbc_url)):
+      print_info_msg("using SERVICE_NAME instead of SID for Oracle")
+      sid_or_sname = "service_name"
+
+    retcode, out, err = run_in_shell('{0} {1}'.format(tool, ORACLE_UPGRADE_STACK_ARGS.format(
+      args.database_username,
+      args.database_password,
+      args.database_host,
+      args.database_port,
+      args.database_name,
+      scriptPath,
+      sid_or_sname,
+      stackId
+    )))
+    return retcode, out, err
+
+  return -2, "Wrong database", "Wrong database"
+  pass
+
 #execute SQL script on remote database
 def execute_remote_script(args, scriptPath):
   tool = get_db_cli_tool(args)
@@ -1272,16 +1314,22 @@ def execute_remote_script(args, scriptPath):
     )))
     return retcode, out, err
   elif args.database == "oracle":
+    sid_or_sname = "sid"
+    if args.sid_or_sname == "sname" or (args.jdbc_url and re.match(ORACLE_SNAME_PATTERN, args.jdbc_url)):
+      print_info_msg("using SERVICE_NAME instead of SID for Oracle")
+      sid_or_sname = "service_name"
+
     retcode, out, err = run_in_shell('{0} {1}'.format(tool, ORACLE_EXEC_ARGS.format(
       args.database_username,
       args.database_password,
       args.database_host,
       args.database_port,
       args.database_name,
-      scriptPath
+      scriptPath,
+      sid_or_sname
     )))
     return retcode, out, err
-  elif args.database=="mysql":
+  elif args.database == "mysql":
     retcode, out, err = run_in_shell('{0} {1}'.format(tool, MYSQL_EXEC_ARGS.format(
       args.database_host,
       args.database_port,
@@ -1425,6 +1473,7 @@ def parse_properties_file(args):
     return -1
 
   args.persistence_type = properties[PERSISTENCE_TYPE_PROPERTY]
+  args.jdbc_url = properties[JDBC_URL_PROPERTY]
 
   if not args.persistence_type:
     args.persistence_type = "local"
@@ -1439,9 +1488,11 @@ def parse_properties_file(args):
       DATABASE_INDEX = DATABASE_NAMES.index(args.database)
     except ValueError:
       pass
+  else:
+    #TODO incorrect property used!! leads to bunch of troubles. Workaround for now
+    args.database_name = properties[JDBC_DATABASE_PROPERTY]
 
   args.database_username = properties[JDBC_USER_NAME_PROPERTY]
-  args.database_name = properties[JDBC_DATABASE_PROPERTY]
   args.database_password_file = properties[JDBC_PASSWORD_PROPERTY]
   if args.database_password_file:
     if not is_alias_string(args.database_password_file):
@@ -2273,19 +2324,44 @@ def upgrade_stack(args, stack_id):
           'root-level privileges'
     raise FatalException(4, err)
   check_database_name_property()
-  #password access to ambari-server and mapred
-  configure_database_username_password(args)
-  dbname = args.database_name
-  file = args.upgrade_stack_script_file
-  stack_name, stack_version = stack_id.split(STACK_NAME_VER_SEP)
-  command = UPGRADE_STACK_CMD[:]
-  command[-1] = command[-1].format(file, stack_name, stack_version, dbname)
-  retcode, outdata, errdata = run_os_command(command)
-  if not retcode == 0:
-    raise FatalException(retcode, errdata)
-  if errdata:
-    print_warning_msg(errdata)
-  return retcode
+
+  parse_properties_file(args)
+  if args.persistence_type == "remote":
+    client_desc = DATABASE_NAMES[DATABASE_INDEX] + ' ' + DATABASE_CLI_TOOLS_DESC[DATABASE_INDEX]
+    client_usage_cmd = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_STACK_UPGRADE_SCRIPTS[DATABASE_INDEX], args.database_username,
+                                                                       BLIND_PASSWORD, args.database_name)
+    #TODO temporarty code
+    if not args.database == "oracle":
+      raise FatalException(-20, "Upgrade for remote database only supports Oracle.")
+
+    if get_db_cli_tool(args):
+      retcode, out, err = remote_stack_upgrade(args, DATABASE_STACK_UPGRADE_SCRIPTS[DATABASE_INDEX], stack_id)
+      if not retcode == 0:
+        raise NonFatalException(err)
+
+    else:
+      err = 'Cannot find ' + client_desc + ' client in the path to upgrade the Ambari ' + \
+            'Server stack. To upgrade stack of Ambari Server ' + \
+            'you must run the following DML against the database:' + \
+            os.linesep + client_usage_cmd
+      raise NonFatalException(err)
+
+
+    pass
+  else:
+    #password access to ambari-server and mapred
+    configure_database_username_password(args)
+    dbname = args.database_name
+    file = args.upgrade_stack_script_file
+    stack_name, stack_version = stack_id.split(STACK_NAME_VER_SEP)
+    command = UPGRADE_STACK_CMD[:]
+    command[-1] = command[-1].format(file, stack_name, stack_version, dbname)
+    retcode, outdata, errdata = run_os_command(command)
+    if not retcode == 0:
+      raise FatalException(retcode, errdata)
+    if errdata:
+      print_warning_msg(errdata)
+    return retcode
 
 
 #
@@ -2320,6 +2396,26 @@ def upgrade(args):
 
   parse_properties_file(args)
   if args.persistence_type == "remote":
+    client_desc = DATABASE_NAMES[DATABASE_INDEX] + ' ' + DATABASE_CLI_TOOLS_DESC[DATABASE_INDEX]
+    client_usage_cmd = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_UPGRADE_SCRIPTS[DATABASE_INDEX], args.database_username,
+                                                                            BLIND_PASSWORD, args.database_name)
+
+    #TODO temporarty code
+    if not args.database == "oracle":
+      raise FatalException(-20, "Upgrade for remote database only supports Oracle.")
+
+    if get_db_cli_tool(args):
+      retcode, out, err = execute_remote_script(args, DATABASE_UPGRADE_SCRIPTS[DATABASE_INDEX])
+      if not retcode == 0:
+        raise NonFatalException(err)
+
+    else:
+      err = 'Cannot find ' + client_desc + ' client in the path to upgrade the Ambari ' + \
+            'Server schema. To upgrade Ambari Server schema ' + \
+            'you must run the following DDL against the database:' + \
+            os.linesep + client_usage_cmd
+      raise NonFatalException(err)
+
     pass
   else:
     print 'Checking PostgreSQL...'
