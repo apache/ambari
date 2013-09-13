@@ -24,11 +24,9 @@
  
   include "hdp_nagios_init.php";
 
-  $options = getopt ("h:p:k:r:t:s:");
-  if (!array_key_exists('h', $options) || !array_key_exists('p', $options)
-    || !array_key_exists('k', $options) || !array_key_exists('r', $options)
-    || !array_key_exists('t', $options) || !array_key_exists('s', $options)
-  ) {
+  $options = getopt("h:p:k::r::t::s::");
+  //Check only for mandatory options
+  if (!array_key_exists('h', $options) || !array_key_exists('p', $options)) {
     usage();
     exit(3);
   }
