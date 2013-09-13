@@ -218,8 +218,25 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     return App.HostComponent.find().findProperty('componentName', 'JOURNALNODE');
   }.property(),
 
-  isSafeMode: function () {
+  safeModeStatus: function () {
     var safeMode = this.get('service.safeModeStatus');
-    return safeMode != null && safeMode.length > 0;
-  }.property('service.safeModeStatus')
+    if (safeMode == null) {
+      return Em.I18n.t("services.service.summary.notAvailable");
+    } else if (safeMode.length == 0) {
+      return Em.I18n.t("services.service.summary.safeModeStatus.notInSafeMode");
+    } else {
+      return Em.I18n.t("services.service.summary.safeModeStatus.inSafeMode");
+    }
+  }.property('service.safeModeStatus'),
+  upgradeStatus: function () {
+    var upgradeStatus = this.get('service.upgradeStatus');
+    var healthStatus = this.get('service.healthStatus');
+    if (upgradeStatus) {
+      return Em.I18n.t('services.service.summary.pendingUpgradeStatus.notPending');
+    } else if (healthStatus == 'green') {
+      return Em.I18n.t('services.service.summary.pendingUpgradeStatus.pending');
+    } else {
+      return Em.I18n.t("services.service.summary.notAvailable");
+    }
+  }.property('service.upgradeStatus', 'service.healthStatus')
 });

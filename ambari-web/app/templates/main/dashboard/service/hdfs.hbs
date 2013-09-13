@@ -118,22 +118,14 @@
       <tr>
         <td>{{t services.service.summary.pendingUpgradeStatus}}</td>
         <td>
-          {{#if view.service.upgradeStatus}}
-            {{t services.service.summary.pendingUpgradeStatus.notPending}}
-          {{else}}
-            {{t services.service.summary.pendingUpgradeStatus.pending}}
-          {{/if}}
+          {{view.upgradeStatus}}
         </td>
       </tr>
       <!-- Safe Mode Status -->
       <tr>
         <td>{{t services.service.summary.safeModeStatus}}</td>
         <td>
-          {{#if view.isSafeMode}}
-            {{t services.service.summary.safeModeStatus.inSafeMode}}
-          {{else}}
-            {{t services.service.summary.safeModeStatus.notInSafeMode}}
-          {{/if}}
+          {{view.safeModeStatus}}
         </td>
       </tr>
 
