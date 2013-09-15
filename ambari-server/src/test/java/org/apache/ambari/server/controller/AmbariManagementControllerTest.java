@@ -5449,7 +5449,8 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(execCmd.getConfigurationTags().get("hdfs-site"));
     Assert.assertEquals(1, storedTasks.size());
     Assert.assertEquals(host2, execCmd.getConfigurations().get
-      ("hdfs-exclude-file").get("datanodes"));
+        ("hdfs-exclude-file").get("datanodes"));
+    Assert.assertNotNull(execCmd.getConfigurationTags().get("hdfs-exclude-file"));
   }
 
   @Test

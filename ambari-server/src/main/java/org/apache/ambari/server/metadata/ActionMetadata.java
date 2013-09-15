@@ -53,7 +53,8 @@ public class ActionMetadata {
   }
 
   private void fillServiceActions() {
-    serviceActions.put("hdfs"       , Arrays.asList(Role.HDFS_SERVICE_CHECK.toString()));
+    serviceActions.put("hdfs"       , Arrays.asList(Role.HDFS_SERVICE_CHECK.toString(),
+                                                    Role.DECOMMISSION_DATANODE.toString()));
     serviceActions.put("hcfs"       , Arrays.asList(Role.HCFS_SERVICE_CHECK.toString()));
     serviceActions.put("hbase"      , Arrays.asList(Role.HBASE_SERVICE_CHECK.toString()));
     serviceActions.put("mapreduce"  , Arrays.asList(Role.MAPREDUCE_SERVICE_CHECK.toString()));

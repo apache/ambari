@@ -118,6 +118,8 @@ public class AmbariManagementControllerImpl implements
 
   private String baseLogDir = "/tmp/ambari";
 
+  private String clusterLevelTag = "tag";
+
   private final ActionManager actionManager;
 
   @SuppressWarnings("unused")
@@ -1893,12 +1895,13 @@ public class AmbariManagementControllerImpl implements
       // 1) start with cluster config
       Config config = cluster.getConfig(type, tag);
 
-      if (null == config)
+      if (null == config) {
         continue;
+      }
 
       Map<String, String> props = new HashMap<String, String>(config.getProperties());
       Map<String, String> tags = new HashMap<String, String>();
-      tags.put("tag", config.getVersionTag());
+      tags.put(clusterLevelTag, config.getVersionTag());
 
       // 2) apply the service overrides, if any are defined with different tags
       Service service = cluster.getService(serviceName);
@@ -1920,11 +1923,8 @@ public class AmbariManagementControllerImpl implements
         }
       }
 
-      //TODO store empty map for now
-//      configurations.put(type, props);
       configTags.put(type, tags);
     }
-
 
 
     // HACK HACK HACK if the service has configs that are NOT included
@@ -1936,10 +1936,10 @@ public class AmbariManagementControllerImpl implements
     for (Config c : service.getDesiredConfigs().values()) {
       String type = c.getType();
       if (!configurations.containsKey(type)) {
-        configurations.put(type, new HashMap<String,String>(c.getProperties()));
+        configurations.put(type, new HashMap<String, String>(c.getProperties()));
 
-        HashMap<String,String> tags = new HashMap<String,String>();
-        tags.put("tag", c.getVersionTag());
+        HashMap<String, String> tags = new HashMap<String, String>();
+        tags.put(clusterLevelTag, c.getVersionTag());
         configTags.put(type, tags);
       }
     }
@@ -4215,6 +4215,7 @@ public class AmbariManagementControllerImpl implements
   private void addDecommissionDatanodeAction(
       ActionRequest decommissionRequest, Stage stage)
       throws AmbariException {
+    String hdfsExcludeFileType = "hdfs-exclude-file";
     // Find hdfs admin host, just decommission from namenode.
     String clusterName = decommissionRequest.getClusterName();
     Cluster cluster = clusters.getCluster(clusterName);
@@ -4236,17 +4237,22 @@ public class AmbariManagementControllerImpl implements
     }
 
     Config config = clusters.getCluster(clusterName).getConfig(
-        "hdfs-exclude-file", excludeFileTag);
+        hdfsExcludeFileType, excludeFileTag);
+
+    LOG.info("Decommissioning data nodes: " + config.getProperties().get("datanodes") +
+        " " + hdfsExcludeFileType + " tag: " + excludeFileTag);
 
     Map<String, Map<String, String>> configurations =
         new TreeMap<String, Map<String, String>>();
-    configurations.put(config.getType(), config.getProperties());
-
     Map<String, Map<String, String>> configTags = new TreeMap<String,
-      Map<String, String>>();
+        Map<String, String>>();
 
     findConfigurationPropertiesWithOverrides(configurations, configTags,
-      cluster, serviceName, namenodeHost);
+        cluster, serviceName, namenodeHost);
+    // Add the tag for hdfs-exclude-file
+    Map<String, String> excludeTags = new HashMap<String, String>();
+    excludeTags.put(clusterLevelTag, config.getVersionTag());
+    configTags.put(hdfsExcludeFileType, excludeTags);
 
     stage.addHostRoleExecutionCommand(
         namenodeHost,
@@ -4257,7 +4263,7 @@ public class AmbariManagementControllerImpl implements
         clusterName, serviceName);
 
     ExecutionCommand execCmd = stage.getExecutionCommandWrapper(namenodeHost,
-      Role.DECOMMISSION_DATANODE.toString()).getExecutionCommand();
+        Role.DECOMMISSION_DATANODE.toString()).getExecutionCommand();
 
     execCmd.setConfigurations(configurations);
     execCmd.setConfigurationTags(configTags);
@@ -4265,7 +4271,7 @@ public class AmbariManagementControllerImpl implements
     Map<String, String> params = new TreeMap<String, String>();
     params.put("jdk_location", this.jdkResourceUrl);
     params.put("stack_version", cluster.getDesiredStackVersion()
-      .getStackVersion());
+        .getStackVersion());
     execCmd.setHostLevelParams(params);
 
   }

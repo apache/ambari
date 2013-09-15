@@ -99,6 +99,11 @@ class TestPuppetExecutor(TestCase):
     self.assertEquals(res["stderr"], errMsg)
     self.assertFalse(puppetInstance.reposInstalled)
 
+    parsedJson['configurations'] = {'random':{'name1':'value2'}}
+    res = puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
+    self.assertEquals(res["exitcode"], 1)
+    self.assertEquals(res["stderr"], "Cannot access JDK! Make sure java64_home is specified in global config")
+
   @patch.object(PuppetExecutor, 'isJavaAvailable')
   @patch.object(RepoInstaller, 'generate_repo_manifests')
   @patch.object(PuppetExecutor, 'runPuppetFile')
