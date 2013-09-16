@@ -812,6 +812,11 @@ var urls = {
       };
     }
   },
+  'admin.delete_host': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}',
+    'mock': '',
+    'type': 'DELETE'
+  },
   'admin.security.all_configurations': {
     'real': '/clusters/{clusterName}/configurations?{urlParams}',
     'mock':'',
@@ -1220,8 +1225,9 @@ App.ajax = {
    * @jqXHR {jqXHR Object}
    * @url {string}
    * @method {String} Http method
+   * @showStatus {number} HTTP response code which should be shown. Default is 500.
    */
-  defaultErrorHandler: function(jqXHR,url,method) {
+  defaultErrorHandler: function(jqXHR,url,method,showStatus) {
     method = method || 'GET';
     var self = this;
     var api = " received on " + method + " method for API: " + url;
@@ -1231,12 +1237,14 @@ App.ajax = {
       var message = json.message;
     } catch (err) {
     }
-
+    if (showStatus === null) {
+      showStatus = 500;
+    }
     if (message === undefined) {
       showMessage = false;
     }
     var statusCode = jqXHR.status + " status code";
-    if (jqXHR.status === 500 && !this.modalPopup) {
+    if (jqXHR.status === showStatus && !this.modalPopup) {
       this.modalPopup = App.ModalPopup.show({
         header: jqXHR.statusText,
         secondary: false,

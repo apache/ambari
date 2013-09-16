@@ -77,6 +77,30 @@ App.HostComponent = DS.Model.extend({
     }
   }.property('componentName'),
   /**
+   * Only certain components can be deleted.
+   * They include some from master components, 
+   * some from slave components, and rest from 
+   * client components.
+   */
+  isDeletable: function() {
+    var canDelete = false;
+    switch (this.get('componentName')) {
+      case 'DATANODE':
+      case 'TASKTRACKER':
+      case 'ZOOKEEPER_SERVER':
+      case 'HBASE_REGIONSERVER':
+      case 'GANGLIA_MONITOR':
+      case 'NODEMANAGER':
+        canDelete = true;
+        break;
+      default:
+    }
+    if (!canDelete) {
+      canDelete = this.get('isClient');
+    }
+    return canDelete;
+  }.property('componentName', 'isClient'),
+  /**
    * A host-component is decommissioning when it is in HDFS service's list of
    * decomNodes.
    */

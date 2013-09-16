@@ -24,26 +24,28 @@
     <span class="label label-success alerts-count" {{action "showAlertsPopup" content target="App.router.mainHostController"}}>{{t hosts.host.alert.noAlerts}}</span>
   {{/if}}
   <div><a href="javascript:void(null)" data-toggle="modal" {{action back}}><i class="icon-arrow-left"></i>&nbsp;{{t common.back}}</a></div>
-<!--   {{#if App.isAdmin}} -->
-<!--   <div class="host-maintenance"> -->
-<!--     <div class="host-maintenance-btn btn-group display-inline-block"> -->
-<!--       <a class="btn dropdown-toggle" data-toggle="dropdown" href="#"> -->
-<!--         {{t services.service.actions.maintenance}} -->
-<!--         <span class="caret"></span> -->
-<!--       </a> -->
-<!--       <ul class="dropdown-menu"> -->
-<!--       dropdown menu links -->
-<!--         {{#each option in view.maintenance}} -->
-<!--         <li> -->
-<!--         <a {{action validateDeletion target="controller"}} href="#">{{option.label}}</a> -->
-<!--         </li> -->
-<!--         {{/each}} -->
-<!--       </ul> -->
-<!--     </div> -->
-<!--   </div> -->
-<!--   {{/if}} -->
   <div class="content">
     {{view App.MainHostMenuView}}
+    {{#if App.isAdmin}}
+      {{#if App.supports.deleteHost}}
+				<div class="service-button">
+				    <div class="btn-group display-inline-block">
+				      <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+				        {{t services.service.actions.maintenance}}
+				        <span class="caret"></span>
+				      </a>
+				      <ul class="dropdown-menu">
+				        <!-- dropdown menu links -->
+				        {{#each option in view.maintenance}}
+				        <li {{bindAttr class="controller.isStopDisabled:disabled"}}>
+				          <a {{action "doAction" option target="controller" href=true}}>{{option.label}}</a>
+				        </li>
+				        {{/each}}
+				      </ul>
+				    </div>
+				</div>
+			{{/if}}
+	  {{/if}}
     {{outlet}}
   </div>
 </div>

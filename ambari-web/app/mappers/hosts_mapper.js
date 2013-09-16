@@ -51,6 +51,24 @@ App.hostsMapper = App.QuickDataMapper.create({
   map: function (json) {
     if (json.items) {
       var result = this.parse(json.items);
+      var clientHosts = App.Host.find();
+      if (clientHosts != null && clientHosts.get('length') !== result.length) {
+        var serverHostIds = {};
+        result.forEach(function (host) {
+          serverHostIds[host.id] = host.id;
+        });
+        var hostsToDelete = [];
+        clientHosts.forEach(function (host) {
+          if (host !== null && !serverHostIds[host.get('hostName')]) {
+            // Delete old ones as new ones will be
+            // loaded by loadMany().
+            hostsToDelete.push(host);
+          }
+        });
+        hostsToDelete.forEach(function (host) {
+          host.deleteRecord();
+        });
+      }
       App.store.loadMany(this.get('model'), result);
     }
   },

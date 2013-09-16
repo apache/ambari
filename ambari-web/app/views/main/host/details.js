@@ -27,7 +27,10 @@ App.MainHostDetailsView = Em.View.extend({
   }.property('App.router.mainHostDetailsController.content'),
 
   maintenance: function(){
-    var options = [{action: 'deleteHost', 'label': this.t('hosts.host.details.deleteHost')}];
+    var options = [
+         {action: 'startAllComponents', 'label': this.t('hosts.host.details.startAllComponents')},
+         {action: 'stopAllComponents', 'label': this.t('hosts.host.details.stopAllComponents')},
+         {action: 'deleteHost', 'label': this.t('hosts.host.details.deleteHost')}];
     return options;
   }.property('controller.content'),
   didInsertElement: function() {
