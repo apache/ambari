@@ -37,7 +37,7 @@ import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
  * Provides LDAP user authorization logic for Ambari Server
  */
 public class AmbariLdapAuthenticationProvider implements AuthenticationProvider {
-  private static final Logger log = LoggerFactory.getLogger(AmbariLdapAuthenticationProvider.class);
+  Logger LOG = LoggerFactory.getLogger(AmbariLdapAuthenticationProvider.class);
 
   Configuration configuration;
 
@@ -56,9 +56,24 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 
     if (isLdapEnabled()) {
-
-      return loadLdapAuthenticationProvider().authenticate(authentication);
-
+      try {
+        return loadLdapAuthenticationProvider().authenticate(authentication);
+      } catch (AuthenticationException e) {
+        LOG.debug("Got exception during LDAP authentification attempt", e);
+        // Try to help in troubleshooting
+        Throwable cause = e.getCause();
+        if (cause != null) {
+          // Below we check the cause of an AuthenticationException . If it is
+          // caused by another AuthenticationException, than probably
+          // the problem is with LDAP ManagerDN/password
+          if ((cause != e) && (cause instanceof
+                  org.springframework.ldap.AuthenticationException)) {
+            LOG.warn("Looks like LDAP manager credentials (that are used for " +
+                    "connecting to LDAP server) are invalid.", e);
+          }
+        }
+        throw e;
+      }
     } else {
       return null;
     }
@@ -74,9 +89,9 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
    * Reloads LDAP Context Source and depending objects if properties were changed
    * @return corresponding LDAP authentication provider
    */
-  private LdapAuthenticationProvider loadLdapAuthenticationProvider() {
+  LdapAuthenticationProvider loadLdapAuthenticationProvider() {
     if (reloadLdapServerProperties()) {
-      log.info("LDAP Properties changed - rebuilding Context");
+      LOG.info("LDAP Properties changed - rebuilding Context");
       LdapContextSource springSecurityContextSource = new LdapContextSource();
       List<String> ldapUrls = ldapServerProperties.get().getLdapUrls();
       springSecurityContextSource.setUrls(ldapUrls.toArray(new String[ldapUrls.size()]));
@@ -90,7 +105,7 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
       try {
         springSecurityContextSource.afterPropertiesSet();
       } catch (Exception e) {
-        log.error("LDAP Context Source not loaded ", e);
+        LOG.error("LDAP Context Source not loaded ", e);
         throw new UsernameNotFoundException("LDAP Context Source not loaded", e);
       }
 
@@ -116,7 +131,7 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
    * Check if LDAP authentication is enabled in server properties
    * @return true if enabled
    */
-  private boolean isLdapEnabled() {
+  boolean isLdapEnabled() {
     return configuration.getClientSecurityType() == ClientSecurityType.LDAP;
   }
 
@@ -128,7 +143,7 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
   private boolean reloadLdapServerProperties() {
     LdapServerProperties properties = configuration.getLdapServerProperties();
     if (!properties.equals(ldapServerProperties.get())) {
-      log.info("Reloading properties");
+      LOG.info("Reloading properties");
       ldapServerProperties.set(properties);
       return true;
     }

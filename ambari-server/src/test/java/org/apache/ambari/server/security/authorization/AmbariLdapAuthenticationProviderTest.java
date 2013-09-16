@@ -22,27 +22,29 @@ import junit.framework.Assert;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.persist.jpa.JpaPersistModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
-import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.RoleDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
+import org.easymock.EasyMockSupport;
+import org.easymock.IAnswer;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.ldap.server.ApacheDSContainer;
+import static org.easymock.EasyMock.*;
 
 import static org.junit.Assert.*;
 
-public class AmbariLdapAuthenticationProviderTest{
+public class AmbariLdapAuthenticationProviderTest extends EasyMockSupport {
 
   private static ApacheDSContainer apacheDSContainer;
   private static Injector injector;
@@ -76,6 +78,76 @@ public class AmbariLdapAuthenticationProviderTest{
   public void testBadCredential() throws Exception {
     Authentication authentication = new UsernamePasswordAuthenticationToken("notFound", "wrong");
     authenticationProvider.authenticate(authentication);
+  }
+
+
+  @Test
+  public void testGoodManagerCredentials() throws Exception {
+    AmbariLdapAuthoritiesPopulator authoritiesPopulator = createMock(AmbariLdapAuthoritiesPopulator.class);
+    AmbariLdapAuthenticationProvider provider = createMockBuilder(AmbariLdapAuthenticationProvider.class)
+            .addMockedMethod("loadLdapAuthenticationProvider")
+            .addMockedMethod("isLdapEnabled")
+            .withConstructor(configuration, authoritiesPopulator).createMock();
+    // Create the last thrown exception
+    org.springframework.security.core.AuthenticationException exception =
+            createNiceMock(org.springframework.security.core.AuthenticationException.class);
+    expect(exception.getCause()).andReturn(exception).atLeastOnce();
+
+    expect(provider.isLdapEnabled()).andReturn(true);
+    expect(provider.loadLdapAuthenticationProvider()).andThrow(exception);
+    // Logging call
+    Logger log = createNiceMock(Logger.class);
+    provider.LOG = log;
+    log.warn(find("LDAP manager credentials"), (Throwable) anyObject());
+    expectLastCall().andAnswer(new IAnswer<Object>() {
+      @Override
+      public Object answer() throws Throwable {
+        fail("Should not print warning when LDAP manager credentials are not wrong");
+        return null;
+      }
+    }).anyTimes();
+    replayAll();
+    Authentication authentication = new UsernamePasswordAuthenticationToken("notFound", "wrong");
+    try {
+      provider.authenticate(authentication);
+      fail("Should throw exception");
+    } catch(org.springframework.security.core.AuthenticationException e) {
+      // expected
+    }
+    verifyAll();
+  }
+
+  @Test
+  public void testBadManagerCredentials() throws Exception {
+    AmbariLdapAuthoritiesPopulator authoritiesPopulator = createMock(AmbariLdapAuthoritiesPopulator.class);
+    AmbariLdapAuthenticationProvider provider = createMockBuilder(AmbariLdapAuthenticationProvider.class)
+            .addMockedMethod("loadLdapAuthenticationProvider")
+            .addMockedMethod("isLdapEnabled")
+            .withConstructor(configuration, authoritiesPopulator).createMock();
+    // Create the cause
+    org.springframework.ldap.AuthenticationException cause =
+            createNiceMock(org.springframework.ldap.AuthenticationException.class);
+    // Create the last thrown exception
+    org.springframework.security.core.AuthenticationException exception =
+            createNiceMock(org.springframework.security.core.AuthenticationException.class);
+    expect(exception.getCause()).andReturn(cause).atLeastOnce();
+
+    expect(provider.isLdapEnabled()).andReturn(true);
+    expect(provider.loadLdapAuthenticationProvider()).andThrow(exception);
+    // Logging call
+    Logger log = createNiceMock(Logger.class);
+    provider.LOG = log;
+    log.warn(find("LDAP manager credentials"), (Throwable) anyObject());
+    expectLastCall().atLeastOnce();
+    replayAll();
+    Authentication authentication = new UsernamePasswordAuthenticationToken("notFound", "wrong");
+    try {
+      provider.authenticate(authentication);
+      fail("Should throw exception");
+    } catch(org.springframework.security.core.AuthenticationException e) {
+      // expected
+    }
+    verifyAll();
   }
 
   @Test
