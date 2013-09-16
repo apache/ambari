@@ -16,6 +16,7 @@
 # syntax: [prefix].[source|sink|jmx].[instance].[options]
 # See package.html for org.apache.hadoop.metrics2 for details
 
+<%if not scope.function_hdp_is_empty(ganglia_server_host)%>
 *.period=60
 
 *.sink.ganglia.class=org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31
@@ -40,3 +41,5 @@ historyserver.sink.ganglia.servers=<%=scope.function_hdp_host("ganglia_server_ho
 journalnode.sink.ganglia.servers=<%=scope.function_hdp_host("ganglia_server_host")%>:8660
 
 resourcemanager.sink.ganglia.tagsForPrefix.yarn=Queue
+
+<% end %>
