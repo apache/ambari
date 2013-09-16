@@ -120,8 +120,8 @@ App.UpdateController = Em.Controller.extend({
       'components/host_components/metrics/dfs/namenode/DecomNodes,' +
       'components/host_components/metrics/dfs/namenode/TotalFiles,' +
       'components/host_components/metrics/dfs/namenode/UpgradeFinalized,' +
-      'components/host_components/metrics/dfs/namenode/Safemode,' +
-      'components/host_components/runtime/StartTime';
+      'components/host_components/metrics/dfs/namenode/Safemode';
+      //'components/host_components/runtime/StartTime';
 
     var servicesUrl = isInitialLoad ? this.getUrl(testUrl, realUrl + conditionalFieldsString) : this.getUrl(testUrl, realUrl + conditionalFieldsString);
     var callback = callback || function (jqXHR, textStatus) {
