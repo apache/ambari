@@ -77,8 +77,8 @@ public class URLStreamProvider implements StreamProvider {
   @Override
   public InputStream readFrom(String spec) throws IOException {
     
-    if (LOG.isInfoEnabled()) {
-      LOG.info("readFrom spec:" + spec);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("readFrom spec:" + spec);
     }
     
     HttpURLConnection connection = spec.startsWith("https") ? 
