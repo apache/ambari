@@ -30,7 +30,8 @@ SERVICE_COMPONENTS_PATH = "/clusters/%s/services/%s/components?fields=*"
 SERVICE_COMPONENT_PATH = "/clusters/%s/services/%s/components/%s"
 
 
-HOSTS_PATH = "/hosts?fields=*"
+HOST_PATH = "/hosts/%s"
+HOSTS_PATH = "/hosts"
 HOSTS_CREATE_PATH = "/clusters/%s/hosts"
 HOSTS_COMPONENTS_PATH = "/clusters/%s/hosts/%s/host_components?ServiceComponentInfo"
 HOSTS_COMPONENT_PATH = "/clusters/%s/hosts/%s/host_components/%s" 

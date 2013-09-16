@@ -28,6 +28,48 @@ from ambari_client.model import status , component , paths , utils
 LOG = logging.getLogger(__name__)
 
 
+def _get_host(root_resource, host_name):
+  """
+  Lookup up by host_name
+  @param root_resource: The root Resource object.
+  @param cluster_name: Cluster name
+  @param host_name: Host name
+  @return: A HostModel object
+  """
+  path = paths.HOST_PATH % (host_name)
+  dic = root_resource.get(path)
+  
+  return utils.ModelUtils.create_model(HostModel , dic, root_resource, "Hosts")
+
+def _get_cluster_host(root_resource, cluster_name , host_name):
+  """
+  Lookup cluster host up by host_name
+  @param root_resource: The root Resource object.
+  @param cluster_name: Cluster name
+  @param host_name: Host name
+  @return: A HostModel object
+  """
+  path = paths.CLUSTER_HOST_PATH % (cluster_name, host_name)
+  dic = root_resource.get(path)
+  return utils.ModelUtils.create_model(HostModel , dic, root_resource, "Hosts")
+
+
+
+def _create_hosts(root_resource, host_list):
+  """
+  Create hosts from list
+  @param root_resource: The root Resource.
+  @param host_name: Host name
+  @param ip: IP address
+  @param rack_info: Rack id. Default None
+  @return: An HostList object
+  """
+  
+  data = [{"Hosts":{"host_name":x.host_name,"ip":x.ip,"rack_info":x.rack_info}} 
+          for x in host_list]
+  resp = root_resource.post(paths.HOSTS_PATH, payload=data)
+  return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
+
 def _create_host(root_resource, host_name, ip, rack_info=None):
   """
   Create a host
@@ -37,58 +79,39 @@ def _create_host(root_resource, host_name, ip, rack_info=None):
   @param rack_info: Rack id. Default None
   @return: An HostModel object
   """
-  host = HostModel(root_resource, host_name, ip, rack_info)
-  host_list = ModelList([host])
-  body = json.dumps(host_list.to_json_dict())
-  resp = root_resource.post(paths.HOSTS_PATH, data=body)
-  # The server returns a created hosts 
-  return _get_host(root_resource, host_name)
-
-
-def _get_host(root_resource, cluster_name , host_name):
-  """
-  Lookup up by host_name
-  @param root_resource: The root Resource object.
-  @param cluster_name: Cluster name
-  @param host_name: Host name
-  @return: A HostModel object
-  """
-  path = paths.CLUSTER_HOST_PATH % (cluster_name, host_name)
-  dic = root_resource.get(path)
-  return utils.ModelUtils.create_model(HostModel , dic, root_resource, "Hosts") 
-
+  host_list = ModelList([HostModel(host_name, ip, rack_info)])
+  return _create_hosts(root_resource, host_list)
 
 def _add_hosts(root_resource, cluster_name , host_list):
   """
-  Lookup up by host_name
+  Adds a hosts to a cluster.
   @param root_resource: The root Resource object.
   @param cluster_name: Cluster name
-  @param host_list: list of hostnames
+  @param host_list: list of hosts
   @return: A StatusModel object
   """
   cpath = paths.HOSTS_CREATE_PATH % (cluster_name)
-  data = [{"Hosts":{"host_name":x}} for x in host_list]
+  data = [{"Hosts":{"host_name":x.host_name,"ip":x.ip,"rack_info":x.rack_info}} 
+          for x in host_list]
   resp = root_resource.post(path=cpath, payload=data)
   return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
 
 
-def _add_host(root_resource, cluster_name , host_name , ip, rack_info):
+def _add_host(root_resource, cluster_name , host_name , ip, rack_info=None):
   """
-  Creates host.
+  Adds a host to a cluster.
   @param host_name: Host name
   @param ip: ip of Host 
   @param rack_info: rack information
   @return: StatusModel.
   """
-  cpath = paths.HOSTS_CREATE_PATH % (cluster_name)
-  data = [{"Hosts":{"host_name":host_name , "ip":ip, "rack_info":rack_info}}]
-  resp = root_resource.post(path=cpath, payload=data)
-  return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
+  host_list = ModelList([HostModel(root_resource, host_name, ip, rack_info)])
+  return _add_hosts(root_resource, cluster_name, host_list)
 
 
 def _assign_role(root_resource, cluster_name , host_name , component_name):
   """
-  Lookup up by host_name
+  Add a new component to a node
   @param root_resource: The root Resource object.
   @param cluster_name: Cluster name
   @param component_name : name of component.
@@ -131,7 +154,7 @@ def _delete_host(root_resource, host_name):
   @param host_name: Host name
   @return: StatusModel object
   """
-  resp = root_resource.delete("%s/%s" % (paths.HOSTS_PATH, host_name))
+  resp = root_resource.delete(paths.HOST_PATH % (host_name))
   return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
   
 
@@ -154,8 +177,8 @@ def _bootstrap_hosts(root_resource , hosts_list, ssh_key):
   @param hosts_list list of host_names.
   @return: A  StatusModel object.
   """
-  #payload_dic = {'sshKey':ssh_key.encode('string_escape') , 'hosts':hosts_list}
-  payload_dic = {'sshKey':ssh_key , 'hosts':hosts_list}
+  #payload_dic = {'sshKey':ssh_key , 'hosts':hosts_list}
+  payload_dic = {'sshKey':ssh_key.encode('string_escape') , 'hosts':hosts_list}
   resp = root_resource.post(paths.BOOTSTRAP_PATH, payload_dic , content_type="application/json")
   LOG.debug(resp)
   return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")

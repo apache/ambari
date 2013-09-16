@@ -19,7 +19,7 @@ limitations under the License.
 '''
 
 
-from mock import MagicMock, patch
+from mock.mock import MagicMock, patch
 from ambari_client.ambari_api import  AmbariClient 
 
 import unittest

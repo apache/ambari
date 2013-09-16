@@ -154,7 +154,7 @@ class ClusterModel(BaseModel):
     Get a specific hosts in this cluster.
     @return: A HostModel object.
     """
-    return host._get_host(self._get_resource_root(), self.cluster_name, hostname)
+    return host._get_cluster_host(self._get_resource_root(), self.cluster_name, hostname)
 
   def get_global_config(self, detail=None):
     """
@@ -253,7 +253,7 @@ class ClusterModel(BaseModel):
   def create_hosts(self, host_list , detail=None):
     """
     Creates hosts.
-    @param host_list: list of Host name
+    @param host_list: list of HostModel
     @return: StatusModel.
     """
     return host._add_hosts(self._get_resource_root(), self.cluster_name , host_list)

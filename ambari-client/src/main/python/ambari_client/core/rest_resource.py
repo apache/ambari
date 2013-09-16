@@ -68,7 +68,7 @@ class RestResource(object):
         LOG.error("Command '%s %s' failed with error %s" % (http_method, path, code))
         return {"status":code , "message":"Command '%s %s' failed with error %s" % (http_method, path, code)}
         #raise Exception("Command '%s %s' failed with error %s" % (http_method, path, code))
-    if resp and (code == 404 or code == 405):
+    if resp and (code == 404 or code == 405 or code == 500):
         LOG.error("Command '%s %s' failed with error %s" % (http_method, path, code))
         return {"status":code , "message":"Command '%s %s' failed with error %s" % (http_method, path, code)}
         #raise Exception("Command '%s %s' failed with error %s" % (http_method, path, code))
