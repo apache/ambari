@@ -28,8 +28,8 @@ def _get_configuration_from_stack(resource_root, version , service_name , tag="v
   @param type: type of config
   @return: A ModelList of ConfigModel object
   """
-  dic = resource_root.get(paths.STACK_SERVICES_CONFIG_PATH % (version, service_name))
-  return utils.ModelUtils.get_model_list(ModelList, StackConfigModel, dic, resource_root , "StackConfigurations")
+  dic, is_success = resource_root.get(paths.STACK_SERVICES_CONFIG_PATH % (version, service_name))
+  return utils.ModelUtils.get_model_list_or_error(ModelList, StackConfigModel, dic, resource_root , "StackConfigurations", is_success)
 
 
 def _get_components_from_stack(resource_root, version , service_name , tag="version1"):
@@ -41,8 +41,8 @@ def _get_components_from_stack(resource_root, version , service_name , tag="vers
   @return: A ModelList of ConfigModel object
   """
   path = paths.STACK_SERVICES_COMPONENTS_PATH % (version, service_name)
-  dic = resource_root.get(path)
-  return utils.ModelUtils.get_model_list(ModelList, StackComponentModel, dic, resource_root , "StackServiceComponents")
+  dic, is_success = resource_root.get(path)
+  return utils.ModelUtils.get_model_list_or_error(ModelList, StackComponentModel, dic, resource_root , "StackServiceComponents", is_success)
 
 
 class StackConfigModel(BaseModel):

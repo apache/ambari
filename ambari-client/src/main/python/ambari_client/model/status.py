@@ -42,6 +42,9 @@ class StatusModel(BaseModel):
 
   def get_request_path(self):
     return paths.REQUEST_PATH % (self._get_id())
+  
+  def is_error(self):
+    return (self.status != 200 and self.status != 201)
 
   def _get_message(self):
     if hasattr(self, 'message'):

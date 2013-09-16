@@ -32,8 +32,8 @@ def _get_all_services(resource_root, cluster_name):
   """
   path = paths.SERVICES_PATH % (cluster_name,)
   path = path + '?fields=*'
-  dic = resource_root.get(path)
-  return utils.ModelUtils.get_model_list(ModelList, ServiceModel, dic, resource_root , "ServiceInfo")
+  dic, is_success = resource_root.get(path)
+  return utils.ModelUtils.get_model_list_or_error(ModelList, ServiceModel, dic, resource_root , "ServiceInfo", is_success)
 
 
 def _get_service(resource_root, service_name, cluster_name):
@@ -44,8 +44,8 @@ def _get_service(resource_root, service_name, cluster_name):
   @return: A  ServiceModel object.
   """
   path = "%s/%s" % (paths.SERVICES_PATH % (cluster_name,), service_name)
-  dic = resource_root.get(path)
-  return utils.ModelUtils.create_model(ServiceModel , dic, resource_root, "ServiceInfo") 
+  dic, is_success = resource_root.get(path)
+  return utils.ModelUtils.create_model_or_error(ServiceModel , dic, resource_root, "ServiceInfo", is_success) 
 
 
 def _create_services(root_resource, cluster_name , service_names):
@@ -58,7 +58,7 @@ def _create_services(root_resource, cluster_name , service_names):
   """
   data = [{"ServiceInfo":{"service_name":x}} for x in service_names]
   cpath = paths.SERVICES_PATH % cluster_name
-  resp = root_resource.post(path=cpath, payload=data)
+  resp, is_success = root_resource.post(path=cpath, payload=data)
   return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
 
 
@@ -72,7 +72,7 @@ def _create_service(root_resource, cluster_name , service_name):
   """
   data = {"ServiceInfo":{"service_name":service_name}} 
   cpath = paths.SERVICES_PATH % cluster_name
-  resp = root_resource.post(path=cpath, payload=data)
+  resp, is_success = root_resource.post(path=cpath, payload=data)
   return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
 
 
@@ -88,7 +88,7 @@ def _create_service_components(root_resource, cluster_name , version , service_n
   list_componnetinfo = [{"ServiceComponentInfo":{"component_name":x.component_name }} for x in components]
   data = {"components":list_componnetinfo}
   cpath = paths.SERVICE_CREATE_PATH % (cluster_name, service_name)
-  resp = root_resource.post(path=cpath, payload=data)
+  resp, is_success = root_resource.post(path=cpath, payload=data)
   return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
 
 
@@ -102,7 +102,7 @@ def _create_service_component(root_resource, cluster_name , version , service_na
   @return: An ServiceModel object
   """
   cpath = paths.SERVICE_COMPONENT_PATH % (cluster_name, service_name, component_name)
-  resp = root_resource.post(path=cpath, payload=None)
+  resp, is_success = root_resource.post(path=cpath, payload=None)
   return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
 
 
@@ -114,7 +114,7 @@ def _delete_service(root_resource, service_name, cluster_name):
   @param cluster_name: Cluster service_name
   @return: The StatusModel object
   """
-  resp = root_resource.delete("%s/%s" % (paths.SERVICES_PATH % (cluster_name,), service_name))
+  resp, is_success = root_resource.delete("%s/%s" % (paths.SERVICES_PATH % (cluster_name,), service_name))
   time.sleep(3)
   return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
    

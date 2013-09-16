@@ -26,28 +26,28 @@ LOG = logging.getLogger(__name__)
 
 def get_host_components(resource_root, cluster_name , host_name):
   path = paths.HOSTS_COMPONENTS_PATH % (cluster_name, host_name)
-  dic = resource_root.get(path)
-  return utils.ModelUtils.get_model_list(ModelList, ComponentModel, dic, resource_root , "HostRoles")
+  dic, is_success = resource_root.get(path)
+  return utils.ModelUtils.get_model_list_or_error(ModelList, ComponentModel, dic, resource_root , "HostRoles", is_success)
 
 
 def get_host_component(resource_root, cluster_name , host_name , component_name):
   path = paths.HOSTS_COMPONENT_PATH % (cluster_name, host_name , component_name)
-  dic = resource_root.get(path)
-  comp_model = utils.ModelUtils.create_model(ComponentModel, dic, resource_root , "HostRoles" , status.StatusModel)
+  dic, is_success = resource_root.get(path)
+  comp_model = utils.ModelUtils.create_model_or_error(ComponentModel, dic, resource_root , "HostRoles" , is_success)
   #comp_model._setattr('host_name', dic["items"][0]['HostRoles']['host_name'])
   return comp_model
 
 
 def _get_service_components(resource_root, cluster_name , service_name):
   path = paths.SERVICE_COMPONENTS_PATH % (cluster_name, service_name)
-  dic = resource_root.get(path)
-  return utils.ModelUtils.get_model_list(ModelList, ComponentModel, dic, resource_root , "ServiceComponentInfo")
+  dic, is_success = resource_root.get(path)
+  return utils.ModelUtils.get_model_list_or_error(ModelList, ComponentModel, dic, resource_root , "ServiceComponentInfo", is_success)
 
 
 def _get_service_component(resource_root, cluster_name , service_name , component_name):
   path = paths.SERVICE_COMPONENT_PATH % (cluster_name, service_name , component_name)
-  dic = resource_root.get(path)
-  return utils.ModelUtils.create_model(ComponentModel, dic, resource_root , "ServiceComponentInfo")
+  dic, is_success = resource_root.get(path)
+  return utils.ModelUtils.create_model_or_error(ComponentModel, dic, resource_root , "ServiceComponentInfo", is_success)
 
 
 

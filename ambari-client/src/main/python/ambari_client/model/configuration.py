@@ -30,11 +30,13 @@ def _get_configuration(resource_root, cluster_name , type , tag="version1"):
   @param type: type of config
   @return: A ConfigModel object
   """
-  dic = resource_root.get(paths.CONFIGURATION_PATH % (cluster_name, type, tag))
-  config_model = utils.ModelUtils.create_model(ConfigModel , dic["items"][0], resource_root, "NO_KEY")
-  ref_clss = utils.getREF_class_name("cluster_name")
-  config_model._setattr(ref_clss, dic["items"][0]['Config']['cluster_name'])
-  return config_model
+  dic, is_success = resource_root.get(paths.CONFIGURATION_PATH % (cluster_name, type, tag))
+  config_model, err_model = utils.ModelUtils.create_model_or_error(ConfigModel , dic["items"][0], resource_root, "NO_KEY", is_success)
+  if not err_model:
+    ref_clss = utils.getREF_class_name("cluster_name")
+    config_model._setattr(ref_clss, dic["items"][0]['Config']['cluster_name'])
+    
+  return config_model, err_model
 
 
 def _update_configuration(resource_root, cluster_name , type , tag , config_model):
@@ -61,7 +63,7 @@ def _add_config(root_resource, cluster_name, type, tag , properties):
   """
   cpath = paths.CLUSTERS_CONFIG_PATH % cluster_name
   data = {"Clusters":{"desired_configs":{"type":type, "tag":tag, "properties":properties}}}
-  resp = root_resource.put(path=cpath , payload=data)
+  resp, is_success = root_resource.put(path=cpath , payload=data)
   return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY") 
     
 
@@ -75,7 +77,7 @@ def _create_config(root_resource, cluster_name, type, tag , properties):
   """
   cpath = paths.CLUSTERS_CONFIG_PATH % cluster_name
   data = {"type":type, "tag":tag, "properties":properties}
-  resp = root_resource.put(path=cpath , payload=data)
+  resp, is_success = root_resource.put(path=cpath , payload=data)
   return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY") 
 
 

@@ -34,12 +34,13 @@ def _get_host(root_resource, host_name):
   @param root_resource: The root Resource object.
   @param cluster_name: Cluster name
   @param host_name: Host name
-  @return: A HostModel object
+  @return model: A HostModel of the host
+  @return err_resp: StatusModel object of the error response
   """
   path = paths.HOST_PATH % (host_name)
-  dic = root_resource.get(path)
-  
-  return utils.ModelUtils.create_model(HostModel , dic, root_resource, "Hosts")
+  dic, is_success = root_resource.get(path)
+ 
+  return utils.ModelUtils.create_model_or_error(HostModel , dic, root_resource, "Hosts", is_success)
 
 def _get_cluster_host(root_resource, cluster_name , host_name):
   """
@@ -50,8 +51,8 @@ def _get_cluster_host(root_resource, cluster_name , host_name):
   @return: A HostModel object
   """
   path = paths.CLUSTER_HOST_PATH % (cluster_name, host_name)
-  dic = root_resource.get(path)
-  return utils.ModelUtils.create_model(HostModel , dic, root_resource, "Hosts")
+  dic, is_success = root_resource.get(path)
+  return utils.ModelUtils.create_model_or_error(HostModel , dic, root_resource, "Hosts", is_success)
 
 
 
@@ -67,7 +68,7 @@ def _create_hosts(root_resource, host_list):
   
   data = [{"Hosts":{"host_name":x.host_name,"ip":x.ip,"rack_info":x.rack_info}} 
           for x in host_list]
-  resp = root_resource.post(paths.HOSTS_PATH, payload=data)
+  resp, is_success = root_resource.post(paths.HOSTS_PATH, payload=data)
   return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
 
 def _create_host(root_resource, host_name, ip, rack_info=None):
@@ -93,7 +94,7 @@ def _add_hosts(root_resource, cluster_name , host_list):
   cpath = paths.HOSTS_CREATE_PATH % (cluster_name)
   data = [{"Hosts":{"host_name":x.host_name,"ip":x.ip,"rack_info":x.rack_info}} 
           for x in host_list]
-  resp = root_resource.post(path=cpath, payload=data)
+  resp, is_success = root_resource.post(path=cpath, payload=data)
   return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
 
 
@@ -120,7 +121,7 @@ def _assign_role(root_resource, cluster_name , host_name , component_name):
   """
   data = {"host_components":[{"HostRoles":{"component_name":component_name}}]}
   cpath = paths.HOSTS_ASSIGN_ROLE % (cluster_name, host_name)
-  resp = root_resource.post(path=cpath, payload=data)
+  resp, is_success = root_resource.post(path=cpath, payload=data)
   return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
 
 
@@ -130,7 +131,7 @@ def _get_all_hosts(root_resource):
   @param root_resource: The root Resource.
   @return: A list of HostModel objects.
   """
-  dic = root_resource.get(paths.HOSTS_PATH)
+  dic, is_success = root_resource.get(paths.HOSTS_PATH)
   return utils.ModelUtils.get_model_list(ModelList, HostModel, dic, root_resource , "Hosts")
   
   
@@ -143,8 +144,8 @@ def _get_all_cluster_hosts(root_resource, cluster_name):
   """
   path = paths.CLUSTER_HOSTS_PATH % (cluster_name)
   path = path + '?fields=*'
-  dic = root_resource.get(path)
-  return utils.ModelUtils.get_model_list(ModelList, HostModel, dic, root_resource , "Hosts")
+  dic, is_success = root_resource.get(path)
+  return utils.ModelUtils.get_model_list_or_error(ModelList, HostModel, dic, root_resource , "Hosts", is_success)
 
 
 def _delete_host(root_resource, host_name):
@@ -154,8 +155,8 @@ def _delete_host(root_resource, host_name):
   @param host_name: Host name
   @return: StatusModel object
   """
-  resp = root_resource.delete(paths.HOST_PATH % (host_name))
-  return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
+  resp, is_success = root_resource.delete(paths.HOST_PATH % (host_name))
+  return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY", is_success)
   
 
 def _delete_cluster_host(root_resource, cluster_name , host_name):
@@ -167,7 +168,7 @@ def _delete_cluster_host(root_resource, cluster_name , host_name):
   @return: StatusModel object
   """
   path = paths.CLUSTER_HOST_PATH % (cluster_name, host_name)
-  resp = root_resource.delete(path)
+  resp, is_success = root_resource.delete(path)
   return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
 
 
@@ -179,7 +180,7 @@ def _bootstrap_hosts(root_resource , hosts_list, ssh_key):
   """
   #payload_dic = {'sshKey':ssh_key , 'hosts':hosts_list}
   payload_dic = {'sshKey':ssh_key.encode('string_escape') , 'hosts':hosts_list}
-  resp = root_resource.post(paths.BOOTSTRAP_PATH, payload_dic , content_type="application/json")
+  resp, is_success = root_resource.post(paths.BOOTSTRAP_PATH, payload_dic , content_type="application/json")
   LOG.debug(resp)
   return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
 

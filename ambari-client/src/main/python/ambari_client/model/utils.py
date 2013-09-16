@@ -28,6 +28,28 @@ ref_pkg_dic = {"ClusterModelRef":"ambari_client.model.cluster"}
 LIST_KEY = "items"
   
 class ModelUtils(object):
+  
+  @staticmethod
+  def get_model_list_or_error(member_list_clss, member_cls, collection_dict, resource_root , RESOURCE_KEY_WORD, is_success):
+    """
+    create a model list or error response.
+    @param member_list_clss : model_list class.
+    @param model_cls : model class.
+    @param collection_dict : collection dict used for creating the list of objects.
+    @param resource_root : resource object.
+    @param RESOURCE_KEY_WORD : tsake subset of model_dict based on this key.
+    @return model_list: A  ModelList object.
+    @return err_resp: StatusModel object of the error response
+    """
+    model_list = err_resp = None
+  
+    if is_success:
+      model_list = ModelUtils.get_model_list(member_list_clss, member_cls, collection_dict, resource_root , RESOURCE_KEY_WORD)
+    else:
+      from ambari_client.model.status import StatusModel
+      err_resp = ModelUtils.create_model(StatusModel, collection_dict, resource_root, "NO_KEY")
+  
+    return model_list, err_resp
 
   @staticmethod
   def get_model_list(member_list_clss, member_cls, collection_dict, resource_root , RESOURCE_KEY_WORD):
@@ -64,7 +86,27 @@ class ModelUtils(object):
     objects = [ ModelUtils.create_model(member_cls, x, resource_root , RESOURCE_KEY_WORD) for x in json_list_new ]
     LOG.debug (objects)
     return member_list_clss(objects)
-
+  
+  @staticmethod
+  def create_model_or_error(model_cls, model_dict, resource_root, RESOURCE_KEY_WORD, is_success, exception_cls=None):
+    """
+    create a model or error response.
+    @param model_cls : model class.
+    @param model_dict : model dict used for creating the object.
+    @param resource_root : resource object.
+    @param RESOURCE_KEY_WORD : tsake subset of model_dict based on this key.
+    @return model: A model cls object
+    @return err_resp: StatusModel object of the error response
+    """
+    model = err_resp = None
+  
+    if is_success:
+      model = ModelUtils.create_model(model_cls , model_dict, resource_root, RESOURCE_KEY_WORD, exception_cls)
+    else:
+      from ambari_client.model.status import StatusModel
+      err_resp = ModelUtils.create_model(StatusModel, model_dict, resource_root, "NO_KEY")
+  
+    return model, err_resp
 
   @staticmethod
   def create_model(model_cls, model_dict, resource_root, RESOURCE_KEY_WORD, exception_cls=None):
