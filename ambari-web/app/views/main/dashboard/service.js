@@ -35,7 +35,11 @@ App.MainDashboardServiceHealthView = Em.View.extend({
     this.get("service").get("hostComponents").filterProperty('isMaster', true).forEach(function(item){
       popupText += item.get("displayName") + " " + item.get("componentTextStatus") + "<br/>";
     });
-    this.set('data-original-title',popupText);
+    this.set('data-original-title', popupText);
+  },
+
+  _updateHostComponentStatus: function(){
+    Ember.run.once(this, 'getHostComponentStatus');
   }.observes('service.hostComponents.@each.workStatus'),
 
   /**

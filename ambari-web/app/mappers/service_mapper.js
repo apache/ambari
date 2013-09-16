@@ -240,6 +240,7 @@ App.servicesMapper = App.QuickDataMapper.create({
 
       // Host components
       result = [];
+      var hostComponentsMap = {};
       var hostComponentToActualConfigsMap = {};
       json.items.forEach(function(item){
         item.components.forEach(function(component){
@@ -248,22 +249,20 @@ App.servicesMapper = App.QuickDataMapper.create({
             hostComponentToActualConfigsMap[host_component.id] = host_component.HostRoles.actual_configs;
             var comp = this.parseIt(host_component, this.config3);
             comp.service_id = service;
+            this.calculateState(comp);
             result.push(comp);
+            hostComponentsMap[comp.id] = comp;
           }, this)
         }, this)
       }, this);
 
-      result.forEach(function(hcJson){
-        this.calculateState(hcJson);
-      }, this);
 
       var oldHostComponents = App.HostComponent.find();
       var item;
       var currentHCWithComponentNames = {};
       var currentComponentNameHostNames = {};
-      for ( var i = 0; i < oldHostComponents.content.length; i++) {
-        item = oldHostComponents.objectAt(i);
-        if (item && !result.findProperty('id', item.get('id'))) {
+      oldHostComponents.forEach(function (item) {
+        if (item && !hostComponentsMap[item.get('id')]) {
           item.deleteRecord();
         } else {
           var componentName = item.get('componentName');
@@ -275,14 +274,15 @@ App.servicesMapper = App.QuickDataMapper.create({
           }
           currentComponentNameHostNames[componentName].pushObject(item.get('host.hostName'));
         }
-      }
+      }, this);
+
       result.forEach(function (item) {
         if (currentHCWithComponentNames[item.id] != null && 
             !currentComponentNameHostNames[item.component_name].contains(item.host_id)) {
           item.id = (new Date).getTime();
         }
       });
-      
+
       App.store.loadMany(this.get('model3'), result);
       for(var hostComponentId in hostComponentToActualConfigsMap){
         var hostComponentObj = App.HostComponent.find(hostComponentId);
@@ -290,11 +290,11 @@ App.servicesMapper = App.QuickDataMapper.create({
         // Create actual_configs
         for(var site in hostComponentToActualConfigsMap[hostComponentId]){
           var tag = hostComponentToActualConfigsMap[hostComponentId][site].tag;
-          var configObj = App.ConfigSiteTag.create({
+          var configObj = {
             site: site,
             tag: tag,
             hostOverrides: {}
-          });
+          };
           var overrides = hostComponentToActualConfigsMap[hostComponentId][site].host_overrides;
           if(overrides!=null){
             var hostOverridesArray = {};
@@ -303,7 +303,7 @@ App.servicesMapper = App.QuickDataMapper.create({
               var tag = override.tag;
               hostOverridesArray[hostname] = tag;
             });
-            configObj.set('hostOverrides', hostOverridesArray);
+            configObj.hostOverrides = hostOverridesArray;
           }
           actualConfigs.push(configObj);
         }

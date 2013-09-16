@@ -40,35 +40,100 @@ App.Service = DS.Model.extend({
   // See http://stackoverflow.com/questions/12467345/ember-js-collapsing-deferring-expensive-observers-or-computed-properties
   healthStatus: '',
 
-  updateHealthStatus: function () {
-    // console.log('model:service.healthStatus ' + this.get('serviceName'));
-    var components = this.get('hostComponents').filterProperty('isMaster', true);
-    var isGreen = this.get('serviceName') === 'HBASE' && App.supports.multipleHBaseMasters ?
-      components.someProperty('workStatus', App.HostComponentStatus.started) :
-      components.every(function (_component) {
-        return ([App.HostComponentStatus.started, App.HostComponentStatus.maintenance].contains(_component.get('workStatus')));
-      }, this);
+  /**
+   * Every time when changes workStatus of any component we schedule recalculating values related from them
+   */
+  _updateHealthStatus: (function() {
+    Ember.run.once(this, 'updateStatusDependencies');
+  }).observes('hostComponents.@each.workStatus'),
 
+  isStopped: false,
+  isStarted: false,
+
+  /**
+   * compute service properties which depend on host components status
+   * service computed properties:
+   *    healthStatus
+   *    isStarted
+   *    runningHostComponents
+   *    unknownHostComponents
+   *    isStopped
+   */
+  updateStatusDependencies: function () {
+    var everyStarted = true,
+      everyStartedOrMaintenance = true,
+      masterComponents = [],
+      isStarted = false,
+      isUnknown = false,
+      isStarting = false,
+      isStopped = false,
+      isHbaseActive = false,
+      serviceName = this.get('serviceName'),
+      isRunning = true,
+      runningHCs = [],
+      unknownHCs = [],
+      hdfsHealthStatus;
+
+    //look through all components to find out common statuses
+    this.get('hostComponents').forEach(function (_hostComponent) {
+      if (_hostComponent.get('isMaster')) {
+        everyStartedOrMaintenance = (everyStartedOrMaintenance)
+          ? ([App.HostComponentStatus.started, App.HostComponentStatus.maintenance].contains(_hostComponent.get('workStatus')))
+          : false;
+        everyStarted = (everyStarted)
+          ? (_hostComponent.get('workStatus') === App.HostComponentStatus.started)
+          : false;
+        isStarted = (!isStarted)
+          ? (_hostComponent.get('workStatus') === App.HostComponentStatus.started)
+          : true;
+        isUnknown = (!isUnknown)
+          ? (_hostComponent.get('workStatus') === App.HostComponentStatus.unknown)
+          : true;
+        isStarting = (!isStarting)
+          ? (_hostComponent.get('workStatus') === App.HostComponentStatus.starting)
+          : true;
+        isStopped = (!isStopped)
+          ? (_hostComponent.get('workStatus') === App.HostComponentStatus.stopped)
+          : true;
+        isHbaseActive = (!isHbaseActive)
+          ? (_hostComponent.get('haStatus') === 'active')
+          : true;
+
+        masterComponents.push(_hostComponent);
+      }
+
+      if (_hostComponent.get('workStatus') !== App.HostComponentStatus.stopped &&
+        _hostComponent.get('workStatus') !== App.HostComponentStatus.install_failed &&
+        _hostComponent.get('workStatus') !== App.HostComponentStatus.unknown &&
+        _hostComponent.get('workStatus') !== App.HostComponentStatus.maintenance) {
+        isRunning = false;
+        runningHCs.addObject(_hostComponent);
+      } else if (_hostComponent.get('workStatus') == App.HostComponentStatus.unknown) {
+        unknownHCs.addObject(_hostComponent);
+      }
+    }, this);
+
+    //computation of service health status
+    var isGreen = serviceName === 'HBASE' && App.supports.multipleHBaseMasters ? isStarted : everyStartedOrMaintenance;
     if (isGreen) {
       this.set('healthStatus', 'green');
-    } else if (components.someProperty('workStatus', App.HostComponentStatus.unknown)) {
+    } else if (isUnknown) {
       this.set('healthStatus', 'yellow');
-    } else if (components.someProperty('workStatus', App.HostComponentStatus.starting)) {
+    } else if (isStarting) {
       this.set('healthStatus', 'green-blinking');
-    } else if (components.someProperty('workStatus', App.HostComponentStatus.stopped)) {
+    } else if (isStopped) {
       this.set('healthStatus', 'red');
     } else {
       this.set('healthStatus', 'red-blinking');
     }
 
-    if (this.get('serviceName') === 'HBASE' && App.supports.multipleHBaseMasters) {
-      var active = this.get('hostComponents').findProperty('haStatus', 'active');
-      if (!active) {
+    if (serviceName === 'HBASE' && App.supports.multipleHBaseMasters) {
+      if (!isHbaseActive) {
         this.set('healthStatus', 'red');
       }
     }
 
-    if (isGreen && this.get('serviceName') === 'HDFS' && components.length == 5) { // enabled HA
+    if (isGreen && serviceName === 'HDFS' && masterComponents.length == 5) { // enabled HA
       var activeNN = this.get('activeNameNode');
       var nameNode = this.get('nameNode');
 
@@ -79,49 +144,11 @@ App.Service = DS.Model.extend({
       }
       this.set('healthStatus', hdfsHealthStatus);
     }
-  },
 
-  /**
-   * Every time when changes workStatus of any component we schedule recalculating values related from them
-   */
-  _updateHealthStatus: (function() {
-    Ember.run.once(this, 'updateHealthStatus');
-    Ember.run.once(this, 'updateIsStopped');
-    Ember.run.once(this, 'updateIsStarted');
-  }).observes('hostComponents.@each.workStatus'),
-
-  isStopped: false,
-  isStarted: false,
-
-  updateIsStopped: function () {
-    var components = this.get('hostComponents');
-    var flag = true;
-    var runningHCs = [];
-    var unknownHCs = [];
-
-    components.forEach(function (_component) {
-      if (
-        _component.get('workStatus') !== App.HostComponentStatus.stopped &&
-        _component.get('workStatus') !== App.HostComponentStatus.install_failed &&
-        _component.get('workStatus') !== App.HostComponentStatus.unknown &&
-        _component.get('workStatus') !== App.HostComponentStatus.maintenance
-      ) {
-        flag = false;
-        runningHCs.addObject(_component);
-      } else if (_component.get('workStatus') == App.HostComponentStatus.unknown) {
-        unknownHCs.addObject(_component);
-      }
-    }, this);
+    this.set('isStarted', everyStarted);
     this.set('runningHostComponents', runningHCs);
     this.set('unknownHostComponents', unknownHCs);
-    this.set('isStopped', flag);
-  },
-
-  updateIsStarted: function () {
-    var components = this.get('hostComponents').filterProperty('isMaster', true);
-    this.set('isStarted',
-      components.everyProperty('workStatus', App.HostComponentStatus.started)
-    );
+    this.set('isStopped', isRunning);
   },
 
   isConfigurable: function () {
