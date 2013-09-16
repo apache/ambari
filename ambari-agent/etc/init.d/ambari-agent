@@ -28,6 +28,7 @@ case "$1" in
         ;;
   status)
         /usr/sbin/ambari-agent $@
+        exit $?
         ;;
   restart)
         $0 stop
