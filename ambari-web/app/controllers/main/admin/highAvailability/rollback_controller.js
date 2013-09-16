@@ -111,6 +111,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
         command: commands[i],
         showRetry: false,
         showRollback: false,
+        showSkip: false,
         name: Em.I18n.t('admin.highAvailability.rollback.task' + i + '.title'),
         displayName: Em.I18n.t('admin.highAvailability.rollback.task' + i + '.title'),
         progress: 0,
@@ -136,6 +137,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
     } else if (this.get('tasks').someProperty('status', 'FAILED') || this.get('tasks').someProperty('status', 'TIMEDOUT') || this.get('tasks').someProperty('status', 'ABORTED')) {
       this.set('status', 'FAILED');
       this.get('tasks').findProperty('status', 'FAILED').set('showRetry', true);
+      this.get('tasks').findProperty('status', 'FAILED').set('showSkip', true);
     }
 
     var statuses = this.get('tasks').mapProperty('status');
@@ -148,6 +150,13 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
       wizardControllerName: this.get('content.controllerName'),
       localdb: App.db.data
     });
+  },
+
+  skipTask: function () {
+    var task = this.get('tasks').findProperty('status', 'FAILED');
+    task.set('showRetry', false);
+    task.set('showSkip', false);
+    task.set('status', 'COMPLETED');
   },
 
   onTaskCompleted: function () {

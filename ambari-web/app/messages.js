@@ -56,6 +56,7 @@ Em.I18n.translations = {
   'common.addComponent':'Add Component',
   'common.remove':'Remove',
   'common.retry':'Retry',
+  'common.skip':'Skip',
   'common.rollBack':'Rollback',
   'common.show':'Show',
   'common.hide':'Hide',

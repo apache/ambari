@@ -47,6 +47,12 @@
           {{t common.rollBack}}
         </a>
       {{/if}}
+      {{#if task.showSkip}}
+        <a {{action skipTask target="controller"}} class="btn btn-primary retry">
+          <i class="icon-repeat icon-white"></i>
+          {{t common.skip}}
+        </a>
+      {{/if}}
       </div>
     </div>
   {{/view}}
