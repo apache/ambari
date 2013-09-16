@@ -467,15 +467,20 @@ h1 {
         font-size: 20px;
       }
       .not-active-link{
-        text-decoration: none;
-        pointer-events: none;
         color: #999;
-        cursor: default;
+        a{
+          text-decoration: none;
+          pointer-events: none;
+          color: #999;
+          cursor: default;
+        }
       }
       .active-link{
-        pointer-events: auto;
-        color: #0088cc;
-        cursor: pointer;
+        a{
+          pointer-events: auto;
+          color: #0088cc;
+          cursor: pointer;
+        }
       }
       .retry {
         cursor: pointer;
@@ -4097,7 +4102,7 @@ i.icon-asterisks {
   .navbar-static-top .container,
   .navbar-fixed-top .container,
   .navbar-fixed-bottom .container {
-    width: 1170px;
+    width: 1130px;
   }
 
   .span12 {

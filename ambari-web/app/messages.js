@@ -676,6 +676,15 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step6.bodyHeader':'Manual Steps Required: Initialize JournalNodes',
   'admin.highAvailability.wizard.step8.bodyHeader':'Manual Steps Required: Initialize NameNode HA Metadata',
 
+  'admin.highAvailability.wizard.step5.notice.inProgress':'Please wait while the wizard configures the components.',
+  'admin.highAvailability.wizard.step7.notice.inProgress':'Please wait while the wizard starts the components.',
+  'admin.highAvailability.wizard.step9.notice.inProgress':'Please wait while the wizard finalizes the HA setup.',
+  'admin.highAvailability.wizard.rollback.notice.inProgres':'Reverting Back to Non-HA Setup',
+
+  'admin.highAvailability.wizard.step5.header.title':'Configure Components',
+  'admin.highAvailability.wizard.step7.header.title':'Start Components',
+  'admin.highAvailability.wizard.step9.header.title':'Finalize HA Setup',
+  'admin.highAvailability.wizard.rollback.header.title':'Reverting Back to Non-HA Setup.',
 
   'admin.highAvailability.wizard.step5.task0.title':'Stop All Services',
   'admin.highAvailability.wizard.step5.task1.title':'Install Additional NameNode',
@@ -721,7 +730,7 @@ Em.I18n.translations = {
   'admin.highAvailability.rollback.task9.title':'Delete JournalNodes',
   'admin.highAvailability.rollback.task10.title':'Delete additional NameNode',
   'admin.highAvailability.rollback.task11.title':'Start all services',
-  'admin.highAvailability.rollback.notice.inProgress': 'Please wait while NameNode HA is being disabled.',
+  'admin.highAvailability.rollback.notice.inProgress':'Please wait while the wizard reverts back to the non-HA setup.',
 
   'admin.highAvailability.wizard.step8.body':
     '<ol>' +

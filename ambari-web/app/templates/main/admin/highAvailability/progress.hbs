@@ -16,15 +16,15 @@
 * limitations under the License.
 }}
 <div id="ha-progress-page">
-  <h2>{{t admin.highAvailability.wizard.progressPage.header}}</h2>
+  <h2>{{view.headerTitle}}</h2>
 
   <div {{bindAttr class="view.noticeClass"}}>{{view.notice}}</div>
   {{#each task in controller.tasks}}
   {{#view view.taskView contentBinding="task"}}
     <div class="item">
-      <div {{bindAttr class=":pull-left controller.isRollback::span4 controller.isRollback:span3"}}>
+      <div {{bindAttr class=":pull-left view.linkClass controller.isRollback::span4 controller.isRollback:span3"}}>
         <i {{bindAttr class="view.icon view.iconColor"}}></i>
-        <a {{bindAttr class="view.linkClass"}} {{action "hostsLogPopup" task target="view"}} >{{task.title}}</a>
+        <a {{bindAttr class=""}} {{action "hostsLogPopup" task target="view"}} >{{task.title}}</a>
       </div>
       <div {{bindAttr class="view.showProgressBar::hide :row :span5 :pull-left" }}>
         <div {{bindAttr class=":progress-bar controller.isRollback::span8 controller.isRollback:span3"}}>

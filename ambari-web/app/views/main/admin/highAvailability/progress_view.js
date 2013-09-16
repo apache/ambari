@@ -25,13 +25,29 @@ App.HighAvailabilityProgressPageView = Em.View.extend({
     this.get('controller').loadStep();
   },
 
+  headerTitle: function () {
+    var currentStep = App.router.get('highAvailabilityWizardController.currentStep');
+    if(currentStep == 1) {
+      return  Em.I18n.t('admin.highAvailability.wizard.rollback.header.title');
+    }else {
+      return  Em.I18n.t('admin.highAvailability.wizard.step' + currentStep + '.header.title');
+    }
+  }.property(),
+
   submitButtonText: Em.I18n.t('common.next'),
 
   noticeCompleted: Em.I18n.t('admin.highAvailability.wizard.progressPage.notice.completed'),
 
   noticeFailed: Em.I18n.t('admin.highAvailability.wizard.progressPage.notice.failed'),
 
-  noticeInProgress: Em.I18n.t('admin.highAvailability.wizard.progressPage.notice.inProgress'),
+  noticeInProgress: function () {
+    var currentStep = App.router.get('highAvailabilityWizardController.currentStep');
+    if(currentStep == 1) {
+      return  Em.I18n.t('admin.highAvailability.rollback.notice.inProgress');
+    }else {
+      return  Em.I18n.t('admin.highAvailability.wizard.step' + currentStep + '.notice.inProgress');
+    }
+  }.property(),
 
   notice: Em.I18n.t('admin.highAvailability.wizard.progressPage.notice.inProgress'),
 

@@ -222,7 +222,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   },
   deleteFailoverControllers: function(){
     var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
-    this.unInstallComponent('ZKFC', hostNames);
+    this.deleteComponent('ZKFC', hostNames);
   },
   stopStandbyNameNode: function(){
     var hostName = this.get('content.masterComponentHosts').findProperty('isAddNameNode', true).hostName;;
