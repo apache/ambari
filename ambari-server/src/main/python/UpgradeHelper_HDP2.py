@@ -338,8 +338,9 @@ def read_mapping():
   if os.path.isfile(MR_MAPPING_FILE):
     return json.load(open(MR_MAPPING_FILE))
   else:
-    raise FatalException(-1, "MAPREDUCE host mapping file is not available or badly formatted. Execute action "
-                             "save-mr-mapping or manually create the file.")
+    raise FatalException(-1, "MAPREDUCE host mapping file, mr_mapping, is not available or badly formatted. Execute "
+                             "action save-mr-mapping. Ensure the file is present in the directory where you are "
+                             "executing this command.")
   pass
 
 

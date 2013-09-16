@@ -348,6 +348,9 @@
                 <source>
                   <location>src/main/resources/scripts/distribute_keytabs.py</location>
                 </source>
+                <source>
+                  <location>src/main/python/UpgradeHelper_HDP2.py</location>
+                </source>
               </sources>
             </mapping>
             <mapping>
