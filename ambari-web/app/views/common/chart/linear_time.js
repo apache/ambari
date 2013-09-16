@@ -86,6 +86,8 @@ App.ChartLinearTimeView = Ember.View.extend({
 
   _seriesProperties: null,
 
+  _seriesPropertiesWidget: null,
+
   renderer: 'area',
 
   popupSuffix: '-popup',
@@ -623,7 +625,7 @@ App.ChartLinearTimeView = Ember.View.extend({
       });
       _graph.update();
 
-      $('li.line').click(function() {
+      $('#'+self.get('id')+'-container'+self.get('popupSuffix')+' li.line').click(function() {
         var series = [];
         $('#'+self.get('id')+'-container'+self.get('popupSuffix')+' a.action').each(function(index, v) {
           series[index] = v.parentNode.classList;
@@ -634,6 +636,25 @@ App.ChartLinearTimeView = Ember.View.extend({
       this.set('_popupGraph', _graph);
     }
     else {
+
+      _graph.series.forEach(function(series, index) {
+        if (self.get('_seriesPropertiesWidget') !== null && self.get('_seriesPropertiesWidget')[index] !== null && self.get('_seriesPropertiesWidget')[index] !== undefined ) {
+          if(self.get('_seriesPropertiesWidget')[self.get('_seriesPropertiesWidget').length - index - 1].length > 1) {
+            $('#'+self.get('id')+'-container'+' a.action:eq('+(self.get('_seriesPropertiesWidget').length - index - 1)+')').parent('li').addClass('disabled');
+            series.disable();
+          }
+        }
+      });
+      _graph.update();
+
+      $('#'+self.get('id')+'-container'+' li.line').click(function() {
+        var series = [];
+        $('#'+self.get('id')+'-container'+' a.action').each(function(index, v) {
+          series[index] = v.parentNode.classList;
+        });
+        self.set('_seriesPropertiesWidget', series);
+      });
+
       this.set('_graph', _graph);
     }
   },
