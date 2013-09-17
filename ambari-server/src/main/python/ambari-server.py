@@ -3686,7 +3686,8 @@ def main():
   parser.add_option('-i', '--jdk-location', dest="jdk_location", default=None,
                     help="Use specified JDK file in local filesystem instead of downloading")
   parser.add_option('-c', '--jce-policy', default=None,
-                  help="Use specified jce_policy.  Must be valid on all hosts", dest="jce_policy") 
+                  help="Use specified jce_policy.  Must be valid on "
+                       "ambari server host", dest="jce_policy")
   parser.add_option("-v", "--verbose",
                   action="store_true", dest="verbose", default=False,
                   help="Print verbose status messages")
