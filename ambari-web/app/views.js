@@ -226,3 +226,4 @@ require('views/wizard/stack_upgrade/step2_view');
 require('views/wizard/stack_upgrade/step3_view');
 require('views/loading');
 
+require('views/experimental');

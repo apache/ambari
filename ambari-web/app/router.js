@@ -383,6 +383,18 @@ App.Router = Em.Router.extend({
     installer: require('routes/installer'),
 
     main: require('routes/main'),
+    
+    experimental: Em.Route.extend({
+      route: '/experimental',
+      enter: function (router, context) {
+        
+      },
+      connectOutlets: function (router, context) {
+        $('title').text("Ambari Experimental");
+        console.log('/experimental:connectOutlet');
+        router.get('applicationController').connectOutlet('experimental');
+      }
+    }),
 
     logoff: function (router, context) {
       router.logOff(context);
