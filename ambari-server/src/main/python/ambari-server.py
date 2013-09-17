@@ -1088,9 +1088,12 @@ def prompt_db_properties(args):
     ok = get_YN_input("Enter advanced database configuration [y/n] (n)? ", False)
     if ok:
 
+      print "=============================================================================="
+      print "Choose one of the following options:"
+
       database_num = str(DATABASE_INDEX + 1)
       database_num = get_validated_string_input(
-        "Select database:\n1 - PostgreSQL (Embedded)\n2 - Oracle\n(" + database_num + "): ",
+        "[1] - PostgreSQL (Embedded)\n[2] - Oracle\n==============================================================================\nEnter choice (" + database_num + "): ",
         database_num,
         "^[12]$",
         "Invalid number.",
