@@ -235,6 +235,8 @@ public class Configuration {
   private static final String SERVER_CONNECTION_MAX_IDLE_TIME =
     "server.connection.max.idle.millis";
 
+  public static final String GLOBAL_CONFIG_TAG = "global";
+  public static final String RCA_ENABLED_PROPERTY = "rca_enabled";
   public static final String HIVE_CONFIG_TAG = "hive-site";
   public static final String HIVE_METASTORE_PASSWORD_PROPERTY =
     "javax.jdo.option.ConnectionPassword";

@@ -45,6 +45,7 @@ import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.RequestStatus;
@@ -976,11 +977,8 @@ public class AmbariManagementControllerImpl implements
 
     // Hack - Remove passwords from configs
     if (event.getServiceComponentName().equals(Role.HIVE_CLIENT.toString())) {
-      Map<String, String> hiveConfigs = configurations.get(Configuration
-          .HIVE_CONFIG_TAG);
-      if (hiveConfigs != null) {
-        hiveConfigs.remove(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY);
-      }
+      ExecutionCommandWrapper.applyCustomConfig(configurations, Configuration.HIVE_CONFIG_TAG,
+          Configuration.HIVE_METASTORE_PASSWORD_PROPERTY, "", true);
     }
 
     execCmd.setConfigurations(configurations);
@@ -2053,7 +2051,7 @@ public class AmbariManagementControllerImpl implements
             RoleCommand roleCommand;
             State oldSchState = scHost.getState();
             ServiceComponentHostEvent event;
-            switch(newState) {
+            switch (newState) {
               case INSTALLED:
                 if (oldSchState == State.INIT
                     || oldSchState == State.UNINSTALLED
@@ -2162,20 +2160,19 @@ public class AmbariManagementControllerImpl implements
             }
 
             // [ type -> [ key, value ] ]
-            Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String,String>>();
-            Map<String, Map<String, String>> configTags = new HashMap<String, Map<String,String>>();
+            Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
+            Map<String, Map<String, String>> configTags = new HashMap<String, Map<String, String>>();
 
             findConfigurationPropertiesWithOverrides(configurations, configTags, cluster, scHost.getServiceName(),
                 scHost.getHostName(), clusterDesiredConfigs, configsByHosts.get(scHost.getHostName()));
 
             // HACK HACK HACK
-            if ((!scHost.getHostName().equals(jobtrackerHost))
-                && configurations.get("global") != null) {
-              if (LOG.isDebugEnabled()) {
-                LOG.debug("Setting rca_enabled to false for host "
-                    + scHost.getHostName());
+            if (!scHost.getHostName().equals(jobtrackerHost)) {
+              if (configTags.get(Configuration.GLOBAL_CONFIG_TAG) != null) {
+                ExecutionCommandWrapper.applyCustomConfig(
+                    configurations, Configuration.GLOBAL_CONFIG_TAG,
+                    Configuration.RCA_ENABLED_PROPERTY, "false", false);
               }
-              configurations.get("global").put("rca_enabled", "false");
             }
 
             createHostAction(cluster, stage, scHost, configurations, configTags,

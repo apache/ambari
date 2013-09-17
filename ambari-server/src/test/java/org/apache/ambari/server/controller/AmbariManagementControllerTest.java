@@ -5333,13 +5333,15 @@ public class AmbariManagementControllerTest {
     // Install
     installService(clusterName, serviceName, false, false);
     // Start
-    long requestId = startService(clusterName, serviceName, false, false);
+    long requestId = startService(clusterName, serviceName, false, true);
 
     String passwordInConfig = null;
+    Boolean isClientInstalled = false;
     List<Stage> stages = actionDB.getAllStages(requestId);
     for (Stage s : stages) {
       for (HostRoleCommand hrc : s.getOrderedHostRoleCommands()) {
-        if (hrc.getRole().equals(Role.HIVE_CLIENT.toString())) {
+        if (hrc.getRole().equals(Role.HIVE_CLIENT)) {
+          isClientInstalled = true;
           Map<String, String> hiveSite = hrc.getExecutionCommandWrapper()
             .getExecutionCommand().getConfigurations().get("hive-site");
           Assert.assertNotNull(hiveSite);
@@ -5349,6 +5351,7 @@ public class AmbariManagementControllerTest {
         }
       }
     }
+    Assert.assertTrue("HIVE_CLIENT must be installed", isClientInstalled);
     Assert.assertNull(passwordInConfig);
   }
 
@@ -7219,7 +7222,44 @@ public class AmbariManagementControllerTest {
     controller.deleteHostComponents(schRequests);
     
     Assert.assertEquals(0, cluster.getServiceComponentHosts(host1).size());
-  }  
+  }
+
+  @Test
+  public void testExecutionCommandConfiguration() throws AmbariException {
+    Map<String, Map<String, String>> config = new HashMap<String, Map<String, String>>();
+    config.put("type1", new HashMap<String, String>());
+    config.put("type3", new HashMap<String, String>());
+    config.get("type3").put("name1", "neverchange");
+    ExecutionCommandWrapper.applyCustomConfig(config, "type1", "name1", "value11", false);
+    Assert.assertEquals("value11", config.get("type1").get("name1"));
+
+    config.put("type1", new HashMap<String, String>());
+    ExecutionCommandWrapper.applyCustomConfig(config, "type1", "name1", "value12", false);
+    Assert.assertEquals("value12", config.get("type1").get("name1"));
+
+    ExecutionCommandWrapper.applyCustomConfig(config, "type2", "name2", "value21", false);
+    Assert.assertEquals("value21", config.get("type2").get("name2"));
+
+    ExecutionCommandWrapper.applyCustomConfig(config, "type2", "name2", "", true);
+    Assert.assertEquals("", config.get("type2").get("DELETED_name2"));
+    Assert.assertEquals("neverchange", config.get("type3").get("name1"));
+
+    Map<String, String> persistedClusterConfig = new HashMap<String, String>();
+    persistedClusterConfig.put("name1", "value11");
+    persistedClusterConfig.put("name3", "value31");
+    persistedClusterConfig.put("name4", "value41");
+    Map<String, String> override = new HashMap<String, String>();
+    override.put("name1", "value12");
+    override.put("name2", "value21");
+    override.put("DELETED_name3", "value31");
+    Map<String, String> mergedConfig = ExecutionCommandWrapper.getMergedConfig(persistedClusterConfig,
+        override);
+    Assert.assertEquals(3, mergedConfig.size());
+    Assert.assertFalse(mergedConfig.containsKey("name3"));
+    Assert.assertEquals("value12", mergedConfig.get("name1"));
+    Assert.assertEquals("value21", mergedConfig.get("name2"));
+    Assert.assertEquals("value41", mergedConfig.get("name4"));
+  }
 }
 
   
