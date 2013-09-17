@@ -867,6 +867,25 @@ App.WizardStep3Controller = Em.Controller.extend({
         }
         host.warnings.push(warning);
       }
+      
+      var firewallRunning = _host.Hosts.last_agent_env.iptablesIsRunning;
+      if (firewallRunning!==null && firewallRunning) {
+        var name = Em.I18n.t('installer.step3.hostWarningsPopup.firewall.name');
+        warning = warnings.filterProperty('category', 'firewall').findProperty('name', name);
+        if (warning) {
+          warning.hosts.push(_host.Hosts.host_name);
+          warning.onSingleHost = false;
+        } else {
+          warning = {
+            name: name,
+            hosts: [_host.Hosts.host_name],
+            category: 'firewall',
+            onSingleHost: true
+          }
+          warnings.push(warning);
+        }
+        host.warnings.push(warning);
+      }
 
       hosts.push(host);
     }, this);
@@ -978,15 +997,24 @@ App.WizardStep3Controller = Em.Controller.extend({
         content: function () {
           var categoryWarnings = this.get('categoryWarnings');
           return [
-            Ember.Object.create({
-              warnings: categoryWarnings.filterProperty('category', 'processes'),
-              title: Em.I18n.t('installer.step3.hostWarningsPopup.process'),
-              message: Em.I18n.t('installer.step3.hostWarningsPopup.processes.message'),
-              type: Em.I18n.t('common.process'),
-              emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.processes'),
-              action: Em.I18n.t('installer.step3.hostWarningsPopup.action.running'),
-              category: 'process'
-            }),
+             Ember.Object.create({
+               warnings: categoryWarnings.filterProperty('category', 'firewall'),
+               title: Em.I18n.t('installer.step3.hostWarningsPopup.firewall'),
+               message: Em.I18n.t('installer.step3.hostWarningsPopup.firewall.message'),
+               type: Em.I18n.t('common.issues'),
+               emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.firewall'),
+               action: Em.I18n.t('installer.step3.hostWarningsPopup.action.running'),
+               category: 'firewall'
+             }),
+             Ember.Object.create({
+               warnings: categoryWarnings.filterProperty('category', 'processes'),
+               title: Em.I18n.t('installer.step3.hostWarningsPopup.process'),
+               message: Em.I18n.t('installer.step3.hostWarningsPopup.processes.message'),
+               type: Em.I18n.t('common.process'),
+               emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.processes'),
+               action: Em.I18n.t('installer.step3.hostWarningsPopup.action.running'),
+               category: 'process'
+             }),
              Ember.Object.create({
               warnings: categoryWarnings.filterProperty('category', 'packages'),
               title: Em.I18n.t('installer.step3.hostWarningsPopup.package'),

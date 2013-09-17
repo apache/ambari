@@ -56,7 +56,7 @@
           <table>
             <thead>
             <tr>
-              <th colspan="2">{{category.message}}</th>
+              <th colspan="2">{{{category.message}}}</th>
             </tr>
             <tr>
               <th colspan="2"><b>{{category.type}}</b></th>
@@ -65,7 +65,7 @@
             <tbody>
             {{#each warning in category.warnings}}
             <tr>
-              <td class="warning-name" {{bindAttr data-original-title="warning.command"}} >{{warning.name}}</td>
+              <td class="warning-name" {{bindAttr data-original-title="warning.command"}} >{{{warning.name}}}</td>
               {{#if warning.version}}
                   <td class="package-version">{{warning.version}}</td>
               {{/if}}
