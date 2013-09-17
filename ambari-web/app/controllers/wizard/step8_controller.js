@@ -78,7 +78,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       this.set('securityEnabled', App.router.get('mainAdminSecurityController').getUpdatedSecurityStatus());
     }
     this.clearStep();
-    this.formatDirectories();
+    this.formatProperties();
     this.loadGlobals();
     this.loadConfigs();
     this.loadClusterInfo();
@@ -89,7 +89,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   /**
    * replace whitespace character with coma between directories
    */
-  formatDirectories: function(){
+  formatProperties: function(){
     this.get('content.serviceConfigProperties').forEach(function(_configProperty){
         _configProperty.value = App.config.trimProperty(_configProperty,false);
     });

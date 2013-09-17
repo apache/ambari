@@ -979,15 +979,14 @@ App.config = Em.Object.create({
       case 'host':
         rez = value.trim();
         break;
+      case 'password':
+        break;
       case 'advanced':
         if(name == 'hive_jdbc_connection_url' || name == 'oozie_jdbc_connection_url') {
           rez = value.trim();
         }
-        break;
-      case 'password':
-        break;
       default:
-        rez = (value instanceof String) ? value.replace(/(\s+$)/g, '') : value;
+        rez = (typeof value == 'string') ? value.replace(/(\s+$)/g, '') : value;
     }
     return ((rez == '') || (rez == undefined)) ? value : rez;
   }

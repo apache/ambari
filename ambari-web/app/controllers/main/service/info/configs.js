@@ -1004,6 +1004,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var serviceConfigProperties = configs.filterProperty('id', 'site property');
     serviceConfigProperties.forEach(function(_config){
       if(typeof _config.get('value') === "boolean") _config.set('value', _config.value.toString());
+      _config.set('value', App.config.trimProperty(_config),true);
     });
     var storedConfigs = serviceConfigProperties.filterProperty('value');
     var allUiConfigs = this.loadUiSideConfigs(this.get('configMapping').all());
