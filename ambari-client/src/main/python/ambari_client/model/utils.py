@@ -17,7 +17,8 @@
 
 import logging
 import sys
-import unicodedata 
+import unicodedata
+from ambari_client.core import errors
 
 LOG = logging.getLogger(__name__)
 
@@ -28,9 +29,22 @@ ref_pkg_dic = {"ClusterModelRef":"ambari_client.model.cluster"}
 LIST_KEY = "items"
   
 class ModelUtils(object):
+  
+  @staticmethod
+  def _check_is_error(expected_class, model_dict, resource_root):
+    from ambari_client.model.status import StatusModel
+
+    if model_dict.has_key("status"):
+      resp = ModelUtils.create_model(StatusModel, model_dict.copy(), resource_root, "NO_KEY", check_errors=False)
+      
+      if expected_class!=StatusModel or resp.is_error():
+        if resp.status in errors._exceptions_to_codes:
+          raise errors._exceptions_to_codes[resp.status](resp, resource_root)
+        else:
+          raise errors.UnknownServerError(resp, resource_root)
 
   @staticmethod
-  def get_model_list(member_list_clss, member_cls, collection_dict, resource_root , RESOURCE_KEY_WORD):
+  def get_model_list(member_list_clss, member_cls, collection_dict, resource_root , RESOURCE_KEY_WORD, check_errors=True):
     """
     create a model.
     @param member_list_clss : model_list class.
@@ -40,6 +54,9 @@ class ModelUtils(object):
     @param RESOURCE_KEY_WORD : tsake subset of model_dict based on this key.
     @return: A  ModelList object.
     """
+    if check_errors:
+      ModelUtils._check_is_error(member_list_clss, collection_dict, resource_root)
+    
     #print locals()
     json_list = []
     
@@ -67,7 +84,7 @@ class ModelUtils(object):
 
 
   @staticmethod
-  def create_model(model_cls, model_dict, resource_root, RESOURCE_KEY_WORD, exception_cls=None):
+  def create_model(model_cls, model_dict, resource_root, RESOURCE_KEY_WORD, check_errors=True):
     """
     create a model.
     @param model_cls : model class.
@@ -76,6 +93,9 @@ class ModelUtils(object):
     @param RESOURCE_KEY_WORD : tsake subset of model_dict based on this key.
     @return: A model_cls object.
     """
+    if check_errors:
+      ModelUtils._check_is_error(model_cls, model_dict, resource_root)
+      
     #print locals()
     rw_dict = { }
     LOG.debug ("model_dict =   " + str(model_dict))
@@ -86,10 +106,6 @@ class ModelUtils(object):
     if isinstance(model_dict, dict) and model_dict.has_key("Requests"):
         model_dict = model_dict["Requests"]
         LOG.debug ("model_dict has Requests ;subset = %s" % (str(model_dict.items())))
-    if isinstance(model_dict, dict) and model_dict.has_key("status") and exception_cls:
-        LOG.debug ("model_dict has status ,might be a exception from Ambari ;model_cls = %s ;exception_clss = %s" % 
-                   (str(model_cls), str(exception_cls)))
-        return ModelUtils.create_model(exception_cls, model_dict, resource_root, "NO_KEY")
      
       
     for k, v in model_dict.items():

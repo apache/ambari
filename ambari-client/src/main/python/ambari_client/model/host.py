@@ -79,7 +79,7 @@ def _create_host(root_resource, host_name, ip, rack_info=None):
   @param rack_info: Rack id. Default None
   @return: An HostModel object
   """
-  host_list = ModelList([HostModel(host_name, ip, rack_info)])
+  host_list = ModelList([HostModel(root_resource, host_name, ip, rack_info)])
   return _create_hosts(root_resource, host_list)
 
 def _add_hosts(root_resource, cluster_name , host_list):

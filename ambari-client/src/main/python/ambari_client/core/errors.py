@@ -17,36 +17,62 @@
 
 class ResourceError(Exception):
 
-    def __init__(self, msg=None, http_code=None, response=None):
-        self.msg = msg or ''
-        self.status_code = http_code
-        self.response = response
-        Exception.__init__(self)
-        
-    def _get_message(self):
-        return self.msg
-    def _set_message(self, msg):
-        self.msg = msg or ''
-    message = property(_get_message, _set_message)    
-    
-    def __str__(self):
-        if self.msg:
-            return self.msg
-        try:
-            return self._fmt % self.__dict__
-        except (NameError, ValueError, KeyError), e:
-            return 'exception %s: %s' \
-                % (self.__class__.__name__, str(e))
-        
-class ResourceNotFound(ResourceError):
-    """Exception raised when no resource was found. 
+  def __init__(self, response, resource_root=None):
     """
+    Create new exception based on not successful server response
+    @param response: StatusModel response
+    @param resource_root: The resource which sent an error response
+    """
+    self.response = response
+    self.resource_root = resource_root
+    Exception.__init__(self)
+        
+  def get_message(self):
+    """ Get an error message """
+    return self.response.get_message()
+  
+  def get_status_code(self):
+    """ Get a status(error) code from the server response """
+    return self.response.status
+  
+  def get_reponse(self):
+    """ StatusModel object """
+    return self.reponse
+  
+  def get_root_resource(self):
+    """ AmbariClient object """
+    return self.resource_root
+  
+  def __str__(self):
+    if self.get_message():
+      return "exception: %s. %s" % (self.response.status, self.get_message()) 
+    try:
+      return self._fmt % self.__dict__
+    except (NameError, ValueError, KeyError), e:
+      return 'exception %s: %s' \
+             % (self.__class__.__name__, str(e))
 
-class RequestError(Exception):
-    """Exception for incorrect request """
-    
-class Unauthorized(ResourceError):
-    """Exception when an authorization is required """
-
-class RequestFailed(ResourceError):
-    """Exception for unexpected HTTP error  """
+class ResourceConflict(ResourceError):
+  """ 409 status code """
+class ResourceNotFound(ResourceError):
+  """ 404 status code """
+class BadRequest(ResourceError):
+  """ 400 status code """
+class AuthorizationError(ResourceError):
+  """ 401 status code """
+class ForbiddenError(ResourceError):
+  """ 403 status code """
+class InternalServerError(ResourceError):
+  """ 500 status code """
+class MethodNotAllowed(ResourceError):
+  """ 405 status code """
+class UnknownServerError(ResourceError):
+  """ Received other response code """
+  
+_exceptions_to_codes = { 409:ResourceConflict, 
+                        404:ResourceNotFound,
+                        400:BadRequest,
+                        401:AuthorizationError,
+                        403:ForbiddenError,
+                        500:InternalServerError,
+                        405:MethodNotAllowed }

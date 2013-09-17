@@ -35,7 +35,7 @@ class StatusModel(BaseModel):
     utils.retain_self_helper(BaseModel, **locals())
 
   def __str__(self):
-    return "<<StatusModel>> status = %s ; requestId = %s ;message = %s" % (self.status, self._get_id() , self._get_message())
+    return "<<StatusModel>> status = %s ; requestId = %s ;message = %s" % (self.status, self._get_id() , self.get_message())
 
   def get_bootstrap_path(self):
     return paths.BOOTSTRAP_PATH + '/' + self.requestId
@@ -43,11 +43,14 @@ class StatusModel(BaseModel):
   def get_request_path(self):
     return paths.REQUEST_PATH % (self._get_id())
 
-  def _get_message(self):
+  def get_message(self):
     if hasattr(self, 'message'):
         return self.message
     else:
         None
+    
+  def is_error(self):
+    return (self.status != 200 and self.status != 201 and self.status != 202)  
         
   def _get_id(self):
     if hasattr(self, 'requestId') and self.requestId:

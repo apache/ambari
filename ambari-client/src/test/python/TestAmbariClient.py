@@ -21,6 +21,7 @@ limitations under the License.
 
 from mock.mock import MagicMock, patch
 from ambari_client.ambari_api import  AmbariClient 
+from ambari_client.core.errors import BadRequest
 
 import unittest
 
@@ -167,7 +168,27 @@ class TestAmbariClient(unittest.TestCase):
     self.assertEqual(str(ganglia.state), "STARTED", "The ganglia service state should be fetched as STARTED")
     self.assertEqual(ganglia.clusterRef.cluster_name, cluster.cluster_name, "The clusterRef value for  service  should be fetched ")
     
-
+  @patch("ambari_client.core.http_client.HttpClient")  
+  def test_exceptions(self , http_client):
+    """
+    Test exceptions from ambari.client.core.errors
+    """
+    http_client_mock = MagicMock()
+    http_client.returned_obj = http_client_mock
+    mocked_code = "200" 
+    mocked_content = "text/plain"
+    
+    http_client_mock.invoke.side_effect = http_client_invoke_side_effects
+    client = AmbariClient("localhost", 8080, "admin", "admin", version=1, client=http_client_mock)
+    cluster = client.get_cluster('test1')
+    
+    try:
+      cluster.delete_host('deleted_nonexistant_cluster')
+      self.fail('Exception should have been thrown!')
+    except BadRequest, ex:
+      self.assertEquals(str(ex), 'exception: 400. Attempted to add unknown hosts to a cluster.  These hosts have not been registered with the server: dev05')
+    except Exception, ex:
+      self.fail('Wrong exception thrown!')
 
   
 
@@ -207,4 +228,7 @@ def http_client_invoke_side_effects(*args, **kwargs):
         return mocked_response, mocked_code , mocked_content
     elif args[1] == "//clusters/test1/services/GANGLIA":
         mocked_response = open('json/get_service.json', 'r').read()
+        return mocked_response, mocked_code , mocked_content
+    elif args[1] == "//clusters/test1/hosts/deleted_nonexistant_cluster":
+        mocked_response = open('json/error_adding_host.json', 'r').read()
         return mocked_response, mocked_code , mocked_content
