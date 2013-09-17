@@ -273,9 +273,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
     var configs = this.get('serviceConfigs');
     var canEdit = this.get('canEdit');
     if (!canEdit && configs) {
-      configs.forEach(function (config) {
-        config.set('isEditable', false);
-      });
+      configs.setEach('isEditable', false);
     }
   },
 
@@ -352,11 +350,15 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
 
   didInsertElement: function () {
     var isCollapsed = (this.get('category.name').indexOf('Advanced') != -1);
+    var self = this;
     this.set('category.isCollapsed', isCollapsed);
     if (isCollapsed) {
       this.$('.accordion-body').hide();
     }
     this.updateReadOnlyFlags();
+    Em.run.next(function() {
+      self.updateReadOnlyFlags();
+    });
   },
   childView: App.ServiceConfigsOverridesView,
   changeFlag: Ember.Object.create({
