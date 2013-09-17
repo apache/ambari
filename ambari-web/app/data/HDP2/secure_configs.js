@@ -53,7 +53,7 @@ module.exports = [
     displayName: 'MapReduce2',
     filename: 'mapred-site',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'JobHistoryServer', displayName: 'Job History Server'})
+      App.ServiceConfigCategory.create({ name: 'JobHistoryServer', displayName: 'History Server'})
     ],
     sites: ['mapred-site'],
     configs: configProperties.filterProperty('serviceName', 'MAPREDUCE2')
