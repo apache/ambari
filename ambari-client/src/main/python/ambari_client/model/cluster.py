@@ -31,8 +31,8 @@ def _get_cluster(resource_root, cluster_name):
   @param cluster_name: cluster_name
   @return: A ClusterModel object
   """
-  dic, is_success = resource_root.get("%s/%s" % (paths.CLUSTERS_PATH, cluster_name))
-  return utils.ModelUtils.create_model_or_error(ClusterModel , dic, resource_root, "Clusters", is_success)
+  dic = resource_root.get("%s/%s" % (paths.CLUSTERS_PATH, cluster_name))
+  return utils.ModelUtils.create_model(ClusterModel , dic, resource_root, "Clusters")
 
 
 def _get_all_clusters(root_resource):
@@ -41,8 +41,8 @@ def _get_all_clusters(root_resource):
   @param root_resource: The root Resource .
   @return: A list of ClusterModel objects.
   """
-  dic, is_success = root_resource.get(paths.CLUSTERS_PATH)
-  return utils.ModelUtils.get_model_list_or_error(ModelList, ClusterModel, dic, root_resource , "Clusters", is_success)
+  dic = root_resource.get(paths.CLUSTERS_PATH)
+  return utils.ModelUtils.get_model_list(ModelList, ClusterModel, dic, root_resource , "Clusters")
 
 
 def _create_cluster(root_resource, cluster_name, version):
@@ -66,7 +66,7 @@ def _delete_cluster(root_resource, cluster_name):
   @param root_resource: The root Resource .
   @param name: Cluster name
   """
-  resp, is_success = root_resource.delete("%s/%s" % (paths.CLUSTERS_PATH, cluster_name))
+  resp = root_resource.delete("%s/%s" % (paths.CLUSTERS_PATH, cluster_name))
   return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
 
 
@@ -78,7 +78,7 @@ def _install_all_services(root_resource, cluster_name):
   """
   cpath = paths.CLUSTER_START_ALL_SERVICES % cluster_name
   data = {"RequestInfo": {"context" :"Install Services"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}
-  resp, is_success = root_resource.put(path=cpath , payload=data)
+  resp = root_resource.put(path=cpath , payload=data)
   return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
 
 
@@ -90,7 +90,7 @@ def _stop_all_services(root_resource, cluster_name):
   """
   cpath = paths.CLUSTER_STOP_ALL_SERVICES % cluster_name
   data = {"RequestInfo": {"context" :"Stop All Services"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}
-  resp, is_success = root_resource.put(path=cpath , payload=data)
+  resp = root_resource.put(path=cpath , payload=data)
   return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
 
 
@@ -104,7 +104,7 @@ def _start_all_services(root_resource, cluster_name , run_smoke_test=False):
   if run_smoke_test:
      cpath = "%s&%s" % (cpath, "params/run_smoke_test=true&params/reconfigure_client=false")
   data = {"RequestInfo": {"context" :"Start All Services"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}
-  resp, is_success = root_resource.put(path=cpath , payload=data)
+  resp = root_resource.put(path=cpath , payload=data)
   if isinstance(resp, dict) and resp.has_key("Requests"):
       resp = resp["Requests"]      
   return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")

@@ -58,7 +58,7 @@ class TestAmbariClient(unittest.TestCase):
     http_client_mock = MagicMock()
     http_client.return_value = http_client_mock
     
-    mocked_code = 200
+    mocked_code = "200" 
     mocked_content = "text/plain"
     expected_output = {'items': [{'cluster_name': u'test1', 'version': u'HDP-1.2.1'}]}
     
@@ -68,10 +68,9 @@ class TestAmbariClient(unittest.TestCase):
    
       
     client = AmbariClient("localhost", 8080, "admin", "admin", version=1 , client=http_client_mock)
-    all_clusters, err = client.get_all_clusters()
+    all_clusters = client.get_all_clusters()
       
     self.assertEqual(len(all_clusters), 1, "There should be a cluster from the response")
-    self.assertEqual(err, None, "No error should be present")
     self.assertEqual(all_clusters.to_json_dict(), expected_output, "to_json_dict should convert ModelList")
     
   @patch("ambari_client.core.http_client.HttpClient")  
@@ -83,7 +82,7 @@ class TestAmbariClient(unittest.TestCase):
     http_client_mock = MagicMock()
     http_client.return_value = http_client_mock
     
-    mocked_code = 200
+    mocked_code = "200" 
     mocked_content = "text/plain"
     
     linestring = open('json/get_all_hosts.json', 'r').read()
@@ -105,7 +104,7 @@ class TestAmbariClient(unittest.TestCase):
     """
     http_client_mock = MagicMock()
     http_client.returned_obj = http_client_mock
-    mocked_code = 200 
+    mocked_code = "200" 
     mocked_content = "text/plain"
     
     linestring = open('json/get_cluster.json', 'r').read()
@@ -114,10 +113,9 @@ class TestAmbariClient(unittest.TestCase):
     
     http_client_mock.invoke.return_value = mocked_response , mocked_code , mocked_content
     client = AmbariClient("localhost", 8080, "admin", "admin", version=1, client=http_client_mock)
-    cluster, err = client.get_cluster('test1')
+    cluster = client.get_cluster('test1')
     
     self.assertEqual(cluster.cluster_name, "test1", "cluster_name should be test1 ")
-    self.assertEqual(err, None, "No error should be present")
     self.assertEqual(cluster.to_json_dict(), expected_dict_output, "to_json_dict should convert ClusterModel")
 
 
@@ -130,20 +128,19 @@ class TestAmbariClient(unittest.TestCase):
     """
     http_client_mock = MagicMock()
     http_client.returned_obj = http_client_mock
-    mocked_code = 200
+    mocked_code = "200" 
     mocked_content = "text/plain"
     
     expected_dict_output = {'cluster_name': u'test1', 'version': u'HDP-1.2.1'}
     
     http_client_mock.invoke.side_effect = http_client_invoke_side_effects
     client = AmbariClient("localhost", 8080, "admin", "admin", version=1, client=http_client_mock)
-    cluster, err = client.get_cluster('test1')
-    serviceList, err = cluster.get_all_services()
+    cluster = client.get_cluster('test1')
+    serviceList = cluster.get_all_services()
     
     self.assertEqual(cluster.cluster_name, "test1", "cluster_name should be test1 ")
     self.assertEqual(cluster.to_json_dict(), expected_dict_output, "to_json_dict should convert ClusterModel")
     self.assertEqual(len(serviceList), 3, "There should be a 3 services from the response")
-    self.assertEqual(err, None, "No error should be present")
  
   @patch("ambari_client.core.http_client.HttpClient")  
   def test_get_cluster_service_valid(self , http_client):
@@ -153,23 +150,22 @@ class TestAmbariClient(unittest.TestCase):
     """
     http_client_mock = MagicMock()
     http_client.returned_obj = http_client_mock
-    mocked_code = 200 
+    mocked_code = "200" 
     mocked_content = "text/plain"
     
     expected_dict_output = {'cluster_name': u'test1', 'version': u'HDP-1.2.1'}
     
     http_client_mock.invoke.side_effect = http_client_invoke_side_effects
     client = AmbariClient("localhost", 8080, "admin", "admin", version=1, client=http_client_mock)
-    cluster, err = client.get_cluster('test1')
-    serviceList, err = cluster.get_all_services()
-    ganglia, err = cluster.get_service("GANGLIA")  
+    cluster = client.get_cluster('test1')
+    serviceList = cluster.get_all_services()
+    ganglia = cluster.get_service("GANGLIA")  
 
     self.assertEqual(cluster.cluster_name, "test1", "cluster_name should be test1 ")
     self.assertEqual(cluster.to_json_dict(), expected_dict_output, "to_json_dict should convert ClusterModel")
     self.assertEqual(len(serviceList), 3, "There should be a 3 services from the response")
     self.assertEqual(str(ganglia.state), "STARTED", "The ganglia service state should be fetched as STARTED")
     self.assertEqual(ganglia.clusterRef.cluster_name, cluster.cluster_name, "The clusterRef value for  service  should be fetched ")
-    self.assertEqual(err, None, "No error should be present")
     
 
 
@@ -177,7 +173,7 @@ class TestAmbariClient(unittest.TestCase):
 
 def http_client_invoke_side_effects(*args, **kwargs):
     print locals()
-    mocked_code = 200 
+    mocked_code = "200" 
     mocked_content = "text/plain"
     if args[1] == "//clusters/test1":
         mocked_response = open('json/get_cluster.json', 'r').read()

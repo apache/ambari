@@ -63,19 +63,23 @@ class RestResource(object):
 
     LOG.debug ("RESPONSE from the REST request >>>>>>> \n" + str(resp))
     LOG.debug ("\n===========================================================")
-
+    #take care of REST calls with no response
+    if not resp and (code != 200 and code != 201):
+        LOG.error("Command '%s %s' failed with error %s" % (http_method, path, code))
+        return {"status":code , "message":"Command '%s %s' failed with error %s" % (http_method, path, code)}
+        #raise Exception("Command '%s %s' failed with error %s" % (http_method, path, code))
+    if resp and (code == 404 or code == 405 or code == 500):
+        LOG.error("Command '%s %s' failed with error %s" % (http_method, path, code))
+        return {"status":code , "message":"Command '%s %s' failed with error %s" % (http_method, path, code)}
+        #raise Exception("Command '%s %s' failed with error %s" % (http_method, path, code))
     try:
-        isOK = (code == 200 or code == 201)
-        
-        if isOK and not resp:
-          json_dict = {"status":code}
-        else:
-          json_dict = json.loads(resp)
-          
-        return json_dict, isOK
+        if (code == 200 or code == 201) and not resp:
+          return {"status":code}
+        json_dict = json.loads(resp)
+        return json_dict
     except Exception, ex:
-        LOG.error("Command '%s %s' failed with error %s\n%s" % (http_method, path, code ,resp))
-        return {"status":code , "message":"Command '%s %s' failed with error %s" % (http_method, path, code)}, False
+        LOG.error('JSON decode error: %s' % (resp,))
+        raise ex
 
 
   def get(self, path=None):
