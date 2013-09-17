@@ -276,7 +276,9 @@ App.config = Em.Object.create({
         } else if (!this.getBySitename(serviceConfigObj.get('filename')).someProperty('name', index)) {
           isAdvanced = advancedConfigs.someProperty('name', index);
           serviceConfigObj.id = 'site property';
-          serviceConfigObj.displayType = stringUtils.isSingleLine(serviceConfigObj.value) ? 'advanced' : 'multiLine';
+          if (!configsPropertyDef) {
+            serviceConfigObj.displayType = stringUtils.isSingleLine(serviceConfigObj.value) ? 'advanced' : 'multiLine';
+          }
           serviceConfigObj.displayName = configsPropertyDef ? configsPropertyDef.displayName : index;
           this.calculateConfigProperties(serviceConfigObj, isAdvanced, advancedConfigs);
           configs.push(serviceConfigObj);
