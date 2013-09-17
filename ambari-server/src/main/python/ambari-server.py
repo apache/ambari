@@ -61,8 +61,10 @@ LDAP_SETUP_ACTION = "setup-ldap"
 SETUP_GANGLIA_HTTPS_ACTION = "setup-ganglia-https"
 SETUP_NAGIOS_HTTPS_ACTION  = "setup-nagios-https"
 ENCRYPT_PASSWORDS_ACTION = "encrypt-passwords"
+SETUP_SECURITY_ACTION = "setup-security"
 
-ACTION_REQUIRE_RESTART = [RESET_ACTION, UPGRADE_ACTION, UPGRADE_STACK_ACTION, SETUP_HTTPS_ACTION, LDAP_SETUP_ACTION]
+ACTION_REQUIRE_RESTART = [RESET_ACTION, UPGRADE_ACTION, UPGRADE_STACK_ACTION,
+                          SETUP_HTTPS_ACTION, LDAP_SETUP_ACTION]
 
 # selinux commands
 GET_SE_LINUX_ST_CMD = "/usr/sbin/sestatus"
@@ -178,6 +180,7 @@ SECURITY_KEY_IS_PERSISTED = "security.master.key.ispersisted"
 SECURITY_KEY_ENV_VAR_NAME = "AMBARI_SECURITY_MASTER_KEY"
 SECURITY_MASTER_KEY_FILENAME = "master"
 SECURITY_IS_ENCRYPTION_ENABLED = "security.passwords.encryption.enabled"
+SECURITY_KERBEROS_JASS_FILENAME = "krb5JAASLogin.conf"
 
 SSL_KEY_DIR = 'security.server.keys_dir'
 SSL_API_PORT = 'client.api.ssl.port'
@@ -3596,6 +3599,66 @@ def get_fqdn():
   except Exception, e:
     return socket.getfqdn()
 
+
+def is_valid_filepath(filepath):
+  if not filepath or not os.path.exists(filepath):
+    print 'Invalid path, please provide the absolute file path.'
+    return False
+  else:
+    return True
+
+def setup_ambari_krb5_jaas():
+  jaas_conf_file = search_file(SECURITY_KERBEROS_JASS_FILENAME, get_conf_dir())
+  if os.path.exists(jaas_conf_file):
+    print 'Setting up Ambari kerberos JAAS configuration to access ' +\
+          'secured Hadoop daemons...'
+    principal = get_validated_string_input('Enter ambari server\'s kerberos '
+                  'principal name: ', 'ambari@EXAMPLE.COM', '.*', '', False,
+                  False)
+    keytab = get_validated_string_input('Enter keytab path for ambari '
+                  'server\'s kerberos principal: ',
+                  '/etc/security/keytabs/ambari.keytab', '.*', False, False,
+                  validatorFunction = is_valid_filepath)
+
+    for line in fileinput.FileInput(jaas_conf_file, inplace=1):
+      line = re.sub('keyTab=.*$', 'keyTab="' + keytab + '"', line)
+      line = re.sub('principal=.*$', 'principal="' + principal + '"', line)
+      print line,
+
+  else:
+    raise NonFatalException('No jaas config file found at location: ' +
+                            jaas_conf_file)
+
+def setup_security(args):
+  need_restart = True
+  #Print menu options
+  print '=' * 75
+  print 'Choose one of the following options: '
+  print '  [1] Enable HTTPS for Ambari server.'
+  print '  [2] Enable HTTPS for Ganglia service.'
+  print '  [3] Enable HTTPS for Nagios service.'
+  print '  [4] Encrypt passwords stored in ambari.properties file.'
+  print '  [5] Setup Ambari kerberos JAAS configuration.'
+  print '=' * 75
+  choice = get_validated_string_input('Enter choice, (1-5): ', '0', '[1-5]',
+                                      'Invalid choice', False, False)
+
+  if choice == '1':
+    need_restart = setup_https(args)
+  elif choice == '2':
+    setup_component_https("Ganglia", "setup-ganglia-https", GANGLIA_HTTPS,
+                         "ganglia_cert")
+  elif choice == '3':
+    setup_component_https("Nagios", "setup-nagios-https", NAGIOS_HTTPS,
+                          "nagios_cert")
+  elif choice == '4':
+    setup_master_key()
+  elif choice == '5':
+    setup_ambari_krb5_jaas()
+  else:
+    raise FatalException('Unknown option for setup-security command.')
+
+  return need_restart
 #
 # Main.
 #
@@ -3749,16 +3812,10 @@ def main():
       upgrade_stack(options, stack_id)
     elif action == LDAP_SETUP_ACTION:
       setup_ldap()
-    elif action == ENCRYPT_PASSWORDS_ACTION:
-      setup_master_key()
     elif action == UPDATE_METAINFO_ACTION:
       update_metainfo(options)
-    elif action == SETUP_HTTPS_ACTION:
-      need_restart = setup_https(options)
-    elif action == SETUP_GANGLIA_HTTPS_ACTION:
-      setup_component_https("Ganglia", "setup-ganglia-https", GANGLIA_HTTPS, "ganglia_cert")
-    elif action == SETUP_NAGIOS_HTTPS_ACTION:
-      setup_component_https("Nagios", "setup-nagios-https", NAGIOS_HTTPS, "nagios_cert")
+    elif action == SETUP_SECURITY_ACTION:
+      need_restart = setup_security(options)
     else:
       parser.error("Invalid action")
 

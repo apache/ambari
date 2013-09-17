@@ -202,35 +202,81 @@ class TestAmbariServer(TestCase):
     pass
 
 
-  @patch.object(ambari_server, 'is_server_runing')
-  @patch.object(ambari_server, 'setup_https')
-  @patch.object(ambari_server, 'setup')
-  @patch.object(ambari_server, 'start')
-  @patch.object(ambari_server, 'stop')
-  @patch.object(ambari_server, 'reset')
+  @patch.object(ambari_server, 'setup_security')
   @patch('optparse.OptionParser')
-  def test_main_test_setup_https(self, OptionParserMock, reset_method, stop_method,
-                                 start_method, setup_method, setup_https_method, is_server_runing_method):
+  def test_main_test_setup_security(self, OptionParserMock,
+                                    setup_security_method):
     opm = OptionParserMock.return_value
     options = MagicMock()
-    args = ["setup-https"]
+    args = ["setup-security"]
     opm.parse_args.return_value = (options, args)
-    setup_https_method.return_value = False
-    is_server_runing_method.return_value = (False, None)
-
     options.database = None
     options.sid_or_sname = "sid"
+    setup_security_method.return_value = None
+
     ambari_server.main()
 
-    self.assertTrue(setup_https_method.called)
-    self.assertEqual(is_server_runing_method.call_count, 0)
-    is_server_runing_method.reset()
-    setup_https_method.return_value = True
     ambari_server.main()
-    self.assertTrue(setup_https_method.called)
-    self.assertEqual(is_server_runing_method.call_count, 1)
+    self.assertTrue(setup_security_method.called)
     self.assertFalse(False, ambari_server.VERBOSE)
     self.assertFalse(False, ambari_server.SILENT)
+
+  @patch.object(ambari_server, 'setup_ambari_krb5_jaas')
+  @patch.object(ambari_server, 'setup_master_key')
+  @patch.object(ambari_server, 'setup_component_https')
+  @patch.object(ambari_server, 'setup_https')
+  @patch.object(ambari_server, 'get_validated_string_input')
+  def test_setup_security(self, get_validated_string_input_mock, setup_https,
+                          setup_component_https, setup_master_key,
+                          setup_ambari_krb5_jaas):
+
+    args = {}
+    get_validated_string_input_mock.return_value = '1'
+    ambari_server.setup_security(args)
+    self.assertTrue(setup_https.called)
+
+    get_validated_string_input_mock.return_value = '2'
+    ambari_server.setup_security(args)
+    self.assertTrue(setup_component_https.called)
+    setup_component_https.assert_called_with("Ganglia", "setup-ganglia-https",
+                          ambari_server.GANGLIA_HTTPS, "ganglia_cert")
+
+    get_validated_string_input_mock.return_value = '3'
+    ambari_server.setup_security(args)
+    self.assertTrue(setup_component_https.called)
+    setup_component_https.assert_called_with("Nagios", "setup-nagios-https",
+                          ambari_server.NAGIOS_HTTPS, "nagios_cert")
+
+    get_validated_string_input_mock.return_value = '4'
+    ambari_server.setup_security(args)
+    self.assertTrue(setup_master_key.called)
+
+    get_validated_string_input_mock.return_value = '5'
+    ambari_server.setup_security(args)
+    self.assertTrue(setup_ambari_krb5_jaas.called)
+
+
+  @patch('re.sub')
+  @patch('fileinput.FileInput')
+  @patch.object(ambari_server, 'get_validated_string_input')
+  @patch.object(ambari_server, 'search_file')
+  @patch('os.path.exists')
+  def test_setup_ambari_krb5_jaas(self, exists_mock, search_mock,
+                                  get_validated_string_input_mock,
+                                  fileinput_mock, re_sub_mock):
+    exists_mock.return_value = True
+    search_mock.return_value = 'filepath'
+    get_validated_string_input_mock.side_effect = ['aaa@aaa.cnn',
+                                                   'pathtokeytab']
+
+    fileinput_mock.return_value = [ 'keyTab=xyz', 'principal=xyz' ]
+
+    ambari_server.setup_ambari_krb5_jaas()
+
+    self.assertTrue(fileinput_mock.called)
+    self.assertTrue(re_sub_mock.called)
+    self.assertTrue(re_sub_mock.call_args_list, [('aaa@aaa.cnn'),
+                                                 ('pathtokeytab')])
 
   @patch.object(ambari_server, 'setup')
   @patch.object(ambari_server, 'start')
