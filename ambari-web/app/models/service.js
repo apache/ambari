@@ -71,8 +71,7 @@ App.Service = DS.Model.extend({
       serviceName = this.get('serviceName'),
       isRunning = true,
       runningHCs = [],
-      unknownHCs = [],
-      hdfsHealthStatus;
+      unknownHCs = [];
 
     //look through all components to find out common statuses
     this.get('hostComponents').forEach(function (_hostComponent) {
@@ -133,16 +132,21 @@ App.Service = DS.Model.extend({
       }
     }
 
+    /**
+     * Both App.HDFSService and its parent (App.Service) can hit this block.
+     * We need a property: App.HDFSService.hdfsHealthStatus to store the correct status.
+     * When App.HDFSService get in, we store the status in that property based on if activeNN existed.
+     * When App.Service get in, we get correct health status from that property.
+     */
     if (isGreen && serviceName === 'HDFS' && masterComponents.length == 5) { // enabled HA
       var activeNN = this.get('activeNameNode');
       var nameNode = this.get('nameNode');
-
       if (nameNode && !activeNN) { //hdfs model but no active NN
-        hdfsHealthStatus = 'red';
+        App.HDFSService.hdfsHealthStatus = 'red';
       } else if (nameNode && activeNN) {
-        hdfsHealthStatus = 'green';
+        App.HDFSService.hdfsHealthStatus = 'green';
       }
-      this.set('healthStatus', hdfsHealthStatus);
+      this.set('healthStatus', App.HDFSService.hdfsHealthStatus);
     }
 
     this.set('isStarted', everyStarted);
