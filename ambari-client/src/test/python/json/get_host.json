@@ -1,0 +1,63 @@
+{
+  "href" : "http://localhost:8080/api/v1/hosts/dev06.hortonworks.com",
+  "Hosts" : {
+    "cpu_count" : 4,
+    "desired_configs" : null,
+    "disk_info" : [
+      {
+        "available" : "45333752",
+        "used" : "5748252",
+        "percent" : "12%",
+        "size" : "51606140",
+        "type" : "ext4",
+        "mountpoint" : "/"
+      },
+      {
+        "available" : "5517976",
+        "used" : "272",
+        "percent" : "1%",
+        "size" : "5518248",
+        "type" : "tmpfs",
+        "mountpoint" : "/dev/shm"
+      },
+      {
+        "available" : "432210",
+        "used" : "38034",
+        "percent" : "9%",
+        "size" : "495844",
+        "type" : "ext4",
+        "mountpoint" : "/boot"
+      },
+      {
+        "available" : "44459840",
+        "used" : "184252",
+        "percent" : "1%",
+        "size" : "47033288",
+        "type" : "ext4",
+        "mountpoint" : "/home"
+      },
+      {
+        "available" : "136400692",
+        "used" : "840256712",
+        "percent" : "87%",
+        "size" : "976657404",
+        "type" : "vboxsf",
+        "mountpoint" : "/media/sf_share"
+      }
+    ],
+    "host_health_report" : "",
+    "host_name" : "dev06.hortonworks.com",
+    "host_state" : "HEARTBEAT_LOST",
+    "host_status" : "UNKNOWN",
+    "ip" : "10.0.2.15",
+    "last_agent_env" : null,
+    "last_heartbeat_time" : 0,
+    "last_registration_time" : 1378228232506,
+    "os_arch" : "x86_64",
+    "os_type" : "centos6",
+    "ph_cpu_count" : 1,
+    "public_host_name" : "dev06.hortonworks.com",
+    "rack_info" : "/default-rack",
+    "total_mem" : 11041505
+  }
+}

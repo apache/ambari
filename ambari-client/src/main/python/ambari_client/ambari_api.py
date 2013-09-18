@@ -129,28 +129,6 @@ class AmbariClient(RestResource):
     @return  ClusterModel object.
     """
     return clusters._create_cluster(self, cluster_name, version)
-  
-  def create_host(self, host_name, ip, rack_info='/default-rack'):
-    """
-    Create a host
-    @param root_resource: The root Resource.
-    @param host_name: Host name
-    @param ip: IP address
-    @param rack_info: Rack id. Default None
-    @return: A HostModel object
-    """
-    return hosts._create_host(self, host_name, ip, rack_info)
-  
-  
-  def create_hosts(self, host_list):
-    """
-    Create a host
-    @param root_resource: The root Resource.
-    @param host_list: ModelList list of hosts
-    @return: A HostModel object
-    """
-    return hosts._create_hosts(self, host_list)
-
 
   def delete_cluster(self , cluster_name):
     """

@@ -96,6 +96,27 @@ class TestAmbariClient(unittest.TestCase):
       
     self.assertEqual(len(all_hosts), 12, "There should be 12 hosts from the response")
     
+  @patch("ambari_client.core.http_client.HttpClient")  
+  def test_get_host_valid(self , http_client):
+    """
+    Get host
+    This testcase checks if client.get_host returns a correct host
+    """
+    http_client_mock = MagicMock()
+    http_client.returned_obj = http_client_mock
+    mocked_code = "200" 
+    mocked_content = "text/plain"
+    
+    linestring = open('json/get_host.json', 'r').read()
+    mocked_response = linestring
+    expected_dict_output = {'ip': '10.0.2.15', 'host_name': 'dev06.hortonworks.com', 'rack_info': '/default-rack'}
+    
+    http_client_mock.invoke.return_value = mocked_response , mocked_code , mocked_content
+    client = AmbariClient("localhost", 8080, "admin", "admin", version=1, client=http_client_mock)
+    host = client.get_host('dev06.hortonworks.com')
+    
+    self.assertEqual(host.to_json_dict(), expected_dict_output)
+    
        
   @patch("ambari_client.core.http_client.HttpClient")  
   def test_get_cluster_valid(self , http_client):
