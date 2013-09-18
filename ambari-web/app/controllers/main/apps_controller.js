@@ -66,10 +66,10 @@ App.MainAppsController = Em.ArrayController.extend({
   //Pagination Object
 
   paginationObject:{
-    iTotalDisplayRecords :null,
-    iTotalRecords:null,
-    startIndex:null,
-    endIndex:null
+    iTotalDisplayRecords :0,
+    iTotalRecords:0,
+    startIndex:0,
+    endIndex:0
   },
 
   /*
