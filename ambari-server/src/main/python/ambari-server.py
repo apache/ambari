@@ -2392,13 +2392,15 @@ def upgrade(args):
     if properties == -1:
       print_error_msg ("Error getting ambari properties")
       return -1
+    print_warning_msg(JDBC_DATABASE_PROPERTY + " property isn't set in " +
+    AMBARI_PROPERTIES_FILE + ". Setting it to default value - " + DEFAULT_DB_NAME)
     properties.process_pair(JDBC_DATABASE_PROPERTY, DEFAULT_DB_NAME)
     conf_file = find_properties_file()
     try:
       properties.store(open(conf_file, "w"))
     except Exception, e:
       print_error_msg('Could not write ambari config file "%s": %s' % (conf_file, e))
-    return -1
+      return -1
 
   parse_properties_file(args)
   if args.persistence_type == "remote":

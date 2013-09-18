@@ -2442,6 +2442,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
 
 
+  @patch("__builtin__.open")
+  @patch.object(ambari_server.Properties, "store")
+  @patch.object(ambari_server, "find_properties_file")
   @patch.object(ambari_server, "adjust_directory_permissions")
   @patch.object(ambari_server, "print_warning_msg")
   @patch.object(ambari_server, "read_ambari_user")
@@ -2459,7 +2462,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                    update_ambari_properties_mock,
                    check_postgre_up_mock, execute_db_script_mock,
                    check_db_consistency_mock, read_ambari_user_mock,
-                   print_warning_msg_mock, adjust_directory_permissions_mock):
+                   print_warning_msg_mock, adjust_directory_permissions_mock,
+                   find_properties_file_mock, properties_store_mock, open_mock):
 
     args = MagicMock()
     check_database_name_property_mock = MagicMock()
@@ -2497,13 +2501,22 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     ambari_server.upgrade(args)
     self.assertTrue(adjust_directory_permissions_mock.called)
 
-    # Test if check_database_name_property raise exception
+    # Test if check_database_name_property raise exception, added default
+    # JDBC_DATABASE_PROPERTY and upgrade process doesn't fails
     def effect():
       raise FatalException()
 
+    properties = ambari_server.Properties()
+    get_ambari_properties_mock.return_value = properties
+
     check_database_name_property_mock.side_effect = effect
-    ambari_server.upgrade(args)
+    parse_properties_file_mock.called = False
+    retcode = ambari_server.upgrade(args)
     self.assertTrue(get_ambari_properties_mock.called)
+
+    self.assertTrue(properties.get_property(ambari_server.JDBC_DATABASE_PROPERTY))
+    self.assertNotEqual(-1, retcode)
+    self.assertTrue(parse_properties_file_mock.called)
 
     #Test remote upgrade
     get_db_cli_tool_mock.return_value = "psql"
