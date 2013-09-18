@@ -95,6 +95,8 @@ class HttpClient(object):
 
     buf = cStringIO.StringIO()
     self.c.setopt(pycurl.WRITEFUNCTION, buf.write)
+    self.c.setopt(pycurl.SSL_VERIFYPEER, 0)
+    
     LOG.debug ("invoke : url = "+str(url))
     # set http_method
     if http_method == "GET":

@@ -35,7 +35,7 @@ class AmbariClient(RestResource):
   AmbariClient top-level root resources.
   """
 
-  def __init__(self, host_name, port=None, user_name="admin", password="admin",
+  def __init__(self, host_name, port=None, user_name="admin", password="admin", use_https = False,
                version=API_VERSION , client=None):
     """
     Creates a RestResource object.
@@ -49,9 +49,18 @@ class AmbariClient(RestResource):
     """
     
     self._version = version
-    protocol = "http"
-    if port is None: 
-      port = 8080
+    
+    if use_https:
+      protocol = "https"
+      if port is None: 
+        port = 8443
+    else:
+      protocol = "http"
+      if port is None: 
+        port = 8080
+      
+
+      
     host_url = "%s://%s:%s/api/v%s" % (protocol, host_name, port, version)
     if client is None:
         client = HttpClient(host_url, user_name , password)

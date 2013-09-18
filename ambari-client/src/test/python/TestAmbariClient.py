@@ -48,6 +48,12 @@ class TestAmbariClient(unittest.TestCase):
     self.assertEqual(client.host_url, "http://localhost:8080/api/v1",
                        "host_url should be http://localhost:8080/api/v1")
     
+    
+    client = AmbariClient("localhost", 8443, "admin", "admin", use_https=True)
+    self.assertEqual(client.version, 1, "version should be 1")
+    self.assertEqual(client.host_url, "https://localhost:8443/api/v1",
+                       "host_url should be https://localhost:8443/api/v1")
+    
   
     
   @patch("ambari_client.core.http_client.HttpClient")  
