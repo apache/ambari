@@ -28,6 +28,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   deletedHdfsClients: 0,
   numOfDelOperations: 0,
   isRollback: true,
+  hostsToPerformDel: [],
 
 
   content: Em.Object.create({
@@ -231,7 +232,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   },
   deleteFailoverControllers: function(){
     var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
-    this.deleteComponent('ZKFC', hostNames);
+    this.checkBeforeDelete('ZKFC', hostNames);
   },
   stopStandbyNameNode: function(){
     var hostName = this.get('content.masterComponentHosts').findProperty('isAddNameNode', true).hostName;;
@@ -386,18 +387,62 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
         data: {
           hostName: hostName[i],
           componentName: componentName,
-          taskNum: hostName.length
+          taskNum: hostName.length,
+          callback: 'checkBeforeDelete'
         },
-        success: 'onMaintenanceComponent',
-        error: 'onTaskError'
+        success: 'checkResult',
+        error: 'checkResult'
       });
     }
   },
 
-  onMaintenanceComponent: function () {
+  checkBeforeDelete: function (componentName, hostName){
+    this.set('hostsToPerformDel', []);
+    if (!(hostName instanceof Array)) {
+      hostName = [hostName];
+    }
+    for (var i = 0; i < hostName.length; i++) {
+      App.ajax.send({
+        name: 'admin.high_availability.getHostComponent',
+        sender: this,
+        data: {
+          componentName: componentName,
+          hostName: hostName[i],
+          taskNum: hostName.length,
+          callback: 'deleteComponent'
+        },
+        success: 'checkResult',
+        error: 'checkResult'
+      });
+    }
+  },
+
+  checkResult: function () {
+    var callback = arguments[2].callback;
     var hostName = arguments[2].hostName;
     var componentName = arguments[2].componentName;
-    this.deleteComponent(componentName, hostName);
+    var taskNum = arguments[2].taskNum;
+    var hostsToPerformDel = this.get('hostsToPerformDel');
+    if(arguments[1] != 'error'){
+      hostsToPerformDel.push({
+        hostName: hostName,
+        isOnHost: true
+      });
+    }else{
+      hostsToPerformDel.push({
+        hostName: 'error',
+        isOnHost: false
+      });
+    }
+    if(hostsToPerformDel.length == taskNum){
+      var hostsForDel = hostsToPerformDel.filterProperty('isOnHost', true).mapProperty('hostName');
+      this.set('hostsToPerformDel', []);
+      if(hostsForDel.length == 0){
+        this.onTaskCompleted();
+        return;
+      }
+      this[callback](componentName, hostsForDel);
+    }
   },
 
   deleteComponent: function (componentName, hostName) {
