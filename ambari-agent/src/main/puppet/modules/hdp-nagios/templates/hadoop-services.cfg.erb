@@ -458,28 +458,6 @@ define service {
 define service {
         hostgroup_name          resourcemanager
         use                     hadoop-service
-        service_description     RESOURCEMANAGER::Percent NodeManager live
-        servicegroups           YARN
-        check_command           check_resourcemanager_nodes_percentage!<%=scope.function_hdp_template_var("::hdp::rm_port")%>!lost!10!30
-        normal_check_interval   1
-        retry_check_interval    1
-        max_check_attempts      3
-}
-
-define service {
-        hostgroup_name          resourcemanager
-        use                     hadoop-service
-        service_description     RESOURCEMANAGER::Percent NodeManager healthy
-        servicegroups           YARN
-        check_command           check_resourcemanager_nodes_percentage!<%=scope.function_hdp_template_var("::hdp::rm_port")%>!unhealthy!10!30
-        normal_check_interval   1
-        retry_check_interval    1
-        max_check_attempts      3
-}
-
-define service {
-        hostgroup_name          resourcemanager
-        use                     hadoop-service
         service_description     RESOURCEMANAGER::ResourceManager process
         servicegroups           YARN
         check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::rm_port")%>!-w 1 -c 1
@@ -510,6 +488,16 @@ define service {
         check_command           check_nodemanager_health!<%=scope.function_hdp_template_var("nm_port")%>!<%=scope.function_hdp_template_var("::hdp::params::security_enabled")%>!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>
         normal_check_interval   1
         retry_check_interval    1
+        max_check_attempts      3
+}
+define service {
+        hostgroup_name          nagios-server
+        use                     hadoop-service
+        service_description     NODEMANAGER::Percent NodeManager process
+        servicegroups           YARN
+        check_command           check_aggregate!"NODEMANAGER::NodeManager process"!10%!30%
+        normal_check_interval   0.5
+        retry_check_interval    0.25
         max_check_attempts      3
 }
 <% end %>
