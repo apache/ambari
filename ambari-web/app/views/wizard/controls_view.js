@@ -34,7 +34,10 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
   didInsertElement: function () {
     if (this.get('isPopoverEnabled') !== 'false') {
       App.popover(this.$(), {
-        title: Em.I18n.t('installer.controls.serviceConfigPopover.title').format(this.get('serviceConfig.displayName'), this.get('serviceConfig.name')),
+        title: Em.I18n.t('installer.controls.serviceConfigPopover.title').format(
+          this.get('serviceConfig.displayName'),
+          (this.get('serviceConfig.displayName') == this.get('serviceConfig.name'))?'':this.get('serviceConfig.name')
+        ),
         content: this.get('serviceConfig.description'),
         placement: 'right',
         trigger: 'hover'
