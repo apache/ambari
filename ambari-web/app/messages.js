@@ -716,7 +716,7 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step3.secNameNode': '<b>Secondary NameNode:</b> ',
   'admin.highAvailability.wizard.step3.journalNode': '<b>JournalNode:</b> ',
   'admin.highAvailability.wizard.step3.toBeInstalled': 'TO BE INSTALLED',
-  'admin.highAvailability.wizard.step3.toBeDisabled': 'TO BE DISABLED',
+  'admin.highAvailability.wizard.step3.toBeDeleted': 'TO BE DELETED',
   'admin.highAvailability.wizard.step4.ckNotCreated':'Checkpoint not created yet',
   'admin.highAvailability.wizard.step4.ckCreated':'Checkpoint created',
   'admin.highAvailability.wizard.step6.jsNoInit':'JournalNodes not initialized yet',
@@ -725,44 +725,44 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step8.confirmPopup.body':'Please confirm that you have run the manual steps before continuing.',
 
   'admin.highAvailability.rollback.header':'Disable NameNode HA Wizard',
-  'admin.highAvailability.rollback.task0.title':'Stop all services',
-  'admin.highAvailability.rollback.task1.title':'Restore HBASE configurations',
-  'admin.highAvailability.rollback.task2.title':'Stop Failover controllers',
-  'admin.highAvailability.rollback.task3.title':'Delete Failover controllers',
-  'admin.highAvailability.rollback.task4.title':'Stop stand by NameNode',
+  'admin.highAvailability.rollback.task0.title':'Stop All Services',
+  'admin.highAvailability.rollback.task1.title':'Restore HBase Configurations',
+  'admin.highAvailability.rollback.task2.title':'Stop Failover Controllers',
+  'admin.highAvailability.rollback.task3.title':'Delete Failover Controllers',
+  'admin.highAvailability.rollback.task4.title':'Stop Additional NameNode',
   'admin.highAvailability.rollback.task5.title':'Stop NameNode',
-  'admin.highAvailability.rollback.task6.title':'Restore HDFS configurations',
+  'admin.highAvailability.rollback.task6.title':'Restore HDFS Configurations',
   'admin.highAvailability.rollback.task7.title':'Enable Secondary NameNode',
   'admin.highAvailability.rollback.task8.title':'Stop JournalNodes',
   'admin.highAvailability.rollback.task9.title':'Delete JournalNodes',
-  'admin.highAvailability.rollback.task10.title':'Delete additional NameNode',
-  'admin.highAvailability.rollback.task11.title':'Start all services',
+  'admin.highAvailability.rollback.task10.title':'Delete Additional NameNode',
+  'admin.highAvailability.rollback.task11.title':'Start All Services',
   'admin.highAvailability.rollback.notice.inProgress':'Please wait while the wizard reverts back to the non-HA setup.',
 
   'admin.highAvailability.wizard.step8.body':
     '<ol>' +
-    '<li>Login to the additional NameNode host <b>{2}</b> as user <b>{0}</b>.</li>' +
+    '<li>Login to the additional NameNode host <b>{2}</b>.</li>' +
     '<li>Initialize the metadata for the additional NameNode by running:' +
-    '<div class="code-snippet">hdfs namenode -bootstrapStandby</div></li>' +
-    '<li>Login to the NameNode host <b>{1}</b> as user <b>{0}</b>.</li>' +
+    '<div class="code-snippet">sudo su -l {0} -c \'hdfs namenode -bootstrapStandby\'</div></li>' +
+    '<li>Login to the NameNode host <b>{1}</b>.</li>' +
     '<li>Initialize the metadata for NameNode automatic failover by running:' +
-    '<div class="code-snippet">hdfs zkfc -formatZK</div></li>' +
+    '<div class="code-snippet">sudo su -l {0} -c \'hdfs zkfc -formatZK\'</div></li>' +
     '<li>Please proceed once you have completed the steps above.</li>' +
     '</ol>',
   'admin.highAvailability.wizard.step6.body':
     '<ol>' +
-    '<li>Login to the NameNode host <b>{1}</b> as user <b>{0}</b>.</li>' +
+    '<li>Login to the NameNode host <b>{1}</b>.</li>' +
     '<li>Initialize the JournalNodes by running:' +
-    '<div class="code-snippet">hdfs namenode -initializeSharedEdits</div></li>' +
+    '<div class="code-snippet">sudo su -l {0} -c \'hdfs namenode -initializeSharedEdits\'</div></li>' +
     '<li>You will be able to proceed once Ambari detects that the JournalNodes have been initialized successfully.</li>' +
     '</ol>',
   'admin.highAvailability.wizard.step4.body':
     '<ol>' +
-    '<li>Login to the NameNode host <b>{1}</b> as user <b>{0}</b>.</li>' +
+    '<li>Login to the NameNode host <b>{1}</b>.</li>' +
     '<li>Put the NameNode in safe mode (read-only-mode):' +
-    '<div class="code-snippet">hdfs dfsadmin -safemode enter</div></li>' +
+    '<div class="code-snippet">sudo su -l {0} -c \'hdfs dfsadmin -safemode enter\'</div></li>' +
     '<li>Once in Safe Mode, create a checkpoint:' +
-    '<div class="code-snippet">hdfs dfsadmin -saveNamespace</div></li>' +
+    '<div class="code-snippet">sudo su -l {0} -c \'hdfs dfsadmin -saveNamespace\'</div></li>' +
     '<li>You will be able to proceed once Ambari detects that the NameNode is in Safe Mode and the checkpoint has been created successfully.</li>' +
     '</ol>',
   'admin.highAvailability.wizard.step3.body':'Confirm your host selections.',
@@ -774,7 +774,7 @@ Em.I18n.translations = {
     'The process to enable HA involves a combination of <b>automated steps</b> (that will be handled by the wizard) and ' +
     '<b>manual steps</b> (that you must perform in sequence as instructed by the wizard).<br/><br/>' +
     '<b>You should plan a cluster maintanance window and prepare for cluster downtime when enabling NameNode HA.</b>',
-  'admin.highAvailability.wizard.step1.alert':'As part of this process, your current Secondary NameNode will be disabled and new JournalNodes will be introduced into the cluster.',
+  'admin.highAvailability.wizard.step1.alert':'As part of this process, your current Secondary NameNode will be removed and new JournalNodes will be introduced into the cluster.',
   'admin.security.title':'Kerberos Security has not been enabled',
   'admin.security.enabled': 'Kerberos security is enabled',
   'admin.security.disabled': 'Kerberos security is disabled',

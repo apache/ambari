@@ -84,7 +84,7 @@ App.HighAvailabilityWizardStep2Controller = App.WizardStep5Controller.extend({
         {
           availableHosts: [],
           component_name: "JOURNALNODE",
-          display_name: "Journal Node",
+          display_name: "JournalNode",
           isHiveCoHost: false,
           isInstalled: false,
           selectedHost: this.get("hosts")[index].get("host_name"),
