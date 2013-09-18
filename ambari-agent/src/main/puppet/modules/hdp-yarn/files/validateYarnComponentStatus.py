@@ -19,7 +19,7 @@ limitations under the License.
 '''
 
 import optparse
-import urllib2, urllib
+import subprocess
 import json
 
 RESOURCEMANAGER = 'rm'
@@ -32,13 +32,15 @@ RUNNING_STATE = 'RUNNING'
 #Return reponse for given path and address
 def getResponse(path, address):
 
+  command = "curl"
+  httpGssnegotiate = "--negotiate"
+  userpswd = "-u:"
+  url = 'http://' + address + path
+  command_with_flags = [command,httpGssnegotiate,userpswd,url]
   try:
-    url = 'http://' + address + path
-    opener = urllib2.build_opener()
-    urllib2.install_opener(opener)
-    request = urllib2.Request(url)
-    handler = urllib2.urlopen(request)
-    response = json.loads(handler.read())
+    proc = subprocess.Popen(command_with_flags, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    (stdout, stderr) = proc.communicate()
+    response = json.loads(stdout)
     if response == None:
       print 'There is no response for url: ' + str(url)
       exit(1)
