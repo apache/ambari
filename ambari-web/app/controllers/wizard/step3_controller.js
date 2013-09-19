@@ -471,11 +471,18 @@ App.WizardStep3Controller = Em.Controller.extend({
     });
   }.observes('bootHosts.@each.name'),
 
+  hostsInCluster: function() {
+    return App.Host.find().getEach('hostName');
+  }.property().cacheable(),
+
   getAllRegisteredHostsCallback: function(hosts) {
     var registeredHosts = [];
+    var hostsInCluster = this.get('hostsInCluster');
     var addedHosts = this.get('bootHosts').getEach('name');
     hosts.items.forEach(function(host){
-      (addedHosts.contains(host.Hosts.host_name)) ? null : registeredHosts.push(host.Hosts.host_name);
+      if (!hostsInCluster.contains(host.Hosts.host_name) && !addedHosts.contains(host.Hosts.host_name)) {
+        registeredHosts.push(host.Hosts.host_name);
+      }
     });
     if(registeredHosts.length) {
       this.set('hasMoreRegisteredHosts',true);
