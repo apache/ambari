@@ -53,7 +53,7 @@ class hdp-hive::service(
   $no_op_test = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
 
   if ($ensure == 'running') {
-    $daemon_cmd = "su - ${user} -c  '${cmd} '"
+    $daemon_cmd = "su - ${hive_user} -c  '${cmd} '"
   } elsif ($ensure == 'stopped') {
     $daemon_cmd = "kill `cat $pid_file` >/dev/null 2>&1 && rm -f ${pid_file}"
   } else {
