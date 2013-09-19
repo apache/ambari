@@ -268,35 +268,22 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
   changeCategoryOnHa: function (serviceConfigs, stepConfigs) {
     var hdfsService = serviceConfigs.findProperty('serviceName', 'HDFS');
     if (hdfsService) {
-      var hdfsProperties = stepConfigs.findProperty('serviceName','HDFS').get('configs');
+      var hdfsProperties = stepConfigs.findProperty('serviceName', 'HDFS').get('configs');
       var configCategories = hdfsService.configCategories;
-      var dfsHttpPrincipal = hdfsProperties.findProperty('name', 'hadoop_http_principal_name');
-      var dfsHttpKeytab = hdfsProperties.findProperty('name', 'hadoop_http_keytab');
       if ((App.testMode && App.testNameNodeHA) || (this.get('content.isNnHa') === 'true')) {
-        if (dfsHttpPrincipal && dfsHttpKeytab) {
-          dfsHttpPrincipal.set('category','NameNode');
-          dfsHttpKeytab.set('category','NameNode');
-        } else {
-          dfsHttpPrincipal.set('category','General');
-          dfsHttpKeytab.set('category','General');
-        }
-        hdfsProperties.filterProperty('category','SNameNode').forEach(function(_snConfig){
-          _snConfig.set('isVisible',false);
-        },this);
-        var generalCategory = configCategories.findProperty('name','General');
-        var snCategory = configCategories.findProperty('name','SNameNode');
-        if(generalCategory) {
-          configCategories.removeObject(generalCategory);
-        }
-        if(snCategory) {
+        hdfsProperties.filterProperty('category', 'SNameNode').forEach(function (_snConfig) {
+          _snConfig.set('isVisible', false);
+        }, this);
+        var snCategory = configCategories.findProperty('name', 'SNameNode');
+        if (snCategory) {
           configCategories.removeObject(snCategory);
         }
       } else {
-        hdfsProperties.filterProperty('category','JournalNode').forEach(function(_jnConfig){
-          _jnConfig.set('isVisible',false);
-        },this);
-        var jnCategory = configCategories.findProperty('name','JournalNode');
-        if(jnCategory) {
+        hdfsProperties.filterProperty('category', 'JournalNode').forEach(function (_jnConfig) {
+          _jnConfig.set('isVisible', false);
+        }, this);
+        var jnCategory = configCategories.findProperty('name', 'JournalNode');
+        if (jnCategory) {
           configCategories.removeObject(jnCategory);
         }
       }
