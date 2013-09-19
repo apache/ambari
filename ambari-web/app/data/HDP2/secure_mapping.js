@@ -131,7 +131,7 @@ module.exports = [
   },
   {
     "name": "dfs.journalnode.kerberos.internal.spnego.principal",
-    "templateName": ["journalnode_http_principal_name", "kerberos_domain"],
+    "templateName": ["hadoop_http_principal_name", "kerberos_domain"],
     "foreignKey": null,
     "value": "<templateName[0]>@<templateName[1]>",
     "filename": "hdfs-site.xml",

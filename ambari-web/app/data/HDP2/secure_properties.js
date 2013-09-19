@@ -275,19 +275,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "journalnode_http_principal_name",
-      "displayName": "Web principal name",
-      "value": "",
-      "defaultValue": "HTTP/_HOST",
-      "description": "Principal name for SPNEGO access for JournalNode. _HOST will get automatically replaced with actual hostname at instance of JournalNode",
-      "displayType": "principal",
-      "isVisible": false,
-      "isOverridable": false,
-      "serviceName": "HDFS",
-      "category": "JournalNode"
-    },
-    {
-      "id": "puppet var",
       "name": "journalnode_keytab",
       "displayName": "Path to keytab file",
       "value": "",
@@ -373,7 +360,7 @@ module.exports =
       "displayName": "DFS web principal name",
       "value": "",
       "defaultValue": "HTTP/_HOST",
-      "description": "Principal name for SPNEGO access for NameNode and SNameNode. _HOST will get automatically replaced with actual hostname at instance of NameNode and SNameNode",
+      "description": "Principal name for SPNEGO access for HDFS components. _HOST will get automatically replaced with actual hostname at instance of HDFS component",
       "displayType": "principal",
       "isVisible": true,
       "isOverridable": false,
