@@ -44,9 +44,9 @@ App.ChartServiceMetricsYARN_ApplicationFinishedStates = App.ChartLinearTimeView.
           case "AppsCompleted":
             displayName = Em.I18n.t('services.service.info.metrics.yarn.apps.states.completed');
             break;
-          case "AppsFailed":
-            displayName = Em.I18n.t('services.service.info.metrics.yarn.apps.states.failed');
-            break;
+//          case "AppsFailed":
+//            displayName = Em.I18n.t('services.service.info.metrics.yarn.apps.states.failed');
+//            break;
           case "AppsKilled":
             displayName = Em.I18n.t('services.service.info.metrics.yarn.apps.states.killed');
             break;
