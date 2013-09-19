@@ -274,9 +274,9 @@ App.MainHostSummaryView = Em.View.extend({
         componentTextStatus = hostComponent.get('componentTextStatus');
         if(this.get("isDataNode"))
           if(this.get('isDataNodeRecommissionAvailable')){
-            if(App.HostComponentStatus.started == workStatus){
+            if(hostComponent.get('isDecommissioning')){
               componentTextStatus = "Decommissioning...";
-            }else if(App.HostComponentStatus.stopped == workStatus){
+            } else {
               componentTextStatus = "Decommissioned";
             }
           }
@@ -331,7 +331,7 @@ App.MainHostSummaryView = Em.View.extend({
       if (!pulsate && this.get('isDataNode')) {
         var dataNodeComponent = this.get('content');
         if (dataNodeComponent && workStatus != "INSTALLED") {
-          pulsate = this.get('isDataNodeRecommissionAvailable');
+          pulsate = this.get('isDecommissioning');
         }
       }
       if (pulsate && !self.get('isBlinking')) {
@@ -371,7 +371,9 @@ App.MainHostSummaryView = Em.View.extend({
     }.property('workStatus'),
 
     isInProgress: function () {
-      return (this.get('workStatus') === App.HostComponentStatus.stopping || this.get('workStatus') === App.HostComponentStatus.starting) || this.get('isDataNodeRecommissionAvailable');
+      return (this.get('workStatus') === App.HostComponentStatus.stopping || 
+          this.get('workStatus') === App.HostComponentStatus.starting) || 
+          this.get('isDecommissioning');
     }.property('workStatus', 'isDataNodeRecommissionAvailable'),
     /**
      * Shows whether we need to show Decommision/Recomission buttons
@@ -381,8 +383,9 @@ App.MainHostSummaryView = Em.View.extend({
     }.property('content'),
 
     isDecommissioning: function () {
-      return this.get('isDataNode') &&  this.get("isDataNodeRecommissionAvailable");
-    }.property("workStatus", "isDataNodeRecommissionAvailable"),
+      var hostComponentDecommissioning = this.get('hostComponent.isDecommissioning');
+      return this.get('isDataNode') &&  this.get("isDataNodeRecommissionAvailable") && hostComponentDecommissioning;
+    }.property("workStatus", "isDataNodeRecommissionAvailable", "hostComponent.isDecommissioning"),
 
     /**
      * Set in template via binding from parent view
