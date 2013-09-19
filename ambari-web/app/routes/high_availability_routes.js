@@ -35,14 +35,39 @@ module.exports = Em.Route.extend({
         showFooter: false,
         secondary: null,
         hideCloseButton: function () {
-          this.set('showCloseButton', App.router.get('highAvailabilityWizardController.currentStep') < 5);
+          var currStep = App.router.get('highAvailabilityWizardController.currentStep');
+          switch (currStep) {
+            case "5" :
+            case "7" :
+            case "9" :
+              this.set('showCloseButton', false);
+              break;
+            default :
+              this.set('showCloseButton', true);
+          }
         }.observes('App.router.highAvailabilityWizardController.currentStep'),
 
         onClose: function () {
-          this.hide();
-          App.router.get('highAvailabilityWizardController').setCurrentStep('1');
-          App.router.get('updateController').set('isWorking', true);
-          App.router.transitionTo('main.admin.adminHighAvailability');
+          var currStep = App.router.get('highAvailabilityWizardController.currentStep');
+          var highAvailabilityProgressPageController = App.router.get('highAvailabilityProgressPageController');
+          if (currStep == "6"){
+            highAvailabilityProgressPageController.tasks.push({
+              command: "startZooKeeperServers",
+              status: "FAILED"
+            })
+            highAvailabilityProgressPageController.rollback();
+          }else if(currStep == "8"){
+            highAvailabilityProgressPageController.tasks.push({
+              command: "startSecondNameNode",
+              status: "FAILED"
+            })
+            highAvailabilityProgressPageController.rollback();
+          }else{
+            this.hide();
+            App.router.get('highAvailabilityWizardController').setCurrentStep('1');
+            App.router.get('updateController').set('isWorking', true);
+            App.router.transitionTo('main.admin.adminHighAvailability');
+          }
         },
         didInsertElement: function () {
           this.fitHeight();
