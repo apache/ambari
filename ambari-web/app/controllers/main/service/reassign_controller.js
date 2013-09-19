@@ -23,7 +23,7 @@ App.ReassignMasterController = App.WizardController.extend({
 
   name: 'reassignMasterController',
 
-  totalSteps: 6,
+  totalSteps: 4,
 
   /**
    * Used for hiding back button in wizard
@@ -205,12 +205,9 @@ App.ReassignMasterController = App.WizardController.extend({
   loadAllPriorSteps: function () {
     var step = this.get('currentStep');
     switch (step) {
-      case '6':
-      case '5':
-        this.loadTasksStatuses();
       case '4':
+        this.loadTasksStatuses();
       case '3':
-        this.loadServiceConfigProperties();
       case '2':
         this.loadServicesFromServer();
         this.loadMasterComponentHosts();

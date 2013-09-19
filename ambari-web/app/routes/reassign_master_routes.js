@@ -52,7 +52,7 @@ module.exports = Em.Route.extend({
         App.clusterStatus.updateFromServer();
         var currentClusterStatus = App.clusterStatus.get('value');
         if (currentClusterStatus && currentClusterStatus.clusterState == 'REASSIGN_MASTER_INSTALLING') {
-          reassignMasterController.setCurrentStep('5');
+          reassignMasterController.setCurrentStep('4');
           App.db.data = currentClusterStatus.localdb;
         } else {
           reassignMasterController.setCurrentStep('1');
@@ -104,23 +104,21 @@ module.exports = Em.Route.extend({
     connectOutlets: function (router) {
       console.log('in reassignMaster.step3:connectOutlets');
       var controller = router.get('reassignMasterController');
-      if (controller.get('skipStep3')) {
-        router.transitionTo('step4');
-      } else {
-        controller.setCurrentStep('3');
-        controller.dataLoading().done(function () {
-          controller.loadAllPriorSteps();
-          controller.set('content.serviceName', controller.get('content.reassign.service_id'));
-          controller.connectOutlet('wizardStep12', controller.get('content'));
-        })
-      }
+      controller.setCurrentStep('3');
+      controller.dataLoading().done(function () {
+        controller.loadAllPriorSteps();
+        controller.connectOutlet('wizardStep12', controller.get('content'));
+      })
     },
     back: Em.Router.transitionTo('step2'),
     next: function (router) {
-      var controller = router.get('reassignMasterController');
-      var wizardStep12Controller = router.get('wizardStep12Controller');
-      controller.set('content.modifiedConfigs', wizardStep12Controller.get('modifiedConfigs'));
-      controller.saveServiceConfigProperties(wizardStep12Controller);
+      App.db.setReassignTasksStatuses(['INITIALIZE', 'INITIALIZE', 'INITIALIZE', 'INITIALIZE', 'INITIALIZE', 'INITIALIZE', 'INITIALIZE', 'INITIALIZE']);
+      App.clusterStatus.setClusterStatus({
+        clusterName: router.get('reassignMasterController.content.cluster.name'),
+        clusterState: 'REASSIGN_MASTER_INSTALLING',
+        wizardControllerName: 'reassignMasterController',
+        localdb: App.db.data
+      });
       router.transitionTo('step4');
     }
   }),
@@ -137,34 +135,10 @@ module.exports = Em.Route.extend({
       })
     },
     back: Em.Router.transitionTo('step3'),
-    next: function (router) {
-      App.db.setReassignTasksStatuses(['INITIALIZE', 'INITIALIZE', 'INITIALIZE', 'INITIALIZE', 'INITIALIZE', 'INITIALIZE', 'INITIALIZE', 'INITIALIZE']);
-      App.clusterStatus.setClusterStatus({
-        clusterName: router.get('reassignMasterController.content.cluster.name'),
-        clusterState: 'REASSIGN_MASTER_INSTALLING',
-        wizardControllerName: 'reassignMasterController',
-        localdb: App.db.data
-      });
-      router.transitionTo('step5');
-    }
-  }),
-
-  step5: Em.Route.extend({
-    route: '/step5',
-    connectOutlets: function (router) {
-      console.log('in reassignMaster.step5:connectOutlets');
-      var controller = router.get('reassignMasterController');
-      controller.setCurrentStep('5');
-      controller.dataLoading().done(function () {
-        controller.loadAllPriorSteps();
-        controller.connectOutlet('wizardStep14', controller.get('content'));
-      })
-    },
-    back: Em.Router.transitionTo('step3'),
     complete: function (router, context) {
       var controller = router.get('reassignMasterController');
-      var wizardStep14Controller = router.get('wizardStep14Controller');
-      if (!wizardStep14Controller.get('isSubmitDisabled')) {
+      var wizardStep13Controller = router.get('wizardStep13Controller');
+      if (!wizardStep13Controller.get('isSubmitDisabled')) {
         controller.finish();
         $(context.currentTarget).parents("#modal").find(".close").trigger('click');
         App.clusterStatus.setClusterStatus({
@@ -186,10 +160,6 @@ module.exports = Em.Route.extend({
   gotoStep3: Em.Router.transitionTo('step3'),
 
   gotoStep4: Em.Router.transitionTo('step4'),
-
-  gotoStep5: Em.Router.transitionTo('step5'),
-
-  gotoStep6: Em.Router.transitionTo('step6'),
 
   backToServices: function (router) {
     App.router.get('updateController').set('isWorking', true);

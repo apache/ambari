@@ -16,45 +16,6 @@
  * limitations under the License.
  */
 
-App.WizardStep12Controller = App.MainServiceInfoConfigsController.extend({
+var App = require('app');
 
-  modifiedConfigs: [],
-
-  afterLoad: function () {
-    if (this.get('dataIsLoaded')) {
-      this.get('stepConfigs').objectAt(0).get('configs').filterProperty('isEditable', false).setEach('isEditable', true);
-      this.get('stepConfigs').objectAt(0).get('configs').filterProperty('displayType', 'masterHost').setEach('isVisible', false);
-    }
-  }.observes('dataIsLoaded'),
-
-  addHostNamesToGlobalConfig: function () {
-    var hostComponents = [];
-    this.get('content.masterComponentHosts').forEach(function (component) {
-      hostComponents.push(Ember.Object.create({
-        componentName: component.component,
-        host: {hostName: component.hostName}
-      }))
-    });
-    this.set('content.hostComponents', hostComponents);
-    this._super();
-  },
-
-  submit: function () {
-    if (this.get('isSubmitDisabled')) {
-      return false;
-    }
-    var self = this;
-    this.get('modifiedConfigs').clear();
-    this.get('stepConfigs').objectAt(0).get('configs').forEach(function (config) {
-      if (config.get('defaultValue') !== config.get('value')) {
-        self.get('modifiedConfigs').push({
-          name: config.get('displayName'),
-          oldValue: config.get('defaultValue'),
-          value: config.get('value'),
-          unit: config.get('unit') || false
-        });
-      }
-    });
-    App.router.send('next');
-  }
-});
+App.WizardStep12Controller = Em.Controller.extend()

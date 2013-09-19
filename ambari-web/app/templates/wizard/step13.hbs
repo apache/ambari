@@ -15,41 +15,38 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-
-<h2>{{t installer.step13.header}}</h2>
-
-<div class="alert alert-info">
-  {{t installer.step13.body}}
-</div>
-
-<div id="step8-content" class="well pre-scrollable">
-  <div id="printReview">
-    <a class="btn btn-info pull-right" {{action printReview target="view"}}>{{t common.print}}</a> <br/>
+<div id="step13">
+  <div {{bindAttr class="view.statusClass :alert"}}>
+    <p>{{view.statusMessage}}</p>
+    {{#if controller.showRetry}}
+    <p>{{t installer.step13.retry}}</p>
+      <a {{action retry target="controller"}} class="btn btn-primary">
+        <i class="icon-repeat icon-white"></i>
+        {{t common.retry}}
+      </a>
+      <a {{action abort target="controller"}} class="btn btn-warning">
+        <i class="icon-remove icon-white"></i>
+        {{t common.abort}}
+      </a>
+    {{/if}}
   </div>
-  <div id="step8-info">
-    <p><b>{{t installer.step13.component}}</b> {{controller.content.reassign.display_name}}</p>
-
-    <p><b>{{t installer.step13.sourceHost}}</b> {{view.sourceHost}}</p>
-
-    <p><b>{{t installer.step13.targetHost}}</b> {{view.targetHost}}</p>
-
-    {{#if view.changes}}<p><b>{{t installer.step13.changes}}</b></p>{{/if}}
-    {{#each item in view.changes}}
-    <div>
-      <ul><em> <b>{{item.name}}</b></em>
-
-        <div>
-          <ul>Old value: &nbsp;<span class="text text-info">{{item.oldValue}} {{#if item.unit}}{{item.unit}}{{/if}}</span></ul>
-          <ul>New value: <span class="text text-info">{{item.value}} {{#if item.unit}}{{item.unit}}{{/if}}</span></ul>
+    {{#each task in view.tasks}}
+      {{#view view.taskView contentBinding="task"}}
+        <div class="item">
+          <i {{bindAttr class="view.icon view.iconColor"}}></i>
+          <a href="javascript:void(0)">{{task.message}}</a>
         </div>
-
-      </ul>
-    </div>
+        <div {{bindAttr class="view.inProgress::hide :row :span12" }}>
+          <div class="progress-bar span4">
+            <div class="progress-striped active progress-info progress">
+              <div class="bar" {{bindAttr style="view.barWidth"}}></div>
+            </div>
+          </div>
+          <div class="span1">{{task.progress}}&#37;</div>
+        </div>
+      {{/view}}
     {{/each}}
   </div>
-</div>
-<div class="btn-area">
-  <a class="btn pull-left" {{action back href="true"}}>&larr; {{t common.back}}</a>
-  <a class="btn btn-success pull-right"
-     id="spinner" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action next}}>{{t common.deploy}} &rarr;</a>
+  <div class="btn-area">
+    <a class="btn btn-success pull-right" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action complete}}>{{t common.complete}} &rarr;</a>
 </div>

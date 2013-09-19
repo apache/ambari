@@ -23,17 +23,73 @@ App.WizardStep13View = Em.View.extend({
 
   templateName: require('templates/wizard/step13'),
 
-  changes: function () {
-    return this.get('controller.content.modifiedConfigs');
-  }.property('controller.content.modifiedConfigs'),
-  sourceHost: function () {
-    return this.get('controller.content.reassign.host_id')
-  }.property('controller.content.reassign.host_id'),
-  targetHost: function () {
-    return this.get('controller.content.masterComponentHosts').findProperty('component', this.get('controller.content.reassign.component_name')).hostName;
-  }.property('controller.content.masterComponentHosts'),
+  statusMessage: null,
+  statusClass: 'alert-info',
 
-  printReview: function() {
-    $("#step8-info").jqprint();
-  }
+  didInsertElement: function () {
+    this.get('controller').loadStep();
+  },
+
+  tasks: function () {
+    var tasks = this.get('controller.tasks');
+    if (this.get('controller.service.serviceName') == 'GANGLIA') {
+      tasks = tasks.slice(0,2).concat(tasks.slice(4));
+    }
+    return tasks;
+  }.property('controller.tasks', 'controller.service'),
+
+  onStatus: function () {
+    var master = (this.get('controller.isCohosted')) ? Em.I18n.t('installer.step5.hiveGroup') : this.get('controller.content.reassign.display_name');
+    switch (this.get('controller.status')) {
+      case 'COMPLETED':
+        this.set('statusMessage', Em.I18n.t('installer.step13.status.success').format(master));
+        this.set('statusClass', 'alert-success');
+        break;
+      case 'FAILED':
+        this.set('statusMessage', Em.I18n.t('installer.step13.status.failed').format(master));
+        this.set('statusClass', 'alert-error');
+        break;
+      case 'IN_PROGRESS':
+      default:
+        this.set('statusMessage', Em.I18n.t('installer.step13.status.info').format(master));
+        this.set('statusClass', 'alert-info');
+    }
+  }.observes('controller.status'),
+
+  taskView: Em.View.extend({
+    icon: '',
+    iconColor: '',
+
+    didInsertElement: function () {
+      this.onStatus();
+    },
+
+    barWidth: function () {
+      return 'width: ' + this.get('content.progress') + '%;';
+    }.property('content.progress'),
+
+    onStatus: function () {
+      if (this.get('content.status') === 'IN_PROGRESS') {
+        this.set('icon', 'icon-cog');
+        this.set('iconColor', 'text-info');
+      } else if (this.get('content.status') === 'WARNING') {
+        this.set('icon', 'icon-warning-sign');
+        this.set('iconColor', 'text-warning');
+      } else if (this.get('content.status') === 'FAILED') {
+        this.set('icon', 'icon-exclamation-sign');
+        this.set('iconColor', 'text-error');
+      } else if (this.get('content.status') === 'COMPLETED') {
+        this.set('icon', 'icon-ok');
+        this.set('iconColor', 'text-success');
+      } else {
+        this.set('icon', 'icon-cog');
+        this.set('iconColor', '');
+      }
+    }.observes('content.status'),
+
+    inProgress: function () {
+      return this.get('content.status') === "IN_PROGRESS";
+    }.property('content.status')
+
+  })
 });

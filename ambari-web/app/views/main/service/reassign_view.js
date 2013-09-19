@@ -39,14 +39,6 @@ App.ReassignMasterView = Em.View.extend({
     return this.isStepDisabled(4);
   }.property('controller.isStepDisabled.@each.value').cacheable(),
 
-  isStep5Disabled: function () {
-    return this.isStepDisabled(5);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
-  isStep6Disabled: function () {
-    return this.isStepDisabled(6);
-  }.property('controller.isStepDisabled.@each.value').cacheable(),
-
   isStepDisabled: function (index) {
     return this.get('controller.isStepDisabled').findProperty('step', index).get('value');
   }

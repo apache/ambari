@@ -22,8 +22,15 @@ var App = require('app');
 App.WizardStep12View = Em.View.extend({
 
   templateName: require('templates/wizard/step12'),
-  didInsertElement: function () {
-    this.get('controller').loadStep();
-  }
 
+  sourceHost: function () {
+    return this.get('controller.content.reassign.host_id')
+  }.property('controller.content.reassign.host_id'),
+  targetHost: function () {
+    return this.get('controller.content.masterComponentHosts').findProperty('component', this.get('controller.content.reassign.component_name')).hostName;
+  }.property('controller.content.masterComponentHosts'),
+
+  printReview: function() {
+    $("#step8-info").jqprint();
+  }
 });

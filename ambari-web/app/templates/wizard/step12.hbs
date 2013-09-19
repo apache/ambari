@@ -16,20 +16,26 @@
 * limitations under the License.
 }}
 
-<div id="serviceConfig">
-  <h2>{{t installer.step12.header}}</h2>
+<h2>{{t installer.step12.header}}</h2>
 
-  {{#if controller.dataIsLoaded}}
-    {{view App.ServiceConfigView}}
-  {{else}}
-    {{t app.loadingPlaceholder}}
-  {{/if}}
+<div class="alert alert-info">
+  {{t installer.step12.body}}
+</div>
 
-  <div class="btn-area">
-    <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
-
-    <a
-            class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}}
-            {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
+<div id="step8-content" class="well pre-scrollable">
+  <div id="printReview">
+    <a class="btn btn-info pull-right" {{action printReview target="view"}}>{{t common.print}}</a> <br/>
   </div>
+  <div id="step8-info">
+    <p><b>{{t installer.step12.component}}</b> {{controller.content.reassign.display_name}}</p>
+
+    <p><b>{{t installer.step12.sourceHost}}</b> {{view.sourceHost}}</p>
+
+    <p><b>{{t installer.step12.targetHost}}</b> {{view.targetHost}}</p>
+  </div>
+</div>
+<div class="btn-area">
+  <a class="btn pull-left" {{action back href="true"}}>&larr; {{t common.back}}</a>
+  <a class="btn btn-success pull-right"
+     id="spinner" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action next}}>{{t common.deploy}} &rarr;</a>
 </div>
