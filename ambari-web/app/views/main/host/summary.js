@@ -59,7 +59,11 @@ App.MainHostSummaryView = Em.View.extend({
             success: function (data) {
               if (data && data.items) {
                 var csv = data.items[0].properties.datanodes;
-                self.set('decommissionDataNodeHostNames', csv.split(','));
+                if (csv!==null && csv.length>0) {
+                  self.set('decommissionDataNodeHostNames', csv.split(','));  
+                } else {
+                  self.set('decommissionDataNodeHostNames', null);  
+                }
               }
             },
             error: function (xhr, textStatus, errorThrown) {
