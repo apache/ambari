@@ -220,36 +220,30 @@ App.MainServiceItemController = Em.Controller.extend({
     if (methodName) {
       this[methodName](context);
     }
-    },
+  },
 
-
-    setStartStopState: function () {
-        var serviceName = this.get('content.serviceName');
-        var backgroundOperations = App.router.get('backgroundOperationsController.services');
-        if(backgroundOperations.length>0) {
-            for (var i = 0; i < backgroundOperations.length; i++) {
-                var hostsMap = backgroundOperations[i].hostsMap;
-                for (var hostName in hostsMap) {
-                    var logTasks = hostsMap[hostName].logTasks;
-                    for (var k = 0; k < logTasks.length; k++) {
-                        var service = service_components.findProperty('component_name', logTasks[k].Tasks.role);
-                        if (service && serviceName == service.service_name) {
-                            if (logTasks[k].Tasks.status == 'PENDING' || logTasks[k].Tasks.status == 'IN_PROGRESS' || logTasks[k].Tasks.status == 'QUEUED') {
-                                this.set('isPending', true);
-                                return;
-                            }
-                        }
-                    }
-                }
+  setStartStopState: function () {
+    var serviceName = this.get('content.serviceName');
+    var components = service_components.filterProperty('service_name', serviceName).mapProperty('component_name');
+    var backgroundOperations = App.router.get('backgroundOperationsController.services');
+    if (backgroundOperations.length > 0) {
+      for (var i = 0; i < backgroundOperations.length; i++) {
+        var logTasks = backgroundOperations[i].tasks;
+        for (var k = 0; k < logTasks.length; k++) {
+          if (components.contains(logTasks[k].Tasks.role)) {
+            if (logTasks[k].Tasks.status == 'PENDING' || logTasks[k].Tasks.status == 'IN_PROGRESS' || logTasks[k].Tasks.status == 'QUEUED') {
+              this.set('isPending', true);
+              return;
             }
-            this.set('isPending', false);
+          }
         }
-        else {
-            this.set('isPending', true);
-        }
+      }
+      this.set('isPending', false);
+    } else {
+      this.set('isPending', true);
+    }
+  }.observes('App.router.backgroundOperationsController.serviceTimestamp'),
 
-    }.observes('App.router.backgroundOperationsController.serviceTimestamp'),
-    
   isServiceRestartable: function() {
     return this.get('content.serviceName') !== "FLUME";
   }.property('content.serviceName'),

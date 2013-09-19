@@ -565,7 +565,10 @@ App.HostPopup = Em.Object.create({
           this.get("controller").onServiceUpdate();
           this.get("controller").onHostUpdate();
           this.set('parentView.isLoaded', true);
-          this.set("hosts", this.get("controller.hosts"));
+          //push hosts into view when none or all hosts are loaded
+          if(this.get('hosts') == null || this.get('hosts').length === this.get("controller.hosts").length){
+            this.set("hosts", this.get("controller.hosts"));
+          }
           this.set("services", this.get("controller.servicesInfo"));
         }.observes("controller.serviceController.serviceTimestamp"),
 
@@ -578,10 +581,7 @@ App.HostPopup = Em.Object.create({
             if (this.get('serviceCategory.value')) {
               var filter = this.get('serviceCategory.value');
               var services = this.get('services');
-              this.setVisability(filter, services);
-              if (services.filterProperty("isVisible", true).length > 0) {
-                this.set("isServiceEmptyList", false);
-              }
+              this.set("isServiceEmptyList", this.setVisibility(filter, services));
             }
           }
         }.observes('serviceCategory', 'services'),
@@ -594,10 +594,7 @@ App.HostPopup = Em.Object.create({
           if (this.get('hostCategory.value') && this.get('hosts')) {
             var filter = this.get('hostCategory.value');
             var hosts = this.get('hosts');
-            this.setVisability(filter, hosts);
-            if (hosts.filterProperty("isVisible", true).length > 0) {
-              this.set("isHostEmptyList", false);
-            }
+            this.set("isHostEmptyList", this.setVisibility(filter, hosts));
           }
         }.observes('hostCategory', 'hosts'),
 
@@ -609,10 +606,7 @@ App.HostPopup = Em.Object.create({
           if (this.get('taskCategory.value') && this.get('tasks')) {
             var filter = this.get('taskCategory.value');
             var tasks = this.get('tasks');
-            this.setVisability(filter, tasks);
-            if (tasks.filterProperty("isVisible", true).length > 0) {
-              this.set("isTasksEmptyList", false);
-            }
+            this.set("isTasksEmptyList", this.setVisibility(filter, tasks));
           }
         }.observes('taskCategory', 'tasks'),
 
@@ -620,33 +614,32 @@ App.HostPopup = Em.Object.create({
          * Depending on selected filter type, set object visibility value
          * @param filter
          * @param obj
+         * @return {Boolean} isEmptyList
          */
-        setVisability: function (filter, obj) {
-          obj.setEach("isVisible", false);
+        setVisibility: function (filter, obj) {
+          var isEmptyList = true;
           if (filter == "all") {
             obj.setEach("isVisible", true);
+            isEmptyList = !(obj.length > 0);
+          } else {
+            obj.forEach(function(item){
+              if (filter == "pending") {
+                item.set('isVisible', ["pending", "queued"].contains(item.status));
+              } else if (filter == "in_progress") {
+                item.set('isVisible', ["in_progress", "upgrading"].contains(item.status));
+              } else if (filter == "failed") {
+                item.set('isVisible', (item.status === "failed"));
+              } else if (filter == "completed") {
+                item.set('isVisible', ["completed", "success"].contains(item.status));
+              } else if (filter == "aborted") {
+                item.set('isVisible', (item.status === "aborted"));
+              } else if (filter == "timedout") {
+                item.set('isVisible', (item.status === "timedout"));
+              }
+              isEmptyList = (isEmptyList) ? !item.get('isVisible') : false;
+            })
           }
-          else if (filter == "pending") {
-            obj.filterProperty("status", "pending").setEach("isVisible", true);
-            obj.filterProperty("status", "queued").setEach("isVisible", true);
-          }
-          else if (filter == "in_progress") {
-            obj.filterProperty("status", "in_progress").setEach("isVisible", true);
-            obj.filterProperty("status", "upgrading").setEach("isVisible", true);
-          }
-          else if (filter == "failed") {
-            obj.filterProperty("status", "failed").setEach("isVisible", true);
-          }
-          else if (filter == "completed") {
-            obj.filterProperty("status", "completed").setEach("isVisible", true);
-            obj.filterProperty("status", "success").setEach("isVisible", true);
-          }
-          else if (filter == "aborted") {
-            obj.filterProperty("status", "aborted").setEach("isVisible", true);
-          }
-          else if (filter == "timedout") {
-            obj.filterProperty("status", "timedout").setEach("isVisible", true);
-          }
+          return isEmptyList;
         },
 
         /**
@@ -674,7 +667,8 @@ App.HostPopup = Em.Object.create({
          */
         updateSelectView: function () {
           if (!this.get('isHostListHidden')) {
-            this.get('controller').setSelectCount(this.get("hosts"), this.get('categories'));
+            //since lazy loading used for hosts, we need to get hosts info directly from controller, that always contains entire array of data
+            this.get('controller').setSelectCount(this.get("controller.hosts"), this.get('categories'));
           } else if (!this.get('isTaskListHidden')) {
             this.get('controller').setSelectCount(this.get("tasks"), this.get('categories'));
           } else if (!this.get('isServiceListHidden')) {
@@ -734,11 +728,20 @@ App.HostPopup = Em.Object.create({
           if (servicesInfo.length) {
             this.get("controller").set("popupHeaderName", event.context.get("name"));
           }
-          this.set('hosts', servicesInfo);
+          if (servicesInfo.length > 100) {
+            this.set('hosts', servicesInfo.slice(0, 50));
+          } else {
+            this.set('hosts', servicesInfo);
+          }
           this.set("isServiceListHidden", true);
           this.set("isHostListHidden", false);
           $(".modal").scrollTop(0);
           $(".modal-body").scrollTop(0);
+          if (servicesInfo.length > 100) {
+            Ember.run.next(this, function(){
+              this.set('hosts', this.get('hosts').concat(servicesInfo.slice(50, servicesInfo.length)));
+            });
+          }
         },
 
         /**
