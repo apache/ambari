@@ -86,6 +86,7 @@ define hdp-yarn::service(
     file {$job_summary_log:
       path => $job_summary_log,
       owner => $user,
+      mode => '0664',
     }
   }
  
