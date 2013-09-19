@@ -141,7 +141,8 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
         this.set('status', 'COMPLETED');
         this.set('isSubmitDisabled', false);
       }
-    } else if (this.get('tasks').someProperty('status', 'FAILED') || this.get('tasks').someProperty('status', 'TIMEDOUT') || this.get('tasks').someProperty('status', 'ABORTED')) {
+    } else if (this.get('tasks').someProperty('status', 'FAILED')) {
+      console.warn('onTaskStatusChange4');
       this.set('status', 'FAILED');
       this.get('tasks').findProperty('status', 'FAILED').set('showRetry', true);
       this.get('tasks').findProperty('status', 'FAILED').set('showRollback', true);
@@ -286,7 +287,7 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
       var currentTaskId = this.get('currentTaskId');
       if (!tasks.someProperty('Tasks.status', 'PENDING') && !tasks.someProperty('Tasks.status', 'QUEUED') && !tasks.someProperty('Tasks.status', 'IN_PROGRESS')) {
         this.set('currentRequestIds', []);
-        if (tasks.someProperty('Tasks.status', 'FAILED')) {
+        if (tasks.someProperty('Tasks.status', 'FAILED')  || tasks.someProperty('status', 'TIMEDOUT') || tasks.someProperty('status', 'ABORTED')) {
           this.setTaskStatus(currentTaskId, 'FAILED');
         } else {
           this.setTaskStatus(currentTaskId, 'COMPLETED');
