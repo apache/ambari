@@ -18,7 +18,12 @@
 import logging
 import posixpath
 import sys
-import pycurl
+try:
+  import pycurl
+# pycurl is not necessary for testcases, mock it
+except ImportError:
+  from mock.mock import MagicMock
+  pycurl = MagicMock() 
 import cStringIO
 import StringIO
 import pdb
