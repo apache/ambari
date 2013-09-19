@@ -708,6 +708,7 @@ module.exports = Em.Route.extend({
               });
               this.hide();
               router.transitionTo('main.admin.adminHighAvailability');
+              location.reload();
             },
             didInsertElement: function () {
               this.fitHeight();
