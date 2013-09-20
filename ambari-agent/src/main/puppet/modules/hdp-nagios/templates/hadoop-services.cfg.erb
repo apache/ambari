@@ -241,10 +241,36 @@ define service {
 <%end-%>
 <%if scope.function_hdp_nagios_members_exist('namenode')-%>
 # HDFS Checks
+<% @namenodes = scope.function_hdp_template_var("::hdp::params::namenode_host"); @namenodes.each do |namenode| -%>
+
 define service {
-        hostgroup_name          namenode
+        host_name               <%= namenode %>
         use                     hadoop-service
-        service_description     NAMENODE::NameNode Web UI
+        service_description     NAMENODE::NameNode edit logs directory status on <%= namenode %>
+        servicegroups           HDFS
+        check_command           check_name_dir_status!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>!<%=scope.function_hdp_template_var("::hdp::params::security_enabled")%>
+        normal_check_interval   0.5
+        retry_check_interval    0.5
+        max_check_attempts      3
+}
+
+<% if scope.function_hdp_template_var("hdp_os_type") != "suse"%>
+define service {
+        host_name               <%= namenode %>
+        use                     hadoop-service
+        service_description     NAMENODE::NameNode host CPU utilization on <%= namenode %>
+        servicegroups           HDFS
+        check_command           check_cpu!200%!250%
+        normal_check_interval   5
+        retry_check_interval    2
+        max_check_attempts      5
+}
+<% end %>
+
+define service {
+        host_name               <%= namenode %>
+        use                     hadoop-service
+        service_description     NAMENODE::NameNode Web UI on <%= namenode %>
         servicegroups           HDFS
         check_command           check_webui!namenode!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>
         normal_check_interval   1
@@ -253,32 +279,9 @@ define service {
 }
 
 define service {
-        hostgroup_name          namenode
+        host_name               <%= namenode %>
         use                     hadoop-service
-        service_description     NAMENODE::NameNode edit logs directory status
-        servicegroups           HDFS
-        check_command           check_name_dir_status!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>!<%=scope.function_hdp_template_var("::hdp::params::security_enabled")%>
-        normal_check_interval   0.5
-        retry_check_interval    0.5
-        max_check_attempts      3
-}
-<% if scope.function_hdp_template_var("hdp_os_type") != "suse"%>
-define service {        
-        hostgroup_name          namenode        
-        use                     hadoop-service
-        service_description     NAMENODE::NameNode host CPU utilization
-        servicegroups           HDFS
-        check_command           check_cpu!200%!250%
-        normal_check_interval   5
-        retry_check_interval    2 
-        max_check_attempts      5
-}
-<% end %>
-
-define service {
-        hostgroup_name          namenode
-        use                     hadoop-service
-        service_description     NAMENODE::NameNode process
+        service_description     NAMENODE::NameNode process on <%= namenode %>
         servicegroups           HDFS
         check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::namenode_metadata_port")%>!-w 1 -c 1
         normal_check_interval   0.5
@@ -287,37 +290,40 @@ define service {
 }
 
 define service {
-        hostgroup_name          namenode
+        host_name               <%= namenode %>
+        use                     hadoop-service
+        service_description     HDFS::NameNode RPC latency on <%= namenode %>
+        servicegroups           HDFS
+        check_command           check_rpcq_latency!NameNode!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>!3000!5000
+        normal_check_interval   5
+        retry_check_interval    1
+        max_check_attempts      5
+}
+
+  <% end -%>
+
+define service {
+        hostgroup_name          nagios-server
         use                     hadoop-service
         service_description     HDFS::Blocks health
         servicegroups           HDFS
-        check_command           check_hdfs_blocks!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>!0%!0%!<%=scope.function_hdp_template_var("::hdp-nagios::params::nn_metrics_property")%>
+        check_command           check_hdfs_blocks!$HOSTGROUPMEMBERS:namenode$!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>!0%!0%!<%=scope.function_hdp_template_var("::hdp-nagios::params::nn_metrics_property")%>
         normal_check_interval   2
         retry_check_interval    1 
         max_check_attempts      1
 }
 
 define service {
-        hostgroup_name          namenode
+        hostgroup_name          nagios-server
         use                     hadoop-service
         service_description     HDFS::HDFS capacity utilization
         servicegroups           HDFS
-        check_command           check_hdfs_capacity!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>!80%!90%
+        check_command           check_hdfs_capacity!$HOSTGROUPMEMBERS:namenode$!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>!80%!90%
         normal_check_interval   10
         retry_check_interval    1 
         max_check_attempts      1
 }
 
-define service {
-        hostgroup_name          namenode
-        use                     hadoop-service
-        service_description     HDFS::NameNode RPC latency
-        servicegroups           HDFS
-        check_command           check_rpcq_latency!NameNode!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>!3000!5000
-        normal_check_interval   5
-        retry_check_interval    1 
-        max_check_attempts      5
-}
 <%end-%>
 
 # MAPREDUCE Checks
