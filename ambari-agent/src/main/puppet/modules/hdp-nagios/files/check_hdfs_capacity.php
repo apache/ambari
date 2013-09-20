@@ -29,23 +29,26 @@
     exit(3);
   }
 
-  $host=$options['h'];
+  $hosts=$options['h'];
   $port=$options['p'];
   $warn=$options['w']; $warn = preg_replace('/%$/', '', $warn);
   $crit=$options['c']; $crit = preg_replace('/%$/', '', $crit);
 
-  /* Get the json document */
-  $json_string = file_get_contents("http://".$host.":".$port."/jmx?qry=Hadoop:service=NameNode,name=FSNamesystemState");
-  $json_array = json_decode($json_string, true);
-  $percent = 0;
-  $object = $json_array['beans'][0];
-  $CapacityUsed = $object['CapacityUsed'];
-  $CapacityRemaining = $object['CapacityRemaining'];
-  $CapacityTotal = $CapacityUsed + $CapacityRemaining;
-  if($CapacityTotal == 0) {
+  foreach (preg_split('/,/', $hosts) as $host) {
+    /* Get the json document */
+    $json_string = file_get_contents("http://".$host.":".$port."/jmx?qry=Hadoop:service=NameNode,name=FSNamesystemState");
+    $json_array = json_decode($json_string, true);
     $percent = 0;
-  } else {
-    $percent = ($CapacityUsed/$CapacityTotal)*100;
+    $object = $json_array['beans'][0];
+    $CapacityUsed = $object['CapacityUsed'];
+    $CapacityRemaining = $object['CapacityRemaining'];
+    $CapacityTotal = $CapacityUsed + $CapacityRemaining;
+    if($CapacityTotal == 0) {
+      $percent = 0;
+    } else {
+      $percent = ($CapacityUsed/$CapacityTotal)*100;
+      break;
+    }
   }
   $out_msg = "DFSUsedGB:<" . round ($CapacityUsed/(1024*1024*1024),1) .
              ">, DFSTotalGB:<" . round($CapacityTotal/(1024*1024*1024),1) . ">";

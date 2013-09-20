@@ -36,12 +36,12 @@ define command {
 
 define command{
         command_name    check_hdfs_blocks
-        command_line    php $USER1$/check_hdfs_blocks.php -h $HOSTADDRESS$ -p $ARG1$ -w $ARG2$ -c $ARG3$ -s $ARG4$
+        command_line    php $USER1$/check_hdfs_blocks.php -h $ARG1$ -p $ARG2$ -w $ARG3$ -c $ARG4$ -s $ARG5$
        }
 
 define command{
         command_name    check_hdfs_capacity
-        command_line    php $USER1$/check_hdfs_capacity.php -h $HOSTADDRESS$ -p $ARG1$ -w $ARG2$ -c $ARG3$
+        command_line    php $USER1$/check_hdfs_capacity.php -h $ARG1$ -p $ARG2$ -w $ARG3$ -c $ARG4$
        }
 
 define command{

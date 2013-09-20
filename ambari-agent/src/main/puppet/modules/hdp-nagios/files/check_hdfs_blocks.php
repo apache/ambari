@@ -29,27 +29,30 @@
     exit(3);
   }
 
-  $host=$options['h'];
+  $hosts=$options['h'];
   $port=$options['p'];
   $warn=$options['w']; $warn = preg_replace('/%$/', '', $warn);
   $crit=$options['c']; $crit = preg_replace('/%$/', '', $crit);
   $nn_jmx_property=$options['s'];
 
-  /* Get the json document */
-  $json_string = file_get_contents("http://".$host.":".$port."/jmx?qry=Hadoop:service=NameNode,name=".$nn_jmx_property);
-  $json_array = json_decode($json_string, true);
-  $m_percent = 0;
-  $c_percent = 0;
-  $object = $json_array['beans'][0];
-  $missing_blocks = $object['MissingBlocks'];
-  $corrupt_blocks = $object['CorruptBlocks'];
-  $total_blocks = $object['BlocksTotal'];
-  if($total_blocks == 0) {
+  foreach (preg_split('/,/', $hosts) as $host) {
+    /* Get the json document */
+    $json_string = file_get_contents("http://".$host.":".$port."/jmx?qry=Hadoop:service=NameNode,name=".$nn_jmx_property);
+    $json_array = json_decode($json_string, true);
     $m_percent = 0;
     $c_percent = 0;
-  } else {
-    $m_percent = ($missing_blocks/$total_blocks)*100;
-    $c_percent = ($corrupt_blocks/$total_blocks)*100;
+    $object = $json_array['beans'][0];
+    $missing_blocks = $object['MissingBlocks'];
+    $corrupt_blocks = $object['CorruptBlocks'];
+    $total_blocks = $object['BlocksTotal'];
+    if($total_blocks == 0) {
+      $m_percent = 0;
+      $c_percent = 0;
+    } else {
+      $m_percent = ($missing_blocks/$total_blocks)*100;
+      $c_percent = ($corrupt_blocks/$total_blocks)*100;
+      break;
+    }
   }
   $out_msg = "corrupt_blocks:<" . $corrupt_blocks .
              ">, missing_blocks:<" . $missing_blocks .
