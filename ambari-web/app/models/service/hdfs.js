@@ -46,11 +46,4 @@ App.HDFSService = App.Service.extend({
   nameNodeRpc: DS.attr('number')
 });
 
-/**
- * Use this property only in its parent class to store hdfs health status.
- */
-App.HDFSService.reopenClass({
-  hdfsHealthStatus: ''
-});
-
 App.HDFSService.FIXTURES = [];
