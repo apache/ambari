@@ -474,6 +474,8 @@ module.exports = Em.Route.extend({
     index: Ember.Route.extend({
       route: '/',
       connectOutlets: function (router, context) {
+        router.set('mainHostController.clearFilters', !router.get('mainHostController.comeWithFilter'));
+        router.set('mainHostController.comeWithFilter', false);
         router.get('mainController').connectOutlet('mainHost');
       }
     }),
@@ -526,6 +528,7 @@ module.exports = Em.Route.extend({
     }),
 
     back: function (router, event) {
+      router.get('mainHostController').set('comeWithFilter', true);
       window.history.back();
     },
 
@@ -993,6 +996,7 @@ module.exports = Em.Route.extend({
     router.transitionTo('hosts.hostDetails.index', event.context);
   },
   filterHosts: function (router, component) {
+    router.get('mainHostController').set('comeWithFilter', true);
     router.get('mainHostController').filterByComponent(component.context);
     router.transitionTo('hosts.index');
   }

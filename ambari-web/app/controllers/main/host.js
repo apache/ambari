@@ -24,6 +24,8 @@ App.MainHostController = Em.ArrayController.extend({
   name:'mainHostController',
   content: App.Host.find(),
 
+  clearFilters: null,
+
   alerts: function () {
     return App.router.get('clusterController.alerts').filterProperty('isOk', false).filterProperty('ignoredForHosts', false);
   }.property('App.router.clusterController.alerts.length'),

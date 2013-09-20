@@ -31,6 +31,22 @@ App.MainHostView = App.TableView.extend({
     this._super();
   },
 
+  clearFiltersObs: function() {
+    var self = this;
+    Em.run.next(function() {
+      if (self.get('controller.clearFilters')) {
+        self.clearFilters();
+        self.clearDisplayLength();
+        self.clearStartIndex();
+      }
+    });
+  },
+
+  didInsertElement: function() {
+    this.addObserver('controller.clearFilters', this, this.clearFiltersObs);
+    this.clearFiltersObs();
+  },
+
   sortView: sort.wrapperView,
   nameSort: sort.fieldView.extend({
     name:'publicHostName',
