@@ -20,11 +20,11 @@
 #
 #singleton for use with <||> form so that namenode, datanode, etc can pass state to hdp-hadoop and still use include
 define hdp-hadoop::common(
-  $service_states = []
+  $service_state
 )
 {
   class { 'hdp-hadoop':
-    service_states => $service_states    
+    service_state => $service_state
   }
   anchor{'hdp-hadoop::common::begin':} -> Class['hdp-hadoop'] -> anchor{'hdp-hadoop::common::end':} 
 }
@@ -214,7 +214,7 @@ class hdp-hadoop::initialize()
 }
 
 class hdp-hadoop(
-  $service_states  = []
+  $service_state
 )
 {
   include hdp-hadoop::params
@@ -226,7 +226,7 @@ class hdp-hadoop(
   anchor{'hdp-hadoop::begin':} 
   anchor{'hdp-hadoop::end':} 
 
-  if ('uninstalled' in $service_states) {
+  if ($service_state=='uninstalled') {
     hdp-hadoop::package { 'hadoop':
       ensure => 'uninstalled'
     }
@@ -313,7 +313,7 @@ class hdp-hadoop(
 
     # log4j.properties has to be installed just one time to prevent
     # manual changes overwriting
-    if ('installed_and_configured' in $service_states) {
+    if ($service_state=='installed_and_configured') {
       hdp-hadoop::configfile { 'log4j.properties' :
         tag   => 'common',
         owner => $hdfs_user,
@@ -526,7 +526,7 @@ define hdp-hadoop::update-log4j-property(
   $hadoop_conf_dir = $hdp-hadoop::params::conf_dir
 )
 {
-  hdp::exec{ "sed -i 's~\(${hdp-hadoop::params::rca_disabled_prefix}\)\?${name[name]}=.*~${hdp-hadoop::params::rca_prefix}${name[name]}=${name[value]}~' ${hadoop_conf_dir}/${log4j_file}":
-    command => "sed -i 's~\(${hdp-hadoop::params::rca_disabled_prefix}\)\?${name[name]}=.*~${hdp-hadoop::params::rca_prefix}${name[name]}=${name[value]}~' ${hadoop_conf_dir}/${log4j_file}"
+  hdp::exec{ "sed -i 's~\\(${hdp-hadoop::params::rca_disabled_prefix}\\)\\?${name[name]}=.*~${hdp-hadoop::params::rca_prefix}${name[name]}=${name[value]}~' ${hadoop_conf_dir}/${log4j_file}":
+    command => "sed -i 's~\\(${hdp-hadoop::params::rca_disabled_prefix}\\)\\?${name[name]}=.*~${hdp-hadoop::params::rca_prefix}${name[name]}=${name[value]}~' ${hadoop_conf_dir}/${log4j_file}"
   }
 }

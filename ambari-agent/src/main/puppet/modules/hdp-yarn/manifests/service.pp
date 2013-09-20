@@ -65,12 +65,11 @@ define hdp-yarn::service(
     $daemon_cmd = undef
   }
  
- 
    if ($create_pid_dir == true) {
     hdp::directory_recursive_create { $pid_dir: 
       owner       => $user,
       context_tag => 'yarn_service',
-      service_state => $service_state,
+      service_state => $ensure,
       force => true
     }
   }
@@ -79,7 +78,7 @@ define hdp-yarn::service(
     hdp::directory_recursive_create { $log_dir: 
       owner       => $user,
       context_tag => 'yarn_service',
-      service_state => $service_state,
+      service_state => $ensure,
       force => true
     }
     

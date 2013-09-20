@@ -85,7 +85,7 @@ define service {
         use                     hadoop-service
         service_description     AMBARI::Ambari Agent process
         servicegroups           AMBARI
-        check_command           check_tcp!<%=scope.function_hdp_template_var("all_ping_ports")[index]%>!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("::all_ping_ports")[index]%>!-w 1 -c 1
         normal_check_interval   1
         retry_check_interval    0.25
         max_check_attempts      4
@@ -480,7 +480,7 @@ define service {
         use                     hadoop-service
         service_description     NODEMANAGER::NodeManager process
         servicegroups           YARN
-        check_command           check_tcp!<%=scope.function_hdp_template_var("nm_port")%>!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::nm_port")%>!-w 1 -c 1
         normal_check_interval   1
         retry_check_interval    0.5
         max_check_attempts      3
@@ -491,7 +491,7 @@ define service {
         use                     hadoop-service
         service_description     NODEMANAGER::NodeManager health
         servicegroups           YARN
-        check_command           check_nodemanager_health!<%=scope.function_hdp_template_var("nm_port")%>!<%=scope.function_hdp_template_var("::hdp::params::security_enabled")%>!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>
+        check_command           check_nodemanager_health!<%=scope.function_hdp_template_var("::hdp::nm_port")%>!<%=scope.function_hdp_template_var("::hdp::params::security_enabled")%>!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>
         normal_check_interval   1
         retry_check_interval    1
         max_check_attempts      3

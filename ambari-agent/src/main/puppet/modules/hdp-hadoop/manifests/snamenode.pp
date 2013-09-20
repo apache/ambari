@@ -25,7 +25,7 @@ class hdp-hadoop::snamenode(
 {
   $hdp::params::service_exists['hdp-hadoop::snamenode'] = true
 
-  Hdp-hadoop::Common<||>{service_states +> $service_state}
+  Hdp-hadoop::Common<||>{service_state => $service_state}
   Hdp-hadoop::Package<||>{include_64_bit => true}
   Hdp-hadoop::Configfile<||>{sizes +> 64}
 
