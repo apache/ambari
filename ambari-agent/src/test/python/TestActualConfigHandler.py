@@ -41,6 +41,20 @@ class TestActualConfigHandler(TestCase):
     self.assertEquals(tags, output)
     os.remove(os.path.join(tmpdir, ActualConfigHandler.CONFIG_NAME))
 
+  def test_read_empty(self):
+    config = AmbariConfig().getConfig()
+    tmpdir = tempfile.gettempdir()
+    config.set('agent', 'prefix', tmpdir)
+    handler = ActualConfigHandler(config)
+
+    conf_file = open(os.path.join(tmpdir, ActualConfigHandler.CONFIG_NAME), 'w')
+    conf_file.write("")
+    conf_file.close()
+    
+    output = handler.read_actual()
+    self.assertEquals(None, output)
+    os.remove(os.path.join(tmpdir, ActualConfigHandler.CONFIG_NAME))
+
   def test_read_write_component(self):
     config = AmbariConfig().getConfig()
     tmpdir = tempfile.gettempdir()
@@ -65,3 +79,4 @@ class TestActualConfigHandler(TestCase):
     self.assertEquals(tags2, output3)
     self.assertEquals(tags1, output4)
     os.remove(os.path.join(tmpdir, "FOO_" + ActualConfigHandler.CONFIG_NAME))
+    os.remove(os.path.join(tmpdir, ActualConfigHandler.CONFIG_NAME))
