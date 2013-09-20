@@ -221,7 +221,7 @@ App.MainHostView = App.TableView.extend({
    */
   nameFilterView: filters.createTextView({
     column: 1,
-    fieldType: 'input-xlarge',
+    fieldType: 'width70',
     onChangeValue: function(){
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
     }
@@ -233,7 +233,7 @@ App.MainHostView = App.TableView.extend({
    */
   ipFilterView: filters.createTextView({
     column: 2,
-    fieldType: 'input-small',
+    fieldType: 'width70',
     onChangeValue: function(){
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
     }
@@ -244,7 +244,7 @@ App.MainHostView = App.TableView.extend({
    * Based on <code>filters</code> library
    */
   cpuFilterView: filters.createTextView({
-    fieldType: 'input-mini',
+    fieldType: 'width70',
     fieldId: 'cpu_filter',
     column: 3,
     onChangeValue: function(){
@@ -257,7 +257,7 @@ App.MainHostView = App.TableView.extend({
    * Based on <code>filters</code> library
    */
   loadAvgFilterView: filters.createTextView({
-    fieldType: 'input-mini',
+    fieldType: 'width70',
     fieldId: 'load_avg_filter',
     column: 5,
     onChangeValue: function(){
@@ -270,7 +270,7 @@ App.MainHostView = App.TableView.extend({
    * Based on <code>filters</code> library
    */
   ramFilterView: filters.createTextView({
-    fieldType: 'input-mini',
+    fieldType: 'width70',
     fieldId: 'ram_filter',
     column: 4,
     onChangeValue: function(){
