@@ -23,6 +23,7 @@ import logging
 import subprocess
 import pprint
 import traceback
+import re
 
 import AmbariConfig
 
@@ -30,6 +31,8 @@ import AmbariConfig
 logger = logging.getLogger()
 
 class Hardware:
+  SSH_KEY_PATTERN = 'ssh.*key'
+
   def __init__(self, config):
     self.config = config
     self.hardware = {}
@@ -102,6 +105,7 @@ class Hardware:
     
   def parseFacterOutput(self, facterOutput):
     retDict = {}
+    compiled_pattern = re.compile(self.SSH_KEY_PATTERN)
     allLines = facterOutput.splitlines()
     for line in allLines:
       keyValue = line.split("=>")
@@ -129,7 +133,8 @@ class Hardware:
           retDict[strippedKey] = mem_in_kb
           pass
         else:
-          retDict[strippedKey] = keyValue[1].strip()
+          if not compiled_pattern.match(strippedKey):
+            retDict[strippedKey] = keyValue[1].strip()
           pass
         pass
       pass

@@ -77,13 +77,14 @@ class TestHardware(TestCase):
                                       AmbariConfig().getConfig().get("stack", "installprefix") + ":" + "bla bla bla")
 
     facter.communicate.return_value = ["memoryfree => 1 G\n memorysize => 25 M\n memorytotal => 300 K\n "
-                                         +                                         "someinfo => 12 Byte" , "no errors"]
+                                         + "someinfo => 12 Byte\n ssh_name_key => Aa06Fdd\n", "no errors"]
     facterInfo = hardware.facterInfo()
     facter.returncode = 1
     self.assertEquals(facterInfo['memoryfree'], 1048576L)
     self.assertEquals(facterInfo['memorysize'], 25600L)
     self.assertEquals(facterInfo['memorytotal'], 300L)
     self.assertEquals(facterInfo['someinfo'], '12 Byte')
+    self.assertFalse(facterInfo.has_key('ssh_name_key'))
 
     facter.communicate.return_value = ["memoryfree => 1024 M B\n memorytotal => 1024 Byte" , "no errors"]
 
