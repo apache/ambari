@@ -271,6 +271,8 @@ class hdp-nagios::server::web_permisssions()
 
 class hdp-nagios::server::services($ensure)
 {
+   $pid_file = $hdp-nagios::params::nagios_pid_file
+  
    if ($ensure == 'running') {
      $command = "service nagios start"
    } elsif ($ensure == 'stopped') {
