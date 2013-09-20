@@ -122,7 +122,16 @@ case "$1" in
         PID=$!
         echo "Verifying $AMBARI_AGENT process status..."
         if [ -z "`ps ax -o pid | grep $PID`" ]; then
-          echo "ERROR: $AMBARI_AGENT start failed for unknown reason"
+          if [ -s $OUTFILE ]; then
+            echo "ERROR: $AMBARI_AGENT start failed. For more details, see $OUTFILE:"
+            echo "===================="
+            tail -n 10 $OUTFILE
+            echo "===================="
+          else
+            echo "ERROR: $AMBARI_AGENT start failed"
+          fi
+          echo "Agent out at: $OUTFILE"
+          echo "Agent log at: $LOGFILE"
           exit -1
         fi
         tput bold
