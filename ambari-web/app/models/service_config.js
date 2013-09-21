@@ -233,8 +233,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
     var isOnlyFirstOneNeeded = true;
     switch (this.get('name')) {
       case 'namenode_host':
-        var temp = masterComponentHostsInDB.findProperty('component', 'NAMENODE');
-        this.set('value', temp.hostName);
+        this.set('value', masterComponentHostsInDB.filterProperty('component', 'NAMENODE').mapProperty('hostName'));
         break;
       case 'snamenode_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'SECONDARY_NAMENODE').hostName);
