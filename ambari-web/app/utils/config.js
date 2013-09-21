@@ -65,7 +65,7 @@ App.config = Em.Object.create({
   preDefinedServiceConfigs: function(){
     var configs = this.get('preDefinedGlobalProperties');
     var services = [];
-    require('data/service_configs').forEach(function(service){
+    $.extend(true, [], require('data/service_configs')).forEach(function(service){
       service.configs = configs.filterProperty('serviceName', service.serviceName);
       services.push(service);
     });
@@ -73,27 +73,27 @@ App.config = Em.Object.create({
   }.property('preDefinedGlobalProperties'),
   configMapping: function() {
       if (App.get('isHadoop2Stack')) {
-        return require('data/HDP2/config_mapping');
+        return $.extend(true, [],require('data/HDP2/config_mapping'));
       }
-    return require('data/config_mapping');
+    return $.extend(true, [],require('data/config_mapping'));
   }.property('App.isHadoop2Stack'),
   preDefinedGlobalProperties: function() {
     if (App.get('isHadoop2Stack')) {
-      return require('data/HDP2/global_properties').configProperties;
+      return $.extend(true, [], require('data/HDP2/global_properties').configProperties);
     }
-    return require('data/global_properties').configProperties;
+    return $.extend(true, [], require('data/global_properties').configProperties);
   }.property('App.isHadoop2Stack'),
   preDefinedSiteProperties: function() {
     if (App.get('isHadoop2Stack')) {
-      return require('data/HDP2/site_properties').configProperties;
+      return $.extend(true, [], require('data/HDP2/site_properties').configProperties);
     }
-    return require('data/site_properties').configProperties;
+    return $.extend(true, [], require('data/site_properties').configProperties);
   }.property('App.isHadoop2Stack'),
   preDefinedCustomConfigs: function () {
     if (App.get('isHadoop2Stack')) {
-      return require('data/HDP2/custom_configs');
+      return $.extend(true, [], require('data/HDP2/custom_configs'));
     }
-    return require('data/custom_configs');
+    return $.extend(true, [], require('data/custom_configs'));
   }.property('App.isHadoop2Stack'),
   //categories which contain custom configs
   categoriesWithCustom: ['CapacityScheduler'],
@@ -989,6 +989,15 @@ App.config = Em.Object.create({
         rez = (typeof value == 'string') ? value.replace(/(\s+$)/g, '') : value;
     }
     return ((rez == '') || (rez == undefined)) ? value : rez;
+  },
+
+  OnNnHAHideSnn: function(ServiceConfig) {
+    var configCategories = ServiceConfig.get('configCategories');
+    var snCategory = configCategories.findProperty('name', 'SNameNode');
+    var activeNn = App.HDFSService.find('HDFS').get('activeNameNode.hostName');
+    if (snCategory && activeNn) {
+      configCategories.removeObject(snCategory);
+    }
   }
 
 });

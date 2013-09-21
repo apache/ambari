@@ -233,8 +233,8 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
       var jnHosts = hdfsService.configs.findProperty('name', 'journalnode_hosts');
       var snComponent = App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'SECONDARY_NAMENODE');
       var jnComponent = App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'JOURNALNODE');
-      if (namenodeHost && sNamenodeHost) {
-        namenodeHost.defaultValue = App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'NAMENODE').get('host.hostName');
+      if (namenodeHost) {
+        namenodeHost.defaultValue = App.Service.find('HDFS').get('hostComponents').filterProperty('componentName', 'NAMENODE').mapProperty('host.hostName');
       }
       if(sNamenodeHost && snComponent) {
         sNamenodeHost.defaultValue = snComponent.get('host.hostName');

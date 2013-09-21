@@ -29,21 +29,21 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   uiConfigs: [],
   customConfig: [],
   isApplyingChanges: false,
-  serviceConfigs: function(){
+  serviceConfigs: function () {
     return App.config.get('preDefinedServiceConfigs');
   }.property('App.config.preDefinedServiceConfigs'),
-  customConfigs: function(){
+  customConfigs: function () {
     return App.config.get('preDefinedCustomConfigs');
   }.property('App.config.preDefinedCustomConfigs'),
-  configMapping: function(){
+  configMapping: function () {
     return App.config.get('configMapping');
   }.property('App.config.configMapping'),
-  configs: function() {
+  configs: function () {
     return  App.config.get('preDefinedGlobalProperties');
   }.property('App.config.preDefinedGlobalProperties'),
 
-  secureConfigs: function() {
-    if(App.get('isHadoop2Stack')) {
+  secureConfigs: function () {
+    if (App.get('isHadoop2Stack')) {
       return require('data/HDP2/secure_mapping');
     } else {
       return require('data/secure_mapping');
@@ -52,9 +52,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
   /**
    * During page load time, we get the host overrides from the server.
-   * The current host -> site:tag map is stored below. This will be 
+   * The current host -> site:tag map is stored below. This will be
    * useful during save, so that removals can also be determined.
-   * 
+   *
    * Example:
    * {
    *  'hostname1':{
@@ -62,8 +62,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    *    'core-site': 'version1',
    *    'hdfs-site', 'tag3187261938'
    *  }
-   * } 
-   *  
+   * }
+   *
    * @see savedHostToOverrideSiteToTagMap
    */
   loadedHostToOverrideSiteToTagMap: {},
@@ -83,10 +83,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
   /**
    * During page save time, we set the host overrides to the server.
-   * The new host -> site:tag map is stored below. This will be 
+   * The new host -> site:tag map is stored below. This will be
    * useful during save, to update the host's host components. Also,
    * it will be useful in deletion of overrides.
-   * 
+   *
    * Example:
    * {
    *  'hostname1': {
@@ -98,7 +98,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    *    }
    *  }
    * }
-   * 
+   *
    * @see loadedHostToOverrideSiteToTagMap
    */
   savedHostToOverrideSiteToTagMap: {},
@@ -109,7 +109,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * specific values.
    */
   savedSiteNameToServerServiceConfigDataMap: {},
-  
+
   isSubmitDisabled: function () {
     return (!(this.stepConfigs.everyProperty('errorCount', 0)) || this.get('isApplyingChanges'));
   }.property('stepConfigs.@each.errorCount', 'isApplyingChanges'),
@@ -124,9 +124,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   /**
    * Dropdown menu items in filter compbobox
    */
-  filterColumns: function(){
+  filterColumns: function () {
     var result = [];
-    for(var i = 1; i<4; i++){
+    for (var i = 1; i < 4; i++) {
       result.push(Ember.Object.create({
         name: this.t('common.combobox.dropdown.' + i),
         selected: false
@@ -168,12 +168,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   /**
-   * Loads the actual configuration of all host components. 
+   * Loads the actual configuration of all host components.
    * This helps in determining which services need a restart, and also
-   * in showing which properties are actually applied or not. 
+   * in showing which properties are actually applied or not.
    * This method also compares the actual_configs with the desired_configs
    * and builds a diff structure.
-   * 
+   *
    * Internall it calculates an array of host-components which need restart.
    * Example:
    * [
@@ -187,11 +187,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    *  },
    *  ...
    * ]
-   * 
+   *
    * From there it return the following restart-data for this service.
    * It represents the hosts, whose components need restart, and the
    * properties which require restart.
-   * 
+   *
    * {
    *  hostAndHostComponents: {
    *   'hostname1': {
@@ -226,8 +226,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   loadActualConfigsAndCalculateRestarts: function () {
     var currentService = this.get('content.serviceName');
     var restartData = {
-        hostAndHostComponents: {},
-        propertyToHostAndComponent: {}
+      hostAndHostComponents: {},
+      propertyToHostAndComponent: {}
     };
     var self = this;
     var actualConfigsUrl = this.getUrl('/data/services/host_component_actual_configs.json', '/services?fields=components/host_components/HostRoles/actual_configs');
@@ -248,13 +248,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
             service.components.forEach(function (serviceComponent) {
               serviceComponent.host_components.forEach(function (hostComponent) {
                 if (hostComponent.HostRoles.actual_configs) {
-                  for ( var site in hostComponent.HostRoles.actual_configs) {
+                  for (var site in hostComponent.HostRoles.actual_configs) {
                     var actualConfigsTags = hostComponent.HostRoles.actual_configs[site];
                     var desiredConfigTags = self.getDesiredConfigTag(site, hostComponent.HostRoles.host_name);
-                    if (desiredConfigTags.tag !== actualConfigsTags.tag || 
-                        (desiredConfigTags.host_override != null && 
-                            actualConfigsTags.host_override != null && 
-                            desiredConfigTags.host_override !== actualConfigsTags.host_override)) {
+                    if (desiredConfigTags.tag !== actualConfigsTags.tag ||
+                      (desiredConfigTags.host_override != null &&
+                        actualConfigsTags.host_override != null &&
+                        desiredConfigTags.host_override !== actualConfigsTags.host_override)) {
                       // Restart may be necessary for this host-component
                       diffHostComponents.push({
                         componentName: hostComponent.HostRoles.component_name,
@@ -309,14 +309,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
             if (!jQuery.isEmptyObject(diffs)) {
               var skip = false;
               if (diffHostComponent.type == 'global') {
-                if(!App.config.isServiceEffectedByGlobalChange(
-                    diffHostComponent.serviceName, 
-                    diffHostComponent.desiredConfigTags.tag, 
-                    diffHostComponent.actualConfigTags.tag)){
+                if (!App.config.isServiceEffectedByGlobalChange(
+                  diffHostComponent.serviceName,
+                  diffHostComponent.desiredConfigTags.tag,
+                  diffHostComponent.actualConfigTags.tag)) {
                   skip = true;
                 }
               }
-              if(!skip){
+              if (!skip) {
                 // Populate restartData.hostAndHostComponents
                 if (!(diffHostComponent.host in restartData.hostAndHostComponents)) {
                   restartData.hostAndHostComponents[diffHostComponent.host] = {};
@@ -327,7 +327,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
                 jQuery.extend(restartData.hostAndHostComponents[diffHostComponent.host][diffHostComponent.componentName], diffs);
 
                 // Populate restartData.propertyToHostAndComponent
-                for ( var diff in diffs) {
+                for (var diff in diffs) {
                   if (!(diff in restartData.propertyToHostAndComponent)) {
                     restartData.propertyToHostAndComponent[diff] = {};
                   }
@@ -352,7 +352,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     console.log("loadActualConfigsAndCalculateRestarts(): Restart data = ", restartData);
     return restartData;
   },
-  
+
   /**
    * Determines the differences between desired and actual configs and returns
    * them as an object. The key is the property, and value is actual_config.
@@ -360,29 +360,29 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   getConfigDifferences: function (actualConfigs, desiredConfigs) {
     var differences = {};
     if (actualConfigs != null && desiredConfigs != null) {
-      for(var desiredProp in desiredConfigs){
-        if(desiredConfigs[desiredProp] !== actualConfigs[desiredProp]){
+      for (var desiredProp in desiredConfigs) {
+        if (desiredConfigs[desiredProp] !== actualConfigs[desiredProp]) {
           differences[desiredProp] = actualConfigs[desiredProp];
         }
       }
     }
     return differences;
   },
-  
-  addConfigDownloadParam: function(site, tag, configsToDownload){
-    if(tag!=null && !(site+"_"+tag in App.config.loadedConfigurationsCache)){
-      var configParam = "(type="+site+"&tag="+tag+")";
-      if(!configsToDownload.contains(configParam)){
+
+  addConfigDownloadParam: function (site, tag, configsToDownload) {
+    if (tag != null && !(site + "_" + tag in App.config.loadedConfigurationsCache)) {
+      var configParam = "(type=" + site + "&tag=" + tag + ")";
+      if (!configsToDownload.contains(configParam)) {
         configsToDownload.push(configParam);
       }
     }
   },
-  
-  getDesiredConfigTag: function(site, hostName){
+
+  getDesiredConfigTag: function (site, hostName) {
     var tag = {tag: this.loadedClusterSiteToTagMap[site], host_override: null};
-    if(hostName in this.loadedHostToOverrideSiteToTagMap){
+    if (hostName in this.loadedHostToOverrideSiteToTagMap) {
       var map = this.loadedHostToOverrideSiteToTagMap[hostName];
-      if(site in map){
+      if (site in map) {
         tag.host_overrides = map[site];
       }
     }
@@ -404,14 +404,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     });
   },
 
-  loadServiceTagsSuccess: function(data, opt, params){
+  loadServiceTagsSuccess: function (data, opt, params) {
     var serviceConfigsDef = params.serviceConfigsDef;
     var serviceName = this.get('content.serviceName');
     console.debug("loadServiceConfigs(): data=", data);
 
     this.loadedClusterSiteToTagMap = {};
     //STEP 1: handle tags from JSON data
-    for ( var site in data.Clusters.desired_configs) {
+    for (var site in data.Clusters.desired_configs) {
       if (serviceConfigsDef.sites.indexOf(site) > -1) {
         this.loadedClusterSiteToTagMap[site] = data.Clusters.desired_configs[site]['tag'];
         var overrides = data.Clusters.desired_configs[site].host_overrides;
@@ -419,7 +419,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           overrides.forEach(function (override) {
             var hostname = override.host_name;
             var tag = override.tag;
-            if(!this.loadedHostToOverrideSiteToTagMap[hostname]){
+            if (!this.loadedHostToOverrideSiteToTagMap[hostname]) {
               this.loadedHostToOverrideSiteToTagMap[hostname] = {};
             }
             this.loadedHostToOverrideSiteToTagMap[hostname][site] = tag;
@@ -446,7 +446,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     //STEP 7: add custom configs
     App.config.addCustomConfigs(configs);
     //put properties from capacity-scheduler.xml into one config with textarea view
-    if(this.get('content.serviceName') === 'YARN' && !App.supports.capacitySchedulerUi){
+    if (this.get('content.serviceName') === 'YARN' && !App.supports.capacitySchedulerUi) {
       configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml');
     }
     //STEP 8: add configs as names of host components
@@ -459,28 +459,32 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var restartData = this.loadActualConfigsAndCalculateRestarts();
     //STEP 10: creation of serviceConfig object which contains configs for current service
     var serviceConfig = App.config.createServiceConfig(serviceName);
+    //STEP11: Make SecondaryNameNode invisible on enabling namenode HA
+    if (serviceConfig.get('serviceName') === 'HDFS') {
+      App.config.OnNnHAHideSnn(serviceConfig);
+    }
     this.checkForRestart(serviceConfig, restartData);
     if (serviceName || serviceConfig.serviceName === 'MISC') {
-    //STEP 11: render configs and wrap each in ServiceConfigProperty object
+      //STEP 11: render configs and wrap each in ServiceConfigProperty object
       this.loadComponentConfigs(allConfigs, serviceConfig, restartData);
       this.get('stepConfigs').pushObject(serviceConfig);
     }
     this.set('selectedService', this.get('stepConfigs').objectAt(0));
-    this.checkForSecureConfig( this.get('selectedService'));
+    this.checkForSecureConfig(this.get('selectedService'));
     this.set('dataIsLoaded', true);
   },
   /**
    * Changes format from Object to Array
-   * 
+   *
    * {
    *  'core-site': 'version1',
    *  'hdfs-site': 'version1',
    *  'global': 'version2',
    *  ...
    * }
-   * 
-   * to 
-   * 
+   *
+   * to
+   *
    * [
    *  {
    *    siteName: 'core-site',
@@ -489,7 +493,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    *  },
    *  ...
    * ]
-   * 
+   *
    * set tagnames for configuration of the *-site.xml
    */
   setServiceConfigTags: function (desiredConfigsSiteTags) {
@@ -511,16 +515,16 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @param serviceConfig
    * @param restartData
    */
-  checkForRestart: function(serviceConfig, restartData){
+  checkForRestart: function (serviceConfig, restartData) {
     var hostsCount = 0;
     var hostComponentCount = 0;
     var restartHosts = Ember.A([]);
-    if(restartData != null && restartData.hostAndHostComponents != null && !jQuery.isEmptyObject(restartData.hostAndHostComponents)){
+    if (restartData != null && restartData.hostAndHostComponents != null && !jQuery.isEmptyObject(restartData.hostAndHostComponents)) {
       serviceConfig.set('restartRequired', true);
-      for(var host in restartData.hostAndHostComponents) {
+      for (var host in restartData.hostAndHostComponents) {
         hostsCount++;
         var componentsArray = Ember.A([]);
-        for(var component in restartData.hostAndHostComponents[host]){
+        for (var component in restartData.hostAndHostComponents[host]) {
           componentsArray.push(Ember.Object.create({name: App.format.role(component)}));
           hostComponentCount++;
         }
@@ -528,7 +532,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         restartHosts.push(Ember.Object.create({hostData: hostObj, components: componentsArray}))
       }
       serviceConfig.set('restartRequiredHostsAndComponents', restartHosts);
-      serviceConfig.set('restartRequiredMessage', 'Service needs '+hostComponentCount+' components on ' + hostsCount +' hosts to be restarted.')
+      serviceConfig.set('restartRequiredMessage', 'Service needs ' + hostComponentCount + ' components on ' + hostsCount + ' hosts to be restarted.')
     }
   },
 
@@ -536,14 +540,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * check whether the config property is a security related knob
    * @param serviceConfig
    */
-  checkForSecureConfig: function(serviceConfig) {
-    serviceConfig.get('configs').forEach(function(_config){
-     this.get('secureConfigs').forEach(function(_secureConfig){
-       if(_config.get('name')=== _secureConfig.name) {
-         _config.set('isSecureConfig',true);
-       }
-     },this)
-    },this)
+  checkForSecureConfig: function (serviceConfig) {
+    serviceConfig.get('configs').forEach(function (_config) {
+      this.get('secureConfigs').forEach(function (_secureConfig) {
+        if (_config.get('name') === _secureConfig.name) {
+          _config.set('isSecureConfig', true);
+        }
+      }, this)
+    }, this)
   },
 
   /**
@@ -568,12 +572,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       if (restartData != null && propertyName in restartData.propertyToHostAndComponent) {
         serviceConfigProperty.set('isRestartRequired', true);
         var message = '<ul>';
-        for(var host in restartData.propertyToHostAndComponent[propertyName]){
+        for (var host in restartData.propertyToHostAndComponent[propertyName]) {
           var appHost = App.Host.find(host);
-          message += "<li>"+appHost.get('publicHostName');
+          message += "<li>" + appHost.get('publicHostName');
           message += "<ul>";
-          restartData.propertyToHostAndComponent[propertyName][host].forEach(function(comp){
-            message += "<li>"+App.format.role(comp)+"</li>"
+          restartData.propertyToHostAndComponent[propertyName][host].forEach(function (comp) {
+            message += "<li>" + App.format.role(comp) + "</li>"
           });
           message += "</ul></li>";
         }
@@ -593,7 +597,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         serviceConfigProperty.set('isVisible', false);
       }
       if (overrides != null) {
-        for(var overridenValue in overrides){
+        for (var overridenValue in overrides) {
           var hostsArray = overrides[overridenValue];
           var newSCP = App.ServiceConfigProperty.create(_serviceConfigProperty);
           newSCP.set('value', overridenValue);
@@ -601,7 +605,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           newSCP.set('parentSCP', serviceConfigProperty);
           newSCP.set('selectedHostOptions', Ember.A(hostsArray));
           var parentOverridesArray = serviceConfigProperty.get('overrides');
-          if(parentOverridesArray == null){
+          if (parentOverridesArray == null) {
             parentOverridesArray = Ember.A([]);
             serviceConfigProperty.set('overrides', parentOverridesArray);
           }
@@ -660,12 +664,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       componentCount: componentCount
     };
   },
-  
+
   /**
    * open popup with appropriate message
    */
   restartServicePopup: function (event) {
-    if(this.get("isSubmitDisabled")){
+    if (this.get("isSubmitDisabled")) {
       return;
     }
     var header;
@@ -684,9 +688,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var serviceName = this.get('content.serviceName');
     var displayName = this.get('content.displayName');
 
-    if (App.supports.hostOverrides || 
-        (serviceName !== 'HDFS' && this.get('content.isStopped') === true) ||
-        ((serviceName === 'HDFS') && this.get('content.isStopped') === true && (!App.Service.find().someProperty('id', 'MAPREDUCE') || App.Service.find('MAPREDUCE').get('isStopped')))) {
+    if (App.supports.hostOverrides ||
+      (serviceName !== 'HDFS' && this.get('content.isStopped') === true) ||
+      ((serviceName === 'HDFS') && this.get('content.isStopped') === true && (!App.Service.find().someProperty('id', 'MAPREDUCE') || App.Service.find('MAPREDUCE').get('isStopped')))) {
 
       // warn the user if any service directories are being changed
       var dirChanged = false;
@@ -696,17 +700,17 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         if (App.get('isHadoop2Stack')) {
           if (
             hdfsConfigs.findProperty('name', 'dfs_namenode_name_dir').get('isNotDefaultValue') ||
-            hdfsConfigs.findProperty('name', 'dfs_namenode_checkpoint_dir').get('isNotDefaultValue') ||
-            hdfsConfigs.findProperty('name', 'dfs_datanode_data_dir').get('isNotDefaultValue')
-          ) {
+              hdfsConfigs.findProperty('name', 'dfs_namenode_checkpoint_dir').get('isNotDefaultValue') ||
+              hdfsConfigs.findProperty('name', 'dfs_datanode_data_dir').get('isNotDefaultValue')
+            ) {
             dirChanged = true;
           }
         } else {
           if (
             hdfsConfigs.findProperty('name', 'dfs_name_dir').get('isNotDefaultValue') ||
-            hdfsConfigs.findProperty('name', 'fs_checkpoint_dir').get('isNotDefaultValue') ||
-            hdfsConfigs.findProperty('name', 'dfs_data_dir').get('isNotDefaultValue')
-          ) {
+              hdfsConfigs.findProperty('name', 'fs_checkpoint_dir').get('isNotDefaultValue') ||
+              hdfsConfigs.findProperty('name', 'dfs_data_dir').get('isNotDefaultValue')
+            ) {
             dirChanged = true;
           }
         }
@@ -714,21 +718,21 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         var mapredConfigs = self.get('stepConfigs').findProperty('serviceName', 'MAPREDUCE').get('configs');
         if (
           mapredConfigs.findProperty('name', 'mapred_local_dir').get('isNotDefaultValue') ||
-          mapredConfigs.findProperty('name', 'mapred_system_dir').get('isNotDefaultValue')
-        ) {
+            mapredConfigs.findProperty('name', 'mapred_system_dir').get('isNotDefaultValue')
+          ) {
           dirChanged = true;
         }
       }
 
       if (dirChanged) {
-        App.showConfirmationPopup(function() {
+        App.showConfirmationPopup(function () {
           dfd.resolve();
         }, Em.I18n.t('services.service.config.confirmDirectoryChange').format(displayName));
       } else {
         dfd.resolve();
       }
 
-      dfd.done(function() {
+      dfd.done(function () {
         var result = self.saveServiceConfigProperties();
         App.router.get('clusterController').updateClusterData();
         flag = result.flag;
@@ -849,7 +853,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.savedHostToOverrideSiteToTagMap = {};
     var configs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs');
     this.saveGlobalConfigs(configs);
-    if(this.get('content.serviceName') === 'YARN' && !App.supports.capacitySchedulerUi){
+    if (this.get('content.serviceName') === 'YARN' && !App.supports.capacitySchedulerUi) {
       configs = App.config.textareaIntoFileConfigs(configs, 'capacity-scheduler.xml');
     }
     this.saveSiteConfigs(configs);
@@ -861,7 +865,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     result.flag = this.doPUTClusterConfigurations();
     if (!result.flag) {
       result.message = Em.I18n.t('services.service.config.failSaveConfig');
-    }else{
+    } else {
       result.flag = result.flag && this.doPUTHostOverridesConfigurationSites();
       if (!result.flag) {
         result.message = Em.I18n.t('services.service.config.failSaveConfigHostExceptions');
@@ -878,17 +882,17 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   saveGlobalConfigs: function (configs) {
     var globalConfigs = this.get('globalConfigs');
     configs.filterProperty('id', 'puppet var').forEach(function (uiConfigProperty) {
-      uiConfigProperty.set('value', App.config.trimProperty(uiConfigProperty),true);
+      uiConfigProperty.set('value', App.config.trimProperty(uiConfigProperty), true);
       if (globalConfigs.someProperty('name', uiConfigProperty.name)) {
         var modelGlobalConfig = globalConfigs.findProperty('name', uiConfigProperty.name);
         modelGlobalConfig.value = uiConfigProperty.value;
         var uiOverrides = uiConfigProperty.get('overrides');
-        if(uiOverrides!=null && uiOverrides.get('length')>0){
+        if (uiOverrides != null && uiOverrides.get('length') > 0) {
           modelGlobalConfig.overrides = {};
-          uiOverrides.forEach(function(uiOverride){
+          uiOverrides.forEach(function (uiOverride) {
             var value = uiOverride.get('value');
             modelGlobalConfig.overrides[value] = [];
-            uiOverride.get('selectedHostOptions').forEach(function(host){
+            uiOverride.get('selectedHostOptions').forEach(function (host) {
               modelGlobalConfig.overrides[value].push(host);
             });
           });
@@ -922,7 +926,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         globals = globals.without(globals.findProperty('name', 'hive_existing_mysql_database'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_host'));
         globals = globals.without(globals.findProperty('name', 'hive_existing_oracle_database'));
-      } else if (hiveDb.value === 'Existing MySQL Database'){
+      } else if (hiveDb.value === 'Existing MySQL Database') {
         var existingMySqlHost = globals.findProperty('name', 'hive_existing_mysql_host');
         if (existingMySqlHost) {
           existingMySqlHost.name = 'hive_hostname';
@@ -952,7 +956,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   setOozieHostName: function (globals) {
     if (globals.someProperty('name', 'oozie_database')) {
       var oozieDb = globals.findProperty('name', 'oozie_database');
-      if (oozieDb.value === 'New Derby Database'){
+      if (oozieDb.value === 'New Derby Database') {
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_ambari_database'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_mysql_host'));
@@ -980,7 +984,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_host'));
         globals = globals.without(globals.findProperty('name', 'oozie_existing_oracle_database'));
         globals = globals.without(globals.findProperty('name', 'oozie_derby_database'));
-      } else{ //existing oracle database
+      } else { //existing oracle database
         var existingOracleHost = globals.findProperty('name', 'oozie_existing_oracle_host');
         if (existingOracleHost) {
           existingOracleHost.name = 'oozie_hostname';
@@ -1002,9 +1006,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   saveSiteConfigs: function (configs) {
     //storedConfigs contains custom configs as well
     var serviceConfigProperties = configs.filterProperty('id', 'site property');
-    serviceConfigProperties.forEach(function(_config){
-      if(typeof _config.get('value') === "boolean") _config.set('value', _config.value.toString());
-      _config.set('value', App.config.trimProperty(_config),true);
+    serviceConfigProperties.forEach(function (_config) {
+      if (typeof _config.get('value') === "boolean") _config.set('value', _config.value.toString());
+      _config.set('value', App.config.trimProperty(_config), true);
     });
     var storedConfigs = serviceConfigProperties.filterProperty('value');
     var allUiConfigs = this.loadUiSideConfigs(this.get('configMapping').all());
@@ -1036,9 +1040,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
 
-  addDynamicProperties: function(configs) {
+  addDynamicProperties: function (configs) {
     var allConfigs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs');
-    var templetonHiveProperty =  allConfigs.someProperty('name', 'templeton.hive.properties');
+    var templetonHiveProperty = allConfigs.someProperty('name', 'templeton.hive.properties');
     if (!templetonHiveProperty && this.get('content.serviceName') === 'WEBHCAT') {
       configs.pushObject({
         "name": "templeton.hive.properties",
@@ -1067,7 +1071,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var express = expression.match(/<(.*?)>/g);
     var value = expression;
     if (express == null) {
-      return { value : expression, overrides: {}};      // if site property do not map any global property then return the value
+      return { value: expression, overrides: {}};      // if site property do not map any global property then return the value
     }
     var overrideHostToValue = {};
     express.forEach(function (_express) {
@@ -1083,13 +1087,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           preReplaceValue = value;
           value = this._replaceConfigValues(name, _express, value, globValue);
         }
-        if(globalObj.overrides!=null){
-          for(var ov in globalObj.overrides){
+        if (globalObj.overrides != null) {
+          for (var ov in globalObj.overrides) {
             var hostsArray = globalObj.overrides[ov];
-            hostsArray.forEach(function(host){
-              if(!(host in overrideHostToValue)){
+            hostsArray.forEach(function (host) {
+              if (!(host in overrideHostToValue)) {
                 overrideHostToValue[host] = this._replaceConfigValues(name, _express, preReplaceValue, ov);
-              }else{
+              } else {
                 overrideHostToValue[host] = this._replaceConfigValues(name, _express, overrideHostToValue[host], ov);
               }
             }, this);
@@ -1107,13 +1111,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }, this);
 
     var valueWithOverrides = {
-        value: value,
-        overrides: {}
+      value: value,
+      overrides: {}
     };
-    if(!jQuery.isEmptyObject(overrideHostToValue)){
-      for(var host in overrideHostToValue){
+    if (!jQuery.isEmptyObject(overrideHostToValue)) {
+      for (var host in overrideHostToValue) {
         var hostVal = overrideHostToValue[host];
-        if(!(hostVal in valueWithOverrides.overrides)){
+        if (!(hostVal in valueWithOverrides.overrides)) {
           valueWithOverrides.overrides[hostVal] = [];
         }
         valueWithOverrides.overrides[hostVal].push(host);
@@ -1121,7 +1125,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }
     return valueWithOverrides;
   },
-  
+
   _replaceConfigValues: function (name, express, value, globValue) {
     if (name === "templeton.zookeeper.hosts" || name === 'hbase.zookeeper.quorum') {
       var zooKeeperPort = '2181';
@@ -1147,7 +1151,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   /**
    * Saves cluster level configurations for all necessary sites.
    * PUT calls are made to /api/v1/clusters/clusterName for each site.
-   * 
+   *
    * @return {Boolean}
    */
   doPUTClusterConfigurations: function () {
@@ -1155,13 +1159,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var serviceConfigTags = this.get('serviceConfigTags');
     this.setNewTagNames(serviceConfigTags);
     var siteNameToServerDataMap = {};
-    
+
     serviceConfigTags.forEach(function (_serviceTags) {
       if (_serviceTags.siteName === 'global') {
         console.log("TRACE: Inside global");
         var serverGlobalConfigs = this.createGlobalSiteObj(_serviceTags.newTagName);
         siteNameToServerDataMap['global'] = serverGlobalConfigs;
-        if(this.isConfigChanged(App.config.loadedConfigurationsCache['global_'+this.loadedClusterSiteToTagMap['global']], serverGlobalConfigs.properties)){
+        if (this.isConfigChanged(App.config.loadedConfigurationsCache['global_' + this.loadedClusterSiteToTagMap['global']], serverGlobalConfigs.properties)) {
           result = result && this.doPUTClusterConfigurationSite(serverGlobalConfigs);
         }
       } else if (_serviceTags.siteName === 'core-site') {
@@ -1169,22 +1173,22 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         if (this.get('content.serviceName') === 'HDFS' || this.get('content.serviceName') === 'HCFS') {
           var coreSiteConfigs = this.createCoreSiteObj(_serviceTags.newTagName);
           siteNameToServerDataMap['core-site'] = coreSiteConfigs;
-          if(this.isConfigChanged(App.config.loadedConfigurationsCache['core-site_'+this.loadedClusterSiteToTagMap['core-site']], coreSiteConfigs.properties)){
+          if (this.isConfigChanged(App.config.loadedConfigurationsCache['core-site_' + this.loadedClusterSiteToTagMap['core-site']], coreSiteConfigs.properties)) {
             result = result && this.doPUTClusterConfigurationSite(coreSiteConfigs);
           }
         }
       } else {
         var serverConfigs = this.createSiteObj(_serviceTags.siteName, _serviceTags.newTagName);
         siteNameToServerDataMap[_serviceTags.siteName] = serverConfigs;
-        if(this.isConfigChanged(App.config.loadedConfigurationsCache[_serviceTags.siteName+'_'+this.loadedClusterSiteToTagMap[_serviceTags.siteName]], serverConfigs.properties)){
+        if (this.isConfigChanged(App.config.loadedConfigurationsCache[_serviceTags.siteName + '_' + this.loadedClusterSiteToTagMap[_serviceTags.siteName]], serverConfigs.properties)) {
           result = result && this.doPUTClusterConfigurationSite(serverConfigs);
         }
-     }
+      }
     }, this);
     this.savedSiteNameToServerServiceConfigDataMap = siteNameToServerDataMap;
     return result;
   },
-  
+
 
   /**
    * Compares the loaded config values with the saving config values.
@@ -1193,14 +1197,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var changed = false;
     if (loadedConfig != null && savingConfig != null) {
       var seenLoadKeys = [];
-      for ( var loadKey in loadedConfig) {
+      for (var loadKey in loadedConfig) {
         seenLoadKeys.push(loadKey);
         var loadValue = loadedConfig[loadKey];
         var saveValue = savingConfig[loadKey];
-        if("boolean" == typeof(saveValue)){
+        if ("boolean" == typeof(saveValue)) {
           saveValue = saveValue.toString();
         }
-        if(saveValue==null){
+        if (saveValue == null) {
           saveValue = "null";
         }
         if (loadValue !== saveValue) {
@@ -1208,7 +1212,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           break;
         }
       }
-      for ( var saveKey in savingConfig) {
+      for (var saveKey in savingConfig) {
         if (seenLoadKeys.indexOf(saveKey) < 0) {
           changed = true;
           break;
@@ -1217,7 +1221,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }
     return changed;
   },
-  
+
   /**
    * Saves configuration of a particular site. The provided data
    * contains the site name and tag to be used.
@@ -1226,9 +1230,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var result;
     var url = this.getUrl('', '');
     var clusterData = {
-        Clusters: {
-          desired_config: data
-        }
+      Clusters: {
+        desired_config: data
+      }
     };
     console.log("applyClusterConfigurationToSite(): PUTting data:", clusterData);
     $.ajax({
@@ -1255,19 +1259,19 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
   /**
    * Creates host level overrides for service configuration.
-   * 
+   *
    */
-  doPUTHostOverridesConfigurationSites: function(){
+  doPUTHostOverridesConfigurationSites: function () {
     var singlePUTHostData = [];
     var savedHostSiteArray = [];
-    for ( var host in this.savedHostToOverrideSiteToTagMap) {
-      for ( var siteName in this.savedHostToOverrideSiteToTagMap[host]) {
+    for (var host in this.savedHostToOverrideSiteToTagMap) {
+      for (var siteName in this.savedHostToOverrideSiteToTagMap[host]) {
         var tagName = this.savedHostToOverrideSiteToTagMap[host][siteName].tagName;
         var map = this.savedHostToOverrideSiteToTagMap[host][siteName].map;
-        savedHostSiteArray.push(host+"///"+siteName);
+        savedHostSiteArray.push(host + "///" + siteName);
         singlePUTHostData.push({
           RequestInfo: {
-            query: 'Hosts/host_name='+host
+            query: 'Hosts/host_name=' + host
           },
           Body: {
             Hosts: {
@@ -1282,14 +1286,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       }
     }
     // Now cleanup removed overrides
-    for ( var loadedHost in this.loadedHostToOverrideSiteToTagMap) {
-      for ( var loadedSiteName in this.loadedHostToOverrideSiteToTagMap[loadedHost]) {
+    for (var loadedHost in this.loadedHostToOverrideSiteToTagMap) {
+      for (var loadedSiteName in this.loadedHostToOverrideSiteToTagMap[loadedHost]) {
         if (!(savedHostSiteArray.contains(loadedHost + "///" + loadedSiteName))) {
           // This host-site combination was loaded, but not saved.
           // Meaning it is not needed anymore. Hence send a DELETE command.
           singlePUTHostData.push({
             RequestInfo: {
-              query: 'Hosts/host_name='+loadedHost
+              query: 'Hosts/host_name=' + loadedHost
             },
             Body: {
               Hosts: {
@@ -1304,8 +1308,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         }
       }
     }
-    console.debug("createHostOverrideConfigSites(): PUTting host-overrides. Data=",singlePUTHostData);
-    if(singlePUTHostData.length>0){
+    console.debug("createHostOverrideConfigSites(): PUTting host-overrides. Data=", singlePUTHostData);
+    if (singlePUTHostData.length > 0) {
       var url = this.getUrl('', '/hosts');
       var hostOverrideResult = true;
       $.ajax({
@@ -1318,11 +1322,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         success: function (data) {
           var jsonData = jQuery.parseJSON(data);
           hostOverrideResult = true;
-          console.log("createHostOverrideConfigSites(): SUCCESS:", url, ". RESPONSE:",jsonData);
+          console.log("createHostOverrideConfigSites(): SUCCESS:", url, ". RESPONSE:", jsonData);
         },
         error: function (request, ajaxOptions, error) {
           hostOverrideResult = false;
-          console.log("createHostOverrideConfigSites(): ERROR:", url, ". RESPONSE:",request.responseText);
+          console.log("createHostOverrideConfigSites(): ERROR:", url, ". RESPONSE:", request.responseText);
         },
         statusCode: require('data/statusCodes')
       });
@@ -1330,7 +1334,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }
     return true;
   },
-   
+
   /**
    * add newTagName property to each config in serviceConfigs
    * @param serviceConfigs
@@ -1348,7 +1352,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @return {Object}
    */
   createGlobalSiteObj: function (tagName) {
-    var heapsizeException =  ['hadoop_heapsize','yarn_heapsize','nodemanager_heapsize','resourcemanager_heapsize'];
+    var heapsizeException = ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize'];
     var globalSiteProperties = {};
     this.get('globalConfigs').forEach(function (_globalSiteObj) {
       // do not pass any globalConfigs whose name ends with _host or _hosts
@@ -1365,32 +1369,32 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }, this);
     return {"type": "global", "tag": tagName, "properties": globalSiteProperties};
   },
-  
-  recordHostOverride: function(serviceConfigObj, siteName, tagName, self){
-    if('get' in serviceConfigObj){
+
+  recordHostOverride: function (serviceConfigObj, siteName, tagName, self) {
+    if ('get' in serviceConfigObj) {
       return this._recordHostOverrideFromEmberObj(serviceConfigObj, siteName, tagName, self);
-    }else{
+    } else {
       return this._recordHostOverrideFromObj(serviceConfigObj, siteName, tagName, self);
     }
   },
-  
+
   /**
    * Records all the host overrides per site/tag
    */
-  _recordHostOverrideFromObj: function(serviceConfigObj, siteName, tagName, self){
+  _recordHostOverrideFromObj: function (serviceConfigObj, siteName, tagName, self) {
     var overrides = serviceConfigObj.overrides;
-    if(overrides){
-      for(var value in overrides){
-        overrides[value].forEach(function(host){
-          if(!(host in self.savedHostToOverrideSiteToTagMap)){
+    if (overrides) {
+      for (var value in overrides) {
+        overrides[value].forEach(function (host) {
+          if (!(host in self.savedHostToOverrideSiteToTagMap)) {
             self.savedHostToOverrideSiteToTagMap[host] = {};
           }
-          if(!(siteName in self.savedHostToOverrideSiteToTagMap[host])){
+          if (!(siteName in self.savedHostToOverrideSiteToTagMap[host])) {
             self.savedHostToOverrideSiteToTagMap[host][siteName] = {};
             self.savedHostToOverrideSiteToTagMap[host][siteName].map = {};
           }
           var finalTag = tagName + '_' + host;
-          console.log("recordHostOverride(): Saving host override for host="+host+", site="+siteName+", tag="+finalTag+", (key,value)=("+serviceConfigObj.name+","+value+")");
+          console.log("recordHostOverride(): Saving host override for host=" + host + ", site=" + siteName + ", tag=" + finalTag + ", (key,value)=(" + serviceConfigObj.name + "," + value + ")");
           self.savedHostToOverrideSiteToTagMap[host][siteName].tagName = finalTag;
           self.savedHostToOverrideSiteToTagMap[host][siteName].map[serviceConfigObj.name] = value;
         });
@@ -1401,20 +1405,20 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   /**
    * Records all the host overrides per site/tag
    */
-  _recordHostOverrideFromEmberObj: function(serviceConfigObj, siteName, tagName, self){
+  _recordHostOverrideFromEmberObj: function (serviceConfigObj, siteName, tagName, self) {
     var overrides = serviceConfigObj.get('overrides');
-    if(overrides){
-      overrides.forEach(function(override){
-        override.get('selectedHostOptions').forEach(function(host){
-          if(!(host in self.savedHostToOverrideSiteToTagMap)){
+    if (overrides) {
+      overrides.forEach(function (override) {
+        override.get('selectedHostOptions').forEach(function (host) {
+          if (!(host in self.savedHostToOverrideSiteToTagMap)) {
             self.savedHostToOverrideSiteToTagMap[host] = {};
           }
-          if(!(siteName in self.savedHostToOverrideSiteToTagMap[host])){
+          if (!(siteName in self.savedHostToOverrideSiteToTagMap[host])) {
             self.savedHostToOverrideSiteToTagMap[host][siteName] = {};
             self.savedHostToOverrideSiteToTagMap[host][siteName].map = {};
           }
           var finalTag = tagName + '_' + host;
-          console.log("recordHostOverride(): Saving host override for host="+host+", site="+siteName+", tag="+finalTag+", (key,value)=("+serviceConfigObj.name+","+override.get('value')+")");
+          console.log("recordHostOverride(): Saving host override for host=" + host + ", site=" + siteName + ", tag=" + finalTag + ", (key,value)=(" + serviceConfigObj.name + "," + override.get('value') + ")");
           self.savedHostToOverrideSiteToTagMap[host][siteName].tagName = finalTag;
           self.savedHostToOverrideSiteToTagMap[host][siteName].map[serviceConfigObj.name] = override.get('value');
         });
@@ -1457,7 +1461,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     }, this);
     return {"type": siteName, "tag": tagName, "properties": siteProperties};
   },
-  
+
   /**
    * create site object for Oozie
    * @param siteObj
@@ -1509,15 +1513,15 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
     switch (hiveDb) {
       case 'New MySQL Database':
-        defaultJdbcUrl = "jdbc:mysql://"+ hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
+        defaultJdbcUrl = "jdbc:mysql://" + hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
         jdbcDriver.value = "com.mysql.jdbc.Driver";
         break;
       case 'Existing MySQL Database':
-        defaultJdbcUrl = "jdbc:mysql://"+ hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
+        defaultJdbcUrl = "jdbc:mysql://" + hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
         jdbcDriver.value = "com.mysql.jdbc.Driver";
         break;
       case 'Existing Oracle Database':
-        defaultJdbcUrl = "jdbc:oracle:thin:@//"+ hiveHost + ":1521/" + hiveDbName;
+        defaultJdbcUrl = "jdbc:oracle:thin:@//" + hiveHost + ":1521/" + hiveDbName;
         jdbcDriver.value = "oracle.jdbc.driver.OracleDriver";
         break;
     }
@@ -1577,7 +1581,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     //namenode_host is required to derive "fs.default.name" a property of core-site
     var nameNodeHost = this.get('serviceConfigs').findProperty('serviceName', 'HDFS').configs.findProperty('name', 'namenode_host');
     try {
-      nameNodeHost.defaultValue = App.Service.find('HDFS').get('hostComponents').findProperty('componentName', 'NAMENODE').get('host.hostName');
+      nameNodeHost.defaultValue = App.Service.find('HDFS').get('hostComponents').filterProperty('componentName', 'NAMENODE').mapProperty('host.hostName');
       globalConfigs.push(nameNodeHost);
     } catch (err) {
       console.log("No NameNode Host available.  This is expected if you're using HCFS rather than HDFS.");
@@ -1592,7 +1596,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
     switch (serviceName) {
       case 'HDFS':
-        if(this.get('content.hostComponents').findProperty('componentName', 'SECONDARY_NAMENODE') && this.get('content.hostComponents').findProperty('componentName', 'SECONDARY_NAMENODE').get('workStatus') != 'MAINTENANCE') {
+        if (this.get('content.hostComponents').findProperty('componentName', 'SECONDARY_NAMENODE') && this.get('content.hostComponents').findProperty('componentName', 'SECONDARY_NAMENODE').get('workStatus') != 'MAINTENANCE') {
           var sNameNodeHost = serviceConfigs.findProperty('name', 'snamenode_host');
           sNameNodeHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'SECONDARY_NAMENODE').get('host.hostName');
           globalConfigs.push(sNameNodeHost);
@@ -1613,7 +1617,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         resourceManagerHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'RESOURCEMANAGER').get('host.hostName');
         globalConfigs.push(resourceManagerHost);
         //yarn.log.server.url config dependent on HistoryServer host
-        if(App.HostComponent.find().someProperty('componentName', 'HISTORYSERVER')){
+        if (App.HostComponent.find().someProperty('componentName', 'HISTORYSERVER')) {
           historyServerHost = this.get('serviceConfigs').findProperty('serviceName', 'MAPREDUCE2').configs.findProperty('name', 'hs_host');
           historyServerHost.defaultValue = App.HostComponent.find().findProperty('componentName', 'HISTORYSERVER').get('host.hostName');
           globalConfigs.push(historyServerHost);
@@ -1657,20 +1661,20 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         break;
     }
   },
-  
+
   /**
-   * Provides service component name and display-name information for 
-   * the current selected service. 
+   * Provides service component name and display-name information for
+   * the current selected service.
    */
   getCurrentServiceComponents: function () {
     var service = this.get('content');
     var components = service.get('hostComponents');
     var validComponents = Ember.A([]);
     var seenComponents = {};
-    components.forEach(function(component){
+    components.forEach(function (component) {
       var cn = component.get('componentName');
       var cdn = component.get('displayName');
-      if(!seenComponents[cn]){
+      if (!seenComponents[cn]) {
         validComponents.push(Ember.Object.create({
           componentName: cn,
           displayName: cdn,
@@ -1681,11 +1685,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     });
     return validComponents;
   }.property('content'),
-  
+
   getAllHosts: function () {
     return App.router.get('mainHostController.content');
   }.property('App.router.mainHostController.content'),
-  
+
   doCancel: function () {
     this.loadStep();
   }
