@@ -117,8 +117,8 @@ describe('App.WizardStep3Controller', function () {
   var tests = [
     {
       bootHosts: [
-        Em.Object.create({name:'wst3_host1', bootStatus: 'REGISTERED'}),
-        Em.Object.create({name:'wst3_host2', bootStatus: 'REGISTERING'})
+        Em.Object.create({name:'wst3_host1', bootStatus: 'REGISTERED', isChecked: false}),
+        Em.Object.create({name:'wst3_host2', bootStatus: 'REGISTERING', isChecked: false})
       ],
       m: 'One registered, one registering',
       allHostsComplete: {
@@ -126,12 +126,29 @@ describe('App.WizardStep3Controller', function () {
       },
       isInstallInProgress: {
         e: true
+      },
+      visibleHosts: {
+        RUNNING: {
+          e: 0
+        },
+        REGISTERING: {
+          e: 1
+        },
+        REGISTERED: {
+          e: 1
+        },
+        FAILED: {
+          e: 0
+        }
+      },
+      onAllChecked: {
+        e: [true, true]
       }
     },
     {
       bootHosts: [
-        Em.Object.create({name:'wst3_host1', bootStatus: 'REGISTERED'}),
-        Em.Object.create({name:'wst3_host2', bootStatus: 'REGISTERED'})
+        Em.Object.create({name:'wst3_host1', bootStatus: 'REGISTERED', isChecked: false}),
+        Em.Object.create({name:'wst3_host2', bootStatus: 'REGISTERED', isChecked: false})
       ],
       m: 'Two registered',
       allHostsComplete: {
@@ -139,12 +156,29 @@ describe('App.WizardStep3Controller', function () {
       },
       isInstallInProgress: {
         e: false
+      },
+      visibleHosts: {
+        RUNNING: {
+          e: 0
+        },
+        REGISTERING: {
+          e: 0
+        },
+        REGISTERED: {
+          e: 2
+        },
+        FAILED: {
+          e: 0
+        }
+      },
+      onAllChecked: {
+        e: [true, true]
       }
     },
     {
       bootHosts: [
-        Em.Object.create({name:'wst3_host1', bootStatus: 'FAILED'}),
-        Em.Object.create({name:'wst3_host2', bootStatus: 'REGISTERED'})
+        Em.Object.create({name:'wst3_host1', bootStatus: 'FAILED', isChecked: false}),
+        Em.Object.create({name:'wst3_host2', bootStatus: 'REGISTERED', isChecked: false})
       ],
       m: 'One registered, one failed',
       allHostsComplete: {
@@ -152,12 +186,29 @@ describe('App.WizardStep3Controller', function () {
       },
       isInstallInProgress: {
         e: false
+      },
+      visibleHosts: {
+        RUNNING: {
+          e: 0
+        },
+        REGISTERING: {
+          e: 0
+        },
+        REGISTERED: {
+          e: 1
+        },
+        FAILED: {
+          e: 1
+        }
+      },
+      onAllChecked: {
+        e: [true, true]
       }
     },
     {
       bootHosts: [
-        Em.Object.create({name:'wst3_host1', bootStatus: 'FAILED'}),
-        Em.Object.create({name:'wst3_host2', bootStatus: 'FAILED'})
+        Em.Object.create({name:'wst3_host1', bootStatus: 'FAILED', isChecked: false}),
+        Em.Object.create({name:'wst3_host2', bootStatus: 'FAILED', isChecked: false})
       ],
       m: 'Two failed',
       allHostsComplete: {
@@ -165,12 +216,29 @@ describe('App.WizardStep3Controller', function () {
       },
       isInstallInProgress: {
         e: false
+      },
+      visibleHosts: {
+        RUNNING: {
+          e: 0
+        },
+        REGISTERING: {
+          e: 0
+        },
+        REGISTERED: {
+          e: 0
+        },
+        FAILED: {
+          e: 2
+        }
+      },
+      onAllChecked: {
+        e: [true, true]
       }
     },
     {
       bootHosts: [
-        Em.Object.create({name:'wst3_host1', bootStatus: 'REGISTERING'}),
-        Em.Object.create({name:'wst3_host2', bootStatus: 'REGISTERING'})
+        Em.Object.create({name:'wst3_host1', bootStatus: 'REGISTERING', isChecked: false}),
+        Em.Object.create({name:'wst3_host2', bootStatus: 'REGISTERING', isChecked: false})
       ],
       m: 'Two registering',
       allHostsComplete: {
@@ -178,6 +246,23 @@ describe('App.WizardStep3Controller', function () {
       },
       isInstallInProgress: {
         e: true
+      },
+      visibleHosts: {
+        RUNNING: {
+          e: 0
+        },
+        REGISTERING: {
+          e: 2
+        },
+        REGISTERED: {
+          e: 0
+        },
+        FAILED: {
+          e: 0
+        }
+      },
+      onAllChecked: {
+        e: [true, true]
       }
     }
   ];
@@ -203,4 +288,108 @@ describe('App.WizardStep3Controller', function () {
       });
     });
   });
+
+  describe('#registrationTimeoutSecs', function() {
+    it('Manual install', function() {
+      var controller = App.WizardStep3Controller.create({
+        content: {
+          installOptions: {
+            manualInstall: true
+          }
+        }
+      });
+      expect(controller.get('registrationTimeoutSecs')).to.equal(15);
+    });
+    it('Not manual install', function() {
+      var controller = App.WizardStep3Controller.create({
+        content: {
+          installOptions: {
+            manualInstall: false
+          }
+        }
+      });
+      expect(controller.get('registrationTimeoutSecs')).to.equal(120);
+    });
+  });
+
+  describe('#visibleHosts', function() {
+    var c = ['RUNNING', 'REGISTERING', 'REGISTERED', 'FAILED'];
+    tests.forEach(function(test) {
+      describe(test.m, function() {
+        c.forEach(function(_c) {
+          var controller = App.WizardStep3Controller.create({
+            hosts: test.bootHosts
+          });
+          controller.set('category', {hostsBootStatus: _c});
+          it(_c, function() {
+            expect(controller.get('visibleHosts').length).to.equal(test.visibleHosts[_c].e);
+          });
+        });
+        var controller = App.WizardStep3Controller.create({
+          hosts: test.bootHosts
+        });
+        controller.set('category', false);
+        it('ALL', function() {
+          expect(controller.get('visibleHosts').length).to.equal(test.bootHosts.length);
+        });
+      });
+    });
+  });
+
+  describe('#isHostHaveWarnings', function() {
+    var tests = [
+      {
+        warnings: [{},{}],
+        m: 'Warnings exist',
+        e: true
+      },
+      {
+        warnings: [],
+        m: 'Warnings don\'t exist',
+        e: false
+      }
+    ];
+    tests.forEach(function(test) {
+      var controller = App.WizardStep3Controller.create();
+      controller.set('warnings', test.warnings);
+      it(test.m, function() {
+        expect(controller.get('isHostHaveWarnings')).to.equal(test.e);
+      });
+    });
+  });
+
+  describe('#onAllChecked', function() {
+    tests.forEach(function(test) {
+      var controller = App.WizardStep3Controller.create({
+        hosts: test.bootHosts
+      });
+      controller.set('allChecked', true);
+      it(test.m, function() {
+        expect(controller.get('visibleHosts').getEach('isChecked')).to.eql(test.onAllChecked.e);
+      });
+    });
+  });
+
+  describe('#noHostsSelected', function() {
+    tests.forEach(function(test) {
+      it(test.m + ' - nothing checked', function() {
+        var controller = App.WizardStep3Controller.create({
+          hosts: test.bootHosts
+        });
+        controller.get('hosts').setEach('isChecked', false);
+        console.log(controller.hosts);
+        expect(controller.get('noHostsSelected')).to.equal(true);
+      });
+      it(test.m + ' - one checked', function() {
+        var controller = App.WizardStep3Controller.create({
+          hosts: test.bootHosts
+        });
+        controller.get('hosts').setEach('isChecked', true);
+        expect(controller.get('noHostsSelected')).to.equal(false);
+      });
+    });
+  });
+
+
+
 });

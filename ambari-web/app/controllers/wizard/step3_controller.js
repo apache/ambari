@@ -188,9 +188,8 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   /* Returns the current set of visible hosts on view (All, Succeeded, Failed) */
   visibleHosts: function () {
-    var self = this;
     if (this.get('category.hostsBootStatus')) {
-      return this.hosts.filterProperty('bootStatus', self.get('category.hostsBootStatus'));
+      return this.hosts.filterProperty('bootStatus', this.get('category.hostsBootStatus'));
     } else { // if (this.get('category') === 'All Hosts')
       return this.hosts;
     }

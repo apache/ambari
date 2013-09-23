@@ -50,7 +50,6 @@ require('test/installer/step5_test');
 require('test/installer/step6_test');
 require('test/installer/step7_test');
 require('test/installer/step10_test');
-require('test/installer/step14_test');
 require('test/login_test');
 require('test/mappers/server_data_mapper_test');
 require('test/mappers/dataset_mapper_test');
