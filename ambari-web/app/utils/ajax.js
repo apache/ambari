@@ -767,6 +767,7 @@ var urls = {
     'mock': '',
     'format': function (data, opt) {
       return {
+        async: false,
         timeout: 10000
       };
     }
