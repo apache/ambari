@@ -535,6 +535,7 @@ App.HostPopup = Em.Object.create({
         setOnStart: function () {
           if (this.get("controller.showServices")) {
             this.get('controller').setSelectCount(this.get("services"), this.get('categories'));
+            this.get("controller").onServiceUpdate();
           } else {
             this.set("isHostListHidden", false);
             this.set("isServiceListHidden", true);
