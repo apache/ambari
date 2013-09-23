@@ -76,7 +76,7 @@ def _get_cluster_host(root_resource, cluster_name, host_name):
   @param host_name: Host name
   @return: A HostModel object
   """
-  return host.get_cluster_host(root_resource, cluster_name, host_name)
+  return host._get_cluster_host(root_resource, cluster_name, host_name)
 
 
 
