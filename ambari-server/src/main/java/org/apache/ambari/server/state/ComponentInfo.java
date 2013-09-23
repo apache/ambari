@@ -18,12 +18,16 @@
 
 package org.apache.ambari.server.state;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+
 import org.apache.ambari.server.controller.StackServiceComponentResponse;
 
+@XmlAccessorType(XmlAccessType.FIELD)
 public class ComponentInfo {
   private String name;
   private String category;
-  private boolean isDeleted;
+  private boolean deleted;
 
   public String getName() {
     return name;
@@ -54,11 +58,10 @@ public class ComponentInfo {
   }
 
   public boolean isDeleted() {
-    return isDeleted;
+    return deleted;
   }
 
-  public void setDeleted(String deleted) {
-    isDeleted = Boolean.valueOf(deleted != null && !deleted.isEmpty() ?
-      deleted : "false");
+  public void setDeleted(boolean deleted) {
+    this.deleted = deleted;
   }
 }

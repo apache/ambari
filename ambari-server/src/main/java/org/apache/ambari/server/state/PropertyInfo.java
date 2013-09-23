@@ -25,7 +25,7 @@ public class PropertyInfo {
   private String value;
   private String description;
   private String filename;
-  private boolean isDeleted;
+  private boolean deleted;
 
   public String getName() {
     return name;
@@ -64,12 +64,11 @@ public class PropertyInfo {
   }
 
   public boolean isDeleted() {
-    return isDeleted;
+    return deleted;
   }
 
-  public void setDeleted(String deleted) {
-    isDeleted = Boolean.valueOf(deleted != null && !deleted.isEmpty() ?
-      deleted : "false");
+  public void setDeleted(boolean deleted) {
+    this.deleted = deleted;
   }
 
   @Override

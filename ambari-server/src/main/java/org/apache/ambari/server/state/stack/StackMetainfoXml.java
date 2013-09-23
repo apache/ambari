@@ -1,0 +1,79 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.apache.ambari.server.state.stack;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
+/**
+ * Represents the stack <code>metainfo.xml</code> file.
+ */
+@XmlRootElement(name="metainfo")
+@XmlAccessorType(XmlAccessType.FIELD)
+public class StackMetainfoXml {
+  
+  @XmlElement(name="extends")
+  private String extendsVersion = null;
+  
+  @XmlElement(name="versions")
+  private Version version = new Version();
+  
+  /**
+   * @return the parent stack version number
+   */
+  public String getExtends() {
+    return extendsVersion;
+  }
+  
+  /**
+   * @return gets the version
+   */
+  public Version getVersion() {
+    return version;
+  }
+  
+  @XmlAccessorType(XmlAccessType.FIELD)
+  public static class Version {
+    private Version() {
+    }
+    private boolean active = false;
+    private String upgrade = null;
+    
+    /**
+     * @return <code>true</code> if the stack is active
+     */
+    public boolean isActive() {
+      return active;
+    }
+    
+    /**
+     * @return the upgrade version number, if set
+     */
+    public String getUpgrade() {
+      return upgrade;
+    }
+    
+    
+  }  
+  
+}
+
+
+

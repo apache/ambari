@@ -17,23 +17,7 @@
  */
 package org.apache.ambari.server.api.util;
 
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.StackInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -41,6 +25,27 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.orm.entities.MetainfoEntity;
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.stack.ConfigurationXml;
+import org.apache.ambari.server.state.stack.RepositoryXml;
+import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
+import org.apache.ambari.server.state.stack.StackMetainfoXml;
+import org.apache.ambari.server.state.stack.RepositoryXml.Os;
+import org.apache.ambari.server.state.stack.RepositoryXml.Repo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Helper methods for providing stack extension behavior -
@@ -54,6 +59,21 @@ public class StackExtensionHelper {
     StackInfo>();
   private final Map<String, List<StackInfo>> stackParentsMap;
 
+  private static final Map<Class<?>, JAXBContext> _jaxbContexts =
+      new HashMap<Class<?>, JAXBContext> ();
+  static {
+    try {
+      // two classes define the top-level element "metainfo", so we need 2 contexts.
+      JAXBContext ctx = JAXBContext.newInstance(StackMetainfoXml.class, RepositoryXml.class, ConfigurationXml.class);
+      _jaxbContexts.put(StackMetainfoXml.class, ctx);
+      _jaxbContexts.put(RepositoryXml.class, ctx);
+      _jaxbContexts.put(ConfigurationXml.class, ctx);
+      _jaxbContexts.put(ServiceMetainfoXml.class, JAXBContext.newInstance(ServiceMetainfoXml.class));
+    } catch (JAXBException e) {
+      throw new RuntimeException (e);
+    }
+  }  
+  
   public StackExtensionHelper(File stackRoot) throws Exception {
     this.stackRoot = stackRoot;
     File[] stackFiles = stackRoot.listFiles(AmbariMetaInfo.FILENAME_FILTER);
@@ -118,6 +138,7 @@ public class StackExtensionHelper {
     }
     return mergedServiceInfo;
   }
+  
 
   public List<ServiceInfo> getAllApplicableServices(StackInfo stackInfo) {
     LinkedList<StackInfo> parents = (LinkedList<StackInfo>)
@@ -138,7 +159,7 @@ public class StackExtensionHelper {
       List<ServiceInfo> serviceInfoList = parentStack.getServices();
       for (ServiceInfo service : serviceInfoList) {
         ServiceInfo existingService = serviceInfoMap.get(service.getName());
-        if (service.isDeleted()) {
+        if (service.isDeleted().booleanValue()) {
           serviceInfoMap.remove(service.getName());
           continue;
         }
@@ -230,7 +251,7 @@ public class StackExtensionHelper {
     return parentStacksMap;
   }
 
-  private StackInfo getStackInfo(File stackVersionFolder) {
+  private StackInfo getStackInfo(File stackVersionFolder) throws JAXBException {
     StackInfo stackInfo = new StackInfo();
 
     stackInfo.setName(stackVersionFolder.getParentFile().getName());
@@ -238,44 +259,21 @@ public class StackExtensionHelper {
 
     // Get metainfo from file
     File stackMetainfoFile = new File(stackVersionFolder.getAbsolutePath()
-      + File.separator + AmbariMetaInfo.STACK_METAINFO_FILE_NAME);
+        + File.separator + AmbariMetaInfo.STACK_METAINFO_FILE_NAME);
 
     if (stackMetainfoFile.exists()) {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Reading stack version metainfo from file "
-          + stackMetainfoFile.getAbsolutePath());
+            + stackMetainfoFile.getAbsolutePath());
       }
-
-      try {
-        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-        Document doc = dBuilder.parse(stackMetainfoFile);
-        doc.getDocumentElement().normalize();
-
-        NodeList stackNodes = doc
-          .getElementsByTagName(AmbariMetaInfo.STACK_XML_MAIN_BLOCK_NAME);
-
-        for (int index = 0; index < stackNodes.getLength(); index++) {
-          Node node = stackNodes.item(index);
-
-          if (node.getNodeType() == Node.ELEMENT_NODE) {
-            Element property = (Element) node;
-
-            stackInfo.setMinUpgradeVersion(getTagValue(
-              AmbariMetaInfo.STACK_XML_PROPERTY_UPGRADE, property));
-
-            stackInfo.setActive(Boolean.parseBoolean(getTagValue(
-              AmbariMetaInfo.STACK_XML_PROPERTY_ACTIVE, property)));
-
-            stackInfo.setParentStackVersion(getTagValue
-              (AmbariMetaInfo.STACK_XML_PROPERTY_PARENT_STACK, property));
-          }
-        }
-      } catch (Exception e) {
-        e.printStackTrace();
-        return null;
-      }
+      
+      StackMetainfoXml smx = unmarshal(StackMetainfoXml.class, stackMetainfoFile);
+      
+      stackInfo.setMinUpgradeVersion(smx.getVersion().getUpgrade());
+      stackInfo.setActive(smx.getVersion().isActive());
+      stackInfo.setParentStackVersion(smx.getExtends());
     }
+
     try {
       // Read the service and available configs for this stack
       populateServicesForStack(stackInfo);
@@ -287,127 +285,48 @@ public class StackExtensionHelper {
     return stackInfo;
   }
 
-  private String getTagValue(String sTag, Element rawElement) {
-    String result = null;
-
-    if (rawElement.getElementsByTagName(sTag) != null && rawElement.getElementsByTagName(sTag).getLength() > 0) {
-      if (rawElement.getElementsByTagName(sTag).item(0) != null) {
-        NodeList element = rawElement.getElementsByTagName(sTag).item(0).getChildNodes();
-
-        if (element != null && element.item(0) != null) {
-          Node value = (Node) element.item(0);
-
-          result = value.getNodeValue();
-        }
-      }
-    }
-
-    return result;
-  }
-
   private void setMetaInfo(File metainfoFile, ServiceInfo serviceInfo) {
-
-    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-
-    Document doc = null;
-    DocumentBuilder dBuilder = null;
     try {
-      dBuilder = dbFactory.newDocumentBuilder();
-      doc = dBuilder.parse(metainfoFile);
-    } catch (SAXException e) {
-      LOG.error("Error while parsing metainf.xml", e);
-    } catch (IOException e) {
-      LOG.error("Error while open metainf.xml", e);
-    } catch (ParserConfigurationException e) {
-      LOG.error("Error while parsing metainf.xml", e);
+      ServiceMetainfoXml smx = unmarshal(ServiceMetainfoXml.class, metainfoFile);
+      
+      serviceInfo.setComment(smx.getComment());
+      serviceInfo.setUser(smx.getUser());
+      serviceInfo.setVersion(smx.getVersion());
+      serviceInfo.setDeleted(smx.isDeleted());
+      
+      serviceInfo.getComponents().addAll(smx.getComponents());
+    } catch (Exception e) {
+      LOG.error("Error while parsing metainfo.xml for a service", e);
     }
 
-    if (doc == null) return;
-
-    doc.getDocumentElement().normalize();
-
-    NodeList metaInfoNodes = doc
-      .getElementsByTagName(AmbariMetaInfo.METAINFO_XML_MAIN_BLOCK_NAME);
-
-    if (metaInfoNodes.getLength() > 0) {
-      Node metaInfoNode = metaInfoNodes.item(0);
-      if (metaInfoNode.getNodeType() == Node.ELEMENT_NODE) {
-
-        Element metaInfoElem = (Element) metaInfoNode;
-
-        serviceInfo.setVersion(getTagValue(AmbariMetaInfo.METAINFO_XML_PROPERTY_VERSION,
-          metaInfoElem));
-        serviceInfo.setUser(getTagValue(AmbariMetaInfo.METAINFO_XML_PROPERTY_USER,
-          metaInfoElem));
-        serviceInfo.setComment(getTagValue(AmbariMetaInfo.METAINFO_XML_PROPERTY_COMMENT,
-          metaInfoElem));
-        serviceInfo.setDeleted(getTagValue(AmbariMetaInfo.METAINFO_XML_PROPERTY_IS_DELETED,
-          metaInfoElem));
-      }
-    }
-
-    NodeList componentInfoNodes = doc
-      .getElementsByTagName(AmbariMetaInfo.METAINFO_XML_PROPERTY_COMPONENT_MAIN);
-
-    if (componentInfoNodes.getLength() > 0) {
-      for (int index = 0; index < componentInfoNodes.getLength(); index++) {
-        Node componentInfoNode = componentInfoNodes.item(index);
-        if (componentInfoNode.getNodeType() == Node.ELEMENT_NODE) {
-          Element componentInfoElem = (Element) componentInfoNode;
-
-          ComponentInfo componentInfo = new ComponentInfo();
-          componentInfo.setName(getTagValue(
-            AmbariMetaInfo.METAINFO_XML_PROPERTY_COMPONENT_NAME, componentInfoElem));
-          componentInfo.setCategory(getTagValue(
-            AmbariMetaInfo.METAINFO_XML_PROPERTY_COMPONENT_CATEGORY, componentInfoElem));
-          componentInfo.setDeleted(getTagValue(AmbariMetaInfo
-            .METAINFO_XML_PROPERTY_IS_DELETED, componentInfoElem));
-          serviceInfo.getComponents().add(componentInfo);
-
-        }
-      }
-    }
   }
 
   private List<PropertyInfo> getProperties(File propertyFile) {
-
-    List<PropertyInfo> resultPropertyList = new ArrayList<PropertyInfo>();
+    
     try {
-      DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-      DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-      Document doc = dBuilder.parse(propertyFile);
-      doc.getDocumentElement().normalize();
+      ConfigurationXml cx = unmarshal(ConfigurationXml.class, propertyFile);
 
-      NodeList propertyNodes = doc
-        .getElementsByTagName(AmbariMetaInfo.PROPERTY_XML_MAIN_BLOCK_NAME);
-
-      for (int index = 0; index < propertyNodes.getLength(); index++) {
-
-        Node node = propertyNodes.item(index);
-        if (node.getNodeType() == Node.ELEMENT_NODE) {
-          Element property = (Element) node;
-          PropertyInfo propertyInfo = new PropertyInfo();
-          propertyInfo
-            .setName(getTagValue(AmbariMetaInfo.PROPERTY_XML_PROPERTY_NAME, property));
-          propertyInfo.setValue(getTagValue(AmbariMetaInfo.PROPERTY_XML_PROPERTY_VALUE,
-            property));
-          propertyInfo.setDescription(getTagValue(
-            AmbariMetaInfo.PROPERTY_XML_PROPERTY_DESCRIPTION, property));
-          propertyInfo.setDeleted(getTagValue(AmbariMetaInfo
-            .PROPERTY_XML_PROPERTY_IS_DELETED, property));
-
-          propertyInfo.setFilename(propertyFile.getName());
-
-          if (propertyInfo.getName() == null || propertyInfo.getValue() == null)
-            continue;
-
-          resultPropertyList.add(propertyInfo);
-        }
+      List<PropertyInfo> list = new ArrayList<PropertyInfo>();
+      
+      for (PropertyInfo pi : cx.getProperties()) {
+        // maintain old behavior
+        if (null == pi.getValue() || pi.getValue().isEmpty())
+          continue;
+        
+        pi.setFilename(propertyFile.getName());
+        list.add(pi);
       }
+      return list;
     } catch (Exception e) {
-      e.printStackTrace();
+      LOG.error("Could not load configuration for " + propertyFile, e);
       return null;
     }
-    return resultPropertyList;
   }
+  
+  public static <T> T unmarshal(Class<T> clz, File file) throws JAXBException {
+    Unmarshaller u = _jaxbContexts.get(clz).createUnmarshaller();
+    
+    return clz.cast(u.unmarshal(file));
+  }  
+  
 }

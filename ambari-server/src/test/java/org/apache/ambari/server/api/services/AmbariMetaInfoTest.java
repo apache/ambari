@@ -18,7 +18,27 @@
 
 package org.apache.ambari.server.api.services;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Set;
+
+import javax.xml.bind.JAXBException;
+
 import junit.framework.Assert;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.util.StackExtensionHelper;
@@ -36,28 +56,13 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.io.File;
-import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Set;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 public class AmbariMetaInfoTest {
 
   private static String STACK_NAME_HDP = "HDP";
   private static String STACK_VERSION_HDP = "0.1";
   private static String EXT_STACK_NAME = "2.0.6";
+  private static String STACK_VERSION_HDP_02 = "0.2";
   private static final String STACK_MINIMAL_VERSION_HDP = "0.0";
   private static String SERVICE_NAME_HDFS = "HDFS";
   private static String SERVICE_COMPONENT_NAME = "NAMENODE";
@@ -109,6 +114,7 @@ public class AmbariMetaInfoTest {
     List<ComponentInfo> components = metaInfo.getComponentsByService(
         STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS);
     assertNotNull(components);
+    assertTrue(components.size() > 0);
   }
 
   @Test
@@ -155,7 +161,7 @@ public class AmbariMetaInfoTest {
       Map<String, String> configs = configsAll.get(file);
       Set<String> propertyKeys = configs.keySet();
       assertNotNull(propertyKeys);
-      assertNotSame(propertyKeys.size(), 0);
+      assertFalse(propertyKeys.size() == 0);
     }
   }
 
@@ -163,7 +169,7 @@ public class AmbariMetaInfoTest {
   public void testServiceNameUsingComponentName() throws AmbariException {
     String serviceName = metaInfo.getComponentToService(STACK_NAME_HDP,
         STACK_VERSION_HDP, "NAMENODE");
-    assertTrue("HDFS".equals(serviceName));
+    assertEquals("HDFS", serviceName);
   }
 
   /**
@@ -182,7 +188,7 @@ public class AmbariMetaInfoTest {
     assertTrue(services.containsKey("HDFS"));
     assertTrue(services.containsKey("MAPREDUCE"));
     assertNotNull(services);
-    assertNotSame(services.keySet().size(), 0);
+    assertFalse(services.keySet().size() == 0);
   }
 
   /**
@@ -204,7 +210,7 @@ public class AmbariMetaInfoTest {
     List<ServiceInfo> services = metaInfo.getSupportedServices(STACK_NAME_HDP,
         STACK_VERSION_HDP);
     assertNotNull(services);
-    assertNotSame(services.size(), 0);
+    assertFalse(services.size() == 0);
 
   }
 
@@ -389,8 +395,8 @@ public class AmbariMetaInfoTest {
   @Test
   public void testGetProperty() throws Exception {
     PropertyInfo property = metaInfo.getProperty(STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS, PROPERTY_NAME);
-    Assert.assertEquals(property.getName(), PROPERTY_NAME);
-    Assert.assertEquals(property.getFilename(), FILE_NAME);
+    Assert.assertEquals(PROPERTY_NAME, property.getName());
+    Assert.assertEquals(FILE_NAME, property.getFilename());
 
     try {
       metaInfo.getProperty(STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS, NON_EXT_VALUE);
@@ -403,7 +409,7 @@ public class AmbariMetaInfoTest {
   @Test
   public void testGetOperatingSystems() throws Exception {
     Set<OperatingSystemInfo> operatingSystems = metaInfo.getOperatingSystems(STACK_NAME_HDP, STACK_VERSION_HDP);
-    Assert.assertEquals(operatingSystems.size(), OS_CNT);
+    Assert.assertEquals(OS_CNT, operatingSystems.size());
   }
   
   @Test
@@ -590,4 +596,21 @@ public class AmbariMetaInfoTest {
     Assert.assertEquals("INFO", existingProperty.getValue());
   }
 
+  @Test
+  public void testPropertyCount() throws Exception {
+    Set<PropertyInfo> properties = metaInfo.getProperties(STACK_NAME_HDP, STACK_VERSION_HDP_02, SERVICE_NAME_HDFS);
+    Assert.assertEquals(81, properties.size());
+  }
+  
+  @Test
+  public void testBadStack() throws Exception {
+    File stackRoot = new File("src/test/resources/bad-stacks");
+    LOG.info("Stacks file " + stackRoot.getAbsolutePath());
+    AmbariMetaInfo mi = new AmbariMetaInfo(stackRoot, new File("target/version"));
+    try {
+      mi.init();
+    } catch(Exception e) {
+      assertTrue(JAXBException.class.isInstance(e));
+    }
+  }
 }
