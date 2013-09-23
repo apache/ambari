@@ -146,7 +146,7 @@ public class RoleGraphTest {
 
   @Test
   public void testValidateOrder() {
-    RoleCommandOrder rco = new RoleCommandOrder();
+    RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
     ClusterEntity entity = createDummyData();
     ClusterImpl cluster = new ClusterImpl(entity, injector);
     rco.initialize(cluster);

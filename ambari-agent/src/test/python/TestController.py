@@ -21,12 +21,14 @@ limitations under the License.
 
 import StringIO
 import ssl
-import unittest
+import unittest, threading
 from ambari_agent import Controller, ActionQueue
+from  ambari_agent.ActionDependencyManager import ActionDependencyManager
 from ambari_agent import hostname
 import sys
 from mock.mock import patch, MagicMock, call, Mock
 import logging
+from threading import Event
 
 class TestController(unittest.TestCase):
 
@@ -48,7 +50,7 @@ class TestController(unittest.TestCase):
     config.get.return_value = "something"
 
     self.controller = Controller.Controller(config)
-    self.controller.netutil.HEARTBEAT_IDDLE_INTERVAL_SEC = 0.1
+    self.controller.netutil.MINIMUM_INTERVAL_BETWEEN_HEARTBEATS = 0.1
     self.controller.netutil.HEARTBEAT_NOT_IDDLE_INTERVAL_SEC = 0.1
 
 
@@ -150,7 +152,10 @@ class TestController(unittest.TestCase):
   @patch("urllib2.build_opener")
   @patch("urllib2.install_opener")
   @patch.object(ActionQueue.ActionQueue, "run")
-  def test_repeatRegistration(self, run_mock, installMock, buildMock):
+  @patch.object(ActionDependencyManager, "read_dependencies")
+  @patch.object(ActionDependencyManager, "dump_info")
+  def test_repeatRegistration(self, dump_info_mock, read_dependencies_mock,
+                              run_mock, installMock, buildMock):
 
     registerAndHeartbeat = MagicMock(name="registerAndHeartbeat")
 
@@ -241,10 +246,11 @@ class TestController(unittest.TestCase):
       {'Content-Type': 'application/json'})
 
 
+  @patch.object(threading._Event, "wait")
   @patch("time.sleep")
   @patch("json.loads")
   @patch("json.dumps")
-  def test_heartbeatWithServer(self, dumpsMock, loadsMock, sleepMock):
+  def test_heartbeatWithServer(self, dumpsMock, loadsMock, sleepMock, event_mock):
 
     out = StringIO.StringIO()
     sys.stdout = out
@@ -366,7 +372,7 @@ class TestController(unittest.TestCase):
     self.controller.heartbeatWithServer()
 
     sleepMock.assert_called_with(
-      self.controller.netutil.HEARTBEAT_NOT_IDDLE_INTERVAL_SEC)
+      self.controller.netutil.MINIMUM_INTERVAL_BETWEEN_HEARTBEATS)
 
     sys.stdout = sys.__stdout__
     self.controller.sendRequest = Controller.Controller.sendRequest

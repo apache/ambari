@@ -21,6 +21,7 @@ limitations under the License.
 from unittest import TestCase
 import unittest
 from ambari_agent.Heartbeat import Heartbeat
+from ambari_agent.ActionDependencyManager import ActionDependencyManager
 from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent.LiveStatus import LiveStatus
 from ambari_agent import AmbariConfig
@@ -46,8 +47,9 @@ class TestHeartbeat(TestCase):
     sys.stdout = sys.__stdout__
 
 
-  def test_build(self):
-    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
+  @patch.object(ActionDependencyManager, "read_dependencies")
+  def test_build(self, read_dependencies_mock):
+    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig(),'dummy_controller')
     heartbeat = Heartbeat(actionQueue)
     result = heartbeat.build(100)
     print "Heartbeat: " + str(result)
@@ -64,11 +66,132 @@ class TestHeartbeat(TestCase):
     self.assertEquals(not heartbeat.reports, True, "Heartbeat should not contain task in progress")
 
 
-  @patch.object(StackVersionsFileHandler, "read_stack_version")
-  def test_heartbeat_with_status(self, read_stack_version_method):
-    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
-    read_stack_version_method.return_value="1.3.0"
+  @patch.object(ActionDependencyManager, "read_dependencies")
+  @patch.object(ActionQueue, "result")
+  @patch.object(ActionDependencyManager, "is_action_group_available")
+  @patch.object(HostInfo, "register")
+  def test_no_mapping(self, register_mock, is_action_group_available_mock, result_mock,
+                      read_dependencies_mock):
+    result_mock.return_value = {
+      'reports': [{'status': 'IN_PROGRESS',
+                   'stderr': 'Read from /tmp/errors-3.txt',
+                   'stdout': 'Read from /tmp/output-3.txt',
+                   'clusterName': u'cc',
+                   'roleCommand': u'INSTALL',
+                   'serviceName': u'HDFS',
+                   'role': u'DATANODE',
+                   'actionId': '1-1',
+                   'taskId': 3,
+                   'exitCode': 777}],
+      'componentStatus': [{'status': 'HEALTHY', 'componentName': 'NAMENODE'}]
+    }
+    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig(),'dummy_controller')
     heartbeat = Heartbeat(actionQueue)
+    hb = heartbeat.build(id = 10, state_interval=1, componentsMapped=True)
+    self.assertEqual(register_mock.call_args_list[0][0][1], True)
+    register_mock.reset_mock()
+
+    hb = heartbeat.build(id = 0, state_interval=1, componentsMapped=True)
+    self.assertEqual(register_mock.call_args_list[0][0][1], False)
+
+
+  @patch.object(ActionDependencyManager, "read_dependencies")
+  @patch.object(ActionQueue, "result")
+  @patch.object(ActionDependencyManager, "is_action_group_available")
+  def test_build_long_result(self, is_action_group_available_mock, result_mock,
+                  read_dependencies_mock):
+    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig(),'dummy_controller')
+    result_mock.return_value = {
+      'reports': [{'status': 'IN_PROGRESS',
+            'stderr': 'Read from /tmp/errors-3.txt',
+            'stdout': 'Read from /tmp/output-3.txt',
+            'clusterName': u'cc',
+            'roleCommand': u'INSTALL',
+            'serviceName': u'HDFS',
+            'role': u'DATANODE',
+            'actionId': '1-1',
+            'taskId': 3,
+            'exitCode': 777},
+
+            {'status': 'COMPLETED',
+             'stderr': 'stderr',
+             'stdout': 'out',
+             'clusterName': 'clusterName',
+             'roleCommand': 'UPGRADE',
+             'serviceName': 'serviceName',
+             'role': 'role',
+             'actionId': 17,
+             'taskId': 'taskId',
+             'exitCode': 0},
+
+            {'status': 'FAILED',
+             'stderr': 'stderr',
+             'stdout': 'out',
+             'clusterName': u'cc',
+             'roleCommand': u'INSTALL',
+             'serviceName': u'HDFS',
+             'role': u'DATANODE',
+             'actionId': '1-1',
+             'taskId': 3,
+             'exitCode': 13},
+
+            {'status': 'COMPLETED',
+             'stderr': 'stderr',
+             'stdout': 'out',
+             'clusterName': u'cc',
+             'configurationTags': {'global': {'tag': 'v1'}},
+             'roleCommand': u'INSTALL',
+             'serviceName': u'HDFS',
+             'role': u'DATANODE',
+             'actionId': '1-1',
+             'taskId': 3,
+             'exitCode': 0}
+
+            ],
+      'componentStatus': [
+        {'status': 'HEALTHY', 'componentName': 'DATANODE'},
+        {'status': 'UNHEALTHY', 'componentName': 'NAMENODE'},
+      ],
+    }
+    heartbeat = Heartbeat(actionQueue)
+    hb = heartbeat.build(10)
+    hb['hostname'] = 'hostname'
+    hb['timestamp'] = 'timestamp'
+    expected = {'nodeStatus':
+                  {'status': 'HEALTHY',
+                   'cause': 'NONE'},
+                'timestamp': 'timestamp', 'hostname': 'hostname',
+                'responseId': 10, 'reports': [
+      {'status': 'IN_PROGRESS', 'roleCommand': u'INSTALL',
+       'serviceName': u'HDFS', 'role': u'DATANODE', 'actionId': '1-1',
+       'stderr': 'Read from /tmp/errors-3.txt',
+       'stdout': 'Read from /tmp/output-3.txt', 'clusterName': u'cc',
+       'taskId': 3, 'exitCode': 777},
+      {'status': 'COMPLETED', 'roleCommand': 'UPGRADE',
+       'serviceName': 'serviceName', 'role': 'role', 'actionId': 17,
+       'stderr': 'stderr', 'stdout': 'out', 'clusterName': 'clusterName',
+       'taskId': 'taskId', 'exitCode': 0},
+      {'status': 'FAILED', 'roleCommand': u'INSTALL', 'serviceName': u'HDFS',
+       'role': u'DATANODE', 'actionId': '1-1', 'stderr': 'stderr',
+       'stdout': 'out', 'clusterName': u'cc', 'taskId': 3, 'exitCode': 13},
+      {'status': 'COMPLETED', 'stdout': 'out',
+       'configurationTags': {'global': {'tag': 'v1'}}, 'taskId': 3,
+       'exitCode': 0, 'roleCommand': u'INSTALL', 'clusterName': u'cc',
+       'serviceName': u'HDFS', 'role': u'DATANODE', 'actionId': '1-1',
+       'stderr': 'stderr'}], 'componentStatus': [
+      {'status': 'HEALTHY', 'componentName': 'DATANODE'},
+      {'status': 'UNHEALTHY', 'componentName': 'NAMENODE'}]}
+    self.assertEquals(hb, expected)
+
+
+  @patch.object(ActionDependencyManager, "read_dependencies")
+  @patch.object(ActionDependencyManager, "dump_info")
+  @patch.object(ActionDependencyManager, "can_be_executed_in_parallel")
+  @patch.object(HostInfo, 'register')
+  def test_heartbeat_no_host_check_cmd_in_queue(self, register_mock,
+      can_be_executed_in_parallel_mock, dump_info_mock, read_dependencies_mock):
+    can_be_executed_in_parallel_mock.return_value = False
+    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig(),'dummy_controller')
     statusCommand = {
       "serviceName" : 'HDFS',
       "commandType" : "STATUS_COMMAND",
@@ -76,77 +199,7 @@ class TestHeartbeat(TestCase):
       "componentName" : "DATANODE",
       'configurations':{'global' : {}}
     }
-    actionQueue.put(statusCommand)
-    actionQueue.start()
-    time.sleep(0.1)
-    actionQueue.stop()
-    actionQueue.join()
-    result = heartbeat.build(101)
-    self.assertEquals(len(result['componentStatus']) > 0, True, 'Heartbeat should contain status of HDFS components')
-
-  @patch.object(StackVersionsFileHandler, "read_stack_version")
-  def test_heartbeat_with_status_multiple(self, read_stack_version_method):
-    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
-    actionQueue.IDLE_SLEEP_TIME = 0.01
-    read_stack_version_method.return_value="1.3.0"
-    heartbeat = Heartbeat(actionQueue)
-    actionQueue.start()
-    max_number_of_status_entries = 0
-    for i in range(1,5):
-      statusCommand = {
-        "serviceName" : 'HDFS',
-        "commandType" : "STATUS_COMMAND",
-        "clusterName" : "",
-        "componentName" : "DATANODE",
-        'configurations':{'global' : {}}
-      }
-      actionQueue.put(statusCommand)
-      time.sleep(0.1)
-      result = heartbeat.build(101)
-      number_of_status_entries = len(result['componentStatus'])
-#      print "Heartbeat with status: " + str(result) + " XXX " + str(number_of_status_entries)
-      if max_number_of_status_entries < number_of_status_entries:
-        max_number_of_status_entries = number_of_status_entries
-    actionQueue.stop()
-    actionQueue.join()
-
-    NUMBER_OF_COMPONENTS = 1
-    self.assertEquals(max_number_of_status_entries == NUMBER_OF_COMPONENTS, True)
-
-  @patch.object(HostInfo, 'register')
-  def test_heartbeat_no_host_check_cmd_in_progress(self, register_mock):
-    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
-    actionQueue.commandInProgress= {
-      'role' : "role",
-      'actionId' : "actionId",
-      'taskId' : "taskId",
-      'stdout' : "stdout",
-      'clusterName' : "clusterName",
-      'stderr' : 'none',
-      'exitCode' : 777,
-      'serviceName' : "serviceName",
-      'status' : 'IN_PROGRESS',
-      'configurations':{'global' : {}},
-      'roleCommand' : 'START'
-    }
-    heartbeat = Heartbeat(actionQueue)
-    heartbeat.build(12, 6)
-    self.assertTrue(register_mock.called)
-    args, kwargs = register_mock.call_args_list[0]
-    self.assertTrue(args[2])
-    self.assertFalse(args[1])
-
-  @patch.object(HostInfo, 'register')
-  def test_heartbeat_no_host_check_cmd_in_queue(self, register_mock):
-    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
-    statusCommand = {
-      "serviceName" : 'HDFS',
-      "commandType" : "STATUS_COMMAND",
-      "clusterName" : "",
-      "componentName" : "DATANODE",
-      'configurations':{'global' : {}}
-    }
-    actionQueue.commandQueue.put(statusCommand)
+    actionQueue.put(list(statusCommand))
 
     heartbeat = Heartbeat(actionQueue)
     heartbeat.build(12, 6)
@@ -155,9 +208,11 @@ class TestHeartbeat(TestCase):
     self.assertTrue(args[2])
     self.assertFalse(args[1])
 
+
+  @patch.object(ActionDependencyManager, "read_dependencies")
   @patch.object(HostInfo, 'register')
-  def test_heartbeat_host_check_no_cmd(self, register_mock):
-    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
+  def test_heartbeat_host_check_no_cmd(self, register_mock, read_dependencies_mock):
+    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig(),'dummy_controller')
     heartbeat = Heartbeat(actionQueue)
     heartbeat.build(12, 6)
     self.assertTrue(register_mock.called)
@@ -165,36 +220,6 @@ class TestHeartbeat(TestCase):
     self.assertFalse(args[1])
     self.assertFalse(args[2])
 
-  def test_heartbeat_with_task_in_progress(self):
-    actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig())
-    actionQueue.commandInProgress= {
-      'role' : "role",
-      'actionId' : "actionId",
-      'taskId' : "taskId",
-      'stdout' : "stdout",
-      'clusterName' : "clusterName",
-      'stderr' : 'none',
-      'exitCode' : 777,
-      'serviceName' : "serviceName",
-      'status' : 'IN_PROGRESS',
-      'configurations':{'global' : {}},
-      'roleCommand' : 'START'
-    }
-    heartbeat = Heartbeat(actionQueue)
-    result = heartbeat.build(100)
-    #print "Heartbeat: " + str(result)
-    self.assertEquals(len(result['reports']), 1)
-    self.assertEquals(result['reports'][0]['role'], "role")
-    self.assertEquals(result['reports'][0]['actionId'], "actionId")
-    self.assertEquals(result['reports'][0]['taskId'], "taskId")
-    self.assertEquals(result['reports'][0]['stdout'], "...")
-    self.assertEquals(result['reports'][0]['clusterName'], "clusterName")
-    self.assertEquals(result['reports'][0]['stderr'], "...")
-    self.assertEquals(result['reports'][0]['exitCode'], 777)
-    self.assertEquals(result['reports'][0]['serviceName'], "serviceName")
-    self.assertEquals(result['reports'][0]['status'], "IN_PROGRESS")
-    self.assertEquals(result['reports'][0]['roleCommand'], "START")
-    pass
 
 if __name__ == "__main__":
   unittest.main(verbosity=2)

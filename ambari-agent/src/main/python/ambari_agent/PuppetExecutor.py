@@ -40,12 +40,7 @@ class PuppetExecutor:
   """ Class that executes the commands that come from the server using puppet.
   This is the class that provides the pluggable point for executing the puppet"""
 
-  # How many seconds will pass before running puppet is terminated on timeout
-  PUPPET_TIMEOUT_SECONDS = 600
   grep = Grep()
-  event = threading.Event()
-  last_puppet_has_been_killed = False
-
   NO_ERROR = "none"
 
   def __init__(self, puppetModule, puppetInstall, facterInstall, tmpDir, config):
@@ -56,7 +51,10 @@ class PuppetExecutor:
     self.reposInstalled = False
     self.config = config
     self.modulesdir = self.puppetModule + "/modules"
+    self.event = threading.Event()
+    self.last_puppet_has_been_killed = False
     self.sh = shellRunner()
+    self.puppet_timeout = config.get("puppet", "timeout_seconds")
 
   def configureEnviron(self, environ):
     if not self.config.has_option("puppet", "ruby_home"):
@@ -221,7 +219,8 @@ class PuppetExecutor:
       result["stderr"] = str(error)
     puppetOutput = open(tmpoutfile, 'r').read()
     logger.debug("Output from puppet :\n" + puppetOutput)
-    logger.info("Puppet exit code is " + str(returncode))
+    logger.info("Puppet execution process with pid %s exited with code %s." %
+                (str(puppet.pid), str(returncode)))
     if result.has_key("exitcode"):
       result["exitcode"] = max(returncode, result["exitcode"])
     else:
@@ -244,7 +243,7 @@ class PuppetExecutor:
       env=puppetEnv)
 
   def puppet_watchdog_func(self, puppet):
-    self.event.wait(self.PUPPET_TIMEOUT_SECONDS)
+    self.event.wait(float(self.puppet_timeout))
     if puppet.returncode is None:
       logger.error("Task timed out, killing process with PID: " + str(puppet.pid))
       shell.kill_process_with_children(puppet.pid)

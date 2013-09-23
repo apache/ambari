@@ -249,6 +249,22 @@ public class Configuration {
     "AMBARI_SECURITY_MASTER_KEY";
   public static final String MASTER_KEY_FILENAME_DEFAULT = "master";
 
+  /**
+   * File role_command_order.json
+   */
+  public static final String RCO_FILE_LOCATION_KEY = "server.rco.file";
+
+  /**
+   * Location of role_command_order.json in production system
+   */
+  public static final String RCO_FILE_LOCATION_DEFAULT = "/var/lib/ambari-server/" +
+          "resources/role_command_order.json".replace("/", File.separator);
+  /**
+   * Location of role_command_order.json when tests are running
+   */
+  public static final String RCO_FILE_LOCATION_TEST = "../ambari-common/src/" +
+          "main/resources/role_command_order.json".replace("/", File.separator);
+
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
 
@@ -265,9 +281,10 @@ public class Configuration {
   }
 
   /**
-   * For Testing only. This is to be able to create Configuration object
-   * for testing.
-   * @param properties properties to use for testing using the Conf object.
+   * This constructor is called from default constructor and
+   * also from most tests.
+   * @param properties properties to use for testing and in production using
+   * the Conf object.
    */
   public Configuration(Properties properties) {
     this.properties = properties;
@@ -314,6 +331,9 @@ public class Configuration {
       CLIENT_API_SSL_CRT_NAME_KEY, CLIENT_API_SSL_CRT_NAME_DEFAULT));
     configsMap.put(JAVA_HOME_KEY, properties.getProperty(
         JAVA_HOME_KEY, JAVA_HOME_DEFAULT));
+
+    configsMap.put(RCO_FILE_LOCATION_KEY, properties.getProperty(
+            RCO_FILE_LOCATION_KEY, RCO_FILE_LOCATION_DEFAULT));
 
     File passFile = new File(configsMap.get(SRVR_KSTR_DIR_KEY) + File.separator
         + configsMap.get(SRVR_CRT_PASS_FILE_KEY));
@@ -450,18 +470,12 @@ public class Configuration {
   }
 
   public File getBootStrapDir() {
-    String fileName = properties.getProperty(BOOTSTRAP_DIR);
-    if (fileName == null) {
-      fileName = BOOTSTRAP_DIR_DEFAULT;
-    }
+    String fileName = properties.getProperty(BOOTSTRAP_DIR, BOOTSTRAP_DIR_DEFAULT);
     return new File(fileName);
   }
 
   public String getBootStrapScript() {
-    String bootscript = properties.getProperty(BOOTSTRAP_SCRIPT);
-    if (bootscript == null) {
-      return BOOTSTRAP_SCRIPT_DEFAULT;
-    }
+    String bootscript = properties.getProperty(BOOTSTRAP_SCRIPT, BOOTSTRAP_SCRIPT_DEFAULT);
     return bootscript;
   }
 
@@ -730,15 +744,15 @@ public class Configuration {
   }
 
   public String getOjdbcJarName() {
-	  return properties.getProperty(OJDBC_JAR_NAME_KEY, OJDBC_JAR_NAME_DEFAULT);
+	return properties.getProperty(OJDBC_JAR_NAME_KEY, OJDBC_JAR_NAME_DEFAULT);
   }
   
   public String getServerDBName() {
-	  return properties.getProperty(SERVER_DB_NAME_KEY, SERVER_DB_NAME_DEFAULT);
+	return properties.getProperty(SERVER_DB_NAME_KEY, SERVER_DB_NAME_DEFAULT);
   }
   
   public String getMySQLJarName() {
-	  return properties.getProperty(MYSQL_JAR_NAME_KEY, MYSQL_JAR_NAME_DEFAULT);
+	return properties.getProperty(MYSQL_JAR_NAME_KEY, MYSQL_JAR_NAME_DEFAULT);
   }
   
   public JPATableGenerationStrategy getJPATableGenerationStrategy() {

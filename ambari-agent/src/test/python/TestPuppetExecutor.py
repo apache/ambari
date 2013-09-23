@@ -46,7 +46,8 @@ class TestPuppetExecutor(TestCase):
     
   @patch.object(shellRunner,'run')
   def test_isJavaAvailable(self, cmdrun_mock):
-    puppetInstance = PuppetExecutor("/tmp", "/x", "/y", '/tmpdir', None)
+    puppetInstance = PuppetExecutor("/tmp", "/x", "/y", '/tmpdir',
+                                    AmbariConfig().getConfig())
     command = {'configurations':{'global':{'java64_home':'/usr/jdk/jdk123'}}}
     
     cmdrun_mock.return_value = {'exitCode': 1, 'output': 'Command not found', 'error': ''}
@@ -213,15 +214,16 @@ class TestPuppetExecutor(TestCase):
     Tests whether watchdog works
     """
     subproc_mock = self.Subprocess_mockup()
+    config = AmbariConfig().getConfig()
+    config.set('puppet','timeout_seconds',"0.1")
     executor_mock = self.PuppetExecutor_mock("/home/centos/ambari_repo_info/ambari-agent/src/main/puppet/",
       "/usr/",
       "/root/workspace/puppet-install/facter-1.6.10/",
-      "/tmp", AmbariConfig().getConfig(), subproc_mock)
+      "/tmp", config, subproc_mock)
     _, tmpoutfile = tempfile.mkstemp()
     _, tmperrfile = tempfile.mkstemp()
     result = {  }
     puppetEnv = { "RUBYLIB" : ""}
-    executor_mock.PUPPET_TIMEOUT_SECONDS = 0.1
     kill_process_with_children_mock.side_effect = lambda pid : subproc_mock.terminate()
     subproc_mock.returncode = None
     thread = Thread(target =  executor_mock.runPuppetFile, args = ("fake_puppetFile", result, puppetEnv, tmpoutfile, tmperrfile))
@@ -236,15 +238,16 @@ class TestPuppetExecutor(TestCase):
     Tries to catch false positive watchdog invocations
     """
     subproc_mock = self.Subprocess_mockup()
+    config = AmbariConfig().getConfig()
+    config.set('puppet','timeout_seconds',"5")
     executor_mock = self.PuppetExecutor_mock("/home/centos/ambari_repo_info/ambari-agent/src/main/puppet/",
     "/usr/",
     "/root/workspace/puppet-install/facter-1.6.10/",
-    "/tmp", AmbariConfig().getConfig(), subproc_mock)
+    "/tmp", config, subproc_mock)
     _, tmpoutfile = tempfile.mkstemp()
     _, tmperrfile = tempfile.mkstemp()
     result = {  }
     puppetEnv = { "RUBYLIB" : ""}
-    executor_mock.PUPPET_TIMEOUT_SECONDS = 5
     subproc_mock.returncode = 0
     thread = Thread(target =  executor_mock.runPuppetFile, args = ("fake_puppetFile", result, puppetEnv, tmpoutfile, tmperrfile))
     thread.start()

@@ -45,6 +45,7 @@ upgradeScriptsDir=/var/lib/ambari-agent/upgrade_stack
 puppetmodules=/var/lib/ambari-agent/puppet/
 puppet_home=/root/workspace/puppet-install/puppet-2.7.9
 facter_home=/root/workspace/puppet-install/facter-1.6.10
+timeout_seconds = 600
 
 [command]
 maxretries=2

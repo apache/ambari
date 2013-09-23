@@ -150,7 +150,7 @@ public class TestStagePlanner {
 
   @Test
   public void testSingleStagePlan() {
-    RoleCommandOrder rco = new RoleCommandOrder();
+    RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
     ClusterEntity entity = createDummyData();
     ClusterImpl cluster = new ClusterImpl(entity, injector);
     rco.initialize(cluster);
@@ -170,7 +170,7 @@ public class TestStagePlanner {
 
   @Test
   public void testMultiStagePlan() {
-    RoleCommandOrder rco = new RoleCommandOrder();
+    RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
     ClusterEntity entity = createDummyData();
     ClusterImpl cluster = new ClusterImpl(entity, injector);
     rco.initialize(cluster);
@@ -196,7 +196,7 @@ public class TestStagePlanner {
 
   @Test
   public void testManyStages() {
-    RoleCommandOrder rco = new RoleCommandOrder();
+    RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
     ClusterEntity entity = createDummyData();
     ClusterImpl cluster = new ClusterImpl(entity, injector);
     rco.initialize(cluster);

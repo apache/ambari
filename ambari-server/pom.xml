@@ -331,6 +331,10 @@
                  <source>
                   <location>src/main/resources/hive-schema-0.10.0.oracle.sql</location>
                 </source>
+                <source>
+                  <!-- This file is also included into agent rpm-->
+                  <location>../ambari-common/src/main/resources/role_command_order.json</location>
+                </source>
               </sources>
             </mapping>
             <mapping>

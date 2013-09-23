@@ -25,7 +25,7 @@ class NetUtil:
 
   CONNECT_SERVER_RETRY_INTERVAL_SEC = 10
   HEARTBEAT_IDDLE_INTERVAL_SEC = 10
-  HEARTBEAT_NOT_IDDLE_INTERVAL_SEC = 5
+  MINIMUM_INTERVAL_BETWEEN_HEARTBEATS = 0.1
 
   # Url within server to request during status check. This url
   # should return HTTP code 200

@@ -328,6 +328,10 @@
                   <location>../version</location>
                   <filter>true</filter>
                 </source>
+                <!--<source>-->
+                  <!--&lt;!&ndash; This file is also included into server rpm&ndash;&gt;-->
+                  <!--<location>../ambari-common/src/main/resources/role_command_order.json</location>-->
+                <!--</source>-->
               </sources>
             </mapping>
             <!-- -->

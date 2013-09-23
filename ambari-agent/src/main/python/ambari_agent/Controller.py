@@ -60,6 +60,9 @@ class Controller(threading.Thread):
     self.cachedconnect = None
     self.range = range
     self.hasMappedComponents = True
+    # Event is used for synchronizing heartbeat iterations (to make possible
+    # manual wait() interruption between heartbeats )
+    self.heartbeat_wait_event = threading.Event()
 
   def __del__(self):
     logger.info("Server connection disconnected.")
@@ -112,12 +115,7 @@ class Controller(threading.Thread):
       logger.debug("No commands from the server : " + pprint.pformat(commands))
     else:
       """Only add to the queue if not empty list """
-      for command in commands:
-        logger.debug("Adding command to the action queue: \n" +\
-                     pprint.pformat(command))
-        self.actionQueue.put(command)
-        pass
-      pass
+      self.actionQueue.put(commands)
     pass
 
   # For testing purposes
@@ -188,6 +186,7 @@ class Controller(threading.Thread):
         certVerifFailed = False
         self.DEBUG_SUCCESSFULL_HEARTBEATS += 1
         self.DEBUG_HEARTBEAT_RETRIES = 0
+        self.heartbeat_wait_event.clear()
       except ssl.SSLError:
         self.repeatRegistration=False
         return
@@ -207,14 +206,17 @@ class Controller(threading.Thread):
             certVerifFailed = True
         self.cachedconnect = None # Previous connection is broken now
         retry=True
-      if self.actionQueue.isIdle():
-        time.sleep(self.netutil.HEARTBEAT_IDDLE_INTERVAL_SEC)
-      else:
-        time.sleep(self.netutil.HEARTBEAT_NOT_IDDLE_INTERVAL_SEC)
+      # Sleep for some time
+      timeout = self.netutil.HEARTBEAT_IDDLE_INTERVAL_SEC \
+                - self.netutil.MINIMUM_INTERVAL_BETWEEN_HEARTBEATS
+      self.heartbeat_wait_event.wait(timeout = timeout)
+      # Sleep a bit more to allow STATUS_COMMAND results to be collected
+      # and sent in one heartbeat. Also avoid server overload with heartbeats
+      time.sleep(self.netutil.MINIMUM_INTERVAL_BETWEEN_HEARTBEATS)
     pass
 
   def run(self):
-    self.actionQueue = ActionQueue(self.config)
+    self.actionQueue = ActionQueue(self.config, controller=self)
     self.actionQueue.start()
     self.register = Register(self.config)
     self.heartbeat = Heartbeat(self.actionQueue, self.config)
