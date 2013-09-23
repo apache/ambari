@@ -30,11 +30,6 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   isRollback: true,
   hostsToPerformDel: [],
 
-
-  content: Em.Object.create({
-    masterComponentHosts: null
-  }),
-
   commands: [
     'stopAllServices',
     'restoreHBaseConfigs',
