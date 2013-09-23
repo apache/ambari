@@ -29,11 +29,21 @@ import org.codehaus.jackson.map.annotate.JsonFilter;
 @JsonFilter("propertiesfilter")
 public class ServiceInfo {
   private String name;
-    private String version;
-    private String user;
-    private String comment;
+  private String version;
+  private String user;
+  private String comment;
   private List<PropertyInfo> properties;
   private List<ComponentInfo> components;
+  private Boolean isDeleted = false;
+
+  public Boolean isDeleted() {
+    return isDeleted;
+  }
+
+  public void setDeleted(String deleted) {
+    isDeleted = Boolean.valueOf(deleted != null && !deleted.isEmpty() ?
+      deleted : "false");
+  }
 
   public String getName() {
     return name;

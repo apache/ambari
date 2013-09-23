@@ -23,6 +23,7 @@ import org.apache.ambari.server.controller.StackServiceComponentResponse;
 public class ComponentInfo {
   private String name;
   private String category;
+  private boolean isDeleted;
 
   public String getName() {
     return name;
@@ -52,4 +53,12 @@ public class ComponentInfo {
     return new StackServiceComponentResponse(getName(), getCategory(), isClient(), isMaster());
   }
 
+  public boolean isDeleted() {
+    return isDeleted;
+  }
+
+  public void setDeleted(String deleted) {
+    isDeleted = Boolean.valueOf(deleted != null && !deleted.isEmpty() ?
+      deleted : "false");
+  }
 }

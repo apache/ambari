@@ -28,12 +28,14 @@ public class StackVersionResponse {
   private String minUpgradeVersion;
   private boolean active;
   private List<RepositoryInfo> repositories;
+  private String parentVersion;
 
   public StackVersionResponse(String stackVersion, String minUpgradeVersion,
-                              boolean active) {
+                              boolean active, String parentVersion) {
     setStackVersion(stackVersion);
     setMinUpgradeVersion(minUpgradeVersion);
     setActive(active);
+    setParentVersion(parentVersion);
   }
 
   public String getStackVersion() {
@@ -66,5 +68,13 @@ public class StackVersionResponse {
 
   public void setActive(boolean active) {
     this.active = active;
+  }
+
+  public String getParentVersion() {
+    return parentVersion;
+  }
+
+  public void setParentVersion(String parentVersion) {
+    this.parentVersion = parentVersion;
   }
 }

@@ -18,24 +18,10 @@
 
 package org.apache.ambari.server.api.services;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import junit.framework.Assert;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
+import org.apache.ambari.server.api.util.StackExtensionHelper;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.PropertyInfo;
@@ -50,11 +36,28 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.io.File;
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Set;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class AmbariMetaInfoTest {
 
   private static String STACK_NAME_HDP = "HDP";
   private static String STACK_VERSION_HDP = "0.1";
+  private static String EXT_STACK_NAME = "2.0.6";
   private static final String STACK_MINIMAL_VERSION_HDP = "0.0";
   private static String SERVICE_NAME_HDFS = "HDFS";
   private static String SERVICE_COMPONENT_NAME = "NAMENODE";
@@ -81,7 +84,7 @@ public class AmbariMetaInfoTest {
   @Before
   public void before() throws Exception {
     File stackRoot = new File("src/test/resources/stacks");
-   LOG.info("Stacks file " + stackRoot.getAbsolutePath());
+    LOG.info("Stacks file " + stackRoot.getAbsolutePath());
     metaInfo = new AmbariMetaInfo(stackRoot, new File("target/version"));
     try {
       metaInfo.init();
@@ -428,5 +431,163 @@ public class AmbariMetaInfoTest {
     Assert.assertTrue(metaInfo.isOsSupported("sles11"));
     Assert.assertFalse(metaInfo.isOsSupported("windows"));
   }
-  
+
+  @Test
+  public void testExtendedStackDefinition() throws Exception {
+    StackInfo stackInfo = metaInfo.getStackInfo(STACK_NAME_HDP, EXT_STACK_NAME);
+    Assert.assertTrue(stackInfo != null);
+    List<ServiceInfo> serviceInfos = stackInfo.getServices();
+    Assert.assertFalse(serviceInfos.isEmpty());
+    Assert.assertTrue(serviceInfos.size() > 1);
+    ServiceInfo deletedService = null;
+    ServiceInfo redefinedService = null;
+    for (ServiceInfo serviceInfo : serviceInfos) {
+      if (serviceInfo.getName().equals("SQOOP")) {
+        deletedService = serviceInfo;
+      }
+      if (serviceInfo.getName().equals("YARN")) {
+        redefinedService = serviceInfo;
+      }
+    }
+    Assert.assertNull("SQOOP is a deleted service, should not be a part of " +
+      "the extended stack.", deletedService);
+    Assert.assertNotNull(redefinedService);
+    // Components
+    Assert.assertEquals("YARN service is expected to be defined with 3 active" +
+      " components.", 3, redefinedService.getComponents().size());
+    Assert.assertEquals("TEZ is expected to be a part of extended stack " +
+      "definition", "TEZ", redefinedService.getClientComponent().getName());
+    Assert.assertFalse("YARN CLIENT is a deleted component.",
+      redefinedService.getClientComponent().getName().equals("YARN_CLIENT"));
+    // Properties
+    Assert.assertNotNull(redefinedService.getProperties());
+    Assert.assertTrue(redefinedService.getProperties().size() > 4);
+    PropertyInfo deleteProperty1 = null;
+    PropertyInfo deleteProperty2 = null;
+    PropertyInfo redefinedProperty1 = null;
+    PropertyInfo redefinedProperty2 = null;
+    PropertyInfo inheritedProperty = null;
+    PropertyInfo newProperty = null;
+    PropertyInfo originalProperty = null;
+
+    for (PropertyInfo propertyInfo : redefinedService.getProperties()) {
+      if (propertyInfo.getName().equals("yarn.resourcemanager" +
+        ".resource-tracker.address")) {
+        deleteProperty1 = propertyInfo;
+      } else if (propertyInfo.getName().equals("yarn.resourcemanager" +
+        ".scheduler.address")) {
+        deleteProperty2 = propertyInfo;
+      } else if (propertyInfo.getName().equals("yarn.resourcemanager" +
+        ".address")) {
+        redefinedProperty1 = propertyInfo;
+      } else if (propertyInfo.getName().equals("yarn.resourcemanager.admin" +
+        ".address")) {
+        redefinedProperty2 = propertyInfo;
+      } else if (propertyInfo.getName().equals("yarn.nodemanager.address")) {
+        inheritedProperty = propertyInfo;
+      } else if (propertyInfo.getName().equals("new-yarn-property")) {
+        newProperty = propertyInfo;
+      } else if (propertyInfo.getName().equals("yarn.nodemanager.aux-services")) {
+        originalProperty = propertyInfo;
+      }
+    }
+
+    Assert.assertNull(deleteProperty1);
+    Assert.assertNull(deleteProperty2);
+    Assert.assertNotNull(redefinedProperty1);
+    Assert.assertNotNull(redefinedProperty2);
+    Assert.assertNotNull("yarn.nodemanager.address expected to be inherited " +
+      "from parent", inheritedProperty);
+    Assert.assertEquals("localhost:100009", redefinedProperty1.getValue());
+    // Parent property value will result in property being present in the
+    // child stack
+    Assert.assertEquals("localhost:8141", redefinedProperty2.getValue());
+    // New property
+    Assert.assertNotNull(newProperty);
+    Assert.assertEquals("some-value", newProperty.getValue());
+    Assert.assertEquals("some description.", newProperty.getDescription());
+    Assert.assertEquals("yarn-site.xml", newProperty.getFilename());
+    // Original property
+    Assert.assertNotNull(originalProperty);
+    Assert.assertEquals("mapreduce.shuffle", originalProperty.getValue());
+    Assert.assertEquals("Auxilliary services of NodeManager",
+      originalProperty.getDescription());
+  }
+
+  @Test
+  public void testGetParentStacksInOrder() throws Exception {
+    List<StackInfo> allStacks = metaInfo.getSupportedStacks();
+    StackInfo stackInfo = metaInfo.getStackInfo(STACK_NAME_HDP, EXT_STACK_NAME);
+    StackInfo newStack = new StackInfo();
+    newStack.setName(STACK_NAME_HDP);
+    newStack.setVersion("2.0.99");
+    newStack.setParentStackVersion(EXT_STACK_NAME);
+    newStack.setActive(true);
+    newStack.setRepositories(stackInfo.getRepositories());
+    allStacks.add(newStack);
+
+    Method method = StackExtensionHelper.class.getDeclaredMethod
+      ("getParentStacksInOrder", Collection.class);
+    method.setAccessible(true);
+    StackExtensionHelper helper = new StackExtensionHelper(metaInfo.getStackRoot());
+    Map<String, List<StackInfo>> stacks = (Map<String, List<StackInfo>>)
+      method.invoke(helper, allStacks);
+
+    Assert.assertNotNull(stacks.get("2.0.99"));
+    // Verify order
+    LinkedList<String> target = new LinkedList<String>();
+    target.add("2.0.5");
+    target.add("2.0.6");
+    target.add("2.0.99");
+    LinkedList<String> actual = new LinkedList<String>();
+    LinkedList<StackInfo> parents = (LinkedList<StackInfo>) stacks.get("2.0.99");
+    parents.addFirst(newStack);
+    ListIterator lt = parents.listIterator(parents.size());
+    while (lt.hasPrevious()) {
+      StackInfo stack = (StackInfo) lt.previous();
+      actual.add(stack.getVersion());
+    }
+    org.junit.Assert.assertArrayEquals("Order of stack extension not " +
+      "preserved.", target.toArray(), actual.toArray());
+  }
+
+  @Test
+  public void testGetApplicableServices() throws Exception {
+    StackExtensionHelper helper = new StackExtensionHelper(
+      metaInfo.getStackRoot());
+    List<ServiceInfo> allServices = helper.getAllApplicableServices(metaInfo
+      .getStackInfo(STACK_NAME_HDP, EXT_STACK_NAME));
+
+    ServiceInfo testService = null;
+    ServiceInfo existingService = null;
+    for (ServiceInfo serviceInfo : allServices) {
+      if (serviceInfo.getName().equals("YARN")) {
+        testService = serviceInfo;
+      } else if (serviceInfo.getName().equals("MAPREDUCE2")) {
+        existingService = serviceInfo;
+      }
+    }
+
+    Assert.assertNotNull(testService);
+    Assert.assertNotNull(existingService);
+
+    PropertyInfo testProperty = null;
+    PropertyInfo existingProperty = null;
+    for (PropertyInfo property : testService.getProperties()) {
+      if (property.getName().equals("new-yarn-property")) {
+        testProperty = property;
+      }
+    }
+    for (PropertyInfo property : existingService.getProperties()) {
+      if (property.getName().equals("mapreduce.map.log.level")) {
+        existingProperty = property;
+      }
+    }
+
+    Assert.assertNotNull(testProperty);
+    Assert.assertEquals("some-value", testProperty.getValue());
+    Assert.assertNotNull(existingProperty);
+    Assert.assertEquals("INFO", existingProperty.getValue());
+  }
+
 }

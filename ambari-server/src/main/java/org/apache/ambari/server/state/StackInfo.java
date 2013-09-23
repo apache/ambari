@@ -30,6 +30,7 @@ public class StackInfo {
   private boolean active;
   private List<RepositoryInfo> repositories;
   private List<ServiceInfo> services;
+  private String parentStackVersion;
 
   public String getName() {
     return name;
@@ -108,7 +109,8 @@ public class StackInfo {
 
   public StackVersionResponse convertToResponse() {
 
-    return new StackVersionResponse(getVersion(), getMinUpgradeVersion(), isActive());
+    return new StackVersionResponse(getVersion(), getMinUpgradeVersion(),
+      isActive(), getParentStackVersion());
   }
 
   public String getMinUpgradeVersion() {
@@ -125,5 +127,13 @@ public class StackInfo {
 
   public void setActive(boolean active) {
     this.active = active;
+  }
+
+  public String getParentStackVersion() {
+    return parentStackVersion;
+  }
+
+  public void setParentStackVersion(String parentStackVersion) {
+    this.parentStackVersion = parentStackVersion;
   }
 }

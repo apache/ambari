@@ -119,6 +119,7 @@
         "Versions/stack_version",
         "Versions/min_upgrade_version",
         "Versions/active",
+        "Versions/parent_stack_version",
         "_"
     ],
     "OperatingSystem":[

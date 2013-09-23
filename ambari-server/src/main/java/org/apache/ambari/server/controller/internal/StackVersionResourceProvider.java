@@ -64,6 +64,8 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
       Arrays.asList(new String[] { STACK_NAME_PROPERTY_ID,
           STACK_VERSION_PROPERTY_ID }));
 
+  private static final String STACK_PARENT_PROPERTY_ID = PropertyHelper
+    .getPropertyId("Versions", "parent_stack_version");
 
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate)
@@ -98,6 +100,9 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
 
       setResourceProperty(resource, STACK_ACTIVE_PROPERTY_ID,
           response.isActive(), requestedIds);
+
+      setResourceProperty(resource, STACK_PARENT_PROPERTY_ID,
+        response.getParentVersion(), requestedIds);
 
       resources.add(resource);
     }
