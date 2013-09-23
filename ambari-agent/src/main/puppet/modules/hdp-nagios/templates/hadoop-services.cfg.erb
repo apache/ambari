@@ -499,7 +499,7 @@ define service {
 define service {
         hostgroup_name          nagios-server
         use                     hadoop-service
-        service_description     NODEMANAGER::Percent NodeManager process
+        service_description     NODEMANAGER::Percent NodeManagers live
         servicegroups           YARN
         check_command           check_aggregate!"NODEMANAGER::NodeManager process"!10%!30%
         normal_check_interval   0.5
