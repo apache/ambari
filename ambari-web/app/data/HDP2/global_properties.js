@@ -629,7 +629,7 @@ module.exports =
     {
       "id": "puppet var",
       "name": "yarn_heapsize",
-      "displayName": "Yarn Java heap size",
+      "displayName": "YARN Java heap size",
       "description": "Max heapsize for all YARN components",
       "defaultValue": "1024",
       "isOverridable": false,
