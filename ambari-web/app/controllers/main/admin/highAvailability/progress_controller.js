@@ -70,9 +70,11 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
 
   loadTasks: function () {
     var loadedStauses = this.get('content.tasksStatuses');
-    if (loadedStauses && loadedStauses.length === this.get('tasks').length) {
+    var loadedLogs = this.get('content.logs');
+    if (loadedStauses && loadedLogs && loadedStauses.length === this.get('tasks').length) {
       for (var i = 0; i < loadedStauses.length; i++) {
         this.setTaskStatus(i, loadedStauses[i]);
+        this.restoreTaskLog(i, loadedLogs[i]);
       }
       if (loadedStauses.contains('IN_PROGRESS')) {
         this.set('currentRequestIds', this.get('content.requestIds'));
@@ -84,6 +86,10 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
 
   setTaskStatus: function (taskId, status) {
     this.get('tasks').findProperty('id', taskId).set('status', status);
+  },
+
+  restoreTaskLog: function (taskId, log) {
+    this.get('tasks').findProperty('id', taskId).set('hosts', log);
   },
 
   setTaskLogs: function (taskId, tasks) {
@@ -134,24 +140,25 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
       var nextTask = this.get('tasks').findProperty('status', 'PENDING');
       if (nextTask) {
         this.set('status', 'IN_PROGRESS');
+        this.runTask(nextTask.get('id'));
         this.setTaskStatus(nextTask.get('id'), 'QUEUED');
         this.set('currentTaskId', nextTask.get('id'));
-        this.runTask(nextTask.get('id'));
       } else {
         this.set('status', 'COMPLETED');
         this.set('isSubmitDisabled', false);
       }
     } else if (this.get('tasks').someProperty('status', 'FAILED')) {
-      console.warn('onTaskStatusChange4');
       this.set('status', 'FAILED');
       this.get('tasks').findProperty('status', 'FAILED').set('showRetry', true);
       this.get('tasks').findProperty('status', 'FAILED').set('showRollback', true);
     }
 
     var statuses = this.get('tasks').mapProperty('status');
+    var logs = this.get('tasks').mapProperty('hosts');
     var requestIds = this.get('currentRequestIds');
     App.router.get(this.get('content.controllerName')).saveTasksStatuses(statuses);
     App.router.get(this.get('content.controllerName')).saveRequestIds(requestIds);
+    App.router.get(this.get('content.controllerName')).saveLogs(logs);
     App.clusterStatus.setClusterStatus({
       clusterName: this.get('content.cluster.name'),
       clusterState: 'HIGH_AVAILABILITY_DEPLOY',
@@ -285,6 +292,7 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
       }, this);
       var self = this;
       var currentTaskId = this.get('currentTaskId');
+      this.setTaskLogs(currentTaskId, tasks);
       if (!tasks.someProperty('Tasks.status', 'PENDING') && !tasks.someProperty('Tasks.status', 'QUEUED') && !tasks.someProperty('Tasks.status', 'IN_PROGRESS')) {
         this.set('currentRequestIds', []);
         if (tasks.someProperty('Tasks.status', 'FAILED')  || tasks.someProperty('status', 'TIMEDOUT') || tasks.someProperty('status', 'ABORTED')) {
@@ -306,7 +314,6 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
           self.doPolling()
         }, self.POLL_INTERVAL);
       }
-      this.setTaskLogs(currentTaskId, tasks);
       this.set('logs', []);
     }
   },

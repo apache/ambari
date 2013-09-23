@@ -678,9 +678,9 @@ module.exports = Em.Route.extend({
             highAvailabilityWizardController.finish();
             highAvailabilityWizardController.get('popup').hide();
           }
-            highAvailabilityRollbackController =  router.get('highAvailabilityRollbackController')
-            highAvailabilityRollbackController.loadTasksStatuses();
-            highAvailabilityRollbackController.loadRequestIds();
+          highAvailabilityWizardController.loadTasksStatuses();
+          highAvailabilityWizardController.loadRequestIds();
+          highAvailabilityWizardController.loadLogs();
           var popup = App.ModalPopup.show({
             classNames: ['full-width-modal'],
             header: Em.I18n.t('admin.highAvailability.rollback.header'),

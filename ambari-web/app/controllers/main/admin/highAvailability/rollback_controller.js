@@ -128,23 +128,25 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
       var nextTask = this.get('tasks').findProperty('status', 'PENDING');
       if (nextTask) {
         this.set('status', 'IN_PROGRESS');
+        this.runTask(nextTask.get('id'));
         this.setTaskStatus(nextTask.get('id'), 'QUEUED');
         this.set('currentTaskId', nextTask.get('id'));
-        this.runTask(nextTask.get('id'));
       } else {
         this.set('status', 'COMPLETED');
         this.set('isSubmitDisabled', false);
       }
-    } else if (this.get('tasks').someProperty('status', 'FAILED') || this.get('tasks').someProperty('status', 'TIMEDOUT') || this.get('tasks').someProperty('status', 'ABORTED')) {
+    } else if (this.get('tasks').someProperty('status', 'FAILED')) {
       this.set('status', 'FAILED');
       this.get('tasks').findProperty('status', 'FAILED').set('showRetry', true);
       this.get('tasks').findProperty('status', 'FAILED').set('showSkip', true);
     }
 
     var statuses = this.get('tasks').mapProperty('status');
+    var logs = this.get('tasks').mapProperty('hosts');
     var requestIds = this.get('currentRequestIds');
     this.saveTasksStatuses(statuses);
     this.saveRequestIds(requestIds);
+    this.saveLogs(logs);
     App.clusterStatus.setClusterStatus({
       clusterName: this.get('content.cluster.name'),
       clusterState: 'HIGH_AVAILABILITY_ROLLBACK',
@@ -171,29 +173,9 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
     return this.get('tasks').findProperty('id', taskId).get('status');
   },
 
-  saveTasksStatuses: function(statuses){
-    App.db.setHighAvailabilityWizardTasksStatuses(statuses);
-    this.set('content.tasksStatuses', statuses);
-  },
-
-  loadTasksStatuses: function(){
-    var statuses = App.db.getHighAvailabilityWizardTasksStatuses();
-    this.set('content.tasksStatuses', statuses);
-  },
-
   loadFailedTask: function(){
     var failedTask = App.db.getHighAvailabilityWizardFailedTask();
     this.set('failedTask', failedTask);
-  },
-
-  saveRequestIds: function(requestIds){
-    App.db.setHighAvailabilityWizardRequestIds(requestIds);
-    this.set('content.requestIds', requestIds);
-  },
-
-  loadRequestIds: function(){
-    var requestIds = App.db.getHighAvailabilityWizardRequestIds();
-    this.set('content.requestIds', requestIds);
   },
 
   done: function () {
