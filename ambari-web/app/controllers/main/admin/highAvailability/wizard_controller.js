@@ -197,9 +197,19 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
     this.set('content.requestIds', requestIds);
   },
 
+  saveLogs: function(logs){
+    App.db.setHighAvailabilityWizardLogs(logs);
+    this.set('content.logs', logs);
+  },
+
   loadRequestIds: function(){
     var requestIds = App.db.getHighAvailabilityWizardRequestIds();
     this.set('content.requestIds', requestIds);
+  },
+
+  loadLogs: function(){
+    var logs = App.db.getHighAvailabilityWizardLogs();
+    this.set('content.logs', logs);
   },
 
   saveNameServiceId: function(nameServiceId){
@@ -226,6 +236,7 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
         this.loadNameServiceId();
         this.loadTasksStatuses();
         this.loadRequestIds();
+        this.loadLogs();
       case '4':
       case '3':
       case '2':
