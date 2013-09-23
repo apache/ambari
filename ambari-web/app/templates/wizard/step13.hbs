@@ -15,38 +15,4 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div id="step13">
-  <div {{bindAttr class="view.statusClass :alert"}}>
-    <p>{{view.statusMessage}}</p>
-    {{#if controller.showRetry}}
-    <p>{{t installer.step13.retry}}</p>
-      <a {{action retry target="controller"}} class="btn btn-primary">
-        <i class="icon-repeat icon-white"></i>
-        {{t common.retry}}
-      </a>
-      <a {{action abort target="controller"}} class="btn btn-warning">
-        <i class="icon-remove icon-white"></i>
-        {{t common.abort}}
-      </a>
-    {{/if}}
-  </div>
-    {{#each task in view.tasks}}
-      {{#view view.taskView contentBinding="task"}}
-        <div class="item">
-          <i {{bindAttr class="view.icon view.iconColor"}}></i>
-          <a href="javascript:void(0)">{{task.message}}</a>
-        </div>
-        <div {{bindAttr class="view.inProgress::hide :row :span12" }}>
-          <div class="progress-bar span4">
-            <div class="progress-striped active progress-info progress">
-              <div class="bar" {{bindAttr style="view.barWidth"}}></div>
-            </div>
-          </div>
-          <div class="span1">{{task.progress}}&#37;</div>
-        </div>
-      {{/view}}
-    {{/each}}
-  </div>
-  <div class="btn-area">
-    <a class="btn btn-success pull-right" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action complete}}>{{t common.complete}} &rarr;</a>
-</div>
+{{template "templates/main/admin/highAvailability/progress"}}

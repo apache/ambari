@@ -23,6 +23,7 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
   name: 'highAvailabilityProgressPageController',
 
   status: 'IN_PROGRESS',
+  clusterDeployState: 'HIGH_AVAILABILITY_DEPLOY',
   tasks: [],
   commands: [],
   currentRequestIds: [],
@@ -35,6 +36,7 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
 
   loadStep: function () {
     this.clearStep();
+    this.initializeTasks();
     this.loadTasks();
     this.addObserver('tasks.@each.status', this, 'onTaskStatusChange');
     this.onTaskStatusChange();
@@ -45,6 +47,9 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
     this.set('tasks', []);
     this.set('logs', []);
     this.set('currentRequestIds', []);
+  },
+
+  initializeTasks: function() {
     var commands = this.get('commands');
     var currentStep = App.router.get('highAvailabilityWizardController.currentStep');
     for (var i = 0; i < commands.length; i++) {
@@ -53,7 +58,7 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
         status: 'PENDING',
         id: i,
         command: commands[i],
-        showRetry: false,        
+        showRetry: false,
         showRollback: false,
         name: Em.I18n.t('admin.highAvailability.wizard.step' + currentStep + '.task' + i + '.title'),
         displayName: Em.I18n.t('admin.highAvailability.wizard.step' + currentStep + '.task' + i + '.title'),
@@ -140,9 +145,9 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
       var nextTask = this.get('tasks').findProperty('status', 'PENDING');
       if (nextTask) {
         this.set('status', 'IN_PROGRESS');
-        this.runTask(nextTask.get('id'));
         this.setTaskStatus(nextTask.get('id'), 'QUEUED');
         this.set('currentTaskId', nextTask.get('id'));
+        this.runTask(nextTask.get('id'));
       } else {
         this.set('status', 'COMPLETED');
         this.set('isSubmitDisabled', false);
@@ -161,7 +166,7 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
     App.router.get(this.get('content.controllerName')).saveLogs(logs);
     App.clusterStatus.setClusterStatus({
       clusterName: this.get('content.cluster.name'),
-      clusterState: 'HIGH_AVAILABILITY_DEPLOY',
+      clusterState: this.get('clusterDeployState'),
       wizardControllerName: this.get('content.controllerName'),
       localdb: App.db.data
     });

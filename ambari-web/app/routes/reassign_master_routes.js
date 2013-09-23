@@ -24,7 +24,7 @@ module.exports = Em.Route.extend({
       Em.run.next(function () {
         var reassignMasterController = router.get('reassignMasterController');
         App.router.get('updateController').set('isWorking', false);
-        App.ModalPopup.show({
+        var popup = App.ModalPopup.show({
           classNames: ['full-width-modal'],
           header:Em.I18n.t('services.reassign.header'),
           bodyClass:  App.ReassignMasterView.extend({
@@ -48,14 +48,16 @@ module.exports = Em.Route.extend({
             this.fitHeight();
           }
         });
-
+        reassignMasterController.set('popup', popup);
         App.clusterStatus.updateFromServer();
         var currentClusterStatus = App.clusterStatus.get('value');
-        if (currentClusterStatus && currentClusterStatus.clusterState == 'REASSIGN_MASTER_INSTALLING') {
-          reassignMasterController.setCurrentStep('4');
-          App.db.data = currentClusterStatus.localdb;
-        } else {
-          reassignMasterController.setCurrentStep('1');
+        if (currentClusterStatus) {
+          switch (currentClusterStatus.clusterState) {
+            case 'REASSIGN_MASTER_INSTALLING' :
+              App.db.data = currentClusterStatus.localdb;
+              reassignMasterController.setCurrentStep(currentClusterStatus.localdb.ReassignMaster.currentStep);
+              break;
+          }
         }
         router.transitionTo('step' + reassignMasterController.get('currentStep'));
       });
@@ -131,16 +133,17 @@ module.exports = Em.Route.extend({
       controller.setCurrentStep('4');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
+        controller.setLowerStepsDisable(4);
         controller.connectOutlet('wizardStep13', controller.get('content'));
       })
     },
     back: Em.Router.transitionTo('step3'),
-    complete: function (router, context) {
+    next: function (router, context) {
       var controller = router.get('reassignMasterController');
       var wizardStep13Controller = router.get('wizardStep13Controller');
       if (!wizardStep13Controller.get('isSubmitDisabled')) {
         controller.finish();
-        $(context.currentTarget).parents("#modal").find(".close").trigger('click');
+        controller.get('popup').hide();
         App.clusterStatus.setClusterStatus({
           clusterName: router.get('reassignMasterController.content.cluster.name'),
           clusterState: 'REASSIGN_MASTER_COMPLETED',

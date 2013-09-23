@@ -97,24 +97,6 @@ var urls = {
       }
     }
   },
-  'reassign.create_master': {
-    'real': '/clusters/{clusterName}/hosts?Hosts/host_name={hostName}',
-    'mock':'',
-    'type': 'POST',
-    'format': function (data) {
-      return {
-        data: JSON.stringify({
-          "host_components": [
-            {
-              "HostRoles": {
-                "component_name": data.componentName
-              }
-            }
-          ]
-        })
-      }
-    }
-  },
   'reassign.maintenance_mode': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
     'mock':'',
@@ -128,25 +110,6 @@ var urls = {
             }
           }
         )
-      }
-    }
-  },
-  'reassign.install_component': {
-    'mock': '/data/wizard/reassign/request_id.json',
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
-    'type': 'PUT',
-    'format': function (data) {
-      return {
-        data: JSON.stringify({
-          RequestInfo: {
-            "context": "Install " + data.displayName
-          },
-          Body: {
-            "HostRoles": {
-              "state": "INSTALLED"
-            }
-          }
-        })
       }
     }
   },
@@ -173,38 +136,6 @@ var urls = {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
     'mock':'',
     'type': 'DELETE'
-  },
-  'reassign.get_logs': {
-    'real': '/clusters/{clusterName}/requests/{requestId}?fields=tasks/*',
-    'mock': '/data/wizard/reassign/step14PolledData/tasks_poll{pollCounter}.json',
-    'type': 'GET'
-
-  },
-  'reassign.create_configs': {
-    'real': '/clusters/{clusterName}/configurations',
-    'mock':'',
-    'type': 'POST',
-    'format': function (data) {
-      return {
-        data: JSON.stringify(data.configs),
-        configs: data.configs
-      }
-    }
-  },
-  'reassign.check_configs': {
-    'real': '/clusters/{clusterName}/services/{serviceName}',
-    'mock':'',
-    'type': 'GET'
-  },
-  'reassign.apply_configs': {
-    'real': '/clusters/{clusterName}/services/{serviceName}',
-    'mock':'',
-    'type': 'PUT',
-    'format': function (data) {
-      return {
-        data: JSON.stringify(data.configs)
-      }
-    }
   },
   'config.advanced': {
     'real': '{stack2VersionUrl}/stackServices/{serviceName}/configurations?fields=*',

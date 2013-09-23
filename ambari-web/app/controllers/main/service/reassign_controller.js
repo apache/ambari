@@ -199,6 +199,26 @@ App.ReassignMasterController = App.WizardController.extend({
     console.log('ReassignMasterController.saveTasksStatuses: saved statuses', statuses);
   },
 
+  loadRequestIds: function(){
+    var requestIds = App.db.getReassignMasterWizardRequestIds();
+    this.set('content.requestIds', requestIds);
+  },
+
+  saveRequestIds: function(requestIds){
+    App.db.setReassignMasterWizardRequestIds(requestIds);
+    this.set('content.requestIds', requestIds);
+  },
+
+  saveLogs: function(logs){
+    App.db.setReassignMasterWizardLogs(logs);
+    this.set('content.logs', logs);
+  },
+
+  loadLogs: function(){
+    var logs = App.db.getReassignMasterWizardLogs();
+    this.set('content.logs', logs);
+  },
+
   /**
    * Load data for all steps until <code>current step</code>
    */
@@ -207,6 +227,8 @@ App.ReassignMasterController = App.WizardController.extend({
     switch (step) {
       case '4':
         this.loadTasksStatuses();
+        this.loadRequestIds();
+        this.loadLogs();
       case '3':
       case '2':
         this.loadServicesFromServer();

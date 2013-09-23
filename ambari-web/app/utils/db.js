@@ -391,6 +391,18 @@ App.db.setHighAvailabilityWizardNameServiceId = function (nameServiceId) {
   localStorage.setObject('ambari', App.db.data);
 };
 
+App.db.setReassignMasterWizardRequestIds = function (requestIds) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.ReassignMaster.requestIds = requestIds;
+  localStorage.setObject('ambari', App.db.data);
+};
+
+App.db.setReassignMasterWizardLogs = function (logs) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.ReassignMaster.logs = logs;
+  localStorage.setObject('ambari', App.db.data);
+};
+
 /*
  *  getter methods
  */
@@ -637,6 +649,16 @@ App.db.getHighAvailabilityWizardLogs = function () {
 App.db.getHighAvailabilityWizardNameServiceId = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.HighAvailabilityWizard.nameServiceId;
+};
+
+App.db.getReassignMasterWizardRequestIds = function () {
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.ReassignMaster.requestIds;
+};
+
+App.db.getReassignMasterWizardLogs = function () {
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.ReassignMaster.logs;
 };
 
 module.exports = App.db;
