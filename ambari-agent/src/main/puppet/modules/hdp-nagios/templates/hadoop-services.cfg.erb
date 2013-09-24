@@ -387,7 +387,7 @@ define service {
 
 <%end-%>
 
-<%if scope.function_hdp_nagios_members_exist('tasktracker')-%>
+<%if scope.function_hdp_nagios_members_exist('tasktracker-servers')-%>
 define service {
         hostgroup_name          nagios-server
         use                     hadoop-service
@@ -541,6 +541,17 @@ define service {
         normal_check_interval   5
         retry_check_interval    1 
         max_check_attempts      5
+}
+
+define service {
+        hostgroup_name          historyserver2
+        use                     hadoop-service
+        service_description     JOBHISTORY::HistoryServer process
+        servicegroups           MAPREDUCE
+        check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::hs_port")%>!-w 1 -c 1
+        normal_check_interval   1
+        retry_check_interval    0.5
+        max_check_attempts      3
 }
 
 <% end %>
