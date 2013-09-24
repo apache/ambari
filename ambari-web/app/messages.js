@@ -878,8 +878,6 @@ Em.I18n.translations = {
   'services.service.summary.RegionServersLIVE':'RegionServers Live',
   'services.service.summary.GangliaMonitorsLIVE':'Ganglia Monitors Live',
   'services.service.summary.nameNode':'NameNode Web UI',
-  'services.service.summary.nameNode.active':'Active NameNode',
-  'services.service.summary.nameNode.standby':'Standby NameNode',
   'services.service.summary.nameNodeUptime':'NameNode Uptime',
   'services.service.summary.nameNodeHeap':'NameNode Heap',
   'services.service.summary.nameNode.active':'Active NameNode',

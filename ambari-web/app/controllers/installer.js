@@ -104,7 +104,6 @@ App.InstallerController = App.WizardController.extend({
     } else {
       console.log("Failed to load Services");
    }
-    App.router.get('clusterController').loadAmbariProperties();
   },
 
   stacks: [],

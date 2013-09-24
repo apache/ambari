@@ -572,15 +572,6 @@ var urls = {
     'mock': '',
     'type': 'GET'
   },
-  'admin.high_availability.getNnCheckPointStatus.sync': {
-    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/NAMENODE',
-    'mock': '',
-    'format': function (data, opt) {
-      return {
-        async: false
-      };
-    }
-  },
   'admin.high_availability.getJnCheckPointStatus': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/JOURNALNODE?fields=metrics',
     'mock': ''
@@ -767,7 +758,6 @@ var urls = {
     'mock': '',
     'format': function (data, opt) {
       return {
-        async: false,
         timeout: 10000
       };
     }
