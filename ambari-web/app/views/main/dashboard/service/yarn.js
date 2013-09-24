@@ -71,7 +71,7 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
   }.property('service.nodeManagerNodes', 'service.nodeManagerLiveNodes'),
 
   nodeManagerText: function () {
-    if(this.get("service.nodeManagerNodes") > 1){
+    if(this.get("service.nodeManagerNodes.length") > 1){
       return Em.I18n.t('services.service.summary.viewHosts');
     }else{
       return Em.I18n.t('services.service.summary.viewHost');
