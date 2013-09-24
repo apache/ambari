@@ -717,6 +717,7 @@ App.WizardController = Em.Controller.extend({
           name: _configProperties.get('name'),
           value: _configProperties.get('value'),
           defaultValue: _configProperties.get('defaultValue'),
+          description: _configProperties.get('description'),
           serviceName: _configProperties.get('serviceName'),
           domain:  _configProperties.get('domain'),
           filename: _configProperties.get('filename'),
