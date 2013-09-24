@@ -338,7 +338,6 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
       name: 'admin.security.apply_configurations',
       sender: this,
       data: data,
-      deferred: true,
       success: 'applyConfigurationToClusterSuccessCallback',
       error: 'applyConfigurationToClusterErrorCallback'
     });

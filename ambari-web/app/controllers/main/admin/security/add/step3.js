@@ -232,8 +232,7 @@ App.MainAdminSecurityAddStep3Controller = Em.Controller.extend({
       securityUsers.pushObject({id: 'puppet var', name: 'nagios_user', value: 'nagios'});
       securityUsers.pushObject({id: 'puppet var', name: 'user_group', value: 'hadoop'});
     } else {
-      App.router.get('mainAdminSecurityController').setSecurityStatus();
-      securityUsers = App.router.get('mainAdminSecurityController').get('serviceUsers');
+      securityUsers = App.db.getSecureUserInfo();
     }
     return securityUsers;
   },
