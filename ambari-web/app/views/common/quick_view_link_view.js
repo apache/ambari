@@ -178,15 +178,10 @@ App.QuickViewLinks = Em.View.extend({
         return (properties && properties.hasOwnProperty('nagios.https') && properties['nagios.https']) ? "https" : "http";
         break;
       case "HDFS":
-        return hadoopSslEnabled ? "https" : "http";
-        break;
       case "YARN":
-        return hadoopSslEnabled ? "https" : "http";
-        break;
       case "MAPREDUCE":
-        return hadoopSslEnabled ? "https" : "http";
-        break;
       case "MAPREDUCE2":
+      case "HBASE":
         return hadoopSslEnabled ? "https" : "http";
         break;
       default:
