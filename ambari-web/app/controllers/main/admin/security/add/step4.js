@@ -68,7 +68,6 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
     return installedServices.contains('WEBHCAT');
   },
 
-  serviceUsersBinding: 'App.router.mainAdminSecurityController.serviceUsers',
   hasHostPopup: true,
   services: [],
   serviceTimestamp: null,
@@ -540,7 +539,6 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
       name: 'admin.security.apply_configurations',
       sender: this,
       data: data,
-      deferred: true,
       success: 'applyConfigurationToClusterSuccessCallback',
       error: 'applyConfigurationToClusterErrorCallback'
     });

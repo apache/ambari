@@ -142,8 +142,7 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
         securityUsers.pushObject({id: 'puppet var', name: 'hive_user', value: 'hive'});
         securityUsers.pushObject({id: 'puppet var', name: 'smokeuser', value: 'ambari-qa'});
       } else {
-        App.router.get('mainAdminSecurityController').setSecurityStatus();
-        securityUsers = App.router.get('mainAdminSecurityController').get('serviceUsers');
+        securityUsers = App.db.getSecureUserInfo();
       }
     }
     this.set('securityUsers', securityUsers);

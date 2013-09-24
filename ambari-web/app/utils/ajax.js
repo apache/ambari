@@ -97,9 +97,10 @@ var urls = {
       }
     }
   },
+
   'reassign.maintenance_mode': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
-    'mock':'',
+    'mock': '',
     'type': 'PUT',
     'format': function () {
       return {
@@ -134,9 +135,10 @@ var urls = {
   },
   'reassign.remove_component': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
-    'mock':'',
+    'mock': '',
     'type': 'DELETE'
   },
+
   'config.advanced': {
     'real': '{stack2VersionUrl}/stackServices/{serviceName}/configurations?fields=*',
     'mock': '/data/wizard/stack/hdp/version{stackVersion}/{serviceName}.json',
@@ -465,7 +467,7 @@ var urls = {
   },
   'host.service_config_hosts_overrides': {
     'real': '/clusters/{clusterName}/configurations?{urlParams}',
-    'mock':'',
+    'mock': '',
     'format': function (data, opt) {
       return {
         async: false,
@@ -475,7 +477,7 @@ var urls = {
   },
   'admin.service_config': {
     'real': '/clusters/{clusterName}/configurations/?type={siteName}&tag={tagName}',
-    'mock':'',
+    'mock': '',
     'format': function (data, opt) {
       return {
         timeout: 10000,
@@ -485,10 +487,9 @@ var urls = {
   },
   'admin.security_status': {
     'real': '/clusters/{clusterName}',
-    'mock':'',
+    'mock': '',
     'format': function (data, opt) {
       return {
-        async: false,
         timeout: 10000
       };
     }
@@ -505,7 +506,7 @@ var urls = {
   'cluster.state': {
     'type': 'POST',
     'real': '/persist/',
-    'mock':'',
+    'mock': '',
     'format': function (data, opt) {
       return {
         async: false,
@@ -529,7 +530,7 @@ var urls = {
     'format': function (data, opt) {
       return {
         type: 'PUT',
-        data:  JSON.stringify({
+        data: JSON.stringify({
           "RequestInfo": {
             "context": "Stop all services"
           },
@@ -548,7 +549,7 @@ var urls = {
     'format': function (data, opt) {
       return {
         type: 'PUT',
-        data:  JSON.stringify({
+        data: JSON.stringify({
           "RequestInfo": {
             "context": "Start all services"
           },
@@ -740,7 +741,7 @@ var urls = {
   },
   'admin.security.cluster_configs': {
     'real': '/clusters/{clusterName}',
-    'mock':'',
+    'mock': '',
     'format': function (data, opt) {
       return {
         timeout: 10000
@@ -754,7 +755,7 @@ var urls = {
   },
   'admin.security.all_configurations': {
     'real': '/clusters/{clusterName}/configurations?{urlParams}',
-    'mock':'',
+    'mock': '',
     'format': function (data, opt) {
       return {
         timeout: 10000
@@ -763,18 +764,18 @@ var urls = {
   },
   'admin.security.apply_configurations': {
     'real': '/clusters/{clusterName}',
-    'mock':'',
+    'mock': '',
     'format': function (data, opt) {
       return {
         type: 'PUT',
         timeout: 10000,
-        data:data.configData
+        data: data.configData
       };
     }
   },
   'admin.security.apply_configuration': {
     'real': '/clusters/{clusterName}',
-    'mock':'',
+    'mock': '',
     'format': function (data, opt) {
       return {
         type: 'PUT',
@@ -786,7 +787,7 @@ var urls = {
   },
   'admin.security.add.cluster_configs': {
     'real': '/clusters/{clusterName}' + '?fields=Clusters/desired_configs',
-    'mock':'',
+    'mock': '',
     'format': function (data, opt) {
       return {
         timeout: 10000
@@ -795,7 +796,7 @@ var urls = {
   },
   'admin.stack_upgrade.run_upgrade': {
     'real': '/clusters/{clusterName}',
-    'mock':'',
+    'mock': '',
     'format': function (data, opt) {
       return {
         type: 'PUT',
@@ -806,7 +807,7 @@ var urls = {
   },
   'admin.stack_upgrade.stop_services': {
     'real': '/clusters/{clusterName}/services?ServiceInfo/state=STARTED',
-    'mock':'',
+    'mock': '',
     'format': function (data, opt) {
       return {
         type: 'PUT',
@@ -821,7 +822,7 @@ var urls = {
   },
   'wizard.install_services.add_host_controller.is_retry': {
     'real': '/clusters/{cluster}/host_components',
-    'mock':'',
+    'mock': '',
     'format': function (data, opt) {
       return {
         type: 'PUT',
@@ -832,7 +833,7 @@ var urls = {
   },
   'wizard.install_services.add_host_controller.not_is_retry': {
     'real': '/clusters/{cluster}/host_components',
-    'mock':'',
+    'mock': '',
     'format': function (data, opt) {
       return {
         type: 'PUT',
@@ -901,7 +902,7 @@ var urls = {
   },
   'wizard.step8.delete_cluster': {
     'real': '/clusters/{name}',
-    'mock':'',
+    'mock': '',
     'format': function (data, opt) {
       return {
         type: 'DELETE',
@@ -911,7 +912,7 @@ var urls = {
   },
   'wizard.step8.existing_cluster_names': {
     'real': '/clusters',
-    'mock':'',
+    'mock': '',
     'format': function (data, opt) {
       return {
         async: false
@@ -1055,7 +1056,7 @@ var formatRequest = function (data) {
     statusCode: require('data/statusCodes')
   };
   if (App.testMode) {
-    opt.url = formatUrl(this.mock?this.mock:'', data);
+    opt.url = formatUrl(this.mock ? this.mock : '', data);
     opt.type = 'GET';
   }
   else {
@@ -1087,7 +1088,6 @@ App.ajax = {
    *  beforeSend - method-name for ajax beforeSend response callback
    *  success - method-name for ajax success response callback
    *  error - method-name for ajax error response callback
-   *  deferred - A flag that will call jquery.when for asynchronous call. This should be used instead of setting async to false
    *  callback - callback from <code>App.updater.run</code> library
    */
   send: function (config) {
@@ -1130,7 +1130,7 @@ App.ajax = {
       if (config.error) {
         config.sender[config.error](request, ajaxOptions, error, opt);
       } else {
-       this.defaultErrorHandler(request,opt.url,opt.type);
+        this.defaultErrorHandler(request, opt.url, opt.type);
       }
     };
     opt.complete = function () {
@@ -1141,16 +1141,7 @@ App.ajax = {
     if ($.mocho) {
       opt.url = 'http://' + $.hostName + opt.url;
     }
-    if (config.deferred === true) {
-      var successCallback = opt.success;
-      var errorCallback = opt.error;
-      delete opt['success'];
-      delete opt['error'];
-      delete opt['async'];
-      $.when($.ajax(opt)).then(successCallback,errorCallback);
-    } else {
       return $.ajax(opt);
-    }
   },
 
   // A single instance of App.ModalPopup view
@@ -1162,7 +1153,7 @@ App.ajax = {
    * @method {String} Http method
    * @showStatus {number} HTTP response code which should be shown. Default is 500.
    */
-  defaultErrorHandler: function(jqXHR,url,method,showStatus) {
+  defaultErrorHandler: function (jqXHR, url, method, showStatus) {
     method = method || 'GET';
     var self = this;
     var api = " received on " + method + " method for API: " + url;

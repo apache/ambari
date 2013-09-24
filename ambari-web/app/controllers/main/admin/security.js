@@ -379,6 +379,7 @@ App.MainAdminSecurityController = Em.Controller.extend({
       name: 'user_group',
       value: configs['user_group'] ? configs['user_group'] : 'hadoop'
     });
+    App.db.setSecureUserInfo(serviceUsers);
   },
 
   showSecurityErrorPopup: function () {
