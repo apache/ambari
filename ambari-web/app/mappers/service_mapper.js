@@ -261,6 +261,7 @@ App.servicesMapper = App.QuickDataMapper.create({
       var item;
       var currentHCWithComponentNames = {};
       var currentComponentNameHostNames = {};
+      var doHostComponentsLoad = false;
       oldHostComponents.forEach(function (item) {
         if (item && !hostComponentsMap[item.get('id')]) {
           item.deleteRecord();
@@ -276,6 +277,12 @@ App.servicesMapper = App.QuickDataMapper.create({
         }
       }, this);
 
+      for(var i in hostComponentsMap) {
+        if(!currentHCWithComponentNames[i]) {
+          doHostComponentsLoad = true;
+          break;
+        }
+      }
       result.forEach(function (item) {
         if (currentHCWithComponentNames[item.id] != null && 
             !currentComponentNameHostNames[item.component_name].contains(item.host_id)) {
@@ -283,7 +290,9 @@ App.servicesMapper = App.QuickDataMapper.create({
         }
       });
 
-      App.store.loadMany(this.get('model3'), result);
+      if (!App.router.get('clusterController.isLoaded') || doHostComponentsLoad) {
+        App.store.loadMany(this.get('model3'), result);
+      }
       for(var hostComponentId in hostComponentToActualConfigsMap){
         var hostComponentObj = App.HostComponent.find(hostComponentId);
         var actualConfigs = [];
