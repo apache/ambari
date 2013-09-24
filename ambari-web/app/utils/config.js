@@ -362,6 +362,7 @@ App.config = Em.Object.create({
         configData.value = stored.value;
         configData.defaultValue = stored.defaultValue;
         configData.overrides = stored.overrides;
+        configData.description = stored.description;
       } else if (!preDefined && stored) {
         configData = {
           id: stored.id,
@@ -386,6 +387,7 @@ App.config = Em.Object.create({
           configData.value = advanced.value;
           configData.defaultValue = advanced.value;
           configData.filename = advanced.filename;
+          configData.description = advanced.description;
         }
       }
       mergedConfigs.push(configData);
