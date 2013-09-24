@@ -167,6 +167,10 @@ App.ClusterController = Em.Controller.extend({
     return !!App.Service.find().findProperty('serviceName', 'NAGIOS');
   }.property('App.router.updateController.isUpdated', 'dataLoadList.services'),
 
+  isGangliaInstalled:function () {
+    return !!App.Service.find().findProperty('serviceName', 'GANGLIA');
+  }.property('App.router.updateController.isUpdated', 'dataLoadList.services'),
+
   /**
    * Sorted list of alerts.
    * Changes whenever alerts are loaded.
