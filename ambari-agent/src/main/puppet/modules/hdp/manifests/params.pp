@@ -753,8 +753,8 @@ class hdp::params()
     centos5 => '/usr/sbin/nagios',
     redhat6 => '/usr/sbin/nagios',
     redhat5 => '/usr/sbin/nagios',
-    oraclelinux6 => '/usr/bin/nagios',
-    oraclelinux5 => '/usr/bin/nagios'
+    oraclelinux6 => '/usr/sbin/nagios',
+    oraclelinux5 => '/usr/sbin/nagios'
   }
 
 
