@@ -1638,6 +1638,16 @@ def download_jdk(args):
                                                         dest_file, e.message)
         raise FatalException(1, err)
     else:
+      ok = get_YN_input("To download the Oracle JDK you must accept the "
+                        "license terms found at "
+                        "http://www.oracle.com/technetwork/java/javase/"
+                        "terms/license/index.html and not accepting will "
+                        "cancel the Ambari Server setup.\nDo you accept the "
+                        "Oracle Binary Code License Agreement [y/n] (y)? ", True)
+      if not ok:
+        print 'Exiting...'
+        sys.exit(1)
+
       print 'Downloading JDK from ' + jdk_url + ' to ' + dest_file
       jdk_download_fail_msg = " Failed to download JDK: {0}. Please check that Oracle " \
         "JDK is available at {1}. Also you may specify JDK file " \
@@ -1676,7 +1686,7 @@ def download_jdk(args):
         raise FatalException(1, err)
 
     try:
-       out, ok = install_jdk(dest_file)
+       out = install_jdk(dest_file)
        jdk_version = re.search('Creating (jdk.*)/jre', out).group(1)
     except Exception, e:
        print "Installation of JDK has failed: %s\n" % e.message
@@ -1692,7 +1702,7 @@ def download_jdk(args):
              track_jdk(JDK_LOCAL_FILENAME, jdk_url, dest_file)
              print 'Successfully re-downloaded JDK distribution to ' + dest_file
              try:
-                 out, ok = install_jdk(dest_file)
+                 out = install_jdk(dest_file)
                  jdk_version = re.search('Creating (jdk.*)/jre', out).group(1)
              except Exception, e:
                print "Installation of JDK was failed: %s\n" % e.message
@@ -1714,9 +1724,9 @@ def download_jdk(args):
     try:
       download_jce_policy(properties, ok)
     except FatalException as e:
-      print "JCE Policy files are required for secure HDP setup. Please ensure " \
-              " all hosts have the JCE unlimited strength policy 6, files."
-      print_error_msg("Failed to download JCE policy files:")
+      print "JCE Policy files are required for configuring Kerberos security. Please ensure " \
+            " all hosts have the JCE Unlimited Strength Jurisdiction Policy Files."
+      print_error_msg("Failed to download JCE Policy files:")
       if e.reason is not None:
         print_error_msg("Reason: {0}".format(e.reason))
       # TODO: We don't fail installation if download_jce_policy fails. Is it OK?
@@ -1766,12 +1776,12 @@ def download_jce_policy(properties, accpeted_bcl):
           else:
             raise FatalException(1, err)
         else:
-          ok = get_YN_input("To download the JCE Policy archive you must "
+          ok = get_YN_input("To download the JCE Policy files you must "
                             "accept the license terms found at "
                             "http://www.oracle.com/technetwork/java/javase"
                             "/terms/license/index.html"
-                            "Not accepting might result in failure when "
-                            "setting up HDP security. \nDo you accept the "
+                            "Not accepting will result in errors when "
+                            "configuring Kerberos security. \nDo you accept the "
                             "Oracle Binary Code License Agreement [y/n] (y)? ", True)
           if ok:
             retcode, out, err = run_os_command(jce_download_cmd)
@@ -1796,16 +1806,6 @@ def download_jce_policy(properties, accpeted_bcl):
 class RetCodeException(Exception): pass
 
 def install_jdk(dest_file):
-  ok = get_YN_input("To install the Oracle JDK you must accept the "
-                    "license terms found at "
-                    "http://www.oracle.com/technetwork/java/javase/"
-                  "downloads/jdk-6u21-license-159167.txt. Not accepting will "
-                  "cancel the Ambari Server setup.\nDo you accept the "
-                  "Oracle Binary Code License Agreement [y/n] (y)? ", True)
-  if not ok:
-    print 'Exiting...'
-    sys.exit(1)
-
   print "Installing JDK to {0}".format(JDK_INSTALL_DIR)
   retcode, out, err = run_os_command(CREATE_JDK_DIR_CMD)
   savedPath = os.getcwd()
@@ -1816,7 +1816,7 @@ def install_jdk(dest_file):
   if retcode != 0:
     err = "Installation of JDK returned exit code %s" % retcode
     raise FatalException(retcode, err)
-  return out, ok
+  return out
 
 #
 # Configures the OS settings in ambari properties.

@@ -1565,22 +1565,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
   @patch("os.chdir")
   @patch.object(ambari_server, "run_os_command")
-  @patch("sys.exit")
-  @patch.object(ambari_server, "get_YN_input")
-  def test_install_jdk(self, get_YN_input_mock, exit_mock, run_os_command_mock, os_chdir_mock):
-    get_YN_input_mock.return_value = False
-    JDK_INSTALL_DIR = "JDK_INSTALL_DIR"
-    run_os_command_mock.return_value = 0, "", ""
-    ambari_server.install_jdk(MagicMock())
-    self.assertTrue(exit_mock.called)
-    exit_mock.reset()
-    run_os_command_mock.reset()
-    exit_mock.called = False
-    run_os_command_mock.call_count = 0
-    get_YN_input_mock.return_value = True
-    ambari_server.install_jdk(MagicMock())
-    self.assertFalse(exit_mock.called)
-    self.assertEquals(3, run_os_command_mock.call_count)
+  def test_install_jdk(self, run_os_command_mock, os_chdir_mock):
     run_os_command_mock.return_value = 1, "", ""
     failed = False
     try:
@@ -1603,7 +1588,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, "get_JAVA_HOME")
   @patch.object(ambari_server, "get_ambari_properties")
   @patch("shutil.copyfile")
-  def test_download_jdk(self, copyfile_mock, get_ambari_properties_mock, get_JAVA_HOME_mock, \
+  @patch("sys.exit")
+  def test_download_jdk(self, exit_mock, copyfile_mock, get_ambari_properties_mock, get_JAVA_HOME_mock, \
                         print_info_msg_mock, write_property_mock, \
                         run_os_command_mock, get_YN_input_mock, track_jdk_mock,
                         path_existsMock, path_isfileMock, statMock, \
@@ -1659,7 +1645,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       pass
       # Successful JDK download
     ambari_server.JDK_INSTALL_DIR = os.getcwd()
-    get_YN_input_mock.return_value = True
     run_os_command_mock.return_value = (0, "Creating jdk-1.2/jre"
                                            "Content-Length: 32000\r\n"
                                         , None)
@@ -1668,9 +1653,18 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     statMock.return_value = statResult
     rcode = ambari_server.download_jdk(args)
     self.assertEqual(0, rcode)
-    # Test case: JDK file does not exist, jdk-location argument passed
+
+    # Test case: not accept the license"
     p.__getitem__.return_value = "somewhere"
     p.__getitem__.side_effect = None
+    get_YN_input_mock.return_value = False
+    ambari_server.download_jdk(MagicMock())
+    self.assertTrue(exit_mock.called)
+
+    # Test case: JDK file does not exist, jdk-location argument passed
+    exit_mock.reset()
+    get_YN_input_mock.reset()
+    get_YN_input_mock.return_value = True
     args.jdk_location = "/existing/jdk/file"
     path_existsMock.side_effect = [False, False, True, False, False, False]
     ambari_server.download_jdk(args)
