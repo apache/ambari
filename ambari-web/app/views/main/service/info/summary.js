@@ -431,6 +431,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
 
   gangliaUrl:function () {
     var gangliaUrl = App.router.get('clusterController.gangliaUrl');
+    if (!gangliaUrl) return null;
     var svcName = this.get('service.serviceName');
     if (svcName) {
       switch (svcName.toLowerCase()) {
