@@ -237,8 +237,8 @@ class TestActionQueue(TestCase):
     open_mock.side_effect = open_side_effect
 
     config = AmbariConfig().getConfig()
-    tmpfile = tempfile.gettempdir()
-    config.set('agent', 'prefix', tmpfile)
+    tempdir = tempfile.gettempdir()
+    config.set('agent', 'prefix', tempdir)
     actionQueue = ActionQueue(config, 'dummy_controller')
     unfreeze_flag = threading.Event()
     puppet_execution_result_dict = {
@@ -272,8 +272,8 @@ class TestActionQueue(TestCase):
       if len(report['reports']) != 0:
         break
     expected = {'status': 'IN_PROGRESS',
-                'stderr': 'Read from /tmp/errors-3.txt',
-                'stdout': 'Read from /tmp/output-3.txt',
+                'stderr': 'Read from {0}/errors-3.txt'.format(tempdir),
+                'stdout': 'Read from {0}/output-3.txt'.format(tempdir),
                 'clusterName': u'cc',
                 'roleCommand': u'INSTALL',
                 'serviceName': u'HDFS',
@@ -289,7 +289,7 @@ class TestActionQueue(TestCase):
       time.sleep(0.1)
       report = actionQueue.result()
     # check report
-    configname = os.path.join(tmpfile, 'config.json')
+    configname = os.path.join(tempdir, 'config.json')
     expected = {'status': 'COMPLETED',
                 'stderr': 'stderr',
                 'stdout': 'out',
