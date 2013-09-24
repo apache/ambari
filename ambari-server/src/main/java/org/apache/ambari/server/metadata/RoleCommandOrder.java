@@ -446,6 +446,8 @@ public class RoleCommandOrder {
         RoleCommand.START);
       addDependency(Role.HDFS_SERVICE_CHECK, RoleCommand.EXECUTE, Role.SECONDARY_NAMENODE,
         RoleCommand.START);
+      addDependency(Role.HDFS_SERVICE_CHECK, RoleCommand.EXECUTE, Role.ZKFC,
+        RoleCommand.START);
       addDependency(Role.MAPREDUCE_SERVICE_CHECK, RoleCommand.EXECUTE,
         Role.JOBTRACKER, RoleCommand.START);
       addDependency(Role.MAPREDUCE_SERVICE_CHECK, RoleCommand.EXECUTE,
