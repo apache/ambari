@@ -395,29 +395,8 @@ var configs = [
     "filename": "mapred-site.xml"
   },
   {
-    "name": "mapred.jobtracker.maxtasks.per.job",
-    "templateName": ["maxtasks_per_job"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapred.userlog.retain.hours",
-    "templateName": ["mapreduce_userlog_retainhours"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
     "name": "mapred.task.tracker.task-controller",
     "templateName": ["task_controller"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapreduce.tasktracker.map.tasks.maximum",
-    "templateName": ["mapreduce_tasktracker_map_tasks_maximum"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "mapred-site.xml"
@@ -427,13 +406,6 @@ var configs = [
     "templateName": ["hadoop_conf_dir", "mapred_hosts_exclude"],
     "foreignKey": null,
     "value": "<templateName[0]>/<templateName[1]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapred.jobtracker.taskScheduler",
-    "templateName": ["scheduler_name"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
     "filename": "mapred-site.xml"
   },
   {

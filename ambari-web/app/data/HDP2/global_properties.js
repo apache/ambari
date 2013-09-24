@@ -458,17 +458,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "mapreduce_tasktracker_map_tasks_maximum",
-      "displayName": "Number of Map slots per node",
-      "description": "Number of slots that Map tasks that run simultaneously can occupy on a TaskTracker",
-      "defaultValue": "4",
-      "displayType": "int",
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "MAPREDUCE2"
-    },
-    {
-      "id": "puppet var",
       "name": "mapreduce_map_memory_mb",
       "displayName": "Default virtual memory for a job's map-task",
       "description": "Virtual memory for single Map task",
@@ -501,40 +490,6 @@ module.exports =
       "unit": "MB",
       "isVisible": true,
       "domain": "global",
-      "serviceName": "MAPREDUCE2"
-    },
-    {
-      "id": "puppet var",
-      "name": "mapreduce_userlog_retainhours",
-      "displayName": "Job log retention (hours)",
-      "description": "The maximum time, in hours, for which the user-logs are to be retained after the job completion.",
-      "defaultValue": "24",
-      "displayType": "int",
-      "unit": "hours",
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "MAPREDUCE2"
-    },
-    {
-      "id": "puppet var",
-      "name": "maxtasks_per_job",
-      "displayName": "Maximum number tasks for a Job",
-      "description": "Maximum number of tasks for a single Job",
-      "defaultValue": "-1",
-      "displayType": "int",
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "MAPREDUCE2"
-    },
-    {
-      "id": "puppet var",
-      "name": "scheduler_name",
-      "displayName": "MapReduce Capacity Scheduler",
-      "description": "The scheduler to use for scheduling of MapReduce jobs",
-      "defaultValue": "org.apache.hadoop.mapred.CapacityTaskScheduler",
-      "displayType": "advanced",
-      "isOverridable": false,
-      "isVisible": true,
       "serviceName": "MAPREDUCE2"
     },
     {
