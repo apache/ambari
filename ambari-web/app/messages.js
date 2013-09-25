@@ -761,7 +761,8 @@ Em.I18n.translations = {
     '<div class="code-snippet">sudo su -l {0} -c \'hdfs dfsadmin -safemode enter\'</div></li>' +
     '<li>Once in Safe Mode, create a checkpoint:' +
     '<div class="code-snippet">sudo su -l {0} -c \'hdfs dfsadmin -saveNamespace\'</div></li>' +
-    '<li>You will be able to proceed once Ambari detects that the NameNode is in Safe Mode and the checkpoint has been created successfully.</li>' +
+    '<li>You will be able to proceed once Ambari detects that the NameNode is in Safe Mode and the checkpoint has been created successfully.<br>'+
+    'If the Next button is enabled before you run the command to create a checkpoint, it means that there is a recent checkpoint already and you may proceed without running the checkpoint command.</li>' +
     '</ol>',
   'admin.highAvailability.wizard.step3.body':'Confirm your host selections.',
   'admin.highAvailability.wizard.step2.body':'Select a host that will be running the additional NameNode.<br/> In addition,' +
