@@ -1042,9 +1042,10 @@ class TestAmbariServer(TestCase):
   @patch("shutil.copy")
   @patch("os.path.join")
   @patch("os.path.exists")
+  @patch("os.path.isdir")
   @patch.object(ambari_server, "get_ambari_properties")
   def test_install_jce_manualy(self, get_ambari_properties_mock, \
-                               os_path_exists_mock, os_path_join_mock, \
+                               os_path_isdir_mock, os_path_exists_mock, os_path_join_mock, \
                                shutil_copy_mock):
     args = MagicMock()
     args.jce_policy = "somewhere"
@@ -1052,7 +1053,31 @@ class TestAmbariServer(TestCase):
     get_ambari_properties_mock.return_value = p
     p.__getitem__.side_effect = None
     p.__getitem__.return_value = "somewhere"
+
+    # Case when JCE path doesn't exists
+    os_path_exists_mock.return_value = False
+    try:
+      ambari_server.install_jce_manualy(args)
+      self.fail("Should throw exception")
+    except FatalException as fe:
+      # Expected
+      self.assertTrue("JCE Policy path" in fe.reason)
+      pass
+    os_path_exists_mock.reset()
+
+    # Case when JCE is a directory
     os_path_exists_mock.return_value = True
+    os_path_isdir_mock.return_value = True
+    try:
+      ambari_server.install_jce_manualy(args)
+      self.fail("Should throw exception")
+    except FatalException as fe:
+      # Expected
+      self.assertTrue("JCE Policy path is a directory" in fe.reason)
+      pass
+    os_path_isdir_mock.reset()
+
+    os_path_isdir_mock.return_value = False
     os_path_join_mock.return_value = \
       "/var/lib/ambari-server/resources/jce_policy-6.zip"
     ambari_server.install_jce_manualy(args)
