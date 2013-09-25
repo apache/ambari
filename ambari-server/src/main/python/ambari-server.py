@@ -1594,11 +1594,23 @@ def install_jce_manualy(args):
   if properties == -1:
     err = "Error getting ambari properties"
     raise FatalException(-1, err)
-  if args.jce_policy and os.path.exists(args.jce_policy):
-    jce_destination = os.path.join(properties[RESOURCES_DIR_PROPERTY], JCE_POLICY_FILENAME)
-    shutil.copy(args.jce_policy, jce_destination)
-    print "JCE policy copied from " + args.jce_policy + " to " + jce_destination
-    return 0
+  if args.jce_policy:
+    if os.path.exists(args.jce_policy):
+      if os.path.isdir(args.jce_policy):
+        err = "JCE Policy path is a directory: " + args.jce_policy
+        raise FatalException(-1, err)
+      jce_destination = os.path.join(properties[RESOURCES_DIR_PROPERTY], JCE_POLICY_FILENAME)
+      try:
+        shutil.copy(args.jce_policy, jce_destination)
+      except Exception, e:
+        err = "Can not copy file {0} to {1} due to: {2}. Please check file " \
+              "permissions and free disk space.".format(args.jce_policy, jce_destination, e.message)
+        raise FatalException(-1, err)
+      print "JCE policy copied from " + args.jce_policy + " to " + jce_destination
+      return 0
+    else:
+      err = "JCE Policy path " + args.jce_policy + " doesn't exists."
+      raise FatalException(-1, err)
   else:
     return 1
 #
