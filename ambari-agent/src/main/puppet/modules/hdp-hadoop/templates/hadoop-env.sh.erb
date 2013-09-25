@@ -90,6 +90,8 @@ export HADOOP_SECURE_DN_PID_DIR=<%=scope.function_hdp_template_var("hadoop_pid_d
 # History server pid
 export HADOOP_MAPRED_PID_DIR=<%=scope.function_hdp_template_var("mapred_pid_dir_prefix")%>/$USER
 
+YARN_RESOURCEMANAGER_OPTS="-Dyarn.server.resourcemanager.appsummary.logger=INFO,RMSUMMARY"
+
 # A string representing this instance of hadoop. $USER by default.
 export HADOOP_IDENT_STRING=$USER
 
