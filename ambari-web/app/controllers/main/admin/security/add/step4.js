@@ -38,6 +38,7 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
   configs: [],
   noOfWaitingAjaxCalls: 0,
   secureServices: [],
+  serviceUsersBinding: 'App.router.mainAdminSecurityController.serviceUsers',
   serviceConfigTags: [],
   globalProperties: [],
   totalSteps: 3,
@@ -464,7 +465,7 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
       serviceUsers.pushObject({id: 'puppet var', name: 'hbase_user', value: 'hbase'});
       serviceUsers.pushObject({id: 'puppet var', name: 'hive_user', value: 'hive'});
     } else {
-      App.router.get('mainAdminSecurityController').setSecurityStatus();
+      App.router.set('mainAdminSecurityController.serviceUsers', App.db.getSecureUserInfo());
     }
   },
 
