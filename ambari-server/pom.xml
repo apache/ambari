@@ -29,6 +29,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <python.ver>python &gt;= 2.6</python.ver>
+    <hdpUrlForCentos6>http://s3.amazonaws.com/dev.hortonworks.com/HDP-2.0.6.0/repos/centos6</hdpUrlForCentos6>
   </properties>
   <build>
     <plugins>
@@ -132,24 +133,6 @@
           </excludes>
         </configuration>
       </plugin>
-      <!--<plugin>-->
-        <!-- Will be used for DDL file update on server version update-->
-        <!--<artifactId>maven-antrun-plugin</artifactId>-->
-        <!--<executions>-->
-          <!--<execution>-->
-            <!--<id>Copy-server-version-file</id>-->
-            <!--<phase>process-test-resources</phase>-->
-            <!--<configuration>-->
-              <!--<tasks>-->
-                <!--<copy file="../version" todir="${project.build.directory}/"/>-->
-              <!--</tasks>-->
-            <!--</configuration>-->
-            <!--<goals>-->
-              <!--<goal>run</goal>-->
-            <!--</goals>-->
-          <!--</execution>-->
-        <!--</executions>-->
-      <!--</plugin>-->
       <plugin>
         <!--Static -->
         <artifactId>maven-antrun-plugin</artifactId>
@@ -388,7 +371,7 @@
               <directory>/var/lib/ambari-server/resources/stacks/HDP</directory>
               <sources>
                 <source>
-                  <location>src/main/resources/stacks/HDP</location>
+                  <location>target/classes/stacks/HDP</location>
                 </source>
               </sources>
             </mapping>
@@ -397,7 +380,7 @@
               <configuration>noreplace</configuration>
               <sources>
                 <source>
-                  <location>src/main/resources/stacks/HDPLocal</location>
+                  <location>target/classes/stacks/HDPLocal</location>
                 </source>
               </sources>
             </mapping>
@@ -499,7 +482,45 @@
                   </goals>
               </execution>
           </executions>
-      </plugin>      
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>set-hdp-url-classes</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target name="ambari-server-compile">
+                <exec dir="${basedir}" executable="sh" failonerror="true">
+                  <arg value="${basedir}/set-hdp-repo-url.sh"/>
+                  <arg value="${hdpUrlForCentos6}"/>
+                </exec>
+              </target>
+            </configuration>
+          </execution>
+          <execution>
+            <id>set-hdp-url-packages</id>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target name="ambari-server-compile">
+                <exec dir="${basedir}" executable="sh" failonerror="true">
+                  <arg value="${basedir}/set-hdp-repo-url.sh"/>
+                  <arg value="${hdpUrlForCentos6}"/>
+                  <arg value="${project.build.directory}/ambari-server-${project.version}-dist/ambari-server-${project.version}"/>
+                </exec>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
     <resources>
       <resource>
