@@ -17,6 +17,27 @@
 }}
 
 {{view App.MainServiceInfoMenuView configTabBinding="view.hasConfigTab"}}
+  <div class="span6 quick-links-wrapper">
+    {{#if view.service.quickLinks.length}}
+      {{#view App.QuickViewLinks contentBinding="view.service"}}
+          <ul class="nav nav-pills move">
+              <li class="dropdown">
+                  <a class="dropdown-toggle" data-toggle="dropdown" href="#">{{t common.quickLinks}}<b class="caret"></b></a>
+                  <ul class="dropdown-menu">
+                    {{#each view.quickLinks}}
+                      {{#if disabled}}
+                          <a class="disabled-hdfs-quick-link">{{label}}</a>
+                      {{else}}
+                          <a {{bindAttr href="url"}} {{bindAttr target="view.linkTarget"}}>{{label}}</a>
+                      {{/if}}
+                    {{/each}}
+                  </ul>
+              </li>
+          </ul>
+      {{/view}}
+    {{/if}}
+  </div>
+
 {{#if App.isAdmin}}
 <div class="service-button">
   {{#if view.isMaintenanceActive}}
