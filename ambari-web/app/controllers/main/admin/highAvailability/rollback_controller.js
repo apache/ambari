@@ -145,7 +145,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
     App.clusterStatus.setClusterStatus({
       clusterName: this.get('content.cluster.name'),
       clusterState: 'HIGH_AVAILABILITY_ROLLBACK',
-      wizardControllerName: this.get('content.controllerName'),
+      wizardControllerName: 'highAvailabilityRollbackController',
       localdb: App.db.data
     });
   },
@@ -176,8 +176,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   done: function () {
     if (!this.get('isSubmitDisabled')) {
       this.removeObserver('tasks.@each.status', this, 'onTaskStatusChange');
-      this.get('popup').hide();
-      App.router.transitionTo('main.admin.adminHighAvailability');
+      this.popup.proceedOnClose();
     }
   },
 
