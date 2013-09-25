@@ -692,25 +692,18 @@ module.exports = Em.Route.extend({
             secondary: null,
             showFooter: false,
 
-            onClose: function () {
-              var self = this;
-              var controller = router.get('highAvailabilityRollbackController');
-//                if (!controller.get('isSubmitDisabled')) {
-              self.proceedOnClose();
-//                }
-            },
             proceedOnClose: function () {
-                var controller = router.get('highAvailabilityWizardController');
-                controller.clearStorageData();
+              var controller = router.get('highAvailabilityWizardController');
+              controller.clearStorageData();
               App.router.get('updateController').set('isWorking', true);
               App.clusterStatus.setClusterStatus({
-                clusterName: router.get('content.cluster.name'),
-                clusterState: 'HIGH_AVAILABILITY_DISABLED',
-                wizardControllerName: router.get('highAvailabilityRollbackController.name'),
-                localdb: App.db.data
+              clusterName: router.get('content.cluster.name'),
+              clusterState: 'HIGH_AVAILABILITY_DISABLED',
+              wizardControllerName: router.get('highAvailabilityRollbackController.name'),
+              localdb: App.db.data
               });
               this.hide();
-              router.transitionTo('main.admin.adminHighAvailability');
+              router.transitionTo('main.admin.index');
               location.reload();
             },
             didInsertElement: function () {
