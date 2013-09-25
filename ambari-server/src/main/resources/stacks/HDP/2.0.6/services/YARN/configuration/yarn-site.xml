@@ -130,12 +130,13 @@
  
   <property>
     <name>yarn.nodemanager.aux-services</name>
-    <value>mapreduce.shuffle</value>
-    <description>Auxilliary services of NodeManager</description>
+    <value>mapreduce_shuffle</value>
+    <description>Auxilliary services of NodeManager. A valid service name should only contain a-zA-Z0-9_ and can
+      not start with numbers</description>
   </property>
 
   <property>
-    <name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>
+    <name>yarn.nodemanager.aux-services.mapreduce_shuffle.class</name>
     <value>org.apache.hadoop.mapred.ShuffleHandler</value>
   </property>
 
