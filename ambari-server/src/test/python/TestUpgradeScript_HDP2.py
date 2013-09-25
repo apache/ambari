@@ -258,7 +258,7 @@ class TestUpgradeHDP2Script(TestCase):
     UpgradeHelper_HDP2.main()
     expected_curl_calls = [
       call(False, "-u", "admin:admin", "-X", "PUT", "-d",
-           """{"ServiceInfo": {"state": "INSTALLED"}}""",
+           """{"RequestInfo":{"context":"Install YARN and MapReduce2"},"Body":{"ServiceInfo": {"state":"INSTALLED"}}}""",
            "http://localhost:8080/api/v1/clusters/c1/services?ServiceInfo/state=INIT")]
     curl_mock.assert_has_calls(expected_curl_calls, any_order=True)
     pass
