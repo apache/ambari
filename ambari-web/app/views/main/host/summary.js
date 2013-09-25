@@ -341,7 +341,7 @@ App.MainHostSummaryView = Em.View.extend({
       if (pulsate && !self.get('isBlinking')) {
         self.set('isBlinking', true);
         uiEffects.pulsate(self.$('.components-health'), 1000, function () {
-          !self.get('isDestroyed') && self.set('isBlinking', false);
+          self.set('isBlinking', false);
           self.doBlinking();
         });
       }
