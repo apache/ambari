@@ -121,37 +121,11 @@ App.Host = DS.Model.extend({
   // See http://stackoverflow.com/questions/12467345/ember-js-collapsing-deferring-expensive-observers-or-computed-properties
   healthClass: '',
 
-  _updateHealthClass: function(){
-    Ember.run.once(this, 'updateHealthClass');
-  }.observes('healthStatus', 'hostComponents.@each.workStatus'),
-
   updateHealthClass: function(){
-    var healthStatus = this.get('healthStatus');
-    /**
-     * Do nothing until load
-     */
-    if (!this.get('isLoaded') || this.get('isSaving')) {
-    } else {
-      var status;
-      var masterComponents = this.get('hostComponents').filterProperty('isMaster');
-      var masterComponentsRunning = masterComponents.everyProperty('workStatus', App.HostComponentStatus.started);
-      var slaveComponents = this.get('hostComponents').filterProperty('isSlave');
-      var slaveComponentsRunning = slaveComponents.everyProperty('workStatus', App.HostComponentStatus.started);
-      if (this.get('isNotHeartBeating') || healthStatus == 'UNKNOWN') {
-        status = 'DEAD-YELLOW';
-      } else if (masterComponentsRunning && slaveComponentsRunning) {
-        status = 'LIVE';
-      } else if (masterComponents.length > 0 && !masterComponentsRunning) {
-        status = 'DEAD-RED';
-      } else {
-        status = 'DEAD-ORANGE';
-      }
-      if (status) {
-        healthStatus = status;
-      }
+    if(this.get('isNotHeartBeating') || this.get('healthStatus') == 'UNKNOWN'){
+      this.set('healthClass', 'health-status-DEAD-YELLOW');
     }
-    this.set('healthClass', 'health-status-' + healthStatus);
-  },
+  }.observes('healthStatus'),
 
   healthToolTip: function(){
     var hostComponents = this.get('hostComponents').filter(function(item){

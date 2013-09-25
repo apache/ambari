@@ -58,7 +58,8 @@ App.ClusterController = Em.Controller.extend({
     'alerts':false,
     'users':false,
     'datasets':false,
-    'targetclusters':false
+    'targetclusters':false,
+    'status': false
   }),
 
   /**
@@ -355,7 +356,10 @@ App.ClusterController = Em.Controller.extend({
     });
 
     App.router.get('updateController').updateServiceMetric(function(){
-        self.updateLoadStatus('services');
+      self.loadUpdatedStatus(function(){
+        self.updateLoadStatus('status');
+      });
+      self.updateLoadStatus('services');
     }, true);
 
     this.loadAlerts(function(){

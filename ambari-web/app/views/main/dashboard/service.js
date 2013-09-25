@@ -30,17 +30,9 @@ App.MainDashboardServiceHealthView = Em.View.extend({
   rel: 'HealthTooltip',
   'data-original-title': '',
 
-  getHostComponentStatus: function(){
-    var popupText = "";
-    this.get("service").get("hostComponents").filterProperty('isMaster', true).forEach(function(item){
-      popupText += item.get("displayName") + " " + item.get("componentTextStatus") + "<br/>";
-    });
-    this.set('data-original-title', popupText);
-  },
-
-  _updateHostComponentStatus: function(){
-    Ember.run.once(this, 'getHostComponentStatus');
-  }.observes('service.hostComponents.@each.workStatus'),
+  updateToolTip: function () {
+    this.set('data-original-title', this.get('service.toolTipContent'));
+  }.observes('service.toolTipContent'),
 
   /**
    * When set to true, extending classes should
@@ -94,7 +86,7 @@ App.MainDashboardServiceHealthView = Em.View.extend({
   }.property('service.healthStatus'),
 
   didInsertElement: function () {
-    this.getHostComponentStatus();
+    this.updateToolTip();
     $("[rel='HealthTooltip']").tooltip();
     this.doBlink(); // check for blink availability
   }
