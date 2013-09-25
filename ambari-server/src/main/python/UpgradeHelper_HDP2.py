@@ -568,7 +568,7 @@ def modify_configs(options, config_type):
         pass
       pass
     pass
-    update_config_using_existing(options, MAPRED_SITE_TAG, MAPRED_SITE)
+    update_config_using_existing(options, MAPRED_SITE_TAG, MAPRED_SITE, True)
     pass
 
   # Update global config, hdfs-site, core-site
@@ -576,10 +576,10 @@ def modify_configs(options, config_type):
     update_config_using_existing(options, GLOBAL_TAG, GLOBAL, True)
     pass
   if (config_type is None) or (config_type == HDFS_SITE_TAG):
-    update_config_using_existing(options, HDFS_SITE_TAG, HDFS_SITE)
+    update_config_using_existing(options, HDFS_SITE_TAG, HDFS_SITE, True)
     pass
   if (config_type is None) or (config_type == CORE_SITE_TAG):
-    update_config_using_existing(options, CORE_SITE_TAG, CORE_SITE)
+    update_config_using_existing(options, CORE_SITE_TAG, CORE_SITE, True)
     pass
   pass
 
@@ -637,7 +637,7 @@ def backup_single_config_type(options, type, error_if_na=True):
 
 def install_services(options):
   SERVICE_URL_FORMAT = URL_FORMAT + '/services?ServiceInfo/state=INIT'
-  PUT_IN_INSTALLED = """{"ServiceInfo": {"state": "INSTALLED"}}"""
+  PUT_IN_INSTALLED = """{"RequestInfo":{"context":"Install YARN and MapReduce2"},"Body":{"ServiceInfo": {"state":"INSTALLED"}}}"""
 
   response = curl(options.printonly, '-u',
                   AUTH_FORMAT.format(options.user, options.password),
@@ -647,6 +647,9 @@ def install_services(options):
   retcode, errdata = validate_response(response, not options.printonly)
   if not retcode == 0:
     raise FatalException(retcode, errdata + "(Services may already be installed.)")
+  else:
+    options.exit_message = "A request has been submitted to install Yarn and MapReduce2. Use Ambari Web to monitor " \
+                           "the status of the install request."
   pass
 
 
