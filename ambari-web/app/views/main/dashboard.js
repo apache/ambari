@@ -324,6 +324,11 @@ App.MainDashboardView = Em.View.extend({
     }
     if (toAdd.length) {
       value.visible = value.visible.concat(toAdd);
+      var allThreshold = this.get('initPrefObject').threshold;
+      // add new threshold OR override with default value
+      toAdd.forEach ( function (item) {
+        value.threshold[item] = allThreshold[item];
+      }, this);
     }
     //post to server
     this.postUserPref(this.get('persistKey'), value);
