@@ -64,6 +64,20 @@ module.exports = Em.Application.create({
 });
 
 /**
+ * overwritten set method of Ember.View to avoid uncaught errors
+ * when trying to set property of destroyed view
+ */
+Em.View.reopen({
+  set: function(attr, value){
+    if(!this.get('isDestroyed') && !this.get('isDestroying')){
+      this._super(attr, value);
+    } else {
+      console.error('Calling set on destroyed view');
+    }
+  }
+});
+
+/**
  * Ambari overrides the default date transformer.
  * This is done because of the non-standard data
  * sent. For example Nagios sends date as "12345678".

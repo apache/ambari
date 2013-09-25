@@ -106,7 +106,7 @@ App.WizardStep1View = Em.View.extend({
             } else {
               error = Em.I18n.t('installer.step1.advancedRepo.localRepo.error.noUrl')
             }
-            if (!childView.get('isDestroyed') && !childView.get('isDestroying') && childView.get('isVisible'))
+            if (childView.get('isVisible'))
               childView.set('errorMessage', error);
           }
         }
