@@ -101,9 +101,12 @@ App.statusMapper = App.QuickDataMapper.create({
       servicesMap[hostComponent.get('service.id')] = service;
     }
     if (hostComponent.get('isMaster')) {
-      service.everyStartedOrMaintenance = (service.everyStartedOrMaintenance)
-        ? ([App.HostComponentStatus.started, App.HostComponentStatus.maintenance].contains(hostComponent.get('workStatus')))
-        : false;
+      if (service.everyStartedOrMaintenance) {
+        service.everyStartedOrMaintenance = (!App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE') && hostComponent.get('componentName') === 'NAMENODE' && App.HDFSService.find().filterProperty('activeNameNode.hostName').length > 0)
+          ? true : service.everyStartedOrMaintenance = ([App.HostComponentStatus.started, App.HostComponentStatus.maintenance].contains(hostComponent.get('workStatus')));
+      } else {
+        service.everyStartedOrMaintenance = false;
+      }
       service.everyStarted = (service.everyStarted)
         ? (hostComponent.get('workStatus') === App.HostComponentStatus.started)
         : false;
