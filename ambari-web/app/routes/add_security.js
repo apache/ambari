@@ -59,11 +59,11 @@ module.exports = Em.Route.extend({
                       }, Em.I18n.t('admin.addSecurity.enable.onClose'));
                     }
                   } else {
-                    App.showConfirmationPopup(function () {},
-                      Em.I18n.t('admin.addSecurity.enable.after.stage2.onClose'),
-                      function () {
+                    App.showConfirmationPopup(function () {
                         self.proceedOnClose();
-                      });
+                      },
+                      Em.I18n.t('admin.addSecurity.enable.after.stage2.onClose')
+                    );
                   }
                   return;
                 }
