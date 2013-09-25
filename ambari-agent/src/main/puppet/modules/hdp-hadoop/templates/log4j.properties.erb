@@ -189,7 +189,7 @@ yarn.server.resourcemanager.appsummary.logger=${hadoop.root.logger}
 #    - hadoop.log.dir (Hadoop Log directory)
 #    - yarn.server.resourcemanager.appsummary.log.file (resource manager app summary log filename)
 #    - yarn.server.resourcemanager.appsummary.logger (resource manager app summary log level and appender)
-og4j.appender.RMSUMMARY=org.apache.log4j.RollingFileAppender
+log4j.appender.RMSUMMARY=org.apache.log4j.RollingFileAppender
 log4j.appender.RMSUMMARY.File=<%=scope.function_hdp_template_var("yarn_log_dir_prefix")%>/<%=scope.function_hdp_template_var("yarn_user")%>/${yarn.server.resourcemanager.appsummary.log.file}
 log4j.appender.RMSUMMARY.MaxFileSize=256MB
 log4j.appender.RMSUMMARY.MaxBackupIndex=20
