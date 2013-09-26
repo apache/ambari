@@ -158,11 +158,11 @@ var urls = {
     }
   },
   'config.tags': {
-    'real': '/clusters/{clusterName}',
+    'real': '/clusters/{clusterName}?fields=Clusters/desired_configs',
     'mock': '/data/clusters/cluster.json'
   },
   'config.tags.sync': {
-    'real': '/clusters/{clusterName}',
+    'real': '/clusters/{clusterName}?fields=Clusters/desired_configs',
     'mock': '/data/clusters/cluster.json',
     'format': function (data) {
       return {
@@ -486,7 +486,7 @@ var urls = {
     }
   },
   'admin.security_status': {
-    'real': '/clusters/{clusterName}',
+    'real': '/clusters/{clusterName}?fields=Clusters/desired_configs',
     'mock': '',
     'format': function (data, opt) {
       return {
