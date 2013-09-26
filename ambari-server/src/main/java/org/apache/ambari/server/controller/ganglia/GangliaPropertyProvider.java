@@ -23,6 +23,7 @@ import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
+import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -228,7 +229,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
             updateComponentMetricMap(componentMetricMap, id);
           }
 
-          boolean requestAll = getPropertyInfoMap(getComponentName(resource), id, propertyInfoMap);
+          getPropertyInfoMap(getComponentName(resource), id, propertyInfoMap);
 
           for (Map.Entry<String, PropertyInfo> entry : propertyInfoMap.entrySet()) {
             String propertyId = entry.getKey();
@@ -242,9 +243,8 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
                 rrdRequest = new RRDRequest(clusterName, temporalInfo);
                 requests.put(temporalInfo, rrdRequest);
               }
-              rrdRequest.putResource(key, resource);
+              rrdRequest.putResource(key, resource);              
               rrdRequest.putPropertyId(propertyInfo.getPropertyId(), propertyId);
-              rrdRequest.setRequestAllMetrics(requestAll);
             }
           }
         }
@@ -277,48 +277,52 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
     String hosts    = getSetString(hostSet, 100);
     String metrics  = getSetString(metricSet, 50);
 
-    StringBuilder sb = new StringBuilder();
+    URIBuilder uriBuilder = new URIBuilder();
 
     if (configuration.isGangliaSSL()) {
-      sb.append("https://");
+      uriBuilder.setScheme("https");
     } else {
-      sb.append("http://");
+      uriBuilder.setScheme("http");
     }
 
-    sb.append(hostProvider.getGangliaCollectorHostName(clusterName)).
-        append("/cgi-bin/rrd.py?c=").
-        append(clusters);
+    
+    uriBuilder.setHost(hostProvider.getGangliaCollectorHostName(clusterName));
+    
+    uriBuilder.setPath("/cgi-bin/rrd.py");
+    
+    uriBuilder.setParameter("c", clusters);
+    
 
     if (hosts.length() > 0) {
-      sb.append("&h=").append(hosts);
+      uriBuilder.setParameter("h", hosts);
     }
 
     if (metrics.length() > 0) {
-      sb.append("&m=").append(metrics);
+      uriBuilder.setParameter("m", metrics);
     }
 
     if (temporalInfo != null) {
       long startTime = temporalInfo.getStartTime();
       if (startTime != -1) {
-        sb.append("&s=").append(startTime);
+        uriBuilder.setParameter("s", String.valueOf(startTime));
       }
 
       long endTime = temporalInfo.getEndTime();
       if (endTime != -1) {
-        sb.append("&e=").append(endTime);
+        uriBuilder.setParameter("e", String.valueOf(endTime));
       }
 
       long step = temporalInfo.getStep();
       if (step != -1) {
-        sb.append("&r=").append(step);
+        uriBuilder.setParameter("r", String.valueOf(step));
       }
     }
     else {
-      sb.append("&e=now");
-      sb.append("&pt=true");
+      uriBuilder.setParameter("e", "now");
+      uriBuilder.setParameter("pt", "true");
     }
 
-    return sb.toString();
+    return uriBuilder.toString();
   }
 
   /**
@@ -382,16 +386,11 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
     private final Map<String, Set<String>> metrics = new HashMap<String, Set<String>>();
     private final Set<String> clusterSet = new HashSet<String>();
     private final Set<String> hostSet = new HashSet<String>();
-    private boolean requestAll = false;
 
 
     private RRDRequest(String clusterName, TemporalInfo temporalInfo) {
       this.clusterName  = clusterName;
       this.temporalInfo = temporalInfo;
-    }
-
-    public void setRequestAllMetrics(boolean requestAll) {
-      this.requestAll = this.requestAll | requestAll;
     }
 
     public void putResource(ResourceKey key, Resource resource) {
@@ -424,23 +423,22 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
      */
     public Collection<Resource> populateResources() throws SystemException {
 
-      String spec = getSpec(clusterName, clusterSet, hostSet,
-          requestAll ? Collections.<String>emptySet() : metrics.keySet(), temporalInfo);
+      String spec = getSpec(clusterName, clusterSet, hostSet, metrics.keySet(), temporalInfo);
+
       BufferedReader reader = null;
       try {
         
         //Check if host is live
         if (!hostProvider.isGangliaCollectorHostLive(clusterName)) {
           LOG.info("Ganglia host is not live");
-            return Collections.emptySet();
+          return Collections.emptySet();
         }
         
         //Check if Ganglia server component is live
         if (!hostProvider.isGangliaCollectorComponentLive(clusterName)) {
           LOG.info("Ganglia server component is not live");
-            return Collections.emptySet();
+          return Collections.emptySet();
         }
-        
 
         reader = new BufferedReader(new InputStreamReader(
             getStreamProvider().readFrom(spec)));
