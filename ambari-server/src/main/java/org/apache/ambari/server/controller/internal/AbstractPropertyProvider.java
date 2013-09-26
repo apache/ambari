@@ -107,20 +107,19 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
     return propertyInfoMap;
   }
 
-  // TODO : added for FLUME and reg exp property ids... revisit.
-  protected boolean getPropertyInfoMap(String componentName, String propertyId, Map<String, PropertyInfo> propertyInfoMap) {
+  protected void getPropertyInfoMap(String componentName, String propertyId, Map<String, PropertyInfo> propertyInfoMap) {
     Map<String, PropertyInfo> componentMetricMap = componentMetrics.get(componentName);
 
     propertyInfoMap.clear();
 
     if (componentMetricMap == null) {
-      return false;
+      return;
     }
 
     PropertyInfo propertyInfo = componentMetricMap.get(propertyId);
     if (propertyInfo != null) {
       propertyInfoMap.put(propertyId, propertyInfo);
-      return false;
+      return;
     }
 
     String regExpKey = getRegExpKey(propertyId);
@@ -129,12 +128,9 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
       propertyInfo = componentMetricMap.get(regExpKey);
       if (propertyInfo != null) {
         propertyInfoMap.put(regExpKey, propertyInfo);
-        return true;
+        return;
       }
     }
-
-    // TODO : For now, if the property info map contains any metrics with regular expressions then get back all the metrics.
-    boolean requestAllMetrics = false;
 
     if (!propertyId.endsWith("/")){
       propertyId += "/";
@@ -143,7 +139,6 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
     for (Map.Entry<String, PropertyInfo> entry : componentMetricMap.entrySet()) {
       if (entry.getKey().startsWith(propertyId)) {
         String key = entry.getKey();
-        requestAllMetrics = isPatternKey(key);
         propertyInfoMap.put(key, entry.getValue());
       }
     }
@@ -153,14 +148,15 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
         regExpKey += "/";
       }
 
+      
       for (Map.Entry<String, PropertyInfo> entry : componentMetricMap.entrySet()) {
         if (entry.getKey().startsWith(regExpKey)) {
-          requestAllMetrics = true;
           propertyInfoMap.put(entry.getKey(), entry.getValue());
         }
       }
     }
-    return requestAllMetrics;
+
+    return;
   }
 
   /**

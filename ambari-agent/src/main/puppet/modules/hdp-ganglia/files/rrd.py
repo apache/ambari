@@ -23,6 +23,7 @@ import os
 import rrdtool
 import sys
 import time
+import re
 
 # place this script in /var/www/cgi-bin of the Ganglia collector
 # requires 'yum install rrdtool-python' on the Ganglia collector
@@ -145,10 +146,17 @@ for cluster in clusterParts:
     if len(hostParts) == 0 or pathParts[-1] in hostParts:
       for file in files:
         for metric in metricParts:
+          doPrintMetric = False
           if file.endswith(metric + ".rrd"):
+            doPrintMetric = True
+          else:
+            metricRegex = metric + '.rrd$'
+            p = re.compile(metricRegex)
+            if p.match(file):
+              doPrintMetric = True
 
-            printMetric(pathParts[-2], pathParts[-1], file[:-4],
-                os.path.join(path, file), cf, start, end, resolution, pointInTime)
+          if doPrintMetric:
+            printMetric(pathParts[-2], pathParts[-1], file[:-4], os.path.join(path, file), cf, start, end, resolution, pointInTime)
 
 sys.stdout.write("[AMBARI_END]\n")
 # write end time
