@@ -195,7 +195,7 @@ class HostModel(BaseModel):
   RW_ATTR = ('host_name', 'ip', 'rack_info')
   REF_ATTR = ('cluster_name',)
   
-  def __init__(self, resource_root, host_name, ip=None , rack_info=None):
+  def __init__(self, resource_root, host_name, ip=None , rack_info='/default-rack'):
     utils.retain_self_helper(BaseModel, **locals())
 
   def __str__(self):

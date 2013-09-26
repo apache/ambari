@@ -78,7 +78,7 @@
                 <argument>unitTests.py</argument>
               </arguments>
               <environmentVariables>
-                <PYTHONPATH>${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python/ambari_client:$PYTHONPATH</PYTHONPATH>
+                <PYTHONPATH>${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python/ambari_client:${project.basedir}/src/test/python/utils:$PYTHONPATH</PYTHONPATH>
               </environmentVariables>
               <skip>${skipTests}</skip>
             </configuration>

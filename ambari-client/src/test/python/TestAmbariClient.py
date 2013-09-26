@@ -22,7 +22,7 @@ limitations under the License.
 from mock.mock import MagicMock, patch
 from ambari_client.ambari_api import  AmbariClient 
 from ambari_client.core.errors import BadRequest
-
+from HttpClientInvoker import HttpClientInvoker
 import unittest
 
 class TestAmbariClient(unittest.TestCase):
@@ -81,7 +81,7 @@ class TestAmbariClient(unittest.TestCase):
     self.assertEqual(all_clusters.to_json_dict(), expected_output, "to_json_dict should convert ModelList")
     
   @patch("ambari_client.core.http_client.HttpClient")  
-  def test_get_hosts_clusters_valid(self , http_client):
+  def test_get_all_hosts(self , http_client):
     """
     Get all hosts.
     This testcase checks if get_all_hosts returns a list of ModelList.
@@ -135,7 +135,7 @@ class TestAmbariClient(unittest.TestCase):
     mocked_code = "200" 
     mocked_content = "text/plain"
     
-    linestring = open('json/get_cluster.json', 'r').read()
+    linestring = open('json/clustermodel_get_cluster.json', 'r').read()
     mocked_response = linestring
     expected_dict_output = {'cluster_name': u'test1', 'version': u'HDP-1.2.1'}
     
@@ -145,55 +145,6 @@ class TestAmbariClient(unittest.TestCase):
     
     self.assertEqual(cluster.cluster_name, "test1", "cluster_name should be test1 ")
     self.assertEqual(cluster.to_json_dict(), expected_dict_output, "to_json_dict should convert ClusterModel")
-
-
-
-  @patch("ambari_client.core.http_client.HttpClient")  
-  def test_get_cluster_services_valid(self , http_client):
-    """
-    Get all services of a cluster.
-    This testcase checks if get_all_services returns a list of ModelList.
-    """
-    http_client_mock = MagicMock()
-    http_client.returned_obj = http_client_mock
-    mocked_code = "200" 
-    mocked_content = "text/plain"
-    
-    expected_dict_output = {'cluster_name': u'test1', 'version': u'HDP-1.2.1'}
-    
-    http_client_mock.invoke.side_effect = http_client_invoke_side_effects
-    client = AmbariClient("localhost", 8080, "admin", "admin", version=1, client=http_client_mock)
-    cluster = client.get_cluster('test1')
-    serviceList = cluster.get_all_services()
-    
-    self.assertEqual(cluster.cluster_name, "test1", "cluster_name should be test1 ")
-    self.assertEqual(cluster.to_json_dict(), expected_dict_output, "to_json_dict should convert ClusterModel")
-    self.assertEqual(len(serviceList), 3, "There should be a 3 services from the response")
- 
-  @patch("ambari_client.core.http_client.HttpClient")  
-  def test_get_cluster_service_valid(self , http_client):
-    """
-    Get the service of a cluster
-    This testcase checks if get_service returns a list of ServiceModel.
-    """
-    http_client_mock = MagicMock()
-    http_client.returned_obj = http_client_mock
-    mocked_code = "200" 
-    mocked_content = "text/plain"
-    
-    expected_dict_output = {'cluster_name': u'test1', 'version': u'HDP-1.2.1'}
-    
-    http_client_mock.invoke.side_effect = http_client_invoke_side_effects
-    client = AmbariClient("localhost", 8080, "admin", "admin", version=1, client=http_client_mock)
-    cluster = client.get_cluster('test1')
-    serviceList = cluster.get_all_services()
-    ganglia = cluster.get_service("GANGLIA")  
-
-    self.assertEqual(cluster.cluster_name, "test1", "cluster_name should be test1 ")
-    self.assertEqual(cluster.to_json_dict(), expected_dict_output, "to_json_dict should convert ClusterModel")
-    self.assertEqual(len(serviceList), 3, "There should be a 3 services from the response")
-    self.assertEqual(str(ganglia.state), "STARTED", "The ganglia service state should be fetched as STARTED")
-    self.assertEqual(ganglia.clusterRef.cluster_name, cluster.cluster_name, "The clusterRef value for  service  should be fetched ")
     
   @patch("ambari_client.core.http_client.HttpClient")  
   def test_exceptions(self , http_client):
@@ -205,57 +156,15 @@ class TestAmbariClient(unittest.TestCase):
     mocked_code = "200" 
     mocked_content = "text/plain"
     
-    http_client_mock.invoke.side_effect = http_client_invoke_side_effects
+    http_client_mock.invoke.side_effect = HttpClientInvoker.http_client_invoke_side_effects
     client = AmbariClient("localhost", 8080, "admin", "admin", version=1, client=http_client_mock)
     cluster = client.get_cluster('test1')
     
     try:
       cluster.delete_host('deleted_nonexistant_cluster')
+      print http_client_mock.invoke.call_args_list
       self.fail('Exception should have been thrown!')
     except BadRequest, ex:
       self.assertEquals(str(ex), 'exception: 400. Attempted to add unknown hosts to a cluster.  These hosts have not been registered with the server: dev05')
     except Exception, ex:
       self.fail('Wrong exception thrown!')
-
-  
-
-def http_client_invoke_side_effects(*args, **kwargs):
-    print locals()
-    mocked_code = "200" 
-    mocked_content = "text/plain"
-    if args[1] == "//clusters/test1":
-        mocked_response = open('json/get_cluster.json', 'r').read()
-        return mocked_response, mocked_code , mocked_content
-    elif args[1] == "//hosts":
-        mocked_response = open('json/get_all_hosts.json', 'r').read()
-        return mocked_response, mocked_code , mocked_content
-    elif args[1] == "//clusters/test6/hosts/r01wn01":
-        mocked_response = open('json/get_cluster_host.json', 'r').read()
-        return mocked_response, mocked_code , mocked_content
-    elif args[1] == "//clusters/test6/hosts?fields=*":
-        mocked_response = open('json/get_cluster_hosts.json', 'r').read()
-        return mocked_response, mocked_code , mocked_content
-    elif args[1] == "//clusters/test6/services/GANGLIA":
-        mocked_response = open('json/get_cluster_service.json', 'r').read()
-        return mocked_response, mocked_code , mocked_content
-    elif args[1] == "//clusters/test1/services?fields=*":
-        mocked_response = open('json/get_cluster_services.json', 'r').read()
-        return mocked_response, mocked_code , mocked_content
-    elif args[1] == "//clusters/test6/hosts/r01wn01/host_components/NAMENODE":
-        mocked_response = open('json/get_host_component.json', 'r').read()
-        return mocked_response, mocked_code , mocked_content
-    elif args[1] == "//clusters/test6/hosts/r01wn01/host_components?ServiceComponentInfo":
-        mocked_response = open('json/get_host_components.json', 'r').read()
-        return mocked_response, mocked_code , mocked_content
-    elif args[1] == "//clusters/test6/services/GANGLIA/components/GANGLIA_MONITOR":
-        mocked_response = open('json/get_service_component.json', 'r').read()
-        return mocked_response, mocked_code , mocked_content
-    elif args[1] == "//clusters/test6/services/GANGLIA/components?fields=*":
-        mocked_response = open('json/get_service_components.json', 'r').read()
-        return mocked_response, mocked_code , mocked_content
-    elif args[1] == "//clusters/test1/services/GANGLIA":
-        mocked_response = open('json/get_service.json', 'r').read()
-        return mocked_response, mocked_code , mocked_content
-    elif args[1] == "//clusters/test1/hosts/deleted_nonexistant_cluster":
-        mocked_response = open('json/error_adding_host.json', 'r').read()
-        return mocked_response, mocked_code , mocked_content

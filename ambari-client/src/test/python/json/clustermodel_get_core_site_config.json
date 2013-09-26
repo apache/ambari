@@ -1,0 +1,32 @@
+{
+  "href" : "http://localhost:8080/api/v1/clusters/test1/configurations?type=core-site&tag=version1",
+  "items" : [
+    {
+      "href" : "http://localhost:8080/api/v1/clusters/test1/configurations?type=core-site&tag=version1",
+      "tag" : "version1",
+      "type" : "core-site",
+      "Config" : {
+        "cluster_name" : "test1"
+      },
+      "properties" : {
+        "dfs.namenode.checkpoint.dir" : "/hadoop/hdfs/namesecondary",
+        "dfs.namenode.checkpoint.edits.dir" : "${dfs.namenode.checkpoint.dir}",
+        "dfs.namenode.checkpoint.period" : "21600",
+        "fs.checkpoint.edits.dir" : "/hadoop/hdfs/namesecondary",
+        "fs.checkpoint.size" : "0.5",
+        "fs.defaultFS" : "hdfs://dev05.hortonworks.com:8020",
+        "fs.trash.interval" : "360",
+        "hadoop.security.auth_to_local" : "\n        RULE:[2:$1@$0]([rn]m@.*)s/.*/yarn/\n        RULE:[2:$1@$0](jhs@.*)s/.*/mapred/\n        RULE:[2:$1@$0]([nd]n@.*)s/.*/hdfs/\n        RULE:[2:$1@$0](hm@.*)s/.*/hbase/\n        RULE:[2:$1@$0](rs@.*)s/.*/hbase/\n        DEFAULT\n    ",
+        "hadoop.security.authentication" : "simple",
+        "hadoop.security.authorization" : "false",
+        "io.compression.codecs" : "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec",
+        "io.file.buffer.size" : "131072",
+        "io.serializations" : "org.apache.hadoop.io.serializer.WritableSerialization",
+        "ipc.client.connect.max.retries" : "50",
+        "ipc.client.connection.maxidletime" : "30000",
+        "ipc.client.idlethreshold" : "8000",
+        "mapreduce.jobtracker.webinterface.trusted" : "false"
+      }
+    }
+  ]
+}

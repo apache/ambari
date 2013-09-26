@@ -1,0 +1,41 @@
+{
+  "href" : "http://localhost:8080/api/v1/stacks2/HDP/versions/2.0.5/stackServices/YARN/serviceComponents?fields=*",
+  "items" : [
+    {
+      "href" : "http://localhost:8080/api/v1/stacks2/HDP/versions/2.0.5/stackServices/YARN/serviceComponents/NODEMANAGER",
+      "StackServiceComponents" : {
+        "component_category" : "SLAVE",
+        "component_name" : "NODEMANAGER",
+        "is_client" : false,
+        "is_master" : false,
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "stack_version" : "2.0.5"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/stacks2/HDP/versions/2.0.5/stackServices/YARN/serviceComponents/RESOURCEMANAGER",
+      "StackServiceComponents" : {
+        "component_category" : "MASTER",
+        "component_name" : "RESOURCEMANAGER",
+        "is_client" : false,
+        "is_master" : true,
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "stack_version" : "2.0.5"
+      }
+    },
+    {
+      "href" : "http://localhost:8080/api/v1/stacks2/HDP/versions/2.0.5/stackServices/YARN/serviceComponents/YARN_CLIENT",
+      "StackServiceComponents" : {
+        "component_category" : "CLIENT",
+        "component_name" : "YARN_CLIENT",
+        "is_client" : true,
+        "is_master" : false,
+        "service_name" : "YARN",
+        "stack_name" : "HDP",
+        "stack_version" : "2.0.5"
+      }
+    }
+  ]
+}
