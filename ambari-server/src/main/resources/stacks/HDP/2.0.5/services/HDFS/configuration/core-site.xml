@@ -64,33 +64,7 @@
   </description>
   </property>
 
-  <property>
-    <name>dfs.namenode.checkpoint.dir</name>
-    <value></value>
-    <description>Determines where on the local filesystem the DFS secondary
-        name node should store the temporary images to merge.
-        If this is a comma-delimited list of directories then the image is
-        replicated in all of the directories for redundancy.
-    </description>
-  </property>
 
-  <property>
-    <name>dfs.namenode.checkpoint.edits.dir</name>
-    <value>${dfs.namenode.checkpoint.dir}</value>
-    <description>Determines where on the local filesystem the DFS secondary
-        name node should store the temporary edits to merge.
-        If this is a comma-delimited list of directoires then teh edits is
-        replicated in all of the directoires for redundancy.
-        Default value is same as dfs.namenode.checkpoint.dir
-    </description>
-  </property>
-
-  <property>
-    <name>dfs.namenode.checkpoint.period</name>
-    <value>21600</value>
-    <description>The number of seconds between two periodic checkpoints.
-  </description>
-  </property>
 
   <!-- ipc properties: copied from kryptonite configuration -->
   <property>

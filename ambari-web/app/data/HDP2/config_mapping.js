@@ -30,25 +30,18 @@ var configs = [
     "templateName": ["dfs_namenode_checkpoint_dir"],
     "foreignKey": null,
     "value": "<templateName[0]>",
-    "filename": "core-site.xml"
+    "filename": "hdfs-site.xml"
   },
   {
     "name": "dfs.namenode.checkpoint.period",
     "templateName": ["dfs_namenode_checkpoint_period"],
     "foreignKey": null,
     "value": "<templateName[0]>",
-    "filename": "core-site.xml"
+    "filename": "hdfs-site.xml"
   },
   {
     "name": "fs.checkpoint.size",
     "templateName": ["fs_checkpoint_size"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "core-site.xml"
-  },
-  {
-    "name": "fs.checkpoint.edits.dir",
-    "templateName": ["dfs_namenode_checkpoint_dir"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "core-site.xml"

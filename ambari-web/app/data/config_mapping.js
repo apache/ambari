@@ -46,13 +46,6 @@ var configs = [
     "filename": "core-site.xml"
   },
   {
-    "name": "fs.checkpoint.edits.dir",
-    "templateName": ["fs_checkpoint_dir"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "core-site.xml"
-  },
-  {
     "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
     "templateName": ["proxyuser_group"],
     "foreignKey": ["hive_user"],
