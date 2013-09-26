@@ -218,7 +218,7 @@ HDFS_SITE = {
   "dfs.domain.socket.path": "/var/lib/hadoop-hdfs/dn_socket",
   "dfs.heartbeat.interval": "REPLACE_WITH_",
   "dfs.hosts.exclude": "REPLACE_WITH_",
-  "dfs.https.namenode.https-address": "REPLACE_WITH_dfs.https.address",
+  "dfs.namenode.https-address": "REPLACE_WITH_dfs.https.address",
   "dfs.namenode.accesstime.precision": "0",
   "dfs.namenode.avoid.read.stale.datanode": "REPLACE_WITH_",
   "dfs.namenode.avoid.write.stale.datanode": "REPLACE_WITH_",

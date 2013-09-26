@@ -181,7 +181,7 @@ var configs = [
     "filename": "hdfs-site.xml"
   },
   {
-    "name": "dfs.https.namenode.https-address",
+    "name": "dfs.namenode.https-address",
     "templateName": ["namenode_host"],
     "foreignKey": null,
     "value": "<templateName[0]>:50470",
