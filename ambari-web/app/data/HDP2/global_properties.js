@@ -272,7 +272,7 @@ module.exports =
       "unit": "seconds",
       "isVisible": true,
       "domain": "global",
-      "filename": "core-site.xml",
+      "filename": "hdfs-site.xml",
       "serviceName": "HDFS",
       "index": 3
     },
