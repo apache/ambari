@@ -335,7 +335,7 @@ ORACLE_EXEC_ARGS = "-S '{0}/{1}@(description=(address=(protocol=TCP)(host={2})(p
 MYSQL_EXEC_ARGS = "--host={0} --port={1} --user={2} --password={3} {4} " \
                  "-e\"set @schema=\'{4}\'; set @username=\'{2}\'; source {5};\""
 
-ORACLE_UPGRADE_STACK_ARGS = "-S '{0}/{1}@(description=(address=(protocol=TCP)(host={2})(port={3}))(connect_data=({6}={4})))' @{5} {0} {7}"
+ORACLE_UPGRADE_STACK_ARGS = "-S '{0}/{1}@(description=(address=(protocol=TCP)(host={2})(port={3}))(connect_data=({6}={4})))' @{5} {7} {8}"
 
 JDBC_PATTERNS = {"oracle":"*ojdbc*.jar", "mysql":"*mysql*.jar"}
 DATABASE_FULL_NAMES = {"oracle":"Oracle", "mysql":"MySQL", "postgres":"PostgreSQL"}
@@ -1284,6 +1284,7 @@ def remote_stack_upgrade(args, scriptPath, stackId):
       print_info_msg("using SERVICE_NAME instead of SID for Oracle")
       sid_or_sname = "service_name"
 
+    stack_name, stack_version = stackId.split(STACK_NAME_VER_SEP)
     retcode, out, err = run_in_shell('{0} {1}'.format(tool, ORACLE_UPGRADE_STACK_ARGS.format(
       args.database_username,
       args.database_password,
@@ -1292,7 +1293,8 @@ def remote_stack_upgrade(args, scriptPath, stackId):
       args.database_name,
       scriptPath,
       sid_or_sname,
-      stackId
+      stack_name,
+      stack_version
     )))
     return retcode, out, err
 
