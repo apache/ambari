@@ -198,19 +198,6 @@ define service {
 }
 <%end-%>
 
-<%if scope.function_hdp_nagios_members_exist('nodemanagers')-%>
-define service {
-        hostgroup_name          ganglia-server
-        use                     hadoop-service
-        service_description     GANGLIA::Ganglia Monitor process for NodeManager
-        servicegroups           GANGLIA
-        check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::ganglia_collector_nm_port")%>!-w 1 -c 1
-        normal_check_interval   0.25
-        retry_check_interval    0.25
-        max_check_attempts      4
-}
-<%end-%>
-
 <%if scope.function_hdp_nagios_members_exist('historyserver2')-%>
 define service {
         hostgroup_name          ganglia-server
