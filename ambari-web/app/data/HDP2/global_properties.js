@@ -440,6 +440,18 @@ module.exports =
       "serviceName": "HDFS",
       "category": "Advanced"
     },
+    {
+      "id": "puppet var",
+      "name": "lzo_enabled",
+      "displayName": "LZO compression",
+      "description": "LZO compression enabled",
+      "defaultValue": true,
+      "displayType": "checkbox",
+      "isOverridable": false,
+      "isVisible": false,
+      "domain": "global",
+      "serviceName": "HDFS"
+    },
 
   /**********************************************MAPREDUCE2***************************************/
     {
