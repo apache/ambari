@@ -85,7 +85,7 @@ class hdp-hadoop::params(
 
   ### JSVC_HOME path is correct for AMD64 only, but can be changed through API
   if ($hdp::params::hdp_os_type == "suse") {
-    $jsvc_path = hdp_default("jsvc_path","/usr/lib/hadoop/sbin/Linux-amd64-64/")
+    $jsvc_path = hdp_default("jsvc_path","/usr/lib/bigtop-utils")
   } else {
     $jsvc_path = hdp_default("jsvc_path","/usr/libexec/bigtop-utils")
   }
