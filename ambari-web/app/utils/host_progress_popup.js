@@ -585,7 +585,7 @@ App.HostPopup = Em.Object.create({
               this.set("isServiceEmptyList", this.setVisibility(filter, services));
             }
           }
-        }.observes('serviceCategory', 'services'),
+        }.observes('serviceCategory', 'services', 'services.@each.status'),
 
         /**
          * Depending on hosts filter, set which hosts should be shown
@@ -597,7 +597,7 @@ App.HostPopup = Em.Object.create({
             var hosts = this.get('hosts');
             this.set("isHostEmptyList", this.setVisibility(filter, hosts));
           }
-        }.observes('hostCategory', 'hosts'),
+        }.observes('hostCategory', 'hosts', 'hosts.@each.status'),
 
         /**
          * Depending on tasks filter, set which tasks should be shown
@@ -609,7 +609,7 @@ App.HostPopup = Em.Object.create({
             var tasks = this.get('tasks');
             this.set("isTasksEmptyList", this.setVisibility(filter, tasks));
           }
-        }.observes('taskCategory', 'tasks'),
+        }.observes('taskCategory', 'tasks', 'tasks.@each.status'),
 
         /**
          * Depending on selected filter type, set object visibility value
@@ -675,7 +675,7 @@ App.HostPopup = Em.Object.create({
           } else if (!this.get('isServiceListHidden')) {
             this.get('controller').setSelectCount(this.get("services"), this.get('categories'));
           }
-        }.observes('hosts', 'isTaskListHidden', 'isHostListHidden', 'services.length', 'services.@each.status'),
+        }.observes('tasks.@each.status', 'hosts.@each.status', 'isTaskListHidden', 'isHostListHidden', 'services.length', 'services.@each.status'),
 
         /**
          * Onclick handler for button <-Tasks
