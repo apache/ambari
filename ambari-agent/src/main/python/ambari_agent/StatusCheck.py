@@ -115,7 +115,7 @@ class StatusCheck:
       procInfo = lines[1]
       isLive = not procInfo == None
     except IndexError:
-      logger.info('Process is dead')
+      logger.info("Process is dead. Checking " + str(pidPath))
     return isLive
 
   def getStatus(self, serviceCode):

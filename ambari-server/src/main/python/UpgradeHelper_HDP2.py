@@ -53,6 +53,7 @@ YARN_SITE_TAG = "yarn-site"
 REPLACE_JH_HOST_NAME_TAG = "REPLACE_JH_HOST"
 REPLACE_RM_HOST_NAME_TAG = "REPLACE_RM_HOST"
 REPLACE_WITH_TAG = "REPLACE_WITH_"
+DELETE_OLD_TAG = "DELETE_OLD"
 
 AUTH_FORMAT = '{0}:{1}'
 URL_FORMAT = 'http://{0}:8080/api/v1/clusters/{1}'
@@ -77,184 +78,187 @@ MAPRED_QUEUE_ACLS = {
   "mapred.queue.default.acl-administer-jobs": "*", "mapred.queue.default.acl-submit-job": "*"}
 
 MAPRED_SITE = {
-  "mapred.hosts": "REPLACE_WITH_",
-  "mapred.hosts.exclude": "REPLACE_WITH_",
-  "mapred.jobtracker.maxtasks.per.job": "REPLACE_WITH_",
-  "mapred.jobtracker.taskScheduler": "REPLACE_WITH_",
-  "mapred.task.tracker.task-controller": "REPLACE_WITH_",
-  "mapred.userlog.retain.hours": "REPLACE_WITH_",
+  "hadoop.job.history.user.location": "DELETE_OLD",
+  "io.sort.factor": "DELETE_OLD",
+  "io.sort.mb": "DELETE_OLD",
+  "io.sort.record.percent": "DELETE_OLD",
+  "io.sort.spill.percent": "DELETE_OLD",
+  "jetty.connector": "DELETE_OLD",
+  "mapred.child.java.opts": "DELETE_OLD",
+  "mapred.child.root.logger": "DELETE_OLD",
+  "mapred.cluster.map.memory.mb": "DELETE_OLD",
+  "mapred.cluster.max.map.memory.mb": "DELETE_OLD",
+  "mapred.cluster.max.reduce.memory.mb": "DELETE_OLD",
+  "mapred.cluster.reduce.memory.mb": "DELETE_OLD",
+  "mapred.healthChecker.interval": "DELETE_OLD",
+  "mapred.healthChecker.script.path": "DELETE_OLD",
+  "mapred.healthChecker.script.timeout": "DELETE_OLD",
+  "mapred.inmem.merge.threshold": "DELETE_OLD",
+  "mapred.job.map.memory.mb": "DELETE_OLD",
+  "mapred.job.reduce.input.buffer.percent": "DELETE_OLD",
+  "mapred.job.reduce.memory.mb": "DELETE_OLD",
+  "mapred.job.reuse.jvm.num.tasks": "DELETE_OLD",
+  "mapred.job.shuffle.input.buffer.percent": "DELETE_OLD",
+  "mapred.job.shuffle.merge.percent": "DELETE_OLD",
+  "mapred.job.tracker": "DELETE_OLD",
+  "mapred.job.tracker.handler.count": "DELETE_OLD",
+  "mapred.job.tracker.history.completed.location": "DELETE_OLD",
+  "mapred.job.tracker.http.address": "DELETE_OLD",
+  "mapred.job.tracker.persist.jobstatus.active": "DELETE_OLD",
+  "mapred.job.tracker.persist.jobstatus.dir": "DELETE_OLD",
+  "mapred.job.tracker.persist.jobstatus.hours": "DELETE_OLD",
+  "mapred.jobtracker.blacklist.fault-bucket-width": "DELETE_OLD",
+  "mapred.jobtracker.blacklist.fault-timeout-window": "DELETE_OLD",
+  "mapred.jobtracker.completeuserjobs.maximum": "DELETE_OLD",
+  "mapred.jobtracker.maxtasks.per.job": "DELETE_OLD",
+  "mapred.jobtracker.restart.recover": "DELETE_OLD",
+  "mapred.jobtracker.retirejob.check": "DELETE_OLD",
+  "mapred.jobtracker.retirejob.interval": "DELETE_OLD",
+  "mapred.jobtracker.taskScheduler": "DELETE_OLD",
+  "mapred.local.dir": "DELETE_OLD",
+  "mapred.map.output.compression.codec": "DELETE_OLD",
+  "mapred.map.tasks.speculative.execution": "DELETE_OLD",
+  "mapred.max.tracker.blacklists": "DELETE_OLD",
+  "mapred.output.compression.type": "DELETE_OLD",
+  "mapred.queue.names": "DELETE_OLD",
+  "mapred.reduce.parallel.copies": "DELETE_OLD",
+  "mapred.reduce.slowstart.completed.maps": "DELETE_OLD",
+  "mapred.reduce.tasks.speculative.execution": "DELETE_OLD",
+  "mapred.system.dir": "DELETE_OLD",
+  "mapred.task.timeout": "DELETE_OLD",
+  "mapred.tasktracker.map.tasks.maximum": "DELETE_OLD",
+  "mapred.tasktracker.reduce.tasks.maximum": "DELETE_OLD",
+  "mapred.tasktracker.tasks.sleeptime-before-sigkill": "DELETE_OLD",
+  "mapred.userlog.retain.hours": "DELETE_OLD",
   "mapreduce.admin.map.child.java.opts": "-Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN",
   "mapreduce.admin.reduce.child.java.opts": "-Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN",
   "mapreduce.admin.user.env": "LD_LIBRARY_PATH=/usr/lib/hadoop/lib/native:/usr/lib/hadoop/lib/native/`$JAVA_HOME/bin/java -d32 -version &amp;&gt; /dev/null;if [ $? -eq 0 ]; then echo Linux-i386-32; else echo Linux-amd64-64;fi`",
   "mapreduce.am.max-attempts": "2",
   "mapreduce.application.classpath": "$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/*,$HADOOP_MAPRED_HOME/share/hadoop/mapreduce/lib/*",
+  "mapreduce.fileoutputcommitter.marksuccessfuljobs": "DELETE_OLD",
   "mapreduce.framework.name": "yarn",
-  "mapreduce.job.reduce.slowstart.completedmaps": "0.05",
+  "mapreduce.history.server.embedded": "DELETE_OLD",
+  "mapreduce.history.server.http.address": "DELETE_OLD",
+  "mapreduce.job.reduce.slowstart.completedmaps": "REPLACE_WITH_mapred.reduce.slowstart.completed.maps",
   "mapreduce.jobhistory.address": "REPLACE_JH_HOST:10020",
-  "mapreduce.jobhistory.done-dir": "/mr-history/done",
+  "mapreduce.jobhistory.done-dir": "REPLACE_WITH_mapred.job.tracker.history.completed.location",
   "mapreduce.jobhistory.intermediate-done-dir": "/mr-history/tmp",
   "mapreduce.jobhistory.webapp.address": "REPLACE_JH_HOST:19888",
-  "mapreduce.jobtracker.system.dir": "/mapred/system",
+  "mapreduce.jobtracker.split.metainfo.maxsize": "DELETE_OLD",
+  "mapreduce.jobtracker.staging.root.dir": "DELETE_OLD",
+  "mapreduce.jobtracker.system.dir": "REPLACE_WITH_mapred.system.dir",
   "mapreduce.map.java.opts": "-Xmx320m",
   "mapreduce.map.log.level": "INFO",
-  "mapreduce.map.memory.mb": "1536",
+  "mapreduce.map.memory.mb": "REPLACE_WITH_mapred.job.map.memory.mb",
   "mapreduce.map.sort.spill.percent": "0.1",
-  "mapreduce.map.speculative": "false",
-  "mapreduce.output.fileoutputformat.compress.type": "BLOCK",
-  "mapreduce.reduce.input.buffer.percent": "0.0",
+  "mapreduce.map.speculative": "REPLACE_WITH_mapred.map.tasks.speculative.execution",
+  "mapreduce.output.fileoutputformat.compress.type": "REPLACE_WITH_mapred.output.compression.type",
+  "mapreduce.reduce.input.buffer.percent": "REPLACE_WITH_mapred.job.reduce.input.buffer.percent",
+  "mapreduce.reduce.input.limit": "DELETE_OLD",
   "mapreduce.reduce.java.opts": "-Xmx756m",
   "mapreduce.reduce.log.level": "INFO",
-  "mapreduce.reduce.memory.mb": "2048",
-  "mapreduce.reduce.shuffle.input.buffer.percent": "0.7",
-  "mapreduce.reduce.shuffle.merge.percent": "0.66",
-  "mapreduce.reduce.shuffle.parallelcopies": "30",
-  "mapreduce.reduce.speculative": "false",
+  "mapreduce.reduce.memory.mb": "REPLACE_WITH_mapred.job.reduce.memory.mb",
+  "mapreduce.reduce.shuffle.input.buffer.percent": "REPLACE_WITH_mapred.job.shuffle.input.buffer.percent",
+  "mapreduce.reduce.shuffle.merge.percent": "REPLACE_WITH_mapred.job.shuffle.merge.percent",
+  "mapreduce.reduce.shuffle.parallelcopies": "REPLACE_WITH_mapred.reduce.parallel.copies",
+  "mapreduce.reduce.speculative": "REPLACE_WITH_mapred.reduce.tasks.speculative.execution",
   "mapreduce.shuffle.port": "13562",
-  "mapreduce.task.io.sort.factor": "100",
-  "mapreduce.task.io.sort.mb": "200",
-  "mapreduce.task.timeout": "600000",
-  "mapreduce.tasktracker.healthchecker.script.path": "file:////mapred/jobstatus",
-  "mapreduce.tasktracker.map.tasks.maximum": "4",
+  "mapreduce.task.io.sort.factor": "REPLACE_WITH_io.sort.factor",
+  "mapreduce.task.io.sort.mb": "REPLACE_WITH_io.sort.mb",
+  "mapreduce.task.timeout": "REPLACE_WITH_mapred.task.timeout",
+  "mapreduce.tasktracker.group": "DELETE_OLD",
+  "mapreduce.tasktracker.healthchecker.script.path": "REPLACE_WITH_mapred.healthChecker.script.path",
+  "tasktracker.http.threads": "DELETE_OLD",
   "yarn.app.mapreduce.am.admin-command-opts": "-Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN",
   "yarn.app.mapreduce.am.command-opts": "-Xmx756m",
   "yarn.app.mapreduce.am.log.level": "INFO",
   "yarn.app.mapreduce.am.resource.mb": "1024",
-  "yarn.app.mapreduce.am.staging-dir": "/user"
+  "yarn.app.mapreduce.am.staging-dir": "REPLACE_WITH_mapreduce.jobtracker.staging.root.dir"
 }
 
 GLOBAL = {
-  "apache_artifacts_download_url": "",
   "datanode_du_reserved": "1",
-  "dfs_block_local_path_access_user": "hbase",
-  "dfs_datanode_address": "REPLACE_WITH_dfs_datanode_address",
   "dfs_datanode_data_dir": "REPLACE_WITH_dfs_data_dir",
-  "dfs_datanode_data_dir_perm": "750",
-  "dfs_datanode_failed_volume_tolerated": "0",
-  "dfs_datanode_http_address": "REPLACE_WITH_",
   "dfs_exclude": "dfs.exclude",
+  "dfs_include": "DELETE_OLD",
   "dfs_namenode_checkpoint_dir": "REPLACE_WITH_fs_checkpoint_dir",
-  "dfs_namenode_checkpoint_period": "21600",
+  "dfs_namenode_checkpoint_period": "REPLACE_WITH_fs_checkpoint_period",
   "dfs_namenode_name_dir": "REPLACE_WITH_dfs_name_dir",
-  "dfs_replication": "3",
-  "dfs_webhdfs_enabled": "true",
-  "dtnode_heapsize": "1024m",
   "fs_checkpoint_size": "0.5",
-  "ganglia_runtime_dir": "REPLACE_WITH_",
-  "gmetad_user": "REPLACE_WITH_",
-  "gmond_user": "REPLACE_WITH_",
-  "gpl_artifacts_download_url": "",
-  "hadoop_conf_dir": "REPLACE_WITH_",
-  "hadoop_heapsize": "1024",
-  "hadoop_pid_dir_prefix": "REPLACE_WITH_",
-  "hbase_conf_dir": "REPLACE_WITH_",
-  "hbase_user": "REPLACE_WITH_",
-  "hcat_conf_dir": "REPLACE_WITH_",
-  "hcat_user": "REPLACE_WITH_",
-  "hdfs_enable_shortcircuit_read": "true",
-  "hdfs_log_dir_prefix": "REPLACE_WITH_",
-  "hdfs_user": "REPLACE_WITH_",
-  "hive_user": "REPLACE_WITH_",
-  "java64_home": "REPLACE_WITH_",
+  "io_sort_spill_percent": "DELETE_OLD",
+  "jtnode_heapsize": "DELETE_OLD",
+  "jtnode_opt_maxnewsize": "DELETE_OLD",
+  "jtnode_opt_newsize": "DELETE_OLD",
+  "lzo_enabled": "DELETE_OLD",
+  "mapred_child_java_opts_sz": "DELETE_OLD",
+  "mapred_cluster_map_mem_mb": "DELETE_OLD",
+  "mapred_cluster_max_map_mem_mb": "DELETE_OLD",
+  "mapred_cluster_max_red_mem_mb": "DELETE_OLD",
+  "mapred_cluster_red_mem_mb": "DELETE_OLD",
   "mapred_hosts_exclude": "mapred.exclude",
   "mapred_hosts_include": "mapred.include",
-  "mapred_jobstatus_dir": "REPLACE_WITH_",
+  "mapred_local_dir": "DELETE_OLD",
   "mapred_log_dir_prefix": "/var/log/hadoop-mapreduce",
+  "mapred_map_tasks_max": "DELETE_OLD",
   "mapred_pid_dir_prefix": "/var/run/hadoop-mapreduce",
-  "mapred_user": "REPLACE_WITH_",
+  "mapred_red_tasks_max": "DELETE_OLD",
   "mapreduce_jobtracker_system_dir": "REPLACE_WITH_mapred_system_dir",
-  "mapreduce_map_memory_mb": "1536",
-  "mapreduce_reduce_memory_mb": "2048",
-  "mapreduce_task_io_sort_mb": "200",
-  "mapreduce_tasktracker_map_tasks_maximum": "4",
-  "mapreduce_userlog_retainhours": "24",
-  "maxtasks_per_job": "-1",
-  "nagios_contact": "REPLACE_WITH_",
-  "nagios_group": "REPLACE_WITH_",
-  "nagios_user": "REPLACE_WITH_",
-  "nagios_web_login": "REPLACE_WITH_",
-  "nagios_web_password": "REPLACE_WITH_",
-  "namenode_formatted_mark_dir": "REPLACE_WITH_",
-  "namenode_heapsize": "1024m",
-  "namenode_opt_maxnewsize": "640m",
-  "namenode_opt_newsize": "200m",
+  "mapreduce_map_memory_mb": "REPLACE_WITH_mapred_job_map_mem_mb",
+  "mapreduce_reduce_memory_mb": "REPLACE_WITH_mapred_job_red_mem_mb",
+  "mapreduce_task_io_sort_mb": "REPLACE_WITH_io_sort_mb",
+  "maxtasks_per_job": "DELETE_OLD",
   "nodemanager_heapsize": "1024",
-  "oozie_user": "REPLACE_WITH_",
-  "proxyuser_group": "REPLACE_WITH_",
+  "rca_enabled": "DELETE_OLD",
   "resourcemanager_heapsize": "1024",
-  "rrdcached_base_dir": "REPLACE_WITH_",
-  "run_dir": "REPLACE_WITH_",
-  "scheduler_name": "org.apache.hadoop.mapred.CapacityTaskScheduler",
-  "security_enabled": "false",
-  "smokeuser": "REPLACE_WITH_",
+  "scheduler_name": "DELETE_OLD",
+  "snappy_enabled": "DELETE_OLD",
   "task_controller": "org.apache.hadoop.mapred.DefaultTaskController",
-  "user_group": "REPLACE_WITH_",
-  "webhcat_user": "REPLACE_WITH_",
   "yarn_heapsize": "1024",
   "yarn_log_dir_prefix": "/var/log/hadoop-yarn",
   "yarn_nodemanager_local-dirs": "/var/log/hadoop/yarn",
-  "yarn_nodemanager_log-dirs": "/var/log/hadoop/yarn",
   "yarn_pid_dir_prefix": "/var/run/hadoop-yarn",
-  "yarn_user": "yarn",
-  "zk_user": "REPLACE_WITH_"
+  "yarn_user": "yarn"
 }
 
 HDFS_SITE = {
-  "dfs.block.access.token.enable": "REPLACE_WITH_",
-  "dfs.block.local-path-access.user": "REPLACE_WITH_",
-  "dfs.blockreport.initialDelay": "REPLACE_WITH_",
   "dfs.blocksize": "REPLACE_WITH_dfs.block.size",
   "dfs.client.read.shortcircuit": "true",
   "dfs.client.read.shortcircuit.streams.cache.size": "4096",
-  "dfs.cluster.administrators": "REPLACE_WITH_",
-  "dfs.datanode.address": "REPLACE_WITH_",
   "dfs.datanode.balance.bandwidthPerSec": "REPLACE_WITH_dfs.balance.bandwidthPerSec",
   "dfs.datanode.data.dir": "REPLACE_WITH_dfs.data.dir",
-  "dfs.datanode.data.dir.perm": "REPLACE_WITH_",
-  "dfs.datanode.du.reserved": "REPLACE_WITH_",
-  "dfs.datanode.failed.volumes.tolerated": "REPLACE_WITH_",
-  "dfs.datanode.http.address": "REPLACE_WITH_",
-  "dfs.datanode.ipc.address": "REPLACE_WITH_",
+  "dfs.datanode.du.pct": "DELETE_OLD",
   "dfs.datanode.max.transfer.threads": "REPLACE_WITH_dfs.datanode.max.xcievers",
+  "dfs.datanode.socket.write.timeout": "DELETE_OLD",
   "dfs.domain.socket.path": "/var/lib/hadoop-hdfs/dn_socket",
-  "dfs.heartbeat.interval": "REPLACE_WITH_",
-  "dfs.hosts.exclude": "REPLACE_WITH_",
+  "dfs.hosts": "DELETE_OLD",
+  "dfs.journalnode.http-address" : "0.0.0.0:8480",
   "dfs.namenode.https-address": "REPLACE_WITH_dfs.https.address",
-  "dfs.namenode.accesstime.precision": "0",
-  "dfs.namenode.avoid.read.stale.datanode": "REPLACE_WITH_",
-  "dfs.namenode.avoid.write.stale.datanode": "REPLACE_WITH_",
-  "dfs.namenode.handler.count": "REPLACE_WITH_",
+  "dfs.namenode.accesstime.precision": "REPLACE_WITH_dfs.access.time.precision",
   "dfs.namenode.http-address": "REPLACE_WITH_dfs.http.address",
   "dfs.namenode.name.dir": "REPLACE_WITH_dfs.name.dir",
   "dfs.namenode.safemode.threshold-pct": "REPLACE_WITH_dfs.safemode.threshold.pct",
   "dfs.namenode.secondary.http-address": "REPLACE_WITH_dfs.secondary.http.address",
-  "dfs.namenode.stale.datanode.interval": "REPLACE_WITH_",
-  "dfs.namenode.write.stale.datanode.ratio": "REPLACE_WITH_",
   "dfs.permissions.enabled": "REPLACE_WITH_dfs.permissions",
   "dfs.permissions.superusergroup": "REPLACE_WITH_dfs.permissions.supergroup",
-  "dfs.replication": "REPLACE_WITH_",
-  "dfs.replication.max": "REPLACE_WITH_",
-  "dfs.webhdfs.enabled": "REPLACE_WITH_",
-  "fs.permissions.umask-mode": "022"
+  "dfs.secondary.https.port": "DELETE_OLD",
+  "dfs.web.ugi": "DELETE_OLD",
+  "fs.permissions.umask-mode": "022",
+  "ipc.server.max.response.size": "DELETE_OLD",
+  "ipc.server.read.threadpool.size": "DELETE_OLD"
 }
 
 CORE_SITE = {
   "dfs.namenode.checkpoint.dir": "REPLACE_WITH_fs.checkpoint.dir",
   "dfs.namenode.checkpoint.edits.dir": "${dfs.namenode.checkpoint.dir}",
   "dfs.namenode.checkpoint.period": "REPLACE_WITH_fs.checkpoint.period",
-  "fs.checkpoint.edits.dir": "REPLACE_WITH_",
   "fs.checkpoint.size": "0.5",
   "fs.defaultFS": "REPLACE_WITH_fs.default.name",
-  "fs.trash.interval": "REPLACE_WITH_",
   "hadoop.security.auth_to_local": "\n        RULE:[2:$1@$0]([rn]m@.*)s/.*/yarn/\n        RULE:[2:$1@$0](jhs@.*)s/.*/mapred/\n        RULE:[2:$1@$0]([nd]n@.*)s/.*/hdfs/\n        RULE:[2:$1@$0](hm@.*)s/.*/hbase/\n        RULE:[2:$1@$0](rs@.*)s/.*/hbase/\n        DEFAULT\n    ",
   "hadoop.security.authentication": "simple",
   "hadoop.security.authorization": "false",
+  "io.compression.codec.lzo.class": "DELETE_OLD",
   "io.compression.codecs": "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec",
-  "io.file.buffer.size": "REPLACE_WITH_",
-  "io.serializations": "org.apache.hadoop.io.serializer.WritableSerialization",
-  "ipc.client.connect.max.retries": "REPLACE_WITH_",
-  "ipc.client.connection.maxidletime": "REPLACE_WITH_",
-  "ipc.client.idlethreshold": "REPLACE_WITH_",
-  "mapreduce.jobtracker.webinterface.trusted": "REPLACE_WITH_webinterface.private.actions"
+  "mapreduce.jobtracker.webinterface.trusted": "REPLACE_WITH_webinterface.private.actions",
 }
 
 YARN_SITE = {
@@ -587,8 +591,12 @@ def modify_configs(options, config_type):
 def update_config_using_existing(options, type, properties_template, append_unprocessed=False):
   site_properties = get_config(options, type)
   keys_processed = []
+  keys_to_delete = []
   for key in properties_template.keys():
     keys_processed.append(key)
+    if properties_template[key] == DELETE_OLD_TAG:
+      keys_to_delete.append(key)
+      pass
     if properties_template[key].find(REPLACE_WITH_TAG) == 0:
       name_to_lookup = key
       if len(properties_template[key]) > len(REPLACE_WITH_TAG):
@@ -611,6 +619,9 @@ def update_config_using_existing(options, type, properties_template, append_unpr
         pass
       pass
     pass
+  pass
+  for key in keys_to_delete:
+    del properties_template[key]
   pass
   update_config(options, properties_template, type)
 
@@ -636,20 +647,29 @@ def backup_single_config_type(options, type, error_if_na=True):
 
 
 def install_services(options):
-  SERVICE_URL_FORMAT = URL_FORMAT + '/services?ServiceInfo/state=INIT'
-  PUT_IN_INSTALLED = """{"RequestInfo":{"context":"Install YARN and MapReduce2"},"Body":{"ServiceInfo": {"state":"INSTALLED"}}}"""
-
-  response = curl(options.printonly, '-u',
+  SERVICE_URL_FORMAT = URL_FORMAT + '/services/{2}'
+  SERVICES = ["YARN", "MAPREDUCE2"]
+  PUT_IN_INSTALLED = ["""{"RequestInfo":{"context":"Install YARN"}, "Body":{"ServiceInfo": {"state":"INSTALLED"}}}""",
+                      """{"RequestInfo":{"context":"Install MapReduce2"}, "Body":{"ServiceInfo": {"state":"INSTALLED"}}}"""]
+  err_retcode = 0
+  err_message = ""
+  for index in [0,1]:
+    response = curl(options.printonly, '-u',
                   AUTH_FORMAT.format(options.user, options.password),
                   '-X', 'PUT', '-d',
-                  PUT_IN_INSTALLED,
-                  SERVICE_URL_FORMAT.format(options.hostname, options.clustername))
-  retcode, errdata = validate_response(response, not options.printonly)
-  if not retcode == 0:
-    raise FatalException(retcode, errdata + "(Services may already be installed.)")
-  else:
-    options.exit_message = "A request has been submitted to install Yarn and MapReduce2. Use Ambari Web to monitor " \
-                           "the status of the install request."
+                  PUT_IN_INSTALLED[index],
+                  SERVICE_URL_FORMAT.format(options.hostname, options.clustername, SERVICES[index]))
+    retcode, errdata = validate_response(response, not options.printonly)
+    if not retcode == 0:
+      err_retcode = retcode
+      error_msg = err_message + " Error while installing " + SERVICES[index] + ". Details: " + errdata + "."
+  pass
+
+  if err_retcode != 0:
+    raise FatalException(err_retcode, error_msg + "(Services may already be installed or agents are not yet started.)")
+
+  options.exit_message = "Requests has been submitted to install YARN and MAPREDUCE2. Use Ambari Web to monitor " \
+                           "the status of the install requests."
   pass
 
 
