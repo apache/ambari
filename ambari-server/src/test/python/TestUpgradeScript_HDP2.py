@@ -51,9 +51,9 @@ class TestUpgradeHDP2Script(TestCase):
     options = MagicMock()
     args = ["save-configs"]
     opm.parse_args.return_value = (options, args)
-    get_config_mock.return_value = {"a1": "va1", "a2": "va2", "b1": "vb1", "b2": "vb2", "c1": "vc1"}
+    get_config_mock.return_value = {"a1": "va1", "a2": "va2", "b1": "vb1", "b2": "vb2", "c1": "vc1", "d1": "d1"}
     site_template = {"y1": "vy1", "a1": "REPLACE_WITH_", "a2": "REPLACE_WITH_", "nb1": "REPLACE_WITH_b1",
-                     "nb2": "REPLACE_WITH_b2"}
+                     "nb2": "REPLACE_WITH_b2", "d1": "DELETE_OLD", "b1" : "DELETE_OLD"}
     expected_site = {"y1": "vy1", "a1": "va1", "a2": "va2", "nb1": "vb1", "nb2": "vb2", "c1": "vc1"}
     UpgradeHelper_HDP2.update_config_using_existing(opm, "global", site_template, True)
     get_config_mock.assert_called_once_with(opm, "global")
@@ -69,10 +69,11 @@ class TestUpgradeHDP2Script(TestCase):
     options = MagicMock()
     args = ["save-configs"]
     opm.parse_args.return_value = (options, args)
-    get_config_mock.return_value = {"a1": "va1", "a2": "va2", "b1": "vb1", "b2": "vb2", "c1": "vc1"}
+    get_config_mock.return_value = {"a1": "va1", "a2": "va2", "b1": "vb1", "b2": "vb2", "c1": "vc1", "x1": "x1",
+                                    "X1": "X1"}
     site_template = {"y1": "vy1", "a1": "REPLACE_WITH_", "a2": "REPLACE_WITH_", "nb1": "REPLACE_WITH_b1",
-                     "nb2": "REPLACE_WITH_b2"}
-    expected_site = {"y1": "vy1", "a1": "va1", "a2": "va2", "nb1": "vb1", "nb2": "vb2"}
+                     "nb2": "REPLACE_WITH_b2", "x1": "DELETE_OLD", "X1": "DELETE"}
+    expected_site = {"y1": "vy1", "a1": "va1", "a2": "va2", "nb1": "vb1", "nb2": "vb2", "X1": "DELETE"}
     UpgradeHelper_HDP2.update_config_using_existing(opm, "global", site_template)
     get_config_mock.assert_called_once_with(opm, "global")
     update_config_mock.assert_called_once_with(opm, expected_site, "global")
@@ -258,9 +259,12 @@ class TestUpgradeHDP2Script(TestCase):
     UpgradeHelper_HDP2.main()
     expected_curl_calls = [
       call(False, "-u", "admin:admin", "-X", "PUT", "-d",
-           """{"RequestInfo":{"context":"Install YARN and MapReduce2"},"Body":{"ServiceInfo": {"state":"INSTALLED"}}}""",
-           "http://localhost:8080/api/v1/clusters/c1/services?ServiceInfo/state=INIT")]
-    curl_mock.assert_has_calls(expected_curl_calls, any_order=True)
+           """{"RequestInfo":{"context":"Install YARN"}, "Body":{"ServiceInfo": {"state":"INSTALLED"}}}""",
+           "http://localhost:8080/api/v1/clusters/c1/services/YARN"),
+      call(False, "-u", "admin:admin", "-X", "PUT", "-d",
+           """{"RequestInfo":{"context":"Install MapReduce2"}, "Body":{"ServiceInfo": {"state":"INSTALLED"}}}""",
+           "http://localhost:8080/api/v1/clusters/c1/services/MAPREDUCE2")]
+    curl_mock.assert_has_calls(expected_curl_calls, any_order=False)
     pass
 
 
@@ -404,6 +408,38 @@ class TestUpgradeHDP2Script(TestCase):
     except Exception, e:
       self.assertTrue('Unable to get the current version for config type hdfs-site' in e.reason)
       pass
+    pass
+
+  def test_tags_count(self):
+    def count_tags(template):
+      deleted = 0
+      replaced = 0
+      for key in template.keys():
+        value = template[key]
+        if value == UpgradeHelper_HDP2.DELETE_OLD_TAG:
+          deleted += 1
+          continue
+        if value.find(UpgradeHelper_HDP2.REPLACE_WITH_TAG) == 0:
+          replaced += 1
+          continue
+        pass
+      return deleted, replaced
+
+    deleted, replaced = count_tags(UpgradeHelper_HDP2.GLOBAL)
+    self.assertEqual(8, replaced)
+    self.assertEqual(18, deleted)
+
+    deleted, replaced = count_tags(UpgradeHelper_HDP2.MAPRED_SITE)
+    self.assertEqual(17, replaced)
+    self.assertEqual(60, deleted)
+
+    deleted, replaced = count_tags(UpgradeHelper_HDP2.CORE_SITE)
+    self.assertEqual(4, replaced)
+    self.assertEqual(1, deleted)
+
+    deleted, replaced = count_tags(UpgradeHelper_HDP2.HDFS_SITE)
+    self.assertEqual(12, replaced)
+    self.assertEqual(7, deleted)
     pass
 
   def validate_update_config_call(self, call, type):
