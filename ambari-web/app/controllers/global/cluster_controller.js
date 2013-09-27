@@ -248,7 +248,8 @@ App.ClusterController = Em.Controller.extend({
       return false;
     }
     var testUrl = App.get('isHadoop2Stack') ? '/data/dashboard/HDP2/services.json':'/data/dashboard/services.json';
-    var servicesUrl = this.getUrl(testUrl, '/services?fields=ServiceInfo,components/host_components/HostRoles/desired_state,components/host_components/HostRoles/state');
+    //desired_state property is eliminated since calculateState function is commented out, it become useless
+    var servicesUrl = this.getUrl(testUrl, '/services?fields=ServiceInfo,components/host_components/HostRoles/state,components/host_components/HostRoles/ha_status');
 
     App.HttpClient.get(servicesUrl, App.statusMapper, {
       complete: callback
