@@ -1321,7 +1321,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
     if (selectedServices.someProperty('serviceName', 'MAPREDUCE2')) {
       this.get('serviceConfigTags').pushObject(this.createMrSiteObj());
-      this.get('serviceConfigTags').pushObject(this.createMapredQueueAcls());
     }
     if (selectedServices.someProperty('serviceName', 'YARN')) {
       this.get('serviceConfigTags').pushObject(this.createYarnSiteObj());
