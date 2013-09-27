@@ -41,6 +41,7 @@ PIDFILE=/var/run/ambari-agent/$AMBARI_AGENT.pid
 OUTFILE=/var/log/ambari-agent/ambari-agent.out
 LOGFILE=/var/log/ambari-agent/ambari-agent.log
 AGENT_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/main.py
+AMBARI_AGENT_PY_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/AmbariAgent.py
 OK=1
 NOTOK=0
 
@@ -52,6 +53,8 @@ fi
 if [ "x$PYTHON" == "x" ]; then
   PYTHON=/usr/bin/python
 fi
+
+export PYTHON=$PYTHON
 
 # Trying to read the passphrase from an environment
 if [ ! -z $AMBARI_PASSPHRASE ]; then
@@ -117,7 +120,7 @@ case "$1" in
           fi
         fi
         echo "Starting ambari-agent"
-        nohup $PYTHON $AGENT_SCRIPT "$@" > $OUTFILE 2>&1 &
+        nohup $PYTHON $AMBARI_AGENT_PY_SCRIPT "$@" > $OUTFILE 2>&1 &
         sleep 2
         PID=$!
         echo "Verifying $AMBARI_AGENT process status..."

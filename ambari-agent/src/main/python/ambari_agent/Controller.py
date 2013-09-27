@@ -22,6 +22,7 @@ import logging
 import signal
 import json
 import sys
+import os
 import time
 import threading
 import urllib2
@@ -40,6 +41,8 @@ import ssl
 
 
 logger = logging.getLogger()
+
+AGENT_AUTO_RESTART_EXIT_CODE = 77
 
 class Controller(threading.Thread):
 
@@ -240,7 +243,7 @@ class Controller(threading.Thread):
     self.heartbeatWithServer()
 
   def restartAgent(self):
-    ProcessHelper.restartAgent()
+    os._exit(AGENT_AUTO_RESTART_EXIT_CODE)
     pass
 
   def sendRequest(self, url, data):

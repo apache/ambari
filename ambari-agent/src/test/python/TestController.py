@@ -26,6 +26,7 @@ from ambari_agent import Controller, ActionQueue
 from  ambari_agent.ActionDependencyManager import ActionDependencyManager
 from ambari_agent import hostname
 import sys
+from ambari_agent.Controller import AGENT_AUTO_RESTART_EXIT_CODE
 from mock.mock import patch, MagicMock, call, Mock
 import logging
 from threading import Event
@@ -219,11 +220,12 @@ class TestController(unittest.TestCase):
       Controller.Controller.registerWithServer
 
 
-  @patch.object(Controller, "ProcessHelper")
-  def test_restartAgent(self, ProcessHelper_mock):
+  @patch("os._exit")
+  def test_restartAgent(self, os_exit_mock):
 
     self.controller.restartAgent()
-    self.assertTrue(ProcessHelper_mock.restartAgent.called)
+    self.assertTrue(os_exit_mock.called)
+    self.assertTrue(os_exit_mock.call_args[0][0] == AGENT_AUTO_RESTART_EXIT_CODE)
 
 
   @patch("urllib2.Request")
