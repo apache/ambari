@@ -989,11 +989,15 @@ class TestAmbariServer(TestCase):
 
   @patch.object(ambari_server, "run_os_command")
   @patch.object(ambari_server, "print_warning_msg")
-  def test_check_iptables_is_running(self, print_warning_msg, run_os_command_mock):
+  @patch.object(ambari_server, "get_YN_input")
+  def test_check_iptables_is_running(self, get_YN_input_mock, print_warning_msg, run_os_command_mock):
     run_os_command_mock.return_value = (0, "Table: filter", "")
+    get_YN_input_mock.side_effect = [True]
     ambari_server.check_iptables()
-
-    self.assertEqual(print_warning_msg.call_args_list[0][0][0], "Iptables is running.")
+    self.assertEqual(print_warning_msg.call_args_list[0][0][0],
+      "iptables is running. Confirm the necessary Ambari ports are accessible. " +
+      "Refer to the Ambari documentation for more details on ports." 
+    )
 
   @patch.object(ambari_server, "run_os_command")
   @patch.object(ambari_server, "print_warning_msg")
@@ -2166,14 +2170,13 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, "find_jdk")
   @patch.object(ambari_server, "print_error_msg")
   @patch.object(ambari_server, "check_postgre_up")
-  @patch.object(ambari_server, "check_iptables")
   @patch.object(ambari_server, "parse_properties_file")
   @patch.object(ambari_server, "read_ambari_user")
   @patch.object(ambari_server, "is_root")
   @patch("getpass.getuser")
   @patch("os.chdir")
   def test_start(self, chdir_mock, getuser_mock, is_root_mock, read_ambari_user_mock,
-                 parse_properties_file_mock, check_iptables_mock, check_postgre_up_mock,
+                 parse_properties_file_mock, check_postgre_up_mock,
                  print_error_msg_mock, find_jdk_mock, search_file_mock,
                  print_info_msg_mock, popenMock, openMock, pexistsMock,
                  killMock, get_ambari_properties_mock, os_environ_mock,
@@ -2254,7 +2257,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     # Remote DB
     args.persistence_type = "remote"
-    check_iptables_mock.return_value = (0, None)
     try:
       ambari_server.start(args)
     except FatalException as e:
@@ -2332,13 +2334,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     parse_properties_file_mock.reset_mock()
 
     # Checking call
-    check_iptables_mock.reset_mock()
-    check_iptables_mock.return_value = (0, None)
     ambari_server.start(args)
     self.assertTrue(popenMock.called)
     popen_arg = popenMock.call_args[0][0]
     self.assertTrue(popen_arg[0] == "/bin/sh")
-    self.assertFalse(check_iptables_mock.called)
 
     parse_properties_file_mock.reset_mock()
 

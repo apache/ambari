@@ -771,8 +771,11 @@ def check_iptables():
     print err
 
   if out and len(out) > 0 and not out.strip() == IP_TBLS_IS_NOT_RUNNING:
-    print_warning_msg('Iptables is running.')
-
+    print_warning_msg("iptables is running. Confirm the necessary Ambari ports are accessible. " +
+      "Refer to the Ambari documentation for more details on ports.")
+    ok = get_YN_input("OK to continue [y/n] (y)? ", True)
+    if not ok:
+      raise FatalException(1, None)
 
 
 ### Postgres ###
@@ -2240,8 +2243,6 @@ def start(args):
         err = "Unable to start PostgreSQL server. Exiting"
         raise FatalException(retcode, err)
 
-    print 'Checking iptables...'
-    check_iptables()
   else: # Skipping actions that require root permissions
     print "Unable to check iptables status when starting "\
       "without root privileges."
