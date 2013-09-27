@@ -111,7 +111,7 @@ class hdp-hadoop::params(
 
   ### core-site
   if (hdp_get_major_stack_version($stack_version) >= 2) {
-    $fs_checkpoint_dir = hdp_default("core-site/dfs.namenode.checkpoint.dir","/tmp/hadoop-hdfs/dfs/namesecondary")
+    $fs_checkpoint_dir = hdp_default("hdfs-site/dfs.namenode.checkpoint.dir","/tmp/hadoop-hdfs/dfs/namesecondary")
   } else {
     $fs_checkpoint_dir = hdp_default("core-site/fs.checkpoint.dir","/tmp/hadoop-hdfs/dfs/namesecondary")
   }
