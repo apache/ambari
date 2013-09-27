@@ -172,6 +172,8 @@ module.exports = Em.Route.extend({
       return false;
     },
     next: function (router) {
+      var controller = router.get('highAvailabilityWizardController');
+      controller.clearTasksData();
       router.transitionTo('step5');
     }
   }),
@@ -191,6 +193,8 @@ module.exports = Em.Route.extend({
       return false;
     },
     next: function (router) {
+      var controller = router.get('highAvailabilityWizardController');
+      controller.clearTasksData();
       router.transitionTo('step6');
     }
   }),
@@ -229,6 +233,8 @@ module.exports = Em.Route.extend({
       return false;
     },
     next: function (router) {
+      var controller = router.get('highAvailabilityWizardController');
+      controller.clearTasksData();
       router.transitionTo('step8');
     }
   }),
@@ -270,6 +276,7 @@ module.exports = Em.Route.extend({
     },
     next: function (router) {
       var controller = router.get('highAvailabilityWizardController');
+      controller.clearTasksData();
       controller.finish();
       controller.clearStorageData();
       controller.get('popup').hide();

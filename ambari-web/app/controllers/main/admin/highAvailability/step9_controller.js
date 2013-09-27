@@ -26,7 +26,7 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
 
   hbaseSiteTag: "",
 
-  initializeTasks: function () {
+  clearStep: function () {
     this._super();
     if (!App.Service.find().someProperty('serviceName', 'HBASE')) {
       this.get('tasks').splice(this.get('tasks').findProperty('command', 'reconfigureHBase').get('id'), 1);

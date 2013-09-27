@@ -694,6 +694,7 @@ module.exports = Em.Route.extend({
 
             proceedOnClose: function () {
               var controller = router.get('highAvailabilityWizardController');
+              controller.clearTasksData();
               controller.clearStorageData();
               App.router.get('updateController').set('isWorking', true);
               App.clusterStatus.setClusterStatus({
