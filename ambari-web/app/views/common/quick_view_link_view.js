@@ -104,7 +104,7 @@ App.QuickViewLinks = Em.View.extend({
         } else {
           // HA
           if (this.get('content.activeNameNode')) {
-            host = this.get('content.activeNameNode.hostName');
+            host = this.get('content.activeNameNode.publicHostName');
           }else {
             host = 'noActiveNN';
           }
