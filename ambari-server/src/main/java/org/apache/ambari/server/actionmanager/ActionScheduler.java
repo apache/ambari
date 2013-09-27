@@ -17,7 +17,12 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import com.google.inject.persist.UnitOfWork;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
@@ -27,12 +32,19 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.serveraction.ServerActionManager;
-import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpFailedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.*;
+
+import com.google.inject.persist.UnitOfWork;
 
 /**
  * This class encapsulates the action scheduler thread.
@@ -167,7 +179,7 @@ class ActionScheduler implements Runnable {
 
         //Schedule what we have so far
         for (ExecutionCommand cmd : commandsToSchedule) {
-          if (cmd.getRole() == Role.AMBARI_SERVER_ACTION) {
+          if (Role.valueOf(cmd.getRole()).equals(Role.AMBARI_SERVER_ACTION)) {
             try {
               long now = System.currentTimeMillis();
               String hostName = cmd.getHostname();
@@ -191,7 +203,7 @@ class ActionScheduler implements Runnable {
             } catch (InvalidStateTransitionException e) {
               LOG.warn("Could not schedule host role " + cmd.toString(), e);
               db.abortHostRole(cmd.getHostname(), s.getRequestId(), s.getStageId(),
-                  cmd.getRole());
+                  Role.valueOf(cmd.getRole()));
             }
           }
         }
@@ -312,7 +324,7 @@ class ActionScheduler implements Runnable {
             LOG.warn("Host:" + host + ", role:" + roleStr + ", actionId:"
                 + s.getActionId() + " expired");
             db.timeoutHostRole(host, s.getRequestId(), s.getStageId(),
-                c.getRole());
+                Role.valueOf(c.getRole()));
             //Reinitialize status
             status = s.getHostRoleStatus(host, roleStr);
             ServiceComponentHostOpFailedEvent timeoutEvent =

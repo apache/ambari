@@ -44,7 +44,7 @@ public class ExecutionCommand extends AgentCommand {
   private long taskId;
   private String commandId;
   private String hostname;
-  private Role role;
+  private String role;
   private Map<String, String> hostLevelParams = new HashMap<String, String>();
   private Map<String, String> roleParams = null;
   private RoleCommand roleCommand;
@@ -103,12 +103,12 @@ public class ExecutionCommand extends AgentCommand {
   }
 
   @JsonProperty("role")
-  public Role getRole() {
+  public String getRole() {
     return role;
   }
 
   @JsonProperty("role")
-  public void setRole(Role role) {
+  public void setRole(String role) {
     this.role = role;
   }
 

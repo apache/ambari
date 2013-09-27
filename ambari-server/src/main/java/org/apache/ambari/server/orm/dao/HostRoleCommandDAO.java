@@ -136,7 +136,7 @@ public class HostRoleCommandDAO {
         "AND command.stageId=?3 AND command.role=?4 " +
         "ORDER BY command.taskId", HostRoleCommandEntity.class);
 
-    return daoUtils.selectList(query, hostName, requestId, stageId, role);
+    return daoUtils.selectList(query, hostName, requestId, stageId, role.name());
   }
 
   @Transactional

@@ -197,7 +197,7 @@ public class Stage {
     cmd.setClusterName(clusterName);
     cmd.setServiceName(serviceName);
     cmd.setCommandId(this.getActionId());
-    cmd.setRole(role);
+    cmd.setRole(role.name());
     cmd.setRoleCommand(command);
     Map<String, HostRoleCommand> hrcMap = this.hostRoleCommands.get(host);
     if (hrcMap == null) {
@@ -236,7 +236,7 @@ public class Stage {
     cmd.setClusterName(clusterName);
     cmd.setServiceName("");
     cmd.setCommandId(this.getActionId());
-    cmd.setRole(role);
+    cmd.setRole(role.name());
     cmd.setRoleCommand(command);
 
     Map<String, String> roleParams = new HashMap<String, String>();

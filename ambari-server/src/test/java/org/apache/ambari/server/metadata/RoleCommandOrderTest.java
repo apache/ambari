@@ -18,37 +18,38 @@
 
 package org.apache.ambari.server.metadata;
 
-import com.google.gson.Gson;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
-import static junit.framework.Assert.*;
-import static org.easymock.EasyMock.*;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
+import org.apache.ambari.server.metadata.RoleCommandOrder.RoleCommandPair;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.entities.*;
-import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import org.apache.ambari.server.metadata.RoleCommandOrder.RoleCommandPair;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 public class RoleCommandOrderTest {
 
@@ -203,22 +204,25 @@ public class RoleCommandOrderTest {
 
     InputStream testJsonIS = getClass().getClassLoader().
             getResourceAsStream(TEST_RCO_DATA_FILE);
+    
     ObjectMapper mapper = new ObjectMapper();
-    Map<String,Object> testData = mapper.readValue(testJsonIS, Map.class);
+    Map<String,Object> testData = mapper.readValue(testJsonIS,
+        new TypeReference<Map<String,Object>>() {});
+        
     rco.addDependencies(testData);
 
     mapper.setVisibility(JsonMethod.ALL, JsonAutoDetect.Visibility.ANY);
     String dump = mapper.writeValueAsString(rco.getDependencies());
+    
     String expected = "{\"RoleCommandPair{role=SECONDARY_NAMENODE, " +
-            "cmd=UPGRADE}\":[{\"role\":\"NAMENODE\",\"cmd\":\"UPGRADE\"}]," +
-            "\"RoleCommandPair{role=SECONDARY_NAMENODE, cmd=START}\":" +
-            "[{\"role\":\"NAMENODE\",\"cmd\":\"START\"}]," +
-            "\"RoleCommandPair{role=DATANODE, cmd=STOP}\":" +
-            "[{\"role\":\"HBASE_MASTER\",\"cmd\":\"STOP\"}," +
-            "{\"role\":\"RESOURCEMANAGER\",\"cmd\":\"STOP\"}," +
-            "{\"role\":\"TASKTRACKER\",\"cmd\":\"STOP\"},{\"role\":" +
-            "\"NODEMANAGER\",\"cmd\":\"STOP\"},{\"role\":\"HISTORYSERVER\"," +
-            "\"cmd\":\"STOP\"},{\"role\":\"JOBTRACKER\",\"cmd\":\"STOP\"}]}";
+        "cmd=UPGRADE}\":[{\"role\":{\"name\":\"NAMENODE\"},\"cmd\":\"UPGRADE\"}]," +
+        "\"RoleCommandPair{role=SECONDARY_NAMENODE, cmd=START}\":[{\"role\":{\"name\":\"NAMENODE\"}," +
+    		"\"cmd\":\"START\"}],\"RoleCommandPair{role=DATANODE, cmd=STOP}\":[{\"role\":" +
+        "{\"name\":\"HBASE_MASTER\"},\"cmd\":\"STOP\"},{\"role\":{\"name\":\"RESOURCEMANAGER\"}," +
+    		"\"cmd\":\"STOP\"},{\"role\":{\"name\":\"TASKTRACKER\"},\"cmd\":\"STOP\"}," +
+        "{\"role\":{\"name\":\"NODEMANAGER\"},\"cmd\":\"STOP\"},{\"role\":{\"name\":\"HISTORYSERVER\"}," +
+    		"\"cmd\":\"STOP\"},{\"role\":{\"name\":\"JOBTRACKER\"},\"cmd\":\"STOP\"}]}";
+
     assertEquals(expected, dump);
   }
 

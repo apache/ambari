@@ -2666,7 +2666,7 @@ public class AmbariManagementControllerTest {
     for (Stage s : stages) {
       for (List<ExecutionCommandWrapper> list : s.getExecutionCommands().values()) {
         for (ExecutionCommandWrapper ecw : list) {
-          if (ecw.getExecutionCommand().getRole().name().contains("SERVICE_CHECK")) {
+          if (ecw.getExecutionCommand().getRole().contains("SERVICE_CHECK")) {
             Map<String, String> hostParams = ecw.getExecutionCommand().getHostLevelParams();
             Assert.assertNotNull(hostParams);
             Assert.assertTrue(hostParams.size() > 0);
@@ -3580,7 +3580,7 @@ public class AmbariManagementControllerTest {
     assertEquals(task.getTaskId(), hostRoleCommand.getTaskId());
     assertEquals(actionRequest.getServiceName(), hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getServiceName());
     assertEquals(actionRequest.getClusterName(), hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getClusterName());
-    assertEquals(actionRequest.getActionName(), hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getRole().name());
+    assertEquals(actionRequest.getActionName(), hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getRole());
     assertEquals(Role.HDFS_CLIENT.name(), hostRoleCommand.getEvent().getEvent().getServiceComponentName());
     assertEquals(actionRequest.getParameters(), hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getRoleParams());
     assertNotNull(hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getConfigurations());

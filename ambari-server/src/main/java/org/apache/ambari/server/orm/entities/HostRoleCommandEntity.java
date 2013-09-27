@@ -18,15 +18,32 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import static org.apache.commons.lang.StringUtils.defaultString;
+
+import java.util.Arrays;
+
+import javax.persistence.Basic;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
+import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.TableGenerator;
+
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.commons.lang.ArrayUtils;
-
-import javax.persistence.*;
-import java.util.Arrays;
-
-import static org.apache.commons.lang.StringUtils.defaultString;
 
 @Table(name = "host_role_command")
 @Entity
@@ -57,8 +74,7 @@ public class HostRoleCommandEntity {
   private String hostName;
 
   @Column(name = "role")
-  @Enumerated(EnumType.STRING)
-  private Role role;
+  private String role;
 
   @Column(name = "event", length = 32000)
   @Basic
@@ -143,11 +159,11 @@ public class HostRoleCommandEntity {
   }
 
   public Role getRole() {
-    return role;
+    return Role.valueOf(this.role);
   }
 
   public void setRole(Role role) {
-    this.role = role;
+    this.role = role.name();
   }
 
   public String getEvent() {
