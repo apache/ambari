@@ -251,10 +251,16 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
                   for (var site in hostComponent.HostRoles.actual_configs) {
                     var actualConfigsTags = hostComponent.HostRoles.actual_configs[site];
                     var desiredConfigTags = self.getDesiredConfigTag(site, hostComponent.HostRoles.host_name);
-                    if (desiredConfigTags.tag !== actualConfigsTags.tag ||
-                      (desiredConfigTags.host_override != null &&
-                        actualConfigsTags.host_override != null &&
-                        desiredConfigTags.host_override !== actualConfigsTags.host_override)) {
+                    var desiredConfigOverrideTag = desiredConfigTags.host_override != null ? 
+                        desiredConfigTags.host_override : null;
+                    var actualConfigOverrideTag = (actualConfigsTags.host_overrides!=null && 
+                        actualConfigsTags.host_overrides.length>0) ? 
+                        actualConfigsTags.host_overrides[0].tag : null;
+                    if ((actualConfigsTags.tag && 
+                        desiredConfigTags.tag && 
+                        desiredConfigTags.tag !== actualConfigsTags.tag) ||
+                      (desiredConfigOverrideTag !== actualConfigOverrideTag)) {
+                      actualConfigsTags.host_override = actualConfigOverrideTag;
                       // Restart may be necessary for this host-component
                       diffHostComponents.push({
                         componentName: hostComponent.HostRoles.component_name,
@@ -303,8 +309,24 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         // Find the diff in properties
         if (diffHostComponents.length > 0) {
           diffHostComponents.forEach(function (diffHostComponent) {
-            var actualConfigs = App.config.loadedConfigurationsCache[diffHostComponent.type + "_" + diffHostComponent.actualConfigTags.tag];
-            var desiredConfigs = App.config.loadedConfigurationsCache[diffHostComponent.type + "_" + diffHostComponent.desiredConfigTags.tag];
+            // The differences can be both in the base-site config version
+            // and also the host override config version. Hence we need to do
+            // a config union of both those tags and then see if there are any
+            // differences.
+            var baseActualConfigs = App.config.loadedConfigurationsCache[diffHostComponent.type + "_" + diffHostComponent.actualConfigTags.tag];
+            var actualConfigsOverride = App.config.loadedConfigurationsCache[diffHostComponent.type + "_" + diffHostComponent.actualConfigTags.host_override];
+            var baseDesiredConfigs = App.config.loadedConfigurationsCache[diffHostComponent.type + "_" + diffHostComponent.desiredConfigTags.tag];
+            var desiredConfigsOverride = App.config.loadedConfigurationsCache[diffHostComponent.type + "_" + diffHostComponent.desiredConfigTags.host_override];
+            var actualConfigs = {};
+            var desiredConfigs = {};
+            $.extend(actualConfigs, baseActualConfigs);
+            $.extend(desiredConfigs, baseDesiredConfigs);
+            if (actualConfigsOverride != null) {
+              $.extend(actualConfigs, actualConfigsOverride); // Need to override with host override configs
+            }
+            if (desiredConfigsOverride != null) {
+              $.extend(actualConfigs, desiredConfigsOverride); // Need to override with host override configs
+            }
             var diffs = self.getConfigDifferences(actualConfigs, desiredConfigs);
             if (!jQuery.isEmptyObject(diffs)) {
               var skip = false;
@@ -383,7 +405,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     if (hostName in this.loadedHostToOverrideSiteToTagMap) {
       var map = this.loadedHostToOverrideSiteToTagMap[hostName];
       if (site in map) {
-        tag.host_overrides = map[site];
+        tag.host_override = map[site];
       }
     }
     return tag;
