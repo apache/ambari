@@ -298,7 +298,7 @@ App.MainChartHeatmapMetric = Em.Object.extend(heatmap.mappers, {
         this.set('loading', false);
       }, this)
     });
-  }.observes('slotDefinitions'),
+  },
 
   /**
    * Turns numbers into displayable values. For example 24.345432425 into 24.3
