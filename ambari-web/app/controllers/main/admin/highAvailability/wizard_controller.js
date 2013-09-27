@@ -258,6 +258,12 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
     this.set('content.cluster', this.getCluster());
   },
 
+  clearTasksData: function () {
+    this.saveTasksStatuses(undefined);
+    this.saveRequestIds(undefined);
+    this.saveLogs(undefined);
+  },
+
   /**
    * Clear all temporary data
    */

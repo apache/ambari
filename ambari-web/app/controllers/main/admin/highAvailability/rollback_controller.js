@@ -90,6 +90,10 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
       newTasks[i].id = i;
     };
     this.set('tasks', newTasks);
+    var hbaseTask = this.get('tasks').findProperty('command', 'restoreHBaseConfigs');
+    if (!App.Service.find().someProperty('serviceName', 'HBASE') && hbaseTask) {
+      this.get('tasks').splice(hbaseTask.get('id'), 1);
+    }
   },
 
   clearStep: function () {

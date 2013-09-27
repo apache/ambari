@@ -85,6 +85,9 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
         this.set('currentRequestIds', this.get('content.requestIds'));
         this.set('currentTaskId', loadedStauses.indexOf('IN_PROGRESS'));
         this.doPolling();
+      }else if (loadedStauses.contains('QUEUED')){
+        this.set('currentTaskId', loadedStauses.indexOf('QUEUED'));
+        this.runTask(loadedStauses.indexOf('QUEUED'));
       }
     }
   },
@@ -129,6 +132,7 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
       primary: Em.I18n.t('common.confirm'),
       showCloseButton: false,
       onPrimary: function () {
+        App.router.get('highAvailabilityWizardController').clearTasksData();
         App.router.transitionTo('main.admin.highAvailabilityRollback');
         this.hide();
       },
