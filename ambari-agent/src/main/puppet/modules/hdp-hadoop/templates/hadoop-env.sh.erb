@@ -117,3 +117,6 @@ export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}
 
 # Setting path to hdfs command line
 export HADOOP_LIBEXEC_DIR=<%=scope.function_hdp_template_var("hadoop_libexec_dir")%>
+
+#Mostly required for hadoop 2.0
+export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/lib/hadoop/lib/native/Linux-amd64-64
