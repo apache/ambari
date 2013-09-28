@@ -151,23 +151,56 @@ App.statusMapper = App.QuickDataMapper.create({
     services.forEach(function(_service){
       var service = servicesMap[_service.get('id')];
       var serviceName = _service.get('serviceName');
+      var serviceSpecificObj = null;
+      switch (serviceName) {
+        case "HDFS":
+          serviceSpecificObj = App.HDFSService.find(_service.get('id'));
+          break;
+        case "YARN":
+          serviceSpecificObj = App.YARNService.find(_service.get('id'));
+          break;
+        case "MAPREDUCE":
+          serviceSpecificObj = App.MapReduceService.find(_service.get('id'));
+          break;
+        case "HBASE":
+          serviceSpecificObj = App.HBaseService.find(_service.get('id'));
+          break;
+      }
       //computation of service health status
       var isGreen = serviceName === 'HBASE' && App.supports.multipleHBaseMasters ? service.isStarted : service.everyStartedOrMaintenance;
       if (isGreen) {
         _service.set('healthStatus', 'green');
+        if (serviceSpecificObj != null) {
+          serviceSpecificObj.set('healthStatus', 'green');
+        }
       } else if (service.isUnknown) {
         _service.set('healthStatus', 'yellow');
+        if (serviceSpecificObj != null) {
+          serviceSpecificObj.set('healthStatus', 'yellow');
+        }
       } else if (service.isStarting) {
         _service.set('healthStatus', 'green-blinking');
+        if (serviceSpecificObj != null) {
+          serviceSpecificObj.set('healthStatus', 'green-blinking');
+        }
       } else if (service.isStopped) {
         _service.set('healthStatus', 'red');
+        if (serviceSpecificObj != null) {
+          serviceSpecificObj.set('healthStatus', 'red');
+        }
       } else {
         _service.set('healthStatus', 'red-blinking');
+        if (serviceSpecificObj != null) {
+          serviceSpecificObj.set('healthStatus', 'red-blinking');
+        }
       }
 
       if (serviceName === 'HBASE' && App.supports.multipleHBaseMasters) {
         if (!service.isHbaseActive) {
           _service.set('healthStatus', 'red');
+          if (serviceSpecificObj != null) {
+            serviceSpecificObj.set('healthStatus', 'red');
+          }
         }
       }
 
@@ -176,6 +209,11 @@ App.statusMapper = App.QuickDataMapper.create({
       _service.set('unknownHostComponents', service.unknownHCs);
       _service.set('isStopped', service.isRunning);
       _service.set('toolTipContent', service.toolTipContent);
+      if (serviceSpecificObj != null) {
+        serviceSpecificObj.set('isStarted', service.everyStarted);
+        serviceSpecificObj.set('isStopped', service.isRunning);
+        serviceSpecificObj.set('toolTipContent', service.toolTipContent);
+      }
     }, this);
   },
 
