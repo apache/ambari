@@ -42,7 +42,7 @@ define hdp-hadoop::hdfs::directory(
      $dfs_check_nn_status_cmd = "true"
    }
 
-  if ($service_state == 'running') {
+  if ($service_state == 'running' and $hdp::params::dfs_ha_enabled == false) {
     if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
       $mkdir_cmd = "fs -mkdir -p ${name}"
     } else {
