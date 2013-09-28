@@ -19,13 +19,6 @@ limitations under the License.
 
 <configuration>
   <property>
-    <name>hive.metastore.local</name>
-    <value>false</value>
-    <description>controls whether to connect to remove metastore server or
-    open a new metastore server in Hive Client JVM</description>
-  </property>
-
-  <property>
     <name>javax.jdo.option.ConnectionURL</name>
     <value></value>
     <description>JDBC connect string for a JDBC metastore</description>
@@ -92,12 +85,6 @@ limitations under the License.
     <name>hive.semantic.analyzer.factory.impl</name>
     <value>org.apache.hivealog.cli.HCatSemanticAnalyzerFactory</value>
     <description>controls which SemanticAnalyzerFactory implemenation class is used by CLI</description>
-  </property>
-
-  <property>
-    <name>hadoop.clientside.fs.operations</name>
-    <value>true</value>
-    <description>FS operations are owned by client</description>
   </property>
 
   <property>
