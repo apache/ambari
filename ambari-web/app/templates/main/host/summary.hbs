@@ -39,7 +39,12 @@
               {{else}}
                 <span {{bindAttr class="view.statusClass :components-health"}}></span>&nbsp;
               {{/if}}
-              {{component.displayName}}&nbsp;/&nbsp;
+                {{#if component.displayNameAdvanced}}
+                  {{component.displayNameAdvanced}}
+                {{else}}
+                  {{component.displayName}}
+                {{/if}}
+                &nbsp;/&nbsp;
               <a href="#" {{action routeToService component.service target="controller"  }}>{{component.service.displayName}}</a>
             </div>
             <div class="span5">
