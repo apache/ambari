@@ -102,7 +102,7 @@ App.statusMapper = App.QuickDataMapper.create({
     }
     if (hostComponent.get('isMaster')) {
       if (service.everyStartedOrMaintenance) {
-        service.everyStartedOrMaintenance = (!App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE') && hostComponent.get('componentName') === 'NAMENODE' && App.HDFSService.find().filterProperty('activeNameNode.hostName').length > 0)
+        service.everyStartedOrMaintenance = (hostComponent.get('componentName') === 'NAMENODE' && !App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE') && App.HDFSService.find().filterProperty('activeNameNode.hostName').length > 0)
           ? true : service.everyStartedOrMaintenance = ([App.HostComponentStatus.started, App.HostComponentStatus.maintenance].contains(hostComponent.get('workStatus')));
       } else {
         service.everyStartedOrMaintenance = false;
@@ -128,7 +128,45 @@ App.statusMapper = App.QuickDataMapper.create({
 
       service.masterComponents.push(hostComponent);
 
-      service.toolTipContent += hostComponent.get("displayName") + " " + hostComponent.get("componentTextStatus") + "<br/>";
+      // set advanced nameNode display name for HA, active or standby NameNode
+      // this is useful on three places: hdfs health status hover tooltip, hdfs service summary and NN component on host detail page
+      if (hostComponent.get('componentName') === 'NAMENODE' && !App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
+        var hostName = hostComponent.get('host.hostName');
+        var services = App.Service.find();
+        var hdfs;
+        services.forEach(function (item) {
+          if (item.get("serviceName") == "HDFS") {
+            hdfs = App.HDFSService.find(item.get('id'));
+          }
+        }, this);
+        var activeNNText = Em.I18n.t('services.service.summary.nameNode.active');
+        var standbyNNText = Em.I18n.t('services.service.summary.nameNode.standby');
+        if (hdfs) {
+          if (hdfs.get('activeNameNode') && hdfs.get('activeNameNode').get('hostName')) {
+            var activeHostname = hdfs.get('activeNameNode').get('hostName');
+          }
+          if (hdfs.get('standbyNameNode') && hdfs.get('standbyNameNode').get('hostName')) {
+            var standbyHostname1 = hdfs.get('standbyNameNode').get('hostName');
+          }
+          if (hdfs.get('standbyNameNode2') && hdfs.get('standbyNameNode2').get('hostName')) {
+            var standbyHostname2 = hdfs.get('standbyNameNode2').get('hostName');
+          }
+          if ( hostName == activeHostname) {
+            hostComponent.set('displayNameAdvanced', activeNNText);
+          } else if ( hostName == standbyHostname1 || hostName == standbyHostname2) {
+            hostComponent.set('displayNameAdvanced', standbyNNText);
+          } else {
+            hostComponent.set('displayNameAdvanced', null);
+          }
+        }
+      }
+
+      if (hostComponent.get("displayNameAdvanced")) {
+        service.toolTipContent += hostComponent.get("displayNameAdvanced") + " " + hostComponent.get("componentTextStatus") + "<br/>";
+      } else {
+        service.toolTipContent += hostComponent.get("displayName") + " " + hostComponent.get("componentTextStatus") + "<br/>";
+      }
+
     }
 
     if (hostComponent.get('workStatus') !== App.HostComponentStatus.stopped &&
