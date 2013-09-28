@@ -184,6 +184,14 @@
     </description>
   </property>
   <property>
+    <name>hbase.hstore.flush.retries.number</name>
+    <value>120</value>
+    <description>
+    The number of times the region flush operation will be retried.
+    </description>
+  </property>
+  
+  <property>
     <name>hbase.hstore.blockingStoreFiles</name>
     <value></value>
     <description>
