@@ -475,9 +475,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.addHostNamesToGlobalConfig();
 
     var allConfigs = this.get('globalConfigs').concat(configs);
-    //this.loadServiceConfigHostsOverrides(serviceConfigs, this.loadedHostToOverrideSiteToTagMap);
     //STEP 9: Load and add host override configs
-    App.config.loadServiceConfigHostsOverrides(allConfigs, this.loadedHostToOverrideSiteToTagMap);
+    this.loadServiceConfigHostsOverrides(allConfigs, this.loadedHostToOverrideSiteToTagMap);
     var restartData = this.loadActualConfigsAndCalculateRestarts();
     //STEP 10: creation of serviceConfig object which contains configs for current service
     var serviceConfig = App.config.createServiceConfig(serviceName);
@@ -495,6 +494,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.checkForSecureConfig(this.get('selectedService'));
     this.set('dataIsLoaded', true);
   },
+  
+  loadServiceConfigHostsOverrides: function(allConfigs, loadedHostToOverrideSiteToTagMap) {
+    App.config.loadServiceConfigHostsOverrides(allConfigs, loadedHostToOverrideSiteToTagMap);
+  },
+  
   /**
    * Changes format from Object to Array
    *

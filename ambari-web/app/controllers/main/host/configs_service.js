@@ -69,17 +69,17 @@ App.MainHostServiceConfigsController = App.MainServiceInfoConfigsController.exte
    * This method will *not load* the overridden properties. However it will
    * replace the value shown for properties which this host has override for.
    */
-  loadServiceConfigHostsOverrides: function (serviceConfig) {
+  loadServiceConfigHostsOverrides: function (serviceConfigs, loadedHostToOverrideSiteToTagMap) {
     var thisHostName = this.get('host.hostName');
     var configKeyToConfigMap = {};
-    serviceConfig.configs.forEach(function (item) {
+    serviceConfigs.forEach(function (item) {
       configKeyToConfigMap[item.name] = item;
     });
     var typeTagToHostMap = {};
     var urlParams = [];
-    for ( var hostname in this.loadedHostToOverrideSiteToTagMap) {
+    for ( var hostname in loadedHostToOverrideSiteToTagMap) {
       if (hostname === thisHostName) {
-        var overrideTypeTags = this.loadedHostToOverrideSiteToTagMap[hostname];
+        var overrideTypeTags = loadedHostToOverrideSiteToTagMap[hostname];
         for ( var type in overrideTypeTags) {
           var tag = overrideTypeTags[type];
           typeTagToHostMap[type + "///" + tag] = hostname;
@@ -126,11 +126,11 @@ App.MainHostServiceConfigsController = App.MainServiceInfoConfigsController.exte
         }
         if (serviceConfig) {
           // Value of this property is different for this host.
-          console.log("loadServiceConfigHostsOverrides(" + this.get('host.hostName') + "): [" + hostname + "] OVERRODE(" + serviceConfig.name + "): " + serviceConfig.value + " -> " + hostOverrideValue);
+          console.log("loadServiceConfigHostsOverrides(" + hostname + "): [" + hostname + "] OVERRODE(" + serviceConfig.name + "): " + serviceConfig.value + " -> " + hostOverrideValue);
           serviceConfig.value = hostOverrideValue;
           serviceConfig.defaultValue = hostOverrideValue;
           serviceConfig.isOriginalSCP = false;
-          serviceConfig.selectedHostOptions = [this.get('host.hostName')];
+          serviceConfig.selectedHostOptions = [hostname];
         }
       }
     });
