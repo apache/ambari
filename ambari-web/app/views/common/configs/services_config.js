@@ -273,7 +273,13 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
     var configs = this.get('serviceConfigs');
     var canEdit = this.get('canEdit');
     if (!canEdit && configs) {
-      configs.setEach('isEditable', false);
+      configs.forEach(function(c){
+        c.set('isEditable', false);
+        var overrides = c.get('overrides');
+        if (overrides!=null) {
+          overrides.setEach('isEditable', false);
+        }
+      });
     }
   },
 
