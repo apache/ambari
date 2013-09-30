@@ -198,7 +198,6 @@ App.MainHostSummaryView = Em.View.extend({
     var regionServerExists = false;
     var zookeeperServerExists = false;
     var nodeManagerExists = false;
-    var hbaseMasterExists = false;
     
     var installableClients = this.get('installableClientComponents');
     
@@ -219,9 +218,6 @@ App.MainHostSummaryView = Em.View.extend({
         case 'NODEMANAGER':
           nodeManagerExists = true;
           break;
-        case 'HBASE_MASTER':
-          hbaseMasterExists = true;
-          break;
       }
     }, this);
 
@@ -233,9 +229,6 @@ App.MainHostSummaryView = Em.View.extend({
     }
     if (!regionServerExists && services.findProperty('serviceName', 'HBASE')) {
       components.pushObject(this.addableComponentObject.create({ 'componentName': 'HBASE_REGIONSERVER' }));
-    }
-    if (!hbaseMasterExists && services.findProperty('serviceName', 'HBASE')) {
-      components.pushObject(this.addableComponentObject.create({ 'componentName': 'HBASE_MASTER' }));
     }
     if (!zookeeperServerExists && services.findProperty('serviceName', 'ZOOKEEPER')) {
       components.pushObject(this.addableComponentObject.create({ 'componentName': 'ZOOKEEPER_SERVER' }));
