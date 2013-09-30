@@ -152,7 +152,7 @@ define hdp-yarn::generate_common_configs() {
     $container_executor = "${hdp::params::yarn_container_bin}/container-executor"
     file { $container_executor:
       ensure => present,
-      group => 'hadoop',
+      group => $hdp::params::user_group,
       mode => 6050
     }
 
