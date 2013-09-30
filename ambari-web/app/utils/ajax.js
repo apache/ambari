@@ -139,6 +139,31 @@ var urls = {
     'type': 'DELETE'
   },
 
+  'reassign.load_configs': {
+    'real': '/clusters/{clusterName}/configurations?{urlParams}',
+    'mock': ''
+  },
+
+  'reassign.save_configs': {
+    'real': '/clusters/{clusterName}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        async: false,
+        data: JSON.stringify({
+          Clusters: {
+            desired_config: {
+              "type": data.siteName,
+              "tag": 'version' + (new Date).getTime(),
+              "properties": data.properties
+            }
+          }
+        })
+      }
+    }
+  },
+
   'config.advanced': {
     'real': '{stack2VersionUrl}/stackServices/{serviceName}/configurations?fields=*',
     'mock': '/data/wizard/stack/hdp/version{stackVersion}/{serviceName}.json',

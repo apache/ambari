@@ -23,7 +23,7 @@ App.ReassignMasterController = App.WizardController.extend({
 
   name: 'reassignMasterController',
 
-  totalSteps: 4,
+  totalSteps: 6,
 
   /**
    * Used for hiding back button in wizard
@@ -51,8 +51,15 @@ App.ReassignMasterController = App.WizardController.extend({
     serviceConfigProperties: null,
     advancedServiceConfig: null,
     controllerName: 'reassignMasterController',
-    reassign: null
+    reassign: null,
+    hasManualSteps: false
   }),
+
+  componentsWithManualSteps: ['NAMENODE'],
+
+  addManualSteps: function () {
+    this.set('content.hasManualSteps', this.get('componentsWithManualSteps').contains(this.get('content.reassign.component_name')));
+  }.observes('content.reassign.component_name'),
 
   skipStep3: function () {
     return this.get('content.reassign.service_id') == 'GANGLIA';
@@ -219,12 +226,25 @@ App.ReassignMasterController = App.WizardController.extend({
     this.set('content.logs', logs);
   },
 
+  saveComponentDir: function(componentDir){
+    App.db.setReassignMasterWizardComponentDir(componentDir);
+    this.set('content.componentDir', componentDir);
+  },
+
+  loadComponentDir: function(){
+    var componentDir = App.db.getReassignMasterWizardComponentDir();
+    this.set('content.componentDir', componentDir);
+  },
+
   /**
    * Load data for all steps until <code>current step</code>
    */
   loadAllPriorSteps: function () {
     var step = this.get('currentStep');
     switch (step) {
+      case '6':
+      case '5':
+        this.loadComponentDir();
       case '4':
         this.loadTasksStatuses();
         this.loadRequestIds();

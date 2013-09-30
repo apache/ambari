@@ -412,6 +412,12 @@ App.db.setReassignMasterWizardLogs = function (logs) {
   localStorage.setObject('ambari', App.db.data);
 };
 
+App.db.setReassignMasterWizardComponentDir = function (componentDir) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.ReassignMaster.componentDir = componentDir;
+  localStorage.setObject('ambari', App.db.data);
+};
+
 /*
  *  getter methods
  */
@@ -673,6 +679,11 @@ App.db.getReassignMasterWizardRequestIds = function () {
 App.db.getReassignMasterWizardLogs = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.ReassignMaster.logs;
+};
+
+App.db.getReassignMasterWizardComponentDir = function () {
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.ReassignMaster.componentDir;
 };
 
 module.exports = App.db;

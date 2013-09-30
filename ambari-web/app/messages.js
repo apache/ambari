@@ -558,15 +558,31 @@ Em.I18n.translations = {
   'installer.step13.task0.title':'{1} stop',
   'installer.step13.task1.title':'{0} create',
   'installer.step13.task2.title':'{0} disable',
-  'installer.step13.task3.title':'{0} install',
-  'installer.step13.task4.title':'{1} reconfigure',
+  'installer.step13.task3.title':'{1} reconfigure',
+  'installer.step13.task4.title':'{0} install',
   'installer.step13.task5.title':'{1} start',
   'installer.step13.task6.title':'{0} remove',
   'installer.step13.status.success': 'Successfully reassigned {0}',
+  'installer.step13.status.success.withManualSteps': 'Proceed to the next step',
   'installer.step13.status.failed': 'Failed to reassign {0}',
   'installer.step13.status.info': 'Reassigning {0}. \nPlease wait while all tasks will be completed.',
   'installer.step13.retry': 'You can click on the Retry or Abort button to retry failed task or abort changes',
   'installer.step13.abortError': 'Error in aborting changes.',
+  'installer.step14.header': 'Manual commands',
+  'installer.step14.body.namenode': '<ol>' +
+  '<li>Copy contents of <b>{0}</b> from source host <b>{1}</b> to the target host <b>{2}</b> same locations</li>' +
+      '<li>Login to the target host <b>{2}</b> and change permissions for the NameNode dirs by running:' +
+      '<div class="code-snippet">chown -R hdfs:hadoop /hadoop/hdfs/namenode/</div></li>' +
+      '<li>Create marker directory by running:' +
+      '<div class="code-snippet">mkdir -p /var/run/hadoop/hdfs/namenode/formatted</div></li>' +
+      '<li>Proceed next' +
+      '</ol>',
+  'installer.step15.header': 'Install, Start and Test',
+  'installer.step15.task0.title':'{0} remove',
+  'installer.step15.task1.title':'{1} start',
+  'installer.step15.status.success': 'Successfully reassigned {0}',
+  'installer.step15.status.failed': 'Failed to reassign {0}',
+  'installer.step15.status.info': 'Reassigning {0}. \nPlease wait while all tasks will be completed.',
 
   'installer.stackUpgrade.header':'Stack Upgrade Wizard',
   'installer.stackUpgrade.step1.newVersion':'New Version',

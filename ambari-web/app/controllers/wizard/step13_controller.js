@@ -20,11 +20,9 @@ var App = require('app');
 
 App.WizardStep13Controller = App.HighAvailabilityProgressPageController.extend({
 
-  commands: ['stopServices', 'createHostComponents', 'putHostComponentsInMaintenanceMode', 'installHostComponents', 'reconfigure', 'startServices', 'deleteHostComponents'],
+  commands: ['stopServices', 'createHostComponents', 'putHostComponentsInMaintenanceMode', 'reconfigure', 'installHostComponents', 'deleteHostComponents', 'startServices'],
 
-  clusterDeployStep: 'REASSIGN_MASTER_INSTALLING',
-
-  componentsWithManualSteps: ['NAMENODE, SECONDARY_NAMENODE', 'JOBTRACKER'],
+  clusterDeployState: 'REASSIGN_MASTER_INSTALLING',
 
   multiTaskCounter: 0,
 
@@ -33,13 +31,8 @@ App.WizardStep13Controller = App.HighAvailabilityProgressPageController.extend({
   serviceNames: [],
 
   loadStep: function () {
-    if (['HIVE_METASTORE', 'WEBHCAT_SERVER'].contains(this.get('content.reassign.component_name'))) {      //todo
-      this.set('hostComponents', ['HIVE_METASTORE', 'WEBHCAT']);
-      this.set('serviceNames', ['HIVE', 'WEBHCAT']);
-    } else {
-      this.set('hostComponents', [this.get('content.reassign.component_name')]);
-      this.set('serviceNames', [this.get('content.reassign.service_id')]);
-    }
+    this.get('hostComponents').pushObject(this.get('content.reassign.component_name'));
+    this.get('serviceNames').pushObject(this.get('content.reassign.service_id'));
     this._super();
   },
 
@@ -72,16 +65,16 @@ App.WizardStep13Controller = App.HighAvailabilityProgressPageController.extend({
         hosts: []
       }));
     }
-    //todo
-    /*if (this.get('componentsWithManualSteps').contains(this.get('content.reassign.component_name'))) {
-      this.get('tasks').splice(4, 3);
-    }*/
+
+    if (this.get('content.hasManualSteps')) {
+      this.get('tasks').splice(5, 2);
+    }
   },
 
   hideRollbackButton: function () {
     var failedTask = this.get('tasks').findProperty('showRollback');
     if (failedTask) {
-    failedTask.set('showRollback', false)
+      failedTask.set('showRollback', false)
     }
   }.observes('tasks.@each.showRollback'),
 
@@ -151,8 +144,94 @@ App.WizardStep13Controller = App.HighAvailabilityProgressPageController.extend({
   },
 
   reconfigure: function () {
-    //todo
-    this.onTaskCompleted();
+    this.loadConfigsTags();
+  },
+
+  loadConfigsTags: function () {
+    App.ajax.send({
+      name: 'config.tags',
+      sender: this,
+      success: 'onLoadConfigsTags',
+      error: 'onTaskError'
+    });
+  },
+
+  onLoadConfigsTags: function (data) {
+    var componentName = this.get('content.reassign.component_name');
+    var urlParams = [];
+    switch (componentName) {
+      case 'NAMENODE':
+        urlParams.push('(type=hdfs-site&tag=' + data.Clusters.desired_configs['hdfs-site'].tag + ')');
+        urlParams.push('(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')');
+        if (App.Service.find().someProperty('serviceName', 'HBASE')) {
+          urlParams.push('(type=hbase-site&tag=' + data.Clusters.desired_configs['hbase-site'].tag + ')');
+        }
+        break;
+    }
+    App.ajax.send({
+      name: 'reassign.load_configs',
+      sender: this,
+      data: {
+        urlParams: urlParams.join('|')
+      },
+      success: 'onLoadConfigs',
+      error: 'onTaskError'
+    });
+  },
+
+  configsSitesCount: null,
+
+  configsSitesNumber: null,
+
+  onLoadConfigs: function (data) {
+    var componentName = this.get('content.reassign.component_name');
+    var targetHostName = this.get('content.masterComponentHosts').findProperty('component', this.get('content.reassign.component_name')).hostName;
+    var configs = {};
+    var componentDir = '';
+    this.set('configsSitesNumber', data.items.length);
+    this.set('configsSitesCount', 0);
+    data.items.forEach(function (item) {
+      configs[item.type] = item.properties;
+    }, this);
+    switch (componentName) {
+      case 'NAMENODE':
+        componentDir = configs['hdfs-site']['dfs.name.dir'];
+        configs['core-site']['fs.default.name'] = 'hdfs://' + targetHostName + ':8020';
+        configs['hdfs-site']['dfs.http.address'] = targetHostName + ':50070';
+        configs['hdfs-site']['dfs.https.address'] = targetHostName + ':50470';
+        configs['hdfs-site']['dfs.safemode.threshold.pct'] = '1.1f';
+        if (App.Service.find().someProperty('serviceName', 'HBASE')) {
+          configs['hbase-site']['hbase.rootdir'] = configs['hbase-site']['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + targetHostName);
+        }
+        break;
+    }
+    App.router.get(this.get('content.controllerName')).saveComponentDir(componentDir);
+    App.clusterStatus.setClusterStatus({
+      clusterName: this.get('content.cluster.name'),
+      clusterState: this.get('clusterDeployState'),
+      wizardControllerName: this.get('content.controllerName'),
+      localdb: App.db.data
+    });
+    for (var site in configs) {
+      if (!configs.hasOwnProperty(site)) continue;
+      App.ajax.send({
+        name: 'reassign.save_configs',
+        sender: this,
+        data: {
+          siteName: site,
+          properties: configs[site]
+        },
+        success: 'onSaveConfigs',
+        error: 'onTaskError'
+      });
+    }
+  },
+
+  onSaveConfigs: function () {
+    this.set('configsSitesCount', this.get('configsSitesCount') + 1);
+    if (this.get('configsSitesCount') === this.get('configsSitesNumber')) {
+      this.onTaskCompleted();
+    }
   },
 
   startServices: function () {
@@ -188,6 +267,17 @@ App.WizardStep13Controller = App.HighAvailabilityProgressPageController.extend({
         success: 'onComponentsTasksSuccess',
         error: 'onTaskError'
       });
+    }
+  },
+
+  done: function () {
+    if (!this.get('isSubmitDisabled')) {
+      this.removeObserver('tasks.@each.status', this, 'onTaskStatusChange');
+      if (this.get('content.hasManualSteps')) {
+        App.router.send('next');
+      } else {
+        App.router.send('complete');
+      }
     }
   }
 })
