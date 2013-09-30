@@ -234,8 +234,7 @@ App.MainDashboardView = Em.View.extend({
           currentPrefObject.dashboardVersion = 'new';
           this.postUserPref(this.get('persistKey'), currentPrefObject);
         }
-        this.checkServicesChange();
-        this.getUserPref(this.get('persistKey'));
+        this.set('currentPrefObject', this.checkServicesChange(currentPrefObject));
         this.translateToReal(this.get('currentPrefObject'));
       } else {
         // post persist then translate init object
@@ -267,8 +266,8 @@ App.MainDashboardView = Em.View.extend({
    * check if stack has upgraded from HDP 1.0 to 2.0 OR add/delete services.
    * Update the value on server if true.
    */
-  checkServicesChange: function () {
-    var toDelete =  this.get('currentPrefObject');
+  checkServicesChange: function (currentPrefObject) {
+    var toDelete = $.extend(true, {}, currentPrefObject);
     var toAdd = [];
     var self = this;
 
@@ -312,8 +311,7 @@ App.MainDashboardView = Em.View.extend({
         toAdd = toAdd.concat(yarn);
       }
     }
-    this.getUserPref(this.get('persistKey'));
-    var value = this.get('currentPrefObject');
+    var value = currentPrefObject;
     if (toDelete.visible.length || toDelete.hidden.length) {
       toDelete.visible.forEach ( function (item) {
         value = self.removeWidget(value, item);
@@ -330,8 +328,7 @@ App.MainDashboardView = Em.View.extend({
         value.threshold[item] = allThreshold[item];
       }, this);
     }
-    //post to server
-    this.postUserPref(this.get('persistKey'), value);
+    return value;
   },
 
   widgetsMapper: function (id) {
@@ -383,32 +380,31 @@ App.MainDashboardView = Em.View.extend({
   /**
    * get persist value from server with persistKey
    */
-  getUserPref: function (key) {
-    var self = this;
-    var url = App.apiPrefix + '/persist/' + key;
-    jQuery.ajax(
-      {
-        url: url,
-        context: this,
-        async: false,
-        success: function (response) {
-          if (response) {
-            var value = jQuery.parseJSON(response);
-            console.log('Got persist value from server with key ' + key + '. Value is: ' + response);
-            self.set('currentPrefObject', value);
-            return value;
-           }
-        },
-        error: function (xhr) {
-          // this user is first time login
-          if (xhr.status == 404) {
-            console.log('Persist did NOT find the key '+ key);
-            return null;
-          }
-        },
-        statusCode: require('data/statusCodes')
-      }
-    );
+  getUserPref: function(key){
+    App.ajax.send({
+      name: 'dashboard.get.user_pref',
+      sender: this,
+      data: {
+        key: key
+      },
+      success: 'getUserPrefSuccessCallback',
+      error: 'getUserPrefErrorCallback'
+    });
+  },
+
+  getUserPrefSuccessCallback: function (response, request, data) {
+    if (response) {
+      console.log('Got persist value from server with key ' + data.key + '. Value is: ' + response);
+      this.set('currentPrefObject', response);
+    }
+  },
+
+  getUserPrefErrorCallback: function (request, ajaxOptions, error) {
+    // this user is first time login
+    if (request.status == 404) {
+      console.log('Persist did NOT find the key');
+      return null;
+    }
   },
 
   /**
@@ -419,16 +415,18 @@ App.MainDashboardView = Em.View.extend({
     var keyValuePair = {};
     keyValuePair[key] = JSON.stringify(value);
 
-    jQuery.ajax({
-      async: false,
-      context: this,
-      type: "POST",
-      url: url,
-      data: JSON.stringify(keyValuePair),
-      beforeSend: function () {
-        console.log('BeforeSend to persist: persistKeyValues', keyValuePair);
+    App.ajax.send({
+      'name': 'dashboard.post.user_pref',
+      'sender': this,
+      'beforeSend': 'postUserPrefBeforeSend',
+      'data': {
+        'keyValuePair': keyValuePair
       }
     });
+  },
+
+  postUserPrefBeforeSend: function(request, ajaxOptions, data){
+    console.log('BeforeSend to persist: persistKeyValues', data.keyValuePair);
   },
 
   resetAllWidgets: function(){

@@ -1083,6 +1083,26 @@ var urls = {
   'ambari.service': {
     'real': '/services/AMBARI/components/AMBARI_SERVER',
     'mock': ''
+  },
+  'dashboard.get.user_pref': {
+    'real': '/persist/{key}',
+    'mock': '',
+    'format': function (data, opt) {
+      return {
+        async: false
+      };
+    }
+  },
+  'dashboard.post.user_pref': {
+    'real': '/persist',
+    'mock': '',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        async: false,
+        data: JSON.stringify(data.keyValuePair)
+      }
+    }
   }
 };
 /**
