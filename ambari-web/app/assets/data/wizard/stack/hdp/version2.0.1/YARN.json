@@ -389,7 +389,7 @@
       "href" : "http://192.168.56.101:8080/api/v1/stacks2/HDP/versions/2.0.1/stackServices/YARN/configurations/yarn.nodemanager.aux-services",
       "StackConfigurations" : {
         "property_description" : "Auxilliary services of NodeManager",
-        "property_value" : "mapreduce.shuffle",
+        "property_value" : "mapreduce_shuffle",
         "stack_version" : "2.0.1",
         "property_name" : "yarn.nodemanager.aux-services",
         "service_name" : "YARN",
