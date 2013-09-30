@@ -68,7 +68,7 @@
   </property>
   <property>
     <name>hstorefile_maxsize</name>
-    <value>1073741824</value>
+    <value>10737418240</value>
     <description>Maximum HStoreFile Size</description>
   </property>
     <property>
