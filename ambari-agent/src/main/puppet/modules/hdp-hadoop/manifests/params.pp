@@ -83,6 +83,10 @@ class hdp-hadoop::params(
 
   $mapred_pid_dir_prefix = hdp_default("mapred_pid_dir_prefix","/var/run/hadoop-mapreduce")
 
+  # Cannot create new dir in directory.pp, reusing existing path
+  $namenode_dirs_created_stub_dir = "${hdfs_log_dir_prefix}/${hdp::params::hdfs_user}"
+  $namenode_dirs_stub_filename = "namenode_dirs_created"
+
   ### JSVC_HOME path is correct for AMD64 only, but can be changed through API
   if ($hdp::params::hdp_os_type == "suse") {
     $jsvc_path = hdp_default("jsvc_path","/usr/lib/bigtop-utils")
