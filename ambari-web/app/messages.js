@@ -577,6 +577,12 @@ Em.I18n.translations = {
       '<div class="code-snippet">mkdir -p /var/run/hadoop/hdfs/namenode/formatted</div></li>' +
       '<li>Proceed next' +
       '</ol>',
+  'installer.step14.body.secondary_namenode': '<ol>' +
+      '<li>Copy contents of <b>{0}</b> from source host <b>{1}</b> to the target host <b>{2}</b> same locations</li>' +
+      '<li>Login to the target host <b>{2}</b> and change permissions for the SNameNode dirs by running:' +
+      '<div class="code-snippet">chown -R hdfs:hadoop /hadoop/hdfs/namesecondary/</div></li>' +
+      '<li>Proceed next' +
+      '</ol>',
   'installer.step15.header': 'Install, Start and Test',
   'installer.step15.task0.title':'{0} remove',
   'installer.step15.task1.title':'{1} start',

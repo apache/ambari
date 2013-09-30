@@ -167,6 +167,9 @@ App.WizardStep13Controller = App.HighAvailabilityProgressPageController.extend({
           urlParams.push('(type=hbase-site&tag=' + data.Clusters.desired_configs['hbase-site'].tag + ')');
         }
         break;
+      case 'SECONDARY_NAMENODE':
+        urlParams.push('(type=hdfs-site&tag=' + data.Clusters.desired_configs['hdfs-site'].tag + ')');
+        break;
     }
     App.ajax.send({
       name: 'reassign.load_configs',
@@ -203,6 +206,10 @@ App.WizardStep13Controller = App.HighAvailabilityProgressPageController.extend({
         if (App.Service.find().someProperty('serviceName', 'HBASE')) {
           configs['hbase-site']['hbase.rootdir'] = configs['hbase-site']['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + targetHostName);
         }
+        break;
+      case 'SECONDARY_NAMENODE':
+        componentDir = configs['hdfs-site']['fs.checkpoint.dir'];
+        configs['hdfs-site']['dfs.secondary.http.address'] = targetHostName + ':50090';
         break;
     }
     App.router.get(this.get('content.controllerName')).saveComponentDir(componentDir);
