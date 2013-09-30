@@ -362,6 +362,7 @@ App.config = Em.Object.create({
         configData.value = stored.value;
         configData.defaultValue = stored.defaultValue;
         configData.overrides = stored.overrides;
+        configData.filename = stored.filename;
         configData.description = stored.description;
       } else if (!preDefined && stored) {
         configData = {
