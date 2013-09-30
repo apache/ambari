@@ -680,6 +680,9 @@ App.WizardStep9Controller = Em.Controller.extend({
       var actionsPerHost = tasksData.filterProperty('Tasks.host_name', _host.name); // retrieved from polled Data
       if (actionsPerHost.length === 0) {
         _host.set('message', this.t('installer.step9.host.status.nothingToInstall'));
+        if (_host.get('progress') == 0) {
+          _host.set('progress', '33');
+        }
         console.log("INFO: No task is hosted on the host");
       }
       if (actionsPerHost !== null && actionsPerHost !== undefined && actionsPerHost.length !== 0) {
