@@ -1590,6 +1590,21 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     os_path_exists_mock.return_value = False
     status, pid = ambari_server.is_server_runing()
     self.assertFalse(status)
+    
+    
+  @patch.object(ambari_server, "run_os_command")
+  @patch("__builtin__.open")
+  @patch("os.path.exists")
+  def test_is_server_runing_bad_file(self, os_path_exists_mock, open_mock, \
+                            run_os_command_mock):
+    os_path_exists_mock.return_value = True
+    f = open_mock.return_value
+    f.readline.return_value = "" # empty file content
+    run_os_command_mock.return_value = 0, "", ""  
+    self.assertRaises(NonFatalException, ambari_server.is_server_runing)
+    
+    open_mock.side_effect = IOError('[Errno 13] Permission denied: /var/run/ambari-server/ambari-server.pid')
+    self.assertRaises(FatalException, ambari_server.is_server_runing)
 
 
   @patch("os.chdir")
@@ -2153,6 +2168,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEqual(None, rcode)
     self.assertTrue(setup_db_mock.called)
 
+  @patch.object(ambari_server, 'is_server_runing')
   @patch("os.chown")
   @patch("pwd.getpwnam")
   @patch.object(ambari_server, 'get_master_key_location')
@@ -2161,7 +2177,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, 'get_validated_string_input')
   @patch("os.environ")
   @patch.object(ambari_server, "get_ambari_properties")
-  @patch("os.kill")
   @patch("os.path.exists")
   @patch("__builtin__.open")
   @patch("subprocess.Popen")
@@ -2179,10 +2194,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                  parse_properties_file_mock, check_postgre_up_mock,
                  print_error_msg_mock, find_jdk_mock, search_file_mock,
                  print_info_msg_mock, popenMock, openMock, pexistsMock,
-                 killMock, get_ambari_properties_mock, os_environ_mock,
+                 get_ambari_properties_mock, os_environ_mock,
                  get_validated_string_input_method, os_chmod_method,
                  save_master_key_method, get_master_key_location_method,
-                 getpwnam_mock, os_chown_mock):
+                 getpwnam_mock, os_chown_mock, is_server_running_mock):
     args = MagicMock()
 
     f = MagicMock()
@@ -2192,6 +2207,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     p = get_ambari_properties_mock.return_value
     p.get_property.return_value = 'False'
     search_file_mock.return_value = None
+    is_server_running_mock.return_value = (True, 123)
     pw = MagicMock()
     pw.setattr('pw_uid', 0)
     pw.setattr('pw_gid', 0)
@@ -2205,9 +2221,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     except FatalException:
       # Expected
       pass
-    self.assertTrue(killMock.called)
 
-    killMock.reset_mock()
     parse_properties_file_mock.reset_mock()
 
     pexistsMock.return_value = False
@@ -2241,6 +2255,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     # Checking "jdk not found"
     is_root_mock.return_value = True
     find_jdk_mock.return_value = None
+    is_server_running_mock.return_value = (False, 0)
+    
     try:
       ambari_server.start(args)
       self.fail("Should fail with 'No JDK found'")
@@ -2389,25 +2405,18 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEquals(os_environ_mock.copy.return_value, popen_arg)
 
 
-  @patch("__builtin__.open")
-  @patch("os.path.exists")
+  @patch.object(ambari_server, 'is_server_runing')
   @patch("os.remove")
   @patch("os.killpg")
   @patch("os.getpgid")
   @patch.object(ambari_server, "print_info_msg")
   def test_stop(self, print_info_msg_mock, gpidMock, removeMock,
-                killMock, pexistsMock, openMock):
-    pexistsMock.return_value = True
-    f = MagicMock()
-    f.readline.return_value = "42"
-    openMock.return_value = f
+                killMock, isServerRuningMock):
+    isServerRuningMock.return_value = (True, 123)
 
     ambari_server.stop(None)
 
-    self.assertTrue(f.readline.called)
     self.assertTrue(killMock.called)
-    self.assertTrue(killMock.called)
-    self.assertTrue(f.close.called)
     self.assertTrue(removeMock.called)
 
 
