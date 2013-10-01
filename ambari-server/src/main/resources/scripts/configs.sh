@@ -19,7 +19,7 @@
 #
 
 usage () {
-  echo "Usage: configs.sh [-u userId] [-p password] [-port port] <ACTION> <AMBARI_HOST> <CLUSTER_NAME> <CONFIG_TYPE> [CONFIG_KEY] [CONFIG_VALUE]";
+  echo "Usage: configs.sh [-u userId] [-p password] [-port port] <ACTION> <AMBARI_HOST> <CLUSTER_NAME> <CONFIG_TYPE> [CONFIG_FILENAME | CONFIG_KEY [CONFIG_VALUE]]";
   echo "";
   echo "       [-u userId]: Optional user ID to use for authentication. Default is 'admin'.";
   echo "       [-p password]: Optional password to use for authentication. Default is 'admin'.";
@@ -28,6 +28,7 @@ usage () {
   echo "       <AMBARI_HOST>: Server external host name";
   echo "       <CLUSTER_NAME>: Name given to cluster. Ex: 'c1'"
   echo "       <CONFIG_TYPE>: One of the various configuration types in Ambari. Ex:global, core-site, hdfs-site, mapred-queue-acls, etc.";
+  echo "       [CONFIG_FILENAME]: File where entire configurations are saved to, or read from. Only applicable to 'get' and 'set' actions";
   echo "       [CONFIG_KEY]: Key that has to be set or deleted. Not necessary for 'get' action.";
   echo "       [CONFIG_VALUE]: Optional value to be set. Not necessary for 'get' or 'delete' actions.";
   exit 1;
@@ -38,25 +39,25 @@ PASSWD="admin"
 PORT=":8080"
 
 if [ "$1" == "-u" ] ; then
-	USERID=$2;
-	shift 2;
-	echo "USERID=$USERID";
+  USERID=$2;
+  shift 2;
+  echo "USERID=$USERID";
 fi
 
 if [ "$1" == "-p" ] ; then
-	PASSWD=$2;
-	shift 2;
-	echo "PASSWORD=$PASSWD";
+  PASSWD=$2;
+  shift 2;
+  echo "PASSWORD=$PASSWD";
 fi
 
 if [ "$1" == "-port" ] ; then
-	if [ -z $2 ]; then
-		PORT="";
-	else
-		PORT=":$2";
-	fi
-	shift 2;
-	echo "PORT=$PORT";
+  if [ -z $2 ]; then
+    PORT="";
+  else
+    PORT=":$2";
+  fi
+  shift 2;
+  echo "PORT=$PORT";
 fi
 
 AMBARIURL="http://$2$PORT"
@@ -72,6 +73,7 @@ CONFIGVALUE=$6
 currentSiteTag () {
   currentSiteTag=''
   found=''
+    
   #currentSite=`cat ds.json | grep -E "$SITE|tag"`; 
   currentSite=`curl -s -u $USERID:$PASSWD "$AMBARIURL/api/v1/clusters/$CLUSTER?fields=Clusters/desired_configs" | grep -E "$SITE|tag"`;
   for line in $currentSite; do
@@ -98,7 +100,8 @@ currentSiteTag () {
 }
 
 #############################################
-## doConfigUpdate() MODE = 'set' | 'delete'
+## doConfigUpdate() 
+##  @param MODE of update. Either 'set' or 'delete'
 #############################################
 doConfigUpdate () {
   MODE=$1
@@ -128,7 +131,7 @@ doConfigUpdate () {
         propertiesStarted=0;
         
         newTag=`date "+%s"`
-        newTag="version$newTag"
+        newTag="version${newTag}000"
         finalJson="{ \"Clusters\": { \"desired_config\": {\"type\": \"$SITE\", \"tag\":\"$newTag\", $newProperties}}}"
         newFile="doSet_$newTag.json"
         echo "########## PUTting json into: $newFile"
@@ -146,9 +149,47 @@ doConfigUpdate () {
 }
 
 #############################################
+## doConfigFileUpdate() 
+##  @param File name to PUT on server
+#############################################
+doConfigFileUpdate () {
+  FILENAME=$1
+  if [ -f $FILENAME ]; then
+    if [ "1" == "`grep -n \"\"properties\"\" $FILENAME | cut -d : -f 1`" ]; then
+      newTag=`date "+%s"`
+      newTag="version${newTag}000"
+      newProperties=`cat $FILENAME`;
+      finalJson="{ \"Clusters\": { \"desired_config\": {\"type\": \"$SITE\", \"tag\":\"$newTag\", $newProperties}}}"
+      newFile="PUT_$FILENAME"
+      echo $finalJson>$newFile
+      echo "########## PUTting file:\"$FILENAME\" into config(type:\"$SITE\", tag:$newTag) via $newFile"
+      curl -u $USERID:$PASSWD -X PUT "$AMBARIURL/api/v1/clusters/$CLUSTER" --data @$newFile
+      currentSiteTag
+      echo "########## NEW Site:$SITE, Tag:$SITETAG";
+    else
+      echo "[ERROR] File \"$FILENAME\" should be in the following JSON format:";
+      echo "[ERROR]   \"properties\": {";
+      echo "[ERROR]     \"key1\": \"value1\",";
+      echo "[ERROR]     \"key2\": \"value2\",";
+      echo "[ERROR]   }";
+      exit 1;
+    fi
+  else
+    echo "[ERROR] Cannot find file \"$1\"to PUT";
+    exit 1;
+  fi
+}
+
+
+#############################################
 ## doGet()
+##  @param Optional filename to save to
 #############################################
 doGet () {
+  FILENAME=$1
+  if [ -n $FILENAME -a -f $FILENAME ]; then
+    rm -f $FILENAME;
+  fi
   currentSiteTag
   echo "########## Performing 'GET' on (Site:$SITE, Tag:$SITETAG)";
   propertiesStarted=0;
@@ -162,23 +203,33 @@ doGet () {
         ## Properties ended
         propertiesStarted=0;
       fi
-      echo $line
+      if [ -z $FILENAME ]; then
+        echo $line
+      else
+        echo $line >> $FILENAME
+      fi
     fi
   done;
 }
 
 case "$1" in
   set)
-    if (($# != 6)); then
+    if (($# == 6)); then
+      doConfigUpdate "set" # Individual key
+    elif (($# == 5)); then
+      doConfigFileUpdate $5 # File based
+    else
       usage
     fi
-    doConfigUpdate "set"
     ;;
   get)
-    if (($# != 4)); then
+    if (($# == 4)); then
+      doGet
+    elif (($# == 5)); then
+      doGet $5
+    else
       usage
     fi
-    doGet
     ;;
   delete)
     if (($# != 5)); then
