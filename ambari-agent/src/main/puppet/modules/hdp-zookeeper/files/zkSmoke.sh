@@ -30,7 +30,7 @@ smoke_user_keytab=$7
 export ZOOKEEPER_EXIT_CODE=0
 test_output_file=/tmp/zkSmoke.out
 errors_expr="ERROR|Exception"
-
+acceptable_expr="SecurityException"
 zkhosts=` grep "^server\.[[:digit:]]"  $conf_dir/zoo.cfg  | cut -f 2 -d '=' | cut -f 1 -d ':' | tr '\n' ' ' `
 zk_node1=`echo $zkhosts | tr ' ' '\n' | head -n 1`  
 echo "zk_node1=$zk_node1"
@@ -41,7 +41,7 @@ fi
 
 function verify_output() {
   if [ -f $test_output_file ]; then
-    errors=`grep -E $errors_expr $test_output_file`
+    errors=`grep -E $errors_expr $test_output_file | grep -v $acceptable_expr`
     if [ "$?" -eq 0 ]; then
       echo "Error found in the zookeeper smoke test. Exiting."
       echo $errors
