@@ -17,7 +17,7 @@
 }}
 
 <div class="row-fluid">
-  <div class="services-menu well span2" style="padding: 8px 0">
+  <div class="services-menu well span2 service-menu-width" style="padding: 8px 0">
     {{view App.MainServiceMenuView}}
     {{#if App.isAdmin}}
     {{#if App.supports.addServices}}
@@ -46,7 +46,7 @@
     {{/if}}
     {{/if}}
   </div>
-  <div class="span10">
+  <div class="span10 summary-width">
     {{outlet}}
   </div>
 </div>
