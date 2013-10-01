@@ -2215,16 +2215,13 @@ def start(args):
 
   check_database_name_property()
   parse_properties_file(args)
-  if os.path.exists(PID_DIR + os.sep + PID_NAME):
-    f = open(PID_DIR + os.sep + PID_NAME, "r")
-    pid = int(f.readline())
-    f.close()
-    try:
-      os.kill(pid, 0)
+  
+  status, pid = is_server_runing()
+  if status:
       err = "Ambari Server is already running."
       raise FatalException(1, err)
-    except OSError as e:
-      print_info_msg("Ambari Server is not running...")
+    
+  print_info_msg("Ambari Server is not running...")
 
   conf_dir = get_conf_dir()
   jdk_path = find_jdk()
@@ -2322,16 +2319,17 @@ def start(args):
 def stop(args):
   if (args != None):
     args.exit_message = None
-  if os.path.exists(PID_DIR + os.sep + PID_NAME):
-    f = open(PID_DIR + os.sep + PID_NAME, "r")
-    pid = int(f.readline())
+    
+  status, pid = is_server_runing()
+  
+  if status:
     try:
       os.killpg(os.getpgid(pid), signal.SIGKILL)
     except OSError, e:
       print_info_msg( "Unable to stop Ambari Server - " + str(e) )
       return
-    f.close()
-    os.remove(f.name)
+    pid_file_path = PID_DIR + os.sep + PID_NAME
+    os.remove(pid_file_path)
     print "Ambari Server stopped"
   else:
     print "Ambari Server is not running"
@@ -3233,13 +3231,26 @@ def setup_https(args):
 
 
 def is_server_runing():
-  if os.path.exists(PID_DIR + os.sep + PID_NAME):
-    f = open(PID_DIR + os.sep + PID_NAME, "r")
-    pid = int(f.readline())
+  pid_file_path = PID_DIR + os.sep + PID_NAME
+  
+  if os.path.exists(pid_file_path):
+    try:
+      f = open(pid_file_path, "r")
+    except IOError, ex:
+      raise FatalException(1, str(ex))
+    
+    pid = f.readline().strip()
+    
+    if not pid.isdigit():
+      err = "%s is corrupt. Removing" % (pid_file_path)
+      f.close()
+      run_os_command("rm -f " + pid_file_path)
+      raise NonFatalException(err)
+    
     f.close()
-    retcode, out, err = run_os_command("ps -p " + str(pid))
+    retcode, out, err = run_os_command("ps -p " + pid)
     if retcode == 0:
-      return True, pid
+      return True, int(pid)
     else:
       return False, None
   else:
