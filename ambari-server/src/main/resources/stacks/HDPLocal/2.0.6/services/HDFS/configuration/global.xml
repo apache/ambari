@@ -88,7 +88,7 @@
   </property>
   <property>
     <name>datanode_du_reserved</name>
-    <value>1</value>
+    <value>1073741824</value>
     <description>Reserved space for HDFS</description>
   </property>
   <property>
