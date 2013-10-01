@@ -64,7 +64,7 @@ ENCRYPT_PASSWORDS_ACTION = "encrypt-passwords"
 SETUP_SECURITY_ACTION = "setup-security"
 
 ACTION_REQUIRE_RESTART = [RESET_ACTION, UPGRADE_ACTION, UPGRADE_STACK_ACTION,
-                          SETUP_HTTPS_ACTION, LDAP_SETUP_ACTION]
+                          SETUP_SECURITY_ACTION, LDAP_SETUP_ACTION]
 
 # selinux commands
 GET_SE_LINUX_ST_CMD = "/usr/sbin/sestatus"
