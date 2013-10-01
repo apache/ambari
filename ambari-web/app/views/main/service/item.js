@@ -37,38 +37,15 @@ App.MainServiceItemView = Em.View.extend({
 //        break;
       case 'GANGLIA':
       case 'NAGIOS':
-/*        if (App.supports.reassignMaster) {
+        break;
+      case 'MAPREDUCE':
+        if (App.supports.reassignMaster) {
           this.get('controller.content.hostComponents').filterProperty('isMaster').forEach (function (hostComponent){
             options.push({action: 'reassignMaster', context: hostComponent, 'label': Em.I18n.t('services.service.actions.reassign.master').format(hostComponent.get('displayName'))});
           })
-        }*/
-        break;
-      case 'HIVE':
-        options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke')});
-/*        if (App.supports.reassignMaster) {
-          options.push({action: 'reassignMaster', context: App.HostComponent.find().findProperty('componentName', 'HIVE_METASTORE'), 'label': Em.I18n.t('services.service.actions.reassign.master').format(App.HostComponent.find().findProperty('componentName', 'HIVE_METASTORE').get('displayName'))});
-          options.push({action: 'reassignMaster', context: App.HostComponent.find().findProperty('componentName', 'HIVE_SERVER'), 'label': Em.I18n.t('services.service.actions.reassign.master.hive')});
-        }*/
-        break;
-      case 'WEBHCAT':
-        options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke')});
-/*        if (App.supports.reassignMaster) {
-          options.push({action: 'reassignMaster', context: App.HostComponent.find().findProperty('componentName', 'HIVE_SERVER'), 'label': Em.I18n.t('services.service.actions.reassign.master.hive')});
-        }*/
-        break;
-      case 'HUE':
-        options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke')});
-        break;
-      case 'FLUME':
-        break;
+        }
       default:
-        var components = this.get('controller.content.hostComponents');
         options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke')});
-/*        if (App.supports.reassignMaster) {
-          components.filterProperty('isMaster').mapProperty('displayName').uniq().forEach (function (hostComponent){
-            options.push({action: 'reassignMaster', context: components.findProperty('displayName', hostComponent), 'label': Em.I18n.t('services.service.actions.reassign.master').format(hostComponent)});
-          })
-        }*/
     }
     return options;
   }.property('controller.content'),

@@ -169,6 +169,10 @@ App.WizardStep13Controller = App.HighAvailabilityProgressPageController.extend({
         break;
       case 'SECONDARY_NAMENODE':
         urlParams.push('(type=hdfs-site&tag=' + data.Clusters.desired_configs['hdfs-site'].tag + ')');
+        urlParams.push('(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')');
+        break;
+      case 'JOBTRACKER':
+        urlParams.push('(type=mapred-site&tag=' + data.Clusters.desired_configs['mapred-site'].tag + ')');
         break;
     }
     App.ajax.send({
@@ -208,8 +212,14 @@ App.WizardStep13Controller = App.HighAvailabilityProgressPageController.extend({
         }
         break;
       case 'SECONDARY_NAMENODE':
-        componentDir = configs['hdfs-site']['fs.checkpoint.dir'];
+        componentDir = configs['core-site']['fs.checkpoint.dir'];
         configs['hdfs-site']['dfs.secondary.http.address'] = targetHostName + ':50090';
+        break;
+      case 'JOBTRACKER':
+        componentDir = configs['mapred-site']['mapred.local.dir'];
+        configs['mapred-site']['mapreduce.history.server.http.address'] = targetHostName + ':51111';
+        configs['mapred-site']['mapred.job.tracker.http.address'] = targetHostName + ':50030';
+        configs['mapred-site']['mapred.job.tracker'] = targetHostName + ':50300';
         break;
     }
     App.router.get(this.get('content.controllerName')).saveComponentDir(componentDir);

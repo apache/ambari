@@ -55,7 +55,7 @@ App.ReassignMasterController = App.WizardController.extend({
     hasManualSteps: false
   }),
 
-  componentsWithManualSteps: ['NAMENODE', 'SECONDARY_NAMENODE'],
+  componentsWithManualSteps: ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER'],
 
   addManualSteps: function () {
     this.set('content.hasManualSteps', this.get('componentsWithManualSteps').contains(this.get('content.reassign.component_name')));
