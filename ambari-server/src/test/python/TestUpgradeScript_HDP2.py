@@ -268,7 +268,9 @@ class TestUpgradeHDP2Script(TestCase):
     pass
 
 
-  @patch.object(UpgradeHelper_HDP2, "update_config_using_existing")
+  @patch.object(UpgradeHelper_HDP2, "get_config")
+  @patch.object(UpgradeHelper_HDP2, "rename_all_properties")
+  @patch.object(UpgradeHelper_HDP2, "update_config_using_existing_properties")
   @patch.object(UpgradeHelper_HDP2, "read_mapping")
   @patch.object(logging, 'FileHandler')
   @patch.object(UpgradeHelper_HDP2, "backup_file")
@@ -276,7 +278,7 @@ class TestUpgradeHDP2Script(TestCase):
   @patch('optparse.OptionParser')
   def test_update_single_configs(self, option_parser_mock, curl_mock,
                                  backup_file_mock, file_handler_mock, read_mapping_mock,
-                                 update_config_mock):
+                                 update_config_mock, rename_all_prop_mock, get_config_mock):
     file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
     opm = option_parser_mock.return_value
     options = MagicMock()
@@ -285,8 +287,19 @@ class TestUpgradeHDP2Script(TestCase):
     curl_mock.side_effect = ['', '', '', '', '', '', '']
     read_mapping_mock.return_value = {"JOBTRACKER": ["c6401"]}
     update_config_mock.side_effect = [None]
+    get_config_mock.return_value = {}
+    prop_to_move = {"dfs.namenode.checkpoint.edits.dir": "a1",
+                    "dfs.namenode.checkpoint.dir": "a2",
+                    "dfs.namenode.checkpoint.period": "a3"}
+    rename_all_prop_mock.side_effect = [
+      prop_to_move,
+      {}, {}]
     UpgradeHelper_HDP2.main()
     self.assertTrue(update_config_mock.call_count == 1)
+    args, kargs = update_config_mock.call_args_list[0]
+    self.assertEqual("hdfs-site", args[1])
+    for key in prop_to_move.keys():
+      self.assertEqual(prop_to_move[key], args[3][key])
     pass
 
   @patch.object(UpgradeHelper_HDP2, "get_config")
@@ -319,7 +332,7 @@ class TestUpgradeHDP2Script(TestCase):
       "mapred.jobtracker.maxtasks.per.job": "an_old_value",
       "mapred.jobtracker.taskScheduler": "an_old_value",
       "mapred.task.tracker.task-controller": "an_old_value",
-      "mapred.userlog.retain.hours": "an_old_value",
+      "mapred.userlog.retain.hours": "will_not_be_stored",
       "global1": "global11"
     }
     UpgradeHelper_HDP2.GLOBAL = {"global2": "REPLACE_WITH_global1"}
@@ -327,13 +340,12 @@ class TestUpgradeHDP2Script(TestCase):
     UpgradeHelper_HDP2.CORE_SITE = {"global2": "REPLACE_WITH_global1"}
     UpgradeHelper_HDP2.main()
     self.validate_update_config_call(curl_mock.call_args_list[0], "capacity-scheduler")
-    self.validate_update_config_call(curl_mock.call_args_list[1], "mapred-queue-acls")
-    self.validate_update_config_call(curl_mock.call_args_list[2], "yarn-site")
+    self.validate_update_config_call(curl_mock.call_args_list[1], "yarn-site")
     self.validate_update_config_call(curl_mock.call_args_list[3], "mapred-site")
-    self.validate_update_config_call(curl_mock.call_args_list[4], "global")
-    self.validate_config_replacememt(curl_mock.call_args_list[2], "yarn-site")
+    self.validate_update_config_call(curl_mock.call_args_list[2], "global")
+    self.validate_config_replacememt(curl_mock.call_args_list[1], "yarn-site")
     self.validate_config_replacememt(curl_mock.call_args_list[3], "mapred-site")
-    self.validate_config_replacememt(curl_mock.call_args_list[4], "global")
+    self.validate_config_replacememt(curl_mock.call_args_list[2], "global")
     pass
 
   @patch.object(UpgradeHelper_HDP2, "read_mapping")
@@ -410,6 +422,20 @@ class TestUpgradeHDP2Script(TestCase):
       pass
     pass
 
+  def test_rename_all_properties(self):
+    site_properties = {
+      "mapred.task.is.map": "mapreduce.task.ismap",
+      "mapred.task.partition": "mapreduce.task.partition",
+      "mapred.task.profile": "mapreduce.task.profile",
+      "abc": "abc"
+    }
+    site_properties = \
+      UpgradeHelper_HDP2.rename_all_properties(site_properties, UpgradeHelper_HDP2.PROPERTY_MAPPING)
+    for key in site_properties.keys():
+      self.assertEqual(key, site_properties[key])
+    self.assertEqual(4, len(site_properties))
+    pass
+
   def test_tags_count(self):
     def count_tags(template):
       deleted = 0
@@ -430,15 +456,15 @@ class TestUpgradeHDP2Script(TestCase):
     self.assertEqual(18, deleted)
 
     deleted, replaced = count_tags(UpgradeHelper_HDP2.MAPRED_SITE)
-    self.assertEqual(17, replaced)
-    self.assertEqual(60, deleted)
+    self.assertEqual(2, replaced)
+    self.assertEqual(71, deleted)
 
     deleted, replaced = count_tags(UpgradeHelper_HDP2.CORE_SITE)
-    self.assertEqual(4, replaced)
+    self.assertEqual(0, replaced)
     self.assertEqual(1, deleted)
 
     deleted, replaced = count_tags(UpgradeHelper_HDP2.HDFS_SITE)
-    self.assertEqual(12, replaced)
+    self.assertEqual(0, replaced)
     self.assertEqual(7, deleted)
     pass
 
@@ -457,7 +483,7 @@ class TestUpgradeHDP2Script(TestCase):
       self.assertTrue("c6401" in args[6])
       self.assertFalse("an_old_value" in args[6])
     elif type == "mapred-site":
-      self.assertTrue("an_old_value" in args[6])
+      self.assertFalse("will_not_be_stored" in args[6])
     elif type == "global":
       self.assertTrue("global11" in args[6])
       self.assertTrue("an_old_value" in args[6])
