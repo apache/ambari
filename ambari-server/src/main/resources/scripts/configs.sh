@@ -19,20 +19,47 @@
 #
 
 usage () {
-  echo "Usage: configs.sh <ACTION> <AMBARI_HOST> <CLUSTER_NAME> <SITE_NAME> [CONFIG_KEY] [CONFIG_VALUE]";
+  echo "Usage: configs.sh [-u userId] [-p password] [-port port] <ACTION> <AMBARI_HOST> <CLUSTER_NAME> <CONFIG_TYPE> [CONFIG_KEY] [CONFIG_VALUE]";
   echo "";
+  echo "       [-u userId]: Optional user ID to use for authentication. Default is 'admin'.";
+  echo "       [-p password]: Optional password to use for authentication. Default is 'admin'.";
+  echo "       [-port port]: Optional port number for Ambari server. Default is '8080'. Provide empty string to not use port.";
   echo "       <ACTION>: One of 'get', 'set', 'delete'. 'Set' adds/updates as necessary.";
   echo "       <AMBARI_HOST>: Server external host name";
   echo "       <CLUSTER_NAME>: Name given to cluster. Ex: 'c1'"
-  echo "       <SITE_NAME>: One of the various configuration sites in Ambari. Ex:global, core-site, hdfs-site, etc.";
+  echo "       <CONFIG_TYPE>: One of the various configuration types in Ambari. Ex:global, core-site, hdfs-site, mapred-queue-acls, etc.";
   echo "       [CONFIG_KEY]: Key that has to be set or deleted. Not necessary for 'get' action.";
   echo "       [CONFIG_VALUE]: Optional value to be set. Not necessary for 'get' or 'delete' actions.";
   exit 1;
 }
 
-AMBARIURL="http://$2:8080"
 USERID="admin"
 PASSWD="admin"
+PORT=":8080"
+
+if [ "$1" == "-u" ] ; then
+	USERID=$2;
+	shift 2;
+	echo "USERID=$USERID";
+fi
+
+if [ "$1" == "-p" ] ; then
+	PASSWD=$2;
+	shift 2;
+	echo "PASSWORD=$PASSWD";
+fi
+
+if [ "$1" == "-port" ] ; then
+	if [ -z $2 ]; then
+		PORT="";
+	else
+		PORT=":$2";
+	fi
+	shift 2;
+	echo "PORT=$PORT";
+fi
+
+AMBARIURL="http://$2$PORT"
 CLUSTER=$3
 SITE=$4
 SITETAG=''
@@ -58,7 +85,12 @@ currentSiteTag () {
     fi
   done;
   if [ -z $currentSiteTag ]; then
-    echo "Tag unknown for site $SITE";
+    errOutput=`curl -s -u $USERID:$PASSWD "$AMBARIURL/api/v1/clusters/$CLUSTER?fields=Clusters/desired_configs"`;
+    echo "[ERROR] \"$SITE\" not found in server response.";
+    echo "[ERROR] Output of \`curl -s -u $USERID:$PASSWD \"$AMBARIURL/api/v1/clusters/$CLUSTER?fields=Clusters/desired_configs\"\` is:";
+    echo $errOutput | while read -r line; do
+      echo "[ERROR] $line";
+    done;
     exit 1;
   fi
   currentSiteTag=`echo $currentSiteTag|cut -d \" -f 2`
@@ -95,7 +127,7 @@ doConfigUpdate () {
         newProperties=$newProperties$line
         propertiesStarted=0;
         
-        newTag=`date "+%Y%m%d%H%M%S"`
+        newTag=`date "+%s"`
         newTag="version$newTag"
         finalJson="{ \"Clusters\": { \"desired_config\": {\"type\": \"$SITE\", \"tag\":\"$newTag\", $newProperties}}}"
         newFile="doSet_$newTag.json"
