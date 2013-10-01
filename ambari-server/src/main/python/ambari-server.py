@@ -331,7 +331,7 @@ REGEX_ANYTHING = ".*"
 
 
 POSTGRES_EXEC_ARGS = "-h {0} -p {1} -d {2} -U {3} -f {4} -v username='\"{3}\"'"
-ORACLE_EXEC_ARGS = "-S '{0}/{1}@(description=(address=(protocol=TCP)(host={2})(port={3}))(connect_data=({6}={4})))' @{5} {0}"
+ORACLE_EXEC_ARGS = "-S -L '{0}/{1}@(description=(address=(protocol=TCP)(host={2})(port={3}))(connect_data=({6}={4})))' @{5} {0}"
 MYSQL_EXEC_ARGS = "--host={0} --port={1} --user={2} --password={3} {4} " \
                  "-e\"set @schema=\'{4}\'; set @username=\'{2}\'; source {5};\""
 
@@ -1283,7 +1283,8 @@ def remote_stack_upgrade(args, scriptPath, stackId):
   #TODO add support of other databases with scripts
   if args.database == "oracle":
     sid_or_sname = "sid"
-    if args.sid_or_sname == "sname" or (args.jdbc_url and re.match(ORACLE_SNAME_PATTERN, args.jdbc_url)):
+    if (hasattr(args, 'sid_or_sname') and args.sid_or_sname == "sname") or \
+        (hasattr(args, 'jdbc_url') and args.jdbc_url and re.match(ORACLE_SNAME_PATTERN, args.jdbc_url)):
       print_info_msg("using SERVICE_NAME instead of SID for Oracle")
       sid_or_sname = "service_name"
 
@@ -1326,7 +1327,8 @@ def execute_remote_script(args, scriptPath):
     return retcode, out, err
   elif args.database == "oracle":
     sid_or_sname = "sid"
-    if args.sid_or_sname == "sname" or (args.jdbc_url and re.match(ORACLE_SNAME_PATTERN, args.jdbc_url)):
+    if (hasattr(args, 'sid_or_sname') and args.sid_or_sname == "sname") or \
+        (hasattr(args, 'jdbc_url') and args.jdbc_url and re.match(ORACLE_SNAME_PATTERN, args.jdbc_url)):
       print_info_msg("using SERVICE_NAME instead of SID for Oracle")
       sid_or_sname = "service_name"
 
