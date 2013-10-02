@@ -127,7 +127,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
             }
           );
         }
-      } else if (changedProperty.get("name") == "hbase_user") {
+      } else if (changedProperty.get("name") == "hbase_user" && !App.get('isHadoop2Stack')) {
         curConfigs = stepConfigs.findProperty("serviceName", "HDFS").get("configs");
         if (newValue != curConfigs.findProperty("name", "dfs_block_local_path_access_user").get("value")) {
           this.affectedProperties.push(
