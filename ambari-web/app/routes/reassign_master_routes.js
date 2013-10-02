@@ -162,6 +162,10 @@ module.exports = Em.Route.extend({
         });
         router.transitionTo('main.index');
       }
+    },
+
+    unroutePath: function () {
+      return false;
     }
   }),
 
@@ -177,7 +181,11 @@ module.exports = Em.Route.extend({
         controller.connectOutlet('wizardStep14', controller.get('content'));
       })
     },
-    next: Em.Router.transitionTo('step6')
+    next: Em.Router.transitionTo('step6'),
+
+    unroutePath: function () {
+      return false;
+    }
   }),
 
   step6: Em.Route.extend({
@@ -207,6 +215,10 @@ module.exports = Em.Route.extend({
         });
         router.transitionTo('main.index');
       }
+    },
+
+    unroutePath: function () {
+      return false;
     }
   }),
 

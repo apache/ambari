@@ -191,6 +191,7 @@ App.WizardStep13Controller = App.HighAvailabilityProgressPageController.extend({
   configsSitesNumber: null,
 
   onLoadConfigs: function (data) {
+    var isHadoop2Stack = App.get('isHadoop2Stack');
     var componentName = this.get('content.reassign.component_name');
     var targetHostName = this.get('content.masterComponentHosts').findProperty('component', this.get('content.reassign.component_name')).hostName;
     var configs = {};
@@ -202,10 +203,16 @@ App.WizardStep13Controller = App.HighAvailabilityProgressPageController.extend({
     }, this);
     switch (componentName) {
       case 'NAMENODE':
-        componentDir = configs['hdfs-site']['dfs.name.dir'];
+        if (isHadoop2Stack) {
+          componentDir = configs['hdfs-site']['dfs.namenode.name.dir'];
+          configs['hdfs-site']['dfs.namenode.http-address'] = targetHostName + ':50070';
+          configs['hdfs-site']['dfs.namenode.https-address'] = targetHostName + ':50470';
+        } else {
+          componentDir = configs['hdfs-site']['dfs.name.dir'];
+          configs['hdfs-site']['dfs.http.address'] = targetHostName + ':50070';
+          configs['hdfs-site']['dfs.https.address'] = targetHostName + ':50470';
+        }
         configs['core-site']['fs.default.name'] = 'hdfs://' + targetHostName + ':8020';
-        configs['hdfs-site']['dfs.http.address'] = targetHostName + ':50070';
-        configs['hdfs-site']['dfs.https.address'] = targetHostName + ':50470';
         configs['hdfs-site']['dfs.safemode.threshold.pct'] = '1.1f';
         if (App.Service.find().someProperty('serviceName', 'HBASE')) {
           configs['hbase-site']['hbase.rootdir'] = configs['hbase-site']['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + targetHostName);

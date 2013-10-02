@@ -24,20 +24,10 @@ App.MainServiceItemView = Em.View.extend({
     var options = [];
     var service = this.get('controller.content');
     switch(service.get('serviceName')) {
-      case 'HDFS':
-        if (App.supports.reassignMaster) {
-          this.get('controller.content.hostComponents').filterProperty('isMaster').forEach (function (hostComponent){
-            options.push({action: 'reassignMaster', context: hostComponent, 'label': Em.I18n.t('services.service.actions.reassign.master').format(hostComponent.get('displayName'))});
-          })
-        }
-//        options.push({action: 'runRebalancer', 'label': Em.I18n.t('services.service.actions.run.rebalancer')});
-        break;
-//      case 'HBASE':
-//        options.push({action: 'runCompaction', 'label': Em.I18n.t('services.service.actions.run.compaction')});
-//        break;
       case 'GANGLIA':
       case 'NAGIOS':
         break;
+      case 'HDFS':
       case 'MAPREDUCE':
         if (App.supports.reassignMaster) {
           this.get('controller.content.hostComponents').filterProperty('isMaster').forEach (function (hostComponent){
