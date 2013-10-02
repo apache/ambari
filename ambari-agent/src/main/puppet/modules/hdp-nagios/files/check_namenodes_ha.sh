@@ -50,7 +50,7 @@ elif [ ${#activeNN[@]} == 0 ]; then
   message=$message" No Active NN available;"
 elif [ ${#standbyNN[@]} == 0 ]; then
   critical=true
-  message=$message" No failover NN available;"
+  message=$message" No Standby NN available;"
 fi
 
 NNstats=" Active<"
