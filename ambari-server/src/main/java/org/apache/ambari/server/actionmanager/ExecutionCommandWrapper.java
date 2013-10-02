@@ -106,22 +106,39 @@ public class ExecutionCommandWrapper {
             String type = entry.getKey();
             Map<String, String> tags = entry.getValue();
 
-            //TODO align with configs override logic
-            String tag = tags.get("host_override_tag");
-            tag = tag == null ? tags.get("service_override_tag") : tag;
-            tag = tag == null ? tags.get("tag") : tag;
-
+            String tag = tags.get("tag");
+            
             if (tag != null) {
               Config config = cluster.getConfig(type, tag);
+              
+              //Merge cluster level configs with service overriden, with host overriden
+              Map<String, String> allLevelMergedConfig = new HashMap<String, String>();
+              
+              allLevelMergedConfig.putAll(config.getProperties());
+              
+              String serviceTag =  tags.get("service_override_tag");
+              if (serviceTag != null) {
+                Config configService = cluster.getConfig(type, serviceTag);
+                if (configService != null)
+                  allLevelMergedConfig = getMergedConfig(allLevelMergedConfig, configService.getProperties());
+              }
+                
+              String hostTag = tags.get("host_override_tag");
+              if (hostTag != null) {
+                Config configHost = cluster.getConfig(type, hostTag);
+                if (configHost != null)
+                  allLevelMergedConfig = getMergedConfig(allLevelMergedConfig, configHost.getProperties());
+              }
+              
               if (executionCommand.getConfigurations().containsKey(type)) {
                 Map<String, String> mergedConfig =
-                    getMergedConfig(config.getProperties(), executionCommand.getConfigurations().get(type));
+                    getMergedConfig(allLevelMergedConfig, executionCommand.getConfigurations().get(type));
                 executionCommand.getConfigurations().get(type).clear();
                 executionCommand.getConfigurations().get(type).putAll(mergedConfig);
 
               } else {
                 executionCommand.getConfigurations().put(type, new HashMap<String, String>());
-                executionCommand.getConfigurations().get(type).putAll(config.getProperties());
+                executionCommand.getConfigurations().get(type).putAll(allLevelMergedConfig);
               }
             }
           }
