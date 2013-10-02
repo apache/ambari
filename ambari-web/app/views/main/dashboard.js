@@ -124,7 +124,7 @@ App.MainDashboardView = Em.View.extend({
     obj.set('visible', visibleFull);
     obj.set('hidden', hiddenFull);
   },
-  
+
   hdfs_model: null,
   mapreduce_model: null,
   mapreduce2_model: null,
@@ -238,7 +238,9 @@ App.MainDashboardView = Em.View.extend({
         this.translateToReal(this.get('currentPrefObject'));
       } else {
         // post persist then translate init object
-        this.postUserPref(this.get('persistKey'), this.get('initPrefObject'));
+        if(App.get('isAdmin')) {
+          this.postUserPref(this.get('persistKey'), this.get('initPrefObject'));
+        }
         this.translateToReal(this.get('initPrefObject'));
       }
     }
