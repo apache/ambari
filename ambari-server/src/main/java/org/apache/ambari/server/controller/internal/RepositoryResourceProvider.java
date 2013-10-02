@@ -72,6 +72,9 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
   public static final String REPOSITORY_DEFAULT_BASE_URL_PROPERTY_ID = PropertyHelper
       .getPropertyId("Repositories", "default_base_url");
   
+  public static final String REPOSITORY_VERIFY_BASE_URL_PROPERTY_ID = PropertyHelper
+      .getPropertyId("Repositories", "verify_base_url");
+  
 
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(new String[] { STACK_NAME_PROPERTY_ID,
@@ -184,6 +187,10 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
     
     if (properties.containsKey(REPOSITORY_BASE_URL_PROPERTY_ID)) {
       rr.setBaseUrl((String) properties.get(REPOSITORY_BASE_URL_PROPERTY_ID));
+
+      if (properties.containsKey(REPOSITORY_VERIFY_BASE_URL_PROPERTY_ID)) {
+        rr.setVerifyBaseUrl("true".equalsIgnoreCase(properties.get(REPOSITORY_VERIFY_BASE_URL_PROPERTY_ID).toString()));
+      }
     }
     
     return rr;

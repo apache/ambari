@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -54,6 +55,7 @@ import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
@@ -92,6 +94,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
@@ -158,7 +161,7 @@ public class AmbariManagementControllerImpl implements
   final private static String JDK_RESOURCE_LOCATION =
       "/resources/";
   
-  final private static int REPO_URL_CONNECT_TIMEOUT = 2000;
+  final private static int REPO_URL_CONNECT_TIMEOUT = 3000;
   final private static int REPO_URL_READ_TIMEOUT = 500;
 
   final private String jdkResourceUrl;
@@ -4450,9 +4453,45 @@ public class AmbariManagementControllerImpl implements
         throw new AmbariException("Repo ID must be specified.");
       
       if (null != rr.getBaseUrl()) {
-        ambariMetaInfo.updateRepoBaseURL(rr.getStackName(),
-            rr.getStackVersion(), rr.getOsType(), rr.getRepoId(),
-            rr.getBaseUrl());
+        if (!rr.isVerifyBaseUrl()) {
+          ambariMetaInfo.updateRepoBaseURL(rr.getStackName(),
+              rr.getStackVersion(), rr.getOsType(), rr.getRepoId(),
+              rr.getBaseUrl());
+        } else {
+          URLStreamProvider usp = new URLStreamProvider(REPO_URL_CONNECT_TIMEOUT,
+              REPO_URL_READ_TIMEOUT, null, null, null);
+
+          boolean bFound = false;
+          
+          String[] suffixes = configs.getRepoValidationSuffixes();
+          for (int i = 0; i < suffixes.length && !bFound; i++) {
+            String suffix = suffixes[i];
+            String spec = rr.getBaseUrl();
+            
+            if (spec.charAt(spec.length()-1) != '/' && suffix.charAt(0) != '/')
+              spec = rr.getBaseUrl() + "/" + suffix;
+            else if (spec.charAt(spec.length()-1) == '/' && suffix.charAt(0) == '/')
+              spec = rr.getBaseUrl() + suffix.substring(1);
+            else
+              spec = rr.getBaseUrl() + suffix;
+            
+            try {
+              IOUtils.readLines(usp.readFrom(spec));
+              bFound = true;
+            } catch (IOException ioe) {
+              // failed, but try other suffixes
+            }
+          }
+            
+          if (bFound) {
+            ambariMetaInfo.updateRepoBaseURL(rr.getStackName(),
+                rr.getStackVersion(), rr.getOsType(), rr.getRepoId(),
+                rr.getBaseUrl());
+          } else {
+            throw new IllegalArgumentException("Could not access base url '" +
+                rr.getBaseUrl() + "'");
+          }
+        }
       }
     }
   }

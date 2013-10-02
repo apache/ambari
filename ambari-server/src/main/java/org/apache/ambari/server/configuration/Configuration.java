@@ -264,6 +264,15 @@ public class Configuration {
    */
   public static final String RCO_FILE_LOCATION_TEST = "../ambari-common/src/" +
           "main/resources/role_command_order.json".replace("/", File.separator);
+  
+  /**
+   * Key for repo validation suffixes.
+   */
+  public static final String REPO_SUFFIX_KEY = "repo.validation.suffixes";
+  /**
+   * Default for repo validation suffixes.
+   */
+  private static final String REPO_SUFFIX_DEFAULT = "/repodata/repomd.xml";
 
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
@@ -836,6 +845,16 @@ public class Configuration {
     }
 
     return value;
+  }
+  
+  /**
+   * @return a string array of suffixes used to validate repo URLs.
+   */
+  public String[] getRepoValidationSuffixes() {
+    String value = properties.getProperty(REPO_SUFFIX_KEY,
+        REPO_SUFFIX_DEFAULT);
+    
+    return value.split(",");
   }
 
 }

@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import javax.persistence.EntityManager;
@@ -140,13 +141,17 @@ public class AmbariManagementControllerTest {
   private AmbariMetaInfo ambariMetaInfo;
   private Users users;
   private EntityManager entityManager;
+  private Properties backingProperties;
+  private Configuration configuration;
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
 
   @Before
   public void setup() throws Exception {
-    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    InMemoryDefaultTestModule module = new InMemoryDefaultTestModule();
+    backingProperties = module.getProperties();
+    injector = Guice.createInjector(module);
     injector.getInstance(GuiceJpaInitializer.class);
     entityManager = injector.getInstance(EntityManager.class);
     clusters = injector.getInstance(Clusters.class);
@@ -160,6 +165,7 @@ public class AmbariManagementControllerTest {
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     ambariMetaInfo.init();
     users = injector.getInstance(Users.class);
+    configuration = injector.getInstance(Configuration.class);
   }
 
   @After
@@ -6871,6 +6877,79 @@ public class AmbariManagementControllerTest {
     assertEquals(original, repo.getBaseUrl());
     assertEquals(original, repo.getDefaultBaseUrl());
   }
+  
+  @Test
+  public void testUpdateRepoUrlController() throws Exception {
+    RepositoryInfo repo = ambariMetaInfo.getRepository(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
+    
+    RepositoryRequest request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
+    request.setBaseUrl("http://hortonworks.com");
+    
+    Set<RepositoryRequest> requests = new HashSet<RepositoryRequest>();
+    requests.add(request);
+    
+    // test bad url
+    try {
+      controller.updateRespositories(requests);
+      fail ("Expected exception on invalid url");
+    } catch (Exception e) {
+    }
+    
+    // test bad url, but allow to set anyway
+    request.setVerifyBaseUrl(false);
+    controller.updateRespositories(requests);
+    Assert.assertEquals(request.getBaseUrl(), repo.getBaseUrl());
+
+    // reset repo
+    requests.clear();
+    request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
+    request.setBaseUrl(repo.getDefaultBaseUrl());
+    requests.add(request);
+    controller.updateRespositories(requests);
+    Assert.assertEquals(repo.getBaseUrl(), repo.getDefaultBaseUrl());
+
+    String baseUrl = repo.getDefaultBaseUrl();
+    if (!baseUrl.endsWith("/"))
+      baseUrl += "/";
+    
+    // variation #1: url with trailing slash, suffix preceding slash
+    backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY, "/repodata/repomd.xml");
+    Assert.assertTrue(baseUrl.endsWith("/") && configuration.getRepoValidationSuffixes()[0].startsWith("/"));
+    request.setBaseUrl(baseUrl);
+    controller.updateRespositories(requests);
+    Assert.assertEquals(baseUrl, repo.getBaseUrl());
+
+    // variation #2: url with trailing slash, suffix no preceding slash
+    backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY, "repodata/repomd.xml");
+    Assert.assertTrue(baseUrl.endsWith("/") && !configuration.getRepoValidationSuffixes()[0].startsWith("/"));
+    request.setBaseUrl(baseUrl);
+    controller.updateRespositories(requests);
+    Assert.assertEquals(baseUrl, repo.getBaseUrl());
+
+    baseUrl = baseUrl.substring(0, baseUrl.length()-1);
+    // variation #3: url with no trailing slash, suffix no prededing slash    
+    Assert.assertTrue(!baseUrl.endsWith("/") && !configuration.getRepoValidationSuffixes()[0].startsWith("/"));
+    request.setBaseUrl(baseUrl);
+    controller.updateRespositories(requests);
+    Assert.assertEquals(baseUrl, repo.getBaseUrl());
+    
+    // variation #4: url with no trailing slash, suffix preceding slash
+    backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY, "/repodata/repomd.xml");
+    Assert.assertTrue(!baseUrl.endsWith("/") && configuration.getRepoValidationSuffixes()[0].startsWith("/"));
+    request.setBaseUrl(baseUrl);
+    controller.updateRespositories(requests);
+    Assert.assertEquals(baseUrl, repo.getBaseUrl());
+    
+    // variation #5: multiple suffix tests
+    backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY, "/foo/bar.xml,/repodata/repomd.xml");
+    Assert.assertTrue(configuration.getRepoValidationSuffixes().length > 1);
+    request.setBaseUrl(baseUrl);
+    controller.updateRespositories(requests);
+    Assert.assertEquals(baseUrl, repo.getBaseUrl());
+    
+  }
+  
+  
 
   @Test
   public void testDeleteHostComponentInVariousStates() throws Exception {
