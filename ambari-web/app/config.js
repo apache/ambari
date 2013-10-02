@@ -59,7 +59,8 @@ App.supports = {
   ldapGroupMapping: false,
   localRepositories: false,
   highAvailability: true,
-  deleteHost: false
+  deleteHost: false,
+  autoRollbackHA: false
 };
 
 if (App.enableExperimental) {

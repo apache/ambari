@@ -683,6 +683,7 @@ Em.I18n.translations = {
   'admin.highAvailability.enabled':'NameNode HA is enabled',
   'admin.highAvailability.confirmRollbackHeader':'Confirm Rollback',
   'admin.highAvailability.confirmRollbackBody':'This will rollback all operations that were done in HA wizard',
+  'admin.highAvailability.confirmManualRollbackBody':'You are in the process of enabling NameNode HA. If you exit now, you must follow manual instructions to revert <i>back</i> to the non-HA setup: <a target=\"_blank\" href=\"/\">link to doc</a>. Are you sure you want to exit the wizard?',
   'admin.highAvailability.error.hostsNum':'You must have at least 3 hosts in your cluster to enable NameNode HA.',
   'admin.highAvailability.error.namenodeStarted':'NameNode must be running before you enable NameNode HA.',
   'admin.highAvailability.error.zooKeeperNum':'You must have at least 3 ZooKeeper Servers in your cluster to enable NameNode HA.',
