@@ -442,7 +442,7 @@ define service {
         use                     hadoop-service
         service_description     RESOURCEMANAGER::ResourceManager RPC latency
         servicegroups           YARN
-        check_command           check_rpcq_latency!ResorceManager!<%=scope.function_hdp_template_var("::hdp::rm_port")%>!3000!5000!<%=scope.function_hdp_template_var("::hdp::params::hadoop_ssl_enabled")%>!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("::hdp::params::kinit_path_local")%>!<%=scope.function_hdp_template_var("::hdp::params::security_enabled")%>
+        check_command           check_rpcq_latency!ResourceManager!<%=scope.function_hdp_template_var("::hdp::rm_port")%>!3000!5000!<%=scope.function_hdp_template_var("::hdp::params::hadoop_ssl_enabled")%>!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("::hdp::params::kinit_path_local")%>!<%=scope.function_hdp_template_var("::hdp::params::security_enabled")%>
         normal_check_interval   5
         retry_check_interval    1 
         max_check_attempts      5
