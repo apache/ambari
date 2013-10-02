@@ -360,19 +360,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "dfs_block_local_path_access_user",
-      "displayName": "dfs.block.local-path-access.user",
-      "description": "the user who is allowed to perform short circuit reads",
-      "displayType": "advanced",
-      "defaultValue": "hbase",
-      "isVisible": true,
-      "filename": "hdfs-site.xml",
-      "domain": "global",
-      "serviceName": "HDFS",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
       "name": "dfs_datanode_data_dir_perm",
       "displayName": "dfs_datanode_data_dir_perm",
       "description": "",

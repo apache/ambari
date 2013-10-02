@@ -117,13 +117,6 @@ var configs = [
     "filename": "hdfs-site.xml"
   },
   {
-    "name": "dfs.block.local-path-access.user",
-    "templateName": ["dfs_block_local_path_access_user"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hdfs-site.xml"
-  },
-  {
     "name": "dfs.datanode.data.dir",
     "templateName": ["dfs_datanode_data_dir"],
     "foreignKey": null,
