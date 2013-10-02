@@ -81,7 +81,6 @@ App.UpdateController = Em.Controller.extend({
     self.set('isUpdated', false);
 
     var conditionalFields = [];
-    var initialFields = ['components/host_components/HostRoles/state'];
     var services = [
         {
             name: 'FLUME',
@@ -97,15 +96,11 @@ App.UpdateController = Em.Controller.extend({
             conditionalFields.push("components/host_components/metrics/" + service.urlParam);
         }
     });
-    if(App.supports.hostOverrides) {
-      conditionalFields.push('components/host_components/HostRoles/actual_configs');
-    }
     var conditionalFieldsString = conditionalFields.length > 0 ? ',' + conditionalFields.join(',') : '';
-    var initialFieldsString = initialFields.length > 0 ? ',' + initialFields.join(',') : '';
     var methodStartTs = new Date().getTime();
     var testUrl = App.get('isHadoop2Stack') ? '/data/dashboard/HDP2/services.json':'/data/dashboard/services.json';
 
-    var realUrl = '/services?fields=' +
+    var realUrl = '/services?fields=components/ServiceComponentInfo,components/host_components,components/host_components/HostRoles,' +
       'components/host_components/metrics/jvm/memHeapUsedM,' +
       'components/host_components/metrics/jvm/memHeapCommittedM,' +
       'components/host_components/metrics/mapred/jobtracker/trackers_decommissioned,' +
@@ -126,10 +121,9 @@ App.UpdateController = Em.Controller.extend({
       'components/host_components/metrics/dfs/namenode/TotalFiles,' +
       'components/host_components/metrics/dfs/namenode/UpgradeFinalized,' +
       'components/host_components/metrics/dfs/namenode/Safemode,' +
-      'components/host_components/metrics/runtime/StartTime' +
-      conditionalFieldsString;
+      'components/host_components/metrics/runtime/StartTime';
 
-    var servicesUrl = isInitialLoad ? this.getUrl(testUrl, realUrl + initialFieldsString) : this.getUrl(testUrl, realUrl);
+    var servicesUrl = isInitialLoad ? this.getUrl(testUrl, realUrl + conditionalFieldsString) : this.getUrl(testUrl, realUrl + conditionalFieldsString);
     var callback = callback || function (jqXHR, textStatus) {
       self.set('isUpdated', true);
     };
