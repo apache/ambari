@@ -40,12 +40,12 @@ class hdp::params()
   }
 
   ## Stack version
-    $stack_version = hdp_default("stack_version", "1.3.0")
-    if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
-      $isHadoop2Stack = true
-    } else {
-      $isHadoop2Stack = false
-    }
+  $stack_version = hdp_default("stack_version", "1.3.0")
+  if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
+    $isHadoop2Stack = true
+  } else {
+    $isHadoop2Stack = false
+  }
 
   ##### global state defaults ####
   $cluster_service_state = hdp_default("cluster_service_state","running")
@@ -62,6 +62,8 @@ class hdp::params()
     'kerberos' => true,
     default => false,
   }
+
+  $hadoop_ssl_enabled = hdp_default("core-site/hadoop.ssl.enabled", false)
 
   $kerberos_domain = hdp_default("kerberos_domain","EXAMPLE.COM")
   $kinit_path_local = hdp_get_kinit_path(hdp_default("kinit_path_local"), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin")

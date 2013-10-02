@@ -24,7 +24,7 @@
  
   include "hdp_nagios_init.php";
 
-  $options = getopt("h:p:k::r::t::s::");
+  $options = getopt("h:p:e:k:r:t:s:");
   //Check only for mandatory options
   if (!array_key_exists('h', $options) || !array_key_exists('p', $options)) {
     usage();
@@ -37,6 +37,7 @@
   $principal_name=$options['r'];
   $kinit_path_local=$options['t'];
   $security_enabled=$options['s'];
+  $ssl_enabled=$options['e'];
   
   /* Kinit if security enabled */
   $status = kinit_if_needed($security_enabled, $kinit_path_local, $keytab_path, $principal_name);
@@ -48,19 +49,28 @@
     exit (2);
   }
 
+  $protocol = ($ssl_enabled == "true" ? "https" : "http");
+
   /* Get the json document */
   $ch = curl_init();
   $username = rtrim(`id -un`, "\n");
-  curl_setopt_array($ch, array( CURLOPT_URL => "http://".$host.":".$port."/jmx?qry=Hadoop:service=NameNode,name=NameNodeInfo",
+  curl_setopt_array($ch, array( CURLOPT_URL => $protocol."://".$host.":".$port."/jmx?qry=Hadoop:service=NameNode,name=NameNodeInfo",
                                 CURLOPT_RETURNTRANSFER => true,
                                 CURLOPT_HTTPAUTH => CURLAUTH_ANY,
-                                CURLOPT_USERPWD => "$username:" ));
+                                CURLOPT_USERPWD => "$username:",
+                                CURLOPT_SSL_VERIFYPEER => FALSE ));
   $json_string = curl_exec($ch);
+  $info = curl_getinfo($ch);
+  if (intval($info['http_code']) == 401){
+    logout();
+    $json_string = curl_exec($ch);
+  }
+  $info = curl_getinfo($ch);
   curl_close($ch);
   $json_array = json_decode($json_string, true);
   $object = $json_array['beans'][0];
   if ($object['NameDirStatuses'] == "") {
-    echo "WARNING: NameNode directory status not available via http://".$host.":".$port."/jmx url" . "\n";
+    echo "WARNING: NameNode directory status not available via ".$protocol."://".$host.":".$port."/jmx url, code " . $info['http_code'] ."\n";
     exit(1);
   }
   $NameDirStatuses = json_decode($object['NameDirStatuses'], true);
@@ -78,6 +88,6 @@
 
   /* print usage */
   function usage () {
-    echo "Usage: $0 -h <host> -p port -k keytab path -r principal name -t kinit path -s security enabled";
+    echo "Usage: $0 -h <host> -p port -k keytab path -r principal name -t kinit path -s security enabled -e ssl enabled";
   }
 ?>

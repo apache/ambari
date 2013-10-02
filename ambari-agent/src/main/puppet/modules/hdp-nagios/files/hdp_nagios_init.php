@@ -68,5 +68,14 @@
       
     return $status;
   }
+
+  function logout() {
+    if (shell_exec("rm -f /tmp/krb5cc_".trim(shell_exec('id -u'))) == "" ) 
+      $status = true;
+    else
+      $status = false;
+      
+    return $status;
+  }
  
  ?>
