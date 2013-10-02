@@ -119,6 +119,37 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
     task.set('status', 'PENDING');
   },
 
+  manualRollback: function () {
+    App.ModalPopup.show({
+      header: Em.I18n.t('admin.highAvailability.confirmRollbackHeader'),
+      primary: Em.I18n.t('yes'),
+      showCloseButton: false,
+      onPrimary: function () {
+        var controller = App.router.get('highAvailabilityWizardController');
+        controller.clearTasksData();
+        controller.clearStorageData();
+        controller.setCurrentStep('1');
+        App.router.get('updateController').set('isWorking', true);
+        App.clusterStatus.setClusterStatus({
+          clusterName: App.router.get('content.cluster.name'),
+          clusterState: 'HIGH_AVAILABILITY_DISABLED',
+          wizardControllerName: App.router.get('highAvailabilityRollbackController.name'),
+          localdb: App.db.data
+        });
+        this.hide();
+        App.router.transitionTo('main.admin.index');
+        location.reload();
+      },
+      secondary : Em.I18n.t('no'),
+      onSecondary: function(){
+        this.hide();
+      },
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile( Em.I18n.t('admin.highAvailability.confirmManualRollbackBody'))
+      })
+    });
+  },
+
   rollback: function () {
     var task = this.get('tasks').findProperty('status', 'FAILED');
     App.router.get(this.get('content.controllerName')).saveFailedTask(task);
@@ -154,7 +185,9 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
     } else if (this.get('tasks').someProperty('status', 'FAILED')) {
       this.set('status', 'FAILED');
       this.get('tasks').findProperty('status', 'FAILED').set('showRetry', true);
-      this.get('tasks').findProperty('status', 'FAILED').set('showRollback', true);
+      if(App.supports.autoRollbackHA){
+        this.get('tasks').findProperty('status', 'FAILED').set('showRollback', true);
+      }
     }
 
     var statuses = this.get('tasks').mapProperty('status');
