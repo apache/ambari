@@ -496,7 +496,7 @@
             </goals>
             <configuration>
               <target name="ambari-server-compile">
-                <exec dir="${basedir}" executable="bash" failonerror="true">
+                <exec dir="${basedir}" executable="sh" failonerror="true">
                   <arg value="${basedir}/set-hdp-repo-url.sh"/>
                   <arg value="${hdpUrlForCentos6}"/>
                 </exec>
@@ -511,7 +511,7 @@
             </goals>
             <configuration>
               <target name="ambari-server-compile">
-                <exec dir="${basedir}" executable="bash" failonerror="true">
+                <exec dir="${basedir}" executable="sh" failonerror="true">
                   <arg value="${basedir}/set-hdp-repo-url.sh"/>
                   <arg value="${hdpUrlForCentos6}"/>
                   <arg value="${project.build.directory}/ambari-server-${project.version}-dist/ambari-server-${project.version}"/>
