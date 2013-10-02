@@ -235,7 +235,7 @@ define service {
         use                     hadoop-service
         service_description     NAMENODE::NameNode edit logs directory status on <%= namenode %>
         servicegroups           HDFS
-        check_command           check_name_dir_status!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("kinit_path_local")%>!<%=scope.function_hdp_template_var("::hdp::params::security_enabled")%>
+        check_command           check_name_dir_status!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>!<%=scope.function_hdp_template_var("::hdp::params::hadoop_ssl_enabled")%>!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("::hdp::params::kinit_path_local")%>!<%=scope.function_hdp_template_var("::hdp::params::security_enabled")%>
         normal_check_interval   0.5
         retry_check_interval    0.5
         max_check_attempts      3
@@ -281,7 +281,7 @@ define service {
         use                     hadoop-service
         service_description     HDFS::NameNode RPC latency on <%= namenode %>
         servicegroups           HDFS
-        check_command           check_rpcq_latency!NameNode!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>!3000!5000
+        check_command           check_rpcq_latency!NameNode!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>!3000!5000!<%=scope.function_hdp_template_var("::hdp::params::hadoop_ssl_enabled")%>!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("::hdp::params::kinit_path_local")%>!<%=scope.function_hdp_template_var("::hdp::params::security_enabled")%>
         normal_check_interval   5
         retry_check_interval    1
         max_check_attempts      5
@@ -294,7 +294,7 @@ define service {
         use                     hadoop-service
         service_description     HDFS::Blocks health
         servicegroups           HDFS
-        check_command           check_hdfs_blocks!$HOSTGROUPMEMBERS:namenode$!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>!0%!0%!<%=scope.function_hdp_template_var("::hdp-nagios::params::nn_metrics_property")%>
+        check_command           check_hdfs_blocks!$HOSTGROUPMEMBERS:namenode$!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>!0%!0%!<%=scope.function_hdp_template_var("::hdp-nagios::params::nn_metrics_property")%>!<%=scope.function_hdp_template_var("::hdp::params::hadoop_ssl_enabled")%>!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("::hdp::params::kinit_path_local")%>!<%=scope.function_hdp_template_var("::hdp::params::security_enabled")%>
         normal_check_interval   2
         retry_check_interval    1 
         max_check_attempts      1
@@ -305,7 +305,7 @@ define service {
         use                     hadoop-service
         service_description     HDFS::HDFS capacity utilization
         servicegroups           HDFS
-        check_command           check_hdfs_capacity!$HOSTGROUPMEMBERS:namenode$!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>!80%!90%
+        check_command           check_hdfs_capacity!$HOSTGROUPMEMBERS:namenode$!<%=scope.function_hdp_template_var("::hdp::namenode_port")%>!80%!90%!<%=scope.function_hdp_template_var("::hdp::params::hadoop_ssl_enabled")%>!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("::hdp::params::kinit_path_local")%>!<%=scope.function_hdp_template_var("::hdp::params::security_enabled")%>
         normal_check_interval   10
         retry_check_interval    1 
         max_check_attempts      1
@@ -366,7 +366,7 @@ define service {
         use                     hadoop-service
         service_description     MAPREDUCE::JobTracker RPC latency
         servicegroups           MAPREDUCE
-        check_command           check_rpcq_latency!JobTracker!<%=scope.function_hdp_template_var("::hdp::jtnode_port")%>!3000!5000
+        check_command           check_rpcq_latency!JobTracker!<%=scope.function_hdp_template_var("::hdp::jtnode_port")%>!3000!5000!<%=scope.function_hdp_template_var("::hdp::params::hadoop_ssl_enabled")%>!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("::hdp::params::kinit_path_local")%>!<%=scope.function_hdp_template_var("::hdp::params::security_enabled")%>
         normal_check_interval   5
         retry_check_interval    1 
         max_check_attempts      5
@@ -442,7 +442,7 @@ define service {
         use                     hadoop-service
         service_description     RESOURCEMANAGER::ResourceManager RPC latency
         servicegroups           YARN
-        check_command           check_rpcq_latency!ResorceManager!<%=scope.function_hdp_template_var("::hdp::rm_port")%>!3000!5000
+        check_command           check_rpcq_latency!ResorceManager!<%=scope.function_hdp_template_var("::hdp::rm_port")%>!3000!5000!<%=scope.function_hdp_template_var("::hdp::params::hadoop_ssl_enabled")%>!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("::hdp::params::kinit_path_local")%>!<%=scope.function_hdp_template_var("::hdp::params::security_enabled")%>
         normal_check_interval   5
         retry_check_interval    1 
         max_check_attempts      5
@@ -524,7 +524,7 @@ define service {
         use                     hadoop-service
         service_description     JOBHISTORY::HistoryServer RPC latency
         servicegroups           MAPREDUCE
-        check_command           check_rpcq_latency!JobHistoryServer!<%=scope.function_hdp_template_var("::hdp::hs_port")%>!3000!5000
+        check_command           check_rpcq_latency!JobHistoryServer!<%=scope.function_hdp_template_var("::hdp::hs_port")%>!3000!5000!<%=scope.function_hdp_template_var("::hdp::params::hadoop_ssl_enabled")%>!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("::hdp::params::kinit_path_local")%>!<%=scope.function_hdp_template_var("::hdp::params::security_enabled")%>
         normal_check_interval   5
         retry_check_interval    1 
         max_check_attempts      5
@@ -588,7 +588,7 @@ define service {
         use                     hadoop-service
         service_description     DATANODE::DataNode space
         servicegroups           HDFS
-        check_command           check_datanode_storage!<%=scope.function_hdp_template_var("::hdp::datanode_port")%>!90%!90%
+        check_command           check_datanode_storage!<%=scope.function_hdp_template_var("::hdp::datanode_port")%>!90%!90%!<%=scope.function_hdp_template_var("::hdp::params::hadoop_ssl_enabled")%>!<%=scope.function_hdp_template_var("nagios_keytab_path")%>!<%=scope.function_hdp_template_var("nagios_principal_name")%>!<%=scope.function_hdp_template_var("::hdp::params::kinit_path_local")%>!<%=scope.function_hdp_template_var("::hdp::params::security_enabled")%>
         normal_check_interval   5
         retry_check_interval    1
         max_check_attempts      2

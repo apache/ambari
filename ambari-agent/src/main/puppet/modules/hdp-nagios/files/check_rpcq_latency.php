@@ -24,7 +24,9 @@
  * Service Name = JobTracker, NameNode, JobHistoryServer
  */
 
-  $options = getopt ("h:p:w:c:n:");
+  include "hdp_nagios_init.php";
+
+  $options = getopt ("h:p:w:c:n:e:k:r:t:s:");
   if (!array_key_exists('h', $options) || !array_key_exists('p', $options) || !array_key_exists('w', $options)
       || !array_key_exists('c', $options) || !array_key_exists('n', $options)) {
     usage();
@@ -36,12 +38,47 @@
   $master=$options['n'];
   $warn=$options['w'];
   $crit=$options['c'];
+  $keytab_path=$options['k'];
+  $principal_name=$options['r'];
+  $kinit_path_local=$options['t'];
+  $security_enabled=$options['s'];
+  $ssl_enabled=$options['e'];
+
+  /* Kinit if security enabled */
+  $status = kinit_if_needed($security_enabled, $kinit_path_local, $keytab_path, $principal_name);
+  $retcode = $status[0];
+  $output = $status[1];
+  
+  if ($output != 0) {
+    echo "CRITICAL: Error doing kinit for nagios. $output";
+    exit (2);
+  }
+
+  $protocol = ($ssl_enabled == "true" ? "https" : "http");
+
 
   /* Get the json document */
-  $json_string = file_get_contents("http://".$host.":".$port."/jmx?qry=Hadoop:service=".$master.",name=RpcActivityForPort*");
+  $ch = curl_init();
+  $username = rtrim(`id -un`, "\n");
+  curl_setopt_array($ch, array( CURLOPT_URL => $protocol."://".$host.":".$port."/jmx?qry=Hadoop:service=".$master.",name=RpcActivityForPort*",
+                                CURLOPT_RETURNTRANSFER => true,
+                                CURLOPT_HTTPAUTH => CURLAUTH_ANY,
+                                CURLOPT_USERPWD => "$username:",
+                                CURLOPT_SSL_VERIFYPEER => FALSE ));
+  $json_string = curl_exec($ch);
+  $info = curl_getinfo($ch);
+  if (intval($info['http_code']) == 401){
+    logout();
+    $json_string = curl_exec($ch);
+  }
+  $info = curl_getinfo($ch);
+  curl_close($ch);
   $json_array = json_decode($json_string, true);
   $object = $json_array['beans'][0];
-
+  if (count($object) == 0) {
+    echo "CRITICAL: Data inaccessible, Status code = ". $info['http_code'] ."\n";
+    exit(2);
+  } 
   $RpcQueueTime_avg_time = round($object['RpcQueueTime_avg_time'], 2); 
   $RpcProcessingTime_avg_time = round($object['RpcProcessingTime_avg_time'], 2);
 
@@ -62,6 +99,6 @@
 
   /* print usage */
   function usage () {
-    echo "Usage: $0 -h <host> -p port -n <JobTracker/NameNode/JobHistoryServer> -w <warn_in_sec> -c <crit_in_sec>\n";
+    echo "Usage: $0 -h <host> -p port -n <JobTracker/NameNode/JobHistoryServer> -w <warn_in_sec> -c <crit_in_sec> -k keytab path -r principal name -t kinit path -s security enabled -e ssl enabled\n";
   }
 ?>
