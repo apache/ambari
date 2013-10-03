@@ -132,7 +132,7 @@ App.WizardStep6Controller = Em.Controller.extend({
    */
   setAllNodes: function (label, checked) {
     this.get('hosts').forEach(function (host) {
-      host.get('checkboxes').forEach(function (checkbox) {
+      host.get('checkboxes').filterProperty('isInstalled', false).forEach(function (checkbox) {
         if (checkbox.get('title') === label) {
           checkbox.set('checked', checked);
         }
@@ -161,7 +161,7 @@ App.WizardStep6Controller = Em.Controller.extend({
     var allTrue = true;
     var allFalse = true;
     hosts.forEach(function (host) {
-      host.get('checkboxes').forEach(function (cb) {
+      host.get('checkboxes').filterProperty('isInstalled', false).forEach(function (cb) {
         if (cb.get('title') === title) {
           allTrue &= cb.get('checked');
           allFalse &= !cb.get('checked');
@@ -464,5 +464,4 @@ App.WizardStep6Controller = Em.Controller.extend({
     return !isError;
   }
 
-})
-;
+});

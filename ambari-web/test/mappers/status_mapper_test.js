@@ -34,7 +34,8 @@ describe('App.statusMapper', function () {
                 {
                   HostRoles : {
                     component_name: "OOZIE_CLIENT",
-                    host_name: "ip-10-40-35-199.ec2.internal"
+                    host_name: "ip-10-40-35-199.ec2.internal",
+                    state: "STATE"
                   }
                 }
               ]
@@ -44,9 +45,11 @@ describe('App.statusMapper', function () {
       ]
     };
     var result = App.statusMapper.parse_host_components(test_data);
-    var e = 'OOZIE_CLIENT_ip-10-40-35-199.ec2.internal';
+    var k = 'OOZIE_CLIENT_ip-10-40-35-199.ec2.internal';
+    var e = 'STATE';
+    console.log(result);
     it('get host_component id', function() {
-      expect(result[e].id).to.equal(e);
+      expect(result[k].work_status).to.equal(e);
     });
   });
 

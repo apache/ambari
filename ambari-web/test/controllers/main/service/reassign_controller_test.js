@@ -27,7 +27,7 @@ describe('App.ReassignMasterController', function () {
 
   describe('#totalSteps', function () {
     it('check', function () {
-      expect(reassignMasterController.get('totalSteps')).to.equal(4);
+      expect(reassignMasterController.get('totalSteps')).to.equal(6);
     });
   });
 

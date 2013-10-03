@@ -137,7 +137,10 @@ describe('App.WizardStep6Controller', function () {
         controller.setAllNodes(test.title, test.state);
         var hosts = controller.get('hosts');
         hosts.forEach(function(host) {
-          expect(host.get('checkboxes').findProperty('title', test.title).get('checked')).to.equal(test.state);
+          var cb = host.get('checkboxes').filterProperty('isInstalled', false).findProperty('title', test.title);
+          if (cb) {
+            expect(cb.get('checked')).to.equal(test.state);
+          }
         });
       });
     });
