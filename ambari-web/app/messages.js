@@ -786,12 +786,12 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step4.body':
     '<ol>' +
     '<li>Login to the NameNode host <b>{1}</b>.</li>' +
-    '<li>Put the NameNode in safe mode (read-only-mode):' +
+    '<li>Put the NameNode in Safe Mode (read-only mode):' +
     '<div class="code-snippet">sudo su -l {0} -c \'hdfs dfsadmin -safemode enter\'</div></li>' +
-    '<li>Once in Safe Mode, create a checkpoint:' +
+    '<li>Once in Safe Mode, create a Checkpoint:' +
     '<div class="code-snippet">sudo su -l {0} -c \'hdfs dfsadmin -saveNamespace\'</div></li>' +
-    '<li>You will be able to proceed once Ambari detects that the NameNode is in Safe Mode and the checkpoint has been created successfully.<br>'+
-    'If the Next button is enabled before you run the command to create a checkpoint, it means that there is a recent checkpoint already and you may proceed without running the checkpoint command.</li>' +
+    '<li>You will be able to proceed once Ambari detects that the NameNode is in Safe Mode and the Checkpoint has been created successfully.</li>'+
+    '<div class="alert alert-warn">If the <b>Next</b> button is enabled before you run the <b>"Step 3: Create a Checkpoint"</b> command, it means there is a recent Checkpoint already and you may proceed without running the <b>"Step 3: Create a Checkpoint"</b> command.</div>' +
     '</ol>',
   'admin.highAvailability.wizard.step3.body':'Confirm your host selections.',
   'admin.highAvailability.wizard.step2.body':'Select a host that will be running the additional NameNode.<br/> In addition,' +
