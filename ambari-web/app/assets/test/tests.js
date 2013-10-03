@@ -71,6 +71,7 @@ require('test/utils/config_test');
 require('test/utils/string_utils_test');
 require('test/views/common/chart/linear_time_test');
 require('test/views/common/filter_view_test');
+require('test/views/common/quick_link_view_test');
 require('test/views/main/dashboard_test');
 require('test/views/main/dashboard/widget_test');
 require('test/views/main/dashboard/widgets/text_widget_test');
