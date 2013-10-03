@@ -33,9 +33,9 @@ App.WizardStep13View = App.HighAvailabilityProgressPageView.extend({
 
   noticeCompleted: function () {
     if (this.get('controller.content.hasManualSteps')) {
-      return Em.I18n.t('installer.step13.status.success.withManualSteps').format(this.get('controller.content.reassign.component_name'));
+      return Em.I18n.t('installer.step13.status.success.withManualSteps').format(App.format.role(this.get('controller.content.reassign.component_name')));
     } else {
-      return Em.I18n.t('installer.step13.status.success').format(this.get('controller.content.reassign.component_name'));
+      return Em.I18n.t('installer.step13.status.success').format(App.format.role(this.get('controller.content.reassign.component_name')));
     }
   }.property('controller.content.reassign.component_name'),
 

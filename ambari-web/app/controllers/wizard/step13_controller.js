@@ -174,6 +174,9 @@ App.WizardStep13Controller = App.HighAvailabilityProgressPageController.extend({
       case 'JOBTRACKER':
         urlParams.push('(type=mapred-site&tag=' + data.Clusters.desired_configs['mapred-site'].tag + ')');
         break;
+      case 'RESOURCEMANAGER':
+        urlParams.push('(type=yarn-site&tag=' + data.Clusters.desired_configs['yarn-site'].tag + ')');
+        break;
     }
     App.ajax.send({
       name: 'reassign.load_configs',
@@ -228,14 +231,24 @@ App.WizardStep13Controller = App.HighAvailabilityProgressPageController.extend({
         configs['mapred-site']['mapred.job.tracker.http.address'] = targetHostName + ':50030';
         configs['mapred-site']['mapred.job.tracker'] = targetHostName + ':50300';
         break;
+      case 'RESOURCEMANAGER':
+        configs['yarn-site']['yarn.resourcemanager.address'] = targetHostName + ':8050';
+        configs['yarn-site']['yarn.resourcemanager.admin.address'] = targetHostName + ':8141';
+        configs['yarn-site']['yarn.resourcemanager.resource-tracker.address'] = targetHostName + ':8025';
+        configs['yarn-site']['yarn.resourcemanager.scheduler.address'] = targetHostName + ':8030';
+        configs['yarn-site']['yarn.resourcemanager.webapp.address'] = targetHostName + ':8088';
+        configs['yarn-site']['yarn.resourcemanager.hostname'] = targetHostName;
+        break;
     }
-    App.router.get(this.get('content.controllerName')).saveComponentDir(componentDir);
-    App.clusterStatus.setClusterStatus({
-      clusterName: this.get('content.cluster.name'),
-      clusterState: this.get('clusterDeployState'),
-      wizardControllerName: this.get('content.controllerName'),
-      localdb: App.db.data
-    });
+    if (componentDir) {
+      App.router.get(this.get('content.controllerName')).saveComponentDir(componentDir);
+      App.clusterStatus.setClusterStatus({
+        clusterName: this.get('content.cluster.name'),
+        clusterState: this.get('clusterDeployState'),
+        wizardControllerName: this.get('content.controllerName'),
+        localdb: App.db.data
+      });
+    }
     for (var site in configs) {
       if (!configs.hasOwnProperty(site)) continue;
       App.ajax.send({

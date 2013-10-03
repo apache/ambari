@@ -27,6 +27,7 @@ App.MainServiceItemView = Em.View.extend({
       case 'GANGLIA':
       case 'NAGIOS':
         break;
+      case 'YARN':
       case 'HDFS':
       case 'MAPREDUCE':
         if (App.supports.reassignMaster) {
