@@ -173,7 +173,7 @@
     </description>
   </property>
 
-  <!-- 
+  <!--
   <property>
     <name>yarn.nodemanager.health-checker.script.path</name>
     <value>/etc/hadoop/conf/health_check_nodemanager</value>
@@ -306,6 +306,14 @@
     <value>false</value>
     <description>
       Whether virtual memory limits will be enforced for containers.
+    </description>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>
+    <value>org.apache.hadoop.mapred.ShuffleHandler</value>
+    <description>
+      The auxiliary service class to use.
     </description>
   </property>
 

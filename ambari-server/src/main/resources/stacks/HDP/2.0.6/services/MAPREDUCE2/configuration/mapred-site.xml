@@ -165,18 +165,12 @@
 
   <property>
     <name>mapreduce.map.memory.mb</name>
-    <value>1536</value>
+    <value>512</value>
   </property>
 
   <property>
     <name>mapreduce.reduce.memory.mb</name>
     <value>1024</value>
-  </property>
-
-  <property>
-    <name>mapreduce.tasktracker.keytab.file</name>
-    <value></value>
-    <description>The filename of the keytab for the task tracker</description>
   </property>
 
   <property>
