@@ -151,11 +151,12 @@ App.QuickViewLinks = Em.View.extend({
     return this.get('content.quickLinks').map(function (item) {
       if (host == 'noActiveNN') {
         item.set('disabled', true);
-        return item;
-      }
-      var protocol = self.setProtocol(item.get('service_id'));
-      if (item.get('template')) {
-        item.set('url', item.get('template').fmt(protocol,host));
+      } else {
+        item.set('disabled', false);
+        var protocol = self.setProtocol(item.get('service_id'));
+        if (item.get('template')) {
+          item.set('url', item.get('template').fmt(protocol,host));
+        }
       }
       return item;
     });
