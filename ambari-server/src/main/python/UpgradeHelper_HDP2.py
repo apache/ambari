@@ -336,17 +336,27 @@ CAPACITY_SCHEDULER = {
 }
 
 MAPRED_SITE = {
+  "hadoop.job.history.location": "DELETE_OLD",
   "hadoop.job.history.user.location": "DELETE_OLD",
   "io.sort.record.percent": "DELETE_OLD",
   "jetty.connector": "DELETE_OLD",
   "mapred.child.java.opts": "DELETE_OLD",
   "mapred.child.root.logger": "DELETE_OLD",
+  "mapred.create.symlink": "DELETE_OLD",
+  "mapred.fairscheduler.allocation.file": "DELETE_OLD",
+  "mapred.fairscheduler.assignmultiple": "DELETE_OLD",
   "mapred.jobtracker.blacklist.fault-bucket-width": "DELETE_OLD",
   "mapred.jobtracker.blacklist.fault-timeout-window": "DELETE_OLD",
   "mapred.jobtracker.completeuserjobs.maximum": "DELETE_OLD",
+  "mapred.jobtracker.job.history.block.size": "DELETE_OLD",
   "mapred.jobtracker.retirejob.check": "DELETE_OLD",
   "mapred.jobtracker.retirejob.interval": "DELETE_OLD",
+  "mapred.jobtracker.taskScheduler": "DELETE_OLD",
   "mapred.queue.names": "DELETE_OLD",
+  "mapreduce.cluster.local.dir": "DELETE_OLD",
+  "mapreduce.cluster.mapmemory.mb": "DELETE_OLD",
+  "mapreduce.cluster.reducememory.mb": "DELETE_OLD",
+  "mapreduce.job.cache.symlink.create": "DELETE_OLD",
   "mapreduce.job.userlog.retain.hours": "DELETE_OLD",
   "mapreduce.admin.map.child.java.opts": "-Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN",
   "mapreduce.admin.reduce.child.java.opts": "-Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN",
@@ -358,7 +368,7 @@ MAPRED_SITE = {
   "mapreduce.history.server.embedded": "DELETE_OLD",
   "mapreduce.history.server.http.address": "DELETE_OLD",
   "mapreduce.jobhistory.address": "REPLACE_JH_HOST:10020",
-  "mapreduce.jobhistory.done-dir": "REPLACE_WITH_mapreduce.jobtracker.jobhistory.completed.location",
+  "mapreduce.jobhistory.done-dir": "/mr-history/done",
   "mapreduce.jobhistory.intermediate-done-dir": "/mr-history/tmp",
   "mapreduce.jobhistory.webapp.address": "REPLACE_JH_HOST:19888",
   "mapreduce.jobtracker.address": "DELETE_OLD",
@@ -371,8 +381,10 @@ MAPRED_SITE = {
   "mapreduce.jobtracker.http.address": "DELETE_OLD",
   "mapreduce.jobtracker.instrumentation": "DELETE_OLD",
   "mapreduce.jobtracker.jobhistory.block.size": "DELETE_OLD",
+  "mapreduce.jobtracker.jobhistory.completed.location": "DELETE_OLD",
   "mapreduce.jobtracker.jobhistory.location": "DELETE_OLD",
   "mapreduce.jobtracker.jobhistory.lru.cache.size": "DELETE_OLD",
+  "mapreduce.jobtracker.staging.root.dir": "DELETE_OLD",
   "mapreduce.jobtracker.maxmapmemory.mb": "DELETE_OLD",
   "mapreduce.jobtracker.maxreducememory.mb": "DELETE_OLD",
   "mapreduce.jobtracker.maxtasks.perjob": "DELETE_OLD",
@@ -384,6 +396,7 @@ MAPRED_SITE = {
   "mapreduce.jobtracker.retirejobs": "DELETE_OLD",
   "mapreduce.jobtracker.split.metainfo.maxsize": "DELETE_OLD",
   "mapreduce.jobtracker.staging.root.dir": "DELETE_OLD",
+  "mapreduce.jobtracker.system.dir": "DELETE_OLD",
   "mapreduce.jobtracker.taskcache.levels": "DELETE_OLD",
   "mapreduce.jobtracker.taskscheduler": "DELETE_OLD",
   "mapreduce.jobtracker.taskscheduler.maxrunningtasks.perjob": "DELETE_OLD",
@@ -428,11 +441,12 @@ MAPRED_SITE = {
   "yarn.app.mapreduce.am.command-opts": "-Xmx756m",
   "yarn.app.mapreduce.am.log.level": "INFO",
   "yarn.app.mapreduce.am.resource.mb": "1024",
-  "yarn.app.mapreduce.am.staging-dir": "REPLACE_WITH_mapreduce.jobtracker.staging.root.dir"
+  "yarn.app.mapreduce.am.staging-dir": "/user"
 }
 
 GLOBAL = {
   "datanode_du_reserved": "1",
+  "dfs_block_local_path_access_user": "DELETE_OLD",
   "dfs_datanode_data_dir": "REPLACE_WITH_dfs_data_dir",
   "dfs_exclude": "dfs.exclude",
   "dfs_include": "DELETE_OLD",
@@ -473,12 +487,12 @@ GLOBAL = {
   "task_controller": "org.apache.hadoop.mapred.DefaultTaskController",
   "yarn_heapsize": "1024",
   "yarn_log_dir_prefix": "/var/log/hadoop-yarn",
-  "yarn_nodemanager_local-dirs": "/var/log/hadoop/yarn",
   "yarn_pid_dir_prefix": "/var/run/hadoop-yarn",
   "yarn_user": "yarn"
 }
 
 HDFS_SITE = {
+  "dfs.block.local-path-access.user": "DELETE_OLD",
   "dfs.client.read.shortcircuit": "true",
   "dfs.client.read.shortcircuit.streams.cache.size": "4096",
   "dfs.datanode.du.pct": "DELETE_OLD",
@@ -520,9 +534,9 @@ YARN_SITE = {
   "yarn.nodemanager.health-checker.interval-ms": "135000",
   "yarn.nodemanager.health-checker.script.timeout-ms": "60000",
   "yarn.nodemanager.linux-container-executor.group": "hadoop",
-  "yarn.nodemanager.local-dirs": "/var/log/hadoop/yarn",
+  "yarn.nodemanager.local-dirs": "/var/log/hadoop/yarn/local",
   "yarn.nodemanager.log-aggregation.compression-type": "gz",
-  "yarn.nodemanager.log-dirs": "/var/log/hadoop/yarn",
+  "yarn.nodemanager.log-dirs": "/var/log/hadoop/yarn/log",
   "yarn.nodemanager.log.retain-second": "604800",
   "yarn.nodemanager.remote-app-log-dir": "/app-logs",
   "yarn.nodemanager.remote-app-log-dir-suffix": "logs",
