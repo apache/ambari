@@ -453,11 +453,11 @@ class TestUpgradeHDP2Script(TestCase):
 
     deleted, replaced = count_tags(UpgradeHelper_HDP2.GLOBAL)
     self.assertEqual(8, replaced)
-    self.assertEqual(18, deleted)
+    self.assertEqual(19, deleted)
 
     deleted, replaced = count_tags(UpgradeHelper_HDP2.MAPRED_SITE)
-    self.assertEqual(2, replaced)
-    self.assertEqual(71, deleted)
+    self.assertEqual(0, replaced)
+    self.assertEqual(83, deleted)
 
     deleted, replaced = count_tags(UpgradeHelper_HDP2.CORE_SITE)
     self.assertEqual(0, replaced)
@@ -465,7 +465,7 @@ class TestUpgradeHDP2Script(TestCase):
 
     deleted, replaced = count_tags(UpgradeHelper_HDP2.HDFS_SITE)
     self.assertEqual(0, replaced)
-    self.assertEqual(7, deleted)
+    self.assertEqual(8, deleted)
     pass
 
   def validate_update_config_call(self, call, type):
