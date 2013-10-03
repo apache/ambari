@@ -531,13 +531,6 @@ var configs = [
     "filename": "hbase-site.xml"
   },
   {
-    "name": "dfs.support.append",
-    "templateName": ["hdfs_support_append"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  {
     "name": "dfs.client.read.shortcircuit",
     "templateName": ["hdfs_enable_shortcircuit_read"],
     "foreignKey": null,
@@ -549,13 +542,6 @@ var configs = [
     "templateName": [],
     "foreignKey": null,
     "value": "simple",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.rpc.engine",
-    "templateName": [],
-    "foreignKey": null,
-    "value": "org.apache.hadoop.hbase.ipc.WritableRpcEngine",
     "filename": "hbase-site.xml"
   },
   {

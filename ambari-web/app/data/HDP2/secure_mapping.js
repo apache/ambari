@@ -476,14 +476,6 @@ module.exports = [
     "serviceName": "HBASE"
   },
   {
-    "name": "hbase.rpc.engine",
-    "templateName": [],
-    "foreignKey": null,
-    "value": "org.apache.hadoop.hbase.ipc.SecureRpcEngine",
-    "filename": "hbase-site.xml",
-    "serviceName": "HBASE"
-  },
-  {
     "name": "hbase.security.authorization",
     "templateName": [],
     "foreignKey": null,

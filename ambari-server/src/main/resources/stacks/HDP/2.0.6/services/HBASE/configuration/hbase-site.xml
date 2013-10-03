@@ -266,11 +266,6 @@
   </property>
 
   <property>
-    <name>hbase.rpc.engine</name>
-    <value>org.apache.hadoop.hbase.ipc.WritableRpcEngine</value>
-  </property>
-
-  <property>
     <name>hbase.security.authorization</name>
     <value>false</value>
     <description>Enables HBase authorization. Set the value of this property to false to disable HBase authorization.
@@ -324,16 +319,6 @@
     </description>
   </property>
   <!-- End of properties used to generate ZooKeeper host:port quorum list. -->
-
-  <property>
-    <name>dfs.support.append</name>
-    <value></value>
-    <description>Does HDFS allow appends to files?
-    This is an hdfs config. set in here so the hdfs client will do append support.
-    You must ensure that this config. is true serverside too when running hbase
-    (You will have to restart your cluster after setting it).
-    </description>
-  </property>
 
   <property>
     <name>hbase.zookeeper.useMulti</name>
