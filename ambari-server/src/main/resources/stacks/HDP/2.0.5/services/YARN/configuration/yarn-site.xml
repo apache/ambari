@@ -141,7 +141,7 @@
 
   <property>
     <name>yarn.nodemanager.log-dirs</name>
-    <value>/hadoop/yarn</value>
+    <value>/hadoop/yarn/log</value>
     <description>
       Where to store container logs. An application's localized log directory
       will be found in ${yarn.nodemanager.log-dirs}/application_${appid}.
@@ -153,7 +153,7 @@
 
   <property>
     <name>yarn.nodemanager.local-dirs</name>
-    <value></value>
+    <value>/hadoop/yarn/local</value>
     <description>
       List of directories to store localized files in. An
       application's localized file directory will be found in:
