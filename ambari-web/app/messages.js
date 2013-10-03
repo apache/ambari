@@ -767,15 +767,22 @@ Em.I18n.translations = {
   'admin.highAvailability.rollback.notice.inProgress':'Please wait while the wizard reverts back to the non-HA setup.',
 
   'admin.highAvailability.wizard.step8.body':
+    '<div class="alert alert-info">' +
     '<ol>' +
-    '<li>Login to the additional NameNode host <b>{2}</b>.</li>' +
-    '<li>Initialize the metadata for the additional NameNode by running:' +
-    '<div class="code-snippet">sudo su -l {0} -c \'hdfs namenode -bootstrapStandby\'</div></li>' +
     '<li>Login to the NameNode host <b>{1}</b>.</li>' +
     '<li>Initialize the metadata for NameNode automatic failover by running:' +
     '<div class="code-snippet">sudo su -l {0} -c \'hdfs zkfc -formatZK\'</div></li>' +
-    '<li>Please proceed once you have completed the steps above.</li>' +
-    '</ol>',
+    '</div>' +
+    '<div class="alert alert-info">' +
+    '<ol start="3">' +
+    '<li>Login to the Additional NameNode host <b>{2}</b>.<br>' +
+    '<div class="alert alert-warn"><strong>Important!</strong> Be sure to login to the Additional NameNode host.<br>This is a different host from the Steps 1 and 2 above.</div>' +
+    '</li>' +
+    '<li>Initialize the metadata for the Additional NameNode by running:' +
+    '<div class="code-snippet">sudo su -l {0} -c \'hdfs namenode -bootstrapStandby\'</div></li>' +
+    '</ol>' +
+    '</div>' +
+    'Please proceed once you have completed the steps above.',
   'admin.highAvailability.wizard.step6.body':
     '<ol>' +
     '<li>Login to the NameNode host <b>{1}</b>.</li>' +
