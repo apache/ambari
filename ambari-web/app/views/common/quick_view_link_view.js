@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var stringUtils = require('utils/string_utils');
 
 App.QuickViewLinks = Em.View.extend({
 
@@ -96,6 +97,7 @@ App.QuickViewLinks = Em.View.extend({
     var components = this.get('content.hostComponents');
     var host;
     var self = this;
+    var version = App.get('currentStackVersionNumber');
 
     switch (serviceName) {
       case "HDFS":
@@ -155,7 +157,12 @@ App.QuickViewLinks = Em.View.extend({
         item.set('disabled', false);
         var protocol = self.setProtocol(item.get('service_id'));
         if (item.get('template')) {
-          item.set('url', item.get('template').fmt(protocol,host));
+          if(item.get('service_id') === 'YARN'){
+            var port = self.setPort(item.get('service_id'),protocol, version);
+            item.set('url', item.get('template').fmt(protocol,host,port));
+          } else {
+            item.set('url', item.get('template').fmt(protocol,host));
+          }
         }
       }
       return item;
@@ -188,6 +195,14 @@ App.QuickViewLinks = Em.View.extend({
       default:
         return "http";
     }
+  },
+
+  setPort: function(service_id, protocol, version) {
+    var port = '';
+    if (service_id === 'YARN') {
+      port = (protocol === 'https' && stringUtils.compareVersions(version,'2.0.5') === 1) ? '8090' : '8088'
+    }
+    return port;
   },
 
   linkTarget: function () {

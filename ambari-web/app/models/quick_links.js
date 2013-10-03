@@ -184,30 +184,30 @@ App.QuickLinks.FIXTURES = [
   {
     id:23,
     label:'ResourceManager UI',
-    url:'%@://%@:8088',
+    url:'%@://%@:%@',
     service_id: 'YARN',
-    template:'%@://%@:8088'
+    template:'%@://%@:%@'
   },
   {
     id:24,
     label:'ResourceManager logs',
-    url:'%@://%@:8088/logs',
+    url:'%@://%@:%@/logs',
     service_id: 'YARN',
-    template:'%@://%@:8088/logs'
+    template:'%@://%@:%@/logs'
   },
   {
     id:25,
     label:'ResourceManager JMX',
-    url:'%@://%@:8088/jmx',
+    url:'%@://%@:%@/jmx',
     service_id: 'YARN',
-    template:'%@://%@:8088/jmx'
+    template:'%@://%@:%@/jmx'
   },
   {
     id:26,
     label:'Thread Stacks',
-    url:'%@://%@:8088/stacks',
+    url:'%@://%@:%@/stacks',
     service_id: 'YARN',
-    template:'%@://%@:8088/stacks'
+    template:'%@://%@:%@/stacks'
   },
   {
     id:27,
