@@ -230,7 +230,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       propertyToHostAndComponent: {}
     };
     var self = this;
-    var actualConfigsUrl = this.getUrl('/data/services/host_component_actual_configs.json', '/services?fields=components/host_components/HostRoles/actual_configs');
+    var actualConfigsUrl = this.getUrl('/data/services/host_component_actual_configs.json', 
+        '/services/'+currentService+'?fields=components/host_components/HostRoles/actual_configs');
     $.ajax({
       type: 'GET',
       url: actualConfigsUrl,
@@ -241,43 +242,41 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         var diffHostComponents = [];
         console.debug("loadActualConfigs(" + actualConfigsUrl + "): Data=", data);
         var configsToDownload = [];
-        data.items.forEach(function (service) {
+        data.components.forEach(function (serviceComponent) {
           // For current service, do any of the host_components differ in
           // configuration?
-          if (currentService === service.ServiceInfo.service_name) {
-            service.components.forEach(function (serviceComponent) {
-              serviceComponent.host_components.forEach(function (hostComponent) {
-                if (hostComponent.HostRoles.actual_configs) {
-                  for (var site in hostComponent.HostRoles.actual_configs) {
-                    var actualConfigsTags = hostComponent.HostRoles.actual_configs[site];
-                    var desiredConfigTags = self.getDesiredConfigTag(site, hostComponent.HostRoles.host_name);
-                    var desiredConfigOverrideTag = desiredConfigTags.host_override != null ? 
-                        desiredConfigTags.host_override : null;
-                    var actualConfigOverrideTag = (actualConfigsTags.host_overrides!=null && 
-                        actualConfigsTags.host_overrides.length>0) ? 
-                        actualConfigsTags.host_overrides[0].tag : null;
-                    if ((actualConfigsTags.tag && 
-                        desiredConfigTags.tag && 
-                        desiredConfigTags.tag !== actualConfigsTags.tag) ||
+          if (currentService === serviceComponent.ServiceComponentInfo.service_name) {
+            serviceComponent.host_components.forEach(function (hostComponent) {
+              if (hostComponent.HostRoles.actual_configs) {
+                for (var site in hostComponent.HostRoles.actual_configs) {
+                  var actualConfigsTags = hostComponent.HostRoles.actual_configs[site];
+                  var desiredConfigTags = self.getDesiredConfigTag(site, hostComponent.HostRoles.host_name);
+                  var desiredConfigOverrideTag = desiredConfigTags.host_override != null ? 
+                      desiredConfigTags.host_override : null;
+                  var actualConfigOverrideTag = (actualConfigsTags.host_overrides!=null && 
+                      actualConfigsTags.host_overrides.length>0) ? 
+                      actualConfigsTags.host_overrides[0].tag : null;
+                  if ((actualConfigsTags.tag && 
+                      desiredConfigTags.tag && 
+                      desiredConfigTags.tag !== actualConfigsTags.tag) ||
                       (desiredConfigOverrideTag !== actualConfigOverrideTag)) {
-                      actualConfigsTags.host_override = actualConfigOverrideTag;
-                      // Restart may be necessary for this host-component
-                      diffHostComponents.push({
-                        componentName: hostComponent.HostRoles.component_name,
-                        serviceName: serviceComponent.ServiceComponentInfo.service_name,
-                        host: hostComponent.HostRoles.host_name,
-                        type: site,
-                        desiredConfigTags: desiredConfigTags,
-                        actualConfigTags: actualConfigsTags
-                      });
-                      self.addConfigDownloadParam(site, actualConfigsTags.tag, configsToDownload);
-                      self.addConfigDownloadParam(site, actualConfigsTags.host_override, configsToDownload);
-                      self.addConfigDownloadParam(site, desiredConfigTags.tag, configsToDownload);
-                      self.addConfigDownloadParam(site, desiredConfigTags.host_override, configsToDownload);
-                    }
+                    actualConfigsTags.host_override = actualConfigOverrideTag;
+                    // Restart may be necessary for this host-component
+                    diffHostComponents.push({
+                      componentName: hostComponent.HostRoles.component_name,
+                      serviceName: serviceComponent.ServiceComponentInfo.service_name,
+                      host: hostComponent.HostRoles.host_name,
+                      type: site,
+                      desiredConfigTags: desiredConfigTags,
+                      actualConfigTags: actualConfigsTags
+                    });
+                    self.addConfigDownloadParam(site, actualConfigsTags.tag, configsToDownload);
+                    self.addConfigDownloadParam(site, actualConfigsTags.host_override, configsToDownload);
+                    self.addConfigDownloadParam(site, desiredConfigTags.tag, configsToDownload);
+                    self.addConfigDownloadParam(site, desiredConfigTags.host_override, configsToDownload);
                   }
                 }
-              });
+              }
             });
           }
         });
