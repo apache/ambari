@@ -40,12 +40,12 @@ module.exports = Em.Route.extend({
           onPrimary:function () {
             this.hide();
             App.router.get('updateController').set('isWorking', true);
-            App.router.transitionTo('main.services');
+            App.router.transitionTo('main.services.index');
           },
           onClose: function() {
             this.hide();
             App.router.get('updateController').set('isWorking', true);
-            App.router.transitionTo('main.services')
+            App.router.transitionTo('main.services.index');
           },
           didInsertElement: function(){
             this.fitHeight();
