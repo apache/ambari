@@ -22,7 +22,7 @@
 
 <configuration xmlns:xi="http://www.w3.org/2001/XInclude">
 
-<!-- i/o properties -->
+  <!-- i/o properties -->
 
   <property>
     <name>mapreduce.task.io.sort.mb</name>
@@ -54,7 +54,7 @@
     </description>
   </property>
 
-<!-- map/reduce properties -->
+  <!-- map/reduce properties -->
   <property>
     <name>mapreduce.cluster.administrators</name>
     <value> hadoop</value>
@@ -165,18 +165,12 @@
 
   <property>
     <name>mapreduce.map.memory.mb</name>
-    <value>1536</value>
+    <value>512</value>
   </property>
 
   <property>
     <name>mapreduce.reduce.memory.mb</name>
     <value>1024</value>
-  </property>
-
-  <property>
-    <name>mapreduce.tasktracker.keytab.file</name>
-    <value></value>
-    <description>The filename of the keytab for the task tracker</description>
   </property>
 
   <property>
