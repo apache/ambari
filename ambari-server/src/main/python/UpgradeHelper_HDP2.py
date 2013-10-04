@@ -49,6 +49,7 @@ GLOBAL_TAG = "global"
 HDFS_SITE_TAG = "hdfs-site"
 CORE_SITE_TAG = "core-site"
 YARN_SITE_TAG = "yarn-site"
+HBASE_SITE_TAG = "hbase-site"
 REPLACE_JH_HOST_NAME_TAG = "REPLACE_JH_HOST"
 REPLACE_RM_HOST_NAME_TAG = "REPLACE_RM_HOST"
 REPLACE_WITH_TAG = "REPLACE_WITH_"
@@ -403,9 +404,9 @@ MAPRED_SITE = {
   "mapreduce.jobtracker.taskscheduler.taskalloc.capacitypad": "DELETE_OLD",
   "mapreduce.jobtracker.tasktracker.maxblacklists": "DELETE_OLD",
   "mapreduce.jobtracker.webinterface.trusted": "DELETE_OLD",
-  "mapreduce.map.java.opts": "-Xmx320m",
+  "mapreduce.map.java.opts": "-Xmx756m",
   "mapreduce.map.log.level": "INFO",
-  "mapreduce.map.sort.spill.percent": "0.1",
+  "mapreduce.map.sort.spill.percent": "0.7",
   "mapreduce.reduce.input.limit": "DELETE_OLD",
   "mapreduce.reduce.java.opts": "-Xmx756m",
   "mapreduce.reduce.log.level": "INFO",
@@ -438,9 +439,9 @@ MAPRED_SITE = {
   "mapreduce.tasktracker.taskmemorymanager.monitoringinterval": "DELETE_OLD",
   "mapreduce.tasktracker.tasks.sleeptimebeforesigkill": "DELETE_OLD",
   "yarn.app.mapreduce.am.admin-command-opts": "-Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN",
-  "yarn.app.mapreduce.am.command-opts": "-Xmx756m",
+  "yarn.app.mapreduce.am.command-opts": "-Xmx312m",
   "yarn.app.mapreduce.am.log.level": "INFO",
-  "yarn.app.mapreduce.am.resource.mb": "1024",
+  "yarn.app.mapreduce.am.resource.mb": "512",
   "yarn.app.mapreduce.am.staging-dir": "/user"
 }
 
@@ -540,7 +541,7 @@ YARN_SITE = {
   "yarn.nodemanager.log.retain-second": "604800",
   "yarn.nodemanager.remote-app-log-dir": "/app-logs",
   "yarn.nodemanager.remote-app-log-dir-suffix": "logs",
-  "yarn.nodemanager.resource.memory-mb": "10240",
+  "yarn.nodemanager.resource.memory-mb": "5120",
   "yarn.nodemanager.vmem-check-enabled": "false",
   "yarn.nodemanager.vmem-pmem-ratio": "2.1",
   "yarn.resourcemanager.address": "REPLACE_RM_HOST:8050",
@@ -551,8 +552,21 @@ YARN_SITE = {
   "yarn.resourcemanager.scheduler.address": "REPLACE_RM_HOST:8030",
   "yarn.resourcemanager.scheduler.class": "org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler",
   "yarn.resourcemanager.webapp.address": "REPLACE_RM_HOST:8088",
-  "yarn.scheduler.maximum-allocation-mb": "6144",
+  "yarn.scheduler.maximum-allocation-mb": "2048",
   "yarn.scheduler.minimum-allocation-mb": "512"
+}
+
+
+HBASE_SITE = {
+  "dfs.support.append": "DELETE_OLD",
+  "hbase.hregion.majorcompaction": "604800000",
+  "hbase.hregion.max.filesize": "10737418240",
+  "hbase.hstore.blockingStoreFiles": "10",
+  "hbase.regionserver.global.memstore.lowerLimit": "0.38",
+  "hbase.regionserver.handler.count": "60",
+  "hbase.rpc.engine": "DELETE_OLD",
+  "hfile.block.cache.size": "0.40",
+  "zookeeper.session.timeout": "30"
 }
 
 
@@ -825,7 +839,7 @@ def modify_configs(options, config_type):
 
   # Update global config
   if (config_type is None) or (config_type == GLOBAL_TAG):
-    update_config_using_existing(options, GLOBAL_TAG, GLOBAL, True)
+    update_config_using_existing(options, GLOBAL_TAG, GLOBAL.copy(), True)
     pass
 
   core_site_latest = rename_all_properties(get_config(options, CORE_SITE_TAG), PROPERTY_MAPPING)
@@ -839,23 +853,33 @@ def modify_configs(options, config_type):
     pass
 
   # Update mapred-site config
+  mapred_updated = MAPRED_SITE.copy()
   if (config_type is None) or (config_type == MAPRED_SITE_TAG):
-    for key in MAPRED_SITE.keys():
-      if REPLACE_JH_HOST_NAME_TAG in MAPRED_SITE[key]:
-        MAPRED_SITE[key] = MAPRED_SITE[key].replace(REPLACE_JH_HOST_NAME_TAG, jt_host, 1)
+    for key in mapred_updated.keys():
+      if REPLACE_JH_HOST_NAME_TAG in mapred_updated[key]:
+        mapred_updated[key] = mapred_updated[key].replace(REPLACE_JH_HOST_NAME_TAG, jt_host, 1)
         pass
       pass
     pass
-    update_config_using_existing_properties(options, MAPRED_SITE_TAG, MAPRED_SITE, mapred_site_latest, True)
+    update_config_using_existing_properties(options, MAPRED_SITE_TAG, mapred_updated, mapred_site_latest, True)
     pass
 
   # Update hdfs-site, core-site
   if (config_type is None) or (config_type == HDFS_SITE_TAG):
-    update_config_using_existing_properties(options, HDFS_SITE_TAG, HDFS_SITE, hdfs_site_latest, True)
+    update_config_using_existing_properties(options, HDFS_SITE_TAG, HDFS_SITE.copy(), hdfs_site_latest, True)
     pass
   if (config_type is None) or (config_type == CORE_SITE_TAG):
-    update_config_using_existing_properties(options, CORE_SITE_TAG, CORE_SITE, core_site_latest, True)
+    update_config_using_existing_properties(options, CORE_SITE_TAG, CORE_SITE.copy(), core_site_latest, True)
     pass
+
+  # Update hbase-site if exists
+  if (config_type is None) or (config_type == HBASE_SITE_TAG):
+    tag, structured_resp = get_config_resp(options, HBASE_SITE_TAG, False)
+    if structured_resp is not None:
+      update_config_using_existing(options, HBASE_SITE_TAG, HBASE_SITE.copy(), True)
+      pass
+    pass
+
   pass
 
 
