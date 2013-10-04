@@ -123,6 +123,8 @@ class hdp-hadoop::params(
   $proxyuser_group = hdp_default("core-site/proxyuser.group","users")
   
   $hadoop_tmp_dir = hdp_default("core-site/hadoop.tmp.dir","/tmp/hadoop-$hdfs_user")
+  
+  $hadoop_ssl_enabled = hdp_default("core-site/hadoop.ssl.enabled","false")
 
   ### hdfs-site
   $datanode_du_reserved = hdp_default("hdfs-site/datanode.du.reserved",1073741824)

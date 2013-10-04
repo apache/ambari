@@ -42,6 +42,7 @@ class hdp-yarn::params(
   
   ## yarn-site
   $rm_webui_address = hdp_default("yarn-site/yarn.resourcemanager.webapp.address", "0.0.0.0:8088")
+  $rm_webui_https_address = hdp_default("yarn-site/yarn.resourcemanager.webapp.https.address", "0.0.0.0:8090")
   $nm_webui_address = hdp_default("yarn-site/yarn.nodemanager.webapp.address", "0.0.0.0:8042")
   $hs_webui_address = hdp_default("mapred-site/mapreduce.jobhistory.webapp.address", "0.0.0.0:19888")
   

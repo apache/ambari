@@ -23,12 +23,19 @@ define hdp-yarn::smoketest(
 )
 {
   $rm_webui_address = $hdp-yarn::params::rm_webui_address
+  $rm_webui_https_address = $hdp-yarn::params::rm_webui_https_address
   $nm_webui_address = $hdp-yarn::params::nm_webui_address
   $hs_webui_address = $hdp-yarn::params::hs_webui_address
+  
+  $hadoop_ssl_enabled = $hdp-hadoop::params::hadoop_ssl_enabled
 
   if ($component_name == 'resourcemanager') {
     $component_type = 'rm'
-    $component_address = $rm_webui_address
+    if ($hadoop_ssl_enabled == "true") {
+      $component_address = $rm_webui_https_address
+    } else {
+      $component_address = $rm_webui_address
+    }
   } elsif ($component_name == 'nodemanager') {
     $component_type = 'nm'
     $component_address = $nm_webui_address
@@ -48,7 +55,7 @@ define hdp-yarn::smoketest(
   $validateStatusFileName = "validateYarnComponentStatus.py"
   $validateStatusFilePath = "/tmp/$validateStatusFileName"
 
-  $validateStatusCmd = "$validateStatusFilePath $component_type -p $component_address"
+  $validateStatusCmd = "$validateStatusFilePath $component_type -p $component_address -s $hadoop_ssl_enabled"
 
     if ($security_enabled == true) {
          $smoke_cmd = "${kinit_cmd}  $validateStatusCmd"
