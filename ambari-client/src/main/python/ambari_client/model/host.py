@@ -177,11 +177,32 @@ def _bootstrap_hosts(root_resource , hosts_list, ssh_key):
   @param hosts_list list of host_names.
   @return: A  StatusModel object.
   """
-  #payload_dic = {'sshKey':ssh_key , 'hosts':hosts_list}
   payload_dic = {'sshKey':ssh_key.encode('string_escape') , 'hosts':hosts_list}
   resp = root_resource.post(paths.BOOTSTRAP_PATH, payload_dic , content_type="application/json")
-  LOG.debug(resp)
-  return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
+  status_dict = _bootstrap_resp_to_status_dict(resp)
+  return utils.ModelUtils.create_model(status.StatusModel, status_dict, root_resource, "NO_KEY")
+
+def _bootstrap_resp_to_status_dict(resp):
+  """
+  Bootstrap response has a little odd format
+  that's why we have to convert it to the normal
+  format to handle it properly later.
+  """
+  
+  # if we got other response, like an error 400 happened on higher level
+  if isinstance( resp['status'], int ):
+    return resp
+  
+  new_resp = {}
+  
+  if resp['status'] == "OK":
+    new_resp['status'] = 201
+  else: # ERROR
+    new_resp['status'] = 500
+    
+  new_resp['message'] = resp['log']
+  new_resp['requestId'] = resp['requestId']
+  return new_resp
 
 
  
