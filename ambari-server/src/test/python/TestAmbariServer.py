@@ -1041,8 +1041,7 @@ class TestAmbariServer(TestCase):
     self.assertTrue(f.flush.called)
     self.assertTrue(f.close.called)
     self.assertEqual(2, len(dlprogress_mock.call_args_list))
-
-
+    
   @patch("shutil.copy")
   @patch("os.path.join")
   @patch("os.path.exists")
@@ -1099,7 +1098,6 @@ class TestAmbariServer(TestCase):
     shutil_copy_mock.side_effect = None
     args.jce_policy = None
     ambari_server.install_jce_manualy(args)
-
 
   @patch.object(ambari_server, 'read_ambari_user')
   @patch.object(ambari_server, "get_validated_string_input")
@@ -1620,7 +1618,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(failed)
 
 
-  @patch.object(ambari_server, "install_jce_manualy")
   @patch("os.stat")
   @patch("os.path.isfile")
   @patch("os.path.exists")
@@ -1636,8 +1633,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   def test_download_jdk(self, exit_mock, copyfile_mock, get_ambari_properties_mock, get_JAVA_HOME_mock, \
                         print_info_msg_mock, write_property_mock, \
                         run_os_command_mock, get_YN_input_mock, track_jdk_mock,
-                        path_existsMock, path_isfileMock, statMock, \
-                        install_jce_manualy_mock):
+                        path_existsMock, path_isfileMock, statMock):
     args = MagicMock()
     args.java_home = "somewhere"
     path_existsMock.return_value = False
@@ -1739,7 +1735,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     p.__getitem__.return_value = "somewhere"
     get_JAVA_HOME_mock.return_value = True
     path_existsMock.return_value = True
-    install_jce_manualy_mock.return_value = 1
     with patch.object(ambari_server, "download_jce_policy") as download_jce_policy_mock:
       rcode = ambari_server.download_jdk(args)
       self.assertTrue(download_jce_policy_mock.called)
@@ -1750,7 +1745,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     path_existsMock.return_value = True
     path_existsMock.side_effect = None
     get_JAVA_HOME_mock.return_value = True
-    install_jce_manualy_mock.return_value = 0
     rcode = ambari_server.download_jdk(args)
     self.assertTrue(write_property_mock.called)
 

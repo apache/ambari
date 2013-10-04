@@ -1620,11 +1620,11 @@ def install_jce_manualy(args):
       raise FatalException(-1, err)
   else:
     return 1
+
 #
 # Downloads the JDK
 #
 def download_jdk(args):
-  jce_installed = install_jce_manualy(args)
   properties = get_ambari_properties()
   if properties == -1:
     err = "Error getting ambari properties"
@@ -1637,6 +1637,12 @@ def download_jdk(args):
     print_warning_msg("JAVA_HOME " + args.java_home
                     + " must be valid on ALL hosts")
     write_property(JAVA_HOME_PROPERTY, args.java_home)
+    
+    warn = "JCE Policy files are required for configuring Kerberos security. If you plan to use Kerberos," \
+            "please make sure JCE Unlimited Strength Jurisdiction Policy Files are valid on all hosts."
+    print_warning_msg(warn)
+
+    return 0
   else:
     try:
       jdk_url = properties[JDK_URL_PROPERTY]
@@ -1739,16 +1745,15 @@ def download_jdk(args):
     write_property(JAVA_HOME_PROPERTY, "{0}/{1}".
         format(JDK_INSTALL_DIR, jdk_version))
 
-  if jce_installed != 0:
-    try:
-      download_jce_policy(properties, ok)
-    except FatalException as e:
-      print "JCE Policy files are required for configuring Kerberos security. Please ensure " \
-            " all hosts have the JCE Unlimited Strength Jurisdiction Policy Files."
-      print_error_msg("Failed to download JCE Policy files:")
-      if e.reason is not None:
-        print_error_msg("Reason: {0}".format(e.reason))
-      # TODO: We don't fail installation if download_jce_policy fails. Is it OK?
+  try:
+    download_jce_policy(properties, ok)
+  except FatalException as e:
+    print "JCE Policy files are required for secure HDP setup. Please ensure " \
+            " all hosts have the JCE unlimited strength policy 6, files."
+    print_error_msg("Failed to download JCE policy files:")
+    if e.reason is not None:
+      print_error_msg("Reason: {0}".format(e.reason))
+    # TODO: We don't fail installation if download_jce_policy fails. Is it OK?
   return 0
 
 
@@ -1878,6 +1883,7 @@ def get_JAVA_HOME():
     return None
     
   java_home = properties[JAVA_HOME_PROPERTY]
+  
   if (not 0 == len(java_home)) and (os.path.exists(java_home)):
     return java_home
 
@@ -3718,9 +3724,8 @@ def main():
                   help="Use specified java_home.  Must be valid on all hosts")
   parser.add_option('-i', '--jdk-location', dest="jdk_location", default=None,
                     help="Use specified JDK file in local filesystem instead of downloading")
-  parser.add_option('-c', '--jce-policy', default=None,
-                  help="Use specified jce_policy.  Must be valid on "
-                       "ambari server host", dest="jce_policy")
+  #parser.add_option('-c', '--jce-policy', default=None,
+  #                help="Use specified jce_policy.  Must be valid on all hosts", dest="jce_policy") 
   parser.add_option("-v", "--verbose",
                   action="store_true", dest="verbose", default=False,
                   help="Print verbose status messages")
