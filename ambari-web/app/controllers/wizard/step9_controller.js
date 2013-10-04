@@ -692,6 +692,9 @@ App.WizardStep9Controller = Em.Controller.extend({
         this.onInProgressPerHost(actionsPerHost, _host);  // current running action for a host
         totalProgress += self.progressPerHost(actionsPerHost, _host);
       }
+      if (_host.get('progress') == '33') {
+        _host.set('message', this.t('installer.step9.host.status.nothingToInstall'));
+      }
     }, this);
     totalProgress = Math.floor(totalProgress / this.hosts.length);
     this.set('progress', totalProgress.toString());
