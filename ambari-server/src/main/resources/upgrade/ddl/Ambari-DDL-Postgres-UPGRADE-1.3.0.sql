@@ -107,3 +107,6 @@ ALTER TABLE ambari.clusterconfigmapping
 SELECT update_clusterconfigmapping();
 GRANT ALL PRIVILEGES ON TABLE ambari.clusterconfigmapping TO :username;
 
+-- ambari log4j DDL
+\connect ambarirca;
+ALTER TABLE workflow ADD COLUMN workflowTags TEXT;
