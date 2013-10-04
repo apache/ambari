@@ -302,15 +302,17 @@ class TestUpgradeHDP2Script(TestCase):
       self.assertEqual(prop_to_move[key], args[3][key])
     pass
 
+
+  @patch.object(UpgradeHelper_HDP2, "get_config_resp")
   @patch.object(UpgradeHelper_HDP2, "get_config")
   @patch.object(UpgradeHelper_HDP2, "read_mapping")
   @patch.object(logging, 'FileHandler')
   @patch.object(UpgradeHelper_HDP2, "backup_file")
   @patch.object(UpgradeHelper_HDP2, 'curl')
   @patch('optparse.OptionParser')
-  def test_update_configs(self, option_parser_mock, curl_mock,
+  def test_no_hbase(self, option_parser_mock, curl_mock,
                           backup_file_mock, file_handler_mock, read_mapping_mock,
-                          get_config_mock):
+                          get_config_mock, get_config_resp_mock):
     file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
     opm = option_parser_mock.return_value
     options = MagicMock()
@@ -326,26 +328,86 @@ class TestUpgradeHDP2Script(TestCase):
       "TASKTRACKER": ["c6401", "c6402"],
       "JOBTRACKER": ["c6401"],
       "MAPREDUCE_CLIENT": ["c6403"]}
+    get_config_resp_mock.return_value = "hbase-site", None
     get_config_mock.return_value = {
       "mapred.hosts": "an_old_value",
       "mapred.hosts.exclude": "an_old_value",
       "mapred.jobtracker.maxtasks.per.job": "an_old_value",
       "mapred.jobtracker.taskScheduler": "an_old_value",
-      "mapred.task.tracker.task-controller": "an_old_value",
+      "dfs.df.interval": "an_old_value",
       "mapred.userlog.retain.hours": "will_not_be_stored",
       "global1": "global11"
     }
-    UpgradeHelper_HDP2.GLOBAL = {"global2": "REPLACE_WITH_global1"}
-    UpgradeHelper_HDP2.HDFS_SITE = {"global2": "REPLACE_WITH_global1"}
-    UpgradeHelper_HDP2.CORE_SITE = {"global2": "REPLACE_WITH_global1"}
     UpgradeHelper_HDP2.main()
+    self.assertEqual(6, len(curl_mock.call_args_list))
+
+
+  @patch.object(UpgradeHelper_HDP2, "get_config_resp")
+  @patch.object(UpgradeHelper_HDP2, "get_config")
+  @patch.object(UpgradeHelper_HDP2, "read_mapping")
+  @patch.object(logging, 'FileHandler')
+  @patch.object(UpgradeHelper_HDP2, "backup_file")
+  @patch.object(UpgradeHelper_HDP2, 'curl')
+  @patch('optparse.OptionParser')
+  def test_update_configs(self, option_parser_mock, curl_mock,
+                          backup_file_mock, file_handler_mock, read_mapping_mock,
+                          get_config_mock, get_config_resp_mock):
+    file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
+    opm = option_parser_mock.return_value
+    options = MagicMock()
+    args = ["update-configs"]
+    opm.parse_args.return_value = (options, args)
+    options.logfile = "logfile"
+    options.user = "admin"
+    options.password = "admin"
+    options.hostname = "localhost"
+    options.clustername = "c1"
+    curl_mock.side_effect = ['', '', '', '', '', '', '', '']
+    read_mapping_mock.return_value = {
+      "TASKTRACKER": ["c6401", "c6402"],
+      "JOBTRACKER": ["c6401"],
+      "MAPREDUCE_CLIENT": ["c6403"]}
+    get_config_resp_mock.return_value = "hbase-site", {}
+    site_properties = {
+      "mapred.hosts": "an_old_value",
+      "mapred.hosts.exclude": "an_old_value",
+      "mapred.jobtracker.maxtasks.per.job": "an_old_value",
+      "hbase.rpc.engine": "an_old_value",
+      "dfs.df.interval": "an_old_value",
+      "mapred.userlog.retain.hours": "will_not_be_stored",
+      "global1": "global11"
+    }
+    get_config_mock.side_effect = [
+      site_properties.copy(), site_properties.copy(), site_properties.copy(),
+      site_properties.copy(), site_properties.copy(), site_properties.copy()]
+
+    saved_global = UpgradeHelper_HDP2.GLOBAL
+    saved_hdfs = UpgradeHelper_HDP2.HDFS_SITE
+    saved_core = UpgradeHelper_HDP2.CORE_SITE
+    saved_habse = UpgradeHelper_HDP2.HBASE_SITE
+    saved_mapred = UpgradeHelper_HDP2.MAPRED_SITE
+    try:
+      UpgradeHelper_HDP2.GLOBAL = {"global2": "REPLACE_WITH_global1"}
+      UpgradeHelper_HDP2.HDFS_SITE = {"global2": "REPLACE_WITH_global1"}
+      UpgradeHelper_HDP2.CORE_SITE = {"global2": "REPLACE_WITH_global1"}
+      UpgradeHelper_HDP2.main()
+    finally:
+      UpgradeHelper_HDP2.GLOBAL = saved_global
+      UpgradeHelper_HDP2.HDFS_SITE = saved_hdfs
+      UpgradeHelper_HDP2.CORE_SITE = saved_core
+      UpgradeHelper_HDP2.MAPRED_SITE = saved_mapred
+
+    self.assertEqual(7, len(curl_mock.call_args_list))
     self.validate_update_config_call(curl_mock.call_args_list[0], "capacity-scheduler")
     self.validate_update_config_call(curl_mock.call_args_list[1], "yarn-site")
     self.validate_update_config_call(curl_mock.call_args_list[3], "mapred-site")
     self.validate_update_config_call(curl_mock.call_args_list[2], "global")
     self.validate_config_replacememt(curl_mock.call_args_list[1], "yarn-site")
-    self.validate_config_replacememt(curl_mock.call_args_list[3], "mapred-site")
     self.validate_config_replacememt(curl_mock.call_args_list[2], "global")
+    self.validate_config_replacememt(curl_mock.call_args_list[3], "mapred-site")
+    self.validate_config_replacememt(curl_mock.call_args_list[4], "hdfs-site")
+    self.validate_config_replacememt(curl_mock.call_args_list[5], "core-site")
+    self.validate_config_replacememt(curl_mock.call_args_list[6], "hbase-site")
     pass
 
   @patch.object(UpgradeHelper_HDP2, "read_mapping")
@@ -484,14 +546,21 @@ class TestUpgradeHDP2Script(TestCase):
       self.assertFalse("an_old_value" in args[6])
     elif type == "mapred-site":
       self.assertFalse("will_not_be_stored" in args[6])
+      self.assertTrue("fs.df.interval" in args[6])
+      self.assertFalse("dfs.df.interval" in args[6])
     elif type == "global":
       self.assertTrue("global11" in args[6])
       self.assertTrue("an_old_value" in args[6])
       self.assertTrue("mapred.hosts.exclude" in args[6])
     elif (type == "core-site") or (type == "hdfs-site"):
       self.assertTrue("global11" in args[6])
-      self.assertFalse("an_old_value" in args[6])
-      self.assertFalse("mapred.hosts.exclude" in args[6])
+      self.assertTrue("global2" in args[6])
+      self.assertTrue("hbase.rpc.engine" in args[6])
+    elif type == "hbase-site":
+      self.assertTrue("global11" in args[6])
+      self.assertTrue("hbase.hstore.blockingStoreFiles" in args[6])
+      self.assertTrue("dfs.df.interval" in args[6])
+      self.assertFalse("hbase.rpc.engine" in args[6])
     pass
 
   def get_mock_options(self, printonly=False):
