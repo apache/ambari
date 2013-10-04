@@ -19,7 +19,7 @@ limitations under the License.
 '''
 
 import optparse
-import urllib
+import httplib
 
 #
 # Main.
@@ -36,8 +36,11 @@ def main():
 
   for host in hosts:
     try:
-      url = 'http://' + host + ':' + port
-      httpCode = urllib.urlopen(url).getcode()
+      conn = httplib.HTTPConnection(host, port)
+      # This can be modified to get a partial url part to be sent with request
+      response = conn.request("GET", "/")
+      httpCode = conn.getresponse().status
+      conn.close()
     except Exception:
       httpCode = 404
 
