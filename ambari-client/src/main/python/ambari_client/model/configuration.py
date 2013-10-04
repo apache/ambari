@@ -51,8 +51,8 @@ def _update_configuration(resource_root, cluster_name , type , tag , config_mode
   @return: A ConfigModel object
   """
   data = {"Clusters":{"desired_configs":{ "type":type, "tag":tag, "properties":config_model.properties}}}
-  resource_root.post(path=paths.CREATE_CONFIGURATION_PATH % cluster_name , payload=data)
-  return _get_configuration(resource_root, cluster_name , type , tag="version1")
+  resp = resource_root.post(path=paths.CREATE_CONFIGURATION_PATH % cluster_name , payload=data)
+  return utils.ModelUtils.create_model(status.StatusModel, resp, resource_root, "NO_KEY")
 
 
 def _add_config(root_resource, cluster_name, type, tag , properties):

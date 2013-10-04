@@ -54,10 +54,9 @@ def _create_cluster(root_resource, cluster_name, version):
   @return: An ClusterModel object
   """
   data = {"Clusters":{"version":str(version)}}
-  cluster = ClusterModel(root_resource, cluster_name, version)
   path = paths.CLUSTERS_PATH + "/%s" % (cluster_name)
-  root_resource.post(path=path , payload=data)
-  return _get_cluster(root_resource, cluster_name)
+  resp = root_resource.post(path=path , payload=data)
+  return utils.ModelUtils.create_model(status.StatusModel, resp, root_resource, "NO_KEY")
 
 
 def _delete_cluster(root_resource, cluster_name):
