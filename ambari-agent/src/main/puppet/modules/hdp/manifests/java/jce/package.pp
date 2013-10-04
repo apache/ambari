@@ -39,7 +39,7 @@ define hdp::java::jce::package(
   # may be check the file sizes for local_policy and export_US policy jars? 
   # UNLESS  => "test -e ${java_exec}"
   # curl -k - ignoring unverified server ssl sertificate,
-  $curl_cmd = "mkdir -p ${artifact_dir}; curl -kf --retry 10 ${jce_location}/${jce_policy_zip} -o ${jce_curl_target}"
+  $curl_cmd = "mkdir -p ${artifact_dir}; curl -kf --retry 10 ${jce_location}/${jce_policy_zip} -o ${jce_curl_target}; echo 0"
   exec{ "jce-download ${name}":
     command => $curl_cmd,
     creates => $jce_curl_target,
@@ -48,10 +48,10 @@ define hdp::java::jce::package(
   }
 
   $security_dir = "${java_home_dir}/jre/lib/security"
-  $cmd = "rm -f local_policy.jar; rm -f US_export_policy.jar; unzip -o -j -q ${jce_curl_target}"
+  $cmd = "rm -f local_policy.jar; rm -f US_export_policy.jar; unzip -o -j -q ${jce_curl_target}" 
   exec { "jce-install ${name}":
     command => $cmd,
-    onlyif  => "test -e ${security_dir}",
+    onlyif  => "test -e ${security_dir} && test -f ${jce_curl_target}",
     cwd     => $security_dir,
     path    => ['/bin/','/usr/bin']
   }
