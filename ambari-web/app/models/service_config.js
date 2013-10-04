@@ -236,7 +236,11 @@ App.ServiceConfigProperty = Ember.Object.extend({
         this.set('value', masterComponentHostsInDB.filterProperty('component', 'NAMENODE').mapProperty('hostName'));
         break;
       case 'snamenode_host':
-        this.set('value', masterComponentHostsInDB.findProperty('component', 'SECONDARY_NAMENODE').hostName);
+        // Secondary NameNode does not exist when NameNode HA is enabled
+        var snn = masterComponentHostsInDB.findProperty('component', 'SECONDARY_NAMENODE');
+        if (snn) {
+          this.set('value', snn.hostName);
+        }
         break;
       case 'datanode_hosts':
         this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'DATANODE').hosts.mapProperty('hostName'));
