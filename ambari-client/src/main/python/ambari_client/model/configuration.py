@@ -31,6 +31,10 @@ def _get_configuration(resource_root, cluster_name , type , tag="version1"):
   @return: A ConfigModel object
   """
   dic = resource_root.get(paths.CONFIGURATION_PATH % (cluster_name, type, tag))
+  
+  if len(dic["items"]) == 0:
+    return None
+  
   config_model = utils.ModelUtils.create_model(ConfigModel , dic["items"][0], resource_root, "NO_KEY")
   ref_clss = utils.getREF_class_name("cluster_name")
   config_model._setattr(ref_clss, dic["items"][0]['Config']['cluster_name'])
