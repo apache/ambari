@@ -67,7 +67,7 @@
 
   <property>
     <name>yarn.scheduler.maximum-allocation-mb</name>
-    <value>6144</value>
+    <value>2048</value>
     <description>
       The maximum allocation for every container request at the RM,
       in MBs. Memory requests higher than this won't take effect,
@@ -95,7 +95,7 @@
 
   <property>
     <name>yarn.nodemanager.resource.memory-mb</name>
-    <value>10240</value>
+    <value>5120</value>
     <description>Amount of physical memory, in MB, that can be allocated
       for containers.</description>
   </property>
@@ -306,14 +306,6 @@
     <value>false</value>
     <description>
       Whether virtual memory limits will be enforced for containers.
-    </description>
-  </property>
-
-  <property>
-    <name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>
-    <value>org.apache.hadoop.mapred.ShuffleHandler</value>
-    <description>
-      The auxiliary service class to use.
     </description>
   </property>
 
