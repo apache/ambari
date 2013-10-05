@@ -201,7 +201,6 @@ require('views/main/apps_view');
 require('views/main/apps/item_view');
 require('views/main/apps/item/bar_view');
 require('views/main/apps/item/dag_view');
-require('views/main/apps/item/app_view');
 require('views/main/mirroring_view');
 require('views/main/mirroring/dropdown_view');
 require('views/main/mirroring/dataset_view');

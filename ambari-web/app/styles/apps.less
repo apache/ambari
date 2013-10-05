@@ -60,7 +60,7 @@
     }
 
     input, select{
-      width: 75%;
+      width: 76%;
     }
 
     .no-data{
@@ -68,7 +68,7 @@
     }
 
     input.input-super-mini{
-      width: 46px;
+      width: 47px;
       max-width: 57%;
     }
 
@@ -78,22 +78,22 @@
     .col0,
     td:first-child,
     th:first-child {
-      width: 14%;
+      width: 16%;
     }
     .col1,
     td:first-child + td + td,
     th:first-child + th + th{
-      width: 14%;
+      width: 15%;
     }
     .col2,
     td:first-child + td + td + td,
     th:first-child + th + th + th{
-      width: 9%;
+      width: 11%;
     }
     .col3,
     td:first-child + td + td + td + td,
     th:first-child + th + th + th + th{
-      width: 8%;
+      width: 11%;
     }
     .col4,.col5,.col6,.col7,
     td:first-child + td + td + td + td + td,
@@ -105,17 +105,12 @@
     td:first-child + td + td + td + td + td + td + td + td,
     th:first-child + th + th + th + th + th + th + th + th
     {
-      width: 8%;
+      width: 9%;
     }
     .col8,
     td:first-child + td + td + td + td + td + td + td + td + td,
     th:first-child + th + th + th + th + th + th + th + th + th{
-      width: 8%;
-    }
-    .col9,
-    td:first-child + td + td + td + td + td + td + td + td + td + td,
-    th:first-child + th + th + th + th + th + th + th + th + th + th{
-      width: 9%;
+      width: 13%;
     }
   }
 
@@ -471,6 +466,58 @@
       visibility: hidden;
     }
   }
+  #dag_viewer_legend {
+    border: 1px solid #DDDDDD;
+    padding: 10px;
+    padding-left: 20px;
+    float: left;
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    li {
+      display: block;
+      width: 25%;
+      float: left;
+    }
+    span {
+      width: 15px;
+      height: 15px;
+      display: block;
+      float: left;
+      margin-right: 5px;
+    }
+    #job {
+      border: 1px solid #333;
+      background: #ccc;
+    }
+    #jobdone {
+      border: 1px solid #333;
+      background: rgba(0,128,0,0.8);
+    }
+    #allmap {
+      border: 2px solid #007000;
+    }
+    #map {
+      border: 2px solid #007000;
+      background: rgba(0,128,0,0.8);
+    }
+    #allshuffle {
+      border: 2px solid #97BDC9;
+    }
+    #shuffle {
+      border: 2px solid #97BDC9;
+      background: rgba(173,216,230,0.8);
+    }
+    #allreduce {
+      border: 2px solid #3D729E;
+    }
+    #reduce {
+      border: 2px solid #3D729E;
+      background: rgba(70,130,180,0.8);
+    }
+  }
 }
 
 
@@ -487,147 +534,3 @@
 }
 
 /*Big modal window end*/
-
-/*
- * D3  visualization components 
- * Styles for App Graph
- */
-.wfdag {
-  width: 100%;
-}
-
-#app_graph .axis path,
-#app_graph .axis line {
-  fill: none;
-  stroke: #000;
-  shape-rendering: crispEdges;
-}
-
-#app_graph line.link,
-#app_graph path.link {
-  fill: none;
-  stroke: #666;
-  stroke-width: 2.5px;
-}
-
-#app_graph line.link.finished,
-#app_graph path.link.finished {
-  stroke: #444;
-}
-
-#app_graph path.link.stage {
-  stroke: #fff;
-}
-
-#app_graph marker#finished {
-  fill: #444;
-}
-
-#app_graph marker#circle {
-  fill: #666;
-  stroke: none;
-}
-
-#app_graph marker#stage {
-  fill: #fff;
-}
-
-#app_graph line.source.mark,
-#app_graph line.target.mark {
-  stroke: #666;
-  stroke-width: 2.5px;
-}
-
-#app_graph rect {
-  fill: #ccc;
-  stroke: #333;
-  stroke-width: 1px;
-}
-
-#app_graph rect.finished {
-  fill: green;
-  fill-opacity: 0.8;
-}
-
-#app_graph text.joblabel {
-  pointer-events: none;
-  text-anchor: middle;
-}
-
-#app_graph text.axislabel {
-  pointer-events: none;
-  text-anchor: end;
-  font-size: 11px;
-  font-weight: bold;
-}
-
-#app_graph text.shadow {
-  stroke: #fff;
-  stroke-width: 3px;
-  stroke-opacity: .8;
-}
-#app_graph .y.axis {
-  font-size: 10px;
-}
-
-#app_graph circle.stage,
-#app_graph rect.stage,
-#app_graph_legend circle.stage {
-  fill: lightblue;
-  stroke: black;
-}
-
-#app_graph text.stagelabel {
-  stroke: black;
-  pointer-events: none;
-  text-anchor: middle;
-  dominant-baseline: central;
-  font-weight: bold;
-}
-
-#app_graph_legend {
-  border: 1px solid #DDDDDD;
-  padding: 10px;
-  padding-left: 20px;
-  margin: 0 auto;
-  width: 50%;
-  height: 40px;
-  ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  li {
-    display: block;
-    width: 50%;
-    float: left;
-  }
-  span {
-    width: 15px;
-    height: 15px;
-    display: block;
-    float: left;
-    margin-right: 5px;
-  }
-  span.stage {
-    margin-right: 8px;
-  }
-  .job {
-    border: 1px solid #333;
-    background: #ccc;
-  }
-  .jobdone {
-    border: 1px solid #333;
-    background: rgba(0,128,0,0.8);
-  }
-  .map {
-    border: 1px solid black;
-    background: lightblue;
-  }
-  .reduce {
-    stroke: white;
-    fill: white;
-  }
-}
-
-/* App Graph end */

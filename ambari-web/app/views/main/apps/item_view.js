@@ -17,13 +17,23 @@
  */
 
 var App = require('app');
-var stringUtils = require('utils/string_utils');
 
 App.MainAppsItemView = Em.View.extend({
   tagName: 'tr',
   classNames : ['containerRow'],
   templateName:require('templates/main/apps/item'),
-  menuTabs:[],
+  menuTabs:[
+    Em.Object.create({
+      label:Em.I18n.t('apps.dagCharts.popup.dag'),
+      active:'active',
+      content:'App.MainAppsItemDagView'
+    }),
+    Em.Object.create({
+      label:Em.I18n.t('apps.dagCharts.popup.tasks'),
+      active:'',
+      content:'App.MainAppsItemBarView'
+    })
+  ],
   activeTab:null,
   switchTab:function(event){
     var tabs = this.get('menuTabs');
@@ -38,30 +48,10 @@ App.MainAppsItemView = Em.View.extend({
     this.set('activeTab', event.context);
   },
   didInsertElement: function(){
-    if (!App.testMode && stringUtils.compareVersions(App.get('currentStackVersionNumber'), "2.0") === -1) {
-      var tabs = [
-        Em.Object.create({
-          label:Em.I18n.t('apps.dagCharts.popup.dag'),
-          active:'active',
-          content:'App.MainAppsItemDagView'
-        }),
-        Em.Object.create({
-          label:Em.I18n.t('apps.dagCharts.popup.tasks'),
-          active:'',
-          content:'App.MainAppsItemBarView'
-        })];
-      this.set('menuTabs', tabs);
-      this.set('activeTab', tabs[0]);
-    } else {
-      var tabs = [
-        Em.Object.create({
-          label:Em.I18n.t('apps.dagCharts.popup.dag'),
-          active:'active',
-          content:'App.MainAppsItemAppView'
-        })];
-      this.set('menuTabs', tabs);
-      this.set('activeTab', tabs[0]);
-    }
+    var tabs = this.get('menuTabs');
+    tabs[0].set('active', 'active');
+    tabs[1].set('active', '');
+    this.set('activeTab', tabs[0]);
   },
   containerView: Em.ContainerView.extend({
     onchange:function(){

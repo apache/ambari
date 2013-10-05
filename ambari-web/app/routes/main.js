@@ -474,8 +474,6 @@ module.exports = Em.Route.extend({
     index: Ember.Route.extend({
       route: '/',
       connectOutlets: function (router, context) {
-        router.set('mainHostController.clearFilters', !router.get('mainHostController.comeWithFilter'));
-        router.set('mainHostController.comeWithFilter', false);
         router.get('mainController').connectOutlet('mainHost');
       }
     }),
@@ -528,7 +526,6 @@ module.exports = Em.Route.extend({
     }),
 
     back: function (router, event) {
-      router.get('mainHostController').set('comeWithFilter', true);
       window.history.back();
     },
 
@@ -650,78 +647,6 @@ module.exports = Em.Route.extend({
       }
     }),
 
-    adminHighAvailability: Em.Route.extend({
-      route: '/highAvailability',
-      enter: function (router) {
-        Em.run.next(function () {
-          router.transitionTo('adminHighAvailability.index');
-        });
-      },
-      index: Ember.Route.extend({
-        route: '/',
-        connectOutlets: function (router, context) {
-          router.set('mainAdminController.category', "highAvailability");
-          router.get('mainAdminController').connectOutlet('mainAdminHighAvailability');
-        }
-      })
-    }),
-
-    highAvailabilityRollback: Ember.Route.extend({
-      route: '/highAvailability/rollback',
-      enter: function (router) {
-        //after refresh check if the wizard is open then restore it
-        Ember.run.next(function () {
-          App.router.get('updateController').set('isWorking', false);
-
-          var highAvailabilityWizardController = router.get('highAvailabilityWizardController');
-          if(highAvailabilityWizardController.get('popup')){
-            highAvailabilityWizardController.finish();
-            highAvailabilityWizardController.get('popup').hide();
-          }
-          highAvailabilityWizardController.loadTasksStatuses();
-          highAvailabilityWizardController.loadRequestIds();
-          highAvailabilityWizardController.loadLogs();
-          var popup = App.ModalPopup.show({
-            classNames: ['full-width-modal'],
-            header: Em.I18n.t('admin.highAvailability.rollback.header'),
-            bodyClass: App.HighAvailabilityRollbackView.extend({
-              controllerBinding: 'App.router.highAvailabilityRollbackController'
-            }),
-            showCloseButton: false,
-            primary: Em.I18n.t('form.cancel'),
-            secondary: null,
-            showFooter: false,
-
-            proceedOnClose: function () {
-              var controller = router.get('highAvailabilityWizardController');
-              controller.clearTasksData();
-              controller.clearStorageData();
-              App.router.get('updateController').set('isWorking', true);
-              App.clusterStatus.setClusterStatus({
-              clusterName: router.get('content.cluster.name'),
-              clusterState: 'HIGH_AVAILABILITY_DISABLED',
-              wizardControllerName: router.get('highAvailabilityRollbackController.name'),
-              localdb: App.db.data
-              });
-              this.hide();
-              router.transitionTo('main.admin.index');
-              location.reload();
-            },
-            didInsertElement: function () {
-              this.fitHeight();
-            }
-          });
-          router.set('highAvailabilityRollbackController.popup', popup);
-        });
-
-      },
-
-      unroutePath: function () {
-        return false;
-      }
-    }),
-
-    enableHighAvailability: require('routes/high_availability_routes'),
 
     adminSecurity: Em.Route.extend({
       route: '/security',
@@ -737,9 +662,7 @@ module.exports = Em.Route.extend({
             controller.setAddSecurityWizardStatus(currentClusterStatus.localdb.status);
             App.db.setSecureConfigProperties(currentClusterStatus.localdb.secureConfigProperties);
             App.db.setWizardCurrentStep('AddSecurity', currentClusterStatus.localdb.currentStep);
-            App.db.setIsNameNodeHa(currentClusterStatus.localdb.haStatus);
             App.db.setDisableSecurityStatus(currentClusterStatus.localdb.disableSecurityStatus);
-            App.db.setSecureUserInfo(currentClusterStatus.localdb.secureUserInfo);
           }
         }
         if (!(controller.getAddSecurityWizardStatus() === 'RUNNING') && !(controller.getDisableSecurityStatus() === 'RUNNING')) {
@@ -991,7 +914,6 @@ module.exports = Em.Route.extend({
     router.transitionTo('hosts.hostDetails.index', event.context);
   },
   filterHosts: function (router, component) {
-    router.get('mainHostController').set('comeWithFilter', true);
     router.get('mainHostController').filterByComponent(component.context);
     router.transitionTo('hosts.index');
   }
