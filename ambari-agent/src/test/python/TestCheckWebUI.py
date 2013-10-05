@@ -39,33 +39,38 @@ class TestMain(unittest.TestCase):
     sys.stdout = sys.__stdout__
 
   @patch("optparse.OptionParser.parse_args")
-  @patch('urllib.urlopen')
-  def test_check_web_ui(self, urlopen_mock, parse_args_mock):
+  @patch('httplib.HTTPConnection')
+  def test_check_web_ui(self, http_mock, parse_args_mock):
       
     #Positive scenario
     options = MagicMock()
     options.hosts = 'host1,host2'
     options.port = '10000' 
-    get_code_mock = MagicMock()
-    get_code_mock.getcode.return_value = 200
-    urlopen_mock.return_value = get_code_mock
-    
     parse_args_mock.return_value = (options, MagicMock)
+    http_conn = http_mock.return_value
+    http_conn.getresponse.return_value = MagicMock(status=200)
+
     checkWebUI.main()
+
+    self.assertTrue(http_conn.request.called)
+    self.assertTrue(http_conn.getresponse.called)
+    self.assertTrue(http_conn.close.called)
     
     #Negative scenario
     options = MagicMock()
     options.hosts = 'host1,host2'
-    options.port = '10000' 
-    get_code_mock = MagicMock()
-    get_code_mock.getcode.return_value = 404
-    urlopen_mock.return_value = get_code_mock
-    
+    options.port = '10000'
     parse_args_mock.return_value = (options, MagicMock)
+    http_conn.getresponse.return_value = MagicMock(status=404)
+
     try:
       checkWebUI.main()
     except SystemExit, e:
       self.assertEqual(e.code, 1)
+
+    self.assertTrue(http_conn.request.called)
+    self.assertTrue(http_conn.getresponse.called)
+    self.assertTrue(http_conn.close.called)
 
 if __name__ == "__main__":
   unittest.main()
