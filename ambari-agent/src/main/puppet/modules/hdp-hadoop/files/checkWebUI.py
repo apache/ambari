@@ -38,14 +38,14 @@ def main():
     try:
       conn = httplib.HTTPConnection(host, port)
       # This can be modified to get a partial url part to be sent with request
-      response = conn.request("GET", "/")
+      conn.request("GET", "/")
       httpCode = conn.getresponse().status
       conn.close()
     except Exception:
       httpCode = 404
 
     if httpCode != 200:
-      print "Cannot access WEB UI on: " + url
+      print "Cannot access WEB UI on: http://" + host + ":" + port
       exit(1)
       
 
