@@ -27,7 +27,6 @@ import logging
 import shutil
 import json
 import subprocess
-import urllib
 import time
 
 
@@ -368,6 +367,7 @@ MAPRED_SITE = {
   "mapreduce.framework.name": "yarn",
   "mapreduce.history.server.embedded": "DELETE_OLD",
   "mapreduce.history.server.http.address": "DELETE_OLD",
+  "mapreduce.job.jvm.numtasks": "DELETE_OLD",
   "mapreduce.jobhistory.address": "REPLACE_JH_HOST:10020",
   "mapreduce.jobhistory.done-dir": "/mr-history/done",
   "mapreduce.jobhistory.intermediate-done-dir": "/mr-history/tmp",
@@ -385,7 +385,6 @@ MAPRED_SITE = {
   "mapreduce.jobtracker.jobhistory.completed.location": "DELETE_OLD",
   "mapreduce.jobtracker.jobhistory.location": "DELETE_OLD",
   "mapreduce.jobtracker.jobhistory.lru.cache.size": "DELETE_OLD",
-  "mapreduce.jobtracker.staging.root.dir": "DELETE_OLD",
   "mapreduce.jobtracker.maxmapmemory.mb": "DELETE_OLD",
   "mapreduce.jobtracker.maxreducememory.mb": "DELETE_OLD",
   "mapreduce.jobtracker.maxtasks.perjob": "DELETE_OLD",
@@ -406,12 +405,18 @@ MAPRED_SITE = {
   "mapreduce.jobtracker.webinterface.trusted": "DELETE_OLD",
   "mapreduce.map.java.opts": "-Xmx756m",
   "mapreduce.map.log.level": "INFO",
+  "mapreduce.map.memory.mb": "1024",
+  "mapreduce.map.output.compress": "false",
+  "mapreduce.map.output.compress.codec": "DELETE_OLD",
   "mapreduce.map.sort.spill.percent": "0.7",
+  "mapreduce.output.fileoutputformat.compress": "false",
   "mapreduce.reduce.input.limit": "DELETE_OLD",
   "mapreduce.reduce.java.opts": "-Xmx756m",
   "mapreduce.reduce.log.level": "INFO",
+  "mapreduce.reduce.memory.mb": "1024",
   "mapreduce.reduce.merge.inmem.threshold": "DELETE_OLD",
   "mapreduce.shuffle.port": "13562",
+  "mapreduce.task.timeout": "300000",
   "mapreduce.tasktracker.cache.local.size": "DELETE_OLD",
   "mapreduce.tasktracker.contention.tracking": "DELETE_OLD",
   "mapreduce.tasktracker.dns.interface": "DELETE_OLD",
@@ -434,7 +439,6 @@ MAPRED_SITE = {
   "mapreduce.tasktracker.reduce.tasks.maximum": "DELETE_OLD",
   "mapreduce.tasktracker.report.address": "DELETE_OLD",
   "mapreduce.tasktracker.resourcecalculatorplugin": "DELETE_OLD",
-  "mapreduce.tasktracker.resourcecalculatorplugin": "DELETE_OLD",
   "mapreduce.tasktracker.taskcontroller": "DELETE_OLD",
   "mapreduce.tasktracker.taskmemorymanager.monitoringinterval": "DELETE_OLD",
   "mapreduce.tasktracker.tasks.sleeptimebeforesigkill": "DELETE_OLD",
@@ -446,7 +450,7 @@ MAPRED_SITE = {
 }
 
 GLOBAL = {
-  "datanode_du_reserved": "1",
+  "datanode_du_reserved": "1073741824",
   "dfs_block_local_path_access_user": "DELETE_OLD",
   "dfs_datanode_data_dir": "REPLACE_WITH_dfs_data_dir",
   "dfs_exclude": "dfs.exclude",
@@ -456,8 +460,11 @@ GLOBAL = {
   "dfs_namenode_name_dir": "REPLACE_WITH_dfs_name_dir",
   "fs_checkpoint_size": "0.5",
   "io_sort_spill_percent": "DELETE_OLD",
-  "hadoop_conf_dir" : "/etc/hadoop/conf",
-  "hfile_blockcache_size" : "0.25",
+  "hadoop_conf_dir": "/etc/hadoop/conf",
+  "hdfs_support_append": "DELETE_OLD",
+  "hfile_blockcache_size": "0.25",
+  "hregion_majorcompaction": "604800000",
+  "hstore_blockingstorefiles": "10",
   "jtnode_heapsize": "DELETE_OLD",
   "jtnode_opt_maxnewsize": "DELETE_OLD",
   "jtnode_opt_newsize": "DELETE_OLD",
@@ -468,18 +475,20 @@ GLOBAL = {
   "mapred_cluster_red_mem_mb": "DELETE_OLD",
   "mapred_hosts_exclude": "mapred.exclude",
   "mapred_hosts_include": "mapred.include",
+  "mapred_job_map_mem_mb": "DELETE_OLD",
+  "mapred_job_red_mem_mb": "DELETE_OLD",
   "mapred_local_dir": "DELETE_OLD",
   "mapred_log_dir_prefix": "/var/log/hadoop-mapreduce",
   "mapred_map_tasks_max": "DELETE_OLD",
   "mapred_pid_dir_prefix": "/var/run/hadoop-mapreduce",
   "mapred_red_tasks_max": "DELETE_OLD",
   "mapreduce_jobtracker_system_dir": "REPLACE_WITH_mapred_system_dir",
-  "mapreduce_map_memory_mb": "REPLACE_WITH_mapred_job_map_mem_mb",
-  "mapreduce_reduce_memory_mb": "REPLACE_WITH_mapred_job_red_mem_mb",
+  "mapreduce_map_memory_mb": "DELETE_OLD",
+  "mapreduce_reduce_memory_mb": "DELETE_OLD",
   "mapreduce_task_io_sort_mb": "REPLACE_WITH_io_sort_mb",
   "maxtasks_per_job": "DELETE_OLD",
   "mapreduce_userlog_retainhours": "DELETE_OLD",
-  "namenode_opt_maxnewsize" : "640m",
+  "namenode_opt_maxnewsize": "640m",
   "nodemanager_heapsize": "1024",
   "rca_enabled": "DELETE_OLD",
   "resourcemanager_heapsize": "1024",
@@ -489,7 +498,8 @@ GLOBAL = {
   "yarn_heapsize": "1024",
   "yarn_log_dir_prefix": "/var/log/hadoop-yarn",
   "yarn_pid_dir_prefix": "/var/run/hadoop-yarn",
-  "yarn_user": "yarn"
+  "yarn_user": "yarn",
+  "zookeeper_sessiontimeout": "30000"
 }
 
 HDFS_SITE = {
@@ -497,6 +507,7 @@ HDFS_SITE = {
   "dfs.client.read.shortcircuit": "true",
   "dfs.client.read.shortcircuit.streams.cache.size": "4096",
   "dfs.datanode.du.pct": "DELETE_OLD",
+  "dfs.datanode.du.reserved": "1073741824",
   "dfs.datanode.socket.write.timeout": "DELETE_OLD",
   "dfs.domain.socket.path": "/var/lib/hadoop-hdfs/dn_socket",
   "dfs.hosts": "DELETE_OLD",
@@ -505,7 +516,8 @@ HDFS_SITE = {
   "dfs.web.ugi": "DELETE_OLD",
   "fs.permissions.umask-mode": "022",
   "ipc.server.max.response.size": "DELETE_OLD",
-  "ipc.server.read.threadpool.size": "DELETE_OLD"
+  "ipc.server.read.threadpool.size": "DELETE_OLD",
+  "dfs.support.append": "true"
 }
 
 CORE_SITE = {
@@ -518,8 +530,8 @@ CORE_SITE = {
 }
 
 YARN_SITE = {
-  "yarn.acl.enable" : "true",
-  "yarn.admin.acl" : "*",
+  "yarn.acl.enable": "true",
+  "yarn.admin.acl": "*",
   "yarn.application.classpath": "/etc/hadoop/conf,/usr/lib/hadoop/*,/usr/lib/hadoop/lib/*,/usr/lib/hadoop-hdfs/*,/usr/lib/hadoop-hdfs/lib/*,/usr/lib/hadoop-yarn/*,/usr/lib/hadoop-yarn/lib/*,/usr/lib/hadoop-mapreduce/*,/usr/lib/hadoop-mapreduce/lib/*",
   "yarn.log-aggregation-enable": "true",
   "yarn.log-aggregation.retain-seconds": "2592000",
@@ -556,17 +568,19 @@ YARN_SITE = {
   "yarn.scheduler.minimum-allocation-mb": "512"
 }
 
-
 HBASE_SITE = {
+  "dfs.client.read.shortcircuit": "DELETE_OLD",
   "dfs.support.append": "DELETE_OLD",
+  "hbase.defaults.for.version.skip": "true",
   "hbase.hregion.majorcompaction": "604800000",
   "hbase.hregion.max.filesize": "10737418240",
   "hbase.hstore.blockingStoreFiles": "10",
+  "hbase.hstore.flush.retries.number": "120",
   "hbase.regionserver.global.memstore.lowerLimit": "0.38",
   "hbase.regionserver.handler.count": "60",
   "hbase.rpc.engine": "DELETE_OLD",
   "hfile.block.cache.size": "0.40",
-  "zookeeper.session.timeout": "30"
+  "zookeeper.session.timeout": "30000"
 }
 
 
@@ -884,7 +898,7 @@ def modify_configs(options, config_type):
 
 
 def rename_all_properties(properties, name_mapping):
-  for key,val in name_mapping.items():
+  for key, val in name_mapping.items():
     if (key in properties.keys()) and (val not in properties.keys()):
       properties[val] = properties[key]
       del properties[key]
@@ -963,12 +977,12 @@ def install_services(options):
                       """{"RequestInfo":{"context":"Install MapReduce2"}, "Body":{"ServiceInfo": {"state":"INSTALLED"}}}"""]
   err_retcode = 0
   err_message = ""
-  for index in [0,1]:
+  for index in [0, 1]:
     response = curl(options.printonly, '-u',
-                  AUTH_FORMAT.format(options.user, options.password),
-                  '-X', 'PUT', '-d',
-                  PUT_IN_INSTALLED[index],
-                  SERVICE_URL_FORMAT.format(options.hostname, options.clustername, SERVICES[index]))
+                    AUTH_FORMAT.format(options.user, options.password),
+                    '-X', 'PUT', '-d',
+                    PUT_IN_INSTALLED[index],
+                    SERVICE_URL_FORMAT.format(options.hostname, options.clustername, SERVICES[index]))
     retcode, errdata = validate_response(response, not options.printonly)
     if not retcode == 0:
       err_retcode = retcode
@@ -979,7 +993,7 @@ def install_services(options):
     raise FatalException(err_retcode, error_msg + "(Services may already be installed or agents are not yet started.)")
 
   options.exit_message = "Requests has been submitted to install YARN and MAPREDUCE2. Use Ambari Web to monitor " \
-                           "the status of the install requests."
+                         "the status of the install requests."
   pass
 
 
@@ -1022,7 +1036,7 @@ def curl(print_only, *args):
 #
 def main():
   parser = optparse.OptionParser(usage="usage: %prog [options] action\n  Valid actions: " + VALID_ACTIONS
-                                 + "\n  update-configs accepts type, e.g. hdfs-site to update specific configs",)
+                                       + "\n  update-configs accepts type, e.g. hdfs-site to update specific configs", )
 
   parser.add_option("-n", "--printonly",
                     action="store_true", dest="printonly", default=False,
