@@ -340,20 +340,6 @@ var configs = [
     "filename": "mapred-site.xml"
   },
   {
-    "name": "mapreduce.map.memory.mb",
-    "templateName": ["mapreduce_map_memory_mb"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapreduce.reduce.memory.mb",
-    "templateName": ["mapreduce_reduce_memory_mb"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
     "name": "mapreduce.task.io.sort.mb",
     "templateName": ["mapreduce_task_io_sort_mb"],
     "foreignKey": null,

@@ -166,11 +166,13 @@
   <property>
     <name>mapreduce.map.memory.mb</name>
     <value>1536</value>
+    <description>Virtual memory for single Map task</description>
   </property>
 
   <property>
     <name>mapreduce.reduce.memory.mb</name>
     <value>1024</value>
+    <description>Virtual memory for single Reduce task</description>
   </property>
 
   <property>

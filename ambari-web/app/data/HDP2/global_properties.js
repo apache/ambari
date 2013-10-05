@@ -457,30 +457,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "mapreduce_map_memory_mb",
-      "displayName": "Default virtual memory for a job's map-task",
-      "description": "Virtual memory for single Map task",
-      "defaultValue": "1536",
-      "displayType": "int",
-      "unit": "MB",
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "MAPREDUCE2"
-    },
-    {
-      "id": "puppet var",
-      "name": "mapreduce_reduce_memory_mb",
-      "displayName": "Default virtual memory for a job's reduce-task",
-      "description": "Virtual memory for single Reduce task",
-      "defaultValue": "2048",
-      "displayType": "int",
-      "unit": "MB",
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "MAPREDUCE2"
-    },
-    {
-      "id": "puppet var",
       "name": "mapreduce_task_io_sort_mb",
       "displayName": "Map-side sort buffer memory",
       "description": "The total amount of Map-side buffer memory to use while sorting files (Expert-only configuration)",

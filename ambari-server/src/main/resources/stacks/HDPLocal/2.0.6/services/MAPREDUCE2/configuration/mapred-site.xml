@@ -166,11 +166,13 @@
   <property>
     <name>mapreduce.map.memory.mb</name>
     <value>1024</value>
+    <description>Virtual memory for single Map task</description>
   </property>
 
   <property>
     <name>mapreduce.reduce.memory.mb</name>
     <value>1024</value>
+    <description>Virtual memory for single Reduce task</description>
   </property>
 
   <property>
@@ -321,27 +323,12 @@
     </description>
   </property>
 
-  <property>
-    <name>mapreduce.map.memory.mb</name>
-    <value>1024</value>
-    <description>
-      Larger resource limit for maps.
-    </description>
-  </property>
 
   <property>
     <name>mapreduce.map.java.opts</name>
     <value>-Xmx756m</value>
     <description>
       Larger heap-size for child jvms of maps.
-    </description>
-  </property>
-
-  <property>
-    <name>mapreduce.reduce.memory.mb</name>
-    <value>1024</value>
-    <description>
-      Larger resource limit for reduces.
     </description>
   </property>
 
