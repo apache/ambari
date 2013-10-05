@@ -100,7 +100,7 @@ App.MainAppsView = Em.View.extend({
     class: "sorting",
     widthClass: "",
     content: null,
-    defaultColumn: 9,
+    defaultColumn: 8,
 
     didInsertElement: function () {
       this.set("widthClass", "col" + this.get('content.index'));
@@ -158,21 +158,13 @@ App.MainAppsView = Em.View.extend({
     fieldType: 'input-small'
   }),
   /**
-   * Filter-field for tags.
-   * Based on <code>filters</code> library
-   */
-  tagFilterView: filters.createTextView({
-    valueBinding: "controller.filterObject.tagSearch",
-    fieldType: 'input-super-mini'
-  }),
-  /**
    * Filter-field for type.
    * Based on <code>filters</code> library
    */
   typeFilterView: filters.createSelectView({
     fieldType: 'input-small',
     valueBinding: "controller.filterObject.runType",
-    content: ['Any', 'Pig', 'Hive', 'MapReduce', 'Yarn']
+    content: ['Any', 'Pig', 'Hive', 'MapReduce']
   }),
 
   /**
@@ -220,6 +212,22 @@ App.MainAppsView = Em.View.extend({
   jobsFilterView: filters.createTextView({
     fieldType: 'input-super-mini',
     valueBinding: "controller.filterObject.jobs"
+  }),
+  /**
+   * Filter-field for Input.
+   * Based on <code>filters</code> library
+   */
+  inputFilterView: filters.createTextView({
+    fieldType: 'input-super-mini',
+    valueBinding: "controller.filterObject.input"
+  }),
+  /**
+   * Filter-field for Output.
+   * Based on <code>filters</code> library
+   */
+  outputFilterView: filters.createTextView({
+    fieldType: 'input-super-mini',
+    valueBinding: "controller.filterObject.output"
   }),
   /**
    * Filter-field for Duration.

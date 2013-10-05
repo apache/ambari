@@ -32,7 +32,6 @@ App.Run2 = Ember.Object.extend({
   workflowContext: null, //string
   input: 0, //number
   output: 0, //number
-  tags: null, //string
 
   /**
    * Will set to true when we load all jobs related to this run
@@ -96,11 +95,8 @@ App.Run2 = Ember.Object.extend({
     if (this.get('id').indexOf('hive_') === 0) {
       return 'Hive';
     }
-    if (this.get('id').indexOf('mr_') === 0 || this.get('id').indexOf('mapreduce_') === 0) {
+    if (this.get('id').indexOf('mr_') === 0) {
       return 'MapReduce';
-    }
-    if (this.get('id').indexOf('yarn_') === 0) {
-      return 'Yarn';
     }
     return 'Undefined';
   }.property('id')
