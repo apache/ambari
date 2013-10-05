@@ -514,12 +514,12 @@ class TestUpgradeHDP2Script(TestCase):
       return deleted, replaced
 
     deleted, replaced = count_tags(UpgradeHelper_HDP2.GLOBAL)
-    self.assertEqual(8, replaced)
-    self.assertEqual(19, deleted)
+    self.assertEqual(6, replaced)
+    self.assertEqual(24, deleted)
 
     deleted, replaced = count_tags(UpgradeHelper_HDP2.MAPRED_SITE)
     self.assertEqual(0, replaced)
-    self.assertEqual(83, deleted)
+    self.assertEqual(85, deleted)
 
     deleted, replaced = count_tags(UpgradeHelper_HDP2.CORE_SITE)
     self.assertEqual(0, replaced)
