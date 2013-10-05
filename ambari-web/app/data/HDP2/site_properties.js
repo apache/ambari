@@ -157,6 +157,30 @@ module.exports =
       "defaultValue": "",
       "serviceName": "YARN",
       "category": "NodeManager"
+    },
+    {
+      "id": "site property",
+      "name": "mapreduce.map.memory.mb",
+      "displayName": "Default virtual memory for a job's map-task",
+      "description": "Virtual memory for single Map task",
+      "value": "",
+      "defaultValue": "",
+      "displayType": "int",
+      "unit": "MB",
+      "category": "General",
+      "serviceName": "MAPREDUCE2"
+    },
+    {
+      "id": "site property",
+      "name": "mapreduce.reduce.memory.mb",
+      "displayName": "Default virtual memory for a job's reduce-task",
+      "description": "Virtual memory for single Reduce task",
+      "value": "",
+      "defaultValue": "",
+      "displayType": "int",
+      "unit": "MB",
+      "category": "General",
+      "serviceName": "MAPREDUCE2"
     }
   ]
 };

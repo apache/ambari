@@ -26,7 +26,7 @@ class hdp-pig::pig::service_check()
 
   $cleanup_cmd = "dfs -rmr ${output_file} ${input_file}"
   #cleanup put below to handle retries; if retrying there wil be a stale file that needs cleanup; exit code is fn of second command
-  $create_file_cmd = "${cleanup_cmd}; hadoop dfs -put /etc/passwd ${input_file} " #TODO: inconsistent that second comamnd needs hadoop
+  $create_file_cmd = "${cleanup_cmd}; hadoop dfs -put /etc/passwd ${input_file} " #TODO: inconsistent that second command needs hadoop
   $test_cmd = "fs -test -e ${output_file}" 
   
   anchor { 'hdp-pig::pig::service_check::begin':}
