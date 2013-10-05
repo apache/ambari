@@ -23,8 +23,6 @@ ALTER TABLE clusterconfigmapping ADD (user_name VARCHAR2 (255) DEFAULT '_db');
 
 ALTER TABLE hostconfigmapping ADD (user_name VARCHAR2 (255) DEFAULT '_db');
 
-ALTER TABLE workflow ADD (workflowTags VARCHAR2 (4000));
-
 -- DML
 --Upgrade version to current
 UPDATE metainfo SET "metainfo_key" = 'version', "metainfo_value" = '${ambariVersion}';

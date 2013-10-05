@@ -29,7 +29,6 @@ public class WorkflowContext {
   private String workflowId;
   private String workflowName;
   private String workflowEntityName;
-  private String workflowTags;
   
   private WorkflowDag workflowDag;
   
@@ -52,10 +51,6 @@ public class WorkflowContext {
     return this.workflowEntityName;
   }
   
-  public String getWorkflowTags() {
-    return workflowTags;
-  }
-  
   public WorkflowDag getWorkflowDag() {
     return this.workflowDag;
   }
@@ -75,10 +70,6 @@ public class WorkflowContext {
   
   public void setWorkflowEntityName(String wfEntityName) {
     this.workflowEntityName = wfEntityName;
-  }
-  
-  public void setWorkflowTags(String workflowTags) {
-    this.workflowTags = workflowTags;
   }
   
   public void setWorkflowDag(WorkflowDag wfDag) {
