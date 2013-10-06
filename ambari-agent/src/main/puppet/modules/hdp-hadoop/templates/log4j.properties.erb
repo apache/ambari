@@ -215,7 +215,7 @@ log4j.additivity.org.apache.hadoop.mapred.JobInProgress$JobSummary=false
 <%=scope.function_hdp_template_var("rca_prefix")%>ambari.jobhistory.driver=<%=scope.function_hdp_host("ambari_db_rca_driver")%>
 <%=scope.function_hdp_template_var("rca_prefix")%>ambari.jobhistory.user=<%=scope.function_hdp_host("ambari_db_rca_username")%>
 <%=scope.function_hdp_template_var("rca_prefix")%>ambari.jobhistory.password=<%=scope.function_hdp_host("ambari_db_rca_password")%>
-<%=scope.function_hdp_template_var("rca_prefix")%>ambari.jobhistory.logger=INFO,JHA
+<%=scope.function_hdp_template_var("rca_prefix")%>ambari.jobhistory.logger=DEBUG,JHA
 
 <%=scope.function_hdp_template_var("rca_prefix")%>log4j.appender.JHA=org.apache.ambari.log4j.hadoop.mapreduce.jobhistory.JobHistoryAppender
 <%=scope.function_hdp_template_var("rca_prefix")%>log4j.appender.JHA.database=${ambari.jobhistory.database}

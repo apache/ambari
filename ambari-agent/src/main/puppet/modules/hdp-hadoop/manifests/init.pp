@@ -503,7 +503,7 @@ define hdp-hadoop::update-log4j-properties(
     { name => 'ambari.jobhistory.driver', value => $hdp-hadoop::params::ambari_db_rca_driver },
     { name => 'ambari.jobhistory.user', value => $hdp-hadoop::params::ambari_db_rca_username },
     { name => 'ambari.jobhistory.password', value => $hdp-hadoop::params::ambari_db_rca_password },
-    { name => 'ambari.jobhistory.logger', value => 'INFO,JHA' },
+    { name => 'ambari.jobhistory.logger', value => 'DEBUG,JHA' },
 
     { name => 'log4j.appender.JHA', value => 'org.apache.ambari.log4j.hadoop.mapreduce.jobhistory.JobHistoryAppender' },
     { name => 'log4j.appender.JHA.database', value => '${ambari.jobhistory.database}' },
