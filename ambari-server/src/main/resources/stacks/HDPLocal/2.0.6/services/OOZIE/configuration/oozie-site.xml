@@ -302,4 +302,12 @@
         Command re-queue interval for push dependencies (in millisecond).
     </description>
     </property>
+    <property>
+      <name>oozie.credentials.credentialclasses</name>
+      <value>hcat=org.apache.oozie.action.hadoop.HCatCredentials</value>
+      <description>
+        Credential Class to be used for HCat.
+      </description>
+    </property>
+
 </configuration>
