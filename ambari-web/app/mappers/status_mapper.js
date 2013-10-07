@@ -159,6 +159,12 @@ App.statusMapper = App.QuickDataMapper.create({
             hostComponent.set('displayNameAdvanced', null);
           }
         }
+      } else if(hostComponent.get('componentName') === 'HBASE_MASTER') {
+        if (hostComponent.get('workStatus') === 'STARTED') {
+          hostComponent.get('haStatus') == 'active' ? hostComponent.set('displayNameAdvanced', this.t('dashboard.services.hbase.masterServer.active')) : hostComponent.set('displayNameAdvanced', this.t('dashboard.services.hbase.masterServer.standby'));
+        } else {
+          hostComponent.set('displayNameAdvanced', null);
+        }
       }
 
       if (hostComponent.get("displayNameAdvanced")) {

@@ -1445,6 +1445,8 @@ Em.I18n.translations = {
   
   'dashboard.services.hbase.summary':'{0} region servers with {1} average load',
   'dashboard.services.hbase.masterServer':'HBase Master',
+  'dashboard.services.hbase.masterServer.active':'Active HBase Master',
+  'dashboard.services.hbase.masterServer.standby':'Standby HBase Master',
   'dashboard.services.hbase.noMasterServer':'No Active Master',
   'dashboard.services.hbase.masterServerHeap':'Master Heap',
   'dashboard.services.hbase.masterServerHeap.summary':'{0} / {1} ({2}% used)',
