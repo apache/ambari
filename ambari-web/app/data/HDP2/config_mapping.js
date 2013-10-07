@@ -339,48 +339,6 @@ var configs = [
     "value": "<templateName[0]>:10020",
     "filename": "mapred-site.xml"
   },
-  {
-    "name": "mapreduce.task.io.sort.mb",
-    "templateName": ["mapreduce_task_io_sort_mb"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapreduce.jobtracker.system.dir",
-    "templateName": ["mapreduce_jobtracker_system_dir"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapred.hosts",
-    "templateName": ["hadoop_conf_dir", "mapred_hosts_include"],
-    "foreignKey": null,
-    "value": "<templateName[0]>/<templateName[1]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapred.task.tracker.task-controller",
-    "templateName": ["task_controller"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapred.hosts.exclude",
-    "templateName": ["hadoop_conf_dir", "mapred_hosts_exclude"],
-    "foreignKey": null,
-    "value": "<templateName[0]>/<templateName[1]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapreduce.tasktracker.healthchecker.script.path",
-    "templateName": ["mapred_jobstatus_dir"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "mapred-site.xml"
-  },
 
   /**********************************************hbase-site***************************************/
   {
