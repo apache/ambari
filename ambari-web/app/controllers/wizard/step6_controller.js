@@ -53,6 +53,10 @@ App.WizardStep6Controller = Em.Controller.extend({
     return this.get('content.controllerName') === 'installerController';
   }.property('content.controllerName'),
 
+  isAddServiceWizard: function() {
+    return this.get('content.controllerName') === 'addServiceController';
+  }.property('content.controllerName'),
+
   clearError: function () {
     var self = this;
     var isError = false;
@@ -409,9 +413,15 @@ App.WizardStep6Controller = Em.Controller.extend({
     if (this.get('isAddHostWizard')) {
       return this.validateEachHost(Em.I18n.t('installer.step6.error.mustSelectOneForHost'));
     }
-    else if (this.get('isInstallerWizard')) {
-      //this.validateEachComponent() ? this.validateEachHost(Em.I18n.t('installer.step6.error.mustSelectOneForHost') ? return true : return false : return false;
-     return this.validateEachComponent() && this.validateEachHost(Em.I18n.t('installer.step6.error.mustSelectOneForSlaveHost'));
+    else {
+      if (this.get('isInstallerWizard')) {
+       return this.validateEachComponent() && this.validateEachHost(Em.I18n.t('installer.step6.error.mustSelectOneForSlaveHost'));
+      }
+      else {
+        if(this.get('isAddServiceWizard')) {
+          return this.validateEachComponent();
+        }
+      }
     }
   },
 

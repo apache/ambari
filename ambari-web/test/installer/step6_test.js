@@ -99,6 +99,17 @@ describe('App.WizardStep6Controller', function () {
     });
   });
 
+  describe('#isAddServiceWizard', function() {
+    it('true if content.controllerName is addServiceController', function() {
+      controller.set('content.controllerName', 'addServiceController');
+      expect(controller.get('isAddServiceWizard')).to.equal(true);
+    });
+    it('false if content.controllerName is not addServiceController', function() {
+      controller.set('content.controllerName', 'mainController');
+      expect(controller.get('isAddServiceWizard')).to.equal(false);
+    });
+  });
+
   describe('#hasMasterComponents', function() {
     HOSTS.forEach(function(host) {
       it('Host ' + host + ' is master', function() {
