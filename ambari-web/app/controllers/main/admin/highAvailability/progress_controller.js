@@ -74,20 +74,23 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
   }.property('tasks'),
 
   loadTasks: function () {
+    var self = this;
     var loadedStauses = this.get('content.tasksStatuses');
     var loadedLogs = this.get('content.logs');
     if (loadedStauses && loadedLogs && loadedStauses.length === this.get('tasks').length) {
-      for (var i = 0; i < loadedStauses.length; i++) {
-        this.setTaskStatus(i, loadedStauses[i]);
-        this.restoreTaskLog(i, loadedLogs[i]);
-      }
+      this.get('tasks').forEach(function(task,i){
+        self.setTaskStatus(task.get('id'), loadedStauses[i]);
+        self.restoreTaskLog(task.get('id'), loadedLogs[i]);
+      });
       if (loadedStauses.contains('IN_PROGRESS')) {
+        var curTaskId = this.get('tasks')[loadedStauses.indexOf('IN_PROGRESS')].get('id');
         this.set('currentRequestIds', this.get('content.requestIds'));
-        this.set('currentTaskId', loadedStauses.indexOf('IN_PROGRESS'));
+        this.set('currentTaskId', curTaskId);
         this.doPolling();
       }else if (loadedStauses.contains('QUEUED')){
-        this.set('currentTaskId', loadedStauses.indexOf('QUEUED'));
-        this.runTask(loadedStauses.indexOf('QUEUED'));
+        var curTaskId = this.get('tasks')[loadedStauses.indexOf('QUEUED')].get('id');
+        this.set('currentTaskId', curTaskId);
+        this.runTask(curTaskId);
       }
     }
   },
