@@ -457,31 +457,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "mapreduce_task_io_sort_mb",
-      "displayName": "Map-side sort buffer memory",
-      "description": "The total amount of Map-side buffer memory to use while sorting files (Expert-only configuration)",
-      "defaultValue": "200",
-      "displayType": "int",
-      "unit": "MB",
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "MAPREDUCE2"
-    },
-    {
-      "id": "puppet var",
-      "name": "mapreduce_jobtracker_system_dir",
-      "displayName": "MapReduce system directories",
-      "description": "",
-      "defaultValue": "/mapred/system",
-      "displayType": "directories",
-      "isReconfigurable": true,
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "MAPREDUCE2",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
       "name": "mapred_log_dir_prefix",
       "displayName": "Mapreduce Log Dir Prefix",
       "description": "",
@@ -504,54 +479,6 @@ module.exports =
       "isReconfigurable": false,
       "domain": "global",
       "serviceName": "MAPREDUCE2",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
-      "name": "mapred_hosts_include",
-      "displayName": "Include hosts",
-      "description": "Include enetered hosts",
-      "defaultValue": "mapred.include",
-      "displayType": "directories",
-      "isVisible": false,
-      "serviceName": "MAPREDUCE2",
-      "domain": "global",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
-      "name": "task_controller",
-      "displayName": "task_controller",
-      "description": "",
-      "defaultValue": "org.apache.hadoop.mapred.DefaultTaskController",
-      "displayType": "advanced",
-      "isVisible": false,
-      "serviceName": "MAPREDUCE2",
-      "domain": "global",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
-      "name": "mapred_hosts_exclude",
-      "displayName": "Exclude hosts",
-      "description": "Exclude entered hosts",
-      "defaultValue": "mapred.exclude",
-      "displayType": "directories",
-      "isVisible": false,
-      "serviceName": "MAPREDUCE2",
-      "domain": "global",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
-      "name": "mapred_jobstatus_dir",
-      "displayName": "Job Status directory",
-      "description": "Directory path to view job status",
-      "defaultValue": "file:////mapred/jobstatus",
-      "displayType": "advanced",
-      "isVisible": false,
-      "serviceName": "MAPREDUCE2",
-      "domain": "global",
       "category": "Advanced"
     },
 

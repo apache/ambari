@@ -181,6 +181,18 @@ module.exports =
       "unit": "MB",
       "category": "General",
       "serviceName": "MAPREDUCE2"
+    },
+    {
+      "id": "site property",
+      "name": "mapreduce.task.io.sort.mb",
+      "displayName": "Map-side sort buffer memory",
+      "description": "The total amount of buffer memory to use while sorting files, in megabytes.\
+       By default, gives each merge stream 1MB, which should minimize seeks.",
+      "defaultValue": "",
+      "displayType": "int",
+      "unit": "MB",
+      "category": "General",
+      "serviceName": "MAPREDUCE2"
     }
   ]
 };
