@@ -161,6 +161,13 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
     task.set('status', 'COMPLETED');
   },
 
+  retryTask: function () {
+    var task = this.get('tasks').findProperty('status', 'FAILED');
+    task.set('showRetry', false);
+    task.set('showSkip', false);
+    task.set('status', 'PENDING');
+  },
+
   onTaskCompleted: function () {
     var curTaskStatus = this.getTaskStatus(this.get('currentTaskId'));
     if (curTaskStatus != 'FAILED' && curTaskStatus != 'TIMEDOUT' && curTaskStatus != 'ABORTED') {
