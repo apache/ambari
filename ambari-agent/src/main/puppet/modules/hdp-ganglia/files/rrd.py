@@ -139,9 +139,20 @@ if "pt" in queryString:
   pointInTime = True
 else:
   pointInTime = False
+  
+def _walk(*args, **kwargs):
+ 
+  for root,dirs,files in os.walk(*args, **kwargs):
+    for dir in dirs:
+      qualified_dir = os.path.join(root,dir)
+      if os.path.islink(qualified_dir):
+        for x in os.walk(qualified_dir, **kwargs):
+          yield x
+    yield (root, dirs, files)
+    
 
 for cluster in clusterParts:
-  for path, dirs, files in os.walk(rrdPath + cluster,followlinks=True):
+  for path, dirs, files in _walk(rrdPath + cluster):
     pathParts = path.split("/")
     if len(hostParts) == 0 or pathParts[-1] in hostParts:
       for file in files:
