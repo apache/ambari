@@ -72,7 +72,7 @@ Em.View.reopen({
     if(!this.get('isDestroyed') && !this.get('isDestroying')){
       this._super(attr, value);
     } else {
-      console.error('Calling set on destroyed view');
+      console.debug('Calling set on destroyed view');
     }
   }
 });
