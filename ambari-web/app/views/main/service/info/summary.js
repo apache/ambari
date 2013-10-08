@@ -58,6 +58,7 @@ App.MainServiceInfoSummaryView = Em.View.extend({
 
   noTemplateService: function () {
     var serviceName = this.get("service.serviceName");
+    //services with only master components
     if(serviceName == "WEBHCAT" || serviceName == "NAGIOS"){
       return true;
     }else{
