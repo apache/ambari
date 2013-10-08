@@ -28,20 +28,6 @@
           <tbody>
             {{#if view.noTemplateService}}
               {{view view.sumMasterComponentView}}
-              {{#each component in view.components}}
-                {{#unless component.isMaster}}
-                  <tr>
-                    <td class="summary-label">{{component.displayName}}{{#if view.hasManyClients}}s{{/if}}</td>
-                    <td>
-                      <span class="green-live">{{view.clients.length}}</span>
-                      {{component.displayName}} {{#if view.hasManyClients}}s{{/if}} {{t common.installed}}
-                      <div class="summary-view-host">
-                        <a {{action filterHosts component}} href="javascript:void(null)">{{view.clientsHostText}}</a>
-                      </div>
-                    </td>
-                  </tr>
-                {{/unless}}
-              {{/each}}
             {{/if}}
             {{#if view.serviceStatus.hdfs}}
               {{view App.MainDashboardServiceHdfsView showOnlyRows=true serviceBinding="view.service"}}
