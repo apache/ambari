@@ -472,7 +472,7 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   hostsInCluster: function() {
     return App.Host.find().getEach('hostName');
-  }.property().cacheable(),
+  }.property().volatile(),
 
   getAllRegisteredHostsCallback: function(hosts) {
     var registeredHosts = [];
