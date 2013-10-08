@@ -358,7 +358,7 @@ public class WorkflowJsonService {
     data.setMapNodeLocal(processExactLocalityData(taskAttempts, "MAP", "NODE_LOCAL", io));
     data.setMapRackLocal(processExactLocalityData(taskAttempts, "MAP", "RACK_LOCAL", io));
     data.setMapOffSwitch(processExactLocalityData(taskAttempts, "MAP", "OFF_SWITCH", io));
-    data.setReduceOffSwitch(processExactLocalityData(taskAttempts, "REDUCE", "OFF_SWITCH", io));
+    data.setReduceOffSwitch(processExactLocalityData(taskAttempts, "REDUCE", null, io));
     setRValues(data.getMapNodeLocal(), minr, maxr, io.max);
     setRValues(data.getMapRackLocal(), minr, maxr, io.max);
     setRValues(data.getMapOffSwitch(), minr, maxr, io.max);
@@ -446,7 +446,7 @@ public class WorkflowJsonService {
   private static List<DataPoint> processExactLocalityData(List<TaskAttempt> taskAttempts, String taskType, String locality, MinMax io) {
     List<DataPoint> data = new ArrayList<DataPoint>();
     for (TaskAttempt taskAttempt : taskAttempts) {
-      if (taskType.equals(taskAttempt.getTaskType()) && locality.equals(taskAttempt.getLocality())) {
+      if (taskType.equals(taskAttempt.getTaskType()) && (locality == null || locality.equals(taskAttempt.getLocality()))) {
         DataPoint point = new DataPoint();
         point.setX(taskAttempt.getStartTime());
         point.setY(taskAttempt.getFinishTime() - taskAttempt.getStartTime());
