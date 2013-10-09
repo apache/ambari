@@ -17,21 +17,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import Queue
 
 import logging
 import traceback
 import threading
-from threading import Thread
 import pprint
 import os
 
 from LiveStatus import LiveStatus
 from shell import shellRunner
 import PuppetExecutor
-import UpgradeExecutor
 import PythonExecutor
 from ActualConfigHandler import ActualConfigHandler
-from ActionDependencyManager import ActionDependencyManager
 from CommandStatusDict import CommandStatusDict
 
 
@@ -49,13 +47,12 @@ class ActionQueue(threading.Thread):
 
   STATUS_COMMAND = 'STATUS_COMMAND'
   EXECUTION_COMMAND = 'EXECUTION_COMMAND'
-  ROLE_COMMAND_UPGRADE = 'UPGRADE'
 
   IN_PROGRESS_STATUS = 'IN_PROGRESS'
 
   def __init__(self, config, controller):
     super(ActionQueue, self).__init__()
-    self.commandQueue = ActionDependencyManager(config)
+    self.commandQueue = Queue.Queue()
     self.commandStatuses = CommandStatusDict(callback_action =
       self.status_update_callback)
     self.config = config
@@ -71,51 +68,30 @@ class ActionQueue(threading.Thread):
     return self._stop.isSet()
 
   def put(self, commands):
-    self.commandQueue.put_actions(commands)
+    for command in commands:
+      logger.info("Adding " + command['commandType'] + " for service " + \
+                  command['serviceName'] + " of cluster " + \
+                  command['clusterName'] + " to the queue.")
+      logger.debug(pprint.pformat(command))
+      self.commandQueue.put(command)
 
 
   def run(self):
     while not self.stopped():
-      # Taking a new portion of tasks
-      portion = self.commandQueue.get_next_action_group() # Will block if queue is empty
-      portion = portion[::-1] # Reverse list order
-      self.process_portion_of_actions(portion)
+      command = self.commandQueue.get() # Will block if queue is empty
+      self.process_command(command)
 
 
-  def process_portion_of_actions(self, portion):
-    # starting execution of a group of commands
-    running_list = []
-    finished_list = []
-    while portion or running_list: # While not finished actions in portion
-      # poll threads under execution
-      for thread in running_list:
-        if not thread.is_alive():
-          finished_list.append(thread)
-        # Remove finished from the running list
-      running_list[:] = [b for b in running_list if not b in finished_list]
-      # Start next actions
-      free_slots = self.MAX_CONCURRENT_ACTIONS - len(running_list)
-      while free_slots > 0 and portion: # Start new threads if available
-        command = portion.pop()
-        logger.debug("Took an element of Queue: " + pprint.pformat(command))
-        if command['commandType'] == self.EXECUTION_COMMAND:
-          # Start separate threads for commands of this type
-          action_thread = Thread(target =  self.execute_command_safely, args = (command, ))
-          running_list.append(action_thread)
-          free_slots -= 1
-          action_thread.start()
-        elif command['commandType'] == self.STATUS_COMMAND:
-          # Execute status commands immediately, in current thread
-          self.execute_status_command(command)
-        else:
-          logger.error("Unrecognized command " + pprint.pformat(command))
-    pass
-
-
-  def execute_command_safely(self, command):
+  def process_command(self, command):
+    logger.debug("Took an element of Queue: " + pprint.pformat(command))
     # make sure we log failures
     try:
-      self.execute_command(command)
+      if command['commandType'] == self.EXECUTION_COMMAND:
+        self.execute_command(command)
+      elif command['commandType'] == self.STATUS_COMMAND:
+        self.execute_status_command(command)
+      else:
+        logger.error("Unrecognized command " + pprint.pformat(command))
     except Exception, err:
       # Should not happen
       traceback.print_exc()
@@ -123,6 +99,9 @@ class ActionQueue(threading.Thread):
 
 
   def execute_command(self, command):
+    '''
+    Executes commands of type  EXECUTION_COMMAND
+    '''
     clusterName = command['clusterName']
     commandId = command['commandId']
 
@@ -147,17 +126,8 @@ class ActionQueue(threading.Thread):
       self.config.get('puppet', 'puppet_home'),
       self.config.get('puppet', 'facter_home'),
       self.config.get('agent', 'prefix'), self.config)
-    if command['roleCommand'] == ActionQueue.ROLE_COMMAND_UPGRADE:
-      # Create new instances for the current thread
-      pythonExecutor = PythonExecutor.PythonExecutor(
-          self.config.get('agent', 'prefix'), self.config)
-      upgradeExecutor = UpgradeExecutor.UpgradeExecutor(pythonExecutor,
-          puppetExecutor, self.config)
-      commandresult = upgradeExecutor.perform_stack_upgrade(command, in_progress_status['tmpout'],
-        in_progress_status['tmperr'])
-    else:
-      commandresult = puppetExecutor.runCommand(command, in_progress_status['tmpout'],
-        in_progress_status['tmperr'])
+    commandresult = puppetExecutor.runCommand(command, in_progress_status['tmpout'],
+      in_progress_status['tmperr'])
     # dumping results
     status = "COMPLETED"
     if commandresult['exitcode'] != 0:
@@ -189,6 +159,9 @@ class ActionQueue(threading.Thread):
 
 
   def execute_status_command(self, command):
+    '''
+    Executes commands of type STATUS_COMMAND
+    '''
     try:
       cluster = command['clusterName']
       service = command['serviceName']

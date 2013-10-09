@@ -23,7 +23,6 @@ import StringIO
 import ssl
 import unittest, threading
 from ambari_agent import Controller, ActionQueue
-from  ambari_agent.ActionDependencyManager import ActionDependencyManager
 from ambari_agent import hostname
 import sys
 from ambari_agent.Controller import AGENT_AUTO_RESTART_EXIT_CODE
@@ -153,9 +152,7 @@ class TestController(unittest.TestCase):
   @patch("urllib2.build_opener")
   @patch("urllib2.install_opener")
   @patch.object(ActionQueue.ActionQueue, "run")
-  @patch.object(ActionDependencyManager, "read_dependencies")
-  @patch.object(ActionDependencyManager, "dump_info")
-  def test_repeatRegistration(self, dump_info_mock, read_dependencies_mock,
+  def test_repeatRegistration(self,
                               run_mock, installMock, buildMock):
 
     registerAndHeartbeat = MagicMock(name="registerAndHeartbeat")

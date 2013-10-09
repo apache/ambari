@@ -21,7 +21,6 @@ limitations under the License.
 from unittest import TestCase
 import unittest
 from ambari_agent.Heartbeat import Heartbeat
-from ambari_agent.ActionDependencyManager import ActionDependencyManager
 from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent.LiveStatus import LiveStatus
 from ambari_agent import AmbariConfig
@@ -47,8 +46,7 @@ class TestHeartbeat(TestCase):
     sys.stdout = sys.__stdout__
 
 
-  @patch.object(ActionDependencyManager, "read_dependencies")
-  def test_build(self, read_dependencies_mock):
+  def test_build(self):
     actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig(),'dummy_controller')
     heartbeat = Heartbeat(actionQueue)
     result = heartbeat.build(100)
@@ -66,12 +64,9 @@ class TestHeartbeat(TestCase):
     self.assertEquals(not heartbeat.reports, True, "Heartbeat should not contain task in progress")
 
 
-  @patch.object(ActionDependencyManager, "read_dependencies")
   @patch.object(ActionQueue, "result")
-  @patch.object(ActionDependencyManager, "is_action_group_available")
   @patch.object(HostInfo, "register")
-  def test_no_mapping(self, register_mock, is_action_group_available_mock, result_mock,
-                      read_dependencies_mock):
+  def test_no_mapping(self, register_mock, result_mock):
     result_mock.return_value = {
       'reports': [{'status': 'IN_PROGRESS',
                    'stderr': 'Read from /tmp/errors-3.txt',
@@ -95,11 +90,8 @@ class TestHeartbeat(TestCase):
     self.assertEqual(register_mock.call_args_list[0][0][1], False)
 
 
-  @patch.object(ActionDependencyManager, "read_dependencies")
   @patch.object(ActionQueue, "result")
-  @patch.object(ActionDependencyManager, "is_action_group_available")
-  def test_build_long_result(self, is_action_group_available_mock, result_mock,
-                  read_dependencies_mock):
+  def test_build_long_result(self, result_mock):
     actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig(),'dummy_controller')
     result_mock.return_value = {
       'reports': [{'status': 'IN_PROGRESS',
@@ -184,22 +176,17 @@ class TestHeartbeat(TestCase):
     self.assertEquals(hb, expected)
 
 
-  @patch.object(ActionDependencyManager, "read_dependencies")
-  @patch.object(ActionDependencyManager, "dump_info")
-  @patch.object(ActionDependencyManager, "can_be_executed_in_parallel")
   @patch.object(HostInfo, 'register')
-  def test_heartbeat_no_host_check_cmd_in_queue(self, register_mock,
-      can_be_executed_in_parallel_mock, dump_info_mock, read_dependencies_mock):
-    can_be_executed_in_parallel_mock.return_value = False
+  def test_heartbeat_no_host_check_cmd_in_queue(self, register_mock):
     actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig(),'dummy_controller')
     statusCommand = {
       "serviceName" : 'HDFS',
       "commandType" : "STATUS_COMMAND",
-      "clusterName" : "",
+      "clusterName" : "c1",
       "componentName" : "DATANODE",
       'configurations':{'global' : {}}
     }
-    actionQueue.put(list(statusCommand))
+    actionQueue.put([statusCommand])
 
     heartbeat = Heartbeat(actionQueue)
     heartbeat.build(12, 6)
@@ -209,9 +196,8 @@ class TestHeartbeat(TestCase):
     self.assertFalse(args[1])
 
 
-  @patch.object(ActionDependencyManager, "read_dependencies")
   @patch.object(HostInfo, 'register')
-  def test_heartbeat_host_check_no_cmd(self, register_mock, read_dependencies_mock):
+  def test_heartbeat_host_check_no_cmd(self, register_mock):
     actionQueue = ActionQueue(AmbariConfig.AmbariConfig().getConfig(),'dummy_controller')
     heartbeat = Heartbeat(actionQueue)
     heartbeat.build(12, 6)

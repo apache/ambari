@@ -55,7 +55,7 @@ class Heartbeat:
                 }
 
     commandsInProgress = False
-    if self.actionQueue.commandQueue.is_action_group_available():
+    if not self.actionQueue.commandQueue.empty():
       commandsInProgress = True
     if len(queueResult) != 0:
       heartbeat['reports'] = queueResult['reports']

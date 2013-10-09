@@ -17,13 +17,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+from Queue import Queue
 
 from unittest import TestCase
 from ambari_agent.LiveStatus import LiveStatus
 from ambari_agent.PuppetExecutor import PuppetExecutor
 from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent.AmbariConfig import AmbariConfig
-from ambari_agent.ActionDependencyManager import ActionDependencyManager
 import os, errno, time, pprint, tempfile, threading
 import StringIO
 import sys
@@ -31,7 +31,6 @@ from threading import Thread
 
 from mock.mock import patch, MagicMock, call
 from ambari_agent.StackVersionsFileHandler import StackVersionsFileHandler
-from ambari_agent.UpgradeExecutor import UpgradeExecutor
 
 
 class TestActionQueue(TestCase):
@@ -126,106 +125,79 @@ class TestActionQueue(TestCase):
   }
 
 
-  @patch.object(ActionDependencyManager, "read_dependencies")
-  @patch.object(ActionDependencyManager, "get_next_action_group")
-  @patch.object(ActionQueue, "process_portion_of_actions")
-  def test_ActionQueueStartStop(self, process_portion_of_actions_mock,
-                          get_next_action_group_mock, read_dependencies_mock):
+  @patch.object(ActionQueue, "process_command")
+  @patch.object(Queue, "get")
+  def test_ActionQueueStartStop(self, get_mock, process_command_mock):
     actionQueue = ActionQueue(AmbariConfig().getConfig(), 'dummy_controller')
     actionQueue.start()
     time.sleep(0.1)
     actionQueue.stop()
     actionQueue.join()
     self.assertEqual(actionQueue.stopped(), True, 'Action queue is not stopped.')
-    self.assertTrue(get_next_action_group_mock.call_count > 1)
-    self.assertTrue(process_portion_of_actions_mock.call_count > 1)
-
-
-  @patch.object(ActionDependencyManager, "read_dependencies")
-  @patch.object(ActionQueue, "execute_command")
-  @patch.object(ActionQueue, "execute_status_command")
-  def test_process_portion_of_actions(self, execute_status_command_mock,
-            executeCommand_mock, read_dependencies_mock):
-    actionQueue = ActionQueue(AmbariConfig().getConfig(), 'dummy_controller')
-    # Test execution of EXECUTION_COMMANDs
-    max = 3
-    actionQueue.MAX_CONCURRENT_ACTIONS = max
-    unfreeze_flag = threading.Event()
-    sync_lock = threading.RLock()
-    stats = {
-      'waiting_threads' : 0
-    }
-    def side_effect(self):
-      with sync_lock: # Synchtonized to avoid race effects during test execution
-        stats['waiting_threads'] += 1
-      unfreeze_flag.wait()
-    executeCommand_mock.side_effect = side_effect
-    portion = [self.datanode_install_command,
-               self.namenode_install_command,
-               self.snamenode_install_command,
-               self.nagios_install_command,
-               self.hbase_install_command]
-
-    # We call method in a separate thread
-    action_thread = Thread(target =  actionQueue.process_portion_of_actions, args = (portion, ))
-    action_thread.start()
-    # Now we wait to check that only MAX_CONCURRENT_ACTIONS threads are running
-    while stats['waiting_threads'] != max:
-      time.sleep(0.1)
-    self.assertEqual(stats['waiting_threads'], max)
-    # unfreezing waiting threads
-    unfreeze_flag.set()
-    # wait until all threads are finished
-    action_thread.join()
-    self.assertTrue(executeCommand_mock.call_count == 5)
-    self.assertFalse(execute_status_command_mock.called)
-    executeCommand_mock.reset_mock()
-    execute_status_command_mock.reset_mock()
-
-    # Test execution of STATUS_COMMANDs
-    n = 5
-    portion = []
-    for i in range(0, n):
-      status_command = {
-        'componentName': 'DATANODE',
-        'commandType': 'STATUS_COMMAND',
-      }
-      portion.append(status_command)
-    actionQueue.process_portion_of_actions(portion)
-    self.assertTrue(execute_status_command_mock.call_count == n)
-    self.assertFalse(executeCommand_mock.called)
-
-    # Test execution of unknown command
-    unknown_command = {
-      'commandType': 'WRONG_COMMAND',
-    }
-    portion = [unknown_command]
-    actionQueue.process_portion_of_actions(portion)
-    # no exception expected
-    pass
+    self.assertTrue(process_command_mock.call_count > 1)
 
 
   @patch("traceback.print_exc")
-  @patch.object(ActionDependencyManager, "read_dependencies")
   @patch.object(ActionQueue, "execute_command")
-  def test_execute_command_safely(self, execute_command_mock,
-                                  read_dependencies_mock, print_exc_mock):
+  @patch.object(ActionQueue, "execute_status_command")
+  def test_process_command(self, execute_status_command_mock,
+                           execute_command_mock, print_exc_mock):
     actionQueue = ActionQueue(AmbariConfig().getConfig(), 'dummy_controller')
+    execution_command = {
+      'commandType' : ActionQueue.EXECUTION_COMMAND,
+    }
+    status_command = {
+      'commandType' : ActionQueue.STATUS_COMMAND,
+    }
+    wrong_command = {
+      'commandType' : "SOME_WRONG_COMMAND",
+    }
+    # Try wrong command
+    actionQueue.process_command(wrong_command)
+    self.assertFalse(execute_command_mock.called)
+    self.assertFalse(execute_status_command_mock.called)
+    self.assertFalse(print_exc_mock.called)
+
+    execute_command_mock.reset_mock()
+    execute_status_command_mock.reset_mock()
+    print_exc_mock.reset_mock()
     # Try normal execution
-    actionQueue.execute_command_safely('command')
-    # Try exception ro check proper logging
+    actionQueue.process_command(execution_command)
+    self.assertTrue(execute_command_mock.called)
+    self.assertFalse(execute_status_command_mock.called)
+    self.assertFalse(print_exc_mock.called)
+
+    execute_command_mock.reset_mock()
+    execute_status_command_mock.reset_mock()
+    print_exc_mock.reset_mock()
+
+    actionQueue.process_command(status_command)
+    self.assertFalse(execute_command_mock.called)
+    self.assertTrue(execute_status_command_mock.called)
+    self.assertFalse(print_exc_mock.called)
+
+    execute_command_mock.reset_mock()
+    execute_status_command_mock.reset_mock()
+    print_exc_mock.reset_mock()
+
+    # Try exception to check proper logging
     def side_effect(self):
       raise Exception("TerribleException")
     execute_command_mock.side_effect = side_effect
-    actionQueue.execute_command_safely('command')
+    actionQueue.process_command(execution_command)
     self.assertTrue(print_exc_mock.called)
+
+    print_exc_mock.reset_mock()
+
+    execute_status_command_mock.side_effect = side_effect
+    actionQueue.process_command(execution_command)
+    self.assertTrue(print_exc_mock.called)
+
 
 
   @patch("__builtin__.open")
   @patch.object(ActionQueue, "status_update_callback")
-  @patch.object(ActionDependencyManager, "read_dependencies")
-  def test_execute_command(self, read_dependencies_mock,
-                           status_update_callback_mock, open_mock):
+  def test_execute_command(self, status_update_callback_mock, open_mock):
     # Make file read calls visible
     def open_side_effect(file, mode):
       if mode == 'r':
@@ -251,10 +223,7 @@ class TestActionQueue(TestCase):
     def patched_aq_execute_command(command):
       # We have to perform patching for separate thread in the same thread
       with patch.object(PuppetExecutor, "runCommand") as runCommand_mock:
-        with patch.object(UpgradeExecutor, "perform_stack_upgrade") \
-              as perform_stack_upgrade_mock:
           runCommand_mock.side_effect = side_effect
-          perform_stack_upgrade_mock.side_effect = side_effect
           actionQueue.execute_command(command)
     ### Test install/start/stop command ###
     ## Test successful execution with configuration tags
@@ -379,11 +348,10 @@ class TestActionQueue(TestCase):
 
   @patch.object(ActionQueue, "status_update_callback")
   @patch.object(StackVersionsFileHandler, "read_stack_version")
-  @patch.object(ActionDependencyManager, "read_dependencies")
   @patch.object(ActionQueue, "execute_command")
   @patch.object(LiveStatus, "build")
   def test_execute_status_command(self, build_mock, execute_command_mock,
-                                  read_dependencies_mock, read_stack_version_mock,
+                                  read_stack_version_mock,
                                   status_update_callback):
     actionQueue = ActionQueue(AmbariConfig().getConfig(), 'dummy_controller')
     build_mock.return_value = "dummy report"
