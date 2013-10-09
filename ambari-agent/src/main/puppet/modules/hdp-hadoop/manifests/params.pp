@@ -183,6 +183,8 @@ class hdp-hadoop::params(
   } else {
     $mapred_local_dir = hdp_default("mapred-site/mapred.local.dir","/tmp/hadoop-mapred/mapred/local")
   }
+
+  $mapred_tt_group = hdp_default("mapred-site/mapreduce.tasktracker.group", "hadoop")
    
   $mapreduce_userlog_retainhours = hdp_default("mapred-site/mapreduce.userlog.retainhours",24)
 

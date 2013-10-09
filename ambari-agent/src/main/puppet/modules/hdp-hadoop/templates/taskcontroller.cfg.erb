@@ -16,5 +16,5 @@
 # * limitations under the License.
 # */
 mapred.local.dir=<%=scope.function_hdp_template_var("mapred_local_dir")%>
-mapreduce.tasktracker.group=<%=scope.function_hdp_default(["::mapred-site/mapreduce.tasktracker.group","hadoop"])%>
+mapreduce.tasktracker.group=<%=scope.function_hdp_template_var("mapred_tt_group")%>
 hadoop.log.dir=<%=scope.function_hdp_template_var("hdfs_log_dir_prefix")%>/<%=scope.function_hdp_template_var("mapred_user")%>
