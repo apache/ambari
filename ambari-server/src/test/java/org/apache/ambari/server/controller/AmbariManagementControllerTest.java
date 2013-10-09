@@ -118,7 +118,7 @@ public class AmbariManagementControllerTest {
   private static final int REPOS_CNT = 3;
   private static final int STACKS_CNT = 1;
   private static final int STACK_SERVICES_CNT = 5 ;
-  private static final int STACK_PROPERTIES_CNT = 81;
+  private static final int STACK_PROPERTIES_CNT = 84;
   private static final int STACK_COMPONENTS_CNT = 3;
   private static final int OS_CNT = 2;
 
@@ -6904,6 +6904,7 @@ public class AmbariManagementControllerTest {
     requests.clear();
     request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
     request.setBaseUrl(repo.getDefaultBaseUrl());
+    request.setVerifyBaseUrl(false);
     requests.add(request);
     controller.updateRespositories(requests);
     Assert.assertEquals(repo.getBaseUrl(), repo.getDefaultBaseUrl());
