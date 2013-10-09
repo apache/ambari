@@ -294,20 +294,23 @@ App.statusMapper = App.QuickDataMapper.create({
     hosts.forEach(function(_host){
       var healthStatus = _host.get('healthStatus');
       var host = hostsMap[_host.get('id')];
-      var status;
-      var masterComponentsRunning = (host.mastersRunning === host.totalMasters);
-      var slaveComponentsRunning = (host.slavesRunning === host.totalSlaves);
-      if (_host.get('isNotHeartBeating') || healthStatus == 'UNKNOWN') {
-        status = 'DEAD-YELLOW';
-      } else if (masterComponentsRunning && slaveComponentsRunning) {
-        status = 'LIVE';
-      } else if (host.totalMasters > 0 && !masterComponentsRunning) {
-        status = 'DEAD-RED';
-      } else {
-        status = 'DEAD-ORANGE';
-      }
-      if (status) {
-        healthStatus = status;
+      if(host) {
+        //hostComponents of host are loaded to model
+        var status;
+        var masterComponentsRunning = (host.mastersRunning === host.totalMasters);
+        var slaveComponentsRunning = (host.slavesRunning === host.totalSlaves);
+        if (_host.get('isNotHeartBeating') || healthStatus == 'UNKNOWN') {
+          status = 'DEAD-YELLOW';
+        } else if (masterComponentsRunning && slaveComponentsRunning) {
+          status = 'LIVE';
+        } else if (host.totalMasters > 0 && !masterComponentsRunning) {
+          status = 'DEAD-RED';
+        } else {
+          status = 'DEAD-ORANGE';
+        }
+        if (status) {
+          healthStatus = status;
+        }
       }
       _host.set('healthClass', 'health-status-' + healthStatus);
     }, this);
