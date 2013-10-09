@@ -1151,7 +1151,7 @@ App.WizardStep8Controller = Em.Controller.extend({
           var hostNames = _slave.hosts.mapProperty('hostName');
           switch (_client.component_name) {
             case 'HDFS_CLIENT':
-              // install HDFS_CLIENT on HBASE_MASTER, HBASE_REGIONSERVER, WEBHCAT_SERVER, and HISTORYSERVER hosts
+              // install HDFS_CLIENT on HBASE_MASTER, HBASE_REGIONSERVER, WEBHCAT_SERVER, HISTORYSERVER and OOZIE_SERVER hosts
               masterHosts.filterProperty('component', 'HBASE_MASTER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
                 hostNames.pushObject(_masterHost.hostName);
               }, this);
@@ -1162,6 +1162,9 @@ App.WizardStep8Controller = Em.Controller.extend({
                 hostNames.pushObject(_masterHost.hostName);
               }, this);
               masterHosts.filterProperty('component', 'HISTORYSERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              masterHosts.filterProperty('component', 'OOZIE_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
                 hostNames.pushObject(_masterHost.hostName);
               }, this);
               break;
@@ -1208,8 +1211,17 @@ App.WizardStep8Controller = Em.Controller.extend({
               }, this);
               break;
             case 'YARN_CLIENT':
-              // install YARN_CLIENT on NAGIOS_SERVER host
+              // install YARN_CLIENT on NAGIOS_SERVER,HIVE_SERVER,OOZIE_SERVER,WEBHCAT_SERVER host
               masterHosts.filterProperty('component', 'NAGIOS_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              masterHosts.filterProperty('component', 'HIVE_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              masterHosts.filterProperty('component', 'OOZIE_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
+                hostNames.pushObject(_masterHost.hostName);
+              }, this);
+              masterHosts.filterProperty('component', 'WEBHCAT_SERVER').filterProperty('isInstalled', false).forEach(function (_masterHost) {
                 hostNames.pushObject(_masterHost.hostName);
               }, this);
               break;
