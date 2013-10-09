@@ -22,6 +22,7 @@ App.ClusterController = Em.Controller.extend({
   name:'clusterController',
   cluster:null,
   isLoaded:false,
+  ambariProperties: null,
   clusterDataLoadedPercent: 'width:0', // 0 to 1
   /**
    * Whether we need to update statuses automatically or not
@@ -121,14 +122,14 @@ App.ClusterController = Em.Controller.extend({
               if (host) {
                 hostName = host.get('publicHostName');
               }
-              return "http://" + (App.singleNodeInstall ? App.singleNodeAlias + ":42080" : hostName) + "/ganglia";
+              return this.get('gangliaWebProtocol') + "://" + (App.singleNodeInstall ? App.singleNodeAlias + ":42080" : hostName) + "/ganglia";
             }
           }
         }
       }
       return null;
     }
-  }.property('App.router.updateController.isUpdated', 'dataLoadList.hosts'),
+  }.property('App.router.updateController.isUpdated', 'dataLoadList.hosts','gangliaWebProtocol'),
 
   /**
    * Provides the URL to use for NAGIOS server. This URL
@@ -155,14 +156,32 @@ App.ClusterController = Em.Controller.extend({
               if (host) {
                 hostName = host.get('publicHostName');
               }
-              return "http://" + (App.singleNodeInstall ? App.singleNodeAlias + ":42080" : hostName) + "/nagios";
+              return this.get('nagiosWebProtocol') + "://" + (App.singleNodeInstall ? App.singleNodeAlias + ":42080" : hostName) + "/nagios";
             }
           }
         }
       }
       return null;
     }
-  }.property('App.router.updateController.isUpdated', 'dataLoadList.services', 'dataLoadList.hosts'),
+  }.property('App.router.updateController.isUpdated', 'dataLoadList.services', 'dataLoadList.hosts','nagiosWebProtocol'),
+
+  nagiosWebProtocol: function () {
+    var properties = this.get('ambariProperties');
+    if (properties && properties.hasOwnProperty('nagios.https') && properties['nagios.https']) {
+      return "https";
+    } else {
+      return "http";
+    }
+  }.property('ambariProperties'),
+
+  gangliaWebProtocol: function () {
+    var properties = this.get('ambariProperties');
+    if (properties && properties.hasOwnProperty('ganglia.https') && properties['ganglia.https']) {
+      return "https";
+    } else {
+      return "http";
+    }
+  }.property('ambariProperties'),
 
   isNagiosInstalled:function () {
     return !!App.Service.find().findProperty('serviceName', 'NAGIOS');
@@ -284,6 +303,7 @@ App.ClusterController = Em.Controller.extend({
    */
   loadClusterData:function () {
     var self = this;
+    this.loadAmbariProperties();
     if (!this.get('clusterName')) {
       return;
     }
@@ -366,10 +386,8 @@ App.ClusterController = Em.Controller.extend({
     this.loadAlerts(function(){
         self.updateLoadStatus('alerts');
     });
-    this.loadAmbariProperties();
   },
 
-  ambariProperties: null,
 
   loadAmbariProperties: function() {
     App.ajax.send({
