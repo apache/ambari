@@ -53,7 +53,7 @@ App.MainAdminMiscController = App.MainServiceInfoConfigsController.extend({
       }
     }
     this.setServiceConfigTags(loadedClusterSiteToTagMap);
-    var configGroups = App.config.loadConfigsByTags(this.get('serviceConfigTags'));
+    var configGroups = App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags'));
     var configSet = App.config.mergePreDefinedWithLoaded(configGroups, [], this.get('serviceConfigTags'), serviceName);
 
     var misc_configs = configSet.globalConfigs.filterProperty('serviceName', this.get('selectedService')).filterProperty('category', 'Users and Groups').filterProperty('isVisible', true);

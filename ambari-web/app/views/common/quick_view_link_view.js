@@ -32,18 +32,15 @@ App.QuickViewLinks = Em.View.extend({
   },
 
   loadTagsSuccess: function(data) {
-    var tags = []
+    var tags = [];
     for( var prop in data.Clusters.desired_configs){
       tags.push(Em.Object.create({
         siteName: prop,
         tagName: data.Clusters.desired_configs[prop]['tag']
       }));
     }
-    var actual = this.get('actualTags');
-    if (JSON.stringify(actual) != JSON.stringify(tags)) {
-      this.set('actualTags',tags);
-      this.getSecurityPropertie();
-    }
+    this.set('actualTags', tags);
+    this.getSecurityProperties();
   },
 
   actualTags: [],
@@ -53,38 +50,23 @@ App.QuickViewLinks = Em.View.extend({
   /**
    * list of files that contains properties for enabling/disabling ssl
    */
-  siteNames: ['core-site'],
+  requiredSiteNames: ['core-site'],
 
-  getSecurityPropertie: function() {
-    this.set('securityProperties',[]);
-    this.get('siteNames').forEach(function(name){
-      var tag = this.get('actualTags');
-      if (tag && tag.findProperty('siteName',name)) {
-        var tagName = tag.findProperty('siteName',name).tagName;
-        App.ajax.send({
-          name: 'admin.service_config',
-          sender: this,
-          data: {
-            tagName: tagName,
-            siteName: name
-          },
-          success: 'getSecurityPropertiesSuccess',
-          error: 'getSecurityPropertiesError'
-        });
-      }
-    }, this)
-  },
-
-  getSecurityPropertiesSuccess: function(data) {
+  getSecurityProperties: function () {
+    this.set('securityProperties', []);
+    var requiredSiteNames = this.get('requiredSiteNames');
+    var tags = this.get('actualTags').filter(function(tag){
+      return requiredSiteNames.contains(tag.siteName);
+    });
+    var data = App.router.get('configurationController').getConfigsByTags(tags);
     var properties = this.get('securityProperties');
-    if(data.items[0]) {
-      properties.pushObject(data.items[0].properties);
+    var coreSiteProperties = data.findProperty('type', 'core-site');
+    if(coreSiteProperties) {
+      properties.pushObject(coreSiteProperties);
       this.set('securityProperties', properties);
     }
   },
-  getSecurityPropertiesError: function() {
-    console.warn('can\'t get properties')
-  },
+
   ambariProperties: function() {
     return App.router.get('clusterController.ambariProperties');
   },

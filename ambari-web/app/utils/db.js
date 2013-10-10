@@ -50,6 +50,7 @@ App.db.cleanUp = function () {
     'app': {
       'loginName': '',
       'authenticated': false,
+      'configs': [],
       'tables': {
         'filterConditions': {},
         'displayLength': {},
@@ -289,6 +290,12 @@ App.db.setReassignTasksStatuses = function (tasksStatuses) {
 App.db.setStacks = function (stacks) {
   App.db.data = localStorage.getObject('ambari');
   App.db.data.app.stacksVersions = stacks;
+  localStorage.setObject('ambari', App.db.data);
+};
+
+App.db.setConfigs = function (configs) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.app.configs = configs;
   localStorage.setObject('ambari', App.db.data);
 };
 
@@ -690,6 +697,11 @@ App.db.getReassignMasterWizardLogs = function () {
 App.db.getReassignMasterWizardComponentDir = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.ReassignMaster.componentDir;
+};
+
+App.db.getConfigs = function () {
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.app.configs;
 };
 
 App.db.getReassignMasterWizardReassignHosts = function () {

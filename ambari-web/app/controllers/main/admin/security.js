@@ -85,7 +85,7 @@ App.MainAdminSecurityController = Em.Controller.extend({
     services.forEach(function (_secureService) {
       this.setServiceTagNames(_secureService, this.get('desiredConfigs'));
     }, this);
-    var serverConfigs = App.config.loadConfigsByTags(this.get('serviceConfigTags'));
+    var serverConfigs = App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags'));
     this.setConfigValuesFromServer(this.get('stepConfigs'), serverConfigs);
 
     this.set('installedServices', App.Service.find().mapProperty('serviceName'));
@@ -280,29 +280,25 @@ App.MainAdminSecurityController = Em.Controller.extend({
   },
 
   getServiceConfigsFromServer: function () {
-    var urlParams = [];
-    urlParams.push('(type=global&tag=' + this.get('tag.global') + ')');
-    urlParams.push('(type=hdfs-site&tag=' + this.get('tag.hdfs-site') + ')');
-    App.ajax.send({
-      name: 'admin.security.all_configurations',
-      sender: this,
-      data: {
-        urlParams: urlParams.join('|')
+    var tags = [
+      {
+        siteName: "global",
+        tagName: this.get('tag.global')
       },
-      success: 'getServiceConfigsFromServerSuccessCallback',
-      error: 'errorCallback'
-    });
-  },
+      {
+        siteName: "hdfs-site",
+        tagName: this.get('tag.hdfs-site')
+      }
+    ];
 
-  getServiceConfigsFromServerSuccessCallback: function (data) {
-    console.log("TRACE: In success function for the GET getServiceConfigsFromServer call");
-    var configs = data.items.findProperty('tag', this.get('tag.global')).properties;
+    var data = App.router.get('configurationController').getConfigsByTags(tags);
+    var configs = data.findProperty('tag', this.get('tag.global')).properties;
     if (configs && (configs['security_enabled'] === 'true' || configs['security_enabled'] === true)) {
       this.set('securityEnabled', true);
     }
     else {
       this.set('securityEnabled', false);
-      var hdfsConfigs = data.items.findProperty('tag', this.get('tag.hdfs-site')).properties;
+      var hdfsConfigs = data.findProperty('tag', this.get('tag.hdfs-site')).properties;
       this.setNnHaStatus(hdfsConfigs);
     }
     this.loadUsers(configs);

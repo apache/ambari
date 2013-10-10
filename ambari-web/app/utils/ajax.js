@@ -500,16 +500,6 @@ var urls = {
       };
     }
   },
-  'admin.service_config': {
-    'real': '/clusters/{clusterName}/configurations/?type={siteName}&tag={tagName}',
-    'mock': '',
-    'format': function (data, opt) {
-      return {
-        timeout: 10000,
-        async: false
-      };
-    }
-  },
   'admin.security_status': {
     'real': '/clusters/{clusterName}?fields=Clusters/desired_configs',
     'mock': '',

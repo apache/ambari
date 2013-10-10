@@ -453,7 +453,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     //STEP 3: Load advanced configs from server
     var advancedConfigs = App.config.loadAdvancedConfig(serviceName) || [];
     //STEP 4: Load on-site config by service from server
-    var configGroups = App.config.loadConfigsByTags(this.get('serviceConfigTags'));
+     var configGroups = App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags'));
     //STEP 5: Merge global and on-site configs with pre-defined
     var configSet = App.config.mergePreDefinedWithLoaded(configGroups, advancedConfigs, this.get('serviceConfigTags'), serviceName);
     configSet = App.config.syncOrderWithPredefined(configSet);

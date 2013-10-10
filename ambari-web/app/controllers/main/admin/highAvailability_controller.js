@@ -82,28 +82,20 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
   },
 
   getServiceConfigsFromServer: function () {
-    App.ajax.send({
-      name: 'admin.service_config',
-      sender: this,
-      data: {
-        siteName: 'global',
+    var tags = [
+      {
+        siteName: "global",
         tagName: this.get('tag')
-      },
-      success: 'getServiceConfigsFromServerSuccessCallback',
-      error: 'errorCallback'
-    });
-  },
-
-  getServiceConfigsFromServerSuccessCallback: function (data) {
-    var configs = data.items.findProperty('tag', this.get('tag')).properties;
+      }
+    ];
+    var data = App.router.get('configurationController').getConfigsByTags(tags);
+    var configs = data.findProperty('tag', this.get('tag')).properties;
     if (configs && (configs['security_enabled'] === 'true' || configs['security_enabled'] === true)) {
       this.set('securityEnabled', true);
-      this.set('dataIsLoaded', true);
-    }
-    else {
+    } else {
       this.set('securityEnabled', false);
-      this.set('dataIsLoaded', true);
     }
+    this.set('dataIsLoaded', true);
   },
 
   showErrorPopup: function (message) {
