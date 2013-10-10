@@ -102,7 +102,7 @@ App.statusMapper = App.QuickDataMapper.create({
     }
     if (hostComponent.get('isMaster')) {
       if (service.everyStartedOrMaintenance) {
-        service.everyStartedOrMaintenance = (hostComponent.get('componentName') === 'NAMENODE' && !App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE') && App.HDFSService.find().filterProperty('activeNameNode.hostName').length > 0)
+        service.everyStartedOrMaintenance = (((hostComponent.get('componentName') === 'NAMENODE' && !App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) || hostComponent.get('componentName') === 'JOURNALNODE') && App.HDFSService.find().filterProperty('activeNameNode.hostName').length > 0)
           ? true : service.everyStartedOrMaintenance = ([App.HostComponentStatus.started, App.HostComponentStatus.maintenance].contains(hostComponent.get('workStatus')));
       } else {
         service.everyStartedOrMaintenance = false;
