@@ -309,7 +309,8 @@ public class StackExtensionHelper {
       List<PropertyInfo> list = new ArrayList<PropertyInfo>();
       
       for (PropertyInfo pi : cx.getProperties()) {
-        if (null == pi.getValue())
+        // maintain old behavior
+        if (null == pi.getValue() || pi.getValue().isEmpty())
           continue;
         
         pi.setFilename(propertyFile.getName());

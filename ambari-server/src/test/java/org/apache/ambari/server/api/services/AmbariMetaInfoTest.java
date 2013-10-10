@@ -59,13 +59,13 @@ import org.slf4j.LoggerFactory;
 
 public class AmbariMetaInfoTest {
 
-  private static final String STACK_NAME_HDP = "HDP";
-  private static final String STACK_VERSION_HDP = "0.1";
-  private static final String EXT_STACK_NAME = "2.0.6";
-  private static final String STACK_VERSION_HDP_02 = "0.2";
+  private static String STACK_NAME_HDP = "HDP";
+  private static String STACK_VERSION_HDP = "0.1";
+  private static String EXT_STACK_NAME = "2.0.6";
+  private static String STACK_VERSION_HDP_02 = "0.2";
   private static final String STACK_MINIMAL_VERSION_HDP = "0.0";
-  private static final String SERVICE_NAME_HDFS = "HDFS";
-  private static final String SERVICE_COMPONENT_NAME = "NAMENODE";
+  private static String SERVICE_NAME_HDFS = "HDFS";
+  private static String SERVICE_COMPONENT_NAME = "NAMENODE";
   private static final String OS_TYPE = "centos5";
   private static final String REPO_ID = "HDP-UTILS-1.1.0.15";
   private static final String PROPERTY_NAME = "hbase.regionserver.msginterval";
@@ -505,10 +505,9 @@ public class AmbariMetaInfoTest {
     Assert.assertNotNull("yarn.nodemanager.address expected to be inherited " +
       "from parent", inheritedProperty);
     Assert.assertEquals("localhost:100009", redefinedProperty1.getValue());
-    // Empty Parent property value will result in property being present in the
+    // Parent property value will result in property being present in the
     // child stack
-    Assert.assertEquals("Expected property '" + redefinedProperty2.getName() + "'",
-        "", redefinedProperty2.getValue());
+    Assert.assertEquals("localhost:8141", redefinedProperty2.getValue());
     // New property
     Assert.assertNotNull(newProperty);
     Assert.assertEquals("some-value", newProperty.getValue());
@@ -600,7 +599,7 @@ public class AmbariMetaInfoTest {
   @Test
   public void testPropertyCount() throws Exception {
     Set<PropertyInfo> properties = metaInfo.getProperties(STACK_NAME_HDP, STACK_VERSION_HDP_02, SERVICE_NAME_HDFS);
-    Assert.assertEquals(84, properties.size());
+    Assert.assertEquals(81, properties.size());
   }
   
   @Test
