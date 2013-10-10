@@ -264,8 +264,22 @@ class TestAmbariServer(TestCase):
   def test_setup_ambari_krb5_jaas(self, exists_mock, search_mock,
                                   get_validated_string_input_mock,
                                   fileinput_mock, re_sub_mock):
-    exists_mock.return_value = True
+
     search_mock.return_value = 'filepath'
+    exists_mock.return_value = False
+
+    # Negative case
+    try:
+      ambari_server.setup_ambari_krb5_jaas()
+      self.fail("Should throw exception")
+    except NonFatalException as fe:
+      # Expected
+      self.assertTrue("No jaas config file found at location" in fe.reason)
+      pass
+
+    # Positive case
+    exists_mock.reset_mock()
+    exists_mock.return_value = True
     get_validated_string_input_mock.side_effect = ['aaa@aaa.cnn',
                                                    'pathtokeytab']
 

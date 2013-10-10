@@ -3652,7 +3652,7 @@ def setup_ambari_krb5_jaas():
     print 'Setting up Ambari kerberos JAAS configuration to access ' +\
           'secured Hadoop daemons...'
     principal = get_validated_string_input('Enter ambari server\'s kerberos '
-                  'principal name: ', 'ambari@EXAMPLE.COM', '.*', '', False,
+                  'principal name (ambari@EXAMPLE.COM): ', 'ambari@EXAMPLE.COM', '.*', '', False,
                   False)
     keytab = get_validated_string_input('Enter keytab path for ambari '
                   'server\'s kerberos principal: ',
