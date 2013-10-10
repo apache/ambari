@@ -110,7 +110,7 @@ App.config = Em.Object.create({
   }.property('App.isHadoop2Stack'),
 
   /**
-   *
+   * Function should be used post-install as precondition check should not be done only after installer wizard
    * @param siteNames
    * @returns {Array}
    */

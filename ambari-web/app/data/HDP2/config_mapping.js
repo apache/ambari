@@ -16,13 +16,17 @@
  * limitations under the License.
  */
 
+var App = require('app');
 var configs = [
-  /**********************************************core-site***************************************/
+/**********************************************core-site***************************************/
   {
     "name": "fs.defaultFS",
     "templateName": ["namenode_host"],
     "foreignKey": null,
     "value": "hdfs://<templateName[0]>:8020",
+    "precondition": function () {
+      return (App.HDFSService.find('HDFS') && App.HDFSService.find('HDFS').get('snameNode'));
+    },
     "filename": "core-site.xml"
   },
   {
@@ -52,7 +56,7 @@ var configs = [
     "foreignKey": ["hive_user"],
     "value": "<templateName[0]>",
     "filename": "core-site.xml",
-    "isOverridable" : true
+    "isOverridable": true
   },
   {
     "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
@@ -60,7 +64,7 @@ var configs = [
     "foreignKey": ["hive_user"],
     "value": "<templateName[0]>",
     "filename": "core-site.xml",
-    "isOverridable" : true
+    "isOverridable": true
   },
   {
     "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
@@ -68,7 +72,7 @@ var configs = [
     "foreignKey": ["oozie_user"],
     "value": "<templateName[0]>",
     "filename": "core-site.xml",
-    "isOverridable" : true
+    "isOverridable": true
   },
   {
     "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
@@ -76,7 +80,7 @@ var configs = [
     "foreignKey": ["oozie_user"],
     "value": "<templateName[0]>",
     "filename": "core-site.xml",
-    "isOverridable" : true
+    "isOverridable": true
   },
   {
     "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
@@ -84,7 +88,7 @@ var configs = [
     "foreignKey": ["webhcat_user"],
     "value": "<templateName[0]>",
     "filename": "core-site.xml",
-    "isOverridable" : true
+    "isOverridable": true
   },
   {
     "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
@@ -92,9 +96,9 @@ var configs = [
     "foreignKey": ["webhcat_user"],
     "value": "<templateName[0]>",
     "filename": "core-site.xml",
-    "isOverridable" : true
+    "isOverridable": true
   },
-  /**********************************************hdfs-site***************************************/
+/**********************************************hdfs-site***************************************/
   {
     "name": "dfs.namenode.name.dir",
     "templateName": ["dfs_namenode_name_dir"],
@@ -187,7 +191,7 @@ var configs = [
     "value": "<templateName[0]>",
     "filename": "hdfs-site.xml"
   },
-  /**********************************************oozie-site***************************************/
+/**********************************************oozie-site***************************************/
   {
     "name": "oozie.base.url",
     "templateName": ["oozieserver_host"],
@@ -237,7 +241,7 @@ var configs = [
     "value": "<templateName[0]>",
     "filename": "oozie-site.xml"
   },
-  /**********************************************hive-site***************************************/
+/**********************************************hive-site***************************************/
   {
     "name": "javax.jdo.option.ConnectionDriverName",
     "templateName": [],
@@ -340,12 +344,15 @@ var configs = [
     "filename": "mapred-site.xml"
   },
 
-  /**********************************************hbase-site***************************************/
+/**********************************************hbase-site***************************************/
   {
     "name": "hbase.rootdir",
     "templateName": ["namenode_host", "hbase_hdfs_root_dir"],
     "foreignKey": null,
     "value": "hdfs://<templateName[0]>:8020<templateName[1]>",
+    "precondition": function () {
+      return (App.HDFSService.find('HDFS') && App.HDFSService.find('HDFS').get('snameNode'));
+    },
     "filename": "hbase-site.xml"
   },
   {
@@ -509,7 +516,7 @@ var configs = [
     "value": "/hbase-unsecure",
     "filename": "hbase-site.xml"
   },
-  /**********************************************webhcat-site***************************************/
+/**********************************************webhcat-site***************************************/
   {
     "name": "templeton.zookeeper.hosts",
     "templateName": ["zookeeperserver_hosts"],
@@ -526,13 +533,31 @@ var configs = [
  * @type {Object}
  */
 module.exports = {
-  all : function(){
-    return configs.slice(0);
+
+  checkPrecondition: function () {
+    return configs.filter(function (config) {
+      return ((!config.precondition) || (config.precondition()));
+    });
   },
-  overridable: function(){
-    return configs.filterProperty('foreignKey');
+  all: function (skipPreconditionCheck) {
+    if (skipPreconditionCheck) {
+      return configs.slice(0);
+    } else {
+      return this.checkPrecondition().slice(0);
+    }
   },
-  computed: function(){
-    return configs.filterProperty('foreignKey', null);
+  overridable: function (skipPreconditionCheck) {
+    if (skipPreconditionCheck) {
+      return configs.filterProperty('foreignKey');
+    } else {
+      return this.checkPrecondition().filterProperty('foreignKey');
+    }
+  },
+  computed: function (skipPreconditionCheck) {
+    if (skipPreconditionCheck) {
+      return configs.filterProperty('foreignKey', null);
+    } else {
+      return this.checkPrecondition().filterProperty('foreignKey', null);
+    }
   }
 };
