@@ -29,7 +29,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   globals: [],
   ajaxQueue: [],
   configMapping: function(){
-    return App.config.get('configMapping').all();
+    return App.config.get('configMapping').all(true);
   }.property('App.config.configMapping'),
 
   slaveComponentConfig: null,
