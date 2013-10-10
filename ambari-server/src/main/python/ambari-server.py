@@ -2237,6 +2237,15 @@ def start(args):
                     "JDK manually to " + JDK_INSTALL_DIR
     raise FatalException(1, err)
 
+  if not is_local_database(args):
+    result = find_jdbc_driver(args)
+    msg = 'Before starting Ambari Server, ' \
+          'you must copy the {0} JDBC driver JAR file to {1}.'.format(
+          DATABASE_FULL_NAMES[args.database],
+          JAVA_SHARE_PATH)
+    if result == -1:
+      raise FatalException(-1, msg)
+
   # Preparations
 
   if is_root():
