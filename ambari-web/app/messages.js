@@ -636,7 +636,7 @@ Em.I18n.translations = {
   'admin.highAvailability.enabled':'NameNode HA is enabled',
   'admin.highAvailability.confirmRollbackHeader':'Confirm Rollback',
   'admin.highAvailability.confirmRollbackBody':'This will rollback all operations that were done in HA wizard',
-  'admin.highAvailability.confirmManualRollbackBody':'You are in the process of enabling NameNode HA. If you exit now, you must follow manual instructions to revert <i>back</i> to the non-HA setup: <a target=\"_blank\" href=\"/\">link to doc</a>. Are you sure you want to exit the wizard?',
+  'admin.highAvailability.confirmManualRollbackBody':'You are in the process of enabling NameNode HA. If you exit now, you must follow manual instructions to revert back to the non-HA setup as documented in the Ambari User Guide\'s <i>Rolling Back NameNode HA</i> section.  Are you sure you want to exit the wizard?',
   'admin.highAvailability.error.hostsNum':'You must have at least 3 hosts in your cluster to enable NameNode HA.',
   'admin.highAvailability.error.namenodeStarted':'NameNode must be running before you enable NameNode HA.',
   'admin.highAvailability.error.zooKeeperNum':'You must have at least 3 ZooKeeper Servers in your cluster to enable NameNode HA.',
@@ -762,8 +762,8 @@ Em.I18n.translations = {
     'The process to enable HA involves a combination of <b>automated steps</b> (that will be handled by the wizard) and ' +
     '<b>manual steps</b> (that you must perform in sequence as instructed by the wizard).<br/><br/>' +
     '<b>You should plan a cluster maintanance window and prepare for cluster downtime when enabling NameNode HA.</b>',
-  'admin.highAvailability.wizard.step1.alert':'As part of this process, your current Secondary NameNode will be removed and new JournalNodes will be introduced into the cluster.',
-  'admin.security.title':'Kerberos Security has not been enabled',
+  'admin.highAvailability.wizard.step1.alert':'If you have HBase running, please exit this wizard and stop HBase first.',
+  'admin.security.title':'Kerberos security has not been enabled',
   'admin.security.enabled': 'Kerberos security is enabled',
   'admin.security.disabled': 'Kerberos security is disabled',
   'admin.security.button.enable':'Enable Security',
