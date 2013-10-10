@@ -236,6 +236,16 @@ App.ReassignMasterController = App.WizardController.extend({
     this.set('content.componentDir', componentDir);
   },
 
+  saveReassignHosts: function(reassignHosts){
+    App.db.setReassignMasterWizardReassignHosts(reassignHosts);
+    this.set('content.reassignHosts', reassignHosts);
+  },
+
+  loadReassignHosts: function(){
+    var reassignHosts = App.db.getReassignMasterWizardReassignHosts();
+    this.set('content.reassignHosts', reassignHosts);
+  },
+
   /**
    * Load data for all steps until <code>current step</code>
    */
@@ -250,6 +260,7 @@ App.ReassignMasterController = App.WizardController.extend({
         this.loadRequestIds();
         this.loadLogs();
       case '3':
+        this.loadReassignHosts();
       case '2':
         this.loadServicesFromServer();
         this.loadMasterComponentHosts();

@@ -19,23 +19,23 @@
 
 var App = require('app');
 
-App.WizardStep13View = App.HighAvailabilityProgressPageView.extend({
+App.ReassignMasterWizardStep4View = App.HighAvailabilityProgressPageView.extend({
 
-  headerTitle: Em.I18n.t('installer.step13.header'),
+  headerTitle: Em.I18n.t('services.reassign.step4.header'),
 
   noticeInProgress: function () {
-    return Em.I18n.t('installer.step13.status.info').format(App.format.role(this.get('controller.content.reassign.component_name')))
+    return Em.I18n.t('services.reassign.step4.status.info').format(App.format.role(this.get('controller.content.reassign.component_name')))
   }.property('controller.content.reassign.component_name'),
 
   noticeFailed: function () {
-    return Em.I18n.t('installer.step13.status.failed').format(App.format.role(this.get('controller.content.reassign.component_name')))
+    return Em.I18n.t('services.reassign.step4.status.failed').format(App.format.role(this.get('controller.content.reassign.component_name')))
   }.property('controller.content.reassign.component_name'),
 
   noticeCompleted: function () {
     if (this.get('controller.content.hasManualSteps')) {
-      return Em.I18n.t('installer.step13.status.success.withManualSteps').format(App.format.role(this.get('controller.content.reassign.component_name')));
+      return Em.I18n.t('services.reassign.step4.status.success.withManualSteps').format(App.format.role(this.get('controller.content.reassign.component_name')));
     } else {
-      return Em.I18n.t('installer.step13.status.success').format(App.format.role(this.get('controller.content.reassign.component_name')));
+      return Em.I18n.t('services.reassign.step4.status.success').format(App.format.role(this.get('controller.content.reassign.component_name')));
     }
   }.property('controller.content.reassign.component_name'),
 
@@ -47,5 +47,5 @@ App.WizardStep13View = App.HighAvailabilityProgressPageView.extend({
     }
   }.property('controller.content.hasManualSteps'),
 
-  templateName: require('templates/wizard/step13')
+  templateName: require('templates/main/service/reassign/step4')
 });

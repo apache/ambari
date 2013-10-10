@@ -18,7 +18,9 @@
 
 var App = require('app');
 
-App.WizardStep13Controller = App.HighAvailabilityProgressPageController.extend({
+App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageController.extend({
+
+  isReassign: true,
 
   commands: ['stopServices', 'createHostComponents', 'putHostComponentsInMaintenanceMode', 'reconfigure', 'installHostComponents', 'deleteHostComponents', 'startServices'],
 
@@ -31,7 +33,11 @@ App.WizardStep13Controller = App.HighAvailabilityProgressPageController.extend({
   serviceNames: [],
 
   loadStep: function () {
-    this.get('hostComponents').pushObject(this.get('content.reassign.component_name'));
+    if (this.get('content.reassign.component_name') === 'NAMENODE' && !App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
+      this.get('hostComponents').pushObjects(['NAMENODE', 'ZKFC']);
+    } else {
+      this.get('hostComponents').pushObject(this.get('content.reassign.component_name'));
+    }
     this.get('serviceNames').pushObject(this.get('content.reassign.service_id'));
     this._super();
   },
@@ -50,7 +56,7 @@ App.WizardStep13Controller = App.HighAvailabilityProgressPageController.extend({
       serviceNames += App.Service.find().findProperty('serviceName', service).get('displayName');
     }, this);
     for (var i = 0; i < commands.length; i++) {
-      var title = Em.I18n.t('installer.step13.task' + i + '.title').format(hostComponentsNames, serviceNames);
+      var title = Em.I18n.t('services.reassign.step4.task' + i + '.title').format(hostComponentsNames, serviceNames);
       this.get('tasks').pushObject(Ember.Object.create({
         title: title,
         status: 'PENDING',
@@ -106,7 +112,7 @@ App.WizardStep13Controller = App.HighAvailabilityProgressPageController.extend({
   createHostComponents: function () {
     this.set('multiTaskCounter', 0);
     var hostComponents = this.get('hostComponents');
-    var hostName = this.get('content.masterComponentHosts').findProperty('component', this.get('content.reassign.component_name')).hostName;
+    var hostName = this.get('content.reassignHosts.target');
     for (var i = 0; i < hostComponents.length; i++) {
       this.createComponent(hostComponents[i], hostName);
     }
@@ -119,7 +125,7 @@ App.WizardStep13Controller = App.HighAvailabilityProgressPageController.extend({
   putHostComponentsInMaintenanceMode: function () {
     this.set('multiTaskCounter', 0);
     var hostComponents = this.get('hostComponents');
-    var hostName = this.get('content.reassign.host_id');
+    var hostName = this.get('content.reassignHosts.source');
     for (var i = 0; i < hostComponents.length; i++) {
       App.ajax.send({
         name: 'reassign.maintenance_mode',
@@ -137,7 +143,7 @@ App.WizardStep13Controller = App.HighAvailabilityProgressPageController.extend({
   installHostComponents: function () {
     this.set('multiTaskCounter', 0);
     var hostComponents = this.get('hostComponents');
-    var hostName = this.get('content.masterComponentHosts').findProperty('component', this.get('content.reassign.component_name')).hostName;
+    var hostName = this.get('content.reassignHosts.target');
     for (var i = 0; i < hostComponents.length; i++) {
       this.installComponent(hostComponents[i], hostName, hostComponents.length);
     }
@@ -196,7 +202,8 @@ App.WizardStep13Controller = App.HighAvailabilityProgressPageController.extend({
   onLoadConfigs: function (data) {
     var isHadoop2Stack = App.get('isHadoop2Stack');
     var componentName = this.get('content.reassign.component_name');
-    var targetHostName = this.get('content.masterComponentHosts').findProperty('component', this.get('content.reassign.component_name')).hostName;
+    var targetHostName = this.get('content.reassignHosts.target');
+    var sourceHostName = this.get('content.reassignHosts.source');
     var configs = {};
     var componentDir = '';
     this.set('configsSitesNumber', data.items.length);
@@ -210,13 +217,23 @@ App.WizardStep13Controller = App.HighAvailabilityProgressPageController.extend({
           componentDir = configs['hdfs-site']['dfs.namenode.name.dir'];
           configs['hdfs-site']['dfs.namenode.http-address'] = targetHostName + ':50070';
           configs['hdfs-site']['dfs.namenode.https-address'] = targetHostName + ':50470';
+          configs['core-site']['fs.defaultFS'] = 'hdfs://' + targetHostName + ':8020';
+          if (!App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
+            var nameServices = configs['hdfs-site']['dfs.nameservices'];
+            if (configs['hdfs-site']['dfs.namenode.http-address.' + nameServices + '.nn1'] === sourceHostName + ':50070') {
+              configs['hdfs-site']['dfs.namenode.http-address.' + nameServices + '.nn1'] = targetHostName + ':50070';
+              configs['hdfs-site']['dfs.namenode.rpc-address.' + nameServices + '.nn1'] = targetHostName + ':8020';
+            } else {
+              configs['hdfs-site']['dfs.namenode.http-address.' + nameServices + '.nn2'] = targetHostName + ':50070';
+              configs['hdfs-site']['dfs.namenode.rpc-address.' + nameServices + '.nn2'] = targetHostName + ':8020';
+            }
+          }
         } else {
           componentDir = configs['hdfs-site']['dfs.name.dir'];
           configs['hdfs-site']['dfs.http.address'] = targetHostName + ':50070';
           configs['hdfs-site']['dfs.https.address'] = targetHostName + ':50470';
+          configs['core-site']['fs.default.name'] = 'hdfs://' + targetHostName + ':8020';
         }
-        configs['core-site']['fs.default.name'] = 'hdfs://' + targetHostName + ':8020';
-        configs['hdfs-site']['dfs.safemode.threshold.pct'] = '1.1f';
         if (App.Service.find().someProperty('serviceName', 'HBASE')) {
           configs['hbase-site']['hbase.rootdir'] = configs['hbase-site']['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + targetHostName);
         }
@@ -292,7 +309,7 @@ App.WizardStep13Controller = App.HighAvailabilityProgressPageController.extend({
   deleteHostComponents: function () {
     this.set('multiTaskCounter', 0);
     var hostComponents = this.get('hostComponents');
-    var hostName = this.get('content.reassign.host_id');
+    var hostName = this.get('content.reassignHosts.source');
     for (var i = 0; i < hostComponents.length; i++) {
       App.ajax.send({
         name: 'reassign.remove_component',

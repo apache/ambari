@@ -16,11 +16,6 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
 
-App.WizardStep11View = Em.View.extend({
-
-  templateName: require('templates/wizard/step11')
-
-});
+App.ReassignMasterWizardStep3Controller = Em.Controller.extend()

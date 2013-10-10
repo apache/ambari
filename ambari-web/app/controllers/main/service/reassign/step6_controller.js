@@ -18,7 +18,10 @@
 
 var App = require('app');
 
-App.WizardStep15Controller = App.HighAvailabilityProgressPageController.extend({
+App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageController.extend({
+
+  isReassign: true,
+
   commands: ['deleteHostComponents', 'startServices'],
 
   clusterDeployState: 'REASSIGN_MASTER_INSTALLING',
@@ -27,7 +30,7 @@ App.WizardStep15Controller = App.HighAvailabilityProgressPageController.extend({
     var commands = this.get('commands');
     var currentStep = App.router.get('reassignMasterController.currentStep');
     for (var i = 0; i < commands.length; i++) {
-      var title = Em.I18n.t('installer.step15.task' + i + '.title').format(App.format.role(this.get('content.reassign.component_name')),
+      var title = Em.I18n.t('services.reassign.step6.task' + i + '.title').format(App.format.role(this.get('content.reassign.component_name')),
           App.Service.find().findProperty('serviceName', this.get('content.reassign.service_id')).get('displayName'));
       this.get('tasks').pushObject(Ember.Object.create({
         title: title,
@@ -67,7 +70,7 @@ App.WizardStep15Controller = App.HighAvailabilityProgressPageController.extend({
   },
 
   deleteHostComponents: function () {
-    var hostName = this.get('content.reassign.host_id');
+    var hostName = this.get('content.reassignHosts.source');
     App.ajax.send({
       name: 'reassign.remove_component',
       sender: this,

@@ -16,6 +16,17 @@
  * limitations under the License.
  */
 
+
 var App = require('app');
 
-App.WizardStep12Controller = Em.Controller.extend()
+App.ReassignMasterWizardStep5View = Em.View.extend({
+
+  bodyText: function () {
+    var componentDir = this.get('controller.content.componentDir');
+    var sourceHost = this.get('controller.content.reassignHosts.source');
+    var targetHost = this.get('controller.content.reassignHosts.target');
+    return  Em.I18n.t('services.reassign.step5.body.' + this.get('controller.content.reassign.component_name').toLowerCase()).format(componentDir, sourceHost, targetHost);
+  }.property('controller.content.reassign.component_name', 'controller.content.componentDir', 'controller.content.masterComponentHosts', 'controller.content.reassign.host_id'),
+
+  templateName: require('templates/main/service/reassign/step5')
+});

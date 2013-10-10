@@ -22,7 +22,7 @@
   {{#each task in controller.tasks}}
   {{#view view.taskView contentBinding="task"}}
     <div class="item">
-      <div {{bindAttr class=":pull-left view.linkClass controller.isRollback::span4 controller.isRollback:span3"}}>
+      <div {{bindAttr class=":pull-left view.linkClass controller.isHA:span4 controller.isRollback:span3 controller.isReassign:span5"}}>
         <i {{bindAttr class="view.icon view.iconColor"}}></i>
         <a {{bindAttr class=""}} {{action "hostsLogPopup" task target="view"}} >{{task.title}}</a>
       </div>

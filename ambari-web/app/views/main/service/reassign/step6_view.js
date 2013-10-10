@@ -19,23 +19,23 @@
 
 var App = require('app');
 
-App.WizardStep15View = App.HighAvailabilityProgressPageView.extend({
+App.ReassignMasterWizardStep6View = App.HighAvailabilityProgressPageView.extend({
 
-  headerTitle: Em.I18n.t('installer.step15.header'),
+  headerTitle: Em.I18n.t('services.reassign.step6.header'),
 
   noticeInProgress: function () {
-    return Em.I18n.t('installer.step15.status.info').format(App.format.role(this.get('controller.content.reassign.component_name')))
+    return Em.I18n.t('services.reassign.step6.status.info').format(App.format.role(this.get('controller.content.reassign.component_name')))
   }.property('controller.content.reassign.component_name'),
 
   noticeFailed: function () {
-    return Em.I18n.t('installer.step15.status.failed').format(App.format.role(this.get('controller.content.reassign.component_name')))
+    return Em.I18n.t('services.reassign.step6.status.failed').format(App.format.role(this.get('controller.content.reassign.component_name')))
   }.property('controller.content.reassign.component_name'),
 
   noticeCompleted: function () {
-    return Em.I18n.t('installer.step15.status.success').format(App.format.role(this.get('controller.content.reassign.component_name')))
+    return Em.I18n.t('services.reassign.step6.status.success').format(App.format.role(this.get('controller.content.reassign.component_name')))
   }.property('controller.content.reassign.component_name'),
 
   submitButtonText: Em.I18n.t('common.complete'),
 
-  templateName: require('templates/wizard/step15')
+  templateName: require('templates/main/service/reassign/step6')
 });

@@ -37,19 +37,22 @@ App.WizardStep5Controller = Em.Controller.extend({
     return this.get('servicesMasters').objectAt(0) && this.get('servicesMasters').objectAt(0).component_name == 'HIVE_SERVER' && this.get('isReassignWizard');
   }.property('isReassignWizard', 'servicesMasters'),
 
+  /**
+   * Define state for submit button. Return true only for Reassign Master Wizard and if more than one master component was reassigned.
+   */
   isSubmitDisabled: function () {
     if (!this.get('isReassignWizard')) {
       return false;
     }
-    var reassigned = false;
+    var reassigned = 0;
     var arr1 = App.HostComponent.find().filterProperty('componentName', this.get('content.reassign.component_name')).mapProperty('host.hostName');
     var arr2 = this.get('servicesMasters').mapProperty('selectedHost');
     arr1.forEach(function (host) {
       if (!arr2.contains(host)) {
-        reassigned = true;
+        reassigned++;
       }
     }, this);
-    return !reassigned;
+    return reassigned !== 1;
   }.property('servicesMasters.@each.selectedHost'),
 
   hosts:[],
@@ -222,6 +225,7 @@ App.WizardStep5Controller = Em.Controller.extend({
     var showRemoveControlHb = !services.contains('HBASE') && masterComponents.filterProperty('component_name', 'HBASE_MASTER').length > 1;
     var zid = 1;
     var hid = 1;
+    var nid = 1;
     var result = [];
 
     masterComponents.forEach(function (item) {
@@ -235,6 +239,8 @@ App.WizardStep5Controller = Em.Controller.extend({
       } else if (App.supports.multipleHBaseMasters && item.component_name === "HBASE_MASTER") {
         componentObj.set('zId', hid++);
         componentObj.set("showRemoveControl", showRemoveControlHb);
+      }  else if (item.component_name === "NAMENODE") {
+        componentObj.set('zId', nid++);
       }
       componentObj.set("availableHosts", this.get("hosts"));
       result.push(componentObj);

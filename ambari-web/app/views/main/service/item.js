@@ -23,7 +23,9 @@ App.MainServiceItemView = Em.View.extend({
   maintenance: function(){
     var options = [];
     var service = this.get('controller.content');
-    switch(service.get('serviceName')) {
+    var allMasters = this.get('controller.content.hostComponents').filterProperty('isMaster').mapProperty('componentName').uniq();
+    var reassignableMasters = ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'RESOURCEMANAGER'];
+    switch (service.get('serviceName')) {
       case 'GANGLIA':
       case 'NAGIOS':
         break;
@@ -31,8 +33,11 @@ App.MainServiceItemView = Em.View.extend({
       case 'HDFS':
       case 'MAPREDUCE':
         if (App.supports.reassignMaster) {
-          this.get('controller.content.hostComponents').filterProperty('isMaster').forEach (function (hostComponent){
-            options.push({action: 'reassignMaster', context: hostComponent, 'label': Em.I18n.t('services.service.actions.reassign.master').format(hostComponent.get('displayName'))});
+          allMasters.forEach(function (hostComponent) {
+            if (reassignableMasters.contains(hostComponent)) {
+              options.push({action: 'reassignMaster', context: hostComponent,
+                'label': Em.I18n.t('services.service.actions.reassign.master').format(App.format.role(hostComponent))});
+            }
           })
         }
       default:

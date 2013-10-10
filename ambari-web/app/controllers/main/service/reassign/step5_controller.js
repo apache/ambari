@@ -18,6 +18,6 @@
 
 var App = require('app');
 
-App.WizardStep14Controller = Em.Controller.extend({
+App.ReassignMasterWizardStep5Controller = Em.Controller.extend({
 
 })

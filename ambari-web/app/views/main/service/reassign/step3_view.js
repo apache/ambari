@@ -19,14 +19,19 @@
 
 var App = require('app');
 
-App.WizardStep14View = Em.View.extend({
+App.ReassignMasterWizardStep3View = Em.View.extend({
 
-  bodyText: function () {
-    var componentDir = this.get('controller.content.componentDir');
-    var sourceHost = this.get('controller.content.reassign.host_id');
-    var targetHost = this.get('controller.content.masterComponentHosts').findProperty('component', this.get('controller.content.reassign.component_name')).hostName;
-    return  Em.I18n.t('installer.step14.body.' + this.get('controller.content.reassign.component_name').toLowerCase()).format(componentDir, sourceHost, targetHost);
-  }.property('controller.content.reassign.component_name', 'controller.content.componentDir', 'controller.content.masterComponentHosts', 'controller.content.reassign.host_id'),
+  templateName: require('templates/main/service/reassign/step3'),
 
-  templateName: require('templates/wizard/step14')
+  sourceHost: function(){
+    return this.get('controller.content.reassignHosts.source');
+  }.property('controller.content.reassignHosts.source'),
+
+  targetHost: function(){
+    return this.get('controller.content.reassignHosts.target');
+  }.property('controller.content.reassignHosts.target'),
+
+  printReview: function () {
+    $("#step8-info").jqprint();
+  }
 });

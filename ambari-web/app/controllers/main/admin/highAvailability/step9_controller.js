@@ -22,6 +22,8 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
 
   name:"highAvailabilityWizardStep9Controller",
 
+  isHA: true,
+
   commands: ['startSecondNameNode', 'installZKFC', 'startZKFC', 'reconfigureHBase', 'startAllServices', 'deleteSNameNode'],
 
   hbaseSiteTag: "",

@@ -16,24 +16,11 @@
  * limitations under the License.
  */
 
+
 var App = require('app');
 
-App.HighAvailabilityWizardStep7Controller = App.HighAvailabilityProgressPageController.extend({
+App.ReassignMasterWizardStep1View = Em.View.extend({
 
-  name:"highAvailabilityWizardStep7Controller",
+  templateName: require('templates/main/service/reassign/step1')
 
-  isHA: true,
-
-  commands: ['startZooKeeperServers', 'startNameNode'],
-
-  startZooKeeperServers: function () {
-    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
-    this.startComponent('ZOOKEEPER_SERVER', hostNames);
-  },
-
-  startNameNode: function () {
-    var hostName = this.get('content.masterComponentHosts').findProperty('isCurNameNode').hostName;
-    this.startComponent('NAMENODE', hostName);
-  }
 });
-
