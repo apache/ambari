@@ -489,31 +489,10 @@ var configs = [
     "filename": "hdfs-site.xml"
   },
   {
-    "name": "hbase.security.authentication",
-    "templateName": [],
-    "foreignKey": null,
-    "value": "simple",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.security.authorization",
-    "templateName": [],
-    "foreignKey": null,
-    "value": "false",
-    "filename": "hbase-site.xml"
-  },
-  {
     "name": "hbase.zookeeper.quorum",
     "templateName": ["zookeeperserver_hosts"],
     "foreignKey": null,
     "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "zookeeper.znode.parent",
-    "templateName": [],
-    "foreignKey": null,
-    "value": "/hbase-unsecure",
     "filename": "hbase-site.xml"
   },
 /**********************************************webhcat-site***************************************/
