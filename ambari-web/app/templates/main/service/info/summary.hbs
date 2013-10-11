@@ -71,11 +71,11 @@
     <div class="box">
       <div class="box-header">
         <h4>{{t services.alerts.headingOfList}}</h4>
-        <div class="btn-group">
-          {{#if controller.isNagiosInstalled}}
+        {{#if controller.isNagiosInstalled}}
+          <div class="btn-group">
             <a class="btn" target="_blank" rel="tooltip" title="Go to Nagios" {{bindAttr href="controller.nagiosUrl"}}><i class="icon-link"></i></a>
-          {{/if}}
-        </div>
+          </div>
+        {{/if}}
       </div>
       <ul id='summary-alerts-list' class="alerts">
         {{#if controller.alerts.length}}
@@ -103,11 +103,11 @@
     <div class="box">
       <div class="box-header">
         <h4>{{controller.content.label}} {{t common.metrics}}</h4>
-        <div class="btn-group">
-          {{#if controller.isGangliaInstalled}}
+        {{#if controller.isGangliaInstalled}}
+          <div class="btn-group">
             <a class="btn" target="_blank" rel="tooltip" title="Go to Ganglia" {{bindAttr href="view.gangliaUrl"}}><i class="icon-link"></i></a>
-          {{/if}}
-        </div>
+          </div>
+        {{/if}}
       </div>
       
       <div class="">
