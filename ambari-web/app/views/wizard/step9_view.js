@@ -92,34 +92,24 @@ App.HostStatusView = Em.View.extend({
       if (this.get('obj.progress') === '100') {
         this.set('obj.message', Em.I18n.t('installer.step9.host.status.failed'));
       }
-    } else if (this.get('obj.status') === 'success' && this.get('isHostCompleted') && parseInt(this.get('controller.progress')) > 35) {
+    } else {
+      if (this.get('obj.status') === 'success' && this.get('isHostCompleted') && parseInt(this.get('controller.progress')) > 34) {
         this.set('barColor', 'progress-success');
         this.set('obj.message', Em.I18n.t('installer.step9.host.status.success'));
       }
-  }.observes('obj.status', 'obj.progress'),
+    }
+  }.observes('obj.status', 'obj.progress', 'controller.progress'),
 
   isFailed:function () {
-    if (this.get('controller.isStepCompleted') === true && this.get('obj.status') === 'failed') {
-      return true;
-    } else {
-      return false;
-    }
+    return (this.get('controller.isStepCompleted') === true && this.get('obj.status') === 'failed');
   }.property('controller.isStepCompleted', 'controller.status'),
 
   isSuccess:function () {
-    if (this.get('controller.isStepCompleted') === true && this.get('obj.status') === 'success') {
-      return true;
-    } else {
-      return false;
-    }
+    return (this.get('controller.isStepCompleted') === true && this.get('obj.status') === 'success');
   }.property('controller.isStepCompleted', 'controller.status'),
 
   isWarning:function () {
-    if (this.get('controller.isStepCompleted') === true && this.get('obj.status') === 'warning') {
-      return true;
-    } else {
-      return false;
-    }
+    return(this.get('controller.isStepCompleted') === true && this.get('obj.status') === 'warning');
   }.property('controller.isStepCompleted', 'controller.status'),
 
   isHostCompleted:function () {

@@ -26,7 +26,6 @@ App.WizardStep9Controller = Em.Controller.extend({
   isStepCompleted: false,
 
   isSubmitDisabled: function () {
-    // return !this.get('isStepCompleted');
     var validStates = ['STARTED','START FAILED'];
     if (this.get('content.controllerName') == 'addHostController') {
       validStates.push('INSTALL FAILED');
@@ -46,12 +45,14 @@ App.WizardStep9Controller = Em.Controller.extend({
   mockDataPrefix: '/data/wizard/deploy/5_hosts',
   pollDataCounter: 0,
   polledData: [],
+  numPolls: 1,
+  POLL_INTERVAL: 4000,
 
   status: function () {
-    if (this.hosts.someProperty('status', 'failed')) {
+    if (this.get('hosts').someProperty('status', 'failed')) {
       return 'failed';
     }
-    if (this.hosts.someProperty('status', 'warning')) {
+    if (this.get('hosts').someProperty('status', 'warning')) {
       if (this.isStepFailed()) {
         return 'failed';
       } else {
@@ -64,6 +65,10 @@ App.WizardStep9Controller = Em.Controller.extend({
     }
     return 'info';
   }.property('hosts.@each.status', 'progress'),
+
+  showRetry: function () {
+    return this.get('content.cluster.status') == 'INSTALL FAILED';
+  }.property('content.cluster.status'),
 
   categoryObject: Em.Object.extend({
     hostsCount: function () {
@@ -80,12 +85,6 @@ App.WizardStep9Controller = Em.Controller.extend({
       return "%@ (%@)".fmt(this.get('value'), this.get('hostsCount'));
     }.property('value', 'hostsCount')
   }),
-  getCategory: function(field, value){
-    return this.get('categories').find(function(item){
-      return item.get(field) == value;
-    });
-  },
-
   categories: function () {
     var self = this;
     self.categoryObject.reopen({
@@ -111,7 +110,6 @@ App.WizardStep9Controller = Em.Controller.extend({
     this.set('category', categories.get('firstObject'));
     return categories;
   }.property(),
-
   category: false,
   visibleHosts: function(){
     var targetStatus = this.get('category.hostStatus');
@@ -127,13 +125,17 @@ App.WizardStep9Controller = Em.Controller.extend({
     return visibleHosts;
   }.property('category', 'hosts.@each.status'),
 
+  logTasksChangesCounter: 0,
+
   selectCategory: function(event){
     this.set('category', event.context);
   },
 
-  showRetry: function () {
-    return this.get('content.cluster.status') == 'INSTALL FAILED';
-  }.property('content.cluster.status'),
+  getCategory: function(field, value){
+    return this.get('categories').find(function(item){
+      return item.get(field) == value;
+    });
+  },
 
   // content.cluster.status can be:
   // PENDING: set upon successful transition from step 1 to step 2
@@ -186,11 +188,11 @@ App.WizardStep9Controller = Em.Controller.extend({
     }
   },
   clearStep: function () {
-    this.hosts.clear();
+    this.get('hosts').clear();
     this.set('status', 'info');
     this.set('progress', '0');
     this.set('isStepCompleted', false);
-    this.numPolls = 1;
+    this.set('numPolls', 1);
   },
 
   loadStep: function () {
@@ -238,7 +240,7 @@ App.WizardStep9Controller = Em.Controller.extend({
         progress: _hostInfo.progress
       });
       console.log('pushing ' + hostInfo.name);
-      this.hosts.pushObject(hostInfo);
+      this.get('hosts').pushObject(hostInfo);
     }, this);
   },
 
@@ -330,6 +332,7 @@ App.WizardStep9Controller = Em.Controller.extend({
             return role + Em.I18n.t('installer.step9.serviceStatus.abort.failed');
         }
     }
+    return '';
   },
 
   /**
@@ -364,7 +367,7 @@ App.WizardStep9Controller = Em.Controller.extend({
     }
     data = JSON.stringify(data);
     if (App.testMode) {
-      this.numPolls = 6;
+      this.set('numPolls', 6);
     }
 
     App.ajax.send({
@@ -380,12 +383,13 @@ App.WizardStep9Controller = Em.Controller.extend({
   },
 
   launchStartServicesSuccessCallback: function (jsonData) {
+    var clusterStatus = {};
     if (jsonData) {
       console.log("TRACE: Step9 -> In success function for the startService call");
       console.log("TRACE: Step9 -> value of the received data is: " + jsonData);
       var requestId = jsonData.Requests.id;
       console.log('requestId is: ' + requestId);
-      var clusterStatus = {
+      clusterStatus = {
         status: 'INSTALLED',
         requestId: requestId,
         isStartError: false,
@@ -396,7 +400,7 @@ App.WizardStep9Controller = Em.Controller.extend({
     } else {
       console.log('ERROR: Error occurred in parsing JSON data');
       this.hostHasClientsOnly(true);
-      var clusterStatus = {
+      clusterStatus = {
         status: 'STARTED',
         isStartError: false,
         isCompleted: true
@@ -418,12 +422,14 @@ App.WizardStep9Controller = Em.Controller.extend({
   },
 
   hostHasClientsOnly: function(jsonError) {
-    this.hosts.forEach(function(host){
+    this.get('hosts').forEach(function(host){
       var OnlyClients = true;
       var tasks = host.get('logTasks');
       tasks.forEach(function(task){
         var component = serviceComponents.findProperty('component_name',task.Tasks.role);
-        (component && component.isClient) ? null : OnlyClients = false;
+        if(!(component && component.isClient)) {
+          OnlyClients = false;
+        }
       });
       if (OnlyClients || jsonError) {
         host.set('status', 'success');
@@ -444,6 +450,7 @@ App.WizardStep9Controller = Em.Controller.extend({
 
   // marks a host's status as "success" if all tasks are in COMPLETED state
   onSuccessPerHost: function (actions, contentHost) {
+    if (!actions) return;
     if (actions.everyProperty('Tasks.status', 'COMPLETED') && this.get('content.cluster.status') === 'INSTALLED') {
       contentHost.set('status', 'success');
     }
@@ -453,6 +460,7 @@ App.WizardStep9Controller = Em.Controller.extend({
   // note that if the master failed to install because of ABORTED or TIMEDOUT, we don't mark it as failed, because this would mark all hosts as "failed" and makes it difficult for the user
   // to find which host FAILED occurred on, if any
   onErrorPerHost: function (actions, contentHost) {
+    if (!actions) return;
     if (actions.someProperty('Tasks.status', 'FAILED') || actions.someProperty('Tasks.status', 'ABORTED') || actions.someProperty('Tasks.status', 'TIMEDOUT')) {
       contentHost.set('status', 'warning');
     }
@@ -473,13 +481,14 @@ App.WizardStep9Controller = Em.Controller.extend({
     return result;
   },
 
-  onInProgressPerHost: function (tasks, contentHost) {
-    var runningAction = tasks.findProperty('Tasks.status', 'IN_PROGRESS');
+  onInProgressPerHost: function (actions, contentHost) {
+    if (!actions) return;
+    var runningAction = actions.findProperty('Tasks.status', 'IN_PROGRESS');
     if (runningAction === undefined || runningAction === null) {
-      runningAction = tasks.findProperty('Tasks.status', 'QUEUED');
+      runningAction = actions.findProperty('Tasks.status', 'QUEUED');
     }
     if (runningAction === undefined || runningAction === null) {
-      runningAction = tasks.findProperty('Tasks.status', 'PENDING');
+      runningAction = actions.findProperty('Tasks.status', 'PENDING');
     }
     if (runningAction !== null && runningAction !== undefined) {
       contentHost.set('message', this.displayMessage(runningAction.Tasks));
@@ -510,10 +519,10 @@ App.WizardStep9Controller = Em.Controller.extend({
      */
     switch (this.get('content.cluster.status')) {
       case 'PENDING':
-        progress = Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsPerHost * 33);
+        progress = actionsPerHost?(Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsPerHost * 33)):33;
         break;
       case 'INSTALLED':
-        progress = 34 + Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsPerHost * 66);
+        progress = actionsPerHost?(34 + Math.ceil(((queuedActions * 0.09) + (inProgressActions * 0.35) + completedActions ) / actionsPerHost * 66)):100;
         break;
       default:
         progress = 100;
@@ -568,54 +577,74 @@ App.WizardStep9Controller = Em.Controller.extend({
   // returns true if polling should stop; false otherwise
   // polling from ui stops only when no action has 'PENDING', 'QUEUED' or 'IN_PROGRESS' status
   finishState: function (polledData) {
-    var clusterStatus = {};
-    var requestId = this.get('content.cluster.requestId');
     if (this.get('content.cluster.status') === 'INSTALLED') {
-      if (!polledData.someProperty('Tasks.status', 'PENDING') && !polledData.someProperty('Tasks.status', 'QUEUED') && !polledData.someProperty('Tasks.status', 'IN_PROGRESS')) {
-        this.set('progress', '100');
-        clusterStatus = {
-          status: 'INSTALLED',
-          requestId: requestId,
-          isCompleted: true
-        };
-        if (this.isSuccess(polledData)) {
-          clusterStatus.status = 'STARTED';
-          var serviceStartTime = new Date().getTime();
-          var timeToStart = ((parseInt(serviceStartTime) - parseInt(this.get('content.cluster.installStartTime'))) / 60000).toFixed(2);
-          clusterStatus.installTime = timeToStart;
-        } else {
-            clusterStatus.status = 'START FAILED'; // 'START FAILED' implies to step10 that installation was successful but start failed
+      return this.finishStateInstalled(polledData);
+    }
+    else
+      if (this.get('content.cluster.status') === 'PENDING') {
+        return this.finishStatePending(polledData);
+      }
+      else
+        if (this.get('content.cluster.status') === 'INSTALL FAILED' ||
+            this.get('content.cluster.status') === 'START FAILED' ||
+            this.get('content.cluster.status') === 'STARTED') {
+          this.set('progress', '100');
+          return true;
         }
+    return false;
+  },
+
+  finishStateInstalled: function(polledData) {
+    var clusterStatus = {};
+    if (!polledData.someProperty('Tasks.status', 'PENDING') &&
+        !polledData.someProperty('Tasks.status', 'QUEUED') &&
+        !polledData.someProperty('Tasks.status', 'IN_PROGRESS')) {
+      this.set('progress', '100');
+      clusterStatus = {
+        status: 'INSTALLED',
+        requestId: this.get('content.cluster.requestId'),
+        isCompleted: true
+      };
+      if (this.isSuccess(polledData)) {
+        clusterStatus.status = 'STARTED';
+        var serviceStartTime = new Date().getTime();
+        var timeToStart = ((parseInt(serviceStartTime) - parseInt(this.get('content.cluster.installStartTime'))) / 60000).toFixed(2);
+        clusterStatus.installTime = timeToStart;
+      } else {
+        clusterStatus.status = 'START FAILED'; // 'START FAILED' implies to step10 that installation was successful but start failed
+      }
+      App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
+      this.set('isStepCompleted', true);
+      this.setTasksPerHost();
+      App.router.get(this.get('content.controllerName')).saveInstalledHosts(this);
+      return true;
+    }
+    return false;
+  },
+
+  finishStatePending: function(polledData) {
+    var clusterStatus = {};
+    if (!polledData.someProperty('Tasks.status', 'PENDING') &&
+        !polledData.someProperty('Tasks.status', 'QUEUED') &&
+        !polledData.someProperty('Tasks.status', 'IN_PROGRESS')) {
+      clusterStatus = {
+        status: 'PENDING',
+        requestId: this.get('content.cluster.requestId'),
+        isCompleted: false
+      };
+      if (this.get('status') === 'failed') {
+        clusterStatus.status = 'INSTALL FAILED';
+        this.set('progress', '100');
+        this.get('hosts').setEach('progress', '100');
         App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
         this.set('isStepCompleted', true);
-        this.setTasksPerHost();
-        App.router.get(this.get('content.controllerName')).saveInstalledHosts(this);
-        return true;
+      } else {
+        clusterStatus.status = 'INSTALLED';
+        this.set('progress', '34');
+        this.launchStartServices();
       }
-    } else if (this.get('content.cluster.status') === 'PENDING') {
-      if (!polledData.someProperty('Tasks.status', 'PENDING') && !polledData.someProperty('Tasks.status', 'QUEUED') && !polledData.someProperty('Tasks.status', 'IN_PROGRESS')) {
-        clusterStatus = {
-          status: 'PENDING',
-          requestId: requestId,
-          isCompleted: false
-        };
-        if (this.get('status') === 'failed') {
-          clusterStatus.status = 'INSTALL FAILED';
-          this.set('progress', '100');
-          this.get('hosts').setEach('progress', '100');
-          App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
-          this.set('isStepCompleted', true);
-        } else {
-          clusterStatus.status = 'INSTALLED';
-          this.set('progress', '34');
-          this.launchStartServices();
-        }
-        this.setTasksPerHost();
-        App.router.get(this.get('content.controllerName')).saveInstalledHosts(this);
-        return true;
-      }
-    } else if (this.get('content.cluster.status') === 'INSTALL FAILED' || this.get('content.cluster.status') === 'START FAILED' || this.get('content.cluster.status') === 'STARTED') {
-      this.set('progress', '100');
+      this.setTasksPerHost();
+      App.router.get(this.get('content.controllerName')).saveInstalledHosts(this);
       return true;
     }
     return false;
@@ -625,35 +654,26 @@ App.WizardStep9Controller = Em.Controller.extend({
     var tasksData = this.get('polledData');
     this.get('hosts').forEach(function (_host) {
       var tasksPerHost = tasksData.filterProperty('Tasks.host_name', _host.name); // retrieved from polled Data
-      if (tasksPerHost.length === 0) {
-        //alert('For testing with mockData follow the sequence: hit referesh,"mockData btn", "pollData btn", again "pollData btn"');
-        //exit();
-      }
       if (tasksPerHost !== null && tasksPerHost !== undefined && tasksPerHost.length !== 0) {
         tasksPerHost.forEach(function (_taskPerHost) {
           console.log('In step9 _taskPerHost function.');
-          //if (_taskPerHost.Tasks.status !== 'PENDING' && _taskPerHost.Tasks.status !== 'QUEUED' &&  _taskPerHost.Tasks.status !== 'IN_PROGRESS') {
           _host.tasks.pushObject(_taskPerHost);
-          //}
         }, this);
       }
     }, this);
   },
 
-  logTasksChangesCounter: 0,
-
   // This is done at HostRole level.
   setLogTasksStatePerHost: function (tasksPerHost, host) {
+    if (!tasksPerHost) return;
     console.log('In step9 setTasksStatePerHost function.');
     tasksPerHost.forEach(function (_task) {
       console.log('In step9 _taskPerHost function.');
-      //if (_task.Tasks.status !== 'PENDING' && _task.Tasks.status !== 'QUEUED') {
       var task = host.logTasks.findProperty('Tasks.id', _task.Tasks.id);
       if (task) {
         host.logTasks.removeObject(task);
       }
       host.logTasks.pushObject(_task);
-      //}
     }, this);
     this.set('logTasksChangesCounter', this.get('logTasksChangesCounter') + 1);
   },
@@ -669,34 +689,34 @@ App.WizardStep9Controller = Em.Controller.extend({
     }
     var requestId = this.get('content.cluster.requestId');
     if(polledData.Requests && polledData.Requests.id && polledData.Requests.id!=requestId){
-      // We dont want to use non-current requestId's tasks data to
+      // We don't want to use non-current requestId's tasks data to
       // determine the current install status.
-      // Also, we dont want to keep polling if it is not the
+      // Also, we don't want to keep polling if it is not the
       // current requestId.
       return false;
     }
     this.replacePolledData(tasksData);
-    this.hosts.forEach(function (_host) {
+    this.get('hosts').forEach(function (_host) {
       var actionsPerHost = tasksData.filterProperty('Tasks.host_name', _host.name); // retrieved from polled Data
       if (actionsPerHost.length === 0) {
-        _host.set('message', this.t('installer.step9.host.status.nothingToInstall'));
-        if (_host.get('progress') == 0) {
+        if(this.get('content.cluster.status') === 'PENDING') {
           _host.set('progress', '33');
+        }
+        if(this.get('content.cluster.status') === 'INSTALLED') {
+          _host.set('progress', '100');
         }
         console.log("INFO: No task is hosted on the host");
       }
-      if (actionsPerHost !== null && actionsPerHost !== undefined && actionsPerHost.length !== 0) {
-        this.setLogTasksStatePerHost(actionsPerHost, _host);
-        this.onSuccessPerHost(actionsPerHost, _host);     // every action should be a success
-        this.onErrorPerHost(actionsPerHost, _host);     // any action should be a failure
-        this.onInProgressPerHost(actionsPerHost, _host);  // current running action for a host
-        totalProgress += self.progressPerHost(actionsPerHost, _host);
-      }
+      this.setLogTasksStatePerHost(actionsPerHost, _host);
+      this.onSuccessPerHost(actionsPerHost, _host);     // every action should be a success
+      this.onErrorPerHost(actionsPerHost, _host);     // any action should be a failure
+      this.onInProgressPerHost(actionsPerHost, _host);  // current running action for a host
+      totalProgress += self.progressPerHost(actionsPerHost, _host);
       if (_host.get('progress') == '33') {
         _host.set('message', this.t('installer.step9.host.status.nothingToInstall'));
       }
     }, this);
-    totalProgress = Math.floor(totalProgress / this.hosts.length);
+    totalProgress = Math.floor(totalProgress / this.get('hosts.length'));
     this.set('progress', totalProgress.toString());
     console.log("INFO: right now the progress is: " + this.get('progress'));
     return this.finishState(tasksData);
@@ -707,8 +727,6 @@ App.WizardStep9Controller = Em.Controller.extend({
     this.doPolling();
   },
 
-  numPolls: 1,
-
   getUrl: function (requestId) {
     var clusterName = this.get('content.cluster.name');
     var requestId = requestId || this.get('content.cluster.requestId');
@@ -716,8 +734,6 @@ App.WizardStep9Controller = Em.Controller.extend({
     console.log("URL for step9 is: " + url);
     return url;
   },
-
-  POLL_INTERVAL: 4000,
 
   loadLogData: function(requestId) {
     var url = this.getUrl(requestId);
@@ -746,9 +762,10 @@ App.WizardStep9Controller = Em.Controller.extend({
       timeout: App.timeout,
       dataType: 'text',
       success: function (data) {
+        var parsedData = jQuery.parseJSON(data);
         console.log("TRACE: In success function for the GET logs data");
-        console.log("TRACE: STep9 -> The value is: ", jQuery.parseJSON(data));
-        var result = self.parseHostInfo(jQuery.parseJSON(data));
+        console.log("TRACE: Step9 -> The value is: ", parsedData);
+        var result = self.parseHostInfo(parsedData);
         if (!polling) {
           return;
         }
