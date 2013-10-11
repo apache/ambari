@@ -28,6 +28,7 @@ public class StackInfo {
   private String version;
   private String minUpgradeVersion;
   private boolean active;
+  private String rcoFileLocation;
   private List<RepositoryInfo> repositories;
   private List<ServiceInfo> services;
   private String parentStackVersion;
@@ -135,5 +136,13 @@ public class StackInfo {
 
   public void setParentStackVersion(String parentStackVersion) {
     this.parentStackVersion = parentStackVersion;
+  }
+
+  public String getRcoFileLocation() {
+    return rcoFileLocation;
+  }
+
+  public void setRcoFileLocation(String rcoFileLocation) {
+    this.rcoFileLocation = rcoFileLocation;
   }
 }

@@ -23,10 +23,14 @@ import java.util.*;
 import com.google.inject.Inject;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.stageplanner.RoleGraphNode;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.ambari.server.AmbariException;
@@ -38,6 +42,7 @@ import org.apache.ambari.server.AmbariException;
 public class RoleCommandOrder {
 
   @Inject Configuration configs;
+  @Inject AmbariMetaInfo ambariMetaInfo;
 
   private final static Logger LOG =
 			LoggerFactory.getLogger(RoleCommandOrder.class);
@@ -47,6 +52,7 @@ public class RoleCommandOrder {
   private final static String NO_HCFS_DEPS_KEY = "optional_no_hcfs";
   private final static String HA_DEPS_KEY = "optional_ha";
   private final static String COMMENT_STR = "_comment";
+  private static final String ROLE_COMMAND_ORDER_FILE = "role_command_order.json";
 
   static class RoleCommandPair {
     Role role;
@@ -118,11 +124,17 @@ public class RoleCommandOrder {
     this.dependencies.get(rcp1).add(rcp2);
   }
 
-  private File getRCOFile() {
-    Map<String, String> configsMap = configs.getConfigsMap();
-    String rcoLocation = configsMap.get(Configuration.RCO_FILE_LOCATION_KEY);
-    File rcoFile = new File(rcoLocation);
-    return rcoFile;
+  private File getRCOFile(String stackName, String stackVersion) {
+    StackInfo stackInfo;
+    String rcoFileLocation = null;
+    try {
+      stackInfo = ambariMetaInfo.getStackInfo(stackName, stackVersion);
+      rcoFileLocation = stackInfo.getRcoFileLocation();
+    } catch (AmbariException e) {
+      LOG.warn("Error getting stack info for :" + stackName + "-" + stackVersion);
+    }
+
+    return rcoFileLocation == null ? null : new File(rcoFileLocation);
   }
 
   void addDependencies(Map<String, Object> jsonSection) {
@@ -170,13 +182,28 @@ public class RoleCommandOrder {
 
     // Read data from JSON
     ObjectMapper mapper = new ObjectMapper();
-    File rcoFile = getRCOFile();
+    StackId currentStackVersion = cluster.getCurrentStackVersion();
+    String stackName = currentStackVersion.getStackName();
+    String stackVersion = currentStackVersion.getStackVersion();
+    File rcoFile = getRCOFile(stackName, stackVersion);
     Map<String,Object> userData = null;
+    
     try {
-      userData = mapper.readValue(rcoFile, Map.class);
+      
+      TypeReference<Map<String,Object>> rcoElementTypeReference = new TypeReference<Map<String,Object>>() {};
+      
+      if (rcoFile != null) {
+        userData = mapper.readValue(rcoFile, rcoElementTypeReference);
+        LOG.info("Role command order info was loaded from file: " + rcoFile.getAbsolutePath());
+      } else {
+        InputStream rcoInputStream = ClassLoader.getSystemResourceAsStream(ROLE_COMMAND_ORDER_FILE);
+        userData = mapper.readValue(rcoInputStream, rcoElementTypeReference);
+        LOG.info("Role command order info was loaded from classpath: " +
+          ClassLoader.getSystemResource(ROLE_COMMAND_ORDER_FILE));
+      }
+
     } catch (IOException e) {
-      String errorMsg = String.format("Can not read file %s", rcoFile.getAbsolutePath());
-      LOG.error(errorMsg, e);
+      LOG.error("Can not read role command order info", e);
       return;
     }
 

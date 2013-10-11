@@ -3527,6 +3527,7 @@ public class AmbariManagementControllerTest {
 
     Cluster cluster = clusters.getCluster("c1");
     cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+    cluster.setCurrentStackVersion(new StackId("HDP-0.1"));
     
     ConfigFactory cf = injector.getInstance(ConfigFactory.class);
     Config config1 = cf.createNew(cluster, "global",

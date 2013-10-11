@@ -248,22 +248,6 @@ public class Configuration {
   public static final String MASTER_KEY_ENV_PROP =
     "AMBARI_SECURITY_MASTER_KEY";
   public static final String MASTER_KEY_FILENAME_DEFAULT = "master";
-
-  /**
-   * File role_command_order.json
-   */
-  public static final String RCO_FILE_LOCATION_KEY = "server.rco.file";
-
-  /**
-   * Location of role_command_order.json in production system
-   */
-  public static final String RCO_FILE_LOCATION_DEFAULT = "/var/lib/ambari-server/" +
-          "resources/role_command_order.json".replace("/", File.separator);
-  /**
-   * Location of role_command_order.json when tests are running
-   */
-  public static final String RCO_FILE_LOCATION_TEST = "../ambari-common/src/" +
-          "main/resources/role_command_order.json".replace("/", File.separator);
   
   /**
    * Key for repo validation suffixes.
@@ -340,9 +324,6 @@ public class Configuration {
       CLIENT_API_SSL_CRT_NAME_KEY, CLIENT_API_SSL_CRT_NAME_DEFAULT));
     configsMap.put(JAVA_HOME_KEY, properties.getProperty(
         JAVA_HOME_KEY, JAVA_HOME_DEFAULT));
-
-    configsMap.put(RCO_FILE_LOCATION_KEY, properties.getProperty(
-            RCO_FILE_LOCATION_KEY, RCO_FILE_LOCATION_DEFAULT));
 
     File passFile = new File(configsMap.get(SRVR_KSTR_DIR_KEY) + File.separator
         + configsMap.get(SRVR_CRT_PASS_FILE_KEY));

@@ -37,8 +37,6 @@ public class InMemoryDefaultTestModule extends AbstractModule {
             "target/version");
     properties.setProperty(Configuration.OS_VERSION_KEY,
         "centos5");
-    properties.setProperty(Configuration.RCO_FILE_LOCATION_KEY,
-            Configuration.RCO_FILE_LOCATION_TEST);
     try {
       install(new ControllerModule(properties));
     } catch (Exception e) {

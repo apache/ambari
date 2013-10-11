@@ -316,7 +316,7 @@
                 </source>
                 <source>
                   <!-- This file is also included into agent rpm-->
-                  <location>../ambari-common/src/main/resources/role_command_order.json</location>
+                  <location>src/main/resources/role_command_order.json</location>
                 </source>
               </sources>
             </mapping>

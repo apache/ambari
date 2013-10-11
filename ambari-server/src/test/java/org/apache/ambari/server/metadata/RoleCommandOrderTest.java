@@ -38,6 +38,7 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonMethod;
@@ -79,6 +80,7 @@ public class RoleCommandOrderTest {
     RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
     ClusterImpl cluster = createMock(ClusterImpl.class);
     Service service = createMock(Service.class);
+    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.6"));
     expect(cluster.getService("HCFS")).andReturn(service);
     expect(cluster.getService("HDFS")).andReturn(null);
     replay(cluster);
@@ -127,6 +129,7 @@ public class RoleCommandOrderTest {
 
     expect(cluster.getService("HDFS")).andReturn(hdfsService).atLeastOnce();
     expect(hdfsService.getServiceComponent("JOURNALNODE")).andReturn(null);
+    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.6"));
 
     replay(cluster);
     replay(hdfsService);
@@ -170,6 +173,7 @@ public class RoleCommandOrderTest {
 
     expect(cluster.getService("HDFS")).andReturn(hdfsService).atLeastOnce();
     expect(hdfsService.getServiceComponent("JOURNALNODE")).andReturn(journalnodeSC);
+    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.6"));
 
     replay(cluster);
     replay(hdfsService);
@@ -225,7 +229,30 @@ public class RoleCommandOrderTest {
 
     assertEquals(expected, dump);
   }
+  
+  
+  @Test
+  public void testInitializeDefault() throws IOException {
+    RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
+    ClusterImpl cluster = createMock(ClusterImpl.class);
+    expect(cluster.getService("HCFS")).andReturn(null);
 
+    Service hdfsService = createMock(Service.class);
+
+    expect(cluster.getService("HDFS")).andReturn(hdfsService).atLeastOnce();
+    expect(hdfsService.getServiceComponent("JOURNALNODE")).andReturn(null);
+    //There is no rco file in this stack, should use default
+    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.5"));
+
+    replay(cluster);
+    replay(hdfsService);
+    
+    rco.initialize(cluster);
+    
+    verify(cluster);
+    verify(hdfsService);
+  }
+  
   private boolean dependenciesContainBlockedRole(Map<RoleCommandPair,
           Set<RoleCommandPair>> deps, Role blocked) {
     for (RoleCommandPair blockedPair : deps.keySet()) {

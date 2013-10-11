@@ -68,6 +68,7 @@ public class AmbariMetaInfo {
   public static final String SERVICE_METAINFO_FILE_NAME = "metainfo.xml";
   public static final String SERVICE_CONFIG_FOLDER_NAME = "configuration";
   public static final String SERVICE_CONFIG_FILE_NAME_POSTFIX = ".xml";
+  public static final String RCO_FILE_NAME = "role_command_order.json";
   private static final String REPOSITORY_FILE_NAME = "repoinfo.xml";
   private static final String REPOSITORY_FOLDER_NAME = "repos";
   private static final String REPOSITORY_XML_PROPERTY_BASEURL = "baseurl";

@@ -31,19 +31,14 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.orm.dao.MetainfoDAO;
-import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.ConfigurationXml;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
-import org.apache.ambari.server.state.stack.RepositoryXml.Os;
-import org.apache.ambari.server.state.stack.RepositoryXml.Repo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -272,6 +267,9 @@ public class StackExtensionHelper {
       stackInfo.setMinUpgradeVersion(smx.getVersion().getUpgrade());
       stackInfo.setActive(smx.getVersion().isActive());
       stackInfo.setParentStackVersion(smx.getExtends());
+      String rcoFileLocation = stackVersionFolder.getAbsolutePath() + File.separator + AmbariMetaInfo.RCO_FILE_NAME;
+      if (new File(rcoFileLocation).exists())
+        stackInfo.setRcoFileLocation(rcoFileLocation);
     }
 
     try {
