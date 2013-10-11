@@ -5285,6 +5285,66 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
+  public void testReInstallClientComponentFromServiceChange() throws AmbariException {
+    String clusterName = "foo1";
+    createCluster(clusterName);
+    clusters.getCluster(clusterName)
+      .setDesiredStackVersion(new StackId("HDP-2.0.6"));
+    String serviceName = "HDFS";
+    createService(clusterName, serviceName, null);
+    String componentName = "HDFS_CLIENT";
+
+    createServiceComponent(clusterName, serviceName, componentName,
+      State.INIT);
+
+    String host1 = "h1";
+    clusters.addHost(host1);
+    clusters.getHost("h1").setOsType("centos6");
+    clusters.getHost("h1").setState(HostState.HEALTHY);
+    clusters.getHost("h1").persist();
+    String host2 = "h2";
+    clusters.addHost(host2);
+    clusters.getHost("h2").setOsType("centos6");
+    clusters.getHost("h2").setState(HostState.HEALTHY);
+    clusters.getHost("h2").persist();
+
+    clusters.mapHostToCluster(host1, clusterName);
+    clusters.mapHostToCluster(host2, clusterName);
+
+    createServiceComponentHost(clusterName, serviceName, componentName,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName,
+      host2, null);
+
+    // Install
+    installService(clusterName, serviceName, false, false);
+
+    // Start Service
+    ServiceRequest sr = new ServiceRequest(
+      clusterName, serviceName, null, State.STARTED.name());
+    Set<ServiceRequest> setReqs = new HashSet<ServiceRequest>();
+    setReqs.add(sr);
+    RequestStatusResponse resp = controller.updateServices(
+      setReqs, Collections.<String, String>emptyMap(), false, true);
+
+    Assert.assertNotNull(resp);
+    Assert.assertTrue(resp.getRequestId() > 0);
+
+    List<Stage> stages = actionDB.getAllStages(resp.getRequestId());
+    Map<String, Role> hostsToRoles = new HashMap<String, Role>();
+    for (Stage stage : stages) {
+      for (HostRoleCommand hrc : stage.getOrderedHostRoleCommands()) {
+          hostsToRoles.put(hrc.getHostName(), hrc.getRole());
+      }
+    }
+
+    Map<String, Role> expectedHostsToRoles = new HashMap<String, Role>();
+    expectedHostsToRoles.put(host1, Role.HDFS_CLIENT);
+    expectedHostsToRoles.put(host2, Role.HDFS_CLIENT);
+    Assert.assertEquals(expectedHostsToRoles, hostsToRoles);
+  }
+
+  @Test
   public void testHivePasswordAbsentInConfigs() throws AmbariException {
     String clusterName = "c1";
     String serviceName = "HIVE";

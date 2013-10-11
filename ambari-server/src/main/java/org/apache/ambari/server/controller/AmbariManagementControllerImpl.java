@@ -1820,10 +1820,25 @@ public class AmbariManagementControllerImpl implements
   }
 
   private void addClientSchForReinstall(Cluster cluster,
+            Map<State, List<Service>> changedServices,
             Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts)
             throws AmbariException {
 
     Set<String> services = new HashSet<String>();
+
+    if (changedServices != null) {
+      for (Entry<State, List<Service>> entry : changedServices.entrySet()) {
+        if (State.STARTED != entry.getKey()) {
+          continue;
+        }
+        for (Service s : entry.getValue()) {
+          if (State.INSTALLED == s.getDesiredState()) {
+            services.add(s.getName());
+          }
+        }
+      }
+    }
+
     // Flatten changed Schs that are going to be Started
     List<ServiceComponentHost> serviceComponentHosts = new
       ArrayList<ServiceComponentHost>();
@@ -2004,7 +2019,7 @@ public class AmbariManagementControllerImpl implements
     if (reconfigureClients) {
       // Re-install client only hosts to reattach changed configs on service
       // restart
-      addClientSchForReinstall(cluster, changedScHosts);
+      addClientSchForReinstall(cluster, changedServices, changedScHosts);
     }
 
     if (!changedScHosts.isEmpty()
