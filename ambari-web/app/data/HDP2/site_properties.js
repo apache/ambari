@@ -193,6 +193,16 @@ module.exports =
       "unit": "MB",
       "category": "General",
       "serviceName": "MAPREDUCE2"
+    },
+    {
+      "id": "site property",
+      "name": "hadoop.security.auth_to_local",
+      "displayName": "hadoop.security.auth_to_local",
+      "displayType": "multiLine",
+      "serviceName": "HDFS",
+      "category": "Advanced",
+      "value": "",
+      "defaultValue": ""
     }
   ]
 };
