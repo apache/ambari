@@ -98,9 +98,8 @@
   </div>
 
   <div class="advancedOptions">
-    <h5>{{t installer.step2.advancedOptions.header}}</h5>
-
     {{#unless App.supports.localRepositories}}
+    <h5>{{t installer.step2.advancedOptions.header}}</h5>
     <label {{bindAttr class=":checkbox"}}>
       {{view Ember.Checkbox checkedBinding="content.installOptions.localRepo"}}
 
@@ -113,7 +112,6 @@
       {{t installer.step2.localRepo.label_instead}}
     </label>
     {{/unless}}
-    
   </div>
   <div class="btn-area">
     {{#unless view.parentView.controller.hideBackButton}}

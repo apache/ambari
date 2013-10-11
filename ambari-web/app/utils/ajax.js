@@ -835,6 +835,18 @@ var urls = {
     'real': '/clusters/{cluster}/requests/{requestId}?fields=tasks/*',
     'mock': '/data/wizard/{mock}'
   },
+  'wizard.advanced_repositories.valid_url': {
+    'real': '/stacks2/{stackName}/versions/{stackVersion}/operatingSystems/{osType}/repositories/{nameVersionCombo}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        type: 'PUT',
+        async: true,
+        data: JSON.stringify(data.data)
+      }
+    }
+  },
   'wizard.install_services.add_host_controller.is_retry': {
     'real': '/clusters/{cluster}/host_components',
     'mock': '',

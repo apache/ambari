@@ -4654,23 +4654,56 @@ i.icon-asterisks {
 }
 
 #advancedRepoAccordion{
-  #collapseOne{
-    .pull-right{
-      margin-bottom: 5px;
+  .accordion-heading {
+    background-color: #f0f0f0;
+  }
+  .accordion-body {
+    .table thead {
     }
-    th.os{
-      width: 15%;
-    }
-    th.actions{
-      width: 15%;
-    }
-    .action{
-      cursor: pointer;
-      .icon-minus-sign{
-        color: #FF4B4B;
-        margin-right: 2px;
+    .table tbody{
+      .label-error{
+        color: #b94a48;
+      }
+      .textfield-error input{
+        border-color: #b94a48;
+        -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+      }
+      .os {
+        width: 13%;
+      }
+      .url {
+        width: 70%;
+      }
+      .url-results {
+        width: 70%;
+        .ember-text-field {
+          width: 100%;
+        }
+      }
+      .validation {
+        width: 7%;
+      }
+      .validation-results {
+        width: 7%;
+        padding-top: 11px;
+      }
+      .action {
+        width: 10%;
+      }
+      .action-results {
+        width: 10%;
+        padding-top: 11px;
+        a {
+          cursor: pointer;
+        }
+        .icon-undo {
+          color: rgb(243, 178, 11);
+          margin-right: 2px;
+        }
       }
     }
-    
   }
+
 }

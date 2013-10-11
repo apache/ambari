@@ -31,27 +31,6 @@ App.WizardStep1View = Em.View.extend({
     return stacks;
   }.property('controller.content.stacks.@each.isSelected'),
 
-  isAddOSDisabled: true,
-  localRepositories: [],
-  defaultRepositories: [],
-  refreshRepositoryInfo: function () {
-    var selectedStack = this.get('controller.content.stacks').findProperty('isSelected', true);
-    var localRepos = [];
-    var defaultRepos = [];
-    if (selectedStack && selectedStack.operatingSystems) {
-      selectedStack.operatingSystems.forEach(function (os) {
-        if (os.baseUrl !== os.defaultBaseUrl) {
-          localRepos.push($.extend({}, os));
-        } else {
-          defaultRepos.push($.extend({}, os));
-        }
-      });
-    }
-    this.set('localRepositories', localRepos);
-    this.set('defaultRepositories', defaultRepos);
-    this.set('isAddOSDisabled', defaultRepos.get('length') < 1);
-  }.observes('controller.content.stacks.@each.isSelected', 'controller.content.stacks.@each.operatingSystems.@each.baseUrl'),
-
   stackRadioButton: Ember.Checkbox.extend({
     tagName: 'input',
     attributeBindings: [ 'type', 'checked' ],
@@ -66,68 +45,75 @@ App.WizardStep1View = Em.View.extend({
     }
   }),
 
-  removeLocalRepository: function (event) {
-    var localRepo = event.context;
+  allRepositories: [],
+  repoErrorCnt: function () {
+    return this.get('allRepositories').filterProperty('empty-error', true).length;
+  }.property('allRepositories.@each.empty-error'),
+  loadRepositories: function () {
+    var selectedStack = this.get('controller.content.stacks').findProperty('isSelected', true);
+    var repos = [];
+    if (selectedStack && selectedStack.operatingSystems) {
+      selectedStack.operatingSystems.forEach(function (os) {
+       var cur_repo = Em.Object.create({
+         baseUrl: os.baseUrl,
+         defaultBaseUrl: os.defaultBaseUrl,
+         osType: os.osType,
+         validation: os.validation
+       });
+        cur_repo.set('empty-error', !os.baseUrl);
+        cur_repo.set('invalid-error', os.validation == 'icon-remove');
+        cur_repo.set('undo', os.baseUrl != os.defaultBaseUrl);
+        repos.pushObject(cur_repo);
+      });
+    }
+    this.set('allRepositories', repos);
+  }.observes('controller.content.stacks.@each.isSelected', 'controller.content.stacks.@each.reload'),
 
+  undoLocalRepository: function (event) {
+    var localRepo = event.context;
     var selectedStack = this.get('controller.content.stacks').findProperty('isSelected', true);
     var cos = selectedStack.operatingSystems.findProperty('osType', localRepo.osType);
     cos.baseUrl = cos.defaultBaseUrl;
-
-    this.refreshRepositoryInfo();
+    cos.validation = null;
+    this.loadRepositories();
   },
-
-  addLocalRepository: function () {
-    var self = this;
-    var defaultRepos = self.get('defaultRepositories');
+  editLocalRepository: function (event) {
+    //upload to content
+    var repos = this.get('allRepositories');
     var selectedStack = this.get('controller.content.stacks').findProperty('isSelected', true);
+    if (selectedStack && selectedStack.operatingSystems) {
+      selectedStack.operatingSystems.forEach(function (os) {
+        var target = repos.findProperty('osType', os.osType);
+        if ( os.baseUrl != target.get('baseUrl')) {
+          os.baseUrl = target.get('baseUrl');
+          os.validation = null;
+          target.set('undo', target.get('baseUrl') != target.get('defaultBaseUrl'));
+          target.set('invalid-error', false);
+          target.set('validation', null);
+          target.set('empty-error',!target.get('baseUrl'));
+        }
+      });
+    }
+  }.observes('allRepositories.@each.baseUrl'),
+  isSubmitDisabled: function() {
+    return this.get('repoErrorCnt') != 0;
+  }.property('repoErrorCnt'),
+  invalidUrlExist: function () {
+    var selectedStack = this.get('controller.content.stacks').findProperty('isSelected', true);
+    return (selectedStack.get('invalidCnt') > 0);
+  }.property('controller.content.stacks.@each.invalidCnt'),
 
-    App.ModalPopup.show({
-      // classNames: ['big-modal'],
-      classNames: [ 'sixty-percent-width-modal' ],
-      header: "Add Local Repository",
-      primary: 'Add',
-      secondary: 'Cancel',
-      onPrimary: function () {
-        var error = null;
-        var childViews = this.get('childViews');
-        if (childViews && childViews.get('length') > 0) {
-          var childView = childViews.objectAt(0);
-          if (childView) {
-            if (childView.get('enteredUrl')) {
-              if (childView.get('selectedOS').baseUrl !== childView.get('enteredUrl') && childView.get('selectedOS').defaultBaseUrl !== childView.get('enteredUrl')) {
-                var selectedStack = self.get('controller.content.stacks').findProperty('isSelected', true);
-                var cos = selectedStack.operatingSystems.findProperty('osType', childView.get('selectedOS').osType);
-                cos.baseUrl = childView.get('enteredUrl');
-                self.refreshRepositoryInfo();
-                this.hide();
-              } else {
-                error = Em.I18n.t('installer.step1.advancedRepo.localRepo.error.modifyUrl');
-              }
-            } else {
-              error = Em.I18n.t('installer.step1.advancedRepo.localRepo.error.noUrl')
-            }
-            if (childView.get('isVisible'))
-              childView.set('errorMessage', error);
-          }
-        }
-      },
-      onSecondary: function () {
-        this.hide();
-      },
-      bodyClass: Ember.View.extend({
-        templateName: require('templates/wizard/step1_addLocalRepository'),
-        controller: self.get('controller'),
-        stackName: selectedStack.get('name'),
-        selectedOS: defaultRepos.objectAt(0),
-        enteredUrl: defaultRepos.objectAt(0).baseUrl,
-        oses: defaultRepos,
-        errorMessage: null,
-        selectOS: function (event) {
-          var os = event.context;
-          this.set('selectedOS', os);
-          this.set('enteredUrl', os.baseUrl);
-        }
-      })
-    });
+  /**
+   * Onclick handler for Config Group Header. Used to show/hide block
+   */
+  onToggleBlock: function () {
+    this.$('.accordion-body').toggle('blind', 500);
+    this.set('isRLCollapsed', !this.get('isRLCollapsed'));
+  },
+  isRLCollapsed: true,
+  didInsertElement: function () {
+    if (this.get('isRLCollapsed')) {
+      this.$('.accordion-body').hide();
+    }
   }
 });

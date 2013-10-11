@@ -136,10 +136,23 @@ module.exports = Em.Route.extend({
     next: function (router) {
       var wizardStep1Controller = router.get('wizardStep1Controller');
       var installerController = router.get('installerController');
-      installerController.saveStacks(wizardStep1Controller);
-      App.db.setService(undefined);
-      installerController.clearInstallOptions();
-      router.transitionTo('step2');
+      installerController.checkRepoURL(wizardStep1Controller);
+     // make sure got all validations feedback and no invalid url, then proceed
+      var myVar = setInterval(
+        function(){
+          var cnt = installerController.get('validationCnt');
+          var invalidCnt = installerController.get('invalidCnt')
+          if (cnt == 0 && invalidCnt == 0) { // all feedback exist and no invalid url
+            installerController.saveStacks(wizardStep1Controller);
+            App.db.setService(undefined);
+            installerController.clearInstallOptions();
+            router.transitionTo('step2');
+            clearInterval(myVar);
+          } else if ( cnt == 0 && invalidCnt != 0) {
+            clearInterval(myVar);
+          }
+        },
+      1000);
     }
   }),
 

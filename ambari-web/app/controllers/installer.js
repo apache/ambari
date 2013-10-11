@@ -357,6 +357,76 @@ App.InstallerController = App.WizardController.extend({
   },
 
   /**
+   * Check validation of the customized local urls
+   * @param stepController step1WizardController
+   */
+  checkRepoURL: function (stepController) {
+    var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
+    selectedStack.set('reload', true);
+    var nameVersionCombo = selectedStack.name;
+    var stackName = nameVersionCombo.split('-')[0];
+    var stackVersion = nameVersionCombo.split('-')[1];
+    if (selectedStack && selectedStack.operatingSystems) {
+      this.set('validationCnt', selectedStack.operatingSystems.length);
+      this.set('invalidCnt', 0);
+      selectedStack.operatingSystems.forEach(function (os) {
+        os.validation = 'icon-repeat';
+        selectedStack.set('reload', !selectedStack.get('reload'));
+        App.ajax.send({
+          name: 'wizard.advanced_repositories.valid_url',
+          sender: this,
+          data: {
+            stackName: stackName,
+            stackVersion: stackVersion,
+            nameVersionCombo: nameVersionCombo,
+            osType: os.osType,
+            data: {
+              'Repositories': {
+                'base_url': os.baseUrl
+              }
+            }
+          },
+          success: 'checkRepoURLSuccessCallback',
+          error: 'checkRepoURLErrorCallback'
+        });
+      }, this);
+    }
+  },
+  setInvalidUrlCnt: function () {
+    var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
+    selectedStack.set('invalidCnt', this.get('invalidCnt'));
+  }.observes('invalidCnt'),
+  /**
+   * onSuccess callback for check Repo URL.
+   */
+  checkRepoURLSuccessCallback: function (response, request, data) {
+    console.log('Success in check Repo URL. data osType: ' + data.osType );
+    var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
+    if (selectedStack && selectedStack.operatingSystems) {
+      var os = selectedStack.operatingSystems.findProperty('osType', data.osType);
+      os.validation = 'icon-ok';
+      selectedStack.set('reload', !selectedStack.get('reload'));
+      this.set('validationCnt', this.get('validationCnt') - 1);
+    }
+  },
+
+  /**
+   * onError callback for check Repo URL.
+   */
+  checkRepoURLErrorCallback: function (request, ajaxOptions, error, data) {
+    console.log('Error in check Repo URL. The baseURL sent is:  ' + data.data);
+    var osType = data.url.split('/')[8];
+    var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
+    if (selectedStack && selectedStack.operatingSystems) {
+      var os = selectedStack.operatingSystems.findProperty('osType', osType);
+      os.validation = 'icon-remove';
+      selectedStack.set('reload', !selectedStack.get('reload'));
+      this.set('validationCnt', this.get('validationCnt') - 1);
+      this.set('invalidCnt', this.get('invalidCnt') + 1);
+    }
+  },
+
+  /**
    * Load data for all steps until <code>current step</code>
    */
   loadAllPriorSteps: function () {

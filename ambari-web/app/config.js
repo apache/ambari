@@ -57,7 +57,7 @@ App.supports = {
   customizeSmokeTestUser: true,
   hue: false,
   ldapGroupMapping: false,
-  localRepositories: false,
+  localRepositories: true,
   highAvailability: true,
   deleteHost: false,
   autoRollbackHA: true
