@@ -2213,11 +2213,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, "parse_properties_file")
   @patch.object(ambari_server, "read_ambari_user")
   @patch.object(ambari_server, "is_root")
-  @patch.object(ambari_server, "is_local_database")
-  @patch.object(ambari_server, "find_jdbc_driver")
   @patch("getpass.getuser")
   @patch("os.chdir")
-  def test_start(self, chdir_mock, getuser_mock, find_jdbc_driver_mock, is_local_database_mock, is_root_mock, read_ambari_user_mock,
+  def test_start(self, chdir_mock, getuser_mock, is_root_mock, read_ambari_user_mock,
                  parse_properties_file_mock, check_postgre_up_mock,
                  print_error_msg_mock, find_jdk_mock, search_file_mock,
                  print_info_msg_mock, popenMock, openMock, pexistsMock,
@@ -2300,21 +2298,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     # Remote DB
     args.persistence_type = "remote"
-    args.database = "oracle"
-
-    # Case when jdbc driver is not used
-    is_local_database_mock.return_value = False
-    find_jdbc_driver_mock.return_value = -1
-    try:
-      ambari_server.start(args)
-      self.fail("Should fail with exception")
-    except FatalException as e:
-      self.assertTrue('Before starting Ambari Server' in e.reason)
-
-    is_local_database_mock.reset_mock()
-    find_jdbc_driver_mock.reset_mock()
-    is_local_database_mock.return_value = True
-    find_jdbc_driver_mock.return_value = 0
     try:
       ambari_server.start(args)
     except FatalException as e:
