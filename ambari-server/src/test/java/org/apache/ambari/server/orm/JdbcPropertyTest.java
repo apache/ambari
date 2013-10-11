@@ -19,9 +19,11 @@ package org.apache.ambari.server.orm;
 
 import java.util.Properties;
 
+import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.state.Clusters;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,6 +33,7 @@ import com.google.inject.Injector;
 
 public class JdbcPropertyTest {
   Properties properties;
+  private Injector injector;
 
   @Before
   public void configure() {
@@ -40,10 +43,15 @@ public class JdbcPropertyTest {
     properties.setProperty(Configuration.SERVER_VERSION_FILE, "target/version");
     properties.setProperty(Configuration.OS_VERSION_KEY, "centos5");
   }
-  
+
+  @After
+  public void tearDown() throws Exception {
+    injector.getInstance(PersistService.class).stop();
+  }
+
   @Test
   public void testNormal() throws Exception {
-    Injector injector = Guice.createInjector(new ControllerModule(properties));
+    injector = Guice.createInjector(new ControllerModule(properties));
     injector.getInstance(GuiceJpaInitializer.class);
 
     injector.getInstance(Clusters.class);
@@ -52,7 +60,7 @@ public class JdbcPropertyTest {
   @Test
   public void testJdbcProperty() throws Exception {
     properties.setProperty(Configuration.SERVER_JDBC_PROPERTIES_PREFIX + "shutdown", "true");
-    Injector injector = Guice.createInjector(new ControllerModule(properties));
+    injector = Guice.createInjector(new ControllerModule(properties));
     injector.getInstance(GuiceJpaInitializer.class);
     try {
       injector.getInstance(Clusters.class);

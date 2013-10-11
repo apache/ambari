@@ -20,6 +20,7 @@ package org.apache.ambari.server.security.authorization;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.dao.RoleDAO;
@@ -27,10 +28,7 @@ import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.RoleEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -53,9 +51,6 @@ public class AmbariLdapAuthenticationProviderForDNWithSpaceTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception{
-    injector = Guice.createInjector(new AuthorizationTestModuleForLdapDNWithSpace());
-    injector.getInstance(GuiceJpaInitializer.class);
-
     apacheDSContainer = new ApacheDSContainer("dc=ambari,dc=the apache,dc=org", "classpath:/users_for_dn_with_space.ldif");
     apacheDSContainer.setPort(33389);
     apacheDSContainer.afterPropertiesSet();
@@ -63,8 +58,15 @@ public class AmbariLdapAuthenticationProviderForDNWithSpaceTest {
 
   @Before
   public void setUp() {
+    injector = Guice.createInjector(new AuthorizationTestModuleForLdapDNWithSpace());
     injector.injectMembers(this);
+    injector.getInstance(GuiceJpaInitializer.class);
     configuration.setClientSecurityType(ClientSecurityType.LDAP);
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    injector.getInstance(PersistService.class).stop();
   }
 
   @Test(expected = BadCredentialsException.class)
