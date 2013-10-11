@@ -3994,6 +3994,11 @@
         "pointInTime" : true,
         "temporal" : false
       },
+      "metrics/runtime/StartTime":{
+        "metric" : "java.lang:type=Runtime.StartTime",
+        "pointInTime" : true,
+        "temporal" : false
+      },
       "metrics/ugi/loginFailure_avg_time":{
         "metric":"Hadoop:service=NameNode,name=ugi.loginFailure_avg_time",
         "pointInTime":true,
