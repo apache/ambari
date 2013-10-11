@@ -239,8 +239,13 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         }
         break;
       case 'SECONDARY_NAMENODE':
-        componentDir = configs['core-site']['fs.checkpoint.dir'];
-        configs['hdfs-site']['dfs.secondary.http.address'] = targetHostName + ':50090';
+        if (isHadoop2Stack) {
+          componentDir = configs['hdfs-site']['dfs.namenode.checkpoint.dir'];
+          configs['hdfs-site']['dfs.namenode.secondary.http-address'] = targetHostName + ':50090';
+        } else {
+          componentDir = configs['core-site']['fs.checkpoint.dir'];
+          configs['hdfs-site']['dfs.secondary.http.address'] = targetHostName + ':50090';
+        }
         break;
       case 'JOBTRACKER':
         componentDir = configs['mapred-site']['mapred.local.dir'];
