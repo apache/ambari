@@ -1634,6 +1634,11 @@ def download_jdk(args):
   if get_JAVA_HOME() and not args.java_home:
     pass # do nothing
   elif args.java_home and os.path.exists(args.java_home):
+    jce_policy_path = os.path.join(properties[RESOURCES_DIR_PROPERTY], JCE_POLICY_FILENAME)
+    if os.path.exists(jce_policy_path):
+      err = "Command failed to execute. Please remove or move " + jce_policy_path + " and retry again"
+      raise FatalException(1, err)
+
     print_warning_msg("JAVA_HOME " + args.java_home
                     + " must be valid on ALL hosts")
     write_property(JAVA_HOME_PROPERTY, args.java_home)
