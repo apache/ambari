@@ -84,6 +84,18 @@ App.ModalPopup = Ember.View.extend({
       var block = this.$().find('#modal > .modal-body').first();
       block.css('max-height', $(window).height() - block.offset().top - 300 + $(window).scrollTop()); // fix popup height
     }
+    // If popup is opened from another popup it should be displayed above
+    var existedPopups = $(document).find('.modal-backdrop');
+    if (existedPopups) {
+      var maxZindex = 1;
+      existedPopups.each(function(index, popup) {
+        if ($(popup).css('z-index') > maxZindex) {
+          maxZindex = $(popup).css('z-index');
+        }
+      });
+      this.$().find('.modal-backdrop').css('z-index', maxZindex * 2);
+      this.$().find('.modal').css('z-index', maxZindex * 2 + 1);
+    }
   },
 
   fitHeight: function () {
