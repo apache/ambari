@@ -32,9 +32,9 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
 
   loadStep: function () {
     if (this.get('content.reassign.component_name') === 'NAMENODE' && !App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
-      this.get('hostComponents').pushObjects(['NAMENODE', 'ZKFC']);
+      this.set('hostComponents', ['NAMENODE', 'ZKFC']);
     } else {
-      this.get('hostComponents').pushObject(this.get('content.reassign.component_name'));
+      this.set('hostComponents', [this.get('content.reassign.component_name')]);
     }
     this._super();
   },
