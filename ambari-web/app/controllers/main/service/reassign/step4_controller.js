@@ -30,15 +30,12 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
 
   hostComponents: [],
 
-  serviceNames: [],
-
   loadStep: function () {
     if (this.get('content.reassign.component_name') === 'NAMENODE' && !App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
       this.get('hostComponents').pushObjects(['NAMENODE', 'ZKFC']);
     } else {
       this.get('hostComponents').pushObject(this.get('content.reassign.component_name'));
     }
-    this.get('serviceNames').pushObject(this.get('content.reassign.service_id'));
     this._super();
   },
 
@@ -46,17 +43,14 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     var commands = this.get('commands');
     var currentStep = App.router.get('reassignMasterController.currentStep');
     var hostComponentsNames = '';
-    var serviceNames = '';
+
     this.get('hostComponents').forEach(function (comp, index) {
       hostComponentsNames += index ? ', ' : '';
       hostComponentsNames += App.format.role(comp);
     }, this);
-    this.get('serviceNames').forEach(function (service, index) {
-      serviceNames += index ? ', ' : '';
-      serviceNames += App.Service.find().findProperty('serviceName', service).get('displayName');
-    }, this);
+
     for (var i = 0; i < commands.length; i++) {
-      var title = Em.I18n.t('services.reassign.step4.task' + i + '.title').format(hostComponentsNames, serviceNames);
+      var title = Em.I18n.t('services.reassign.step4.task' + i + '.title').format(hostComponentsNames);
       this.get('tasks').pushObject(Ember.Object.create({
         title: title,
         status: 'PENDING',
@@ -92,21 +86,12 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   },
 
   stopServices: function () {
-    this.set('multiTaskCounter', 0);
-    var serviceNames = this.get('serviceNames');
-    for (var i = 0; i < serviceNames.length; i++) {
-      App.ajax.send({
-        name: 'reassign.stop_service',
-        sender: this,
-        data: {
-          serviceName: serviceNames[i],
-          displayName: App.Service.find().findProperty('serviceName', serviceNames[i]).get('displayName'),
-          taskNum: serviceNames.length
-        },
-        success: 'startPolling',
-        error: 'onTaskError'
-      });
-    }
+    App.ajax.send({
+      name: 'reassign.stop_services',
+      sender: this,
+      success: 'startPolling',
+      error: 'onTaskError'
+    });
   },
 
   createHostComponents: function () {
@@ -294,21 +279,12 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   },
 
   startServices: function () {
-    this.set('multiTaskCounter', 0);
-    var serviceNames = this.get('serviceNames');
-    for (var i = 0; i < serviceNames.length; i++) {
-      App.ajax.send({
-        name: 'reassign.start_components',
-        sender: this,
-        data: {
-          serviceName: serviceNames[i],
-          displayName: App.Service.find().findProperty('serviceName', serviceNames[i]).get('displayName'),
-          taskNum: serviceNames.length
-        },
-        success: 'startPolling',
-        error: 'onTaskError'
-      });
-    }
+    App.ajax.send({
+      name: 'reassign.start_services',
+      sender: this,
+      success: 'startPolling',
+      error: 'onTaskError'
+    });
   },
 
   deleteHostComponents: function () {

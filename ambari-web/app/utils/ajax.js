@@ -78,18 +78,18 @@ var urls = {
       };
     }
   },
-  'reassign.stop_service': {
-    'mock': '/data/wizard/reassign/request_id.json',
-    'real': '/clusters/{clusterName}/services/{serviceName}',
-    'type': 'PUT',
-    'format': function (data) {
+  'reassign.stop_services': {
+    'real': '/clusters/{clusterName}/services?ServiceInfo/state=STARTED',
+    'mock': '',
+    'format': function (data, opt) {
       return {
+        type: 'PUT',
         data: JSON.stringify({
-          RequestInfo: {
-            "context": "Stop service " + data.displayName
+          "RequestInfo": {
+            "context": "Stop all services"
           },
-          Body: {
-            ServiceInfo: {
+          "Body": {
+            "ServiceInfo": {
               "state": "INSTALLED"
             }
           }
@@ -97,7 +97,25 @@ var urls = {
       }
     }
   },
-
+  'reassign.start_services': {
+    'real': '/clusters/{clusterName}/services?ServiceInfo/state=INSTALLED&params/run_smoke_test=true',
+    'mock': '',
+    'format': function (data, opt) {
+      return {
+        type: 'PUT',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "context": "Start all services"
+          },
+          "Body": {
+            "ServiceInfo": {
+              "state": "STARTED"
+            }
+          }
+        })
+      }
+    }
+  },
   'reassign.maintenance_mode': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
     'mock': '',
@@ -111,25 +129,6 @@ var urls = {
             }
           }
         )
-      }
-    }
-  },
-  'reassign.start_components': {
-    'mock': '/data/wizard/reassign/request_id.json',
-    'real': '/clusters/{clusterName}/services/{serviceName}',
-    'type': 'PUT',
-    'format': function (data) {
-      return {
-        data: JSON.stringify({
-          RequestInfo: {
-            "context": "Start service " + data.displayName
-          },
-          Body: {
-            ServiceInfo: {
-              "state": "STARTED"
-            }
-          }
-        })
       }
     }
   },

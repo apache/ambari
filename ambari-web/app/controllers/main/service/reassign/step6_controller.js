@@ -26,12 +26,29 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
 
   clusterDeployState: 'REASSIGN_MASTER_INSTALLING',
 
+  multiTaskCounter: 0,
+
+  hostComponents: [],
+
+  loadStep: function () {
+    if (this.get('content.reassign.component_name') === 'NAMENODE' && !App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
+      this.get('hostComponents').pushObjects(['NAMENODE', 'ZKFC']);
+    } else {
+      this.get('hostComponents').pushObject(this.get('content.reassign.component_name'));
+    }
+    this._super();
+  },
+
   initializeTasks: function () {
     var commands = this.get('commands');
+    var hostComponentsNames = '';
+    this.get('hostComponents').forEach(function (comp, index) {
+      hostComponentsNames += index ? ', ' : '';
+      hostComponentsNames += App.format.role(comp);
+    }, this);
     var currentStep = App.router.get('reassignMasterController.currentStep');
     for (var i = 0; i < commands.length; i++) {
-      var title = Em.I18n.t('services.reassign.step6.task' + i + '.title').format(App.format.role(this.get('content.reassign.component_name')),
-          App.Service.find().findProperty('serviceName', this.get('content.reassign.service_id')).get('displayName'));
+      var title = Em.I18n.t('services.reassign.step6.task' + i + '.title').format(hostComponentsNames);
       this.get('tasks').pushObject(Ember.Object.create({
         title: title,
         status: 'PENDING',
@@ -55,31 +72,37 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
     }
   }.observes('tasks.@each.showRollback'),
 
+  onComponentsTasksSuccess: function () {
+    this.set('multiTaskCounter', this.get('multiTaskCounter') + 1);
+    if (this.get('multiTaskCounter') >= this.get('hostComponents').length) {
+      this.onTaskCompleted();
+    }
+  },
+
   startServices: function () {
-    var serviceName = this.get('content.reassign.service_id');
     App.ajax.send({
-      name: 'reassign.start_components',
+      name: 'reassign.start_services',
       sender: this,
-      data: {
-        serviceName: serviceName,
-        displayName: App.Service.find().findProperty('serviceName', serviceName).get('displayName')
-      },
       success: 'startPolling',
       error: 'onTaskError'
     });
   },
 
   deleteHostComponents: function () {
+    this.set('multiTaskCounter', 0);
+    var hostComponents = this.get('hostComponents');
     var hostName = this.get('content.reassignHosts.source');
-    App.ajax.send({
-      name: 'reassign.remove_component',
-      sender: this,
-      data: {
-        hostName: hostName,
-        componentName: this.get('content.reassign.component_name')
-      },
-      success: 'onTaskCompleted',
-      error: 'onTaskError'
-    });
+    for (var i = 0; i < hostComponents.length; i++) {
+      App.ajax.send({
+        name: 'reassign.remove_component',
+        sender: this,
+        data: {
+          hostName: hostName,
+          componentName: hostComponents[i]
+        },
+        success: 'onComponentsTasksSuccess',
+        error: 'onTaskError'
+      });
+    }
   }
 })
