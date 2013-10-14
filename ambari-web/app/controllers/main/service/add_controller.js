@@ -201,10 +201,18 @@ App.AddServiceController = App.WizardController.extend({
     {
       name: 'TASKTRACKER',
       service: 'MAPREDUCE'
-    },{
+    },
+    {
       name: 'HBASE_REGIONSERVER',
       service: 'HBASE'
     }];
+
+    if (App.get('isHadoop2Stack')) {
+      components.push({
+        name: 'NODEMANAGER',
+        service: 'YARN'
+      });
+    }
 
     var result = [];
     var services = App.Service.find();
@@ -260,7 +268,7 @@ App.AddServiceController = App.WizardController.extend({
       componentName: 'CLIENT',
       displayName: 'client',
       hosts: hosts
-    })
+    });
 
     return result;
   },
