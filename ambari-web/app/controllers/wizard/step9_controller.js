@@ -27,7 +27,8 @@ App.WizardStep9Controller = Em.Controller.extend({
 
   isSubmitDisabled: function () {
     var validStates = ['STARTED','START FAILED'];
-    if (this.get('content.controllerName') == 'addHostController') {
+    var controllerName = this.get('content.controllerName');
+    if (controllerName == 'addHostController' || controllerName == 'addServiceController') {
       validStates.push('INSTALL FAILED');
     }
     return !validStates.contains(this.get('content.cluster.status'));
