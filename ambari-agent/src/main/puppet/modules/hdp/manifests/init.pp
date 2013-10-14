@@ -350,6 +350,7 @@ define hdp::directory(
   $mode  = undef,
   $ensure = directory,
   $force = undef,
+  $links = 'follow',
   $service_state = 'running',
   $override_owner = false
   )
@@ -360,20 +361,23 @@ define hdp::directory(
     owner  => $owner,
     group  => $group,
     mode   => $mode,
+    links  => $links,
     force  => $force
    }
   } elsif ($service_state != 'uninstalled') {
     if $override_owner == true {
       file { $name :
-      ensure => present,
+      ensure => $ensure,
       owner  => $owner,
       group  => $group,
+      links  => $links,
       mode   => $mode,
       force  => $force
      }
     } else {
       file { $name :
-      ensure => present,
+      ensure => $ensure,
+      links  => $links,
       mode   => $mode,
       force  => $force
      }
