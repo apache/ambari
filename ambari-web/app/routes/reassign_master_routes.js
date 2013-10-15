@@ -24,7 +24,7 @@ module.exports = Em.Route.extend({
       Em.run.next(function () {
         var reassignMasterController = router.get('reassignMasterController');
         App.router.get('updateController').set('isWorking', false);
-        var hostsUrl = '/hosts?fields=Hosts/host_name,Hosts/disk_info';
+        var hostsUrl = '/hosts?fields=Hosts/host_name,Hosts/disk_info,host_components';
         router.get('clusterController').requestHosts(hostsUrl, function () {
           console.log('Request for hosts, with disk_info parameter');
         });
