@@ -369,7 +369,7 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
       this.setTaskLogs(currentTaskId, tasks);
       if (!tasks.someProperty('Tasks.status', 'PENDING') && !tasks.someProperty('Tasks.status', 'QUEUED') && !tasks.someProperty('Tasks.status', 'IN_PROGRESS')) {
         this.set('currentRequestIds', []);
-        if (tasks.someProperty('Tasks.status', 'FAILED')  || tasks.someProperty('status', 'TIMEDOUT') || tasks.someProperty('status', 'ABORTED')) {
+        if (tasks.someProperty('Tasks.status', 'FAILED')  || tasks.someProperty('Tasks.status', 'TIMEDOUT') || tasks.someProperty('Tasks.status', 'ABORTED')) {
           this.setTaskStatus(currentTaskId, 'FAILED');
         } else {
           this.setTaskStatus(currentTaskId, 'COMPLETED');
