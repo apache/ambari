@@ -336,7 +336,7 @@ define service {
         retry_check_interval    1
         max_check_attempts      3
 }
- <% if scope.function_hdp_template_var("hdp_os_type") != "suse"%>
+<% if scope.function_hdp_template_var("hdp_os_type") != "suse"%>
 define service {
         hostgroup_name          jobtracker
         use                     hadoop-service
@@ -426,6 +426,7 @@ define service {
         max_check_attempts      3
 }
 
+<% if scope.function_hdp_template_var("hdp_os_type") != "suse"%>
 define service {
         hostgroup_name          resourcemanager
         use                     hadoop-service
@@ -436,6 +437,7 @@ define service {
         retry_check_interval    2 
         max_check_attempts      5
 }
+<% end %>
 
 define service {
         hostgroup_name          resourcemanager
@@ -508,6 +510,7 @@ define service {
         max_check_attempts      3
 }
 
+<% if scope.function_hdp_template_var("hdp_os_type") != "suse"%>
 define service {
         hostgroup_name          historyserver2
         use                     hadoop-service
@@ -518,6 +521,7 @@ define service {
         retry_check_interval    2 
         max_check_attempts      5
 }
+<% end %>
 
 define service {
         hostgroup_name          historyserver2
