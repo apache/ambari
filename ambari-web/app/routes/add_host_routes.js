@@ -280,6 +280,10 @@ module.exports = Em.Route.extend({
     back: Em.Router.transitionTo('step5'),
     complete: function (router, context) {
       var addHostController = router.get('addHostController');
+      var hostsUrl = '/hosts?fields=Hosts/host_name,Hosts/public_host_name,Hosts/cpu_count,Hosts/total_mem,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components,metrics/disk,metrics/load/load_one';
+      router.get('clusterController').requestHosts(hostsUrl, function () {
+        console.log('Request for hosts, with immutable parameters')
+      });
       router.get('updateController').updateAll();
       addHostController.finish();
       $(context.currentTarget).parents("#modal").find(".close").trigger('click');

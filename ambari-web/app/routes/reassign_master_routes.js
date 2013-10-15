@@ -24,6 +24,10 @@ module.exports = Em.Route.extend({
       Em.run.next(function () {
         var reassignMasterController = router.get('reassignMasterController');
         App.router.get('updateController').set('isWorking', false);
+        var hostsUrl = '/hosts?fields=Hosts/host_name,Hosts/disk_info';
+        router.get('clusterController').requestHosts(hostsUrl, function () {
+          console.log('Request for hosts, with disk_info parameter');
+        });
         var popup = App.ModalPopup.show({
           classNames: ['full-width-modal'],
           header:Em.I18n.t('services.reassign.header'),

@@ -44,9 +44,8 @@ App.UpdateController = Em.Controller.extend({
   }.observes('isWorking'),
 
   updateHost:function(callback) {
-    var self = this;
     var testUrl =  App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hosts.json':'/data/hosts/hosts.json';
-      var hostsUrl = this.getUrl(testUrl, '/hosts?fields=Hosts/host_name,Hosts/public_host_name,Hosts/disk_info,Hosts/cpu_count,Hosts/total_mem,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components,metrics/disk,metrics/load/load_one');
+      var hostsUrl = this.getUrl(testUrl, '/hosts?fields=Hosts/host_name,Hosts/host_status,Hosts/last_heartbeat_time,host_components,metrics/disk,metrics/load/load_one');
       App.HttpClient.get(hostsUrl, App.hostsMapper, {
         complete: callback
       });

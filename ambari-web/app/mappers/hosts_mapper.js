@@ -16,6 +16,7 @@
  */
 
 var App = require('app');
+var cacheData = {};
 
 App.hostsMapper = App.QuickDataMapper.create({
 
@@ -56,6 +57,7 @@ App.hostsMapper = App.QuickDataMapper.create({
         var serverHostIds = {};
         result.forEach(function (host) {
           serverHostIds[host.id] = host.id;
+          cacheData[host.id] = host;
         });
         var hostsToDelete = [];
         clientHosts.forEach(function (host) {
@@ -69,6 +71,18 @@ App.hostsMapper = App.QuickDataMapper.create({
           host.deleteRecord();
         });
       }
+      //restore properties from cache instead request them from server
+      result.forEach(function (host) {
+        var cacheHost = cacheData[host.id];
+        if (cacheHost) {
+          host.ip = cacheHost.ip;
+          host.os_arch = cacheHost.os_arch;
+          host.os_type = cacheHost.os_type;
+          host.public_host_name = cacheHost.public_host_name;
+          host.memory = cacheHost.memory;
+          host.cpu = cacheHost.cpu;
+        }
+      });
       App.store.loadMany(this.get('model'), result);
     }
   },

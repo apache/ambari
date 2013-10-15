@@ -312,8 +312,7 @@ App.ClusterController = Em.Controller.extend({
       return;
     }
     var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
-    var testHostUrl =  App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hosts.json':'/data/hosts/hosts.json';
-    var hostsUrl = this.getUrl(testHostUrl, '/hosts?fields=Hosts/host_name,Hosts/public_host_name,Hosts/disk_info,Hosts/cpu_count,Hosts/total_mem,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components,metrics/disk,metrics/load/load_one');
+    var hostsRealUrl = '/hosts?fields=Hosts/host_name,Hosts/public_host_name,Hosts/cpu_count,Hosts/total_mem,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components,metrics/disk,metrics/load/load_one';
     var usersUrl = App.testMode ? '/data/users/users.json' : App.apiPrefix + '/users/?fields=*';
     var racksUrl = "/data/racks/racks.json";
     var dataSetUrl = "/data/mirroring/all_datasets.json";
@@ -360,12 +359,8 @@ App.ClusterController = Em.Controller.extend({
       });
     }
     
-    App.HttpClient.get(hostsUrl, App.hostsMapper, {
-      complete:function (jqXHR, textStatus) {
-        self.updateLoadStatus('hosts');
-      }
-    }, function (jqXHR, textStatus) {
-        self.updateLoadStatus('hosts');
+    this.requestHosts(hostsRealUrl, function (jqXHR, textStatus) {
+      self.updateLoadStatus('hosts');
     });
 
     App.HttpClient.get(usersUrl, App.usersMapper, {
@@ -388,6 +383,13 @@ App.ClusterController = Em.Controller.extend({
     });
   },
 
+  requestHosts: function(realUrl, callback){
+    var testHostUrl =  App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hosts.json':'/data/hosts/hosts.json';
+    var url = this.getUrl(testHostUrl, realUrl);
+    App.HttpClient.get(url, App.hostsMapper, {
+      complete: callback
+    }, callback)
+  },
 
   loadAmbariProperties: function() {
     App.ajax.send({
