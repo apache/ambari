@@ -199,10 +199,6 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     switch (componentName) {
       case 'NAMENODE':
         if (isHadoop2Stack) {
-          componentDir = configs['hdfs-site']['dfs.namenode.name.dir'];
-          configs['hdfs-site']['dfs.namenode.http-address'] = targetHostName + ':50070';
-          configs['hdfs-site']['dfs.namenode.https-address'] = targetHostName + ':50470';
-          configs['core-site']['fs.defaultFS'] = 'hdfs://' + targetHostName + ':8020';
           if (!App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
             var nameServices = configs['hdfs-site']['dfs.nameservices'];
             if (configs['hdfs-site']['dfs.namenode.http-address.' + nameServices + '.nn1'] === sourceHostName + ':50070') {
@@ -212,7 +208,12 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
               configs['hdfs-site']['dfs.namenode.http-address.' + nameServices + '.nn2'] = targetHostName + ':50070';
               configs['hdfs-site']['dfs.namenode.rpc-address.' + nameServices + '.nn2'] = targetHostName + ':8020';
             }
+          } else {
+            configs['hdfs-site']['dfs.namenode.http-address'] = targetHostName + ':50070';
+            configs['hdfs-site']['dfs.namenode.https-address'] = targetHostName + ':50470';
+            configs['core-site']['fs.defaultFS'] = 'hdfs://' + targetHostName + ':8020';
           }
+          componentDir = configs['hdfs-site']['dfs.namenode.name.dir'];
         } else {
           componentDir = configs['hdfs-site']['dfs.name.dir'];
           configs['hdfs-site']['dfs.http.address'] = targetHostName + ':50070';
