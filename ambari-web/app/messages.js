@@ -634,6 +634,7 @@ Em.I18n.translations = {
 
   'admin.highAvailability':' High Availability',
   'admin.highAvailability.button.enable':'Enable NameNode HA',
+  'admin.highAvailability.button.disable':'Disable NameNode HA',
   'admin.highAvailability.disabled':'NameNode HA is disabled',
   'admin.highAvailability.enabled':'NameNode HA is enabled',
   'admin.highAvailability.confirmRollbackHeader':'Confirm Rollback',
@@ -664,6 +665,10 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step4.bodyHeader':'Manual Steps Required: Create Checkpoint on NameNode',
   'admin.highAvailability.wizard.step6.bodyHeader':'Manual Steps Required: Initialize JournalNodes',
   'admin.highAvailability.wizard.step8.bodyHeader':'Manual Steps Required: Initialize NameNode HA Metadata',
+
+  'admin.rollbackHighAvailability.wizard.step1.header':'Select Hosts page',
+  'admin.rollbackHighAvailability.wizard.step2.header':'Create Checkpoint page',
+  'admin.rollbackHighAvailability.wizard.step3.header':'Progress page',
 
   'admin.highAvailability.wizard.step5.notice.inProgress':'Please wait while the wizard configures the components.',
   'admin.highAvailability.wizard.step7.notice.inProgress':'Please wait while the wizard starts the components.',

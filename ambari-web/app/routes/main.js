@@ -663,62 +663,9 @@ module.exports = Em.Route.extend({
       })
     }),
 
-    highAvailabilityRollback: Ember.Route.extend({
-      route: '/highAvailability/rollback',
-      enter: function (router) {
-        //after refresh check if the wizard is open then restore it
-        Ember.run.next(function () {
-          App.router.get('updateController').set('isWorking', false);
-
-          var highAvailabilityWizardController = router.get('highAvailabilityWizardController');
-          if(highAvailabilityWizardController.get('popup')){
-            highAvailabilityWizardController.finish();
-            highAvailabilityWizardController.get('popup').hide();
-          }
-          highAvailabilityWizardController.loadTasksStatuses();
-          highAvailabilityWizardController.loadRequestIds();
-          highAvailabilityWizardController.loadLogs();
-          var popup = App.ModalPopup.show({
-            classNames: ['full-width-modal'],
-            header: Em.I18n.t('admin.highAvailability.rollback.header'),
-            bodyClass: App.HighAvailabilityRollbackView.extend({
-              controllerBinding: 'App.router.highAvailabilityRollbackController'
-            }),
-            showCloseButton: false,
-            primary: Em.I18n.t('form.cancel'),
-            secondary: null,
-            showFooter: false,
-
-            proceedOnClose: function () {
-              var controller = router.get('highAvailabilityWizardController');
-              controller.clearTasksData();
-              controller.clearStorageData();
-              App.router.get('updateController').set('isWorking', true);
-              App.clusterStatus.setClusterStatus({
-                clusterName: router.get('content.cluster.name'),
-                clusterState: 'HIGH_AVAILABILITY_DISABLED',
-                wizardControllerName: router.get('highAvailabilityRollbackController.name'),
-                localdb: App.db.data
-              });
-              this.hide();
-              router.transitionTo('main.admin.index');
-              location.reload();
-            },
-            didInsertElement: function () {
-              this.fitHeight();
-            }
-          });
-          router.set('highAvailabilityRollbackController.popup', popup);
-        });
-
-      },
-
-      unroutePath: function () {
-        return false;
-      }
-    }),
-
     enableHighAvailability: require('routes/high_availability_routes'),
+
+    rollbackHighAvailability: require('routes/rollbackHA_routes'),
 
 
 

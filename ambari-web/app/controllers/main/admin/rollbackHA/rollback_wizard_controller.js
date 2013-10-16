@@ -19,11 +19,11 @@
 
 var App = require('app');
 
-App.HighAvailabilityWizardController = App.WizardController.extend({
+App.RollbackHighAvailabilityWizardController = App.WizardController.extend({
 
-  name: 'highAvailabilityWizardController',
+  name: 'rollbackHighAvailabilityWizardController',
 
-  totalSteps: 9,
+  totalSteps: 3,
 
   /**
    * Used for hiding back button in wizard
@@ -31,7 +31,7 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
   hideBackButton: true,
 
   content: Em.Object.create({
-    controllerName: 'highAvailabilityWizardController',
+    controllerName: 'RollbackHighAvailabilityWizardController',
     cluster: null,
     hosts: null,
     services: null,
@@ -155,66 +155,33 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
   },
 
   saveTasksStatuses: function(statuses){
-    App.db.setHighAvailabilityWizardTasksStatuses(statuses);
+    App.db.setRollbackHighAvailabilityWizardTasksStatuses(statuses);
     this.set('content.tasksStatuses', statuses);
   },
 
-  saveConfigTag: function(tag){
-    App.db.setHighAvailabilityWizardConfigTag(tag);
-    this.set('content.'+[tag.name], tag.value);
-  },
-
-  saveHdfsClientHosts: function(hostNames){
-    App.db.setHighAvailabilityWizardHdfsClientHosts(hostNames);
-    this.set('content.hdfsClientHostNames', hostNames);
-  },
-
-  loadHdfsClientHosts: function(){
-    var hostNames = App.db.getHighAvailabilityWizardHdfsClientHosts();
-    if (!(hostNames instanceof Array)) {
-      hostNames = [hostNames];
-    }
-    this.set('content.hdfsClientHostNames', hostNames);
-  },
-
-  loadConfigTag: function(tag){
-    var tagVal = App.db.getHighAvailabilityWizardConfigTag(tag);
-    this.set('content.'+tag, tagVal);
-  },
-
   loadTasksStatuses: function(){
-    var statuses = App.db.getHighAvailabilityWizardTasksStatuses();
+    var statuses = App.db.getRollbackHighAvailabilityWizardTasksStatuses();
     this.set('content.tasksStatuses', statuses);
   },
 
   saveRequestIds: function(requestIds){
-    App.db.setHighAvailabilityWizardRequestIds(requestIds);
+    App.db.setRollbackHighAvailabilityWizardRequestIds(requestIds);
     this.set('content.requestIds', requestIds);
   },
 
   saveLogs: function(logs){
-    App.db.setHighAvailabilityWizardLogs(logs);
+    App.db.setRollbackHighAvailabilityWizardLogs(logs);
     this.set('content.logs', logs);
   },
 
   loadRequestIds: function(){
-    var requestIds = App.db.getHighAvailabilityWizardRequestIds();
+    var requestIds = App.db.getRollbackHighAvailabilityWizardRequestIds();
     this.set('content.requestIds', requestIds);
   },
 
   loadLogs: function(){
-    var logs = App.db.getHighAvailabilityWizardLogs();
+    var logs = App.db.getRollbackHighAvailabilityWizardLogs();
     this.set('content.logs', logs);
-  },
-
-  saveNameServiceId: function(nameServiceId){
-    App.db.setHighAvailabilityWizardNameServiceId(nameServiceId);
-    this.set('content.nameServiceId', nameServiceId);
-  },
-
-  loadNameServiceId: function(){
-    var nameServiceId = App.db.getHighAvailabilityWizardNameServiceId();
-    this.set('content.nameServiceId', nameServiceId);
   },
 
   /**
@@ -223,21 +190,11 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
   loadAllPriorSteps: function () {
     var step = this.get('currentStep');
     switch (step) {
-      case '9':
-      case '8':
-      case '7':
-      case '6':
-      case '5':
-        this.loadNameServiceId();
-        this.loadTasksStatuses();
-        this.loadRequestIds();
-        this.loadLogs();
-      case '4':
       case '3':
       case '2':
-        this.loadServicesFromServer();
-        this.loadMasterComponentHosts();
-        this.loadConfirmedHosts();
+        //this.loadServicesFromServer();
+        //this.loadMasterComponentHosts();
+        //this.loadConfirmedHosts();
       case '1':
         this.load('cluster');
     }

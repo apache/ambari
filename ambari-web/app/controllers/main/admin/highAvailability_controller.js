@@ -51,6 +51,10 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
     App.router.transitionTo('enableHighAvailability');
   },
 
+  disableHighAvailability: function () {
+    App.router.transitionTo('rollbackHighAvailability');
+  },
+
   setSecurityStatus: function () {
     if (App.testMode) {
       this.set('securityEnabled', !App.testEnableSecurity);

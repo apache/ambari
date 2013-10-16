@@ -136,6 +136,21 @@ module.exports = Em.Route.extend({
     next: function (router) {
       var controller = router.get('highAvailabilityWizardController');
       var highAvailabilityWizardStep2Controller = router.get('highAvailabilityWizardStep2Controller');
+      var addNN = highAvailabilityWizardStep2Controller.get('selectedServicesMasters').findProperty('isAddNameNode', true).get('selectedHost');
+      var sNN = highAvailabilityWizardStep2Controller.get('selectedServicesMasters').findProperty('component_name','SECONDARY_NAMENODE').get('selectedHost')
+      debugger;
+      if(addNN){
+        App.db.setRollBackHighAvailabilityWizardAddNNHost(addNN);
+      }
+      if(sNN){
+        App.db.setRollBackHighAvailabilityWizardSNNHost(sNN);
+      }
+      App.clusterStatus.setClusterStatus({
+        clusterName: this.get('content.cluster.name'),
+        clusterState: 'HIGH_AVAILABILITY_DEPLOY',
+        wizardControllerName: this.get('content.controllerName'),
+        localdb: App.db.data
+      });
       controller.saveMasterComponentHosts(highAvailabilityWizardStep2Controller);
       router.transitionTo('step3');
     },

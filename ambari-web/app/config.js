@@ -60,7 +60,7 @@ App.supports = {
   localRepositories: true,
   highAvailability: true,
   deleteHost: false,
-  autoRollbackHA: true
+  autoRollbackHA: false
 };
 
 if (App.enableExperimental) {
