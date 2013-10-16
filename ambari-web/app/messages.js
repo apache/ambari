@@ -1076,13 +1076,16 @@ Em.I18n.translations = {
   'services.reassign.step3.sourceHost':'Source Host:',
   'services.reassign.step3.component':'Component name:',
   'services.reassign.step4.header':'Install, Start and Test',
-  'services.reassign.step4.task0.title':'Stop All Services',
-  'services.reassign.step4.task1.title':'{0} create',
-  'services.reassign.step4.task2.title':'{0} disable',
-  'services.reassign.step4.task3.title':'{0} reconfigure',
-  'services.reassign.step4.task4.title':'{0} install',
-  'services.reassign.step4.task5.title':'{0} remove',
-  'services.reassign.step4.task6.title':'Start All Services',
+  'services.reassign.step4.task0.title':'Stop NameNode',
+  'services.reassign.step4.task1.title':'Stop All Services',
+  'services.reassign.step4.task2.title':'{0} create',
+  'services.reassign.step4.task3.title':'{0} disable',
+  'services.reassign.step4.task4.title':'{0} reconfigure',
+  'services.reassign.step4.task5.title':'{0} install',
+  'services.reassign.step4.task6.title':'Start ZooKeeper Servers',
+  'services.reassign.step4.task7.title':'Start NameNode',
+  'services.reassign.step4.task8.title':'{0} remove',
+  'services.reassign.step4.task9.title':'Start All Services',
   'services.reassign.step4.status.success': 'Successfully reassigned {0}',
   'services.reassign.step4.status.success.withManualSteps': 'Proceed to the next step',
   'services.reassign.step4.status.failed': 'Failed to reassign {0}',
@@ -1096,6 +1099,12 @@ Em.I18n.translations = {
       '<div class="code-snippet">chown -R hdfs:hadoop /hadoop/hdfs/namenode/</div></li>' +
       '<li>Create marker directory by running:' +
       '<div class="code-snippet">mkdir -p /var/run/hadoop/hdfs/namenode/formatted</div></li>' +
+      '<li>Proceed next' +
+      '</ol>',
+  'services.reassign.step5.body.namenode_ha': '<ol>' +
+      '<li>Login to the newly installed NameNode host <b>{2}</b></li>' +
+      '<li>Initialize the metadata by running:' +
+      "<div class='code-snippet'>sudo su -l hdfs -c 'hdfs namenode -bootstrapStandby'</div></li>" +
       '<li>Proceed next' +
       '</ol>',
   'services.reassign.step5.body.secondary_namenode': '<ol>' +

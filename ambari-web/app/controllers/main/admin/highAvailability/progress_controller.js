@@ -324,6 +324,27 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
     }
   },
 
+  stopComponent: function (componentName, hostName) {
+    console.warn('func: stopComponent');
+    if (!(hostName instanceof Array)) {
+      hostName = [hostName];
+    }
+    for (var i = 0; i < hostName.length; i++) {
+      App.ajax.send({
+        name: 'admin.high_availability.stop_component',
+        sender: this,
+        data: {
+          hostName: hostName[i],
+          componentName: componentName,
+          displayName: App.format.role(componentName),
+          taskNum: hostName.length
+        },
+        success: 'startPolling',
+        error: 'onTaskError'
+      });
+    }
+  },
+
   startPolling: function (data) {
     if (data) {
       console.warn('func: startPolling1');

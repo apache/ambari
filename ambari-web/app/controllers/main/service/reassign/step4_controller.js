@@ -22,7 +22,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
 
   isReassign: true,
 
-  commands: ['stopServices', 'createHostComponents', 'putHostComponentsInMaintenanceMode', 'reconfigure', 'installHostComponents', 'deleteHostComponents', 'startServices'],
+  commands: ['stopNameNode', 'stopServices', 'createHostComponents', 'putHostComponentsInMaintenanceMode', 'reconfigure', 'installHostComponents', 'startZooKeeperServers', 'startNameNode', 'deleteHostComponents', 'startServices'],
 
   clusterDeployState: 'REASSIGN_MASTER_INSTALLING',
 
@@ -67,7 +67,15 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     }
 
     if (this.get('content.hasManualSteps')) {
-      this.get('tasks').splice(5, 2);
+      if (App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
+        this.get('tasks').splice(6, 4);
+        this.get('tasks').splice(0, 1);
+      } else {
+        this.get('tasks').splice(8, 2);
+      }
+    } else {
+      this.get('tasks').splice(6, 2);
+      this.get('tasks').splice(0, 1);
     }
   },
 
@@ -83,6 +91,11 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     if (this.get('multiTaskCounter') >= this.get('hostComponents').length) {
       this.onTaskCompleted();
     }
+  },
+
+  stopNameNode: function () {
+    var hostName = this.get('content.reassignHosts.source');
+    this.stopComponent('NAMENODE', hostName);
   },
 
   stopServices: function () {
@@ -277,6 +290,16 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     if (this.get('configsSitesCount') === this.get('configsSitesNumber')) {
       this.onTaskCompleted();
     }
+  },
+
+  startZooKeeperServers: function () {
+    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
+    this.startComponent('ZOOKEEPER_SERVER', hostNames);
+  },
+
+  startNameNode: function () {
+    var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName').without(this.get('content.reassignHosts.target'));
+    this.startComponent('NAMENODE', hostName);
   },
 
   startServices: function () {

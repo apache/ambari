@@ -133,7 +133,8 @@ module.exports = Em.Route.extend({
     },
     back: Em.Router.transitionTo('step2'),
     next: function (router) {
-      App.db.setReassignTasksStatuses(['INITIALIZE', 'INITIALIZE', 'INITIALIZE', 'INITIALIZE', 'INITIALIZE', 'INITIALIZE', 'INITIALIZE', 'INITIALIZE']);
+      App.db.setReassignTasksStatuses(undefined);
+      App.db.setReassignMasterWizardLogs(undefined);
       App.clusterStatus.setClusterStatus({
         clusterName: router.get('reassignMasterController.content.cluster.name'),
         clusterState: 'REASSIGN_MASTER_INSTALLING',
