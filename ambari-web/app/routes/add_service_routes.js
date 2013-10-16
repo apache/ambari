@@ -31,7 +31,7 @@ module.exports = Em.Route.extend({
         router.get('clusterController').requestHosts(hostsUrl, function () {
           console.log('Request for hosts, with disk_info parameter');
         });
-        App.ModalPopup.show({
+        var popup = App.ModalPopup.show({
           classNames: ['full-width-modal'],
           header:Em.I18n.t('services.add.header'),
           bodyClass:  App.AddServiceView.extend({
@@ -43,19 +43,21 @@ module.exports = Em.Route.extend({
 
           onPrimary:function () {
             this.hide();
-            App.router.get('updateController').set('isWorking', true);
             App.router.transitionTo('main.services.index');
           },
           onClose: function() {
-            this.hide();
             App.router.get('updateController').set('isWorking', true);
+            var self = this;
+            App.router.get('updateController').updateServiceMetric(function(){
+              self.hide();
+            });
             App.router.transitionTo('main.services.index');
           },
           didInsertElement: function(){
             this.fitHeight();
           }
         });
-
+        addServiceController.set('popup',popup);
         App.clusterStatus.updateFromServer();
         var currentClusterStatus = App.clusterStatus.get('value');
 
@@ -286,15 +288,11 @@ module.exports = Em.Route.extend({
     },
     back: Em.Router.transitionTo('step6'),
     complete: function (router, context) {
-      if (true) {   // this function will be moved to installerController where it will validate
-        var addServiceController = router.get('addServiceController');
-        App.router.get('updateController').updateAll();
-        addServiceController.finish();
-        $(context.currentTarget).parents("#modal").find(".close").trigger('click');
-
-        // We need to do recovery based on whether we are in Add Host or Installer wizard
-        addServiceController.saveClusterState('ADD_SERVICES_COMPLETED_5');
-      }
+      var addServiceController = router.get('addServiceController');
+      addServiceController.get('popup').onClose();
+      addServiceController.finish();
+      // We need to do recovery based on whether we are in Add Host or Installer wizard
+      addServiceController.saveClusterState('ADD_SERVICES_COMPLETED_5');
     }
   }),
 

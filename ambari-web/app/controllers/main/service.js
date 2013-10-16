@@ -25,7 +25,7 @@ App.MainServiceController = Em.ArrayController.extend({
       return [];
     }
     return App.Service.find();
-  }.property('App.router.clusterController.isLoaded'),
+  }.property('App.router.clusterController.isLoaded').volatile(),
 
   cluster: function () {
     if (!App.router.get('clusterController.isLoaded')) {
