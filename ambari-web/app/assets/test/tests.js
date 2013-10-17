@@ -35,6 +35,7 @@ require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_cpuWaitIO_t
 require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_diskspaceused_test');
 require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_memoryused_test');
 require('test/controllers/main/charts/heatmap_metrics/heatmap_metric_yarn_ResourceUsed_test');
+require('test/controllers/main/service/add_controller_test');
 require('test/controllers/main/service/reassign_controller_test');
 require('test/controllers/main/dashboard_test');
 require('test/controllers/main/host_test');

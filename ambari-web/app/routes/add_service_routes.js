@@ -217,7 +217,25 @@ module.exports = Em.Route.extend({
         controller.connectOutlet('wizardStep8', controller.get('content'));
       })
     },
-    back: Em.Router.transitionTo('step4'),
+    back: function(router){
+      var controller = router.get('addServiceController');
+      if(!controller.get('content.skipConfigStep')) {
+        router.transitionTo('step4');
+      }
+      else {
+        if(!controller.get('content.skipSlavesStep')) {
+          router.transitionTo('step3');
+        }
+        else {
+          if(!controller.get('content.skipMasterStep')) {
+            router.transitionTo('step2');
+          }
+          else {
+            router.transitionTo('step1');
+          }
+        }
+      }
+    },
     next: function (router) {
       var addServiceController = router.get('addServiceController');
       var wizardStep8Controller = router.get('wizardStep8Controller');

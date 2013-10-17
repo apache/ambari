@@ -97,6 +97,10 @@ App.WizardStep7Controller = Em.Controller.extend({
     this.set('stepConfigs', serviceConfigs);
     this.activateSpecialConfigs();
     this.set('selectedService', this.get('stepConfigs').filterProperty('showConfig', true).objectAt(0));
+
+    if (this.get('content.skipConfigStep')) {
+      App.router.send('next');
+    }
   },
 
    /**

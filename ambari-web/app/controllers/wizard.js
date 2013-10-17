@@ -26,19 +26,16 @@ App.WizardController = Em.Controller.extend({
   init: function () {
     this.set('isStepDisabled', []);
     this.clusters = App.Cluster.find();
-    this.isStepDisabled.pushObject(Ember.Object.create({
+    this.get('isStepDisabled').pushObject(Ember.Object.create({
       step: 1,
       value: false
     }));
     for (var i = 2; i <= this.get('totalSteps'); i++) {
-      this.isStepDisabled.pushObject(Ember.Object.create({
+      this.get('isStepDisabled').pushObject(Ember.Object.create({
         step: i,
         value: true
       }));
     }
-    // window.onbeforeunload = function () {
-    // return "You have not saved your document yet.  If you continue, your work will not be saved."
-    //}
   },
 
   setStepsEnable: function () {

@@ -18,10 +18,11 @@
 
 
 var App = require('app');
-
 App.AddServiceController = App.WizardController.extend({
 
   name: 'addServiceController',
+
+  serviceConfigs:require('data/service_configs'),
 
   totalSteps: 7,
 
@@ -122,6 +123,9 @@ App.AddServiceController = App.WizardController.extend({
     console.log('selected services ', serviceNames);
 
     this.set('content.skipSlavesStep', !serviceNames.contains('MAPREDUCE') && !serviceNames.contains('HBASE'));
+    if (this.get('content.skipSlavesStep')) {
+      this.get('isStepDisabled').findProperty('step', 3).set('value', this.get('content.skipSlavesStep'));
+    }
   },
 
   /**
@@ -139,6 +143,9 @@ App.AddServiceController = App.WizardController.extend({
     console.log('AddServiceController.selectedServiceNames:', serviceNames);
 
     this.set('content.skipSlavesStep', !serviceNames.contains('MAPREDUCE') && !serviceNames.contains('HBASE'));
+    if (this.get('content.skipSlavesStep')) {
+      this.get('isStepDisabled').findProperty('step', 3).set('value', this.get('content.skipSlavesStep'));
+    }
   },
 
   /**
@@ -165,6 +172,7 @@ App.AddServiceController = App.WizardController.extend({
     this.set('content.masterComponentHosts', masterComponentHosts);
 
     this.set('content.skipMasterStep', this.get('content.masterComponentHosts').everyProperty('isInstalled', true));
+    this.get('isStepDisabled').findProperty('step', 2).set('value', this.get('content.skipMasterStep'));
   },
 
   /**
@@ -187,6 +195,45 @@ App.AddServiceController = App.WizardController.extend({
     console.log("AddServiceController.loadMasterComponentHosts: loaded hosts ", masterComponentHosts);
 
     this.set('content.skipMasterStep', this.get('content.masterComponentHosts').everyProperty('isInstalled', true));
+    this.get('isStepDisabled').findProperty('step', 2).set('value', this.get('content.skipMasterStep'));
+  },
+
+  /**
+   * Does service have any configs
+   * @param {string} serviceName
+   * @returns {boolean}
+   */
+  isServiceConfigurable: function(serviceName) {
+    return this.get('serviceConfigs').mapProperty('serviceName').contains(serviceName);
+  },
+
+  /**
+   * Should Config Step be skipped (based on selected services list)
+   * @returns {boolean}
+   */
+  skipConfigStep: function() {
+    var skipConfigStep = true;
+    var selectedServices = this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false).mapProperty('serviceName');
+    selectedServices.map(function(serviceName) {
+      skipConfigStep = skipConfigStep && !this.isServiceConfigurable(serviceName);
+    }, this);
+    return skipConfigStep;
+  },
+
+  loadServiceConfigProperties: function() {
+    this._super();
+    if (this.get('currentStep') > 1) {
+      this.set('content.skipConfigStep', this.skipConfigStep());
+      this.get('isStepDisabled').findProperty('step', 4).set('value', this.get('content.skipConfigStep'));
+    }
+  },
+
+  saveServiceConfigProperties: function(stepController) {
+    this._super(stepController);
+    if (this.get('currentStep') > 1) {
+      this.set('content.skipConfigStep', this.skipConfigStep());
+      this.get('isStepDisabled').findProperty('step', 4).set('value', this.get('content.skipConfigStep'));
+    }
   },
 
   /**
