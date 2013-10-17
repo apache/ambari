@@ -89,7 +89,6 @@ module.exports = Em.Route.extend({
     route: '/step2',
     connectOutlets: function (router) {
       var controller = router.get('rollbackHighAvailabilityWizardController');
-      controller.setCurrentStep('2');
       App.clusterStatus.setClusterStatus({
         clusterName: router.get('content.cluster.name'),
         clusterState: 'ROLLBACK_HIGH_AVAILABILITY',

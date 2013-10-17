@@ -227,12 +227,6 @@ module.exports = Em.Route.extend({
       var controller = router.get('highAvailabilityWizardController');
       controller.setCurrentStep('6');
       controller.setLowerStepsDisable(6);
-      App.clusterStatus.setClusterStatus({
-        clusterName: this.get('content.cluster.name'),
-        clusterState: 'HIGH_AVAILABILITY_DEPLOY',
-        wizardControllerName: this.get('content.controllerName'),
-        localdb: App.db.data
-      });
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
         controller.connectOutlet('highAvailabilityWizardStep6',  controller.get('content'));
@@ -273,12 +267,6 @@ module.exports = Em.Route.extend({
       var controller = router.get('highAvailabilityWizardController');
       controller.setCurrentStep('8');
       controller.setLowerStepsDisable(8);
-      App.clusterStatus.setClusterStatus({
-        clusterName: this.get('content.cluster.name'),
-        clusterState: 'HIGH_AVAILABILITY_DEPLOY',
-        wizardControllerName: this.get('content.controllerName'),
-        localdb: App.db.data
-      });
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
         controller.connectOutlet('highAvailabilityWizardStep8',  controller.get('content'));

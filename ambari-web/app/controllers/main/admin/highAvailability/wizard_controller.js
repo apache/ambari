@@ -43,6 +43,16 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
     failedTask : null
   }),
 
+  setCurrentStep: function (currentStep, completed) {
+    this._super(currentStep, completed);
+    App.clusterStatus.setClusterStatus({
+      clusterName: this.get('content.cluster.name'),
+      clusterState: 'HIGH_AVAILABILITY_DEPLOY',
+      wizardControllerName: 'highAvailabilityWizardController',
+      localdb: App.db.data
+    });
+  },
+
   /**
    * return new object extended from clusterStatusTemplate
    * @return Object
