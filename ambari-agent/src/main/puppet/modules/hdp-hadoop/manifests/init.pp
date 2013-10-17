@@ -305,10 +305,23 @@ class hdp-hadoop(
       mode  => $tc_mode
     }
 
-    $template_files = [ 'hadoop-env.sh', 'health_check', 'commons-logging.properties', 'slaves']
+    $template_files = [ 'hadoop-env.sh', 'commons-logging.properties', 'slaves']
     hdp-hadoop::configfile { $template_files:
       tag   => 'common', 
       owner => $hdfs_user
+    }
+
+    if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
+      hdp-hadoop::configfile { 'health_check' :
+        tag   => 'common',
+        owner => $hdfs_user,
+        template_tag => 'v2'
+      }
+    } else {
+      hdp-hadoop::configfile { 'health_check' :
+        tag   => 'common',
+        owner => $hdfs_user
+      }
     }
 
     # log4j.properties has to be installed just one time to prevent
