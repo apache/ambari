@@ -81,7 +81,8 @@ App.HighAvailabilityProgressPageView = Em.View.extend({
     }.property('content.progress'),
 
     onStatus: function () {
-      this.set('linkClass', 'active-link');
+      var linkClass = !!this.get('content.hosts.length') ? 'active-link' : 'active-text';
+      this.set('linkClass', linkClass);
       if (this.get('content.status') === 'IN_PROGRESS') {
         this.set('icon', 'icon-cog');
         this.set('iconColor', 'text-info');
@@ -96,7 +97,7 @@ App.HighAvailabilityProgressPageView = Em.View.extend({
         this.set('iconColor', '');
         this.set('linkClass', 'not-active-link');
       }
-    }.observes('content.status'),
+    }.observes('content.status', 'content.hosts.length'),
 
     showProgressBar: function () {
       return this.get('content.status') === "IN_PROGRESS";
@@ -107,7 +108,7 @@ App.HighAvailabilityProgressPageView = Em.View.extend({
      * @param event
      */
     hostsLogPopup: function(event){
-      if(event.contexts[0].linkClass != "not-active-link"){
+      if(!!this.get('content.hosts.length')){
         var serviceName = event.contexts[0].title;
         var controller = this.get("controller");
         App.HostPopup.initPopup(serviceName, controller);
