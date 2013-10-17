@@ -492,6 +492,7 @@ App.WizardStep9Controller = Em.Controller.extend({
       runningAction = actions.findProperty('Tasks.status', 'PENDING');
     }
     if (runningAction !== null && runningAction !== undefined) {
+      contentHost.set('status', 'in_progress');
       contentHost.set('message', this.displayMessage(runningAction.Tasks));
     }
   },
@@ -636,7 +637,10 @@ App.WizardStep9Controller = Em.Controller.extend({
       if (this.get('status') === 'failed') {
         clusterStatus.status = 'INSTALL FAILED';
         this.set('progress', '100');
-        this.get('hosts').setEach('progress', '100');
+        this.get('hosts').forEach(function(host){
+          host.get('status') != 'failed' ? host.set('message',Em.I18n.t('installer.step9.host.status.startAborted')) : null;
+          host.set('progress','100');
+        });
         App.router.get(this.get('content.controllerName')).saveClusterStatus(clusterStatus);
         this.set('isStepCompleted', true);
       } else {
@@ -702,9 +706,11 @@ App.WizardStep9Controller = Em.Controller.extend({
       if (actionsPerHost.length === 0) {
         if(this.get('content.cluster.status') === 'PENDING') {
           _host.set('progress', '33');
+          _host.set('status', 'pending');
         }
-        if(this.get('content.cluster.status') === 'INSTALLED') {
+        if(this.get('content.cluster.status') === 'INSTALLED' || this.get('content.cluster.status') === 'FAILED') {
           _host.set('progress', '100');
+          _host.set('status', 'success');
         }
         console.log("INFO: No task is hosted on the host");
       }
@@ -713,8 +719,9 @@ App.WizardStep9Controller = Em.Controller.extend({
       this.onErrorPerHost(actionsPerHost, _host);     // any action should be a failure
       this.onInProgressPerHost(actionsPerHost, _host);  // current running action for a host
       totalProgress += self.progressPerHost(actionsPerHost, _host);
-      if (_host.get('progress') == '33') {
+      if (_host.get('progress') == '33' && _host.get('status') != 'failed' && _host.get('status') != 'warning') {
         _host.set('message', this.t('installer.step9.host.status.nothingToInstall'));
+        _host.set('status', 'pending');
       }
     }, this);
     totalProgress = Math.floor(totalProgress / this.get('hosts.length'));

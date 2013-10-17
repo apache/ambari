@@ -470,6 +470,7 @@ Em.I18n.translations = {
   'installer.step9.status.warning':'Installed and started the services with some warnings.',
   'installer.step9.status.failed':'Failed to install/start the services.',
   'installer.step9.host.status.success':'Success',
+  'installer.step9.host.status.startAborted':'Install completed. Start aborted',
   'installer.step9.host.status.warning':'Warnings encountered',
   'installer.step9.host.status.failed':'Failures encountered',
   'installer.step9.host.status.nothingToInstall':'Waiting (Nothing to install)',
