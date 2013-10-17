@@ -51,6 +51,8 @@ App.ReassignMasterController = App.WizardController.extend({
     serviceConfigProperties: null,
     advancedServiceConfig: null,
     controllerName: 'reassignMasterController',
+    serviceName: 'MISC',
+    hdfsUser:"hdfs",
     reassign: null,
     hasManualSteps: false
   }),

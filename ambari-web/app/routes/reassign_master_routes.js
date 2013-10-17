@@ -21,50 +21,50 @@ module.exports = Em.Route.extend({
 
   enter: function (router) {
     console.log('in /service/reassign:enter');
-      Em.run.next(function () {
-        var reassignMasterController = router.get('reassignMasterController');
-        App.router.get('updateController').set('isWorking', false);
-        var hostsUrl = '/hosts?fields=Hosts/host_name,Hosts/disk_info,host_components';
-        router.get('clusterController').requestHosts(hostsUrl, function () {
-          console.log('Request for hosts, with disk_info parameter');
-        });
-        var popup = App.ModalPopup.show({
-          classNames: ['full-width-modal'],
-          header:Em.I18n.t('services.reassign.header'),
-          bodyClass:  App.ReassignMasterView.extend({
-            controller: reassignMasterController
-          }),
-          primary:Em.I18n.t('form.cancel'),
-          showFooter: false,
-          secondary: null,
-
-          onPrimary:function () {
-            this.hide();
-            App.router.get('updateController').set('isWorking', true);
-            App.router.transitionTo('main.services.index');
-          },
-          onClose: function() {
-            this.hide();
-            App.router.get('updateController').set('isWorking', true);
-            App.router.transitionTo('main.services.index')
-          },
-          didInsertElement: function(){
-            this.fitHeight();
-          }
-        });
-        reassignMasterController.set('popup', popup);
-        App.clusterStatus.updateFromServer();
-        var currentClusterStatus = App.clusterStatus.get('value');
-        if (currentClusterStatus) {
-          switch (currentClusterStatus.clusterState) {
-            case 'REASSIGN_MASTER_INSTALLING' :
-              App.db.data = currentClusterStatus.localdb;
-              reassignMasterController.setCurrentStep(currentClusterStatus.localdb.ReassignMaster.currentStep);
-              break;
-          }
-        }
-        router.transitionTo('step' + reassignMasterController.get('currentStep'));
+    Em.run.next(function () {
+      var reassignMasterController = router.get('reassignMasterController');
+      App.router.get('updateController').set('isWorking', false);
+      var hostsUrl = '/hosts?fields=Hosts/host_name,Hosts/disk_info,host_components';
+      router.get('clusterController').requestHosts(hostsUrl, function () {
+        console.log('Request for hosts, with disk_info parameter');
       });
+      var popup = App.ModalPopup.show({
+        classNames: ['full-width-modal'],
+        header: Em.I18n.t('services.reassign.header'),
+        bodyClass: App.ReassignMasterView.extend({
+          controller: reassignMasterController
+        }),
+        primary: Em.I18n.t('form.cancel'),
+        showFooter: false,
+        secondary: null,
+
+        onPrimary: function () {
+          this.hide();
+          App.router.get('updateController').set('isWorking', true);
+          App.router.transitionTo('main.services.index');
+        },
+        onClose: function () {
+          this.hide();
+          App.router.get('updateController').set('isWorking', true);
+          App.router.transitionTo('main.services.index')
+        },
+        didInsertElement: function () {
+          this.fitHeight();
+        }
+      });
+      reassignMasterController.set('popup', popup);
+      App.clusterStatus.updateFromServer();
+      var currentClusterStatus = App.clusterStatus.get('value');
+      if (currentClusterStatus) {
+        switch (currentClusterStatus.clusterState) {
+          case 'REASSIGN_MASTER_INSTALLING' :
+            App.db.data = currentClusterStatus.localdb;
+            reassignMasterController.setCurrentStep(currentClusterStatus.localdb.ReassignMaster.currentStep);
+            break;
+        }
+      }
+      router.transitionTo('step' + reassignMasterController.get('currentStep'));
+    });
   },
 
   step1: Em.Route.extend({
@@ -107,7 +107,7 @@ module.exports = Em.Route.extend({
       var currentMasterHosts = App.HostComponent.find().filterProperty('componentName', componentName).mapProperty('host.hostName');
       masterAssignmentsHosts.forEach(function (host) {
         if (!currentMasterHosts.contains(host)) {
-          reassignHosts.target =  host;
+          reassignHosts.target = host;
         }
       }, this);
       currentMasterHosts.forEach(function (host) {
@@ -199,7 +199,13 @@ module.exports = Em.Route.extend({
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
         controller.setLowerStepsDisable(5);
-        controller.connectOutlet('reassignMasterWizardStep5', controller.get('content'));
+        if ((controller.get('content.reassign.component_name') === 'NAMENODE') && (!App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE'))) {
+          controller.usersLoading().done(function () {
+            controller.connectOutlet('reassignMasterWizardStep5', controller.get('content'));
+          })
+        } else {
+          controller.connectOutlet('reassignMasterWizardStep5', controller.get('content'));
+        }
       })
     },
     next: Em.Router.transitionTo('step6'),

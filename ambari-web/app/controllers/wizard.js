@@ -226,10 +226,10 @@ App.WizardController = Em.Controller.extend({
     this.save('hosts');
   },
 
-  toObject: function(object){
+  toObject: function (object) {
     var result = {};
-    for(var i in object){
-      if(object.hasOwnProperty(i)){
+    for (var i in object) {
+      if (object.hasOwnProperty(i)) {
         result[i] = object[i];
       }
     }
@@ -244,7 +244,7 @@ App.WizardController = Em.Controller.extend({
     var oldStatus = this.toObject(this.get('content.cluster'));
     clusterStatus = jQuery.extend(oldStatus, clusterStatus);
     if (clusterStatus.requestId &&
-      clusterStatus.oldRequestsId.indexOf(clusterStatus.requestId) === -1){
+      clusterStatus.oldRequestsId.indexOf(clusterStatus.requestId) === -1) {
       clusterStatus.oldRequestsId.push(clusterStatus.requestId);
     }
     this.set('content.cluster', clusterStatus);
@@ -293,11 +293,11 @@ App.WizardController = Em.Controller.extend({
       default:
         if (isRetry) {
           name = 'wizard.install_services.installer_controller.is_retry';
-          data = '{"RequestInfo": {"context" :"'+ Em.I18n.t('requestInfo.installComponents') +'"}, "Body": {"HostRoles": {"state": "INSTALLED"}}}';
+          data = '{"RequestInfo": {"context" :"' + Em.I18n.t('requestInfo.installComponents') + '"}, "Body": {"HostRoles": {"state": "INSTALLED"}}}';
         }
         else {
           name = 'wizard.install_services.installer_controller.not_is_retry';
-          data = '{"RequestInfo": {"context" :"'+ Em.I18n.t('requestInfo.installServices') +'"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
+          data = '{"RequestInfo": {"context" :"' + Em.I18n.t('requestInfo.installServices') + '"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
         }
         break;
     }
@@ -388,7 +388,7 @@ App.WizardController = Em.Controller.extend({
       return false;
     }
     var result = App.db['get' + name.capitalize()]();
-    if (!result){
+    if (!result) {
       result = this['get' + name.capitalize()]();
       App.db['set' + name.capitalize()](result);
       console.log(this.get('name') + ": created " + name, result);
@@ -397,7 +397,7 @@ App.WizardController = Em.Controller.extend({
     console.log(this.get('name') + ": loaded " + name, result);
   },
 
-  save: function(name){
+  save: function (name) {
     var value = this.toObject(this.get('content.' + name));
     App.db['set' + name.capitalize()](value);
     console.log(this.get('name') + ": saved " + name, value);
@@ -411,7 +411,7 @@ App.WizardController = Em.Controller.extend({
     this.clearStorageData();
   },
 
-  clusterStatusTemplate : {
+  clusterStatusTemplate: {
     name: "",
     status: "PENDING",
     isCompleted: false,
@@ -423,7 +423,7 @@ App.WizardController = Em.Controller.extend({
     oldRequestsId: []
   },
 
-  clearStorageData: function(){
+  clearStorageData: function () {
     App.db.setService(undefined); //not to use this data at AddService page
     App.db.setHosts(undefined);
     App.db.setMasterComponentHosts(undefined);
@@ -517,7 +517,7 @@ App.WizardController = Em.Controller.extend({
     console.log('Step8: Error message is: ' + request.responseText);
   },
 
-  loadServicesFromServer: function() {
+  loadServicesFromServer: function () {
     var services = App.db.getService();
     if (services) {
       return;
@@ -595,14 +595,14 @@ App.WizardController = Em.Controller.extend({
     var headers = stepController.get('headers');
 
     var formattedHosts = Ember.Object.create();
-    headers.forEach(function(header) {
+    headers.forEach(function (header) {
       formattedHosts.set(header.get('name'), []);
     });
 
     hosts.forEach(function (host) {
 
       var checkboxes = host.get('checkboxes');
-      headers.forEach(function(header) {
+      headers.forEach(function (header) {
         var cb = checkboxes.findProperty('title', header.get('label'));
         if (cb.get('checked')) {
           formattedHosts.get(header.get('name')).push({
@@ -616,7 +616,7 @@ App.WizardController = Em.Controller.extend({
 
     var slaveComponentHosts = [];
 
-    headers.forEach(function(header) {
+    headers.forEach(function (header) {
       slaveComponentHosts.push({
         componentName: header.get('name'),
         displayName: header.get('label').replace(/\s/g, ''),
@@ -633,19 +633,41 @@ App.WizardController = Em.Controller.extend({
    * Return true if cluster data is loaded and false otherwise.
    * This is used for all wizard controllers except for installer wizard.
    */
-  dataLoading: function(){
+  dataLoading: function () {
     var dfd = $.Deferred();
     this.connectOutlet('loading');
-    if (App.router.get('clusterController.isLoaded')){
+    if (App.router.get('clusterController.isLoaded')) {
       dfd.resolve();
-    } else{
-      var interval = setInterval(function(){
-        if (App.router.get('clusterController.isLoaded')){
+    } else {
+      var interval = setInterval(function () {
+        if (App.router.get('clusterController.isLoaded')) {
           dfd.resolve();
           clearInterval(interval);
         }
-      },50);
+      }, 50);
     }
+    return dfd.promise();
+  },
+
+  /**
+   * Return true if user data is loaded via App.MainServiceInfoConfigsController
+   * This function is used in reassign master wizard right now.
+   */
+
+  usersLoading: function () {
+    var self = this;
+    var dfd = $.Deferred();
+    var miscController = App.MainAdminMiscController.create({content: self.get('content')});
+    miscController.loadUsers();
+    var interval = setInterval(function () {
+      if (miscController.get('dataIsLoaded')) {
+        if (self.get("content.hdfsUser")) {
+          self.set('content.hdfsUser', miscController.get('content.hdfsUser'));
+        }
+        dfd.resolve();
+        clearInterval(interval);
+      }
+    }, 10);
     return dfd.promise();
   },
 
@@ -653,7 +675,7 @@ App.WizardController = Em.Controller.extend({
    * Save cluster status before going to deploy step
    * @param name cluster state. Unique for every wizard
    */
-  saveClusterState: function(name){
+  saveClusterState: function (name) {
     App.clusterStatus.setClusterStatus({
       clusterName: this.get('content.cluster.name'),
       clusterState: name,
@@ -669,7 +691,7 @@ App.WizardController = Em.Controller.extend({
     var configs = (App.db.getAdvancedServiceConfig()) ? App.db.getAdvancedServiceConfig() : [];
     this.get('content.services').filterProperty('isSelected', true).mapProperty('serviceName').forEach(function (_serviceName) {
       var serviceComponents = App.config.loadAdvancedConfig(_serviceName);
-      if(serviceComponents){
+      if (serviceComponents) {
         configs = configs.concat(serviceComponents);
       }
     }, this);
@@ -692,20 +714,20 @@ App.WizardController = Em.Controller.extend({
     var serviceConfigProperties = [];
     stepController.get('stepConfigs').forEach(function (_content) {
 
-      if(_content.serviceName === 'YARN' && !App.supports.capacitySchedulerUi){
+      if (_content.serviceName === 'YARN' && !App.supports.capacitySchedulerUi) {
         _content.set('configs', App.config.textareaIntoFileConfigs(_content.get('configs'), 'capacity-scheduler.xml'));
       }
 
       _content.get('configs').forEach(function (_configProperties) {
         var overrides = _configProperties.get('overrides');
         var overridesArray = [];
-        if(overrides!=null){
-          overrides.forEach(function(override){
+        if (overrides != null) {
+          overrides.forEach(function (override) {
             var overrideEntry = {
               value: override.get('value'),
               hosts: []
             };
-            override.get('selectedHostOptions').forEach(function(host){
+            override.get('selectedHostOptions').forEach(function (host) {
               overrideEntry.hosts.push(host);
             });
             overridesArray.push(overrideEntry);
@@ -719,7 +741,7 @@ App.WizardController = Em.Controller.extend({
           defaultValue: _configProperties.get('defaultValue'),
           description: _configProperties.get('description'),
           serviceName: _configProperties.get('serviceName'),
-          domain:  _configProperties.get('domain'),
+          domain: _configProperties.get('domain'),
           filename: _configProperties.get('filename'),
           displayType: _configProperties.get('displayType'),
           overrides: overridesArray

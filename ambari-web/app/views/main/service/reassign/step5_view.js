@@ -21,13 +21,13 @@ var App = require('app');
 
 App.ReassignMasterWizardStep5View = Em.View.extend({
 
+  templateName: require('templates/main/service/reassign/step5'),
+
   bodyText: function () {
     var componentDir = this.get('controller.content.componentDir');
     var sourceHost = this.get('controller.content.reassignHosts.source');
     var targetHost = this.get('controller.content.reassignHosts.target');
     var ha = this.get('controller.content.reassign.component_name') === 'NAMENODE' && !App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE') ? '_ha' : '';
-    return  Em.I18n.t('services.reassign.step5.body.' + this.get('controller.content.reassign.component_name').toLowerCase() + ha).format(componentDir, sourceHost, targetHost);
-  }.property('controller.content.reassign.component_name', 'controller.content.componentDir', 'controller.content.masterComponentHosts', 'controller.content.reassign.host_id'),
-
-  templateName: require('templates/main/service/reassign/step5')
+    return  Em.I18n.t('services.reassign.step5.body.' + this.get('controller.content.reassign.component_name').toLowerCase() + ha).format(componentDir, sourceHost, targetHost, this.get('controller.content.hdfsUser'));
+  }.property('controller.content.reassign.component_name', 'controller.content.componentDir', 'controller.content.masterComponentHosts', 'controller.content.reassign.host_id', 'controller.content.hdfsUser')
 });

@@ -1109,7 +1109,7 @@ Em.I18n.translations = {
   'services.reassign.step5.body.namenode_ha': '<ol>' +
       '<li>Login to the newly installed NameNode host <b>{2}</b></li>' +
       '<li>Initialize the metadata by running:' +
-      "<div class='code-snippet'>sudo su -l hdfs -c 'hdfs namenode -bootstrapStandby'</div></li>" +
+      "<div class='code-snippet'>sudo su -l {3} -c 'hdfs namenode -bootstrapStandby'</div></li>" +
       '<li>Proceed next' +
       '</ol>',
   'services.reassign.step5.body.secondary_namenode': '<ol>' +
