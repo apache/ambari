@@ -23,6 +23,7 @@ App.MainServiceItemView = Em.View.extend({
   maintenance: function(){
     var options = [];
     var service = this.get('controller.content');
+    var hosts = App.Host.find().content.length;
     var allMasters = this.get('controller.content.hostComponents').filterProperty('isMaster').mapProperty('componentName').uniq();
     var reassignableMasters = ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'RESOURCEMANAGER'];
     switch (service.get('serviceName')) {
@@ -32,7 +33,7 @@ App.MainServiceItemView = Em.View.extend({
       case 'YARN':
       case 'HDFS':
       case 'MAPREDUCE':
-        if (App.supports.reassignMaster) {
+        if (App.supports.reassignMaster && hosts > 1) {
           allMasters.forEach(function (hostComponent) {
             if (reassignableMasters.contains(hostComponent)) {
               options.push({action: 'reassignMaster', context: hostComponent,

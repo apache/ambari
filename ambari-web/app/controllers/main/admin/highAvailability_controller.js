@@ -34,14 +34,15 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
       this.showErrorPopup(Em.I18n.t('admin.highAvailability.error.security'));
       return;
     } else {
-      if (App.Host.find().content.length < 3) {
-        message.push(Em.I18n.t('admin.highAvailability.error.hostsNum'));
+      if (App.HostComponent.find().findProperty('componentName', 'NAMENODE').get('workStatus') !== 'STARTED') {
+        message.push(Em.I18n.t('admin.highAvailability.error.namenodeStarted'));
       }
       if (App.HostComponent.find().filterProperty('componentName', 'ZOOKEEPER_SERVER').length < 3) {
         message.push(Em.I18n.t('admin.highAvailability.error.zooKeeperNum'));
       }
-      if (App.HostComponent.find().findProperty('componentName', 'NAMENODE').get('workStatus') !== 'STARTED') {
-        message.push(Em.I18n.t('admin.highAvailability.error.namenodeStarted'));
+
+      if (App.Host.find().content.length < 3) {
+        message.push(Em.I18n.t('admin.highAvailability.error.hostsNum'));
       }
       if (message.length > 0) {
         this.showErrorPopup(message);
