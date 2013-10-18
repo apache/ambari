@@ -416,6 +416,18 @@ App.db.setRollBackHighAvailabilityWizardSNNHost = function (host) {
   localStorage.setObject('ambari', App.db.data);
 };
 
+App.db.setRollBackHighAvailabilityWizardSelectedAddNN = function (host) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.RollbackHighAvailabilityWizard.selectedAddNN = host;
+  localStorage.setObject('ambari', App.db.data);
+};
+
+App.db.setRollBackHighAvailabilityWizardSelectedSNN = function (host) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.RollbackHighAvailabilityWizard.selectedSNNH = host;
+  localStorage.setObject('ambari', App.db.data);
+};
+
 App.db.setRollbackHighAvailabilityWizardTasksStatuses = function (tasksStatuses) {
   App.db.data = localStorage.getObject('ambari');
   App.db.data.RollbackHighAvailabilityWizard.tasksStatuses = tasksStatuses;
@@ -724,6 +736,16 @@ App.db.getRollbackHighAvailabilityWizardRequestIds = function () {
 App.db.getRollbackHighAvailabilityWizardLogs = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.RollbackHighAvailabilityWizard.logs;
+};
+
+App.db.getRollBackHighAvailabilityWizardAddNNHost = function (host) {
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.RollbackHighAvailabilityWizard.addNNHost;
+};
+
+App.db.getRollBackHighAvailabilityWizardSNNHost = function (host) {
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.RollbackHighAvailabilityWizard.sNNHost;
 };
 
 App.db.getReassignMasterWizardRequestIds = function () {

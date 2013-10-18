@@ -23,8 +23,39 @@ App.RollbackHighAvailabilityWizardStep1View = Em.View.extend({
 
   templateName: require('templates/main/admin/rollbackHA/step1'),
 
-  didInsertElement: function() {
+  addNNHosts: null,
+  sNNHosts: null,
+  selectedSNNHost: null,
+  selectedAddNNHost: null,
 
+  didInsertElement: function() {
+    var addNNHosts = App.HostComponent.find().filterProperty('componentName','NAMENODE');
+    this.secondaryNNHosts = [];
+
+    this.set('selectedSNNHost', this.get('controller.content.sNNHost'));
+    this.set('selectedAddNNHost', this.get('controller.content.addNNHost'));
+
+    if(addNNHosts.length == 2){
+      this.set('addNNHosts', addNNHosts.mapProperty('host.hostName'));
+    }
+    App.Host.find().forEach(function(host){
+      this.secondaryNNHosts.push(host.get('id'));
+    },this);
+    this.set('sNNHosts', this.secondaryNNHosts);
+  },
+
+  tipAddNNHost: function () {
+    return this.get('controller.content.addNNHost');
+  }.property('controller.content.addNNHost'),
+
+  tipSNNHost: function () {
+    return this.get('controller.content.sNNHost');
+  }.property('controller.content.sNNHost'),
+
+  done: function () {
+    this.get('controller.content').set('selectedSNNHost', this.get('selectedSNNHost'));
+    this.get('controller.content').set('selectedAddNNHost', this.get('selectedAddNNHost'));
+    App.router.send('next');
   }
 
 });

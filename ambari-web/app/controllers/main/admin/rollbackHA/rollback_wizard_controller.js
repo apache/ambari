@@ -33,15 +33,23 @@ App.RollbackHighAvailabilityWizardController = App.WizardController.extend({
   content: Em.Object.create({
     controllerName: 'RollbackHighAvailabilityWizardController',
     cluster: null,
-    hosts: null,
-    services: null,
-    slaveComponentHosts: null,
     masterComponentHosts: null,
     serviceName: 'MISC',
     hdfsUser:"hdfs",
     nameServiceId: '',
-    failedTask : null
+    selectedAddNNHost : null,
+    selectedSNNHost : null
   }),
+
+  setCurrentStep: function (currentStep, completed) {
+    this._super(currentStep, completed);
+    App.clusterStatus.setClusterStatus({
+      clusterName: this.get('content.cluster.name'),
+      clusterState: 'ROLLBACK_HIGH_AVAILABILITY',
+      wizardControllerName: 'rollbackHighAvailabilityWizardController',
+      localdb: App.db.data
+    });
+  },
 
   /**
    * return new object extended from clusterStatusTemplate
@@ -51,68 +59,6 @@ App.RollbackHighAvailabilityWizardController = App.WizardController.extend({
     return jQuery.extend({}, this.get('clusterStatusTemplate'), {name: App.router.getClusterName()});
   },
 
-  /**
-   * Load services data from server.
-   */
-  loadServicesFromServer: function() {
-    var displayOrderConfig = require('data/services');
-    var apiUrl = App.get('stack2VersionURL');
-    var apiService = this.loadServiceComponents(displayOrderConfig, apiUrl);
-    //
-    apiService.forEach(function(item, index){
-      apiService[index].isSelected = App.Service.find().someProperty('id', item.serviceName);
-      apiService[index].isDisabled = apiService[index].isSelected;
-      apiService[index].isInstalled = apiService[index].isSelected;
-    });
-    this.set('content.services', apiService);
-    App.db.setService(apiService);
-  },
-
-  /**
-   * Load confirmed hosts.
-   * Will be used at <code>Assign Masters(step5)</code> step
-   */
-  loadConfirmedHosts: function(){
-    var hosts = App.db.getHosts();
-    if(!hosts || !hosts.length){
-      var hosts = {};
-
-      App.Host.find().forEach(function(item){
-        hosts[item.get('id')] = {
-          name: item.get('id'),
-          cpu: item.get('cpu'),
-          memory: item.get('memory'),
-          disk_info: item.get('diskInfo'),
-          bootStatus: "REGISTERED",
-          isInstalled: true
-        };
-      });
-      App.db.setHosts(hosts);
-    }
-
-    this.set('content.hosts', hosts);
-    console.log('ReassignMasterController.loadConfirmedHosts: loaded hosts', hosts);
-  },
-
-  /**
-   * Load master component hosts data for using in required step controllers
-   */
-  loadMasterComponentHosts: function () {
-    var masterComponentHosts = App.db.getMasterComponentHosts();
-    if(!masterComponentHosts){
-      masterComponentHosts = [];
-      App.HostComponent.find().filterProperty('isMaster', true).forEach(function(item){
-        masterComponentHosts.push({
-          component: item.get('componentName'),
-          hostName: item.get('host.hostName'),
-          isInstalled: true
-        })
-      });
-
-    }
-    this.set("content.masterComponentHosts", masterComponentHosts);
-    console.log("ReassignMasterController.loadMasterComponentHosts: loaded hosts ", masterComponentHosts);
-  },
 
   /**
    * save status of the cluster.
@@ -132,35 +78,8 @@ App.RollbackHighAvailabilityWizardController = App.WizardController.extend({
     this.save('cluster');
   },
 
-  /**
-   * Save Master Component Hosts data to Main Controller
-   * @param stepController App.WizardStep5Controller
-   */
-  saveMasterComponentHosts: function (stepController) {
-    var obj = stepController.get('selectedServicesMasters');
-    var masterComponentHosts = [];
-    obj.forEach(function (_component) {
-      masterComponentHosts.push({
-        display_name: _component.get('display_name'),
-        component: _component.get('component_name'),
-        hostName: _component.get('selectedHost'),
-        serviceId: _component.get('serviceId'),
-        isCurNameNode: _component.get('isCurNameNode'),
-        isAddNameNode: _component.get('isAddNameNode'),
-        isInstalled: true
-      });
-    });
-    App.db.setMasterComponentHosts(masterComponentHosts);
-    this.set('content.masterComponentHosts', masterComponentHosts);
-  },
-
   saveTasksStatuses: function(statuses){
     App.db.setRollbackHighAvailabilityWizardTasksStatuses(statuses);
-    this.set('content.tasksStatuses', statuses);
-  },
-
-  loadTasksStatuses: function(){
-    var statuses = App.db.getRollbackHighAvailabilityWizardTasksStatuses();
     this.set('content.tasksStatuses', statuses);
   },
 
@@ -172,6 +91,31 @@ App.RollbackHighAvailabilityWizardController = App.WizardController.extend({
   saveLogs: function(logs){
     App.db.setRollbackHighAvailabilityWizardLogs(logs);
     this.set('content.logs', logs);
+  },
+
+  saveSelectedSNN: function(addNN){
+    App.db.setRollBackHighAvailabilityWizardSelectedSNN(addNN);
+    this.set('content.selectedAddNN', addNN);
+  },
+
+  saveSelectedAddNN: function(sNN){
+    App.db.setRollBackHighAvailabilityWizardSelectedAddNN(sNN);
+    this.set('content.selectedSNN', sNN);
+  },
+
+  loadAddNNHost: function () {
+    var addNNHost = App.db.getRollBackHighAvailabilityWizardAddNNHost();
+    this.set('content.addNNHost', addNNHost);
+  },
+
+  loadSNNHost: function () {
+    var sNNHost = App.db.getRollBackHighAvailabilityWizardSNNHost();
+    this.set('content.sNNHost', sNNHost);
+  },
+
+  loadTasksStatuses: function(){
+    var sNNHost = App.db.getRollbackHighAvailabilityWizardTasksStatuses();
+    this.set('content.tasksStatuses', sNNHost);
   },
 
   loadRequestIds: function(){
@@ -194,8 +138,9 @@ App.RollbackHighAvailabilityWizardController = App.WizardController.extend({
       case '2':
         //this.loadServicesFromServer();
         //this.loadMasterComponentHosts();
-        //this.loadConfirmedHosts();
       case '1':
+        this.loadSNNHost();
+        this.loadAddNNHost();
         this.load('cluster');
     }
   },

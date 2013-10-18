@@ -35,7 +35,12 @@ module.exports = Em.Route.extend({
         showFooter: false,
         secondary: null,
         hideCloseButton: function () {
-          this.set('showCloseButton', false);
+          var currStep = App.router.get('rollbackHighAvailabilityWizardController.currentStep');
+          if(currStep == 3){
+            this.set('showCloseButton', false);
+          }else{
+            this.set('showCloseButton', true);
+          }
         }.observes('App.router.rollbackHighAvailabilityWizardController.currentStep'),
 
         onClose: function () {
@@ -81,6 +86,9 @@ module.exports = Em.Route.extend({
       return false;
     },
     next: function (router) {
+      var controller = router.get('rollbackHighAvailabilityWizardController');
+      controller.saveSelectedAddNN(controller.get('content.selectedAddNNHost'));
+      controller.saveSelectedSNN(controller.get('content.selectedSNNHost'));
       router.transitionTo('step2');
     }
   }),
@@ -89,12 +97,6 @@ module.exports = Em.Route.extend({
     route: '/step2',
     connectOutlets: function (router) {
       var controller = router.get('rollbackHighAvailabilityWizardController');
-      App.clusterStatus.setClusterStatus({
-        clusterName: router.get('content.cluster.name'),
-        clusterState: 'ROLLBACK_HIGH_AVAILABILITY',
-        wizardControllerName: 'rollbackHighAvailabilityWizardController',
-        localdb: App.db.data
-      });
       controller.setCurrentStep('2');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();

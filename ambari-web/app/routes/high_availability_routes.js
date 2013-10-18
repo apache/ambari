@@ -54,28 +54,22 @@ module.exports = Em.Route.extend({
         onClose: function () {
           var currStep = App.router.get('highAvailabilityWizardController.currentStep');
           var highAvailabilityProgressPageController = App.router.get('highAvailabilityProgressPageController');
-          if (currStep == "6" && App.supports.autoRollbackHA){
-            highAvailabilityProgressPageController.tasks.push({
-              command: "startZooKeeperServers",
-              status: "FAILED"
-            })
-            highAvailabilityProgressPageController.rollback();
-          }else if(currStep == "8" && App.supports.autoRollbackHA){
-            highAvailabilityProgressPageController.tasks.push({
-              command: "startSecondNameNode",
-              status: "FAILED"
-            })
-            highAvailabilityProgressPageController.rollback();
-          }else{
-            if(parseInt(currStep) > 4 && !App.supports.autoRollbackHA){
+
+          if(parseInt(currStep) > 4){
+            if(!App.supports.autoRollbackHA){
               highAvailabilityProgressPageController.manualRollback();
-            }else {
+            }else{
               this.hide();
               App.router.get('highAvailabilityWizardController').setCurrentStep('1');
-              App.router.get('updateController').set('isWorking', true);
-              App.router.transitionTo('main.admin.adminHighAvailability');
+              App.router.transitionTo('rollbackHighAvailability');
             }
+          }else {
+            this.hide();
+            App.router.get('highAvailabilityWizardController').setCurrentStep('1');
+            App.router.get('updateController').set('isWorking', true);
+            App.router.transitionTo('main.admin.adminHighAvailability');
           }
+
         },
         didInsertElement: function () {
           this.fitHeight();

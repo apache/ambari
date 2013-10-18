@@ -19,6 +19,8 @@
 var App = require('app');
 
 App.RollbackHighAvailabilityWizardStep1Controller = Em.Controller.extend({
+
   name:"rollbackHighAvailabilityWizardStep1Controller"
+
 });
 
