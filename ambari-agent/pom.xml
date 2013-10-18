@@ -39,7 +39,8 @@
     <skipTests>false</skipTests>
     <facter.tar>http://downloads.puppetlabs.com/facter/facter-1.6.10.tar.gz</facter.tar>
     <puppet.tar>http://downloads.puppetlabs.com/puppet/puppet-2.7.9.tar.gz</puppet.tar>
-    <install.dir>/usr/lib/python2.6/site-packages/ambari_agent</install.dir>
+    <agent.install.dir>/usr/lib/python2.6/site-packages/ambari_agent</agent.install.dir>
+    <resmgmt.install.dir>/usr/lib/python2.6/site-packages/resource_management</resmgmt.install.dir>
     <ruby.tar>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/centos6/ruby-1.8.7-p370.tar.gz</ruby.tar>
     <lib.dir>/usr/lib/ambari-agent/lib</lib.dir>
     <python.ver>python &gt;= 2.6</python.ver>
@@ -122,7 +123,7 @@
                 <argument>unitTests.py</argument>
               </arguments>
               <environmentVariables>
-                <PYTHONPATH>${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python/ambari_agent:${project.basedir}/src/main/puppet/modules/hdp-hadoop/files:$PYTHONPATH</PYTHONPATH>
+                <PYTHONPATH>${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python/ambari_agent:${project.basedir}/src/main/python/resource_management:${project.basedir}/src/main/puppet/modules/hdp-hadoop/files:$PYTHONPATH</PYTHONPATH>
               </environmentVariables>
               <skip>${skipTests}</skip>
             </configuration>
@@ -192,10 +193,18 @@
           <autoRequires>false</autoRequires>
           <mappings>
             <mapping>
-              <directory>${install.dir}</directory>
+              <directory>${agent.install.dir}</directory>
               <sources>
                 <source>
                   <location>${project.build.directory}/${project.artifactId}-${project.version}/ambari_agent</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>${resmgmt.install.dir}</directory>
+              <sources>
+                <source>
+                  <location>${project.build.directory}/${project.artifactId}-${project.version}/resource_management</location>
                 </source>
               </sources>
             </mapping>

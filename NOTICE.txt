@@ -9,4 +9,8 @@ Component ambari-common/src/test/python are under the following copyright:
 Copyright (c) 2003-2012, Michael Foord
 All rights reserved.
 
-
+ 
+Resource management library derived from Kokki, which is under following copyright:
+ 
+Copyright (c) 2009 Samuel Stauffer <samuel@descolada.com>
+All rights reserved.
