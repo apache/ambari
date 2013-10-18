@@ -1,0 +1,189 @@
+﻿<!--## Licensed to the Apache Software Foundation (ASF) under one
+## or more contributor license agreements.  See the NOTICE file
+## distributed with this work for additional information
+## regarding copyright ownership.  The ASF licenses this file
+## to you under the Apache License, Version 2.0 (the
+## "License"); you may not use this file except in compliance
+## with the License.  You may obtain a copy of the License at
+##
+##     http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing,
+## software distributed under the License is distributed on an
+## "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+## KIND, either express or implied.  See the License for the
+## specific language governing permissions and limitations
+## under the License.-->
+<ManagementPackFragment SchemaVersion="2.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <TypeDefinitions>
+    <EntityTypes>
+      <ClassTypes>
+        <ClassType ID="Ambari.SCOM.ClusterService.Private" Accessibility="Public" Base="Ambari.SCOM.AmbariManagedEntity" Hosted="false" Abstract="false" Singleton="false">
+          <Property ID="TemplateName" Type="string" Key="true" />
+          <Property ID="ClusterName" Type="string" Key="true" />
+          <Property ID="ServiceName" Type="string" Key="true" />
+        </ClassType>
+
+        <ClassType ID="Ambari.SCOM.ClusterService" Accessibility="Public" Base="Ambari.SCOM.AmbariEntity" Hosted="true" Abstract="true" Singleton="false">
+          <Property ID="ClusterName" Type="string" Comment="Required to show parent cluster name on State Widget" />
+        </ClassType>
+
+        <ClassType ID="Ambari.SCOM.ClusterService.Hdfs" Accessibility="Public" Base="Ambari.SCOM.ClusterService" Hosted="true" Abstract="false" Singleton="false" />
+        <ClassType ID="Ambari.SCOM.ClusterService.MapReduce" Accessibility="Public" Base="Ambari.SCOM.ClusterService" Hosted="true" Abstract="false" Singleton="false" />
+        <ClassType ID="Ambari.SCOM.ClusterService.Hive" Accessibility="Public" Base="Ambari.SCOM.ClusterService" Hosted="true" Abstract="false" Singleton="false" />
+        <ClassType ID="Ambari.SCOM.ClusterService.Templeton" Accessibility="Public" Base="Ambari.SCOM.ClusterService" Hosted="true" Abstract="false" Singleton="false" />
+        <ClassType ID="Ambari.SCOM.ClusterService.Oozie" Accessibility="Public" Base="Ambari.SCOM.ClusterService" Hosted="true" Abstract="false" Singleton="false" />
+        <ClassType ID="Ambari.SCOM.ClusterService.Pig" Accessibility="Public" Base="Ambari.SCOM.ClusterService" Hosted="true" Abstract="false" Singleton="false" />
+        <ClassType ID="Ambari.SCOM.ClusterService.Sqoop" Accessibility="Public" Base="Ambari.SCOM.ClusterService" Hosted="true" Abstract="false" Singleton="false" />
+      </ClassTypes>
+
+      <RelationshipTypes>
+        <RelationshipType ID="Ambari.SCOM.PrivateClusterServiceHostsClusterService"
+                          Base="System!System.Hosting" Accessibility="Public">
+          <Source ID="PrivateService" Type="Ambari.SCOM.ClusterService.Private" />
+          <Target ID="Service" Type="Ambari.SCOM.ClusterService" />
+        </RelationshipType>
+
+        <RelationshipType ID="Ambari.SCOM.ClusterServiceContainsHostComponent" Base="System!System.Containment" Abstract="false" Accessibility="Public">
+          <Source ID="Service" Type="Ambari.SCOM.ClusterService" />
+          <Target ID="Component" Type="Ambari.SCOM.HostComponent" />
+        </RelationshipType>
+
+        <RelationshipType ID="Ambari.SCOM.HdfsServiceContainsNameNodeComponent" Base="System!System.Containment" Abstract="false" Accessibility="Public">
+          <Source ID="Service" Type="Ambari.SCOM.ClusterService.Hdfs" />
+          <Target ID="Component" Type="Ambari.SCOM.HostComponent.NameNode" />
+        </RelationshipType>
+        <RelationshipType ID="Ambari.SCOM.HdfsServiceContainsSecondaryNameNodeComponent" Base="System!System.Containment" Abstract="false" Accessibility="Public">
+          <Source ID="Service" Type="Ambari.SCOM.ClusterService.Hdfs" />
+          <Target ID="Component" Type="Ambari.SCOM.HostComponent.SecondaryNameNode" />
+        </RelationshipType>
+        <RelationshipType ID="Ambari.SCOM.MapReduceServiceContainsJobTrackerComponent" Base="System!System.Containment" Abstract="false" Accessibility="Public">
+          <Source ID="Service" Type="Ambari.SCOM.ClusterService.MapReduce" />
+          <Target ID="Component" Type="Ambari.SCOM.HostComponent.JobTracker" />
+        </RelationshipType>
+        <RelationshipType ID="Ambari.SCOM.HiveServiceContainsHiveServerComponent" Base="System!System.Containment" Abstract="false" Accessibility="Public">
+          <Source ID="Service" Type="Ambari.SCOM.ClusterService.Hive" />
+          <Target ID="Component" Type="Ambari.SCOM.HostComponent.HiveServer" />
+        </RelationshipType>
+        <RelationshipType ID="Ambari.SCOM.HiveServiceContainsHiveMetastoreComponent" Base="System!System.Containment" Abstract="false" Accessibility="Public">
+          <Source ID="Service" Type="Ambari.SCOM.ClusterService.Hive" />
+          <Target ID="Component" Type="Ambari.SCOM.HostComponent.HiveMetastore" />
+        </RelationshipType>
+        <RelationshipType ID="Ambari.SCOM.TempletonServiceContainsTempletonServerComponent" Base="System!System.Containment" Abstract="false" Accessibility="Public">
+          <Source ID="Service" Type="Ambari.SCOM.ClusterService.Templeton" />
+          <Target ID="Component" Type="Ambari.SCOM.HostComponent.TempletonServer" />
+        </RelationshipType>
+        <RelationshipType ID="Ambari.SCOM.OozieServiceContainsOozieServerComponent" Base="System!System.Containment" Abstract="false" Accessibility="Public">
+          <Source ID="Service" Type="Ambari.SCOM.ClusterService.Oozie" />
+          <Target ID="Component" Type="Ambari.SCOM.HostComponent.OozieServer" />
+        </RelationshipType>
+      </RelationshipTypes>
+    </EntityTypes>
+  </TypeDefinitions>
+
+  <Presentation>
+    <ImageReferences>
+      <ImageReference ElementID="Ambari.SCOM.ClusterService.Hdfs" ImageID="Ambari.SCOM.Resources.Images.HDFS16Icon" />
+      <ImageReference ElementID="Ambari.SCOM.ClusterService.Hdfs" ImageID="Ambari.SCOM.Resources.Images.HDFSDiagramIcon" />
+      <ImageReference ElementID="Ambari.SCOM.ClusterService.MapReduce" ImageID="Ambari.SCOM.Resources.Images.MapReduce16Icon" />
+      <ImageReference ElementID="Ambari.SCOM.ClusterService.MapReduce" ImageID="Ambari.SCOM.Resources.Images.MapReduceDiagramIcon" />
+      <ImageReference ElementID="Ambari.SCOM.ClusterService.Hive" ImageID="Ambari.SCOM.Resources.Images.HiveService16Icon" />
+      <ImageReference ElementID="Ambari.SCOM.ClusterService.Hive" ImageID="Ambari.SCOM.Resources.Images.HiveServiceDiagramIcon" />
+      <ImageReference ElementID="Ambari.SCOM.ClusterService.Templeton" ImageID="Ambari.SCOM.Resources.Images.TempletonService16Icon" />
+      <ImageReference ElementID="Ambari.SCOM.ClusterService.Templeton" ImageID="Ambari.SCOM.Resources.Images.TempletonServiceDiagramIcon" />
+      <ImageReference ElementID="Ambari.SCOM.ClusterService.Oozie" ImageID="Ambari.SCOM.Resources.Images.OozieService16Icon" />
+      <ImageReference ElementID="Ambari.SCOM.ClusterService.Oozie" ImageID="Ambari.SCOM.Resources.Images.OozieServiceDiagramIcon" />
+      <ImageReference ElementID="Ambari.SCOM.ClusterService.Pig" ImageID="Ambari.SCOM.Resources.Images.PigService16Icon" />
+      <ImageReference ElementID="Ambari.SCOM.ClusterService.Pig" ImageID="Ambari.SCOM.Resources.Images.PigServiceDiagramIcon" />
+      <ImageReference ElementID="Ambari.SCOM.ClusterService.Sqoop" ImageID="Ambari.SCOM.Resources.Images.ScoopService16Icon" />
+      <ImageReference ElementID="Ambari.SCOM.ClusterService.Sqoop" ImageID="Ambari.SCOM.Resources.Images.ScoopServiceDiagramIcon" />
+    </ImageReferences>
+  </Presentation>
+
+
+  <LanguagePacks>
+    <LanguagePack ID="ENU" IsDefault="true">
+      <DisplayStrings>
+        <DisplayString ElementID="Ambari.SCOM.ClusterService.Private">
+          <Name>Hadoop Cluster Service (Private Entity)</Name>
+          <Description>This class contains private properties of Hadoop Cluster Service.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.ClusterService.Private" SubElementID="TemplateName">
+          <Name>Template Name</Name>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.ClusterService.Private" SubElementID="ClusterName">
+          <Name>Cluster Name</Name>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.ClusterService.Private" SubElementID="ServiceName">
+          <Name>Service Name</Name>
+        </DisplayString>
+
+        <DisplayString ElementID="Ambari.SCOM.ClusterService">
+          <Name>Hadoop Cluster Service</Name>
+          <Description>Base class for all Hadoop Cluster Services.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.ClusterService" SubElementID="ClusterName">
+          <Name>Cluster Name</Name>
+        </DisplayString>
+
+        <DisplayString ElementID="Ambari.SCOM.PrivateClusterServiceHostsClusterService">
+          <Name>Hadoop Cluster Service (Private) Hosts Hadoop Cluster Service</Name>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.ClusterServiceContainsHostComponent">
+          <Name>Hadoop Cluster Service Contains Hadoop Host Component</Name>
+        </DisplayString>
+
+        <DisplayString ElementID="Ambari.SCOM.ClusterService.Hdfs">
+          <Name>Hadoop HDFS Cluster Service</Name>
+          <Description>This class represents Hadoop HDFS Service.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.ClusterService.MapReduce">
+          <Name>Hadoop MapReduce Cluster Service</Name>
+          <Description>This class represents Hadoop MapReduce Service.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.ClusterService.Hive">
+          <Name>Hadoop Hive Cluster Services</Name>
+          <Description>This class represents Hadoop Hive Service.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.ClusterService.Templeton">
+          <Name>Hadoop Templeton Cluster Services</Name>
+          <Description>This class represents Hadoop Templeton Service.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.ClusterService.Oozie">
+          <Name>Hadoop Oozie Cluster Services</Name>
+          <Description>This class represents Hadoop Oozie Service.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.ClusterService.Pig">
+          <Name>Hadoop Pig Cluster Services</Name>
+          <Description>This class represents Hadoop Pig Service.</Description>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.ClusterService.Sqoop">
+          <Name>Hadoop Sqoop Cluster Service</Name>
+          <Description>This class represents Hadoop Sqoop Service.</Description>
+        </DisplayString>
+
+        <DisplayString ElementID="Ambari.SCOM.HdfsServiceContainsNameNodeComponent">
+          <Name>Hadoop HDFS Cluster Service Contains NameNode Host Component</Name>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.HdfsServiceContainsSecondaryNameNodeComponent">
+          <Name>Hadoop HDFS Cluster Service Contains Secondary NameNode Host Component</Name>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.MapReduceServiceContainsJobTrackerComponent">
+          <Name>Hadoop MapReduce Cluster Service Contains JobTracker Host Component</Name>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.HiveServiceContainsHiveServerComponent">
+          <Name>Hadoop Hive Cluster Service Contains Hive Server Host Component</Name>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.HiveServiceContainsHiveMetastoreComponent">
+          <Name>Hadoop Hive Cluster Service Contains Hive Metastore Host Component</Name>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.TempletonServiceContainsTempletonServerComponent">
+          <Name>Hadoop Templeton Cluster Service Contains Templeton Server Host Component</Name>
+        </DisplayString>
+        <DisplayString ElementID="Ambari.SCOM.OozieServiceContainsOozieServerComponent">
+          <Name>Hadoop Oozie Cluster Service Contains Oozie Server Host Component</Name>
+        </DisplayString>
+      </DisplayStrings>
+    </LanguagePack>
+  </LanguagePacks>
+</ManagementPackFragment>
