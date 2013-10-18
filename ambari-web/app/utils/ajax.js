@@ -840,7 +840,6 @@ var urls = {
     'type': 'PUT',
     'format': function (data) {
       return {
-        type: 'PUT',
         async: true,
         data: JSON.stringify(data.data)
       }

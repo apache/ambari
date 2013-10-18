@@ -56,6 +56,7 @@ App.WizardStep5Controller = Em.Controller.extend({
   }.property('servicesMasters.@each.selectedHost'),
 
   hosts:[],
+  isLazyLoading: false,
 
   servicesMasters:[],
   selectedServicesMasters:[],
@@ -220,13 +221,18 @@ App.WizardStep5Controller = Em.Controller.extend({
   renderComponents:function (masterComponents) {
     var services = this.get('content.services')
       .filterProperty('isInstalled', true).mapProperty('serviceName'); //list of shown services
-
+    var hosts = this.get('hosts');
+    //The lazy loading for select elements supported only by Firefox and Chrome
+    var isBrowserSupported = $.browser.mozilla || ($.browser.safari && navigator.userAgent.indexOf('Chrome') !== -1);
+    var isLazyLoading = isBrowserSupported && hosts.length > 100;
     var showRemoveControlZk = !services.contains('ZOOKEEPER') && masterComponents.filterProperty('display_name', 'ZooKeeper').length > 1;
     var showRemoveControlHb = !services.contains('HBASE') && masterComponents.filterProperty('component_name', 'HBASE_MASTER').length > 1;
     var zid = 1;
     var hid = 1;
     var nid = 1;
     var result = [];
+
+    this.set('isLazyLoading', isLazyLoading);
 
     masterComponents.forEach(function (item) {
 
@@ -242,7 +248,16 @@ App.WizardStep5Controller = Em.Controller.extend({
       }  else if (item.component_name === "NAMENODE") {
         componentObj.set('zId', nid++);
       }
-      componentObj.set("availableHosts", this.get("hosts"));
+      if(isLazyLoading){
+        //select need at least 30 hosts to have scrollbar
+        var initialHosts = hosts.slice(0, 30);
+        if(!initialHosts.someProperty('host_name', item.selectedHost)){
+          initialHosts.push(hosts.findProperty('host_name', item.selectedHost));
+        }
+        componentObj.set("availableHosts", initialHosts);
+      } else {
+        componentObj.set("availableHosts", hosts);
+      }
       result.push(componentObj);
     }, this);
 

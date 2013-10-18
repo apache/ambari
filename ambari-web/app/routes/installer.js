@@ -136,8 +136,13 @@ module.exports = Em.Route.extend({
     next: function (router) {
       var wizardStep1Controller = router.get('wizardStep1Controller');
       var installerController = router.get('installerController');
-      installerController.checkRepoURL(wizardStep1Controller);
-     // make sure got all validations feedback and no invalid url, then proceed
+      if (App.testMode) {
+        installerController.set('validationCnt', 0);
+        installerController.set('invalidCnt', 0);
+      } else {
+        installerController.checkRepoURL(wizardStep1Controller);
+      }
+      // make sure got all validations feedback and no invalid url, then proceed
       var myVar = setInterval(
         function(){
           var cnt = installerController.get('validationCnt');
@@ -240,7 +245,7 @@ module.exports = Em.Route.extend({
       router.setNavigationFlow('step5');
 
       var controller = router.get('installerController');
-      var wizardStep5Controller = router.get('wizardStep5Controller');
+      router.get('wizardStep5Controller').set('servicesMasters', []);
       controller.setCurrentStep('5');
       controller.loadAllPriorSteps();
       controller.connectOutlet('wizardStep5', controller.get('content'));
@@ -261,6 +266,7 @@ module.exports = Em.Route.extend({
       router.setNavigationFlow('step6');
 
       var controller = router.get('installerController');
+      router.get('wizardStep6Controller').set('hosts', []);
       controller.setCurrentStep('6');
       controller.loadAllPriorSteps();
       controller.connectOutlet('wizardStep6', controller.get('content'));

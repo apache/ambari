@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var lazyloading = require('utils/lazy_loading');
 
 App.WizardStep3Controller = Em.Controller.extend({
   name: 'wizardStep3Controller',
@@ -99,28 +100,30 @@ App.WizardStep3Controller = Em.Controller.extend({
   }.property('hosts.@each.isChecked'),
 
   isRetryDisabled: true,
+  isLoaded: false,
 
   navigateStep: function () {
-    this.loadStep();
-    if (this.get('content.installOptions.manualInstall') !== true) {
-      if (!App.db.getBootStatus()) {
-        this.startBootstrap();
-      }
-    } else {
-      this.set('bootHosts', this.get('hosts'));
-      if (App.testMode) {
-        this.getHostInfo();
-        this.get('bootHosts').setEach('bootStatus', 'REGISTERED');
-        this.get('bootHosts').setEach('cpu', '2');
-        this.get('bootHosts').setEach('memory', '2000000');
-        this.set('isSubmitDisabled', false);
+    if(this.get('isLoaded')){
+      if (this.get('content.installOptions.manualInstall') !== true) {
+        if (!App.db.getBootStatus()) {
+          this.startBootstrap();
+        }
       } else {
-        this.set('registrationStartedAt', null);
-        this.get('bootHosts').setEach('bootStatus', 'DONE');
-        this.startRegistration();
+        this.set('bootHosts', this.get('hosts'));
+        if (App.testMode) {
+          this.getHostInfo();
+          this.get('bootHosts').setEach('bootStatus', 'REGISTERED');
+          this.get('bootHosts').setEach('cpu', '2');
+          this.get('bootHosts').setEach('memory', '2000000');
+          this.set('isSubmitDisabled', false);
+        } else {
+          this.set('registrationStartedAt', null);
+          this.get('bootHosts').setEach('bootStatus', 'DONE');
+          this.startRegistration();
+        }
       }
     }
-  },
+  }.observes('isLoaded'),
 
   clearStep: function () {
     this.set('stopBootstrap', false);
@@ -134,37 +137,42 @@ App.WizardStep3Controller = Em.Controller.extend({
   loadStep: function () {
     console.log("TRACE: Loading step3: Confirm Hosts");
     this.set('registrationStartedAt', null);
+    this.set('isLoaded', false);
 
     this.clearStep();
-    var hosts = this.loadHosts();
+    this.loadHosts();
     // hosts.setEach('bootStatus', 'RUNNING');
-    this.renderHosts(hosts);
   },
 
   /* Loads the hostinfo from localStorage on the insertion of view. It's being called from view */
   loadHosts: function () {
-    var hostInfo = this.get('content.hosts');
-    var hosts = new Ember.Set();
-    for (var index in hostInfo) {
-      hosts.add(hostInfo[index]);
-      console.log("TRACE: host name is: " + hostInfo[index].name);
-    }
-    return hosts;
-  },
+    var hostsInfo = this.get('content.hosts');
+    var hosts = [];
 
-  /* Renders the set of passed hosts */
-  renderHosts: function (hostsInfo) {
-    var self = this;
-    hostsInfo.forEach(function (_hostInfo) {
+    for (var index in hostsInfo) {
       var hostInfo = App.HostInfo.create({
-        name: _hostInfo.name,
-        bootStatus: _hostInfo.bootStatus,
+        name: hostsInfo[index].name,
+        bootStatus: hostsInfo[index].bootStatus,
         isChecked: false
       });
 
       console.log('pushing ' + hostInfo.name);
-      self.hosts.pushObject(hostInfo);
-    });
+      hosts.pushObject(hostInfo);
+    }
+
+    if(hosts.length > 100) {
+      lazyloading.run({
+        destination: this.get('hosts'),
+        source: hosts,
+        context: this,
+        initSize: 20,
+        chunkSize: 100,
+        delay: 300
+      });
+    } else {
+      this.set('hosts', hosts);
+      this.set('isLoaded', true);
+    }
   },
 
   /**

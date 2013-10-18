@@ -18,6 +18,7 @@
 
 
 var App = require('app');
+var lazyloading = require('utils/lazy_loading');
 
 App.WizardStep5View = Em.View.extend({
 
@@ -35,9 +36,29 @@ App.SelectHostView = Em.Select.extend({
   selectedHost:null,
   componentName:null,
   attributeBindings:['disabled'],
+  isLoaded: false,
 
   change:function () {
     this.get('controller').assignHostToMaster(this.get("componentName"), this.get("value"), this.get("zId"));
+  },
+  click: function () {
+    var source = [];
+    var selectedHost = this.get('selectedHost');
+    var content = this.get('content');
+    if (!this.get('isLoaded') && this.get('controller.isLazyLoading')) {
+      //filter out hosts, which already pushed in select
+      source = this.get('controller.hosts').filter(function(_host){
+        return !content.someProperty('host_name', _host.host_name);
+      }, this);
+      lazyloading.run({
+        destination: this.get('content'),
+        source: source,
+        context: this,
+        initSize: 30,
+        chunkSize: 50,
+        delay: 200
+      });
+    }
   },
 
   didInsertElement:function () {

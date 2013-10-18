@@ -25,7 +25,7 @@ App.WizardStep3View = Em.View.extend({
   category: '',
 
   didInsertElement: function () {
-    this.get('controller').navigateStep();
+    this.get('controller').loadStep();
   },
 
   message:'',

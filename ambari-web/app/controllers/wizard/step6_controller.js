@@ -18,6 +18,7 @@
 
 var App = require('app');
 var db = require('utils/db');
+var lazyloading = require('utils/lazy_loading');
 
 /**
  * By Step 6, we have the following information stored in App.db and set on this
@@ -42,6 +43,7 @@ App.WizardStep6Controller = Em.Controller.extend({
    * false - slaves and clients
    */
   isMasters: false,
+  isLoaded: false,
 
   components: require('data/service_components'),
 
@@ -111,6 +113,7 @@ App.WizardStep6Controller = Em.Controller.extend({
     this.set('hosts', []);
     this.set('headers', []);
     this.clearError();
+    this.set('isLoaded', false);
   },
 
   /**
@@ -273,7 +276,7 @@ App.WizardStep6Controller = Em.Controller.extend({
    * Load all data needed for this module. Then it automatically renders in template
    */
   render: function () {
-    var hostsObj = Em.Set.create();
+    var hostsObj = [];
     var allHosts = this.getHostNames();
 
     var self = this;
@@ -303,9 +306,20 @@ App.WizardStep6Controller = Em.Controller.extend({
       hostsObj = this.renderSlaves(hostsObj);
     }
 
-    hostsObj.forEach(function (host) {
-      this.get('hosts').pushObject(host);
-    }, this);
+    if(hostsObj.length > 100) {
+      lazyloading.run({
+        destination: this.get('hosts'),
+        source: hostsObj,
+        context: this,
+        initSize: 20,
+        chunkSize: 50,
+        delay: 300
+      });
+    } else {
+      hostsObj.forEach(function (host) {
+        this.get('hosts').pushObject(host);
+      }, this);
+    }
     this.get('headers').forEach(function (header) {
       self.checkCallback(header.get('label'));
     });
