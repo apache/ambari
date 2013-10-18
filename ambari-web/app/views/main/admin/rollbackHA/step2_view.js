@@ -19,12 +19,18 @@
 
 var App = require('app');
 
-App.RollbackHighAvailabilityWizardStep2View = Em.View.extend({
+App.RollbackHighAvailabilityWizardStep2View = App.HighAvailabilityWizardStep4View.extend({
 
   templateName: require('templates/main/admin/rollbackHA/step2'),
 
-  didInsertElement: function() {
-
-  }
+  step2BodyText: function () {
+    var activeNN = App.HostComponent.find().findProperty('displayNameAdvanced','Active NameNode');
+    if(!activeNN){
+      activeNN = App.HostComponent.find().findProperty('componentName','NAMENODE');
+    }
+    activeNN = activeNN.get('host.hostName');
+    this.get('controller.content').set('activeNNHost', activeNN);
+    return Em.I18n.t('admin.highAvailability.rollback.step2.body').format(this.get('controller.content.hdfsUser'), activeNN);
+  }.property()
 
 });

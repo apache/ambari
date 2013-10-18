@@ -38,7 +38,8 @@ App.RollbackHighAvailabilityWizardController = App.WizardController.extend({
     hdfsUser:"hdfs",
     nameServiceId: '',
     selectedAddNNHost : null,
-    selectedSNNHost : null
+    selectedSNNHost : null,
+    activeNNHost: null
   }),
 
   setCurrentStep: function (currentStep, completed) {
@@ -136,8 +137,6 @@ App.RollbackHighAvailabilityWizardController = App.WizardController.extend({
     switch (step) {
       case '3':
       case '2':
-        //this.loadServicesFromServer();
-        //this.loadMasterComponentHosts();
       case '1':
         this.loadSNNHost();
         this.loadAddNNHost();

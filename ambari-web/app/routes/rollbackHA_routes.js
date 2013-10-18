@@ -100,7 +100,9 @@ module.exports = Em.Route.extend({
       controller.setCurrentStep('2');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
-        controller.connectOutlet('rollbackHighAvailabilityWizardStep2', controller.get('content'));
+        controller.usersLoading().done(function () {
+          controller.connectOutlet('rollbackHighAvailabilityWizardStep2', controller.get('content'));
+        });
       })
     },
     unroutePath: function () {

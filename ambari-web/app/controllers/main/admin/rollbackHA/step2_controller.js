@@ -18,7 +18,19 @@
 
 var App = require('app');
 
-App.RollbackHighAvailabilityWizardStep2Controller = Em.Controller.extend({
-  name:"rollbackHighAvailabilityWizardStep2Controller"
+App.RollbackHighAvailabilityWizardStep2Controller = App.HighAvailabilityWizardStep4Controller.extend({
+  name:"rollbackHighAvailabilityWizardStep2Controller",
+
+  pullCheckPointStatus: function () {
+    var hostName = this.get('content.activeNNHost');
+    App.ajax.send({
+      name: 'admin.high_availability.getNnCheckPointStatus',
+      sender: this,
+      data: {
+        hostName: hostName
+      },
+      success: 'checkNnCheckPointStatus'
+    });
+  }
 });
 

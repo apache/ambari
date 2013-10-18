@@ -17,9 +17,11 @@
 }}
 <div>
   <h2>{{t admin.rollbackHighAvailability.wizard.step2.header}}</h2>
-
-
-  <div class="btn-area">
-    <a {{bindAttr class=":btn controller.isNameServiceIdValid::disabled :btn-success :pull-right"}} {{action next}}>{{t common.next}} &rarr;</a>
+  <div class="alert alert-info">
+      {{{view.step2BodyText}}}
   </div>
+   <div class="btn-area">
+      <a  {{bindAttr class=":btn :btn-success :pull-right"}} {{action next}}>{{t common.next}} &rarr;</a>
+      <span class="pull-right btn-extra-info">{{view.nnCheckPointText}}</span>
+    </div>
 </div>

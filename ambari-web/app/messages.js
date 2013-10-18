@@ -727,6 +727,15 @@ Em.I18n.translations = {
   'admin.highAvailability.rollback.task11.title':'Start All Services',
   'admin.highAvailability.rollback.notice.inProgress':'Please wait while the wizard reverts back to the non-HA setup.',
 
+  'admin.highAvailability.rollback.step2.body':
+    '<ol>' +
+      '<li>Login to the NameNode host <b>{1}</b>.</li>' +
+      '<li>Put the NameNode in Safe Mode (read-only mode):' +
+      '<div class="code-snippet">sudo su -l {0} -c \'hdfs dfsadmin -safemode enter\'</div></li>' +
+      '<li>Once in Safe Mode, create a Checkpoint:' +
+      '<div class="code-snippet">sudo su -l {0} -c \'hdfs dfsadmin -saveNamespace\'</div></li>' +
+      '</ol>',
+
   'admin.highAvailability.wizard.step8.body':
     '<div class="alert alert-info">' +
     '<ol>' +
