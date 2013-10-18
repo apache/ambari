@@ -52,12 +52,7 @@ class System(object):
 
   @lazy_property
   def lsb(self):
-    if os.path.exists("/etc/lsb-release"):
-      with open("/etc/lsb-release", "rb") as fp:
-        lsb = (x.split('=') for x in fp.read().strip().split('\n'))
-      return dict(
-        (k.split('_', 1)[-1].lower(), self.unquote(v)) for k, v in lsb)
-    elif os.path.exists("/usr/bin/lsb_release"):
+    if os.path.exists("/usr/bin/lsb_release"):
       p = Popen(["/usr/bin/lsb_release", "-a"], stdout=PIPE, stderr=PIPE)
       lsb = {}
       for l in p.communicate()[0].split('\n'):
@@ -65,8 +60,15 @@ class System(object):
         if len(v) != 2:
           continue
         lsb[v[0].strip().lower()] = self.unquote(v[1].strip().lower())
+      
+      # failsafe
+      if not 'distributor id' in lsb:
+        return None
+        
       lsb['id'] = lsb.pop('distributor id')
       return lsb
+    
+    return None
 
   @lazy_property
   def platform(self):
@@ -78,25 +80,22 @@ class System(object):
           return "redhat"
         if os.path.exists("/etc/fedora-release"):
           return "fedora"
-        if os.path.exists("/etc/debian_version"):
-          return "debian"
-        if os.path.exists("/etc/gentoo-release"):
-          return "gentoo"
+        if os.path.exists("/etc/centos-release"):
+          return "centos"
+        if os.path.exists("/etc/SuSE-release"):
+          return "suse"
         if os.path.exists("/etc/system-release"):
           with open("/etc/system-release", "rb") as fp:
             release = fp.read()
           if "Amazon Linux" in release:
             return "amazon"
         return "unknown"
-      return lsb['id'].lower()
-    elif operatingsystem == "darwin":
-      out = Popen("/usr/bin/sw_vers", stdout=PIPE).communicate()[0]
-      sw_vers = dict(
-        [y.strip() for y in x.split(':', 1)] for x in out.strip().split('\n'))
-      # ProductName, ProductVersion, BuildVersion
-      return sw_vers['ProductName'].lower().replace(' ', '_')
-    else:
-      return "unknown"
+      
+      lsb_id = lsb['id'].lower()
+      if lsb_id =="suse linux":
+        return "suse"
+      return lsb_id
+    return "unknown"
 
   @lazy_property
   def locales(self):

@@ -20,14 +20,6 @@ class Provider(object):
 
 
 PROVIDERS = dict(
-  debian=dict(
-    Package="resource_management.providers.package.apt.DebianAptProvider",
-    Service="resource_management.providers.service.debian.DebianServiceProvider",
-  ),
-  ubuntu=dict(
-    Package="resource_management.providers.package.apt.DebianAptProvider",
-    Service="resource_management.providers.service.debian.DebianServiceProvider",
-  ),
   redhat=dict(
     Service="resource_management.providers.service.redhat.RedhatServiceProvider",
     Package="resource_management.providers.package.yumrpm.YumProvider",
@@ -36,6 +28,10 @@ PROVIDERS = dict(
     Service="resource_management.providers.service.redhat.RedhatServiceProvider",
     Package="resource_management.providers.package.yumrpm.YumProvider",
   ),
+  suse=dict(
+    Service="resource_management.providers.service.suse.SuseServiceProvider",
+    Package="resource_management.providers.package.zypper.ZypperProvider",
+  ),
   fedora=dict(
     Service="resource_management.providers.service.redhat.RedhatServiceProvider",
     Package="resource_management.providers.package.yumrpm.YumProvider",
@@ -43,10 +39,6 @@ PROVIDERS = dict(
   amazon=dict(
     Service="resource_management.providers.service.redhat.RedhatServiceProvider",
     Package="resource_management.providers.package.yumrpm.YumProvider",
-  ),
-  gentoo=dict(
-    Package="resource_management.providers.package.emerge.GentooEmergeProvider",
-    Service="resource_management.providers.service.gentoo.GentooServiceProvider",
   ),
   default=dict(
     File="resource_management.providers.system.FileProvider",
