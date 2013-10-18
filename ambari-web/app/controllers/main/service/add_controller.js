@@ -222,7 +222,7 @@ App.AddServiceController = App.WizardController.extend({
 
   loadServiceConfigProperties: function() {
     this._super();
-    if (this.get('currentStep') > 1) {
+    if (this.get('currentStep') > 1 && this.get('currentStep') < 6) {
       this.set('content.skipConfigStep', this.skipConfigStep());
       this.get('isStepDisabled').findProperty('step', 4).set('value', this.get('content.skipConfigStep'));
     }
@@ -230,7 +230,7 @@ App.AddServiceController = App.WizardController.extend({
 
   saveServiceConfigProperties: function(stepController) {
     this._super(stepController);
-    if (this.get('currentStep') > 1) {
+    if (this.get('currentStep') > 1 && this.get('currentStep') < 6) {
       this.set('content.skipConfigStep', this.skipConfigStep());
       this.get('isStepDisabled').findProperty('step', 4).set('value', this.get('content.skipConfigStep'));
     }

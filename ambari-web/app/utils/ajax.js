@@ -889,6 +889,15 @@ var urls = {
       };
     }
   },
+  'wizard.install_services.add_service_controller.get_failed_host_components': {
+    'real': '/clusters/{clusterName}/host_components?fields=HostRoles/state,component/ServiceComponentInfo/service_name',
+    'mock': '',
+    'format': function (data, opt) {
+      return {
+        async: false
+      };
+    }
+  },
   'wizard.service_components': {
     'real': '{stackUrl}/stackServices?fields=StackServices',
     'mock': '/data/wizard/stack/hdp/version/{stackVersion}.json',
