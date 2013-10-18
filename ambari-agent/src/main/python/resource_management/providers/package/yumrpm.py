@@ -1,46 +1,17 @@
 from resource_management.providers.package import PackageProvider
-import yum
+from subprocess import STDOUT, PIPE, check_call
 
-
-class DummyCallback(object):
-  def event(self, state, data=None):
-    pass
-
+INSTALL_CMD = "/usr/bin/yum -d 0 -e 0 -y install %s"
+REMOVE_CMD = "/usr/bin/yum -d 0 -e 0 -y erase %s"
 
 class YumProvider(PackageProvider):
-  def get_current_status(self):
-    self.candidate_version = None
-    self.current_version = None
-    yb = yum.YumBase()
-    yb.doConfigSetup()
-    yb.doTsSetup()
-    yb.doRpmDBSetup()
-    for pkg in yb.rpmdb.returnPackages():
-      if pkg.name == self.resource.package_name:
-        self.current_version = pkg.version
-        self.log.debug("Current version of %s is %s" % (
-        self.resource.package_name, self.current_version))
-    searchlist = ['name', 'version']
-    args = [self.resource.package_name]
-    matching = yb.searchPackages(searchlist, args)
-    for po in matching:
-      if po.name == self.resource.package_name:
-        self.candidate_version = po.version
-        self.log.debug("Candidate version of %s is %s" % (
-        self.resource.package_name, self.current_version))
+  def install_package(self, name):
+    return 0 == check_call(INSTALL_CMD % (name),
+                      shell=True, stdout=PIPE, stderr=STDOUT)
 
-  def install_package(self, name, version):
-    yb = yum.YumBase()
-    yb.doGenericSetup()
-    yb.doRepoSetup()
-    #TODO: Handle locks not being available
-    yb.doLock()
-    yb.install(pattern=name)
-    yb.buildTransaction()
-    #yb.conf.setattr('assumeyes',True)
-    yb.processTransaction(callback=DummyCallback())
-    yb.closeRpmDB()
-    yb.doUnlock()
-
-  def upgrade_package(self, name, version):
-    return self.install_package(name, version)
+  def upgrade_package(self, name):
+    return self.install_package(name)
+  
+  def remove_package(self, name):
+    return 0 == check_call(REMOVE_CMD % (name),
+                           shell=True, stdout=PIPE, stderr=STDOUT)    

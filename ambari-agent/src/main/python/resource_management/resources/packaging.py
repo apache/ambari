@@ -8,5 +8,5 @@ class Package(Resource):
   package_name = ResourceArgument(default=lambda obj: obj.name)
   location = ResourceArgument(default=lambda obj: obj.package_name)
   version = ResourceArgument()
-  actions = ["install", "upgrade", "remove", "purge"]
+  actions = ["install", "upgrade", "remove"]
   build_vars = ForcedListArgument(default=[])
