@@ -61,7 +61,10 @@ public class ClusterConfigEntity {
 
   @OneToMany(mappedBy = "clusterConfigEntity")
   private Collection<ComponentConfigMappingEntity> componentConfigMappingEntities;
-  
+
+  @OneToMany(mappedBy = "clusterConfigEntity")
+  private Collection<ConfigGroupConfigMappingEntity> configGroupConfigMappingEntities;
+
   public Long getClusterId() {
     return clusterId;
   }
@@ -161,5 +164,13 @@ public class ClusterConfigEntity {
 
   public void setComponentConfigMappingEntities(Collection<ComponentConfigMappingEntity> componentConfigMappingEntities) {
     this.componentConfigMappingEntities = componentConfigMappingEntities;
+  }
+
+  public Collection<ConfigGroupConfigMappingEntity> getConfigGroupConfigMappingEntities() {
+    return configGroupConfigMappingEntities;
+  }
+
+  public void setConfigGroupConfigMappingEntities(Collection<ConfigGroupConfigMappingEntity> configGroupConfigMappingEntities) {
+    this.configGroupConfigMappingEntities = configGroupConfigMappingEntities;
   }
 }
