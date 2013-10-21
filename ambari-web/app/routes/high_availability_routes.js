@@ -98,10 +98,13 @@ module.exports = Em.Route.extend({
     route: '/step1',
     connectOutlets: function (router) {
       var controller = router.get('highAvailabilityWizardController');
-      controller.setCurrentStep('1');
-      controller.dataLoading().done(function () {
-        controller.loadAllPriorSteps();
-        controller.connectOutlet('highAvailabilityWizardStep1', controller.get('content'));
+      controller.usersLoading().done(function () {
+        controller.saveHdfsUser();
+        controller.setCurrentStep('1');
+        controller.dataLoading().done(function () {
+          controller.loadAllPriorSteps();
+          controller.connectOutlet('highAvailabilityWizardStep1', controller.get('content'));
+        })
       })
     },
     unroutePath: function () {

@@ -164,6 +164,10 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
     this.set('content.masterComponentHosts', masterComponentHosts);
   },
 
+  saveHdfsUser: function () {
+    App.db.setHighAvailabilityWizardHdfsUser(this.get('content.hdfsUser'));
+  },
+
   saveTasksStatuses: function(statuses){
     App.db.setHighAvailabilityWizardTasksStatuses(statuses);
     this.set('content.tasksStatuses', statuses);
@@ -190,6 +194,12 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
   loadConfigTag: function(tag){
     var tagVal = App.db.getHighAvailabilityWizardConfigTag(tag);
     this.set('content.'+tag, tagVal);
+  },
+
+
+  loadHdfsUser: function(){
+    var hdfsUser = App.db.getHighAvailabilityWizardHdfsUser();
+    this.set('content.hdfsUser', hdfsUser);
   },
 
   loadTasksStatuses: function(){
@@ -248,6 +258,7 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
         this.loadServicesFromServer();
         this.loadMasterComponentHosts();
         this.loadConfirmedHosts();
+        this.loadHdfsUser();
       case '1':
         this.load('cluster');
     }

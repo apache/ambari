@@ -25,7 +25,6 @@ App.HighAvailabilityWizardStep1View = Em.View.extend({
 
   didInsertElement: function() {
     App.popover($("div.controls input[type=text]"), {'placement': 'right', 'trigger': 'hover', 'title': this.t('admin.highAvailability.wizard.step1.nameserviceid.tooltip.title'), 'content': this.t('admin.highAvailability.wizard.step1.nameserviceid.tooltip.content')});
-    this.get('controller').loadUsers();
   },
 
   showInputError: function () {
