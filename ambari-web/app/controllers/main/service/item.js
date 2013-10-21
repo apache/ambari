@@ -203,7 +203,7 @@ App.MainServiceItemController = Em.Controller.extend({
     var reassignMasterController = App.router.get('reassignMasterController');
     reassignMasterController.saveComponentToReassign(component);
     reassignMasterController.setCurrentStep('1');
-    App.router.transitionTo('reassignMaster');
+    App.router.transitionTo('reassign');
   },
 
   /**

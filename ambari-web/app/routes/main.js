@@ -923,13 +923,12 @@ module.exports = Em.Route.extend({
       }
     }),
     showService: Em.Router.transitionTo('service'),
-    addService: Em.Router.transitionTo('serviceAdd')
+    addService: Em.Router.transitionTo('serviceAdd'),
+    reassign: require('routes/reassign_master_routes')
   }),
 
 
   serviceAdd: require('routes/add_service_routes'),
-  reassignMaster: require('routes/reassign_master_routes'),
-
 
   selectService: Em.Route.transitionTo('services.service.summary'),
   selectHost: function (router, event) {

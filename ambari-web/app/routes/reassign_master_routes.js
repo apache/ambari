@@ -17,7 +17,7 @@
  */
 
 module.exports = Em.Route.extend({
-  route: '/services/reassign',
+  route: '/reassign',
 
   enter: function (router) {
     console.log('in /service/reassign:enter');
@@ -81,6 +81,10 @@ module.exports = Em.Route.extend({
     next: function (router) {
       App.db.setMasterComponentHosts(undefined);
       router.transitionTo('step2');
+    },
+
+    unroutePath: function () {
+      return false;
     }
   }),
 
@@ -117,6 +121,10 @@ module.exports = Em.Route.extend({
       }, this);
       controller.saveReassignHosts(reassignHosts);
       router.transitionTo('step3');
+    },
+
+    unroutePath: function () {
+      return false;
     }
   }),
 
@@ -142,6 +150,10 @@ module.exports = Em.Route.extend({
         localdb: App.db.data
       });
       router.transitionTo('step4');
+    },
+
+    unroutePath: function () {
+      return false;
     }
   }),
 
