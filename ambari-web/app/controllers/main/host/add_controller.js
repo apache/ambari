@@ -338,6 +338,44 @@ App.AddHostController = App.WizardController.extend({
     this.clearStorageData();
     App.router.get('updateController').updateAll();
     App.updater.immediateRun('updateHost');
+  },
+
+  installServices: function (isRetry) {
+    this.set('content.cluster.oldRequestsId', []);
+    var clusterName = this.get('content.cluster.name');
+    var data;
+    var name;
+    var hostnames = [];
+    for (var hostname in App.db.getHosts()) {
+      hostnames.push(hostname);
+    }
+
+    if (isRetry) {
+      name = 'wizard.install_services.add_host_controller.is_retry';
+    }
+    else {
+      name = 'wizard.install_services.add_host_controller.not_is_retry';
+    }
+    data = {
+      "RequestInfo": {
+        "context": Em.I18n.t('requestInfo.installComponents'),
+        "query": "HostRoles/host_name.in(" + hostnames.join(',') + ")"
+      },
+      "Body": {
+        "HostRoles": {"state": "INSTALLED"}
+      }
+    };
+    data = JSON.stringify(data);
+    App.ajax.send({
+      name: name,
+      sender: this,
+      data: {
+        data: data,
+        cluster: clusterName
+      },
+      success: 'installServicesSuccessCallback',
+      error: 'installServicesErrorCallback'
+    });
   }
 
 });

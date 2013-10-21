@@ -408,6 +408,78 @@ App.AddServiceController = App.WizardController.extend({
     this.clearAllSteps();
     this.clearStorageData();
     App.router.get('updateController').updateAll();
+  },
+
+  installServices: function (isRetry) {
+    this.set('content.cluster.oldRequestsId', []);
+    var clusterName = this.get('content.cluster.name');
+    var data;
+    var name;
+    if (isRetry) {
+      this.getFailedHostComponents();
+      console.log('failedHostComponents', this.get('failedHostComponents'));
+      name = 'wizard.install_services.installer_controller.is_retry';
+      data = {
+        "RequestInfo": {
+          "context" : Em.I18n.t('requestInfo.installComponents'),
+          "query": "HostRoles/component_name.in(" + this.get('failedHostComponents').join(',') + ")"
+        },
+        "Body": {
+          "HostRoles": {
+            "state": "INSTALLED"
+          }
+        }
+      };
+      data = JSON.stringify(data);
+    }
+    else {
+      name = 'wizard.install_services.installer_controller.not_is_retry';
+      data = '{"RequestInfo": {"context" :"' + Em.I18n.t('requestInfo.installServices') + '"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
+    }
+    App.ajax.send({
+      name: name,
+      sender: this,
+      data: {
+        data: data,
+        cluster: clusterName
+      },
+      success: 'installServicesSuccessCallback',
+      error: 'installServicesErrorCallback'
+    });
+  },
+
+  /**
+   * List of failed to install HostComponents while adding Service
+   */
+  failedHostComponents: [],
+
+  getFailedHostComponents: function() {
+    App.ajax.send({
+      name: 'wizard.install_services.add_service_controller.get_failed_host_components',
+      sender: this,
+      success: 'getFailedHostComponentsSuccessCallback',
+      error: 'getFailedHostComponentsErrorCallback'
+    });
+  },
+
+  /**
+   * Parse all failed components and filter out installed earlier components (based on selected to install services)
+   * @param {Object} json
+   */
+  getFailedHostComponentsSuccessCallback: function(json) {
+    var allFailed = json.items.filterProperty('HostRoles.state', 'INSTALL_FAILED');
+    var currentFailed = [];
+    var selectedServices = App.db.getService().filterProperty('isInstalled', false).filterProperty('isSelected', true).mapProperty('serviceName');
+    allFailed.forEach(function(failed) {
+      if (selectedServices.contains(failed.component[0].ServiceComponentInfo.service_name)) {
+        currentFailed.push(failed.HostRoles.component_name);
+      }
+    });
+    this.set('failedHostComponents', currentFailed);
+  },
+
+  getFailedHostComponentsErrorCallback: function(request, ajaxOptions, error) {
+    console.warn(error);
   }
 
 });

@@ -260,66 +260,13 @@ App.WizardController = Em.Controller.extend({
     var clusterName = this.get('content.cluster.name');
     var data;
     var name;
-
-    switch (this.get('content.controllerName')) {
-      case 'addHostController':
-
-        var hostnames = [];
-        for (var hostname in App.db.getHosts()) {
-          hostnames.push(hostname);
-        }
-
-        if (isRetry) {
-          name = 'wizard.install_services.add_host_controller.is_retry';
-        }
-        else {
-          name = 'wizard.install_services.add_host_controller.not_is_retry';
-        }
-        data = {
-          "RequestInfo": {
-            "context": Em.I18n.t('requestInfo.installComponents'),
-            "query": "HostRoles/host_name.in(" + hostnames.join(',') + ")"
-          },
-          "Body": {
-            "HostRoles": {"state": "INSTALLED"}
-          }
-        };
-        data = JSON.stringify(data);
-        break;
-      case 'addServiceController':
-        if (isRetry) {
-          this.getFailedHostComponents();
-          console.log('failedHostComponents', this.get('failedHostComponents'));
-          name = 'wizard.install_services.installer_controller.is_retry';
-          data = {
-            "RequestInfo": {
-              "context" : Em.I18n.t('requestInfo.installComponents'),
-              "query": "HostRoles/component_name.in(" + this.get('failedHostComponents').join(',') + ")"
-            },
-            "Body": {
-              "HostRoles": {
-                "state": "INSTALLED"
-              }
-            }
-          };
-          data = JSON.stringify(data);
-        }
-        else {
-          name = 'wizard.install_services.installer_controller.not_is_retry';
-          data = '{"RequestInfo": {"context" :"' + Em.I18n.t('requestInfo.installServices') + '"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
-        }
-        break;
-      case 'installerController':
-      default:
-        if (isRetry) {
-          name = 'wizard.install_services.installer_controller.is_retry';
-          data = '{"RequestInfo": {"context" :"' + Em.I18n.t('requestInfo.installComponents') + '"}, "Body": {"HostRoles": {"state": "INSTALLED"}}}';
-        }
-        else {
-          name = 'wizard.install_services.installer_controller.not_is_retry';
-          data = '{"RequestInfo": {"context" :"' + Em.I18n.t('requestInfo.installServices') + '"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
-        }
-        break;
+    if (isRetry) {
+      name = 'wizard.install_services.installer_controller.is_retry';
+      data = '{"RequestInfo": {"context" :"' + Em.I18n.t('requestInfo.installComponents') + '"}, "Body": {"HostRoles": {"state": "INSTALLED"}}}';
+    }
+    else {
+      name = 'wizard.install_services.installer_controller.not_is_retry';
+      data = '{"RequestInfo": {"context" :"' + Em.I18n.t('requestInfo.installServices') + '"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
     }
 
     App.ajax.send({
@@ -332,40 +279,6 @@ App.WizardController = Em.Controller.extend({
       success: 'installServicesSuccessCallback',
       error: 'installServicesErrorCallback'
     });
-  },
-
-  /**
-   * List of failed to install HostComponents while adding Service
-   */
-  failedHostComponents: [],
-
-  getFailedHostComponents: function() {
-    App.ajax.send({
-      name: 'wizard.install_services.add_service_controller.get_failed_host_components',
-      sender: this,
-      success: 'getFailedHostComponentsSuccessCallback',
-      error: 'getFailedHostComponentsErrorCallback'
-    });
-  },
-
-  /**
-   * Parse all failed components and filter out installed earlier components (based on selected to install services)
-   * @param {Object} json
-   */
-  getFailedHostComponentsSuccessCallback: function(json) {
-    var allFailed = json.items.filterProperty('HostRoles.state', 'INSTALL_FAILED');
-    var currentFailed = [];
-    var selectedServices = App.db.getService().filterProperty('isInstalled', false).filterProperty('isSelected', true).mapProperty('serviceName');
-    allFailed.forEach(function(failed) {
-      if (selectedServices.contains(failed.component[0].ServiceComponentInfo.service_name)) {
-        currentFailed.push(failed.HostRoles.component_name);
-      }
-    });
-    this.set('failedHostComponents', currentFailed);
-  },
-
-  getFailedHostComponentsErrorCallback: function(request, ajaxOptions, error) {
-    console.warn(error);
   },
 
   installServicesSuccessCallback: function (jsonData) {
@@ -806,4 +719,4 @@ App.WizardController = Em.Controller.extend({
     App.db.setServiceConfigProperties(serviceConfigProperties);
     this.set('content.serviceConfigProperties', serviceConfigProperties);
   }
-})
+});
