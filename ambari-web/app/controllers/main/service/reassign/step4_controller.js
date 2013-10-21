@@ -22,7 +22,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
 
   isReassign: true,
 
-  commands: ['stopNameNode', 'stopServices', 'createHostComponents', 'putHostComponentsInMaintenanceMode', 'reconfigure', 'installHostComponents', 'startZooKeeperServers', 'startNameNode', 'deleteHostComponents', 'startServices'],
+  commands: ['stopServices', 'createHostComponents', 'putHostComponentsInMaintenanceMode', 'reconfigure', 'installHostComponents', 'startZooKeeperServers', 'startNameNode', 'deleteHostComponents', 'startServices'],
 
   clusterDeployState: 'REASSIGN_MASTER_INSTALLING',
 
@@ -68,14 +68,12 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
 
     if (this.get('content.hasManualSteps')) {
       if (App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
-        this.get('tasks').splice(6, 4);
-        this.get('tasks').splice(0, 1);
+        this.get('tasks').splice(5, 4);
       } else {
-        this.get('tasks').splice(8, 2);
+        this.get('tasks').splice(7, 2);
       }
     } else {
-      this.get('tasks').splice(6, 2);
-      this.get('tasks').splice(0, 1);
+      this.get('tasks').splice(5, 2);
     }
   },
 
@@ -91,11 +89,6 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     if (this.get('multiTaskCounter') >= this.get('hostComponents').length) {
       this.onTaskCompleted();
     }
-  },
-
-  stopNameNode: function () {
-    var hostName = this.get('content.reassignHosts.source');
-    this.stopComponent('NAMENODE', hostName);
   },
 
   stopServices: function () {
@@ -339,4 +332,4 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
       }
     }
   }
-})
+});

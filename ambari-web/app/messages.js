@@ -1091,16 +1091,15 @@ Em.I18n.translations = {
   'services.reassign.step3.sourceHost':'Source Host:',
   'services.reassign.step3.component':'Component name:',
   'services.reassign.step4.header':'Install, Start and Test',
-  'services.reassign.step4.task0.title':'Stop NameNode',
-  'services.reassign.step4.task1.title':'Stop All Services',
-  'services.reassign.step4.task2.title':'{0} create',
-  'services.reassign.step4.task3.title':'{0} disable',
-  'services.reassign.step4.task4.title':'{0} reconfigure',
-  'services.reassign.step4.task5.title':'{0} install',
-  'services.reassign.step4.task6.title':'Start ZooKeeper Servers',
-  'services.reassign.step4.task7.title':'Start NameNode',
-  'services.reassign.step4.task8.title':'{0} remove',
-  'services.reassign.step4.task9.title':'Start All Services',
+  'services.reassign.step4.task0.title':'Stop All Services',
+  'services.reassign.step4.task1.title':'{0} create',
+  'services.reassign.step4.task2.title':'{0} disable',
+  'services.reassign.step4.task3.title':'{0} reconfigure',
+  'services.reassign.step4.task4.title':'{0} install',
+  'services.reassign.step4.task5.title':'Start ZooKeeper Servers',
+  'services.reassign.step4.task6.title':'Start NameNode',
+  'services.reassign.step4.task7.title':'{0} remove',
+  'services.reassign.step4.task8.title':'Start All Services',
   'services.reassign.step4.status.success': 'Successfully reassigned {0}',
   'services.reassign.step4.status.success.withManualSteps': 'Proceed to the next step',
   'services.reassign.step4.status.failed': 'Failed to reassign {0}',
@@ -1108,32 +1107,51 @@ Em.I18n.translations = {
   'services.reassign.step4.retry': 'You can click on the Retry or Abort button to retry failed task or abort changes',
   'services.reassign.step4.abortError': 'Error in aborting changes.',
   'services.reassign.step5.header': 'Manual commands',
-  'services.reassign.step5.body.namenode': '<ol>' +
+  'services.reassign.step5.body.namenode':
+      '<div class="alert alert-info">' +
+      '<ol>' +
       '<li>Copy contents of <b>{0}</b> from source host <b>{1}</b> to the target host <b>{2}</b> same locations</li>' +
       '<li>Login to the target host <b>{2}</b> and change permissions for the NameNode dirs by running:' +
       '<div class="code-snippet">chown -R hdfs:hadoop /hadoop/hdfs/namenode/</div></li>' +
       '<li>Create marker directory by running:' +
       '<div class="code-snippet">mkdir -p /var/run/hadoop/hdfs/namenode/formatted</div></li>' +
       '<li>Proceed next' +
-      '</ol>',
-  'services.reassign.step5.body.namenode_ha': '<ol>' +
+      '</ol>' +
+      '</div>',
+  'services.reassign.step5.body.namenode_ha':
+      '<div class="alert alert-info">' +
+      '<ol>' +
+      '<li>Login to the NameNode host <b>{4}</b>.</li>' +
+      '<li>Reset automatic failover information in ZooKeeper by running:' +
+      '<div class="code-snippet">sudo su -l {3} -c \'hdfs zkfc -formatZK\'</div></li>' +
+      '</ol>' +
+      '</div>' +
+      '<div class="alert alert-info">' +
+      '<ol start="3">' +
       '<li>Login to the newly installed NameNode host <b>{2}</b></li>' +
       '<li>Initialize the metadata by running:' +
       "<div class='code-snippet'>sudo su -l {3} -c 'hdfs namenode -bootstrapStandby'</div></li>" +
-      '<li>Proceed next' +
-      '</ol>',
-  'services.reassign.step5.body.secondary_namenode': '<ol>' +
+      '</ol>' +
+      '</div>' +
+      'Please proceed once you have completed the steps above.',
+  'services.reassign.step5.body.secondary_namenode':
+      '<div class="alert alert-info">' +
+      '<ol>' +
       '<li>Copy contents of <b>{0}</b> from source host <b>{1}</b> to the target host <b>{2}</b> same locations</li>' +
       '<li>Login to the target host <b>{2}</b> and change permissions for the SNameNode dirs by running:' +
       '<div class="code-snippet">chown -R hdfs:hadoop /hadoop/hdfs/namesecondary/</div></li>' +
       '<li>Proceed next' +
-      '</ol>',
-  'services.reassign.step5.body.jobtracker': '<ol>' +
+      '</ol>' +
+      '</div>',
+  'services.reassign.step5.body.jobtracker':
+      '<div class="alert alert-info">' +
+      '<ol>' +
       '<li>Copy contents of <b>{0}</b> from source host <b>{1}</b> to the target host <b>{2}</b> same locations</li>' +
       '<li>Login to the target host <b>{2}</b> and change permissions for the JobTracker dirs by running:' +
       '<div class="code-snippet">chown -R mapred:hadoop /hadoop/mapred/</div></li>' +
       '<li>Proceed next' +
-      '</ol>',
+      '</ol>'+
+      '</div>',
   'services.reassign.step6.header': 'Install, Start and Test',
   'services.reassign.step6.task0.title':'{0} remove',
   'services.reassign.step6.task1.title':'Start All Services',
