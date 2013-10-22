@@ -26,8 +26,10 @@
 
   <property>
     <name>io.sort.mb</name>
-    <value></value>
-    <description>No description</description>
+    <value>200</value>
+    <description>
+      The total amount of Map-side buffer memory to use while sorting files
+    </description>
   </property>
 
   <property>
@@ -38,8 +40,8 @@
 
   <property>
     <name>io.sort.spill.percent</name>
-    <value></value>
-    <description>No description</description>
+    <value>0.9</value>
+    <description>Percentage of sort buffer used for record collection</description>
   </property>
 
   <property>
@@ -73,7 +75,7 @@
   <property>
     <name>mapred.system.dir</name>
     <value>/mapred/system</value>
-    <description>No description</description>
+    <description>Path on the HDFS where where the MapReduce framework stores system files</description>
     <final>true</final>
   </property>
 
@@ -96,7 +98,7 @@
   <property>
     <!-- cluster specific -->
     <name>mapred.local.dir</name>
-    <value></value>
+    <value>/hadoop/mapred</value>
     <description>No description</description>
     <final>true</final>
   </property>
@@ -114,13 +116,13 @@
 
   <property>
     <name>mapred.tasktracker.map.tasks.maximum</name>
-    <value></value>
+    <value>4</value>
     <description>No description</description>
   </property>
 
   <property>
     <name>mapred.tasktracker.reduce.tasks.maximum</name>
-    <value></value>
+    <value>2</value>
     <description>No description</description>
   </property>
 
@@ -201,7 +203,7 @@
 
   <property>
     <name>mapred.jobtracker.taskScheduler</name>
-    <value></value>
+    <value>org.apache.hadoop.mapred.CapacityTaskScheduler</value>
   </property>
 
   <property>
@@ -277,31 +279,49 @@
   <property>
     <name>mapred.cluster.map.memory.mb</name>
     <value>1536</value>
+    <description>
+      The virtual memory size of a single Map slot in the MapReduce framework
+    </description>
   </property>
 
   <property>
     <name>mapred.cluster.reduce.memory.mb</name>
     <value>2048</value>
+    <description>
+    The virtual memory size of a single Reduce slot in the MapReduce framework
+    </description>
   </property>
 
   <property>
     <name>mapred.job.map.memory.mb</name>
     <value>1536</value>
+    <description>
+      Virtual memory for single Map task
+    </description>
   </property>
 
   <property>
     <name>mapred.job.reduce.memory.mb</name>
     <value>2048</value>
+    <description>
+      Virtual memory for single Reduce task
+    </description>
   </property>
 
   <property>
     <name>mapred.cluster.max.map.memory.mb</name>
     <value>6144</value>
+    <description>
+      Upper limit on virtual memory size for a single Map task of any MapReduce job
+    </description>
   </property>
 
   <property>
     <name>mapred.cluster.max.reduce.memory.mb</name>
     <value>4096</value>
+    <description>
+      Upper limit on virtual memory size for a single Reduce task of any MapReduce job
+    </description>
   </property>
 
 <property>
@@ -324,7 +344,10 @@
 
 <property>
   <name>mapred.healthChecker.script.path</name>
-  <value></value>
+  <value>file:////mapred/jobstatus</value>
+  <description>
+    Directory path to view job status
+  </description>
 </property>
 
 <property>
@@ -389,7 +412,7 @@
 
 <property>
   <name>mapred.jobtracker.maxtasks.per.job</name>
-  <value></value>
+  <value>-1</value>
   <final>true</final>
   <description>The maximum number of tasks for a single job.
   A value of -1 indicates that there is no maximum.  </description>
@@ -402,7 +425,10 @@
 
 <property>
   <name>mapred.userlog.retain.hours</name>
-  <value></value>
+  <value>24</value>
+  <description>
+    The maximum time, in hours, for which the user-logs are to be retained after the job completion.
+  </description>
 </property>
 
 <property>

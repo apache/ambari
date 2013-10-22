@@ -20,7 +20,7 @@ limitations under the License.
 <configuration>
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
-    <value></value>
+    <value>jdbc</value>
     <description>JDBC connect string for a JDBC metastore</description>
   </property>
 
@@ -32,13 +32,13 @@ limitations under the License.
 
   <property>
     <name>javax.jdo.option.ConnectionUserName</name>
-    <value></value>
+    <value>hive</value>
     <description>username to use against metastore database</description>
   </property>
 
   <property>
     <name>javax.jdo.option.ConnectionPassword</name>
-    <value></value>
+    <value> </value>
     <description>password to use against metastore database</description>
   </property>
 
