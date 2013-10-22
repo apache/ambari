@@ -46,7 +46,6 @@ public class JMXHostProviderTest {
   private Injector injector;
   private Clusters clusters;
   static AmbariManagementController controller;
-  private AmbariMetaInfo ambariMetaInfo;
   private static final String NAMENODE_PORT = "dfs.http.address";
   private static final String DATANODE_PORT = "dfs.datanode.http.address";
 
@@ -56,7 +55,7 @@ public class JMXHostProviderTest {
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
     controller = injector.getInstance(AmbariManagementController.class);
-    ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     ambariMetaInfo.init();
   }
 
@@ -75,7 +74,7 @@ public class JMXHostProviderTest {
       dStateStr);
     Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
     requests.add(r1);
-    controller.createServices(requests);
+    ServiceResourceProviderTest.createServices(controller, requests);
   }
 
   private void createServiceComponent(String clusterName,
@@ -164,7 +163,7 @@ public class JMXHostProviderTest {
     configVersions.put("hdfs-site", "version1");
     sReqs.add(new ServiceRequest(clusterName, serviceName, configVersions,
       null));
-    controller.updateServices(sReqs, mapRequestProps, true, false);
+    ServiceResourceProviderTest.updateServices(controller, sReqs, mapRequestProps, true, false);
   }
 
   private void createConfigs() throws AmbariException {
@@ -177,9 +176,6 @@ public class JMXHostProviderTest {
     String componentName1 = "NAMENODE";
     String componentName2 = "DATANODE";
     String componentName3 = "HDFS_CLIENT";
-
-    Map<String, String> mapRequestProps = new HashMap<String, String>();
-    mapRequestProps.put("context", "Called from a test");
 
     createServiceComponent(clusterName, serviceName, componentName1,
       State.INIT);

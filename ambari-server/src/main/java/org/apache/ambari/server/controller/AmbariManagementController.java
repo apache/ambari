@@ -19,8 +19,17 @@
 package org.apache.ambari.server.controller;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.ParentObjectNotFoundException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.State;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -39,16 +48,6 @@ public interface AmbariManagementController {
    * @throws AmbariException thrown if the cluster cannot be created
    */
   public void createCluster(ClusterRequest request) throws AmbariException;
-
-  /**
-   * Create the service defined by the attributes in the given request object.
-   *
-   * @param requests  the request object which defines the service to be created
-   *
-   * @throws AmbariException thrown if the service cannot be created
-   */
-  public void createServices(Set<ServiceRequest> requests)
-      throws AmbariException, ParentObjectNotFoundException;
 
   /**
    * Create the component defined by the attributes in the given request object.
@@ -112,19 +111,6 @@ public interface AmbariManagementController {
    * @throws AmbariException thrown if the resource cannot be read
    */
   public Set<ClusterResponse> getClusters(Set<ClusterRequest> requests)
-      throws AmbariException;
-
-  /**
-   * Get the services identified by the given request objects.
-   *
-   * @param requests  the request objects which identify the services
-   * to be returned
-   *
-   * @return a set of service responses
-   *
-   * @throws AmbariException thrown if the resource cannot be read
-   */
-  public Set<ServiceResponse> getServices(Set<ServiceRequest> requests)
       throws AmbariException;
 
   /**
@@ -212,17 +198,6 @@ public interface AmbariManagementController {
   public Set<UserResponse> getUsers(Set<UserRequest> requests)
       throws AmbariException;
   
-  /**
-   * Gets the host component config mappings
-   * 
-   * @param request the host component request
-   * 
-   * @return the configuration mappings
-   * 
-   * @throws AmbariException
-   */
-  public Map<String, String> getHostComponentDesiredConfigMapping(
-      ServiceComponentHostRequest request) throws AmbariException;
 
   // ----- Update -----------------------------------------------------------
 
@@ -244,25 +219,6 @@ public interface AmbariManagementController {
       throws AmbariException;
 
   /**
-   * Update the service identified by the given request object with the
-   * values carried by the given request object.
-   *
-   *
-   *
-   * @param requests    the request object which defines which service to
-   *                   update and the values to set
-   *
-   * @param requestProperties
-   * @param reconfigureClients
-   * @return a track action response
-   *
-   * @throws AmbariException thrown if the resource cannot be updated
-   */
-  public RequestStatusResponse updateServices(Set<ServiceRequest> requests,
-      Map<String, String> requestProperties, boolean runSmokeTest,
-      boolean reconfigureClients) throws AmbariException;
-
-  /**
    * Update the component identified by the given request object with the
    * values carried by the given request object.
    *
@@ -271,8 +227,9 @@ public interface AmbariManagementController {
    * @param requests    the request object which defines which component to
    *                   update and the values to set
    *
-   * @param requestProperties
-   * @param runSmokeTest
+   * @param requestProperties  the request properties
+   * @param runSmokeTest       indicates whether or not to run a smoke test
+   *
    * @return a track action response
    *
    * @throws AmbariException thrown if the resource cannot be updated
@@ -285,8 +242,8 @@ public interface AmbariManagementController {
    * Update the host identified by the given request object with the
    * values carried by the given request object.
    *
-   * @param requests    the request object which defines which host to
-   *                   update and the values to set
+   * @param requests  the request object which defines which host to
+   *                  update and the values to set
    *
    * @throws AmbariException thrown if the resource cannot be updated
    */
@@ -299,11 +256,11 @@ public interface AmbariManagementController {
    *
    *
    *
-   * @param requests    the request object which defines which host component to
-   *                   update and the values to set
+   * @param requests           the request object which defines which host component to
+   *                           update and the values to set
+   * @param requestProperties  the request properties
+   * @param runSmokeTest       indicates whether or not to run a smoke test
    *
-   * @param requestProperties
-   * @param runSmokeTest
    * @return a track action response
    *
    * @throws AmbariException thrown if the resource cannot be updated
@@ -333,18 +290,6 @@ public interface AmbariManagementController {
   public void deleteCluster(ClusterRequest request) throws AmbariException;
 
   /**
-   * Delete the service identified by the given request object.
-   *
-   * @param requests  the request object which identifies which service to delete
-   *
-   * @return a track action response
-   *
-   * @throws AmbariException thrown if the resource cannot be deleted
-   */
-  public RequestStatusResponse deleteServices(Set<ServiceRequest> requests)
-      throws AmbariException;
-
-  /**
    * Delete the component identified by the given request object.
    *
    * @param requests  the request object which identifies which component to delete
@@ -360,8 +305,6 @@ public interface AmbariManagementController {
    * Delete the host identified by the given request object.
    *
    * @param requests  the request object which identifies which host to delete
-   *
-   * @return a track action response
    *
    * @throws AmbariException thrown if the resource cannot be deleted
    */
@@ -411,7 +354,6 @@ public interface AmbariManagementController {
    */
   public Set<ActionResponse> getActions(Set<ActionRequest> request)
       throws AmbariException;
-
 
   /**
    * Get supported stacks.
@@ -544,5 +486,55 @@ public interface AmbariManagementController {
    * @throws  AmbariException if the resources cannot be read
    */
   public Set<RootServiceHostComponentResponse> getRootServiceHostComponents(Set<RootServiceHostComponentRequest> requests) throws AmbariException;
-}
+
+
+  // ----- Common utility methods --------------------------------------------
+
+  /**
+   * Get the clusters for this management controller.
+   *
+   * @return the clusters
+   */
+  public Clusters getClusters();
+
+  /**
+   * Get the meta info for this management controller.
+   *
+   * @return the meta info
+   */
+  public AmbariMetaInfo getAmbariMetaInfo();
+
+  /**
+   * Get the service factory for this management controller.
+   *
+   * @return the service factory.
+   */
+  public ServiceFactory getServiceFactory();
+
+  /**
+   * Create the stages required to persist an action and return a result containing the
+   * associated request and resulting tasks.
+   *
+   * @param cluster             the cluster
+   * @param requestProperties   the request properties
+   * @param requestParameters   the request parameters; may be null
+   * @param changedServices     the services being changed; may be null
+   * @param changedComponents   the components being changed
+   * @param changedHosts        the hosts being changed
+   * @param ignoredHosts        the hosts to be ignored
+   * @param runSmokeTest        indicates whether or not the smoke tests should be run
+   * @param reconfigureClients  indicates whether or not the clients should be reconfigured
+   *
+   * @return the request response
+   *
+   * @throws AmbariException is thrown if the stages can not be created
+   */
+  public RequestStatusResponse createStages(Cluster cluster, Map<String, String> requestProperties,
+                                            Map<String, String> requestParameters,
+                                            Map<State, List<Service>> changedServices,
+                                            Map<State, List<ServiceComponent>> changedComponents,
+                                            Map<String, Map<State, List<ServiceComponentHost>>> changedHosts,
+                                            Collection<ServiceComponentHost> ignoredHosts,
+                                            boolean runSmokeTest, boolean reconfigureClients) throws AmbariException;
+  }
   
