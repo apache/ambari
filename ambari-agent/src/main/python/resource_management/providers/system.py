@@ -3,6 +3,7 @@ from __future__ import with_statement
 import grp
 import os
 import pwd
+import time
 from resource_management import shell
 from resource_management.base import Fail
 from resource_management.providers import Provider
@@ -186,10 +187,19 @@ class ExecuteProvider(Provider):
     
     if self.resource.path:
       self.resource.environment['PATH'] = ":".join(self.resource.path) 
-
-    ret, out = shell.checked_call(self.resource.command,
-                          cwd=self.resource.cwd, env=self.resource.environment,
-                          preexec_fn=_preexec_fn(self.resource))
+    
+    for i in range (0, self.resource.tries):
+      try:
+        ret, out = shell.checked_call(self.resource.command,
+                            cwd=self.resource.cwd, env=self.resource.environment,
+                            preexec_fn=_preexec_fn(self.resource))
+        break
+      except Fail as ex:
+        if i == self.resource.tries-1: # last try
+          raise ex
+        else:
+          self.log.info("Retrying after %d seconds. Reason: %s", self.resource.try_sleep, str(ex))
+          time.sleep(self.resource.try_sleep)
 
     self.resource.updated()
        

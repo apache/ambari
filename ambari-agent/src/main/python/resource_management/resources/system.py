@@ -55,7 +55,8 @@ class Execute(Resource):
   user = ResourceArgument()
   group = ResourceArgument()
   returns = ForcedListArgument(default=0)
-  timeout = ResourceArgument()
+  tries = ResourceArgument(default=1)
+  try_sleep = ResourceArgument(default=0) # seconds
   path = ForcedListArgument(default=None)
   actions = Resource.actions + ["run"]
 

@@ -37,11 +37,11 @@ def _call(command, log_stdout=False, throw_on_failure=True,
   code = proc.wait()
   
   if throw_on_failure and code:
-    err_msg = ("Execution of '%s' returned %d: Error: %s") % (command, code, out)
+    err_msg = ("Execution of '%s' returned %d. %s") % (command, code, out)
     raise Fail(err_msg)
   
   if log_stdout:
-    _log.info("%s.\n%s" % (command, out))
+    _log().info("%s.\n%s" % (command, out))
   
   return code, out
     
