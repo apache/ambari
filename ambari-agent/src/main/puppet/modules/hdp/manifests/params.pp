@@ -404,7 +404,11 @@ class hdp::params()
       nagios_p1_pl => {
       'ALL' => '/usr/bin/p1.pl',
       suse => '/usr/lib/nagios/p1.pl'
-      }
+      },
+      httpd_conf_dir => {
+      'ALL' => '/etc/httpd/conf',
+      suse => '/etc/apache2'
+      },
     }
 
     $services_names = {
