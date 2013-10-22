@@ -57,33 +57,30 @@ class GroupProvider(Provider):
     group = self.group
     if not group:
       command = ['groupadd']
-
-      groupadd_options = dict(
+      self.log.info("Adding group %s" % self.resource)
+    else:
+      command = ['groupmod']
+      self.log.info("Modifying group %s to %s" % (self.resource.group_name, self.resource))
+      
+    options = dict(
         gid="-g",
         password="-p",
-      )
+    )
 
-      for option_name, option_flag in groupadd_options.items():
-        option_value = getattr(self.resource, option_name)
-        if option_flag and option_value:
-          command += [option_flag, str(option_value)]
+    for option_name, option_flag in options.items():
+      option_value = getattr(self.resource, option_name)
+      if option_flag and option_value:
+        command += [option_flag, str(option_value)]
+        
+    command.append(self.resource.group_name)
 
-      command.append(self.resource.group_name)
+    shell.checked_call(command)
+    self.resource.updated()
 
-      shell.checked_call(command)
-      self.resource.updated()
-      self.log.info("Added group %s" % self.resource)
-
-      group = self.group
-
-      # if self.resource.members is not None:
-      #     current_members = set(group.gr_mem)
-      #     members = set(self.resource.members)
-      #     for u in current_members - members:
-      #         pass
+    group = self.group
 
   def action_remove(self):
-    if self.user:
+    if self.group:
       command = ['groupdel', self.resource.group_name]
       shell.checked_call(command)
       self.resource.updated()

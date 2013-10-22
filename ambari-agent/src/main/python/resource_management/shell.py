@@ -23,18 +23,16 @@ def _call(command, logoutput=False, throw_on_failure=True,
   @param logoutput: boolean, whether command output should be logged of not
   @param throw_on_failure: if true, when return code is not zero exception is thrown
   
-  @return: retrun_code, stdout, stderr
+  @return: retrun_code, stdout
   """
   
-  if isinstance(command, (list, tuple)):
-    shell = False
-  else:
-    shell = True
+  shell = not isinstance(command, (list, tuple))
   
   proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                           cwd=cwd, env=env, shell=shell,
                           preexec_fn=preexec_fn)
-  out = proc.communicate()[0]
+  
+  out = proc.communicate()[0] if not proc.stdout.closed  else ""
   code = proc.wait()
   
   if logoutput and out and out!="":
