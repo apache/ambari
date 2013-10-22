@@ -183,13 +183,16 @@ class ExecuteProvider(Provider):
         return
 
     self.log.info("Executing %s" % self.resource)
+    
+    if self.resource.path:
+      self.resource.environment['PATH'] = ":".join(self.resource.path) 
 
     ret, out = shell.checked_call(self.resource.command,
                           cwd=self.resource.cwd, env=self.resource.environment,
                           preexec_fn=_preexec_fn(self.resource))
 
     self.resource.updated()
-    
+       
 
 class ScriptProvider(Provider):
   def action_run(self):

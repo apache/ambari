@@ -50,12 +50,13 @@ class Execute(Resource):
   
   creates = ResourceArgument()
   cwd = ResourceArgument()
-  environment = ResourceArgument()
+  # this runs command with a specific env variables, env={'JAVA_HOME': '/usr/jdk'}
+  environment = ResourceArgument(default={})
   user = ResourceArgument()
   group = ResourceArgument()
   returns = ForcedListArgument(default=0)
   timeout = ResourceArgument()
-
+  path = ForcedListArgument(default=None)
   actions = Resource.actions + ["run"]
 
 
