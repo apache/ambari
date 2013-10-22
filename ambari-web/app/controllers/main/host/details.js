@@ -181,33 +181,6 @@ App.MainHostDetailsController = Em.Controller.extend({
       async: false,
       success: function (data) {
         deleted = null;
-        // If ZooKeeper Server component was removed, 
-        // restart ZooKeeper service.
-        /*
-         * Commenting it out as user can restart service
-         * whenever they want. We mention in message.
-        if (component.get('componentName') === 'ZOOKEEPER_SERVER') {
-          App.ajax.send({
-            'name': 'service.item.start_stop',
-            'sender': this,
-            'data': {
-              'requestInfo': 'Stop ZooKeeper',
-              'serviceName': 'ZOOKEEPER',
-              'state': 'INSTALLED'
-            },
-            'callback': function() {
-              App.ajax.send({
-                'name': 'service.item.start_stop',
-                'sender': this,
-                'data': {
-                  'requestInfo': 'Start ZooKeeper',
-                  'serviceName': 'ZOOKEEPER',
-                  'state': 'STARTED'
-                }
-              });
-            }
-          });
-        }*/
       },
       error: function (xhr, textStatus, errorThrown) {
         console.log('Error deleting host component');
@@ -360,15 +333,15 @@ App.MainHostDetailsController = Em.Controller.extend({
         });
         dn += " ("+dns.join(", ")+")";
       }
-      var dialogContent = 
-        [Em.I18n.t('hosts.host.addComponent.msg').format(dn) + "<br><br>",
-        '{{t hosts.host.addComponent.note}}'];
       App.ModalPopup.show({
         primary: Em.I18n.t('yes'),
         secondary: Em.I18n.t('no'),
         header: Em.I18n.t('popup.confirmation.commonHeader'),
+        addComponentMsg: function() {
+          return Em.I18n.t('hosts.host.addComponent.msg').format(dn);
+        }.property(),
         bodyClass: Ember.View.extend({
-          template: Ember.Handlebars.compile(dialogContent.join(''))
+          templateName: require('templates/main/host/details/addComponentPopup')
         }),
         onPrimary: function () {
           this.hide();
@@ -390,6 +363,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       });
     }
   },
+
   primary: function(component) {
     var self = this;
     var componentName = component.get('componentName').toUpperCase().toString();
@@ -461,11 +435,11 @@ App.MainHostDetailsController = Em.Controller.extend({
       primary: Em.I18n.t('yes'),
       secondary: Em.I18n.t('no'),
       header: Em.I18n.t('popup.confirmation.commonHeader'),
+      installComponentMessage: function(){
+        return Em.I18n.t('hosts.host.installComponent.msg').format(displayName);
+      }.property(),
       bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile([
-          '{{t hosts.delete.popup.body}}<br /><br />',
-          '{{t hosts.host.addComponent.note}}'
-        ].join(''))
+        templateName: require('templates/main/host/details/installComponentPopup')
       }),
       onPrimary: function () {
         this.hide();
@@ -602,7 +576,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         console.log(textStatus);
         console.log(errorThrown);
       }
-    }
+    };
     jQuery.ajax(configsAjax);
   },
 
@@ -704,47 +678,42 @@ App.MainHostDetailsController = Em.Controller.extend({
        });
      }
      if (masterComponents.length > 0) {
-       var bodyHtml = "<p><i class=\"icon-warning-sign\"></i> ";
-       bodyHtml += Em.I18n.t('hosts.cant.do.popup.masterList.body').format(masterComponents.length);
-       bodyHtml += "</p><i>";
-       bodyHtml += masterComponents.join(", ");
-       bodyHtml += "</i>";
-       this.raiseDeleteComponentsError(bodyHtml);
+       this.raiseDeleteComponentsError(masterComponents, 'masterList');
        return;
      } else if (nonDeletableComponents.length > 0) {
-       var bodyHtml = "<p><i class=\"icon-warning-sign\"></i> ";
-       bodyHtml += Em.I18n.t('hosts.cant.do.popup.nonDeletableList.body').format(nonDeletableComponents.length);
-       bodyHtml += "</p><i>";
-       bodyHtml += nonDeletableComponents.join(", ");
-       bodyHtml += "</i>";
-       this.raiseDeleteComponentsError(bodyHtml);
+       this.raiseDeleteComponentsError(nonDeletableComponents, 'nonDeletableList');
        return;
      } else if(runningComponents.length > 0) {
-       var bodyHtml = "<p><i class=\"icon-warning-sign\"></i> ";
-       bodyHtml += Em.I18n.t('hosts.cant.do.popup.runningList.body').format(runningComponents.length);
-       bodyHtml += "</p><i>";
-       bodyHtml += runningComponents.join(", ");
-       bodyHtml += "</i><br><br><p>";
-       bodyHtml += Em.I18n.t('hosts.cant.do.popup.runningList.body.end');
-       bodyHtml += "</p>";
-       this.raiseDeleteComponentsError(bodyHtml);
+       this.raiseDeleteComponentsError(runningComponents, 'runningList');
        return;
      }
      this._doDeleteHost(unknownComponents);
   },
   
-  raiseDeleteComponentsError: function (bodyHtml) {
-    var self = this;
+  raiseDeleteComponentsError: function (components, type) {
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.cant.do.popup.title'),
-      html: true,
-      encodeBody: false,
-      body: bodyHtml,
-      primary: Em.I18n.t('ok'),
-      secondary: null,
-      onPrimary: function() {
-        this.hide();
-      }
+      type: type,
+      showBodyEnd: function() {
+        return this.get('type') === 'runningList';
+      }.property(),
+      components: components,
+      componentsStr: function() {
+        return this.get('components').join(", ");
+      }.property(),
+      componentsBody: function() {
+        return Em.I18n.t('hosts.cant.do.popup.'+type+'.body').format(this.get('components').length);
+      }.property(),
+      componentsBodyEnd: function() {
+        if (this.get('showBodyEnd')) {
+          return Em.I18n.t('hosts.cant.do.popup.'+type+'.body.end');
+        }
+        return '';
+      }.property(),
+      bodyClass: Em.View.extend({
+        templateName: require('templates/main/host/details/raiseDeleteComponentErrorPopup')
+      }),
+      secondary: null
     })
   },
 
@@ -753,31 +722,20 @@ App.MainHostDetailsController = Em.Controller.extend({
    */
   _doDeleteHost: function(unknownComponents) {
     var self = this;
-    var bodyHtml = "<p><i class=\"icon-warning-sign\"></i> ";
-    bodyHtml += Em.I18n.t('hosts.delete.popup.body').format("<i>"+this.get('content.publicHostName')+"</i>");
-    bodyHtml += "</p>";
-    if (unknownComponents!=null && unknownComponents.length > 0) {
-      bodyHtml += "<div class=\"alert\">";
-      bodyHtml += Em.I18n.t('hosts.delete.popup.unknownComponents') + "<br>";
-      bodyHtml += "<i>"
-      bodyHtml += unknownComponents.join(", ");
-      bodyHtml += "</i></div>";
-    }
-    bodyHtml += "<p>";
-    bodyHtml += Em.I18n.t('hosts.delete.popup.body.msg1');
-    bodyHtml += "</p><p>";
-    bodyHtml += Em.I18n.t('hosts.delete.popup.body.msg2');
-    bodyHtml += "</p><p>";
-    bodyHtml += "<span class=\"label label-important\">"+Em.I18n.t('common.important')+"</span>  ";
-    bodyHtml += Em.I18n.t('hosts.delete.popup.body.msg3');
-    bodyHtml += "</p>";
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.delete.popup.title'),
-      html: true,
-      encodeBody: false,
-      body: bodyHtml,
-      primary: Em.I18n.t('ok'),
-      secondary: Em.I18n.t('common.cancel'),
+      deletePopupBody: function() {
+        return Em.I18n.t('hosts.delete.popup.body').format(self.get('content.publicHostName'));
+      }.property(),
+      unknownComponents: function() {
+        if (unknownComponents && unknownComponents.length) {
+          return unknownComponents.join(", ");
+        }
+        return '';
+      }.property(),
+      bodyClass: Em.View.extend({
+        templateName: require('templates/main/host/details/doDeleteHostPopup')
+      }),
       onPrimary: function() {
         var dialogSelf = this;
         var allComponents = self.get('content.hostComponents');
@@ -820,4 +778,4 @@ App.MainHostDetailsController = Em.Controller.extend({
       }
     })
   }
-})
+});
