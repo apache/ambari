@@ -210,7 +210,7 @@ org.apache.oozie.action.hadoop.DistcpActionExecutor</value>
 
     <property>
         <name>oozie.service.JPAService.jdbc.username</name>
-        <value>sa</value>
+        <value>oozie</value>
         <description>
             DB user name.
         </description>

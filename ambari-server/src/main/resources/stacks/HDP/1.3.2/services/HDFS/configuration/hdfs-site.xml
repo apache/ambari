@@ -27,7 +27,7 @@
   <property>
     <name>dfs.name.dir</name>
     <!-- cluster variant -->
-    <value></value>
+    <value>/hadoop/hdfs/namenode</value>
     <description>Determines where on the local filesystem the DFS name node
       should store the name table.  If this is a comma-delimited list
       of directories then the name table is replicated in all of the
@@ -37,14 +37,14 @@
 
   <property>
     <name>dfs.support.append</name>
-    <value></value>
+    <value>true</value>
     <description>to enable dfs append</description>
     <final>true</final>
   </property>
 
   <property>
     <name>dfs.webhdfs.enabled</name>
-    <value></value>
+    <value>true</value>
     <description>to enable webhdfs</description>
     <final>true</final>
   </property>
@@ -57,14 +57,14 @@
 
   <property>
     <name>dfs.datanode.failed.volumes.tolerated</name>
-    <value></value>
+    <value>0</value>
     <description>#of failed disks dn would tolerate</description>
     <final>true</final>
   </property>
 
   <property>
     <name>dfs.block.local-path-access.user</name>
-    <value></value>
+    <value>hbase</value>
     <description>the user who is allowed to perform short
     circuit reads.
     </description>
@@ -73,7 +73,7 @@
 
   <property>
     <name>dfs.data.dir</name>
-    <value></value>
+    <value>/hadoop/hdfs/data</value>
     <description>Determines where on the local filesystem an DFS data node
   should store its blocks.  If this is a comma-delimited
   list of directories, then data will be stored in all named
@@ -110,7 +110,7 @@
 
   <property>
     <name>dfs.replication</name>
-    <value></value>
+    <value>3</value>
     <description>Default block replication.
   </description>
   </property>
@@ -177,7 +177,7 @@ literal string "local" or a host:port for NDFS.</description>
 <property>
 <name>dfs.datanode.du.reserved</name>
 <!-- cluster variant -->
-<value></value>
+<value>1073741824</value>
 <description>Reserved space in bytes per volume. Always leave this much space free for non dfs use.
 </description>
 </property>
@@ -386,7 +386,7 @@ Kerberos principal name for the NameNode
 
   <property>
     <name>dfs.datanode.data.dir.perm</name>
-    <value></value>
+    <value>750</value>
 <description>The permissions that should be there on dfs.data.dir
 directories. The datanode will not come up if the permissions are
 different on existing dfs.data.dir directories. If the directories

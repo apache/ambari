@@ -129,14 +129,14 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
         }
       } else if (changedProperty.get("name") == "hbase_user" && !App.get('isHadoop2Stack')) {
         curConfigs = stepConfigs.findProperty("serviceName", "HDFS").get("configs");
-        if (newValue != curConfigs.findProperty("name", "dfs_block_local_path_access_user").get("value")) {
+        if (newValue != curConfigs.findProperty("name", "dfs.block.local-path-access.user").get("value")) {
           this.affectedProperties.push(
             {
               serviceName: "HDFS",
-              propertyName: "dfs_block_local_path_access_user",
+              propertyName: "dfs.block.local-path-access.user",
               propertyDisplayName: "dfs.block.local-path-access.user",
               newValue: newValue,
-              curValue: curConfigs.findProperty("name", "dfs_block_local_path_access_user").get("value"),
+              curValue: curConfigs.findProperty("name", "dfs.block.local-path-access.user").get("value"),
               changedPropertyName: "hbase_user"
             }
           );

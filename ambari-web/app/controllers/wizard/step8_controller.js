@@ -1546,8 +1546,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     var globals = this.get('content.serviceConfigProperties').filterProperty('id', 'puppet var');
     if (globals.someProperty('name', 'oozie_database')) {
       var oozieDb = globals.findProperty('name', 'oozie_database');
-      var oozieHost = globals.findProperty('name', 'oozie_hostname').value;
-      var oozieDbName = globals.findProperty('name', 'oozie_database_name').value;
       if (oozieDb.value === 'New Derby Database') {
         // oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true";
         oozieProperties["oozie.service.JPAService.jdbc.driver"] = "org.apache.derby.jdbc.EmbeddedDriver";
@@ -1558,9 +1556,6 @@ App.WizardStep8Controller = Em.Controller.extend({
         // oozieProperties["oozie.service.JPAService.jdbc.url"] = "jdbc:oracle:thin:@//" + oozieHost + ":1521/" + oozieDbName;
         oozieProperties["oozie.service.JPAService.jdbc.driver"] = "oracle.jdbc.driver.OracleDriver";
       }
-      //set oozie username and password
-      oozieProperties["oozie.service.JPAService.jdbc.username"] = globals.findProperty('name', 'oozie_metastore_user_name').value;
-      oozieProperties["oozie.service.JPAService.jdbc.password"] = globals.findProperty('name', 'oozie_metastore_user_passwd').value;
     }
     return {type: 'oozie-site', tag: 'version1', properties: oozieProperties};
   },

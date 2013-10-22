@@ -287,21 +287,20 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'zookeeperserver_hosts':
         this.set('value', masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName'));
         break;
-      case 'dfs_name_dir':
-      case 'dfs_namenode_name_dir':
-      case 'dfs_data_dir':
-      case 'dfs_datanode_data_dir':
+      case 'dfs.name.dir':
+      case 'dfs.namenode.name.dir':
+      case 'dfs.data.dir':
+      case 'dfs.datanode.data.dir':
       case 'yarn.nodemanager.local-dirs':
       case 'yarn.nodemanager.log-dirs':
-      case 'mapred_local_dir':
-      case 'mapreduce_cluster_local_dir':
+      case 'mapred.local.dir':
         this.unionAllMountPoints(!isOnlyFirstOneNeeded, localDB);
         break;
-      case 'fs_checkpoint_dir':
-      case 'dfs_namenode_checkpoint_dir':
+      case 'fs.checkpoint.dir':
+      case 'dfs.namenode.checkpoint.dir':
       case 'zk_data_dir':
       case 'oozie_data_dir':
-      case 'hbase_tmp_dir':
+      case 'hbase.tmp.dir':
         this.unionAllMountPoints(isOnlyFirstOneNeeded, localDB);
         break;
     }
@@ -329,29 +328,28 @@ App.ServiceConfigProperty = Ember.Object.extend({
     var temp = '';
     var setOfHostNames = [];
     switch (this.get('name')) {
-      case 'dfs_namenode_name_dir':
-      case 'dfs_name_dir':
+      case 'dfs.namenode.name.dir':
+      case 'dfs.name.dir':
         var components = masterComponentHostsInDB.filterProperty('component', 'NAMENODE');
         components.forEach(function (component) {
           setOfHostNames.push(component.hostName);
         }, this);
         break;
-      case 'fs_checkpoint_dir':
-      case 'dfs_namenode_checkpoint_dir':
+      case 'fs.checkpoint.dir':
+      case 'dfs.namenode.checkpoint.dir':
         var components = masterComponentHostsInDB.filterProperty('component', 'SECONDARY_NAMENODE');
         components.forEach(function (component) {
           setOfHostNames.push(component.hostName);
         }, this);
         break;
-      case 'dfs_data_dir':
-      case 'dfs_datanode_data_dir':
+      case 'dfs.data.dir':
+      case 'dfs.datanode.data.dir':
         temp = slaveComponentHostsInDB.findProperty('componentName', 'DATANODE');
         temp.hosts.forEach(function (host) {
           setOfHostNames.push(host.hostName);
         }, this);
         break;
-      case 'mapred_local_dir':
-      case 'mapreduce_cluster_local_dir':
+      case 'mapred.local.dir':
         temp = slaveComponentHostsInDB.findProperty('componentName', 'TASKTRACKER') || slaveComponentHostsInDB.findProperty('componentName', 'NODEMANAGER');
         temp.hosts.forEach(function (host) {
           setOfHostNames.push(host.hostName);
@@ -376,7 +374,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
           setOfHostNames.push(component.hostName);
         }, this);
         break;
-      case 'hbase_tmp_dir':
+      case 'hbase.tmp.dir':
         var temp = slaveComponentHostsInDB.findProperty('componentName', 'HBASE_REGIONSERVER');
         temp.hosts.forEach(function (host) {
           setOfHostNames.push(host.hostName);
@@ -571,7 +569,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
           }
           break;
         case 'advanced':
-          if(this.get('name')=='hive_jdbc_connection_url' || this.get('name')=='oozie_jdbc_connection_url') {
+          if(this.get('name')=='javax.jdo.option.ConnectionURL' || this.get('name')=='oozie.service.JPAService.jdbc.url') {
             if (validator.isNotTrimmed(value)) {
               this.set('errorMessage', Em.I18n.t('host.trimspacesValidation'));
               isError = true;

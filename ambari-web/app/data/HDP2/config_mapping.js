@@ -30,27 +30,6 @@ var configs = [
     "filename": "core-site.xml"
   },
   {
-    "name": "dfs.namenode.checkpoint.dir",
-    "templateName": ["dfs_namenode_checkpoint_dir"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.namenode.checkpoint.period",
-    "templateName": ["dfs_namenode_checkpoint_period"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "fs.checkpoint.size",
-    "templateName": ["fs_checkpoint_size"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "core-site.xml"
-  },
-  {
     "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
     "templateName": ["proxyuser_group"],
     "foreignKey": ["hive_user"],
@@ -100,45 +79,10 @@ var configs = [
   },
 /**********************************************hdfs-site***************************************/
   {
-    "name": "dfs.namenode.name.dir",
-    "templateName": ["dfs_namenode_name_dir"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.webhdfs.enabled",
-    "templateName": ["dfs_webhdfs_enabled"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.datanode.failed.volumes.tolerated",
-    "templateName": ["dfs_datanode_failed_volume_tolerated"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.datanode.data.dir",
-    "templateName": ["dfs_datanode_data_dir"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hdfs-site.xml"
-  },
-  {
     "name": "dfs.hosts.exclude",
     "templateName": ["hadoop_conf_dir", "dfs_exclude"],
     "foreignKey": null,
     "value": "<templateName[0]>\/<templateName[1]>",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.replication",
-    "templateName": ["dfs_replication"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
     "filename": "hdfs-site.xml"
   },
   {
@@ -163,14 +107,6 @@ var configs = [
     "filename": "hdfs-site.xml"
   },
   {
-    "name": "dfs.datanode.du.reserved",
-    "templateName": ["datanode_du_reserved"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hdfs-site.xml"
-  },
-
-  {
     "name": "dfs.namenode.secondary.http-address",
     "templateName": ["snamenode_host"],
     "foreignKey": null,
@@ -184,13 +120,7 @@ var configs = [
     "value": "<templateName[0]>:50470",
     "filename": "hdfs-site.xml"
   },
-  {
-    "name": "dfs.datanode.data.dir.perm",
-    "templateName": ["dfs_datanode_data_dir_perm"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hdfs-site.xml"
-  },
+
 /**********************************************oozie-site***************************************/
   {
     "name": "oozie.base.url",
@@ -199,77 +129,8 @@ var configs = [
     "value": "http://<templateName[0]>:11000/oozie",
     "filename": "oozie-site.xml"
   },
-  {
-    "name": "oozie.service.JPAService.create.db.schema",
-    "templateName": [],
-    "foreignKey": null,
-    "value": "false",  // this is always false
-    "filename": "oozie-site.xml"
-  },
-  {
-    "name": "oozie.db.schema.name",
-    "templateName": ['oozie_database_name'],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "oozie-site.xml"
-  },
-  {
-    "name": "oozie.service.JPAService.jdbc.driver",
-    "templateName": [],
-    "foreignKey": null,
-    "value": "org.apache.derby.jdbc.EmbeddedDriver",  // this value is overwritten in code
-    "filename": "oozie-site.xml"
-  },
-  {
-    "name": "oozie.service.JPAService.jdbc.username",
-    "templateName": ['oozie_metastore_user_name'],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "oozie-site.xml"
-  },
-  {
-    "name": "oozie.service.JPAService.jdbc.password",
-    "templateName": ['oozie_metastore_user_passwd'],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "oozie-site.xml"
-  },
-  {
-    "name": "oozie.service.JPAService.jdbc.url",
-    "templateName": ["oozie_jdbc_connection_url"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "oozie-site.xml"
-  },
+
 /**********************************************hive-site***************************************/
-  {
-    "name": "javax.jdo.option.ConnectionDriverName",
-    "templateName": [],
-    "foreignKey": null,
-    "value": "com.mysql.jdbc.Driver",  // this value is overwritten in code
-    "filename": "hive-site.xml"
-  },
-  {
-    "name": "javax.jdo.option.ConnectionUserName",
-    "templateName": ["hive_metastore_user_name"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hive-site.xml"
-  },
-  {
-    "name": "javax.jdo.option.ConnectionPassword",
-    "templateName": ["hive_metastore_user_passwd"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hive-site.xml"
-  },
-  {
-    "name": "javax.jdo.option.ConnectionURL",
-    "templateName": ["hive_jdbc_connection_url"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hive-site.xml"
-  },
   {
     "name": "hive.metastore.uris",
     "templateName": ["hivemetastore_host"],
@@ -354,139 +215,6 @@ var configs = [
       return (App.HDFSService.find('HDFS') && App.HDFSService.find('HDFS').get('snameNode'));
     },
     "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.tmp.dir",
-    "templateName": ["hbase_tmp_dir"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.regionserver.global.memstore.upperLimit",
-    "templateName": ["regionserver_memstore_upperlimit"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.hstore.blockingStoreFiles",
-    "templateName": ["hstore_blockingstorefiles"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.hstore.compactionThreshold",
-    "templateName": ["hstore_compactionthreshold"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hfile.block.cache.size",
-    "templateName": ["hfile_blockcache_size"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.hregion.max.filesize",
-    "templateName": ["hstorefile_maxsize"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.regionserver.handler.count",
-    "templateName": ["regionserver_handlers"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.hregion.majorcompaction",
-    "templateName": ["hregion_majorcompaction"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.regionserver.global.memstore.lowerLimit",
-    "templateName": ["regionserver_memstore_lowerlimit"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.hregion.memstore.block.multiplier",
-    "templateName": ["hregion_blockmultiplier"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.hregion.memstore.mslab.enabled",
-    "templateName": ["regionserver_memstore_lab"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.hregion.memstore.flush.size",
-    "templateName": ["hregion_memstoreflushsize"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.client.scanner.caching",
-    "templateName": ["client_scannercaching"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.client.scanner.caching",
-    "templateName": ["client_scannercaching"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.cluster.distributed",
-    "templateName": [],
-    "foreignKey": null,
-    "value": "true",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.zookeeper.property.clientPort",
-    "templateName": [],
-    "foreignKey": null,
-    "value": "2181",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "zookeeper.session.timeout",
-    "templateName": ["zookeeper_sessiontimeout"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "hbase.client.keyvalue.maxsize",
-    "templateName": ["hfile_max_keyvalue_size"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-  {
-    "name": "dfs.client.read.shortcircuit",
-    "templateName": ["hdfs_enable_shortcircuit_read"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hdfs-site.xml"
   },
   {
     "name": "hbase.zookeeper.quorum",

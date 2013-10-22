@@ -250,7 +250,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
       case 'HIVE':
         return this.get('categoryConfigsAll').findProperty('name', 'hive_database_name').get('value');
       case 'OOZIE':
-        return this.get('categoryConfigsAll').findProperty('name', 'oozie_database_name').get('value');
+        return this.get('categoryConfigsAll').findProperty('name', 'oozie.db.schema.name').get('value');
       default:
         return null;
     }
@@ -283,9 +283,9 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
 
   connectionUrl: function () {
     if (this.get('serviceConfig.serviceName') === 'HIVE') {
-      return this.get('categoryConfigsAll').findProperty('name', 'hive_jdbc_connection_url');
+      return this.get('categoryConfigsAll').findProperty('name', 'javax.jdo.option.ConnectionURL');
     } else {
-      return this.get('categoryConfigsAll').findProperty('name', 'oozie_jdbc_connection_url');
+      return this.get('categoryConfigsAll').findProperty('name', 'oozie.service.JPAService.jdbc.url');
     }
   }.property('serviceConfig.serviceName'),
 

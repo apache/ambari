@@ -985,7 +985,7 @@ App.config = Em.Object.create({
       case 'password':
         break;
       case 'advanced':
-        if(name == 'hive_jdbc_connection_url' || name == 'oozie_jdbc_connection_url') {
+        if(name == 'javax.jdo.option.ConnectionURL' || name == 'oozie.service.JPAService.jdbc.url') {
           rez = value.trim();
         }
       default:

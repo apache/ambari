@@ -27,7 +27,7 @@
   <property>
     <name>dfs.namenode.name.dir</name>
     <!-- cluster variant -->
-    <value></value>
+    <value>/hadoop/hdfs/namenode</value>
     <description>Determines where on the local filesystem the DFS name node
       should store the name table.  If this is a comma-delimited list
       of directories then the name table is replicated in all of the
@@ -45,20 +45,20 @@
   <property>
     <name>dfs.webhdfs.enabled</name>
     <value>true</value>
-    <description>to enable webhdfs</description>
+    <description>Whether to enable WebHDFS feature</description>
     <final>true</final>
   </property>
 
   <property>
     <name>dfs.datanode.failed.volumes.tolerated</name>
     <value>0</value>
-    <description>#of failed disks dn would tolerate</description>
+    <description> Number of failed disks a DataNode would tolerate before it stops offering service</description>
     <final>true</final>
   </property>
 
   <property>
     <name>dfs.datanode.data.dir</name>
-    <value></value>
+    <value>/hadoop/hdfs/data</value>
     <description>Determines where on the local filesystem an DFS data node
   should store its blocks.  If this is a comma-delimited
   list of directories, then data will be stored in all named
@@ -90,7 +90,7 @@
 
   <property>
     <name>dfs.namenode.checkpoint.dir</name>
-    <value></value>
+    <value>/hadoop/hdfs/namesecondary</value>
     <description>Determines where on the local filesystem the DFS secondary
       name node should store the temporary images to merge.
       If this is a comma-delimited list of directories then the image is
@@ -109,10 +109,19 @@
     </description>
   </property>
 
+
   <property>
     <name>dfs.namenode.checkpoint.period</name>
-    <value></value>
+    <value>21600</value>
     <description>The number of seconds between two periodic checkpoints.
+    </description>
+  </property>
+
+  <property>
+    <name>fs.checkpoint.size</name>
+    <value>67108864</value>
+    <description>The size of the current edit log (in bytes) that triggers
+      a periodic checkpoint even if the maximum checkpoint delay is not reached
     </description>
   </property>
 

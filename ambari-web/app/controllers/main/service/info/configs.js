@@ -1495,11 +1495,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   getOozieSiteObj: function (siteObj) {
     var jdbcUrl = siteObj.findProperty('name', 'oozie.service.JPAService.jdbc.url');
     var jdbcDriver = siteObj.findProperty('name', 'oozie.service.JPAService.jdbc.driver');
-
+    var oozieDbName = siteObj.findProperty('name', 'oozie.db.schema.name');
     var oozieDb = this.get('globalConfigs').findProperty('name', 'oozie_database').value;
     // oozieHost is undefined if the database is derby
     var oozieHost = (oozieDb == 'New Derby Database') ? '' : this.get('globalConfigs').findProperty('name', 'oozie_hostname').value;
-    var oozieDbName = this.get('globalConfigs').findProperty('name', 'oozie_database_name').value;
     var defaultJdbcUrl;
 
     switch (oozieDb) {
