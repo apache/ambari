@@ -38,6 +38,26 @@ App.WizardController = Em.Controller.extend({
     }
   },
 
+  dbNamespace: function(){
+    return this.get('name').capitalize().replace('Controller', "");
+  }.property('name'),
+  /**
+   * get property from local storage
+   * @param key
+   * @return {*}
+   */
+  getDBProperty: function(key){
+    return App.db.get(this.get('dbNamespace'), key);
+  },
+  /**
+   * set property to local storage
+   * @param key
+   * @param value
+   */
+  setDBProperty: function(key, value){
+    App.db.set(this.get('dbNamespace'), key, value);
+  },
+
   setStepsEnable: function () {
     for (var i = 1; i <= this.totalSteps; i++) {
       var step = this.get('isStepDisabled').findProperty('step', i);

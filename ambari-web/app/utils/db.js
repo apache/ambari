@@ -88,6 +88,18 @@ if (localStorage.getObject('ambari') == null) {
   App.db.cleanUp();
 }
 
+App.db.get = function (namespace, key) {
+  console.log('TRACE: Entering db:get' + key);
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data[namespace][key];
+};
+
+App.db.set = function (namespace, key, value) {
+  console.log('TRACE: Entering db:set' + key + ';value: ' + value);
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data[namespace][key] = value;
+  localStorage.setObject('ambari', App.db.data);
+};
 /*
  * setter methods
  */
