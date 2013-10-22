@@ -86,11 +86,17 @@ class Resource(object):
   initial_wait = ResourceArgument() # in seconds
 
   actions = ["nothing"]
-
+  
   def __new__(cls, name, env=None, provider=None, **kwargs):
+    if isinstance(name, list):
+      while len(name) != 1:
+        cls(name.pop(0), env, provider, **kwargs)
+        
+      name = name[0]
+
     env = env or Environment.get_instance()
     provider = provider or getattr(cls, 'provider', None)
-
+    
     r_type = cls.__name__
     if r_type not in env.resources:
       env.resources[r_type] = {}
@@ -109,6 +115,9 @@ class Resource(object):
     return obj
 
   def __init__(self, name, env=None, provider=None, **kwargs):
+    if isinstance(name, list):
+      name = name.pop(0)
+    
     if hasattr(self, 'name'):
       return
 
