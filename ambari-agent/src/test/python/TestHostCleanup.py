@@ -98,11 +98,12 @@ created = 2013-07-02 20:39:22.162757"""
     sys.stdout = sys.__stdout__
 
   class HostCleanupOptions:
-    def __init__(self, outputfile, inputfile, skip, verbose):
+    def __init__(self, outputfile, inputfile, skip, verbose, silent):
       self.outputfile = outputfile
       self.inputfile = inputfile
       self.skip = skip
-      self.verbose = False
+      self.verbose = verbose
+      self.silent = silent
 
   @patch.object(HostCleanup, 'get_YN_input')
   @patch.object(HostCleanup.HostCleanup, 'do_cleanup')
@@ -114,7 +115,8 @@ created = 2013-07-02 20:39:22.162757"""
   @patch.object(optparse.OptionParser, 'parse_args')
   def test_options(self, parser_mock, file_handler_mock, logging_mock, read_host_check_file_mock,
                    set_formatter_mock, user_root_mock, do_cleanup_mock, get_yn_input_mock):
-    parser_mock.return_value = (TestHostCleanup.HostCleanupOptions('/someoutputfile', '/someinputfile', '', False), [])
+    parser_mock.return_value = (TestHostCleanup.HostCleanupOptions('/someoutputfile', '/someinputfile', '', False,
+                                                                   False), [])
     file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
     user_root_mock.return_value = True
     get_yn_input_mock.return_value = True
@@ -128,8 +130,36 @@ created = 2013-07-02 20:39:22.162757"""
     logging_mock.assert_called_with(level=logging.INFO)
     # test --in
     read_host_check_file_mock.assert_called_with('/someinputfile')
-    
-  
+    self.assertTrue(get_yn_input_mock.called)
+
+
+  @patch.object(HostCleanup, 'get_YN_input')
+  @patch.object(HostCleanup.HostCleanup, 'do_cleanup')
+  @patch.object(HostCleanup.HostCleanup, 'is_current_user_root')
+  @patch.object(logging.FileHandler, 'setFormatter')
+  @patch.object(HostCleanup.HostCleanup,'read_host_check_file')
+  @patch.object(logging,'basicConfig')
+  @patch.object(logging, 'FileHandler')
+  @patch.object(optparse.OptionParser, 'parse_args')
+  def test_options_silent(self, parser_mock, file_handler_mock, logging_mock, read_host_check_file_mock,
+                   set_formatter_mock, user_root_mock, do_cleanup_mock, get_yn_input_mock):
+    parser_mock.return_value = (TestHostCleanup.HostCleanupOptions('/someoutputfile', '/someinputfile', '', False,
+                                                                   True), [])
+    file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
+    user_root_mock.return_value = True
+    get_yn_input_mock.return_value = True
+    HostCleanup.main()
+
+    # test --out
+    file_handler_mock.assert_called_with('/someoutputfile')
+    # test --skip
+    self.assertEquals([''],HostCleanup.SKIP_LIST)
+    #test --verbose
+    logging_mock.assert_called_with(level=logging.INFO)
+    # test --in
+    read_host_check_file_mock.assert_called_with('/someinputfile')
+    self.assertFalse(get_yn_input_mock.called)
+
   @patch.object(HostCleanup.HostCleanup, 'do_erase_alternatives')
   @patch.object(HostCleanup.HostCleanup, 'find_repo_files_for_repos')
   @patch.object(HostCleanup.HostCleanup, 'get_os_type')
@@ -396,4 +426,4 @@ name=sd des derft 3.1
     sys.stdout = sys.__stdout__
 
 if __name__ == "__main__":
-  unittest.main(verbosity=2)
+  unittest.main()

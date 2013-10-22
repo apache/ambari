@@ -470,6 +470,10 @@ def main():
   parser.add_option("-k", "--skip", dest="skip",
                     help="(packages|users|directories|repositories|processes|alternatives)." + \
                          " Use , as separator.")
+  parser.add_option("-s", "--silent",
+                    action="store_true", dest="silent", default=False,
+                    help="Silently accepts default prompt values")
+
 
   (options, args) = parser.parse_args()
   # set output file
@@ -495,12 +499,13 @@ def main():
   if not is_root:
     raise RuntimeError('HostCleanup needs to be run as root.')
 
-  if "users" not in SKIP_LIST:
-    delete_users = get_YN_input('You have elected to remove all users as well. If it is not intended then use '
-                               'option --skip \"users\". Do you want to continue [y/n] (n)', False)
-    if not delete_users:
-      print 'Exiting. Use option --skip="users" to skip deleting users'
-      sys.exit(1)
+  if not options.silent:
+    if "users" not in SKIP_LIST:
+      delete_users = get_YN_input('You have elected to remove all users as well. If it is not intended then use '
+                               'option --skip \"users\". Do you want to continue [y/n] (y)', True)
+      if not delete_users:
+        print 'Exiting. Use option --skip="users" to skip deleting users'
+        sys.exit(1)
 
   hostcheckfile = options.inputfile
   propMap = h.read_host_check_file(hostcheckfile)
