@@ -1,6 +1,6 @@
 import os
-import subprocess
 
+from resource_management import shell
 from resource_management.base import Fail
 from resource_management.providers import Provider
 
@@ -48,32 +48,25 @@ class ServiceProvider(Provider):
         else:
           ret = 1
       else:
-        ret = subprocess.call(custom_cmd, shell=True,
-                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        ret,out = shell.call(custom_cmd)
     else:
       ret = self._init_cmd(command)
 
     if expect is not None and expect != ret:
-      raise Fail("%r command %s for service %s failed" % (
-      self, command, self.resource.service_name))
+      raise Fail("%r command %s for service %s failed with return code: %d. %s" % (
+      self, command, self.resource.service_name, ret, out))
     return ret
 
   def _init_cmd(self, command):
     if self._upstart:
       if command == "status":
-        proc = subprocess.Popen(
-          ["/sbin/" + command, self.resource.service_name],
-          stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        out = proc.communicate()[0]
+        ret,out = shell.call(["/sbin/" + command, self.resource.service_name])
         _proc, state = out.strip().split(' ', 1)
         ret = 0 if state != "stop/waiting" else 1
       else:
-        ret = subprocess.call(["/sbin/" + command, self.resource.service_name],
-                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        ret,out = shell.call(["/sbin/" + command, self.resource.service_name])
     else:
-      ret = subprocess.call(
-        ["/etc/init.d/%s" % self.resource.service_name, command],
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+      ret,out = shell.call(["/etc/init.d/%s" % self.resource.service_name, command])
     return ret
 
   @property

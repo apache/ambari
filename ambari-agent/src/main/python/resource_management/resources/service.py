@@ -1,23 +1,16 @@
 __all__ = ["Service"]
 
-from resource_management.base import Resource, ResourceArgument, BooleanArgument
+from resource_management.base import Resource, ResourceArgument, BooleanArgument, ForcedListArgument
 
 
 class Service(Resource):
+  action = ForcedListArgument(default="start")
   service_name = ResourceArgument(default=lambda obj: obj.name)
-  enabled = ResourceArgument()
-  running = ResourceArgument()
-  pattern = ResourceArgument()
+  #enabled = ResourceArgument() # Maybe add support to put in/out autostart.
   start_command = ResourceArgument()
   stop_command = ResourceArgument()
   restart_command = ResourceArgument()
-  reload_command = ResourceArgument()
+  reload_command = ResourceArgument() # reload the config file without interrupting pending operations
   status_command = ResourceArgument()
-  supports_restart = BooleanArgument(
-    default=lambda obj: bool(obj.restart_command))
-  supports_reload = BooleanArgument(
-    default=lambda obj: bool(obj.reload_command))
-  supports_status = BooleanArgument(
-    default=lambda obj: bool(obj.status_command))
 
   actions = ["nothing", "start", "stop", "restart", "reload"]

@@ -21,23 +21,18 @@ class Provider(object):
 
 PROVIDERS = dict(
   redhat=dict(
-    Service="resource_management.providers.service.redhat.RedhatServiceProvider",
     Package="resource_management.providers.package.yumrpm.YumProvider",
   ),
   centos=dict(
-    Service="resource_management.providers.service.redhat.RedhatServiceProvider",
     Package="resource_management.providers.package.yumrpm.YumProvider",
   ),
   suse=dict(
-    Service="resource_management.providers.service.suse.SuseServiceProvider",
     Package="resource_management.providers.package.zypper.ZypperProvider",
   ),
   fedora=dict(
-    Service="resource_management.providers.service.redhat.RedhatServiceProvider",
     Package="resource_management.providers.package.yumrpm.YumProvider",
   ),
   amazon=dict(
-    Service="resource_management.providers.service.redhat.RedhatServiceProvider",
     Package="resource_management.providers.package.yumrpm.YumProvider",
   ),
   default=dict(
@@ -49,6 +44,7 @@ PROVIDERS = dict(
     Mount="resource_management.providers.mount.MountProvider",
     User="resource_management.providers.accounts.UserProvider",
     Group="resource_management.providers.accounts.GroupProvider",
+    Service="resource_management.providers.service.ServiceProvider",
   ),
 )
 
