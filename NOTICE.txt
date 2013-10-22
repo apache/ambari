@@ -14,3 +14,9 @@ Resource management library derived from Kokki, which is under following copyrig
  
 Copyright (c) 2009 Samuel Stauffer <samuel@descolada.com>
 All rights reserved.
+
+Jinja2, the templating library used by resource management library:
+
+Copyright (c) 2009 by the Jinja Team, see AUTHORS for more details.
+Some rights reserved.
+
