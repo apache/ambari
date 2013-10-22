@@ -17,6 +17,9 @@
 }}
 
 <h2>{{t services.reassign.step1.header}}</h2>
+<div class="alert alert-info">
+  {{view.message}}
+</div>
 <div class="btn-area">
   <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action next}}>{{t common.next}} &rarr;</a>
 </div>

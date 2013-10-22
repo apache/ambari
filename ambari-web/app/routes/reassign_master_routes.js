@@ -75,7 +75,7 @@ module.exports = Em.Route.extend({
       controller.setCurrentStep('1');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
-        controller.connectOutlet('reassignMasterWizardStep1');
+        controller.connectOutlet('reassignMasterWizardStep1', controller.get('content'));
       })
     },
     next: function (router) {

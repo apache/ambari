@@ -1084,6 +1084,7 @@ Em.I18n.translations = {
   'services.service.stopAll':'Stop All',
 
   'services.reassign.step1.header':'Prerequisites',
+  'services.reassign.step1.message':'{0} master component does not have any prerequisites.',
   'services.reassign.step2.header':'Assign Masters',
   'services.reassign.step3.header':'Review',
   'services.reassign.step3.body':'Please review the changes you made',

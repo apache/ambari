@@ -21,6 +21,10 @@ var App = require('app');
 
 App.ReassignMasterWizardStep1View = Em.View.extend({
 
+  message: function () {
+    return Em.I18n.t('services.reassign.step1.message').format(this.get('controller.content.reassign.display_name'));
+  }.property('controller.content.reassign.display_name'),
+
   templateName: require('templates/main/service/reassign/step1')
 
 });
