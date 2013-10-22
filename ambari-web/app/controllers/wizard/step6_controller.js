@@ -141,10 +141,12 @@ App.WizardStep6Controller = Em.Controller.extend({
     this.get('hosts').forEach(function (host) {
       host.get('checkboxes').filterProperty('isInstalled', false).forEach(function (checkbox) {
         if (checkbox.get('title') === label) {
+          checkbox.set('setAll', true);
           checkbox.set('checked', checked);
         }
       });
     });
+    this.checkCallback(label);
   },
 
   /**

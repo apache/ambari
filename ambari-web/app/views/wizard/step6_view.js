@@ -97,16 +97,22 @@ App.WizardStep6CheckboxView = Em.Checkbox.extend({
    */
   checkbox: null,
 
+  //if setAll true there is no need to check every checkbox whether all checked or not
+  setAllBinding: 'checkbox.setAll',
+
   checkedBinding: 'checkbox.checked',
 
   disabledBinding: 'checkbox.isInstalled',
 
   checkCallback: function() {
     var self = this;
-    Ember.run.next(function(){
-      self.get('controller').checkCallback(self.get('checkbox.title'));
-    });
-
+    if(this.get('setAll')){
+      this.set('setAll', false);
+    } else {
+      Ember.run.next(function(){
+        self.get('controller').checkCallback(self.get('checkbox.title'));
+      });
+    }
   }.observes('checked'),
 
   template: Ember.Handlebars.compile('{{checkbox.title}}')
