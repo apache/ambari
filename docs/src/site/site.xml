@@ -104,6 +104,7 @@
     </menu>
 
     <menu name="Releases">
+        <item name="1.4.1" href="http://www.apache.org/dist/incubator/ambari/ambari-1.4.1/"/>
         <item name="1.2.5" href="http://www.apache.org/dist/incubator/ambari/ambari-1.2.5/"/>
         <item name="1.2.4" href="http://www.apache.org/dist/incubator/ambari/ambari-1.2.4/"/>
         <item name="1.2.3" href="http://www.apache.org/dist/incubator/ambari/ambari-1.2.3/"/>
@@ -114,6 +115,7 @@
     </menu>
 
     <menu name="Documentation">
+        <item name="Install Guide for 1.4.1" href="https://cwiki.apache.org/confluence/display/AMBARI/Instructions+for+installing+Ambari-1.4.1+bits"/>
         <item name="Install Guide for 1.2.5" href="1.2.5/installing-hadoop-using-ambari/content/index.html"/>
         <item name="Install Guide for 1.2.4" href="1.2.4/installing-hadoop-using-ambari/content/index.html"/>
         <item name="Install Guide for 1.2.3" href="1.2.3/installing-hadoop-using-ambari/content/index.html"/>

@@ -16,27 +16,19 @@
 
 What's New with Ambari?
 
- * The current Ambari 1.2.5 features:
+ * The current Ambari 1.4.1 features:
 
-   * A wizard to configure and manage a secure cluster via Kerberos
+   * Ability to deploy and manage the Hadoop 2.0 stack using Ambari
 
-   * Ability to customize Dashboard Widgets
+   * A wizard to enable Namenode HA
 
-   * Support for configuring and running Ambari Web Server via HTTPS
+   * Added support for enabling Kerberos based security for Hadoop 2.0 services
 
-   * Support to setup Ganglia and Nagios HTTPS
+   * Support to work with SSL enabled Hadoop daemons 
 
-   * Run Ambari Server as a non-root user
+   * Support to work with web authentication enabled for Hadoop daemons
 
-   * Ambari Server configuration property encryption
-
-   * Support to configure Ambari Server-Agent Two-Way SSL Communication
-
-   * Improved Host Checks during Install Wizard
-
-   * Audit capture of config changes
-
- * Ambari 1.4.1 will support Hadoop 2.0.  This work is going on under {{{https://git-wip-us.apache.org/repos/asf/incubator-ambari/repo?p=incubator-ambari.git;a=log;h=refs/heads/trunk} trunk}}.
+   * Added support for JDK 7 
 
 
 Getting Ambari Source
