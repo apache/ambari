@@ -3,7 +3,7 @@ from __future__ import with_statement
 import grp
 import os
 import pwd
-import subprocess
+from resource_management import shell
 from resource_management.base import Fail
 from resource_management.providers import Provider
 
@@ -184,15 +184,12 @@ class ExecuteProvider(Provider):
 
     self.log.info("Executing %s" % self.resource)
 
-    ret = subprocess.call(self.resource.command, shell=True,
+    ret, out = shell.checked_call(self.resource.command,
                           cwd=self.resource.cwd, env=self.resource.environment,
                           preexec_fn=_preexec_fn(self.resource))
 
-    if self.resource.returns and ret not in self.resource.returns:
-      raise Fail("%s failed, returned %d instead of %s" % (
-      self, ret, self.resource.returns))
     self.resource.updated()
-
+    
 
 class ScriptProvider(Provider):
   def action_run(self):
@@ -204,7 +201,7 @@ class ScriptProvider(Provider):
       tf.flush()
 
       _ensure_metadata(tf.name, self.resource.user, self.resource.group)
-      subprocess.call([self.resource.interpreter, tf.name],
+      shell.call([self.resource.interpreter, tf.name],
                       cwd=self.resource.cwd, env=self.resource.environment,
                       preexec_fn=_preexec_fn(self.resource))
     self.resource.updated()

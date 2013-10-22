@@ -37,7 +37,17 @@ class Link(Resource):
 
 class Execute(Resource):
   action = ForcedListArgument(default="run")
+  
+  """
+  Recommended:
+  command = ('rm','-f','myfile')
+  Not recommended:
+  command = 'rm -f myfile'
+  
+  The first one helps to stop escaping issues
+  """
   command = ResourceArgument(default=lambda obj: obj.name)
+  
   creates = ResourceArgument()
   cwd = ResourceArgument()
   environment = ResourceArgument()

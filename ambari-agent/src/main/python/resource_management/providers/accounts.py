@@ -2,7 +2,7 @@ from __future__ import with_statement
 
 import grp
 import pwd
-import subprocess
+from resource_management import shell
 from resource_management.providers import Provider
 
 
@@ -33,14 +33,14 @@ class UserProvider(Provider):
 
       command.append(self.resource.username)
 
-      subprocess.check_call(command)
+      shell.checked_call(command)
       self.resource.updated()
       self.log.info("Added user %s" % self.resource)
 
   def action_remove(self):
     if self.user:
       command = ['userdel', self.resource.username]
-      subprocess.check_call(command)
+      shell.checked_call(command)
       self.resource.updated()
       self.log.info("Removed user %s" % self.resource)
 
@@ -70,7 +70,7 @@ class GroupProvider(Provider):
 
       command.append(self.resource.group_name)
 
-      subprocess.check_call(command)
+      shell.checked_call(command)
       self.resource.updated()
       self.log.info("Added group %s" % self.resource)
 
@@ -85,7 +85,7 @@ class GroupProvider(Provider):
   def action_remove(self):
     if self.user:
       command = ['groupdel', self.resource.group_name]
-      subprocess.check_call(command)
+      shell.checked_call(command)
       self.resource.updated()
       self.log.info("Removed group %s" % self.resource)
 

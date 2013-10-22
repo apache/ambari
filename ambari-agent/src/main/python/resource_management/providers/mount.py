@@ -2,7 +2,6 @@ from __future__ import with_statement
 
 import os
 import re
-from subprocess import Popen, PIPE, STDOUT, check_call
 from resource_management.base import Fail
 from resource_management.providers import Provider
 

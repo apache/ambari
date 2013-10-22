@@ -5,9 +5,9 @@ __all__ = ["Environment"]
 import logging
 import os
 import shutil
-import subprocess
 from datetime import datetime
 
+from resource_management import shell
 from resource_management.exceptions import Fail
 from resource_management.providers import find_provider
 from resource_management.utils import AttributeDictionary
@@ -92,7 +92,7 @@ class Environment(object):
       return cond()
 
     if isinstance(cond, basestring):
-      ret = subprocess.call(cond, shell=True)
+      ret, out = shell.call(cond)
       return ret == 0
 
     raise Exception("Unknown condition type %r" % cond)

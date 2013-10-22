@@ -2,9 +2,8 @@ __all__ = ["System"]
 
 import os
 import sys
+from resource_management import shell
 from functools import wraps
-from subprocess import Popen, PIPE
-
 
 def lazy_property(undecorated):
   name = '_' + undecorated.__name__
@@ -20,7 +19,6 @@ def lazy_property(undecorated):
       return v
 
   return decorated
-
 
 class System(object):
   @lazy_property
@@ -47,15 +45,15 @@ class System(object):
 
   @lazy_property
   def machine(self):
-    p = Popen(["/bin/uname", "-m"], stdout=PIPE, stderr=PIPE)
-    return p.communicate()[0].strip()
+    code, out = shell.call(["/bin/uname", "-m"])
+    return out.strip()
 
   @lazy_property
   def lsb(self):
     if os.path.exists("/usr/bin/lsb_release"):
-      p = Popen(["/usr/bin/lsb_release", "-a"], stdout=PIPE, stderr=PIPE)
+      code, out = shell.call(["/usr/bin/lsb_release", "-a"])
       lsb = {}
-      for l in p.communicate()[0].split('\n'):
+      for l in out.split('\n'):
         v = l.split(':', 1)
         if len(v) != 2:
           continue
@@ -99,8 +97,7 @@ class System(object):
 
   @lazy_property
   def locales(self):
-    p = Popen("locale -a", shell=True, stdout=PIPE)
-    out = p.communicate()[0]
+    code, out = shell.call("locale -a")
     return out.strip().split("\n")
 
   @lazy_property
