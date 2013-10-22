@@ -79,10 +79,11 @@ class Resource(object):
 
   action = ForcedListArgument(default="nothing")
   ignore_failures = BooleanArgument(default=False)
-  notifies = ResourceArgument(default=[])
-  subscribes = ResourceArgument(default=[])
-  not_if = ResourceArgument()
-  only_if = ResourceArgument()
+  notifies = ResourceArgument(default=[]) # this is not supported/recommended
+  subscribes = ResourceArgument(default=[]) # this is not supported/recommended
+  not_if = ResourceArgument() # pass command e.g. not_if = ('ls','/root/jdk')
+  only_if = ResourceArgument() # pass command
+  initial_wait = ResourceArgument() # in seconds
 
   actions = ["nothing"]
 

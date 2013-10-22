@@ -5,6 +5,7 @@ __all__ = ["Environment"]
 import logging
 import os
 import shutil
+import time
 from datetime import datetime
 
 from resource_management import shell
@@ -102,6 +103,9 @@ class Environment(object):
       # Run resource actions
       for resource in self.resource_list:
         self.log.debug("Running resource %r" % resource)
+        
+        if resource.initial_wait:
+          time.sleep(resource.initial_wait)
 
         if resource.not_if is not None and self._check_condition(
           resource.not_if):
