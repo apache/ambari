@@ -17,28 +17,40 @@ from resource_management.system import System
 class Environment(object):
   _instances = []
 
-  def __init__(self):
+  def __init__(self, basedir=None, params=None):
+    """
+    @param basedir: basedir/files, basedir/templates are the places where templates / static files
+    are looked up
+    @param params: configurations dictionary (this will be accessible in the templates)
+    """
     self.log = logging.getLogger("resource_management")
-    self.reset()
+    self.reset(basedir, params)
 
-  def reset(self):
+  def reset(self, basedir, params):
     self.system = System.get_instance()
     self.config = AttributeDictionary()
     self.resources = {}
     self.resource_list = []
     self.delayed_actions = set()
     self.update_config({
+      # current time
       'date': datetime.now(),
-      'resource_management.backup.path': '/tmp/resource_management/backup',
-      'resource_management.backup.prefix': datetime.now().strftime("%Y%m%d%H%M%S"),
+      # backups here files which were rewritten while executing File resource
+      'backup.path': '/tmp/resource_management/backup',
+      # prefix for this files 
+      'backup.prefix': datetime.now().strftime("%Y%m%d%H%M%S"),
+      # dir where templates,failes dirs are 
+      'basedir': basedir, 
+      # variables, which can be used in templates
+      'params': params, 
     })
 
   def backup_file(self, path):
-    if self.config.kokki.backup:
-      if not os.path.exists(self.config.kokki.backup.path):
-        os.makedirs(self.config.kokki.backup.path, 0700)
-      new_name = self.config.kokki.backup.prefix + path.replace('/', '-')
-      backup_path = os.path.join(self.config.kokki.backup.path, new_name)
+    if self.config.backup:
+      if not os.path.exists(self.config.backup.path):
+        os.makedirs(self.config.backup.path, 0700)
+      new_name = self.config.backup.prefix + path.replace('/', '-')
+      backup_path = os.path.join(self.config.backup.path, new_name)
       self.log.info("backing up %s to %s" % (path, backup_path))
       shutil.copy(path, backup_path)
 

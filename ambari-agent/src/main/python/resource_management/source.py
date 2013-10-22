@@ -27,13 +27,8 @@ class StaticFile(Source):
     self.env = env or environment.Environment.get_instance()
 
   def get_content(self):
-    try:
-      cookbook, name = self.name.split('/', 1)
-    except ValueError:
-      raise Fail(
-        "[StaticFile(%s)] Path must include cookbook name (e.g. 'nginx/nginx.conf')" % self.name)
-    cb = self.env.cookbooks[cookbook]
-    path = os.path.join(cb.path, "files", name)
+    basedir = self.env.config.basedir
+    path = os.path.join(basedir, "files", self.name)
     with open(path, "rb") as fp:
       return fp.read()
 
@@ -49,16 +44,11 @@ else:
     def __init__(self, env=None):
       self.env = env or environment.Environment.get_instance()
 
-    def get_source(self, environment, template):
-      try:
-        cookbook, name = template.split('/', 1)
-      except ValueError:
-        raise Fail(
-          "[Template(%s)] Path must include cookbook name (e.g. 'nginx/nginx.conf.j2')" % template)
-      cb = self.env.cookbooks[cookbook]
-      path = os.path.join(cb.path, "templates", name)
+    def get_source(self, environment, template_name):
+      basedir = self.env.config.basedir
+      path = os.path.join(basedir, "templates", template_name)
       if not os.path.exists(path):
-        raise TemplateNotFound("%s at %s" % (template, path))
+        raise TemplateNotFound("%s at %s" % (template_name, path))
       mtime = os.path.getmtime(path)
       with open(path, "rb") as fp:
         source = fp.read().decode('utf-8')
@@ -68,6 +58,8 @@ else:
     def __init__(self, name, variables=None, env=None):
       self.name = name
       self.env = env or environment.Environment.get_instance()
+      params = self.env.config.params
+      variables = params if params else variables
       self.context = variables.copy() if variables else {}
       self.template_env = Environment(loader=TemplateLoader(self.env),
                                       autoescape=False)
