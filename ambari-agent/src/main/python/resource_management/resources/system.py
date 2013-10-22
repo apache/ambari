@@ -57,8 +57,9 @@ class Execute(Resource):
   returns = ForcedListArgument(default=0)
   tries = ResourceArgument(default=1)
   try_sleep = ResourceArgument(default=0) # seconds
-  path = ForcedListArgument(default=None)
+  path = ForcedListArgument(default=[])
   actions = Resource.actions + ["run"]
+  logoutput = BooleanArgument(default=False)
 
 
 class Script(Resource):

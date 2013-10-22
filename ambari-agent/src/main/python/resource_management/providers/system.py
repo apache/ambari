@@ -185,12 +185,12 @@ class ExecuteProvider(Provider):
 
     self.log.info("Executing %s" % self.resource)
     
-    if self.resource.path:
+    if self.resource.path != []:
       self.resource.environment['PATH'] = ":".join(self.resource.path) 
     
     for i in range (0, self.resource.tries):
       try:
-        ret, out = shell.checked_call(self.resource.command,
+        shell.checked_call(self.resource.command, logoutput=self.resource.logoutput,
                             cwd=self.resource.cwd, env=self.resource.environment,
                             preexec_fn=_preexec_fn(self.resource))
         break
