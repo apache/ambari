@@ -96,9 +96,6 @@ App.UpdateController = Em.Controller.extend({
             conditionalFields.push("components/host_components/metrics/" + service.urlParam);
         }
     });
-    if(App.supports.hostOverrides) {
-      conditionalFields.push('components/host_components/HostRoles/actual_configs');
-    }
     var conditionalFieldsString = conditionalFields.length > 0 ? ',' + conditionalFields.join(',') : '';
     var initialFieldsString = initialFields.length > 0 ? ',' + initialFields.join(',') : '';
     var methodStartTs = new Date().getTime();

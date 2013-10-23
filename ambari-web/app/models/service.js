@@ -109,55 +109,9 @@ App.Service = DS.Model.extend({
   isRestartRequired: function () {
     var restartRequired = false;
     var restartRequiredHostsAndComponents = {};
-    var clusterDesiredConfigs = App.router.get('mainServiceController.cluster.desiredConfigs');
-    var serviceTemplate = this.serviceConfigsTemplate.findProperty('serviceName', this.get('serviceName'));
-    if (clusterDesiredConfigs != null && serviceTemplate!=null) {
-      var clusterToDesiredMap = {};
-      clusterDesiredConfigs.forEach(function (config) {
-        clusterToDesiredMap[config.site] = config;
-      });
-      this.get('hostComponents').forEach(function(hostComponent){
-        var host = hostComponent.get('host');
-        var hostName = host.get('hostName');
-        hostComponent.get('actualConfigs').forEach(function(config){
-          if(serviceTemplate.sites.contains(config.site)){
-            var desiredClusterTag = clusterToDesiredMap[config.site].tag;
-            var desiredHostOverrideTag = clusterToDesiredMap[config.site].hostOverrides[hostName];
-            var actualClusterTag = config.tag;
-            var actualHostOverrideTag = config.hostOverrides[hostName];
-            var siteRestartRequired = false;
-            if(actualClusterTag !== desiredClusterTag || actualHostOverrideTag !== desiredHostOverrideTag){
-              var publicHostName = host.get('publicHostName');
-              if(config.site=='global'){
-                var serviceName = hostComponent.get('service.serviceName');
-                if(actualClusterTag !== desiredClusterTag){
-                  siteRestartRequired = App.config.isServiceEffectedByGlobalChange(serviceName, actualClusterTag, desiredClusterTag);
-                }
-                if(actualHostOverrideTag !== desiredHostOverrideTag){
-                  siteRestartRequired = App.config.isServiceEffectedByGlobalChange(serviceName, actualHostOverrideTag, desiredHostOverrideTag);
-                }
-              }else{
-                siteRestartRequired = true
-              }
-              if(siteRestartRequired){
-                restartRequired = true;
-                if(!(publicHostName in restartRequiredHostsAndComponents)){
-                  restartRequiredHostsAndComponents[publicHostName] = [];
-                }
-                var hostComponentName = hostComponent.get('displayName');
-                if(restartRequiredHostsAndComponents[publicHostName].indexOf(hostComponentName)<0){
-                  restartRequiredHostsAndComponents[publicHostName].push(hostComponentName);
-                }
-              }
-            }
-          }
-        });
-      });
-    }
     this.set('restartRequiredHostsAndComponents', restartRequiredHostsAndComponents);
     return restartRequired;
-  }.property('serviceName', 'hostComponents', 'hostComponents.@each.actualConfigs', 'hostComponents.@each.actualConfigs.@each.tag', 
-      'App.router.mainServiceController.cluster.desiredConfigs', 'App.router.mainServiceController.cluster.desiredConfigs.@each.tag'),
+  }.property('serviceName', 'hostComponents'),
   
   /**
    * Contains a map of which hosts and host_components

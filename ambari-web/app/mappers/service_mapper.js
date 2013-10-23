@@ -241,12 +241,10 @@ App.servicesMapper = App.QuickDataMapper.create({
       // Host components
       result = [];
       var hostComponentsMap = {};
-      var hostComponentToActualConfigsMap = {};
       json.items.forEach(function(item){
         item.components.forEach(function(component){
           var service = component.ServiceComponentInfo.service_name;
           component.host_components.forEach(function(host_component){
-            hostComponentToActualConfigsMap[host_component.id] = host_component.HostRoles.actual_configs;
             var comp = this.parseIt(host_component, this.config3);
             comp.service_id = service;
             this.calculateState(comp);
@@ -295,31 +293,6 @@ App.servicesMapper = App.QuickDataMapper.create({
 
       if (!App.router.get('clusterController.isLoaded') || doHostComponentsLoad) {
         App.store.loadMany(this.get('model3'), result);
-      }
-      for(var hostComponentId in hostComponentToActualConfigsMap){
-        var hostComponentObj = App.HostComponent.find(hostComponentId);
-        var actualConfigs = [];
-        // Create actual_configs
-        for(var site in hostComponentToActualConfigsMap[hostComponentId]){
-          var tag = hostComponentToActualConfigsMap[hostComponentId][site].tag;
-          var configObj = {
-            site: site,
-            tag: tag,
-            hostOverrides: {}
-          };
-          var overrides = hostComponentToActualConfigsMap[hostComponentId][site].host_overrides;
-          if(overrides!=null){
-            var hostOverridesArray = {};
-            overrides.forEach(function(override){
-              var hostname = override.host_name;
-              var tag = override.tag;
-              hostOverridesArray[hostname] = tag;
-            });
-            configObj.hostOverrides = hostOverridesArray;
-          }
-          actualConfigs.push(configObj);
-        }
-        hostComponentObj.set('actualConfigs', actualConfigs);
       }
     }
     console.log('out service mapper.  Took ' + (new Date().getTime() - start) + 'ms');

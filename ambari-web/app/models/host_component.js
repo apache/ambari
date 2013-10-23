@@ -24,7 +24,6 @@ App.HostComponent = DS.Model.extend({
   haStatus: DS.attr('string'),
   host: DS.belongsTo('App.Host'),
   service: DS.belongsTo('App.Service'),
-  actualConfigs: null,
   isClient:function () {
     if(['PIG', 'SQOOP', 'HCAT', 'MAPREDUCE2_CLIENT'].contains(this.get('componentName'))){
       return true;
