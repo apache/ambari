@@ -27,6 +27,11 @@ class hdp-oozie::params() inherits hdp::params
   $ext_zip_url = "${download_url}/ext-2.2.zip"
   $ext_zip_name = hdp_default("ext_zip_name","ext-2.2.zip")
 
+  ###oozie jdbc
+  $oozie_metastore_user_name = hdp_default("oozie_metastore_user_name","oozie")
+  $oozie_metastore_user_passwd = hdp_default("oozie_metastore_user_passwd","")
+  $oozie_jdbc_connection_url = hdp_default("oozie_jdbc_connection_url", "")
+
   ### oozie-env
   $conf_dir = $hdp::params::oozie_conf_dir
   $hadoop_prefix = hdp_default("hadoop_prefix","/usr")

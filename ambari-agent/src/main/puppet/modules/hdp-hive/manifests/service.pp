@@ -94,12 +94,26 @@ class hdp-hive::service(
       }
     }
 
+    file { $pid_file:
+      ensure => $pid_file_state
+    }
 
-  file { $pid_file:
-    ensure => $pid_file_state
-  }
+    if ($ensure == 'running' and ($hive_jdbc_driver == "com.mysql.jdbc.Driver" or $hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver")) {
+      $db_connection_check_command = "java -cp ${hdp::params::check_db_connection_jar}:/usr/share/java/${hdp-hive::params::jdbc_jar_name} org.apache.ambari.server.DBConnectionVerification ${hdp-hive::params::hive_jdbc_connection_url} ${hdp-hive::params::hive_metastore_user_name} ${hdp-hive::params::hive_metastore_user_passwd} ${hdp-hive::params::hive_jdbc_driver}"
+    } else {
+      $db_connection_check_command = undef
+    }
 
-    Hdp-hive::Service::Directory<||> -> File[ $start_metastore_path]-> File[ $start_hiveserver2_path]-> Hdp::Exec[$daemon_cmd] -> File[$pid_file] -> Anchor['hdp-hive::service::end']
+    if ($db_connection_check_command != undef) {
+      hdp::exec { "DB connection check $db_connection_check_command" :
+        command => $db_connection_check_command,
+        path    => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
+      }
+
+      Hdp-hive::Service::Directory<||> -> Hdp::Exec["DB connection check $db_connection_check_command"] -> File[ $start_metastore_path]-> File[ $start_hiveserver2_path]-> Hdp::Exec[$daemon_cmd] -> File[$pid_file] -> Anchor['hdp-hive::service::end']
+    } else {
+      Hdp-hive::Service::Directory<||> -> File[ $start_metastore_path]-> File[ $start_hiveserver2_path]-> Hdp::Exec[$daemon_cmd] -> File[$pid_file] -> Anchor['hdp-hive::service::end']
+    }
   }
 }
 

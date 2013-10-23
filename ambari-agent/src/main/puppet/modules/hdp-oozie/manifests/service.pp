@@ -54,7 +54,7 @@ class hdp-oozie::service(
   $driver_curl_target = "${java_share_dir}/${oracle_driver_jar_name}"
   $curl_cmd = "curl -kf --retry 10 ${driver_location}${oracle_driver_jar_name} -o ${driver_curl_target}"
   
-  $jdbc_driver_name = $configuration['oozie-site']['oozie.service.JPAService.jdbc.driver']
+  $jdbc_driver_name = $hdp::params::oozie_jdbc_driver
   if ($jdbc_driver_name == "com.mysql.jdbc.Driver"){
     $jdbc_driver_jar = "/usr/share/java/mysql-connector-java.jar"
   } elsif($jdbc_driver_name == "oracle.jdbc.driver.OracleDriver") {
@@ -128,6 +128,11 @@ class hdp-oozie::service(
     $user_cmds_on_run = [$cmd5]   
     $start_cmd = "su - ${user} -c  'cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-start.sh'"
     $no_op_test = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
+    if ($jdbc_driver_name == "com.mysql.jdbc.Driver" or $jdbc_driver_name == "oracle.jdbc.driver.OracleDriver") {
+      $db_connection_check_command = "java -cp ${hdp::params::check_db_connection_jar}:${jdbc_driver_jar} org.apache.ambari.server.DBConnectionVerification ${hdp-oozie::params::oozie_jdbc_connection_url} ${hdp-oozie::params::oozie_metastore_user_name} ${hdp-oozie::params::oozie_metastore_user_passwd} ${jdbc_driver_name}"
+    } else {
+      $db_connection_check_command = undef
+    }
   } elsif ($ensure == 'stopped') {
     $stop_cmd  = "su - ${user} -c  'cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-stop.sh' && rm -f ${pid_file}"
     $no_op_test = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
@@ -160,7 +165,17 @@ class hdp-oozie::service(
       initial_wait => $initial_wait,
       require => Exec["exec $cmd6"]
     }
-    Hdp-oozie::Service::Directory<||> -> Hdp-oozie::Service::Exec_user[$cmd5] -> Hdp::Exec["exec $cmd6"] -> Hdp::Exec["exec $start_cmd"] -> Anchor['hdp-oozie::service::end']
+
+    if ($db_connection_check_command != undef) {
+      hdp::exec { "DB connection check $db_connection_check_command" :
+        command => $db_connection_check_command,
+        path    => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
+      }
+
+      Hdp-oozie::Service::Directory<||> -> Hdp::Exec["DB connection check $db_connection_check_command"] -> Hdp-oozie::Service::Exec_user[$cmd5] -> Hdp::Exec["exec $cmd6"] -> Hdp::Exec["exec $start_cmd"] -> Anchor['hdp-oozie::service::end']
+    } else {
+      Hdp-oozie::Service::Directory<||> -> Hdp-oozie::Service::Exec_user[$cmd5] -> Hdp::Exec["exec $cmd6"] -> Hdp::Exec["exec $start_cmd"] -> Anchor['hdp-oozie::service::end']
+    }
   } elsif ($ensure == 'stopped') {
     hdp::exec { "exec $stop_cmd":
       command => $stop_cmd,

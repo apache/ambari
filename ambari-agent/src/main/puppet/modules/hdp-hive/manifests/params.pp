@@ -25,6 +25,7 @@ class hdp-hive::params() inherits hdp::params
   $hive_metastore_user_name = hdp_default("hive-site/javax.jdo.option.ConnectionUserName","dbusername")
   $hive_metastore_user_passwd = hdp_default("hive-site/javax.jdo.option.ConnectionPassword","dbpassword")
   $hive_server_conf_dir = hdp_default("hive_server_conf_dir", "/etc/hive/conf.server")
+  $hive_jdbc_connection_url = hdp_default("hive_jdbc_connection_url", "")
 
   ### users
   $hive_user = $hdp::params::hive_user

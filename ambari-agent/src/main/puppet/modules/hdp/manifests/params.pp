@@ -279,6 +279,9 @@ class hdp::params()
   $oracle_jdbc_url = hdp_default("oracle_jdbc_url", "")
   $mysql_jdbc_url = hdp_default("mysql_jdbc_url", "")
   $db_driver_file = hdp_default("db_driver_filename", "")
+  $check_db_connection_jar_name = "DBConnectionVerification.jar"
+  $check_db_connection_jar = "/usr/lib/ambari-agent/${check_db_connection_jar_name}"
+  $oozie_jdbc_driver = hdp_default("oozie-site/oozie.service.JPAService.jdbc.driver", "")
 
   #####
   $hadoop_home = hdp_default("hadoop_home","/usr")

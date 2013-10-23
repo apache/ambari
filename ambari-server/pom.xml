@@ -315,6 +315,9 @@
                   <location>src/main/resources/hive-schema-0.10.0.oracle.sql</location>
                 </source>
                 <source>
+                  <location>${project.build.directory}/DBConnectionVerification.jar</location>
+                </source> 
+                <source>
                   <!-- This file is also included into agent rpm-->
                   <location>src/main/resources/role_command_order.json</location>
                 </source>
@@ -523,6 +526,22 @@
                 </exec>
               </target>
             </configuration>
+          </execution>
+          <execution>
+            <phase>package</phase>
+            <configuration>
+              <tasks>
+                <jar destfile="target/DBConnectionVerification.jar">
+                     <fileset dir="${basedir}/target/classes/" includes="**/DBConnectionVerification.class" />
+		     <manifest>
+		      <attribute name="Main-Class" value="org.apache.ambari.server.DBConnectionVerification"/>
+		     </manifest>
+		</jar>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>
