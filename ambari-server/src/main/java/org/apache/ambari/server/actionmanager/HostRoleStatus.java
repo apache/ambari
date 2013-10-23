@@ -46,4 +46,24 @@ public enum HostRoleStatus {
         return false;
     }
   }
+
+  /**
+   * Indicates whether or not this is a completed state.
+   * Completed means that the associated task has stopped
+   * running because it has finished successfully or has
+   * failed.
+   *
+   * @return true if this is a completed state.
+   */
+  public boolean isCompletedState() {
+    switch (HostRoleStatus.values()[this.status]) {
+      case COMPLETED:
+      case FAILED:
+      case TIMEDOUT:
+      case ABORTED:
+        return true;
+      default:
+        return false;
+    }
+  }
 }

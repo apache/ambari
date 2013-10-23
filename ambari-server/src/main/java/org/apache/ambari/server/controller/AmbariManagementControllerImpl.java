@@ -38,7 +38,6 @@ import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.actionmanager.RequestStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
@@ -2999,28 +2998,6 @@ public class AmbariManagementControllerImpl implements
   }
 
   /**
-   * Get a collection of request responses for the given list of request ids.  Note that
-   * this method populates request resources only and does NOT populate the set of task
-   * sub-resources in each request response.
-   */
-  private Collection<RequestStatusResponse> getRequestStatusResponsesWithoutTasks(List<Long> requestIds) {
-    List<HostRoleCommand>            hostRoleCommands = actionManager.getAllTasksByRequestIds(requestIds);
-    Map<Long, String>                requestContexts  = actionManager.getRequestContext(requestIds);
-    Map<Long, RequestStatusResponse> responseMap      = new HashMap<Long, RequestStatusResponse>();
-
-    for (HostRoleCommand hostRoleCommand : hostRoleCommands) {
-      Long requestId = hostRoleCommand.getRequestId();
-      RequestStatusResponse response = responseMap.get(requestId);
-      if (response == null) {
-        response = new RequestStatusResponse(requestId);
-        response.setRequestContext(requestContexts.get(requestId));
-        responseMap.put(requestId, response);
-      }
-    }
-    return responseMap.values();
-  }
-
-  /**
    * Get a request response for the given request ids.  Note that this method
    * fully populates a request resource including the set of task sub-resources
    * in the request response.
@@ -3038,39 +3015,6 @@ public class AmbariManagementControllerImpl implements
     }
     response.setTasks(tasks);
 
-    return response;
-  }
-
-  @Override
-  public Set<RequestStatusResponse> getRequestStatus(
-      RequestStatusRequest request) throws AmbariException{
-    Set<RequestStatusResponse> response  = new HashSet<RequestStatusResponse>();
-    Long                       requestId = request.getRequestId();
-
-    if (requestId == null) {
-      RequestStatus requestStatus = null;
-      if (request.getRequestStatus() != null) {
-        requestStatus = RequestStatus.valueOf(request.getRequestStatus());
-      }
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a Get Request Status request"
-            + ", requestId=null"
-            + ", requestStatus=" + requestStatus);
-      }
-      response.addAll(getRequestStatusResponsesWithoutTasks(
-          actionManager.getRequestsByStatus(requestStatus)));
-    } else {
-      Collection<RequestStatusResponse> responses = getRequestStatusResponsesWithoutTasks(
-          Collections.singletonList(requestId));
-
-      //todo: correlate request with cluster
-      if (responses.isEmpty()) {
-        //todo: should be thrown lower in stack but we only want to throw if id was specified
-        //todo: and we currently iterate over all id's and invoke for each if id is not specified
-        throw new ObjectNotFoundException("Request resource doesn't exist.");
-      }
-      response.addAll(responses);
-    }
     return response;
   }
 
@@ -3965,5 +3909,10 @@ public class AmbariManagementControllerImpl implements
   @Override
   public ServiceFactory getServiceFactory() {
     return serviceFactory;
+  }
+
+  @Override
+  public ActionManager getActionManager() {
+    return actionManager;
   }
 }

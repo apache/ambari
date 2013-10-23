@@ -17,10 +17,10 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.RequestStatusRequest;
-import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -29,11 +29,13 @@ import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -44,10 +46,17 @@ class RequestResourceProvider extends AbstractControllerResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
   // Requests
-  protected static final String REQUEST_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("Requests", "cluster_name");
-  protected static final String REQUEST_ID_PROPERTY_ID           = PropertyHelper.getPropertyId("Requests", "id");
-  protected static final String REQUEST_STATUS_PROPERTY_ID       = PropertyHelper.getPropertyId("Requests", "request_status");
-  protected static final String REQUEST_CONTEXT_ID               = PropertyHelper.getPropertyId("Requests", "request_context");
+  protected static final String REQUEST_CLUSTER_NAME_PROPERTY_ID = "Requests/cluster_name";
+  protected static final String REQUEST_ID_PROPERTY_ID           = "Requests/id";
+  protected static final String REQUEST_STATUS_PROPERTY_ID       = "Requests/request_status";
+  protected static final String REQUEST_CONTEXT_ID               = "Requests/request_context";
+  protected static final String REQUEST_TASK_CNT_ID              = "Requests/task_count";
+  protected static final String REQUEST_FAILED_TASK_CNT_ID       = "Requests/failed_task_count";
+  protected static final String REQUEST_ABORTED_TASK_CNT_ID      = "Requests/aborted_task_count";
+  protected static final String REQUEST_TIMED_OUT_TASK_CNT_ID    = "Requests/timed_out_task_count";
+  protected static final String REQUEST_COMPLETED_TASK_CNT_ID    = "Requests/completed_task_count";
+  protected static final String REQUEST_QUEUED_TASK_CNT_ID       = "Requests/queued_task_count";
+  protected static final String REQUEST_PROGRESS_PERCENT_ID      = "Requests/progress_percent";
 
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
@@ -58,9 +67,9 @@ class RequestResourceProvider extends AbstractControllerResourceProvider {
   /**
    * Create a  new resource provider for the given management controller.
    *
-   * @param propertyIds           the property ids
-   * @param keyPropertyIds        the key property ids
-   * @param managementController  the management controller
+   * @param propertyIds          the property ids
+   * @param keyPropertyIds       the key property ids
+   * @param managementController the management controller
    */
   RequestResourceProvider(Set<String> propertyIds,
                           Map<Resource.Type, String> keyPropertyIds,
@@ -77,42 +86,24 @@ class RequestResourceProvider extends AbstractControllerResourceProvider {
 
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate)
-    throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    Set<Resource> resources    = new HashSet<Resource>();
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
+    Set<Resource> resources    = new HashSet<Resource>();
 
-    // get the request objects by processing the given predicate
-    Map<String, Set<RequestStatusRequest>> requestStatusRequestSetMap = getRequests(getPropertyMaps(predicate));
+    for (Map<String, Object> properties : getPropertyMaps(predicate)) {
+      String clusterName = (String) properties.get(REQUEST_CLUSTER_NAME_PROPERTY_ID);
 
-    for(Map.Entry<String, Set<RequestStatusRequest>> entry: requestStatusRequestSetMap.entrySet()) {
-
-      String clusterName = entry.getKey();
-      Set<RequestStatusRequest> requestStatusRequestSet = entry.getValue();
-
-      for (RequestStatusRequest requestStatusRequest : requestStatusRequestSet){
-
-        // we need to make a separate request for each request object
-        final RequestStatusRequest finalRequest = requestStatusRequest;
-        Set<RequestStatusResponse> responses = getResources(new Command<Set<RequestStatusResponse>>() {
-          @Override
-          public Set<RequestStatusResponse> invoke() throws AmbariException {
-            return getManagementController().getRequestStatus(finalRequest);
-          }
-        });
-
-        for (RequestStatusResponse response : responses) {
-          Resource resource = new ResourceImpl(Resource.Type.Request);
-          setResourceProperty(resource, REQUEST_CLUSTER_NAME_PROPERTY_ID, clusterName, requestedIds);
-          setResourceProperty(resource, REQUEST_ID_PROPERTY_ID, response.getRequestId(), requestedIds);
-          setResourceProperty(resource, REQUEST_CONTEXT_ID, response.getRequestContext(), requestedIds);
-          if (requestStatusRequest.getRequestStatus() != null) {
-            setResourceProperty(resource, REQUEST_STATUS_PROPERTY_ID, requestStatusRequest.getRequestStatus(),
-                requestedIds);
-          }
-          resources.add(resource);
-        }
+      Long requestId = null;
+      if (properties.get(REQUEST_ID_PROPERTY_ID) != null) {
+        requestId = Long.valueOf((String) properties.get(REQUEST_ID_PROPERTY_ID));
       }
+
+      String requestStatus = null;
+      if (properties.get(REQUEST_STATUS_PROPERTY_ID) != null) {
+        requestStatus = (String) properties.get(REQUEST_STATUS_PROPERTY_ID);
+      }
+      resources.addAll(getRequestResources(clusterName, requestId, requestStatus, requestedIds));
     }
     return resources;
   }
@@ -129,46 +120,145 @@ class RequestResourceProvider extends AbstractControllerResourceProvider {
     throw new UnsupportedOperationException("Not currently supported.");
   }
 
-  // ----- utility methods -------------------------------------------------
+  // ----- AbstractResourceProvider -----------------------------------------
 
   @Override
   protected Set<String> getPKPropertyIds() {
     return pkPropertyIds;
   }
 
-  /**
-   * Get a map of component request objects from the given maps of property values.
-   *
-   * @param propertiesSet  the set of property maps from the predicate
-   *
-   * @return the map of component request objects keyed by cluster name
-   */
-  private Map<String, Set<RequestStatusRequest>> getRequests(Set<Map<String, Object>> propertiesSet) {
 
-    Map<String, Set<RequestStatusRequest>> requestSetMap = new HashMap<String, Set<RequestStatusRequest>>();
+  // ----- utility methods --------------------------------------------------
 
-    for (Map<String, Object> properties : propertiesSet) {
-      Long   requestId   = null;
-      String clusterName = (String) properties.get(REQUEST_CLUSTER_NAME_PROPERTY_ID);
+  // Get all of the request resources for the given properties
+  private Set<Resource> getRequestResources(String clusterName,
+                                            Long requestId,
+                                            String requestStatus,
+                                            Set<String> requestedPropertyIds) throws NoSuchResourceException {
 
-      // group the requests by cluster name
-      Set<RequestStatusRequest> requestSet = requestSetMap.get(clusterName);
+    Set<Resource> response      = new HashSet<Resource>();
+    ActionManager actionManager = getManagementController().getActionManager();
 
-      if (requestSet == null) {
-        requestSet = new HashSet<RequestStatusRequest>();
-        requestSetMap.put(clusterName, requestSet);
+    if (requestId == null) {
+      org.apache.ambari.server.actionmanager.RequestStatus status = null;
+      if (requestStatus != null) {
+        status = org.apache.ambari.server.actionmanager.RequestStatus.valueOf(requestStatus);
       }
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Received a Get Request Status request"
+            + ", requestId=null"
+            + ", requestStatus=" + status);
+      }
+      response.addAll(getRequestResources(clusterName, actionManager,
+          actionManager.getRequestsByStatus(status), requestedPropertyIds));
+    } else {
+      Collection<Resource> responses = getRequestResources(
+          clusterName, actionManager, Collections.singletonList(requestId), requestedPropertyIds);
 
-      if (properties.get(REQUEST_ID_PROPERTY_ID) != null) {
-        requestId = Long.valueOf((String) properties
-            .get(REQUEST_ID_PROPERTY_ID));
+      if (responses.isEmpty()) {
+        throw new NoSuchResourceException("Request resource doesn't exist.");
       }
-      String requestStatus = null;
-      if (properties.get(REQUEST_STATUS_PROPERTY_ID) != null) {
-        requestStatus = (String)properties.get(REQUEST_STATUS_PROPERTY_ID);
-      }
-      requestSet.add(new RequestStatusRequest(requestId, requestStatus));
+      response.addAll(responses);
     }
-    return requestSetMap;
+    return response;
+  }
+
+  // Get all of the request resources for the given set of request ids
+  private Collection<Resource> getRequestResources(String clusterName,
+                                                   ActionManager actionManager,
+                                                   List<Long> requestIds,
+                                                   Set<String> requestedPropertyIds) {
+
+    List<HostRoleCommand> hostRoleCommands = actionManager.getAllTasksByRequestIds(requestIds);
+    Map<Long, String>     requestContexts  = actionManager.getRequestContext(requestIds);
+    Map<Long, Resource>   resourceMap      = new HashMap<Long, Resource>();
+
+    // group by request id
+    Map<Long, Set<HostRoleCommand>> commandMap = new HashMap<Long, Set<HostRoleCommand>>();
+
+    for (HostRoleCommand hostRoleCommand : hostRoleCommands) {
+      Long                 requestId = hostRoleCommand.getRequestId();
+      Set<HostRoleCommand> commands  = commandMap.get(requestId);
+
+      if (commands == null) {
+        commands = new HashSet<HostRoleCommand>();
+        commandMap.put(requestId, commands);
+      }
+      commands.add(hostRoleCommand);
+    }
+
+    for (Map.Entry<Long, Set<HostRoleCommand>> entry : commandMap.entrySet()) {
+      Long                 requestId = entry.getKey();
+      Set<HostRoleCommand> commands  = entry.getValue();
+      String               context   = requestContexts.get(requestId);
+
+      resourceMap.put(requestId,
+          getRequestResource(clusterName, requestId, context, commands, requestedPropertyIds));
+    }
+    return resourceMap.values();
+  }
+
+  // Get a request resource from the given set of host role commands.
+  private Resource getRequestResource(String clusterName,
+                                      Long requestId,
+                                      String context,
+                                      Set<HostRoleCommand> commands,
+                                      Set<String> requestedPropertyIds) {
+    Resource resource = new ResourceImpl(Resource.Type.Request);
+
+    setResourceProperty(resource, REQUEST_CLUSTER_NAME_PROPERTY_ID, clusterName, requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_ID_PROPERTY_ID, requestId, requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_CONTEXT_ID, context, requestedPropertyIds);
+
+    int taskCount          = commands.size();
+    int completedTaskCount = 0;
+    int queuedTaskCount    = 0;
+    int failedTaskCount    = 0;
+    int abortedTaskCount   = 0;
+    int timedOutTaskCount  = 0;
+
+    for (HostRoleCommand hostRoleCommand : commands) {
+      HostRoleStatus status = hostRoleCommand.getStatus();
+      if (status.isCompletedState()) {
+        completedTaskCount++;
+
+        switch (status) {
+          case ABORTED:
+            abortedTaskCount++;
+            break;
+          case FAILED:
+            failedTaskCount++;
+            break;
+          case TIMEDOUT:
+            timedOutTaskCount++;
+            break;
+        }
+      } else if (status.equals(HostRoleStatus.QUEUED)) {
+        queuedTaskCount++;
+      }
+    }
+
+    int inProgressTaskCount = taskCount - completedTaskCount - queuedTaskCount;
+
+    // determine request status
+    HostRoleStatus requestStatus = failedTaskCount > 0             ? HostRoleStatus.FAILED :
+                                   abortedTaskCount > 0            ? HostRoleStatus.ABORTED :
+                                   timedOutTaskCount > 0           ? HostRoleStatus.TIMEDOUT :
+                                   inProgressTaskCount > 0         ? HostRoleStatus.IN_PROGRESS :
+                                   completedTaskCount == taskCount ? HostRoleStatus.COMPLETED :
+                                                                     HostRoleStatus.PENDING;
+    double progressPercent =
+        (queuedTaskCount * 0.09 + inProgressTaskCount * 0.35 + completedTaskCount / (double) taskCount) * 100.0;
+
+    setResourceProperty(resource, REQUEST_STATUS_PROPERTY_ID, requestStatus.toString(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_TASK_CNT_ID, taskCount, requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_FAILED_TASK_CNT_ID, failedTaskCount, requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_ABORTED_TASK_CNT_ID, abortedTaskCount, requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_TIMED_OUT_TASK_CNT_ID, timedOutTaskCount, requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_QUEUED_TASK_CNT_ID, queuedTaskCount, requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_COMPLETED_TASK_CNT_ID, completedTaskCount, requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_PROGRESS_PERCENT_ID, progressPercent, requestedPropertyIds);
+
+    return resource;
   }
 }

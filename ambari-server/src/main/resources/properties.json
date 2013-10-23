@@ -85,6 +85,13 @@
         "Requests/cluster_name",
         "Requests/request_status",
         "Requests/request_context",
+        "Requests/task_count",
+        "Requests/failed_task_count",
+        "Requests/aborted_task_count",
+        "Requests/timed_out_task_count",
+        "Requests/completed_task_count",
+        "Requests/queued_task_count",
+        "Requests/progress_percent",
         "_"
     ],
     "Task":[

@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -161,18 +162,6 @@ public interface AmbariManagementController {
    */
   public Set<ConfigurationResponse> getConfigurations(
       Set<ConfigurationRequest> requests) throws AmbariException;
-
-  /**
-   * Gets the request status identified by the given request object.
-   *
-   * @param request   the request object
-   *
-   * @return  a set of request status responses
-   *
-   * @throws AmbariException if the request status could not be read
-   */
-  public Set<RequestStatusResponse> getRequestStatus(RequestStatusRequest request)
-      throws AmbariException;
 
   /**
    * Gets the task status identified by the given request objects.
@@ -507,9 +496,16 @@ public interface AmbariManagementController {
   /**
    * Get the service factory for this management controller.
    *
-   * @return the service factory.
+   * @return the service factory
    */
   public ServiceFactory getServiceFactory();
+
+  /**
+   * Get the action manager for this management controller.
+   *
+   * @return the action manager
+   */
+  public ActionManager getActionManager();
 
   /**
    * Create the stages required to persist an action and return a result containing the

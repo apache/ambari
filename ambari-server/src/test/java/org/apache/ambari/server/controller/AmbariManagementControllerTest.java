@@ -432,7 +432,7 @@ public class AmbariManagementControllerTest {
       // Expected
     }
 
-    r.setClusterId(new Long(1));
+    r.setClusterId(1L);
     try {
       controller.createCluster(r);
       fail("Expected create cluster for invalid request");
@@ -1578,18 +1578,6 @@ public class AmbariManagementControllerTest {
       }
     }
 
-
-    RequestStatusRequest statusRequest =
-        new RequestStatusRequest(trackAction.getRequestId(), null);
-    Set<RequestStatusResponse> statusResponses =
-        controller.getRequestStatus(statusRequest);
-    Assert.assertEquals(1, statusResponses.size());
-    RequestStatusResponse statusResponse =
-        statusResponses.iterator().next();
-    Assert.assertNotNull(statusResponse);
-    Assert.assertEquals(trackAction.getRequestId(),
-        statusResponse.getRequestId());
-
     Set<TaskStatusRequest> taskRequests = new HashSet<TaskStatusRequest>();
     TaskStatusRequest t1, t2;
     t1 = new TaskStatusRequest();
@@ -1666,10 +1654,6 @@ public class AmbariManagementControllerTest {
     StringBuilder sb = new StringBuilder();
     clusters.debugDump(sb);
     LOG.info("Cluster Dump: " + sb.toString());
-
-    statusRequest = new RequestStatusRequest(null, null);
-    statusResponses = controller.getRequestStatus(statusRequest);
-    Assert.assertEquals(2, statusResponses.size());
 
     for (ServiceComponent sc :
       clusters.getCluster(clusterName).getService(serviceName)
@@ -3456,66 +3440,6 @@ public class AmbariManagementControllerTest {
 
   @SuppressWarnings("serial")
   @Test
-  public void testGetRequestAndTaskStatus() throws AmbariException {
-    long requestId = 3;
-    long stageId = 4;
-    String clusterName = "c1";
-    final String hostName1 = "h1";
-    final String hostName2 = "h2";
-    String context = "Test invocation";
-
-
-    clusters.addCluster(clusterName);
-    clusters.getCluster(clusterName).setDesiredStackVersion(
-        new StackId("HDP-0.1"));
-    clusters.addHost(hostName1);
-    clusters.getHost("h1").setOsType("centos5");
-    clusters.getHost(hostName1).persist();
-    clusters.addHost(hostName2);
-    clusters.getHost("h2").setOsType("centos5");
-    clusters.getHost(hostName2).persist();
-    clusters.mapHostsToCluster(new HashSet<String>(){
-      {add(hostName1); add(hostName2);}}, clusterName);
-
-
-    List<Stage> stages = new ArrayList<Stage>();
-    stages.add(new Stage(requestId, "/a1", clusterName, context));
-    stages.get(0).setStageId(stageId++);
-    stages.get(0).addHostRoleExecutionCommand(hostName1, Role.HBASE_MASTER,
-        RoleCommand.START,
-        new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
-            hostName1, System.currentTimeMillis(),
-            new HashMap<String, String>()),
-            clusterName, "HBASE");
-    stages.add(new Stage(requestId, "/a2", clusterName, context));
-    stages.get(1).setStageId(stageId);
-    stages.get(1).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
-        RoleCommand.START,
-        new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
-            hostName1, System.currentTimeMillis(),
-            new HashMap<String, String>()), clusterName, "HBASE");
-
-    actionDB.persistActions(stages);
-
-    Set<RequestStatusResponse> requestStatusResponses =
-        controller.getRequestStatus(new RequestStatusRequest(requestId, null));
-
-    RequestStatusResponse requestStatusResponse =
-        requestStatusResponses.iterator().next();
-    assertEquals(requestId, requestStatusResponse.getRequestId());
-    assertEquals(context, requestStatusResponse.getRequestContext());
-
-    Set<TaskStatusRequest> taskStatusRequests = new HashSet<TaskStatusRequest>();
-    taskStatusRequests.add(new TaskStatusRequest(requestId, null));
-    Set<TaskStatusResponse> taskStatusResponses =
-        controller.getTaskStatus(taskStatusRequests);
-
-    assertEquals(2, taskStatusResponses.size());
-  }
-
-
-  @SuppressWarnings("serial")
-  @Test
   public void testGetActions() throws Exception {
     Set<ActionResponse> responses = controller.getActions(
         new HashSet<ActionRequest>() {{
@@ -4746,7 +4670,7 @@ public class AmbariManagementControllerTest {
     Cluster c = clusters.getCluster(clusterName);
     Service s = c.getService(serviceName);
     // Stop Sch only
-    long id = stopServiceComponentHosts(clusterName, serviceName);
+    stopServiceComponentHosts(clusterName, serviceName);
     Assert.assertEquals(State.STARTED, s.getDesiredState());
     for (ServiceComponent sc : s.getServiceComponents().values()) {
       for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
@@ -4763,7 +4687,7 @@ public class AmbariManagementControllerTest {
     crReq.setDesiredConfig(cr3);
     controller.updateClusters(Collections.singleton(crReq), null);
 
-    id = startService(clusterName, serviceName, false, true);
+    long id = startService(clusterName, serviceName, false, true);
     List<Stage> stages = actionDB.getAllStages(id);
     HostRoleCommand clientHrc = null;
     for (Stage stage : stages) {
@@ -5786,7 +5710,7 @@ public class AmbariManagementControllerTest {
     try {
       controller.getStacks(Collections.singleton(invalidRequest));
     } catch (StackAccessException e) {
-      Assert.assertTrue(e instanceof StackAccessException);
+      // do nothing
     }
   }
 
@@ -5810,7 +5734,7 @@ public class AmbariManagementControllerTest {
     try {
       controller.getStackVersions(Collections.singleton(invalidRequest));
     } catch (StackAccessException e) {
-      Assert.assertTrue(e instanceof StackAccessException);
+      // do nothing
     }
   }
 
@@ -5850,7 +5774,7 @@ public class AmbariManagementControllerTest {
     try {
       controller.getRepositories(Collections.singleton(invalidRequest));
     } catch (StackAccessException e) {
-      Assert.assertTrue(e instanceof StackAccessException);
+      // do nothing
     }
   }
 
@@ -5876,7 +5800,7 @@ public class AmbariManagementControllerTest {
     try {
       controller.getStackServices(Collections.singleton(invalidRequest));
     } catch (StackAccessException e) {
-      Assert.assertTrue(e instanceof StackAccessException);
+      // do nothing
     }
 
 
@@ -5903,7 +5827,7 @@ public class AmbariManagementControllerTest {
     try {
       controller.getStackConfigurations(Collections.singleton(invalidRequest));
     } catch (StackAccessException e) {
-      Assert.assertTrue(e instanceof StackAccessException);
+      // do nothing
     }
   }
 
@@ -5929,7 +5853,7 @@ public class AmbariManagementControllerTest {
     try {
       controller.getStackComponents(Collections.singleton(invalidRequest));
     } catch (StackAccessException e) {
-      Assert.assertTrue(e instanceof StackAccessException);
+      // do nothing
     }
 
 
@@ -5956,7 +5880,7 @@ public class AmbariManagementControllerTest {
     try {
       controller.getStackOperatingSystems(Collections.singleton(invalidRequest));
     } catch (StackAccessException e) {
-      Assert.assertTrue(e instanceof StackAccessException);
+      // do nothing
     }
   }
 
