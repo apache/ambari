@@ -53,34 +53,35 @@ App.hostsMapper = App.QuickDataMapper.create({
     if (json.items) {
       var result = this.parse(json.items);
       var clientHosts = App.Host.find();
-      if (clientHosts != null && clientHosts.get('length') !== result.length) {
-        var serverHostIds = {};
+      if (clientHosts != null && clientHosts.get('length') < result.length) {
         result.forEach(function (host) {
-          serverHostIds[host.id] = host.id;
           cacheData[host.id] = host;
         });
+      } else if (clientHosts != null && clientHosts.get('length') > result.length) {
         var hostsToDelete = [];
         clientHosts.forEach(function (host) {
-          if (host !== null && !serverHostIds[host.get('hostName')]) {
+          if (host !== null && result.filterProperty('host_name',host.get('hostName')).length === 0) {
             // Delete old ones as new ones will be
             // loaded by loadMany().
             hostsToDelete.push(host);
+            delete cacheData[host.get('hostName')];
           }
         });
         hostsToDelete.forEach(function (host) {
           host.deleteRecord();
+          host.get('stateManager').transitionTo('loading');
         });
       }
       //restore properties from cache instead request them from server
       result.forEach(function (host) {
         var cacheHost = cacheData[host.id];
         if (cacheHost) {
-          host.ip = cacheHost.ip;
-          host.os_arch = cacheHost.os_arch;
-          host.os_type = cacheHost.os_type;
-          host.public_host_name = cacheHost.public_host_name;
-          host.memory = cacheHost.memory;
-          host.cpu = cacheHost.cpu;
+          host.ip ? cacheHost.ip = host.ip : host.ip = cacheHost.ip;
+          host.os_arch ? cacheHost.os_arch = host.os_arch : host.os_arch = cacheHost.os_arch;
+          host.os_type ?  cacheHost.os_type = host.os_type : host.os_type = cacheHost.os_type;
+          host.public_host_name ? cacheHost.public_host_name = host.public_host_name : host.public_host_name = cacheHost.public_host_name;
+          host.memory ? cacheHost.memory = host.memory : host.memory = cacheHost.memory;
+          host.cpu ? cacheHost.cpu = host.cpu : host.cpu = cacheHost.cpu;
         }
       });
       App.store.loadMany(this.get('model'), result);

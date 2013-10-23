@@ -263,17 +263,20 @@ App.servicesMapper = App.QuickDataMapper.create({
       var currentComponentNameHostNames = {};
       var doHostComponentsLoad = false;
       oldHostComponents.forEach(function (item) {
-        if (item && !hostComponentsMap[item.get('id')]) {
-          item.deleteRecord();
-        } else {
-          var componentName = item.get('componentName');
-          if (componentName) {
-            currentHCWithComponentNames[item.get('id')] = item.get('id');
+        if (item) {
+          if (!hostComponentsMap[item.get('id')]) {
+            item.deleteRecord();
+            item.get('stateManager').transitionTo('loading');
+          } else {
+            var componentName = item.get('componentName');
+            if (componentName) {
+              currentHCWithComponentNames[item.get('id')] = item.get('id');
+            }
+            if (!currentComponentNameHostNames[componentName]) {
+              currentComponentNameHostNames[componentName] = [];
+            }
+            currentComponentNameHostNames[componentName].pushObject(item.get('host.hostName'));
           }
-          if (!currentComponentNameHostNames[componentName]) {
-            currentComponentNameHostNames[componentName] = [];
-          }
-          currentComponentNameHostNames[componentName].pushObject(item.get('host.hostName'));
         }
       }, this);
 
