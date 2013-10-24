@@ -47,19 +47,19 @@ App.supports = {
   mirroring: false,
   secureCluster: true,
   secureClusterProceedPopup: false,
-  reassignMaster: false,
+  reassignMaster: true,
   stackUpgrade: false,
   capacitySchedulerUi: false,
   startStopAllServices: true,
   hiveOozieExtraDatabases: true,
-  multipleHBaseMasters: false,
+  multipleHBaseMasters: true,
   addMasters: false,
   customizeSmokeTestUser: true,
   hue: false,
   ldapGroupMapping: false,
   localRepositories: true,
   highAvailability: true,
-  deleteHost: false,
+  deleteHost: true,
   autoRollbackHA: false
 };
 

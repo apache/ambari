@@ -778,7 +778,7 @@ Em.I18n.translations = {
     'This allows for an Active-Standby NameNode configuration that automatically performs failover.<br/><br/>' +
     'The process to enable HA involves a combination of <b>automated steps</b> (that will be handled by the wizard) and ' +
     '<b>manual steps</b> (that you must perform in sequence as instructed by the wizard).<br/><br/>' +
-    '<b>You should plan a cluster maintanance window and prepare for cluster downtime when enabling NameNode HA.</b>',
+    '<b>You should plan a cluster maintenance window and prepare for cluster downtime when enabling NameNode HA.</b>',
   'admin.highAvailability.wizard.step1.alert':'If you have HBase running, please exit this wizard and stop HBase first.',
   'admin.security.title':'Kerberos security has not been enabled',
   'admin.security.enabled': 'Kerberos security is enabled',
@@ -1083,28 +1083,33 @@ Em.I18n.translations = {
   'services.service.startAll':'Start All',
   'services.service.stopAll':'Stop All',
 
-  'services.reassign.step1.header':'Prerequisites',
-  'services.reassign.step1.message':'{0} master component does not have any prerequisites.',
+  'services.reassign.step1.header':'Get Started',
+  'services.reassign.step1.message1': 'This wizard will walk you through reassigning {0}.<br/>',
+  'services.reassign.step1.message2': 'The process to reassign {0} involves a combination of <b>automated steps</b> (that will be handled by the wizard) and ' +
+      '<b>manual steps</b> (that you must perform in sequence as instructed by the wizard).<br/><br/>',
+  'services.reassign.step1.message3': '<b>All services will be restarted as part of the wizard. You should plan a cluster maintenance window and prepare ' +
+    'for cluster downtime when reassigning {0}.</b>',
+
   'services.reassign.step2.header':'Assign Masters',
   'services.reassign.step3.header':'Review',
   'services.reassign.step3.body':'Please review the changes you made',
   'services.reassign.step3.targetHost':'Target Host:',
   'services.reassign.step3.sourceHost':'Source Host:',
   'services.reassign.step3.component':'Component name:',
-  'services.reassign.step4.header':'Install, Start and Test',
+  'services.reassign.step4.header':'Configure Components',
   'services.reassign.step4.task0.title':'Stop All Services',
-  'services.reassign.step4.task1.title':'{0} create',
-  'services.reassign.step4.task2.title':'{0} disable',
-  'services.reassign.step4.task3.title':'{0} reconfigure',
-  'services.reassign.step4.task4.title':'{0} install',
+  'services.reassign.step4.task1.title':'Create {0}',
+  'services.reassign.step4.task2.title':'Disable {0}',
+  'services.reassign.step4.task3.title':'Reconfigure {0}',
+  'services.reassign.step4.task4.title':'Install {0}',
   'services.reassign.step4.task5.title':'Start ZooKeeper Servers',
   'services.reassign.step4.task6.title':'Start NameNode',
-  'services.reassign.step4.task7.title':'{0} remove',
+  'services.reassign.step4.task7.title':'Delete disabled {0}',
   'services.reassign.step4.task8.title':'Start All Services',
-  'services.reassign.step4.status.success': 'Successfully reassigned {0}',
+  'services.reassign.step4.status.success': 'Successfully moved <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host',
   'services.reassign.step4.status.success.withManualSteps': 'Proceed to the next step',
-  'services.reassign.step4.status.failed': 'Failed to reassign {0}',
-  'services.reassign.step4.status.info': 'Reassigning {0}. \nPlease wait while all tasks will be completed.',
+  'services.reassign.step4.status.failed': 'Failed to move <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host',
+  'services.reassign.step4.status.info': 'Reassigning {0}. \nPlease wait for all tasks to be completed.',
   'services.reassign.step4.retry': 'You can click on the Retry or Abort button to retry failed task or abort changes',
   'services.reassign.step4.abortError': 'Error in aborting changes.',
   'services.reassign.step5.header': 'Manual commands',
@@ -1129,7 +1134,9 @@ Em.I18n.translations = {
       '</div>' +
       '<div class="alert alert-info">' +
       '<ol start="3">' +
-      '<li>Login to the newly installed NameNode host <b>{2}</b></li>' +
+      '<li>Login to the newly installed NameNode host <b>{2}</b>.<br>' +
+      '<div class="alert alert-warn"><strong>Important!</strong> Be sure to login to the newly installed NameNode host.<br>This is a different host from the Steps 1 and 2 above.</div>' +
+      '</li>' +
       '<li>Initialize the metadata by running:' +
       "<div class='code-snippet'>sudo su -l {3} -c 'hdfs namenode -bootstrapStandby'</div></li>" +
       '</ol>' +
@@ -1153,12 +1160,12 @@ Em.I18n.translations = {
       '<li>Proceed next' +
       '</ol>'+
       '</div>',
-  'services.reassign.step6.header': 'Install, Start and Test',
-  'services.reassign.step6.task0.title':'{0} remove',
-  'services.reassign.step6.task1.title':'Start All Services',
-  'services.reassign.step6.status.success': 'Successfully reassigned {0}',
-  'services.reassign.step6.status.failed': 'Failed to reassign {0}',
-  'services.reassign.step6.status.info': 'Reassigning {0}. \nPlease wait while all tasks will be completed.',
+  'services.reassign.step6.header': 'Start and Test services',
+  'services.reassign.step6.task0.title': 'Delete disabled {0}',
+  'services.reassign.step6.task1.title': 'Start All Services',
+  'services.reassign.step6.status.success': 'Successfully moved <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host',
+  'services.reassign.step6.status.failed': 'Failed to move <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host',
+  'services.reassign.step6.status.info': 'Reassigning {0}. \nPlease wait for all tasks to be completed.',
 
   /** services page constants **/
 

@@ -22,8 +22,15 @@ var App = require('app');
 App.ReassignMasterWizardStep1View = Em.View.extend({
 
   message: function () {
-    return Em.I18n.t('services.reassign.step1.message').format(this.get('controller.content.reassign.display_name'));
-  }.property('controller.content.reassign.display_name'),
+    messages = [
+      Em.I18n.t('services.reassign.step1.message1').format(this.get('controller.content.reassign.display_name')),
+      Em.I18n.t('services.reassign.step1.message3').format(this.get('controller.content.reassign.display_name'))
+    ];
+    if (this.get('controller.content.hasManualSteps')) {
+      messages.splice(1,0, Em.I18n.t('services.reassign.step1.message2').format(this.get('controller.content.reassign.display_name')));
+    }
+    return messages;
+  }.property('controller.content.reassign.display_name','controller.content.hasManualSteps'),
 
   templateName: require('templates/main/service/reassign/step1')
 

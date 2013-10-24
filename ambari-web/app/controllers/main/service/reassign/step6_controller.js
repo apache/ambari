@@ -43,8 +43,8 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
     var commands = this.get('commands');
     var hostComponentsNames = '';
     this.get('hostComponents').forEach(function (comp, index) {
-      hostComponentsNames += index ? ', ' : '';
-      hostComponentsNames += App.format.role(comp);
+      hostComponentsNames += index ? '+' : '';
+      hostComponentsNames += comp === 'ZKFC' ? comp : App.format.role(comp);
     }, this);
     var currentStep = App.router.get('reassignMasterController.currentStep');
     for (var i = 0; i < commands.length; i++) {

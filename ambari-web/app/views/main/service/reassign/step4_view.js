@@ -28,16 +28,16 @@ App.ReassignMasterWizardStep4View = App.HighAvailabilityProgressPageView.extend(
   }.property('controller.content.reassign.component_name'),
 
   noticeFailed: function () {
-    return Em.I18n.t('services.reassign.step4.status.failed').format(App.format.role(this.get('controller.content.reassign.component_name')))
-  }.property('controller.content.reassign.component_name'),
+    return Em.I18n.t('services.reassign.step4.status.failed').format(App.format.role(this.get('controller.content.reassign.component_name')),this.get('controller.content.reassignHosts.source'),this.get('controller.content.reassignHosts.target'));
+  }.property('controller.content.reassign.component_name','controller.content.reassignHosts.source','controller.content.reassignHosts.target'),
 
   noticeCompleted: function () {
     if (this.get('controller.content.hasManualSteps')) {
       return Em.I18n.t('services.reassign.step4.status.success.withManualSteps').format(App.format.role(this.get('controller.content.reassign.component_name')));
     } else {
-      return Em.I18n.t('services.reassign.step4.status.success').format(App.format.role(this.get('controller.content.reassign.component_name')));
+      return Em.I18n.t('services.reassign.step4.status.success').format(App.format.role(this.get('controller.content.reassign.component_name')),this.get('controller.content.reassignHosts.source'),this.get('controller.content.reassignHosts.target'));
     }
-  }.property('controller.content.reassign.component_name'),
+  }.property('controller.content.reassign.component_name','controller.content.reassignHosts.source','controller.content.reassignHosts.target'),
 
   submitButtonText: function () {
     if (this.get('controller.content.hasManualSteps')) {

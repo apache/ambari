@@ -36,6 +36,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     } else {
       this.set('hostComponents', [this.get('content.reassign.component_name')]);
     }
+    this.set('serviceName', [this.get('content.reassign.service_id')]);
     this._super();
   },
 
@@ -45,12 +46,13 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     var hostComponentsNames = '';
 
     this.get('hostComponents').forEach(function (comp, index) {
-      hostComponentsNames += index ? ', ' : '';
-      hostComponentsNames += App.format.role(comp);
+      hostComponentsNames += index ? '+' : '';
+      hostComponentsNames += comp === 'ZKFC' ? comp : App.format.role(comp);
     }, this);
 
     for (var i = 0; i < commands.length; i++) {
-      var title = Em.I18n.t('services.reassign.step4.task' + i + '.title').format(hostComponentsNames);
+      var TaskLabel = i === 3 ? this.get('serviceName') : hostComponentsNames; //For Reconfigure task, show serviceName
+      var title = Em.I18n.t('services.reassign.step4.task' + i + '.title').format(TaskLabel);
       this.get('tasks').pushObject(Ember.Object.create({
         title: title,
         status: 'PENDING',
