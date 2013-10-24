@@ -47,8 +47,13 @@ class ActionQueue(threading.Thread):
 
   STATUS_COMMAND = 'STATUS_COMMAND'
   EXECUTION_COMMAND = 'EXECUTION_COMMAND'
+  ROLE_COMMAND_INSTALL = 'INSTALL'
+  ROLE_COMMAND_START = 'START'
+  ROLE_COMMAND_STOP = 'STOP'
 
   IN_PROGRESS_STATUS = 'IN_PROGRESS'
+  COMPLETED_STATUS = 'COMPLETED'
+  FAILED_STATUS = 'FAILED'
 
   def __init__(self, config, controller):
     super(ActionQueue, self).__init__()
@@ -119,6 +124,7 @@ class ActionQueue(threading.Thread):
       'status': self.IN_PROGRESS_STATUS
     })
     self.commandStatuses.put_command_status(command, in_progress_status)
+    # TODO: Add CustomServiceOrchestrator call somewhere here
     # running command
     # Create a new instance of executor for the current thread
     puppetExecutor = PuppetExecutor.PuppetExecutor(
@@ -128,10 +134,11 @@ class ActionQueue(threading.Thread):
       self.config.get('agent', 'prefix'), self.config)
     commandresult = puppetExecutor.runCommand(command, in_progress_status['tmpout'],
       in_progress_status['tmperr'])
+
     # dumping results
-    status = "COMPLETED"
+    status = self.COMPLETED_STATUS
     if commandresult['exitcode'] != 0:
-      status = "FAILED"
+      status = self.FAILED_STATUS
     roleResult = self.commandStatuses.generate_report_template(command)
     # assume some puppet plumbing to run these commands
     roleResult.update({
@@ -146,13 +153,13 @@ class ActionQueue(threading.Thread):
       roleResult['stderr'] = 'None'
 
     # let ambari know that configuration tags were applied
-    if status == 'COMPLETED':
+    if status == self.COMPLETED_STATUS:
       configHandler = ActualConfigHandler(self.config)
       if command.has_key('configurationTags'):
         configHandler.write_actual(command['configurationTags'])
         roleResult['configurationTags'] = command['configurationTags']
 
-      if command.has_key('roleCommand') and command['roleCommand'] == 'START':
+      if command.has_key('roleCommand') and command['roleCommand'] == self.ROLE_COMMAND_START:
         configHandler.copy_to_component(command['role'])
         roleResult['configurationTags'] = configHandler.read_actual_component(command['role'])
     self.commandStatuses.put_command_status(command, roleResult)

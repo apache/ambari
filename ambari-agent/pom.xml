@@ -351,7 +351,15 @@
                 </source>
               </sources>
             </mapping>
-            <!-- -->
+            <mapping>
+              <!-- TODO: Remove when we introduce metadata downloading by agent-->
+              <directory>/var/lib/ambari-agent/cache/stacks</directory>
+              <sources>
+                <source>
+                  <location>../ambari-server/src/main/resources/stacks</location>
+                </source>
+              </sources>
+            </mapping>
           </mappings>
         </configuration>
       </plugin>
