@@ -303,14 +303,14 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
 
     String port = getPort(clusterName, componentName);
     if (port == null) {
-      throw new SystemException(
-          "Unable to get JMX metrics.  No port value for " + componentName, null);
+      LOG.warn("Unable to get JMX metrics.  No port value for " + componentName);
+      return resource;
     }
 
     String hostName = getHost(resource, clusterName, componentName);
     if (hostName == null) {
-      throw new SystemException(
-          "Unable to get JMX metrics.  No host name for " + componentName, null);
+      LOG.warn("Unable to get JMX metrics.  No host name for " + componentName);
+      return resource;
     }
     
     String protocol = getJMXProtocol(clusterName, componentName);

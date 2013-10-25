@@ -777,7 +777,38 @@ public class JMXPropertyProviderTest {
     Assert.assertEquals(0, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/dfs/journalnode/cluster/mycluster", "currentLagTxns")));
     Assert.assertEquals(8444, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/dfs/journalnode/cluster/mycluster", "lastWrittenTxId")));
   }
+  
+  @Test
+  public void testPopulateResources_NoRegionServer() throws Exception {
+    TestStreamProvider streamProvider = new TestStreamProvider();
+    TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
 
+    JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
+        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP2),
+        streamProvider,
+        hostProvider,
+        PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+        null, // force use of the hostProvider, which returns null for this test
+        PropertyHelper.getPropertyId("HostRoles", "component_name"),
+        PropertyHelper.getPropertyId("HostRoles", "state"),
+        Collections.singleton("STARTED"));
+
+    Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+
+    resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
+    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "HBASE_REGIONSERVER");
+    resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+
+    int preSize = resource.getPropertiesMap().size();
+    
+    // request with an empty set should get all supported properties
+    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+
+    Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
+
+    Assert.assertEquals(preSize, resource.getPropertiesMap().size());
+  }
+    
   private static class TestJMXHostProvider implements JMXHostProvider {
     private final boolean unknownPort;
 
