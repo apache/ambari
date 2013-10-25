@@ -582,11 +582,6 @@ App.ServiceConfigProperty = Ember.Object.extend({
             this.set('errorMessage', 'Passwords do not match');
             isError = true;
           }
-          else if (!validator.isValidPassword(value)){
-            this.set('errorMessage', 'Weak password: too short.');
-            isError = true;
-          }
-
       }
     }
 

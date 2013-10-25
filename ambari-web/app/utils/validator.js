@@ -106,16 +106,6 @@ module.exports = {
   },
 
   /**
-   * validate password
-   * @param value
-   * #return {Boolean}
-   */
-  isValidPassword: function(value) {
-    var passwordRegex = /^.{5,}$/;
-    return passwordRegex.test(value);
-  },
-
-  /**
    * validate key of configurations
    * @param value
    * @return {Boolean}
