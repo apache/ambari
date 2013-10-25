@@ -1295,6 +1295,7 @@ Em.I18n.translations = {
   'hosts.delete.popup.body.msg1':'This will remove the host from Ambari\'s management. Ambari will ignore any communications from this host.',
   'hosts.delete.popup.body.msg2':'Installed bits of service components will not be removed from the system. Individual service components should not be restarted later to join the cluster. This will introduce inconsistencies in monitoring data.',
   'hosts.delete.popup.body.msg3':'Nagios service should be restarted for alerts and notifications to work properly. ZooKeeper service should be restarted if any ZooKeeper components are removed. Go to the <i>Services</i> page to restart services.',
+  'hosts.delete.popup.body.msg4':'<b>WARNING!</b> Delete the last <i>{0}</i> component[s] in the cluster?</br>Deleting the last components in the cluster could result in permanent loss of service data.',
   'hosts.delete.popup.header':'Confirmation',
   'hosts.delete.popup.title':'Delete Host',
   'hosts.delete.popup.unknownComponents':'Components with unknown status:',

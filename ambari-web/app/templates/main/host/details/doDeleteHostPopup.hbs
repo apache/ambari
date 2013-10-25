@@ -26,3 +26,9 @@
 <p>{{t hosts.delete.popup.body.msg1}}</p>
 <p>{{t hosts.delete.popup.body.msg2}}</p>
 <p><span class="label label-important">{{t common.important}}</span> {{t hosts.delete.popup.body.msg3}}</p>
+{{#if lastComponent}}
+  <div class="alert-error row-fluid">
+      <div class='tinyspan tinyoffset'>{{view Ember.Checkbox checkedBinding="enablePrimary"}}</div>
+      <div class='span10'>{{view lastComponentError}}</div>
+  </div>
+{{/if}}

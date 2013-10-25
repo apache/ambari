@@ -659,9 +659,19 @@ App.MainHostDetailsController = Em.Controller.extend({
      var runningComponents = [];
      var unknownComponents = [];
      var nonDeletableComponents = [];
+     var lastComponents = [];
      var components = this.get('content.hostComponents');
      if (components!=null && components.get('length')>0){
-       components.forEach(function (cInstance) { 
+       components.forEach(function (cInstance) {
+         var numberOfComponents = 0;
+         var allComponents = cInstance.get('service.hostComponents');
+         allComponents.forEach(function(component) {
+           if (component.get('componentName') == cInstance.get('componentName')) numberOfComponents++;
+           if (numberOfComponents > 1) return;
+         });
+         if (numberOfComponents == 1) {
+           lastComponents.push(cInstance.get('displayName'));
+         }
          var workStatus = cInstance.get('workStatus');
          if (cInstance.get('isMaster') && !cInstance.get('isDeletable')) {
            masterComponents.push(cInstance.get('displayName'));
@@ -687,7 +697,7 @@ App.MainHostDetailsController = Em.Controller.extend({
        this.raiseDeleteComponentsError(runningComponents, 'runningList');
        return;
      }
-     this._doDeleteHost(unknownComponents);
+     this._doDeleteHost(unknownComponents,lastComponents);
   },
   
   raiseDeleteComponentsError: function (components, type) {
@@ -720,13 +730,26 @@ App.MainHostDetailsController = Em.Controller.extend({
   /**
    * show confirmation popup to delete host
    */
-  _doDeleteHost: function(unknownComponents) {
+  _doDeleteHost: function(unknownComponents,lastComponents) {
     var self = this;
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.delete.popup.title'),
       deletePopupBody: function() {
         return Em.I18n.t('hosts.delete.popup.body').format(self.get('content.publicHostName'));
       }.property(),
+      lastComponent: function() {
+         if (lastComponents && lastComponents.length) {
+           this.set('enablePrimary',false);
+           return true;
+         } else {
+           this.set('enablePrimary',true);
+           return false;
+         }
+      }.property(),
+      enablePrimary: false,
+      lastComponentError:  Em.View.extend({
+        template: Ember.Handlebars.compile(Em.I18n.t('hosts.delete.popup.body.msg4').format(lastComponents))
+      }),
       unknownComponents: function() {
         if (unknownComponents && unknownComponents.length) {
           return unknownComponents.join(", ");
@@ -737,6 +760,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         templateName: require('templates/main/host/details/doDeleteHostPopup')
       }),
       onPrimary: function() {
+        if (!this.get('enablePrimary')) return;
         var dialogSelf = this;
         var allComponents = self.get('content.hostComponents');
         var deleteError = null;

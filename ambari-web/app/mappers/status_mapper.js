@@ -194,6 +194,7 @@ App.statusMapper = App.QuickDataMapper.create({
   updateServicesStatus: function(services, servicesMap){
     services.forEach(function(_service){
       var service = servicesMap[_service.get('id')];
+      if (service) {
       var serviceName = _service.get('serviceName');
       var serviceSpecificObj = null;
       switch (serviceName) {
@@ -257,6 +258,7 @@ App.statusMapper = App.QuickDataMapper.create({
         serviceSpecificObj.set('isStarted', service.everyStarted);
         serviceSpecificObj.set('isStopped', service.isRunning);
         serviceSpecificObj.set('toolTipContent', service.toolTipContent);
+      }
       }
     }, this);
   },

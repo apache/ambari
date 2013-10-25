@@ -40,7 +40,7 @@ App.ModalPopup = Ember.View.extend({
     '{{else}}',
     '<div class="modal-footer">',
     '{{#if view.secondary}}<a class="btn" {{action onSecondary target="view"}}>{{view.secondary}}</a>{{/if}}',
-    '{{#if view.primary}}<a class="btn btn-success" {{action onPrimary target="view"}}>{{view.primary}}</a>{{/if}}',
+    '{{#if view.primary}}<a {{bindAttr class="view.enablePrimary::disabled :btn :btn-success"}} {{action onPrimary target="view"}}>{{view.primary}}</a>{{/if}}',
     '</div>',
     '{{/if}}',
     '{{/if}}',
@@ -55,7 +55,7 @@ App.ModalPopup = Ember.View.extend({
   primary: Em.I18n.t('ok'),
   secondary: Em.I18n.t('common.cancel'),
   autoHeight: true,
-
+  enablePrimary: true,
   onPrimary: function () {
     this.hide();
   },
