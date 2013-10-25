@@ -202,6 +202,7 @@ App.MainServiceItemController = Em.Controller.extend({
     console.log('In Reassign Master', hostComponent);
     var reassignMasterController = App.router.get('reassignMasterController');
     reassignMasterController.saveComponentToReassign(component);
+    reassignMasterController.getSecurityStatus();
     reassignMasterController.setCurrentStep('1');
     App.router.transitionTo('reassign');
   },

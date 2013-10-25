@@ -23,7 +23,10 @@ App.ReassignMasterWizardStep5View = Em.View.extend({
 
   templateName: require('templates/main/service/reassign/step5'),
 
-  bodyText: function () {
+  manualCommands: function () {
+    if (!this.get('controller.content.componentsWithManualCommands').contains(this.get('controller.content.reassign.component_name'))) {
+      return '';
+    }
     var componentDir = this.get('controller.content.componentDir');
     var sourceHost = this.get('controller.content.reassignHosts.source');
     var targetHost = this.get('controller.content.reassignHosts.target');
@@ -32,6 +35,20 @@ App.ReassignMasterWizardStep5View = Em.View.extend({
       ha = '_ha';
       var nnStartedHost = this.get('controller.content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName').without(this.get('controller.content.reassignHosts.target'));
     }
-    return  Em.I18n.t('services.reassign.step5.body.' + this.get('controller.content.reassign.component_name').toLowerCase() + ha).format(componentDir, sourceHost, targetHost, this.get('controller.content.hdfsUser'),nnStartedHost);
-  }.property('controller.content.reassign.component_name', 'controller.content.componentDir', 'controller.content.masterComponentHosts', 'controller.content.reassign.host_id', 'controller.content.hdfsUser')
+    return  Em.I18n.t('services.reassign.step5.body.' + this.get('controller.content.reassign.component_name').toLowerCase() + ha).format(componentDir, sourceHost, targetHost, this.get('controller.content.hdfsUser'), nnStartedHost);
+  }.property('controller.content.reassign.component_name', 'controller.content.componentDir', 'controller.content.masterComponentHosts', 'controller.content.reassign.host_id', 'controller.content.hdfsUser'),
+
+  securityNotice: function () {
+    var secureConfigs = this.get('controller.content.secureConfigs');
+    if (!this.get('controller.content.securityEnabled') || !secureConfigs.length) {
+      return '';
+    }
+    var formattedText = '<ul>';
+    secureConfigs.forEach(function (config) {
+      formattedText += '<li>' + Em.I18n.t('services.reassign.step5.body.securityConfigsList').format(config.keytab,
+          config.principal.replace('_HOST', this.get('controller.content.reassignHosts.target')), this.get('controller.content.reassignHosts.target')) + '</li>';
+    }, this);
+    formattedText += '</ul>';
+    return Em.I18n.t('services.reassign.step5.body.securityNotice').format(formattedText);
+  }.property('controller.content.securityEnabled', 'controller.content.secureConfigs', 'controller.content.reassignHosts.target')
 });

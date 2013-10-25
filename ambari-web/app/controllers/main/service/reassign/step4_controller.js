@@ -194,11 +194,13 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
 
   onLoadConfigs: function (data) {
     var isHadoop2Stack = App.get('isHadoop2Stack');
+    var securityEnabled = this.get('content.securityEnabled');
     var componentName = this.get('content.reassign.component_name');
     var targetHostName = this.get('content.reassignHosts.target');
     var sourceHostName = this.get('content.reassignHosts.source');
     var configs = {};
     var componentDir = '';
+    var secureConfigs = [];
     this.set('configsSitesNumber', data.items.length);
     this.set('configsSitesCount', 0);
     data.items.forEach(function (item) {
@@ -231,6 +233,10 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         if (App.Service.find().someProperty('serviceName', 'HBASE')) {
           configs['hbase-site']['hbase.rootdir'] = configs['hbase-site']['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + targetHostName);
         }
+        if (securityEnabled) {
+          secureConfigs.push({keytab: configs['hdfs-site']['dfs.namenode.keytab.file'], principal: configs['hdfs-site']['dfs.namenode.kerberos.principal']});
+          secureConfigs.push({keytab: configs['hdfs-site']['dfs.web.authentication.kerberos.keytab'], principal: configs['hdfs-site']['dfs.web.authentication.kerberos.principal']});
+        }
         break;
       case 'SECONDARY_NAMENODE':
         if (isHadoop2Stack) {
@@ -240,11 +246,18 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
           componentDir = configs['core-site']['fs.checkpoint.dir'];
           configs['hdfs-site']['dfs.secondary.http.address'] = targetHostName + ':50090';
         }
+        if (securityEnabled) {
+          secureConfigs.push({keytab: configs['hdfs-site']['dfs.secondary.namenode.keytab.file'], principal: configs['hdfs-site']['dfs.secondary.namenode.kerberos.principal']});
+          secureConfigs.push({keytab: configs['hdfs-site']['dfs.web.authentication.kerberos.keytab'], principal: configs['hdfs-site']['dfs.web.authentication.kerberos.principal']});
+        }
         break;
       case 'JOBTRACKER':
         configs['mapred-site']['mapreduce.history.server.http.address'] = targetHostName + ':51111';
         configs['mapred-site']['mapred.job.tracker.http.address'] = targetHostName + ':50030';
         configs['mapred-site']['mapred.job.tracker'] = targetHostName + ':50300';
+        if (securityEnabled) {
+          secureConfigs.push({keytab: configs['mapred-site']['mapreduce.jobtracker.keytab.file'], principal: configs['mapred-site']['mapreduce.jobtracker.kerberos.principal']});
+        }
         break;
       case 'RESOURCEMANAGER':
         configs['yarn-site']['yarn.resourcemanager.address'] = targetHostName + ':8050';
@@ -253,10 +266,16 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         configs['yarn-site']['yarn.resourcemanager.scheduler.address'] = targetHostName + ':8030';
         configs['yarn-site']['yarn.resourcemanager.webapp.address'] = targetHostName + ':8088';
         configs['yarn-site']['yarn.resourcemanager.hostname'] = targetHostName;
+        if (securityEnabled) {
+          secureConfigs.push({keytab: configs['yarn-site']['yarn.resourcemanager.keytab'], principal: configs['yarn-site']['yarn.resourcemanager.principal']});
+          secureConfigs.push({keytab: configs['yarn-site']['yarn.resourcemanager.webapp.spnego-keytab-file'], principal: configs['yarn-site']['yarn.resourcemanager.webapp.spnego-principal']});
+        }
+
         break;
     }
-    if (componentDir) {
+    if (componentDir || secureConfigs.length) {
       App.router.get(this.get('content.controllerName')).saveComponentDir(componentDir);
+      App.router.get(this.get('content.controllerName')).saveSecureConfigs(secureConfigs);
       App.clusterStatus.setClusterStatus({
         clusterName: this.get('content.cluster.name'),
         clusterState: this.get('clusterDeployState'),

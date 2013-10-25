@@ -54,18 +54,60 @@ App.ReassignMasterController = App.WizardController.extend({
     serviceName: 'MISC',
     hdfsUser:"hdfs",
     reassign: null,
-    hasManualSteps: false
+    componentsWithManualCommands: ['NAMENODE', 'SECONDARY_NAMENODE'],
+    hasManualSteps: false,
+    securityEnabled: false
   }),
 
-  componentsWithManualSteps: ['NAMENODE', 'SECONDARY_NAMENODE'],
-
   addManualSteps: function () {
-    this.set('content.hasManualSteps', this.get('componentsWithManualSteps').contains(this.get('content.reassign.component_name')));
-  }.observes('content.reassign.component_name'),
+    this.set('content.hasManualSteps', this.get('content.componentsWithManualCommands').contains(this.get('content.reassign.component_name')) || this.get('content.securityEnabled'));
+  }.observes('content.reassign.component_name', 'content.securityEnabled'),
 
-  skipStep3: function () {
-    return this.get('content.reassign.service_id') == 'GANGLIA';
-  }.property('content.reassign.service_id'),
+  getSecurityStatus: function () {
+    if (App.testMode) {
+      this.set('securityEnabled', !App.testEnableSecurity);
+    } else {
+      //get Security Status From Server
+      App.ajax.send({
+        name: 'config.tags.sync',
+        sender: this,
+        success: 'getSecurityStatusSuccessCallback',
+        error: 'errorCallback'
+      });
+    }
+  },
+
+  errorCallback: function () {
+    console.error('Cannot get security status from server');
+  },
+
+  getSecurityStatusSuccessCallback: function (data) {
+    var configs = data.Clusters.desired_configs;
+    if ('global' in configs) {
+      this.getServiceConfigsFromServer(configs['global'].tag);
+    }
+    else {
+      console.error('Cannot get security status from server');
+    }
+  },
+
+  getServiceConfigsFromServer: function (tag) {
+    var tags = [
+      {
+        siteName: "global",
+        tagName: tag
+      }
+    ];
+    var data = App.router.get('configurationController').getConfigsByTags(tags);
+    var configs = data.findProperty('tag', tag).properties;
+    var result = configs && (configs['security_enabled'] === 'true' || configs['security_enabled'] === true);
+    this.saveSecurityEnabled(result);
+    App.clusterStatus.setClusterStatus({
+      clusterName: this.get('content.cluster.name'),
+      wizardControllerName: 'reassignMasterController',
+      localdb: App.db.data
+    });
+  },
 
   /**
    * return new object extended from clusterStatusTemplate
@@ -248,6 +290,27 @@ App.ReassignMasterController = App.WizardController.extend({
     this.set('content.reassignHosts', reassignHosts);
   },
 
+
+  saveSecurityEnabled: function(securityEnabled){
+    this.setDBProperty('securityEnabled', securityEnabled);
+    this.set('content.securityEnabled', securityEnabled);
+  },
+
+  loadSecurityEnabled: function(){
+    var securityEnabled = this.getDBProperty('securityEnabled');
+    this.set('content.securityEnabled', securityEnabled);
+  },
+
+  saveSecureConfigs: function(secureConfigs){
+    this.setDBProperty('secureConfigs', secureConfigs);
+    this.set('content.secureConfigs', secureConfigs);
+  },
+
+  loadSecureConfigs: function(){
+    var secureConfigs = this.getDBProperty('secureConfigs');
+    this.set('content.secureConfigs', secureConfigs);
+  },
+
   /**
    * Load data for all steps until <code>current step</code>
    */
@@ -256,6 +319,7 @@ App.ReassignMasterController = App.WizardController.extend({
     switch (step) {
       case '6':
       case '5':
+        this.loadSecureConfigs();
         this.loadComponentDir();
       case '4':
         this.loadTasksStatuses();
