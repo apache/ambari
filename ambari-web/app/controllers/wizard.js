@@ -221,7 +221,7 @@ App.WizardController = Em.Controller.extend({
    */
   setInfoForStep9: function () {
 
-    var hostInfo = App.db.getHosts();
+    var hostInfo = this.getDBProperty('hosts');
     for (var index in hostInfo) {
       hostInfo[index].status = "pending";
       hostInfo[index].message = 'Waiting';
@@ -229,7 +229,7 @@ App.WizardController = Em.Controller.extend({
       hostInfo[index].tasks = [];
       hostInfo[index].progress = '0';
     }
-    App.db.setHosts(hostInfo);
+    this.setDBProperty('hosts', hostInfo);
   },
 
   /**
@@ -238,9 +238,9 @@ App.WizardController = Em.Controller.extend({
   clearInstallOptions: function () {
     var installOptions = jQuery.extend({}, this.get('installOptionsTemplate'));
     this.set('content.installOptions', installOptions);
-    this.save('installOptions');
+    this.setDBProperty('installOptions', installOptions);
     this.set('content.hosts', []);
-    this.save('hosts');
+    this.setDBProperty('hosts', []);
   },
 
   toObject: function (object) {
@@ -265,7 +265,7 @@ App.WizardController = Em.Controller.extend({
       clusterStatus.oldRequestsId.push(clusterStatus.requestId);
     }
     this.set('content.cluster', clusterStatus);
-    this.save('cluster');
+    this.setDBProperty('cluster', clusterStatus);
   },
 
   /**
@@ -374,11 +374,16 @@ App.WizardController = Em.Controller.extend({
     if (this.get('content.' + name) && !reload) {
       return false;
     }
-    var result = App.db['get' + name.capitalize()]();
+    var result = this.getDBProperty(name);
     if (!result) {
-      result = this['get' + name.capitalize()]();
-      App.db['set' + name.capitalize()](result);
-      console.log(this.get('name') + ": created " + name, result);
+      if (this['get' + name.capitalize()]) {
+        result = this['get' + name.capitalize()]();
+        this.setDBProperty(name, result);
+        console.log(this.get('name') + ": created " + name, result);
+      }
+      else {
+        console.debug('get' + name.capitalize(), ' not defined in the ' + this.get('name'));
+      }
     }
     this.set('content.' + name, result);
     console.log(this.get('name') + ": loaded " + name, result);
@@ -386,7 +391,7 @@ App.WizardController = Em.Controller.extend({
 
   save: function (name) {
     var value = this.toObject(this.get('content.' + name));
-    App.db['set' + name.capitalize()](value);
+    this.setDBProperty(name, value);
     console.log(this.get('name') + ": saved " + name, value);
   },
 
@@ -411,14 +416,14 @@ App.WizardController = Em.Controller.extend({
   },
 
   clearStorageData: function () {
-    App.db.setService(undefined); //not to use this data at AddService page
-    App.db.setHosts(undefined);
-    App.db.setMasterComponentHosts(undefined);
-    App.db.setSlaveComponentHosts(undefined);
-    App.db.setCluster(undefined);
-    App.db.setAllHostNames(undefined);
-    App.db.setInstallOptions(undefined);
-    App.db.setAllHostNamesPattern(undefined);
+    this.setDBProperty('service',undefined); //not to use this data at AddService page
+    this.setDBProperty('hosts', undefined);
+    this.setDBProperty('masterComponentHosts', undefined);
+    this.setDBProperty('slaveComponentHosts', undefined);
+    this.setDBProperty('cluster', undefined);
+    this.setDBProperty('allHostNames', undefined);
+    this.setDBProperty('installOptions', undefined);
+    this.setDBProperty('allHostNamesPattern', undefined);
   },
 
   installOptionsTemplate: {
@@ -505,13 +510,13 @@ App.WizardController = Em.Controller.extend({
   },
 
   loadServicesFromServer: function () {
-    var services = App.db.getService();
+    var services = this.getDBProperty('service');
     if (services) {
       return;
     }
     var apiService = this.loadServiceComponents();
     this.set('content.services', apiService);
-    App.db.setService(apiService);
+    this.setDBProperty('service',apiService);
   },
 
   registerErrPopup: function (header, message) {
@@ -546,7 +551,7 @@ App.WizardController = Em.Controller.extend({
       };
     });
     console.log('wizardController:saveConfirmedHosts: save hosts ', hostInfo);
-    App.db.setHosts(hostInfo);
+    this.setDBProperty('hosts', hostInfo);
     this.set('content.hosts', hostInfo);
   },
 
@@ -556,7 +561,7 @@ App.WizardController = Em.Controller.extend({
    */
   saveInstalledHosts: function (stepController) {
     var hosts = stepController.get('hosts');
-    var hostInfo = App.db.getHosts();
+    var hostInfo = this.getDBProperty('hosts');
 
     for (var index in hostInfo) {
       hostInfo[index].status = "pending";
@@ -568,7 +573,7 @@ App.WizardController = Em.Controller.extend({
       }
     }
     this.set('content.hosts', hostInfo);
-    this.save('hosts');
+    this.setDBProperty('hosts', hostInfo);
     console.log('wizardController:saveInstalledHosts: save hosts ', hostInfo);
   },
 
@@ -611,7 +616,7 @@ App.WizardController = Em.Controller.extend({
       });
     });
 
-    App.db.setSlaveComponentHosts(slaveComponentHosts);
+    this.setDBProperty('slaveComponentHosts', slaveComponentHosts);
     console.log('wizardController.slaveComponentHosts: saved hosts', slaveComponentHosts);
     this.set('content.slaveComponentHosts', slaveComponentHosts);
   },
@@ -675,7 +680,7 @@ App.WizardController = Em.Controller.extend({
    * load advanced configs from server
    */
   loadAdvancedConfigs: function () {
-    var configs = (App.db.getAdvancedServiceConfig()) ? App.db.getAdvancedServiceConfig() : [];
+    var configs = (this.getDBProperty('advancedServiceConfig')) ? this.getDBProperty('advancedServiceConfig') : [];
     this.get('content.services').filterProperty('isSelected', true).mapProperty('serviceName').forEach(function (_serviceName) {
       var serviceComponents = App.config.loadAdvancedConfig(_serviceName);
       if (serviceComponents) {
@@ -683,13 +688,13 @@ App.WizardController = Em.Controller.extend({
       }
     }, this);
     this.set('content.advancedServiceConfig', configs);
-    App.db.setAdvancedServiceConfig(configs);
+    this.setDBProperty('advancedServiceConfig', configs);
   },
   /**
    * Load serviceConfigProperties to model
    */
   loadServiceConfigProperties: function () {
-    var serviceConfigProperties = App.db.getServiceConfigProperties();
+    var serviceConfigProperties = this.getDBProperty('serviceConfigProperties');
     this.set('content.serviceConfigProperties', serviceConfigProperties);
     console.log("AddHostController.loadServiceConfigProperties: loaded config ", serviceConfigProperties);
   },
@@ -736,7 +741,7 @@ App.WizardController = Em.Controller.extend({
         serviceConfigProperties.push(configProperty);
       }, this);
     }, this);
-    App.db.setServiceConfigProperties(serviceConfigProperties);
+    this.setDBProperty('serviceConfigProperties', serviceConfigProperties);
     this.set('content.serviceConfigProperties', serviceConfigProperties);
   }
 });

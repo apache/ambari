@@ -146,10 +146,10 @@ module.exports = Em.Route.extend({
       var myVar = setInterval(
         function(){
           var cnt = installerController.get('validationCnt');
-          var invalidCnt = installerController.get('invalidCnt')
+          var invalidCnt = installerController.get('invalidCnt');
           if (cnt == 0 && invalidCnt == 0) { // all feedback exist and no invalid url
             installerController.saveStacks(wizardStep1Controller);
-            App.db.setService(undefined);
+            installerController.setDBProperty('service', undefined);
             installerController.clearInstallOptions();
             router.transitionTo('step2');
             clearInterval(myVar);
@@ -188,6 +188,8 @@ module.exports = Em.Route.extend({
       var controller = router.get('installerController');
       controller.setCurrentStep('3');
       controller.loadAllPriorSteps();
+      var wizardStep3Controller = router.get('wizardStep3Controller');
+      wizardStep3Controller.set('wizardController', controller);
       controller.connectOutlet('wizardStep3', controller.get('content'));
     },
     back: function(router){
@@ -197,7 +199,7 @@ module.exports = Em.Route.extend({
       var installerController = router.get('installerController');
       var wizardStep3Controller = router.get('wizardStep3Controller');
       installerController.saveConfirmedHosts(wizardStep3Controller);
-      App.db.setBootStatus(true);
+      installerController.setDBProperty('bootStatus', true);
       installerController.loadServicesFromServer();
       router.transitionTo('step4');
     },
@@ -234,7 +236,7 @@ module.exports = Em.Route.extend({
       controller.saveServices(wizardStep4Controller);
       controller.saveClients(wizardStep4Controller);
 
-      App.db.setMasterComponentHosts(undefined);
+      controller.setDBProperty('masterComponentHosts', undefined);
       router.transitionTo('step5');
     }
   }),
@@ -255,7 +257,7 @@ module.exports = Em.Route.extend({
       var controller = router.get('installerController');
       var wizardStep5Controller = router.get('wizardStep5Controller');
       controller.saveMasterComponentHosts(wizardStep5Controller);
-      App.db.setSlaveComponentHosts(undefined);
+      controller.setDBProperty('slaveComponentHosts', undefined);
       router.transitionTo('step6');
     }
   }),
@@ -280,8 +282,8 @@ module.exports = Em.Route.extend({
       if (wizardStep6Controller.validate()) {
         controller.saveSlaveComponentHosts(wizardStep6Controller);
         controller.get('content').set('serviceConfigProperties', null);
-        App.db.setServiceConfigProperties(null);
-        App.db.setAdvancedServiceConfig(null);
+        controller.setDBProperty('serviceConfigProperties', null);
+        controller.setDBProperty('advancedServiceConfig', null);
         controller.loadAdvancedConfigs();
         router.transitionTo('step7');
       }
@@ -298,6 +300,8 @@ module.exports = Em.Route.extend({
     },
     connectOutlets: function (router, context) {
       var controller = router.get('installerController');
+      var wizardStep7Controller = router.get('wizardStep7Controller');
+      wizardStep7Controller.set('wizardController', controller);
       controller.connectOutlet('wizardStep7', controller.get('content'));
     },
     back: Em.Router.transitionTo('step6'),
@@ -316,6 +320,8 @@ module.exports = Em.Route.extend({
       var controller = router.get('installerController');
       controller.setCurrentStep('8');
       controller.loadAllPriorSteps();
+      var wizardStep8Controller = router.get('wizardStep8Controller');
+      wizardStep8Controller.set('wizardController', controller);
       controller.connectOutlet('wizardStep8', controller.get('content'));
     },
     back: Em.Router.transitionTo('step7'),
@@ -342,6 +348,8 @@ module.exports = Em.Route.extend({
       if (!App.testMode) {
         controller.setLowerStepsDisable(9);
       }
+      var wizardStep9Controller = router.get('wizardStep9Controller');
+      wizardStep9Controller.set('wizardController', controller);
       controller.connectOutlet('wizardStep9', controller.get('content'));
     },
     back: Em.Router.transitionTo('step8'),

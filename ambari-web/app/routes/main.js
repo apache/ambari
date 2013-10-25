@@ -123,7 +123,6 @@ module.exports = Em.Route.extend({
         controller.set('datasets', datasets);
       },
       connectOutlets: function (router, context) {
-        console.debug('Inside connectOutlets in ' + App.get('router.currentState.path'));
         router.get('mainController').connectOutlet('mainMirroring');
       }
     }),
@@ -173,13 +172,11 @@ module.exports = Em.Route.extend({
             newDataSet = controller.getNewDataSet();
             var schedule = newDataSet.get('schedule');
             var targetCluster = newDataSet.get('targetCluster');
-            console.debug('Before setting, schedule = ' + schedule + " , targetCluster = " + targetCluster);
             var scheduleRecord = App.Dataset.Schedule.createRecord(schedule);
             var dataSetRecord = App.Dataset.createRecord(newDataSet);
             scheduleRecord.set('dataset', dataSetRecord);
             dataSetRecord.set('schedule', scheduleRecord);
 
-            console.debug('After setting, schedule = ' + dataSetRecord.get('schedule') + " , targetCluster = " + dataSetRecord.get('targetCluster'));
             this.hide();
             router.transitionTo('main.mirroring.index');
           },
@@ -278,7 +275,6 @@ module.exports = Em.Route.extend({
 
         enter: function (router, context) {
 
-          console.debug('Inside connectOutlets in ' + App.get('router.currentState.path'));
           var self = this;
           var controller = App.router.get('mainMirroringTargetClusterController');
           this.setupController(controller);

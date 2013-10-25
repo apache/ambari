@@ -76,7 +76,12 @@ App.InstallerController = App.WizardController.extend({
    */
   removeHosts: function (hosts) {
     //todo Replace this code with real logic
-    App.db.removeHosts(hosts);
+    var DBhosts = this.getDBProperty('hosts');
+    hosts.forEach(function (_hostInfo) {
+      var host = _hostInfo.hostName;
+      delete DBhosts[host];
+    });
+    this.setDBProperty('hosts', DBhosts);
   },
 
   /**
@@ -84,14 +89,14 @@ App.InstallerController = App.WizardController.extend({
    * Will be used at <code>Assign Masters(step5)</code> step
    */
   loadConfirmedHosts: function () {
-    this.set('content.hosts', App.db.getHosts() || []);
+    this.set('content.hosts', this.getDBProperty('hosts') || []);
   },
 
   /**
    * Load services data. Will be used at <code>Select services(step4)</code> step
    */
   loadServices: function () {
-    var servicesInfo = App.db.getService();
+    var servicesInfo = this.getDBProperty('service');
     if(servicesInfo && servicesInfo.length) {
       servicesInfo.forEach(function (item, index) {
         servicesInfo[index] = Em.Object.create(item);
@@ -247,12 +252,12 @@ App.InstallerController = App.WizardController.extend({
    */
   saveServices: function (stepController) {
     var serviceNames = [];
-    App.db.setService(stepController.get('content'));
+    this.setDBProperty('service', stepController.get('content'));
     stepController.filterProperty('isSelected', true).forEach(function (item) {
       serviceNames.push(item.serviceName);
     });
     this.set('content.selectedServiceNames', serviceNames);
-    App.db.setSelectedServiceNames(serviceNames);
+    this.setDBProperty('selectedServiceNames', serviceNames);
     console.log('installerController.saveServices: saved data ', serviceNames);
   },
 
@@ -275,7 +280,7 @@ App.InstallerController = App.WizardController.extend({
     });
 
     console.log("installerController.saveMasterComponentHosts: saved hosts ", masterComponentHosts);
-    App.db.setMasterComponentHosts(masterComponentHosts);
+    this.setDBProperty('masterComponentHosts', masterComponentHosts);
     this.set('content.masterComponentHosts', masterComponentHosts);
   },
 
@@ -283,7 +288,7 @@ App.InstallerController = App.WizardController.extend({
    * Load master component hosts data for using in required step controllers
    */
   loadMasterComponentHosts: function () {
-    var masterComponentHosts = App.db.getMasterComponentHosts() || [];
+    var masterComponentHosts = this.getDBProperty('masterComponentHosts') || [];
     this.set("content.masterComponentHosts", masterComponentHosts);
     console.log("InstallerController.loadMasterComponentHosts: loaded hosts ", masterComponentHosts);
   },
@@ -292,7 +297,7 @@ App.InstallerController = App.WizardController.extend({
    * Load master component hosts data for using in required step controllers
    */
   loadSlaveComponentHosts: function () {
-    var slaveComponentHosts = App.db.getSlaveComponentHosts() || null;
+    var slaveComponentHosts = this.getDBProperty('slaveComponentHosts') || null;
     this.set("content.slaveComponentHosts", slaveComponentHosts);
     console.log("InstallerController.loadSlaveComponentHosts: loaded hosts ", slaveComponentHosts);
   },
@@ -301,18 +306,18 @@ App.InstallerController = App.WizardController.extend({
    * Load serviceConfigProperties to model
    */
   loadServiceConfigProperties: function () {
-    var serviceConfigProperties = App.db.getServiceConfigProperties();
+    var serviceConfigProperties = this.getDBProperty('serviceConfigProperties');
     this.set('content.serviceConfigProperties', serviceConfigProperties);
     console.log("InstallerController.loadServiceConfigProperties: loaded config ", serviceConfigProperties);
 
-    this.set('content.advancedServiceConfig', App.db.getAdvancedServiceConfig());
+    this.set('content.advancedServiceConfig', this.getDBProperty('advancedServiceConfig'));
   },
 
   /**
    * Load information about hosts with clients components
    */
   loadClients: function () {
-    var clients = App.db.getClientsForSelectedServices();
+    var clients = this.getDBProperty('clientInfo');
     this.set('content.clients', clients);
     console.log("InstallerController.loadClients: loaded list ", clients);
   },
@@ -336,7 +341,7 @@ App.InstallerController = App.WizardController.extend({
       }
     }, this);
 
-    App.db.setClientsForSelectedServices(clients);
+    this.setDBProperty('clientInfo', clients);
     this.set('content.clients', clients);
     console.log("InstallerController.saveClients: saved list ", clients);
   },
@@ -480,6 +485,5 @@ App.InstallerController = App.WizardController.extend({
       step.set('value', true);
     }
   }
-
 });
 

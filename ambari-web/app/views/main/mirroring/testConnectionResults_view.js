@@ -27,7 +27,6 @@ App.TestConnectionResultsView = Em.View.extend({
   name: 'testConnectionResultsView',
 
   didInsertElement: function () {
-    console.debug('In didInsertElement');
     var controller = this.get('controller');
     controller.tryConnecting();
   }

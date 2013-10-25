@@ -611,14 +611,14 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   loadHiveDbValue: function (dbComponent) {
-    var hiveDb = App.db.getServiceConfigProperties().findProperty('name', 'hive_database');
+    var hiveDb = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'hive_database');
     if (hiveDb.value === 'New MySQL Database') {
       dbComponent.set('component_value', 'MySQL (New Database)');
     } else if(hiveDb.value === 'Existing MySQL Database'){
-      var db = App.db.getServiceConfigProperties().findProperty('name', 'hive_existing_mysql_database');
+      var db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'hive_existing_mysql_database');
       dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
     } else { // existing oracle database
-      var db = App.db.getServiceConfigProperties().findProperty('name', 'hive_existing_oracle_database');
+      var db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'hive_existing_oracle_database');
       dbComponent.set('component_value', db.value + ' (' + hiveDb.value + ')');
     }
   },
@@ -738,17 +738,17 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   loadOozieDbValue: function (dbComponent) {
-    var oozieDb = App.db.getServiceConfigProperties().findProperty('name', 'oozie_database');
+    var oozieDb = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_database');
     if (oozieDb.value === 'New Derby Database'){
-      var db = App.db.getServiceConfigProperties().findProperty('name', 'oozie_derby_database');
+      var db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_derby_database');
       dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
     }/* else if (oozieDb.value === 'New MySQL Database') {
       dbComponent.set('component_value', 'MySQL (New Database)');
     } */else if(oozieDb.value === 'Existing MySQL Database'){
-      var db = App.db.getServiceConfigProperties().findProperty('name', 'oozie_existing_mysql_database');
+      var db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_mysql_database');
       dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
     } else { // existing oracle database
-      var db = App.db.getServiceConfigProperties().findProperty('name', 'oozie_existing_oracle_database');
+      var db = this.get('wizardController').getDBProperty('serviceConfigProperties').findProperty('name', 'oozie_existing_oracle_database');
       dbComponent.set('component_value', db.value + ' (' + oozieDb.value + ')');
     }
 

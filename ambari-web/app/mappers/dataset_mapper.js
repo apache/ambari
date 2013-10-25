@@ -181,9 +181,7 @@ App.dataSetMapper = App.QuickDataMapper.create({
         }
       }, this);
 
-      console.debug('Before load: App.Dataset.find().content : ' + App.Dataset.find().content);
       App.store.loadMany(this.get('model'), dataset_results);
-      console.debug('After load: App.Dataset.find().content : ' + App.Dataset.find().content);
 
       try {
         // Child records
@@ -204,9 +202,7 @@ App.dataSetMapper = App.QuickDataMapper.create({
           }, this)
         }, this);
 
-        console.debug('Before load: App.DataSetJob.find().content : ' + App.DataSetJob.find().content);
         App.store.loadMany(this.get('Jobs_model'), dataset_job_results);
-        console.debug('After load: App.DataSetJob.find().content : ' + App.DataSetJob.find().content);
       }
       catch (ex) {
         console.debug('Exception occured : ' + ex);

@@ -96,6 +96,8 @@ module.exports = Em.Route.extend({
       controller.dataLoading().done(function () {
         controller.loadServicesFromServer();
         controller.loadAllPriorSteps();
+        var wizardStep2Controller = router.get('wizardStep2Controller');
+        wizardStep2Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep2', controller.get('content'));
       })
     },
@@ -106,7 +108,7 @@ module.exports = Em.Route.extend({
       //hosts was saved to content.hosts inside wizardStep2Controller
       controller.save('hosts');
       router.transitionTo('step2');
-      App.db.setBootStatus(false);
+      controller.setDBProperty('bootStatus', false);
     },
     evaluateStep: function (router) {
       console.log('in addHost.step1:evaluateStep');
@@ -129,6 +131,8 @@ module.exports = Em.Route.extend({
       controller.setCurrentStep('2');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
+        var wizardStep3Controller = router.get('wizardStep3Controller');
+        wizardStep3Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep3', controller.get('content'));
       })
     },
@@ -144,7 +148,7 @@ module.exports = Em.Route.extend({
       addHostController.saveConfirmedHosts(wizardStep3Controller);
       addHostController.saveClients();
 
-      App.db.setBootStatus(true);
+      addHostController.setDBProperty('bootStatus', true);
       router.transitionTo('step3');
     },
     /**
@@ -168,8 +172,9 @@ module.exports = Em.Route.extend({
       controller.setCurrentStep('3');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
-        controller.connectOutlet('wizardStep6', controller.get('content'));
         var wizardStep6Controller = router.get('wizardStep6Controller');
+        wizardStep6Controller.set('wizardController', controller);
+        controller.connectOutlet('wizardStep6', controller.get('content'));
         wizardStep6Controller.set('isMasters', false);
       });
     },
@@ -181,9 +186,10 @@ module.exports = Em.Route.extend({
       if (wizardStep6Controller.validate()) {
         addHostController.saveSlaveComponentHosts(wizardStep6Controller);
         addHostController.get('content').set('serviceConfigProperties', null);
-        App.db.setServiceConfigProperties(null);
+        addHostController.setDBProperty('serviceConfigProperties', null);
         addHostController.loadAdvancedConfigs();
         var wizardStep7Controller = router.get('wizardStep7Controller');
+        wizardStep7Controller.set('wizardController', addHostController);
         wizardStep7Controller.set('content', addHostController.get('content'));
         wizardStep7Controller.loadStep();
         addHostController.saveServiceConfigProperties(wizardStep7Controller);
@@ -200,6 +206,8 @@ module.exports = Em.Route.extend({
       controller.setCurrentStep('4');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
+        var wizardStep8Controller = router.get('wizardStep8Controller');
+        wizardStep8Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep8', controller.get('content'));
       })
     },
@@ -228,6 +236,8 @@ module.exports = Em.Route.extend({
       var controller = router.get('addHostController');
       controller.setCurrentStep('5');
       controller.dataLoading().done(function () {
+        var wizardStep9Controller = router.get('wizardStep9Controller');
+        wizardStep9Controller.set('wizardController', controller);
         controller.loadAllPriorSteps();
         if (!App.testMode) {              //if test mode is ON don't disable prior steps link.
           controller.setLowerStepsDisable(5);
@@ -239,6 +249,7 @@ module.exports = Em.Route.extend({
     retry: function(router,context) {
       var addHostController = router.get('addHostController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
+      wizardStep9Controller.set('wizardController', addHostController);
       if (wizardStep9Controller.get('showRetry')) {
         if (wizardStep9Controller.get('content.cluster.status') === 'INSTALL FAILED') {
           var isRetry = true;
@@ -274,6 +285,8 @@ module.exports = Em.Route.extend({
       controller.setCurrentStep('6');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
+        var wizardStep10Controller = router.get('wizardStep10Controller');
+        wizardStep10Controller.set('wizardController', controller);
         if (!App.testMode) {              //if test mode is ON don't disable prior steps link.
           controller.setLowerStepsDisable(6);
         }

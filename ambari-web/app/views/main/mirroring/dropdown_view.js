@@ -37,7 +37,6 @@ App.MainMirroringDropdownView = Em.View.extend({
   },
 
   didInsertElement:function () {
-    console.debug('In didInsertElement');
     var controller = this.get('controller');
   }
 })

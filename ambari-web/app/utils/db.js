@@ -95,7 +95,7 @@ App.db.get = function (namespace, key) {
 };
 
 App.db.set = function (namespace, key, value) {
-  console.log('TRACE: Entering db:set' + key + ';value: ' + value);
+  console.log('TRACE: Entering db:set' + key + ';value: ', value);
   App.db.data = localStorage.getObject('ambari');
   App.db.data[namespace][key] = value;
   localStorage.setObject('ambari', App.db.data);
@@ -214,16 +214,6 @@ App.db.setBootStatus = function (status) {
   App.db.data = localStorage.getObject('ambari');
   App.db.data.Installer.bootStatus = status;
   localStorage.setObject('ambari', App.db.data);
-};
-
-App.db.removeHosts = function (hostInfo) {
-  console.log('TRACE: Entering db:setSoftRepo function');
-  var hostList = App.db.getHosts();
-  hostInfo.forEach(function (_hostInfo) {
-    var host = _hostInfo.hostName;
-    delete hostList[host];
-  });
-  App.db.setHosts(hostList);
 };
 
 App.db.setService = function (serviceInfo) {

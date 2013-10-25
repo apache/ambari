@@ -41,10 +41,8 @@ App.WizardStep3Controller = Em.Controller.extend({
       var hosts = this.get('controller.hosts').filter(function(_host) {
         if (_host.get('bootStatus') == category.get('hostsBootStatus')) {
           return true;
-        } else if (_host.get('bootStatus') == 'DONE' && category.get('hostsBootStatus') == 'REGISTERING') {
-          return true;
         } else {
-          return false;
+          return (_host.get('bootStatus') == 'DONE' && category.get('hostsBootStatus') == 'REGISTERING');
         }
       }, this);
       return hosts.get('length');
@@ -105,7 +103,7 @@ App.WizardStep3Controller = Em.Controller.extend({
   navigateStep: function () {
     if(this.get('isLoaded')){
       if (this.get('content.installOptions.manualInstall') !== true) {
-        if (!App.db.getBootStatus()) {
+        if (!this.get('wizardController').getDBProperty('bootStatus')) {
           this.startBootstrap();
         }
       } else {
@@ -129,7 +127,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     this.set('stopBootstrap', false);
     this.hosts.clear();
     this.bootHosts.clear();
-    App.db.setBootStatus(false);
+    this.get('wizardController').setDBProperty('bootStatus', false);
     this.set('isSubmitDisabled', true);
     this.set('isRetryDisabled', true);
   },

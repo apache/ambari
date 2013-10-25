@@ -92,8 +92,13 @@ App.WizardStep7Controller = Em.Controller.extend({
     if(this.get('allInstalledServiceNames').contains('YARN') && !App.supports.capacitySchedulerUi){
       configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml');
     }
+    var localDB = {
+      hosts: this.get('wizardController').getDBProperty('hosts'),
+      masterComponentHosts: this.get('wizardController').getDBProperty('masterComponentHosts'),
+      slaveComponentHosts: this.get('wizardController').getDBProperty('slaveComponentHosts')
+    };
     //STEP 6: Distribute configs by service and wrap each one in App.ServiceConfigProperty (configs -> serviceConfigs)
-    var serviceConfigs = App.config.renderConfigs(configs, storedConfigs, this.get('allInstalledServiceNames'), this.get('selectedServiceNames'));
+    var serviceConfigs = App.config.renderConfigs(configs, storedConfigs, this.get('allInstalledServiceNames'), this.get('selectedServiceNames'), localDB);
     this.set('stepConfigs', serviceConfigs);
     this.activateSpecialConfigs();
     this.set('selectedService', this.get('stepConfigs').filterProperty('showConfig', true).objectAt(0));

@@ -352,7 +352,7 @@ App.WizardStep9Controller = Em.Controller.extend({
 
     if (this.get('content.controllerName') === 'addHostController') {
       var hostnames = [];
-      for (var hostname in App.db.getHosts()) {
+      for (var hostname in this.get('wizardController').getDBProperty('hosts')) {
         hostnames.push(hostname);
       }
       data = {
@@ -745,7 +745,7 @@ App.WizardStep9Controller = Em.Controller.extend({
 
   loadLogData: function(requestId) {
     var url = this.getUrl(requestId);
-    var requestsId = App.db.getCluster().oldRequestsId;
+    var requestsId = this.get('wizardController').getDBProperty('cluster').oldRequestsId;
     if (App.testMode) {
       this.POLL_INTERVAL = 1;
     }

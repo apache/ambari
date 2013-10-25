@@ -465,13 +465,8 @@ App.config = Em.Object.create({
    * @param selectedServiceNames
    * @return {Array}
    */
-  renderConfigs: function (configs, storedConfigs, allInstalledServiceNames, selectedServiceNames) {
+  renderConfigs: function (configs, storedConfigs, allInstalledServiceNames, selectedServiceNames, localDB) {
     var renderedServiceConfigs = [];
-    var localDB = {
-      hosts: App.db.getHosts(),
-      masterComponentHosts: App.db.getMasterComponentHosts(),
-      slaveComponentHosts: App.db.getSlaveComponentHosts()
-    };
     var services = [];
 
     this.get('preDefinedServiceConfigs').forEach(function (serviceConfig) {

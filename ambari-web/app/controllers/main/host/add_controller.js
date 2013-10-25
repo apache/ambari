@@ -55,6 +55,14 @@ App.AddHostController = App.WizardController.extend({
 
   components:require('data/service_components'),
 
+  setCurrentStep: function (currentStep, completed) {
+    this._super(currentStep, completed);
+    App.clusterStatus.setClusterStatus({
+      wizardControllerName: this.get('name'),
+      localdb: App.db.data
+    });
+  },
+
   /**
    * return new object extended from clusterStatusTemplate
    * @return Object
@@ -79,15 +87,6 @@ App.AddHostController = App.WizardController.extend({
     return [];
   },
 
-   /**
-   * Remove host from model. Used at <code>Confirm hosts(step2)</code> step
-   * @param hosts Array of hosts, which we want to delete
-   */
-  removeHosts: function (hosts) {
-    //todo Replace this code with real logic
-    App.db.removeHosts(hosts);
-  },
-
   /**
    * Load services data from server.
    */
@@ -102,14 +101,14 @@ App.AddHostController = App.WizardController.extend({
       apiService[index].isInstalled = apiService[index].isSelected;
     });
     this.set('content.services', apiService);
-    App.db.setService(apiService);
+    this.setDBProperty('service', apiService);
   },
 
   /**
    * Load services data. Will be used at <code>Select services(step4)</code> step
    */
   loadServices: function () {
-    var servicesInfo = App.db.getService();
+    var servicesInfo = this.getDBProperty('service');
     servicesInfo.forEach(function (item, index) {
       servicesInfo[index] = Em.Object.create(item);
     });
@@ -123,7 +122,7 @@ App.AddHostController = App.WizardController.extend({
    * Load master component hosts data for using in required step controllers
    */
   loadMasterComponentHosts: function () {
-    var masterComponentHosts = App.db.getMasterComponentHosts();
+    var masterComponentHosts = this.getDBProperty('masterComponentHosts');
     if (!masterComponentHosts) {
       masterComponentHosts = [];
       App.HostComponent.find().filterProperty('isMaster', true).forEach(function (item) {
@@ -135,7 +134,7 @@ App.AddHostController = App.WizardController.extend({
           display_name: item.get('displayName')
         })
       });
-      App.db.setMasterComponentHosts(masterComponentHosts);
+      this.setDBProperty('masterComponentHosts', masterComponentHosts);
     }
     this.set("content.masterComponentHosts", masterComponentHosts);
     console.log("AddHostController.loadMasterComponentHosts: loaded hosts ", masterComponentHosts);
@@ -149,7 +148,7 @@ App.AddHostController = App.WizardController.extend({
     var self = this;
     var hosts = stepController.get('hosts');
     var headers = stepController.get('headers');
-    var masterComponentHosts = App.db.getMasterComponentHosts();
+    var masterComponentHosts = this.getDBProperty('masterComponentHosts');
 
     headers.forEach(function(header) {
       var rm = masterComponentHosts.filterProperty('component', header.get('name'));
@@ -174,7 +173,7 @@ App.AddHostController = App.WizardController.extend({
     });
 
     console.log("installerController.saveMasterComponentHosts: saved hosts ", masterComponentHosts);
-    App.db.setMasterComponentHosts(masterComponentHosts);
+    this.setDBProperty('masterComponentHosts', masterComponentHosts);
     this.set('content.masterComponentHosts', masterComponentHosts);
   },
 
@@ -243,7 +242,7 @@ App.AddHostController = App.WizardController.extend({
       displayName: 'client',
       hosts: hosts,
       isInstalled: true
-    })
+    });
 
     return result;
   },
@@ -252,7 +251,7 @@ App.AddHostController = App.WizardController.extend({
    * Load master component hosts data for using in required step controllers
    */
   loadSlaveComponentHosts: function () {
-    var slaveComponentHosts = App.db.getSlaveComponentHosts();
+    var slaveComponentHosts = this.getDBProperty('slaveComponentHosts');
     if (!slaveComponentHosts) {
       slaveComponentHosts = this.getSlaveComponentHosts();
     }
@@ -264,7 +263,7 @@ App.AddHostController = App.WizardController.extend({
    * Load information about hosts with clients components
    */
   loadClients: function () {
-    var clients = App.db.getClientsForSelectedServices();
+    var clients = this.getDBProperty('clientInfo');
     this.set('content.clients', clients);
     console.log("AddHostController.loadClients: loaded list ", clients);
   },
@@ -289,7 +288,7 @@ App.AddHostController = App.WizardController.extend({
       }
     }, this);
 
-    App.db.setClientsForSelectedServices(clients);
+    this.setDBProperty('clientInfo', clients);
     this.set('content.clients', clients);
     console.log("AddHostController.saveClients: saved list ", clients);
   },
@@ -346,7 +345,7 @@ App.AddHostController = App.WizardController.extend({
     var data;
     var name;
     var hostnames = [];
-    for (var hostname in App.db.getHosts()) {
+    for (var hostname in this.getDBProperty('hosts')) {
       hostnames.push(hostname);
     }
 

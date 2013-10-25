@@ -114,7 +114,7 @@ module.exports = Em.Route.extend({
       var wizardStep4Controller = router.get('wizardStep4Controller');
       addServiceController.saveServices(wizardStep4Controller);
       addServiceController.saveClients(wizardStep4Controller);
-      App.db.setMasterComponentHosts(undefined);
+      addServiceController.setDBProperty('masterComponentHosts', undefined);
       router.transitionTo('step2');
     }
   }),
@@ -137,7 +137,7 @@ module.exports = Em.Route.extend({
       var addServiceController = router.get('addServiceController');
       var wizardStep5Controller = router.get('wizardStep5Controller');
       addServiceController.saveMasterComponentHosts(wizardStep5Controller);
-      App.db.setSlaveComponentHosts(undefined);
+      addServiceController.setDBProperty('slaveComponentHosts', undefined);
       router.transitionTo('step3');
     }
   }),
@@ -150,8 +150,9 @@ module.exports = Em.Route.extend({
       controller.setCurrentStep('3');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
-        controller.connectOutlet('wizardStep6', controller.get('content'));
         var wizardStep6Controller = router.get('wizardStep6Controller');
+        wizardStep6Controller.set('wizardController', controller);
+        controller.connectOutlet('wizardStep6', controller.get('content'));
         wizardStep6Controller.set('isMasters', false);
       })
     },
@@ -170,7 +171,7 @@ module.exports = Em.Route.extend({
       if (wizardStep6Controller.validate()) {
         addServiceController.saveSlaveComponentHosts(wizardStep6Controller);
         addServiceController.get('content').set('serviceConfigProperties', null);
-        App.db.setServiceConfigProperties(null);
+        addServiceController.setDBProperty('serviceConfigProperties', null);
         router.transitionTo('step4');
       }
     }
@@ -185,6 +186,8 @@ module.exports = Em.Route.extend({
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
         controller.loadAdvancedConfigs();
+        var wizardStep7Controller = router.get('wizardStep7Controller');
+        wizardStep7Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep7', controller.get('content'));
       })
     },
@@ -214,6 +217,8 @@ module.exports = Em.Route.extend({
       controller.setCurrentStep('5');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
+        var wizardStep8Controller = router.get('wizardStep8Controller');
+        wizardStep8Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep8', controller.get('content'));
       })
     },
@@ -256,6 +261,8 @@ module.exports = Em.Route.extend({
       controller.setCurrentStep('6');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
+        var wizardStep9Controller = router.get('wizardStep9Controller');
+        wizardStep9Controller.set('wizardController', controller);
         if (!App.testMode) {              //if test mode is ON don't disable prior steps link.
           controller.setLowerStepsDisable(6);
         }
