@@ -52,7 +52,7 @@ App.ReassignMasterController = App.WizardController.extend({
     advancedServiceConfig: null,
     controllerName: 'reassignMasterController',
     serviceName: 'MISC',
-    hdfsUser:"hdfs",
+    hdfsUser: "hdfs",
     reassign: null,
     componentsWithManualCommands: ['NAMENODE', 'SECONDARY_NAMENODE'],
     hasManualSteps: false,
@@ -60,7 +60,9 @@ App.ReassignMasterController = App.WizardController.extend({
   }),
 
   addManualSteps: function () {
-    this.set('content.hasManualSteps', this.get('content.componentsWithManualCommands').contains(this.get('content.reassign.component_name')) || this.get('content.securityEnabled'));
+    if (this.get('content.componentsWithManualCommands')) {  // While logging off this function is called with content.componentsWithManualCommands undefined
+      this.set('content.hasManualSteps', this.get('content.componentsWithManualCommands').contains(this.get('content.reassign.component_name')) || this.get('content.securityEnabled'));
+    }
   }.observes('content.reassign.component_name', 'content.securityEnabled'),
 
   getSecurityStatus: function () {
@@ -113,19 +115,19 @@ App.ReassignMasterController = App.WizardController.extend({
    * return new object extended from clusterStatusTemplate
    * @return Object
    */
-  getCluster: function(){
+  getCluster: function () {
     return jQuery.extend({}, this.get('clusterStatusTemplate'), {name: App.router.getClusterName()});
   },
 
   /**
    * Load services data from server.
    */
-  loadServicesFromServer: function() {
+  loadServicesFromServer: function () {
     var displayOrderConfig = require('data/services');
     var apiUrl = App.get('stack2VersionURL');
     var apiService = this.loadServiceComponents(displayOrderConfig, apiUrl);
     //
-    apiService.forEach(function(item, index){
+    apiService.forEach(function (item, index) {
       apiService[index].isSelected = App.Service.find().someProperty('id', item.serviceName);
       apiService[index].isDisabled = apiService[index].isSelected;
       apiService[index].isInstalled = apiService[index].isSelected;
@@ -138,12 +140,12 @@ App.ReassignMasterController = App.WizardController.extend({
    * Load confirmed hosts.
    * Will be used at <code>Assign Masters(step5)</code> step
    */
-  loadConfirmedHosts: function(){
+  loadConfirmedHosts: function () {
     var hosts = App.db.getHosts();
-    if(!hosts || !hosts.length){
+    if (!hosts || !hosts.length) {
       var hosts = {};
 
-      App.Host.find().forEach(function(item){
+      App.Host.find().forEach(function (item) {
         hosts[item.get('id')] = {
           name: item.get('id'),
           cpu: item.get('cpu'),
@@ -165,9 +167,9 @@ App.ReassignMasterController = App.WizardController.extend({
    */
   loadMasterComponentHosts: function () {
     var masterComponentHosts = App.db.getMasterComponentHosts();
-    if(!masterComponentHosts){
+    if (!masterComponentHosts) {
       masterComponentHosts = [];
-      App.HostComponent.find().filterProperty('isMaster', true).forEach(function(item){
+      App.HostComponent.find().filterProperty('isMaster', true).forEach(function (item) {
         masterComponentHosts.push({
           component: item.get('componentName'),
           hostName: item.get('host.hostName'),
@@ -183,7 +185,7 @@ App.ReassignMasterController = App.WizardController.extend({
   /**
    * Load tasks statuses for step5 of Reassign Master Wizard to restore installation
    */
-  loadTasksStatuses: function(){
+  loadTasksStatuses: function () {
     var statuses = App.db.getReassignTasksStatuses();
     this.set('content.tasksStatuses', statuses);
     console.log('ReassignMasterController.loadTasksStatuses: loaded statuses', statuses);
@@ -244,69 +246,69 @@ App.ReassignMasterController = App.WizardController.extend({
     };
     App.db.setMasterToReassign(component);
   },
-  saveTasksStatuses: function(statuses){
+  saveTasksStatuses: function (statuses) {
     App.db.setReassignTasksStatuses(statuses);
     this.set('content.tasksStatuses', statuses);
     console.log('ReassignMasterController.saveTasksStatuses: saved statuses', statuses);
   },
 
-  loadRequestIds: function(){
+  loadRequestIds: function () {
     var requestIds = App.db.getReassignMasterWizardRequestIds();
     this.set('content.requestIds', requestIds);
   },
 
-  saveRequestIds: function(requestIds){
+  saveRequestIds: function (requestIds) {
     App.db.setReassignMasterWizardRequestIds(requestIds);
     this.set('content.requestIds', requestIds);
   },
 
-  saveLogs: function(logs){
+  saveLogs: function (logs) {
     App.db.setReassignMasterWizardLogs(logs);
     this.set('content.logs', logs);
   },
 
-  loadLogs: function(){
+  loadLogs: function () {
     var logs = App.db.getReassignMasterWizardLogs();
     this.set('content.logs', logs);
   },
 
-  saveComponentDir: function(componentDir){
+  saveComponentDir: function (componentDir) {
     App.db.setReassignMasterWizardComponentDir(componentDir);
     this.set('content.componentDir', componentDir);
   },
 
-  loadComponentDir: function(){
+  loadComponentDir: function () {
     var componentDir = App.db.getReassignMasterWizardComponentDir();
     this.set('content.componentDir', componentDir);
   },
 
-  saveReassignHosts: function(reassignHosts){
+  saveReassignHosts: function (reassignHosts) {
     App.db.setReassignMasterWizardReassignHosts(reassignHosts);
     this.set('content.reassignHosts', reassignHosts);
   },
 
-  loadReassignHosts: function(){
+  loadReassignHosts: function () {
     var reassignHosts = App.db.getReassignMasterWizardReassignHosts();
     this.set('content.reassignHosts', reassignHosts);
   },
 
 
-  saveSecurityEnabled: function(securityEnabled){
+  saveSecurityEnabled: function (securityEnabled) {
     this.setDBProperty('securityEnabled', securityEnabled);
     this.set('content.securityEnabled', securityEnabled);
   },
 
-  loadSecurityEnabled: function(){
+  loadSecurityEnabled: function () {
     var securityEnabled = this.getDBProperty('securityEnabled');
     this.set('content.securityEnabled', securityEnabled);
   },
 
-  saveSecureConfigs: function(secureConfigs){
+  saveSecureConfigs: function (secureConfigs) {
     this.setDBProperty('secureConfigs', secureConfigs);
     this.set('content.secureConfigs', secureConfigs);
   },
 
-  loadSecureConfigs: function(){
+  loadSecureConfigs: function () {
     var secureConfigs = this.getDBProperty('secureConfigs');
     this.set('content.secureConfigs', secureConfigs);
   },

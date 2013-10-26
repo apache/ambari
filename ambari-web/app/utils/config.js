@@ -385,7 +385,7 @@ App.config = Em.Object.create({
         configData = preDefined;
         if (isAdvanced) {
           var advanced = advancedConfigs.findProperty('name', configData.name);
-          configData.value = advanced.value;
+          configData.value = configData.displayType == "password" ? '' : advanced.value;
           configData.defaultValue = advanced.value;
           configData.filename = advanced.filename;
           configData.description = advanced.description;

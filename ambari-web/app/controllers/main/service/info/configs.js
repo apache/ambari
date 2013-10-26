@@ -548,17 +548,17 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         var hdfsConfigs = self.get('stepConfigs').findProperty('serviceName', 'HDFS').get('configs');
         if (App.get('isHadoop2Stack')) {
           if (
-            hdfsConfigs.findProperty('name', 'dfs_namenode_name_dir').get('isNotDefaultValue') ||
-              hdfsConfigs.findProperty('name', 'dfs_namenode_checkpoint_dir').get('isNotDefaultValue') ||
-              hdfsConfigs.findProperty('name', 'dfs_datanode_data_dir').get('isNotDefaultValue')
+            hdfsConfigs.findProperty('name', 'dfs.namenode.name.dir').get('isNotDefaultValue') ||
+              hdfsConfigs.findProperty('name', 'dfs.namenode.checkpoint.dir').get('isNotDefaultValue') ||
+              hdfsConfigs.findProperty('name', 'dfs.datanode.data.dir').get('isNotDefaultValue')
             ) {
             dirChanged = true;
           }
         } else {
           if (
-            hdfsConfigs.findProperty('name', 'dfs_name_dir').get('isNotDefaultValue') ||
-              hdfsConfigs.findProperty('name', 'fs_checkpoint_dir').get('isNotDefaultValue') ||
-              hdfsConfigs.findProperty('name', 'dfs_data_dir').get('isNotDefaultValue')
+            hdfsConfigs.findProperty('name', 'dfs.name.dir').get('isNotDefaultValue') ||
+              hdfsConfigs.findProperty('name', 'fs.checkpoint.dir').get('isNotDefaultValue') ||
+              hdfsConfigs.findProperty('name', 'dfs.data.dir').get('isNotDefaultValue')
             ) {
             dirChanged = true;
           }
@@ -566,8 +566,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       } else if (serviceName === 'MAPREDUCE') {
         var mapredConfigs = self.get('stepConfigs').findProperty('serviceName', 'MAPREDUCE').get('configs');
         if (
-          mapredConfigs.findProperty('name', 'mapred_local_dir').get('isNotDefaultValue') ||
-            mapredConfigs.findProperty('name', 'mapred_system_dir').get('isNotDefaultValue')
+          mapredConfigs.findProperty('name', 'mapred.local.dir').get('isNotDefaultValue') ||
+            mapredConfigs.findProperty('name', 'mapred.system.dir').get('isNotDefaultValue')
           ) {
           dirChanged = true;
         }
@@ -1008,13 +1008,15 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var serviceConfigTags = this.get('serviceConfigTags');
     this.setNewTagNames(serviceConfigTags);
     var siteNameToServerDataMap = {};
+    var configController = App.router.get('configurationController');
 
     serviceConfigTags.forEach(function (_serviceTags) {
       if (_serviceTags.siteName === 'global') {
         console.log("TRACE: Inside global");
         var serverGlobalConfigs = this.createGlobalSiteObj(_serviceTags.newTagName);
         siteNameToServerDataMap['global'] = serverGlobalConfigs;
-        if (this.isConfigChanged(App.config.loadedConfigurationsCache['global_' + this.loadedClusterSiteToTagMap['global']], serverGlobalConfigs.properties)) {
+        var loadedProperties = configController.getConfigsByTags([{siteName: 'global', tagName: this.loadedClusterSiteToTagMap['global']}]);
+        if (this.isConfigChanged(loadedProperties, serverGlobalConfigs.properties)) {
           result = result && this.doPUTClusterConfigurationSite(serverGlobalConfigs);
         }
       } else if (_serviceTags.siteName === 'core-site') {
@@ -1022,14 +1024,16 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         if (this.get('content.serviceName') === 'HDFS' || this.get('content.serviceName') === 'HCFS') {
           var coreSiteConfigs = this.createCoreSiteObj(_serviceTags.newTagName);
           siteNameToServerDataMap['core-site'] = coreSiteConfigs;
-          if (this.isConfigChanged(App.config.loadedConfigurationsCache['core-site_' + this.loadedClusterSiteToTagMap['core-site']], coreSiteConfigs.properties)) {
+          var loadedProperties = configController.getConfigsByTags([{siteName: 'core-site', tagName: this.loadedClusterSiteToTagMap['core-site']}]);
+          if (this.isConfigChanged(loadedProperties, coreSiteConfigs.properties)) {
             result = result && this.doPUTClusterConfigurationSite(coreSiteConfigs);
           }
         }
       } else {
         var serverConfigs = this.createSiteObj(_serviceTags.siteName, _serviceTags.newTagName);
         siteNameToServerDataMap[_serviceTags.siteName] = serverConfigs;
-        if (this.isConfigChanged(App.config.loadedConfigurationsCache[_serviceTags.siteName + '_' + this.loadedClusterSiteToTagMap[_serviceTags.siteName]], serverConfigs.properties)) {
+        var loadedProperties = configController.getConfigsByTags([{siteName: _serviceTags.siteName, tagName: this.loadedClusterSiteToTagMap[_serviceTags.siteName]}]);
+        if (this.isConfigChanged(loadedProperties, serverConfigs.properties)) {
           result = result && this.doPUTClusterConfigurationSite(serverConfigs);
         }
       }
@@ -1328,20 +1332,20 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     switch (oozieDb) {
       case 'New Derby Database':
         defaultJdbcUrl = "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true";
-        jdbcDriver.value = "org.apache.derby.jdbc.EmbeddedDriver";
+        jdbcDriver.set('value','org.apache.derby.jdbc.EmbeddedDriver');
         break;
       case 'Existing MySQL Database':
         defaultJdbcUrl = "jdbc:mysql://" + oozieHost + "/" + oozieDbName;
-        jdbcDriver.value = "com.mysql.jdbc.Driver";
+        jdbcDriver.set('value','com.mysql.jdbc.Driver');
         break;
       case 'Existing Oracle Database':
         defaultJdbcUrl = "jdbc:oracle:thin:@//" + oozieHost + ":1521/" + oozieDbName;
-        jdbcDriver.value = "oracle.jdbc.driver.OracleDriver";
+        jdbcDriver.set('value','oracle.jdbc.driver.OracleDriver');
         break;
     }
     // in case the user upgraded from Ambari version <= 1.2.3, they will not have oozie_jdbc_connection_url global
     var jdbcUrlInGlobal = this.get('globalConfigs').findProperty('name', 'oozie_jdbc_connection_url');
-    jdbcUrl.value = jdbcUrlInGlobal ? jdbcUrlInGlobal.value : defaultJdbcUrl;
+    jdbcUrl.set('value', jdbcUrlInGlobal ? jdbcUrlInGlobal.value : defaultJdbcUrl);
     return siteObj;
   },
 
@@ -1362,20 +1366,20 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     switch (hiveDb) {
       case 'New MySQL Database':
         defaultJdbcUrl = "jdbc:mysql://" + hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
-        jdbcDriver.value = "com.mysql.jdbc.Driver";
+        jdbcDriver.set('value',  'com.mysql.jdbc.Driver');
         break;
       case 'Existing MySQL Database':
         defaultJdbcUrl = "jdbc:mysql://" + hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
-        jdbcDriver.value = "com.mysql.jdbc.Driver";
+        jdbcDriver.set('value',  'com.mysql.jdbc.Driver');
         break;
       case 'Existing Oracle Database':
         defaultJdbcUrl = "jdbc:oracle:thin:@//" + hiveHost + ":1521/" + hiveDbName;
-        jdbcDriver.value = "oracle.jdbc.driver.OracleDriver";
+        jdbcDriver.set('value','oracle.jdbc.driver.OracleDriver');
         break;
     }
     // in case the user upgraded from Ambari <= 1.2.3, they will not have hive_jdbc_connection_url global
     var jdbcUrlInGlobal = this.get('globalConfigs').findProperty('name', 'hive_jdbc_connection_url');
-    jdbcUrl.value = jdbcUrlInGlobal ? jdbcUrlInGlobal.value : defaultJdbcUrl;
+    jdbcUrl.set('value', jdbcUrlInGlobal ? jdbcUrlInGlobal.value : defaultJdbcUrl);
     return siteObj;
   },
 
@@ -1480,6 +1484,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           globalConfigs.findProperty('name', 'hive_hostname').isVisible = true;
         }
         break;
+
       case 'OOZIE':
         var oozieServerHost = serviceConfigs.findProperty('name', 'oozieserver_host');
         oozieServerHost.defaultValue = this.get('content.hostComponents').findProperty('componentName', 'OOZIE_SERVER').get('host.hostName');

@@ -36,7 +36,7 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
       App.popover(this.$(), {
         title: Em.I18n.t('installer.controls.serviceConfigPopover.title').format(
           this.get('serviceConfig.displayName'),
-          (this.get('serviceConfig.displayName') == this.get('serviceConfig.name'))?'':this.get('serviceConfig.name')
+          (this.get('serviceConfig.displayName') == this.get('serviceConfig.name')) ? '' : this.get('serviceConfig.name')
         ),
         content: this.get('serviceConfig.description'),
         placement: 'right',
@@ -62,11 +62,11 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
     }
   },
   //Set editDone true for last edited config text field parameter
-  focusOut: function(event){
+  focusOut: function (event) {
     this.get('serviceConfig').set("editDone", true);
   },
   //Set editDone false for all current category config text field parameter
-  focusIn: function(event){
+  focusIn: function (event) {
     if (!this.get('serviceConfig.selectedHostOptions')) {
       this.get("parentView.categoryConfigsAll").setEach("editDone", false);
     }
@@ -75,7 +75,7 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
   textFieldClassName: function () {
     if (this.get('serviceConfig.unit')) {
       return ['input-small'];
-    } else if (this.get('serviceConfig.displayType') === 'principal'){
+    } else if (this.get('serviceConfig.displayType') === 'principal') {
       return ['span12'];
     } else {
       return ['span9'];
@@ -94,7 +94,7 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
  */
 App.ServiceConfigTextFieldWithUnit = Ember.View.extend(App.ServiceConfigPopoverSupport, {
   valueBinding: 'serviceConfig.value',
-  classNames: ['input-append','with-unit'],
+  classNames: ['input-append', 'with-unit'],
   placeholderBinding: 'serviceConfig.defaultValue',
 
   template: Ember.Handlebars.compile('{{view App.ServiceConfigTextField serviceConfigBinding="view.serviceConfig" isPopoverEnabled="false"}}<span class="add-on">{{view.serviceConfig.unit}}</span>'),
@@ -259,26 +259,45 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
 
   hostName: function () {
     var value = this.get('serviceConfig.value');
-
+    var returnValue;
+    var hostname;
     if (this.get('serviceConfig.serviceName') === 'HIVE') {
       switch (value) {
         case 'New MySQL Database':
-          return this.get('categoryConfigsAll').findProperty('name', 'hive_ambari_host').get('value');
+          hostname = this.get('categoryConfigsAll').findProperty('name', 'hive_ambari_host');
+          break;
         case 'Existing MySQL Database':
-          return this.get('categoryConfigsAll').findProperty('name', 'hive_existing_mysql_host').get('value');
+          hostname = this.get('categoryConfigsAll').findProperty('name', 'hive_existing_mysql_host');
+          break;
         case 'Existing Oracle Database':
-          return this.get('categoryConfigsAll').findProperty('name', 'hive_existing_oracle_host').get('value');
+          hostname = this.get('categoryConfigsAll').findProperty('name', 'hive_existing_oracle_host');
+          break;
       }
+      if (hostname) {
+        returnValue = hostname.get('value');
+      } else {
+        returnValue = this.get('categoryConfigsAll').findProperty('name', 'hive_hostname').get('value');
+      }
+
     } else if (this.get('serviceConfig.serviceName') === 'OOZIE') {
       switch (value) {
         case 'New Derby Database':
-          return this.get('categoryConfigsAll').findProperty('name', 'oozie_ambari_host').get('value');
+          hostname = this.get('categoryConfigsAll').findProperty('name', 'oozie_ambari_host');
+          break;
         case 'Existing MySQL Database':
-          return this.get('categoryConfigsAll').findProperty('name', 'oozie_existing_mysql_host').get('value');
+          hostname = this.get('categoryConfigsAll').findProperty('name', 'oozie_existing_mysql_host');
+          break;
         case 'Existing Oracle Database':
-          return this.get('categoryConfigsAll').findProperty('name', 'oozie_existing_oracle_host').get('value');
+          hostname = this.get('categoryConfigsAll').findProperty('name', 'oozie_existing_oracle_host');
+          break;
+      }
+      if (hostname) {
+        returnValue = hostname.get('value');
+      } else {
+        returnValue = this.get('categoryConfigsAll').findProperty('name', 'oozie_hostname').get('value');
       }
     }
+    return returnValue;
   }.property('serviceConfig.serviceName', 'serviceConfig.value', 'configs.@each.value'),
 
   connectionUrl: function () {
