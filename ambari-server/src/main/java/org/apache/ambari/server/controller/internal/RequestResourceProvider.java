@@ -248,7 +248,7 @@ class RequestResourceProvider extends AbstractControllerResourceProvider {
                                    completedTaskCount == taskCount ? HostRoleStatus.COMPLETED :
                                                                      HostRoleStatus.PENDING;
     double progressPercent =
-        (queuedTaskCount * 0.09 + inProgressTaskCount * 0.35 + completedTaskCount / (double) taskCount) * 100.0;
+        ((queuedTaskCount * 0.09 + inProgressTaskCount * 0.35 + completedTaskCount)/(double) taskCount) * 100.0;
 
     setResourceProperty(resource, REQUEST_STATUS_PROPERTY_ID, requestStatus.toString(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_TASK_CNT_ID, taskCount, requestedPropertyIds);

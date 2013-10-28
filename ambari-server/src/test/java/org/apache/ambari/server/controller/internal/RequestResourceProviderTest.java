@@ -359,10 +359,10 @@ public class RequestResourceProviderTest {
 
       if (id == 100L) {
         Assert.assertEquals(1, resource.getPropertyValue(RequestResourceProvider.REQUEST_COMPLETED_TASK_CNT_ID));
-        Assert.assertEquals(85.0, resource.getPropertyValue(RequestResourceProvider.REQUEST_PROGRESS_PERCENT_ID));
+        Assert.assertEquals(67.5, resource.getPropertyValue(RequestResourceProvider.REQUEST_PROGRESS_PERCENT_ID));
       } else {
         Assert.assertEquals(0, resource.getPropertyValue(RequestResourceProvider.REQUEST_COMPLETED_TASK_CNT_ID));
-        Assert.assertEquals(43.99999999999999, resource.getPropertyValue(RequestResourceProvider.REQUEST_PROGRESS_PERCENT_ID));
+        Assert.assertEquals(21.999999999999996, resource.getPropertyValue(RequestResourceProvider.REQUEST_PROGRESS_PERCENT_ID));
       }
     }
 
