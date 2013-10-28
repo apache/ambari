@@ -26,6 +26,7 @@ App.MainServiceItemView = Em.View.extend({
     var hosts = App.Host.find().content.length;
     var allMasters = this.get('controller.content.hostComponents').filterProperty('isMaster').mapProperty('componentName').uniq();
     var reassignableMasters = ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'RESOURCEMANAGER'];
+    var disabled = this.get('controller.isStopDisabled');
     switch (service.get('serviceName')) {
       case 'GANGLIA':
       case 'NAGIOS':
@@ -37,15 +38,15 @@ App.MainServiceItemView = Em.View.extend({
           allMasters.forEach(function (hostComponent) {
             if (reassignableMasters.contains(hostComponent)) {
               options.push({action: 'reassignMaster', context: hostComponent,
-                'label': Em.I18n.t('services.service.actions.reassign.master').format(App.format.role(hostComponent))});
+                'label': Em.I18n.t('services.service.actions.reassign.master').format(App.format.role(hostComponent)), disabled: false});
             }
           })
         }
       default:
-        options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke')});
+        options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke'), disabled:disabled});
     }
     return options;
-  }.property('controller.content'),
+  }.property('controller.content', 'controller.isStopDisabled'),
   isMaintenanceActive: function() {
     return this.get('maintenance').length !== 0;
   }.property('maintenance'),
