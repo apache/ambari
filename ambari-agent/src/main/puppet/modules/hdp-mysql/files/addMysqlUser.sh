@@ -27,6 +27,7 @@ mysqldbhost=$4
 myhostname=$(hostname -f)
 
 service $mysqldservice start
+set -e
 echo "Adding user $mysqldbuser@$mysqldbhost and $mysqldbuser@localhost"
 mysql -u root -e "CREATE USER '$mysqldbuser'@'$mysqldbhost' IDENTIFIED BY '$mysqldbpasswd';"
 mysql -u root -e "CREATE USER '$mysqldbuser'@'localhost' IDENTIFIED BY '$mysqldbpasswd';"
