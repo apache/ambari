@@ -37,6 +37,8 @@ public class ServiceComponentResponse {
 
   private String desiredState;
 
+  private String category;
+
   public ServiceComponentResponse(Long clusterId, String clusterName,
                                   String serviceName,
                                   String componentName,
@@ -149,6 +151,24 @@ public class ServiceComponentResponse {
    */
   public void setDesiredStackVersion(String desiredStackVersion) {
     this.desiredStackVersion = desiredStackVersion;
+  }
+
+  /**
+   * Get the component category.
+   *
+   * @return the category
+   */
+  public String getCategory() {
+    return category;
+  }
+
+  /**
+   * Set the component category.
+   *
+   * @param category  the category
+   */
+  public void setCategory(String category) {
+    this.category = category;
   }
 
   @Override

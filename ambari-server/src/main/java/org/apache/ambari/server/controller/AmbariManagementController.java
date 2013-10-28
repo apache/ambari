@@ -25,6 +25,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.State;
@@ -49,16 +50,6 @@ public interface AmbariManagementController {
    * @throws AmbariException thrown if the cluster cannot be created
    */
   public void createCluster(ClusterRequest request) throws AmbariException;
-
-  /**
-   * Create the component defined by the attributes in the given request object.
-   *
-   * @param requests  the request object which defines the component to be created
-   *
-   * @throws AmbariException thrown if the component cannot be created
-   */
-  public void createComponents(Set<ServiceComponentRequest> requests)
-      throws AmbariException;
 
   /**
    * Create the host defined by the attributes in the given request object.
@@ -113,18 +104,6 @@ public interface AmbariManagementController {
    */
   public Set<ClusterResponse> getClusters(Set<ClusterRequest> requests)
       throws AmbariException;
-
-  /**
-   * Get the components identified by the given request objects.
-   *
-   * @param requests  the request objects which identify the components to be returned
-   *
-   * @return a set of component responses
-   *
-   * @throws AmbariException thrown if the resource cannot be read
-   */
-  public Set<ServiceComponentResponse> getComponents(
-      Set<ServiceComponentRequest> requests) throws AmbariException;
 
   /**
    * Get the hosts identified by the given request objects.
@@ -208,26 +187,6 @@ public interface AmbariManagementController {
       throws AmbariException;
 
   /**
-   * Update the component identified by the given request object with the
-   * values carried by the given request object.
-   *
-   *
-   *
-   * @param requests    the request object which defines which component to
-   *                   update and the values to set
-   *
-   * @param requestProperties  the request properties
-   * @param runSmokeTest       indicates whether or not to run a smoke test
-   *
-   * @return a track action response
-   *
-   * @throws AmbariException thrown if the resource cannot be updated
-   */
-  public RequestStatusResponse updateComponents(
-      Set<ServiceComponentRequest> requests, Map<String, String> requestProperties,
-      boolean runSmokeTest) throws AmbariException;
-
-  /**
    * Update the host identified by the given request object with the
    * values carried by the given request object.
    *
@@ -277,18 +236,6 @@ public interface AmbariManagementController {
    * @throws AmbariException thrown if the resource cannot be deleted
    */
   public void deleteCluster(ClusterRequest request) throws AmbariException;
-
-  /**
-   * Delete the component identified by the given request object.
-   *
-   * @param requests  the request object which identifies which component to delete
-   *
-   * @return a track action response
-   *
-   * @throws AmbariException thrown if the resource cannot be deleted
-   */
-  public RequestStatusResponse deleteComponents(
-      Set<ServiceComponentRequest> requests) throws AmbariException;
 
   /**
    * Delete the host identified by the given request object.
@@ -501,10 +448,17 @@ public interface AmbariManagementController {
   public ServiceFactory getServiceFactory();
 
   /**
-   * Get the action manager for this management controller.
+   * Get the service component factory for this management controller.
    *
-   * @return the action manager
+   * @return the service component factory
    */
+  public ServiceComponentFactory getServiceComponentFactory();
+
+  /**
+    * Get the action manager for this management controller.
+    *
+    * @return the action manager
+    */
   public ActionManager getActionManager();
 
   /**

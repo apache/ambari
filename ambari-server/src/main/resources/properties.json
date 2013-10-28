@@ -49,6 +49,7 @@
         "ServiceComponents/display_name",
         "ServiceComponents/description",
         "ServiceComponentInfo/desired_configs",
+        "ServiceComponentInfo/category",
         "params/run_smoke_test",
         "_"
     ],

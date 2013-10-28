@@ -89,7 +89,7 @@ public class JMXHostProviderTest {
     Set<ServiceComponentRequest> requests =
       new HashSet<ServiceComponentRequest>();
     requests.add(r);
-    controller.createComponents(requests);
+    ComponentResourceProviderTest.createComponents(controller, requests);
   }
 
   private void createServiceComponentHost(String clusterName,
