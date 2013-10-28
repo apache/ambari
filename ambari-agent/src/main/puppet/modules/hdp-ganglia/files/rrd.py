@@ -154,20 +154,23 @@ def _walk(*args, **kwargs):
 for cluster in clusterParts:
   for path, dirs, files in _walk(rrdPath + cluster):
     pathParts = path.split("/")
-    if len(hostParts) == 0 or pathParts[-1] in hostParts:
-      for file in files:
-        for metric in metricParts:
-          doPrintMetric = False
-          if file.endswith(metric + ".rrd"):
-            doPrintMetric = True
-          else:
-            metricRegex = metric + '.rrd$'
-            p = re.compile(metricRegex)
-            if p.match(file):
-              doPrintMetric = True
+    #Process only path which contains files. If no host parameter passed - process all hosts folders and summary info
+    #If host parameter passed - process only this host folder
+    if len(files) > 0 and (len(hostParts) == 0 or pathParts[-1] in hostParts):
+      for metric in metricParts:
+        file = metric + ".rrd"
+        fileFullPath = os.path.join(path, file)
+        if os.path.exists(fileFullPath):
+          #Exact name of metric
+          printMetric(pathParts[-2], pathParts[-1], file[:-4], os.path.join(path, file), cf, start, end, resolution, pointInTime)
+        else:
+          #Regex as metric name
+          metricRegex = metric + '\.rrd$'
+          p = re.compile(metricRegex)
+          matchedFiles = filter(p.match, files)
+          for matchedFile in matchedFiles:
+            printMetric(pathParts[-2], pathParts[-1], matchedFile[:-4], os.path.join(path, matchedFile), cf, start, end, resolution, pointInTime)
 
-          if doPrintMetric:
-            printMetric(pathParts[-2], pathParts[-1], file[:-4], os.path.join(path, file), cf, start, end, resolution, pointInTime)
 
 sys.stdout.write("[AMBARI_END]\n")
 # write end time
