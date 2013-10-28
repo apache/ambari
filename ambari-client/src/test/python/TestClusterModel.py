@@ -20,13 +20,15 @@ limitations under the License.
 
 
 from mock.mock import MagicMock, patch
-from ambari_client.ambari_api import  AmbariClient
 from HttpClientInvoker import HttpClientInvoker
+
+from ambari_client.ambari_api import  AmbariClient
 from ambari_client.model.host import HostModel
+from ambari_client.core.errors import BadRequest
 
 import unittest
 
-class TestAmbariClient(unittest.TestCase):
+class TestClusterModel(unittest.TestCase):
   
   def create_cluster(self, http_client_mock = MagicMock()):    
     http_client_mock.invoke.side_effect = HttpClientInvoker.http_client_invoke_side_effects
@@ -324,6 +326,22 @@ class TestAmbariClient(unittest.TestCase):
     
     self.assertEqual(cluster.cluster_name, "test1")
     http_client_mock.invoke.assert_called_with('DELETE', expected_path, headers=None, payload=None)
+    
+    
+  def test_exceptions(self):
+    """
+    Test exceptions from ambari.client.core.errors
+    """
+    cluster = self.create_cluster()
+    
+    try:
+      cluster.delete_host('deleted_nonexistant_cluster')
+      print http_client_mock.invoke.call_args_list
+      self.fail('Exception should have been thrown!')
+    except BadRequest, ex:
+      self.assertEquals(str(ex), 'exception: 400. Attempted to add unknown hosts to a cluster.  These hosts have not been registered with the server: dev05')
+    except Exception, ex:
+      self.fail('Wrong exception thrown!')
     
   def test_start_all_services(self):
     """
