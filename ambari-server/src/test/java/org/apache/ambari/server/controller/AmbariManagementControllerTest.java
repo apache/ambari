@@ -5794,8 +5794,9 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(1, responsesWithParams.size());
     for (StackServiceResponse responseWithParams: responsesWithParams) {
       Assert.assertEquals(responseWithParams.getServiceName(), SERVICE_NAME);
-
+      Assert.assertTrue(responseWithParams.getConfigTypes().size() > 0);
     }
+    
 
     StackServiceRequest invalidRequest = new StackServiceRequest(STACK_NAME, STACK_VERSION, NON_EXT_VALUE);
     try {

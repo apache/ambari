@@ -66,6 +66,8 @@ class HostComponentResourceProvider extends AbstractControllerResourceProvider {
       = PropertyHelper.getPropertyId("HostRoles", "desired_stack_id");
   protected static final String HOST_COMPONENT_ACTUAL_CONFIGS_PROPERTY_ID
     = PropertyHelper.getPropertyId("HostRoles", "actual_configs");
+  protected static final String HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID
+    = PropertyHelper.getPropertyId("HostRoles", "stale_configs");
   
   //Component name mappings
   private static final Map<String, PropertyProvider> HOST_COMPONENT_PROPERTIES_PROVIDER = new HashMap<String, PropertyProvider>();
@@ -186,6 +188,8 @@ class HostComponentResourceProvider extends AbstractControllerResourceProvider {
           response.getDesiredConfigs(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_ACTUAL_CONFIGS_PROPERTY_ID,
           response.getActualConfigs(), requestedIds);
+      setResourceProperty(resource, HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID,
+          Boolean.valueOf(response.isStaleConfig()), requestedIds);
       
       String componentName = (String)resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
       PropertyProvider propertyProvider = HOST_COMPONENT_PROPERTIES_PROVIDER.get(componentName);

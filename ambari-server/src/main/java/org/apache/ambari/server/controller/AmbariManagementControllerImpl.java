@@ -18,11 +18,21 @@
 
 package org.apache.ambari.server.controller;
 
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -55,6 +65,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
@@ -87,20 +98,11 @@ import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 @Singleton
 public class AmbariManagementControllerImpl implements
@@ -1247,54 +1249,15 @@ public class AmbariManagementControllerImpl implements
     }
   }
 
-  private void findConfigurationPropertiesWithOverrides(
+  private Map<String, Map<String, String>> findConfigurationPropertiesWithOverrides(
       Map<String, Map<String, String>> configurations,
-      Map<String, Map<String, String>> configTags,
       Cluster cluster, String serviceName,
-      Map<String, DesiredConfig> clusterDesiredConfigs,
       Map<String, DesiredConfig> desiredConfigMap) throws AmbariException {
 
-    // Do not use host component config mappings.  Instead, the rules are:
-    // 1) Use the cluster desired config
-    // 2) override (1) with service-specific overrides
-    // 3) override (2) with host-specific overrides
-
-    for (Entry<String, DesiredConfig> entry : clusterDesiredConfigs.entrySet()) {
-      String type = entry.getKey();
-      String tag = entry.getValue().getVersion();
-      // 1) start with cluster config
-      Config config = cluster.getConfig(type, tag);
-
-      if (null == config) {
-        continue;
-      }
-
-      Map<String, String> props = new HashMap<String, String>(config.getProperties());
-      Map<String, String> tags = new HashMap<String, String>();
-      tags.put(CLUSTER_LEVEL_TAG, config.getVersionTag());
-
-      // 2) apply the service overrides, if any are defined with different tags
-      Service service = cluster.getService(serviceName);
-      Config svcConfig = service.getDesiredConfigs().get(type);
-      if (null != svcConfig && !svcConfig.getVersionTag().equals(tag)) {
-        props.putAll(svcConfig.getProperties());
-        //TODO why don't update tags with service overrides?
-        tags.put("service_override_tag", svcConfig.getVersionTag());
-      }
-
-      // 3) apply the host overrides, if any
-      DesiredConfig dc = desiredConfigMap.get(type);
-
-      if (null != dc) {
-        Config hostConfig = cluster.getConfig(type, dc.getVersion());
-        if (null != hostConfig) {
-          props.putAll(hostConfig.getProperties());
-          tags.put("host_override_tag", hostConfig.getVersionTag());
-        }
-      }
-
-      configTags.put(type, tags);
-    }
+    
+    ConfigHelper ch = injector.getInstance(ConfigHelper.class);
+        
+    Map<String, Map<String,String>> configTags = ch.getEffectiveDesiredTags(cluster, serviceName, desiredConfigMap);
 
 
     // HACK HACK HACK if the service has configs that are NOT included
@@ -1313,32 +1276,21 @@ public class AmbariManagementControllerImpl implements
         configTags.put(type, tags);
       }
     }
+    
+    return configTags;
   }
 
-  private void findConfigurationPropertiesWithOverrides(
+  private Map<String, Map<String,String>> findConfigurationPropertiesWithOverrides(
       Map<String, Map<String, String>> configurations,
-      Map<String, Map<String, String>> configTags,
-      Cluster cluster, String serviceName, String hostName,
-      Map<String, DesiredConfig> clusterDesiredConfigs) throws AmbariException {
+      Cluster cluster, String serviceName, String hostName) throws AmbariException {
 
     Host host = clusters.getHost(hostName);
     Map<String, DesiredConfig> desiredConfigMap = host.getDesiredConfigs(cluster.getClusterId());
 
-    findConfigurationPropertiesWithOverrides(configurations, configTags, cluster,
-        serviceName, clusterDesiredConfigs, desiredConfigMap);
+    return findConfigurationPropertiesWithOverrides(configurations, cluster,
+        serviceName, desiredConfigMap);
   }
 
-  private void findConfigurationPropertiesWithOverrides(
-    Map<String, Map<String, String>> configurations,
-    Map<String, Map<String, String>> configTags,
-    Cluster cluster, String serviceName, String hostName) throws AmbariException {
-
-    Map<String, DesiredConfig> clusterDesiredConfigs = cluster.getDesiredConfigs();
-
-    findConfigurationPropertiesWithOverrides(configurations, configTags, cluster,
-        serviceName, hostName, clusterDesiredConfigs);
-
-  }
 
   private List<Stage> doStageCreation(Cluster cluster,
       Map<State, List<Service>> changedServices,
@@ -1348,7 +1300,6 @@ public class AmbariManagementControllerImpl implements
       boolean runSmokeTest, boolean reconfigureClients)
       throws AmbariException {
 
-    Map<String, DesiredConfig> clusterDesiredConfigs = cluster.getDesiredConfigs();
 
     // TODO handle different transitions?
     // Say HDFS to stopped and MR to started, what order should actions be done
@@ -1531,10 +1482,8 @@ public class AmbariManagementControllerImpl implements
 
             // [ type -> [ key, value ] ]
             Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
-            Map<String, Map<String, String>> configTags = new HashMap<String, Map<String, String>>();
-
-            findConfigurationPropertiesWithOverrides(configurations, configTags, cluster, scHost.getServiceName(),
-                clusterDesiredConfigs, configsByHosts.get(scHost.getHostName()));
+            Map<String, Map<String, String>> configTags = findConfigurationPropertiesWithOverrides(
+                configurations, cluster, scHost.getServiceName(), configsByHosts.get(scHost.getHostName()));
 
             // HACK HACK HACK
             if (!scHost.getHostName().equals(jobtrackerHost)) {
@@ -1577,10 +1526,8 @@ public class AmbariManagementControllerImpl implements
 
         // [ type -> [ key, value ] ]
         Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String,String>>();
-        Map<String, Map<String, String>> configTags = new HashMap<String, Map<String,String>>();
-
-        findConfigurationPropertiesWithOverrides(configurations, configTags,
-            cluster, serviceName, clientHost, clusterDesiredConfigs);
+        Map<String, Map<String, String>> configTags = findConfigurationPropertiesWithOverrides(
+            configurations, cluster, serviceName, clientHost);
 
         stage.getExecutionCommandWrapper(clientHost,
             smokeTestRole).getExecutionCommand()
@@ -2739,10 +2686,7 @@ public class AmbariManagementControllerImpl implements
     
     // [ type -> [ key, value ] ]
     Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String,String>>();
-    Map<String, Map<String, String>> configTags = new TreeMap<String,
-      Map<String, String>>();
-
-    findConfigurationPropertiesWithOverrides(configurations, configTags,
+    Map<String, Map<String, String>> configTags = findConfigurationPropertiesWithOverrides(configurations,
       cluster, actionRequest.getServiceName(), hostName);
 
     ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostName,
@@ -2793,11 +2737,11 @@ public class AmbariManagementControllerImpl implements
 
     Map<String, Map<String, String>> configurations =
         new TreeMap<String, Map<String, String>>();
-    Map<String, Map<String, String>> configTags = new TreeMap<String,
-        Map<String, String>>();
 
-    findConfigurationPropertiesWithOverrides(configurations, configTags,
-        cluster, serviceName, namenodeHost);
+    
+    Map<String, Map<String, String>> configTags = findConfigurationPropertiesWithOverrides(
+        configurations, cluster, serviceName, namenodeHost);
+    
     // Add the tag for hdfs-exclude-file
     Map<String, String> excludeTags = new HashMap<String, String>();
     excludeTags.put(CLUSTER_LEVEL_TAG, config.getVersionTag());

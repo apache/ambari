@@ -87,11 +87,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   @Inject
   Clusters clusters;
   @Inject
-  HostComponentDesiredConfigMappingDAO
-      hostComponentDesiredConfigMappingDAO;
+  HostComponentDesiredConfigMappingDAO hostComponentDesiredConfigMappingDAO;
   @Inject
-  HostComponentConfigMappingDAO
-      hostComponentConfigMappingDAO;
+  HostComponentConfigMappingDAO hostComponentConfigMappingDAO;
+  
+  @Inject
+  ConfigHelper helper;
 
   private HostComponentStateEntity stateEntity;
   private HostComponentDesiredStateEntity desiredStateEntity;
@@ -1316,6 +1317,13 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
         r.setHa_status(ha_status);
         r.setActualConfigs(actualConfigs);
+
+        try {
+          r.setStaleConfig(helper.isStaleConfigs(this));
+        } catch (Exception e) {
+          LOG.error("Could not determine stale config", e);
+        }
+        
         return r;
       } finally {
         readLock.unlock();
@@ -1559,6 +1567,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     try {
       writeLock.lock();
       try {
+
         actualConfigs = new HashMap<String, DesiredConfig>();
 
         String hostName = getHostName();
@@ -1571,6 +1580,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           String hostTag = values.get("host_override_tag");
 
           DesiredConfig dc = new DesiredConfig();
+          dc.setServiceName(values.get("service_override_tag"));
           dc.setVersion(tag);
           actualConfigs.put(type, dc);
           if (null != hostTag && null != hostName) {
@@ -1619,4 +1629,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     }
 
   }
+  
+  
 }

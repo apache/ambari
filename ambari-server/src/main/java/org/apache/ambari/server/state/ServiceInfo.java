@@ -19,9 +19,15 @@
 package org.apache.ambari.server.state;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.controller.StackServiceResponse;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonFilter;
 
 @JsonFilter("propertiesfilter")
@@ -32,14 +38,16 @@ public class ServiceInfo {
   private String comment;
   private List<PropertyInfo> properties;
   private List<ComponentInfo> components;
-  private Boolean isDeleted = false;
+  private boolean isDeleted = false;
+  @JsonIgnore
+  private volatile Map<String, Set<String>> configLayout = null;
 
-  public Boolean isDeleted() {
+  public boolean isDeleted() {
     return isDeleted;
   }
 
   public void setDeleted(boolean deleted) {
-    isDeleted = Boolean.valueOf(deleted);
+    isDeleted = deleted;
   }
 
   public String getName() {
@@ -128,6 +136,72 @@ public class ServiceInfo {
   
   public StackServiceResponse convertToResponse()
   {
-    return new StackServiceResponse(getName(), getUser(), getComment(), getVersion());
+    return new StackServiceResponse(getName(), getUser(), getComment(), getVersion(),
+        getConfigTypes());
+  }
+  
+  public List<String> getConfigTypes() {
+    buildConfigLayout();
+    return new ArrayList<String>(configLayout.keySet());
+  }
+
+  
+  /**
+   * @param type the config type
+   * @return <code>true</code> if the service defines the supplied type
+   */
+  public boolean hasConfigType(String type) {
+    buildConfigLayout();
+    
+    return configLayout.containsKey(type);
+  }
+
+  /**
+   * The purpose of this method is to determine if a service has a property
+   * defined in a supplied set:
+   * <ul>
+   *   <li>If the type is not defined for the service, then no property can exist.</li>
+   *   <li>If the type is defined, then check each supplied property for existence.</li>
+   * </ul>
+   * @param type the config type
+   * @param keyNames the names of all the config keys for the given type 
+   * @return <code>true</code> if the config is stale
+   */
+  public boolean hasPropertyFor(String type, Collection<String> keyNames) {
+    if (!hasConfigType(type))
+      return false;
+    
+    Set<String> keys = configLayout.get(type);
+
+    for (String staleCheck : keyNames) {
+      if (keys.contains(staleCheck))
+        return true;
+    }
+    
+    return false;
+  }
+  
+  /**
+   * Builds the config map specific to this service.
+   */
+  private void buildConfigLayout() {
+    if (null == configLayout) {
+      synchronized(this) {
+        if (null == configLayout) {
+          configLayout = new HashMap<String, Set<String>>();
+        
+          for (PropertyInfo pi : getProperties()) {
+            String type = pi.getFilename();
+            int idx = type.indexOf(".xml");
+              type = type.substring(0, idx);
+            
+            if (!configLayout.containsKey(type))
+                configLayout.put(type, new HashSet<String>());
+            
+            configLayout.get(type).add(pi.getName());
+          }
+        }
+      }
+    }
   }
 }

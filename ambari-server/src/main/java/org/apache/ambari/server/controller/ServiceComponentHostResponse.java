@@ -50,6 +50,8 @@ public class ServiceComponentHostResponse {
   
   private String ha_status = "NA";
 
+  private boolean staleConfig = false;
+
 
   public ServiceComponentHostResponse(String clusterName, String serviceName,
                                       String componentName, String hostname,
@@ -269,6 +271,20 @@ public class ServiceComponentHostResponse {
    */
   public Map<String, DesiredConfig> getActualConfigs() {
     return actualConfigs;
+  }
+
+  /**
+   * @return if the configs are stale
+   */
+  public boolean isStaleConfig() {
+    return staleConfig;
+  }
+  
+  /**
+   * @param stale
+   */
+  public void setStaleConfig(boolean stale) {
+    staleConfig = stale;
   }
 
 }

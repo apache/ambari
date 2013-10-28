@@ -154,7 +154,7 @@ public class StackExtensionHelper {
       List<ServiceInfo> serviceInfoList = parentStack.getServices();
       for (ServiceInfo service : serviceInfoList) {
         ServiceInfo existingService = serviceInfoMap.get(service.getName());
-        if (service.isDeleted().booleanValue()) {
+        if (service.isDeleted()) {
           serviceInfoMap.remove(service.getName());
           continue;
         }
@@ -185,6 +185,9 @@ public class StackExtensionHelper {
         .FILENAME_FILTER);
       if (servicesFolders != null) {
         for (File serviceFolder : servicesFolders) {
+          if (!serviceFolder.isDirectory())
+            continue;
+          
           // Get information about service
           ServiceInfo serviceInfo = new ServiceInfo();
           serviceInfo.setName(serviceFolder.getName());
@@ -314,6 +317,7 @@ public class StackExtensionHelper {
         pi.setFilename(propertyFile.getName());
         list.add(pi);
       }
+      
       return list;
     } catch (Exception e) {
       LOG.error("Could not load configuration for " + propertyFile, e);

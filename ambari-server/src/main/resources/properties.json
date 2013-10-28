@@ -68,6 +68,7 @@
         "params/run_smoke_test",
         "HostRoles/nagios_alerts",
         "HostRoles/ha_status",
+        "HostRoles/stale_configs",
         "_"
     ],
     "Configuration":[
@@ -156,6 +157,7 @@
         "StackServices/user_name",
         "StackServices/comments",
         "StackServices/service_version",
+        "StackServices/config_types",
         "_"
     ],
     "StackConfiguration":[
