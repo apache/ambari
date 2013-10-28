@@ -58,7 +58,7 @@ class hdp-hive(
 
   if ($service_state == 'installed_and_configured' and ($hive_jdbc_driver == "com.mysql.jdbc.Driver" or $hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver")) {
     hdp::exec { "download DBConnectorVerification.jar" :
-      command => "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -s -o ${hdp::params::check_db_connection_jar_name} ${hdp::params::jdk_location}${hdp::params::check_db_connection_jar_name}'",
+      command => "/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf --retry 5 ${hdp::params::jdk_location}${hdp::params::check_db_connection_jar_name} -o ${hdp::params::check_db_connection_jar_name}'",
       unless  => "[ -f ${check_db_connection_jar} ]"
     }
   }
