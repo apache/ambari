@@ -221,7 +221,11 @@ module.exports = Em.Route.extend({
         }
       })
     },
-    next: Em.Router.transitionTo('step6'),
+    next: function (router) {
+      App.showConfirmationPopup(function () {
+        router.transitionTo('step6');
+      }, Em.I18n.t('services.reassign.step5.confirmPopup.body'));
+    },
 
     unroutePath: function () {
       return false;

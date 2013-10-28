@@ -1153,6 +1153,7 @@ Em.I18n.translations = {
       '</div>',
   'services.reassign.step5.body.securityNotice': 'Note: {0}',
   'services.reassign.step5.body.securityConfigsList': 'Keytab file <b>{0}</b> containing principal <b>{1}</b> should exist on <b>{2}</b>',
+  'services.reassign.step5.confirmPopup.body': 'Please confirm that you have run the manual steps before continuing.',
   'services.reassign.step6.header': 'Start and Test services',
   'services.reassign.step6.task0.title': 'Delete disabled {0}',
   'services.reassign.step6.task1.title': 'Start All Services',
