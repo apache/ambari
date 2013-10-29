@@ -306,7 +306,7 @@ module.exports = Em.Route.extend({
       $(context.currentTarget).parents("#modal").find(".close").trigger('click');
 
       // We need to do recovery based on whether we are in Add Host or Installer wizard
-      addHostController.saveClusterState('ADD_HOSTS_COMPLETED_5');
+      addHostController.saveClusterState('DEFAULT');
 
       router.transitionTo('main.index');
     }

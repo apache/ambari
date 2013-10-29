@@ -145,7 +145,7 @@ module.exports = Em.Route.extend({
       App.router.get('updateController').set('isWorking', true);
       App.clusterStatus.setClusterStatus({
         clusterName: router.get('content.cluster.name'),
-        clusterState: 'HIGH_AVAILABILITY_DISABLED',
+        clusterState: 'DEFAULT',
         wizardControllerName: 'rollbackHighAvailabilityWizardController',
         localdb: App.db.data
       });

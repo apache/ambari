@@ -317,7 +317,7 @@ module.exports = Em.Route.extend({
       addServiceController.get('popup').onClose();
       addServiceController.finish();
       // We need to do recovery based on whether we are in Add Host or Installer wizard
-      addServiceController.saveClusterState('ADD_SERVICES_COMPLETED_5');
+      addServiceController.saveClusterState('DEFAULT');
     }
   }),
 

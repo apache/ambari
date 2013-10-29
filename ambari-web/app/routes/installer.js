@@ -66,7 +66,7 @@ module.exports = Em.Route.extend({
                 App.db.data = currentClusterStatus.localdb;
                 router.transitionTo('step' + installerController.get('currentStep'));
                 break;
-              case 'CLUSTER_STARTED_5' :
+              case 'DEFAULT' :
               default:
                 router.transitionTo('main.index');
                 break;
@@ -400,7 +400,7 @@ module.exports = Em.Route.extend({
         controller.finish();
 
         // We need to do recovery based on whether we are in Add Host or Installer wizard
-        controller.saveClusterState('CLUSTER_STARTED_5');
+        controller.saveClusterState('DEFAULT');
 
         router.transitionTo('main.index');
       } else {

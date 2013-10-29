@@ -74,7 +74,7 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
    * - STACK_UPGRADING,
    * - STACK_UPGRADE_FAILED,
    * - STACK_UPGRADED,
-   * - STACK_UPGRADE_COMPLETED
+   * - DEFAULT = STACK UPGRADE COMPLETED
    */
   saveClusterStatus: function(clusterStatus){
     var oldStatus = this.get('content.cluster');

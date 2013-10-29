@@ -189,7 +189,7 @@ module.exports = Em.Route.extend({
         controller.get('popup').hide();
         App.clusterStatus.setClusterStatus({
           clusterName: router.get('reassignMasterController.content.cluster.name'),
-          clusterState: 'REASSIGN_MASTER_COMPLETED',
+          clusterState: 'DEFAULT',
           wizardControllerName: 'reassignMasterController',
           localdb: App.db.data
         });
@@ -253,7 +253,7 @@ module.exports = Em.Route.extend({
         controller.get('popup').hide();
         App.clusterStatus.setClusterStatus({
           clusterName: router.get('reassignMasterController.content.cluster.name'),
-          clusterState: 'REASSIGN_MASTER_COMPLETED',
+          clusterState: 'DEFAULT',
           wizardControllerName: 'reassignMasterController',
           localdb: App.db.data
         });
