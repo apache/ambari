@@ -19,7 +19,6 @@ limitations under the License.
 '''
 
 import optparse
-from pprint import pprint
 import shlex
 import sys
 import os
@@ -37,7 +36,6 @@ import time
 import getpass
 import socket
 import datetime
-import socket
 import tempfile
 import random
 import pwd
@@ -46,6 +44,10 @@ import pwd
 VERBOSE = False
 SILENT = False
 SERVER_START_DEBUG = False
+
+# OS info
+OS = platform.dist()[0].lower()
+OS_UBUNTU = 'ubuntu'
 
 # action commands
 SETUP_ACTION = "setup"
@@ -73,10 +75,6 @@ SE_STATUS_DISABLED = "disabled"
 SE_STATUS_ENABLED = "enabled"
 SE_MODE_ENFORCING = "enforcing"
 SE_MODE_PERMISSIVE = "permissive"
-
-# iptables commands
-IP_TBLS_STATUS_CMD = "/sbin/service iptables status"
-IP_TBLS_IS_NOT_RUNNING = "iptables: Firewall is not running."
 
 # server commands
 ambari_provider_module_option = ""
@@ -227,17 +225,33 @@ SETUP_DB_CMD = ['su', '-', 'postgres',
 UPGRADE_STACK_CMD = ['su', 'postgres',
         '--command=psql -f {0} -v stack_name="\'{1}\'"  -v stack_version="\'{2}\'" -v dbname="{3}"']
 UPDATE_METAINFO_CMD = 'curl -X PUT "http://{0}:{1}/api/v1/stacks2" -u "{2}":"{3}"'
-PG_ST_CMD = "/sbin/service postgresql status"
-PG_INITDB_CMD = "/sbin/service postgresql initdb"
-PG_START_CMD = "/sbin/service postgresql start"
-PG_RESTART_CMD = "/sbin/service postgresql restart"
+
 PG_STATUS_RUNNING = "running"
-PG_HBA_DIR = "/var/lib/pgsql/data/"
-PG_HBA_CONF_FILE = PG_HBA_DIR + "pg_hba.conf"
-PG_HBA_CONF_FILE_BACKUP = PG_HBA_DIR + "pg_hba_bak.conf.old"
-POSTGRESQL_CONF_FILE = PG_HBA_DIR + "postgresql.conf"
-PG_HBA_RELOAD_CMD = "su postgres --command='pg_ctl -D {0} reload'"
 PG_DEFAULT_PASSWORD = "bigdata"
+SERVICE_CMD = "/sbin/service"
+PG_SERVICE_NAME = "postgresql"
+PG_HBA_DIR = "/var/lib/pgsql/data"
+# iptables commands
+FIREWALL_SERVICE_NAME = "iptables"
+IP_TBLS_IS_NOT_RUNNING = "iptables: Firewall is not running."
+# on ubuntu iptables service is called ufw and other changes
+if OS == OS_UBUNTU:
+  FIREWALL_SERVICE_NAME = "ufw"
+  IP_TBLS_IS_NOT_RUNNING = "ufw stop/waiting"
+  PG_HBA_DIR = '/etc/postgresql/8.4/main'
+  SERVICE_CMD = "/usr/sbin/service"
+
+IP_TBLS_STATUS_CMD = "%s %s status" % (SERVICE_CMD, FIREWALL_SERVICE_NAME)
+
+PG_ST_CMD = "%s %s status" % (SERVICE_CMD, PG_SERVICE_NAME)
+PG_INITDB_CMD = "%s %s initdb" % (SERVICE_CMD, PG_SERVICE_NAME)
+PG_START_CMD = "%s %s start" % (SERVICE_CMD, PG_SERVICE_NAME)
+PG_RESTART_CMD = "%s %s restart" % (SERVICE_CMD, PG_SERVICE_NAME)
+PG_HBA_RELOAD_CMD = "%s %s reload" % (SERVICE_CMD, PG_SERVICE_NAME)
+
+PG_HBA_CONF_FILE = os.path.join(PG_HBA_DIR, "pg_hba.conf")
+PG_HBA_CONF_FILE_BACKUP = os.path.join(PG_HBA_DIR, "pg_hba_bak.conf.old")
+POSTGRESQL_CONF_FILE = os.path.join(PG_HBA_DIR, "postgresql.conf")
 
 JDBC_DATABASE_PROPERTY = "server.jdbc.database"
 JDBC_HOSTNAME_PROPERTY = "server.jdbc.hostname"
@@ -771,7 +785,7 @@ def check_iptables():
     print err
 
   if out and len(out) > 0 and not out.strip() == IP_TBLS_IS_NOT_RUNNING:
-    print_warning_msg("iptables is running. Confirm the necessary Ambari ports are accessible. " +
+    print_warning_msg("%s is running. Confirm the necessary Ambari ports are accessible. " % FIREWALL_SERVICE_NAME +
       "Refer to the Ambari documentation for more details on ports.")
     ok = get_YN_input("OK to continue [y/n] (y)? ", True)
     if not ok:
@@ -796,8 +810,7 @@ def configure_pg_hba_ambaridb_users():
     pgHbaConf.write("host  all   " + args.database_username +
                     ",mapred ::/0 md5")
     pgHbaConf.write("\n")
-  command = PG_HBA_RELOAD_CMD.format(PG_HBA_DIR)
-  retcode, out, err = run_os_command(command)
+  retcode, out, err = run_os_command(PG_HBA_RELOAD_CMD)
   if not retcode == 0:
     raise FatalException(retcode, err)
 
@@ -964,17 +977,13 @@ def check_db_consistency(args, file):
       return 0
   return -1
 
-
-
 def get_postgre_status():
   retcode, out, err = run_os_command(PG_ST_CMD)
   try:
-    pg_status = re.search('(stopped|running)', out).group(0)
+    pg_status = re.search('(stopped|running)', out, re.IGNORECASE).group(0).lower()
   except AttributeError:
     pg_status = None
   return pg_status
-
-
 
 def check_postgre_up():
   pg_status = get_postgre_status()
@@ -982,10 +991,12 @@ def check_postgre_up():
     print_info_msg ("PostgreSQL is running")
     return 0
   else:
-    print "Running initdb: This may take upto a minute."
-    retcode, out, err = run_os_command(PG_INITDB_CMD)
-    if retcode == 0:
-      print out
+    # run initdb only on non ubuntu systems as ubuntu does not have initdb cmd.
+    if OS != OS_UBUNTU:
+      print "Running initdb: This may take upto a minute."
+      retcode, out, err = run_os_command(PG_INITDB_CMD)
+      if retcode == 0:
+        print out
     print "About to start PostgreSQL"
     try:
       process = subprocess.Popen(PG_START_CMD.split(' '),
@@ -3758,7 +3769,6 @@ def main():
   parser.add_option('--databasepassword', default=None, help="Database user password", dest="database_password")
   parser.add_option('--sidorsname', default="sname", help="Oracle database identifier type, Service ID/Service "
                                                          "Name sid|sname", dest="sid_or_sname")
-
   (options, args) = parser.parse_args()
 
   # set verbose
