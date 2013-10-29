@@ -323,12 +323,6 @@
               <groupname>root</groupname>
             </mapping>
             <mapping>
-              <directory>/var/ambari-agent</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-            </mapping>
-            <mapping>
               <directory>/etc/rc.d/init.d</directory>
               <filemode>755</filemode>
               <username>root</username>
