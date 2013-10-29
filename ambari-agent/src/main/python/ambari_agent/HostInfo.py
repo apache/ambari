@@ -47,7 +47,7 @@ class HostInfo:
 
   # List of live services checked for on the host, takes a map of plan strings
   DEFAULT_LIVE_SERVICES = [
-    {"redhat":"ntpd", "suse":"ntp"}
+    {"redhat":"ntpd", "suse":"ntp", "ubuntu":"ntp"}
   ]
 
   # Set of default users (need to be replaced with the configured user names)
@@ -102,8 +102,19 @@ class HostInfo:
   TIMEOUT_SECONDS = 60
   RESULT_UNAVAILABLE = "unable_to_determine"
 
-  IP_TBLS_IS_NOT_RUNNING = "iptables: Firewall is not running."
+  OS_NAME = platform.dist()[0].lower()
+  OS_UBUNTU = 'ubuntu'
+  # service cmd
+  SERVICE_CMD = "/sbin/service"
+  FIREWALL_SERVICE_NAME = "iptables"
+  FIREWALL_IS_NOT_RUNNING_MSG = "iptables: Firewall is not running."
+  # on ubuntu iptables service is called ufw
+  if OS_NAME == OS_UBUNTU:
+    SERVICE_CMD = "/usr/sbin/service"
+    FIREWALL_SERVICE_NAME = "ufw"
+    FIREWALL_IS_NOT_RUNNING_MSG = "ufw stop/waiting"
 
+  FIREWALL_STATUS_CMD = "%s %s status" % (SERVICE_CMD, FIREWALL_SERVICE_NAME)
   event = threading.Event()
   
   current_umask = -1
@@ -167,8 +178,7 @@ class HostInfo:
       svcCheckResult['status'] = "UNKNOWN"
       svcCheckResult['desc'] = ""
       try:
-        cmd = "/sbin/service " + serviceName + " status"
-        osStat = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+        osStat = subprocess.Popen(shlex.split(self.FIREWALL_STATUS_CMD), stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE)
         out, err = osStat.communicate()
         if 0 != osStat.returncode:
@@ -277,9 +287,9 @@ class HostInfo:
   def checkIptables(self):
     iptablesIsRunning = False
     try:
-      iptables = subprocess.Popen(["/sbin/service", "iptables", "status"], stdout=subprocess.PIPE)
+      iptables = subprocess.Popen(self.FIREWALL_STATUS_CMD.split(), stdout=subprocess.PIPE)
       iptablesOut = iptables.communicate()[0]
-      if iptablesOut and len(iptablesOut) > 0 and not iptablesOut.strip() == self.IP_TBLS_IS_NOT_RUNNING:
+      if iptablesOut and len(iptablesOut) > 0 and not iptablesOut.strip() == self.FIREWALL_IS_NOT_RUNNING_MSG:
         iptablesIsRunning = True
     except:
       pass

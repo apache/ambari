@@ -50,6 +50,7 @@ import org.apache.ambari.server.state.stack.RepositoryXml.Os;
 import org.apache.ambari.server.state.stack.RepositoryXml.Repo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.Arrays;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -72,6 +73,12 @@ public class AmbariMetaInfo {
   private static final String REPOSITORY_FILE_NAME = "repoinfo.xml";
   private static final String REPOSITORY_FOLDER_NAME = "repos";
   private static final String REPOSITORY_XML_PROPERTY_BASEURL = "baseurl";
+  // all the supported OS'es
+  private static final ArrayList<String> ALL_SUPPORTED_OS = new
+    ArrayList<String>(
+    Arrays.asList("centos5", "redhat5", "centos6", "redhat6", "oraclelinux5",
+      "oraclelinux6", "suse11", "sles11", "ubuntu12")
+  );
 
   public static final FilenameFilter FILENAME_FILTER = new FilenameFilter() {
     @Override
@@ -693,11 +700,7 @@ public class AmbariMetaInfo {
   }
 
   public boolean isOsSupported(String osType) {
-    return osType.equals("redhat5") || osType.equals("centos5") ||
-            osType.equals("oraclelinux5") ||
-            osType.equals("redhat6") || osType.equals("centos6") ||
-            osType.equals("oraclelinux6") ||
-            osType.equals("suse11") || osType.equals("sles11");
+    return ALL_SUPPORTED_OS.contains(osType);
   }
   
   private String generateRepoMetaKey(String stackName, String stackVersion,
