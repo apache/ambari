@@ -1090,13 +1090,13 @@ Em.I18n.translations = {
   'services.reassign.step1.message3': '<b>All services will be restarted as part of the wizard. You should plan a cluster maintenance window and prepare ' +
     'for cluster downtime when reassigning {0}.</b>',
 
-  'services.reassign.step2.header':'Assign Masters',
+  'services.reassign.step2.header':'Assign Master',
   'services.reassign.step3.header':'Review',
   'services.reassign.step3.body':'Please review the changes you made',
   'services.reassign.step3.targetHost':'Target Host:',
   'services.reassign.step3.sourceHost':'Source Host:',
   'services.reassign.step3.component':'Component name:',
-  'services.reassign.step4.header':'Configure Components',
+  'services.reassign.step4.header':'Configure Component',
   'services.reassign.step4.task0.title':'Stop All Services',
   'services.reassign.step4.task1.title':'Create {0}',
   'services.reassign.step4.task2.title':'Disable {0}',
@@ -1118,10 +1118,9 @@ Em.I18n.translations = {
       '<ol>' +
       '<li>Copy contents of <b>{0}</b> from source host <b>{1}</b> to the target host <b>{2}</b> same locations</li>' +
       '<li>Login to the target host <b>{2}</b> and change permissions for the NameNode dirs by running:' +
-      '<div class="code-snippet">chown -R hdfs:hadoop /hadoop/hdfs/namenode/</div></li>' +
+      '<div class="code-snippet">chown -R {3}:{5} /hadoop/hdfs/namenode/</div></li>' +
       '<li>Create marker directory by running:' +
       '<div class="code-snippet">mkdir -p /var/run/hadoop/hdfs/namenode/formatted</div></li>' +
-      '<li>Proceed next' +
       '</ol>' +
       '</div>',
   'services.reassign.step5.body.namenode_ha':
@@ -1140,25 +1139,26 @@ Em.I18n.translations = {
       '<li>Initialize the metadata by running:' +
       "<div class='code-snippet'>sudo su -l {3} -c 'hdfs namenode -bootstrapStandby'</div></li>" +
       '</ol>' +
-      '</div>' +
-      'Please proceed once you have completed the steps above.',
+      '</div>',
   'services.reassign.step5.body.secondary_namenode':
       '<div class="alert alert-info">' +
       '<ol>' +
       '<li>Copy contents of <b>{0}</b> from source host <b>{1}</b> to the target host <b>{2}</b> same locations</li>' +
       '<li>Login to the target host <b>{2}</b> and change permissions for the SNameNode dirs by running:' +
-      '<div class="code-snippet">chown -R hdfs:hadoop /hadoop/hdfs/namesecondary/</div></li>' +
-      '<li>Proceed next' +
+      '<div class="code-snippet">chown -R {3}:{5} /hadoop/hdfs/namesecondary/</div></li>' +
       '</ol>' +
       '</div>',
-  'services.reassign.step5.body.securityNotice': 'Note: {0}',
-  'services.reassign.step5.body.securityConfigsList': 'Keytab file <b>{0}</b> containing principal <b>{1}</b> should exist on <b>{2}</b>',
+  'services.reassign.step5.body.securityNotice': '<div class="alert alert-info"> <div class="alert alert-warn"> <strong>Note: </strong> Secure cluster' +
+    ' requires generating necessary principals for reassigned component and creating keytab files with the principal on ' +
+    'the target host. The keytab file should be accessible to the service user.</div> {0} </div>',
+  'services.reassign.step5.body.securityConfigsList': 'Create keytab file <b>{0}</b> with principal <b>{1}</b> on <b>{2}</b> host.',
+  'services.reassign.step5.body.proceedMsg': 'Please proceed once you have completed the steps above',
   'services.reassign.step5.confirmPopup.body': 'Please confirm that you have run the manual steps before continuing.',
   'services.reassign.step6.header': 'Start and Test services',
   'services.reassign.step6.task0.title': 'Delete disabled {0}',
   'services.reassign.step6.task1.title': 'Start All Services',
-  'services.reassign.step6.status.success': 'Successfully moved <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host',
-  'services.reassign.step6.status.failed': 'Failed to move <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host',
+  'services.reassign.step6.status.success': 'Successfully moved <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host.',
+  'services.reassign.step6.status.failed': 'Failed to move <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host.',
   'services.reassign.step6.status.info': 'Reassigning {0}. \nPlease wait for all tasks to be completed.',
 
   /** services page constants **/

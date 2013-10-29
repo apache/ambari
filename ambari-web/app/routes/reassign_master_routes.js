@@ -212,7 +212,7 @@ module.exports = Em.Route.extend({
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
         controller.setLowerStepsDisable(5);
-        if ((controller.get('content.reassign.component_name') === 'NAMENODE') && (!App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE'))) {
+        if ((controller.get('content.reassign.component_name') === 'NAMENODE') || controller.get('content.reassign.component_name') === 'SECONDARY_NAMENODE') {
           controller.usersLoading().done(function () {
             controller.connectOutlet('reassignMasterWizardStep5', controller.get('content'));
           })

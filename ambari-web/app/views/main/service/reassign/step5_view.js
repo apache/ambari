@@ -35,13 +35,14 @@ App.ReassignMasterWizardStep5View = Em.View.extend({
       ha = '_ha';
       var nnStartedHost = this.get('controller.content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName').without(this.get('controller.content.reassignHosts.target'));
     }
-    return  Em.I18n.t('services.reassign.step5.body.' + this.get('controller.content.reassign.component_name').toLowerCase() + ha).format(componentDir, sourceHost, targetHost, this.get('controller.content.hdfsUser'), nnStartedHost);
+    return  Em.I18n.t('services.reassign.step5.body.' + this.get('controller.content.reassign.component_name').toLowerCase() + ha).format(componentDir, sourceHost, targetHost, this.get('controller.content.hdfsUser'), nnStartedHost,this.get('controller.content.group'));
   }.property('controller.content.reassign.component_name', 'controller.content.componentDir', 'controller.content.masterComponentHosts', 'controller.content.reassign.host_id', 'controller.content.hdfsUser'),
 
   securityNotice: function () {
     var secureConfigs = this.get('controller.content.secureConfigs');
+    var proceedMsg = Em.I18n.t('services.reassign.step5.body.proceedMsg');
     if (!this.get('controller.content.securityEnabled') || !secureConfigs.length) {
-      return '';
+      return proceedMsg;
     }
     var formattedText = '<ul>';
     secureConfigs.forEach(function (config) {
@@ -49,6 +50,6 @@ App.ReassignMasterWizardStep5View = Em.View.extend({
           config.principal.replace('_HOST', this.get('controller.content.reassignHosts.target')), this.get('controller.content.reassignHosts.target')) + '</li>';
     }, this);
     formattedText += '</ul>';
-    return Em.I18n.t('services.reassign.step5.body.securityNotice').format(formattedText);
+    return Em.I18n.t('services.reassign.step5.body.securityNotice').format(formattedText) + proceedMsg;
   }.property('controller.content.securityEnabled', 'controller.content.secureConfigs', 'controller.content.reassignHosts.target')
 });

@@ -76,6 +76,9 @@ App.MainAdminMiscController = App.MainServiceInfoConfigsController.extend({
     if(this.get("content.hdfsUser")){
       this.get('content').set('hdfsUser', misc_configs.findProperty('name','hdfs_user').get("value"));
     }
+    if (this.get("content.group")) {
+      this.get('content').set('group', misc_configs.findProperty('name','user_group').get("value"));
+    }
     this.set('dataIsLoaded', true);
   }
 });

@@ -53,6 +53,7 @@ App.ReassignMasterController = App.WizardController.extend({
     controllerName: 'reassignMasterController',
     serviceName: 'MISC',
     hdfsUser: "hdfs",
+    group: "hadoop",
     reassign: null,
     componentsWithManualCommands: ['NAMENODE', 'SECONDARY_NAMENODE'],
     hasManualSteps: false,
