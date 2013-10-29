@@ -64,11 +64,12 @@ App.ChartServiceMetricsYARN_QMR = App.ChartLinearTimeView.extend({
         var seriesData = null;
         if (allocatedData != null && availableData != null) {
           if (typeof allocatedData == "number" && typeof availableData == "number") {
-            seriesData = (allocatedData * 100) / availableData;
+            seriesData = (availableData != 0) ? (allocatedData * 100) / availableData : 0;
           } else if (allocatedData.length > 0 && availableData.length > 0) {
             seriesData = [];
             for ( var c = 0; c < Math.min(availableData.length, allocatedData.length); c++) {
-              seriesData.push([ (allocatedData[c][0] * 100) / availableData[c][0], allocatedData[c][1] ]);
+              var allocDivAvail =  (availableData[c][0] != 0) ? (allocatedData[c][0] * 100) / availableData[c][0] : 0;
+              seriesData.push([allocDivAvail, allocatedData[c][1] ]);
             }
           } else {
             console.log("Skipping data series for Queue " + qName);
