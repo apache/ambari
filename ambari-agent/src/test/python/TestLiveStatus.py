@@ -23,6 +23,8 @@ from ambari_agent.LiveStatus import LiveStatus
 from ambari_agent.AmbariConfig import AmbariConfig
 import socket
 import os, sys, StringIO
+from ambari_agent import ActualConfigHandler
+from mock.mock import patch, MagicMock, call
 
 class TestLiveStatus(TestCase):
 
@@ -36,7 +38,8 @@ class TestLiveStatus(TestCase):
     # enable stdout
     sys.stdout = sys.__stdout__
 
-  def test_build(self):
+  @patch.object(ActualConfigHandler.ActualConfigHandler, "read_actual_component")
+  def test_build(self, read_actual_component_mock):
     for component in LiveStatus.COMPONENTS:
       config = AmbariConfig().getConfig()
       config.set('agent', 'prefix', "dummy_files")
@@ -48,4 +51,10 @@ class TestLiveStatus(TestCase):
       if component['componentName'] == 'GANGLIA_SERVER':
         self.assertEquals(result['stackVersion'],'{"stackName":"HDP","stackVersion":"1.2.2"}',
                       'Livestatus should contain component stack version')
-  
+
+    # Test build status for CLIENT component (in LiveStatus.CLIENT_COMPONENTS)
+    read_actual_component_mock.return_value = "some tags"
+    livestatus = LiveStatus('c1', 'HDFS', 'HDFS_CLIENT', { }, config)
+    result = livestatus.build()
+    self.assertTrue(len(result) > 0, 'Livestatus should not be empty')
+    self.assertTrue(result.has_key('configurationTags'))

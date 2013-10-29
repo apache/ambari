@@ -169,7 +169,7 @@ public class TestHeartbeatMonitor {
   }
 
   @Test
-  public void testNoStatusCommandForClientComponents() throws Exception {
+  public void testStatusCommandForAnyComponents() throws Exception {
     Clusters clusters = injector.getInstance(Clusters.class);
     clusters.addHost(hostname1);
     clusters.getHost(hostname1).setOsType("centos6");
@@ -235,9 +235,11 @@ public class TestHeartbeatMonitor {
     hb.setResponseId(12);
     handler.handleHeartBeat(hb);
 
+    // HeartbeatMonitor should generate StatusCommands for
+    // MASTER, SLAVE or CLIENT components
     List<StatusCommand> cmds = hm.generateStatusCommands(hostname1);
     assertTrue("HeartbeatMonitor should generate StatusCommands for host1",
-      cmds.size() == 3);
+      cmds.size() == 4);
     assertEquals("HDFS", cmds.get(0).getServiceName());
     boolean containsDATANODEStatus = false;
     boolean containsNAMENODEStatus = false;
@@ -255,11 +257,12 @@ public class TestHeartbeatMonitor {
     assertTrue(containsDATANODEStatus);
     assertTrue(containsNAMENODEStatus);
     assertTrue(containsSECONDARY_NAMENODEStatus);
-    assertFalse(containsHDFS_CLIENTStatus);
+    assertTrue(containsHDFS_CLIENTStatus);
 
     cmds = hm.generateStatusCommands(hostname2);
-    assertTrue("HeartbeatMonitor should not generate StatusCommands for host2" +
-      " because it has only client components", cmds.isEmpty());
+    assertTrue("HeartbeatMonitor should generate StatusCommands for host2, " +
+      "even if it has only client components", cmds.size() == 1);
+    assertTrue(cmds.get(0).getComponentName().equals(Role.HDFS_CLIENT.name()));
   }
 
   @Test
