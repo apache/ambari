@@ -101,38 +101,41 @@ public class JsonSerializer implements ResultSerializer {
   }
 
   private void processNode(TreeNode<Resource> node) throws IOException {
-    String name = node.getName();
-    Resource r = node.getObject();
 
-    if (r == null) {
-      if (name != null) {
-        if (node.getParent() == null) {
-          m_generator.writeStartObject();
-          writeHref(node);
-        }
-        m_generator.writeArrayFieldStart(name);
-      }
-    } else {
+    if (isObject(node)) {
       m_generator.writeStartObject();
       writeHref(node);
-      // resource props
-      handleResourceProperties(getTreeProperties(r.getPropertiesMap()));
+
+      Resource r = node.getObject();
+      if (r != null) {
+        handleResourceProperties(getTreeProperties(r.getPropertiesMap()));
+      }
+    }
+    if (isArray(node)) {
+      m_generator.writeArrayFieldStart(node.getName());
     }
 
     for (TreeNode<Resource> child : node.getChildren()) {
       processNode(child);
     }
 
-    if (r == null) {
-      if (name != null) {
-        m_generator.writeEndArray();
-        if (node.getParent() == null) {
-          m_generator.writeEndObject();
-        }
-      }
-    } else {
+    if (isArray(node)) {
+      m_generator.writeEndArray();
+    }
+    if (isObject(node)) {
       m_generator.writeEndObject();
     }
+  }
+
+  // Determines whether or not the given node is an object
+  private boolean isObject(TreeNode<Resource> node) {
+    return node.getObject() != null ||
+        ((node.getName() != null) && ((node.getParent() == null) || !isObject(node.getParent())));
+  }
+
+  // Determines whether or not the given node is an array
+  private boolean isArray(TreeNode<Resource> node) {
+    return node.getObject() == null && node.getName() != null;
   }
 
   private TreeNode<Map<String, Object>> getTreeProperties (Map<String, Map<String, Object>> propertiesMap) {

@@ -198,14 +198,23 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
    *
    * @return the request status
    */
-  protected RequestStatus getRequestStatus(RequestStatusResponse response) {
+  protected RequestStatus getRequestStatus(RequestStatusResponse response, Set<Resource> associatedResources) {
     if (response != null){
       Resource requestResource = new ResourceImpl(Resource.Type.Request);
       requestResource.setProperty(PropertyHelper.getPropertyId("Requests", "id"), response.getRequestId());
       requestResource.setProperty(PropertyHelper.getPropertyId("Requests", "status"), "InProgress");
-      return new RequestStatusImpl(requestResource);
+      return new RequestStatusImpl(requestResource, associatedResources);
     }
-    return new RequestStatusImpl(null);
+    return new RequestStatusImpl(null, associatedResources);
+  }
+
+  /**
+   * Get a request status
+   *
+   * @return the request status
+   */
+  protected RequestStatus getRequestStatus(RequestStatusResponse response) {
+    return getRequestStatus(response, null) ;
   }
 
   /**
