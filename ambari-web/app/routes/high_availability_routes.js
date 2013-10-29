@@ -64,9 +64,17 @@ module.exports = Em.Route.extend({
               App.router.transitionTo('rollbackHighAvailability');
             }
           }else {
-            this.hide();
-            App.router.get('highAvailabilityWizardController').setCurrentStep('1');
+            var controller = App.router.get('highAvailabilityWizardController');
+            controller.clearStorageData();
+            controller.setCurrentStep('1');
             App.router.get('updateController').set('isWorking', true);
+            App.clusterStatus.setClusterStatus({
+              clusterName: App.router.get('content.cluster.name'),
+              clusterState: 'DEFAULT',
+              wizardControllerName: App.router.get('highAvailabilityWizardController.name'),
+              localdb: App.db.data
+            });
+            this.hide();
             App.router.transitionTo('main.admin.adminHighAvailability');
           }
 
@@ -301,7 +309,7 @@ module.exports = Em.Route.extend({
       controller.get('popup').hide();
       App.clusterStatus.setClusterStatus({
         clusterName: controller.get('content.cluster.name'),
-        clusterState: 'HIGH_AVAILABILITY_COMPLETED',
+        clusterState: 'DEFAULT',
         wizardControllerName: 'highAvailabilityWizardController',
         localdb: App.db.data
       });
