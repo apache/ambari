@@ -44,6 +44,7 @@ require('controllers/main/admin/rollbackHA/step2_controller');
 require('controllers/main/admin/rollbackHA/step3_controller');
 require('controllers/main/admin/rollbackHA/rollback_wizard_controller');
 require('controllers/main/admin/cluster');
+require('controllers/main/admin/user_settings');
 require('controllers/main/admin/stack_upgrade_controller');
 require('controllers/main/admin/user');
 require('controllers/main/admin/misc_controller');

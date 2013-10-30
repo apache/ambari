@@ -72,6 +72,7 @@ require('views/main/admin/rollbackHA/step3_view');
 require('views/main/admin/rollbackHA/rollback_wizard_view');
 require('views/main/admin/cluster');
 require('views/main/admin/misc_view');
+require('views/main/admin/user_settings');
 require('views/main/admin/stack_upgrade');
 require('views/main/admin/advanced');
 require('views/main/admin/advanced/password');

@@ -39,6 +39,8 @@ App.ModalPopup = Ember.View.extend({
     '{{#if footerClass}}{{view footerClass}}',
     '{{else}}',
     '<div class="modal-footer">',
+    '{{#if view.hasFooterCheckbox}} <label id="footer-checkbox" class="span8">  {{view Ember.Checkbox classNames="checkbox" checkedBinding="view.isNotShowBgChecked"}} &nbsp;' +
+      '{{t admin.userSettings.notShowBgOperations}}</label> {{/if}}',
     '{{#if view.secondary}}<a class="btn" {{action onSecondary target="view"}}>{{view.secondary}}</a>{{/if}}',
     '{{#if view.primary}}<a {{bindAttr class="view.enablePrimary::disabled :btn :btn-success"}} {{action onPrimary target="view"}}>{{view.primary}}</a>{{/if}}',
     '</div>',

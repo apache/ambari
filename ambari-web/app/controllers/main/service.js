@@ -110,7 +110,9 @@ App.MainServiceController = Em.ArrayController.extend({
     var requestId = data.Requests.id;
     console.log('requestId is: ' + requestId);
 
-    App.router.get('backgroundOperationsController').showPopup();
+    if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked()) {
+      App.router.get('backgroundOperationsController').showPopup();
+    }
   },
   allServicesCallErrorCallback: function() {
     console.log("ERROR");
