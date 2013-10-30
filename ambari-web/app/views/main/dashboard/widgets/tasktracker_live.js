@@ -44,7 +44,11 @@ App.TaskTrackerUpView = App.TextDashboardWidgetView.extend({
   }.property('model.hostComponents.@each'),
 
   data: function () {
-    return (this.get('taskTrackersLive').length / this.get('model.taskTrackers.length')).toFixed(2) * 100;
+    if (!this.get('model.taskTrackers.length')) {
+      return -1;
+    } else {
+      return (this.get('taskTrackersLive').length / this.get('model.taskTrackers.length')).toFixed(2) * 100;
+    }
   }.property('model.taskTrackers.length', 'taskTrackersLive'),
 
   content: function () {

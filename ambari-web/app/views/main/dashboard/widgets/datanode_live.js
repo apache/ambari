@@ -49,7 +49,11 @@ App.DataNodeUpView = App.TextDashboardWidgetView.extend({
   }.property('model.hostComponents.@each'),
 
   data: function () {
-    return ((this.get('dataNodesLive').length / this.get('model.dataNodes.length')).toFixed(2)) * 100;
+    if ( !this.get('model.dataNodes.length')) {
+      return -1;
+    } else {
+      return ((this.get('dataNodesLive').length / this.get('model.dataNodes.length')).toFixed(2)) * 100;
+    }
   }.property('model.dataNodes.length', 'dataNodesLive'),
 
   content: function () {

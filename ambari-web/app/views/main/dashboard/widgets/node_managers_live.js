@@ -49,7 +49,11 @@ App.NodeManagersLiveView = App.TextDashboardWidgetView.extend({
   data:  function () {
     var nodeManagers = this.get('model.nodeManagerNodes.length');
     var nodeManagersLive = this.get('model.nodeManagerLiveNodes.length');
-    return (nodeManagersLive / nodeManagers).toFixed(2) * 100;
+    if (!nodeManagers) {
+      return -1;
+    } else {
+      return (nodeManagersLive / nodeManagers).toFixed(2) * 100;
+    }
   }.property('model.nodeManagerNodes.length', 'model.nodeManagerLiveNodes.length'),
 
   content: function () {
