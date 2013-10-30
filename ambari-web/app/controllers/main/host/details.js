@@ -705,7 +705,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       header: Em.I18n.t('hosts.cant.do.popup.title'),
       type: type,
       showBodyEnd: function() {
-        return this.get('type') === 'runningList';
+        return this.get('type') === 'runningList' || this.get('type') === 'masterList';
       }.property(),
       components: components,
       componentsStr: function() {
