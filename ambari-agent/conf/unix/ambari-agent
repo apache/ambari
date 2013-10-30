@@ -99,6 +99,11 @@ check_python_version ()
 
 retcode=0
 
+if [ "$(id -u)" != "0" ]; then
+ echo "You can't perform this operation as non-root user. Please, re-login as root user"
+ exit 0
+fi
+
 case "$1" in
   start)
         check_python_version
