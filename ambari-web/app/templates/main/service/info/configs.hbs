@@ -19,9 +19,19 @@
 <div id="serviceConfig">
   {{#if dataIsLoaded}}
     {{#if App.supports.hostOverrides}}
-	    <div class="pull-right">
-	      {{view App.FilterComboboxView filterBinding="controller.filter" columnsBinding="controller.filterColumns" }}
-	    </div>
+      {{#if controller.content.isRestartRequired}}
+        <div>
+          <div class="alert alert-warning clearfix">
+            <i class="icon-refresh"></i> {{{view.needToRestartMessage}}} <a href="#" {{action showComponentsShouldBeRestarted target="controller"}}>{{view.componentsCount}} {{t common.components}}</a> {{t on}} <a href="#" {{action showHostsShouldBeRestarted target="controller"}}>{{view.hostsCount}} {{t dashboard.services.hosts}}</a> {{t services.service.config.restartService.needToRestartEnd}}
+            <button class="btn btn-warning restart-components pull-right" {{action restartComponents target="controller"}}>
+              {{t hosts.host.details.needToRestart.button}}
+            </button>
+          </div>
+        </div>
+      {{/if}}
+    <div class="pull-right">
+      {{view App.FilterComboboxView filterBinding="controller.filter" columnsBinding="controller.filterColumns" }}
+    </div>
 	  {{/if}}
     <div class="clearfix"></div>
     {{view App.ServiceConfigView filterBinding="controller.filter" columnsBinding="controller.filterColumns"}}

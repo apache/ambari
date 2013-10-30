@@ -801,5 +801,12 @@ App.MainHostDetailsController = Em.Controller.extend({
         this.hide();
       }
     })
+  },
+
+  restartComponents: function() {
+    App.showConfirmationPopup(function() {
+
+    });
   }
+
 });

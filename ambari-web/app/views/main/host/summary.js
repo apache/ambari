@@ -32,6 +32,14 @@ App.MainHostSummaryView = Em.View.extend({
     window.open(gangliaMobileUrl);
   },
 
+  needToRestartComponentsCount: function() {
+    return this.get('sortedComponents').filterProperty('staleConfigs', true).length;
+  }.property('sortedComponents'),
+
+  needToRestartMessage: function() {
+    return Em.I18n.t('hosts.host.details.needToRestart').format(this.get('needToRestartComponentsCount'));
+  }.property(),
+
   /**
    * @type: [{String}]
    */

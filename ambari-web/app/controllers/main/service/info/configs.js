@@ -1545,5 +1545,54 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
   doCancel: function () {
     this.loadStep();
+  },
+  restartComponents: function() {
+    App.showConfirmationPopup(function() {
+
+    });
+  },
+  showHostsShouldBeRestarted: function() {
+    var hosts = [];
+    for(var hostName in this.get('content.restartRequiredHostsAndComponents')) {
+      hosts.push(hostName);
+    }
+    hosts = hosts.join(', ');
+    this.showItemsShouldBeRestarted(hosts, Em.I18n.t('service.service.config.restartService.hostsShouldBeRestarted'));
+  },
+  showComponentsShouldBeRestarted: function() {
+    var rhc = this.get('content.restartRequiredHostsAndComponents');
+    var hostsComponets = [];
+    for(var hostName in rhc) {
+      rhc[hostName].forEach(function(hostComponent) {
+        hostsComponets.push(hostComponent);
+      })
+    }
+    hostsComponets = hostsComponets.join(', ');
+    this.showItemsShouldBeRestarted(hostsComponets, Em.I18n.t('service.service.config.restartService.componentsShouldBeRestarted'));
+  },
+
+  showItemsShouldBeRestarted: function(content, header) {
+    App.ModalPopup.show({
+      content: content,
+      header: header,
+      bodyClass: Em.View.extend({
+        templateName: require('templates/common/selectable_popup'),
+        textareaVisible: false,
+        textTrigger: function() {
+          this.set('textareaVisible', !this.get('textareaVisible'));
+        },
+        putContentToTextarea: function() {
+          var content = this.get('parentView.content');
+          if (this.get('textareaVisible')) {
+            var wrapper = $(".task-detail-log-maintext");
+            $('.task-detail-log-clipboard').html(content).width(wrapper.width()).height(wrapper.height());
+            Em.run.next(function() {
+              $('.task-detail-log-clipboard').select();
+            });
+          }
+        }.observes('textareaVisible')
+      }),
+      secondary: null
+    });
   }
 });

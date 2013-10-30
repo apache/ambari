@@ -30,6 +30,7 @@
                 "service_name" : "GANGLIA",
                 "stack_id" : "HDP-2.0.5",
                 "state" : "STARTED",
+                "stale_configs": "true",
                 "actual_configs" : {
                   "capacity-scheduler" : {
                     "tag" : "version1"
@@ -93,6 +94,7 @@
                 "service_name" : "GANGLIA",
                 "stack_id" : "HDP-2.0.5",
                 "state" : "STARTED",
+                "stale_configs": "true",
                 "actual_configs" : {
                   "capacity-scheduler" : {
                     "tag" : "version1"
@@ -199,6 +201,7 @@
                 "desired_stack_id" : "HDP-2.0.5",
                 "desired_state" : "STARTED",
                 "ha_status" : "passive",
+                "stale_configs": "true",
                 "host_name" : "dev01.hortonworks.com",
                 "service_name" : "HBASE",
                 "stack_id" : "HDP-2.0.5",
@@ -884,6 +887,7 @@
                 "service_name" : "MAPREDUCE2",
                 "stack_id" : "HDP-2.0.5",
                 "state" : "STARTED",
+                "stale_configs": "true",
                 "actual_configs" : {
                   "capacity-scheduler" : {
                     "tag" : "version1"
@@ -953,6 +957,7 @@
                 "service_name" : "MAPREDUCE2",
                 "stack_id" : "HDP-2.0.5",
                 "state" : "INSTALLED",
+                "stale_configs": "true",
                 "actual_configs" : { },
                 "configs" : { },
                 "desired_configs" : { }

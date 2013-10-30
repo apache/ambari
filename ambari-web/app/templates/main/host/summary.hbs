@@ -26,6 +26,16 @@
         </div>
         <div class="host-components">
         {{#if view.sortedComponents.length}}
+
+          {{#if view.needToRestartComponentsCount}}
+              <div class="alert alert-warning clearfix">
+                <i class="icon-refresh"></i> {{view.needToRestartMessage}}
+                <button class="btn btn-warning restart-components pull-right" {{action restartComponents target="controller"}}>
+                  {{t hosts.host.details.needToRestart.button}}
+                </button>
+              </div>
+          {{/if}}
+
           {{#each component in view.sortedComponents}}
           <div class="row-fluid">
           {{#view view.ComponentView contentBinding="component" decommissionDataNodeHostNamesBinding="view.decommissionDataNodeHostNames"}}
@@ -46,6 +56,10 @@
                 {{/if}}
                 &nbsp;/&nbsp;
               <a href="#" {{action routeToService component.service target="controller"  }}>{{component.service.displayName}}</a>
+                &nbsp;
+              {{#if component.staleConfigs}}
+                <i class="text-warning icon-refresh"></i>
+              {{/if}}
             </div>
             <div class="span5">
               {{#if App.isAdmin}}

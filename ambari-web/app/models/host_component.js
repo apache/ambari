@@ -22,6 +22,7 @@ App.HostComponent = DS.Model.extend({
   workStatus: DS.attr('string'),
   componentName: DS.attr('string'),
   haStatus: DS.attr('string'),
+  staleConfigs: DS.attr('boolean'),
   host: DS.belongsTo('App.Host'),
   service: DS.belongsTo('App.Service'),
   isClient:function () {

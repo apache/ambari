@@ -107,10 +107,18 @@ App.Service = DS.Model.extend({
    * properties, which need to be checked with map.
    */
   isRestartRequired: function () {
-    var restartRequired = false;
-    var restartRequiredHostsAndComponents = {};
-    this.set('restartRequiredHostsAndComponents', restartRequiredHostsAndComponents);
-    return restartRequired;
+    var rhc = this.get('hostComponents').filterProperty('staleConfigs', true);
+    var hc = {};
+    rhc.forEach(function(_rhc) {
+      var hostName = _rhc.get('host.publicHostName');
+      if (!hc[hostName]) {
+        hc[hostName] = [];
+      }
+      hc[hostName].push(_rhc.get('displayName'));
+    });
+    this.set('restartRequiredHostsAndComponents', hc);
+    return (rhc.length>0);
+
   }.property('serviceName', 'hostComponents'),
   
   /**

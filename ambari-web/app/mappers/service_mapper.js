@@ -166,6 +166,7 @@ App.servicesMapper = App.QuickDataMapper.create({
     component_name: 'HostRoles.component_name',
     ha_status: 'HostRoles.ha_status',
     host_id: 'HostRoles.host_name',
+    stale_configs: 'HostRoles.stale_configs',
     $service_id: 'none' /* will be set outside of parse function */
   },
 

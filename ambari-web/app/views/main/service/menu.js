@@ -86,6 +86,11 @@ App.MainServiceMenuView = Em.CollectionView.extend({
   classNames:["nav", "nav-list", "nav-services"],
 
   itemViewClass:Em.View.extend({
+
+    shouldBeRestarted: function() {
+      return this.get('content.hostComponents').someProperty('staleConfigs', true);
+    }.property('content.hostComponents.@each.staleConfigs'),
+
     classNameBindings:["active", "clients"],
     active:function () {
       return this.get('content.id') == this.get('parentView.activeServiceId') ? 'active' : '';
