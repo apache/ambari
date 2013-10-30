@@ -44,9 +44,30 @@ module.exports = Em.Route.extend({
           App.router.transitionTo('main.services.index');
         },
         onClose: function () {
-          this.hide();
-          App.router.get('updateController').set('isWorking', true);
-          App.router.transitionTo('main.services.index')
+          var reassignMasterController = router.get('reassignMasterController');
+          var currStep = reassignMasterController.get('currentStep');
+
+          if (parseInt(currStep) > 3) {
+            var self = this;
+            App.showConfirmationPopup(function(){
+              self.hide();
+              reassignMasterController.setCurrentStep('1');
+              router.get('reassignMasterWizardStep' + currStep + 'Controller').removeObserver('tasks.@each.status', this, 'onTaskStatusChange');
+              App.clusterStatus.setClusterStatus({
+                clusterName: router.get('reassignMasterController.content.cluster.name'),
+                clusterState: 'DEFAULT',
+                wizardControllerName: 'reassignMasterController',
+                localdb: App.db.data
+              });
+              router.get('updateController').set('isWorking', true);
+              router.transitionTo('main.services.index')
+            }, Em.I18n.t('services.reassign.closePopup').format(reassignMasterController.get('content.reassign.display_name')));
+          } else {
+            this.hide();
+            reassignMasterController.setCurrentStep('1');
+            router.get('updateController').set('isWorking', true);
+            router.transitionTo('main.services.index')
+          }
         },
         didInsertElement: function () {
           this.fitHeight();

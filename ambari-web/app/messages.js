@@ -1083,6 +1083,8 @@ Em.I18n.translations = {
   'services.service.startAll':'Start All',
   'services.service.stopAll':'Stop All',
 
+  'services.reassign.closePopup':'Reassign {0} wizard is in progress. It\'s necessary to complete the wizard for Ambari to be in usable state. If you choose to quit, you must follow manual instructions to complete or revert reassign {0} wizard as documented in the Ambari User Guide. Are you sure you want to exit the wizard ?',
+
   'services.reassign.step1.header':'Get Started',
   'services.reassign.step1.message1': 'This wizard will walk you through reassigning {0}.<br/>',
   'services.reassign.step1.message2': 'The process to reassign {0} involves a combination of <b>automated steps</b> (that will be handled by the wizard) and ' +
