@@ -3665,7 +3665,7 @@ def get_fqdn():
 
 
 def is_valid_filepath(filepath):
-  if not filepath or not os.path.exists(filepath):
+  if not filepath or not os.path.exists(filepath) or os.path.isdir(filepath):
     print 'Invalid path, please provide the absolute file path.'
     return False
   else:

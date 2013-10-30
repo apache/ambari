@@ -4255,3 +4255,36 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     del os.environ[ambari_server.AMBARI_CONF_VAR]
     os.remove(prop_file)
+
+
+  def test_is_valid_filepath(self):
+    temp_dir = tempfile.gettempdir()
+    temp_file = tempfile.NamedTemporaryFile(mode='r')
+
+    # Correct path to an existing file
+    self.assertTrue(temp_file)
+    # Correct path to an existing directory
+    self.assertFalse(ambari_server.is_valid_filepath(temp_dir), \
+      'is_valid_filepath(path) should return False is path is a directory')
+    # Incorrect path
+    self.assertFalse(ambari_server.is_valid_filepath(''))
+
+  @patch.object(ambari_server, "search_file")
+  @patch.object(ambari_server, "get_validated_string_input")
+  def test_setup_ambari_krb5_jaas(self, get_validated_string_input_mock,
+                                  search_file_mock):
+    search_file_mock.return_value = ''
+
+    # Should raise exception if jaas_conf_file isn't an existing file
+    self.assertRaises(NonFatalException, ambari_server.setup_ambari_krb5_jaas)
+
+    temp_file = tempfile.NamedTemporaryFile(mode='r')
+    search_file_mock.return_value = temp_file.name
+    get_validated_string_input_mock.side_effect = ['adm@EXAMPLE.COM', temp_file]
+
+    # setup_ambari_krb5_jaas() should return None if everything is OK
+    self.assertIsNone(ambari_server.setup_ambari_krb5_jaas())
+    self.assertTrue(get_validated_string_input_mock.called)
+    self.assertEqual(get_validated_string_input_mock.call_count, 2)
+
+
