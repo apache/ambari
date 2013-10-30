@@ -213,6 +213,7 @@ class RequestResourceProvider extends AbstractControllerResourceProvider {
     int taskCount          = commands.size();
     int completedTaskCount = 0;
     int queuedTaskCount    = 0;
+    int pendingTaskCount   = 0;
     int failedTaskCount    = 0;
     int abortedTaskCount   = 0;
     int timedOutTaskCount  = 0;
@@ -235,10 +236,12 @@ class RequestResourceProvider extends AbstractControllerResourceProvider {
         }
       } else if (status.equals(HostRoleStatus.QUEUED)) {
         queuedTaskCount++;
+      } else if (status.equals(HostRoleStatus.PENDING)) {
+        pendingTaskCount++;
       }
     }
 
-    int inProgressTaskCount = taskCount - completedTaskCount - queuedTaskCount;
+    int inProgressTaskCount = taskCount - completedTaskCount - queuedTaskCount - pendingTaskCount;
 
     // determine request status
     HostRoleStatus requestStatus = failedTaskCount > 0             ? HostRoleStatus.FAILED :

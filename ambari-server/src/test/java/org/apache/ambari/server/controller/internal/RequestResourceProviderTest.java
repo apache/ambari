@@ -322,7 +322,7 @@ public class RequestResourceProviderTest {
     expect(hostRoleCommand2.getRequestId()).andReturn(101L).anyTimes();
     expect(hostRoleCommand3.getRequestId()).andReturn(101L).anyTimes();
     expect(hostRoleCommand0.getStatus()).andReturn(HostRoleStatus.IN_PROGRESS).anyTimes();
-    expect(hostRoleCommand1.getStatus()).andReturn(HostRoleStatus.COMPLETED).anyTimes();
+    expect(hostRoleCommand1.getStatus()).andReturn(HostRoleStatus.PENDING).anyTimes();
     expect(hostRoleCommand2.getStatus()).andReturn(HostRoleStatus.IN_PROGRESS).anyTimes();
     expect(hostRoleCommand3.getStatus()).andReturn(HostRoleStatus.QUEUED).anyTimes();
 
@@ -342,6 +342,7 @@ public class RequestResourceProviderTest {
     propertyIds.add(RequestResourceProvider.REQUEST_TASK_CNT_ID);
     propertyIds.add(RequestResourceProvider.REQUEST_COMPLETED_TASK_CNT_ID);
     propertyIds.add(RequestResourceProvider.REQUEST_FAILED_TASK_CNT_ID);
+    propertyIds.add(RequestResourceProvider.REQUEST_QUEUED_TASK_CNT_ID);
     propertyIds.add(RequestResourceProvider.REQUEST_PROGRESS_PERCENT_ID);
 
     Predicate predicate = new PredicateBuilder().property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).equals("100").or().
@@ -358,12 +359,15 @@ public class RequestResourceProviderTest {
       Assert.assertEquals(0, resource.getPropertyValue(RequestResourceProvider.REQUEST_FAILED_TASK_CNT_ID));
 
       if (id == 100L) {
-        Assert.assertEquals(1, resource.getPropertyValue(RequestResourceProvider.REQUEST_COMPLETED_TASK_CNT_ID));
-        Assert.assertEquals(67.5, resource.getPropertyValue(RequestResourceProvider.REQUEST_PROGRESS_PERCENT_ID));
+        Assert.assertEquals(0, resource.getPropertyValue(RequestResourceProvider.REQUEST_QUEUED_TASK_CNT_ID));
+        int progressPercent = ((Double) resource.getPropertyValue(RequestResourceProvider.REQUEST_PROGRESS_PERCENT_ID)).intValue();
+        Assert.assertEquals(17, progressPercent);
       } else {
-        Assert.assertEquals(0, resource.getPropertyValue(RequestResourceProvider.REQUEST_COMPLETED_TASK_CNT_ID));
-        Assert.assertEquals(21.999999999999996, resource.getPropertyValue(RequestResourceProvider.REQUEST_PROGRESS_PERCENT_ID));
+        Assert.assertEquals(1, resource.getPropertyValue(RequestResourceProvider.REQUEST_QUEUED_TASK_CNT_ID));
+        int progressPercent = ((Double) resource.getPropertyValue(RequestResourceProvider.REQUEST_PROGRESS_PERCENT_ID)).intValue();
+        Assert.assertEquals(21, progressPercent);
       }
+      Assert.assertEquals(0, resource.getPropertyValue(RequestResourceProvider.REQUEST_COMPLETED_TASK_CNT_ID));
     }
 
     // verify
@@ -525,21 +529,4 @@ public class RequestResourceProviderTest {
     // verify
     verify(managementController);
   }
-
-//  public static RequestResourceProvider getServiceProvider(AmbariManagementController managementController) {
-//    Resource.Type type = Resource.Type.Request;
-//
-//    return (RequestResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
-//        type,
-//        PropertyHelper.getPropertyIds(type),
-//        PropertyHelper.getKeyPropertyIds(type),
-//        managementController);
-//  }
-//
-//  public static Set<RequestStatusResponse> getRequestStatus(
-//      AmbariManagementController controller, RequestStatusRequest request)
-//      throws AmbariException {
-//    RequestResourceProvider provider = getServiceProvider(controller);
-//    return provider.getRequestStatus(request);
-//  }
 }
