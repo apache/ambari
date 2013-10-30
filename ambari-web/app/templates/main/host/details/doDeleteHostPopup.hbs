@@ -15,17 +15,25 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-
-<p><i class="icon-warning-sign"></i> {{{deletePopupBody}}}</p>
 {{#if unknownComponents}}
-  <div class="alert">
-  {{t hosts.delete.popup.unknownComponents}}<br />
-    <i>{{unknownComponents}}</i>
+  {{t hosts.delete.popup.unknownComponents}}
+  <br /><br />
+  <div class='row-fluid'>
+    <div class='tinyoffset span10'>
+      <i>{{unknownComponents}}</i>
+    </div>
   </div>
+  <br />
 {{/if}}
-<p>{{t hosts.delete.popup.body.msg1}}</p>
-<p>{{t hosts.delete.popup.body.msg2}}</p>
-<p><span class="label label-important">{{t common.important}}</span> {{t hosts.delete.popup.body.msg3}}</p>
+<p><i class="icon-warning-sign"></i> {{{deletePopupBody}}}</p>
+<div class='alert'><strong>{{t common.important}}:</strong>
+  {{#if unknownComponents}}
+    {{t hosts.delete.popup.body.msg.unknownComponents}}
+  {{/if}}
+  {{t hosts.delete.popup.body.msg1}}
+</div>
+<div class='alert'><strong>{{t common.important}}:</strong> {{t hosts.delete.popup.body.msg2}}</div>
+<div class='alert'><strong>{{t common.important}}:</strong> {{t hosts.delete.popup.body.msg3}}</div>
 {{#if lastComponent}}
   <div class="alert-error row-fluid">
       <div class='tinyspan tinyoffset'>{{view Ember.Checkbox checkedBinding="enablePrimary"}}</div>
