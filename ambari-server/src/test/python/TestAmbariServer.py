@@ -1113,6 +1113,120 @@ class TestAmbariServer(TestCase):
     args.jce_policy = None
     ambari_server.install_jce_manualy(args)
 
+  @patch.object(ambari_server, "get_validated_filepath_input")
+  @patch.object(ambari_server, "run_os_command")
+  @patch.object(ambari_server, "get_truststore_type")
+  @patch("__builtin__.open")
+  @patch.object(ambari_server, "find_properties_file")
+  @patch.object(ambari_server, "run_component_https_cmd")
+  @patch.object(ambari_server, "get_delete_cert_command")
+  @patch.object(ambari_server, "get_truststore_password")
+  @patch.object(ambari_server, "get_truststore_path")
+  @patch.object(ambari_server, "get_YN_input")
+  @patch.object(ambari_server, "get_ambari_properties")
+  @patch.object(ambari_server, "find_jdk")
+  def test_setup_component_https(self, find_jdk_mock, get_ambari_properties_mock, get_YN_input_mock,
+                                 get_truststore_path_mock, get_truststore_password_mock,
+                                 get_delete_cert_command_mock, run_component_https_cmd_mock,
+                                 find_properties_file_mock, open_mock,
+                                 get_truststore_type_mock, run_os_command_mock,
+                                 get_validated_filepath_input_mock):
+    out = StringIO.StringIO()
+    sys.stdout = out
+    component = "component"
+    command = "command"
+    property = "use_ssl"
+    alias = "alias"
+    #Silent mode
+    ambari_server.SILENT = True
+    ambari_server.setup_component_https(component, command, property, alias)
+    self.assertEqual('command is not enabled in silent mode.\n', out.getvalue())
+    sys.stdout = sys.__stdout__
+    #Verbouse mode and jdk_path is None
+    ambari_server.SILENT = False
+    p = get_ambari_properties_mock.return_value
+    # Use ssl
+    p.get_property.side_effect = ["true"]
+    # Dont disable ssl
+    get_YN_input_mock.side_effect = [False]
+    ambari_server.setup_component_https(component, command, property, alias)
+    self.assertTrue(p.get_property.called)
+    self.assertTrue(get_YN_input_mock.called)
+    p.get_property.reset_mock()
+    get_YN_input_mock.reset_mock()
+    # Dont use ssl
+    p.get_property.side_effect = ["false"]
+    # Dont enable ssl
+    get_YN_input_mock.side_effect = [False]
+    ambari_server.setup_component_https(component, command, property, alias)
+    self.assertTrue(p.get_property.called)
+    self.assertTrue(get_YN_input_mock.called)
+    p.get_property.reset_mock()
+    get_YN_input_mock.reset_mock()
+    # Cant find jdk
+    find_jdk_mock.return_value = None
+    try:
+        ambari_server.setup_component_https(component, command, property, alias)
+        self.fail("Should throw exception")
+    except FatalException as fe:
+        # Expected
+        self.assertTrue('No JDK found, please run the "ambari-server setup" command to install a' +
+                        ' JDK automatically or install any JDK manually to ' in fe.reason)
+        pass
+    #Verbouse mode and jdk_path is not None (use_https = true)
+    find_jdk_mock.return_value = "/jdk_path"
+    p.get_property.side_effect = ["true"]
+    get_YN_input_mock.side_effect = [True]
+    get_truststore_path_mock.return_value = "/truststore_path"
+    get_truststore_password_mock.return_value = "/truststore_password"
+    get_delete_cert_command_mock.return_value = "rm -f"
+    ambari_server.setup_component_https(component, command, property, alias)
+
+    self.assertTrue(p.process_pair.called)
+    self.assertTrue(get_truststore_path_mock.called)
+    self.assertTrue(get_truststore_password_mock.called)
+    self.assertTrue(get_delete_cert_command_mock.called)
+    self.assertTrue(find_properties_file_mock.called)
+    self.assertTrue(open_mock.called)
+    self.assertTrue(p.store.called)
+    self.assertTrue(run_component_https_cmd_mock.called)
+
+    p.process_pair.reset_mock()
+    get_truststore_path_mock.reset_mock()
+    get_truststore_password_mock.reset_mock()
+    get_delete_cert_command_mock.reset_mock()
+    find_properties_file_mock.reset_mock()
+    open_mock.reset_mock()
+    p.store.reset_mock()
+    #Verbouse mode and jdk_path is not None (use_https = false) and import cert
+    p.get_property.side_effect = ["false"]
+    get_YN_input_mock.side_effect = [True]
+    ambari_server.setup_component_https(component, command, property, alias)
+
+    self.assertTrue(p.process_pair.called)
+    self.assertTrue(get_truststore_type_mock.called)
+    self.assertTrue(get_truststore_path_mock.called)
+    self.assertTrue(get_truststore_password_mock.called)
+    self.assertTrue(get_delete_cert_command_mock.called)
+    self.assertTrue(find_properties_file_mock.called)
+    self.assertTrue(open_mock.called)
+    self.assertTrue(p.store.called)
+    self.assertTrue(run_component_https_cmd_mock.called)
+    self.assertTrue(run_os_command_mock.called)
+    self.assertTrue(get_validated_filepath_input_mock.called)
+
+    p.process_pair.reset_mock()
+    get_truststore_type_mock.reset_mock()
+    get_truststore_path_mock.reset_mock()
+    get_truststore_password_mock.reset_mock()
+    get_delete_cert_command_mock.reset_mock()
+    find_properties_file_mock.reset_mock()
+    open_mock.reset_mock()
+    p.store.reset_mock()
+    run_os_command_mock.reset_mock()
+    get_validated_filepath_input_mock.reset_mock()
+
+  @patch.object(ambari_server, 'adjust_directory_permissions')
   @patch.object(ambari_server, 'read_ambari_user')
   @patch.object(ambari_server, "get_validated_string_input")
   @patch.object(ambari_server, "find_properties_file")
@@ -1130,8 +1244,8 @@ class TestAmbariServer(TestCase):
                        import_cert_and_key_action_mock,
                        is_server_runing_mock, get_ambari_properties_mock, \
                        find_properties_file_mock, \
-                       get_validated_string_input_mock,
-                       read_ambari_user_method):
+                       get_validated_string_input_mock, read_ambari_user_method, \
+                       adjust_directory_permissions_mock):
 
     is_valid_cert_exp_mock.return_value = True
     is_valid_cert_host_mock.return_value = True
@@ -1151,7 +1265,7 @@ class TestAmbariServer(TestCase):
 
     # Testing call under root
     is_root_mock.return_value = True
-    read_ambari_user_method.return_value = None
+    read_ambari_user_method.return_value = "user"
     #Case #1: if client ssl is on and user didnt choose 
     #disable ssl option and choose import certs and keys
     p.get_property.side_effect = ["key_dir", "5555", "6666", "true"]
@@ -1241,13 +1355,50 @@ class TestAmbariServer(TestCase):
     p.store.reset_mock()
     import_cert_and_key_action_mock.reset_mock()
 
-    #Case #5: if silent mode is enabled
+    #Case #5: if cert must be imported but didnt imported
+    p.get_property.side_effect = ["key_dir", "", "false"]
+    get_YN_input_mock.side_effect = [True]
+    import_cert_and_key_action_mock.side_effect = [False]
+    get_validated_string_input_mock.side_effect = ["4444"]
+    get_property_expected = "[call('security.server.keys_dir'),\n" + \
+                            " call('client.api.ssl.port'),\n call('api.ssl')]"
+    process_pair_expected = "[call('client.api.ssl.port', '4444')]"
+    self.assertFalse(ambari_server.setup_https(args))
+    self.assertTrue(p.process_pair.called)
+    self.assertTrue(p.get_property.call_count == 3)
+    self.assertEqual(str(p.get_property.call_args_list), get_property_expected)
+    self.assertEqual(str(p.process_pair.call_args_list), process_pair_expected)
+    self.assertFalse(p.store.called)
+    self.assertTrue(import_cert_and_key_action_mock.called)
+
+    p.process_pair.reset_mock()
+    p.get_property.reset_mock()
+    p.store.reset_mock()
+    import_cert_and_key_action_mock.reset_mock()
+
+    #Case #6: if silent mode is enabled
     ambari_server.SILENT = True
     try:
       ambari_server.setup_https(args)
       self.fail("Should throw exception")
     except NonFatalException as fe:
       self.assertTrue("setup-https is not enabled in silent mode" in fe.reason)
+
+    p.process_pair.reset_mock()
+    p.get_property.reset_mock()
+    p.store.reset_mock()
+    import_cert_and_key_action_mock.reset_mock()
+
+    #Case #7: read property throw exception
+    ambari_server.SILENT = False
+    find_properties_file_mock.return_value = "propertyFile"
+    p.get_property.side_effect = KeyError("Failed to read property")
+    try:
+        ambari_server.setup_https(args)
+        self.fail("Should throw exception")
+    except FatalException as fe:
+        self.assertTrue("Failed to read property" in fe.reason)
+
 
 
   @patch.object(ambari_server, "import_cert_and_key")
@@ -2149,10 +2300,12 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEqual(None, rcode)
     self.assertTrue(execute_remote_script_mock.called)
 
+  @patch.object(ambari_server, "get_YN_input")
   @patch("__builtin__.raw_input")
   @patch.object(ambari_server, "is_root")
-  def test_reset_default(self, is_root_mock, raw_input_mock):
+  def test_reset_default(self, is_root_mock, raw_input_mock, get_YN_inputMock):
     is_root_mock.return_value=True
+    get_YN_inputMock.return_value = False
     raw_input_mock.return_value=""
     args = MagicMock()
 

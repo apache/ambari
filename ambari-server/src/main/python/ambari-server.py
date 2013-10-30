@@ -3254,7 +3254,7 @@ def setup_https(args):
         adjust_directory_permissions(ambari_user)
       return True
     except (KeyError), e:
-      err = 'Property ' + str(e) + ' is not defined at ' + conf_file
+      err = 'Property ' + str(e) + ' is not defined'
       raise FatalException(1, err)
   else:
     warning = "setup-https is not enabled in silent mode."
