@@ -20,19 +20,21 @@
 
   <div class="box-header row">
     <div class="health-status-bar pull-left">
-      <div class="pull-left"><span {{bindAttr class="view.filtersUsed::active"}}><a {{action clearFilters target="view"}} href="#">{{t common.all}} ({{content.length}})</a></span>&nbsp;</div>
+      <div class="pull-left">
+         <span {{bindAttr class=":category-item view.filtersUsed::active"}}><a {{action clearFilters target="view"}} href="#">{{t common.all}} ({{content.length}})</a></span>
+      </div>
       {{view view.alertFilter}}
       {{#view view.statusFilter categoriesBinding="view.categories"}}
         {{#each category in view.categories}}
           {{#if category.isVisible}}
             |
-            <span {{bindAttr class="category.itemClass"}}>
-            {{#if category.alerts}}
-                <span class="label label-important">{{t hosts.host.alerts.st}}</span>
-            {{else}}
-                <span {{bindAttr class="category.healthStatusValue"}}> &nbsp;&nbsp;&nbsp; </span>
-            {{/if}}
+            <span {{bindAttr class=":category-item category.itemClass"}}>
               <a {{action selectCategory category target="view"}} href="#">
+                {{#if category.alerts}}
+                  <span class="label label-important">{{t hosts.host.alerts.st}}</span>
+                {{else}}
+                  <span {{bindAttr class="category.healthStatusValue"}}> &nbsp;&nbsp;&nbsp; </span>
+                {{/if}}
                 {{category.label}}
               </a>
             </span>
@@ -122,6 +124,9 @@
   </table>
 
   <div class="page-bar">
+    <div class="filtered-hosts-info span4">
+      <label>{{view.filteredHostsInfo}} &nbsp; <a {{action clearFilters target="view"}} href="#">{{t apps.filters.clearAllFilters}}</a></label>
+    </div>
     <div class="items-on-page">
       <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
     </div>
