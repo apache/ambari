@@ -1300,7 +1300,7 @@ Em.I18n.translations = {
   'hosts.delete.popup.header':'Confirmation',
   'hosts.delete.popup.title':'Delete Host',
   'hosts.delete.popup.unknownComponents':'Components with unknown status:',
-  'hosts.cant.do.popup.title':'Delete Host Error',
+  'hosts.cant.do.popup.title':'Unable to Delete Host',
   'hosts.cant.do.popup.masterList.body':'Host with {0} master components cannot be deleted',
   'hosts.cant.do.popup.nonDeletableList.body':'Deletion of the following {0} components is not supported. ',
   'hosts.cant.do.popup.runningList.body':'Host cannot be deleted with the following {0} components running. ',

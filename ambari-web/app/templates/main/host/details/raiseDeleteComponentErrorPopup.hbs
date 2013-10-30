@@ -17,8 +17,13 @@
 }}
 
 <p><i class="icon-warning-sign"></i> {{componentsBody}}</p>
-<i>{{componentsStr}}</i>
+<div class='row-fluid'>
+  <div class='tinyoffset span10'>
+    <i>{{componentsStr}}</i>
+  </div>
+</div>
+
 {{#if showBodyEnd}}
-    <br /><br />
-    <p>{{componentsBodyEnd}}</p>
+    <br />
+    <div class='alert alert-warning'><strong>{{t common.important}}:</strong> {{componentsBodyEnd}}</div>
 {{/if}}
