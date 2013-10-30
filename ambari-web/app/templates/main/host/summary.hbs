@@ -69,11 +69,11 @@
                   <span class="caret pull-right"></span>
                 </a>
                 <ul class="dropdown-menu">
-                   <li>
-                      <div class="component-text-status">
-                       {{view.componentTextStatus}}
-                      </div>
-                    </li>
+                  <li>
+                    <div class="component-text-status">
+                      {{view.componentTextStatus}}
+                    </div>
+                  </li>
                   {{#if view.isDataNode}}
                     {{#if view.isDataNodeDecommissionAvailable}}
                       <li {{bindAttr class="view.noActionAvailable"}}>
@@ -89,6 +89,13 @@
                         </a>
                       </li>
                     {{/if}}
+                  {{/if}}
+                  {{#if view.isHBaseMaster}}
+                    <li {{bindAttr class="view.isDeleteHBaseMasterDisabled:disabled"}}>
+                      <a href="javascript:void(null)" data-toggle="modal" {{action "deleteComponent" view.content target="controller"}}>
+                        {{t common.delete}}
+                      </a>
+                    </li>
                   {{/if}}
                   {{#unless view.isInstalling}}
                     {{#if view.isStart}}
