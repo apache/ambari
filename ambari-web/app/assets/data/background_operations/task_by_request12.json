@@ -1,0 +1,90 @@
+{
+  "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/requests/12",
+  "Requests" : {
+    "aborted_task_count" : 0,
+    "cluster_name" : "perf",
+    "completed_task_count" : 4,
+    "failed_task_count" : 0,
+    "id" : 12,
+    "progress_percent" : 100.0,
+    "queued_task_count" : 0,
+    "request_context" : "Start YARN",
+    "request_status" : "COMPLETED",
+    "task_count" : 4,
+    "timed_out_task_count" : 0
+  },
+  "tasks" : [
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/requests/12/tasks/104",
+      "Tasks" : {
+        "attempt_cnt" : 1,
+        "cluster_name" : "perf",
+        "command" : "INSTALL",
+        "exit_code" : 0,
+        "host_name" : "dev01.hortonworks.com",
+        "id" : 104,
+        "request_id" : 12,
+        "role" : "YARN_CLIENT",
+        "stage_id" : 1,
+        "start_time" : 1383136640605,
+        "status" : "COMPLETED",
+        "stderr" : "none\nnone",
+        "stdout" : "notice: Finished catalog run in 0.34 seconds\nnotice: /Stage[1]/Hdp::Snappy::Package/Hdp::Snappy::Package::Ln[32]/Hdp::Exec[hdp::snappy::package::ln 32]/Exec[hdp::snappy::package::ln 32]/returns: executed successfully\nnotice: /Stage[2]/Hdp-yarn::Initialize/Hdp-yarn::Generate_common_configs[yarn-common-configs]/Configgenerator::Configfile[capacity-scheduler]/File[/etc/hadoop/conf/capacity-scheduler.xml]/content: content changed '{md5}e59712560099ec0066920adb67e859ad' to '{md5}1a94219bea22e96553fbdbbfc267bab7'\nnotice: /Stage[2]/Hdp-yarn::Initialize/Hdp-yarn::Generate_common_configs[yarn-common-configs]/Configgenerator::Configfile[core-site]/File[/etc/hadoop/conf/core-site.xml]/content: content changed '{md5}2a014616c8c4e5c1ddb605ef2eeb9e41' to '{md5}bb1e9813cb5e9b3aa15bf2416fb46a1f'\nnotice: /Stage[2]/Hdp-yarn::Initialize/Hdp-yarn::Generate_common_configs[yarn-common-configs]/Configgenerator::Configfile[yarn-site]/File[/etc/hadoop/conf/yarn-site.xml]/content: content changed '{md5}b36b012c4504fe5e51aaf68ad5a58451' to '{md5}8a2797e9e46efa077a872a10011c58d9'\nnotice: /Stage[2]/Hdp-yarn::Initialize/Hdp-yarn::Generate_common_configs[yarn-common-configs]/Configgenerator::Configfile[mapred-site]/File[/etc/hadoop/conf/mapred-site.xml]/content: content changed '{md5}b33c602059dfa2977a029511714d0c50' to '{md5}0e7d90c33eb2047129dc0645d5bc1f4e'\nnotice: Finished catalog run in 2.20 seconds"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/requests/12/tasks/105",
+      "Tasks" : {
+        "attempt_cnt" : 1,
+        "cluster_name" : "perf",
+        "command" : "START",
+        "exit_code" : 0,
+        "host_name" : "dev01.hortonworks.com",
+        "id" : 105,
+        "request_id" : 12,
+        "role" : "RESOURCEMANAGER",
+        "stage_id" : 2,
+        "start_time" : 1383136660674,
+        "status" : "COMPLETED",
+        "stderr" : "none\nnone",
+        "stdout" : "notice: Finished catalog run in 0.30 seconds\nnotice: /Stage[1]/Hdp::Snappy::Package/Hdp::Snappy::Package::Ln[32]/Hdp::Exec[hdp::snappy::package::ln 32]/Exec[hdp::snappy::package::ln 32]/returns: executed successfully\nnotice: /Stage[2]/Hdp-yarn::Resourcemanager/Hdp-yarn::Service[resourcemanager]/Hdp::Exec[su - yarn -c  'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf start resourcemanager']/Exec[su - yarn -c  'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf start resourcemanager']/returns: executed successfully\nnotice: /Stage[2]/Hdp-yarn::Initialize/Hdp-yarn::Generate_common_configs[yarn-common-configs]/Configgenerator::Configfile[capacity-scheduler]/File[/etc/hadoop/conf/capacity-scheduler.xml]/content: content changed '{md5}1a94219bea22e96553fbdbbfc267bab7' to '{md5}56b3ee4f1fbb941a149d5961f946393b'\nnotice: /Stage[2]/Hdp-yarn::Initialize/Hdp-yarn::Generate_common_configs[yarn-common-configs]/Configgenerator::Configfile[core-site]/File[/etc/hadoop/conf/core-site.xml]/content: content changed '{md5}bb1e9813cb5e9b3aa15bf2416fb46a1f' to '{md5}038bf127f3e0bf12ee1137deaf719ba7'\nnotice: /Stage[2]/Hdp-yarn::Initialize/Hdp-yarn::Generate_common_configs[yarn-common-configs]/Configgenerator::Configfile[yarn-site]/File[/etc/hadoop/conf/yarn-site.xml]/content: content changed '{md5}8a2797e9e46efa077a872a10011c58d9' to '{md5}8c6609272d68d6d1a8c0f923704db490'\nnotice: /Stage[2]/Hdp-yarn::Initialize/Hdp-yarn::Generate_common_configs[yarn-common-configs]/Configgenerator::Configfile[mapred-site]/File[/etc/hadoop/conf/mapred-site.xml]/content: content changed '{md5}0e7d90c33eb2047129dc0645d5bc1f4e' to '{md5}e994e4fcd539a1ef69e08d9bed61c1ba'\nnotice: Finished catalog run in 5.98 seconds"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/requests/12/tasks/106",
+      "Tasks" : {
+        "attempt_cnt" : 1,
+        "cluster_name" : "perf",
+        "command" : "START",
+        "exit_code" : 0,
+        "host_name" : "dev01.hortonworks.com",
+        "id" : 106,
+        "request_id" : 12,
+        "role" : "NODEMANAGER",
+        "stage_id" : 3,
+        "start_time" : 1383136690796,
+        "status" : "COMPLETED",
+        "stderr" : "none\nnone",
+        "stdout" : "notice: Finished catalog run in 0.36 seconds\nnotice: /Stage[2]/Hdp-yarn::Initialize/Hdp-yarn::Generate_common_configs[yarn-common-configs]/Configgenerator::Configfile[capacity-scheduler]/File[/etc/hadoop/conf/capacity-scheduler.xml]/content: content changed '{md5}56b3ee4f1fbb941a149d5961f946393b' to '{md5}59e87dbd9d64ec6f8721a3ed53555226'\nnotice: /Stage[2]/Hdp-yarn::Initialize/Hdp-yarn::Generate_common_configs[yarn-common-configs]/Configgenerator::Configfile[core-site]/File[/etc/hadoop/conf/core-site.xml]/content: content changed '{md5}038bf127f3e0bf12ee1137deaf719ba7' to '{md5}13b4ee0f742eaa8e02616467e81fcaf2'\nnotice: /Stage[2]/Hdp-yarn::Initialize/Hdp-yarn::Generate_common_configs[yarn-common-configs]/Configgenerator::Configfile[yarn-site]/File[/etc/hadoop/conf/yarn-site.xml]/content: content changed '{md5}8c6609272d68d6d1a8c0f923704db490' to '{md5}57a4af49bab1122d1749e20e51b1b350'\nnotice: /Stage[2]/Hdp-yarn::Nodemanager/Hdp-yarn::Nodemanager::Create_nm_dirs[/hadoop/yarn/local]/Hdp::Directory_recursive_create_ignore_failure[/hadoop/yarn/local]/Hdp::Exec[chown yarn:hadoop /hadoop/yarn/local; exit 0]/Exec[chown yarn:hadoop /hadoop/yarn/local; exit 0]/returns: executed successfully\nnotice: /Stage[2]/Hdp-yarn::Initialize/Hdp-yarn::Generate_common_configs[yarn-common-configs]/Configgenerator::Configfile[mapred-site]/File[/etc/hadoop/conf/mapred-site.xml]/content: content changed '{md5}e994e4fcd539a1ef69e08d9bed61c1ba' to '{md5}42b9f8a170f46493511a8a4d76f9857a'\nnotice: /Stage[2]/Hdp-yarn::Nodemanager/Hdp-yarn::Nodemanager::Create_nm_dirs[/hadoop/yarn/local]/Hdp::Directory_recursive_create_ignore_failure[/hadoop/yarn/local]/Hdp::Exec[chmod  /hadoop/yarn/local ; exit 0]/Exec[chmod  /hadoop/yarn/local ; exit 0]/returns: executed successfully\nnotice: /Stage[2]/Hdp-yarn::Nodemanager/Hdp-yarn::Nodemanager::Create_nm_dirs[/hadoop/yarn/log]/Hdp::Directory_recursive_create_ignore_failure[/hadoop/yarn/log]/Hdp::Exec[chown yarn:hadoop /hadoop/yarn/log; exit 0]/Exec[chown yarn:hadoop /hadoop/yarn/log; exit 0]/returns: executed successfully\nnotice: /Stage[2]/Hdp-yarn::Nodemanager/Hdp-yarn::Nodemanager::Create_nm_dirs[/hadoop/yarn/log]/Hdp::Directory_recursive_create_ignore_failure[/hadoop/yarn/log]/Hdp::Exec[chmod  /hadoop/yarn/log ; exit 0]/Exec[chmod  /hadoop/yarn/log ; exit 0]/returns: executed successfully\nnotice: /Stage[2]/Hdp-yarn::Nodemanager/Hdp-yarn::Service[nodemanager]/Hdp::Exec[su - yarn -c  'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf start nodemanager']/Exec[su - yarn -c  'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf start nodemanager']/returns: executed successfully\nnotice: Finished catalog run in 6.72 seconds"
+      }
+    },
+    {
+      "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/requests/12/tasks/107",
+      "Tasks" : {
+        "attempt_cnt" : 1,
+        "cluster_name" : "perf",
+        "command" : "EXECUTE",
+        "exit_code" : 0,
+        "host_name" : "dev01.hortonworks.com",
+        "id" : 107,
+        "request_id" : 12,
+        "role" : "YARN_SERVICE_CHECK",
+        "stage_id" : 4,
+        "start_time" : 1383136720886,
+        "status" : "COMPLETED",
+        "stderr" : "none",
+        "stdout" : "notice: /Stage[1]/Hdp::Snappy::Package/Hdp::Snappy::Package::Ln[32]/Hdp::Exec[hdp::snappy::package::ln 32]/Exec[hdp::snappy::package::ln 32]/returns: executed successfully\nnotice: /Stage[2]/Hdp-yarn::Yarn::Service_check/Hdp-yarn::Smoketest[hdp-yarn::smoketest:rm]/Exec[/tmp/validateYarnComponentStatus.py]/returns: executed successfully\nnotice: /Stage[2]/Hdp-yarn::Yarn::Service_check/Hdp-hadoop::Exec-hadoop[hdp-yarn::yarn::service_check]/Hdp::Exec[/usr/bin/yarn node -list]/Exec[/usr/bin/yarn node -list]/returns: executed successfully\nnotice: Finished catalog run in 6.04 seconds"
+      }
+    }
+  ]
+}

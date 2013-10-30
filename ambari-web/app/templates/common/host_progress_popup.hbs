@@ -65,7 +65,7 @@
 
   <div {{bindAttr class="view.isHostListHidden:hidden :task-list-main-warp"}}>
     <div class="task-top-wrap">
-      {{#if controller.showServices}}
+      {{#if controller.isBackgroundOperations}}
         <a class="task-detail-back-to-hosts" href="javascript:void(null)" {{action backToServiceList}} >
           <i class="icon-arrow-left"></i>&nbsp;{{t common.operations}}
         </a>

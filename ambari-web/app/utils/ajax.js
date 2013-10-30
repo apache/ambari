@@ -30,20 +30,30 @@ var App = require('app');
  * @type {Object}
  */
 var urls = {
-  'background_operations': {
-    'real': '/clusters/{clusterName}/requests/?fields=tasks/*',
-    'mock': '/data/background_operations/list_on_start.json',
-    'testInProduction': true
-  },
-  'background_operations.update_task': {
-    'real': '/clusters/{clusterName}/requests/{requestId}/tasks/{taskId}',
-    'mock': '/data/background_operations/one_task.json',
-    'testInProduction': true
-  },
   'background_operations.get_most_recent': {
-    'real': '/clusters/{clusterName}/requests?to=end&page_size=10&fields=*,tasks/Tasks/*',
+    'real': '/clusters/{clusterName}/requests?to=end&page_size=10&fields=Requests',
     'mock': '/data/background_operations/list_on_start.json',
     'testInProduction': true
+  },
+  'background_operations.get_by_request': {
+    'real': '/clusters/{clusterName}/requests/{requestId}?fields=*,tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status',
+    'mock': '/data/background_operations/task_by_request{requestId}.json',
+    'testInProduction': true,
+    'format': function (data) {
+      return {
+        async: !data.sync
+      };
+    }
+  },
+  'background_operations.get_by_task': {
+    'real': '/clusters/{clusterName}/requests/{requestId}/tasks/{taskId}',
+    'mock': '/data/background_operations/list_on_start.json',
+    'testInProduction': true,
+    'format': function (data) {
+      return {
+        async: !data.sync
+      };
+    }
   },
   'service.item.start_stop': {
     'real': '/clusters/{clusterName}/services/{serviceName}?params/run_smoke_test=true',

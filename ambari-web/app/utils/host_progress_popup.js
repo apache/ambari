@@ -30,8 +30,8 @@ App.HostPopup = Em.Object.create({
   currentServiceId: null,
   previousServiceId: null,
   popupHeaderName: "",
-  serviceController: null,
-  showServices: false,
+  dataSourceController: null,
+  isBackgroundOperations: false,
   currentHostName: null,
   isPopup: null,
 
@@ -51,18 +51,18 @@ App.HostPopup = Em.Object.create({
    * Entering point of this component
    * @param serviceName
    * @param controller
-   * @param showServices
+   * @param isBackgroundOperations
    */
-  initPopup: function (serviceName, controller, showServices) {
-    if (!showServices) {
+  initPopup: function (serviceName, controller, isBackgroundOperations) {
+    if (!isBackgroundOperations) {
       this.clearHostPopup();
       this.set("popupHeaderName", serviceName);
     }
     this.set("serviceName", serviceName);
-    this.set("serviceController", controller);
-    this.set("showServices", showServices);
-    this.set("inputData", this.get("serviceController.services"));
-    if(this.get('showServices')){
+    this.set("dataSourceController", controller);
+    this.set("isBackgroundOperations", isBackgroundOperations);
+    this.set("inputData", this.get("dataSourceController.services"));
+    if(isBackgroundOperations){
       this.onServiceUpdate();
     } else {
       this.onHostUpdate();
@@ -78,10 +78,9 @@ App.HostPopup = Em.Object.create({
     this.set('currentServiceId', null);
     this.set('previousServiceId', null);
     this.set('popupHeaderName', "");
-    this.set('serviceController', null);
-    this.set('showServices', false);
+    this.set('dataSourceController', null);
     this.set('currentHostName', null);
-    this.get('isPopup')?this.get('isPopup').remove():null;
+    this.get('isPopup') ? this.get('isPopup').remove() : null;
   },
 
   /**
@@ -206,13 +205,12 @@ App.HostPopup = Em.Object.create({
 
   /**
    * For Background operation popup calculate number of running Operations, and set popup header
+   * @param isServiceListHidden
    */
-  setBackgroundOperationHeader: function () {
-    if (this.get("showServices")) {
+  setBackgroundOperationHeader: function (isServiceListHidden) {
+    if (this.get('isBackgroundOperations') && !isServiceListHidden) {
       var numRunning =  App.router.get('backgroundOperationsController.allOperationsCount');
       this.set("popupHeaderName", numRunning + Em.I18n.t('hostPopup.header.postFix'));
-    } else {
-      this.set("popupHeaderName", this.get("serviceName"));
     }
   },
 
@@ -220,41 +218,38 @@ App.HostPopup = Em.Object.create({
    * Create services obj data structure for popup
    * Set data for services
    */
-  onServiceUpdate: function () {
-    if (this.get('showServices') && this.get("inputData")) {
+  onServiceUpdate: function (isServiceListHidden) {
+    if (this.get('isBackgroundOperations') && this.get("inputData")) {
       var self = this;
       var allNewServices = [];
+      var statuses = {
+        'FAILED': ['FAILED', 'icon-exclamation-sign', 'progress-danger', false],
+        'ABORTED': ['CANCELLED', 'icon-minus', 'progress-warning', false],
+        'TIMEDOUT': ['TIMEDOUT', 'icon-time', 'progress-warning', false],
+        'IN_PROGRESS': ['IN_PROGRESS', 'icon-cogs', 'progress-info', true],
+        'COMPLETED': ['SUCCESS', 'icon-ok', 'progress-success', false]
+      };
+      var pendingStatus = ['PENDING', 'icon-cog', 'progress-info', true];
       this.set("servicesInfo", null);
       this.get("inputData").forEach(function (service) {
+        var status = statuses[service.status] || pendingStatus;
         var newService = Ember.Object.create({
           id: service.id,
           displayName: service.displayName,
-          detailMessage: service.detailMessage,
-          message: service.message,
-          progress: 0,
-          status: App.format.taskStatus("PENDING"),
+          progress: service.progress,
+          status: App.format.taskStatus(status[0]),
+          isRunning: service.isRunning,
           name: service.name,
           isVisible: true,
-          icon: 'icon-cog',
-          barColor: 'progress-info',
-          barWidth: 'width:0%;'
+          icon: status[1],
+          barColor: status[2],
+          isInProgress: status[3],
+          barWidth: "width:" + service.progress + "%;"
         });
-        var allTasks = service.tasks;
-
-        if (allTasks.length > 0) {
-          var status = self.getStatus(allTasks);
-          var progress = self.getProgress(allTasks);
-          newService.set('status', App.format.taskStatus(status[0]));
-          newService.set('icon', status[1]);
-          newService.set('barColor', status[2]);
-          newService.set('isInProgress', status[3]);
-          newService.set('progress', progress);
-          newService.set('barWidth', "width:" + progress + "%;");
-        }
         allNewServices.push(newService);
       });
       self.set('servicesInfo', allNewServices);
-      if (this.get("serviceName") == "") this.setBackgroundOperationHeader();
+      this.setBackgroundOperationHeader(isServiceListHidden);
     }
   },
 
@@ -283,31 +278,33 @@ App.HostPopup = Em.Object.create({
    */
   onHostUpdate: function () {
     var self = this;
-    if (this.get("inputData")) {
+    var inputData = this.get("inputData");
+    if (inputData) {
       var hostsArr = [];
-      var hostsData = this.get("inputData");
+      var hostsData;
       var hostsMap = {};
-      if (!this.get("showServices") || this.get("serviceName")) {
-        if (this.get("currentServiceId") != null) {
-          hostsData = hostsData.findProperty("id", this.get("currentServiceId"));
-        } else {
-          hostsData = hostsData.findProperty("name", this.get("serviceName"));
-        }
 
-        if (hostsData) {
-          if (hostsData.hostsMap) {
-            hostsMap = hostsData.hostsMap;
-          } else if (hostsData.hosts) {
-            //hosts data come from wizard as array
-            hostsData.hosts.forEach(function (_host) {
-              hostsMap[_host.name] = _host;
-            });
-          }
+      if(this.get('isBackgroundOperations') && this.get("currentServiceId")){
+        //hosts popup for Background Operations
+        hostsData = inputData.findProperty("id", this.get("currentServiceId"));
+      } else if (this.get("serviceName")) {
+        //hosts popup for Wizards
+        hostsData = inputData.findProperty("name", this.get("serviceName"));
+      }
+      if (hostsData) {
+        if (hostsData.hostsMap) {
+          //hosts data come from Background Operations as object map
+          hostsMap = hostsData.hostsMap;
+        } else if (hostsData.hosts) {
+          //hosts data come from Wizard as array
+          hostsData.hosts.forEach(function (_host) {
+            hostsMap[_host.name] = _host;
+          });
         }
       }
       var existedHosts = self.get('hosts');
 
-      if (existedHosts && this.get('currentServiceId') === this.get('previousServiceId')) {
+      if (existedHosts && (existedHosts.length > 0) && this.get('currentServiceId') === this.get('previousServiceId')) {
         existedHosts.forEach(function (host) {
           var newHostInfo = hostsMap[host.get('name')];
           if (newHostInfo) {
@@ -461,7 +458,7 @@ App.HostPopup = Em.Object.create({
     var self = this;
     var hostsInfo = this.get("hosts");
     var servicesInfo = this.get("servicesInfo");
-    var showServices = this.get('showServices');
+    var isBackgroundOperations = this.get('isBackgroundOperations');
     var categoryObject = Em.Object.extend({
       value: '',
       count: 0,
@@ -472,7 +469,7 @@ App.HostPopup = Em.Object.create({
     });
     self.set('isPopup', App.ModalPopup.show({
       //no need to track is it loaded when popup contain only list of hosts
-      isLoaded: !showServices,
+      isLoaded: !isBackgroundOperations,
       isOpen: false,
       didInsertElement: function(){
         this.set('isOpen', true);
@@ -485,8 +482,9 @@ App.HostPopup = Em.Object.create({
       autoHeight: false,
       closeModelPopup: function () {
         this.set('isOpen', false);
-        if(showServices){
+        if(isBackgroundOperations){
           $(this.get('element')).detach();
+          App.router.get('backgroundOperationsController').set('levelInfo.name', 'REQUESTS_LIST');
         } else {
           this.hide();
           self.set('isPopup', null);
@@ -515,8 +513,7 @@ App.HostPopup = Em.Object.create({
         services: self.get('servicesInfo'),
 
         tasks: function () {
-          if (!this.get('controller.currentHostName')) return [];
-          if (this.get('hosts') && this.get('hosts').length) {
+          if (this.get('hosts') && this.get('hosts').length && this.get('controller.currentHostName')) {
             var currentHost = this.get('hosts').findProperty('name', this.get('controller.currentHostName'));
             if (currentHost) {
               return currentHost.get('tasks');
@@ -525,15 +522,11 @@ App.HostPopup = Em.Object.create({
           return [];
         }.property('hosts.@each.tasks', 'hosts.@each.tasks.@each.status'),
 
-        didInsertElement: function () {
-          this.setOnStart();
-        },
-
         /**
          * Preset values on init
          */
         setOnStart: function () {
-          if (this.get("controller.showServices")) {
+          if (this.get("controller.isBackgroundOperations")) {
             this.get('controller').setSelectCount(this.get("services"), this.get('categories'));
             this.updateHostInfo();
           } else {
@@ -551,7 +544,7 @@ App.HostPopup = Em.Object.create({
             this.set('isTaskListHidden', true);
             this.set('isHostListHidden', true);
             this.set('isServiceListHidden', false);
-            this.get("controller").setBackgroundOperationHeader();
+            this.get("controller").setBackgroundOperationHeader(false);
             this.setOnStart();
           }
         }.observes('parentView.isOpen'),
@@ -562,8 +555,8 @@ App.HostPopup = Em.Object.create({
         updateHostInfo: function () {
           if(!this.get('parentView.isOpen')) return;
           this.set('parentView.isLoaded', false);
-          this.get("controller").set("inputData", this.get("controller.serviceController.services"));
-          this.get("controller").onServiceUpdate();
+          this.get("controller").set("inputData", this.get("controller.dataSourceController.services"));
+          this.get("controller").onServiceUpdate(this.get('isServiceListHidden'));
           this.get("controller").onHostUpdate();
           this.set('parentView.isLoaded', true);
           //push hosts into view when none or all hosts are loaded
@@ -571,7 +564,7 @@ App.HostPopup = Em.Object.create({
             this.set("hosts", this.get("controller.hosts"));
           }
           this.set("services", this.get("controller.servicesInfo"));
-        }.observes("controller.serviceController.serviceTimestamp"),
+        }.observes("controller.dataSourceController.serviceTimestamp"),
 
         /**
          * Depending on service filter, set which services should be shown
@@ -678,6 +671,29 @@ App.HostPopup = Em.Object.create({
         }.observes('tasks.@each.status', 'hosts.@each.status', 'isTaskListHidden', 'isHostListHidden', 'services.length', 'services.@each.status'),
 
         /**
+         * control data uploading, depending on which display level is showed
+         * @param levelName
+         */
+        switchLevel: function (levelName) {
+          if (this.get("controller.isBackgroundOperations")) {
+            var BGController = App.router.get('backgroundOperationsController');
+            var levelInfo = BGController.get('levelInfo');
+            levelInfo.set('taskId', this.get('openedTaskId'));
+            levelInfo.set('requestId', this.get('controller.currentServiceId'));
+            levelInfo.set('name', levelName);
+            if (levelName === 'HOSTS_LIST') {
+              levelInfo.set('sync', (this.get('controller.hosts').length === 0));
+              BGController.requestMostRecent();
+            } else if (levelName === 'TASK_DETAILS') {
+              levelInfo.set('sync', true);
+              BGController.requestMostRecent();
+            } else if (levelName === 'REQUESTS_LIST') {
+              this.get('controller.hosts').clear();
+              BGController.requestMostRecent();
+            }
+          }
+        },
+        /**
          * Onclick handler for button <-Tasks
          * @param event
          * @param context
@@ -699,6 +715,7 @@ App.HostPopup = Em.Object.create({
           this.set("isTaskListHidden", true);
           this.set("tasks", null);
           this.get("controller").set("popupHeaderName", this.get("controller.serviceName"));
+          this.switchLevel("HOSTS_LIST");
         },
 
         /**
@@ -713,7 +730,8 @@ App.HostPopup = Em.Object.create({
           this.set("isTaskListHidden", true);
           this.set("tasks", null);
           this.set("hosts", null);
-          this.get("controller").setBackgroundOperationHeader();
+          this.get("controller").setBackgroundOperationHeader(false);
+          this.switchLevel("REQUESTS_LIST");
         },
 
         /**
@@ -725,6 +743,7 @@ App.HostPopup = Em.Object.create({
           this.get("controller").set("serviceName", event.context.get("name"));
           this.get("controller").set("currentServiceId", event.context.get("id"));
           this.get("controller").onHostUpdate();
+          this.switchLevel("HOSTS_LIST");
           var servicesInfo = this.get("controller.hosts");
           if (servicesInfo.length) {
             this.get("controller").set("popupHeaderName", event.context.get("name"));
@@ -757,6 +776,7 @@ App.HostPopup = Em.Object.create({
             this.get("controller").set("popupHeaderName", taskInfo.objectAt(0).hostName);
             this.get("controller").set("currentHostName", taskInfo.objectAt(0).hostName);
           }
+          this.switchLevel("TASKS_LIST");
           this.set('tasks', taskInfo);
           this.set("isHostListHidden", true);
           this.set("isTaskListHidden", false);
@@ -803,6 +823,7 @@ App.HostPopup = Em.Object.create({
           this.set("isHostListHidden", true);
           this.set("isTaskListHidden", true);
           this.set('openedTaskId', taskInfo.id);
+          this.switchLevel("TASK_DETAILS");
           $(".modal").scrollTop(0);
           $(".modal-body").scrollTop(0);
         },

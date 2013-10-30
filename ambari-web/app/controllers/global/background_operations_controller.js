@@ -33,6 +33,19 @@ App.BackgroundOperationsController = Em.Controller.extend({
    */
   services:[],
   serviceTimestamp: null,
+  /**
+   * Possible levels:
+   * REQUESTS_LIST
+   * HOSTS_LIST
+   * TASKS_LIST
+   * TASK_DETAILS
+   */
+  levelInfo: Em.Object.create({
+    name: 'REQUESTS_LIST',
+    requestId: null,
+    taskId: null,
+    sync: false
+  }),
 
   /**
    * Start polling, when <code>isWorking</code> become true
@@ -45,59 +58,129 @@ App.BackgroundOperationsController = Em.Controller.extend({
   }.observes('isWorking'),
 
   /**
-   * Get all requests from server
+   * Get requests data from server
    * @param callback
    */
-  requestMostRecent: function(callback){
+  requestMostRecent: function (callback) {
+    var queryParams = this.getQueryParams();
     App.ajax.send({
-      name: 'background_operations.get_most_recent',
+      'name': queryParams.name,
       'sender': this,
-      'success': 'callBackForMostRecent',
-      'callback': callback
+      'success': queryParams.successCallback,
+      'callback': callback,
+      'data': queryParams.data
     });
+  },
+  /**
+   * construct params of ajax query regarding displayed level
+   */
+  getQueryParams: function () {
+    var levelInfo = this.get('levelInfo');
+    var result = {
+      name: 'background_operations.get_most_recent',
+      successCallback: 'callBackForMostRecent',
+      data: {}
+    };
+    if (levelInfo.get('name') === 'TASK_DETAILS' && !App.testMode) {
+      result.name = 'background_operations.get_by_task';
+      result.successCallback = 'callBackFilteredByTask';
+      result.data = {
+        'taskId': levelInfo.get('taskId'),
+        'requestId': levelInfo.get('requestId'),
+        'sync': levelInfo.get('sync')
+      };
+    } else if (levelInfo.get('name') === 'TASKS_LIST' || levelInfo.get('name') === 'HOSTS_LIST') {
+      result.name = 'background_operations.get_by_request';
+      result.successCallback = 'callBackFilteredByRequest';
+      result.data = {
+        'requestId': levelInfo.get('requestId'),
+        'sync': levelInfo.get('sync')
+      };
+    }
+    levelInfo.set('sync', false);
+    return result;
   },
 
   /**
-   * Prepare recived from server requests for host component popup
+   * Push hosts and their tasks to request
+   * @param data
+   * @param ajaxQuery
+   * @param params
+   */
+  callBackFilteredByRequest: function (data, ajaxQuery, params) {
+    var hostsMap = {};
+    var request = this.get('services').findProperty('id', data.Requests.id);
+    data.tasks.forEach(function (task) {
+      if (hostsMap[task.Tasks.host_name]) {
+        hostsMap[task.Tasks.host_name].logTasks.push(task);
+      } else {
+        hostsMap[task.Tasks.host_name] = {
+          name: task.Tasks.host_name,
+          publicName: task.Tasks.host_name,
+          logTasks: [task]
+        };
+      }
+    }, this);
+    request.set('hostsMap', hostsMap);
+    this.set('serviceTimestamp', new Date().getTime());
+  },
+  /**
+   * Update task, with uploading two additional properties: stdout and stderr
+   * @param data
+   * @param ajaxQuery
+   * @param params
+   */
+  callBackFilteredByTask: function (data, ajaxQuery, params) {
+    var request = this.get('services').findProperty('id', data.Tasks.request_id);
+    var host = request.get('hostsMap')[data.Tasks.host_name];
+    var task = host.logTasks.findProperty('Tasks.id', data.Tasks.id);
+    task.Tasks.status = data.Tasks.status;
+    task.Tasks.stdout = data.Tasks.stdout;
+    task.Tasks.stderr = data.Tasks.stderr;
+    this.set('serviceTimestamp', new Date().getTime());
+  },
+
+  /**
+   * Prepare, received from server, requests for host component popup
    * @param data
    */
-  callBackForMostRecent: function(data){
-    this.get("services").clear();
+  callBackForMostRecent: function (data) {
     var runningServices = 0;
     var self = this;
-    data.items = data.items.sort(function(a,b){return b.Requests.id - a.Requests.id});
-    data.items.forEach(function(request){
-      var hostsMap = {};
-      var isRunningTasks = false;
-      request.tasks.forEach(function (task) {
-        if (!isRunningTasks && (['QUEUED', 'IN_PROGRESS', 'PENDING'].contains(task.Tasks.status))) {
-          isRunningTasks = true;
-        }
-        if (hostsMap[task.Tasks.host_name]) {
-          hostsMap[task.Tasks.host_name].logTasks.push(task);
-        } else {
-          hostsMap[task.Tasks.host_name] = {
-            name: task.Tasks.host_name,
-            publicName: task.Tasks.host_name,
-            logTasks: [task]
-          };
-        }
-      }, this);
+    var currentRequestIds = [];
 
-      var rq = Em.Object.create({
-        id: request.Requests.id,
-        name: request.Requests.request_context || 'Request name not specified',
-        displayName: request.Requests.request_context || 'Request name not specified',
-        progress: 10,
-        status: "",
-        isRunning: isRunningTasks,
-        hostsMap: hostsMap,
-        tasks: request.tasks
-      });
-      runningServices += ~~isRunningTasks;
-      self.get("services").push(rq);
+    data.items.forEach(function (request) {
+      var rq = self.get("services").findProperty('id', request.Requests.id);
+      var isRunning = (request.Requests.task_count -
+        (request.Requests.aborted_task_count + request.Requests.completed_task_count + request.Requests.failed_task_count
+         + request.Requests.timed_out_task_count - request.Requests.queued_task_count)) > 0;
+      currentRequestIds.push(request.Requests.id);
+      if (rq) {
+        rq.set('progress', Math.round(request.Requests.progress_percent));
+        rq.set('status', request.Requests.request_status);
+        rq.set('isRunning', isRunning);
+      } else {
+        rq = Em.Object.create({
+          id: request.Requests.id,
+          name: request.Requests.request_context || 'Request name not specified',
+          displayName: request.Requests.request_context || 'Request name not specified',
+          progress: Math.round(request.Requests.progress_percent),
+          status: request.Requests.request_status,
+          isRunning: isRunning,
+          hostsMap: {},
+          tasks: []
+        });
+        self.get("services").unshift(rq);
+      }
+      runningServices += ~~isRunning;
     });
-    self.set("allOperationsCount",runningServices);
+    //remove old request if it's absent in API response
+    self.get('services').forEach(function(service, index, services){
+      if(!currentRequestIds.contains(service.id)) {
+        services.splice(index, 1);
+      }
+    });
+    self.set("allOperationsCount", runningServices);
     self.set('serviceTimestamp', new Date().getTime());
   },
 
@@ -109,7 +192,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
    */
   showPopup: function(){
     App.updater.immediateRun('requestMostRecent');
-    if(this.get('popupView') && App.HostPopup.get('showServices')){
+    if(this.get('popupView') && App.HostPopup.get('isBackgroundOperations')){
       this.set('popupView.isOpen', true);
       $(this.get('popupView.element')).appendTo('#wrapper');
     } else {
