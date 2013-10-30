@@ -67,7 +67,7 @@ class StatusCheck:
   def __init__(self, serviceToPidDict, pidPathesVars, globalConfig,
     servicesToLinuxUser):
     
-    self.serToPidDict = serviceToPidDict
+    self.serToPidDict = serviceToPidDict.copy()
     self.pidPathesVars = pidPathesVars
     self.pidPathes = []
     self.sh = shellRunner()

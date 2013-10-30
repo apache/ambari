@@ -87,6 +87,9 @@ class TestStatusCheck(TestCase):
     statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathesVars,
       self.globalConfig, self.servicesToLinuxUser)
 
+    self.assertTrue(StatusCheck.USER_PATTERN in self.serviceToPidDict[COMPONENT_LIVE])
+    self.assertTrue(StatusCheck.USER_PATTERN in self.serviceToPidDict[COMPONENT_DEAD])
+
     statusCheck.pidFilesDict = self.pidFilesDict
     
     get_is_live_mock.side_effect = lambda pid_path : self.is_live_values[pid_path]
