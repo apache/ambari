@@ -47,11 +47,6 @@ App.MainAdminView = Em.View.extend({
       label: Em.I18n.t('common.cluster')
     });
     items.push({
-      name: 'userSettings',
-      url: 'adminUserSettings',
-      label: Em.I18n.t('common.userSettings')
-    });
-    items.push({
       name: 'misc',
       url: 'adminMisc',
       label: Em.I18n.t('common.misc')
