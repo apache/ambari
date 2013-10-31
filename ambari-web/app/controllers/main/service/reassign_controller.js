@@ -61,9 +61,7 @@ App.ReassignMasterController = App.WizardController.extend({
   }),
 
   addManualSteps: function () {
-    if (this.get('content.componentsWithManualCommands')) {  // While logging off this function is called with content.componentsWithManualCommands undefined
-      this.set('content.hasManualSteps', this.get('content.componentsWithManualCommands').contains(this.get('content.reassign.component_name')) || this.get('content.securityEnabled'));
-    }
+    this.set('content.hasManualSteps', this.get('content.componentsWithManualCommands').contains(this.get('content.reassign.component_name')) || this.get('content.securityEnabled'));
   }.observes('content.reassign.component_name', 'content.securityEnabled'),
 
   getSecurityStatus: function () {
