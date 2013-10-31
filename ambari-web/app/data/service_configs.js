@@ -18,7 +18,7 @@
 
 var App = require('app');
 require('models/service_config');
-
+require('utils/defaults_providers/yarn_defaults_provider');
 
 module.exports = [
   {
@@ -66,6 +66,7 @@ module.exports = [
   {
     serviceName: 'YARN',
     displayName: 'YARN',
+    defaultsProviders: [App.YARNDefaultsProvider],
     filename: 'yarn-site',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'ResourceManager', displayName : 'Resource Manager', hostComponentNames : ['RESOURCEMANAGER']}),
@@ -83,6 +84,7 @@ module.exports = [
     serviceName: 'MAPREDUCE2',
     displayName: 'MapReduce 2',
     filename: 'mapred-site',
+    defaultsProviders: [App.YARNDefaultsProvider],
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'HistoryServer', displayName : 'History Server', hostComponentNames : ['HISTORYSERVER']}),
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
