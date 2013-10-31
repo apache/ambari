@@ -18,9 +18,6 @@
 
 <div id="serviceConfig">
   {{#if dataIsLoaded}}
-    <div class="pull-right">
-      {{view App.FilterComboboxView filterBinding="controller.filter" columnsBinding="controller.filterColumns" }}
-    </div>
     <div class="clearfix"></div>
     {{view App.ServiceConfigView canEditBinding="view.isConfigsEditable" filterBinding="controller.filter" columnsBinding="controller.filterColumns"}}
   {{else}}

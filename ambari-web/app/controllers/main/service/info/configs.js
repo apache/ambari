@@ -25,6 +25,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   stepConfigs: [], //contains all field properties that are viewed in this service
   selectedService: null,
   serviceConfigTags: null,
+  selectedConfigGroup: null,
+  configGroups: [],
   globalConfigs: [],
   uiConfigs: [],
   customConfig: [],
@@ -253,25 +255,53 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var serviceConfigsDef = params.serviceConfigsDef;
     var serviceName = this.get('content.serviceName');
     console.debug("loadServiceConfigs(): data=", data);
-
-    this.loadedClusterSiteToTagMap = {};
-    //STEP 1: handle tags from JSON data
+    var allConfigGroups = [];
+    // Create default configuration group
+    var defaultConfigGroup = App.ConfigGroup.create({
+      name: "Default",
+      description: "Default cluster level " + serviceName + " configuration",
+      isDefault: true,
+      parentConfigGroup: null,
+      service: this.get('content'),
+      configSiteTags: []
+    });
+    var configSiteTags = defaultConfigGroup.configSiteTags;
     for (var site in data.Clusters.desired_configs) {
       if (serviceConfigsDef.sites.indexOf(site) > -1) {
-        this.loadedClusterSiteToTagMap[site] = data.Clusters.desired_configs[site]['tag'];
-        var overrides = data.Clusters.desired_configs[site].host_overrides;
-        if (overrides) {
-          overrides.forEach(function (override) {
-            var hostname = override.host_name;
-            var tag = override.tag;
-            if (!this.loadedHostToOverrideSiteToTagMap[hostname]) {
-              this.loadedHostToOverrideSiteToTagMap[hostname] = {};
-            }
-            this.loadedHostToOverrideSiteToTagMap[hostname][site] = tag;
-          }, this);
-        }
+        configSiteTags.push(App.ConfigSiteTag.create({
+          site: site,
+          tag: data.Clusters.desired_configs[site].tag
+        }));
       }
     }
+    
+    allConfigGroups.push(defaultConfigGroup);
+    this.configGroups = allConfigGroups;
+    this.set('selectedConfigGroup', defaultConfigGroup);
+  },
+  
+  loadConfigGroup: function () {
+    var selectedConfigGroup = this.get('selectedConfigGroup');
+    var serviceName = selectedConfigGroup.get('service.serviceName');
+    this.loadedClusterSiteToTagMap = {};
+    //STEP 1: handle tags from JSON data
+    var selectedSiteTags = selectedConfigGroup.get('configSiteTags');
+    selectedSiteTags.forEach( function(siteTag) {
+      var site = siteTag.get('site');
+      var tag = siteTag.get('tag');
+      this.loadedClusterSiteToTagMap[site] = tag;
+//      var overrides = data.Clusters.desired_configs[site].host_overrides;
+//      if (overrides) {
+//        overrides.forEach(function (override) {
+//          var hostname = override.host_name;
+//          var tag = override.tag;
+//          if (!this.loadedHostToOverrideSiteToTagMap[hostname]) {
+//            this.loadedHostToOverrideSiteToTagMap[hostname] = {};
+//          }
+//          this.loadedHostToOverrideSiteToTagMap[hostname][site] = tag;
+//        }, this);
+//      }
+    }, this);
     //STEP 2: Create an array of objects defining tag names to be polled and new tag names to be set after submit
     this.setServiceConfigTags(this.loadedClusterSiteToTagMap);
     //STEP 3: Load advanced configs from server
@@ -316,7 +346,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.set('selectedService', this.get('stepConfigs').objectAt(0));
     this.checkForSecureConfig(this.get('selectedService'));
     this.set('dataIsLoaded', true);
-  },
+  }.observes('selectedConfigGroup'),
   
   loadServiceConfigHostsOverrides: function(allConfigs, loadedHostToOverrideSiteToTagMap) {
     App.config.loadServiceConfigHostsOverrides(allConfigs, loadedHostToOverrideSiteToTagMap);
@@ -1016,6 +1046,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         var serverGlobalConfigs = this.createGlobalSiteObj(_serviceTags.newTagName);
         siteNameToServerDataMap['global'] = serverGlobalConfigs;
         var loadedProperties = configController.getConfigsByTags([{siteName: 'global', tagName: this.loadedClusterSiteToTagMap['global']}]);
+        if (loadedProperties && loadedProperties[0]) {
+          loadedProperties = loadedProperties[0].properties;
+        }
         if (this.isConfigChanged(loadedProperties, serverGlobalConfigs.properties)) {
           result = result && this.doPUTClusterConfigurationSite(serverGlobalConfigs);
         }
@@ -1025,6 +1058,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           var coreSiteConfigs = this.createCoreSiteObj(_serviceTags.newTagName);
           siteNameToServerDataMap['core-site'] = coreSiteConfigs;
           var loadedProperties = configController.getConfigsByTags([{siteName: 'core-site', tagName: this.loadedClusterSiteToTagMap['core-site']}]);
+          if (loadedProperties && loadedProperties[0]) {
+            loadedProperties = loadedProperties[0].properties;
+          }
           if (this.isConfigChanged(loadedProperties, coreSiteConfigs.properties)) {
             result = result && this.doPUTClusterConfigurationSite(coreSiteConfigs);
           }
@@ -1033,6 +1069,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         var serverConfigs = this.createSiteObj(_serviceTags.siteName, _serviceTags.newTagName);
         siteNameToServerDataMap[_serviceTags.siteName] = serverConfigs;
         var loadedProperties = configController.getConfigsByTags([{siteName: _serviceTags.siteName, tagName: this.loadedClusterSiteToTagMap[_serviceTags.siteName]}]);
+        if (loadedProperties && loadedProperties[0]) {
+          loadedProperties = loadedProperties[0].properties;
+        }
         if (this.isConfigChanged(loadedProperties, serverConfigs.properties)) {
           result = result && this.doPUTClusterConfigurationSite(serverConfigs);
         }
@@ -1546,6 +1585,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   doCancel: function () {
     this.loadStep();
   },
+
   restartComponents: function() {
     App.showConfirmationPopup(function() {
 
@@ -1594,5 +1634,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       }),
       secondary: null
     });
+  },
+  
+  selectConfigGroup: function (event) {
+    this.set('selectedConfigGroup', event.context);
   }
 });

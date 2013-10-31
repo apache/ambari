@@ -942,6 +942,29 @@ App.config = Em.Object.create({
     if (snCategory && activeNn) {
       configCategories.removeObject(snCategory);
     }
+  },
+  
+
+  /**
+   * Gets all the configuration-groups for the given service.
+   * 
+   * @param serviceId
+   *          (string) ID of the service. Ex: HDFS
+   * @return Array of App.ConfigGroups
+   */
+  getConfigGroupsForService: function (serviceId) {
+
+  },
+
+  /**
+   * Gets all the configuration-groups for a host.
+   * 
+   * @param hostName
+   *          (string) host name used to register
+   * @return Array of App.ConfigGroups
+   */
+  getConfigGroupsForHost: function (hostName) {
+
   }
 
 });

@@ -29,10 +29,7 @@
           </div>
         </div>
       {{/if}}
-    <div class="pull-right">
-      {{view App.FilterComboboxView filterBinding="controller.filter" columnsBinding="controller.filterColumns" }}
-    </div>
-	  {{/if}}
+    {{/if}}
     <div class="clearfix"></div>
     {{view App.ServiceConfigView filterBinding="controller.filter" columnsBinding="controller.filterColumns"}}
     {{#if App.isAdmin}}

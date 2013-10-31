@@ -45,7 +45,30 @@
 	</div>
 	{{/if}}
 {{/if}}
-
+{{#if App.supports.hostOverrides}}
+	<div class="alert alert-info">
+	  {{t common.group}}&nbsp; 
+	  <span class="btn-group">
+		  <button class="btn">{{selectedConfigGroup.name}}</button>
+		  <button class="btn dropdown-toggle" data-toggle="dropdown">
+		    <span class="caret"></span>
+		  </button>
+		  <ul class="dropdown-menu">
+		    <!-- available config group menu links -->
+		    {{#each configGroup in configGroups}}
+           <li>
+             <a href="#" {{action "selectConfigGroup" configGroup target="controller"}}>
+               {{configGroup.name}}
+             </a>
+           </li>
+        {{/each}}
+		  </ul>
+		</span>
+     <div class="pull-right">
+       {{view App.FilterComboboxView filterBinding="view.filter" columnsBinding="view.columns" }}
+     </div>
+	</div>
+{{/if}}
 <div class="accordion">
   {{#each category in selectedService.configCategories}}
     {{#if category.isCustomView}}

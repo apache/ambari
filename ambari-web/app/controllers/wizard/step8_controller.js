@@ -60,6 +60,8 @@ App.WizardStep8Controller = Em.Controller.extend({
    * @see loadedHostToOverrideSiteToTagMap
    */
   savedHostToOverrideSiteToTagMap: {},
+  selectedConfigGroup: null,
+  configGroups: [],
 
   selectedServices: function () {
     return this.get('content.services').filterProperty('isSelected', true).filterProperty('isInstalled', false);
