@@ -69,10 +69,11 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     }
 
     if (this.get('content.hasManualSteps')) {
-      if (App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
-        this.get('tasks').splice(5, 4);
-      } else {
+      if (this.get('content.reassign.component_name') === 'NAMENODE' && !App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
+        // Only for reassign NameNode with HA enabled
         this.get('tasks').splice(7, 2);
+      } else {
+        this.get('tasks').splice(5, 4);
       }
     } else {
       this.get('tasks').splice(5, 2);

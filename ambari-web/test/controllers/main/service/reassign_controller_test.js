@@ -33,15 +33,4 @@ describe('App.ReassignMasterController', function () {
 
   reassignMasterController.set('content.reassign', {service_id:null});
 
-  describe('#skipStep3', function() {
-    it('should be TRUE for GANGLIA', function() {
-      reassignMasterController.set('content.reassign.service_id', 'GANGLIA');
-      expect(reassignMasterController.get('skipStep3')).to.equal(true);
-    });
-    it('should be FALSE for others', function() {
-      reassignMasterController.set('content.reassign.service_id', 'HDFS');
-      expect(reassignMasterController.get('skipStep3')).to.equal(false);
-    });
-  });
-
 });
