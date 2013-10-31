@@ -156,60 +156,10 @@ App.MainHostDetailsController = Em.Controller.extend({
       } else {
         App.router.get('clusterController').loadUpdatedStatusDelayed(500);
       }
-      if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked()) {
-        App.router.get('backgroundOperationsController').showPopup();
-      }
+      App.router.get('backgroundOperationsController').showPopup();
     });
   },
 
-  /**
-   * send command to server to delete selected host component
-   *
-   */
-  deleteComponent: function (event) {
-    var self = this;
-    var component = event.context;
-    var componentName = component.get('componentName').toUpperCase().toString();
-    var displayName = component.get('displayName');
-    var numberOfComponents = 0;
-    var isLastComponent = false;
-    var allComponents = component.get('service.hostComponents');
-    allComponents.forEach(function(component) {
-      if (component.get('componentName') == componentName) numberOfComponents++;
-      if (numberOfComponents > 1) return;
-    });
-    if (numberOfComponents == 1) {
-      isLastComponent = true;
-    }
-    App.ModalPopup.show({
-      header: Em.I18n.t('popup.confirmation.commonHeader'),
-      bodyClass: Ember.View.extend({
-        templateName: require('templates/main/host/details/deleteComponentPopup')
-      }),
-      enablePrimary: false,
-      lastComponent: function() {
-        if (isLastComponent) {
-          this.set('enablePrimary',false);
-          return true;
-        } else {
-          this.set('enablePrimary',true);
-          return false;
-        }
-      }.property(),
-      lastComponentError:  Em.View.extend({
-        template: Ember.Handlebars.compile(Em.I18n.t('hosts.host.deleteComponent.popup.warning').format(displayName))
-      }),
-      deleteComponentMsg: function() {
-        return Em.I18n.t('hosts.host.deleteComponent.popup.msg').format(displayName);
-      }.property(),
-      onPrimary: function () {
-        if (!this.get('enablePrimary')) return;
-        self._doDeleteHostComponent(component);
-        this.hide();
-      },
-    });
-
-  },
   /**
    * Deletes the given host component, or all host components.
    * 
@@ -396,7 +346,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         onPrimary: function () {
           this.hide();
           if (component.get('componentName') === 'CLIENTS') {
-            // Clients component has many sub-components which
+            // Clients component has many sub-components which 
             // need to be installed.
             var scs = component.get('subComponentNames');
             scs.forEach(function (sc) {
