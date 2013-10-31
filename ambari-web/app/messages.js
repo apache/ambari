@@ -133,7 +133,6 @@ Em.I18n.translations = {
   'common.stats':'Stats',
   'common.abort': 'Abort',
   'common.misc': 'Misc',
-  'common.userSettings': 'User Settings',
   'common.operations': 'Operations',
   'common.reinstall': 'Re-Install',
   'common.errorPopup.header': 'An error has been encountered',
@@ -873,9 +872,6 @@ Em.I18n.translations = {
   'admin.cluster.upgradeAvailable':'Upgrade available',
   'admin.cluster.upgradeUnavailable':'Upgrade unavailable',
 
-  'admin.userSettings.header': 'Customize User Settings',
-  'admin.userSettings.showBgOperations': 'Show background operations dialog when an operation is started',
-  'admin.userSettings.notShowBgOperations': 'Do not show this dialog again when starting a background operation',
   'admin.misc.header': 'Service Users and Groups',
   'admin.misc.nothingToShow': 'No user accounts to display',
 

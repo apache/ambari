@@ -479,17 +479,6 @@ App.HostPopup = Em.Object.create({
         template: Ember.Handlebars.compile('{{popupHeaderName}}')
       }),
       classNames: ['sixty-percent-width-modal'],
-      // for the checkbox: do not show this dialog again
-      hasFooterCheckbox: true,
-      isNotShowBgChecked : null,
-      updateNotShowBgChecked: function () {
-        var curVal = !this.get('isNotShowBgChecked');
-        var key = App.router.get('mainAdminUserSettingsController').persistKey();
-        if (!App.testMode) {
-          App.router.get('mainAdminUserSettingsController').postUserPref(key, curVal);
-        }
-      }.observes('isNotShowBgChecked'),
-
       autoHeight: false,
       closeModelPopup: function () {
         this.set('isOpen', false);
