@@ -19,4 +19,11 @@
 
 var App = require('app');
 
-App.ReassignMasterWizardStep2View = App.WizardStep5View.extend();
+App.ReassignMasterWizardStep2View = App.WizardStep5View.extend({
+  body: function () {
+    if (this.get('controller.content.reassign.component_name') === 'NAMENODE' && !App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
+      return Em.I18n.t('services.reassign.step2.body.namenodeHA').format(this.get('controller.content.reassign.display_name'));
+    }
+    return Em.I18n.t('services.reassign.step2.body').format(this.get('controller.content.reassign.display_name'));
+  }.property('controller.content.reassign.component_name', 'controller.content.reassign.display_name')
+});

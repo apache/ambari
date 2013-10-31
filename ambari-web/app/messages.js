@@ -1098,6 +1098,8 @@ Em.I18n.translations = {
     'for cluster downtime when reassigning {0}.</b>',
 
   'services.reassign.step2.header':'Assign Master',
+  'services.reassign.step2.body':'Assign {0} to new host.',
+  'services.reassign.step2.body.namenodeHA':'Assign {0} to new host. You can reassign only one master component at a time.',
   'services.reassign.step3.header':'Review',
   'services.reassign.step3.body':'Please review the changes you made',
   'services.reassign.step3.targetHost':'Target Host:',

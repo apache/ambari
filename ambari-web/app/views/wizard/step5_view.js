@@ -26,7 +26,9 @@ App.WizardStep5View = Em.View.extend({
 
   didInsertElement:function () {
     this.get('controller').loadStep();
-  }
+  },
+
+  body: Em.I18n.t('installer.step5.body')
 
 });
 
