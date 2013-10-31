@@ -254,8 +254,8 @@ class hdp-hadoop(
     hdp::directory_recursive_create { $hadoop_config_dir:
       service_state => $::service_state,
       force => true,
-      owner => $hdfs_user,
-      group => $hdp::params::user_group
+      owner => 'root',
+      group => 'root'
     }
  
     hdp::user{ 'hdfs_user':
