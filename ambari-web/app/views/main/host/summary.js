@@ -425,7 +425,18 @@ App.MainHostSummaryView = Em.View.extend({
       var decommissionHostNames = this.get('decommissionDataNodeHostNames');
       var hostName = App.router.get('mainHostDetailsController.content.hostName');
       return decommissionHostNames != null && decommissionHostNames.contains(hostName);
-    }.property('App.router.mainHostDetailsController.content', 'decommissionDataNodeHostNames')
+    }.property('App.router.mainHostDetailsController.content', 'decommissionDataNodeHostNames'),
+
+    /**
+     * Shows whether we need to show Delete button
+     */
+    isHBaseMaster: function () {
+      return this.get('content.componentName') === 'HBASE_MASTER';
+    }.property('content'),
+    isDeleteHBaseMasterDisabled: function () {
+      return !(this.get('workStatus') == App.HostComponentStatus.stopped || this.get('workStatus') == App.HostComponentStatus.unknown ||
+        this.get('workStatus') == App.HostComponentStatus.install_failed || this.get('workStatus') == App.HostComponentStatus.upgrade_failed);
+    }.property('workStatus'),
 
   }),
   timeSinceHeartBeat: function () {

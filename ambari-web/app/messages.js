@@ -1275,7 +1275,7 @@ Em.I18n.translations = {
   'hosts.host.summary.hostname':'Hostname',
   'hosts.host.summary.agentHeartbeat':'Agent <br/> Heartbeat',
   'hosts.host.summary.hostMetrics':'Host Metrics',
-  'hosts.host.summary.action':'Action...',
+  'hosts.host.summary.action':'Actions...',
   'hosts.host.summary.addComponent':'Add Component...',
 
   'hosts.host.details.hostActions':'Host Actions...',
@@ -1288,6 +1288,8 @@ Em.I18n.translations = {
   'host.host.componentFilter.master':'Master Components',
   'host.host.componentFilter.slave':'Slave Components',
   'host.host.componentFilter.client':'Client Components',
+  'hosts.host.deleteComponent.popup.msg':'Are you sure you want to delete {0}?',
+  'hosts.host.deleteComponent.popup.warning':'<b>WARNING!</b> Delete the last <i>{0}</i> component in the cluster?</br>Deleting the last component in the cluster could result in permanent loss of service data.',
   'hosts.host.installComponent.msg':'Are you sure you want to install {0}?',
   'hosts.host.addComponent.msg':'Are you sure you want to add {0}?',
   'hosts.host.addComponent.note':'Note: After this component is installed, go to Services -> Nagios to restart the Nagios service.  This is required for the alerts and notifications to work properly.',
