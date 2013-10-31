@@ -76,7 +76,9 @@ App.MainServiceItemController = Em.Controller.extend({
     else {
       App.router.get('clusterController').loadUpdatedStatusDelayed(500);// @todo check working without param 500
     }
-    App.router.get('backgroundOperationsController').showPopup();
+    if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked()) {
+      App.router.get('backgroundOperationsController').showPopup();
+    }
   },
   /**
    * Confirmation popup for start/stop services
@@ -140,7 +142,9 @@ App.MainServiceItemController = Em.Controller.extend({
     var self = this;
     App.showConfirmationPopup(function() {
       self.content.set('runRebalancer', true);
-      App.router.get('backgroundOperationsController').showPopup();
+      if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked()) {
+        App.router.get('backgroundOperationsController').showPopup();
+      }
     });
   },
 
@@ -152,7 +156,9 @@ App.MainServiceItemController = Em.Controller.extend({
     var self = this;
     App.showConfirmationPopup(function() {
       self.content.set('runCompaction', true);
-      App.router.get('backgroundOperationsController').showPopup();
+      if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked()) {
+        App.router.get('backgroundOperationsController').showPopup();
+      }
     });
   },
 
@@ -186,7 +192,9 @@ App.MainServiceItemController = Em.Controller.extend({
 
   runSmokeTestSuccessCallBack: function(data) {
     if (data.Requests.id) {
-      App.router.get('backgroundOperationsController').showPopup();
+      if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked()) {
+        App.router.get('backgroundOperationsController').showPopup();
+      }
     }
     else {
       console.warn('error during runSmokeTestSuccessCallBack');

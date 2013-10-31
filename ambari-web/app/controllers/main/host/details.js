@@ -239,7 +239,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         deleted = {xhr: xhr, url: url, method: 'DELETE'};
       },
       statusCode: require('data/statusCodes')
-    });
+      });
     return deleted;
   },
 
@@ -278,7 +278,9 @@ App.MainHostDetailsController = Em.Controller.extend({
               App.router.get('clusterController').loadUpdatedStatusDelayed(500);
             }
 
-            App.router.get('backgroundOperationsController').showPopup();
+            if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked()) {
+              App.router.get('backgroundOperationsController').showPopup();
+            }
 
           });
     });
@@ -349,10 +351,14 @@ App.MainHostDetailsController = Em.Controller.extend({
             component.set('workStatus', App.HostComponentStatus.stopped);
           },App.testModeDelayForActions);
         }
+
       } else {
         App.router.get('clusterController').loadUpdatedStatusDelayed(500);
       }
-      App.router.get('backgroundOperationsController').showPopup();
+
+      if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked()) {
+        App.router.get('backgroundOperationsController').showPopup();
+      }
     });
   },
 
@@ -465,8 +471,9 @@ App.MainHostDetailsController = Em.Controller.extend({
               App.router.get('clusterController').loadUpdatedStatusDelayed(500);
             }
 
-            App.router.get('backgroundOperationsController').showPopup();
-
+            if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked()) {
+              App.router.get('backgroundOperationsController').showPopup();
+            }
           });
       });
   },
@@ -520,7 +527,9 @@ App.MainHostDetailsController = Em.Controller.extend({
               App.router.get('clusterController').loadUpdatedStatusDelayed(500);
             }
 
-            App.router.get('backgroundOperationsController').showPopup();
+            if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked()) {
+              App.router.get('backgroundOperationsController').showPopup();
+            }
 
           });
       }
@@ -548,7 +557,9 @@ App.MainHostDetailsController = Em.Controller.extend({
         }
         self.doDatanodeDecommission(decommissionHostNames, true);
       }
-      App.router.get('backgroundOperationsController').showPopup();
+      if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked()) {
+        App.router.get('backgroundOperationsController').showPopup();
+      }
     });
   },
 
@@ -650,7 +661,9 @@ App.MainHostDetailsController = Em.Controller.extend({
         decommissionHostNames.splice(index, 1);
         self.doDatanodeDecommission(decommissionHostNames, false);
       }
-      App.router.get('backgroundOperationsController').showPopup();
+      if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked()) {
+        App.router.get('backgroundOperationsController').showPopup();
+      }
     });
   },
   
