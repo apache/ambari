@@ -86,11 +86,10 @@ App.MainServiceController = Em.ArrayController.extend({
 
   allServicesCall: function(state) {
     var data;
-    if(state == 'stopAllService') {
-      data = '{"RequestInfo": {"context" :"'+ Em.I18n.t('requestInfo.stopAllServices') +'"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
-    }
-    else {
-      data = '{"RequestInfo": {"context" :"'+ Em.I18n.t('requestInfo.startAllServices') +'"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}';
+    if (state == 'stopAllService') {
+      data = '{"RequestInfo": {"context" :"_PARSE_.STOP.ALL_SERVICES"}, "Body": {"ServiceInfo": {"state": "INSTALLED"}}}';
+    } else {
+      data = '{"RequestInfo": {"context" :"_PARSE_.START.ALL_SERVICES"}, "Body": {"ServiceInfo": {"state": "STARTED"}}}';
     }
 
     App.ajax.send({

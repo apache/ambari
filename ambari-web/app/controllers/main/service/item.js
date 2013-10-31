@@ -94,12 +94,12 @@ App.MainServiceItemController = Em.Controller.extend({
     });
   },
 
-  startStopPopupPrimary: function(serviceHealth) {
+  startStopPopupPrimary: function (serviceHealth) {
     var requestInfo = "";
-    if(serviceHealth == "STARTED"){
-      requestInfo = 'Start ' + this.get('content.displayName');
-    }else{
-      requestInfo = 'Stop ' + this.get('content.displayName');
+    if (serviceHealth == "STARTED") {
+      requestInfo = '_PARSE_.START.' + this.get('content.serviceName');
+    } else {
+      requestInfo = '_PARSE_.STOP.' + this.get('content.serviceName');
     }
 
     App.ajax.send({
@@ -107,13 +107,13 @@ App.MainServiceItemController = Em.Controller.extend({
       'sender': this,
       'success': 'ajaxSuccess',
       'data': {
-        'requestInfo':requestInfo,
+        'requestInfo': requestInfo,
         'serviceName': this.get('content.serviceName').toUpperCase(),
         'state': serviceHealth
       }
     });
-    this.set('isStopDisabled',true);
-    this.set('isStartDisabled',true);
+    this.set('isStopDisabled', true);
+    this.set('isStartDisabled', true);
   },
 
   /**
@@ -225,18 +225,14 @@ App.MainServiceItemController = Em.Controller.extend({
 
   setStartStopState: function () {
     var serviceName = this.get('content.serviceName');
-    var components = service_components.filterProperty('service_name', serviceName).mapProperty('component_name');
     var backgroundOperations = App.router.get('backgroundOperationsController.services');
     if (backgroundOperations.length > 0) {
       for (var i = 0; i < backgroundOperations.length; i++) {
-        var logTasks = backgroundOperations[i].tasks;
-        for (var k = 0; k < logTasks.length; k++) {
-          if (components.contains(logTasks[k].Tasks.role)) {
-            if (logTasks[k].Tasks.status == 'PENDING' || logTasks[k].Tasks.status == 'IN_PROGRESS' || logTasks[k].Tasks.status == 'QUEUED') {
-              this.set('isPending', true);
-              return;
-            }
-          }
+        if (backgroundOperations[i].isRunning &&
+            (backgroundOperations[i].dependentService === "ALL_SERVICES" ||
+             backgroundOperations[i].dependentService === serviceName)) {
+          this.set('isPending', true);
+          return;
         }
       }
       this.set('isPending', false);

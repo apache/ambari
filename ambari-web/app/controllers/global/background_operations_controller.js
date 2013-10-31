@@ -154,26 +154,28 @@ App.BackgroundOperationsController = Em.Controller.extend({
       var isRunning = (request.Requests.task_count -
         (request.Requests.aborted_task_count + request.Requests.completed_task_count + request.Requests.failed_task_count
          + request.Requests.timed_out_task_count - request.Requests.queued_task_count)) > 0;
+      var requestParams = this.parseRequestContext(request.Requests.request_context);
       currentRequestIds.push(request.Requests.id);
       if (rq) {
-        rq.set('progress', Math.round(request.Requests.progress_percent));
+        rq.set('progress', Math.ceil(request.Requests.progress_percent));
         rq.set('status', request.Requests.request_status);
         rq.set('isRunning', isRunning);
       } else {
         rq = Em.Object.create({
           id: request.Requests.id,
-          name: request.Requests.request_context || 'Request name not specified',
-          displayName: request.Requests.request_context || 'Request name not specified',
-          progress: Math.round(request.Requests.progress_percent),
+          name: requestParams.requestContext,
+          displayName: requestParams.requestContext,
+          progress: Math.ceil(request.Requests.progress_percent),
           status: request.Requests.request_status,
           isRunning: isRunning,
           hostsMap: {},
-          tasks: []
+          tasks: [],
+          dependentService: requestParams.dependentService
         });
         self.get("services").unshift(rq);
       }
       runningServices += ~~isRunning;
-    });
+    }, this);
     //remove old request if it's absent in API response
     self.get('services').forEach(function(service, index, services){
       if(!currentRequestIds.contains(service.id)) {
@@ -182,6 +184,36 @@ App.BackgroundOperationsController = Em.Controller.extend({
     });
     self.set("allOperationsCount", runningServices);
     self.set('serviceTimestamp', new Date().getTime());
+  },
+
+  /**
+   * parse request context and if keyword "_PARSE_" is present then format it
+   * @param requestContext
+   * @return {Object}
+   */
+  parseRequestContext: function (requestContext) {
+    var parsedRequestContext;
+    var service;
+    var command;
+    if (requestContext) {
+      if (requestContext.indexOf("_PARSE_") !== -1) {
+        command = requestContext.split('.')[1];
+        service = requestContext.split('.')[2];
+        if (service === 'ALL_SERVICES') {
+          parsedRequestContext = Em.I18n.t("requestInfo." + command.toLowerCase()).format(Em.I18n.t('common.allServices'));
+        } else {
+          parsedRequestContext = Em.I18n.t("requestInfo." + command.toLowerCase()).format(App.Service.DisplayNames[service]);
+        }
+      } else {
+        parsedRequestContext = requestContext;
+      }
+    } else {
+      parsedRequestContext = Em.I18n.t('requestInfo.unspecified');
+    }
+    return {
+      requestContext: parsedRequestContext,
+      dependentService: service
+    }
   },
 
   popupView: null,

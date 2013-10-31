@@ -62,45 +62,9 @@ App.Service = DS.Model.extend({
   }.property('serviceName'),
 
   displayName: function () {
-    switch (this.get('serviceName').toLowerCase()) {
-      case 'hdfs':
-        return 'HDFS';
-      case 'yarn':
-        return 'YARN';
-      case 'mapreduce':
-        return 'MapReduce';
-      case 'mapreduce2':
-        return 'MapReduce2';
-      case 'tez':
-        return 'Tez';
-      case 'hbase':
-        return 'HBase';
-      case 'oozie':
-        return 'Oozie';
-      case 'hive':
-        return 'Hive';
-      case 'hcatalog':
-        return 'HCat';
-      case 'zookeeper':
-        return 'ZooKeeper';
-      case 'pig':
-        return 'Pig';
-      case 'sqoop':
-        return 'Sqoop';
-      case 'webhcat':
-        return 'WebHCat';
-      case 'ganglia':
-        return 'Ganglia';
-      case 'nagios':
-        return 'Nagios';
-      case 'hue':
-        return 'Hue';
-      case 'flume':
-        return 'Flume';
-    }
-    return this.get('serviceName');
+    return App.Service.DisplayNames[this.get('serviceName')];
   }.property('serviceName'),
-  
+
   /**
    * For each host-component, if the desired_configs dont match the
    * actual_configs, then a restart is required. Except for Global site
@@ -177,6 +141,26 @@ App.Service.Health = {
     }
     return 'none';
   }
+};
+
+App.Service.DisplayNames = {
+  'HDFS': 'HDFS',
+  'YARN': 'YARN',
+  'MAPREDUCE': 'MapReduce',
+  'MAPREDUCE2': 'MapReduce2',
+  'TEZ': 'Tez',
+  'HBASE': 'HBase',
+  'OOZIE': 'Oozie',
+  'HIVE': 'Hive',
+  'HCATALOG': 'HCat',
+  'ZOOKEEPER': 'ZooKeeper',
+  'PIG': 'Pig',
+  'SQOOP': 'Sqoop',
+  'WEBHCAT': 'WebHCat',
+  'GANGLIA': 'Ganglia',
+  'NAGIOS': 'Nagios',
+  'HUE': 'Hue',
+  'FLUME': 'Flume'
 };
 
 App.Service.FIXTURES = [];

@@ -150,6 +150,8 @@ Em.I18n.translations = {
   'common.update.error' : 'Error in retrieving web client state from ambari server',
   'common.tags': 'Tags',
   'common.important': 'Important',
+  'common.allServices':'All Services',
+
   'requestInfo.installComponents':'Install Components',
   'requestInfo.installServices':'Install Services',
   'requestInfo.startServices':'Start Services',
@@ -161,8 +163,9 @@ Em.I18n.translations = {
   'requestInfo.stopHostComponent':'Stop',
   'requestInfo.installHostComponent':'Install',
   'requestInfo.installNewHostComponent':'Install',
-  'requestInfo.stopService':'Stop',
-  'requestInfo.startService':'Start',
+  'requestInfo.stop':'Stop {0}',
+  'requestInfo.start':'Start {0}',
+  'requestInfo.unspecified':'Request name not specified',
 
   'hostPopup.noServicesToShow':'No services to show',
   'hostPopup.noHostsToShow':'No hosts to show',
