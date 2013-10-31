@@ -108,7 +108,7 @@ CREATE TABLE workflow (
   inputBytes INTEGER, outputBytes INTEGER,
   duration INTEGER,
   PRIMARY KEY (workflowId),
-  FOREIGN KEY (parentWorkflowId) REFERENCES workflow(workflowId)
+  FOREIGN KEY (parentWorkflowId) REFERENCES workflow(workflowId) ON DELETE CASCADE
 );
 
 CREATE TABLE job (
@@ -122,7 +122,7 @@ CREATE TABLE job (
   mapCounters VARCHAR2(4000), reduceCounters VARCHAR2(4000), jobCounters VARCHAR2(4000), 
   inputBytes INTEGER, outputBytes INTEGER,
   PRIMARY KEY(jobId),
-  FOREIGN KEY(workflowId) REFERENCES workflow(workflowId)
+  FOREIGN KEY(workflowId) REFERENCES workflow(workflowId) ON DELETE CASCADE
 );
 
 CREATE TABLE task (
@@ -130,7 +130,7 @@ CREATE TABLE task (
   startTime INTEGER, finishTime INTEGER, status VARCHAR2(4000), error CLOB, counters VARCHAR2(4000), 
   failedAttempt VARCHAR2(4000), 
   PRIMARY KEY(taskId), 
-  FOREIGN KEY(jobId) REFERENCES job(jobId)
+  FOREIGN KEY(jobId) REFERENCES job(jobId) ON DELETE CASCADE
 );
 
 CREATE TABLE taskAttempt (
@@ -141,8 +141,8 @@ CREATE TABLE taskAttempt (
   status VARCHAR2(4000), error CLOB, counters VARCHAR2(4000), 
   inputBytes INTEGER, outputBytes INTEGER,
   PRIMARY KEY(taskAttemptId), 
-  FOREIGN KEY(jobId) REFERENCES job(jobId), 
-  FOREIGN KEY(taskId) REFERENCES task(taskId)
+  FOREIGN KEY(jobId) REFERENCES job(jobId) ON DELETE CASCADE,
+  FOREIGN KEY(taskId) REFERENCES task(taskId) ON DELETE CASCADE
 ); 
 
 CREATE TABLE hdfsEvent (
