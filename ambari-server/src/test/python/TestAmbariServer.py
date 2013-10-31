@@ -1009,14 +1009,14 @@ class TestAmbariServer(TestCase):
     get_YN_input_mock.side_effect = [True]
     ambari_server.check_iptables()
     self.assertEqual(print_warning_msg.call_args_list[0][0][0],
-      "iptables is running. Confirm the necessary Ambari ports are accessible. " +
+      "%s is running. Confirm the necessary Ambari ports are accessible. " % ambari_server.FIREWALL_SERVICE_NAME +
       "Refer to the Ambari documentation for more details on ports." 
     )
 
   @patch.object(ambari_server, "run_os_command")
   @patch.object(ambari_server, "print_warning_msg")
   def test_check_iptables_is_not_running(self, print_warning_msg, run_os_command_mock):
-    run_os_command_mock.return_value = (3, "iptables: Firewall is not running.", "")
+    run_os_command_mock.return_value = (3, ambari_server.IP_TBLS_IS_NOT_RUNNING, "")
     ambari_server.check_iptables()
 
     self.assertFalse(print_warning_msg.called)
