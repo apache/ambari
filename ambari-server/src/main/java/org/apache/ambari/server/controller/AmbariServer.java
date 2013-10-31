@@ -400,13 +400,13 @@ public class AmbariServer {
 
   protected void checkDBVersion() throws AmbariException {
     LOG.info("Checking DB store version");
-    String databaseVersion = metainfoDAO.findByKey(Configuration.SERVER_VERSION_KEY).getMetainfoValue();
+    String schemaVersion = metainfoDAO.findByKey(Configuration.SERVER_VERSION_KEY).getMetainfoValue();
     String serverVersion = ambariMetaInfo.getServerVersion();
-    if (! databaseVersion.equals(serverVersion)) {
+    if (! schemaVersion.equals(serverVersion)) {
       String error = "Current database store version is not compatible with " +
               "current server version"
               + ", serverVersion=" + serverVersion
-              + ", databaseVersion=" + databaseVersion;
+              + ", schemaVersion=" + schemaVersion;
       LOG.warn(error);
       throw new AmbariException(error);
     }
