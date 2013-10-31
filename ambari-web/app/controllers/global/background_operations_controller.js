@@ -224,7 +224,9 @@ App.BackgroundOperationsController = Em.Controller.extend({
    */
   showPopup: function(){
     App.updater.immediateRun('requestMostRecent');
-    if(this.get('popupView') && App.HostPopup.get('isBackgroundOperations')){
+
+    if(this.get('popupView') && App.HostPopup.get('isBackgroundOperations') && App.HostPopup.get('showServices')){
+      this.set ('popupView.isNotShowBgChecked', !App.router.get('mainAdminUserSettingsController').loadShowBgChecked());
       this.set('popupView.isOpen', true);
       $(this.get('popupView.element')).appendTo('#wrapper');
     } else {
