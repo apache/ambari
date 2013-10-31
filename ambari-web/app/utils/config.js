@@ -461,8 +461,10 @@ App.config = Em.Object.create({
    * render configs, distribute them by service
    * and wrap each in ServiceConfigProperty object
    * @param configs
+   * @param storedConfigs
    * @param allInstalledServiceNames
    * @param selectedServiceNames
+   * @param localDB
    * @return {Array}
    */
   renderConfigs: function (configs, storedConfigs, allInstalledServiceNames, selectedServiceNames, localDB) {
@@ -496,6 +498,21 @@ App.config = Em.Object.create({
       }, this);
       serviceConfig = this.createServiceConfig(service.serviceName);
       serviceConfig.set('showConfig', service.showConfig);
+
+      // Use calculated default values for some configs
+      if (service.defaultsProviders) {
+        service.defaultsProviders.forEach(function(defaultsProvider) {
+          var defaults = defaultsProvider.getDefaults(localDB);
+          for(var name in defaults) {
+            var config = configsByService.findProperty('name', name);
+            if (config) {
+              config.set('value', defaults[name]);
+              config.set('defaultValue', defaults[name]);
+            }
+          }
+        });
+      }
+
       serviceConfig.set('configs', configsByService);
       renderedServiceConfigs.push(serviceConfig);
     }, this);
