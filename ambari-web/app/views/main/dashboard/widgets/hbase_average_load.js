@@ -26,7 +26,7 @@ App.HBaseAverageLoadView = App.TextDashboardWidgetView.extend({
   model_type: 'hbase',
   hiddenInfo: function () {
     var avgLoad = this.get('model.averageLoad');
-    if (avgLoad == null) {
+    if (isNaN(avgLoad)) {
       avgLoad = Em.I18n.t('services.service.summary.notAvailable');
     }
     var result = [];

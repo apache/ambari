@@ -26,11 +26,11 @@ App.NodeManagersLiveView = App.TextDashboardWidgetView.extend({
   model_type: 'yarn',
 
   hiddenInfo: function () {
-    var nmActive = this.get('model.nodeManagersCountActive');
-    var nmLost = this.get('model.nodeManagersCountLost');
-    var nmUnhealthy = this.get('model.nodeManagersCountUnhealthy');
-    var nmRebooted = this.get('model.nodeManagersCountRebooted');
-    var nmDecom = this.get('model.nodeManagersCountDecommissioned');
+    var nmActive = this.get('model.nodeManagersCountActive') == null ? Em.I18n.t('services.service.summary.notAvailable') : this.get('model.nodeManagersCountActive');
+    var nmLost = this.get('model.nodeManagersCountLost') == null ? Em.I18n.t('services.service.summary.notAvailable') : this.get('model.nodeManagersCountLost');
+    var nmUnhealthy = this.get('model.nodeManagersCountUnhealthy') == null ? Em.I18n.t('services.service.summary.notAvailable') : this.get('model.nodeManagersCountUnhealthy');
+    var nmRebooted = this.get('model.nodeManagersCountRebooted') == null ? Em.I18n.t('services.service.summary.notAvailable'): this.get('model.nodeManagersCountRebooted');
+    var nmDecom = this.get('model.nodeManagersCountDecommissioned') == null ? Em.I18n.t('services.service.summary.notAvailable') : this.get('model.nodeManagersCountDecommissioned');
     var result = [];
       result.pushObject(nmActive + " active");
       result.pushObject(nmLost + " lost");

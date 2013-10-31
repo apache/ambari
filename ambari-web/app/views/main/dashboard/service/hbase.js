@@ -96,7 +96,7 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
 
   summaryHeader: function () {
     var avgLoad = this.get('service.averageLoad');
-    if (avgLoad == null) {
+    if (isNaN(avgLoad)) {
       avgLoad = this.t("services.service.summary.unknown");
     }
     return this.t("dashboard.services.hbase.summary").format(this.get('service.regionServers.length'), avgLoad);
@@ -110,7 +110,7 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
 
   averageLoad: function () {
     var avgLoad = this.get('service.averageLoad');
-    if (avgLoad == null) {
+    if (isNaN(avgLoad)) {
       avgLoad = this.t('services.service.summary.notAvailable');
     }
     return this.t('dashboard.services.hbase.averageLoadPerServer').format(avgLoad);
