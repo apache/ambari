@@ -309,4 +309,12 @@
     </description>
   </property>
 
+  <property>
+    <name>yarn.log.server.url</name>
+    <value>http://localhost:19888/jobhistory/logs</value>
+    <description>
+      URI for the HistoryServer's log resource
+    </description>
+  </property>
+
 </configuration>

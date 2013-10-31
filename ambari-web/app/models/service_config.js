@@ -248,6 +248,13 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'hs_host':
         this.set('value', masterComponentHostsInDB.filterProperty('component', 'HISTORYSERVER').mapProperty('hostName'));
         break;
+      case 'yarn.log.server.url':
+        var hsHost = masterComponentHostsInDB.filterProperty('component', 'HISTORYSERVER').mapProperty('hostName');
+        var defaultValue = this.get('defaultValue');
+        defaultValue = defaultValue.replace(/:\/\/(\w*)(?=:)/,'://' + hsHost);
+        this.set('defaultValue',defaultValue);
+        this.set('value',this.get('defaultValue'));
+        break;
       case 'rm_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName);
         break;

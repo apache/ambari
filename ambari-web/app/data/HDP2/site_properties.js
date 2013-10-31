@@ -299,6 +299,15 @@ module.exports =
       "serviceName": "YARN",
       "category": "NodeManager"
     },
+    {
+      "id": "site property",
+      "name": "yarn.log.server.url",
+      "displayName": "yarn.log.server.url",
+      "value": "",
+      "defaultValue": "",
+      "category": "Advanced",
+      "serviceName": "YARN"
+    },
 
   /**********************************************MAPREDUCE2***************************************/
     {

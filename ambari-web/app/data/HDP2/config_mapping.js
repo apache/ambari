@@ -181,13 +181,6 @@ var configs = [
     "value": "<templateName[0]>:8141",
     "filename": "yarn-site.xml"
   },
-  {
-    "name": "yarn.log.server.url",
-    "templateName": ["hs_host"],
-    "foreignKey": null,
-    "value": "http://<templateName[0]>:19888/jobhistory/logs",
-    "filename": "yarn-site.xml"
-  },
 
 /**********************************************mapred-site***************************************/
   {
