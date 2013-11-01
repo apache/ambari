@@ -126,6 +126,13 @@
                         </a>
                       </li>
                     {{/if}}
+                    {{#if view.isReassignable}}
+                      <li {{bindAttr class="view.noActionAvailable"}}>
+                        <a href="javascript:void(null)" data-toggle="modal" {{action "moveComponent" view.content target="controller"}}>
+                          {{t common.move}}
+                        </a>
+                      </li>
+                    {{/if}}
                   {{/unless}}
                 </ul>
               </div>

@@ -25,7 +25,6 @@ App.MainServiceItemView = Em.View.extend({
     var service = this.get('controller.content');
     var hosts = App.Host.find().content.length;
     var allMasters = this.get('controller.content.hostComponents').filterProperty('isMaster').mapProperty('componentName').uniq();
-    var reassignableMasters = ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'RESOURCEMANAGER'];
     var disabled = this.get('controller.isStopDisabled');
     switch (service.get('serviceName')) {
       case 'GANGLIA':
@@ -36,7 +35,7 @@ App.MainServiceItemView = Em.View.extend({
       case 'MAPREDUCE':
         if (App.supports.reassignMaster && hosts > 1) {
           allMasters.forEach(function (hostComponent) {
-            if (reassignableMasters.contains(hostComponent)) {
+            if (App.reassignableComponents.contains(hostComponent)) {
               options.push({action: 'reassignMaster', context: hostComponent,
                 'label': Em.I18n.t('services.service.actions.reassign.master').format(App.format.role(hostComponent)), disabled: false});
             }

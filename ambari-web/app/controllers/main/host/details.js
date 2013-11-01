@@ -870,6 +870,20 @@ App.MainHostDetailsController = Em.Controller.extend({
     App.showConfirmationPopup(function() {
 
     });
+  },
+  /**
+   * open Reassign Master Wizard with selected component
+   * @param event
+   */
+  moveComponent: function (event) {
+    App.showConfirmationPopup(function() {
+      var component = event.context;
+      var reassignMasterController = App.router.get('reassignMasterController');
+      reassignMasterController.saveComponentToReassign(component);
+      reassignMasterController.getSecurityStatus();
+      reassignMasterController.setCurrentStep('1');
+      App.router.transitionTo('services.reassign');
+    });
   }
 
 });

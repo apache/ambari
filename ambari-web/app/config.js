@@ -37,6 +37,7 @@ App.maxRunsForAppBrowser = 500;
 App.pageReloadTime=3600000;
 App.singleNodeInstall = false;
 App.singleNodeAlias = document.location.hostname;
+App.reassignableComponents = ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'RESOURCEMANAGER'];
 
 // experimental features are automatically enabled if running on brunch server
 App.enableExperimental = false;

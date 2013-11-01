@@ -151,6 +151,7 @@ Em.I18n.translations = {
   'common.tags': 'Tags',
   'common.important': 'Important',
   'common.allServices':'All Services',
+  'common.move':'Move',
 
   'requestInfo.installComponents':'Install Components',
   'requestInfo.installServices':'Install Services',

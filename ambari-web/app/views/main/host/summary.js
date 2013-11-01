@@ -438,6 +438,10 @@ App.MainHostSummaryView = Em.View.extend({
         this.get('workStatus') == App.HostComponentStatus.install_failed || this.get('workStatus') == App.HostComponentStatus.upgrade_failed);
     }.property('workStatus'),
 
+    isReassignable: function () {
+      return App.supports.reassignMaster && App.reassignableComponents.contains(this.get('content.componentName')) && App.Host.find().content.length > 1;
+    }.property('content.componentName')
+
   }),
   timeSinceHeartBeat: function () {
     var d = this.get('content.lastHeartBeatTime');
