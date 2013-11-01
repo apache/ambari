@@ -55,9 +55,11 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   }.property('service.hostComponents.@each'),
 
   dataNodeHostText: function () {
-    if(this.get("service.dataNodes").content.length > 1){
+    if (this.get("service.dataNodes").content.length == 0) {
+      return '';
+    } else if (this.get("service.dataNodes").content.length > 1) {
       return Em.I18n.t('services.service.summary.viewHosts');
-    }else{
+    } else {
       return Em.I18n.t('services.service.summary.viewHost');
     }
   }.property("service"),
@@ -67,7 +69,9 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   }.property('service.hostComponents.@each'),
 
   journalNodeHostText: function () {
-    if(this.get("service.journalNodes").content.length > 1){
+    if (this.get("service.journalNodes").content.length == 0) {
+      return '';
+    } else if (this.get("service.journalNodes").content.length > 1){
       return Em.I18n.t('services.service.summary.viewHosts');
     }else{
       return Em.I18n.t('services.service.summary.viewHost');

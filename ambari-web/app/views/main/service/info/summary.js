@@ -82,9 +82,11 @@ App.MainServiceInfoSummaryView = Em.View.extend({
   }.property('servers'),
 
   clientsHostText: function () {
-    if(this.get("hasManyClients")){
+    if (this.get('clients').length == 0) {
+      return '';
+    } else if (this.get("hasManyClients")) {
       return Em.I18n.t('services.service.summary.viewHosts');
-    }else{
+    } else {
       return Em.I18n.t('services.service.summary.viewHost');
     }
   }.property("hasManyClients"),
@@ -174,9 +176,11 @@ App.MainServiceInfoSummaryView = Em.View.extend({
     var service = this.get('controller.content');
     if (service.get("id") == "GANGLIA") {
       var monitors = service.get('hostComponents').filterProperty('isMaster', false);
-      if (monitors.length > 1){
+      if (monitors.length == 0) {
+        return '';
+      } else if (monitors.length > 1) {
         return Em.I18n.t('services.service.summary.viewHosts');
-      }else{
+      } else {
         return Em.I18n.t('services.service.summary.viewHost');
       }
     }

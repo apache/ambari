@@ -43,7 +43,7 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
   
   nodeManagerComponent: function () {
     return App.HostComponent.find().findProperty('componentName', 'NODEMANAGER');
-  }.property(),
+  }.property('service.hostComponents.@each'),
   
   yarnClientComponent: function () {
     return App.HostComponent.find().findProperty('componentName', 'YARN_CLIENT');
@@ -67,24 +67,26 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
   }.property("service.resourceManagerStartTime"),
 
   nodeManagersLive: function () {
-    return this.get('service.nodeManagerLiveNodes.length');
-  }.property('service.nodeManagerNodes', 'service.nodeManagerLiveNodes'),
+    return App.HostComponent.find().filterProperty('componentName', 'NODEMANAGER').filterProperty("workStatus","STARTED");
+  }.property('service.hostComponents.@each'),
 
   nodeManagerText: function () {
-    if(this.get("service.nodeManagerNodes.length") > 1){
+    if(!this.get("nodeManagerComponent") || this.get("nodeManagerComponent.length") == 0){
+      return '';
+    } else if(this.get("nodeManagerComponent.length") > 1){
       return Em.I18n.t('services.service.summary.viewHosts');
-    }else{
+    } else {
       return Em.I18n.t('services.service.summary.viewHost');
     }
-  }.property("service.nodeManagerNodes"),
+  }.property("nodeManagerComponent"),
 
   nodeManagersLiveTextView: App.ComponentLiveTextView.extend({
     liveComponents: function() {
-      return this.get("service.nodeManagerLiveNodes.length");
-    }.property('service.nodeManagerNodes', 'service.nodeManagerLiveNodes', 'service.nodeManagerLiveNodes.length'),
+      return App.HostComponent.find().filterProperty('componentName', 'NODEMANAGER').filterProperty("workStatus","STARTED").get("length");
+    }.property("service.hostComponents.@each"),
     totalComponents: function() {
-      return this.get("service.nodeManagerNodes.length");
-    }.property("service.nodeManagerNodes.length")
+      return App.HostComponent.find().filterProperty('componentName', 'NODEMANAGER').get("length");
+    }.property("service.hostComponents.@each")
   }),
 
   nodeManagersStatus: function () {

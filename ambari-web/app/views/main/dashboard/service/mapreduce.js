@@ -59,7 +59,9 @@ App.MainDashboardServiceMapreduceView = App.MainDashboardServiceView.extend({
   }.property('service.aliveTrackers', 'service.taskTrackers', 'service.jobsRunning'),
 
   trackersText: function () {
-    if(this.get('service').get('taskTrackers').get('length') > 1){
+    if (this.get('service').get('taskTrackers.length') == 0) {
+      return '';
+    } else if (this.get('service').get('taskTrackers.length') > 1){
       return Em.I18n.t('services.service.summary.viewHosts');
     }else{
       return Em.I18n.t('services.service.summary.viewHost');

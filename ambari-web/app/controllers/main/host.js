@@ -56,6 +56,8 @@ App.MainHostController = Em.ArrayController.extend({
    * @param component App.HostComponent
    */
   filterByComponent:function (component) {
+    if(!component)
+      return;
     var id = component.get('componentName');
     var column = 6;
     this.get('componentsForFilter').setEach('checkedForHostFilter', false);

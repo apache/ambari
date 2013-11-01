@@ -44,9 +44,11 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   }.property('service.hostComponents.@each'),
 
   regionServesText: function () {
-    if(this.get('service.regionServers').get("length") > 1){
+    if (this.get('service.regionServers.length') == 0) {
+      return '';
+    } else if (this.get('service.regionServers.length') > 1) {
       return Em.I18n.t('services.service.summary.viewHosts');
-    }else{
+    } else {
       return Em.I18n.t('services.service.summary.viewHost');
     }
   }.property("service"),

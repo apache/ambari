@@ -928,6 +928,8 @@ module.exports = Em.Route.extend({
     router.transitionTo('hosts.hostDetails.index', event.context);
   },
   filterHosts: function (router, component) {
+    if(!component.context)
+      return;
     router.get('mainHostController').filterByComponent(component.context);
     router.transitionTo('hosts.index');
   }
