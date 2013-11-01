@@ -414,6 +414,7 @@ public class ConfigGroupResourceProviderTest {
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
 
+    expect(managementController.getAuthName()).andReturn("admin").anyTimes();
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
     cluster.deleteConfigGroup(1L);

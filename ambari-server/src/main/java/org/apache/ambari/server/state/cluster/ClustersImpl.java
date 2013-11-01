@@ -18,6 +18,34 @@
 
 package org.apache.ambari.server.state.cluster;
 
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.DuplicateResourceException;
+import org.apache.ambari.server.HostNotFoundException;
+import org.apache.ambari.server.agent.DiskInfo;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
+import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.state.AgentVersion;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostHealthStatus;
+import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
+import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.host.HostFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import javax.persistence.RollbackException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,41 +57,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import javax.persistence.RollbackException;
-
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.ClusterNotFoundException;
-import org.apache.ambari.server.DuplicateResourceException;
-import org.apache.ambari.server.HostNotFoundException;
-import org.apache.ambari.server.agent.DiskInfo;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.ConfigGroupDAO;
-import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
-import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
-import org.apache.ambari.server.orm.dao.HostDAO;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntity;
-import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.state.AgentVersion;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.HostHealthStatus;
-import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
-import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.RepositoryInfo;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.configgroup.ConfigGroup;
-import org.apache.ambari.server.state.host.HostFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
 
 @Singleton
 public class ClustersImpl implements Clusters {

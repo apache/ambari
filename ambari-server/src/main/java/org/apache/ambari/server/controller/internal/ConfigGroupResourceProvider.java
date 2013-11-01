@@ -36,8 +36,6 @@ import org.apache.ambari.server.controller.spi.ResourcePredicateEvaluator;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
-import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -57,6 +55,11 @@ import java.util.Set;
 
 public class ConfigGroupResourceProvider extends
   AbstractControllerResourceProvider implements ResourcePredicateEvaluator {
+
+  private static final Logger configLogger = LoggerFactory.getLogger("configchange");
+  private static final Logger LOG = LoggerFactory.getLogger
+    (ConfigGroupResourceProvider.class);
+
   protected static final String CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID =
     PropertyHelper.getPropertyId("ConfigGroup", "cluster_name");
   protected static final String CONFIGGROUP_ID_PROPERTY_ID = PropertyHelper
@@ -343,6 +346,11 @@ public class ConfigGroupResourceProvider extends
         "Attempted to add a service to a cluster which doesn't exist", e);
     }
 
+    configLogger.info("Deleting Config group, "
+      + ", clusterName = " + cluster.getClusterName()
+      + ", id = " + request.getId()
+      + ", user = " + getManagementController().getAuthName());
+
     cluster.deleteConfigGroup(request.getId());
   }
 
@@ -423,8 +431,8 @@ public class ConfigGroupResourceProvider extends
         request.getConfigs(), hosts);
 
       // Persist before add, since id is auto-generated
-      Logger logger = LoggerFactory.getLogger("configchange");
-      logger.info("Persisting new Config group, "
+
+      configLogger.info("Persisting new Config group, "
         + ", clusterName = " + configGroup.getClusterName()
         + ", id = " + configGroup.getId()
         + ", tag = " + configGroup.getTag()
@@ -501,8 +509,7 @@ public class ConfigGroupResourceProvider extends
       configGroup.setDescription(request.getDescription());
       configGroup.setTag(request.getTag());
 
-      Logger logger = LoggerFactory.getLogger("configchange");
-      logger.info("Persisting updated Config group, "
+      configLogger.info("Persisting updated Config group, "
         + ", clusterName = " + configGroup.getClusterName()
         + ", id = " + configGroup.getId()
         + ", tag = " + configGroup.getTag()

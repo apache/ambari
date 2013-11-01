@@ -243,7 +243,7 @@ public interface Cluster {
   public Map<Long, ConfigGroup> getConfigGroups() throws AmbariException;
 
   /**
-   * Delete ths config group identified by the config group id
+   * Delete this config group identified by the config group id
    * @param id
    * @throws AmbariException
    */

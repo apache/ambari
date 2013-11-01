@@ -40,6 +40,9 @@ import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
+import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
+import org.apache.ambari.server.state.configgroup.ConfigGroupImpl;
 import org.apache.ambari.server.state.host.HostFactory;
 import org.apache.ambari.server.state.host.HostImpl;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
@@ -270,6 +273,8 @@ public class AgentResourceTest extends JerseyTest {
           ServiceComponentHostFactory.class));
       install(new FactoryModuleBuilder().implement(
           Config.class, ConfigImpl.class).build(ConfigFactory.class));
+      install(new FactoryModuleBuilder().implement(
+        ConfigGroup.class, ConfigGroupImpl.class).build(ConfigGroupFactory.class));
       install(new FactoryModuleBuilder().build(StageFactory.class));
       install(new FactoryModuleBuilder().build(HostRoleCommandFactory.class));
     }

@@ -40,9 +40,6 @@ public class ResourceImpl implements Resource {
    */
   private final Map<String, Map<String, Object>> propertiesMap = new TreeMap<String, Map<String, Object>>();
 
-
-  private volatile boolean skipPredicateCheck = false;
-
   // ----- Constructors ------------------------------------------------------
 
   /**

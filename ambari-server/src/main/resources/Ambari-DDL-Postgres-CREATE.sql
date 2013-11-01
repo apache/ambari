@@ -164,7 +164,9 @@ BEGIN;
   UNION ALL
   SELECT 'user_id_seq', 2
   UNION ALL
-  SELECT 'host_role_command_id_seq', 1;
+  SELECT 'host_role_command_id_seq', 1
+  union all
+  select 'configgroup_id_seq', 1;
 
   INSERT INTO ambari.Roles (role_name)
   SELECT 'admin'
