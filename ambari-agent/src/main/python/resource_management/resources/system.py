@@ -11,8 +11,10 @@ class File(Resource):
   owner = ResourceArgument()
   group = ResourceArgument()
   content = ResourceArgument()
+  # whether to replace files with different content
+  replace = ResourceArgument(default=True)
 
-  actions = Resource.actions + ["create", "delete", "touch"]
+  actions = Resource.actions + ["create", "delete"]
 
 
 class Directory(Resource):

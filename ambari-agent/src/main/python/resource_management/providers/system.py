@@ -13,7 +13,10 @@ def _coerce_uid(user):
   try:
     uid = int(user)
   except ValueError:
-    uid = pwd.getpwnam(user).pw_uid
+    try:
+      uid = pwd.getpwnam(user).pw_uid
+    except KeyError:
+      raise Fail("User %s doesn't exist." % user)
   return uid
 
 
@@ -21,7 +24,10 @@ def _coerce_gid(group):
   try:
     gid = int(group)
   except ValueError:
-    gid = grp.getgrnam(group).gr_gid
+    try:
+      gid = grp.getgrnam(group).gr_gid
+    except KeyError:
+      raise Fail("Group %s doesn't exist." % group)
   return gid
 
 
@@ -59,19 +65,28 @@ def _ensure_metadata(path, user, group, mode=None, log=None):
 class FileProvider(Provider):
   def action_create(self):
     path = self.resource.path
+    
+    if os.path.isdir(path):
+      raise Fail("Applying %s failed, directory with name %s exists" % (self.resource, path))
+    
+    dirname = os.path.dirname(path)
+    if not os.path.isdir(dirname):
+      raise Fail("Applying %s failed, parent directory %s doesn't exist" % (self.resource, dirname))
+    
     write = False
     content = self._get_content()
     if not os.path.exists(path):
       write = True
       reason = "it doesn't exist"
-    else:
+    elif self.resource.replace:
       if content is not None:
         with open(path, "rb") as fp:
           old_content = fp.read()
         if content != old_content:
           write = True
           reason = "contents don't match"
-          self.resource.env.backup_file(path)
+          if self.resource.backup:
+            self.resource.env.backup_file(path)
 
     if write:
       self.log.info("Writing %s because %s" % (self.resource, reason))
@@ -87,15 +102,14 @@ class FileProvider(Provider):
 
   def action_delete(self):
     path = self.resource.path
+    
+    if os.path.isdir(path):
+      raise Fail("Applying %s failed, %s is directory not file!" % (self.resource, path))
+    
     if os.path.exists(path):
       self.log.info("Deleting %s" % self.resource)
       os.unlink(path)
       self.resource.updated()
-
-  def action_touch(self):
-    path = self.resource.path
-    with open(path, "a"):
-      pass
 
   def _get_content(self):
     content = self.resource.content

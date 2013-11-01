@@ -27,8 +27,14 @@ class StaticFile(Source):
     self.env = env or environment.Environment.get_instance()
 
   def get_content(self):
-    basedir = self.env.config.basedir
-    path = os.path.join(basedir, "files", self.name)
+    # absolute path
+    if self.name.startswith(os.path.sep):
+      path = self.name
+    # relative path
+    else:
+      basedir = self.env.config.basedir
+      path = os.path.join(basedir, "files", self.name)
+      
     with open(path, "rb") as fp:
       return fp.read()
 
@@ -45,8 +51,14 @@ else:
       self.env = env or environment.Environment.get_instance()
 
     def get_source(self, environment, template_name):
-      basedir = self.env.config.basedir
-      path = os.path.join(basedir, "templates", template_name)
+      # absolute path
+      if template_name.startswith(os.path.sep):
+        path = template_name
+      # relative path
+      else:
+        basedir = self.env.config.basedir
+        path = os.path.join(basedir, "templates", template_name)
+      
       if not os.path.exists(path):
         raise TemplateNotFound("%s at %s" % (template_name, path))
       mtime = os.path.getmtime(path)
