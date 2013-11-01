@@ -40,6 +40,9 @@ App.UpdateController = Em.Controller.extend({
       App.updater.run(this, 'updateHost', 'isWorking');
       App.updater.run(this, 'updateServiceMetric', 'isWorking');
       App.updater.run(this, 'graphsUpdate', 'isWorking');
+      if (App.supports.hostOverrides) {
+        App.updater.run(this, 'updateComponentConfig', 'isWorking');
+      }
     }
   }.observes('isWorking'),
 
@@ -134,6 +137,13 @@ App.UpdateController = Em.Controller.extend({
         console.log("UpdateServiceMetric() Finished in:"+ (new Date().getTime()-methodStartTs) + " ms");
         callback();
       }
+    });
+  },
+  updateComponentConfig: function (callback) {
+    var testUrl = '/data/services/host_component_stale_configs.json';
+    var componentConfigUrl = this.getUrl(testUrl, '/host_components?fields=HostRoles/component_name&HostRoles/stale_configs=true');
+    App.HttpClient.get(componentConfigUrl, App.componentConfigMapper, {
+      complete: callback
     });
   }
 

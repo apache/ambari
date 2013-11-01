@@ -34,11 +34,11 @@ App.MainHostSummaryView = Em.View.extend({
 
   needToRestartComponentsCount: function() {
     return this.get('sortedComponents').filterProperty('staleConfigs', true).length;
-  }.property('sortedComponents'),
+  }.property('sortedComponents.@each.staleConfigs'),
 
   needToRestartMessage: function() {
     return Em.I18n.t('hosts.host.details.needToRestart').format(this.get('needToRestartComponentsCount'));
-  }.property(),
+  }.property('needToRestartComponentsCount'),
 
   /**
    * @type: [{String}]

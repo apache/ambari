@@ -614,6 +614,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       dfd.done(function () {
         var result = self.saveServiceConfigProperties();
         App.router.get('clusterController').updateClusterData();
+        App.router.get('updateController').updateComponentConfig(function(){});
         flag = result.flag;
         if (result.flag === true) {
           header = Em.I18n.t('services.service.config.saved');

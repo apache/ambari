@@ -60,7 +60,8 @@ App.ClusterController = Em.Controller.extend({
     'users':false,
     'datasets':false,
     'targetclusters':false,
-    'status': false
+    'status': false,
+    'componentConfigs': !App.supports.hostOverrides
   }),
 
   /**
@@ -375,6 +376,11 @@ App.ClusterController = Em.Controller.extend({
       self.loadUpdatedStatus(function(){
         self.updateLoadStatus('status');
       });
+      if (App.supports.hostOverrides) {
+        App.router.get('updateController').updateComponentConfig(function () {
+          self.updateLoadStatus('componentConfigs');
+        });
+      }
       self.updateLoadStatus('services');
     }, true);
 

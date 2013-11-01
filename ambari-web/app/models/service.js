@@ -83,7 +83,7 @@ App.Service = DS.Model.extend({
     this.set('restartRequiredHostsAndComponents', hc);
     return (rhc.length>0);
 
-  }.property('serviceName', 'hostComponents'),
+  }.property('serviceName', 'hostComponents.@each.staleConfigs'),
   
   /**
    * Contains a map of which hosts and host_components
