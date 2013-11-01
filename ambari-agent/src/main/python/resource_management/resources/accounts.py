@@ -18,11 +18,10 @@ class User(Resource):
   comment = ResourceArgument()
   uid = ResourceArgument()
   gid = ResourceArgument()
-  groups = ForcedListArgument() # supplementary groups
+  groups = ForcedListArgument(default=[]) # supplementary groups
   home = ResourceArgument()
   shell = ResourceArgument(default="/bin/bash")
   password = ResourceArgument()
   system = BooleanArgument(default=False)
 
-  actions = Resource.actions + ["create", "remove", "modify", "manage", "lock",
-                                "unlock"]
+  actions = Resource.actions + ["create", "remove"]

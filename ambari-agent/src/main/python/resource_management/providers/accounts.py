@@ -10,32 +10,35 @@ class UserProvider(Provider):
   def action_create(self):
     if not self.user:
       command = ['useradd', "-m"]
+      self.log.info("Adding user %s" % self.resource)
+    else:
+      command = ['usermod']
+      self.log.info("Modifying user %s" % (self.resource.username))
 
-      useradd_options = dict(
-        comment="-c",
-        gid="-g",
-        uid="-u",
-        shell="-s",
-        password="-p",
-        home="-d",
-      )
+    options = dict(
+      comment="-c",
+      gid="-g",
+      uid="-u",
+      shell="-s",
+      password="-p",
+      home="-d",
+    )
 
-      if self.resource.system:
-        command.append("--system")
+    if self.resource.system and not self.user:
+      command.append("--system")
 
-      if self.resource.groups:
-        command += ["-G", ",".join(self.resource.groups)]
+    if self.resource.groups:
+      command += ["-G", ",".join(self.resource.groups)]
 
-      for option_name, option_flag in useradd_options.items():
-        option_value = getattr(self.resource, option_name)
-        if option_flag and option_value:
-          command += [option_flag, str(option_value)]
+    for option_name, option_flag in options.items():
+      option_value = getattr(self.resource, option_name)
+      if option_flag and option_value:
+        command += [option_flag, str(option_value)]
 
-      command.append(self.resource.username)
+    command.append(self.resource.username)
 
-      shell.checked_call(command)
-      self.resource.updated()
-      self.log.info("Added user %s" % self.resource)
+    shell.checked_call(command)
+    self.resource.updated()
 
   def action_remove(self):
     if self.user:
@@ -60,7 +63,7 @@ class GroupProvider(Provider):
       self.log.info("Adding group %s" % self.resource)
     else:
       command = ['groupmod']
-      self.log.info("Modifying group %s to %s" % (self.resource.group_name, self.resource))
+      self.log.info("Modifying group %s" % (self.resource.group_name))
       
     options = dict(
         gid="-g",
