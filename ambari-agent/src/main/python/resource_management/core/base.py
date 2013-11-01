@@ -4,8 +4,8 @@ __all__ = ["Resource", "ResourceArgument", "ForcedListArgument",
            "BooleanArgument"]
 
 import logging
-from resource_management.exceptions import Fail, InvalidArgument
-from resource_management.environment import Environment, Substitutor
+from resource_management.core.exceptions import Fail, InvalidArgument
+from resource_management.core.environment import Environment, Substitutor
 
 class ResourceArgument(object):
   def __init__(self, default=None, required=False, allow_override=False):

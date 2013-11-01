@@ -2,8 +2,8 @@ from __future__ import with_statement
 
 import os
 import re
-from resource_management.base import Fail
-from resource_management.providers import Provider
+from resource_management.core.base import Fail
+from resource_management.core.providers import Provider
 
 
 class MountProvider(Provider):

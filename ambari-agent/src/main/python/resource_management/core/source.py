@@ -1,5 +1,5 @@
 from __future__ import with_statement
-from resource_management import environment
+from resource_management.core import environment
 
 __all__ = ["Source", "Template", "StaticFile", "DownloadSource"]
 
@@ -7,7 +7,6 @@ import hashlib
 import os
 import urllib2
 import urlparse
-from resource_management.exceptions import Fail
 
 
 class Source(object):

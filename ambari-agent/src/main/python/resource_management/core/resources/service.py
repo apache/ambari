@@ -1,6 +1,6 @@
 __all__ = ["Service"]
 
-from resource_management.base import Resource, ResourceArgument, BooleanArgument, ForcedListArgument
+from resource_management.core.base import Resource, ResourceArgument, ForcedListArgument
 
 
 class Service(Resource):

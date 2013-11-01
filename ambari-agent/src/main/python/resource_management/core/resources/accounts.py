@@ -1,6 +1,6 @@
 __all__ = ["Group", "User"]
 
-from resource_management.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
+from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
 
 
 class Group(Resource):

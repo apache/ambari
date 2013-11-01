@@ -1,6 +1,6 @@
 __all__ = ["Package"]
 
-from resource_management.base import Resource, ForcedListArgument, ResourceArgument
+from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument
 
 
 class Package(Resource):

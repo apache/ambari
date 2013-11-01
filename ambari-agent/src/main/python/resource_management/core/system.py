@@ -2,7 +2,7 @@ __all__ = ["System"]
 
 import os
 import sys
-from resource_management import shell
+from resource_management.core import shell
 from functools import wraps
 
 def lazy_property(undecorated):

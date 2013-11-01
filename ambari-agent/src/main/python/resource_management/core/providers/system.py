@@ -5,9 +5,9 @@ import os
 import pwd
 import time
 import shutil
-from resource_management import shell
-from resource_management.base import Fail
-from resource_management.providers import Provider
+from resource_management.core import shell
+from resource_management.core.base import Fail
+from resource_management.core.providers import Provider
 
 
 def _coerce_uid(user):

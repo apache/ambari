@@ -1,6 +1,6 @@
 __all__ = ["File", "Directory", "Link", "Execute", "Script", "Mount"]
 
-from resource_management.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
+from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
 
 
 class File(Resource):

@@ -2,8 +2,8 @@ from __future__ import with_statement
 
 import grp
 import pwd
-from resource_management import shell
-from resource_management.providers import Provider
+from resource_management.core import shell
+from resource_management.core.providers import Provider
 
 
 class UserProvider(Provider):

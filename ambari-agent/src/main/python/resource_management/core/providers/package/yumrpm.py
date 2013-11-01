@@ -1,5 +1,5 @@
-from resource_management.providers.package import PackageProvider
-from resource_management import shell
+from resource_management.core.providers.package import PackageProvider
+from resource_management.core import shell
 
 INSTALL_CMD = "/usr/bin/yum -d 0 -e 0 -y install %s"
 REMOVE_CMD = "/usr/bin/yum -d 0 -e 0 -y erase %s"

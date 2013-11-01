@@ -8,11 +8,11 @@ import shutil
 import time
 from datetime import datetime
 
-from resource_management import shell
-from resource_management.exceptions import Fail
-from resource_management.providers import find_provider
-from resource_management.utils import AttributeDictionary, ParamsAttributeDictionary
-from resource_management.system import System
+from resource_management.core import shell
+from resource_management.core.exceptions import Fail
+from resource_management.core.providers import find_provider
+from resource_management.core.utils import AttributeDictionary, ParamsAttributeDictionary
+from resource_management.core.system import System
 from string import Template
 
 
