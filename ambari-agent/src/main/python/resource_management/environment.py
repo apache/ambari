@@ -118,7 +118,13 @@ class Environment(object):
           continue
 
         for action in resource.action:
-          self.run_action(resource, action)
+          if not resource.ignore_failures:
+            self.run_action(resource, action)
+          else:
+            try:
+              self.run_action(resource, action)
+            except Exception:
+                pass
 
       # Run delayed actions
       while self.delayed_actions:

@@ -4,6 +4,7 @@ import grp
 import os
 import pwd
 import time
+import shutil
 from resource_management import shell
 from resource_management.base import Fail
 from resource_management.providers import Provider
@@ -132,6 +133,9 @@ class DirectoryProvider(Provider):
       else:
         os.mkdir(path, self.resource.mode or 0755)
       self.resource.updated()
+      
+    if not os.path.isdir(path):
+      raise Fail("Applying %s failed, file %s already exists" % (self.resource, path))
 
     if _ensure_metadata(path, self.resource.owner, self.resource.group,
                         mode=self.resource.mode, log=self.log):
@@ -140,9 +144,11 @@ class DirectoryProvider(Provider):
   def action_delete(self):
     path = self.resource.path
     if os.path.exists(path):
-      self.log.info("Removing directory %s" % self.resource)
-      os.rmdir(path)
-      # TODO: recursive
+      if not os.path.isdir(path):
+        raise Fail("Applying %s failed, %s is not a directory" % (self.resource, path))
+      
+      self.log.info("Removing directory %s and all its content" % self.resource)
+      shutil.rmtree(path)
       self.resource.updated()
 
 
