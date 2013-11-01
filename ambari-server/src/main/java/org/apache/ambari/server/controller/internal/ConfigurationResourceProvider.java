@@ -43,15 +43,18 @@ import java.util.Map.Entry;
 /**
  * Resource provider for configuration resources.
  */
-class ConfigurationResourceProvider extends AbstractControllerResourceProvider {
+public class ConfigurationResourceProvider extends
+  AbstractControllerResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 
   // Configurations (values are part of query strings and body post, so they don't have defined categories)
   protected static final String CONFIGURATION_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("Config", "cluster_name");
   // TODO : should these be Config/type and Config/tag to be consistent?
-  protected static final String CONFIGURATION_CONFIG_TYPE_PROPERTY_ID  = PropertyHelper.getPropertyId(null, "type");
-  protected static final String CONFIGURATION_CONFIG_TAG_PROPERTY_ID   = PropertyHelper.getPropertyId(null, "tag");
+  public static final String CONFIGURATION_CONFIG_TYPE_PROPERTY_ID  =
+    PropertyHelper.getPropertyId(null, "type");
+  public static final String CONFIGURATION_CONFIG_TAG_PROPERTY_ID   =
+    PropertyHelper.getPropertyId(null, "tag");
 
 
   /**

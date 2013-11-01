@@ -26,6 +26,7 @@ import javax.persistence.TypedQuery;
 
 import com.google.inject.Singleton;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.orm.entities.ClusterConfigEntityPK;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 
 import com.google.inject.Inject;
@@ -84,6 +85,12 @@ public class ClusterDAO {
   @Transactional
   public void createConfig(ClusterConfigEntity entity) {
     entityManagerProvider.get().persist(entity);
+  }
+
+  @Transactional
+  public ClusterConfigEntity findConfig(ClusterConfigEntityPK configEntityPK) {
+    return entityManagerProvider.get().find(ClusterConfigEntity.class,
+      configEntityPK);
   }
 
   /**

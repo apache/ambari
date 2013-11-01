@@ -100,5 +100,9 @@
     "Host":"RootServiceHostComponents/host_name",
     "RootServiceComponent":"RootServiceHostComponents/component_name",
     "RootServiceHostComponent":"RootServiceHostComponents/component_name"
+  },
+  "ConfigGroup" : {
+      "Cluster" : "ConfigGroup/cluster_name",
+      "ConfigGroup" : "ConfigGroup/id"
   }
 }

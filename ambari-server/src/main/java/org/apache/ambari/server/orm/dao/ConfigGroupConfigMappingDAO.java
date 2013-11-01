@@ -85,4 +85,14 @@ public class ConfigGroupConfigMappingDAO {
     entityManagerProvider.get().remove(findByPK
       (configGroupConfigMappingEntityPK));
   }
+
+  @Transactional
+  public void removeAllByGroup(Long groupId) {
+    TypedQuery<Long> query = entityManagerProvider.get().createQuery
+      ("DELETE FROM ConfigGroupConfigMappingEntity configs WHERE configs" +
+        ".configGroupId = ?1", Long.class);
+
+    daoUtils.executeUpdate(query, groupId);
+    entityManagerProvider.get().flush();
+  }
 }

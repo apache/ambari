@@ -65,7 +65,14 @@ public class ConfigImpl implements Config {
     this.entity = entity;
     injector.injectMembers(this);
   }
-  
+
+  /**
+   * Constructor for clients not using factory.
+   */
+  public ConfigImpl(String type) {
+    this.type = type;
+  }
+
   @Override
   public String getType() {
     return type;

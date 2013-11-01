@@ -32,12 +32,15 @@ import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterStateDAO;
+import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
 import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
+import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
+import org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntity;
 import org.apache.ambari.server.orm.entities.HostConfigMappingEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -49,6 +52,8 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
+import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,6 +92,11 @@ public class ClusterImpl implements Cluster {
   private Map<String, List<ServiceComponentHost>>
       serviceComponentHostsByHost;
 
+  /**
+   * Map of existing config groups
+   */
+  private Map<Long, ConfigGroup> clusterConfigGroups;
+
   private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
   private Lock readLock = readWriteLock.readLock();
   private Lock writeLock = readWriteLock.writeLock();
@@ -107,6 +117,10 @@ public class ClusterImpl implements Cluster {
   private Gson gson;
   @Inject
   private HostConfigMappingDAO hostConfigMappingDAO;
+  @Inject
+  private ConfigGroupFactory configGroupFactory;
+  @Inject
+  private ConfigGroupHostMappingDAO configGroupHostMappingDAO;
 
   private volatile boolean svcHostsLoaded = false;
 
@@ -226,6 +240,125 @@ public class ClusterImpl implements Cluster {
         clusterGlobalLock.writeLock().unlock();
       }
 
+    }
+  }
+
+  private void loadConfigGroups() {
+    if (clusterConfigGroups == null) {
+      clusterGlobalLock.writeLock().lock();
+      try {
+        writeLock.lock();
+        try {
+          if (clusterConfigGroups == null) {
+            clusterConfigGroups = new HashMap<Long, ConfigGroup>();
+            if (!clusterEntity.getConfigGroupEntities().isEmpty()) {
+              for (ConfigGroupEntity configGroupEntity :
+                clusterEntity.getConfigGroupEntities()) {
+                clusterConfigGroups.put(configGroupEntity.getGroupId(),
+                  configGroupFactory.createExisting(this, configGroupEntity));
+              }
+            }
+          }
+        } finally {
+          writeLock.unlock();
+        }
+      } finally {
+        clusterGlobalLock.writeLock().unlock();
+      }
+    }
+  }
+
+  @Override
+  public void addConfigGroup(ConfigGroup configGroup) throws AmbariException {
+    loadConfigGroups();
+    clusterGlobalLock.writeLock().lock();
+    try {
+      writeLock.lock();
+      try {
+        LOG.debug("Adding a new Config group"
+          + ", clusterName = " + getClusterName()
+          + ", groupName = " + configGroup.getName()
+          + ", tag = " + configGroup.getTag());
+
+        if (clusterConfigGroups.containsKey(configGroup.getId())) {
+          throw new AmbariException("Config group already exists"
+            + ", clusterName = " + getClusterName()
+            + ", groupName = " + configGroup.getName()
+            + ", groupId = " + configGroup.getId()
+            + ", tag = " + configGroup.getTag());
+        }
+
+        clusterConfigGroups.put(configGroup.getId(), configGroup);
+
+      } finally {
+        writeLock.unlock();
+      }
+    } finally {
+      clusterGlobalLock.writeLock().unlock();
+    }
+  }
+
+  @Override
+  public Map<Long, ConfigGroup> getConfigGroups() throws AmbariException {
+    loadConfigGroups();
+    clusterGlobalLock.readLock().lock();
+    try {
+      readLock.lock();
+      try {
+        return Collections.unmodifiableMap(clusterConfigGroups);
+      } finally {
+        readLock.unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+
+  @Override
+  public Map<Long, ConfigGroup> getConfigGroupsByHostname(String hostname) {
+    Map<Long, ConfigGroup> configGroups = new HashMap<Long, ConfigGroup>();
+
+    List<ConfigGroupHostMappingEntity> hostMappingEntities =
+      configGroupHostMappingDAO.findByHost(hostname);
+
+    if (hostMappingEntities != null && !hostMappingEntities.isEmpty()) {
+      for (ConfigGroupHostMappingEntity entity : hostMappingEntities) {
+        ConfigGroup configGroup = clusterConfigGroups.get(entity
+          .getConfigGroupId());
+        if (configGroup != null && !configGroups.containsKey(configGroup.getId())) {
+          configGroups.put(configGroup.getId(), configGroup);
+        }
+      }
+    }
+
+    return configGroups;
+  }
+
+  @Override
+  public void deleteConfigGroup(Long id) throws AmbariException {
+    loadConfigGroups();
+    clusterGlobalLock.writeLock().lock();
+    try {
+      readWriteLock.writeLock().lock();
+      try {
+        ConfigGroup configGroup = clusterConfigGroups.get(id);
+        if (configGroup == null) {
+          throw new AmbariException("Config group does not exist, id = " + id);
+        }
+        LOG.debug("Deleting Config group"
+          + ", clusterName = " + getClusterName()
+          + ", groupName = " + configGroup.getName()
+          + ", groupId = " + configGroup.getId()
+          + ", tag = " + configGroup.getTag());
+
+        configGroup.delete();
+        clusterConfigGroups.remove(id);
+
+      } finally {
+        readWriteLock.writeLock().unlock();
+      }
+    } finally {
+      clusterGlobalLock.writeLock().unlock();
     }
   }
 

@@ -93,7 +93,9 @@ select 'cluster_id_seq', 1
 union all
 select 'user_id_seq', 2
 union all
-select 'host_role_command_id_seq', 1;
+select 'host_role_command_id_seq', 1
+union all
+select 'configgroup_id_seq', 1;
 
 insert into ambari.Roles(role_name)
 select 'admin'

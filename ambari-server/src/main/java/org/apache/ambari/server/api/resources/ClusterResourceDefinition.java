@@ -54,6 +54,7 @@ public class ClusterResourceDefinition extends BaseResourceDefinition {
     setChildren.add(new SubResourceDefinition(Resource.Type.Configuration));
     setChildren.add(new SubResourceDefinition(Resource.Type.Request));
     setChildren.add(new SubResourceDefinition(Resource.Type.Workflow));
+    setChildren.add(new SubResourceDefinition(Resource.Type.ConfigGroup));
 
     return setChildren;
   }

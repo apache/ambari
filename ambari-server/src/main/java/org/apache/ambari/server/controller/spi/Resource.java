@@ -76,6 +76,7 @@ public interface Resource {
     Component,
     HostComponent,
     Configuration,
+    ConfigGroup,
     Action,
     Request,
     Task,

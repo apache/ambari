@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.controller;
 
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
+import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
+import org.apache.ambari.server.state.configgroup.ConfigGroupImpl;
 import org.apache.ambari.server.state.svccomphost.HBaseMasterPortScanner;
 import com.google.gson.Gson;
 import com.google.inject.Scopes;
@@ -165,6 +168,8 @@ public class ControllerModule extends AbstractModule {
         ServiceComponentHostFactory.class));
     install(new FactoryModuleBuilder().implement(
         Config.class, ConfigImpl.class).build(ConfigFactory.class));
+    install(new FactoryModuleBuilder().implement(
+      ConfigGroup.class, ConfigGroupImpl.class).build(ConfigGroupFactory.class));
     install(new FactoryModuleBuilder().build(StageFactory.class));
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
   }

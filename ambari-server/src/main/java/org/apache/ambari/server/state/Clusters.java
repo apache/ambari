@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
 
 /**
  * Single entity that tracks all clusters and hosts that are managed
@@ -173,4 +174,5 @@ public interface Clusters {
    */
   public void deleteHost(String hostname)
       throws AmbariException;
+
 }

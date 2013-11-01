@@ -25,6 +25,7 @@ import org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntityPK;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import java.util.List;
 
@@ -99,5 +100,15 @@ public class ConfigGroupHostMappingDAO {
                          configGroupHostMappingEntityPK) {
     entityManagerProvider.get().remove(findByPK
       (configGroupHostMappingEntityPK));
+  }
+
+  @Transactional
+  public void removeAllByGroup(Long groupId) {
+    TypedQuery<Long> query = entityManagerProvider.get().createQuery
+      ("DELETE FROM ConfigGroupHostMappingEntity confighosts WHERE " +
+        "confighosts.configGroupId = ?1", Long.class);
+
+    daoUtils.executeUpdate(query, groupId);
+    entityManagerProvider.get().flush();
   }
 }

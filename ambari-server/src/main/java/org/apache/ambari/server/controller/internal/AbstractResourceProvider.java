@@ -340,7 +340,6 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
     return config;
   }
 
-
   // ----- Inner interface ---------------------------------------------------
 
   /**

@@ -101,7 +101,6 @@ public class JsonSerializer implements ResultSerializer {
   }
 
   private void processNode(TreeNode<Resource> node) throws IOException {
-
     if (isObject(node)) {
       m_generator.writeStartObject();
       writeHref(node);

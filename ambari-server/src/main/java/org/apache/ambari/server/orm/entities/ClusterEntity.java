@@ -82,6 +82,9 @@ public class ClusterEntity {
   @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.ALL)
   private Collection<ClusterConfigMappingEntity> configMappingEntities;
 
+  @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.ALL)
+  private Collection<ConfigGroupEntity> configGroupEntities;
+
   public Long getClusterId() {
     return clusterId;
   }
@@ -197,6 +200,12 @@ public class ClusterEntity {
   public void setConfigMappingEntities(Collection<ClusterConfigMappingEntity> entities) {
     configMappingEntities = entities;
   }
-  
 
+  public Collection<ConfigGroupEntity> getConfigGroupEntities() {
+    return configGroupEntities;
+  }
+
+  public void setConfigGroupEntities(Collection<ConfigGroupEntity> configGroupEntities) {
+    this.configGroupEntities = configGroupEntities;
+  }
 }

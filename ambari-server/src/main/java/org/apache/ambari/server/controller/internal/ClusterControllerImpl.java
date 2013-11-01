@@ -75,6 +75,12 @@ public class ClusterControllerImpl implements ClusterController {
    */
   private final ResourceComparator comparator = new ResourceComparator();
 
+  /**
+   * Predicate evaluator
+   */
+  private static final DefaultResourcePredicateEvaluator
+    DEFAULT_RESOURCE_PREDICATE_EVALUATOR =
+    new DefaultResourcePredicateEvaluator();
 
   // ----- Constructors ------------------------------------------------------
 
@@ -105,6 +111,9 @@ public class ClusterControllerImpl implements ClusterController {
     ensurePropertyProviders(type);
     Set<Resource> resources;
 
+    ResourcePredicateEvaluator evaluator = provider instanceof ResourcePredicateEvaluator ?
+      (ResourcePredicateEvaluator) provider : DEFAULT_RESOURCE_PREDICATE_EVALUATOR;
+
     if (provider == null) {
       resources = Collections.emptySet();
     } else {
@@ -128,13 +137,17 @@ public class ClusterControllerImpl implements ClusterController {
       if (pageRequest != null) {
         switch (pageRequest.getStartingPoint()) {
           case Beginning:
-            return getPageFromOffset(pageRequest.getPageSize(), 0, sortedResources, predicate);
+            return getPageFromOffset(pageRequest.getPageSize(), 0,
+              sortedResources, predicate, evaluator);
           case End:
-            return getPageToOffset(pageRequest.getPageSize(), -1, sortedResources, predicate);
+            return getPageToOffset(pageRequest.getPageSize(), -1,
+              sortedResources, predicate, evaluator);
           case OffsetStart:
-            return getPageFromOffset(pageRequest.getPageSize(), pageRequest.getOffset(), sortedResources, predicate);
+            return getPageFromOffset(pageRequest.getPageSize(),
+              pageRequest.getOffset(), sortedResources, predicate, evaluator);
           case OffsetEnd:
-            return getPageToOffset(pageRequest.getPageSize(), pageRequest.getOffset(), sortedResources, predicate);
+            return getPageToOffset(pageRequest.getPageSize(),
+              pageRequest.getOffset(), sortedResources, predicate, evaluator);
           // TODO : need to support the following cases for pagination
 //          case PredicateStart:
 //          case PredicateEnd:
@@ -143,7 +156,8 @@ public class ClusterControllerImpl implements ClusterController {
       resources = sortedResources;
     }
 
-    return new PageResponseImpl(new ResourceIterable(resources, predicate), 0, null, null);
+    return new PageResponseImpl(new ResourceIterable(resources, predicate, evaluator),
+      0, null, null);
   }
 
   @Override
@@ -417,7 +431,10 @@ public class ClusterControllerImpl implements ClusterController {
    *
    * @return a page response containing a page of resources
    */
-  private PageResponse getPageFromOffset(int pageSize, int offset, NavigableSet<Resource> resources, Predicate predicate) {
+  private PageResponse getPageFromOffset(int pageSize, int offset,
+                                         NavigableSet<Resource> resources,
+                                         Predicate predicate,
+                                         ResourcePredicateEvaluator evaluator) {
 
     int                currentOffset = 0;
     Resource           previous      = null;
@@ -435,7 +452,8 @@ public class ClusterControllerImpl implements ClusterController {
       pageResources.add(iterator.next());
     }
 
-    return new PageResponseImpl(new ResourceIterable(pageResources, predicate),
+    return new PageResponseImpl(new ResourceIterable(pageResources,
+        predicate, evaluator),
         currentOffset,
         previous,
         iterator.hasNext() ? iterator.next() : null);
@@ -451,7 +469,10 @@ public class ClusterControllerImpl implements ClusterController {
    *
    * @return a page response containing a page of resources
    */
-  private PageResponse getPageToOffset(int pageSize, int offset, NavigableSet<Resource> resources, Predicate predicate) {
+  private PageResponse getPageToOffset(int pageSize, int offset,
+                                       NavigableSet<Resource> resources,
+                                       Predicate predicate,
+                                       ResourcePredicateEvaluator evaluator) {
 
     int                currentOffset = resources.size() - 1;
     Resource           next          = null;
@@ -472,7 +493,8 @@ public class ClusterControllerImpl implements ClusterController {
       --currentOffset;
     }
 
-    return new PageResponseImpl(new ResourceIterable(new LinkedHashSet<Resource>(pageResources), predicate),
+    return new PageResponseImpl(new ResourceIterable(new
+        LinkedHashSet<Resource>(pageResources), predicate, evaluator),
         currentOffset + 1,
         iterator.hasNext() ? iterator.next() : null,
         next);
@@ -501,6 +523,11 @@ public class ClusterControllerImpl implements ClusterController {
      */
     private final Predicate predicate;
 
+    /**
+     * The predicate evaluator.
+     */
+    private final ResourcePredicateEvaluator evaluator;
+
     // ----- Constructors ----------------------------------------------------
 
     /**
@@ -509,16 +536,18 @@ public class ClusterControllerImpl implements ClusterController {
      * @param resources  the set of resources to iterate over
      * @param predicate  the predicate used to filter the set of resources
      */
-    private ResourceIterable(Set<Resource> resources, Predicate predicate) {
+    private ResourceIterable(Set<Resource> resources, Predicate predicate,
+                             ResourcePredicateEvaluator evaluator) {
       this.resources = resources;
       this.predicate = predicate;
+      this.evaluator = evaluator;
     }
 
     // ----- Iterable --------------------------------------------------------
 
     @Override
     public Iterator<Resource> iterator() {
-      return new ResourceIterator(resources, predicate);
+      return new ResourceIterator(resources, predicate, evaluator);
     }
   }
 
@@ -542,6 +571,10 @@ public class ClusterControllerImpl implements ClusterController {
      */
     private Resource nextResource;
 
+    /**
+     * The predicate evaluator.
+     */
+    private final ResourcePredicateEvaluator evaluator;
 
     // ----- Constructors ----------------------------------------------------
 
@@ -551,9 +584,11 @@ public class ClusterControllerImpl implements ClusterController {
      * @param resources  the set of resources to iterate over
      * @param predicate  the predicate used to filter the set of resources
      */
-    private ResourceIterator(Set<Resource> resources, Predicate predicate) {
-      this.iterator     = resources.iterator();
-      this.predicate    = predicate;
+    private ResourceIterator(Set<Resource> resources, Predicate predicate,
+                             ResourcePredicateEvaluator evaluator) {
+      this.iterator = resources.iterator();
+      this.predicate = predicate;
+      this.evaluator = evaluator;
       this.nextResource = getNextResource();
     }
 
@@ -591,8 +626,8 @@ public class ClusterControllerImpl implements ClusterController {
     private Resource getNextResource() {
       while (iterator.hasNext()) {
         Resource next = iterator.next();
-        
-        if (predicate == null || predicate.evaluate(next)) {
+
+        if (predicate == null || evaluator.evaluate(predicate, next)) {
           return next;
         }
       }

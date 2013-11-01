@@ -83,6 +83,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostMaintenanceEvent;
@@ -151,6 +152,8 @@ public class AmbariManagementControllerImpl implements
   private Configuration configs;
   @Inject
   private AbstractRootServiceResponseFactory rootServiceResponseFactory;
+  @Inject
+  private ConfigGroupFactory configGroupFactory;
 
   final private String masterHostname;
   final private Integer masterPort;
@@ -1262,7 +1265,7 @@ public class AmbariManagementControllerImpl implements
 
     // HACK HACK HACK if the service has configs that are NOT included
     // in cluster-level, then use them anyway.  THIS IS GENERALLY A BAD
-    // IDEA, but is included for backward compatability.  Do not check host
+    // IDEA, but is included for backward compatibility.  Do not check host
     // overrides, because that wasn't in the version where this code would
     // be the case.
     Service service = cluster.getService(serviceName);
@@ -3195,7 +3198,7 @@ public class AmbariManagementControllerImpl implements
   /**
    * @return the authenticated user's name
    */
-  private String getAuthName() {
+  public String getAuthName() {
     return AuthorizationHelper.getAuthenticatedName(configs.getAnonymousAuditName());
   }
 
@@ -3289,6 +3292,16 @@ public class AmbariManagementControllerImpl implements
   @Override
   public ServiceComponentFactory getServiceComponentFactory() {
     return serviceComponentFactory;
+  }
+
+  @Override
+  public ConfigGroupFactory getConfigGroupFactory() {
+    return configGroupFactory;
+  }
+
+  @Override
+  public ConfigFactory getConfigFactory() {
+    return configFactory;
   }
 
   @Override

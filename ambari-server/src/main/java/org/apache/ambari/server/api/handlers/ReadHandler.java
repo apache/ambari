@@ -78,6 +78,7 @@ public class ReadHandler implements RequestHandler {
     } catch (IllegalArgumentException e) {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST,
           "Invalid Request: " + e.getMessage()));
+      LOG.error("Bad request: ", e);
     }  catch (RuntimeException e) {
       if (LOG.isErrorEnabled()) {
         LOG.error("Caught a runtime exception executing a query", e);

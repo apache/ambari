@@ -192,6 +192,14 @@ public class ClusterService extends BaseService {
   }
 
   /**
+   * Gets the config group service
+   */
+  @Path("{clusterName}/config_groups")
+  public ConfigGroupService getConfigGroupService(@PathParam("clusterName") String clusterName) {
+    return new ConfigGroupService(clusterName);
+  }
+
+  /**
    * Create a cluster resource instance.
    *
    * @param clusterName cluster name

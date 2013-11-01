@@ -25,6 +25,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ClusterResponse;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
 
 public interface Cluster {
 
@@ -225,4 +226,33 @@ public interface Cluster {
    * @return
    */
   Map<String, Map<String, DesiredConfig>> getAllHostsDesiredConfigs();
+
+  /**
+   * Add a new config group to the set of Config groups associated with this
+   * cluster
+   * @param configGroup
+   * @throws AmbariException
+   */
+  public void addConfigGroup(ConfigGroup configGroup) throws AmbariException;
+
+  /**
+   * Get all config groups associated with this cluster
+   * @return
+   * @throws AmbariException
+   */
+  public Map<Long, ConfigGroup> getConfigGroups() throws AmbariException;
+
+  /**
+   * Delete ths config group identified by the config group id
+   * @param id
+   * @throws AmbariException
+   */
+  public void deleteConfigGroup(Long id) throws AmbariException;
+
+  /**
+   * Find all config groups associated with the give hostname
+   * @param hostname
+   * @return Map of config group id to config group
+   */
+  public Map<Long, ConfigGroup> getConfigGroupsByHostname(String hostname);
 }

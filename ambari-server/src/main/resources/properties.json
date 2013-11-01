@@ -76,6 +76,15 @@
         "Config/type",
         "Config/cluster_name"
     ],
+    "ConfigGroup": [
+        "ConfigGroup/id",
+        "ConfigGroup/cluster_name",
+        "ConfigGroup/group_name",
+        "ConfigGroup/tag",
+        "ConfigGroup/description",
+        "ConfigGroup/hosts",
+        "ConfigGroup/desired_configs"
+    ],
     "Action":[
         "Actions/cluster_name",
         "Actions/service_name",

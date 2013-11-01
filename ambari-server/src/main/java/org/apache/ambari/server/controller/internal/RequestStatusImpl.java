@@ -22,6 +22,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 /**

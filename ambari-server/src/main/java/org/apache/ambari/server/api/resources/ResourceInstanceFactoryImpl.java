@@ -143,6 +143,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new RootServiceHostComponentResourceDefinition();
         break;
 
+      case ConfigGroup:
+        resourceDefinition = new ConfigGroupResourceDefinition();
+        break;
+
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }
