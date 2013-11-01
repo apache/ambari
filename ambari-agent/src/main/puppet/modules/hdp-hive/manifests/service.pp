@@ -99,7 +99,7 @@ class hdp-hive::service(
     }
 
     if ($ensure == 'running' and ($hive_jdbc_driver == "com.mysql.jdbc.Driver" or $hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver")) {
-      $db_connection_check_command = "java -cp ${hdp::params::check_db_connection_jar}:/usr/share/java/${hdp-hive::params::jdbc_jar_name} org.apache.ambari.server.DBConnectionVerification ${hdp-hive::params::hive_jdbc_connection_url} ${hdp-hive::params::hive_metastore_user_name} ${hdp-hive::params::hive_metastore_user_passwd} ${hdp-hive::params::hive_jdbc_driver}"
+      $db_connection_check_command = "${hdp::params::java64_home}/bin/java -cp ${hdp::params::check_db_connection_jar}:/usr/share/java/${hdp-hive::params::jdbc_jar_name} org.apache.ambari.server.DBConnectionVerification ${hdp-hive::params::hive_jdbc_connection_url} ${hdp-hive::params::hive_metastore_user_name} ${hdp-hive::params::hive_metastore_user_passwd} ${hdp-hive::params::hive_jdbc_driver}"
     } else {
       $db_connection_check_command = undef
     }

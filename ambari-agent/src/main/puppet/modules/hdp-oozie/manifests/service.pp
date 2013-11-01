@@ -129,7 +129,7 @@ class hdp-oozie::service(
     $start_cmd = "su - ${user} -c  'cd ${oozie_tmp} && /usr/lib/oozie/bin/oozie-start.sh'"
     $no_op_test = "ls ${pid_file} >/dev/null 2>&1 && ps `cat ${pid_file}` >/dev/null 2>&1"
     if ($jdbc_driver_name == "com.mysql.jdbc.Driver" or $jdbc_driver_name == "oracle.jdbc.driver.OracleDriver") {
-      $db_connection_check_command = "java -cp ${hdp::params::check_db_connection_jar}:${jdbc_driver_jar} org.apache.ambari.server.DBConnectionVerification ${hdp-oozie::params::oozie_jdbc_connection_url} ${hdp-oozie::params::oozie_metastore_user_name} ${hdp-oozie::params::oozie_metastore_user_passwd} ${jdbc_driver_name}"
+      $db_connection_check_command = "${hdp::params::java64_home}/bin/java -cp ${hdp::params::check_db_connection_jar}:${jdbc_driver_jar} org.apache.ambari.server.DBConnectionVerification ${hdp-oozie::params::oozie_jdbc_connection_url} ${hdp-oozie::params::oozie_metastore_user_name} ${hdp-oozie::params::oozie_metastore_user_passwd} ${jdbc_driver_name}"
     } else {
       $db_connection_check_command = undef
     }
