@@ -356,6 +356,7 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
       }
     } else {
       console.warn('func: startPolling3');
+      this.setTaskLogs(this.get('currentTaskId'), []);
       this.onTaskCompleted();
     }
   },

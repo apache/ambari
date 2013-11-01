@@ -89,7 +89,7 @@ var urls = {
     }
   },
   'reassign.stop_services': {
-    'real': '/clusters/{clusterName}/services?ServiceInfo/state=STARTED',
+    'real': '/clusters/{clusterName}/services',
     'mock': '',
     'format': function (data, opt) {
       return {
@@ -108,7 +108,7 @@ var urls = {
     }
   },
   'reassign.start_services': {
-    'real': '/clusters/{clusterName}/services?ServiceInfo/state=INSTALLED&params/run_smoke_test=true',
+    'real': '/clusters/{clusterName}/services?params/run_smoke_test=true',
     'mock': '',
     'format': function (data, opt) {
       return {
@@ -549,7 +549,7 @@ var urls = {
     }
   },
   'admin.high_availability.stop_all_services': {
-    'real': '/clusters/{clusterName}/services?ServiceInfo/state=STARTED',
+    'real': '/clusters/{clusterName}/services',
     'mock': '',
     'format': function (data, opt) {
       return {
@@ -568,7 +568,7 @@ var urls = {
     }
   },
   'admin.high_availability.start_all_services': {
-    'real': '/clusters/{clusterName}/services?ServiceInfo/state=INSTALLED',
+    'real': '/clusters/{clusterName}/services',
     'mock': '',
     'format': function (data, opt) {
       return {
