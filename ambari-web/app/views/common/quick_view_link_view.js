@@ -104,7 +104,7 @@ App.QuickViewLinks = Em.View.extend({
       case "HBASE":
         var component;
         if (App.supports.multipleHBaseMasters) {
-          component = components.filterProperty('componentName', 'HBASE_MASTER').findProperty('haStatus', 'active');
+          component = components.filterProperty('componentName', 'HBASE_MASTER').findProperty('haStatus', 'true');
         } else {
           component = components.findProperty('componentName', 'HBASE_MASTER');
         }

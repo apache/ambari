@@ -92,6 +92,10 @@ App.UpdateController = Em.Controller.extend({
         {
             name: 'YARN',
             urlParam: 'yarn/Queue'
+        },
+        {
+          name: 'HBASE',
+          urlParam: 'hbase/master/IsActiveMaster'
         }
     ];
     services.forEach(function(service) {

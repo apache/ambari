@@ -48,7 +48,6 @@ App.statusMapper = App.QuickDataMapper.create({
         var item = result[hostComponent.get('id')];
         if (item) {
           hostComponent.set('workStatus', item.work_status);
-          hostComponent.set('haStatus', item.ha_status);
           this.countHostComponents(hostComponent, hostsMap, hostsMap[hostComponent.get('host.id')]);
           this.countServiceComponents(hostComponent, servicesMap, servicesMap[hostComponent.get('service.id')]);
         }
@@ -123,7 +122,7 @@ App.statusMapper = App.QuickDataMapper.create({
         ? (hostComponent.get('workStatus') === App.HostComponentStatus.stopped)
         : true;
       service.isHbaseActive = (!service.isHbaseActive)
-        ? (hostComponent.get('haStatus') === 'active')
+        ? (hostComponent.get('haStatus') === 'true')
         : true;
 
       service.masterComponents.push(hostComponent);
@@ -161,7 +160,7 @@ App.statusMapper = App.QuickDataMapper.create({
         }
       } else if(hostComponent.get('componentName') === 'HBASE_MASTER') {
         if (hostComponent.get('workStatus') === 'STARTED') {
-          hostComponent.get('haStatus') == 'active' ? hostComponent.set('displayNameAdvanced', this.t('dashboard.services.hbase.masterServer.active')) : hostComponent.set('displayNameAdvanced', this.t('dashboard.services.hbase.masterServer.standby'));
+          hostComponent.get('haStatus') == 'true' ? hostComponent.set('displayNameAdvanced', this.t('dashboard.services.hbase.masterServer.active')) : hostComponent.set('displayNameAdvanced', this.t('dashboard.services.hbase.masterServer.standby'));
         } else {
           hostComponent.set('displayNameAdvanced', null);
         }
@@ -325,8 +324,7 @@ App.statusMapper = App.QuickDataMapper.create({
         component.host_components.forEach(function (host_component) {
           host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
           result[host_component.id] = {
-            work_status: host_component.HostRoles.state,
-            ha_status: host_component.HostRoles.ha_status
+            work_status: host_component.HostRoles.state
           };
         }, this)
       }, this)

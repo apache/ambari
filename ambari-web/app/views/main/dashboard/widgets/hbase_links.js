@@ -41,7 +41,7 @@ App.HBaseLinksView = App.LinkDashboardWidgetView.extend({
    */
   passiveMasters: function () {
     if (App.supports.multipleHBaseMasters) {
-      return this.get('masters').filterProperty('haStatus', 'passive');
+      return this.get('masters').filterProperty('haStatus', 'false');
     }
     return [];
   }.property('masters'),
@@ -56,7 +56,7 @@ App.HBaseLinksView = App.LinkDashboardWidgetView.extend({
    */
   activeMaster: function () {
     if(App.supports.multipleHBaseMasters) {
-      return this.get('masters').findProperty('haStatus', 'active');
+      return this.get('masters').findProperty('haStatus', 'true');
     } else {
       return this.get('masters')[0];
     }

@@ -164,7 +164,6 @@ App.servicesMapper = App.QuickDataMapper.create({
     work_status: 'HostRoles.state',
     desired_status: 'HostRoles.desired_state',
     component_name: 'HostRoles.component_name',
-    ha_status: 'HostRoles.ha_status',
     host_id: 'HostRoles.host_name',
     stale_configs: 'HostRoles.stale_configs',
     $service_id: 'none' /* will be set outside of parse function */
@@ -246,6 +245,9 @@ App.servicesMapper = App.QuickDataMapper.create({
         item.components.forEach(function(component){
           var service = component.ServiceComponentInfo.service_name;
           component.host_components.forEach(function(host_component){
+            if(host_component.HostRoles.component_name == "HBASE_MASTER"){
+              this.config3.ha_status = 'metrics.hbase.master.IsActiveMaster';
+            }
             var comp = this.parseIt(host_component, this.config3);
             comp.service_id = service;
             this.calculateState(comp);
