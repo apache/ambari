@@ -10,5 +10,6 @@ PROVIDERS = dict(
   amazon=dict(
   ),
   default=dict(
+    ExecuteHadoop="resource_management.libraries.providers.execute_hadoop.ExecuteHadoopProvider",
   ),
 )
