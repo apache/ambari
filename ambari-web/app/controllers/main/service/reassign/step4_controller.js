@@ -338,8 +338,16 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
           componentName: hostComponents[i]
         },
         success: 'onComponentsTasksSuccess',
-        error: 'onTaskError'
+        error: 'onDeleteHostComponentsError'
       });
+    }
+  },
+
+  onDeleteHostComponentsError: function (error) {
+    if (error.responseText.indexOf('org.apache.ambari.server.controller.spi.NoSuchResourceException') !== -1) {
+      this.onComponentsTasksSuccess();
+    } else {
+      this.onTaskError();
     }
   },
 

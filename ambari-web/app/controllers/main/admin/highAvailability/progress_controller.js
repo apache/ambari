@@ -265,11 +265,11 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
           taskNum: hostName.length
         },
         success: 'onCreateComponent',
-        error: 'onTaskError'
+        error: 'onCreateComponentError'
       });
       } else {
-        var taskNum = hostName.length;
-        this.installComponent(componentName, hostName[i], taskNum);
+        // Simulates format returned from ajax.send
+        this.onCreateComponent(null, null, {hostName: componentName, componentName: hostName[i], taskNum: hostName.length});
       }
     }
   },
@@ -280,6 +280,14 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
     var componentName = arguments[2].componentName;
     var taskNum = arguments[2].taskNum;
     this.installComponent(componentName, hostName, taskNum);
+  },
+
+  onCreateComponentError: function (error) {
+    if (error.responseText.indexOf('org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException') !== -1) {
+      this.onCreateComponent();
+    } else {
+      this.onTaskError();
+    }
   },
 
   installComponent: function (componentName, hostName, taskNum) {
