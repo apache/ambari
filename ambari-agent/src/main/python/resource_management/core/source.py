@@ -74,33 +74,33 @@ else:
       return source, path, lambda: mtime == os.path.getmtime(path)
 
   class Template(Source):
-    def __init__(self, name, **kwargs):
+    def __init__(self, name, extra_imports=[], **kwargs):
       """
       @param kwargs: Additional variables passed to template
       """
       super(Template, self).__init__(name)
       params = self.env.config.params
       variables = checked_unite(params, kwargs)
+      self.imports_dict = dict((module.__name__, module) for module in extra_imports)
       self.context = variables.copy() if variables else {}
       if not hasattr(self, 'template_env'):
         self.template_env = JinjaEnvironment(loader=TemplateLoader(self.env),
                                         autoescape=False, undefined=StrictUndefined)
+        
       self.template = self.template_env.get_template(self.name)     
-
+    
     def get_content(self):
-      self.context.update(
-        env=self.env,
-        repr=repr,
-        str=str,
-        bool=bool,
-      )
+      default_variables = { 'env':self.env, 'repr':repr, 'str':str, 'bool':bool }
+      variables = checked_unite(default_variables, self.imports_dict)
+      self.context.update(variables)
+      
       rendered = self.template.render(self.context)
       return rendered + "\n" if not rendered.endswith('\n') else rendered
     
   class InlineTemplate(Template):
-    def __init__(self, name, **kwargs):
+    def __init__(self, name, extra_imports=[], **kwargs):
       self.template_env = JinjaEnvironment(loader=FunctionLoader(lambda text: text))
-      super(InlineTemplate, self).__init__(name, **kwargs) 
+      super(InlineTemplate, self).__init__(name, extra_imports, **kwargs) 
 
 
 class DownloadSource(Source):

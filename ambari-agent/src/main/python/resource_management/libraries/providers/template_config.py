@@ -1,7 +1,7 @@
 import os
 from resource_management import *
 
-class ConfigFileProvider(Provider):
+class TemplateConfigProvider(Provider):
   def action_create(self):
     template_tag = self.resource.template_tag
     qualified_file_name = self.resource.name

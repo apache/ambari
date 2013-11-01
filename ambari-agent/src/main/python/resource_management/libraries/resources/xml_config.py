@@ -1,12 +1,15 @@
-_all__ = ["ConfigFile"]
+_all__ = ["XmlConfig"]
 from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
 
-class ConfigFile(Resource):
+class XmlConfig(Resource):
   action = ForcedListArgument(default="create")
-  path = ResourceArgument(default=lambda obj: obj.name)
+  filename = ResourceArgument(default=lambda obj: obj.name)
+  
+  configurations = ResourceArgument()
+  conf_dir = ResourceArgument()
+  
   mode = ResourceArgument()
   owner = ResourceArgument()
   group = ResourceArgument()
-  template_tag = ResourceArgument()
 
   actions = Resource.actions + ["create"]

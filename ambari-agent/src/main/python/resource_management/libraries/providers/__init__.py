@@ -11,6 +11,7 @@ PROVIDERS = dict(
   ),
   default=dict(
     ExecuteHadoop="resource_management.libraries.providers.execute_hadoop.ExecuteHadoopProvider",
-    ConfigFile="resource_management.libraries.providers.config_file.ConfigFileProvider",
+    TemplateConfig="resource_management.libraries.providers.template_config.TemplateConfigProvider",
+    XmlConfig="resource_management.libraries.providers.xml_config.XmlConfigProvider"
   ),
 )
