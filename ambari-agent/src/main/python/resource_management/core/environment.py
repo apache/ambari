@@ -33,7 +33,6 @@ class Environment(object):
     self.config = AttributeDictionary()
     self.resources = {}
     self.resource_list = []
-    Substitutor.default_prefixes = []
     self.delayed_actions = set()
     self.update_config({
       # current time
@@ -45,7 +44,7 @@ class Environment(object):
       # dir where templates,failes dirs are 
       'basedir': basedir, 
       # variables, which can be used in templates
-      'params': ParamsAttributeDictionary(Substitutor, params), 
+      'params': ParamsAttributeDictionary(Substitutor, params.copy()), 
     })
 
   def backup_file(self, path):
@@ -67,7 +66,17 @@ class Environment(object):
         attr = attr[pth]
       if overwrite or path[-1] not in attr:
         attr[path[-1]] = value
+        
+  def add_params(self, params):
+    variables = [item for item in dir(params) if not item.startswith("__")]
 
+    for variable in variables:
+      value = getattr(params, variable)
+      if not hasattr(value, '__call__'):
+        if variable in self.config.params:
+          raise Fail("Variable %s already exists in the resource management parameters" % variable)
+        self.config.params[variable] = value
+        
   def run_action(self, resource, action):
     self.log.debug("Performing action %s on %s" % (action, resource))
 
@@ -89,9 +98,6 @@ class Environment(object):
         self.log.info(
           "%s sending %s action to %s (delayed)" % (resource, action, res))
       self.delayed_actions |= resource.subscriptions['delayed']
-      
-  def set_default_prefixes(self, dict):
-    Substitutor.default_prefixes = dict
 
   def _check_condition(self, cond):
     if hasattr(cond, '__call__'):
@@ -166,72 +172,13 @@ class Environment(object):
 
 class Substitutor():
   log = logging.getLogger("resource_management.resource")
-  default_prefixes = []
-  
-  class ExtendedTemplate(Template):
-    """
-    This is done to support substitution of dictionaries in dictionaries 
-    ( ':' sign)
-    
-    default is:
-    idpattern = r'[_a-z][_a-z0-9]*'
-    """
-    idpattern = r'[_a-z][_a-z0-9:]*'
-    
-  @staticmethod 
-  def _get_subdict(name, dic):
-    """
-    "a:b:c" => a[b][c]
-    
-    doesn't use prefixes
-    """
-    name_parts = name.split(':')
-    curr = dic
-    
-    for x in name_parts:
-      curr = curr[x]
-    return curr
-      
-  @staticmethod
-  def get_subdict(name, dic):
-    """
-    "a:b:c" => a[b][c]
-    
-    can use prefixes
-    """
-    prefixes = list(Substitutor.default_prefixes)
-    prefixes.insert(0, None) # for not prefixed case
-    name_parts = name.split(':')
-    is_found = False
-    result = None
-    
-    for prefix in prefixes:
-      curr = Substitutor._get_subdict(prefix,dic) if prefix else dic
-      
-      try:
-        for x in name_parts:
-          curr = curr[x]
-      except (KeyError, TypeError):
-        continue
-      
-      if is_found:
-        raise Fail("Variable ${%s} found more than one time, please check your default prefixes!" % name)
-      
-      is_found = True
-      result = curr
-      
-    if not result:
-      raise Fail("Configuration on ${%s} cannot be resolved" % name)
-    
-    return result
-
   @staticmethod
   def substitute(val):
     env = Environment.get_instance()
     dic = env.config.params
     
     if dic and isinstance(val, str):
-      result = Substitutor.ExtendedTemplate(val).substitute(dic)
+      result = Template(val).substitute(dic)
       if '$' in val:
         Substitutor.log.debug("%s after substitution is %s", val, result)
       return result

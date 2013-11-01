@@ -37,7 +37,6 @@ class Script():
 
 
   def start(self, env, params):  # TODO: just for test runs; remove
-    env.set_prefixes("ddd")
     print "Start!"
     pass
 

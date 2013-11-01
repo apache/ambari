@@ -1,3 +1,5 @@
+from resource_management.core.exceptions import Fail
+
 class AttributeDictionary(object):
   def __init__(self, *args, **kwargs):
     d = kwargs
@@ -76,11 +78,14 @@ class ParamsAttributeDictionary(AttributeDictionary):
     super(AttributeDictionary, self).__setattr__("substitutor", substitutor)
 
   def __getitem__(self, name):
-    val = self.substitutor.get_subdict(name, self._dict)
-    return self._convert_value(val)
-
+    try:
+      return self._convert_value(self._dict[name])
+    except KeyError as ex:
+      raise Fail("Configuration $%s not found!" % str(ex).strip("'"))
+  
   def copy(self):
-    return ParamsAttributeDictionary(self.substitutor, self._dict)
+    # don't allow real copying to be able to change params passed to jinja2
+    return self
 
   def __unicode__(self):
     if isinstance(self._dict, str):
