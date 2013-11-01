@@ -35,6 +35,7 @@ public class TestStreamProvider implements StreamProvider {
     FILE_MAPPING.put("50030", "mapreduce_jobtracker_jmx.json");
     FILE_MAPPING.put("50060", "mapreduce_tasktracker_jmx.json");
     FILE_MAPPING.put("60010", "hbase_hbasemaster_jmx.json");
+    FILE_MAPPING.put("60011", "hbase_hbasemaster_jmx_2.json");
     FILE_MAPPING.put("8088",  "resourcemanager_jmx.json");
     FILE_MAPPING.put("8480",  "hdfs_journalnode_jmx.json");
   }

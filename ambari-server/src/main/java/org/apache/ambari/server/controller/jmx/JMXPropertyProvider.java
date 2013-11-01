@@ -344,24 +344,33 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
               String property = propertyInfo.getPropertyId();
               String category = "";
 
+              
               List<String> keyList = new LinkedList<String>();
-              int keyStartIndex = property.indexOf('[', 0);
-              int firstKeyIndex = keyStartIndex > -1 ? keyStartIndex : property.length();
-              while (keyStartIndex > -1) {
+              
+              int keyStartIndex = property.indexOf('[');
+              if (-1 != keyStartIndex) {
                 int keyEndIndex = property.indexOf(']', keyStartIndex);
-                if (keyEndIndex > -1 & keyEndIndex > keyStartIndex) {
-                  keyList.add(property.substring(keyStartIndex + 1, keyEndIndex));
-                  keyStartIndex = property.indexOf('[', keyEndIndex);
-                }
-                else {
-                  keyStartIndex = -1;
+                if (-1 != keyEndIndex && keyEndIndex > keyStartIndex) {
+                  keyList.add(property.substring(keyStartIndex+1, keyEndIndex));
                 }
               }
+              
+              if (!containsArguments(propertyId)) {
+                int dotIndex = property.indexOf('.', property.indexOf('='));
+                if (-1 != dotIndex) {
+                  category = property.substring(0, dotIndex);
+                  property = (-1 == keyStartIndex) ?
+                      property.substring(dotIndex+1) :
+                        property.substring(dotIndex+1, keyStartIndex);
+                }
+              } else {
+                int firstKeyIndex = keyStartIndex > -1 ? keyStartIndex : property.length();
+                int dotIndex = property.lastIndexOf('.', firstKeyIndex);
 
-              int dotIndex = property.lastIndexOf('.', firstKeyIndex - 1);
-              if (dotIndex != -1){
-                category = property.substring(0, dotIndex);
-                property = property.substring(dotIndex + 1, firstKeyIndex);
+                if (dotIndex != -1) {
+                  category = property.substring(0, dotIndex);
+                  property = property.substring(dotIndex + 1, firstKeyIndex);
+                }
               }
 
               if (containsArguments(propertyId)) {

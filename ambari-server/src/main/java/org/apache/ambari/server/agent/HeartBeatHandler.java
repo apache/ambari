@@ -17,16 +17,31 @@
  */
 package org.apache.ambari.server.agent;
 
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Singleton;
-import org.apache.ambari.server.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.HostNotFoundException;
+import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.ServiceComponentHostNotFoundException;
+import org.apache.ambari.server.ServiceComponentNotFoundException;
+import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.metadata.ActionMetadata;
-import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.AgentVersion;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
@@ -42,12 +57,10 @@ import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.ambari.server.state.svccomphost.HBaseMasterPortScanner;
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
 
 
 /**
@@ -68,8 +81,6 @@ public class HeartBeatHandler {
   AmbariMetaInfo ambariMetaInfo;
   @Inject
   ActionMetadata actionMetadata;
-  @Inject
-  HBaseMasterPortScanner scanner;
   private HeartbeatMonitor heartbeatMonitor;
   @Inject
   private Gson gson;
@@ -83,7 +94,6 @@ public class HeartBeatHandler {
     this.actionQueue = aq;
     this.actionManager = am;
     this.heartbeatMonitor = new HeartbeatMonitor(fsm, aq, am, 60000);
-    this.heartbeatMonitor.setScanner(scanner);
     injector.injectMembers(this);
   }
 
@@ -157,7 +167,6 @@ public class HeartBeatHandler {
         hostObject.handleEvent(new HostUnhealthyHeartbeatEvent(hostname, now,
             null));
       }
-      if (hostState != hostObject.getState()) scanner.updateHBaseMaster(hostObject);
     } catch (InvalidStateTransitionException ex) {
       LOG.warn("Asking agent to reregister due to " + ex.getMessage(), ex);
       hostObject.setState(HostState.INIT);
@@ -231,9 +240,6 @@ public class HeartBeatHandler {
             scHost.handleEvent(new ServiceComponentHostOpInProgressEvent(schName,
                 hostname, now));
           }
-          if (state != scHost.getState() && schName.equals(Role.HBASE_MASTER.toString())) {
-            scanner.updateHBaseMaster(cl);
-          }
         } catch (ServiceComponentNotFoundException scnex) {
           LOG.warn("Service component not found ", scnex);
         } catch (InvalidStateTransitionException ex) {
@@ -275,9 +281,6 @@ public class HeartBeatHandler {
                       + " of cluster " + status.getClusterName()
                       + " has changed from " + prevState + " to " + liveState
                       + " at host " + hostname);
-                  if (scHost.getServiceComponentName().equals(Role.HBASE_MASTER.toString())) {
-                    scanner.updateHBaseMaster(scHost);
-                  }
                 }
               }
 

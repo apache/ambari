@@ -48,8 +48,6 @@ public class ServiceComponentHostResponse {
 
   private String desiredState;
   
-  private String ha_status = "NA";
-
   private boolean staleConfig = false;
 
 
@@ -198,26 +196,6 @@ public class ServiceComponentHostResponse {
     this.clusterName = clusterName;
   }
 
-  /**
-   * 
-   * @return ha_status status of HBaseMaster
-   */
-  public String getHa_status() {
-    return ha_status;
-  }
-
-  
-  /**
-   * 
-   * @param ha_status the state of HBaseMaster
-   */
-  public void setHa_status(String ha_status) {
-    this.ha_status = ha_status;
-  }
-
-  
-  
-  
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;

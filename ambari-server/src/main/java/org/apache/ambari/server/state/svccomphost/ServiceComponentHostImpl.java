@@ -103,7 +103,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   private long lastOpStartTime;
   private long lastOpEndTime;
   private long lastOpLastUpdateTime;
-  private String ha_status = "passive";
   private Map<String, DesiredConfig> actualConfigs = new HashMap<String, DesiredConfig>();
 
   private static final StateMachineFactory
@@ -486,17 +485,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   private final StateMachine<State,
       ServiceComponentHostEventType, ServiceComponentHostEvent> stateMachine;
-
-  @Override
-  public void setHAState(String status) {
-    try {
-      writeLock.lock();
-      ha_status = status;
-    }
-    finally {
-      writeLock.unlock();
-    }
-  }
 
   static class ServiceComponentHostOpCompletedTransition
      implements SingleArcTransition<ServiceComponentHostImpl,
@@ -1315,7 +1303,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
             getDesiredState().toString(),
             getDesiredStackVersion().getStackId());
 
-        r.setHa_status(ha_status);
         r.setActualConfigs(actualConfigs);
 
         try {

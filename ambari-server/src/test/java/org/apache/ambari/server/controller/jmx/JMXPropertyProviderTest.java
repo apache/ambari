@@ -808,6 +808,42 @@ public class JMXPropertyProviderTest {
 
     Assert.assertEquals(preSize, resource.getPropertiesMap().size());
   }
+  
+  @Test
+  public void testPopulateResources_HBaseMaster2() throws Exception {
+    TestStreamProvider streamProvider = new TestStreamProvider();
+    TestJMXHostProvider hostProvider = new TestJMXHostProvider(false);
+
+    JMXPropertyProvider propertyProvider = new JMXPropertyProvider(
+        PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP2),
+        streamProvider,
+        hostProvider,
+        PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+        PropertyHelper.getPropertyId("HostRoles", "host_name"),
+        PropertyHelper.getPropertyId("HostRoles", "component_name"),
+        PropertyHelper.getPropertyId("HostRoles", "state"),
+        Collections.singleton("STARTED"));
+
+    Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+
+    resource.setProperty("HostRoles/cluster_name", "HBM2");
+    resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
+    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "HBASE_MASTER");
+    resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+
+    
+    // request with an empty set should get all supported properties
+    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+
+    Set<Resource> res = propertyProvider.populateResources(Collections.singleton(resource), request, null);
+    Assert.assertEquals(1, res.size());
+    
+    Map<String, Map<String, Object>> map = res.iterator().next().getPropertiesMap();
+
+    Assert.assertTrue(map.containsKey("metrics/hbase/master"));
+    // uses 'tag.isActiveMaster' (name with a dot)
+    Assert.assertTrue(map.get("metrics/hbase/master").containsKey("IsActiveMaster"));
+  }  
     
   private static class TestJMXHostProvider implements JMXHostProvider {
     private final boolean unknownPort;
@@ -828,6 +864,7 @@ public class JMXPropertyProviderTest {
       if (unknownPort) {
         return null;
       }
+      
       if (componentName.equals("NAMENODE"))
         return "50070";
       else if (componentName.equals("DATANODE"))
@@ -837,7 +874,7 @@ public class JMXPropertyProviderTest {
       else if (componentName.equals("TASKTRACKER"))
         return "50060";
       else if (componentName.equals("HBASE_MASTER"))
-        return "60010";
+        return null == clusterName ? "60010" : "60011";
       else  if (componentName.equals("JOURNALNODE"))
         return "8480";
       else

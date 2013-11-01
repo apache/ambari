@@ -67,7 +67,6 @@
         "HostRoles/actual_configs",
         "params/run_smoke_test",
         "HostRoles/nagios_alerts",
-        "HostRoles/ha_status",
         "HostRoles/stale_configs",
         "_"
     ],

@@ -58,8 +58,6 @@ class HostComponentResourceProvider extends AbstractControllerResourceProvider {
       = PropertyHelper.getPropertyId("HostRoles", "configs");
   protected static final String HOST_COMPONENT_DESIRED_CONFIGS_PROPERTY_ID
       = PropertyHelper.getPropertyId("HostRoles", "desired_configs");
-  protected static final String HOST_COMPONENT_HIGH_AVAILABILITY_PROPERTY_ID
-      = PropertyHelper.getPropertyId("HostRoles", "ha_status");
   protected static final String HOST_COMPONENT_STACK_ID_PROPERTY_ID
       = PropertyHelper.getPropertyId("HostRoles", "stack_id");
   protected static final String HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID
@@ -166,11 +164,6 @@ class HostComponentResourceProvider extends AbstractControllerResourceProvider {
     
     for (ServiceComponentHostResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.HostComponent);
-      if((response.getComponentName()).equals(Role.HBASE_MASTER.toString())) {
-          requestedIds.add(HOST_COMPONENT_HIGH_AVAILABILITY_PROPERTY_ID);
-      }else{
-          requestedIds.remove(HOST_COMPONENT_HIGH_AVAILABILITY_PROPERTY_ID);
-      }
       setResourceProperty(resource, HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, response.getClusterName(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID, response.getServiceName(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, response.getComponentName(), requestedIds);
@@ -181,7 +174,6 @@ class HostComponentResourceProvider extends AbstractControllerResourceProvider {
           response.getStackVersion(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID,
           response.getDesiredStackVersion(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_HIGH_AVAILABILITY_PROPERTY_ID, response.getHa_status(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_CONFIGS_PROPERTY_ID,
           response.getConfigs(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_DESIRED_CONFIGS_PROPERTY_ID,

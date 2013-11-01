@@ -18,10 +18,10 @@
 package org.apache.ambari.server.agent;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.HashMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
@@ -37,7 +37,6 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHeartbeatLostEvent;
-import org.apache.ambari.server.state.svccomphost.HBaseMasterPortScanner;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -52,11 +51,6 @@ public class HeartbeatMonitor implements Runnable {
   private final int threadWakeupInterval; //1 minute
   private volatile boolean shouldRun = true;
   private Thread monitorThread = null;
-  private HBaseMasterPortScanner scanner;
-
-  public void setScanner(HBaseMasterPortScanner scanner) {
-        this.scanner = scanner;
-  }
 
   public HeartbeatMonitor(Clusters fsm, ActionQueue aq, ActionManager am,
       int threadWakeupInterval) {
@@ -139,11 +133,6 @@ public class HeartbeatMonitor implements Runnable {
               sch.setState(State.UNKNOWN);
             }
           }
-        }
-
-        // hbase
-        if (hostState != hostObj.getState() && scanner != null) {
-          scanner.updateHBaseMaster(hostObj);
         }
 
         //Purge action queue
