@@ -163,14 +163,22 @@ class LinkProvider(Provider):
       if not os.path.islink(path):
         raise Fail(
           "%s trying to create a symlink with the same name as an existing file or directory" % self)
-      self.log.info("%s replacing old symlink to %s" % (self, oldpath))
+      self.log.info("%s replacing old symlink to %s" % (self.resource, oldpath))
       os.unlink(path)
-
+      
     if self.resource.hard:
+      if not os.path.exists(self.resource.to):
+        raise Fail("Failed to apply %s, linking to nonexistent location %s" % (self.resource, self.resource.to))
+      if os.path.isdir(self.resource.to):
+        raise Fail("Failed to apply %s, cannot create hard link to a directory (%s)" % (self.resource, self.resource.to))
+      
       self.log.info("Creating hard %s" % self.resource)
       os.link(self.resource.to, path)
       self.resource.updated()
     else:
+      if not os.path.exists(self.resource.to):
+        self.log.info("Warning: linking to nonexistent location %s", self.resource.to)
+        
       self.log.info("Creating symbolic %s" % self.resource)
       os.symlink(self.resource.to, path)
       self.resource.updated()
@@ -206,7 +214,7 @@ class ExecuteProvider(Provider):
     self.log.info("Executing %s" % self.resource)
     
     if self.resource.path != []:
-      self.resource.environment['PATH'] = ":".join(self.resource.path) 
+      self.resource.environment['PATH'] = os.pathsep.join(self.resource.path) 
     
     for i in range (0, self.resource.tries):
       try:

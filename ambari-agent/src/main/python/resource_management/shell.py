@@ -32,8 +32,8 @@ def _call(command, logoutput=False, throw_on_failure=True,
                           cwd=cwd, env=env, shell=shell,
                           preexec_fn=preexec_fn)
   
-  out = proc.communicate()[0] if not proc.stdout.closed  else ""
-  code = proc.wait()
+  out = proc.communicate()[0]
+  code = proc.returncode
   
   if logoutput and out and out!="":
     log.info(out)
