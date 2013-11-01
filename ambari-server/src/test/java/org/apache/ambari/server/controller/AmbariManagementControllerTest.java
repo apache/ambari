@@ -44,6 +44,7 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.ComponentResourceProviderTest;
+import org.apache.ambari.server.controller.internal.HostResourceProviderTest;
 import org.apache.ambari.server.controller.internal.ServiceResourceProviderTest;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -1325,7 +1326,7 @@ public class AmbariManagementControllerTest {
     Set<HostRequest> requests = new HashSet<HostRequest>();
     requests.add(r1);
     try {
-      controller.createHosts(requests);
+      HostResourceProviderTest.createHosts(controller, requests);
       fail("Create host should fail for non-bootstrapped host");
     } catch (Exception e) {
       // Expected
@@ -1341,7 +1342,7 @@ public class AmbariManagementControllerTest {
     requests.add(new HostRequest("h2", "foo", new HashMap<String, String>()));
 
     try {
-      controller.createHosts(requests);
+      HostResourceProviderTest.createHosts(controller, requests);
       fail("Create host should fail for invalid clusters");
     } catch (Exception e) {
       // Expected
@@ -1350,7 +1351,7 @@ public class AmbariManagementControllerTest {
     clusters.addCluster("foo");
     clusters.getCluster("foo").setDesiredStackVersion(new StackId("HDP-0.1"));
 
-    controller.createHosts(requests);
+    HostResourceProviderTest.createHosts(controller, requests);
 
     Assert.assertNotNull(clusters.getHost("h1"));
     Assert.assertNotNull(clusters.getHost("h2"));
@@ -1389,7 +1390,7 @@ public class AmbariManagementControllerTest {
     set1.add(r1);
     set1.add(r2);
     set1.add(r3);
-    controller.createHosts(set1);
+    HostResourceProviderTest.createHosts(controller, set1);
 
     Assert.assertEquals(1, clusters.getClustersForHost("h1").size());
     Assert.assertEquals(1, clusters.getClustersForHost("h2").size());
@@ -1416,7 +1417,7 @@ public class AmbariManagementControllerTest {
       HostRequest rInvalid =
           new HostRequest("h1", null, null);
       set1.add(rInvalid);
-      controller.createHosts(set1);
+      HostResourceProviderTest.createHosts(controller, set1);
       fail("Expected failure for invalid host");
     } catch (Exception e) {
       // Expected
@@ -1431,7 +1432,7 @@ public class AmbariManagementControllerTest {
       HostRequest rInvalid =
           new HostRequest("h1", clusterName, null);
       set1.add(rInvalid);
-      controller.createHosts(set1);
+      HostResourceProviderTest.createHosts(controller, set1);
       fail("Expected failure for invalid cluster");
     } catch (Exception e) {
       // Expected
@@ -1447,7 +1448,7 @@ public class AmbariManagementControllerTest {
           new HostRequest("h1", clusterName, null);
       set1.add(rInvalid1);
       set1.add(rInvalid2);
-      controller.createHosts(set1);
+      HostResourceProviderTest.createHosts(controller, set1);
       fail("Expected failure for dup requests");
     } catch (Exception e) {
       // Expected
@@ -2288,7 +2289,7 @@ public class AmbariManagementControllerTest {
 
     HostRequest r = new HostRequest(null, null, null);
 
-    Set<HostResponse> resps = controller.getHosts(Collections.singleton(r));
+    Set<HostResponse> resps = HostResourceProviderTest.getHosts(controller, Collections.singleton(r));
 
     Assert.assertEquals(4, resps.size());
 
@@ -2317,7 +2318,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(4, foundHosts.size());
 
     r = new HostRequest("h1", null, null);
-    resps = controller.getHosts(Collections.singleton(r));
+    resps = HostResourceProviderTest.getHosts(controller, Collections.singleton(r));
     Assert.assertEquals(1, resps.size());
     HostResponse resp = resps.iterator().next();
     Assert.assertEquals("h1", resp.getHostname());
@@ -7088,7 +7089,7 @@ public class AmbariManagementControllerTest {
     requests.clear();
     requests.add(new HostRequest(host1, clusterName, null));
     try {
-      controller.deleteHosts(requests);
+      HostResourceProviderTest.deleteHosts(controller, requests);
       fail("Expect failure deleting hosts when components exist.");
     } catch (Exception e) {
     }
@@ -7112,7 +7113,7 @@ public class AmbariManagementControllerTest {
     requests.clear();
     requests.add(new HostRequest(host1, null, null));
     try {
-      controller.deleteHosts(requests);
+      HostResourceProviderTest.deleteHosts(controller, requests);
       fail("Expect failure when removing from host when it is part of a cluster.");
     } catch (Exception e) {
     }
@@ -7120,7 +7121,7 @@ public class AmbariManagementControllerTest {
     // delete host from cluster
     requests.clear();
     requests.add(new HostRequest(host1, clusterName, null));
-    controller.deleteHosts(requests);
+    HostResourceProviderTest.deleteHosts(controller, requests);
 
     // host is no longer part of the cluster
     Assert.assertFalse(clusters.getHostsForCluster(clusterName).containsKey(host1));
@@ -7129,7 +7130,7 @@ public class AmbariManagementControllerTest {
     // delete entirely
     requests.clear();
     requests.add(new HostRequest(host1, null, null));
-    controller.deleteHosts(requests);
+    HostResourceProviderTest.deleteHosts(controller, requests);
 
     // verify host does not exist
     try {
@@ -7142,7 +7143,7 @@ public class AmbariManagementControllerTest {
     // remove host2
     requests.clear();
     requests.add(new HostRequest(host2, null, null));
-    controller.deleteHosts(requests);
+    HostResourceProviderTest.deleteHosts(controller, requests);
     
     // verify host does not exist
     try {
@@ -7156,7 +7157,7 @@ public class AmbariManagementControllerTest {
     requests.clear();
     requests.add(new HostRequest(host3, null, null));
     try {
-      controller.deleteHosts(requests);
+      HostResourceProviderTest.deleteHosts(controller, requests);
       Assert.fail("Expected a HostNotFoundException trying to remove a host that was never added.");
     } catch (HostNotFoundException e) {
       // expected
@@ -7456,7 +7457,7 @@ public class AmbariManagementControllerTest {
       // add some hosts
       Set<HostRequest> hrs = new HashSet<HostRequest>();
       hrs.add(new HostRequest(HOST1, CLUSTER_NAME, null));
-      amc.createHosts(hrs);
+      HostResourceProviderTest.createHosts(amc, hrs);
 
       Set<ServiceRequest> serviceRequests = new HashSet<ServiceRequest>();
       serviceRequests.add(new ServiceRequest(CLUSTER_NAME, "HDFS", null, null));
@@ -7595,7 +7596,7 @@ public class AmbariManagementControllerTest {
       hostRequests.add(new HostRequest("host2", "c1", null));
       hostRequests.add(new HostRequest("host3", "c1", null));
 
-      amc.createHosts(hostRequests);
+      HostResourceProviderTest.createHosts(amc, hostRequests);
 
       Set<ServiceComponentHostRequest> componentHostRequests = new HashSet<ServiceComponentHostRequest>();
       componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host1", null, null));
@@ -7868,7 +7869,7 @@ public class AmbariManagementControllerTest {
       Set<HostRequest> hostRequests = new HashSet<HostRequest>();
       hostRequests.add(new HostRequest(HOST1, CLUSTER_NAME, null));
 
-      amc.createHosts(hostRequests);
+      HostResourceProviderTest.createHosts(amc, hostRequests);
 
       Set<ServiceComponentHostRequest> componentHostRequests = new HashSet<ServiceComponentHostRequest>();
       componentHostRequests.add(new ServiceComponentHostRequest(CLUSTER_NAME, null, "DATANODE", HOST1, null, null));

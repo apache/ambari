@@ -23,7 +23,6 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -52,16 +51,6 @@ public interface AmbariManagementController {
    * @throws AmbariException thrown if the cluster cannot be created
    */
   public void createCluster(ClusterRequest request) throws AmbariException;
-
-  /**
-   * Create the host defined by the attributes in the given request object.
-   *
-   * @param requests  the request object which defines the host to be created
-   *
-   * @throws AmbariException thrown if the host cannot be created
-   */
-  public void createHosts(Set<HostRequest> requests)
-      throws AmbariException;
 
   /**
    * Create the host component defined by the attributes in the given request object.
@@ -105,18 +94,6 @@ public interface AmbariManagementController {
    * @throws AmbariException thrown if the resource cannot be read
    */
   public Set<ClusterResponse> getClusters(Set<ClusterRequest> requests)
-      throws AmbariException;
-
-  /**
-   * Get the hosts identified by the given request objects.
-   *
-   * @param requests  the request objects which identify the hosts to be returned
-   *
-   * @return a set of host responses
-   *
-   * @throws AmbariException thrown if the resource cannot be read
-   */
-  public Set<HostResponse> getHosts(Set<HostRequest> requests)
       throws AmbariException;
 
   /**
@@ -189,18 +166,6 @@ public interface AmbariManagementController {
       throws AmbariException;
 
   /**
-   * Update the host identified by the given request object with the
-   * values carried by the given request object.
-   *
-   * @param requests  the request object which defines which host to
-   *                  update and the values to set
-   *
-   * @throws AmbariException thrown if the resource cannot be updated
-   */
-  public void updateHosts(Set<HostRequest> requests)
-      throws AmbariException;
-
-  /**
    * Update the host component identified by the given request object with the
    * values carried by the given request object.
    *
@@ -238,16 +203,6 @@ public interface AmbariManagementController {
    * @throws AmbariException thrown if the resource cannot be deleted
    */
   public void deleteCluster(ClusterRequest request) throws AmbariException;
-
-  /**
-   * Delete the host identified by the given request object.
-   *
-   * @param requests  the request object which identifies which host to delete
-   *
-   * @throws AmbariException thrown if the resource cannot be deleted
-   */
-  public void deleteHosts(Set<HostRequest> requests)
-      throws AmbariException;
 
   /**
    * Delete the host component identified by the given request object.
@@ -414,17 +369,6 @@ public interface AmbariManagementController {
    */
   public Set<RootServiceComponentResponse> getRootServiceComponents(Set<RootServiceComponentRequest> requests) throws AmbariException;
 
-  /**
-   * Get all hosts components of top-level services of Ambari, not related to certain cluster.
-   * 
-   * @param requests the host components of top-level services 
-   * 
-   * @return a set of host components 
-   * 
-   * @throws  AmbariException if the resources cannot be read
-   */
-  public Set<RootServiceHostComponentResponse> getRootServiceHostComponents(Set<RootServiceHostComponentRequest> requests) throws AmbariException;
-
 
   // ----- Common utility methods --------------------------------------------
 
@@ -457,11 +401,32 @@ public interface AmbariManagementController {
   public ServiceComponentFactory getServiceComponentFactory();
 
   /**
+   * Get the root service response factory for this management controller.
+   *
+   * @return the root service response factory
+   */
+  public AbstractRootServiceResponseFactory getRootServiceResponseFactory();
+
+  /**
+   * Get the config group factory for this management controller.
+   *
+   * @return the config group factory
+   */
+  public ConfigGroupFactory getConfigGroupFactory();
+
+  /**
     * Get the action manager for this management controller.
     *
     * @return the action manager
     */
   public ActionManager getActionManager();
+
+  /**
+   * Get the authenticated user's name.
+   *
+   * @return the authenticated user's name
+   */
+  public String getAuthName();
 
   /**
    * Create the stages required to persist an action and return a result containing the
@@ -488,11 +453,5 @@ public interface AmbariManagementController {
                                             Map<String, Map<State, List<ServiceComponentHost>>> changedHosts,
                                             Collection<ServiceComponentHost> ignoredHosts,
                                             boolean runSmokeTest, boolean reconfigureClients) throws AmbariException;
-
-  public ConfigGroupFactory getConfigGroupFactory();
-
-  public ConfigFactory getConfigFactory();
-
-  public String getAuthName();
 }
   

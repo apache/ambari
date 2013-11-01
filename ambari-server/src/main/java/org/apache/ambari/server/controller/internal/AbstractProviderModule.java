@@ -252,38 +252,29 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   @Override
   public boolean isGangliaCollectorHostLive(String clusterName) throws SystemException {
     
-    HostResponse gangliaCollectorHost = null;
+    HostResponse gangliaCollectorHost;
     
     try {
-      HostRequest hostRequest = new HostRequest(null, clusterName, Collections.<String, String>emptyMap());
-      Set<HostResponse> hosts = managementController.getHosts(Collections.singleton(hostRequest));
-      
       final String gangliaCollectorHostName = getGangliaCollectorHostName(clusterName);
-      
-      gangliaCollectorHost = (HostResponse) CollectionUtils.find(hosts, new org.apache.commons.collections.Predicate() {
-        
-        @Override
-        public boolean evaluate(Object hostResponse) {
-          return ((HostResponse) hostResponse).getHostname().equals(gangliaCollectorHostName);
-        }
-      });
+
+      HostRequest hostRequest = new HostRequest(gangliaCollectorHostName, clusterName, Collections.<String, String>emptyMap());
+      Set<HostResponse> hosts = HostResourceProvider.getHosts(managementController, hostRequest);
+
+      gangliaCollectorHost = hosts.size() == 1 ? hosts.iterator().next() : null;
     } catch (AmbariException e) {
       LOG.debug("Error checking of Ganglia server host live status: ", e);
       return false;
     }
     
     //Cluster without Ganglia
-    if (gangliaCollectorHost == null)
-      return false;
-
-    return !gangliaCollectorHost.getHostState().equals(HostState.HEARTBEAT_LOST.name());
+    return gangliaCollectorHost != null && !gangliaCollectorHost.getHostState().equals(HostState.HEARTBEAT_LOST.name());
   }
   
   @Override
   public boolean isGangliaCollectorComponentLive(String clusterName) throws SystemException {
 
 
-    ServiceComponentHostResponse gangliaCollectorHostComponent = null;
+    ServiceComponentHostResponse gangliaCollectorHostComponent;
     
     try {
       final String gangliaCollectorHostName = getGangliaCollectorHostName(clusterName);
@@ -306,10 +297,8 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     }
     
     //Cluster without Ganglia
-    if (gangliaCollectorHostComponent == null)
-      return false;
-    
-    return gangliaCollectorHostComponent.getLiveState().equals(State.STARTED.name());
+    return gangliaCollectorHostComponent != null &&
+        gangliaCollectorHostComponent.getLiveState().equals(State.STARTED.name());
   }
 
 
@@ -738,7 +727,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
             clusterName,
             newCoreSiteConfigVersion, "core-site",
             jmxDesiredProperties.get("NAMENODE")); 
-        jmxProtocolString = getJMXProtocolString(protocolMap.get("NAMENODE"), componentName);
+        jmxProtocolString = getJMXProtocolString(protocolMap.get("NAMENODE"));
         clusterJmxProtocolMap.put(clusterName, jmxProtocolString);
       }
 
@@ -765,7 +754,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     return jmxProtocolString;
   }
 
-  private String getJMXProtocolString(String value, String componentName) {
+  private String getJMXProtocolString(String value) {
     return Boolean.valueOf(value) ? "https" : "http";
   }
   

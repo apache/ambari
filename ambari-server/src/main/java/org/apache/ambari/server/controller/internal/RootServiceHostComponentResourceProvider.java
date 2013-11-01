@@ -26,6 +26,8 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.HostRequest;
+import org.apache.ambari.server.controller.HostResponse;
 import org.apache.ambari.server.controller.RootServiceHostComponentRequest;
 import org.apache.ambari.server.controller.RootServiceHostComponentResponse;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -78,7 +80,7 @@ public class RootServiceHostComponentResourceProvider extends
     Set<RootServiceHostComponentResponse> responses = getResources(new Command<Set<RootServiceHostComponentResponse>>() {
       @Override
       public Set<RootServiceHostComponentResponse> invoke() throws AmbariException {
-        return getManagementController().getRootServiceHostComponents(
+        return getRootServiceHostComponents(
             Collections.singleton(rootServiceComponentRequest));
       }
     });
@@ -123,4 +125,33 @@ public class RootServiceHostComponentResourceProvider extends
     return pkPropertyIds;
   }
 
+  // Get the root service host components for the given set of requests
+  protected Set<RootServiceHostComponentResponse> getRootServiceHostComponents(
+      Set<RootServiceHostComponentRequest> requests) throws AmbariException {
+    Set<RootServiceHostComponentResponse> response = new HashSet<RootServiceHostComponentResponse>();
+    for (RootServiceHostComponentRequest request : requests) {
+      try {
+        response.addAll(getRootServiceHostComponents(request));
+      } catch (AmbariException e) {
+        if (requests.size() == 1) {
+          // only throw exception if 1 request.
+          // there will be > 1 request in case of OR predicate
+          throw e;
+        }
+      }
+    }
+    return response;
+  }
+
+  // Get the root service host components for the given request
+  private Set<RootServiceHostComponentResponse> getRootServiceHostComponents(
+      RootServiceHostComponentRequest request) throws AmbariException{
+
+    AmbariManagementController controller = getManagementController();
+    //Get all hosts of all clusters
+    Set<HostResponse> hosts = HostResourceProvider.getHosts(controller,
+        new HostRequest(request.getHostName(), null, null));
+
+    return controller.getRootServiceResponseFactory().getRootServiceHostComponent(request, hosts);
+  }
 }

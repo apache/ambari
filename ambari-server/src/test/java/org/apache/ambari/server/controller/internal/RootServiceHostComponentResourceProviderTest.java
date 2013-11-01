@@ -19,26 +19,31 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
-import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
+import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.HostResponse;
 import org.apache.ambari.server.controller.RootServiceHostComponentRequest;
 import org.apache.ambari.server.controller.RootServiceHostComponentResponse;
-import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
-import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.easymock.EasyMock;
-import org.junit.Assert;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostHealthStatus;
 import org.junit.Test;
 
 public class RootServiceHostComponentResourceProviderTest {
@@ -48,21 +53,55 @@ public class RootServiceHostComponentResourceProviderTest {
     Resource.Type type = Resource.Type.RootServiceHostComponent;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    Host host1 = createNiceMock(Host.class);
+    HostHealthStatus healthStatus = createNiceMock(HostHealthStatus.class);
 
-    Set<RootServiceHostComponentResponse> allResponse = new HashSet<RootServiceHostComponentResponse>();
-    allResponse.add(new RootServiceHostComponentResponse("host1", "component1", "HEALTHY", "1.1.1", Collections.<String,String>emptyMap()));
-    allResponse.add(new RootServiceHostComponentResponse("host2", "component2", "HEALTHY", "1.1.1", Collections.<String,String>emptyMap()));
-    allResponse.add(new RootServiceHostComponentResponse("host3", "component3", "HEARBEAT_LOST", "1.1.1", Collections.<String,String>emptyMap()));
+    HostResponse hostResponse1 = createNiceMock(HostResponse.class);
 
-    Set<RootServiceHostComponentResponse> nameResponse = new HashSet<RootServiceHostComponentResponse>();
-    nameResponse.add(new RootServiceHostComponentResponse("host4", "component4", "HEALTHY", "1.1.1", Collections.<String,String>emptyMap()));
+    RootServiceHostComponentResponse response = createNiceMock(RootServiceHostComponentResponse.class);
 
+    AbstractRootServiceResponseFactory factory = createNiceMock(AbstractRootServiceResponseFactory.class);
+
+    List<Host> hosts = new LinkedList<Host>();
+    hosts.add(host1);
+
+    Set<Cluster> clusterSet = new HashSet<Cluster>();
+    clusterSet.add(cluster);
+
+    Set<RootServiceHostComponentResponse> responseSet = new HashSet<RootServiceHostComponentResponse>();
+    responseSet.add(response);
 
     // set expectations
-    expect(managementController.getRootServiceHostComponents(EasyMock.<Set<RootServiceHostComponentRequest>>anyObject())).andReturn(allResponse).once();
-    expect(managementController.getRootServiceHostComponents(EasyMock.<Set<RootServiceHostComponentRequest>>anyObject())).andReturn(nameResponse).once();
+    expect(managementController.getRootServiceResponseFactory()).andReturn(factory).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getHosts()).andReturn(hosts).anyTimes();
+
+    expect(factory.getRootServiceHostComponent((RootServiceHostComponentRequest) anyObject(), (Set<HostResponse>) anyObject())).
+        andReturn(responseSet).anyTimes();
+
+    expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
+
+    expect(clusters.getClustersForHost("Host100")).andReturn(clusterSet).anyTimes();
+
+    expect(host1.getHostName()).andReturn("Host100").anyTimes();
+
+    expect(host1.convertToResponse()).andReturn(hostResponse1).anyTimes();
+
+    expect(hostResponse1.getClusterName()).andReturn("Cluster100").anyTimes();
+    expect(hostResponse1.getHostname()).andReturn("Host100").anyTimes();
+    expect(hostResponse1.getHealthStatus()).andReturn(healthStatus).anyTimes();
+
+    expect(healthStatus.getHealthStatus()).andReturn(HostHealthStatus.HealthStatus.HEALTHY).anyTimes();
+    expect(healthStatus.getHealthReport()).andReturn("HEALTHY").anyTimes();
+
     // replay
-    replay(managementController);
+    replay(managementController, clusters, cluster,
+        host1,
+        hostResponse1,
+        healthStatus, factory, response);
+
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -79,36 +118,17 @@ public class RootServiceHostComponentResourceProviderTest {
     propertyIds.add(RootServiceHostComponentResourceProvider.PROPERTIES_PROPERTY_ID);
     propertyIds.add(RootServiceHostComponentResourceProvider.COMPONENT_VERSION_PROPERTY_ID);
     
-    
     // create the request
     Request request = PropertyHelper.getReadRequest(propertyIds);
 
     // get all ... no predicate
-    Set<Resource> resources = provider.getResources(request, null);
-
-    Assert.assertEquals(allResponse.size(), resources.size());
-    for (Resource resource : resources) {
-      String hostName = (String) resource.getPropertyValue(RootServiceHostComponentResourceProvider.HOST_NAME_PROPERTY_ID);
-      String componentName = (String) resource.getPropertyValue(RootServiceHostComponentResourceProvider.COMPONENT_NAME_PROPERTY_ID);
-      String componentState = (String) resource.getPropertyValue(RootServiceHostComponentResourceProvider.COMPONENT_STATE_PROPERTY_ID);
-      String componentVersion = (String) resource.getPropertyValue(RootServiceHostComponentResourceProvider.COMPONENT_VERSION_PROPERTY_ID);
-      Assert.assertTrue(allResponse.contains(new RootServiceHostComponentResponse(hostName, componentName, componentState, componentVersion,
-          Collections.<String, String>emptyMap())));
-    }
-
-    // get service named service4
-    Predicate predicate =
-        new PredicateBuilder().property(RootServiceHostComponentResourceProvider.COMPONENT_NAME_PROPERTY_ID).
-        equals("component4").toPredicate();
-    resources = provider.getResources(request, predicate);
-
-    Assert.assertEquals(1, resources.size());
-    Assert.assertEquals("component4", resources.iterator().next().
-        getPropertyValue(RootServiceHostComponentResourceProvider.COMPONENT_NAME_PROPERTY_ID));
-
+    provider.getResources(request, null);
 
     // verify
-    verify(managementController);
+    verify(managementController, clusters, cluster,
+        host1,
+        hostResponse1,
+        healthStatus, factory, response);
   }
 
 }

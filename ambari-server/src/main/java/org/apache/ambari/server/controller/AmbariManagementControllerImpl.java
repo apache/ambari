@@ -291,103 +291,6 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public synchronized void createHosts(Set<HostRequest> requests)
-      throws AmbariException {
-
-    if (requests.isEmpty()) {
-      LOG.warn("Received an empty requests set");
-      return;
-    }
-
-    Set<String> duplicates = new HashSet<String>();
-    Set<String> unknowns = new HashSet<String>();
-    Set<String> allHosts = new HashSet<String>();
-    for (HostRequest request : requests) {
-      if (request.getHostname() == null
-          || request.getHostname().isEmpty()) {
-        throw new IllegalArgumentException("Invalid arguments, hostname"
-            + " cannot be null");
-      }
-
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a createHost request"
-            + ", hostname=" + request.getHostname()
-            + ", request=" + request);
-      }
-
-      if (allHosts.contains(request.getHostname())) {
-        // throw dup error later
-        duplicates.add(request.getHostname());
-        continue;
-      }
-      allHosts.add(request.getHostname());
-
-      try {
-        // ensure host is registered
-        clusters.getHost(request.getHostname());
-      }
-      catch (HostNotFoundException e) {
-        unknowns.add(request.getHostname());
-        continue;
-      }
-
-      if (request.getClusterName() != null) {
-        try {
-          // validate that cluster_name is valid
-          clusters.getCluster(request.getClusterName());
-        } catch (ClusterNotFoundException e) {
-          throw new ParentObjectNotFoundException("Attempted to add a host to a cluster which doesn't exist: "
-              + " clusterName=" + request.getClusterName());
-        }
-      }
-    }
-
-    if (!duplicates.isEmpty()) {
-      StringBuilder names = new StringBuilder();
-      boolean first = true;
-      for (String hName : duplicates) {
-        if (!first) {
-          names.append(",");
-        }
-        first = false;
-        names.append(hName);
-      }
-      throw new IllegalArgumentException("Invalid request contains"
-          + " duplicate hostnames"
-          + ", hostnames=" + names.toString());
-    }
-
-    if (!unknowns.isEmpty()) {
-      StringBuilder names = new StringBuilder();
-      boolean first = true;
-      for (String hName : unknowns) {
-        if (!first) {
-          names.append(",");
-        }
-        first = false;
-        names.append(hName);
-      }
-
-      throw new IllegalArgumentException("Attempted to add unknown hosts to a cluster.  " +
-          "These hosts have not been registered with the server: " + names.toString());
-    }
-
-    Map<String, Set<String>> hostClustersMap = new HashMap<String, Set<String>>();
-    Map<String, Map<String, String>> hostAttributes = new HashMap<String, Map<String, String>>();
-    for (HostRequest request : requests) {
-      if (request.getHostname() != null) {
-        Set<String> clusters = new HashSet<String>();
-        clusters.add(request.getClusterName());
-        hostClustersMap.put(request.getHostname(), clusters);
-        if (request.getHostAttributes() != null) {
-          hostAttributes.put(request.getHostname(), request.getHostAttributes());
-        }
-      }
-    }
-    clusters.updateHostWithClusterAndAttributes(hostClustersMap, hostAttributes);
-  }
-
-  @Override
   public synchronized void createHostComponents(Set<ServiceComponentHostRequest> requests)
       throws AmbariException {
 
@@ -763,65 +666,6 @@ public class AmbariManagementControllerImpl implements
     if (LOG.isDebugEnabled()) {
       clusters.debugDump(builder);
       LOG.debug("Cluster State for cluster " + builder.toString());
-    }
-    return response;
-  }
-
-  private synchronized Set<HostResponse> getHosts(HostRequest request)
-      throws AmbariException {
-
-    //TODO/FIXME host can only belong to a single cluster so get host directly from Cluster
-    //TODO/FIXME what is the requirement for filtering on host attributes?
-
-    List<Host>        hosts;
-    Set<HostResponse> response = new HashSet<HostResponse>();
-    Cluster           cluster  = null;
-
-    String clusterName = request.getClusterName();
-    String hostName    = request.getHostname();
-
-    if (clusterName != null) {
-      //validate that cluster exists, throws exception if it doesn't.
-      try {
-        cluster = clusters.getCluster(clusterName);
-      } catch (ObjectNotFoundException e) {
-        throw new ParentObjectNotFoundException("Parent Cluster resource doesn't exist", e);
-      }
-    }
-
-    if (hostName == null) {
-      hosts = clusters.getHosts();
-    } else {
-      hosts = new ArrayList<Host>();
-      try {
-        hosts.add(clusters.getHost(request.getHostname()));
-      } catch (HostNotFoundException e) {
-        // add cluster name
-        throw new HostNotFoundException(clusterName, hostName);
-      }
-    }
-
-    for (Host h : hosts) {
-      if (clusterName != null) {
-        if (clusters.getClustersForHost(h.getHostName()).contains(cluster)) {
-          HostResponse r = h.convertToResponse();
-          r.setClusterName(clusterName);
-          r.setDesiredConfigs(h.getDesiredConfigs(cluster.getClusterId()));
-
-          response.add(r);
-        } else if (hostName != null) {
-          throw new HostNotFoundException(clusterName, hostName);
-        }
-      } else {
-        HostResponse r = h.convertToResponse();
-
-        Set<Cluster> clustersForHost = clusters.getClustersForHost(h.getHostName());
-        //todo: host can only belong to a single cluster
-        if (clustersForHost != null && clustersForHost.size() != 0) {
-          r.setClusterName(clustersForHost.iterator().next().getClusterName());
-        }
-        response.add(r);
-      }
     }
     return response;
   }
@@ -1645,92 +1489,6 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public synchronized void updateHosts(Set<HostRequest> requests)
-      throws AmbariException {
-
-    if (requests.isEmpty()) {
-      LOG.warn("Received an empty requests set");
-      return;
-    }
-
-    for (HostRequest request : requests) {
-      if (request.getHostname() == null
-          || request.getHostname().isEmpty()) {
-        throw new IllegalArgumentException("Invalid arguments, hostname should"
-            + " be provided");
-      }
-
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Received a updateHost request"
-            + ", hostname=" + request.getHostname()
-            + ", request=" + request);
-      }
-
-      Host h = clusters.getHost(request.getHostname());
-
-      try {
-        //todo: the below method throws an exception when trying to create a duplicate mapping.
-        //todo: this is done to detect duplicates during host create.  Unless it is allowable to
-        //todo: add a host to a cluster by modifying the cluster_name prop, we should not do this mapping here.
-        //todo: Determine if it is allowable to associate a host to a cluster via this mechanism.
-        clusters.mapHostToCluster(request.getHostname(), request.getClusterName());
-      } catch (DuplicateResourceException e) {
-        // do nothing
-      }
-
-      if (null != request.getHostAttributes())
-        h.setHostAttributes(request.getHostAttributes());
-
-      if (null != request.getRackInfo()) {
-        h.setRackInfo(request.getRackInfo());
-      }
-
-      if (null != request.getPublicHostName()) {
-        h.setPublicHostName(request.getPublicHostName());
-      }
-
-      if (null != request.getClusterName() && null != request.getDesiredConfig()) {
-        Cluster c = clusters.getCluster(request.getClusterName());
-
-        if (clusters.getHostsForCluster(request.getClusterName()).containsKey(h.getHostName())) {
-
-          ConfigurationRequest cr = request.getDesiredConfig();
-
-          if (null != cr.getProperties() && cr.getProperties().size() > 0) {
-            LOG.info(MessageFormat.format("Applying configuration with tag ''{0}'' to host ''{1}'' in cluster ''{2}''",
-                cr.getVersionTag(),
-                request.getHostname(),
-                request.getClusterName()));
-
-            cr.setClusterName(c.getClusterName());
-            createConfiguration(cr);
-          }
-
-          Config baseConfig = c.getConfig(cr.getType(), cr.getVersionTag());
-          if (null != baseConfig) {
-            String authName = getAuthName();
-            DesiredConfig oldConfig = h.getDesiredConfigs(c.getClusterId()).get(cr.getType());
-            
-            if (h.addDesiredConfig(c.getClusterId(), cr.isSelected(), authName,  baseConfig)) {
-              Logger logger = LoggerFactory.getLogger("configchange");
-              logger.info("cluster '" + c.getClusterName() + "', "
-                  + "host '" + h.getHostName() + "' "
-                  + "changed by: '" + authName + "'; "
-                  + "type='" + baseConfig.getType() + "' "
-                  + "tag='" + baseConfig.getVersionTag() + "'"
-                  + (null == oldConfig ? "" : ", from='" + oldConfig.getVersion() + "'"));
-            }
-          }
-          
-        }
-      }
-
-      //todo: if attempt was made to update a property other than those
-      //todo: that are allowed above, should throw exception
-    }
-  }
-
-  @Override
   public synchronized RequestStatusResponse updateHostComponents(Set<ServiceComponentHostRequest> requests,
                                                                  Map<String, String> requestProperties, boolean runSmokeTest)
                                                                  throws AmbariException {
@@ -2207,72 +1965,6 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public void deleteHosts(Set<HostRequest> requests)
-      throws AmbariException {
-
-    List<HostRequest> okToRemove = new ArrayList<HostRequest>();
-    
-    for (HostRequest hostRequest : requests) {
-      String hostName = hostRequest.getHostname();
-      if (null == hostName)
-        continue;
-      
-      if (null != hostRequest.getClusterName()) {
-        Cluster cluster = clusters.getCluster(hostRequest.getClusterName());
-        
-        List<ServiceComponentHost> list = cluster.getServiceComponentHosts(hostName);
-
-        if (0 != list.size()) {
-          StringBuilder reason = new StringBuilder("Cannot remove host ")
-              .append(hostName)
-              .append(" from ")
-              .append(hostRequest.getClusterName())
-              .append(".  The following roles exist: ");
-          
-          int i = 0;
-          for (ServiceComponentHost sch : list) {
-            if ((i++) > 0)
-              reason.append(", ");
-            reason.append(sch.getServiceComponentName());
-          }
-          
-          throw new AmbariException(reason.toString());
-        }
-        okToRemove.add(hostRequest);
-        
-      } else {
-        // check if host exists (throws exception if not found)
-        clusters.getHost(hostName);
-        
-        // delete host outright
-        Set<Cluster> clusterSet = clusters.getClustersForHost(hostName);
-        if (0 != clusterSet.size()) {
-          StringBuilder reason = new StringBuilder("Cannot remove host ")
-            .append(hostName)
-            .append(".  It belongs to clusters: ");
-          int i = 0;
-          for (Cluster c : clusterSet) {
-            if ((i++) > 0)
-              reason.append(", ");
-            reason.append(c.getClusterName());
-          }
-          throw new AmbariException(reason.toString());
-        }
-        okToRemove.add(hostRequest);
-      }
-    }
-    
-    for (HostRequest hostRequest : okToRemove) {
-      if (null != hostRequest.getClusterName()) {
-        clusters.unmapHostFromCluster(hostRequest.getHostname(),
-            hostRequest.getClusterName());
-      } else {
-        clusters.deleteHost(hostRequest.getHostname());
-      }
-    }
-  }
-  
-  @Override
   public RequestStatusResponse deleteHostComponents(
       Set<ServiceComponentHostRequest> requests) throws AmbariException {
 
@@ -2453,24 +2145,6 @@ public class AmbariManagementControllerImpl implements
       try {
         response.addAll(getClusters(request));
       } catch (ClusterNotFoundException e) {
-        if (requests.size() == 1) {
-          // only throw exception if 1 request.
-          // there will be > 1 request in case of OR predicate
-          throw e;
-        }
-      }
-    }
-    return response;
-  }
-
-  @Override
-  public Set<HostResponse> getHosts(Set<HostRequest> requests)
-      throws AmbariException {
-    Set<HostResponse> response = new HashSet<HostResponse>();
-    for (HostRequest request : requests) {
-      try {
-        response.addAll(getHosts(request));
-      } catch (HostNotFoundException e) {
         if (requests.size() == 1) {
           // only throw exception if 1 request.
           // there will be > 1 request in case of OR predicate
@@ -3195,9 +2869,7 @@ public class AmbariManagementControllerImpl implements
     return response;
   }
   
-  /**
-   * @return the authenticated user's name
-   */
+  @Override
   public String getAuthName() {
     return AuthorizationHelper.getAuthenticatedName(configs.getAnonymousAuditName());
   }
@@ -3249,32 +2921,6 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public Set<RootServiceHostComponentResponse> getRootServiceHostComponents(
-      Set<RootServiceHostComponentRequest> requests) throws AmbariException {
-    Set<RootServiceHostComponentResponse> response = new HashSet<RootServiceHostComponentResponse>();
-    for (RootServiceHostComponentRequest request : requests) {
-      try {
-        response.addAll(getRootServiceHostComponents(request));
-      } catch (AmbariException e) {
-        if (requests.size() == 1) {
-          // only throw exception if 1 request.
-          // there will be > 1 request in case of OR predicate
-          throw e;
-        }
-      }
-    }
-    return response;
-  }
-
-  private Set<RootServiceHostComponentResponse> getRootServiceHostComponents(RootServiceHostComponentRequest request) throws AmbariException{
-
-    //Get all hosts of all clusters
-    Set<HostResponse> hosts = getHosts(new HostRequest(request.getHostName(), null, null));
-
-    return this.rootServiceResponseFactory.getRootServiceHostComponent(request, hosts);
-  }
-
-  @Override
   public Clusters getClusters() {
     return clusters;
   }
@@ -3300,8 +2946,9 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public ConfigFactory getConfigFactory() {
-    return configFactory;
+  public AbstractRootServiceResponseFactory getRootServiceResponseFactory() {
+    return rootServiceResponseFactory;
+
   }
 
   @Override
