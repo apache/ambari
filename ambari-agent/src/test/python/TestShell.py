@@ -31,16 +31,6 @@ import subprocess, time
 
 class TestShell(unittest.TestCase):
 
-  @patch("os.killpg")
-  @patch("time.sleep")
-  def test_kill_stale_process(self, timeSleepMock, os_killPgMock):
-    temp_path = AmbariConfig().getConfig().get("stack", "installprefix") + '/9999.pid'
-    file = open(temp_path, 'w')
-    file.close()
-
-    shell.killstaleprocesses()
-    self.assertFalse(os.path.exists(temp_path))
-
 
   @patch("os.setuid")
   def test_changeUid(self, os_setUIDMock):

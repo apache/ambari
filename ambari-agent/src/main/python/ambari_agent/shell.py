@@ -48,17 +48,6 @@ def noteTempFile(filename):
 def getTempFiles():
   return tempFiles
 
-def killstaleprocesses():
-  logger.info ("Killing stale processes")
-  prefix = AmbariConfig.config.get('stack','installprefix')
-  files = os.listdir(prefix)
-  for file in files:
-    if str(file).endswith(".pid"):
-      pid = str(file).split('.')[0]
-      kill_process_with_children(int(pid))
-      os.unlink(os.path.join(prefix,file))
-  logger.info ("Killed stale processes")
-
 def kill_process_with_children(parent_pid):
   def kill_tree_function(pid, signal):
     '''

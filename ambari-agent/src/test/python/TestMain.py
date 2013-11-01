@@ -230,7 +230,6 @@ class TestMain(unittest.TestCase):
   @patch.object(main, "resolve_ambari_config")
   @patch.object(main, "perform_prestart_checks")
   @patch.object(main, "daemonize")
-  @patch.object(main, "killstaleprocesses")
   @patch.object(main, "update_log_level")
   @patch.object(NetUtil.NetUtil, "try_to_connect")
   @patch.object(Controller, "__init__")
@@ -243,7 +242,7 @@ class TestMain(unittest.TestCase):
   @patch.object(PingPortListener,"__init__")
   def test_main(self, ping_port_init_mock, ping_port_start_mock, data_clean_init_mock,data_clean_start_mock,
                 parse_args_mock, join_mock, start_mock, Controller_init_mock, try_to_connect_mock,
-                update_log_level_mock, killstaleprocesses_mock, daemonize_mock, perform_prestart_checks_mock,
+                update_log_level_mock, daemonize_mock, perform_prestart_checks_mock,
                 resolve_ambari_config_mock, stop_mock, bind_signal_handlers_mock, setup_logging_mock):
     data_clean_init_mock.return_value = None
     Controller_init_mock.return_value = None
@@ -260,7 +259,6 @@ class TestMain(unittest.TestCase):
     self.assertTrue(resolve_ambari_config_mock.called)
     self.assertTrue(perform_prestart_checks_mock.called)
     self.assertTrue(daemonize_mock.called)
-    self.assertTrue(killstaleprocesses_mock.called)
     self.assertTrue(update_log_level_mock.called)
     try_to_connect_mock.assert_called_once_with(ANY, -1, ANY)
     self.assertTrue(start_mock.called)

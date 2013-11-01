@@ -19,6 +19,7 @@ limitations under the License.
 '''
 
 import subprocess, os
+import tempfile
 from unittest import TestCase
 from ambari_agent.Hardware import Hardware
 from mock.mock import MagicMock, patch, ANY
@@ -56,13 +57,14 @@ class TestHardware(TestCase):
   @patch("os.path.exists")
   def test_facterInfo(self, os_path_exists_mock, hardware_facterLib_mock, subprocess_popen_mock):
     config = AmbariConfig().getConfig()
-    config.set("puppet", "facter_home", AmbariConfig().getConfig().get("stack", "installprefix"))
+    tmp_dir = tempfile.gettempdir()
+    config.set("puppet", "facter_home", tmp_dir)
     hardware = Hardware(config)
     facter = MagicMock()
     facter.communicate.return_value = ["memoryfree => 1 GB\n memorysize => 25 MB\n memorytotal => 300 KB\n "
                                         + "physicalprocessorcount => 25\n is_virtual => true\n", "no errors"]
     facter.returncode = 0
-    os.environ['RUBYLIB'] = AmbariConfig().getConfig().get("stack", "installprefix");
+    os.environ['RUBYLIB'] = tmp_dir;
     subprocess_popen_mock.return_value = facter
     os_path_exists_mock.return_value = True
     hardware_facterLib_mock.return_value = "bla bla bla"
@@ -74,7 +76,7 @@ class TestHardware(TestCase):
     self.assertEquals(facterInfo['physicalprocessorcount'], 25)
     self.assertTrue(facterInfo['is_virtual'])
     self.assertEquals(subprocess_popen_mock.call_args[1]['env']['RUBYLIB'],
-                                      AmbariConfig().getConfig().get("stack", "installprefix") + ":" + "bla bla bla")
+                      tmp_dir + ":" + "bla bla bla")
 
     facter.communicate.return_value = ["memoryfree => 1 G\n memorysize => 25 M\n memorytotal => 300 K\n "
                                          + "someinfo => 12 Byte\n ssh_name_key => Aa06Fdd\n", "no errors"]
@@ -117,13 +119,14 @@ class TestHardware(TestCase):
   @patch.object(Hardware, "facterInfo")
   def test_configureEnviron(self, hrdware_facterinfo_mock, subproc_popen, os_path_exists_mock):
     config = AmbariConfig().getConfig()
-    config.set("puppet", "ruby_home", AmbariConfig().getConfig().get("stack", "installprefix"))
+    tmpdir = tempfile.gettempdir()
+    config.set("puppet", "ruby_home", tmpdir)
     hardware = Hardware(config)
     os_path_exists_mock.return_value = True
     result = hardware.configureEnviron({'PATH': ""})
 
-    self.assertEquals(result['PATH'], AmbariConfig().getConfig().get("stack", "installprefix") + "/bin:")
-    self.assertEquals(result['MY_RUBY_HOME'], AmbariConfig().getConfig().get("stack", "installprefix"))
+    self.assertEquals(result['PATH'], tmpdir + "/bin:")
+    self.assertEquals(result['MY_RUBY_HOME'], tmpdir)
     config.remove_option("puppet", "ruby_home")
 
 

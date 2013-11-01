@@ -29,7 +29,6 @@ import time
 import ConfigParser
 import ProcessHelper
 from Controller import Controller
-from shell import killstaleprocesses
 import AmbariConfig
 from security import CertificateManager
 from NetUtil import NetUtil
@@ -207,8 +206,6 @@ def main():
 
   perform_prestart_checks(expected_hostname)
   daemonize()
-
-  killstaleprocesses()
 
   # Starting ping port listener
   ping_port_listener = PingPortListener(config)

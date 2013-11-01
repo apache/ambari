@@ -254,17 +254,6 @@
               </sources>
             </mapping>
             <mapping>
-              <directory>/var/lib/${project.artifactId}/upgrade_stack</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
-                <source>
-                  <location>src/main/upgrade_stack</location>
-                </source>
-              </sources>
-            </mapping>
-            <mapping>
               <directory>/etc/ambari-agent/conf</directory>
               <filemode>755</filemode>
               <username>root</username>
@@ -318,12 +307,6 @@
             </mapping>
             <mapping>
               <directory>${package.log.dir}</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-            </mapping>
-            <mapping>
-              <directory>/var/ambari-agent</directory>
               <filemode>755</filemode>
               <username>root</username>
               <groupname>root</groupname>

@@ -145,10 +145,6 @@ def run_simulation():
   config = AmbariConfig().getConfig()
   config.set('agent', 'prefix', tmpfile)
 
-  scriptsDir = os.path.join(os.getcwd(), os.pardir,os.pardir,
-    os.pardir, 'main', 'upgrade_stack')
-  config.set('stack', 'upgradeScriptsDir', scriptsDir)
-
   ver_file = os.path.join(tmpfile, "version")
 
   with open(ver_file, "w") as text_file:

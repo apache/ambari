@@ -38,10 +38,6 @@ cache_dir=/var/lib/ambari-agent/cache
 
 [services]
 
-[stack]
-installprefix=/tmp
-upgradeScriptsDir=/var/lib/ambari-agent/upgrade_stack
-
 [puppet]
 puppetmodules=/var/lib/ambari-agent/puppet/
 puppet_home=/root/workspace/puppet-install/puppet-2.7.9

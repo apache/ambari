@@ -60,7 +60,7 @@ class TestPuppetExecutor(TestCase):
   @patch.object(PuppetExecutor, 'isJavaAvailable')
   @patch.object(PuppetExecutor, 'runPuppetFile')
   def test_run_command(self, runPuppetFileMock, isJavaAvailableMock):
-    tmpdir = AmbariConfig().getConfig().get("stack", "installprefix")
+    tmpdir = tempfile.gettempdir()
     puppetInstance = PuppetExecutor("/tmp", "/x", "/y", tmpdir, AmbariConfig().getConfig())
     jsonFile = open('../../main/python/ambari_agent/test.json', 'r')
     jsonStr = jsonFile.read()
@@ -109,7 +109,7 @@ class TestPuppetExecutor(TestCase):
   @patch.object(RepoInstaller, 'generate_repo_manifests')
   @patch.object(PuppetExecutor, 'runPuppetFile')
   def test_overwrite_repos(self, runPuppetFileMock, generateRepoManifestMock, isJavaAvailableMock):
-    tmpdir = AmbariConfig().getConfig().get("stack", "installprefix")
+    tmpdir = tempfile.gettempdir()
     puppetInstance = PuppetExecutor("/tmp", "/x", "/y", tmpdir, AmbariConfig().getConfig())
     jsonFile = open('../../main/python/ambari_agent/test.json', 'r')
     jsonStr = jsonFile.read()
@@ -146,7 +146,7 @@ class TestPuppetExecutor(TestCase):
   @patch("os.path.exists")
   def test_configure_environ(self, osPathExistsMock):
     config = AmbariConfig().getConfig()
-    tmpdir = config.get("stack", "installprefix")
+    tmpdir = tempfile.gettempdir()
     puppetInstance = PuppetExecutor("/tmp", "/x", "/y", tmpdir, config)
     environ = puppetInstance.configureEnviron({})
     self.assertEquals(environ, {})
