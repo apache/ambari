@@ -4,10 +4,8 @@ __all__ = ["Resource", "ResourceArgument", "ForcedListArgument",
            "BooleanArgument"]
 
 import logging
-from string import Template
-from resource_management.environment import Environment
 from resource_management.exceptions import Fail, InvalidArgument
-
+from resource_management.environment import Environment, Substitutor
 
 class ResourceArgument(object):
   def __init__(self, default=None, required=False, allow_override=False):
@@ -71,8 +69,8 @@ class ResourceMetaclass(type):
         value.name = key
         mcs._arguments[key] = value
         setattr(mcs, key, Accessor(key))
-
-
+  
+  
 class Resource(object):
   __metaclass__ = ResourceMetaclass
 
@@ -96,8 +94,8 @@ class Resource(object):
         
       name = name[0]
     
-    name = Resource.subsitute_params(name)
     env = env or Environment.get_instance()
+    name = Substitutor.substitute(name)
     provider = provider or getattr(cls, 'provider', None)
     
     r_type = cls.__name__
@@ -124,8 +122,9 @@ class Resource(object):
     if hasattr(self, 'name'):
       return
 
-    self.name = Resource.subsitute_params(name)
     self.env = env or Environment.get_instance()
+    self.name = Substitutor.substitute(name)
+     
     self.provider = provider or getattr(self, 'provider', None)
 
     self.arguments = {}
@@ -136,7 +135,7 @@ class Resource(object):
         raise Fail("%s received unsupported argument %s" % (self, key))
       else:
         try:
-          self.arguments[key] = Resource.subsitute_params(arg.validate(value))
+          self.arguments[key] = Substitutor.substitute(arg.validate(value))
         except InvalidArgument, exc:
           raise InvalidArgument("%s %s" % (self, exc))
 
@@ -156,25 +155,6 @@ class Resource(object):
       self.subscribe(*sub)
 
     self.validate()
-    
-  @staticmethod
-  def subsitute_params(val):
-    env = Environment.get_instance()
-    
-    if env.config.params and isinstance(val, str):
-      try:
-        # use 'safe_substitute' to ignore failures
-        result = Template(val).substitute(env.config.params)
-        if '$' in val:
-          Resource.log.debug("%s after substitution is %s", val, result)
-        return result
-      except KeyError as ex:
-        key_name = '$'+str(ex).strip("'")
-        raise Fail("Configuration %s not found" % key_name)
-        
-    return val
-      
-  
 
   def validate(self):
     pass
