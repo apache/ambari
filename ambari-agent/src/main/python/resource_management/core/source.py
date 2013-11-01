@@ -1,7 +1,7 @@
 from __future__ import with_statement
 from resource_management.core import environment
 
-__all__ = ["Source", "Template", "StaticFile", "DownloadSource"]
+__all__ = ["Source", "Template", "InlineTemplate", "StaticFile", "DownloadSource"]
 
 import hashlib
 import os
@@ -39,11 +39,15 @@ class StaticFile(Source):
 
 
 try:
-  from jinja2 import Environment, BaseLoader, TemplateNotFound
+  from jinja2 import Environment, BaseLoader, TemplateNotFound, FunctionLoader
 except ImportError:
   class Template(Source):
     def __init__(self, name, variables=None, env=None):
-      raise Exception("Jinja2 required for Template")
+      raise Exception("Jinja2 required for Template/InlineTemplate")
+    
+  class InlineTemplate(Source):
+    def __init__(self, name, variables=None, env=None):
+      raise Exception("Jinja2 required for Template/InlineTemplate")
 else:
   class TemplateLoader(BaseLoader):
     def __init__(self, env=None):
@@ -72,9 +76,10 @@ else:
       params = self.env.config.params
       variables = params if params else variables
       self.context = variables.copy() if variables else {}
-      self.template_env = Environment(loader=TemplateLoader(self.env),
-                                      autoescape=False)
-      self.template = self.template_env.get_template(self.name)
+      if not hasattr(self, 'template_env'):
+        self.template_env = Environment(loader=TemplateLoader(self.env),
+                                        autoescape=False)
+      self.template = self.template_env.get_template(self.name)     
 
     def get_content(self):
       self.context.update(
@@ -85,6 +90,11 @@ else:
       )
       rendered = self.template.render(self.context)
       return rendered + "\n" if not rendered.endswith('\n') else rendered
+    
+  class InlineTemplate(Template):
+    def __init__(self, name, variables=None, env=None):
+      self.template_env = Environment(loader=FunctionLoader(lambda text: text))
+      super(InlineTemplate, self).__init__(name, variables, env) 
 
 
 class DownloadSource(Source):
