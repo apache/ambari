@@ -4,6 +4,7 @@ __all__ = ["Resource", "ResourceArgument", "ForcedListArgument",
            "BooleanArgument"]
 
 import logging
+from string import Template
 from resource_management.environment import Environment
 from resource_management.exceptions import Fail, InvalidArgument
 
@@ -75,6 +76,7 @@ class ResourceMetaclass(type):
 class Resource(object):
   __metaclass__ = ResourceMetaclass
 
+  log = logging.getLogger("resource_management.resource")
   is_updated = False
 
   action = ForcedListArgument(default="nothing")
@@ -93,7 +95,8 @@ class Resource(object):
         cls(name.pop(0), env, provider, **kwargs)
         
       name = name[0]
-
+    
+    name = Resource.subsitute_params(name)
     env = env or Environment.get_instance()
     provider = provider or getattr(cls, 'provider', None)
     
@@ -121,10 +124,9 @@ class Resource(object):
     if hasattr(self, 'name'):
       return
 
-    self.name = name
+    self.name = Resource.subsitute_params(name)
     self.env = env or Environment.get_instance()
     self.provider = provider or getattr(self, 'provider', None)
-    self.log = logging.getLogger("resource_management.resource")
 
     self.arguments = {}
     for key, value in kwargs.items():
@@ -134,11 +136,11 @@ class Resource(object):
         raise Fail("%s received unsupported argument %s" % (self, key))
       else:
         try:
-          self.arguments[key] = arg.validate(value)
+          self.arguments[key] = Resource.subsitute_params(arg.validate(value))
         except InvalidArgument, exc:
           raise InvalidArgument("%s %s" % (self, exc))
 
-    self.log.debug("New resource %s: %s" % (self, self.arguments))
+    Resource.log.debug("New resource %s: %s" % (self, self.arguments))
     self.subscriptions = {'immediate': set(), 'delayed': set()}
 
     for sub in self.subscribes:
@@ -154,6 +156,25 @@ class Resource(object):
       self.subscribe(*sub)
 
     self.validate()
+    
+  @staticmethod
+  def subsitute_params(val):
+    env = Environment.get_instance()
+    
+    if env.config.params and isinstance(val, str):
+      try:
+        # use 'safe_substitute' to ignore failures
+        result = Template(val).substitute(env.config.params)
+        if '$' in val:
+          Resource.log.debug("%s after substitution is %s", val, result)
+        return result
+      except KeyError as ex:
+        key_name = '$'+str(ex).strip("'")
+        raise Fail("Configuration %s not found" % key_name)
+        
+    return val
+      
+  
 
   def validate(self):
     pass
@@ -210,6 +231,6 @@ class Resource(object):
     self.notifies = state['notifies']
     self.env = state['env']
 
-    self.log = logging.getLogger("resource_management.resource")
+    Resource.log = logging.getLogger("resource_management.resource")
 
     self.validate()
