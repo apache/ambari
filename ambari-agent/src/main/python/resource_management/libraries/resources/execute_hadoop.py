@@ -17,7 +17,5 @@ class ExecuteHadoop(Resource):
   principal = ResourceArgument()
   kinit_path_local = ResourceArgument()
   
-
-  
   actions = Resource.actions + ["run"]
   
