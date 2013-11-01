@@ -1,19 +1,20 @@
 #!/usr/bin/env python
 
-__all__ = ["Environment"]
+__all__ = ["Environment","format"]
 
 import logging
+import sys
 import os
 import shutil
 import time
 from datetime import datetime
+from string import Formatter
 
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from resource_management.core.providers import find_provider
-from resource_management.core.utils import AttributeDictionary, ParamsAttributeDictionary
+from resource_management.core.utils import AttributeDictionary, checked_unite
 from resource_management.core.system import System
-from string import Template
 
 
 class Environment(object):
@@ -26,6 +27,7 @@ class Environment(object):
     @param params: configurations dictionary (this will be accessible in the templates)
     """
     self.log = logging.getLogger("resource_management")
+    self.formatter = ConfigurationFormatter()
     self.reset(basedir, params)
 
   def reset(self, basedir, params):
@@ -44,7 +46,7 @@ class Environment(object):
       # dir where templates,failes dirs are 
       'basedir': basedir, 
       # variables, which can be used in templates
-      'params': ParamsAttributeDictionary(Substitutor, params.copy()), 
+      'params': params.copy(),
     })
 
   def backup_file(self, path):
@@ -169,18 +171,20 @@ class Environment(object):
     self.resource_list = state['resource_list']
     self.delayed_actions = state['delayed_actions']
     
-
-class Substitutor():
-  log = logging.getLogger("resource_management.resource")
-  @staticmethod
-  def substitute(val):
+class ConfigurationFormatter(Formatter):
+  def format(self, format_string, *args, **kwargs):
     env = Environment.get_instance()
-    dic = env.config.params
+    variables = kwargs
+    params = env.config.params
     
-    if dic and isinstance(val, str):
-      result = Template(val).substitute(dic)
-      if '$' in val:
-        Substitutor.log.debug("%s after substitution is %s", val, result)
-      return result
-        
-    return val
+    result = checked_unite(variables, params)
+    return self.vformat(format_string, args, result)
+  
+def format(format_string, *args, **kwargs):
+  env = Environment.get_instance()
+  variables = sys._getframe(1).f_locals
+  
+  result = checked_unite(kwargs, variables)
+  result.pop("self", None) # self kwarg would result in an error
+  return env.formatter.format(format_string, args, **result)
+  

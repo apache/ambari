@@ -1,5 +1,6 @@
 from __future__ import with_statement
-from resource_management.core.environment import Substitutor, Environment
+from resource_management.core.environment import Environment
+from resource_management.core.utils import checked_unite
 
 __all__ = ["Source", "Template", "InlineTemplate", "StaticFile", "DownloadSource"]
 
@@ -10,9 +11,9 @@ import urlparse
 
 
 class Source(object):
-  def __init__(self, name, env=None):
-    self.name = Substitutor.substitute(name)
-    self.env = env or Environment.get_instance()
+  def __init__(self, name):
+    self.env = Environment.get_instance()
+    self.name = name
     
   def get_content(self):
     raise NotImplementedError()
@@ -25,8 +26,8 @@ class Source(object):
 
 
 class StaticFile(Source):
-  def __init__(self, name, env=None):
-    super(StaticFile, self).__init__(name, env)
+  def __init__(self, name):
+    super(StaticFile, self).__init__(name)
 
   def get_content(self):
     # absolute path
@@ -42,7 +43,7 @@ class StaticFile(Source):
 
 
 try:
-  from jinja2 import Environment as JinjaEnvironment, BaseLoader, TemplateNotFound, FunctionLoader
+  from jinja2 import Environment as JinjaEnvironment, BaseLoader, TemplateNotFound, FunctionLoader, StrictUndefined
 except ImportError:
   class Template(Source):
     def __init__(self, name, variables=None, env=None):
@@ -73,14 +74,17 @@ else:
       return source, path, lambda: mtime == os.path.getmtime(path)
 
   class Template(Source):
-    def __init__(self, name, variables=None, env=None):
-      super(Template, self).__init__(name, env)
+    def __init__(self, name, **kwargs):
+      """
+      @param kwargs: Additional variables passed to template
+      """
+      super(Template, self).__init__(name)
       params = self.env.config.params
-      variables = params if params else variables
+      variables = checked_unite(params, kwargs)
       self.context = variables.copy() if variables else {}
       if not hasattr(self, 'template_env'):
         self.template_env = JinjaEnvironment(loader=TemplateLoader(self.env),
-                                        autoescape=False)
+                                        autoescape=False, undefined=StrictUndefined)
       self.template = self.template_env.get_template(self.name)     
 
     def get_content(self):
@@ -94,13 +98,13 @@ else:
       return rendered + "\n" if not rendered.endswith('\n') else rendered
     
   class InlineTemplate(Template):
-    def __init__(self, name, variables=None, env=None):
+    def __init__(self, name, **kwargs):
       self.template_env = JinjaEnvironment(loader=FunctionLoader(lambda text: text))
-      super(InlineTemplate, self).__init__(name, variables, env) 
+      super(InlineTemplate, self).__init__(name, **kwargs) 
 
 
 class DownloadSource(Source):
-  def __init__(self, name, cache=True, md5sum=None, env=None):
+  def __init__(self, name, cache=True, md5sum=None):
     super(DownloadSource, self).__init__(name)
     self.url = self.name
     self.md5sum = md5sum

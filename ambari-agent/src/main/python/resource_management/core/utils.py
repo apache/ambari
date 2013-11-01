@@ -54,7 +54,10 @@ class AttributeDictionary(object):
     return self._dict.__repr__()
 
   def __unicode__(self):
-    return self._dict.__unicode__()
+    if isinstance(self._dict, str):
+      return self._dict.__unicode__()
+    else:
+      return str(self._dict)
 
   def __str__(self):
     return self._dict.__str__()
@@ -68,27 +71,12 @@ class AttributeDictionary(object):
   def __setstate__(self, state):
     super(AttributeDictionary, self).__setattr__("_dict", state)
     
-class ParamsAttributeDictionary(AttributeDictionary):
-  """
-  This class can store user parameters
-  and it supports some features necessary for substitution to work.
-  """
-  def __init__(self, substitutor, *args, **kwargs):
-    super(ParamsAttributeDictionary, self).__init__(*args, **kwargs)
-    super(AttributeDictionary, self).__setattr__("substitutor", substitutor)
-
-  def __getitem__(self, name):
-    try:
-      return self._convert_value(self._dict[name])
-    except KeyError as ex:
-      raise Fail("Configuration $%s not found!" % str(ex).strip("'"))
+def checked_unite(dict1, dict2):
+  for key in dict1:
+    if key in dict2:
+      raise Fail("Variable '%s' already exists more than once as a variable/configuration/kwarg parameter. Cannot evaluate it." % key)
   
-  def copy(self):
-    # don't allow real copying to be able to change params passed to jinja2
-    return self
-
-  def __unicode__(self):
-    if isinstance(self._dict, str):
-      return self._dict.__unicode__()
-    else:
-      return str(self._dict)
+  result = dict1.copy()
+  result.update(dict2)
+  
+  return result

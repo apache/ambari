@@ -5,7 +5,7 @@ __all__ = ["Resource", "ResourceArgument", "ForcedListArgument",
 
 import logging
 from resource_management.core.exceptions import Fail, InvalidArgument
-from resource_management.core.environment import Environment, Substitutor
+from resource_management.core.environment import Environment
 
 class ResourceArgument(object):
   def __init__(self, default=None, required=False, allow_override=False):
@@ -95,7 +95,6 @@ class Resource(object):
       name = name[0]
     
     env = env or Environment.get_instance()
-    name = Substitutor.substitute(name)
     provider = provider or getattr(cls, 'provider', None)
     
     r_type = cls.__name__
@@ -123,7 +122,7 @@ class Resource(object):
       return
 
     self.env = env or Environment.get_instance()
-    self.name = Substitutor.substitute(name)
+    self.name = name
      
     self.provider = provider or getattr(self, 'provider', None)
 
@@ -135,7 +134,7 @@ class Resource(object):
         raise Fail("%s received unsupported argument %s" % (self, key))
       else:
         try:
-          self.arguments[key] = Substitutor.substitute(arg.validate(value))
+          self.arguments[key] = arg.validate(value)
         except InvalidArgument, exc:
           raise InvalidArgument("%s %s" % (self, exc))
 
