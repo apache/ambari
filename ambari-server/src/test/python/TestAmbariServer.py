@@ -4436,7 +4436,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_validated_string_input_mock.side_effect = ['adm@EXAMPLE.COM', temp_file]
 
     # setup_ambari_krb5_jaas() should return None if everything is OK
-    self.assertIsNone(ambari_server.setup_ambari_krb5_jaas())
+    self.assertEqual(None, ambari_server.setup_ambari_krb5_jaas())
     self.assertTrue(get_validated_string_input_mock.called)
     self.assertEqual(get_validated_string_input_mock.call_count, 2)
 
