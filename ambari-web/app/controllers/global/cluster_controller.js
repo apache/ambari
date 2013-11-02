@@ -270,6 +270,11 @@ App.ClusterController = Em.Controller.extend({
     var testUrl = App.get('isHadoop2Stack') ? '/data/dashboard/HDP2/services.json':'/data/dashboard/services.json';
     //desired_state property is eliminated since calculateState function is commented out, it become useless
     var servicesUrl = this.getUrl(testUrl, '/services?fields=ServiceInfo,components/host_components/HostRoles/state');
+    if (App.Service.find('HBASE')) {
+      // HBase installed. We need the haStatus field as it has
+      // moved to another field.
+      servicesUrl += ',components/host_components/metrics/hbase/master/IsActiveMaster';
+    }
 
     App.HttpClient.get(servicesUrl, App.statusMapper, {
       complete: callback

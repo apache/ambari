@@ -24,12 +24,6 @@ App.statusMapper = App.QuickDataMapper.create({
     work_status:'ServiceInfo.state'
   },
 
-  config3:{
-    id:'id',
-    work_status:'HostRoles.state',
-    desired_status: 'HostRoles.desired_state'
-  },
-
   map:function (json) {
     var start = new Date().getTime();
     console.log('in status mapper');
@@ -48,6 +42,9 @@ App.statusMapper = App.QuickDataMapper.create({
         var item = result[hostComponent.get('id')];
         if (item) {
           hostComponent.set('workStatus', item.work_status);
+          if (item.ha_status) {
+            hostComponent.set('haStatus', item.ha_status);
+          }
           this.countHostComponents(hostComponent, hostsMap, hostsMap[hostComponent.get('host.id')]);
           this.countServiceComponents(hostComponent, servicesMap, servicesMap[hostComponent.get('service.id')]);
         }
@@ -326,6 +323,12 @@ App.statusMapper = App.QuickDataMapper.create({
           result[host_component.id] = {
             work_status: host_component.HostRoles.state
           };
+          if (host_component.metrics &&
+              host_component.metrics.hbase &&
+              host_component.metrics.hbase.master &&
+              host_component.metrics.hbase.master.IsActiveMaster) {
+            result[host_component.id]['ha_status'] = host_component.metrics.hbase.master.IsActiveMaster;
+          }
         }, this)
       }, this)
     }, this);
