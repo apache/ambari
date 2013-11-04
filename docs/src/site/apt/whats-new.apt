@@ -44,7 +44,7 @@ JIRA
 
 User Guide
 
-  Take a look at {{{http://incubator.apache.org/ambari/1.2.5/installing-hadoop-using-ambari/content/index.html} how to install a Hadoop cluster using Ambari 1.2.5}}.
+  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Instructions+for+installing+Ambari-1.4.1+bits} how to install a Hadoop cluster using Ambari 1.4.1}}.
 
 Stay Tuned
 
