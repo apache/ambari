@@ -269,7 +269,7 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
       });
       } else {
         // Simulates format returned from ajax.send
-        this.onCreateComponent(null, null, {hostName: componentName, componentName: hostName[i], taskNum: hostName.length});
+        this.onCreateComponent(null, null, {hostName: hostName[i], componentName: componentName, taskNum: hostName.length});
       }
     }
   },
