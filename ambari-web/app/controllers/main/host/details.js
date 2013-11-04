@@ -206,7 +206,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         if (!this.get('enablePrimary')) return;
         self._doDeleteHostComponent(component);
         this.hide();
-      },
+      }
     });
 
   },

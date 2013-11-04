@@ -160,7 +160,7 @@ App.MainHostSummaryView = Em.View.extend({
         case 'SQOOP':
           installableClients.push('SQOOP');
           break;
-        case 'HCAT':
+        case 'HCATALOG':
           installableClients.push('HCAT');
           break;
         case 'HDFS':
