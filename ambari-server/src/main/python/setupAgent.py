@@ -85,19 +85,6 @@ def runAgent(passPhrase, expected_hostname):
 
 def getOptimalVersion(initialProjectVersion):
   optimalVersion = initialProjectVersion
-
-  if is_suse():
-    ret = checkAgentPackageAvailabilitySuse(optimalVersion)
-  else:
-    ret = checkAgentPackageAvailability(optimalVersion)
-
-  # Specified package version found
-  if ret["exitstatus"] == 0:
-    return optimalVersion
-
-  # Specified package version not found; find nearest version
-  optimalVersion = optimalVersion + "."
-
   if is_suse():
     ret = findNearestAgentPackageVersionSuse(optimalVersion)
   else:
@@ -105,28 +92,49 @@ def getOptimalVersion(initialProjectVersion):
 
   if ret["exitstatus"] == 0 and ret["log"][0].strip() != "":
     optimalVersion = ret["log"][0].strip()
+    retcode = 0
   else:
-    optimalVersion = ""
+    if is_suse():
+        ret = getAvaliableAgentPackageVersionsSuse()
+    else:
+        ret = getAvaliableAgentPackageVersions()
+    retcode = 1
+    optimalVersion = ret["log"]
 
-  return optimalVersion
+  return {"exitstatus": retcode, "log": optimalVersion}
 
-def checkAgentPackageAvailabilitySuse(projectVersion):
-  zypperCommand = ["bash", "-c", "zypper search -s --match-exact ambari-agent | grep ' " + projectVersion + " '"]
-  return execOsCommand(zypperCommand)
-
-def checkAgentPackageAvailability(projectVersion):
-  yumCommand = ["bash", "-c", "yum list available ambari-agent | grep ' " + projectVersion + " '"]
-  return execOsCommand(yumCommand)
 
 def findNearestAgentPackageVersionSuse(projectVersion):
-  zypperCommand = ["bash", "-c", "zypper search -s --match-exact ambari-agent | grep ' " + projectVersion +\
-                                 "' | cut -d '|' -f 4 | head -n1"]
+  if projectVersion == "":
+    projectVersion = "  "
+  zypperCommand = ["bash", "-c", "zypper search -s --match-exact ambari-agent | grep '" + projectVersion +\
+                                 "' | cut -d '|' -f 4 | head -n1 | sed -e 's/-\w[^:]*//1' "]
   return execOsCommand(zypperCommand)
 
 def findNearestAgentPackageVersion(projectVersion):
-  yumCommand = ["bash", "-c", "yum list available ambari-agent | grep ' " + projectVersion +\
-                              "' | sed -re 's/\s+/ /g' | cut -d ' ' -f 2 | head -n1"]
+  if projectVersion == "":
+    projectVersion = "  "
+  yumCommand = ["bash", "-c", "yum list all ambari-agent | grep '" + projectVersion +\
+                              "' | sed -re 's/\s+/ /g' | cut -d ' ' -f 2 | head -n1 | sed -e 's/-\w[^:]*//1' "]
   return execOsCommand(yumCommand)
+
+def isAgentPackageAlreadyInstalled(projectVersion):
+    yumCommand = ["bash", "-c", "rpm -qa | grep ambari-agent"+projectVersion]
+    ret = execOsCommand(yumCommand)
+    res = False
+    if ret["exitstatus"] == 0 and ret["log"][0].strip() != "":
+        res = True
+    return res
+
+def getAvaliableAgentPackageVersions():
+    yumCommand = ["bash", "-c",
+        """yum list all ambari-agent | grep -E '^ambari-agent' | sed -re 's/\s+/ /g' | cut -d ' ' -f 2 | tr '\\n' ', ' """]
+    return execOsCommand(yumCommand)
+
+def getAvaliableAgentPackageVersionsSuse():
+    yumCommand = ["bash", "-c",
+        """zypper search -s --match-exact ambari-agent | grep -E '^ambari-agent' | sed -re 's/\s+/ /g' | cut -d '|' -f 4 | tr '\\n' ', ' """]
+    return execOsCommand(yumCommand)
 
 def checkServerReachability(host, port):
   ret = {}
@@ -162,21 +170,28 @@ def main(argv=None):
 
   checkServerReachability(hostname, server_port)
 
-  if projectVersion is None or projectVersion == "null":
-    projectVersion = getOptimalVersion("")
-  elif (projectVersion != "" and projectVersion != "{ambariVersion}"):
-    projectVersion = "-" + projectVersion
-  elif projectVersion == "{ambariVersion}":
-    projectVersion = ""
-
-  if is_suse():
-    ret = installAgentSuse(projectVersion)
-    if (not ret["exitstatus"]==0):
-      sys.exit(ret)
+  if projectVersion is None or projectVersion == "null" or projectVersion == "{ambariVersion}" or projectVersion == "":
+    retcode = getOptimalVersion("")
   else:
-    ret = installAgent(projectVersion)
-    if (not ret["exitstatus"]==0):
-      sys.exit(ret)
+    retcode = getOptimalVersion(projectVersion)
+
+
+  if retcode["exitstatus"] == 0 and retcode["log"] != None and retcode["log"] != "" and retcode["log"][0].strip() != "":
+      availiableProjectVersion = "-" + retcode["log"].strip()
+      if not isAgentPackageAlreadyInstalled(availiableProjectVersion):
+          if is_suse():
+            ret = installAgentSuse(availiableProjectVersion)
+          else:
+            ret = installAgent(availiableProjectVersion)
+          if (not ret["exitstatus"]== 0):
+            sys.exit(ret)
+  elif retcode["exitstatus"] == 1 and retcode["log"][0].strip() != "":
+      sys.exit({"exitstatus": 1, "log": "Desired version ("+projectVersion+") of ambari-agent package"
+                                        " is not available."
+                                        " Repository has following "
+                                        "versions of ambari-agent:"+retcode["log"][0].strip()})
+  else:
+      sys.exit(retcode)
 
   configureAgent(hostname)
   sys.exit(runAgent(passPhrase, expected_hostname))

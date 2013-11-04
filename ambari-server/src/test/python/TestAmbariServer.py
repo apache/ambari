@@ -1869,8 +1869,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(exit_mock.called)
 
     # Test case: JDK file does not exist, jdk-location argument passed
-    exit_mock.reset()
-    get_YN_input_mock.reset()
+    exit_mock.reset_mock()
+    get_YN_input_mock.reset_mock()
     get_YN_input_mock.return_value = True
     args.jdk_location = "/existing/jdk/file"
     path_existsMock.side_effect = [False, False, True, False, False, False]

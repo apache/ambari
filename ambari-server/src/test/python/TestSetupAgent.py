@@ -79,47 +79,33 @@ class TestSetupAgent(TestCase):
     self.assertEqual(ret, 2)
 
 
+  @patch.object(setup_agent, 'getAvaliableAgentPackageVersionsSuse')
   @patch.object(setup_agent, 'is_suse')
-  @patch.object(setup_agent, 'checkAgentPackageAvailabilitySuse')
-  @patch.object(setup_agent, 'checkAgentPackageAvailability')
   @patch.object(setup_agent, 'findNearestAgentPackageVersionSuse')
   @patch.object(setup_agent, 'findNearestAgentPackageVersion')
   def test_returned_optimal_version_is_initial_on_suse(self, findNearestAgentPackageVersion_method,
                                                        findNearestAgentPackageVersionSuse_method,
-                                                       checkAgentPackageAvailability_method,
-                                                       checkAgentPackageAvailabilitySuse_method,
-                                                       is_suse_method):
+                                                       is_suse_method, getAvaliableAgentPackageVersionsSuse_method):
+    getAvaliableAgentPackageVersionsSuse_method.return_value = {"exitstatus": 0, "log": "1.1.1"}
     is_suse_method.return_value = True
-    checkAgentPackageAvailabilitySuse_method.return_value = {
-      "exitstatus" : 0
-    }
 
     projectVersion = "1.1.1"
     result_version = setup_agent.getOptimalVersion(projectVersion)
-
-    self.assertTrue(checkAgentPackageAvailabilitySuse_method.called)
-    self.assertFalse(checkAgentPackageAvailability_method.called)
-    self.assertFalse(findNearestAgentPackageVersionSuse_method.called)
+    self.assertTrue(findNearestAgentPackageVersionSuse_method.called)
     self.assertFalse(findNearestAgentPackageVersion_method.called)
-    self.assertTrue(result_version == projectVersion)
+    self.assertTrue(result_version["exitstatus"] == 1)
     pass
 
   @patch.object(setup_agent, 'is_suse')
-  @patch.object(setup_agent, 'checkAgentPackageAvailabilitySuse')
-  @patch.object(setup_agent, 'checkAgentPackageAvailability')
   @patch.object(setup_agent, 'findNearestAgentPackageVersionSuse')
   @patch.object(setup_agent, 'findNearestAgentPackageVersion')
   def test_returned_optimal_version_is_nearest_on_suse(self, findNearestAgentPackageVersion_method,
                                                        findNearestAgentPackageVersionSuse_method,
-                                                       checkAgentPackageAvailability_method,
-                                                       checkAgentPackageAvailabilitySuse_method,
                                                        is_suse_method):
     is_suse_method.return_value = True
-    checkAgentPackageAvailabilitySuse_method.return_value = {
-      "exitstatus" : 1
-    }
-    projectVersion = "1.1.1"
-    nearest_version = projectVersion + ".1"
+
+    projectVersion = ""
+    nearest_version = projectVersion + "1.1.1"
     findNearestAgentPackageVersionSuse_method.return_value = {
       "exitstatus" : 0,
       "log": [nearest_version, ""]
@@ -127,84 +113,39 @@ class TestSetupAgent(TestCase):
 
     result_version = setup_agent.getOptimalVersion(projectVersion)
 
-    self.assertTrue(checkAgentPackageAvailabilitySuse_method.called)
-    self.assertFalse(checkAgentPackageAvailability_method.called)
     self.assertTrue(findNearestAgentPackageVersionSuse_method.called)
     self.assertFalse(findNearestAgentPackageVersion_method.called)
-    self.assertTrue(result_version == nearest_version)
+    self.assertTrue(result_version["log"] == nearest_version)
     pass
 
+
+  @patch.object(setup_agent, 'getAvaliableAgentPackageVersions')
   @patch.object(setup_agent, 'is_suse')
-  @patch.object(setup_agent, 'checkAgentPackageAvailabilitySuse')
-  @patch.object(setup_agent, 'checkAgentPackageAvailability')
-  @patch.object(setup_agent, 'findNearestAgentPackageVersionSuse')
-  @patch.object(setup_agent, 'findNearestAgentPackageVersion')
-  def test_returned_optimal_version_is_default_on_suse(self, findNearestAgentPackageVersion_method,
-                                                       findNearestAgentPackageVersionSuse_method,
-                                                       checkAgentPackageAvailability_method,
-                                                       checkAgentPackageAvailabilitySuse_method,
-                                                       is_suse_method):
-    is_suse_method.return_value = True
-    checkAgentPackageAvailabilitySuse_method.return_value = {
-      "exitstatus" : 1
-    }
-    findNearestAgentPackageVersionSuse_method.return_value = {
-      "exitstatus" : 0,
-      "log": ["", ""]
-    }
-
-    projectVersion = "1.1.1"
-    result_version = setup_agent.getOptimalVersion(projectVersion)
-
-    self.assertTrue(checkAgentPackageAvailabilitySuse_method.called)
-    self.assertFalse(checkAgentPackageAvailability_method.called)
-    self.assertTrue(findNearestAgentPackageVersionSuse_method.called)
-    self.assertFalse(findNearestAgentPackageVersion_method.called)
-    self.assertTrue(result_version == "")
-    pass
-
-  @patch.object(setup_agent, 'is_suse')
-  @patch.object(setup_agent, 'checkAgentPackageAvailabilitySuse')
-  @patch.object(setup_agent, 'checkAgentPackageAvailability')
   @patch.object(setup_agent, 'findNearestAgentPackageVersionSuse')
   @patch.object(setup_agent, 'findNearestAgentPackageVersion')
   def test_returned_optimal_version_is_initial(self, findNearestAgentPackageVersion_method,
                                                findNearestAgentPackageVersionSuse_method,
-                                               checkAgentPackageAvailability_method,
-                                               checkAgentPackageAvailabilitySuse_method,
-                                               is_suse_method):
+                                               is_suse_method, getAvaliableAgentPackageVersions_method):
+    getAvaliableAgentPackageVersions_method.return_value = {"exitstatus": 0, "log": "1.1.1"}
     is_suse_method.return_value = False
-    checkAgentPackageAvailability_method.return_value = {
-      "exitstatus" : 0
-    }
 
     projectVersion = "1.1.1"
     result_version = setup_agent.getOptimalVersion(projectVersion)
-
-    self.assertFalse(checkAgentPackageAvailabilitySuse_method.called)
-    self.assertTrue(checkAgentPackageAvailability_method.called)
     self.assertFalse(findNearestAgentPackageVersionSuse_method.called)
-    self.assertFalse(findNearestAgentPackageVersion_method.called)
-    self.assertTrue(result_version == projectVersion)
+    self.assertTrue(findNearestAgentPackageVersion_method.called)
+    self.assertTrue(result_version["log"] == projectVersion)
     pass
 
   @patch.object(setup_agent, 'is_suse')
-  @patch.object(setup_agent, 'checkAgentPackageAvailabilitySuse')
-  @patch.object(setup_agent, 'checkAgentPackageAvailability')
   @patch.object(setup_agent, 'findNearestAgentPackageVersionSuse')
   @patch.object(setup_agent, 'findNearestAgentPackageVersion')
   def test_returned_optimal_version_is_nearest(self, findNearestAgentPackageVersion_method,
                                                findNearestAgentPackageVersionSuse_method,
-                                               checkAgentPackageAvailability_method,
-                                               checkAgentPackageAvailabilitySuse_method,
                                                is_suse_method):
     is_suse_method.return_value = False
-    checkAgentPackageAvailability_method.return_value = {
-      "exitstatus" : 1
-    }
 
-    projectVersion = "1.1.1"
-    nearest_version = projectVersion + ".1"
+    projectVersion = ""
+    nearest_version = projectVersion + "1.1.1"
     findNearestAgentPackageVersion_method.return_value = {
       "exitstatus" : 0,
       "log": [nearest_version, ""]
@@ -212,27 +153,20 @@ class TestSetupAgent(TestCase):
 
     result_version = setup_agent.getOptimalVersion(projectVersion)
 
-    self.assertFalse(checkAgentPackageAvailabilitySuse_method.called)
-    self.assertTrue(checkAgentPackageAvailability_method.called)
     self.assertFalse(findNearestAgentPackageVersionSuse_method.called)
     self.assertTrue(findNearestAgentPackageVersion_method.called)
-    self.assertTrue(result_version == nearest_version)
+    self.assertTrue(result_version["log"] == nearest_version)
     pass
 
+  @patch.object(setup_agent, 'getAvaliableAgentPackageVersions')
   @patch.object(setup_agent, 'is_suse')
-  @patch.object(setup_agent, 'checkAgentPackageAvailabilitySuse')
-  @patch.object(setup_agent, 'checkAgentPackageAvailability')
   @patch.object(setup_agent, 'findNearestAgentPackageVersionSuse')
   @patch.object(setup_agent, 'findNearestAgentPackageVersion')
   def test_returned_optimal_version_is_default(self, findNearestAgentPackageVersion_method,
                                                findNearestAgentPackageVersionSuse_method,
-                                               checkAgentPackageAvailability_method,
-                                               checkAgentPackageAvailabilitySuse_method,
-                                               is_suse_method):
+                                               is_suse_method, getAvaliableAgentPackageVersions_method):
+    getAvaliableAgentPackageVersions_method.return_value = {"exitstatus": 0, "log": "1.1.1"}
     is_suse_method.return_value = False
-    checkAgentPackageAvailability_method.return_value = {
-      "exitstatus" : 1
-    }
     findNearestAgentPackageVersion_method.return_value = {
       "exitstatus" : 0,
       "log": ["", ""]
@@ -241,26 +175,9 @@ class TestSetupAgent(TestCase):
     projectVersion = "1.1.1"
     result_version = setup_agent.getOptimalVersion(projectVersion)
 
-    self.assertFalse(checkAgentPackageAvailabilitySuse_method.called)
-    self.assertTrue(checkAgentPackageAvailability_method.called)
     self.assertFalse(findNearestAgentPackageVersionSuse_method.called)
     self.assertTrue(findNearestAgentPackageVersion_method.called)
-    self.assertTrue(result_version == "")
-    checkAgentPackageAvailabilitySuse_method.reset()
-    checkAgentPackageAvailability_method.reset()
-    findNearestAgentPackageVersionSuse_method.reset()
-    findNearestAgentPackageVersion_method.reset()
-
-    projectVersion = None
-    result_version = None
-
-    self.assertFalse(checkAgentPackageAvailabilitySuse_method.called)
-    self.assertTrue(checkAgentPackageAvailability_method.called)
-    self.assertFalse(findNearestAgentPackageVersionSuse_method.called)
-    self.assertTrue(findNearestAgentPackageVersion_method.called)
-    self.assertTrue(result_version == projectVersion)
-
-    pass
+    self.assertTrue(result_version["log"] == "1.1.1")
 
   @patch.object(subprocess, 'Popen')
   def test_execOsCommand(self, Popen_mock):
@@ -279,6 +196,7 @@ class TestSetupAgent(TestCase):
   def test_installAgentSuse(self, Popen_mock):
     self.assertFalse(setup_agent.installAgentSuse("1") == None)
 
+  @patch.object(setup_agent, 'isAgentPackageAlreadyInstalled')
   @patch.object(setup_agent, 'runAgent')
   @patch.object(setup_agent, 'configureAgent')
   @patch.object(setup_agent, 'installAgent')
@@ -291,28 +209,80 @@ class TestSetupAgent(TestCase):
   @patch("os.path.realpath")
   def test_setup_agent_main(self, dirname_mock, realpath_mock, exit_mock, checkServerReachability_mock,
                             getOptimalVersion_mock, is_suse_mock, installAgentSuse_mock,
-                            installAgent_mock, configureAgent_mock, runAgent_mock):
+                            installAgent_mock, configureAgent_mock, runAgent_mock,
+                            isAgentPackageAlreadyInstalled_mock):
     installAgent_mock.return_value = {'log': 'log', 'exitstatus': 0}
     installAgentSuse_mock.return_value = {'log': 'log', 'exitstatus': 0}
     runAgent_mock.return_value = 0
+    getOptimalVersion_mock.return_value = {'log': '1.1.2, 1.1.3, ', 'exitstatus': 1}
     setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","1.1.1","8080"))
     self.assertTrue(exit_mock.called)
-    self.assertFalse(getOptimalVersion_mock.called)
-    exit_mock.reset()
-    getOptimalVersion_mock.reset()
-    setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","{ambariVersion}","8080"))
-    self.assertFalse(getOptimalVersion_mock.called)
+    self.assertTrue(getOptimalVersion_mock.called)
+    exit_mock.reset_mock()
+    getOptimalVersion_mock.reset_mock()
+    getOptimalVersion_mock.return_value = {'log': '1.1.1', 'exitstatus': 0}
+    isAgentPackageAlreadyInstalled_mock.return_value = False
+    is_suse_mock.return_value = True
+    setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","1.1.1","8080"))
     self.assertTrue(exit_mock.called)
-    exit_mock.reset()
-    getOptimalVersion_mock.reset()
+    self.assertTrue(getOptimalVersion_mock.called)
+    self.assertTrue(isAgentPackageAlreadyInstalled_mock.called)
+    self.assertTrue(is_suse_mock.called)
+    self.assertTrue(installAgentSuse_mock.called)
+    self.assertFalse(installAgent_mock.called)
+    exit_mock.reset_mock()
+    getOptimalVersion_mock.reset_mock()
+    isAgentPackageAlreadyInstalled_mock.reset_mock()
+    is_suse_mock.reset_mock()
+    installAgentSuse_mock.reset_mock()
+    installAgent_mock.reset_mock()
+
+    getOptimalVersion_mock.return_value = {'log': '', 'exitstatus': 0}
+    setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","1.1.1","8080"))
+    self.assertTrue(exit_mock.called)
+    self.assertTrue(getOptimalVersion_mock.called)
+    self.assertFalse(isAgentPackageAlreadyInstalled_mock.called)
+    self.assertFalse(is_suse_mock.called)
+    self.assertFalse(installAgentSuse_mock.called)
+    exit_mock.reset_mock()
+    getOptimalVersion_mock.reset_mock()
+    isAgentPackageAlreadyInstalled_mock.reset_mock()
+    is_suse_mock.reset_mock()
+    installAgentSuse_mock.reset_mock()
+    installAgent_mock.reset_mock()
+
+
+    is_suse_mock.return_value = False
+    getOptimalVersion_mock.return_value = {'log': '1.1.1', 'exitstatus': 0}
+    setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","1.1.1","8080"))
+    self.assertTrue(exit_mock.called)
+    self.assertTrue(getOptimalVersion_mock.called)
+    self.assertTrue(isAgentPackageAlreadyInstalled_mock.called)
+    self.assertTrue(is_suse_mock.called)
+    self.assertTrue(installAgent_mock.called)
+    exit_mock.reset_mock()
+    getOptimalVersion_mock.reset_mock()
+    isAgentPackageAlreadyInstalled_mock.reset_mock()
+    exit_mock.reset_mock()
+    getOptimalVersion_mock.reset_mock()
+    isAgentPackageAlreadyInstalled_mock.reset_mock()
+    is_suse_mock.reset_mock()
+    installAgentSuse_mock.reset_mock()
+    installAgent_mock.reset_mock()
+
+    setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","{ambariVersion}","8080"))
+    self.assertTrue(getOptimalVersion_mock.called)
+    self.assertTrue(exit_mock.called)
+    exit_mock.reset_mock()
+    getOptimalVersion_mock.reset_mock()
     setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","null","8080"))
     self.assertTrue(exit_mock.called)
     self.assertTrue(getOptimalVersion_mock.called)
-    exit_mock.reset()
+    exit_mock.reset_mock()
     is_suse_mock.return_value = False
     setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","null","null"))
     self.assertTrue(exit_mock.called)
-    exit_mock.reset()
+    exit_mock.reset_mock()
     def side_effect(retcode):
       raise Exception(retcode, "sys.exit")
     exit_mock.side_effect = side_effect
@@ -325,7 +295,7 @@ class TestSetupAgent(TestCase):
         # Expected
         pass
     self.assertTrue(exit_mock.called)
-    exit_mock.reset()
+    exit_mock.reset_mock()
     #if suse
     is_suse_mock.return_value = True
     #if "zypper install -y ambari-agent" return not 0 result
@@ -340,23 +310,39 @@ class TestSetupAgent(TestCase):
 
 
   @patch.object(setup_agent, 'execOsCommand')
-  def test_checkAgentPackageAvailabilitySuse(self, execOsCommand_mock):
-    setup_agent.checkAgentPackageAvailabilitySuse("1.1.1")
-    self.assertTrue(execOsCommand_mock.called)
-
-  @patch.object(setup_agent, 'execOsCommand')
-  def test_checkAgentPackageAvailability(self, execOsCommand_mock):
-      setup_agent.checkAgentPackageAvailability("1.1.1")
-      self.assertTrue(execOsCommand_mock.called)
-
-  @patch.object(setup_agent, 'execOsCommand')
   def test_findNearestAgentPackageVersionSuse(self, execOsCommand_mock):
       setup_agent.findNearestAgentPackageVersionSuse("1.1.1")
+      self.assertTrue(execOsCommand_mock.called)
+      execOsCommand_mock.reset_mock()
+      setup_agent.findNearestAgentPackageVersionSuse("")
       self.assertTrue(execOsCommand_mock.called)
 
   @patch.object(setup_agent, 'execOsCommand')
   def test_findNearestAgentPackageVersion(self, execOsCommand_mock):
       setup_agent.findNearestAgentPackageVersion("1.1.1")
+      self.assertTrue(execOsCommand_mock.called)
+      execOsCommand_mock.reset_mock()
+      setup_agent.findNearestAgentPackageVersion("")
+      self.assertTrue(execOsCommand_mock.called)
+
+  @patch.object(setup_agent, 'execOsCommand')
+  def test_isAgentPackageAlreadyInstalled(self, execOsCommand_mock):
+      execOsCommand_mock.return_value = {"exitstatus": 0, "log": "1.1.1"}
+      self.assertTrue(setup_agent.isAgentPackageAlreadyInstalled("1.1.1"))
+      self.assertTrue(execOsCommand_mock.called)
+      execOsCommand_mock.reset_mock()
+      execOsCommand_mock.return_value = {"exitstatus": 1, "log": "1.1.1"}
+      self.assertFalse(setup_agent.isAgentPackageAlreadyInstalled("1.1.1"))
+      self.assertTrue(execOsCommand_mock.called)
+
+  @patch.object(setup_agent, 'execOsCommand')
+  def test_getAvaliableAgentPackageVersions(self, execOsCommand_mock):
+      setup_agent.getAvaliableAgentPackageVersions()
+      self.assertTrue(execOsCommand_mock.called)
+
+  @patch.object(setup_agent, 'execOsCommand')
+  def test_getAvaliableAgentPackageVersionsSuse(self, execOsCommand_mock):
+      setup_agent.getAvaliableAgentPackageVersionsSuse()
       self.assertTrue(execOsCommand_mock.called)
 
   @patch.object(setup_agent, 'execOsCommand')

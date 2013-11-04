@@ -82,11 +82,11 @@ class TestBootstrap(TestCase):
     bootstrap.main(["bootstrap.py", "hostname,hostname2", "/tmp/bootstrap", "root", "sshkey_file", "setupAgent.py", "ambariServer", \
                     "centos6", "1.1.1", "8440", "passwordfile"])
     self.assertTrue(run_mock.called)
-    run_mock.reset()
+    run_mock.reset_mock()
     bootstrap.main(["bootstrap.py", "hostname,hostname2", "/tmp/bootstrap", "root", "sshkey_file", "setupAgent.py", "ambariServer", \
                     "centos6", "1.1.1", "8440", None])
     self.assertTrue(run_mock.called)
-    run_mock.reset()
+    run_mock.reset_mock()
     def side_effect(retcode):
       raise Exception(retcode, "sys.exit")
     exit_mock.side_effect = side_effect
