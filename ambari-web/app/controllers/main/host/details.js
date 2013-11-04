@@ -405,22 +405,22 @@ App.MainHostDetailsController = Em.Controller.extend({
             // Clients component has many sub-components which
             // need to be installed.
             var scs = component.get('subComponentNames');
-            scs.forEach(function (sc) {
+            scs.forEach(function (sc, index) {
               var c = Em.Object.create({
                 displayName: App.format.role(sc),
                 componentName: sc
               });
-              self.primary(c);
+              self.primary(c, scs.length - index === 1);
             });
           } else {
-            self.primary(component);
+            self.primary(component, true);
           }
         }
       });
     }
   },
 
-  primary: function(component) {
+  primary: function(component, showPopup) {
     var self = this;
     var componentName = component.get('componentName').toUpperCase().toString();
     var displayName = component.get('displayName');
@@ -471,7 +471,7 @@ App.MainHostDetailsController = Em.Controller.extend({
               App.router.get('clusterController').loadUpdatedStatusDelayed(500);
             }
 
-            if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked()) {
+            if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked() && showPopup) {
               App.router.get('backgroundOperationsController').showPopup();
             }
           });
