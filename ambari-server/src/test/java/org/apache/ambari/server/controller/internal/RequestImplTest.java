@@ -149,9 +149,14 @@ public class RequestImplTest {
 
     //Action resource properties
     Assert.assertFalse(validPropertyIds.contains("Action/unsupported_property_id"));
-    Assert.assertTrue(validPropertyIds.contains("Actions/cluster_name"));
-    Assert.assertTrue(validPropertyIds.contains("Actions/service_name"));
     Assert.assertTrue(validPropertyIds.contains("Actions/action_name"));
+    Assert.assertTrue(validPropertyIds.contains("Actions/action_type"));
+    Assert.assertTrue(validPropertyIds.contains("Actions/inputs"));
+    Assert.assertTrue(validPropertyIds.contains("Actions/target_service"));
+    Assert.assertTrue(validPropertyIds.contains("Actions/target_component"));
+    Assert.assertTrue(validPropertyIds.contains("Actions/description"));
+    Assert.assertTrue(validPropertyIds.contains("Actions/target_type"));
+    Assert.assertTrue(validPropertyIds.contains("Actions/default_timeout"));
 
     request = PropertyHelper.getReadRequest(PropertyHelper.getPropertyIds(Resource.Type.Request));
     validPropertyIds = request.getPropertyIds();

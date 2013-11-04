@@ -592,11 +592,12 @@ App.MainHostDetailsController = Em.Controller.extend({
       data: JSON.stringify(configsData),
       timeout: App.timeout,
       success: function(){
-        var actionsUrl = clusterUrl + '/services/HDFS/actions/DECOMMISSION_DATANODE';
+        var actionsUrl = clusterUrl + '/requests';
         var actionsData = {
           RequestInfo: {
-            context: context},
-          Body: {
+            context: context,
+            command: 'DECOMMISSION_DATANODE',
+            service_name: 'HDFS',
             parameters: {
               excludeFileTag: invocationTag
             }

@@ -45,11 +45,15 @@ import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.StackAccessException;
+import org.apache.ambari.server.actionmanager.ActionDefinition;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.ActionType;
+import org.apache.ambari.server.actionmanager.CustomActionDBAccessorImpl;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.actionmanager.TargetHostType;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -2063,32 +2067,6 @@ public class AmbariManagementControllerImpl implements
     }
   }
 
-  @Override
-  public Set<ActionResponse> getActions(Set<ActionRequest> request)
-      throws AmbariException {
-    Set<ActionResponse> responses = new HashSet<ActionResponse>();
-
-    for (ActionRequest actionRequest : request) {
-      if (actionRequest.getServiceName() == null) {
-        LOG.warn("No service name specified - skipping request");
-        //TODO throw error?
-        continue;
-      }
-      ActionResponse actionResponse = new ActionResponse();
-      actionResponse.setClusterName(actionRequest.getClusterName());
-      actionResponse.setServiceName(actionRequest.getServiceName());
-      if (actionMetadata.getActions(actionRequest.getServiceName()) != null
-          && !actionMetadata.getActions(actionRequest.getServiceName())
-              .isEmpty()) {
-        actionResponse.setActionName(actionMetadata.getActions(
-            actionRequest.getServiceName()).get(0));
-      }
-      responses.add(actionResponse);
-    }
-
-    return responses;
-  }
-
   /**
    * Get a request response for the given request ids.  Note that this method
    * fully populates a request resource including the set of task sub-resources
@@ -2309,7 +2287,7 @@ public class AmbariManagementControllerImpl implements
     return hostName;
   }
 
-  private void addServiceCheckAction(ActionRequest actionRequest, Stage stage)
+  private void addServiceCheckAction(ExecuteActionRequest actionRequest, Stage stage)
       throws AmbariException {
     String clusterName = actionRequest.getClusterName();
     String componentName = actionMetadata.getClient(actionRequest
@@ -2351,12 +2329,12 @@ public class AmbariManagementControllerImpl implements
     }
 
     stage.addHostRoleExecutionCommand(hostName, Role.valueOf(actionRequest
-        .getActionName()), RoleCommand.EXECUTE,
+        .getCommandName()), RoleCommand.EXECUTE,
         new ServiceComponentHostOpInProgressEvent(componentName, hostName,
             System.currentTimeMillis()), clusterName, actionRequest
             .getServiceName());
 
-    stage.getExecutionCommandWrapper(hostName, actionRequest.getActionName()).getExecutionCommand()
+    stage.getExecutionCommandWrapper(hostName, actionRequest.getCommandName()).getExecutionCommand()
         .setRoleParams(actionRequest.getParameters());
 
     Cluster cluster = clusters.getCluster(clusterName);
@@ -2367,7 +2345,7 @@ public class AmbariManagementControllerImpl implements
       cluster, actionRequest.getServiceName(), hostName);
 
     ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostName,
-      actionRequest.getActionName()).getExecutionCommand();
+      actionRequest.getCommandName()).getExecutionCommand();
 
     execCmd.setConfigurations(configurations);
     execCmd.setConfigurationTags(configTags);
@@ -2383,7 +2361,7 @@ public class AmbariManagementControllerImpl implements
   }
 
   private void addDecommissionDatanodeAction(
-      ActionRequest decommissionRequest, Stage stage)
+      ExecuteActionRequest decommissionRequest, Stage stage)
       throws AmbariException {
     String hdfsExcludeFileType = "hdfs-exclude-file";
     // Find hdfs admin host, just decommission from namenode.
@@ -2403,11 +2381,16 @@ public class AmbariManagementControllerImpl implements
 
     if (excludeFileTag == null) {
       throw new IllegalArgumentException("No exclude file specified"
-          + " when decommissioning datanodes");
+          + " when decommissioning datanodes. Provide parameter excludeFileTag with the tag for config type "
+          + hdfsExcludeFileType);
     }
 
     Config config = clusters.getCluster(clusterName).getConfig(
         hdfsExcludeFileType, excludeFileTag);
+    if(config == null){
+      throw new AmbariException("Decommissioning datanodes requires the cluster to be associated with config type " +
+      hdfsExcludeFileType + " with a list of datanodes to be decommissioned (\"datanodes\" : list).");
+    }
 
     LOG.info("Decommissioning data nodes: " + config.getProperties().get("datanodes") +
         " " + hdfsExcludeFileType + " tag: " + excludeFileTag);
@@ -2447,7 +2430,7 @@ public class AmbariManagementControllerImpl implements
   }
 
   @Override
-  public RequestStatusResponse createActions(Set<ActionRequest> request, Map<String, String> requestProperties)
+  public RequestStatusResponse createAction(ExecuteActionRequest actionRequest, Map<String, String> requestProperties)
       throws AmbariException {
     String clusterName = null;
 
@@ -2463,41 +2446,40 @@ public class AmbariManagementControllerImpl implements
 
     String logDir = ""; //TODO empty for now
 
-    for (ActionRequest actionRequest : request) {
-      if (actionRequest.getClusterName() == null
-          || actionRequest.getClusterName().isEmpty()
-          || actionRequest.getServiceName() == null
-          || actionRequest.getServiceName().isEmpty()
-          || actionRequest.getActionName() == null
-          || actionRequest.getActionName().isEmpty()) {
-        throw new AmbariException("Invalid action request : " + "cluster="
-            + actionRequest.getClusterName() + ", service="
-            + actionRequest.getServiceName() + ", action="
-            + actionRequest.getActionName());
-      } else if (clusterName == null) {
-        clusterName = actionRequest.getClusterName();
-      } else if (!clusterName.equals(actionRequest.getClusterName())) {
-        throw new AmbariException("Requests for different clusters found");
-      }
+    if (actionRequest.getClusterName() == null
+        || actionRequest.getClusterName().isEmpty()
+        || actionRequest.getServiceName() == null
+        || actionRequest.getServiceName().isEmpty()
+        || actionRequest.getCommandName() == null
+        || actionRequest.getCommandName().isEmpty()) {
+      throw new AmbariException("Invalid action request : " + "cluster="
+          + actionRequest.getClusterName() + ", service="
+          + actionRequest.getServiceName() + ", command="
+          + actionRequest.getCommandName());
     }
+
+    clusterName = actionRequest.getClusterName();
 
     Stage stage = stageFactory.createNew(actionManager.getNextRequestId(),
         logDir, clusterName, requestContext);
 
     stage.setStageId(0);
-    for (ActionRequest actionRequest : request) {
-      LOG.info("Received a createAction request"
-          + ", clusterName=" + actionRequest.getClusterName()
-          + ", serviceName=" + actionRequest.getServiceName()
-          + ", request=" + actionRequest.toString());
+    LOG.info("Received a createAction request"
+        + ", clusterName=" + actionRequest.getClusterName()
+        + ", serviceName=" + actionRequest.getServiceName()
+        + ", request=" + actionRequest.toString());
 
-      if (actionRequest.getActionName().contains("SERVICE_CHECK")) {
-        addServiceCheckAction(actionRequest, stage);
-      } else if (actionRequest.getActionName().equals("DECOMMISSION_DATANODE")) {
-        addDecommissionDatanodeAction(actionRequest, stage);
-      } else {
-        throw new AmbariException("Unsupported action");
-      }
+    if (!isValidCommand(actionRequest.getCommandName(), actionRequest.getServiceName())) {
+      throw new AmbariException(
+          "Unsupported action " + actionRequest.getCommandName() + " for " + actionRequest.getServiceName());
+    }
+
+    if (actionRequest.getCommandName().contains("SERVICE_CHECK")) {
+      addServiceCheckAction(actionRequest, stage);
+    } else if (actionRequest.getCommandName().equals("DECOMMISSION_DATANODE")) {
+      addDecommissionDatanodeAction(actionRequest, stage);
+    } else {
+      throw new AmbariException("Unsupported action " + actionRequest.getCommandName());
     }
 
     Cluster cluster = clusters.getCluster(clusterName);
@@ -2530,6 +2512,19 @@ public class AmbariManagementControllerImpl implements
     }
     return response;
 
+  }
+
+  private Boolean isValidCommand(String command, String service) {
+    List<String> actions = actionMetadata.getActions(service);
+    if (actions == null || actions.size() == 0) {
+      return false;
+    }
+
+    if (!actions.contains(command)) {
+      return false;
+    }
+
+    return true;
   }
 
   private Set<StackResponse> getStacks(StackRequest request)

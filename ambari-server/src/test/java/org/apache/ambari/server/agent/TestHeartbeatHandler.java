@@ -413,7 +413,7 @@ public class TestHeartbeatHandler {
     clusters.addCluster(DummyCluster);
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
     ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(), clusters, db,
-        new HostsMap((String) null), null, unitOfWork);
+        new HostsMap((String) null), null, unitOfWork, null);
     populateActionDB(db, DummyHostname1);
     Stage stage = db.getAllStages(requestId).get(0);
     Assert.assertEquals(stageId, stage.getStageId());
@@ -1310,7 +1310,7 @@ public class TestHeartbeatHandler {
 
   private ActionManager getMockActionManager() {
     return new ActionManager(0, 0, null, null,
-              new ActionDBInMemoryImpl(), new HostsMap((String) null), null, unitOfWork);
+              new ActionDBInMemoryImpl(), new HostsMap((String) null), null, unitOfWork, null);
   }
 
 

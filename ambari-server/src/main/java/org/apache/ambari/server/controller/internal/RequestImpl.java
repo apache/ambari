@@ -141,7 +141,7 @@ public class RequestImpl implements Request {
     for (Map<String, Object> map : properties) {
       for (Entry<String, Object> entry : map.entrySet()) {
         sb.append(" { propertyName=").append(entry.getKey()).append(", propertyValue=").
-            append(entry.getValue().toString()).append(" }, ");
+            append(entry.getValue()==null?"NULL":entry.getValue().toString()).append(" }, ");
       }
     }
     sb.append(" ], temporalInfo=[");
@@ -151,7 +151,7 @@ public class RequestImpl implements Request {
       for (Entry<String, TemporalInfo> entry :
         m_mapTemporalInfo.entrySet()) {
         sb.append(" { propertyName=").append(entry.getKey()).append(", temporalInfo=").
-            append(entry.getValue().toString());
+            append(entry.getValue()==null?"NULL":entry.getValue().toString());
       }
     }
     sb.append(" ]");

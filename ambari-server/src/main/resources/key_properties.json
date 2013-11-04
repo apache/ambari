@@ -1,108 +1,106 @@
 {
-  "Cluster":{
-    "Cluster":"Clusters/cluster_name"
+  "Cluster": {
+    "Cluster": "Clusters/cluster_name"
   },
-  "Service":{
-    "Cluster":"ServiceInfo/cluster_name",
-    "Service":"ServiceInfo/service_name"
+  "Service": {
+    "Cluster": "ServiceInfo/cluster_name",
+    "Service": "ServiceInfo/service_name"
   },
-  "Host":{
-    "Cluster":"Hosts/cluster_name",
-    "Host":"Hosts/host_name"
+  "Host": {
+    "Cluster": "Hosts/cluster_name",
+    "Host": "Hosts/host_name"
   },
-  "Component":{
-    "Cluster":"ServiceComponentInfo/cluster_name",
-    "Service":"ServiceComponentInfo/service_name",
-    "Component":"ServiceComponentInfo/component_name",
-    "HostComponent":"ServiceComponentInfo/component_name"
+  "Component": {
+    "Cluster": "ServiceComponentInfo/cluster_name",
+    "Service": "ServiceComponentInfo/service_name",
+    "Component": "ServiceComponentInfo/component_name",
+    "HostComponent": "ServiceComponentInfo/component_name"
   },
-  "HostComponent":{
-    "Cluster":"HostRoles/cluster_name",
-    "Host":"HostRoles/host_name",
-    "HostComponent":"HostRoles/component_name",
-    "Component":"HostRoles/component_name"
+  "HostComponent": {
+    "Cluster": "HostRoles/cluster_name",
+    "Host": "HostRoles/host_name",
+    "HostComponent": "HostRoles/component_name",
+    "Component": "HostRoles/component_name"
   },
-  "Configuration":{
-    "Cluster":"Config/cluster_name",
-    "Configuration":"Config/type"
+  "Configuration": {
+    "Cluster": "Config/cluster_name",
+    "Configuration": "Config/type"
   },
-  "Action":{
-    "Cluster":"Actions/cluster_name",
-    "Service":"Actions/service_name",
-    "Action":"Actions/action_name"
+  "Action": {
+    "Action": "Actions/action_name"
   },
-  "Request":{
-    "Cluster":"Requests/cluster_name",
-    "Request":"Requests/id"
+  "Request": {
+    "Cluster": "Requests/cluster_name",
+    "Request": "Requests/id"
   },
-  "Task":{
-    "Cluster":"Tasks/cluster_name",
-    "Request":"Tasks/request_id",
-    "Task":"Tasks/id"
+  "Task": {
+    "Cluster": "Tasks/cluster_name",
+    "Request": "Tasks/request_id",
+    "Task": "Tasks/id"
   },
-  "User":{
-    "User":"Users/user_name"
+  "User": {
+    "User": "Users/user_name"
   },
-  "Stack":{
-    "Stack":"Stacks/stack_name"
+  "Stack": {
+    "Stack": "Stacks/stack_name"
   },
-  "StackVersion":{
-    "Stack":"Versions/stack_name",
-    "StackVersion":"Versions/stack_version"
+  "StackVersion": {
+    "Stack": "Versions/stack_name",
+    "StackVersion": "Versions/stack_version"
   },
-  "OperatingSystem":{
-    "Stack":"OperatingSystems/stack_name",
-    "StackVersion":"OperatingSystems/stack_version",
-    "OperatingSystem":"OperatingSystems/os_type"
+  "OperatingSystem": {
+    "Stack": "OperatingSystems/stack_name",
+    "StackVersion": "OperatingSystems/stack_version",
+    "OperatingSystem": "OperatingSystems/os_type"
   },
-  "Repository":{
-    "Stack":"Repositories/stack_name",
-    "StackVersion":"Repositories/stack_version",
-    "OperatingSystem":"Repositories/os_type",
-    "Repository":"Repositories/repo_id"
+  "Repository": {
+    "Stack": "Repositories/stack_name",
+    "StackVersion": "Repositories/stack_version",
+    "OperatingSystem": "Repositories/os_type",
+    "Repository": "Repositories/repo_id"
   },
-  "StackService":{
-    "Stack":"StackServices/stack_name",
-    "StackVersion":"StackServices/stack_version",
-    "StackService":"StackServices/service_name"
+  "StackService": {
+    "Stack": "StackServices/stack_name",
+    "StackVersion": "StackServices/stack_version",
+    "StackService": "StackServices/service_name"
   },
-  "StackConfiguration":{
-    "Stack":"StackConfigurations/stack_name",
-    "StackVersion":"StackConfigurations/stack_version",
-    "StackService":"StackConfigurations/service_name",
-    "StackConfiguration":"StackConfigurations/property_name"
+  "StackConfiguration": {
+    "Stack": "StackConfigurations/stack_name",
+    "StackVersion": "StackConfigurations/stack_version",
+    "StackService": "StackConfigurations/service_name",
+    "StackConfiguration": "StackConfigurations/property_name"
   },
-  "StackServiceComponent":{
-    "Stack":"StackServiceComponents/stack_name",
-    "StackVersion":"StackServiceComponents/stack_version",
-    "StackService":"StackServiceComponents/service_name",
-    "StackServiceComponent":"StackServiceComponents/component_name"
+  "StackServiceComponent": {
+    "Stack": "StackServiceComponents/stack_name",
+    "StackVersion": "StackServiceComponents/stack_version",
+    "StackService": "StackServiceComponents/service_name",
+    "StackServiceComponent": "StackServiceComponents/component_name"
   },
-  "DRFeed":{
-    "DRFeed":"Feed/name"
+  "DRFeed": {
+    "DRFeed": "Feed/name"
   },
-  "DRTargetCluster":{
-    "DRTargetCluster":"Cluster/name"
+  "DRTargetCluster": {
+    "DRTargetCluster": "Cluster/name"
   },
-  "DRInstance":{
-    "DRFeed":"Instance/feedName",
-    "DRInstance":"Instance/id"
+  "DRInstance": {
+    "DRFeed": "Instance/feedName",
+    "DRInstance": "Instance/id"
   },
-  "RootService":{
-    "RootService":"RootService/service_name"
+  "RootService": {
+    "RootService": "RootService/service_name"
   },
-  "RootServiceComponent":{
-    "RootService":"RootServiceComponents/service_name",
-    "RootServiceComponent":"RootServiceComponents/component_name"
+  "RootServiceComponent": {
+    "RootService": "RootServiceComponents/service_name",
+    "RootServiceComponent": "RootServiceComponents/component_name"
   },
-  "RootServiceHostComponent":{
-    "RootService":"RootServiceHostComponents/service_name",
-    "Host":"RootServiceHostComponents/host_name",
-    "RootServiceComponent":"RootServiceHostComponents/component_name",
-    "RootServiceHostComponent":"RootServiceHostComponents/component_name"
+  "RootServiceHostComponent": {
+    "RootService": "RootServiceHostComponents/service_name",
+    "Host": "RootServiceHostComponents/host_name",
+    "RootServiceComponent": "RootServiceHostComponents/component_name",
+    "RootServiceHostComponent": "RootServiceHostComponents/component_name"
   },
-  "ConfigGroup" : {
-      "Cluster" : "ConfigGroup/cluster_name",
-      "ConfigGroup" : "ConfigGroup/id"
+  "ConfigGroup": {
+    "Cluster": "ConfigGroup/cluster_name",
+    "ConfigGroup": "ConfigGroup/id"
   }
 }

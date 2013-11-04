@@ -24,6 +24,8 @@ import java.util.Properties;
 
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
+import org.apache.ambari.server.actionmanager.CustomActionDBAccessor;
+import org.apache.ambari.server.actionmanager.CustomActionDBAccessorImpl;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
@@ -96,6 +98,7 @@ public class ControllerModule extends AbstractModule {
     bind(Gson.class).in(Scopes.SINGLETON);
     bind(Clusters.class).to(ClustersImpl.class);
     bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
+    bind(CustomActionDBAccessor.class).to(CustomActionDBAccessorImpl.class);
     bindConstant().annotatedWith(Names.named("schedulerSleeptime")).to(10000L);
     bindConstant().annotatedWith(Names.named("actionTimeout")).to(600000L);
 

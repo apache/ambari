@@ -15,10 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.ambari.server.api.services;
 
+import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.controller.spi.Resource;
+
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -26,109 +32,109 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.util.Collections;
 
-import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.controller.spi.Resource;
 
-import java.util.HashMap;
-import java.util.Map;
-
+/**
+ * Service responsible for action definition resource requests.
+ */
+@Path("/actions/")
 public class ActionService extends BaseService {
-  /**
-   * Parent cluster name.
-   */
-  private String m_clusterName;
-  
-  private String m_serviceName;
 
   /**
-   * Constructor.
+   * Handles: GET /actions/{actionName}
+   * Get a specific action definition.
    *
-   * @param clusterName cluster id
-   * @param serviceName service
+   * @param headers     http headers
+   * @param ui          uri info
+   * @param actionName action name
+   * @return action definition instance representation
    */
-  public ActionService(String clusterName, String serviceName) {
-    m_clusterName = clusterName;
-    m_serviceName = serviceName;
+  @GET
+  @Path("{actionName}")
+  @Produces("text/plain")
+  public Response getActionDefinition(@Context HttpHeaders headers, @Context UriInfo ui,
+                             @PathParam("actionName") String actionName) {
+
+    return handleRequest(headers, null, ui, Request.Type.GET, createActionDefinitionResource(actionName));
   }
 
   /**
-   * Handles URL: /clusters/{clusterId}/services/{serviceName}/actions
-   * Get all actions for a service in a cluster.
+   * Handles: GET  /actions
+   * Get all action definitions.
    *
    * @param headers http headers
    * @param ui      uri info
-   * @return service collection resource representation
+   * @return action definition collection resource representation
    */
   @GET
   @Produces("text/plain")
-  public Response getActions(@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, null, ui, Request.Type.GET,
-        createActionResource(m_clusterName, m_serviceName, null));
+  public Response getActionDefinitions(@Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, null, ui, Request.Type.GET, createActionDefinitionResource(null));
   }
 
   /**
-   * Handles URL: /clusters/{clusterId}/services/{serviceName}/actions.  
-   * The body should contain:
-   * <pre>
-   * {
-   *     "actionName":"name_string",
-   *     "parameters":
-   *     {
-   *         "key1":"value1",
-   *         // ...
-   *         "keyN":"valueN"
-   *     }
-   * }
-   * </pre>
-   * Get all services for a cluster.
+   * Handles: POST /actions/{actionName}
+   * Create a specific action definition.
    *
-   * @param headers http headers
-   * @param ui      uri info
-   * @return service collection resource representation
-   */
-  @POST
-  @Produces("text/plain")
-  public Response createActions(String body,@Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.POST,
-        createActionResource(m_clusterName, m_serviceName, null));
-  }
-  
-  /**
-   * Handles: POST /clusters/{clusterId}/services/{serviceId}/{actionName}
-   * Create a specific action.
-   *
-   * @param body        http body
    * @param headers     http headers
    * @param ui          uri info
    * @param actionName  action name
-   *
-   * @return information regarding the created action
+   * @return information regarding the action definition being created
    */
-  @POST
-  @Path("{actionName}")
-  @Produces("text/plain")
-  public Response createAction(String body, @Context HttpHeaders headers, @Context UriInfo ui,
-                               @PathParam("actionName") String actionName) {
-    return handleRequest(headers, body, ui, Request.Type.POST,
-        createActionResource(m_clusterName, m_serviceName, actionName));
+   @POST
+   @Path("{actionName}")
+   @Produces("text/plain")
+   public Response createActionDefinition(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                                 @PathParam("actionName") String actionName) {
+
+    return handleRequest(headers, body, ui, Request.Type.POST, createActionDefinitionResource(actionName));
   }
 
   /**
-   * Create an action resource instance.
+   * Handles: PUT /actions/{actionName}
+   * Update a specific action definition.
    *
-   * @param clusterName cluster name
-   * @param serviceName service name
+   * @param headers     http headers
+   * @param ui          uri info
    * @param actionName  action name
-   *
-   * @return an action resource instance
+   * @return information regarding the updated action
    */
-  ResourceInstance createActionResource(String clusterName, String serviceName, String actionName) {
-    Map<Resource.Type,String> mapIds = new HashMap<Resource.Type, String>();
-    mapIds.put(Resource.Type.Cluster, clusterName);
-    mapIds.put(Resource.Type.Service, serviceName);
-    mapIds.put(Resource.Type.Action, actionName);
+  @PUT
+  @Path("{actionName}")
+  @Produces("text/plain")
+  public Response updateActionDefinition(String body, @Context HttpHeaders headers, @Context UriInfo ui,
+                                @PathParam("actionName") String actionName) {
 
-    return createResource(Resource.Type.Action, mapIds);
+    return handleRequest(headers, body, ui, Request.Type.PUT, createActionDefinitionResource(actionName));
+  }
+
+  /**
+   * Handles: DELETE /actions/{actionName}
+   * Delete a specific action definition.
+   *
+   * @param headers     http headers
+   * @param ui          uri info
+   * @param actionName  action name
+   * @return information regarding the deleted action definition
+   */
+  @DELETE
+  @Path("{actionName}")
+  @Produces("text/plain")
+  public Response deleteActionDefinition(@Context HttpHeaders headers, @Context UriInfo ui,
+                                @PathParam("actionName") String actionName) {
+    return handleRequest(headers, null, ui, Request.Type.DELETE, createActionDefinitionResource(actionName));
+  }
+
+  /**
+   * Create a action definition resource instance.
+   *
+   * @param actionName action name
+   *
+   * @return a action definition resource instance
+   */
+  ResourceInstance createActionDefinitionResource(String actionName) {
+    return createResource(Resource.Type.Action,
+        Collections.singletonMap(Resource.Type.Action, actionName));
   }
 }

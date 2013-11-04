@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller.internal;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -108,7 +109,7 @@ public class RequestResourceProviderTest {
     Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
     Capture<List<Long>> requestIdListCapture = new Capture<List<Long>>();
 
-    Map<Long, String> requestContexts  = new HashMap<Long, String>();
+    Map<Long, String> requestContexts = new HashMap<Long, String>();
     requestContexts.put(100L, "this is a context");
 
     // set expectations
@@ -161,7 +162,7 @@ public class RequestResourceProviderTest {
     Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
     Capture<List<Long>> requestIdListCapture = new Capture<List<Long>>();
 
-    Map<Long, String> requestContexts  = new HashMap<Long, String>();
+    Map<Long, String> requestContexts = new HashMap<Long, String>();
     requestContexts.put(100L, "this is a context");
 
     // set expectations
@@ -223,10 +224,10 @@ public class RequestResourceProviderTest {
     Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
     Capture<List<Long>> requestIdListCapture = new Capture<List<Long>>();
 
-    Map<Long, String> requestContexts0  = new HashMap<Long, String>();
+    Map<Long, String> requestContexts0 = new HashMap<Long, String>();
     requestContexts0.put(100L, "this is a context");
 
-    Map<Long, String> requestContexts1  = new HashMap<Long, String>();
+    Map<Long, String> requestContexts1 = new HashMap<Long, String>();
     requestContexts1.put(101L, "this is a context");
 
     // set expectations
@@ -305,10 +306,10 @@ public class RequestResourceProviderTest {
     Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
     Capture<List<Long>> requestIdListCapture = new Capture<List<Long>>();
 
-    Map<Long, String> requestContexts0  = new HashMap<Long, String>();
+    Map<Long, String> requestContexts0 = new HashMap<Long, String>();
     requestContexts0.put(100L, "this is a context");
 
-    Map<Long, String> requestContexts1  = new HashMap<Long, String>();
+    Map<Long, String> requestContexts1 = new HashMap<Long, String>();
     requestContexts1.put(101L, "this is a context");
 
     // set expectations
@@ -396,10 +397,10 @@ public class RequestResourceProviderTest {
     Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
     Capture<List<Long>> requestIdListCapture = new Capture<List<Long>>();
 
-    Map<Long, String> requestContexts0  = new HashMap<Long, String>();
+    Map<Long, String> requestContexts0 = new HashMap<Long, String>();
     requestContexts0.put(100L, "this is a context");
 
-    Map<Long, String> requestContexts1  = new HashMap<Long, String>();
+    Map<Long, String> requestContexts1 = new HashMap<Long, String>();
     requestContexts1.put(101L, "this is a context");
 
     // set expectations
@@ -528,5 +529,130 @@ public class RequestResourceProviderTest {
 
     // verify
     verify(managementController);
+  }
+
+  @Test
+  public void testCreateResourcesForCommands() throws Exception {
+    Resource.Type type = Resource.Type.Request;
+
+    Capture<ExecuteActionRequest> actionRequest = new Capture<ExecuteActionRequest>();
+    Capture<HashMap<String, String>> propertyMap = new Capture<HashMap<String, String>>();
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+
+    expect(managementController.createAction(capture(actionRequest), capture(propertyMap)))
+        .andReturn(response).anyTimes();
+
+    // replay
+    replay(managementController);
+
+    // add the property map to a set for the request.  add more maps for multiple creates
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    properties.put(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID, "c1");
+
+    propertySet.add(properties);
+
+    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    requestInfoProperties.put(RequestResourceProvider.SERVICE_NAME_ID, "HDFS");
+    requestInfoProperties.put(RequestResourceProvider.COMMAND_ID, "HDFS_SERVICE_CHECK");
+
+    // create the request
+    Request request = PropertyHelper.getCreateRequest(propertySet, requestInfoProperties);
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+    provider.createResources(request);
+    Assert.assertTrue(actionRequest.hasCaptured());
+    Assert.assertTrue(actionRequest.getValue().isCommand());
+    Assert.assertEquals(null, actionRequest.getValue().getActionName());
+    Assert.assertEquals("HDFS_SERVICE_CHECK", actionRequest.getValue().getCommandName());
+    Assert.assertEquals("HDFS", actionRequest.getValue().getServiceName());
+    Assert.assertEquals(null, actionRequest.getValue().getComponentName());
+    Assert.assertNotNull(actionRequest.getValue().getHosts());
+    Assert.assertEquals(0, actionRequest.getValue().getHosts().size());
+    Assert.assertEquals(0, actionRequest.getValue().getParameters().size());
+  }
+
+  @Test
+  public void testCreateResourcesForCommandsWithParams() throws Exception {
+    Resource.Type type = Resource.Type.Request;
+
+    Capture<ExecuteActionRequest> actionRequest = new Capture<ExecuteActionRequest>();
+    Capture<HashMap<String, String>> propertyMap = new Capture<HashMap<String, String>>();
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+
+    expect(managementController.createAction(capture(actionRequest), capture(propertyMap)))
+        .andReturn(response).anyTimes();
+
+    // replay
+    replay(managementController);
+
+    // add the property map to a set for the request.  add more maps for multiple creates
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    properties.put(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID, "c1");
+
+    propertySet.add(properties);
+
+    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    requestInfoProperties.put(RequestResourceProvider.SERVICE_NAME_ID, "HDFS");
+    requestInfoProperties.put("/parameters/param1", "value1");
+    requestInfoProperties.put("/parameters/param2", "value2");
+    requestInfoProperties.put(RequestResourceProvider.HOSTS_ID, "host1 ,host2, host3 ");
+
+    String[] expectedHosts = new String[]{"host1", "host2", "host3"};
+    Map<String, String> expectedParams = new HashMap<String, String>() {{
+      put("param1", "value1");
+      put("param2", "value2");
+    }};
+
+    // create the request
+    Request request = PropertyHelper.getCreateRequest(propertySet, requestInfoProperties);
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+    // Neither action nor commands are specified
+    try {
+      provider.createResources(request);
+    } catch (UnsupportedOperationException ex) {
+      Assert.assertTrue(ex.getMessage().contains("Either command or action must be specified"));
+    }
+
+    // Both action and command are specified
+    requestInfoProperties.put(RequestResourceProvider.COMMAND_ID, "HDFS_SERVICE_CHECK");
+    requestInfoProperties.put(RequestResourceProvider.ACTION_ID, "a1");
+    try {
+      provider.createResources(request);
+    } catch (UnsupportedOperationException ex) {
+      Assert.assertTrue(ex.getMessage().contains("Both command and action cannot be specified"));
+    }
+    requestInfoProperties.remove(RequestResourceProvider.ACTION_ID);
+
+    provider.createResources(request);
+    Assert.assertTrue(actionRequest.hasCaptured());
+    Assert.assertTrue(actionRequest.getValue().isCommand());
+    Assert.assertEquals(null, actionRequest.getValue().getActionName());
+    Assert.assertEquals("HDFS_SERVICE_CHECK", actionRequest.getValue().getCommandName());
+    Assert.assertEquals("HDFS", actionRequest.getValue().getServiceName());
+    Assert.assertEquals(null, actionRequest.getValue().getComponentName());
+    Assert.assertEquals(3, actionRequest.getValue().getHosts().size());
+    Assert.assertArrayEquals(expectedHosts, actionRequest.getValue().getHosts().toArray());
+    Assert.assertEquals(2, actionRequest.getValue().getParameters().size());
+    for(String key : expectedParams.keySet()) {
+      Assert.assertEquals(expectedParams.get(key), actionRequest.getValue().getParameters().get(key));
+    }
   }
 }

@@ -20,40 +20,52 @@ package org.apache.ambari.server.orm.dao;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
-import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
+import org.apache.ambari.server.orm.entities.ActionEntity;
 
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
+import java.util.List;
 
-@Singleton
-public class ExecutionCommandDAO {
+public class ActionDefinitionDAO {
 
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
   @Transactional
-  public ExecutionCommandEntity findByPK(long taskId) {
-    return entityManagerProvider.get().find(ExecutionCommandEntity.class, taskId);
+  public ActionEntity findByPK(String actionName) {
+    return entityManagerProvider.get().find(ActionEntity.class, actionName);
   }
 
   @Transactional
-  public void create(ExecutionCommandEntity executionCommand) {
-    entityManagerProvider.get().persist(executionCommand);
+  public List<ActionEntity> findAll() {
+    TypedQuery<ActionEntity> query = entityManagerProvider.get().createNamedQuery("allActions",
+        ActionEntity.class);
+    try {
+      return query.getResultList();
+    } catch (NoResultException ignored) {
+    }
+    return null;
   }
 
   @Transactional
-  public ExecutionCommandEntity merge(ExecutionCommandEntity executionCommand) {
-    return entityManagerProvider.get().merge(executionCommand);
+  public void create(ActionEntity actionDefinition) {
+    entityManagerProvider.get().persist(actionDefinition);
   }
 
   @Transactional
-  public void remove(ExecutionCommandEntity executionCommand) {
-    entityManagerProvider.get().remove(merge(executionCommand));
+  public ActionEntity merge(ActionEntity actionDefinition) {
+    return entityManagerProvider.get().merge(actionDefinition);
   }
 
   @Transactional
-  public void removeByPK(long taskId) {
-    remove(findByPK(taskId));
+  public void remove(ActionEntity actionDefinition) {
+    entityManagerProvider.get().remove(merge(actionDefinition));
+  }
+
+  @Transactional
+  public void removeByPK(String actionName) {
+    remove(findByPK(actionName));
   }
 }

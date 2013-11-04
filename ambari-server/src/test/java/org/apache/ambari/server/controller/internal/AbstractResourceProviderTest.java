@@ -202,13 +202,6 @@ public class AbstractResourceProviderTest {
       return null;
     }
 
-    public static Set<ActionRequest> getActionRequestSet(String clusterName, String serviceName, String actionName)
-    {
-      EasyMock.reportMatcher(new ActionRequestSetMatcher(clusterName, serviceName, actionName));
-      return null;
-    }
-
-
     public static Set<HostRequest> getHostRequestSet(String hostname, String clusterName,
                                                      Map<String, String> hostAttributes)
     {
@@ -326,44 +319,6 @@ public class AbstractResourceProviderTest {
     @Override
     public void appendTo(StringBuffer stringBuffer) {
       stringBuffer.append("ConfigurationRequestMatcher(").append(super.toString()).append(")");
-    }
-  }
-
-  /**
-   * Matcher for a ActionRequest set containing a single request.
-   */
-  public static class ActionRequestSetMatcher extends HashSet<ActionRequest> implements IArgumentMatcher {
-
-    private final ActionRequest actionRequest;
-
-    public ActionRequestSetMatcher(String clusterName, String serviceName, String actionName) {
-      this.actionRequest = new ActionRequest(clusterName, serviceName, actionName, null);
-      add(this.actionRequest);
-    }
-
-    @Override
-    public boolean matches(Object o) {
-      if (!(o instanceof Set)) {
-        return false;
-      }
-
-      Set set = (Set) o;
-
-      if (set.size() != 1) {
-        return false;
-      }
-
-      Object request = set.iterator().next();
-
-      return request instanceof ActionRequest &&
-          eq(((ActionRequest) request).getClusterName(), actionRequest.getClusterName()) &&
-          eq(((ActionRequest) request).getServiceName(), actionRequest.getServiceName()) &&
-          eq(((ActionRequest) request).getActionName(), actionRequest.getActionName());
-    }
-
-    @Override
-    public void appendTo(StringBuffer stringBuffer) {
-      stringBuffer.append("ActionRequestSetMatcher(").append(actionRequest).append(")");
     }
   }
 

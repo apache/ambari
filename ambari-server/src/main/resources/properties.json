@@ -85,9 +85,14 @@
         "ConfigGroup/desired_configs"
     ],
     "Action":[
-        "Actions/cluster_name",
-        "Actions/service_name",
         "Actions/action_name",
+        "Actions/action_type",
+        "Actions/inputs",
+        "Actions/target_service",
+        "Actions/target_component",
+        "Actions/description",
+        "Actions/target_type",
+        "Actions/default_timeout",
         "_"
     ],
     "Request":[

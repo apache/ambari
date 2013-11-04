@@ -39,7 +39,7 @@ public interface Resource {
    * each key is the absolute category name and the corresponding
    * value is a map of properties(name/value pairs) for that category.
    *
-   * @return  resource properties map
+   * @return resource properties map
    */
   public Map<String, Map<String, Object>> getPropertiesMap();
 
@@ -54,7 +54,7 @@ public interface Resource {
   /**
    * Add an empty category to this resource.
    *
-   * @param id    the category id
+   * @param id the category id
    */
   public void addCategory(String id);
 

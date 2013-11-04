@@ -43,6 +43,7 @@ import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.ActionResourceProviderTest;
 import org.apache.ambari.server.controller.internal.ComponentResourceProviderTest;
 import org.apache.ambari.server.controller.internal.HostResourceProviderTest;
 import org.apache.ambari.server.controller.internal.ServiceResourceProviderTest;
@@ -3442,16 +3443,104 @@ public class AmbariManagementControllerTest {
 
   @SuppressWarnings("serial")
   @Test
-  public void testGetActions() throws Exception {
-    Set<ActionResponse> responses = controller.getActions(
-        new HashSet<ActionRequest>() {{
-          add(new ActionRequest(null, "HDFS", null, null));
-    }});
+  public void testCreateActionsFailures() throws Exception {
+    clusters.addCluster("c1");
+    clusters.getCluster("c1").setDesiredStackVersion(new StackId("HDP-0.1"));
+    clusters.addHost("h1");
+    clusters.getHost("h1").setOsType("centos5");
+    clusters.getHost("h1").persist();
+    Set<String> hostNames = new HashSet<String>(){{
+      add("h1");
+    }};
 
-    assertFalse(responses.isEmpty());
-    assertEquals(1, responses.size());
-    ActionResponse response = responses.iterator().next();
-    assertEquals(Role.HDFS_SERVICE_CHECK.name(), response.getActionName());
+    clusters.mapHostsToCluster(hostNames, "c1");
+
+    Cluster cluster = clusters.getCluster("c1");
+    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+    cluster.setCurrentStackVersion(new StackId("HDP-0.1"));
+
+    ConfigFactory cf = injector.getInstance(ConfigFactory.class);
+    Config config1 = cf.createNew(cluster, "global",
+        new HashMap<String, String>(){{ put("key1", "value1"); }});
+    config1.setVersionTag("version1");
+
+    Config config2 = cf.createNew(cluster, "core-site",
+        new HashMap<String, String>(){{ put("key1", "value1"); }});
+    config2.setVersionTag("version1");
+
+    cluster.addConfig(config1);
+    cluster.addConfig(config2);
+    cluster.addDesiredConfig("_test", config1);
+    cluster.addDesiredConfig("_test", config2);
+
+    Service hdfs = cluster.addService("HDFS");
+    hdfs.persist();
+
+    hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
+    hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
+    hdfs.addServiceComponent(Role.DATANODE.name()).persist();
+
+    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost("h1").persist();
+    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost("h1").persist();
+    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost("h1").persist();
+
+    Map<String, String> params = new HashMap<String, String>() {{
+      put("test", "test");
+    }};
+    ExecuteActionRequest actionRequest = new ExecuteActionRequest("c1", "NON_EXISTENT_CHECK", "HDFS", params);
+
+    Map<String, String> requestProperties = new HashMap<String, String>();
+    requestProperties.put(REQUEST_CONTEXT_PROPERTY, "Called from a test");
+
+    try {
+      controller.createAction(actionRequest, requestProperties);
+      Assert.fail("createAction should fail for NON_EXISTENT_CHECK");
+    } catch (AmbariException ex) {
+      Assert.assertTrue(ex.getMessage().contains("Unsupported action"));
+    }
+
+    actionRequest = new ExecuteActionRequest("c1", "NON_EXISTENT_SERVICE_CHECK", "HDFS", params);
+    try {
+      controller.createAction(actionRequest, requestProperties);
+      Assert.fail("createAction should fail for NON_EXISTENT_SERVICE_CHECK");
+    } catch (AmbariException ex) {
+      Assert.assertTrue(ex.getMessage().contains("Unsupported action"));
+    }
+
+    actionRequest = new ExecuteActionRequest("c1", "DECOMMISSION_DATANODE", "MAPREDUCE", params);
+    try {
+      controller.createAction(actionRequest, requestProperties);
+      Assert.fail("createAction should fail for DECOMMISSION_DATANODE on MAPREDUCE");
+    } catch (AmbariException ex) {
+      Assert.assertTrue(ex.getMessage().contains("Unsupported action DECOMMISSION_DATANODE for MAPREDUCE"));
+    }
+
+    actionRequest = new ExecuteActionRequest("c1", "DECOMMISSION_DATANODE", "HDFS", params);
+    try {
+      controller.createAction(actionRequest, requestProperties);
+      Assert.fail("createAction should fail for DECOMMISSION_DATANODE on HDFS - no excludeFileTag");
+    } catch (IllegalArgumentException ex) {
+      Assert.assertTrue(ex.getMessage().contains("No exclude file specified when decommissioning datanodes"));
+    }
+
+    params.put("excludeFileTag", "tag1");
+    actionRequest = new ExecuteActionRequest("c1", "DECOMMISSION_DATANODE", "HDFS", params);
+    try {
+      controller.createAction(actionRequest, requestProperties);
+      Assert.fail("createAction should fail for DECOMMISSION_DATANODE on HDFS - no config type hdfs-exclude-file");
+    } catch (AmbariException ex) {
+      Assert.assertTrue(ex.getMessage().contains("Decommissioning datanodes requires the cluster"));
+    }
+
+    actionRequest = new ExecuteActionRequest("c1", null, "DECOMMISSION_DATANODE", "HDFS", null, null, params);
+    try {
+      RequestStatusResponse response = controller.createAction(actionRequest, requestProperties);
+      if (response != null) {
+        Assert.fail("createAction should fail for action DECOMMISSION_DATANODE");
+      }
+    } catch (AmbariException ex) {
+      Assert.assertTrue(ex.getMessage().contains("Invalid action request"));
+    }
   }
 
   @SuppressWarnings("serial")
@@ -3501,17 +3590,15 @@ public class AmbariManagementControllerTest {
     hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost("h1").persist();
     mapReduce.getServiceComponent(Role.MAPREDUCE_CLIENT.name()).addServiceComponentHost("h2").persist();
 
-    Set<ActionRequest> actionRequests = new HashSet<ActionRequest>();
-    Map<String, String> params = new HashMap<String, String>(){{
+    Map<String, String> params = new HashMap<String, String>() {{
       put("test", "test");
     }};
-    ActionRequest actionRequest = new ActionRequest("c1", "HDFS", Role.HDFS_SERVICE_CHECK.name(), params);
-    actionRequests.add(actionRequest);
-    
+    ExecuteActionRequest actionRequest = new ExecuteActionRequest("c1", Role.HDFS_SERVICE_CHECK.name(), "HDFS", params);
+
     Map<String, String> requestProperties = new HashMap<String, String>();
     requestProperties.put(REQUEST_CONTEXT_PROPERTY, "Called from a test");
 
-    RequestStatusResponse response = controller.createActions(actionRequests, requestProperties);
+    RequestStatusResponse response = controller.createAction(actionRequest, requestProperties);
     
     assertEquals(1, response.getTasks().size());
     ShortTaskStatus task = response.getTasks().get(0);
@@ -3534,26 +3621,26 @@ public class AmbariManagementControllerTest {
     assertEquals(task.getTaskId(), hostRoleCommand.getTaskId());
     assertEquals(actionRequest.getServiceName(), hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getServiceName());
     assertEquals(actionRequest.getClusterName(), hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getClusterName());
-    assertEquals(actionRequest.getActionName(), hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getRole());
+    assertEquals(actionRequest.getCommandName(), hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getRole());
     assertEquals(Role.HDFS_CLIENT.name(), hostRoleCommand.getEvent().getEvent().getServiceComponentName());
     assertEquals(actionRequest.getParameters(), hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getRoleParams());
     assertNotNull(hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getConfigurations());
     assertEquals(2, hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getConfigurations().size());
     assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), stage.getRequestContext());
-    actionRequests.add(new ActionRequest("c1", "MAPREDUCE", Role.MAPREDUCE_SERVICE_CHECK.name(), null));
+    actionRequest = new ExecuteActionRequest("c1", Role.MAPREDUCE_SERVICE_CHECK.name(), "MAPREDUCE", null);
 
-    response = controller.createActions(actionRequests, requestProperties);
+    response = controller.createAction(actionRequest, requestProperties);
 
-    assertEquals(2, response.getTasks().size());
+    assertEquals(1, response.getTasks().size());
 
     List<HostRoleCommand> tasks = actionDB.getRequestTasks(response.getRequestId());
 
-    assertEquals(2, tasks.size());
+    assertEquals(1, tasks.size());
 
     requestProperties.put(REQUEST_CONTEXT_PROPERTY, null);
-    response = controller.createActions(actionRequests, requestProperties);
+    response = controller.createAction(actionRequest, requestProperties);
 
-    assertEquals(2, response.getTasks().size());
+    assertEquals(1, response.getTasks().size());
   }
 
   private void createUser(String userName) throws Exception {
@@ -5038,12 +5125,11 @@ public class AmbariManagementControllerTest {
     }
     Assert.assertEquals("Expect only one service check.", 1, commandCount);
 
-    Set<ActionRequest> actionRequests = new HashSet<ActionRequest>();
-    ActionRequest actionRequest = new ActionRequest("foo1", "HDFS", Role.HDFS_SERVICE_CHECK.name(), null);
-    actionRequests.add(actionRequest);
+    ExecuteActionRequest actionRequest = new ExecuteActionRequest("foo1", Role.HDFS_SERVICE_CHECK.name(),
+        null, "HDFS", null, null, null);
     Map<String, String> requestProperties = new HashMap<String, String>();
 
-    RequestStatusResponse response = controller.createActions(actionRequests, requestProperties);
+    RequestStatusResponse response = controller.createAction(actionRequest, requestProperties);
     commands = actionDB.getRequestTasks(response.getRequestId());
     commandCount = 0;
     for(HostRoleCommand command : commands) {
@@ -5058,7 +5144,7 @@ public class AmbariManagementControllerTest {
     // When both are unhealthy then just pick one
     clusters.getHost("h3").setState(HostState.WAITING_FOR_HOST_STATUS_UPDATES);
     clusters.getHost("h2").setState(HostState.INIT);
-    response = controller.createActions(actionRequests, requestProperties);
+    response = controller.createAction(actionRequest, requestProperties);
     commands = actionDB.getRequestTasks(response.getRequestId());
     commandCount = 0;
     for(HostRoleCommand command : commands) {
@@ -5436,19 +5522,16 @@ public class AmbariManagementControllerTest {
     Service s = cluster.getService(serviceName);
     Assert.assertEquals(State.STARTED, s.getDesiredState());
 
-    Set<ActionRequest> requests = new HashSet<ActionRequest>();
     Map<String, String> params = new HashMap<String, String>(){{
       put("test", "test");
+      put("excludeFileTag", "tag1");
     }};
-    ActionRequest request = new ActionRequest(clusterName, "HDFS",
-      Role.DECOMMISSION_DATANODE.name(), params);
-    params.put("excludeFileTag", "tag1");
-    requests.add(request);
+    ExecuteActionRequest request = new ExecuteActionRequest(clusterName, Role.DECOMMISSION_DATANODE.name(), "HDFS", params);
 
     Map<String, String> requestProperties = new HashMap<String, String>();
     requestProperties.put(REQUEST_CONTEXT_PROPERTY, "Called from a test");
 
-    RequestStatusResponse response = controller.createActions(requests,
+    RequestStatusResponse response = controller.createAction(request,
       requestProperties);
 
     List<HostRoleCommand> storedTasks = actionDB.getRequestTasks(response.getRequestId());
@@ -7488,8 +7571,8 @@ public class AmbariManagementControllerTest {
 
       amc.createHostComponents(componentHostRequests);
 
-      ActionRequest ar = new ActionRequest(CLUSTER_NAME, "HDFS", Role.HDFS_SERVICE_CHECK.name(), new HashMap<String, String>());
-      amc.createActions(Collections.singleton(ar), null);
+      ExecuteActionRequest ar = new ExecuteActionRequest(CLUSTER_NAME, Role.HDFS_SERVICE_CHECK.name(), "HDFS", null);
+      amc.createAction(ar, null);
 
       // change mind, delete the cluster
       amc.deleteCluster(cr);
@@ -7802,6 +7885,108 @@ public class AmbariManagementControllerTest {
       org.junit.Assert.assertEquals(1, namenodes2.size());
     } finally {
       injector.getInstance(PersistService.class).stop();
+    }
+  }
+
+ @Test
+ public void testActionDefinitionLifeCycle() throws Exception {
+   ActionRequest createRequest1 =
+       new ActionRequest("a1", "SYSTEM", "fileName", "HDFS", "DATANODE", "Does file exist", "ANY", "100");
+   ActionResourceProviderTest.createAction(controller, createRequest1);
+
+   ActionRequest getAllRequest = ActionRequest.getAllRequest();
+   Set<ActionResponse> responses = ActionResourceProviderTest.getActions(controller,
+       Collections.singleton(getAllRequest));
+   Assert.assertEquals(1, responses.size());
+
+   ActionRequest createRequest2 =
+       new ActionRequest("a2", "USER", "fileName", "YARN", "NODEMANAGER", "Does file exist", "ANY", "100");
+   ActionResourceProviderTest.createAction(controller, createRequest2);
+
+   responses = ActionResourceProviderTest.getActions(controller, Collections.singleton
+       (getAllRequest));
+   Assert.assertEquals(2, responses.size());
+
+   ActionRequest updateRequest =
+       new ActionRequest("a2", "USER", null, null, null, "Does file really exist", "ANY", "100");
+   RequestStatusResponse response = ActionResourceProviderTest.updateAction(controller,
+       Collections.singleton(updateRequest), null);
+   Assert.assertNull(response);
+
+   ActionRequest getOneRequest =
+       new ActionRequest("a2", null, null, null, null, null, null, null);
+   responses = ActionResourceProviderTest.getActions(controller, Collections.singleton
+       (getOneRequest));
+   Assert.assertEquals(1, responses.size());
+   Assert.assertEquals("Does file really exist", responses.iterator().next().getDescription());
+
+   ActionResourceProviderTest.deleteAction(controller, getOneRequest);
+   responses = ActionResourceProviderTest.getActions(controller, Collections.singleton
+       (getOneRequest));
+   Assert.assertEquals(0, responses.size());
+ }
+
+  @Test
+  public void testActionDefinitionErrors() throws Exception {
+    ActionRequest createRequest =
+        new ActionRequest(null, "SYSTEM", "fileName", "HDFS", "DATANODE", "Does file exist", "ANY", "100");
+    try {
+      ActionResourceProviderTest.createAction(controller, createRequest);
+      Assert.fail("Exception must be thrown");
+    } catch (Exception ex) {
+      LOG.info(ex.getMessage());
+      Assert.assertTrue(ex.getMessage().contains("Action name should be provided"));
+    }
+
+    createRequest =
+        new ActionRequest("a1", "SYSTEM", "fileName", "HDFS", "DATANODE", "Does file exist", "ANY", "10000");
+    try {
+      ActionResourceProviderTest.createAction(controller, createRequest);
+      Assert.fail("Exception must be thrown");
+    } catch (Exception ex) {
+      LOG.info(ex.getMessage());
+      Assert.assertTrue(ex.getMessage().contains("Default timeout should be between 60 and 600"));
+    }
+
+    createRequest =
+        new ActionRequest("a1", "Favorite", "", "HDFS", "", "Does file exist", "ANY", "100");
+    try {
+      ActionResourceProviderTest.createAction(controller, createRequest);
+      Assert.fail("Exception must be thrown");
+    } catch (Exception ex) {
+      LOG.info(ex.getMessage());
+      Assert.assertTrue(ex.getMessage().contains("No enum const class"));
+    }
+
+    createRequest =
+        new ActionRequest("a1", "SYSTEM", "", "HDFS", "", "", "ANY", "100");
+    try {
+      ActionResourceProviderTest.createAction(controller, createRequest);
+      Assert.fail("Exception must be thrown");
+    } catch (Exception ex) {
+      LOG.info(ex.getMessage());
+      Assert.assertTrue(ex.getMessage().contains("Action description cannot be empty"));
+    }
+
+    createRequest =
+        new ActionRequest("a1", "SYSTEM", "", "HDFS", "", "SS", "ANY", "100");
+    try {
+      ActionResourceProviderTest.createAction(controller, createRequest);
+      ActionResourceProviderTest.createAction(controller, createRequest);
+      Assert.fail("Exception must be thrown");
+    } catch (Exception ex) {
+      LOG.info(ex.getMessage());
+      Assert.assertTrue(ex.getMessage().contains("Action definition a1 already exists"));
+    }
+
+    createRequest =
+        new ActionRequest("a1", "SYSTEM", "", "HDFS", "", "SS", "Any", "100");
+    try {
+      ActionResourceProviderTest.createAction(controller, createRequest);
+      Assert.fail("Exception must be thrown");
+    } catch (Exception ex) {
+      LOG.info(ex.getMessage());
+      Assert.assertTrue(ex.getMessage().contains("No enum const class"));
     }
   }
 

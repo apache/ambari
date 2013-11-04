@@ -75,14 +75,16 @@ var urls = {
     }
   },
   'service.item.smoke': {
-    'real': '/clusters/{clusterName}/services/{serviceName}/actions/{actionName}',
+    'real': '/clusters/{clusterName}/requests',
     'mock': '/data/wizard/deploy/poll_1.json',
     'format': function (data) {
       return {
         'type': 'POST',
         data: JSON.stringify({
           RequestInfo: {
-            "context": data.displayName + " Smoke Test"
+            "context": data.displayName + " Smoke Test",
+            "command" : data.actionName,
+            "service_name" : data.serviceName
           }
         })
       };

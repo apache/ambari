@@ -16,26 +16,37 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.controller;
+package org.apache.ambari.server.actionmanager;
+
+import org.apache.ambari.server.orm.entities.ActionEntity;
 
 /**
- * Used to perform CRUD operations of Action
+ * The resource describing the definition of an action
  */
-public class ActionRequest {
+public class ActionDefinition {
+  private String actionName;
+  private ActionType actionType;
+  private String inputs;
+  private String targetService;
+  private String targetComponent;
+  private String description;
+  private TargetHostType targetType;
+  private Short defaultTimeout;
 
-  private String actionName;  //CRUD
-  private String actionType;  //C
-  private String inputs;  //C
-  private String targetService;  //C
-  private String targetComponent;  //C
-  private String description;  //CU
-  private String targetType;  //CU
-  private String defaultTimeout;  //CU
-
-  public ActionRequest(
-      String actionName, String actionType, String inputs,
-      String targetService, String targetComponent, String description, String targetType,
-      String defaultTimeout) {
+  /**
+   * Create an instance of ActionDefinition
+   * @param actionName      The name of the action
+   * @param actionType      The type fo the action
+   * @param inputs          Expected input of the action
+   * @param targetService   Target service type (e.g. HDFS)
+   * @param targetComponent Target component type (e.g. DATANODE)
+   * @param description     Short description of the action
+   * @param targetType      Selection criteria for target hosts
+   * @param defaultTimeout  The timeout value for this action when executed
+   */
+  public ActionDefinition(String actionName, ActionType actionType, String inputs,
+                          String targetService, String targetComponent, String description,
+                          TargetHostType targetType, Short defaultTimeout) {
     setActionName(actionName);
     setActionType(actionType);
     setInputs(inputs);
@@ -47,12 +58,18 @@ public class ActionRequest {
   }
 
   /**
-   * Create the request to get all defined actions
-   *
-   * @return
+   * Create an instance of ActionDefinition
+   * @param entity  The entity corresponding to the action
    */
-  public static ActionRequest getAllRequest() {
-    return new ActionRequest(null, null, null, null, null, null, null, null);
+  public ActionDefinition(ActionEntity entity) {
+    setActionName(entity.getActionName());
+    setActionType(entity.getActionType());
+    setInputs(entity.getInputs());
+    setTargetService(entity.getTargetService());
+    setTargetComponent(entity.getTargetComponent());
+    setDescription(entity.getDescription());
+    setTargetType(entity.getTargetType());
+    setDefaultTimeout(entity.getDefaultTimeout());
   }
 
   public String getActionName() {
@@ -63,11 +80,11 @@ public class ActionRequest {
     this.actionName = actionName;
   }
 
-  public String getActionType() {
+  public ActionType getActionType() {
     return actionType;
   }
 
-  public void setActionType(String actionType) {
+  public void setActionType(ActionType actionType) {
     this.actionType = actionType;
   }
 
@@ -103,32 +120,19 @@ public class ActionRequest {
     this.description = description;
   }
 
-  public String getTargetType() {
+  public TargetHostType getTargetType() {
     return targetType;
   }
 
-  public void setTargetType(String targetType) {
+  public void setTargetType(TargetHostType targetType) {
     this.targetType = targetType;
   }
 
-  public String getDefaultTimeout() {
+  public Short getDefaultTimeout() {
     return defaultTimeout;
   }
 
-  public void setDefaultTimeout(String defaultTimeout) {
+  public void setDefaultTimeout(Short defaultTimeout) {
     this.defaultTimeout = defaultTimeout;
-  }
-
-  @Override
-  public String toString() {
-    return (new StringBuilder()).
-        append("actionName :" + actionName).
-        append(", actionType :" + actionType).
-        append(", inputs :" + inputs).
-        append(", targetService :" + targetService).
-        append(", targetComponent :" + targetComponent).
-        append(", description :" + description).
-        append(", targetType :" + targetType).
-        append(", defaultTimeout :" + defaultTimeout).toString();
   }
 }

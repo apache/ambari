@@ -228,26 +228,14 @@ public interface AmbariManagementController {
   /**
    * Create the action defined by the attributes in the given request object.
    *
-   * @param request the request object which defines the action to be created
+   * @param actionRequest the request object which defines the action to be created
    * @param requestProperties the request properties
    *
    * @throws AmbariException thrown if the action cannot be created
    */
-  public RequestStatusResponse createActions(Set<ActionRequest> request, Map<String, String> requestProperties)
+  public RequestStatusResponse createAction(ExecuteActionRequest actionRequest, Map<String, String> requestProperties)
       throws AmbariException;
   
-  /**
-   * Get the actions identified by the given request objects.
-   *
-   * @param request  the request objects which identify the actions to be returned
-   *
-   * @return a set of actions responses
-   *
-   * @throws AmbariException thrown if the resource cannot be read
-   */
-  public Set<ActionResponse> getActions(Set<ActionRequest> request)
-      throws AmbariException;
-
   /**
    * Get supported stacks.
    * 

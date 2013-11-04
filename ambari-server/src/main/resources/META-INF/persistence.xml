@@ -41,6 +41,7 @@
     <class>org.apache.ambari.server.orm.entities.ConfigGroupEntity</class>
     <class>org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity</class>
     <class>org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ActionEntity</class>
 
     <properties>
       <!--<property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost/ambari" />-->
@@ -77,6 +78,7 @@
     <!--<class>org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity</class>-->
     <!--<class>org.apache.ambari.server.orm.entities.HostConfigMappingEntity</class>-->
     <!--<class>org.apache.ambari.server.orm.entities.MetainfoEntity</class>-->
+    <!--<class>org.apache.ambari.server.orm.entities.ActionEntity</class>-->
 
     <!--<properties>-->
       <!--<property name="javax.persistence.jdbc.url" value="jdbc:derby:memory:myDB/ambari;create=true" />-->
