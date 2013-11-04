@@ -669,49 +669,55 @@ class HostResourceProvider extends AbstractControllerResourceProvider {
       AmbariManagementController controller     = getManagementController();
       AmbariMetaInfo             ambariMetaInfo = controller.getAmbariMetaInfo();
       Clusters                   clusters       = controller.getClusters();
-      Cluster                    cluster        = clusters.getCluster(response.getClusterName());
-      StackId                    stackId        = cluster.getDesiredStackVersion();
+      String                     clusterName    = response.getClusterName();
 
-      ServiceComponentHostRequest request = new ServiceComponentHostRequest(response.getClusterName(),
-          null, null, response.getHostname(), null, null);
+      if (clusterName != null && clusterName.length() > 0) {
+        Cluster cluster = clusters.getCluster(clusterName);
+        if (cluster != null) {
+          StackId  stackId = cluster.getDesiredStackVersion();
 
-      Set<ServiceComponentHostResponse> hostComponentResponses =
-          controller.getHostComponents(Collections.singleton(request));
+          ServiceComponentHostRequest request = new ServiceComponentHostRequest(clusterName,
+              null, null, response.getHostname(), null, null);
 
-      int masterCount    = 0;
-      int mastersRunning = 0;
-      int slaveCount     = 0;
-      int slavesRunning  = 0;
+          Set<ServiceComponentHostResponse> hostComponentResponses =
+              controller.getHostComponents(Collections.singleton(request));
 
-      for (ServiceComponentHostResponse hostComponentResponse : hostComponentResponses ) {
-        ComponentInfo componentInfo = ambariMetaInfo.getComponentCategory(stackId.getStackName(),
-            stackId.getStackVersion(), hostComponentResponse.getServiceName(),
-            hostComponentResponse.getComponentName());
+          int masterCount    = 0;
+          int mastersRunning = 0;
+          int slaveCount     = 0;
+          int slavesRunning  = 0;
 
-        if (componentInfo != null) {
-          String category = componentInfo.getCategory();
-          String state    = hostComponentResponse.getLiveState();
+          for (ServiceComponentHostResponse hostComponentResponse : hostComponentResponses ) {
+            ComponentInfo componentInfo = ambariMetaInfo.getComponentCategory(stackId.getStackName(),
+                stackId.getStackVersion(), hostComponentResponse.getServiceName(),
+                hostComponentResponse.getComponentName());
 
-          if (category.equals("MASTER")) {
-            ++masterCount;
-            if (state.equals("STARTED")) {
-              ++mastersRunning;
-            }
-          } else if (category.equals("SLAVE")) {
-            ++slaveCount;
-            if (state.equals("STARTED")) {
-              ++slavesRunning;
+            if (componentInfo != null) {
+              String category = componentInfo.getCategory();
+              String state    = hostComponentResponse.getLiveState();
+
+              if (category.equals("MASTER")) {
+                ++masterCount;
+                if (state.equals("STARTED")) {
+                  ++mastersRunning;
+                }
+              } else if (category.equals("SLAVE")) {
+                ++slaveCount;
+                if (state.equals("STARTED")) {
+                  ++slavesRunning;
+                }
+              }
             }
           }
-        }
-      }
 
-      if (masterCount == mastersRunning && slaveCount == slavesRunning) {
-        healthStatus = HostHealthStatus.HealthStatus.HEALTHY;
-      } else if (masterCount > 0 && mastersRunning < masterCount ) {
-        healthStatus = HostHealthStatus.HealthStatus.UNHEALTHY;
-      } else {
-        healthStatus = HostHealthStatus.HealthStatus.ALERT;
+          if (masterCount == mastersRunning && slaveCount == slavesRunning) {
+            healthStatus = HostHealthStatus.HealthStatus.HEALTHY;
+          } else if (masterCount > 0 && mastersRunning < masterCount ) {
+            healthStatus = HostHealthStatus.HealthStatus.UNHEALTHY;
+          } else {
+            healthStatus = HostHealthStatus.HealthStatus.ALERT;
+          }
+        }
       }
     }
     return healthStatus.toString();
