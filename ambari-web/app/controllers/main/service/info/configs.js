@@ -1343,84 +1343,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   createSiteObj: function (siteName, tagName) {
     var siteObj = this.get('uiConfigs').filterProperty('filename', siteName + '.xml');
     var siteProperties = {};
-    if (siteName == 'oozie-site') {
-      siteObj = this.getOozieSiteObj(siteObj);
-    } else if (siteName == 'hive-site') {
-      siteObj = this.getHiveSiteObj(siteObj);
-    }
     siteObj.forEach(function (_siteObj) {
       siteProperties[_siteObj.name] = App.config.escapeXMLCharacters(_siteObj.value);
       this.recordHostOverride(_siteObj, siteName, tagName, this);
     }, this);
     return {"type": siteName, "tag": tagName, "properties": siteProperties};
-  },
-
-  /**
-   * create site object for Oozie
-   * @param siteObj
-   * @return {Object}
-   */
-  getOozieSiteObj: function (siteObj) {
-    var jdbcUrl = siteObj.findProperty('name', 'oozie.service.JPAService.jdbc.url');
-    var jdbcDriver = siteObj.findProperty('name', 'oozie.service.JPAService.jdbc.driver');
-    var oozieDbName = siteObj.findProperty('name', 'oozie.db.schema.name');
-    var oozieDb = this.get('globalConfigs').findProperty('name', 'oozie_database').value;
-    // oozieHost is undefined if the database is derby
-    var oozieHost = (oozieDb == 'New Derby Database') ? '' : this.get('globalConfigs').findProperty('name', 'oozie_hostname').value;
-    var defaultJdbcUrl;
-
-    switch (oozieDb) {
-      case 'New Derby Database':
-        defaultJdbcUrl = "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true";
-        jdbcDriver.set('value','org.apache.derby.jdbc.EmbeddedDriver');
-        break;
-      case 'Existing MySQL Database':
-        defaultJdbcUrl = "jdbc:mysql://" + oozieHost + "/" + oozieDbName;
-        jdbcDriver.set('value','com.mysql.jdbc.Driver');
-        break;
-      case 'Existing Oracle Database':
-        defaultJdbcUrl = "jdbc:oracle:thin:@//" + oozieHost + ":1521/" + oozieDbName;
-        jdbcDriver.set('value','oracle.jdbc.driver.OracleDriver');
-        break;
-    }
-    // in case the user upgraded from Ambari version <= 1.2.3, they will not have oozie_jdbc_connection_url global
-    var jdbcUrlInGlobal = this.get('globalConfigs').findProperty('name', 'oozie_jdbc_connection_url');
-    jdbcUrl.set('value', jdbcUrlInGlobal ? jdbcUrlInGlobal.value : defaultJdbcUrl);
-    return siteObj;
-  },
-
-  /**
-   * create site object for Hive
-   * @param siteObj
-   * @return {Object}
-   */
-  getHiveSiteObj: function (siteObj) {
-    var jdbcUrl = siteObj.findProperty('name', 'javax.jdo.option.ConnectionURL');
-    var jdbcDriver = siteObj.findProperty('name', 'javax.jdo.option.ConnectionDriverName');
-
-    var hiveDb = this.get('globalConfigs').findProperty('name', 'hive_database').value;
-    var hiveHost = this.get('globalConfigs').findProperty('name', 'hive_hostname').value;
-    var hiveDbName = this.get('globalConfigs').findProperty('name', 'hive_database_name').value;
-    var defaultJdbcUrl;
-
-    switch (hiveDb) {
-      case 'New MySQL Database':
-        defaultJdbcUrl = "jdbc:mysql://" + hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
-        jdbcDriver.set('value',  'com.mysql.jdbc.Driver');
-        break;
-      case 'Existing MySQL Database':
-        defaultJdbcUrl = "jdbc:mysql://" + hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
-        jdbcDriver.set('value',  'com.mysql.jdbc.Driver');
-        break;
-      case 'Existing Oracle Database':
-        defaultJdbcUrl = "jdbc:oracle:thin:@//" + hiveHost + ":1521/" + hiveDbName;
-        jdbcDriver.set('value','oracle.jdbc.driver.OracleDriver');
-        break;
-    }
-    // in case the user upgraded from Ambari <= 1.2.3, they will not have hive_jdbc_connection_url global
-    var jdbcUrlInGlobal = this.get('globalConfigs').findProperty('name', 'hive_jdbc_connection_url');
-    jdbcUrl.set('value', jdbcUrlInGlobal ? jdbcUrlInGlobal.value : defaultJdbcUrl);
-    return siteObj;
   },
 
   /**

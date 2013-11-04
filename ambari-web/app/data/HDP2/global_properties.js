@@ -557,7 +557,6 @@ module.exports =
       "displayType": "masterHost",
       "isOverridable": false,
       "isVisible": true,
-      "isObserved": true,
       "serviceName": "HIVE",
       "category": "Hive Metastore",
       "index": 0

@@ -656,7 +656,6 @@ module.exports =
       "displayType": "masterHost",
       "isOverridable": false,
       "isVisible": true,
-      "isObserved": true,
       "serviceName": "HIVE",
       "category": "Hive Metastore",
       "index": 0
@@ -822,20 +821,6 @@ module.exports =
       "serviceName": "HIVE",
       "category": "Hive Metastore",
       "index": 4
-    },
-    {
-      "id": "puppet var",
-      "name": "hive_jdbc_connection_url",
-      "displayName": "Database URL",
-      "value": "",
-      "defaultValue": "jdbc", // set to a 'jdbc' to not include this in initial error count
-      "description": "The JDBC connection URL to the database",
-      "displayType": "advanced",
-      "isOverridable": false,
-      "isVisible": true,
-      "serviceName": "HIVE",
-      "category": "Hive Metastore",
-      "index": 7
     },
     {
       "id": "puppet var",

@@ -214,32 +214,35 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
   categoryConfigsAll: null,
 
   onOptionsChange: function () {
-    var connectionUrl = this.get('connectionUrl');
-    if (connectionUrl) {
-      if (this.get('serviceConfig.serviceName') === 'HIVE') {
-        switch (this.get('serviceConfig.value')) {
-          case 'New MySQL Database':
-          case 'Existing MySQL Database':
-            connectionUrl.set('value', "jdbc:mysql://" + this.get('hostName') + "/" + this.get('databaseName') + "?createDatabaseIfNotExist=true");
-            break;
-          case 'Existing Oracle Database':
-            connectionUrl.set('value', "jdbc:oracle:thin:@//" + this.get('hostName') + ":1521/" + this.get('databaseName'));
-            break;
+    // The following if condition will be satisfied only for installer wizard flow
+    if (this.get('configs').length) {
+      var connectionUrl = this.get('connectionUrl');
+      if (connectionUrl) {
+        if (this.get('serviceConfig.serviceName') === 'HIVE') {
+          switch (this.get('serviceConfig.value')) {
+            case 'New MySQL Database':
+            case 'Existing MySQL Database':
+              connectionUrl.set('value', "jdbc:mysql://" + this.get('hostName') + "/" + this.get('databaseName') + "?createDatabaseIfNotExist=true");
+              break;
+            case 'Existing Oracle Database':
+              connectionUrl.set('value', "jdbc:oracle:thin:@//" + this.get('hostName') + ":1521/" + this.get('databaseName'));
+              break;
+          }
+        } else if (this.get('serviceConfig.serviceName') === 'OOZIE') {
+          switch (this.get('serviceConfig.value')) {
+            case 'New Derby Database':
+              connectionUrl.set('value', "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true");
+              break;
+            case 'Existing MySQL Database':
+              connectionUrl.set('value', "jdbc:mysql://" + this.get('hostName') + "/" + this.get('databaseName'));
+              break;
+            case 'Existing Oracle Database':
+              connectionUrl.set('value', "jdbc:oracle:thin:@//" + this.get('hostName') + ":1521/" + this.get('databaseName'));
+              break;
+          }
         }
-      } else if (this.get('serviceConfig.serviceName') === 'OOZIE') {
-        switch (this.get('serviceConfig.value')) {
-          case 'New Derby Database':
-            connectionUrl.set('value', "jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true");
-            break;
-          case 'Existing MySQL Database':
-            connectionUrl.set('value', "jdbc:mysql://" + this.get('hostName') + "/" + this.get('databaseName'));
-            break;
-          case 'Existing Oracle Database':
-            connectionUrl.set('value', "jdbc:oracle:thin:@//" + this.get('hostName') + ":1521/" + this.get('databaseName'));
-            break;
-        }
+        connectionUrl.set('defaultValue', connectionUrl.get('value'));
       }
-      connectionUrl.set('defaultValue', connectionUrl.get('value'));
     }
   }.observes('databaseName', 'hostName', 'connectionUrl'),
 
