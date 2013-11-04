@@ -31,6 +31,7 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
     'mapreduce.reduce.memory.mb': null,
     'mapreduce.map.java.opts': null,
     'mapreduce.reduce.java.opts': null,
+    'mapreduce.task.io.sort.mb': null,
     'yarn.app.mapreduce.am.resource.mb': null,
     'yarn.app.mapreduce.am.command-opts': null
   },
@@ -61,110 +62,118 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
    */
   hBaseRam: null,
 
+  GB: 1024,
   /**
    *  Minimum container size (in RAM).
    *  This value is dependent on the amount of RAM available, as in smaller memory nodes the minimum container size should also be smaller
    *
    *  Value in MB!
    */
-  recommendedMinimumContainerSize: function() {
+  recommendedMinimumContainerSize: function () {
     if (!this.clusterDataIsValid()) return null;
     var ram = this.get('clusterData.ram');
-    switch(true) {
-      case (ram < 4*1024): return 256;
-      case (ram >= 4*1024 && ram < 8*1024): return 512;
-      case (ram >= 8*1024 && ram < 24*1024): return 1024;
-      case (ram >= 24*1024):
-      default: return 2048;
+    switch (true) {
+      case (ram <=4 ):
+        return 256;
+      case (ram <= 8):
+        return 512;
+      case (ram <= 24):
+        return 1024;
+      default:
+        return 2048;
     }
   }.property('clusterData.ram'),
 
   /**
    * Maximum number of containers allowed per node
+   * max (2*cores,min (1.8*DISKS,(Total available RAM) / MIN_CONTAINER_SIZE)))
    * min (2*CORES, 1.8*DISKS, (Total available RAM) / MIN_CONTAINER_SIZE)
    */
-  containers: function() {
+  containers: function () {
     if (!this.clusterDataIsValid()) return null;
     var cpu = this.get('clusterData.cpu');
     var disk = this.get('clusterData.disk');
     var ram = this.get('clusterData.ram');
     var containerSize = this.get('recommendedMinimumContainerSize');
     cpu *= 2;
-    disk *= 1.8;
+    disk = Math.ceil(disk * 1.8);
     ram = (ram - this.get('reservedRam'));
     if (this.get('clusterData.hBaseInstalled')) {
       ram -= this.get('hBaseRam')
     }
+    ram *= this.get('GB');
     ram /= containerSize;
-    if (cpu < disk) {
-      if (cpu < ram) {
-        return cpu;
-      }
-      return ram;
-    }
-    else {
-      if (disk < ram) {
-        return parseInt(disk);
-      }
-      return ram;
-    }
-  }.property('clusterData.cpu', 'clusterData.ram', 'clusterData.disk', 'recommendedMinimumContainerSize'),
+    return Math.round(Math.max(cpu, Math.min(disk, ram)));
+  }.property('clusterData.cpu', 'clusterData.ram', 'clusterData.hBaseInstalled', 'clusterData.disk', 'reservedRam', 'hBaseRam', 'recommendedMinimumContainerSize'),
 
   /**
    * amount of RAM per container
-   * RAM-per-container = max(MIN_CONTAINER_SIZE, (Total Available RAM) / containers))
+   * RAM-per-container = abs(MIN_CONTAINER_SIZE, (Total Available RAM) / containers))
    *
    * Value in MB!
    */
-  ramPerContainer: function() {
-    var containerSize = this.get('recommendedMinimumContainerSize');
+  ramPerContainer: function () {
     var containers = this.get('containers');
-    if (!containerSize || !containers) {
-      return null;
-    }
-    var s = this.get('clusterData.ram') - this.get('reservedRam');
+    var ram = this.get('clusterData.ram');
+    ram = (ram - this.get('reservedRam'));
     if (this.get('clusterData.hBaseInstalled')) {
-      s -= this.get('hBaseRam');
+      ram -= this.get('hBaseRam')
     }
-    s /= containers;
-    return (containerSize > s) ? containerSize : s;
-  }.property('recommendedMinimumContainerSize', 'containers'),
+    ram *= this.get('GB');
+    var container_ram = Math.abs(ram / containers);
+    return container_ram > this.get('GB') ? container_ram / (512 * 512) : container_ram;
+  }.property('recommendedMinimumContainerSize', 'containers', 'clusterData.ram', 'clusterData.hBaseInstalled', 'hBaseRam', 'reservedRam'),
+
+  mapMemory: function () {
+    return this.get('ramPerContainer');
+  }.property('ramPerContainer'),
+
+  reduceMemory: function () {
+    var ramPerContainer = this.get('ramPerContainer');
+    return ramPerContainer <= 2048 ? 2 * ramPerContainer : ramPerContainer;
+  }.property('ramPerContainer'),
+
+  amMemeory: function () {
+    return Math.max(this.get('mapMemory'), this.get('reduceMemory'));
+  }.property('mapMemory', 'reduceMemory'),
 
   /**
    * Reserved for HBase and system memory is based on total available memory
    */
-  reservedMemoryRecommendations: function() {
-    var table = [
-      {os:1,hbase:1},
-      {os:2,hbase:1},
-      {os:2,hbase:2},
-      {os:4,hbase:4},
-      {os:6,hbase:8},
-      {os:8,hbase:8},
-      {os:8,hbase:8},
-      {os:12,hbase:16},
-      {os:24,hbase:24},
-      {os:32,hbase:32},
-      {os:64,hbase:64}
-    ];
-    var ram = this.get('clusterData.ram') / 1024;
-    var index = 0;
-    switch (true) {
-      case (ram <= 4): index = 0; break;
-      case (ram > 4 && ram <= 8): index = 1; break;
-      case (ram > 8 && ram <= 16): index = 2; break;
-      case (ram > 16 && ram <= 24): index = 3; break;
-      case (ram > 24 && ram <= 48): index = 4; break;
-      case (ram > 48 && ram <= 64): index = 5; break;
-      case (ram > 64 && ram <= 72): index = 6; break;
-      case (ram > 72 && ram <= 96): index = 7; break;
-      case (ram > 96 && ram <= 128): index = 8; break;
-      case (ram > 128 && ram <= 256): index = 9; break;
-      case (ram > 256 && ram <= 512): index = 10; break;
-      default: index = 10; break;
+
+
+
+  reservedStackRecommendations: function () {
+    var memory = this.get('clusterData.ram');
+    var reservedStack = { 4: 1, 8: 2, 16: 2, 24: 4, 48: 6, 64: 8, 72: 8, 96: 12,
+      128: 24, 256: 32, 512: 64};
+
+    if (memory in reservedStack) {
+      this.set('reservedRam', reservedStack[memory]);
     }
-    this.set('reservedRam', table[index].os * 1024);
-    this.set('hBaseRam', table[index].hbase * 1024);
+    if (memory <= 4)
+      this.set('reservedRam', 1);
+    else if (memory >= 512)
+      this.set('reservedRam', 64);
+    else
+      this.set('reservedRam', 1);
+  }.observes('clusterData.ram'),
+
+  hbaseMemRecommendations: function () {
+    var memory = this.get('clusterData.ram');
+    var reservedHBase = {4:1, 8:1, 16:2, 24:4, 48:8, 64:8, 72:8, 96:16,
+      128:24, 256:32, 512:64};
+
+    if (memory in reservedHBase) {
+      this.set('reservedRam', reservedHBase[memory]);
+    }
+    if (memory <= 4)
+      this.set('hBaseRam', 1);
+    else if (memory >= 512)
+      this.set('hBaseRam', 64);
+    else
+      this.set('hBaseRam', 2);
+
   }.observes('clusterData.ram'),
 
   /**
@@ -198,20 +207,21 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
    *  </code>
    * @return {object}
    */
-  getDefaults: function(localDB) {
+  getDefaults: function (localDB) {
     this._super();
     this.getClusterData(localDB);
     var configs = {};
     jQuery.extend(configs, this.get('configsTemplate'));
-    configs['yarn.nodemanager.resource.memory-mb'] = this.get('containers') * this.get('ramPerContainer');
-    configs['yarn.scheduler.minimum-allocation-mb'] = this.get('ramPerContainer');
-    configs['yarn.scheduler.maximum-allocation-mb'] = this.get('containers') * this.get('ramPerContainer');
-    configs['mapreduce.map.memory.mb'] = this.get('ramPerContainer');
-    configs['mapreduce.reduce.memory.mb'] = 2 * this.get('ramPerContainer');
-    configs['mapreduce.map.java.opts'] = Math.round(0.8 * this.get('ramPerContainer'));
-    configs['mapreduce.reduce.java.opts'] = Math.round(0.8 *2 * this.get('ramPerContainer'));
-    configs['yarn.app.mapreduce.am.resource.mb'] = 2 * this.get('ramPerContainer');
-    configs['yarn.app.mapreduce.am.command-opts'] = Math.round(0.8 * 2 * this.get('ramPerContainer'));
+    configs['yarn.nodemanager.resource.memory-mb'] = Math.round(this.get('containers') * this.get('ramPerContainer'));
+    configs['yarn.scheduler.minimum-allocation-mb'] = Math.round(this.get('ramPerContainer'));
+    configs['yarn.scheduler.maximum-allocation-mb'] = Math.round(this.get('containers') * this.get('ramPerContainer'));
+    configs['yarn.app.mapreduce.am.resource.mb'] = Math.round(this.get('amMemory'));
+    configs['yarn.app.mapreduce.am.command-opts'] = Math.round(0.8 * this.get('amMemory'));
+    configs['mapreduce.map.memory.mb'] = Math.round(this.get('mapMemory'));
+    configs['mapreduce.reduce.memory.mb'] = Math.round(this.get('reduceMemory'));
+    configs['mapreduce.map.java.opts'] = Math.round(0.8 * this.get('mapMemory'));
+    configs['mapreduce.reduce.java.opts'] = Math.round(0.8 * this.get('reduceMemory'));
+    configs['mapreduce.task.io.sort.mb'] = Math.round(0.4 * this.get('mapMemory'));
     return configs;
   },
 
@@ -219,13 +229,13 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
    * Calculate needed cluster data (like disk count, cpu count, ram (in MB!) and hbase availability)
    * @param {object} localDB Object with information about hosts and master/slave components
    */
-  getClusterData: function(localDB) {
+  getClusterData: function (localDB) {
     this._super();
-    var components = ['RESOURCEMANAGER', 'NODEMANAGER'];
+    var components = ['NODEMANAGER'];
     var hosts = [];
     if (!localDB.hosts || !(localDB.masterComponentHosts || localDB.slaveComponentHosts)) return;
     var hBaseInstalled = !!localDB.masterComponentHosts.filterProperty('component', 'HBASE_MASTER').length;
-    components.forEach(function(component) {
+    components.forEach(function (component) {
       var mc = localDB.masterComponentHosts.findProperty('component', component);
       if (mc) {
         if (!hosts.contains(mc.hostName)) {
@@ -235,7 +245,7 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
       else {
         var sc = localDB.slaveComponentHosts.findProperty('componentName', component);
         if (sc) {
-          sc.hosts.map(function(host) {
+          sc.hosts.map(function (host) {
             if (!hosts.contains(host.hostName)) {
               hosts.push(host.hostName);
             }
@@ -249,23 +259,29 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
       ram: 0,
       hBaseInstalled: hBaseInstalled
     };
-    hosts.forEach(function(hostName) {
-      var host = localDB.hosts[hostName];
-      if (host) {
-        clusterData.cpu += parseInt(host.cpu);
-        clusterData.disk += host.disk_info.length;
-        clusterData.ram += Math.round(parseFloat(host.memory) / 1024);
-      }
-    });
+    var host = hosts[0] && localDB.hosts[hosts[0]];
+    if (host) {
+      clusterData.cpu = parseInt(host.cpu);
+      invalidMountPoints= ['/homes/','/dev/','/tmp/'];
+      var length = 0;
+      host.disk_info.forEach(function(disk) {
+        //invalid mountpoints
+        if (!(disk.mountpoint.startsWith('/homes/') || disk.mountpoint.startsWith('/dev/') || disk.mountpoint.startsWith('/tmp/'))) {
+          length++;
+        }
+      },this);
+      clusterData.disk = length;
+      clusterData.ram = Math.round(parseFloat(host.memory) / (1024 * 1024));
+    }
     this.set('clusterData', clusterData);
   },
 
   /**
    * Verify <code>clusterData</code> - check if all properties are defined
    */
-  clusterDataIsValid: function() {
+  clusterDataIsValid: function () {
     if (!this.get('clusterData')) return false;
-    if (this.get('clusterData.ram') == null || this.get('clusterData.cpu') == null || this.get('clusterData.disk') == null  || this.get('clusterData.hBaseInstalled') == null) return false;
+    if (this.get('clusterData.ram') == null || this.get('clusterData.cpu') == null || this.get('clusterData.disk') == null || this.get('clusterData.hBaseInstalled') == null) return false;
     return true;
   }
 

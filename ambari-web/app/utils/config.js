@@ -365,6 +365,7 @@ App.config = Em.Object.create({
         configData.filename = stored.filename;
         configData.description = stored.description;
       } else if (!preDefined && stored) {
+
         configData = {
           id: stored.id,
           name: stored.name,
@@ -465,9 +466,10 @@ App.config = Em.Object.create({
    * @param allInstalledServiceNames
    * @param selectedServiceNames
    * @param localDB
+   * @param storedConfigs
    * @return {Array}
    */
-  renderConfigs: function (configs, storedConfigs, allInstalledServiceNames, selectedServiceNames) {
+  renderConfigs: function (configs, storedConfigs, allInstalledServiceNames, selectedServiceNames, localDB, storedConfigs) {
     var renderedServiceConfigs = [];
     var localDB = {
       hosts: App.db.getHosts(),
@@ -505,7 +507,8 @@ App.config = Em.Object.create({
       serviceConfig.set('showConfig', service.showConfig);
 
       // Use calculated default values for some configs
-      if (service.defaultsProviders) {
+
+      if (!storedConfigs && service.defaultsProviders)  {
         service.defaultsProviders.forEach(function(defaultsProvider) {
           var defaults = defaultsProvider.getDefaults(localDB);
           for(var name in defaults) {

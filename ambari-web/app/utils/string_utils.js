@@ -107,7 +107,7 @@ module.exports = {
   },
 
   isSingleLine: function(string){
-    return string.trim().indexOf("\n") == -1;
+    return String(string).trim().indexOf("\n") == -1;
   },
   /**
    * transform array of objects into CSV format content
