@@ -1005,7 +1005,7 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "print_warning_msg")
   @patch.object(ambari_server, "get_YN_input")
   def test_check_iptables_is_running(self, get_YN_input_mock, print_warning_msg, run_os_command_mock):
-    run_os_command_mock.return_value = (0, "Table: filter", "")
+    run_os_command_mock.return_value = (0, "", "")
     get_YN_input_mock.side_effect = [True]
     ambari_server.check_iptables()
     self.assertEqual(print_warning_msg.call_args_list[0][0][0],
@@ -1016,7 +1016,7 @@ class TestAmbariServer(TestCase):
   @patch.object(ambari_server, "run_os_command")
   @patch.object(ambari_server, "print_warning_msg")
   def test_check_iptables_is_not_running(self, print_warning_msg, run_os_command_mock):
-    run_os_command_mock.return_value = (3, ambari_server.IP_TBLS_IS_NOT_RUNNING, "")
+    run_os_command_mock.return_value = (3, "", "")
     ambari_server.check_iptables()
 
     self.assertFalse(print_warning_msg.called)

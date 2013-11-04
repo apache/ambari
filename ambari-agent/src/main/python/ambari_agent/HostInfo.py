@@ -107,12 +107,10 @@ class HostInfo:
   # service cmd
   SERVICE_CMD = "/sbin/service"
   FIREWALL_SERVICE_NAME = "iptables"
-  FIREWALL_IS_NOT_RUNNING_MSG = "iptables: Firewall is not running."
   # on ubuntu iptables service is called ufw
   if OS_NAME == OS_UBUNTU:
     SERVICE_CMD = "/usr/sbin/service"
     FIREWALL_SERVICE_NAME = "ufw"
-    FIREWALL_IS_NOT_RUNNING_MSG = "ufw stop/waiting"
 
   FIREWALL_STATUS_CMD = "%s %s status" % (SERVICE_CMD, FIREWALL_SERVICE_NAME)
   event = threading.Event()
@@ -288,8 +286,8 @@ class HostInfo:
     iptablesIsRunning = False
     try:
       iptables = subprocess.Popen(self.FIREWALL_STATUS_CMD.split(), stdout=subprocess.PIPE)
-      iptablesOut = iptables.communicate()[0]
-      if iptablesOut and len(iptablesOut) > 0 and not iptablesOut.strip() == self.FIREWALL_IS_NOT_RUNNING_MSG:
+      iptables.communicate()
+      if iptables.returncode == 0:
         iptablesIsRunning = True
     except:
       pass

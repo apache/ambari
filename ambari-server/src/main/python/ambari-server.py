@@ -233,11 +233,9 @@ PG_SERVICE_NAME = "postgresql"
 PG_HBA_DIR = "/var/lib/pgsql/data"
 # iptables commands
 FIREWALL_SERVICE_NAME = "iptables"
-IP_TBLS_IS_NOT_RUNNING = "iptables: Firewall is not running."
 # on ubuntu iptables service is called ufw and other changes
 if OS == OS_UBUNTU:
   FIREWALL_SERVICE_NAME = "ufw"
-  IP_TBLS_IS_NOT_RUNNING = "ufw stop/waiting"
   PG_HBA_DIR = '/etc/postgresql/8.4/main'
   SERVICE_CMD = "/usr/sbin/service"
 
@@ -784,7 +782,7 @@ def check_iptables():
   if err and len(err) > 0:
     print err
 
-  if out and len(out) > 0 and not out.strip() == IP_TBLS_IS_NOT_RUNNING:
+  if retcode == 0:
     print_warning_msg("%s is running. Confirm the necessary Ambari ports are accessible. " % FIREWALL_SERVICE_NAME +
       "Refer to the Ambari documentation for more details on ports.")
     ok = get_YN_input("OK to continue [y/n] (y)? ", True)

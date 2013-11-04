@@ -516,18 +516,13 @@ class TestHostInfo(TestCase):
   def test_checkIptables(self, subproc_popen_mock):
     hostInfo = HostInfo()
     p = MagicMock()
-    p.communicate.return_value = ['Table: filter']
+    p.returncode = 0
     subproc_popen_mock.return_value = p
     result = hostInfo.checkIptables()
 
     self.assertTrue(result)
 
-    p.communicate.return_value = ['']
-    result = hostInfo.checkIptables()
-
-    self.assertFalse(result)
-
-    p.communicate.return_value = ['iptables: Firewall is not running.']
+    p.returncode = 1
     result = hostInfo.checkIptables()
 
     self.assertFalse(result)
