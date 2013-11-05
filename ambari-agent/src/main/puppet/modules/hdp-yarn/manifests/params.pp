@@ -29,6 +29,9 @@ class hdp-yarn::params(
   $security_enabled = $hdp::params::security_enabled
   $smoke_user_keytab = $hdp::params::smokeuser_keytab
   $kinit_cmd = "${hdp::params::kinit_path_local} -kt ${smoke_user_keytab} ${smoke_test_user};"
+  $rm_host = $hdp::params::rm_host
+  $rm_port = $hdp::params::rm_port
+  $rm_https_port = $hdp::params::rm_https_port
 
   ## yarn-env 
   $hadoop_libexec_dir = $hdp-hadoop::params::hadoop_libexec_dir
@@ -41,8 +44,8 @@ class hdp-yarn::params(
   $yarn_pid_dir_prefix = hdp_default("yarn_pid_dir_prefix","/var/run/hadoop-yarn")
   
   ## yarn-site
-  $rm_webui_address = hdp_default("yarn-site/yarn.resourcemanager.webapp.address", "0.0.0.0:8088")
-  $rm_webui_https_address = hdp_default("yarn-site/yarn.resourcemanager.webapp.https.address", "0.0.0.0:8090")
+  $rm_webui_address = "${rm_host}:${rm_port}"
+  $rm_webui_https_address = "${rm_host}:${rm_https_port}"
   $nm_webui_address = hdp_default("yarn-site/yarn.nodemanager.webapp.address", "0.0.0.0:8042")
   $hs_webui_address = hdp_default("mapred-site/mapreduce.jobhistory.webapp.address", "0.0.0.0:19888")
   
