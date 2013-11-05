@@ -306,6 +306,14 @@ module.exports = [
     "serviceName": "HIVE"
   },
   {
+    "name": "hive.security.authorization.enabled",
+    "templateName": [],
+    "foreignKey": null,
+    "value": "true",
+    "filename": "hive-site.xml",
+    "serviceName": "HIVE"
+  },
+  {
     "name": "hive.server2.authentication",
     "templateName": [],
     "foreignKey": null,
