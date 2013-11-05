@@ -46,15 +46,14 @@ App.Host = DS.Model.extend({
 
   cpuUsage: function () {
     if (this.get('cpuSystem') && this.get('cpu_user')) {
-      return (this.get('cpuSystem') + this.get('cpu_user')).toFixed(1);
+      return this.get('cpuSystem') + this.get('cpu_user');
     }
   }.property('cpuSystem', 'cpuUser'),
 
   memoryUsage: function () {
     if (this.get('memFree') && this.get('memTotal')) {
       var memUsed = this.get('memTotal') - this.get('memFree');
-      var memUsedPercent = (100 * memUsed) / this.get('memTotal');
-      return memUsedPercent.toFixed(1);
+      return (100 * memUsed) / this.get('memTotal');
     }
   }.property('memTotal', 'memFree'),
 
