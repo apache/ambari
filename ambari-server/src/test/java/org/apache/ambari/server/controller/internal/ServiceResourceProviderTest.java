@@ -22,6 +22,8 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.ServiceComponentHostRequest;
+import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.ServiceRequest;
 import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -32,6 +34,7 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -147,6 +150,8 @@ public class ServiceResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(managementController.getServiceFactory()).andReturn(serviceFactory).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).
+        andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
@@ -321,6 +326,11 @@ public class ServiceResourceProviderTest {
     mapRequestProps.put("context", "Called from a test");
 
     // set expectations
+    expect(managementController1.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).
+        andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
+    expect(managementController2.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).
+        andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
+
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
     expect(managementController1.getClusters()).andReturn(clusters).anyTimes();
@@ -471,6 +481,384 @@ public class ServiceResourceProviderTest {
 
     unsupported = provider.checkPropertyIds(Collections.singleton("config/unknown_property"));
     Assert.assertTrue(unsupported.isEmpty());
+  }
+
+  @Test
+  public void testDefaultServiceState_STARTED() throws Exception{
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    StackId stackId = createNiceMock(StackId.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "JOBTRACKER", "Host100", null, null, "STARTED", "", null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "MAPREDUCE_CLIENT", "Host100", null, null, "STARTED", "", null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "TASKTRACKER", "Host100", null, null, "STARTED", "", null, null);
+
+    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
+    responses.add(shr1);
+    responses.add(shr2);
+    responses.add(shr3);
+
+    // set expectations
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+
+    expect(stackId.getStackName()).andReturn("S1").anyTimes();
+    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
+
+
+    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
+
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(false);
+    expect(componentInfo.isMaster()).andReturn(false);
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+
+    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.DefaultServiceState();
+
+    State state = serviceState.getState(managementController, "C1", "MAPREDUCE");
+    Assert.assertEquals(State.STARTED, state);
+
+    // verify
+    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+  }
+
+  @Test
+  public void testDefaultServiceState_UNKNOWN() throws Exception{
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    StackId stackId = createNiceMock(StackId.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "JOBTRACKER", "Host100", null, null, "UNKNOWN", "", null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "MAPREDUCE_CLIENT", "Host100", null, null, "STARTED", "", null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "TASKTRACKER", "Host100", null, null, "STARTED", "", null, null);
+
+    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
+    responses.add(shr1);
+    responses.add(shr2);
+    responses.add(shr3);
+
+    // set expectations
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+
+    expect(stackId.getStackName()).andReturn("S1").anyTimes();
+    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
+
+
+    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
+
+    expect(componentInfo.isMaster()).andReturn(true);
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+
+    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.DefaultServiceState();
+
+    State state = serviceState.getState(managementController, "C1", "MAPREDUCE");
+    Assert.assertEquals(State.UNKNOWN, state);
+
+    // verify
+    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+  }
+
+  @Test
+  public void testDefaultServiceState_STARTING() throws Exception{
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    StackId stackId = createNiceMock(StackId.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "JOBTRACKER", "Host100", null, null, "STARTING", "", null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "MAPREDUCE_CLIENT", "Host100", null, null, "STARTED", "", null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "TASKTRACKER", "Host100", null, null, "STARTED", "", null, null);
+
+    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
+    responses.add(shr1);
+    responses.add(shr2);
+    responses.add(shr3);
+
+    // set expectations
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+
+    expect(stackId.getStackName()).andReturn("S1").anyTimes();
+    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
+
+
+    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
+
+    expect(componentInfo.isMaster()).andReturn(true);
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+
+    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.DefaultServiceState();
+
+    State state = serviceState.getState(managementController, "C1", "MAPREDUCE");
+    Assert.assertEquals(State.STARTING, state);
+
+    // verify
+    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+  }
+
+  @Test
+  public void testDefaultServiceState_STOPPED() throws Exception{
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    StackId stackId = createNiceMock(StackId.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "JOBTRACKER", "Host100", null, null, "INSTALLED", "", null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "MAPREDUCE_CLIENT", "Host100", null, null, "STARTED", "", null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "TASKTRACKER", "Host100", null, null, "STARTED", "", null, null);
+
+    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
+    responses.add(shr1);
+    responses.add(shr2);
+    responses.add(shr3);
+
+    // set expectations
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+
+    expect(stackId.getStackName()).andReturn("S1").anyTimes();
+    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
+
+
+    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
+
+    expect(componentInfo.isMaster()).andReturn(true);
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+
+    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.DefaultServiceState();
+
+    State state = serviceState.getState(managementController, "C1", "MAPREDUCE");
+    Assert.assertEquals(State.INSTALLED, state);
+
+    // verify
+    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+  }
+
+  @Test
+  public void testDefaultServiceState_MAINTENANCE() throws Exception{
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    StackId stackId = createNiceMock(StackId.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "JOBTRACKER", "Host100", null, null, "MAINTENANCE", "", null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "MAPREDUCE_CLIENT", "Host100", null, null, "STARTED", "", null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "MAPREDUCE", "TASKTRACKER", "Host100", null, null, "STARTED", "", null, null);
+
+    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
+    responses.add(shr1);
+    responses.add(shr2);
+    responses.add(shr3);
+
+    // set expectations
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+
+    expect(stackId.getStackName()).andReturn("S1").anyTimes();
+    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
+
+
+    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
+
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(false);
+    expect(componentInfo.isMaster()).andReturn(false);
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+
+    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.DefaultServiceState();
+
+    State state = serviceState.getState(managementController, "C1", "MAPREDUCE");
+    Assert.assertEquals(State.STARTED, state);
+
+    // verify
+    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+  }
+
+  @Test
+  public void testHDFSServiceState_STARTED() throws Exception{
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    StackId stackId = createNiceMock(StackId.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HDFS", "NAMENODE", "Host100", null, null, "STARTED", "", null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HDFS", "SECONDARY_NAMENODE", "Host100", null, null, "STARTED", "", null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "HDFS", "JOURNALNODE", "Host100", null, null, "STARTED", "", null, null);
+
+    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
+    responses.add(shr1);
+    responses.add(shr2);
+    responses.add(shr3);
+
+    // set expectations
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+
+    expect(stackId.getStackName()).andReturn("S1").anyTimes();
+    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
+
+
+    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
+
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(true);
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+
+    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.HDFSServiceState();
+
+    State state = serviceState.getState(managementController, "C1", "MAPREDUCE");
+    Assert.assertEquals(State.STARTED, state);
+
+    // verify
+    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+  }
+
+  @Test
+  public void testHDFSServiceState_STARTED2() throws Exception{
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    StackId stackId = createNiceMock(StackId.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HDFS", "NAMENODE", "Host100", null, null, "INSTALLED", "", null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HDFS", "NAMENODE", "Host101", null, null, "STARTED", "", null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "HDFS", "JOURNALNODE", "Host100", null, null, "STARTED", "", null, null);
+
+    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
+    responses.add(shr1);
+    responses.add(shr2);
+    responses.add(shr3);
+
+    // set expectations
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+
+    expect(stackId.getStackName()).andReturn("S1").anyTimes();
+    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
+
+
+    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
+
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(true);
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+
+    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.HDFSServiceState();
+
+    State state = serviceState.getState(managementController, "C1", "MAPREDUCE");
+    Assert.assertEquals(State.STARTED, state);
+
+    // verify
+    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+  }
+
+  @Test
+  public void testHBaseServiceState_STARTED() throws Exception{
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    StackId stackId = createNiceMock(StackId.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "HDFS", "HBASE_MASTER", "Host100", null, null, "STARTED", "", null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "HDFS", "HBASE_MASTER", "Host101", null, null, "INSTALLED", "", null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "HDFS", "HBASE_REGIONSERVER", "Host100", null, null, "STARTED", "", null, null);
+
+    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
+    responses.add(shr1);
+    responses.add(shr2);
+    responses.add(shr3);
+
+    // set expectations
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+
+    expect(stackId.getStackName()).andReturn("S1").anyTimes();
+    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
+
+
+    expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
+        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
+
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(false);
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+
+    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.HBaseServiceState();
+
+    State state = serviceState.getState(managementController, "C1", "MAPREDUCE");
+    Assert.assertEquals(State.STARTED, state);
+
+    // verify
+    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
   }
 
   public static ServiceResourceProvider getServiceProvider(AmbariManagementController managementController) {

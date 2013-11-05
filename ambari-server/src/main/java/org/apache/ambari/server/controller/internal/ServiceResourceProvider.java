@@ -26,12 +26,15 @@ import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.ServiceComponentHostRequest;
+import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.ServiceRequest;
 import org.apache.ambari.server.controller.ServiceResponse;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -44,6 +47,7 @@ import org.apache.commons.lang.StringUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -76,6 +80,16 @@ class ServiceResourceProvider extends AbstractControllerResourceProvider {
       new HashSet<String>(Arrays.asList(new String[]{
           SERVICE_CLUSTER_NAME_PROPERTY_ID,
           SERVICE_SERVICE_NAME_PROPERTY_ID}));
+
+  // Service state calculation
+  private static final Map<String, ServiceState> serviceStateMap = new HashMap<String, ServiceState>();
+  static {
+    serviceStateMap.put("HDFS", new HDFSServiceState());
+    serviceStateMap.put("HBASE", new HBaseServiceState());
+  }
+
+  private static final ServiceState DEFAULT_SERVICE_STATE = new DefaultServiceState();
+
 
   // ----- Constructors ----------------------------------------------------
 
@@ -146,7 +160,8 @@ class ServiceResourceProvider extends AbstractControllerResourceProvider {
       setResourceProperty(resource, SERVICE_DESIRED_CONFIGS_PROPERTY_ID,
           response.getConfigVersions(), requestedIds);
       setResourceProperty(resource, SERVICE_SERVICE_STATE_PROPERTY_ID,
-          response.getDesiredState(), requestedIds);
+          calculateServiceState(response.getClusterName(), response.getServiceName()),
+          requestedIds);
       resources.add(resource);
     }
     return resources;
@@ -758,5 +773,225 @@ class ServiceResourceProvider extends AbstractControllerResourceProvider {
       }
     }
     return null;
+  }
+
+  // Get the State of a host component
+  private static State getHostComponentState(ServiceComponentHostResponse hostComponent) {
+    return State.valueOf(hostComponent.getLiveState());
+  }
+
+  // calculate the service state, accounting for the state of the host components
+  private String calculateServiceState(String clusterName, String serviceName) {
+
+    ServiceState serviceState = serviceStateMap.get(serviceName);
+    if (serviceState == null) {
+      serviceState = DEFAULT_SERVICE_STATE;
+    }
+    State state = serviceState.getState(getManagementController(), clusterName, serviceName);
+
+    return state.toString();
+  }
+
+
+  // ----- inner class ServiceState ------------------------------------------
+
+  /**
+   * Interface to allow for different state calculations for different services.
+   * TODO : see if this functionality can be moved to service definitions.
+   */
+  protected interface ServiceState {
+    public State getState(AmbariManagementController controller, String clusterName, String serviceName);
+  }
+
+  /**
+   * Default calculator of service state.
+   */
+  protected static class DefaultServiceState implements ServiceState {
+
+    @Override
+    public State getState(AmbariManagementController controller, String clusterName, String serviceName) {
+      AmbariMetaInfo ambariMetaInfo = controller.getAmbariMetaInfo();
+      Clusters       clusters       = controller.getClusters();
+
+      if (clusterName != null && clusterName.length() > 0) {
+        try {
+          Cluster cluster = clusters.getCluster(clusterName);
+          if (cluster != null) {
+            StackId stackId = cluster.getDesiredStackVersion();
+
+            ServiceComponentHostRequest request = new ServiceComponentHostRequest(clusterName,
+                serviceName, null, null, null, null);
+
+            Set<ServiceComponentHostResponse> hostComponentResponses =
+                controller.getHostComponents(Collections.singleton(request));
+
+            for (ServiceComponentHostResponse hostComponentResponse : hostComponentResponses ) {
+              ComponentInfo componentInfo = ambariMetaInfo.getComponentCategory(stackId.getStackName(),
+                  stackId.getStackVersion(), hostComponentResponse.getServiceName(),
+                  hostComponentResponse.getComponentName());
+
+              if (componentInfo != null) {
+                if (componentInfo.isMaster()) {
+                  State state = getHostComponentState(hostComponentResponse);
+                  switch (state) {
+                    case STARTED:
+                    case MAINTENANCE:
+                      break;
+                    default:
+                      return state;
+                  }
+                }
+              }
+            }
+            return State.STARTED;
+          }
+        } catch (AmbariException e) {
+          LOG.error("Can't determine service state.", e);
+        }
+      }
+      return State.UNKNOWN;
+    }
+  }
+
+  /**
+   * Calculator of HDFS service state.
+   */
+  protected static class HDFSServiceState implements ServiceState {
+
+    @Override
+    public State getState(AmbariManagementController controller,String clusterName, String serviceName) {
+      AmbariMetaInfo ambariMetaInfo = controller.getAmbariMetaInfo();
+      Clusters       clusters       = controller.getClusters();
+
+      if (clusterName != null && clusterName.length() > 0) {
+        try {
+          Cluster cluster = clusters.getCluster(clusterName);
+          if (cluster != null) {
+            StackId stackId = cluster.getDesiredStackVersion();
+
+            ServiceComponentHostRequest request = new ServiceComponentHostRequest(clusterName,
+                serviceName, "NAMENODE", null, null, null);
+
+            Set<ServiceComponentHostResponse> hostComponentResponses =
+                controller.getHostComponents(Collections.singleton(request));
+
+            int     nameNodeCount       = 0;
+            int     nameNodeActiveCount = 0;
+            boolean hasSecondary        = false;
+            boolean hasJournal          = false;
+            State   nonStartedState     = null;
+
+            for (ServiceComponentHostResponse hostComponentResponse : hostComponentResponses ) {
+              ComponentInfo componentInfo = ambariMetaInfo.getComponentCategory(stackId.getStackName(),
+                  stackId.getStackVersion(), hostComponentResponse.getServiceName(),
+                  hostComponentResponse.getComponentName());
+
+              if (componentInfo != null) {
+                if (componentInfo.isMaster()) {
+
+                  String componentName = hostComponentResponse.getComponentName();
+                  boolean isNameNode = false;
+
+                  if (componentName.equals("NAMENODE")) {
+                    ++nameNodeCount;
+                    isNameNode = true;
+                  } else if (componentName.equals("SECONDARY_NAMENODE")) {
+                    hasSecondary = true;
+                  } else if (componentName.equals("JOURNALNODE")) {
+                    hasJournal = true;
+                  }
+
+                  State state = getHostComponentState(hostComponentResponse);
+
+                  switch (state) {
+                    case STARTED:
+                    case MAINTENANCE:
+                      if (isNameNode) {
+                        ++nameNodeActiveCount;
+                      }
+                      break;
+                    default:
+                      nonStartedState = state;
+                  }
+                }
+              }
+            }
+
+            if ( nonStartedState == null ||  // all started
+                ((nameNodeCount > 0 && !hasSecondary || hasJournal) &&
+                    nameNodeActiveCount > 0)) {  // at least one active namenode
+              return State.STARTED;
+            }
+            return nonStartedState;
+          }
+        } catch (AmbariException e) {
+          LOG.error("Can't determine service state.", e);
+        }
+      }
+      return State.UNKNOWN;
+    }
+  }
+
+  /**
+   * Calculator of HBase service state.
+   */
+  protected static class HBaseServiceState implements ServiceState {
+
+    @Override
+    public State getState(AmbariManagementController controller,String clusterName, String serviceName) {
+      AmbariMetaInfo ambariMetaInfo = controller.getAmbariMetaInfo();
+      Clusters       clusters       = controller.getClusters();
+
+      if (clusterName != null && clusterName.length() > 0) {
+        try {
+          Cluster cluster = clusters.getCluster(clusterName);
+          if (cluster != null) {
+            StackId stackId = cluster.getDesiredStackVersion();
+
+            ServiceComponentHostRequest request = new ServiceComponentHostRequest(clusterName,
+                serviceName, "NAMENODE", null, null, null);
+
+            Set<ServiceComponentHostResponse> hostComponentResponses =
+                controller.getHostComponents(Collections.singleton(request));
+
+            int     hBaseMasterActiveCount = 0;
+            State   nonStartedState        = null;
+
+            for (ServiceComponentHostResponse hostComponentResponse : hostComponentResponses ) {
+              ComponentInfo componentInfo = ambariMetaInfo.getComponentCategory(stackId.getStackName(),
+                  stackId.getStackVersion(), hostComponentResponse.getServiceName(),
+                  hostComponentResponse.getComponentName());
+
+              if (componentInfo != null) {
+                if (componentInfo.isMaster()) {
+
+                  State state = getHostComponentState(hostComponentResponse);
+
+                  switch (state) {
+                    case STARTED:
+                    case MAINTENANCE:
+                      String componentName = hostComponentResponse.getComponentName();
+                      if (componentName.equals("HBASE_MASTER")) {
+                        ++hBaseMasterActiveCount;
+                      }
+                      break;
+                    default:
+                      nonStartedState = state;
+                  }
+                }
+              }
+            }
+
+            if ( nonStartedState == null ||     // all started
+                hBaseMasterActiveCount > 0) {   // at least one active hbase_master
+              return State.STARTED;
+            }
+            return nonStartedState;
+          }
+        } catch (AmbariException e) {
+          LOG.error("Can't determine service state.", e);
+        }
+      }
+      return State.UNKNOWN;    }
   }
 }
