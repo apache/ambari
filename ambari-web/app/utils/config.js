@@ -468,7 +468,7 @@ App.config = Em.Object.create({
    * @param localDB
    * @return {Array}
    */
-  renderConfigs: function (configs, storedConfigs, allInstalledServiceNames, selectedServiceNames, localDB) {
+  renderConfigs: function (configs, storedConfigs, allInstalledServiceNames, selectedServiceNames) {
     var renderedServiceConfigs = [];
     var localDB = {
       hosts: App.db.getHosts(),
