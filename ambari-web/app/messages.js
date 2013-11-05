@@ -1582,7 +1582,7 @@ Em.I18n.translations = {
   'apps.filters.clearFilters': 'Clear filters',
   'apps.filters.paginationInfo': '{0} - {1} of {2}',
   'apps.filters.clearAllFilters': 'Clear all filters',
-  'apps.filters.filteredHostsInfo': '{0} of {1} hosts filterd',
+  'apps.filters.filteredHostsInfo': '{0} of {1} hosts filtered',
   'apps.filters.customRunDate':'Run Date custom filter',
   'apps.filters.nothingToShow': 'No jobs to display',
   'apps.dagCharts.popup':'Job Charts',
