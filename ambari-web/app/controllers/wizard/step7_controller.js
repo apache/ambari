@@ -98,7 +98,7 @@ App.WizardStep7Controller = Em.Controller.extend({
       slaveComponentHosts: this.get('wizardController').getDBProperty('slaveComponentHosts')
     };
     //STEP 6: Distribute configs by service and wrap each one in App.ServiceConfigProperty (configs -> serviceConfigs)
-    var serviceConfigs = App.config.renderConfigs(configs, storedConfigs, this.get('allInstalledServiceNames'), this.get('selectedServiceNames'), localDB, storedConfigs);
+    var serviceConfigs = App.config.renderConfigs(configs, storedConfigs, this.get('allInstalledServiceNames'), this.get('selectedServiceNames'), localDB);
     this.set('stepConfigs', serviceConfigs);
     this.activateSpecialConfigs();
     this.set('selectedService', this.get('stepConfigs').filterProperty('showConfig', true).objectAt(0));
