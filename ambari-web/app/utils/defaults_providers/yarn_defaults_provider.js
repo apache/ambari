@@ -216,11 +216,11 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
     configs['yarn.scheduler.minimum-allocation-mb'] = Math.round(this.get('ramPerContainer'));
     configs['yarn.scheduler.maximum-allocation-mb'] = Math.round(this.get('containers') * this.get('ramPerContainer'));
     configs['yarn.app.mapreduce.am.resource.mb'] = Math.round(this.get('amMemory'));
-    configs['yarn.app.mapreduce.am.command-opts'] = Math.round(0.8 * this.get('amMemory'));
+    configs['yarn.app.mapreduce.am.command-opts'] = "-Xmx" + Math.round(0.8 * this.get('amMemory')) + "m";
     configs['mapreduce.map.memory.mb'] = Math.round(this.get('mapMemory'));
     configs['mapreduce.reduce.memory.mb'] = Math.round(this.get('reduceMemory'));
-    configs['mapreduce.map.java.opts'] = Math.round(0.8 * this.get('mapMemory'));
-    configs['mapreduce.reduce.java.opts'] = Math.round(0.8 * this.get('reduceMemory'));
+    configs['mapreduce.map.java.opts'] = "-Xmx" + Math.round(0.8 * this.get('mapMemory')) + "m";
+    configs['mapreduce.reduce.java.opts'] = "-Xmx" + Math.round(0.8 * this.get('reduceMemory')) + "m";
     configs['mapreduce.task.io.sort.mb'] = Math.round(0.4 * this.get('mapMemory'));
     return configs;
   },
