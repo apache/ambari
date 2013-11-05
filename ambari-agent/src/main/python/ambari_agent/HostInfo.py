@@ -113,6 +113,10 @@ class HostInfo:
     FIREWALL_SERVICE_NAME = "ufw"
 
   FIREWALL_STATUS_CMD = "%s %s status" % (SERVICE_CMD, FIREWALL_SERVICE_NAME)
+  
+  DEFAULT_SERVICE_NAME = "ntpd"
+  SERVICE_STATUS_CMD = "%s %s status" % (SERVICE_CMD, DEFAULT_SERVICE_NAME)
+  
   event = threading.Event()
   
   current_umask = -1
@@ -171,12 +175,15 @@ class HostInfo:
         serviceName = service[osType]
       else:
         serviceName = service
-
+      
+      service_check_live = shlex.split(self.SERVICE_STATUS_CMD)
+      service_check_live[1] = serviceName
+      
       svcCheckResult['name'] = serviceName
       svcCheckResult['status'] = "UNKNOWN"
       svcCheckResult['desc'] = ""
       try:
-        osStat = subprocess.Popen(shlex.split(self.FIREWALL_STATUS_CMD), stdout=subprocess.PIPE,
+        osStat = subprocess.Popen(service_check_live, stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE)
         out, err = osStat.communicate()
         if 0 != osStat.returncode:
