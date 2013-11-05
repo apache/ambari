@@ -133,7 +133,7 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
     return ramPerContainer <= 2048 ? 2 * ramPerContainer : ramPerContainer;
   }.property('ramPerContainer'),
 
-  amMemeory: function () {
+  amMemory: function () {
     return Math.max(this.get('mapMemory'), this.get('reduceMemory'));
   }.property('mapMemory', 'reduceMemory'),
 
@@ -262,11 +262,11 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
     var host = hosts[0] && localDB.hosts[hosts[0]];
     if (host) {
       clusterData.cpu = parseInt(host.cpu);
-      invalidMountPoints= ['/homes/','/dev/','/tmp/'];
       var length = 0;
       host.disk_info.forEach(function(disk) {
         //invalid mountpoints
-        if (!(disk.mountpoint.startsWith('/homes/') || disk.mountpoint.startsWith('/dev/') || disk.mountpoint.startsWith('/tmp/'))) {
+        if (!(disk.mountpoint.startsWith('/home/') || disk.mountpoint.startsWith('/homes/') || 
+        		disk.mountpoint.startsWith('/dev/') || disk.mountpoint.startsWith('/tmp/'))) {
           length++;
         }
       },this);
