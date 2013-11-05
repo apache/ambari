@@ -33,14 +33,30 @@ App.Host = DS.Model.extend({
   ip: DS.attr('string'),
   rack: DS.attr('string'),
   healthStatus: DS.attr('string'),
-  cpuUsage: DS.attr('number'),
-  memoryUsage: DS.attr('number'),
   lastHeartBeatTime: DS.attr('number'),
   osType: DS.attr("string"),
   diskInfo: DS.attr('object'),
   loadOne:DS.attr('number'),
   loadFive:DS.attr('number'),
   loadFifteen:DS.attr('number'),
+  memTotal:DS.attr('number'),
+  memFree:DS.attr('number'),
+  cpuSystem:DS.attr('number'),
+  cpuUser:DS.attr('number'),
+
+  cpuUsage: function () {
+    if (this.get('cpuSystem') && this.get('cpu_user')) {
+      return (this.get('cpuSystem') + this.get('cpu_user')).toFixed(1);
+    }
+  }.property('cpuSystem', 'cpuUser'),
+
+  memoryUsage: function () {
+    if (this.get('memFree') && this.get('memTotal')) {
+      var memUsed = this.get('memTotal') - this.get('memFree');
+      var memUsedPercent = (100 * memUsed) / this.get('memTotal');
+      return memUsedPercent.toFixed(1);
+    }
+  }.property('memTotal', 'memFree'),
 
   criticalAlertsCount: function () {
     return App.router.get('clusterController.alerts').filterProperty('hostName', this.get('hostName')).filterProperty('isOk', false).filterProperty('ignoredForHosts', false).length;

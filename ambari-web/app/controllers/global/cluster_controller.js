@@ -268,13 +268,14 @@ App.ClusterController = Em.Controller.extend({
       return false;
     }
     var testUrl = App.get('isHadoop2Stack') ? '/data/dashboard/HDP2/services.json':'/data/dashboard/services.json';
-    //desired_state property is eliminated since calculateState function is commented out, it become useless
-    var servicesUrl = this.getUrl(testUrl, '/services?fields=ServiceInfo,components/host_components/HostRoles/state');
+    var servicesUrl = '/services?fields=ServiceInfo,components/host_components/HostRoles/state';
     if (App.Service.find('HBASE')) {
       // HBase installed. We need the haStatus field as it has
       // moved to another field.
       servicesUrl += ',components/host_components/metrics/hbase/master/IsActiveMaster';
     }
+    //desired_state property is eliminated since calculateState function is commented out, it become useless
+    servicesUrl = this.getUrl(testUrl, servicesUrl);
 
     App.HttpClient.get(servicesUrl, App.statusMapper, {
       complete: callback
@@ -318,7 +319,9 @@ App.ClusterController = Em.Controller.extend({
       return;
     }
     var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
-    var hostsRealUrl = '/hosts?fields=Hosts/host_name,Hosts/public_host_name,Hosts/cpu_count,Hosts/total_mem,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components,metrics/disk,metrics/load/load_one';
+    var hostsRealUrl = '/hosts?fields=Hosts/host_name,Hosts/public_host_name,Hosts/cpu_count,Hosts/total_mem,' +
+      'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components,' +
+      'metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free';
     var usersUrl = App.testMode ? '/data/users/users.json' : App.apiPrefix + '/users/?fields=*';
     var racksUrl = "/data/racks/racks.json";
     var dataSetUrl = "/data/mirroring/all_datasets.json";

@@ -37,7 +37,7 @@ App.UpdateController = Em.Controller.extend({
    */
   updateAll:function(){
     if(this.get('isWorking')) {
-      App.updater.run(this, 'updateHost', 'isWorking');
+      App.updater.run(this, 'updateHostConditionally', 'isWorking');
       App.updater.run(this, 'updateServiceMetric', 'isWorking');
       App.updater.run(this, 'graphsUpdate', 'isWorking');
       if (App.supports.hostOverrides) {
@@ -45,13 +45,22 @@ App.UpdateController = Em.Controller.extend({
       }
     }
   }.observes('isWorking'),
+  updateHostConditionally: function (callback) {
+    var location = App.router.get('location.lastSetURL');
+    if (/\/main\/hosts.*/.test(location)) {
+      this.updateHost(callback);
+    } else {
+      callback();
+    }
+  },
 
   updateHost:function(callback) {
-    var testUrl =  App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hosts.json':'/data/hosts/hosts.json';
-      var hostsUrl = this.getUrl(testUrl, '/hosts?fields=Hosts/host_name,Hosts/host_status,Hosts/last_heartbeat_time,host_components,metrics/disk,metrics/load/load_one');
-      App.HttpClient.get(hostsUrl, App.hostsMapper, {
-        complete: callback
-      });
+    var testUrl = App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hosts.json' : '/data/hosts/hosts.json';
+    var hostsUrl = this.getUrl(testUrl, '/hosts?fields=Hosts/host_name,Hosts/last_heartbeat_time,' +
+      'metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free');
+    App.HttpClient.get(hostsUrl, App.hostsMapper, {
+      complete: callback
+    });
   },
   graphs: [],
   graphsUpdate: function (callback) {

@@ -18,6 +18,11 @@
 
 var App = require('app');
 
+//initialize common cache container for mappers
+App.cache = {
+  'Hosts': {}
+};
+
 App.ServerDataMapper = Em.Object.extend({
   jsonKey: false,
   map: function (json) {

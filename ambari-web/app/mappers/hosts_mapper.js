@@ -16,7 +16,6 @@
  */
 
 var App = require('app');
-var cacheData = {};
 
 App.hostsMapper = App.QuickDataMapper.create({
 
@@ -41,84 +40,82 @@ App.hostsMapper = App.QuickDataMapper.create({
     load_one: 'metrics.load.load_one',
     load_five: 'metrics.load.load_five',
     load_fifteen: 'metrics.load.load_fifteen',
-    cpu_usage: 'cpu_usage',
-    memory_usage: 'memory_usage',
+    cpu_system: 'metrics.cpu.cpu_system',
+    cpu_user: 'metrics.cpu.cpu_user',
+    mem_total: 'metrics.memory.mem_total',
+    mem_free: 'metrics.memory.mem_free',
     last_heart_beat_time: "Hosts.last_heartbeat_time",
     os_arch: 'Hosts.os_arch',
     os_type: 'Hosts.os_type',
-    ip: 'Hosts.ip',
-    disk_usage: 'disk_usage'
+    ip: 'Hosts.ip'
   },
   map: function (json) {
+    console.time('App.hostsMapper execution time');
     if (json.items) {
-      var result = this.parse(json.items);
+      var result = [];
+      var hostIds = {};
+      var cacheData = App.cache['Hosts'];
+
+      json.items.forEach(function (item) {
+        //receive host_components when added hosts
+        item.host_components = item.host_components || [];
+        item.host_components.forEach(function (host_component) {
+          host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
+        }, this);
+
+        hostIds[item.Hosts.host_name] = true;
+        result.push(this.parseIt(item, this.config));
+      }, this);
+      result = this.sortByPublicHostName(result);
+
       var clientHosts = App.Host.find();
-      if (clientHosts != null && clientHosts.get('length') < result.length) {
-        result.forEach(function (host) {
-          cacheData[host.id] = host;
-        });
-      } else if (clientHosts != null && clientHosts.get('length') > result.length) {
-        var hostsToDelete = [];
-        clientHosts.forEach(function (host) {
-          if (host !== null && result.filterProperty('host_name',host.get('hostName')).length === 0) {
-            // Delete old ones as new ones will be
-            // loaded by loadMany().
-            hostsToDelete.push(host);
-            delete cacheData[host.get('hostName')];
-          }
-        });
-        hostsToDelete.forEach(function (host) {
-          host.deleteRecord();
-          host.get('stateManager').transitionTo('loading');
-        });
+
+      if (clientHosts) {
+        // hosts were added
+        if (clientHosts.get('length') < result.length) {
+          result.forEach(function (host) {
+            cacheData[host.id] = {
+              ip: host.ip,
+              os_arch: host.os_arch,
+              os_type: host.os_type,
+              public_host_name: host.public_host_name,
+              memory: host.memory,
+              cpu: host.cpu,
+              host_components: host.host_components
+            };
+          });
+        }
+        // hosts were deleted
+        if (clientHosts.get('length') > result.length) {
+          clientHosts.forEach(function (host) {
+            if (host && !hostIds[host.get('hostName')]) {
+              // Delete old ones as new ones will be
+              // loaded by loadMany().
+              host.deleteRecord();
+              host.get('stateManager').transitionTo('loading');
+              delete cacheData[host.get('id')];
+            }
+          });
+        }
       }
       //restore properties from cache instead request them from server
       result.forEach(function (host) {
         var cacheHost = cacheData[host.id];
         if (cacheHost) {
-          host.ip ? cacheHost.ip = host.ip : host.ip = cacheHost.ip;
-          host.os_arch ? cacheHost.os_arch = host.os_arch : host.os_arch = cacheHost.os_arch;
-          host.os_type ?  cacheHost.os_type = host.os_type : host.os_type = cacheHost.os_type;
-          host.public_host_name ? cacheHost.public_host_name = host.public_host_name : host.public_host_name = cacheHost.public_host_name;
-          host.memory ? cacheHost.memory = host.memory : host.memory = cacheHost.memory;
-          host.cpu ? cacheHost.cpu = host.cpu : host.cpu = cacheHost.cpu;
+          host.ip = cacheHost.ip;
+          host.os_arch = cacheHost.os_arch;
+          host.os_type = cacheHost.os_type;
+          host.public_host_name = cacheHost.public_host_name;
+          host.memory = cacheHost.memory;
+          host.cpu = cacheHost.cpu;
+          host.host_components = cacheHost.host_components;
         }
       });
       App.store.loadMany(this.get('model'), result);
     }
+    console.timeEnd('App.hostsMapper execution time');
   },
 
-  parse: function(items) {
-    var result = [];
-    items.forEach(function (item) {
-
-      // Disk Usage
-      if (item.metrics && item.metrics.disk && item.metrics.disk.disk_total && item.metrics.disk.disk_free) {
-        var diskUsed = item.metrics.disk.disk_total - item.metrics.disk.disk_free;
-        var diskUsedPercent = (100 * diskUsed) / item.metrics.disk.disk_total;
-        item.disk_usage = diskUsedPercent.toFixed(1);
-      }
-      // CPU Usage
-      if (item.metrics && item.metrics.cpu && item.metrics.cpu.cpu_system && item.metrics.cpu.cpu_user) {
-        var cpuUsedPercent = item.metrics.cpu.cpu_system + item.metrics.cpu.cpu_user;
-        item.cpu_usage = cpuUsedPercent.toFixed(1);
-      }
-      // Memory Usage
-      if (item.metrics && item.metrics.memory && item.metrics.memory.mem_free && item.metrics.memory.mem_total) {
-        var memUsed = item.metrics.memory.mem_total - item.metrics.memory.mem_free;
-        var memUsedPercent = (100 * memUsed) / item.metrics.memory.mem_total;
-        item.memory_usage = memUsedPercent.toFixed(1);
-      }
-
-      item.host_components.forEach(function (host_component) {
-        host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
-      }, this);
-      result.push(this.parseIt(item, this.config));
-
-    }, this);
-    result = this.sortByPublicHostName(result);
-    return result;
-  },
   /**
    * Default data sorting by public_host_name field
    * @param data
