@@ -308,7 +308,7 @@ module.exports = Em.Route.extend({
       // We need to do recovery based on whether we are in Add Host or Installer wizard
       addHostController.saveClusterState('DEFAULT');
 
-      router.transitionTo('main.index');
+      location.reload();
     }
   }),
 
