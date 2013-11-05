@@ -5,7 +5,8 @@ class HttpClientInvoker():
       
       http_method = args[0]
       url = args[1]
-      
+      payload = kwargs.get("payload",None)
+
       mocked_code = 200 
       mocked_content = "text/plain"
       
@@ -32,6 +33,24 @@ class HttpClientInvoker():
         elif url == "//clusters/test1/configurations?type=mapred-site&tag=version1":
           mocked_response = open('json/clustermodel_get_mapred_site_config.json', 'r').read()
           return mocked_response, mocked_code , mocked_content
+        # HostModel mocking
+        elif url == '//clusters/test1/hosts/myhost/host_components/DATANODE':
+          mocked_response = open('json/hostmodel_get_host_component.json', 'r').read()
+          return mocked_response, mocked_code , mocked_content
+        elif url == '//clusters/test1/hosts/myhost/host_components?fields=HostRoles/state':
+          mocked_response = open('json/hostmodel_get_host_components.json', 'r').read()
+          return mocked_response, mocked_code , mocked_content
+        # ComponentModel mocking
+        elif url == "//clusters/cl1/hosts/myhost/host_components/DATANODE?fields=metrics":
+          mocked_response = open('json/componentmodel_get_metrics.json', 'r').read()
+          return mocked_response, mocked_code , mocked_content
+        # ServiceModel mocking
+        elif url == "//clusters/test1/services/GANGLIA/components?fields=*":
+          mocked_response = open('json/servicemodel_get_components.json', 'r').read()
+          return mocked_response, mocked_code , mocked_content
+        elif url == "//clusters/test1/services/GANGLIA/components/GANGLIA_SERVER":
+          mocked_response = open('json/servicemodel_get_component.json', 'r').read()
+          return mocked_response, mocked_code , mocked_content
         # AmbariClient mocking
         elif url == "//clusters":
           mocked_response = open('json/ambariclient_get_all_clusters.json', 'r').read()
@@ -47,7 +66,7 @@ class HttpClientInvoker():
           return mocked_response, mocked_code , mocked_content
         elif url == "//stacks2/HDP/versions/1.3.0/stackServices/HDFS/serviceComponents?fields=*":
           mocked_response = open('json/ambariclient_get_components.json', 'r').read()
-          return mocked_response, mocked_code , mocked_content            
+          return mocked_response, mocked_code , mocked_content
         # others
         elif url == "//clusters/test1/services/GANGLIA":
           mocked_response = open('json/clustermodel_get_service.json', 'r').read()
@@ -87,8 +106,26 @@ class HttpClientInvoker():
         if url == "//bootstrap":
           mocked_response = open('json/ambariclient_bootstrap_hosts.json', 'r').read()
           return mocked_response, mocked_code , mocked_content
+        elif url == '//clusters/test1/hosts?Hosts/host_name=myhost':
+          mocked_code = 201
+          return "", mocked_code , mocked_content
         else: # POST (generally does not require any response)
           return "", mocked_code , mocked_content
-      else: # PUT (generally does not require any response)     
-        return "", mocked_code , mocked_content
+      else: # PUT (generally does not require any response)
+        # ServiceModel mocking
+        if url == "//clusters/test1/services/GANGLIA":
+          payload_stop = {'ServiceInfo': {'state': 'INSTALLED'}}
+          payload_started = {'ServiceInfo': {'state': 'STARTED'}}
+          payload_illegal = {'ServiceInfo': {'state': 'ILLEGAL_STATE'}}
+          if payload_stop == payload:
+            mocked_response = open('json/status_ok_with_id.json', 'r').read()
+            return mocked_response, mocked_code , mocked_content
+          elif payload_started == payload:
+            mocked_response = open('json/status_ok_with_id.json', 'r').read()
+            return mocked_response, mocked_code , mocked_content
+          elif payload_illegal == payload:
+            mocked_response = open('json/status_error_with_message.json', 'r').read()
+            return mocked_response, mocked_code , mocked_content
+        else:
+          return "", mocked_code , mocked_content
         

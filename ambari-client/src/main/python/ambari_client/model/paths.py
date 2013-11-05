@@ -33,7 +33,7 @@ SERVICE_COMPONENT_PATH = "/clusters/%s/services/%s/components/%s"
 HOST_PATH = "/hosts/%s"
 HOSTS_PATH = "/hosts"
 HOSTS_CREATE_PATH = "/clusters/%s/hosts"
-HOSTS_COMPONENTS_PATH = "/clusters/%s/hosts/%s/host_components?ServiceComponentInfo"
+HOSTS_COMPONENTS_PATH = "/clusters/%s/hosts/%s/host_components?fields=HostRoles/state"
 HOSTS_COMPONENT_PATH = "/clusters/%s/hosts/%s/host_components/%s" 
 HOSTS_ASSIGN_ROLE = "/clusters/%s/hosts?Hosts/host_name=%s"
 

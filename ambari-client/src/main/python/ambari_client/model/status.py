@@ -38,17 +38,17 @@ class StatusModel(BaseModel):
     return "<<StatusModel>> status = %s ; requestId = %s ;message = %s" % (self.status, self._get_id() , self.get_message())
 
   def get_bootstrap_path(self):
-    return paths.BOOTSTRAP_PATH + '/' + self.requestId
+    return paths.BOOTSTRAP_PATH + '/' + str(self.requestId)
 
   def get_request_path(self):
-    return paths.REQUEST_PATH % (self._get_id())
+    return self.request_path
 
   def get_message(self):
     if hasattr(self, 'message'):
         return self.message
     else:
         None
-    
+
   def is_error(self):
     return (self.status != 200 and self.status != 201 and self.status != 202)  
         

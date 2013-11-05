@@ -152,7 +152,12 @@ class ServiceModel(BaseModel):
   def _action(self, data=None):
     path = self._path() 
     resp = self._get_resource_root().put(path, payload=data)
-    return utils.ModelUtils.create_model(status.StatusModel, resp, self._get_resource_root(), "NO_KEY")
+    status_model = utils.ModelUtils.create_model(status.StatusModel, resp, self._get_resource_root(), "NO_KEY")
+    if status_model._get_id() is not None:
+      status_model.request_path = paths.REQUEST_PATH % (self._get_cluster_name(), status_model._get_id())
+    else:
+      status_model.request_path = None
+    return status_model
 
   def start(self):
     """

@@ -1,0 +1,4 @@
+{
+    "status" : 400,
+    "message" : "java.lang.IllegalArgumentException: No enum const class org.apache.ambari.server.state.State.ILLEGAL_STATE"
+}

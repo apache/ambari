@@ -1,0 +1,181 @@
+{
+    "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost/host_components/DATANODE",
+    "HostRoles" : {
+        "cluster_name" : "cl1",
+        "component_name" : "DATANODE",
+        "desired_stack_id" : "HDP-2.0.6",
+        "desired_state" : "STARTED",
+        "host_name" : "myhost",
+        "stack_id" : "HDP-2.0.6",
+        "state" : "STARTED",
+        "actual_configs" : {
+            "capacity-scheduler" : {
+                "tag" : "version1"
+            },
+            "core-site" : {
+                "tag" : "version1"
+            },
+            "global" : {
+                "tag" : "version1"
+            },
+            "hbase-site" : {
+                "tag" : "version1"
+            },
+            "hdfs-site" : {
+                "tag" : "version1"
+            },
+            "hive-site" : {
+                "tag" : "version1"
+            },
+            "mapred-site" : {
+                "tag" : "version1"
+            },
+            "oozie-site" : {
+                "tag" : "version1"
+            },
+            "webhcat-site" : {
+                "tag" : "version1"
+            },
+            "yarn-site" : {
+                "tag" : "version1"
+            }
+        },
+        "configs" : { },
+        "desired_configs" : { }
+    },
+    "host" : {
+        "href" : "http://myhost:8080/api/v1/clusters/cl1/hosts/myhost"
+    },
+    "metrics" : {
+        "boottime" : 1.383131209E9,
+        "cpu" : {
+            "cpu_aidle" : 0.0,
+            "cpu_idle" : 86.7238888889,
+            "cpu_nice" : 0.0,
+            "cpu_num" : 1.0,
+            "cpu_speed" : 2967.0,
+            "cpu_system" : 6.43527777778,
+            "cpu_user" : 6.81722222222,
+            "cpu_wio" : 0.0263888888889
+        },
+        "dfs" : {
+            "FSNamesystem" : {
+                "HttpPort" : null,
+                "NamenodeAddress" : "{\"myhost\":\"BP-442795920-192.168.64.101-1383132565020\"}",
+                "RpcPort" : "8010",
+                "Version" : "2.2.0.2.0.6.0-76",
+                "VolumeInfo" : "{\"/hadoop/hdfs/data/current\":{\"freeSpace\":495195308032,\"usedSpace\":345120768,\"reservedSpace\":1073741824}}"
+            },
+            "datanode" : {
+                "blockChecksumOp_avg_time" : 0.0,
+                "blockChecksumOp_num_ops" : 0.0,
+                "blockReports_avg_time" : 6.0,
+                "blockReports_num_ops" : 0.0,
+                "block_verification_failures" : 0.0,
+                "blocks_get_local_pathinfo" : 0.0,
+                "blocks_read" : 0.0,
+                "blocks_removed" : 0.0,
+                "blocks_replicated" : 0.0,
+                "blocks_verified" : 0.0,
+                "blocks_written" : 0.0,
+                "bytes_read" : 0.0,
+                "bytes_written" : 0.0,
+                "copyBlockOp_avg_time" : 0.0,
+                "copyBlockOp_num_ops" : 0.0,
+                "heartBeats_avg_time" : 1.29537037037,
+                "heartBeats_num_ops" : 0.330833333333,
+                "readBlockOp_avg_time" : 0.0,
+                "readBlockOp_num_ops" : 0.0,
+                "reads_from_local_client" : 0.0,
+                "reads_from_remote_client" : 0.0,
+                "replaceBlockOp_avg_time" : 0.0,
+                "replaceBlockOp_num_ops" : 0.0,
+                "writeBlockOp_avg_time" : 13.8969072165,
+                "writeBlockOp_num_ops" : 0.0,
+                "writes_from_local_client" : 0.0,
+                "writes_from_remote_client" : 0.0
+            }
+        },
+        "disk" : {
+            "disk_free" : 495.644319444,
+            "disk_total" : 525.79,
+            "part_max_used" : 11.6
+        },
+        "jvm" : {
+            "HeapMemoryMax" : 1037959168,
+            "HeapMemoryUsed" : 15927976,
+            "NonHeapMemoryMax" : 136314880,
+            "NonHeapMemoryUsed" : 30819952,
+            "gcCount" : 0.0127777777778,
+            "gcTimeMillis" : 409,
+            "logError" : 0.0,
+            "logFatal" : 0.0,
+            "logInfo" : 0.0,
+            "logWarn" : 0.0,
+            "memHeapCommittedM" : 28.5625,
+            "memHeapUsedM" : 11.6042887139,
+            "memNonHeapCommittedM" : 29.625,
+            "memNonHeapUsedM" : 29.3762000417,
+            "threadsBlocked" : 0.0,
+            "threadsNew" : 0.0,
+            "threadsRunnable" : 8.0,
+            "threadsTerminated" : 0.0,
+            "threadsTimedWaiting" : 9.0,
+            "threadsWaiting" : 18.0
+        },
+        "load" : {
+            "load_fifteen" : 0.19775,
+            "load_five" : 0.211194444444,
+            "load_one" : 0.156638888889
+        },
+        "memory" : {
+            "mem_buffers" : 25446.6,
+            "mem_cached" : 160915.911111,
+            "mem_free" : 176156.088889,
+            "mem_shared" : 0.0,
+            "mem_total" : 1922680.0,
+            "swap_free" : 2593928.0,
+            "swap_total" : 2621432.0
+        },
+        "network" : {
+            "bytes_in" : 31580.1931111,
+            "bytes_out" : 102086.367833,
+            "pkts_in" : 45.7961111111,
+            "pkts_out" : 216.703472222
+        },
+        "process" : {
+            "proc_run" : 2.21111111111,
+            "proc_total" : 681.766666667
+        },
+        "rpc" : {
+            "NumOpenConnections" : 0.0,
+            "ReceivedBytes" : 0.0,
+            "RpcProcessingTime_avg_time" : 0.0,
+            "RpcProcessingTime_num_ops" : 0.0,
+            "RpcQueueTime_avg_time" : 0.0,
+            "RpcQueueTime_num_ops" : 0.0,
+            "SentBytes" : 0.0,
+            "callQueueLen" : 0.0,
+            "rpcAuthenticationFailures" : 0.0,
+            "rpcAuthenticationSuccesses" : 0.0,
+            "rpcAuthorizationFailures" : 0.0,
+            "rpcAuthorizationSuccesses" : 0.0
+        },
+        "ugi" : {
+            "loginFailure_avg_time" : 0.0,
+            "loginFailure_num_ops" : 0.0,
+            "loginSuccess_avg_time" : 0.0,
+            "loginSuccess_num_ops" : 0.0
+        }
+    },
+    "component" : [
+        {
+            "href" : "http://myhost:8080/api/v1/clusters/cl1/services/HDFS/components/DATANODE",
+            "ServiceComponentInfo" : {
+                "cluster_name" : "cl1",
+                "component_name" : "DATANODE",
+                "service_name" : "HDFS"
+            }
+        }
+    ]
+}
