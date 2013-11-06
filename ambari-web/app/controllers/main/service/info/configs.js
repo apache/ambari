@@ -30,6 +30,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   globalConfigs: [],
   uiConfigs: [],
   customConfig: [],
+  serviceConfigsData: require('data/service_configs'),
   isApplyingChanges: false,
   serviceConfigs: function () {
     return App.config.get('preDefinedServiceConfigs');
@@ -430,12 +431,82 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   /**
+   * Get info about hosts and host components to configDefaultsProviders
+   * @returns {{masterComponentHosts: Array, slaveComponentHosts: Array, hosts: {}}}
+   */
+  getInfoForDefaults: function() {
+
+    var slaveComponentHosts = [];
+    var slaves = App.HostComponent.find().filterProperty('isSlave', true).map(function(item) {
+      return Em.Object.create({
+        host: item.get('host.hostName'),
+        componentName: item.get('componentName')
+      });
+    });
+    slaves.forEach(function(slave) {
+      var s = slaveComponentHosts.findProperty('componentName', slave.componentName);
+      if (s) {
+        s.hosts.push({hostName: slave.host});
+      }
+      else {
+        slaveComponentHosts.push({
+          componentName: slave.get('componentName'),
+          hosts: [{hostName: slave.host}]
+        });
+      }
+    });
+
+    var masterComponentHosts = App.HostComponent.find().filterProperty('isMaster', true).map(function(item) {
+      return {
+        component: item.get('componentName'),
+        serviceId: item.get('service.serviceName'),
+        host: item.get('host.hostName')
+      }
+    });
+    var hosts = {};
+    App.Host.find().map(function(host) {
+      hosts[host.get('hostName')] = {
+        name: host.get('hostName'),
+        cpu: host.get('cpu'),
+        memory: host.get('memory'),
+        disk_info: host.get('diskInfo')
+      };
+    });
+
+    return {
+      masterComponentHosts: masterComponentHosts,
+      slaveComponentHosts: slaveComponentHosts,
+      hosts: hosts
+    };
+  },
+
+  /**
    * Load child components to service config object
    * @param configs
    * @param componentConfig
    * @param restartData
    */
   loadComponentConfigs: function (configs, componentConfig, restartData) {
+
+    var localDB = this.getInfoForDefaults();
+    var recommendedDefaults = {};
+    var s = this.get('serviceConfigsData').findProperty('serviceName', this.get('content.serviceName'));
+
+    var defaults = [];
+    if (s.defaultsProviders) {
+      s.defaultsProviders.forEach(function(defaultsProvider) {
+        var d = defaultsProvider.getDefaults(localDB);
+        defaults.push(d);
+        for (var name in d) {
+          recommendedDefaults[name] = d[name];
+        }
+      });
+    }
+    if (s.configsValidator) {
+      s.configsValidator.set('recommendedDefaults', recommendedDefaults);
+    }
+
+
     configs.forEach(function (_serviceConfigProperty) {
       console.log("config", _serviceConfigProperty);
       if (!_serviceConfigProperty) return;
@@ -464,6 +535,25 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         serviceConfigProperty.set('restartRequiredMessage', message);
       }
       if (serviceConfigProperty.get('serviceName') === this.get('content.serviceName')) {
+
+        defaults.forEach(function(defaults) {
+          for(var name in defaults) {
+            if (serviceConfigProperty.name == name) {
+              serviceConfigProperty.set('value', defaults[name]);
+              serviceConfigProperty.set('defaultValue', defaults[name]);
+            }
+          }
+        });
+
+        if (s.configsValidator) {
+          var validators = s.configsValidator.get('configValidators');
+          for (var validatorName in validators) {
+            if (serviceConfigProperty.name == validatorName) {
+              serviceConfigProperty.set('serviceValidator', s.configsValidator);
+            }
+          }
+        }
+
         // serviceConfigProperty.serviceConfig = componentConfig;
         if (App.get('isAdmin')) {
           serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));

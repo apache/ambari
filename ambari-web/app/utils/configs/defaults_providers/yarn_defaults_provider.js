@@ -16,7 +16,7 @@
  */
 
 var App = require('app');
-require('utils/defaults_providers/defaultsProvider');
+require('utils/configs/defaults_providers/defaultsProvider');
 
 App.YARNDefaultsProvider = App.DefaultsProvider.create({
 

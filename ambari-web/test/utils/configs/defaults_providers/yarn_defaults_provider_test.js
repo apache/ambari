@@ -16,8 +16,8 @@
  */
 
 var App = require('app');
-require('utils/defaults_providers/defaultsProvider');
-require('utils/defaults_providers/yarn_defaults_provider');
+require('utils/configs/defaults_providers/defaultsProvider');
+require('utils/configs/defaults_providers/yarn_defaults_provider');
 
 describe('YARNDefaultsProvider', function() {
 

@@ -147,6 +147,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
   isVisible: true,
   isSecureConfig: false,
   errorMessage: '',
+  warnMessage: '',
   serviceConfig: null, // points to the parent App.ServiceConfig object
   filename: '',
   isOriginalSCP : true, // if true, then this is original SCP instance and its value is not overridden value.
@@ -156,11 +157,13 @@ App.ServiceConfigProperty = Ember.Object.extend({
   isUserProperty: null, // This property was added by user. Hence they get removal actions etc.
   isOverridable: true,
   error: false,
+  warn: false,
   overrideErrorTrigger: 0, //Trigger for overrridable property error
   isRestartRequired: false,
   restartRequiredMessage: 'Restart required',
   index: null, //sequence number in category
   editDone: false, //Text field: on focusOut: true, on focusIn: false
+  serviceValidator: null,
 
   /**
    * On Overridable property error message, change overrideErrorTrigger value to recount number of errors service have
@@ -486,6 +489,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
     var values = [];//value split by "," to check UNIX users, groups list
 
     var isError = false;
+    var isWarn = false;
 
     if (typeof value === 'string' && value.length === 0) {
       if (this.get('isRequired')) {
@@ -619,13 +623,29 @@ App.ServiceConfigProperty = Ember.Object.extend({
         }
       }
     }
-
-    if (!isError) {
-      this.set('errorMessage', '');
-      this.set('error', false);
-    } else {
-      this.set('error', true);
+    
+    var serviceValidator = this.get('serviceValidator');
+    if (serviceValidator!=null) {
+      var validationIssue = serviceValidator.validateConfig(this);
+      if (validationIssue) {
+    	this.set('warnMessage', validationIssue);
+    	isWarn = true;
+      }
     }
+
+    if (!isWarn || isError) { // Errors get priority
+        this.set('warnMessage', '');
+        this.set('warn', false);
+    } else {
+        this.set('warn', true);
+    }
+    
+    if (!isError) {
+        this.set('errorMessage', '');
+        this.set('error', false);
+      } else {
+        this.set('error', true);
+      }
   }.observes('value', 'retypedPassword')
 
 });
