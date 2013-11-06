@@ -251,10 +251,15 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   
   @Override
   public boolean isGangliaCollectorHostLive(String clusterName) throws SystemException {
-    
+
+    if (clusterName == null) {
+      return false;
+    }
+
     HostResponse gangliaCollectorHost;
-    
+
     try {
+
       final String gangliaCollectorHostName = getGangliaCollectorHostName(clusterName);
 
       HostRequest hostRequest = new HostRequest(gangliaCollectorHostName, clusterName, Collections.<String, String>emptyMap());
@@ -267,30 +272,30 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     }
     
     //Cluster without Ganglia
-    return gangliaCollectorHost != null && !gangliaCollectorHost.getHostState().equals(HostState.HEARTBEAT_LOST.name());
+    return gangliaCollectorHost != null &&
+        !gangliaCollectorHost.getHostState().equals(HostState.HEARTBEAT_LOST.name());
   }
   
   @Override
   public boolean isGangliaCollectorComponentLive(String clusterName) throws SystemException {
-
+    if (clusterName == null) {
+      return false;
+    }
 
     ServiceComponentHostResponse gangliaCollectorHostComponent;
-    
+
     try {
       final String gangliaCollectorHostName = getGangliaCollectorHostName(clusterName);
+
       ServiceComponentHostRequest componentRequest = new ServiceComponentHostRequest(clusterName, "GANGLIA",
                                                                                      Role.GANGLIA_SERVER.name(),
                                                                                      gangliaCollectorHostName,
                                                                                      Collections.<String, String>emptyMap(), null);
       
-      Set<ServiceComponentHostResponse> hostComponents = managementController.getHostComponents(Collections.singleton(componentRequest));
-       gangliaCollectorHostComponent = (ServiceComponentHostResponse) CollectionUtils.find(hostComponents,
-           new org.apache.commons.collections.Predicate() {
-        @Override
-        public boolean evaluate(Object arg0) {
-          return ((ServiceComponentHostResponse) arg0).getHostname().equals(gangliaCollectorHostName);
-        }
-      });
+      Set<ServiceComponentHostResponse> hostComponents =
+          managementController.getHostComponents(Collections.singleton(componentRequest));
+
+      gangliaCollectorHostComponent = hostComponents.size() == 1 ? hostComponents.iterator().next() : null;
     } catch (AmbariException e) {
       LOG.debug("Error checking of Ganglia server host component state: ", e);
       return false;
