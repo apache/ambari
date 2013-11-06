@@ -18,18 +18,22 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.easymock.Capture;
 import org.junit.Assert;
 import org.junit.Test;
@@ -146,6 +150,77 @@ public class RequestResourceProviderTest {
 
     // verify
     verify(managementController, actionManager, hostRoleCommand);
+  }
+
+  @Test
+  public void testGetResourcesWithCluster() throws Exception {
+    Resource.Type type = Resource.Type.Request;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    ActionManager actionManager = createNiceMock(ActionManager.class);
+    HostRoleCommand hostRoleCommand = createNiceMock(HostRoleCommand.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+
+    List<HostRoleCommand> hostRoleCommands = new LinkedList<HostRoleCommand>();
+    hostRoleCommands.add(hostRoleCommand);
+
+    Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
+    Capture<List<Long>> requestIdListCapture = new Capture<List<Long>>();
+
+    Map<Long, String> requestContexts = new HashMap<Long, String>();
+    requestContexts.put(100L, "this is a context");
+
+    // set expectations
+    expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("c1")).andReturn(cluster).anyTimes();
+    expect(clusters.getCluster("bad-cluster")).andThrow(new AmbariException("bad cluster!")).anyTimes();
+    expect(actionManager.getAllTasksByRequestIds(capture(requestIdsCapture))).andReturn(hostRoleCommands);
+    expect(actionManager.getRequestContext(capture(requestIdListCapture))).andReturn(requestContexts);
+    expect(hostRoleCommand.getRequestId()).andReturn(100L).anyTimes();
+    expect(hostRoleCommand.getStatus()).andReturn(HostRoleStatus.IN_PROGRESS);
+
+    // replay
+    replay(managementController, actionManager, hostRoleCommand, clusters, cluster);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+    Set<String> propertyIds = new HashSet<String>();
+
+    propertyIds.add(RequestResourceProvider.REQUEST_ID_PROPERTY_ID);
+    propertyIds.add(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID);
+
+    Predicate predicate = new PredicateBuilder().
+        property(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID).equals("c1").and().
+        property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).equals("100").
+        toPredicate();
+    Request request = PropertyHelper.getReadRequest(propertyIds);
+    Set<Resource> resources = provider.getResources(request, predicate);
+
+    Assert.assertEquals(1, resources.size());
+    for (Resource resource : resources) {
+      Assert.assertEquals(100L, (long) (Long) resource.getPropertyValue(RequestResourceProvider.REQUEST_ID_PROPERTY_ID));
+      Assert.assertEquals("IN_PROGRESS", resource.getPropertyValue(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID));
+    }
+
+    // try again with a bad cluster name
+    predicate = new PredicateBuilder().
+        property(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID).equals("bad-cluster").and().
+        property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).equals("100").
+        toPredicate();
+    try {
+      provider.getResources(request, predicate);
+    } catch (NoSuchParentResourceException e) {
+      e.printStackTrace();
+    }
+
+    // verify
+    verify(managementController, actionManager, hostRoleCommand, clusters, cluster);
   }
 
   @Test

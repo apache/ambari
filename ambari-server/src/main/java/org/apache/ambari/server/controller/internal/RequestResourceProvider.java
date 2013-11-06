@@ -33,6 +33,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.state.Clusters;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -207,10 +208,21 @@ class RequestResourceProvider extends AbstractControllerResourceProvider {
   private Set<Resource> getRequestResources(String clusterName,
                                             Long requestId,
                                             String requestStatus,
-                                            Set<String> requestedPropertyIds) throws NoSuchResourceException {
+                                            Set<String> requestedPropertyIds)
+      throws NoSuchResourceException, NoSuchParentResourceException {
 
     Set<Resource> response = new HashSet<Resource>();
     ActionManager actionManager = getManagementController().getActionManager();
+
+    if (clusterName != null) {
+      Clusters clusters = getManagementController().getClusters();
+      //validate that cluster exists, throws exception if it doesn't.
+      try {
+        clusters.getCluster(clusterName);
+      } catch (AmbariException e) {
+        throw new NoSuchParentResourceException(e.getMessage(), e);
+      }
+    }
 
     if (requestId == null) {
       org.apache.ambari.server.actionmanager.RequestStatus status = null;
