@@ -101,6 +101,9 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
     if (this.get('clusterData.hBaseInstalled')) {
       ram -= this.get('hBaseRam')
     }
+    if (ram < 1) {
+      ram = 1;
+    }
     ram *= this.get('GB');
     ram /= containerSize;
     return Math.round(Math.max(cpu, Math.min(disk, ram)));
@@ -118,6 +121,9 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
     ram = (ram - this.get('reservedRam'));
     if (this.get('clusterData.hBaseInstalled')) {
       ram -= this.get('hBaseRam')
+    }
+    if (ram < 1) {
+      ram = 1;
     }
     ram *= this.get('GB');
     var container_ram = Math.abs(ram / containers);
