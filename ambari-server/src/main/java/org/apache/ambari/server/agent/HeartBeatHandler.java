@@ -120,7 +120,7 @@ public class HeartBeatHandler {
       return createRegisterCommand();
     }
 
-    LOG.info("Received heartbeat from host"
+    LOG.debug("Received heartbeat from host"
         + ", hostname=" + hostname
         + ", currentResponseId=" + currentResponseId
         + ", receivedResponseId=" + heartbeat.getResponseId());
@@ -200,7 +200,7 @@ public class HeartBeatHandler {
         throw new AmbariException("Invalid command report, service: " + service);
       }
       if (actionMetadata.getActions(service.toLowerCase()).contains(report.getRole())) {
-        LOG.info(report.getRole() + " is an action - skip component lookup");
+        LOG.debug(report.getRole() + " is an action - skip component lookup");
       } else {
         try {
           Service svc = cl.getService(service);
