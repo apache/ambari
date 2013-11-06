@@ -27,7 +27,9 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -44,10 +46,8 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.entities.*;
 import org.apache.ambari.server.state.*;
-import org.apache.ambari.server.state.DesiredConfig.HostOverride;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
@@ -272,6 +272,29 @@ public class ClusterTest {
 
     List<ServiceComponentHost> scHosts = c1.getServiceComponentHosts("h1");
     Assert.assertEquals(1, scHosts.size());
+    
+    Iterator<ServiceComponentHost> iterator = scHosts.iterator();
+    
+    //Try to iterate on sch and modify it in loop
+    try {
+      while (iterator.hasNext()) {
+        iterator.next();
+        Service s1 = serviceFactory.createNew(c1, "PIG");
+        c1.addService(s1);
+        s1.persist();
+        ServiceComponent sc1 = serviceComponentFactory.createNew(s1, "PIG");
+        s1.addServiceComponent(sc1);
+        sc1.persist();
+        ServiceComponentHost sch1 = serviceComponentHostFactory.createNew(sc1, "h1", false);
+        sc1.addServiceComponentHost(sch1);
+        sch1.persist();
+      }
+    } catch (ConcurrentModificationException e ) {
+      Assert.assertTrue("Failed to work concurrently with sch", false);
+    }
+    
+    scHosts = c1.getServiceComponentHosts("h1");
+    Assert.assertEquals(2, scHosts.size());
   }
 
 

@@ -68,6 +68,7 @@ import java.util.TreeMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ClusterImpl implements Cluster {
 
@@ -621,8 +622,7 @@ public class ClusterImpl implements Cluster {
       readLock.lock();
       try {
         if (serviceComponentHostsByHost.containsKey(hostname)) {
-          return Collections.unmodifiableList(
-              serviceComponentHostsByHost.get(hostname));
+          return new CopyOnWriteArrayList<ServiceComponentHost>(serviceComponentHostsByHost.get(hostname));
         }
         return new ArrayList<ServiceComponentHost>();
       } finally {
