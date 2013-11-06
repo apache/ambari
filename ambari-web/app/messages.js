@@ -353,7 +353,10 @@ Em.I18n.translations = {
   'installer.step3.hostWarningsPopup.report.user': '<br><br>######################################<br># Users<br>#<br># A space delimited list of users who should not exist.<br># Provided so that administrators can easily copy paths into scripts, email etc.<br># Example: userdel hdfs<br>######################################<br>USERS<br>',
   'installer.step3.hostWarningsPopup.report.folder': '\\ /folder',
   'installer.step3.hostWarningsPopup.checks': 'Host Checks found',
-  'installer.step3.hostWarningsPopup.notice':'After manually resolving the issues, click <b>Rerun Checks</b>.<br>To manually resolve issues on <b>each host</b> run the HostCleanup script (Python 2.6 or greater is required):<br><div class="code-snippet">python /usr/lib/python2.6/site-packages/ambari_agent/HostCleanup.py</div>',
+  'installer.step3.hostWarningsPopup.notice':'After manually resolving the issues, click <b>Rerun Checks</b>.'+
+    '<br>To manually resolve issues on <b>each host</b> run the HostCleanup script (Python 2.6 or greater is required):'+
+    '<br><div class="code-snippet">python /usr/lib/python2.6/site-packages/ambari_agent/HostCleanup.py --silent --skip=users</div>' +
+    '<div class="alert alert-warn"><b>Note</b>: To clean up in interactive mode, remove <b>--silent</b> option. To clean up all resources, including <i>users</i>, remove <b>--skip=users</b> option. Use <b>--help</b> for a list of available options.</div>',
   'installer.step3.hostWarningsPopup.summary':'{0} on {1}',
   'installer.step3.hostWarningsPopup.firewall':'Firewall Issues',
   'installer.step3.hostWarningsPopup.firewall.message':'Firewall is running on the following hosts. Please configure the firewall to allow communications on the ports documented in the <i>Configuring Ports</i> section of  the <a target=\"_blank\" href=\"http://incubator.apache.org/ambari/current/installing-hadoop-using-ambari/content/\">Ambari documentation</a>',
