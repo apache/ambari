@@ -128,19 +128,15 @@ App.Host = DS.Model.extend({
     if (this.get('loadFifteen') != null) return this.get('loadFifteen').toFixed(2);
   }.property('loadOne', 'loadFive', 'loadFifteen'),
 
-  // Instead of making healthStatus a computed property that listens on hostComponents.@each.workStatus,
-  // we are creating a separate observer _updateHealthStatus.  This is so that healthStatus is updated
-  // only once after the run loop.  This is because Ember invokes the computed property every time
-  // a property that it depends on changes.  For example, App.statusMapper's map function would invoke
-  // the computed property too many times and freezes the UI without this hack.
-  // See http://stackoverflow.com/questions/12467345/ember-js-collapsing-deferring-expensive-observers-or-computed-properties
-  healthClass: '',
-
-  updateHealthClass: function(){
-    if(this.get('isNotHeartBeating') || this.get('healthStatus') == 'UNKNOWN'){
-      this.set('healthClass', 'health-status-DEAD-YELLOW');
-    }
-  }.observes('healthStatus'),
+  healthClass: function(){
+    var statusMap = {
+      'UNKNOWN': 'health-status-DEAD-YELLOW',
+      'HEALTHY': 'health-status-LIVE',
+      'UNHEALTHY': 'health-status-DEAD-RED',
+      'ALERT ': 'health-status-DEAD-ORANGE'
+    };
+    return statusMap[this.get('healthStatus')] || 'health-status-DEAD-ORANGE';
+  }.property('healthStatus'),
 
   healthToolTip: function(){
     var hostComponents = this.get('hostComponents').filter(function(item){

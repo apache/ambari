@@ -262,22 +262,17 @@ App.ClusterController = Em.Controller.extend({
    * @return {Boolean} Whether we have errors
    */
   loadUpdatedStatus: function(callback){
-
-    if(!this.get('clusterName')){
+    var location = App.router.get('location.lastSetURL');
+    if(!this.get('clusterName') || (this.get('isLoaded') && !(/\/main\/hosts.*/.test(location)))){
       callback();
       return false;
     }
-    var testUrl = App.get('isHadoop2Stack') ? '/data/dashboard/HDP2/services.json':'/data/dashboard/services.json';
-    var servicesUrl = '/services?fields=ServiceInfo,components/host_components/HostRoles/state';
-    if (App.Service.find('HBASE')) {
-      // HBase installed. We need the haStatus field as it has
-      // moved to another field.
-      servicesUrl += ',components/host_components/metrics/hbase/master/IsActiveMaster';
-    }
+    var testUrl = App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hc_host_status.json':'/data/dashboard/services.json';
+    var statusUrl = '/hosts?fields=Hosts/host_status,host_components/HostRoles/state';
     //desired_state property is eliminated since calculateState function is commented out, it become useless
-    servicesUrl = this.getUrl(testUrl, servicesUrl);
+    statusUrl = this.getUrl(testUrl, statusUrl);
 
-    App.HttpClient.get(servicesUrl, App.statusMapper, {
+    App.HttpClient.get(statusUrl, App.statusMapper, {
       complete: callback
     });
     return true;
@@ -380,17 +375,17 @@ App.ClusterController = Em.Controller.extend({
         self.updateLoadStatus('users');
     });
 
-    App.router.get('updateController').updateServiceMetric(function(){
-      self.loadUpdatedStatus(function(){
-        self.updateLoadStatus('status');
-      });
-      if (App.supports.hostOverrides) {
-        App.router.get('updateController').updateComponentConfig(function () {
-          self.updateLoadStatus('componentConfigs');
-        });
-      }
-      self.updateLoadStatus('services');
-    }, true);
+    self.loadUpdatedStatus(function () {
+      self.updateLoadStatus('status');
+      App.router.get('updateController').updateServiceMetric(function () {
+        if (App.supports.hostOverrides) {
+          App.router.get('updateController').updateComponentConfig(function () {
+            self.updateLoadStatus('componentConfigs');
+          });
+        }
+        self.updateLoadStatus('services');
+      }, true);
+    });
 
     this.loadAlerts(function(){
         self.updateLoadStatus('alerts');

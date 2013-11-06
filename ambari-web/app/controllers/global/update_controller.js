@@ -45,9 +45,17 @@ App.UpdateController = Em.Controller.extend({
       }
     }
   }.observes('isWorking'),
+  /**
+   * Update hosts depending on which page is open
+   * Make a call only on follow pages:
+   * /main/hosts
+   * /main/hosts/*
+   * /main/charts/heatmap
+   * @param callback
+   */
   updateHostConditionally: function (callback) {
     var location = App.router.get('location.lastSetURL');
-    if (/\/main\/hosts.*/.test(location)) {
+    if (/\/main\/(hosts|charts\/heatmap).*/.test(location)) {
       this.updateHost(callback);
     } else {
       callback();
@@ -56,7 +64,7 @@ App.UpdateController = Em.Controller.extend({
 
   updateHost:function(callback) {
     var testUrl = App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hosts.json' : '/data/hosts/hosts.json';
-    var hostsUrl = this.getUrl(testUrl, '/hosts?fields=Hosts/host_name,Hosts/last_heartbeat_time,Hosts/disk_info,' +
+    var hostsUrl = this.getUrl(testUrl, '/hosts?fields=Hosts/host_name,Hosts/host_status,Hosts/last_heartbeat_time,Hosts/disk_info,' +
       'metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free');
     App.HttpClient.get(hostsUrl, App.hostsMapper, {
       complete: callback
