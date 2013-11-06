@@ -88,8 +88,6 @@ class hdp::params()
   $zookeeper_hosts = hdp_default("zookeeper_hosts")
   $flume_hosts = hdp_default("flume_hosts")
 
-  $rm_port = hdp_get_port_from_url($yarn-site["yarn.resourcemanager.webapp.address"],"8088")
-  $rm_https_port = hdp_get_port_from_url($yarn-site["yarn.resourcemanager.webapp.https.address"],"8090")
 
   $nn_principal_str = hdp_default("hdfs-site/dfs.namenode.kerberos.principal", "nn/_HOST@EXAMPLE.COM")
   if ("_HOST" in $nn_principal_str and hdp_is_empty($namenode_host) == false) {
