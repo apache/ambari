@@ -83,7 +83,7 @@
                           </span>
                           <div class="controls">
                             {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
-                              <div {{bindAttr class="errorMessage:error: :control-group"}}>
+                              <div {{bindAttr class="errorMessage:error: warnMessage:warning: :control-group"}}>
                                 {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}
                                 {{#if view.canEdit}}
 	                                {{#if isPropertyOverridable}}
@@ -101,6 +101,7 @@
 	                                {{/if}}
                                 {{/if}}
                                   <span class="help-inline">{{errorMessage}}</span>
+                                  <span class="help-inline">{{warnMessage}}</span>
                               </div>
                             {{#if this.isOverridden}}
                               {{view App.ServiceConfigView.SCPOverriddenRowsView serviceConfigPropertyBinding="this"}}

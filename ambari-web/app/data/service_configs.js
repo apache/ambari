@@ -18,7 +18,9 @@
 
 var App = require('app');
 require('models/service_config');
-require('utils/defaults_providers/yarn_defaults_provider');
+require('utils/configs/defaults_providers/yarn_defaults_provider');
+require('utils/configs/validators/yarn_configs_validator');
+require('utils/configs/validators/mapreduce2_configs_validator');
 
 module.exports = [
   {
@@ -66,6 +68,7 @@ module.exports = [
   {
     serviceName: 'YARN',
     displayName: 'YARN',
+    configsValidator: App.YARNConfigsValidator,
     defaultsProviders: [App.YARNDefaultsProvider],
     filename: 'yarn-site',
     configCategories: [
@@ -84,6 +87,7 @@ module.exports = [
     serviceName: 'MAPREDUCE2',
     displayName: 'MapReduce 2',
     filename: 'mapred-site',
+    configsValidator: App.MapReduce2ConfigsValidator,
     defaultsProviders: [App.YARNDefaultsProvider],
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'HistoryServer', displayName : 'History Server', hostComponentNames : ['HISTORYSERVER']}),

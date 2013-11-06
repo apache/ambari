@@ -506,11 +506,12 @@ App.config = Em.Object.create({
       serviceConfig.set('showConfig', service.showConfig);
 
       // Use calculated default values for some configs
-
-      if (!storedConfigs && service.defaultsProviders)  {
+      var recommendedDefaults = {};
+      if (!storedConfigs && service.defaultsProviders) {
         service.defaultsProviders.forEach(function(defaultsProvider) {
           var defaults = defaultsProvider.getDefaults(localDB);
           for(var name in defaults) {
+        	recommendedDefaults[name] = defaults[name];
             var config = configsByService.findProperty('name', name);
             if (config) {
               config.set('value', defaults[name]);
@@ -518,6 +519,16 @@ App.config = Em.Object.create({
             }
           }
         });
+      }
+      if (service.configsValidator) {
+    	service.configsValidator.set('recommendedDefaults', recommendedDefaults);
+    	var validators = service.configsValidator.get('configValidators');
+    	for (var validatorName in validators) {
+        var c = configsByService.findProperty('name', validatorName);
+          if (c) {
+            c.set('serviceValidator', service.configsValidator);
+          }
+        }
       }
 
       serviceConfig.set('configs', configsByService);

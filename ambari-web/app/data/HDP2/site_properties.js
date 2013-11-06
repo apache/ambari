@@ -60,6 +60,7 @@ module.exports =
       "id": "site property",
       "name": "yarn.scheduler.minimum-allocation-mb",
       "displayName": "yarn.scheduler.minimum-allocation-mb",
+      "displayType": "int",
       "value": "",
       "defaultValue": "",
       "serviceName": "YARN",
@@ -69,6 +70,7 @@ module.exports =
       "id": "site property",
       "name": "yarn.scheduler.maximum-allocation-mb",
       "displayName": "yarn.scheduler.maximum-allocation-mb",
+      "displayType": "int",
       "value": "",
       "defaultValue": "",
       "serviceName": "YARN",
@@ -78,6 +80,7 @@ module.exports =
       "id": "site property",
       "name": "yarn.nodemanager.resource.memory-mb",
       "displayName": "yarn.nodemanager.resource.memory-mb",
+      "displayType": "int",
       "value": "",
       "defaultValue": "",
       "serviceName": "YARN",
@@ -192,6 +195,16 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "category": "General",
+      "serviceName": "MAPREDUCE2"
+    },
+    {
+      "id": "site property",
+      "name": "yarn.app.mapreduce.am.resource.mb",
+      "displayName": "yarn.app.mapreduce.am.resource.mb",
+      "value": "",
+      "defaultValue": "",
+      "displayType": "int",
+      "category": "Advanced",
       "serviceName": "MAPREDUCE2"
     }
   ]
