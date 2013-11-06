@@ -7783,8 +7783,16 @@ public class AmbariManagementControllerTest {
       componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", null, null));
       amc.createHostComponents(componentHostRequests);
       namenodes = cluster.getService("HDFS").getServiceComponent("NAMENODE").getServiceComponentHosts();
-      org.junit.Assert.assertEquals(2, namenodes.size());
+      assertEquals(2, namenodes.size());
 
+      // make INSTALLED again
+      componentHost = namenodes.get("host1");
+      componentHost.handleEvent(new ServiceComponentHostInstallEvent(componentHost.getServiceComponentName(), componentHost.getHostName(), System.currentTimeMillis(), "HDP-1.2.0"));
+      componentHost.handleEvent(new ServiceComponentHostOpSucceededEvent(componentHost.getServiceComponentName(), componentHost.getHostName(), System.currentTimeMillis()));
+      componentHostRequests.clear();
+      componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "NAMENODE", "host1", null, "INSTALLED"));
+      amc.updateHostComponents(componentHostRequests, mapRequestProps, true);
+      assertEquals(State.INSTALLED, namenodes.get("host1").getState());
 
       // make unknown
       ServiceComponentHost sch = null;
@@ -7801,6 +7809,21 @@ public class AmbariManagementControllerTest {
       componentHostRequests.add(new ServiceComponentHostRequest("c1", null, "DATANODE", "host2", null, "MAINTENANCE"));
       amc.updateHostComponents(componentHostRequests, mapRequestProps, false);
       org.junit.Assert.assertEquals(State.MAINTENANCE, sch.getState());
+
+      // ServiceComponentHost remains in maintenance after service stop
+      assertEquals(sch.getServiceComponentName(),"DATANODE");
+      serviceRequests.clear();
+      serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "INSTALLED"));
+      ServiceResourceProviderTest.updateServices(amc, serviceRequests,
+        mapRequestProps, true, false);
+      assertEquals(State.MAINTENANCE, sch.getState());
+
+      // ServiceComponentHost remains in maintenance after service start
+      serviceRequests.clear();
+      serviceRequests.add(new ServiceRequest("c1", "HDFS", null, "STARTED"));
+      ServiceResourceProviderTest.updateServices(amc, serviceRequests,
+        mapRequestProps, true, false);
+      assertEquals(State.MAINTENANCE, sch.getState());
 
       // confirm delete
       componentHostRequests.clear();
