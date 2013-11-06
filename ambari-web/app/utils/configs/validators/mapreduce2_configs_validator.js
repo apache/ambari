@@ -39,11 +39,11 @@ App.MapReduce2ConfigsValidator = App.ServiceConfigsValidator.create({
   configProperties: [],
 
   mapreduceMapJavaOpts: function(config) {
-    return this.validatorLessThenDefaultValue(config);
+    return null;
   },
 
   mapreduceReduceJavaOpts: function(config) {
-	return this.validatorLessThenDefaultValue(config);
+    return null;
   },
 
   mapreduceTaskIoSortMb: function(config) {
@@ -63,7 +63,7 @@ App.MapReduce2ConfigsValidator = App.ServiceConfigsValidator.create({
   },
 
   yarnAppMapreduceAmCommandOpts: function(config) {
-    return this.validatorLessThenDefaultValue(config);
+    return null;
   }
 
 });
