@@ -536,14 +536,17 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       }
       if (serviceConfigProperty.get('serviceName') === this.get('content.serviceName')) {
 
-        defaults.forEach(function(defaults) {
-          for(var name in defaults) {
-            if (serviceConfigProperty.name == name) {
-              serviceConfigProperty.set('value', defaults[name]);
-              serviceConfigProperty.set('defaultValue', defaults[name]);
-            }
-          }
-        });
+        // Do not reset values when reconfiguring.
+        // This might be useful to setting better descriptions
+        // or default values sometime in the future.
+        // defaults.forEach(function(defaults) {
+        //   for(var name in defaults) {
+        //    if (serviceConfigProperty.name == name) {
+        //       serviceConfigProperty.set('value', defaults[name]);
+        //       serviceConfigProperty.set('defaultValue', defaults[name]);
+        //     }
+        //   }
+        // });
 
         if (s.configsValidator) {
           var validators = s.configsValidator.get('configValidators');
