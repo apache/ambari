@@ -54,12 +54,10 @@ module.exports = Em.Route.extend({
         }
       });
       rollbackHighAvailabilityWizardController.set('popup', popup);
-      App.clusterStatus.updateFromServer();
       var currentClusterStatus = App.clusterStatus.get('value');
       if (currentClusterStatus) {
         switch (currentClusterStatus.clusterState) {
           case 'ROLLBACK_HIGH_AVAILABILITY' :
-            App.db.data = currentClusterStatus.localdb;
             rollbackHighAvailabilityWizardController.setCurrentStep(currentClusterStatus.localdb.RollbackHighAvailabilityWizard.currentStep);
             break;
           default:

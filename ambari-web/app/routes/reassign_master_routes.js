@@ -70,10 +70,9 @@ module.exports = Em.Route.extend({
         }
       });
       reassignMasterController.set('popup', popup);
-      App.clusterStatus.updateFromServer();
-      var currentClusterStatus = App.clusterStatus.get('value');
-      App.db.data = currentClusterStatus.localdb;
       reassignMasterController.loadSecurityEnabled();
+      reassignMasterController.loadComponentToReassign();
+      var currentClusterStatus = App.clusterStatus.get('value');
       if (currentClusterStatus) {
         switch (currentClusterStatus.clusterState) {
           case 'REASSIGN_MASTER_INSTALLING' :

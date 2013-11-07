@@ -49,23 +49,18 @@ module.exports = Em.Route.extend({
           this.fitHeight();
         }
       });
-      App.clusterStatus.updateFromServer();
       var currentClusterStatus = App.clusterStatus.get('value');
-
       if (currentClusterStatus) {
         switch (currentClusterStatus.clusterState) {
           case 'ADD_HOSTS_DEPLOY_PREP_2' :
             addHostController.setCurrentStep('4');
-            App.db.data = currentClusterStatus.localdb;
             break;
           case 'ADD_HOSTS_INSTALLING_3' :
           case 'SERVICE_STARTING_3' :
             addHostController.setCurrentStep('5');
-            App.db.data = currentClusterStatus.localdb;
             break;
           case 'ADD_HOSTS_INSTALLED_4' :
             addHostController.setCurrentStep('6');
-            App.db.data = currentClusterStatus.localdb;
             break;
           default:
             break;

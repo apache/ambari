@@ -54,23 +54,18 @@ module.exports = Em.Route.extend({
           }
         });
         addServiceController.set('popup',popup);
-        App.clusterStatus.updateFromServer();
         var currentClusterStatus = App.clusterStatus.get('value');
-
         if (currentClusterStatus) {
           switch (currentClusterStatus.clusterState) {
             case 'ADD_SERVICES_DEPLOY_PREP_2' :
               addServiceController.setCurrentStep('5');
-              App.db.data = currentClusterStatus.localdb;
               break;
             case 'ADD_SERVICES_INSTALLING_3' :
             case 'SERVICE_STARTING_3' :
               addServiceController.setCurrentStep('6');
-              App.db.data = currentClusterStatus.localdb;
               break;
             case 'ADD_SERVICES_INSTALLED_4' :
               addServiceController.setCurrentStep('7');
-              App.db.data = currentClusterStatus.localdb;
               break;
             default:
               break;

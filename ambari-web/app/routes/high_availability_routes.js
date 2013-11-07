@@ -84,12 +84,10 @@ module.exports = Em.Route.extend({
         }
       });
       highAvailabilityWizardController.set('popup', popup);
-      App.clusterStatus.updateFromServer();
       var currentClusterStatus = App.clusterStatus.get('value');
       if (currentClusterStatus) {
         switch (currentClusterStatus.clusterState) {
           case 'HIGH_AVAILABILITY_DEPLOY' :
-            App.db.data = currentClusterStatus.localdb;
             highAvailabilityWizardController.setCurrentStep(currentClusterStatus.localdb.HighAvailabilityWizard.currentStep);
             break;
           default:

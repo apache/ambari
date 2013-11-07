@@ -79,6 +79,8 @@ App.clusterStatus = Ember.Object.create({
             }
             if (newValue.localdb) {
               this.set('localdb', newValue.localdb);
+              App.db.data = newValue.localdb;
+              App.db.setLocalStorage();
             }
           } else {
             // default status already set
