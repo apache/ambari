@@ -38,7 +38,7 @@ App.UpdateController = Em.Controller.extend({
   updateAll:function(){
     if(this.get('isWorking')) {
       App.updater.run(this, 'updateHostConditionally', 'isWorking');
-      App.updater.run(this, 'updateServiceMetric', 'isWorking');
+      App.updater.run(this, 'updateServiceMetric', 'isWorking', App.componentsUpdateInterval);
       App.updater.run(this, 'graphsUpdate', 'isWorking');
       if (App.supports.hostOverrides) {
         App.updater.run(this, 'updateComponentConfig', 'isWorking');
@@ -100,7 +100,7 @@ App.UpdateController = Em.Controller.extend({
     self.set('isUpdated', false);
 
     var conditionalFields = [];
-    var initialFields = ['components/host_components/HostRoles/state'];
+    var initialFields = [];
     var services = [
         {
             name: 'FLUME',
@@ -117,7 +117,7 @@ App.UpdateController = Em.Controller.extend({
     ];
     services.forEach(function(service) {
         if (App.Service.find(service.name)) {
-            conditionalFields.push("components/host_components/metrics/" + service.urlParam);
+            conditionalFields.push("host_components/metrics/" + service.urlParam);
         }
     });
     var conditionalFieldsString = conditionalFields.length > 0 ? ',' + conditionalFields.join(',') : '';
@@ -125,28 +125,30 @@ App.UpdateController = Em.Controller.extend({
     var methodStartTs = new Date().getTime();
     var testUrl = App.get('isHadoop2Stack') ? '/data/dashboard/HDP2/services.json':'/data/dashboard/services.json';
 
-    var realUrl = '/services?fields=components/ServiceComponentInfo,' +
-      'components/host_components/metrics/jvm/memHeapUsedM,' +
-      'components/host_components/metrics/jvm/memHeapCommittedM,' +
-      'components/host_components/metrics/mapred/jobtracker/trackers_decommissioned,' +
-      'components/host_components/metrics/cpu/cpu_wio,' +
-      'components/host_components/metrics/rpc/RpcQueueTime_avg_time,' +
-      'components/host_components/metrics/dfs/FSNamesystem/HAState,' +
-      'components/host_components/metrics/dfs/FSNamesystem/CapacityUsed,' +
-      'components/host_components/metrics/dfs/FSNamesystem/CapacityTotal,' +
-      'components/host_components/metrics/dfs/FSNamesystem/CapacityRemaining,' +
-      'components/host_components/metrics/dfs/FSNamesystem/BlocksTotal,' +
-      'components/host_components/metrics/dfs/FSNamesystem/CorruptBlocks,' +
-      'components/host_components/metrics/dfs/FSNamesystem/MissingBlocks,' +
-      'components/host_components/metrics/dfs/FSNamesystem/UnderReplicatedBlocks,' +
-      'components/host_components/metrics/dfs/namenode/Version,' +
-      'components/host_components/metrics/dfs/namenode/LiveNodes,' +
-      'components/host_components/metrics/dfs/namenode/DeadNodes,' +
-      'components/host_components/metrics/dfs/namenode/DecomNodes,' +
-      'components/host_components/metrics/dfs/namenode/TotalFiles,' +
-      'components/host_components/metrics/dfs/namenode/UpgradeFinalized,' +
-      'components/host_components/metrics/dfs/namenode/Safemode,' +
-      'components/host_components/metrics/runtime/StartTime' +
+    var realUrl = '/components/?ServiceComponentInfo/category=MASTER&fields=' +
+      'ServiceComponentInfo,' +
+      'host_components/HostRoles/state,' +
+      'host_components/metrics/jvm/memHeapUsedM,' +
+      'host_components/metrics/jvm/memHeapCommittedM,' +
+      'host_components/metrics/mapred/jobtracker/trackers_decommissioned,' +
+      'host_components/metrics/cpu/cpu_wio,' +
+      'host_components/metrics/rpc/RpcQueueTime_avg_time,' +
+      'host_components/metrics/dfs/FSNamesystem/HAState,' +
+      'host_components/metrics/dfs/FSNamesystem/CapacityUsed,' +
+      'host_components/metrics/dfs/FSNamesystem/CapacityTotal,' +
+      'host_components/metrics/dfs/FSNamesystem/CapacityRemaining,' +
+      'host_components/metrics/dfs/FSNamesystem/BlocksTotal,' +
+      'host_components/metrics/dfs/FSNamesystem/CorruptBlocks,' +
+      'host_components/metrics/dfs/FSNamesystem/MissingBlocks,' +
+      'host_components/metrics/dfs/FSNamesystem/UnderReplicatedBlocks,' +
+      'host_components/metrics/dfs/namenode/Version,' +
+      'host_components/metrics/dfs/namenode/LiveNodes,' +
+      'host_components/metrics/dfs/namenode/DeadNodes,' +
+      'host_components/metrics/dfs/namenode/DecomNodes,' +
+      'host_components/metrics/dfs/namenode/TotalFiles,' +
+      'host_components/metrics/dfs/namenode/UpgradeFinalized,' +
+      'host_components/metrics/dfs/namenode/Safemode,' +
+      'host_components/metrics/runtime/StartTime' +
       conditionalFieldsString;
 
     var servicesUrl = isInitialLoad ? this.getUrl(testUrl, realUrl + initialFieldsString) : this.getUrl(testUrl, realUrl);

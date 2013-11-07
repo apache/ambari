@@ -17,9 +17,6 @@
 
 var App = require('app');
 
-var previousComponentStatuses = {};
-var previousHostStatuses = {};
-
 App.statusMapper = App.QuickDataMapper.create({
   model: App.HostComponent,
   componentServiceMap: {
@@ -71,6 +68,8 @@ App.statusMapper = App.QuickDataMapper.create({
       var componentServiceMap = this.get('componentServiceMap');
       var currentComponentStatuses = {};
       var currentHostStatuses = {};
+      var previousHostStatuses = App.cache['previousHostStatuses'];
+      var previousComponentStatuses = App.cache['previousComponentStatuses'];
 
       json.items.forEach(function (host) {
         //update hosts, which have status changed
@@ -130,8 +129,8 @@ App.statusMapper = App.QuickDataMapper.create({
         App.store.loadMany(this.get('model'), addedHostComponents);
       }
 
-      previousComponentStatuses = currentComponentStatuses;
-      previousHostStatuses = currentHostStatuses;
+      App.cache['previousHostStatuses'] = currentHostStatuses;
+      App.cache['previousComponentStatuses'] = currentComponentStatuses;
 
       hosts.forEach(function (host) {
         var status = hostStatuses[host.get('id')];

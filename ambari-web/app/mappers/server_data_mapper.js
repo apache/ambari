@@ -20,7 +20,9 @@ var App = require('app');
 
 //initialize common cache container for mappers
 App.cache = {
-  'Hosts': {}
+  'Hosts': {},
+  'previousHostStatuses': {},
+  'previousComponentStatuses': {}
 };
 
 App.ServerDataMapper = Em.Object.extend({

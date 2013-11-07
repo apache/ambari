@@ -55,6 +55,7 @@ App.hostsMapper = App.QuickDataMapper.create({
       var result = [];
       var hostIds = {};
       var cacheData = App.cache['Hosts'];
+      var currentHostStatuses = {};
 
       json.items.forEach(function (item) {
         //receive host_components when added hosts
@@ -64,8 +65,11 @@ App.hostsMapper = App.QuickDataMapper.create({
         }, this);
 
         hostIds[item.Hosts.host_name] = true;
+        currentHostStatuses[item.Hosts.host_name] = item.Hosts.host_status;
         result.push(this.parseIt(item, this.config));
       }, this);
+
+      App.cache['previousHostStatuses'] = currentHostStatuses;
       result = this.sortByPublicHostName(result);
 
       var clientHosts = App.Host.find();
