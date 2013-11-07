@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
+import com.google.inject.Singleton;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 
@@ -37,10 +38,13 @@ import com.google.inject.Inject;
 /**
  * Helper class that works with config traversals.
  */
+@Singleton
 public class ConfigHelper {
 
   private Clusters clusters = null;
   private AmbariMetaInfo ambariMetaInfo = null;
+  private static String DELETED = "DELETED_";
+  public static final String CLUSTER_DEFAULT_TAG = "tag";
   
   @Inject
   public ConfigHelper(Clusters c, AmbariMetaInfo metaInfo) {
@@ -51,30 +55,28 @@ public class ConfigHelper {
   /**
    * Gets the desired tags for a cluster and host
    * @param cluster the cluster
-   * @param serviceName the optional service name
    * @param hostName the host name
    * @return a map of tag type to tag names with overrides
    * @throws AmbariException
    */
   public Map<String, Map<String, String>> getEffectiveDesiredTags(
-      Cluster cluster, String serviceName, String hostName) throws AmbariException {
+      Cluster cluster, String hostName) throws AmbariException {
     
     Host host = clusters.getHost(hostName);
-    Map<String, DesiredConfig> hostDesired = host.getDesiredConfigs(cluster.getClusterId());
     
-    return getEffectiveDesiredTags(cluster, serviceName, hostDesired);
+    return getEffectiveDesiredTags(cluster, host.getDesiredHostConfigs(cluster));
   }
 
   /**
-   * Gets the desired tags for a cluster and host
+   * Gets the desired tags for a cluster and overrides for a host
    * @param cluster the cluster
-   * @param serviceName the optional service name
-   * @param hostDesired the optional host desired configs
+   * @param hostConfigOverrides the host overrides applied using config groups
    * @return a map of tag type to tag names with overrides
    * @throws AmbariException
    */
-  public Map<String, Map<String, String>> getEffectiveDesiredTags(
-      Cluster cluster, String serviceName, Map<String, DesiredConfig> hostDesired) throws AmbariException {
+  private Map<String, Map<String, String>> getEffectiveDesiredTags(
+      Cluster cluster, Map<String, HostConfig> hostConfigOverrides)
+        throws AmbariException {
     
     Map<String, DesiredConfig> clusterDesired = cluster.getDesiredConfigs();
     
@@ -82,48 +84,130 @@ public class ConfigHelper {
     
     // Do not use host component config mappings.  Instead, the rules are:
     // 1) Use the cluster desired config
-    // 2) override (1) with service-specific overrides
-    // 3) override (2) with host-specific overrides
+    // 2) override (1) with config-group overrides
     
     for (Entry<String, DesiredConfig> clusterEntry : clusterDesired.entrySet()) {
-        String type = clusterEntry.getKey();
-        String tag = clusterEntry.getValue().getVersion();
-        
-        // 1) start with cluster config
-        Config config = cluster.getConfig(type, tag);
-        if (null == config) {
-          continue;
-        }
+      String type = clusterEntry.getKey();
+      String tag = clusterEntry.getValue().getVersion();
 
-        Map<String, String> tags = new LinkedHashMap<String, String>();
-        
-        tags.put("tag", config.getVersionTag());
-        
-        // 2) apply the service overrides, if any are defined with different tags
-        if (null != serviceName) {
-          Service service = cluster.getService(serviceName);
-          Config svcConfig = service.getDesiredConfigs().get(type);
-          if (null != svcConfig && !svcConfig.getVersionTag().equals(tag)) {
-            tags.put("service_override_tag", svcConfig.getVersionTag());
+      // 1) start with cluster config
+      Config config = cluster.getConfig(type, tag);
+      if (null == config) {
+        continue;
+      }
+
+      Map<String, String> tags = new LinkedHashMap<String, String>();
+
+      tags.put(CLUSTER_DEFAULT_TAG, config.getVersionTag());
+
+      // AMBARI-3672. Only consider Config groups for override tags
+      // tags -> (configGroupId, versionTag)
+      if (hostConfigOverrides != null) {
+        HostConfig hostConfig = hostConfigOverrides.get(config.getType());
+        if (hostConfig != null) {
+          for (Entry<Long, String> tagEntry : hostConfig
+              .getConfigGroupOverrides().entrySet()) {
+            tags.put(tagEntry.getKey().toString(), tagEntry.getValue());
           }
         }
+      }
 
-        if (null != hostDesired) {
-          // 3) apply the host overrides, if any
-          DesiredConfig dc = hostDesired.get(type);
-  
-          if (null != dc) {
-            Config hostConfig = cluster.getConfig(type, dc.getVersion());
-            if (null != hostConfig) {
-              tags.put("host_override_tag", hostConfig.getVersionTag());
+      resolved.put(type, tags);
+    }
+
+    return resolved;
+  }
+
+  /**
+   * Get all config properties for a cluster given a set of configType to
+   * versionTags map. This helper method merges all the override tags with a
+   * the properties from parent cluster config properties
+   *
+   * @param cluster
+   * @param desiredTags
+   * @return {type : {key, value}}
+   */
+  public Map<String, Map<String, String>> getEffectiveConfigProperties(
+    Cluster cluster, Map<String, Map<String, String>> desiredTags) {
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+
+    if (desiredTags != null) {
+      for (Entry<String, Map<String, String>> entry : desiredTags.entrySet()) {
+        String type = entry.getKey();
+        Map<String, String> propertyMap = properties.get(type);
+        if (propertyMap == null) {
+          propertyMap = new HashMap<String, String>();
+        }
+
+        Map<String, String> tags = new HashMap<String, String>(entry.getValue());
+        String clusterTag = tags.get(CLUSTER_DEFAULT_TAG);
+
+        // Overrides is only supported if the config type exists at cluster
+        // level
+        if (clusterTag != null) {
+          Config config = cluster.getConfig(type, clusterTag);
+          if (config != null) {
+            propertyMap.putAll(config.getProperties());
+          }
+          tags.remove(CLUSTER_DEFAULT_TAG);
+          // Now merge overrides
+          for (Entry<String, String> overrideEntry : tags.entrySet()) {
+            Config overrideConfig = cluster.getConfig(type,
+              overrideEntry.getValue());
+
+            if (overrideConfig != null) {
+              propertyMap = getMergedConfig(propertyMap, overrideConfig.getProperties());
             }
           }
         }
-        
-        resolved.put(type, tags);
+        properties.put(type, propertyMap);
       }
-    
-    return resolved;
+    }
+
+    return properties;
+  }
+
+  /**
+   * Merge override with original, if original property doesn't exist,
+   * add it to the properties
+   *
+   * @param persistedClusterConfig
+   * @param override
+   * @return
+   */
+  public Map<String, String> getMergedConfig(Map<String,
+      String> persistedClusterConfig, Map<String, String> override) {
+
+    Map<String, String> finalConfig = new HashMap<String, String>(persistedClusterConfig);
+
+    if (override != null && override.size() > 0) {
+      for (String overrideKey : override.keySet()) {
+        Boolean deleted = 0 == overrideKey.indexOf(DELETED);
+        String nameToUse = deleted ? overrideKey.substring(DELETED.length()) : overrideKey;
+        if (finalConfig.containsKey(nameToUse)) {
+          finalConfig.remove(nameToUse);
+        }
+        if (!deleted) {
+          finalConfig.put(nameToUse, override.get(overrideKey));
+        }
+      }
+    }
+
+    return finalConfig;
+  }
+
+  public void applyCustomConfig(Map<String, Map<String, String>> configurations,
+      String type, String name, String value, Boolean deleted) {
+    if (!configurations.containsKey(type)) {
+      configurations.put(type, new HashMap<String, String>());
+    }
+    String nameToUse = deleted ? DELETED + name : name;
+    Map<String, String> properties = configurations.get(type);
+    if (properties.containsKey(nameToUse)) {
+      properties.remove(nameToUse);
+    }
+    properties.put(nameToUse, value);
   }
   
   /**
@@ -146,12 +230,12 @@ public class ConfigHelper {
    *     </ul>
    *   </li>
    * </ul>
-   * @param serviceComponentHostImpl
+   * @param @ServiceComponentHost
    * @return <code>true</code> if the actual configs are stale
    */
   public boolean isStaleConfigs(ServiceComponentHost sch) throws AmbariException {
 
-    Map<String, DesiredConfig> actual = sch.getActualConfigs();
+    Map<String, HostConfig> actual = sch.getActualConfigs();
     if (null == actual || actual.isEmpty())
       return false;
     
@@ -159,11 +243,11 @@ public class ConfigHelper {
     StackId stackId = cluster.getDesiredStackVersion();
     
     Map<String, Map<String, String>> desired = getEffectiveDesiredTags(cluster,
-        sch.getServiceName(), sch.getHostName());
+        sch.getHostName());
     
     ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
         stackId.getStackVersion(), sch.getServiceName());
-    
+
     // Configs are considered stale when:
     // - desired type DOES NOT exist in actual
     // --- desired type DOES NOT exist in stack: not_stale
@@ -192,15 +276,16 @@ public class ConfigHelper {
           // then all services
           Collection<String> keys = mergeKeyNames(cluster, type, tags.values());
           
-          if (serviceInfo.hasPropertyFor(type, keys) || !hasPropertyFor(stackId, type, keys))
+          if (serviceInfo.hasPropertyFor(type, keys) || !hasPropertyFor(stackId, type, keys)) {
             stale = true;
+          }
         }
       } else {
         // desired and actual both define the type
-        DesiredConfig dc = actual.get(type);
-        Map<String, String> actualTags = buildTags(dc);
+        HostConfig hc = actual.get(type);
+        Map<String, String> actualTags = buildTags(hc);
         
-        if (!isTagChange(tags, actualTags)) {
+        if (!isTagChanged(tags, actualTags)) {
           stale = false;
         } else {
           // tags are change, need to find out what has changed, and if it applies
@@ -220,6 +305,7 @@ public class ConfigHelper {
    * @return <code>true</code> if any service on the stack defines a property
    * for the type.
    */
+  // TODO: Create a static hash map for quick lookup
   private boolean hasPropertyFor(StackId stack, String type,
       Collection<String> keys) throws AmbariException {
 
@@ -273,39 +359,32 @@ public class ConfigHelper {
   /**
    * @return the map of tags for a desired config
    */
-  private Map<String, String> buildTags(DesiredConfig dc) {
+  private Map<String, String> buildTags(HostConfig hc) {
     Map<String, String> map = new LinkedHashMap<String, String>();
-    map.put("tag", dc.getVersion());
-    if (null != dc.getServiceName())
-      map.put("service_override_tag", dc.getServiceName());
-    if (0 != dc.getHostOverrides().size())
-      map.put("host_override_tag", dc.getHostOverrides().get(0).getVersionTag());
-    
+    map.put(CLUSTER_DEFAULT_TAG, hc.getDefaultVersionTag());
+    if (hc.getConfigGroupOverrides() != null) {
+      for (Entry<Long, String> entry : hc.getConfigGroupOverrides().entrySet()) {
+        map.put(entry.toString(), entry.getValue());
+      }
+    }
     return map;
   }
   
   /**
    * @return true if the tags are different in any way, even if not-specified
    */
-  private boolean isTagChange(Map<String, String> desiredTags, Map<String, String> actualTags) {
-    if (!actualTags.get("tag").equals (desiredTags.get("tag")))
+  private boolean isTagChanged(Map<String, String> desiredTags, Map<String, String> actualTags) {
+    if (!actualTags.get(CLUSTER_DEFAULT_TAG).equals(desiredTags.get(CLUSTER_DEFAULT_TAG)))
       return true;
-    
-    String tag0 = actualTags.get("service_override_tag"); 
-    String tag1 = desiredTags.get("service_override_tag");
-    tag0 = (null == tag0) ? "" : tag0;
-    tag1 = (null == tag1) ? "" : tag1;
-    if (!tag0.equals(tag1))
+
+    Set<String> desiredSet = new HashSet<String>(desiredTags.keySet());
+    Set<String> actualSet = new HashSet<String>(actualTags.keySet());
+
+    desiredSet.removeAll(actualSet);
+
+    if (!desiredSet.isEmpty())
       return true;
-    
-    // desired config can only have one value here since it's from the HC.
-    tag0 = actualTags.get("host_override_tag");
-    tag1 = desiredTags.get("host_override_tag");
-    tag0 = (null == tag0) ? "" : tag0;
-    tag1 = (null == tag1) ? "" : tag1;
-    if (!tag0.equals(tag1))
-      return true;
-    
+
     return false;
   }
 

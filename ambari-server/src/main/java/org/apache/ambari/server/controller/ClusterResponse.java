@@ -121,7 +121,7 @@ public class ClusterResponse {
   }
 
   /**
-   * @param desiredConfigs
+   * @param configs
    */
   public void setDesiredConfigs(Map<String, DesiredConfig> configs) {
     desiredConfigs = configs;

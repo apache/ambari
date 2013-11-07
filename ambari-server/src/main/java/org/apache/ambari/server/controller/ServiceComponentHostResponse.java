@@ -18,9 +18,10 @@
 
 package org.apache.ambari.server.controller;
 
-import java.util.Map;
-
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.HostConfig;
+
+import java.util.Map;
 
 public class ServiceComponentHostResponse {
 
@@ -38,7 +39,7 @@ public class ServiceComponentHostResponse {
   private Map<String, String> desiredConfigs;
   
   // type -> desired config
-  private Map<String, DesiredConfig> actualConfigs;
+  private Map<String, HostConfig> actualConfigs;
 
   private String liveState;
 
@@ -238,16 +239,16 @@ public class ServiceComponentHostResponse {
   }
 
   /**
-   * @param actualConfigs the actual configs
+   * @param configs the actual configs
    */
-  public void setActualConfigs(Map<String, DesiredConfig> configs) {
+  public void setActualConfigs(Map<String, HostConfig> configs) {
     actualConfigs = configs;
   }
   
   /**
    * @return the actual configs
    */
-  public Map<String, DesiredConfig> getActualConfigs() {
+  public Map<String, HostConfig> getActualConfigs() {
     return actualConfigs;
   }
 

@@ -254,5 +254,5 @@ public interface Cluster {
    * @param hostname
    * @return Map of config group id to config group
    */
-  public Map<Long, ConfigGroup> getConfigGroupsByHostname(String hostname);
+  public Map<Long, ConfigGroup> getConfigGroupsByHostname(String hostname) throws AmbariException;
 }

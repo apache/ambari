@@ -25,6 +25,7 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,38 +47,6 @@ public class ExecutionCommandWrapper {
 
   public ExecutionCommandWrapper(ExecutionCommand executionCommand) {
     this.executionCommand = executionCommand;
-  }
-
-  public static void applyCustomConfig(Map<String, Map<String, String>> configurations, String type,
-                                       String name, String value, Boolean deleted) {
-    if (!configurations.containsKey(type)) {
-      configurations.put(type, new HashMap<String, String>());
-    }
-    String nameToUse = deleted ? DELETED + name : name;
-    Map<String, String> properties = configurations.get(type);
-    if (properties.containsKey(nameToUse)) {
-      properties.remove(nameToUse);
-    }
-    properties.put(nameToUse, value);
-  }
-
-  public static Map<String, String> getMergedConfig(Map<String, String> persistedClusterConfig,
-                                                    Map<String, String> override) {
-    Map<String, String> finalConfig = new HashMap<String, String>(persistedClusterConfig);
-    if (override != null && override.size() > 0) {
-      for (String overrideKey : override.keySet()) {
-        Boolean deleted = 0 == overrideKey.indexOf(DELETED);
-        String nameToUse = deleted ? overrideKey.substring(DELETED.length()) : overrideKey;
-        if (finalConfig.containsKey(nameToUse)) {
-          finalConfig.remove(nameToUse);
-        }
-        if (!deleted) {
-          finalConfig.put(nameToUse, override.get(overrideKey));
-        }
-      }
-    }
-
-    return finalConfig;
   }
 
   public ExecutionCommand getExecutionCommand() {
@@ -102,44 +71,28 @@ public class ExecutionCommandWrapper {
 
         try {
           Cluster cluster = clusters.getClusterById(clusterId);
-          for (Map.Entry<String, Map<String, String>> entry : executionCommand.getConfigurationTags().entrySet()) {
+          ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+
+          Map<String, Map<String, String>> configProperties = configHelper
+            .getEffectiveConfigProperties(cluster,
+              executionCommand.getConfigurationTags());
+
+          // Apply the configurations saved with the Execution Cmd on top of
+          // derived configs - This will take care of all the hacks
+          for (Map.Entry<String, Map<String, String>> entry : configProperties.entrySet()) {
             String type = entry.getKey();
-            Map<String, String> tags = entry.getValue();
+            Map<String, String> allLevelMergedConfig = entry.getValue();
 
-            String tag = tags.get("tag");
-            
-            if (tag != null) {
-              Config config = cluster.getConfig(type, tag);
-              
-              //Merge cluster level configs with service overriden, with host overriden
-              Map<String, String> allLevelMergedConfig = new HashMap<String, String>();
-              
-              allLevelMergedConfig.putAll(config.getProperties());
-              
-              String serviceTag =  tags.get("service_override_tag");
-              if (serviceTag != null) {
-                Config configService = cluster.getConfig(type, serviceTag);
-                if (configService != null)
-                  allLevelMergedConfig = getMergedConfig(allLevelMergedConfig, configService.getProperties());
-              }
-                
-              String hostTag = tags.get("host_override_tag");
-              if (hostTag != null) {
-                Config configHost = cluster.getConfig(type, hostTag);
-                if (configHost != null)
-                  allLevelMergedConfig = getMergedConfig(allLevelMergedConfig, configHost.getProperties());
-              }
-              
-              if (executionCommand.getConfigurations().containsKey(type)) {
-                Map<String, String> mergedConfig =
-                    getMergedConfig(allLevelMergedConfig, executionCommand.getConfigurations().get(type));
-                executionCommand.getConfigurations().get(type).clear();
-                executionCommand.getConfigurations().get(type).putAll(mergedConfig);
+            if (executionCommand.getConfigurations().containsKey(type)) {
+              Map<String, String> mergedConfig =
+                configHelper.getMergedConfig(allLevelMergedConfig,
+                  executionCommand.getConfigurations().get(type));
+              executionCommand.getConfigurations().get(type).clear();
+              executionCommand.getConfigurations().get(type).putAll(mergedConfig);
 
-              } else {
-                executionCommand.getConfigurations().put(type, new HashMap<String, String>());
-                executionCommand.getConfigurations().get(type).putAll(allLevelMergedConfig);
-              }
+            } else {
+              executionCommand.getConfigurations().put(type, new HashMap<String, String>());
+              executionCommand.getConfigurations().get(type).putAll(allLevelMergedConfig);
             }
           }
 

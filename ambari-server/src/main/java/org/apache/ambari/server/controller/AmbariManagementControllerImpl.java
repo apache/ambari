@@ -18,21 +18,11 @@
 
 package org.apache.ambari.server.controller;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -45,15 +35,10 @@ import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.StackAccessException;
-import org.apache.ambari.server.actionmanager.ActionDefinition;
 import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.actionmanager.ActionType;
-import org.apache.ambari.server.actionmanager.CustomActionDBAccessorImpl;
-import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
-import org.apache.ambari.server.actionmanager.TargetHostType;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -70,7 +55,6 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.OperatingSystemInfo;
@@ -102,12 +86,20 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
 
 @Singleton
 public class AmbariManagementControllerImpl implements
@@ -122,8 +114,6 @@ public class AmbariManagementControllerImpl implements
   private static final String REQUEST_CONTEXT_PROPERTY = "context";
 
   private static final String BASE_LOG_DIR = "/tmp/ambari";
-
-  private static final String CLUSTER_LEVEL_TAG = "tag";
 
   private final Clusters clusters;
 
@@ -158,6 +148,8 @@ public class AmbariManagementControllerImpl implements
   private AbstractRootServiceResponseFactory rootServiceResponseFactory;
   @Inject
   private ConfigGroupFactory configGroupFactory;
+  @Inject
+  private ConfigHelper configHelper;
 
   final private String masterHostname;
   final private Integer masterPort;
@@ -577,7 +569,7 @@ public class AmbariManagementControllerImpl implements
 
     // Hack - Remove passwords from configs
     if (event.getServiceComponentName().equals(Role.HIVE_CLIENT.toString())) {
-      ExecutionCommandWrapper.applyCustomConfig(configurations, Configuration.HIVE_CONFIG_TAG,
+      configHelper.applyCustomConfig(configurations, Configuration.HIVE_CONFIG_TAG,
           Configuration.HIVE_METASTORE_PASSWORD_PROPERTY, "", true);
     }
 
@@ -1100,46 +1092,21 @@ public class AmbariManagementControllerImpl implements
     }
   }
 
-  private Map<String, Map<String, String>> findConfigurationPropertiesWithOverrides(
-      Map<String, Map<String, String>> configurations,
-      Cluster cluster, String serviceName,
-      Map<String, DesiredConfig> desiredConfigMap) throws AmbariException {
+  /**
+   * Find configuration tags with applied overrides
+   *
+   * @param cluster
+   * @param hostName
+   * @return
+   * @throws AmbariException
+   */
+  private Map<String, Map<String,String>> findConfigurationTagsWithOverrides(
+    Cluster cluster, String hostName) throws AmbariException {
 
-    
-    ConfigHelper ch = injector.getInstance(ConfigHelper.class);
-        
-    Map<String, Map<String,String>> configTags = ch.getEffectiveDesiredTags(cluster, serviceName, desiredConfigMap);
+    Map<String, Map<String,String>> configTags =
+      configHelper.getEffectiveDesiredTags(cluster, hostName);
 
-
-    // HACK HACK HACK if the service has configs that are NOT included
-    // in cluster-level, then use them anyway.  THIS IS GENERALLY A BAD
-    // IDEA, but is included for backward compatibility.  Do not check host
-    // overrides, because that wasn't in the version where this code would
-    // be the case.
-    Service service = cluster.getService(serviceName);
-    for (Config c : service.getDesiredConfigs().values()) {
-      String type = c.getType();
-      if (!configurations.containsKey(type)) {
-        configurations.put(type, new HashMap<String, String>(c.getProperties()));
-
-        HashMap<String, String> tags = new HashMap<String, String>();
-        tags.put(CLUSTER_LEVEL_TAG, c.getVersionTag());
-        configTags.put(type, tags);
-      }
-    }
-    
     return configTags;
-  }
-
-  private Map<String, Map<String,String>> findConfigurationPropertiesWithOverrides(
-      Map<String, Map<String, String>> configurations,
-      Cluster cluster, String serviceName, String hostName) throws AmbariException {
-
-    Host host = clusters.getHost(hostName);
-    Map<String, DesiredConfig> desiredConfigMap = host.getDesiredConfigs(cluster.getClusterId());
-
-    return findConfigurationPropertiesWithOverrides(configurations, cluster,
-        serviceName, desiredConfigMap);
   }
 
 
@@ -1195,8 +1162,6 @@ public class AmbariManagementControllerImpl implements
           }
         }
       }
-
-      Map<String, Map<String, DesiredConfig>> configsByHosts = cluster.getHostsDesiredConfigs(hostnames);
 
       //HACK
       String jobtrackerHost = getJobTrackerHost(cluster);
@@ -1333,13 +1298,15 @@ public class AmbariManagementControllerImpl implements
 
             // [ type -> [ key, value ] ]
             Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
-            Map<String, Map<String, String>> configTags = findConfigurationPropertiesWithOverrides(
-                configurations, cluster, scHost.getServiceName(), configsByHosts.get(scHost.getHostName()));
+            Host host = clusters.getHost(scHost.getHostName());
 
-            // HACK HACK HACK
+            Map<String, Map<String, String>> configTags =
+              findConfigurationTagsWithOverrides(cluster, host.getHostName());
+
+            // HACK - Set configs on the ExecCmd
             if (!scHost.getHostName().equals(jobtrackerHost)) {
               if (configTags.get(Configuration.GLOBAL_CONFIG_TAG) != null) {
-                ExecutionCommandWrapper.applyCustomConfig(
+                configHelper.applyCustomConfig(
                     configurations, Configuration.GLOBAL_CONFIG_TAG,
                     Configuration.RCA_ENABLED_PROPERTY, "false", false);
               }
@@ -1377,8 +1344,8 @@ public class AmbariManagementControllerImpl implements
 
         // [ type -> [ key, value ] ]
         Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String,String>>();
-        Map<String, Map<String, String>> configTags = findConfigurationPropertiesWithOverrides(
-            configurations, cluster, serviceName, clientHost);
+        Map<String, Map<String, String>> configTags =
+          findConfigurationTagsWithOverrides(cluster, clientHost);
 
         stage.getExecutionCommandWrapper(clientHost,
             smokeTestRole).getExecutionCommand()
@@ -2341,8 +2308,8 @@ public class AmbariManagementControllerImpl implements
     
     // [ type -> [ key, value ] ]
     Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String,String>>();
-    Map<String, Map<String, String>> configTags = findConfigurationPropertiesWithOverrides(configurations,
-      cluster, actionRequest.getServiceName(), hostName);
+    Map<String, Map<String, String>> configTags =
+      findConfigurationTagsWithOverrides(cluster, hostName);
 
     ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostName,
       actionRequest.getCommandName()).getExecutionCommand();
@@ -2399,12 +2366,12 @@ public class AmbariManagementControllerImpl implements
         new TreeMap<String, Map<String, String>>();
 
     
-    Map<String, Map<String, String>> configTags = findConfigurationPropertiesWithOverrides(
-        configurations, cluster, serviceName, namenodeHost);
+    Map<String, Map<String, String>> configTags =
+      findConfigurationTagsWithOverrides(cluster, namenodeHost);
     
     // Add the tag for hdfs-exclude-file
     Map<String, String> excludeTags = new HashMap<String, String>();
-    excludeTags.put(CLUSTER_LEVEL_TAG, config.getVersionTag());
+    excludeTags.put(ConfigHelper.CLUSTER_DEFAULT_TAG, config.getVersionTag());
     configTags.put(hdfsExcludeFileType, excludeTags);
 
     stage.addHostRoleExecutionCommand(

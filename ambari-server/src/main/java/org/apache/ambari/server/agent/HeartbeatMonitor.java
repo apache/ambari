@@ -25,10 +25,11 @@ import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
@@ -45,19 +46,21 @@ import org.apache.commons.logging.LogFactory;
  */
 public class HeartbeatMonitor implements Runnable {
   private static Log LOG = LogFactory.getLog(HeartbeatMonitor.class);
-  private Clusters fsm;
+  private Clusters clusters;
   private ActionQueue actionQueue;
   private ActionManager actionManager;
   private final int threadWakeupInterval; //1 minute
   private volatile boolean shouldRun = true;
   private Thread monitorThread = null;
+  private final ConfigHelper configHelper;
 
-  public HeartbeatMonitor(Clusters fsm, ActionQueue aq, ActionManager am,
-      int threadWakeupInterval) {
-    this.fsm = fsm;
+  public HeartbeatMonitor(Clusters clusters, ActionQueue aq, ActionManager am,
+                          int threadWakeupInterval, AmbariMetaInfo ambariMetaInfo) {
+    this.clusters = clusters;
     this.actionQueue = aq;
     this.actionManager = am;
     this.threadWakeupInterval = threadWakeupInterval;
+    this.configHelper = new ConfigHelper(this.clusters, ambariMetaInfo);
   }
 
   public void shutdown() {
@@ -97,10 +100,10 @@ public class HeartbeatMonitor implements Runnable {
   }
 
   //Go through all the nodes, check for last heartbeat or any waiting state
-  //If heartbeat is lost, update node fsm state, purge the action queue
+  //If heartbeat is lost, update node clusters state, purge the action queue
   //notify action manager for node failure.
   private void doWork() throws InvalidStateTransitionException, AmbariException {
-    List<Host> allHosts = fsm.getHosts();
+    List<Host> allHosts = clusters.getHosts();
     long now = System.currentTimeMillis();
     for (Host hostObj : allHosts) {
       String host = hostObj.getHostName();
@@ -109,7 +112,7 @@ public class HeartbeatMonitor implements Runnable {
 
       long lastHeartbeat = 0;
       try {
-        lastHeartbeat = fsm.getHost(host).getLastHeartbeatTime();
+        lastHeartbeat = clusters.getHost(host).getLastHeartbeatTime();
       } catch (AmbariException e) {
         LOG.warn("Exception in getting host object; Is it fatal?", e);
       }
@@ -119,16 +122,16 @@ public class HeartbeatMonitor implements Runnable {
         hostObj.handleEvent(new HostHeartbeatLostEvent(host));
 
         // mark all components that are not clients with unknown status
-        for (Cluster cluster : fsm.getClustersForHost(hostObj.getHostName())) {
+        for (Cluster cluster : clusters.getClustersForHost(hostObj.getHostName())) {
           for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostObj.getHostName())) {
             Service s = cluster.getService(sch.getServiceName());
             ServiceComponent sc = s.getServiceComponent(sch.getServiceComponentName());
             if (!sc.isClientComponent() &&
-                !sch.getState().equals(State.INIT) &&
-                !sch.getState().equals(State.INSTALLING) &&
-                !sch.getState().equals(State.INSTALL_FAILED) &&
-                !sch.getState().equals(State.UNINSTALLED) &&
-                !sch.getState().equals(State.MAINTENANCE)) {
+              !sch.getState().equals(State.INIT) &&
+              !sch.getState().equals(State.INSTALLING) &&
+              !sch.getState().equals(State.INSTALL_FAILED) &&
+              !sch.getState().equals(State.UNINSTALLED) &&
+              !sch.getState().equals(State.MAINTENANCE)) {
               LOG.warn("Setting component state to UNKNOWN for component " + sc.getName() + " on " + host);
               sch.setState(State.UNKNOWN);
             }
@@ -152,7 +155,7 @@ public class HeartbeatMonitor implements Runnable {
       // Get status of service components
       List<StatusCommand> cmds = generateStatusCommands(hostname);
       LOG.trace("Generated " + cmds.size() + " status commands for host: " +
-          hostname);
+        hostname);
       if (cmds.isEmpty()) {
         // Nothing to do
       } else {
@@ -165,12 +168,12 @@ public class HeartbeatMonitor implements Runnable {
 
   /**
    * @param hostname
-   * @return  list of commands to get status of service components on a concrete host
+   * @return list of commands to get status of service components on a concrete host
    */
   public List<StatusCommand> generateStatusCommands(String hostname) throws AmbariException {
     List<StatusCommand> cmds = new ArrayList<StatusCommand>();
-    
-    for (Cluster cl : fsm.getClustersForHost(hostname)) {
+
+    for (Cluster cl : clusters.getClustersForHost(hostname)) {
       for (ServiceComponentHost sch : cl.getServiceComponentHosts(hostname)) {
         String serviceName = sch.getServiceName();
         Service service = cl.getService(sch.getServiceName());
@@ -184,27 +187,32 @@ public class HeartbeatMonitor implements Runnable {
         Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
 
         // get the cluster config for type 'global'
-        // apply service overrides, if the tag is not the same
-        // apply host overrides, if any
+        // apply config group overrides
 
         Config clusterConfig = cl.getDesiredConfigByType("global");
-        if (null != clusterConfig) {
+        if (clusterConfig != null) {
           // cluster config for 'global'
           Map<String, String> props = new HashMap<String, String>(clusterConfig.getProperties());
 
-          // apply service overrides, only if the tag is not the same (for when service configs are overrides)
-          Config svcConfig = service.getDesiredConfigs().get("global");
-          if (null != svcConfig && !svcConfig.getVersionTag().equals(clusterConfig.getVersionTag())) {
-            props.putAll(svcConfig.getProperties());
+          // Apply global properties for this host from all config groups
+          Map<String, Map<String, String>> allConfigTags = configHelper
+            .getEffectiveDesiredTags(cl, hostname);
+
+          Map<String, Map<String, String>> configTags = new HashMap<String,
+            Map<String, String>>();
+
+          for (Map.Entry<String, Map<String, String>> entry : allConfigTags.entrySet()) {
+            if (entry.getKey().equals("global")) {
+              configTags.put("global", entry.getValue());
+            }
           }
 
-          // apply host overrides, if any
-          Host host = fsm.getHost(hostname);
-          DesiredConfig dc = host.getDesiredConfigs(cl.getClusterId()).get("global");
-          if (null != dc) {
-            Config hostConfig = cl.getConfig("global", dc.getVersion());
-            if (null != hostConfig) {
-              props.putAll(hostConfig.getProperties());
+          Map<String, Map<String, String>> properties = configHelper
+            .getEffectiveConfigProperties(cl, configTags);
+
+          if (!properties.isEmpty()) {
+            for (Map<String, String> propertyMap : properties.values()) {
+              props.putAll(propertyMap);
             }
           }
 

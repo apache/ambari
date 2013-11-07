@@ -18,12 +18,12 @@
 
 package org.apache.ambari.server.state.svccomphost;
 
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.orm.dao.HostComponentConfigMappingDAO;
@@ -41,8 +41,20 @@ import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
-import org.apache.ambari.server.state.*;
-import org.apache.ambari.server.state.DesiredConfig.HostOverride;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostConfig;
+import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceComponentHostEvent;
+import org.apache.ambari.server.state.ServiceComponentHostEventType;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
@@ -50,13 +62,17 @@ import org.apache.ambari.server.state.fsm.StateMachineFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
-import com.google.inject.persist.Transactional;
-import java.util.logging.Level;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class ServiceComponentHostImpl implements ServiceComponentHost {
 
@@ -90,7 +106,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   HostComponentDesiredConfigMappingDAO hostComponentDesiredConfigMappingDAO;
   @Inject
   HostComponentConfigMappingDAO hostComponentConfigMappingDAO;
-  
   @Inject
   ConfigHelper helper;
 
@@ -103,7 +118,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   private long lastOpStartTime;
   private long lastOpEndTime;
   private long lastOpLastUpdateTime;
-  private Map<String, DesiredConfig> actualConfigs = new HashMap<String, DesiredConfig>();
+  private Map<String, HostConfig> actualConfigs = new HashMap<String,
+    HostConfig>();
 
   private static final StateMachineFactory
   <ServiceComponentHostImpl, State,
@@ -1550,31 +1566,52 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   
   @Override
   public void updateActualConfigs(Map<String, Map<String, String>> configTags) {
+    Cluster cluster = null;
+    Map<Long, ConfigGroup> configGroupMap = new HashMap<Long, ConfigGroup>();
+    try {
+      cluster = clusters.getClusterById(getClusterId());
+      if (cluster != null) {
+        configGroupMap = cluster.getConfigGroups();
+      }
+    } catch (AmbariException ae) {
+      LOG.warn("Unable to get cluster info for cluster id = " + getClusterId());
+    }
+
     clusterGlobalLock.readLock().lock();
     try {
       writeLock.lock();
       try {
-
-        actualConfigs = new HashMap<String, DesiredConfig>();
-
-        String hostName = getHostName();
+        actualConfigs = new HashMap<String, HostConfig>();
 
         for (Entry<String, Map<String, String>> entry : configTags.entrySet()) {
           String type = entry.getKey();
-          Map<String, String> values = entry.getValue();
+          Map<String, String> values = new HashMap<String, String>(entry.getValue());
 
-          String tag = values.get("tag");
-          String hostTag = values.get("host_override_tag");
+          String tag = values.get(ConfigHelper.CLUSTER_DEFAULT_TAG);
+          values.remove(ConfigHelper.CLUSTER_DEFAULT_TAG);
 
-          DesiredConfig dc = new DesiredConfig();
-          dc.setServiceName(values.get("service_override_tag"));
-          dc.setVersion(tag);
-          actualConfigs.put(type, dc);
-          if (null != hostTag && null != hostName) {
-            List<HostOverride> list = new ArrayList<HostOverride>();
-            list.add(new HostOverride(hostName, hostTag));
-            dc.setHostOverrides(list);
+          HostConfig hc = new HostConfig();
+          hc.setDefaultVersionTag(tag);
+          actualConfigs.put(type, hc);
+
+          if (!values.isEmpty()) {
+            for (Entry<String, String> overrideEntry : values.entrySet()) {
+              try {
+                Long groupId = Long.parseLong(overrideEntry.getKey());
+                ConfigGroup configGroup = configGroupMap.get(groupId);
+                if (configGroup != null) {
+                  hc.getConfigGroupOverrides().put(groupId,
+                    overrideEntry.getValue());
+                } else {
+                  LOG.info("Cannot find config group with id = " + groupId);
+                }
+              } catch (Exception e) {
+                LOG.warn("Unable to retrieve config group info for id = " +
+                  overrideEntry.getKey());
+              }
+            }
           }
+
         }
       } finally {
         writeLock.unlock();
@@ -1586,7 +1623,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
   
   @Override
-  public Map<String, DesiredConfig> getActualConfigs() {
+  public Map<String, HostConfig> getActualConfigs() {
     clusterGlobalLock.readLock().lock();
     try {
       readLock.lock();

@@ -15,8 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package org.apache.ambari.server.state.host;
 
 import java.lang.reflect.Type;
@@ -33,23 +31,28 @@ import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.controller.HostResponse;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
 import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostStateDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntity;
 import org.apache.ambari.server.orm.entities.HostConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.state.AgentVersion;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.HostEvent;
 import org.apache.ambari.server.state.HostEventType;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
@@ -86,6 +89,7 @@ public class HostImpl implements Host {
   private ClusterDAO clusterDAO;
   private Clusters clusters;
   private HostConfigMappingDAO hostConfigMappingDAO;
+  private ConfigGroupHostMappingDAO configGroupHostMappingDAO;
 
   private long lastHeartbeatTime = 0L;
   private AgentEnv lastAgentEnv = null;
@@ -214,6 +218,8 @@ public class HostImpl implements Host {
     this.clusterDAO = injector.getInstance(ClusterDAO.class);
     this.clusters = injector.getInstance(Clusters.class);
     this.hostConfigMappingDAO = injector.getInstance(HostConfigMappingDAO.class);
+    this.configGroupHostMappingDAO = injector.getInstance
+      (ConfigGroupHostMappingDAO.class);
 
     hostStateEntity = hostEntity.getHostStateEntity();
     if (hostStateEntity == null) {
@@ -260,9 +266,9 @@ public class HostImpl implements Host {
         agentVersion = e.agentVersion.getVersion();
       }
       LOG.info("Received host registration, host="
-          + e.hostInfo.toString()
-          + ", registrationTime=" + e.registrationTime
-          + ", agentVersion=" + agentVersion);
+        + e.hostInfo.toString()
+        + ", registrationTime=" + e.registrationTime
+        + ", agentVersion=" + agentVersion);
       host.persist();
     }
   }
@@ -278,7 +284,7 @@ public class HostImpl implements Host {
           + ", host=" + e.getHostName()
           + ", heartbeatTime=" + e.getTimestamp());
       host.setHealthStatus(new HostHealthStatus(HealthStatus.HEALTHY,
-          host.getHealthStatus().getHealthReport()));
+        host.getHealthStatus().getHealthReport()));
     }
   }
 
@@ -1142,7 +1148,7 @@ public class HostImpl implements Host {
   @Override
   public Map<String, DesiredConfig> getDesiredConfigs(long clusterId) {
     Map<String, DesiredConfig> map = new HashMap<String, DesiredConfig>();
-    
+
     for (HostConfigMappingEntity e : hostConfigMappingDAO.findSelected(
         clusterId, hostEntity.getHostName())) {
       
@@ -1155,10 +1161,45 @@ public class HostImpl implements Host {
     }
     return map;
   }
-  
+
+  /**
+   * Get a map of configType with all applicable config tags.
+   *
+   * @param cluster
+   * @return Map of configType -> HostConfig
+   */
+  @Override
+  public Map<String, HostConfig> getDesiredHostConfigs(Cluster cluster) throws AmbariException {
+    Map<String, HostConfig> hostConfigMap = new HashMap<String, HostConfig>();
+
+    Map<Long, ConfigGroup> configGroups = cluster.getConfigGroupsByHostname
+      (this.getHostName());
+
+    if (configGroups != null && !configGroups.isEmpty()) {
+      for (ConfigGroup configGroup : configGroups.values()) {
+        for (Map.Entry<String, Config> configEntry : configGroup
+            .getConfigurations().entrySet()) {
+
+          String configType = configEntry.getKey();
+          // HostConfig config holds configType -> versionTag, per config group
+          HostConfig hostConfig = hostConfigMap.get(configType);
+          if (hostConfig == null) {
+            hostConfig = new HostConfig();
+            hostConfigMap.put(configType, hostConfig);
+            hostConfig.setDefaultVersionTag(cluster.getDesiredConfigByType
+              (configType).getVersionTag());
+          }
+          Config config = configEntry.getValue();
+          hostConfig.getConfigGroupOverrides().put(configGroup.getId(),
+            config.getVersionTag());
+        }
+      }
+    }
+    return hostConfigMap;
+  }
+
   private HostConfigMappingEntity getDesiredConfigEntity(long clusterId, String type) {
     return hostConfigMappingDAO.findSelectedByType(clusterId,
         hostEntity.getHostName(), type);
   }
-      
 }

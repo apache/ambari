@@ -21,6 +21,7 @@ package org.apache.ambari.server.state;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
@@ -309,4 +310,6 @@ public interface Host {
    * return a map of type-to-{@link DesiredConfig} instances.
    */
   public Map<String, DesiredConfig> getDesiredConfigs(long clusterId);
+
+  public Map<String, HostConfig> getDesiredHostConfigs(Cluster cluster) throws AmbariException;
 }

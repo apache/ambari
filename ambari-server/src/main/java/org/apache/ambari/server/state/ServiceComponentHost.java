@@ -117,7 +117,7 @@ public interface ServiceComponentHost {
    * Gets the actual config tags, if known.
    * @return the actual config map
    */
-  public Map<String, DesiredConfig> getActualConfigs();
+  public Map<String, HostConfig> getActualConfigs();
 
   public HostState getHostState();
 }

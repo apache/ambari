@@ -27,6 +27,7 @@ import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.HostHealthStatus;
 
 public class HostResponse {
@@ -132,6 +133,11 @@ public class HostResponse {
   private String hostState;
 
   private Map<String, DesiredConfig> desiredConfigs;
+
+  /**
+   * Configs derived from Config groups
+   */
+  private Map<String, HostConfig> desiredHostConfigs;
 
   public HostResponse(String hostname, String clusterName,
                       String ipv4, String ipv6, int cpuCount, int phCpuCount, String osArch, String osType,
@@ -492,4 +498,11 @@ public class HostResponse {
     return desiredConfigs;
   }
 
+  public Map<String, HostConfig> getDesiredHostConfigs() {
+    return desiredHostConfigs;
+  }
+
+  public void setDesiredHostConfigs(Map<String, HostConfig> desiredHostConfigs) {
+    this.desiredHostConfigs = desiredHostConfigs;
+  }
 }

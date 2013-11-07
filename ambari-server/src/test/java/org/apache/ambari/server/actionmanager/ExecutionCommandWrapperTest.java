@@ -40,6 +40,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.codehaus.jettison.json.JSONException;
@@ -88,11 +89,13 @@ public class ExecutionCommandWrapperTest {
   private static Injector injector;
   private static Clusters clusters;
   private static ConfigFactory configFactory;
+  private static ConfigHelper configHelper;
 
   @BeforeClass
   public static void setup() throws AmbariException {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
+    configHelper = injector.getInstance(ConfigHelper.class);
     configFactory = injector.getInstance(ConfigFactory.class);
     
     clusters = injector.getInstance(Clusters.class);
@@ -246,7 +249,8 @@ public class ExecutionCommandWrapperTest {
     overrideConfig.put(SERVICE_SITE_NAME6, SERVICE_SITE_VAL6_H);
     
     
-    Map<String, String> mergedConfig = ExecutionCommandWrapper.getMergedConfig(baseConfig, overrideConfig);
+    Map<String, String> mergedConfig = configHelper.getMergedConfig(baseConfig,
+      overrideConfig);
     
     
     Set<String> configsKeys = new HashSet<String>();

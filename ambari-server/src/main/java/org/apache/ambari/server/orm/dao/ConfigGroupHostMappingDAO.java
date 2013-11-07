@@ -109,6 +109,17 @@ public class ConfigGroupHostMappingDAO {
         "confighosts.configGroupId = ?1", Long.class);
 
     daoUtils.executeUpdate(query, groupId);
+    // Flush to current transaction required in order to avoid Eclipse link
+    // from re-ordering delete
     entityManagerProvider.get().flush();
+  }
+
+  @Transactional
+  public void removeAllByHost(String hostname) {
+    TypedQuery<String> query = entityManagerProvider.get().createQuery
+      ("DELETE FROM ConfigGroupHostMappingEntity confighosts WHERE " +
+        "confighosts.hostname = ?1", String.class);
+
+    daoUtils.executeUpdate(query, hostname);
   }
 }

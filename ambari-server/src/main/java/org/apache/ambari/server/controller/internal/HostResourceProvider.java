@@ -227,7 +227,7 @@ class HostResourceProvider extends AbstractControllerResourceProvider {
       setResourceProperty(resource, HOST_STATE_PROPERTY_ID,
           response.getHostState(), requestedIds);
       setResourceProperty(resource, HOST_DESIRED_CONFIGS_PROPERTY_ID,
-          response.getDesiredConfigs(), requestedIds);
+          response.getDesiredHostConfigs(), requestedIds);
       resources.add(resource);
     }
     return resources;
@@ -485,7 +485,7 @@ class HostResourceProvider extends AbstractControllerResourceProvider {
         if (clusters.getClustersForHost(h.getHostName()).contains(cluster)) {
           HostResponse r = h.convertToResponse();
           r.setClusterName(clusterName);
-          r.setDesiredConfigs(h.getDesiredConfigs(cluster.getClusterId()));
+          r.setDesiredHostConfigs(h.getDesiredHostConfigs(cluster));
 
           response.add(r);
         } else if (hostName != null) {

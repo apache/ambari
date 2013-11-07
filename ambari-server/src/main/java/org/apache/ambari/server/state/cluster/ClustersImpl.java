@@ -29,6 +29,7 @@ import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
 import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
@@ -89,7 +90,7 @@ public class ClustersImpl implements Clusters {
   @Inject
   Gson gson;
   @Inject
-  private HostConfigMappingDAO hostConfigMappingDAO;
+  private ConfigGroupHostMappingDAO configGroupHostMappingDAO;
 
   @Inject
   public ClustersImpl() {
@@ -622,7 +623,7 @@ public class ClustersImpl implements Clusters {
     hostEntity.getClusterEntities().remove(clusterEntity);
     clusterEntity.getHostEntities().remove(hostEntity);
 
-    hostConfigMappingDAO.removeHost(clusterId, hostName);
+    configGroupHostMappingDAO.removeAllByHost(hostName);
     
     hostDAO.merge(hostEntity);
     clusterDAO.merge(clusterEntity);
@@ -640,10 +641,10 @@ public class ClustersImpl implements Clusters {
     try {
       HostEntity entity = hostDAO.findByName(hostname);
       hostDAO.refresh(entity);
-      
       hostDAO.remove(entity);
-      
       hosts.remove(hostname);
+      // Remove Config group mapping
+      configGroupHostMappingDAO.removeAllByHost(hostname);
     } catch (Exception e) {
       throw new AmbariException("Could not remove host", e);
     } finally {

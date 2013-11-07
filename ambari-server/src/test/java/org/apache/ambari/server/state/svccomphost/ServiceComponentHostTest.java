@@ -42,6 +42,8 @@ import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
 import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
+import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.junit.After;
 import org.junit.Assert;
@@ -79,6 +81,8 @@ public class ServiceComponentHostTest {
   Provider<EntityManager> entityManagerProvider;
   @Inject
   private ConfigFactory configFactory;
+  @Inject
+  private ConfigGroupFactory configGroupFactory;
 
   @Before
   public void setup() throws Exception {
@@ -500,22 +504,31 @@ public class ServiceComponentHostTest {
     sch.setState(State.INSTALLING);
     sch.setStackVersion(new StackId("HDP-1.0.0"));
     sch.setDesiredStackVersion(new StackId("HDP-1.1.0"));
+
+    Cluster cluster = clusters.getCluster("C1");
+
+    final ConfigGroup configGroup = configGroupFactory.createNew(cluster,
+      "cg1", "t1", "", new HashMap<String, Config>(), new HashMap<String, Host>());
+
+    configGroup.persist();
+    cluster.addConfigGroup(configGroup);
     
     Map<String, Map<String,String>> actual =
         new HashMap<String, Map<String, String>>() {{
           put("global", new HashMap<String,String>() {{ put("tag", "version1"); }});
-          put("core-site", new HashMap<String,String>() {{ put("tag", "version1"); put ("host_override_tag", "version2"); }});
+          put("core-site", new HashMap<String,String>() {{ put("tag", "version1");
+            put(configGroup.getId().toString(), "version2"); }});
         }};
         
     sch.updateActualConfigs(actual);
     
-    Map<String, DesiredConfig> confirm = sch.getActualConfigs();
+    Map<String, HostConfig> confirm = sch.getActualConfigs();
     
     Assert.assertEquals(2, confirm.size());
     Assert.assertTrue(confirm.containsKey("global"));
     Assert.assertTrue(confirm.containsKey("core-site"));
-    Assert.assertEquals(1, confirm.get("core-site").getHostOverrides().size());
-    Assert.assertEquals("h1", confirm.get("core-site").getHostOverrides().get(0).getName());
+    Assert.assertEquals(1, confirm.get("core-site").getConfigGroupOverrides().size());
+
   }
   
   @Test
@@ -817,21 +830,26 @@ public class ServiceComponentHostTest {
     Assert.assertFalse(sch2.convertToResponse().isStaleConfig());
     
     // make a host override
-    Host host = clusters.getHostsForCluster(cluster.getClusterName()).get(hostName);
+    final Host host = clusters.getHostsForCluster(cluster.getClusterName()).get(hostName);
     Assert.assertNotNull(host);
     
-    Config c = configFactory.createNew(cluster, "hdfs-site", 
+    final Config c = configFactory.createNew(cluster, "hdfs-site",
         new HashMap<String, String>() {{ put("dfs.journalnode.http-address", "http://goo"); }});
     c.setVersionTag("version3");
     c.persist();
     cluster.addConfig(c);
-    host.addDesiredConfig(cluster.getClusterId(), true, "user", c);
+    //host.addDesiredConfig(cluster.getClusterId(), true, "user", c);
+    ConfigGroup configGroup = configGroupFactory.createNew(cluster, "g1",
+      "t1", "", new HashMap<String, Config>() {{ put("hdfs-site", c); }},
+      new HashMap<String, Host>() {{ put("h3", host); }});
+    configGroup.persist();
+    cluster.addConfigGroup(configGroup);
     
     // HDP-x/HDFS/hdfs-site updated host to changed property
     Assert.assertTrue(sch1.convertToResponse().isStaleConfig());
     Assert.assertTrue(sch2.convertToResponse().isStaleConfig());
     
-    actual.get("hdfs-site").put("host_override_tag", "version3");
+    actual.get("hdfs-site").put(configGroup.getId().toString(), "version3");
     sch2.updateActualConfigs(actual);
     // HDP-x/HDFS/hdfs-site updated host to changed property
     Assert.assertTrue(sch1.convertToResponse().isStaleConfig());

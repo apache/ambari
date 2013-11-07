@@ -288,14 +288,15 @@ public class ClusterImpl implements Cluster {
           + ", tag = " + configGroup.getTag());
 
         if (clusterConfigGroups.containsKey(configGroup.getId())) {
-          throw new AmbariException("Config group already exists"
+          // The loadConfigGroups will load all groups to memory
+          LOG.debug("Config group already exists"
             + ", clusterName = " + getClusterName()
             + ", groupName = " + configGroup.getName()
             + ", groupId = " + configGroup.getId()
             + ", tag = " + configGroup.getTag());
+        } else {
+          clusterConfigGroups.put(configGroup.getId(), configGroup);
         }
-
-        clusterConfigGroups.put(configGroup.getId(), configGroup);
 
       } finally {
         writeLock.unlock();
@@ -322,23 +323,34 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public Map<Long, ConfigGroup> getConfigGroupsByHostname(String hostname) {
+  public Map<Long, ConfigGroup> getConfigGroupsByHostname(String hostname)
+    throws AmbariException {
+    Map<Long, ConfigGroup> configGroupMap = getConfigGroups();
     Map<Long, ConfigGroup> configGroups = new HashMap<Long, ConfigGroup>();
 
-    List<ConfigGroupHostMappingEntity> hostMappingEntities =
-      configGroupHostMappingDAO.findByHost(hostname);
+    clusterGlobalLock.readLock().lock();
+    try {
+      readLock.lock();
+      try {
+        List<ConfigGroupHostMappingEntity> hostMappingEntities =
+          configGroupHostMappingDAO.findByHost(hostname);
 
-    if (hostMappingEntities != null && !hostMappingEntities.isEmpty()) {
-      for (ConfigGroupHostMappingEntity entity : hostMappingEntities) {
-        ConfigGroup configGroup = clusterConfigGroups.get(entity
-          .getConfigGroupId());
-        if (configGroup != null && !configGroups.containsKey(configGroup.getId())) {
-          configGroups.put(configGroup.getId(), configGroup);
+        if (hostMappingEntities != null && !hostMappingEntities.isEmpty()) {
+          for (ConfigGroupHostMappingEntity entity : hostMappingEntities) {
+            ConfigGroup configGroup = configGroupMap.get(entity.getConfigGroupId());
+            if (configGroup != null && !configGroups.containsKey(configGroup.getId())) {
+              configGroups.put(configGroup.getId(), configGroup);
+            }
+          }
         }
-      }
-    }
+        return configGroups;
 
-    return configGroups;
+      } finally {
+        readLock.unlock();
+      }
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
   }
 
   @Override

@@ -431,10 +431,9 @@ public class ConfigGroupResourceProvider extends
         request.getConfigs(), hosts);
 
       // Persist before add, since id is auto-generated
-
       configLogger.info("Persisting new Config group, "
-        + ", clusterName = " + configGroup.getClusterName()
-        + ", id = " + configGroup.getId()
+        + ", clusterName = " + cluster.getClusterName()
+        + ", name = " + configGroup.getName()
         + ", tag = " + configGroup.getTag()
         + ", user = " + getManagementController().getAuthName());
 

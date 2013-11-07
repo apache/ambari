@@ -93,7 +93,7 @@ public class HeartBeatHandler {
     this.clusterFsm = fsm;
     this.actionQueue = aq;
     this.actionManager = am;
-    this.heartbeatMonitor = new HeartbeatMonitor(fsm, aq, am, 60000);
+    this.heartbeatMonitor = new HeartbeatMonitor(fsm, aq, am, 60000, ambariMetaInfo);
     injector.injectMembers(this);
   }
 
