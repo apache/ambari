@@ -106,7 +106,7 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
     }
     ram *= this.get('GB');
     ram /= containerSize;
-    return Math.round(Math.max(cpu, Math.min(disk, ram)));
+    return Math.round(Math.min(cpu, Math.min(disk, ram)));
   }.property('clusterData.cpu', 'clusterData.ram', 'clusterData.hBaseInstalled', 'clusterData.disk', 'reservedRam', 'hBaseRam', 'recommendedMinimumContainerSize'),
 
   /**
