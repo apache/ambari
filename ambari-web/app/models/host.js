@@ -135,7 +135,7 @@ App.Host = DS.Model.extend({
       'UNHEALTHY': 'health-status-DEAD-RED',
       'ALERT ': 'health-status-DEAD-ORANGE'
     };
-    return statusMap[this.get('healthStatus')] || 'health-status-DEAD-ORANGE';
+    return statusMap[this.get('healthStatus')] || 'health-status-DEAD-YELLOW';
   }.property('healthStatus'),
 
   healthToolTip: function(){
