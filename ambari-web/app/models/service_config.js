@@ -238,12 +238,44 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'namenode_host':
         this.set('value', masterComponentHostsInDB.filterProperty('component', 'NAMENODE').mapProperty('hostName'));
         break;
+      case 'dfs.http.address':
+        var nnHost =  masterComponentHostsInDB.findProperty('component', 'NAMENODE').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",nnHost);
+        break;
+      case 'dfs.namenode.http-address':
+        var nnHost =  masterComponentHostsInDB.findProperty('component', 'NAMENODE').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",nnHost);
+        break;
+      case 'dfs.https.address':
+        var nnHost =  masterComponentHostsInDB.findProperty('component', 'NAMENODE').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",nnHost);
+        break;
+      case 'dfs.namenode.https-address':
+        var nnHost =  masterComponentHostsInDB.findProperty('component', 'NAMENODE').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",nnHost);
+        break;
+      case 'fs.default.name':
+        var nnHost = masterComponentHostsInDB.filterProperty('component', 'NAMENODE').mapProperty('hostName');
+        this.setDefaultValue(":\/\/(\\w*)(?=:)",'://' + nnHost);
+        break;
+      case 'fs.defaultFS':
+        var nnHost = masterComponentHostsInDB.filterProperty('component', 'NAMENODE').mapProperty('hostName');
+        this.setDefaultValue(":\/\/(\\w*)(?=:)",'://' + nnHost);
+        break;
       case 'snamenode_host':
         // Secondary NameNode does not exist when NameNode HA is enabled
         var snn = masterComponentHostsInDB.findProperty('component', 'SECONDARY_NAMENODE');
         if (snn) {
           this.set('value', snn.hostName);
         }
+        break;
+      case 'dfs.secondary.http.address':
+        var snnHost = masterComponentHostsInDB.findProperty('component', 'SECONDARY_NAMENODE').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",snnHost);
+        break;
+      case 'dfs.namenode.secondary.http-address':
+        var snnHost = masterComponentHostsInDB.findProperty('component', 'SECONDARY_NAMENODE').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",snnHost);
         break;
       case 'datanode_hosts':
         this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'DATANODE').hosts.mapProperty('hostName'));
@@ -253,19 +285,61 @@ App.ServiceConfigProperty = Ember.Object.extend({
         break;
       case 'yarn.log.server.url':
         var hsHost = masterComponentHostsInDB.filterProperty('component', 'HISTORYSERVER').mapProperty('hostName');
-        var defaultValue = this.get('defaultValue');
-        defaultValue = defaultValue.replace(/:\/\/(\w*)(?=:)/,'://' + hsHost);
-        this.set('defaultValue',defaultValue);
-        this.set('value',this.get('defaultValue'));
+        this.setDefaultValue(":\/\/(\\w*)(?=:)",'://' + hsHost);
+        break;
+      case 'mapreduce.jobhistory.webapp.address':
+        var hsHost = masterComponentHostsInDB.filterProperty('component', 'HISTORYSERVER').mapProperty('hostName');
+        this.setDefaultValue("(\\w*)(?=:)",hsHost);
+        break;
+      case 'mapreduce.jobhistory.address':
+        var hsHost = masterComponentHostsInDB.filterProperty('component', 'HISTORYSERVER').mapProperty('hostName');
+        this.setDefaultValue("(\\w*)(?=:)",hsHost);
         break;
       case 'rm_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName);
+        break;
+      case 'yarn.resourcemanager.hostname':
+        var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName;
+        this.set('defaultValue',rmHost);
+        this.set('value',this.get('defaultValue'));
+        break;
+      case 'yarn.resourcemanager.resource-tracker.address':
+        var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",rmHost);
+        break;
+      case 'yarn.resourcemanager.webapp.address':
+        var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",rmHost);
+        break;
+      case 'yarn.resourcemanager.scheduler.address':
+        var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",rmHost);
+        break;
+      case 'yarn.resourcemanager.address':
+        var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",rmHost);
+        break;
+      case 'yarn.resourcemanager.admin.address':
+        var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",rmHost);
         break;
       case 'nm_hosts':
         this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'NODEMANAGER').hosts.mapProperty('hostName'));
         break;
       case 'jobtracker_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'JOBTRACKER').hostName);
+        break;
+      case 'mapred.job.tracker':
+        var jtHost = masterComponentHostsInDB.findProperty('component', 'JOBTRACKER').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",jtHost);
+        break;
+      case 'mapred.job.tracker.http.address':
+        var jtHost = masterComponentHostsInDB.findProperty('component', 'JOBTRACKER').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",jtHost);
+        break;
+      case 'mapreduce.history.server.http.address':
+        var jtHost = masterComponentHostsInDB.findProperty('component', 'JOBTRACKER').hostName;
+        this.setDefaultValue("(\\w*)(?=:)",jtHost);
         break;
       case 'tasktracker_hosts':
         this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'TASKTRACKER').hosts.mapProperty('hostName'));
@@ -279,11 +353,19 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'hivemetastore_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName);
         break;
+      case 'hive.metastore.uris':
+        var hiveHost = masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName;
+        this.setDefaultValue(":\/\/(\\w*)(?=:)",'://' + hiveHost);
+        break;
       case 'hive_ambari_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName);
         break;
       case 'oozieserver_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'OOZIE_SERVER').hostName);
+        break;
+      case 'oozie.base.url':
+        var oozieHost = masterComponentHostsInDB.findProperty('component', 'OOZIE_SERVER').hostName;
+        this.setDefaultValue(":\/\/(\\w*)(?=:)",'://' + oozieHost);
         break;
       case 'webhcatserver_host':
         this.set('value', masterComponentHostsInDB.findProperty('component', 'WEBHCAT_SERVER').hostName);
@@ -314,6 +396,18 @@ App.ServiceConfigProperty = Ember.Object.extend({
         this.unionAllMountPoints(isOnlyFirstOneNeeded, localDB);
         break;
     }
+  },
+
+  /**
+   * @param regex : String
+   * @param replaceWith : String
+   */
+  setDefaultValue: function(regex,replaceWith) {
+    var defaultValue = this.get('defaultValue');
+    var re = new RegExp(regex);
+    defaultValue = defaultValue.replace(re,replaceWith);
+    this.set('defaultValue',defaultValue);
+    this.set('value',this.get('defaultValue'));
   },
 
   unionAllMountPoints: function (isOnlyFirstOneNeeded, localDB) {

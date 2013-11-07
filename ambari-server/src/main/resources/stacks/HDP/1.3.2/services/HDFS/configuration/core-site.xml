@@ -58,7 +58,7 @@
   <property>
     <name>fs.default.name</name>
     <!-- cluster variant -->
-    <value></value>
+    <value>hdfs://localhost:8020</value>
     <description>The name of the default file system.  Either the
   literal string "local" or a host:port for NDFS.</description>
     <final>true</final>

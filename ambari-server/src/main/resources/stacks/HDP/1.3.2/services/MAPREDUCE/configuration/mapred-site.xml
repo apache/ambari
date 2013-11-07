@@ -82,18 +82,19 @@
   <property>
     <name>mapred.job.tracker</name>
     <!-- cluster variant -->
-    <value></value>
-    <description>No description</description>
+    <value>localhost:50300</value>
+    <description>JobTracker address</description>
     <final>true</final>
   </property>
 
   <property>
     <name>mapred.job.tracker.http.address</name>
     <!-- cluster variant -->
-    <value></value>
-    <description>No description</description>
+    <value>localhost:50030</value>
+    <description>Http address for JobTracker</description>
     <final>true</final>
   </property>
+
 
   <property>
     <!-- cluster specific -->
@@ -324,14 +325,24 @@
     </description>
   </property>
 
-<property>
-  <name>mapred.hosts</name>
-  <value></value>
-</property>
+  <property>
+    <name>mapred.hosts</name>
+    <value>/etc/hadoop/conf/mapred.include</value>
+    <description>
+      Names a file that contains the list of nodes that may
+      connect to the jobtracker.  If the value is empty, all hosts are
+      permitted.
+    </description>
+  </property>
 
 <property>
   <name>mapred.hosts.exclude</name>
-  <value></value>
+  <value>/etc/hadoop/conf/mapred.exclude</value>
+  <description>
+    Names a file that contains the list of hosts that
+    should be excluded by the jobtracker.  If the value is empty, no
+    hosts are excluded.
+  </description>
 </property>
 
 <property>
@@ -380,10 +391,10 @@
 
 <property>
   <name>mapred.job.tracker.persist.jobstatus.dir</name>
-  <value></value>
+  <value>/etc/hadoop/conf/health_check</value>
   <description>The directory where the job status information is persisted
-   in a file system to be available after it drops of the memory queue and
-   between jobtracker restarts.
+    in a file system to be available after it drops of the memory queue and
+    between jobtracker restarts.
   </description>
 </property>
 
@@ -518,7 +529,7 @@ process</description>
   <property>
     <name>mapreduce.history.server.http.address</name>
     <!-- cluster variant -->
-    <value></value>
+    <value>localhost:51111</value>
     <description>Http address of the history server</description>
     <final>true</final>
   </property>

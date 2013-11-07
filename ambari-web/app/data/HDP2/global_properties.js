@@ -223,19 +223,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "dfs_exclude",
-      "displayName": "Exclude hosts",
-      "description": "Names a file that contains a list of hosts that are not permitted to connect to the namenode.  This file will be placed inside the Hadoop conf directory.",
-      "defaultValue": "dfs.exclude",
-      "displayType": "advanced",
-      "isVisible": true,
-      "filename": "hdfs-site.xml",
-      "domain": "global",
-      "serviceName": "HDFS",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
       "name": "security_enabled",
       "displayName": "Hadoop Security",
       "description": "Enable hadoop security",

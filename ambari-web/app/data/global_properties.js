@@ -236,32 +236,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "dfs_exclude",
-      "displayName": "Exclude hosts",
-      "description": "Names a file that contains a list of hosts that are not permitted to connect to the namenode.  This file will be placed inside the Hadoop conf directory.",
-      "defaultValue": "dfs.exclude",
-      "displayType": "advanced",
-      "isVisible": true,
-      "filename": "hdfs-site.xml",
-      "domain": "global",
-      "serviceName": "HDFS",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
-      "name": "dfs_include",
-      "displayName": "Include hosts",
-      "description": "Names a file that contains a list of hosts that are permitted to connect to the namenode.  This file will be placed inside the Hadoop conf directory.",
-      "defaultValue": "dfs.include",
-      "displayType": "advanced",
-      "isVisible": true,
-      "filename": "hdfs-site.xml",
-      "domain": "global",
-      "serviceName": "HDFS",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
       "name": "security_enabled",
       "displayName": "Hadoop Security",
       "description": "Enable hadoop security",
@@ -518,30 +492,6 @@ module.exports =
       "domain": "global",
       "serviceName": "MAPREDUCE",
       "index": 13
-    },
-    {
-      "id": "puppet var",
-      "name": "mapred_hosts_exclude",
-      "displayName": "Exclude hosts",
-      "description": "Exclude entered hosts",
-      "defaultValue": "mapred.exclude",
-      "displayType": "directories",
-      "isVisible": false,
-      "serviceName": "MAPREDUCE",
-      "domain": "global",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
-      "name": "mapred_hosts_include",
-      "displayName": "Include hosts",
-      "description": "Include enetered hosts",
-      "defaultValue": "mapred.include",
-      "displayType": "directories",
-      "isVisible": false,
-      "serviceName": "MAPREDUCE",
-      "domain": "global",
-      "category": "Advanced"
     },
   /**********************************************HBASE***************************************/
     {

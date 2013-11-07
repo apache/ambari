@@ -85,7 +85,6 @@ module.exports =
       "serviceName": "HDFS",
       "index": 0
     },
-
     {
       "id": "site property",
       "name": "dfs.datanode.failed.volumes.tolerated",
@@ -320,6 +319,30 @@ module.exports =
       "displayType": "int",
       "serviceName": "MAPREDUCE",
       "index": 10
+    },
+    {
+      "id": "site property",
+      "name": "mapred.hosts",
+      "displayName": "mapred.hosts",
+      "description": "Names a file that contains the list of nodes that may\
+      connect to the jobtracker.  If the value is empty, all hosts are \
+      permitted.",
+      "defaultValue": "",
+      "displayType": "directory",
+      "category": "Advanced",
+      "serviceName": "MAPREDUCE"
+    },
+    {
+      "id": "site property",
+      "name": "mapred.hosts.exclude",
+      "displayName": "mapred.hosts.exclude",
+      "description": " Names a file that contains the list of hosts that\
+      should be excluded by the jobtracker.  If the value is empty, no\
+      hosts are excluded.",
+      "defaultValue": "",
+      "displayType": "directory",
+      "category": "Advanced",
+      "serviceName": "MAPREDUCE"
     },
 
   /**********************************************oozie-site***************************************/

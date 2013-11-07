@@ -19,13 +19,6 @@
 var configs = [
   /**********************************************HDFS***************************************/
   {
-    "name": "fs.default.name",
-    "templateName": ["namenode_host"],
-    "foreignKey": null,
-    "value": "hdfs://<templateName[0]>:8020",
-    "filename": "core-site.xml"
-  },
-  {
     "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
     "templateName": ["proxyuser_group"],
     "foreignKey": ["hive_user"],
@@ -72,20 +65,6 @@ var configs = [
     "value": "<templateName[0]>",
     "filename": "core-site.xml",
     "isOverridable" : true
-  },
-  {
-    "name": "dfs.hosts.exclude",
-    "templateName": ["hadoop_conf_dir", "dfs_exclude"],
-    "foreignKey": null,
-    "value": "<templateName[0]>\/<templateName[1]>",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.hosts",
-    "templateName": ["hadoop_conf_dir", "dfs_include"],
-    "foreignKey": null,
-    "value": "<templateName[0]>\/<templateName[1]>",
-    "filename": "hdfs-site.xml"
   },
   {
     "name": "dfs.datanode.address",
@@ -101,96 +80,14 @@ var configs = [
     "value": "0.0.0.0:<templateName[0]>",
     "filename": "hdfs-site.xml"
   },
-  {
-    "name": "dfs.http.address",
-    "templateName": ["namenode_host"],
-    "foreignKey": null,
-    "value": "<templateName[0]>:50070",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.secondary.http.address",
-    "templateName": ["snamenode_host"],
-    "foreignKey": null,
-    "value": "<templateName[0]>:50090",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.https.address",
-    "templateName": ["namenode_host"],
-    "foreignKey": null,
-    "value": "<templateName[0]>:50470",
-    "filename": "hdfs-site.xml"
-  },
 
   /******************************************MAPREDUCE***************************************/
-  {
-    "name": "mapred.hosts",
-    "templateName": ["hadoop_conf_dir", "mapred_hosts_include"],
-    "foreignKey": null,
-    "value": "<templateName[0]>/<templateName[1]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapred.hosts.exclude",
-    "templateName": ["hadoop_conf_dir", "mapred_hosts_exclude"],
-    "foreignKey": null,
-    "value": "<templateName[0]>/<templateName[1]>",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapred.job.tracker.persist.jobstatus.dir",
-    "templateName": ["hadoop_conf_dir"],
-    "foreignKey": null,
-    "value": "<templateName[0]>/health_check",
-    "filename": "mapred-site.xml"
-  },
   {
     "name": "mapred.child.java.opts",
     "templateName": ["mapred_child_java_opts_sz"],
     "foreignKey": null,
     "value": "-server -Xmx<templateName[0]>m -Djava.net.preferIPv4Stack=true",
     "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapred.job.tracker",
-    "templateName": ["jobtracker_host"],
-    "foreignKey": null,
-    "value": "<templateName[0]>:50300",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapred.job.tracker.http.address",
-    "templateName": ["jobtracker_host"],
-    "foreignKey": null,
-    "value": "<templateName[0]>:50030",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapreduce.history.server.http.address",
-    "templateName": ["jobtracker_host"],
-    "foreignKey": null,
-    "value": "<templateName[0]>:51111",
-    "filename": "mapred-site.xml"
-  },
-
-  /**********************************************oozie-site***************************************/
-  {
-    "name": "oozie.base.url",
-    "templateName": ["oozieserver_host"],
-    "foreignKey": null,
-    "value": "http://<templateName[0]>:11000/oozie",
-    "filename": "oozie-site.xml"
-  },
-
-  /**********************************************hive-site***************************************/
-
-  {
-    "name": "hive.metastore.uris",
-    "templateName": ["hivemetastore_host"],
-    "foreignKey": null,
-    "value": "thrift://<templateName[0]>:9083",
-    "filename": "hive-site.xml"
   },
 
 /**********************************************hbase-site***************************************/

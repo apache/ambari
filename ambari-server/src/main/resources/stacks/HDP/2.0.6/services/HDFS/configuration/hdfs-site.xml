@@ -70,7 +70,7 @@
 
   <property>
     <name>dfs.hosts.exclude</name>
-    <value></value>
+    <value>/etc/hadoop/conf/dfs.exclude</value>
     <description>Names a file that contains a list of hosts that are
     not permitted to connect to the namenode.  The full pathname of the
     file must be specified.  If the value is empty, no hosts are
@@ -80,7 +80,7 @@
 <!--
   <property>
     <name>dfs.hosts</name>
-    <value></value>
+    <value>/etc/hadoop/conf/dfs.include</value>
     <description>Names a file that contains a list of hosts that are
     permitted to connect to the namenode. The full pathname of the file
     must be specified.  If the value is empty, all hosts are
@@ -198,7 +198,7 @@
 
   <property>
     <name>dfs.namenode.http-address</name>
-    <value></value>
+    <value>localhost:50070</value>
 <description>The name of the default file system.  Either the
 literal string "local" or a host:port for NDFS.</description>
 <final>true</final>
@@ -319,7 +319,7 @@ Kerberos principal name for the NameNode
   <property>
     <!-- cluster variant -->
     <name>dfs.namenode.secondary.http-address</name>
-    <value></value>
+    <value>localhost:50090</value>
     <description>Address of secondary namenode web server</description>
   </property>
 
@@ -376,7 +376,7 @@ Kerberos principal name for the NameNode
 
   <property>
     <name>dfs.namenode.https-address</name>
-    <value></value>
+    <value>localhost:50470</value>
   <description>The https address where namenode binds</description>
 
   </property>

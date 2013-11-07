@@ -20,16 +20,6 @@ var App = require('app');
 var configs = [
 /**********************************************core-site***************************************/
   {
-    "name": "fs.defaultFS",
-    "templateName": ["namenode_host"],
-    "foreignKey": null,
-    "value": "hdfs://<templateName[0]>:8020",
-    "precondition": function () {
-      return (App.HDFSService.find('HDFS') && App.HDFSService.find('HDFS').get('snameNode'));
-    },
-    "filename": "core-site.xml"
-  },
-  {
     "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
     "templateName": ["proxyuser_group"],
     "foreignKey": ["hive_user"],
@@ -79,13 +69,6 @@ var configs = [
   },
 /**********************************************hdfs-site***************************************/
   {
-    "name": "dfs.hosts.exclude",
-    "templateName": ["hadoop_conf_dir", "dfs_exclude"],
-    "foreignKey": null,
-    "value": "<templateName[0]>\/<templateName[1]>",
-    "filename": "hdfs-site.xml"
-  },
-  {
     "name": "dfs.datanode.address",
     "templateName": ["dfs_datanode_address"],
     "foreignKey": null,
@@ -98,104 +81,6 @@ var configs = [
     "foreignKey": null,
     "value": "0.0.0.0:<templateName[0]>",
     "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.namenode.http-address",
-    "templateName": ["namenode_host"],
-    "foreignKey": null,
-    "value": "<templateName[0]>:50070",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.namenode.secondary.http-address",
-    "templateName": ["snamenode_host"],
-    "foreignKey": null,
-    "value": "<templateName[0]>:50090",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.namenode.https-address",
-    "templateName": ["namenode_host"],
-    "foreignKey": null,
-    "value": "<templateName[0]>:50470",
-    "filename": "hdfs-site.xml"
-  },
-
-/**********************************************oozie-site***************************************/
-  {
-    "name": "oozie.base.url",
-    "templateName": ["oozieserver_host"],
-    "foreignKey": null,
-    "value": "http://<templateName[0]>:11000/oozie",
-    "filename": "oozie-site.xml"
-  },
-
-/**********************************************hive-site***************************************/
-  {
-    "name": "hive.metastore.uris",
-    "templateName": ["hivemetastore_host"],
-    "foreignKey": null,
-    "value": "thrift://<templateName[0]>:9083",
-    "filename": "hive-site.xml"
-  },
-/**********************************************yarn-site***************************************/
-  {
-    "name": "yarn.resourcemanager.hostname",
-    "templateName": ["rm_host"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "yarn-site.xml"
-  },
-  {
-    "name": "yarn.resourcemanager.webapp.address",
-    "templateName": ["rm_host"],
-    "foreignKey": null,
-    "value": "<templateName[0]>:8088",
-    "filename": "yarn-site.xml"
-  },
-  {
-    "name": "yarn.resourcemanager.resource-tracker.address",
-    "templateName": ["rm_host"],
-    "foreignKey": null,
-    "value": "<templateName[0]>:8025",
-    "filename": "yarn-site.xml"
-  },
-  {
-    "name": "yarn.resourcemanager.scheduler.address",
-    "templateName": ["rm_host"],
-    "foreignKey": null,
-    "value": "<templateName[0]>:8030",
-    "filename": "yarn-site.xml"
-  },
-  {
-    "name": "yarn.resourcemanager.address",
-    "templateName": ["rm_host"],
-    "foreignKey": null,
-    "value": "<templateName[0]>:8050",
-    "filename": "yarn-site.xml"
-  },
-  {
-    "name": "yarn.resourcemanager.admin.address",
-    "templateName": ["rm_host"],
-    "foreignKey": null,
-    "value": "<templateName[0]>:8141",
-    "filename": "yarn-site.xml"
-  },
-
-/**********************************************mapred-site***************************************/
-  {
-    "name": "mapreduce.jobhistory.webapp.address",
-    "templateName": ["hs_host"],
-    "foreignKey": null,
-    "value": "<templateName[0]>:19888",
-    "filename": "mapred-site.xml"
-  },
-  {
-    "name": "mapreduce.jobhistory.address",
-    "templateName": ["hs_host"],
-    "foreignKey": null,
-    "value": "<templateName[0]>:10020",
-    "filename": "mapred-site.xml"
   },
 
 /**********************************************hbase-site***************************************/
