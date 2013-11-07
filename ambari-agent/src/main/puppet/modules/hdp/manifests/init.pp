@@ -72,6 +72,7 @@ class hdp(
   if has_key($configuration, 'yarn-site') {
     $yarn-site = $configuration['yarn-site']
     $rm_port = hdp_get_port_from_url($yarn-site["yarn.resourcemanager.webapp.address"],"8088")
+    $rm_https_port = hdp_get_port_from_url($yarn-site["yarn.resourcemanager.webapp.https.address"],"8090")
     $nm_port = hdp_get_port_from_url($yarn-site["yarn.nodemanager.webapp.address"],"8042")
   }
 
