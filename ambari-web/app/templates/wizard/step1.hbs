@@ -35,12 +35,13 @@
     </div>
       <div  class="accordion-body collapse in">
         <div class="accordion-inner">
-          <div class="alert alert-info">
-            {{t installer.step1.advancedRepo.message}}
-          </div>
-          <table class="table table-striped">
+          <div class="alert alert-info">{{t installer.step1.advancedRepo.message}}</div>
+          <div class="alert alert-danger">{{t installer.step1.advancedRepo.importantMassage}}</div>
+
+          <table class="table">
             <thead>
             <tr>
+              <th></th>
               <th class="os">{{t common.os}}</th>
               <th class="url">{{t installer.step1.advancedRepo.localRepo.column.baseUrl}}</th>
               <th class="validations"></th>
@@ -48,35 +49,55 @@
             </tr>
             </thead>
             <tbody>
-              {{#each repo in view.allRepositories}}
-              <tr>
-                <td  {{bindAttr class=":os repo.empty-error:label-error repo.invalid-error:label-error "}}>{{repo.osType}}</td>
-                <td  {{bindAttr class=":url-results repo.empty-error:textfield-error repo.invalid-error:textfield-error"}}>
-                    {{view Ember.TextField valueBinding="repo.baseUrl"}}
-                </td>
-                <td class="validation-results">
-                  {{#if repo.validation}}
-                    <i {{bindAttr class="repo.validation"}}></i>
-                  {{/if}}
-                </td>
-                <td class="action-results">
-                  {{#if repo.undo}}
-                    <a {{action "undoLocalRepository" repo target="view" }}>
-                      <i class="icon-undo"></i>{{t common.undo}}
-                    </a>
-                  {{/if}}
-                </td>
-              </tr>
+              {{#each repoGroup in view.allRepositoriesGroup}}
+                <tr>
+                  <td class="group-checkbox">{{view Ember.Checkbox checkedBinding="repoGroup.checked"}}</td>
+                  <td class="os-td">
+                    <table {{bindAttr class="repoGroup.checked::disabled-label"}}>
+                      <tbody>
+                      {{#each repo in repoGroup}}
+                        <tr>
+                          <td  {{bindAttr class=":os repo.empty-error:label-error repo.invalid-error:label-error "}}>{{repo.osType}}</td>
+                        </tr>
+                      {{/each}}
+                      </tbody>
+                    </table>
+                  </td>
+                  <td  {{bindAttr class=":url-results repoGroup.checked::disabled-textfield repoGroup.empty-error:textfield-error repoGroup.invalid-error:textfield-error"}}>
+                    {{view Ember.TextField valueBinding="repoGroup.baseUrl"}}
+                  </td>
+                  <td class="clearAll-icon">
+                    {{#if repoGroup.clearAll}}
+                      <a {{action "clearGroupLocalRepository" repoGroup target="view" }}>
+                        <i class="icon-remove-sign"></i>
+                      </a>
+                    {{/if}}
+                  </td>
+                  <td class="validation-results">
+                    {{#if repoGroup.validation}}
+                      <i {{bindAttr class="repoGroup.validation"}}></i>
+                    {{/if}}
+                  </td>
+                  <td class="action-results">
+                    {{#if repoGroup.undo}}
+                      <a {{action "undoGroupLocalRepository" repoGroup target="view" }}>
+                        <i class="icon-undo"></i>{{t common.undo}}
+                      </a>
+                    {{/if}}
+                  </td>
+                </tr>
               {{/each}}
             </tbody>
           </table>
-          {{#if view.isSubmitDisabled}}
+          {{#if view.emptyRepoExist}}
             <div class="alert">{{t installer.step1.attentionNeeded}}</div>
           {{/if}}
           {{#if view.invalidUrlExist}}
             <div class="alert">{{t installer.step1.invalidURLAttention}}</div>
           {{/if}}
-
+          {{#if view.allRepoUnchecked}}
+            <div class="alert">{{t installer.step1.checkAtLeastOneAttention}}</div>
+          {{/if}}
         </div>
       </div>
   </div>

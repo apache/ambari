@@ -372,28 +372,30 @@ App.InstallerController = App.WizardController.extend({
     var stackName = nameVersionCombo.split('-')[0];
     var stackVersion = nameVersionCombo.split('-')[1];
     if (selectedStack && selectedStack.operatingSystems) {
-      this.set('validationCnt', selectedStack.operatingSystems.length);
+      this.set('validationCnt', selectedStack.get('operatingSystems').filterProperty('selected', true).length);
       this.set('invalidCnt', 0);
       selectedStack.operatingSystems.forEach(function (os) {
-        os.validation = 'icon-repeat';
-        selectedStack.set('reload', !selectedStack.get('reload'));
-        App.ajax.send({
-          name: 'wizard.advanced_repositories.valid_url',
-          sender: this,
-          data: {
-            stackName: stackName,
-            stackVersion: stackVersion,
-            nameVersionCombo: nameVersionCombo,
-            osType: os.osType,
+        if (os.selected) {
+          os.validation = 'icon-repeat';
+          selectedStack.set('reload', !selectedStack.get('reload'));
+          App.ajax.send({
+            name: 'wizard.advanced_repositories.valid_url',
+            sender: this,
             data: {
-              'Repositories': {
-                'base_url': os.baseUrl
+              stackName: stackName,
+              stackVersion: stackVersion,
+              nameVersionCombo: nameVersionCombo,
+              osType: os.osType,
+              data: {
+                'Repositories': {
+                  'base_url': os.baseUrl
+                }
               }
-            }
-          },
-          success: 'checkRepoURLSuccessCallback',
-          error: 'checkRepoURLErrorCallback'
-        });
+            },
+            success: 'checkRepoURLSuccessCallback',
+            error: 'checkRepoURLErrorCallback'
+          });
+        }
       }, this);
     }
   },

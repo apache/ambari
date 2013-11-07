@@ -4750,31 +4750,69 @@ i.icon-asterisks {
         -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
         box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
       }
+      .disabled-textfield input{
+        color: #808080;
+        disabled: disabled;
+        pointer-events: none;
+        cursor: default;
+      }
+      .disabled-label {
+        color: #808080;
+      }
+      .group-checkbox {
+        width: 3%;
+        vertical-align: middle;
+        padding-left: 2px;
+        padding-right: 2px;
+      }
       .os {
-        width: 13%;
+        padding: 6px;
+        border-top: transparent;
+      }
+      .os-td {
+        width: 17%;
+        padding: 2px;
       }
       .url {
-        width: 70%;
+        width: 65%;
       }
       .url-results {
-        width: 70%;
+        width: 65%;
+        vertical-align: middle;
         .ember-text-field {
           width: 100%;
         }
       }
       .validation {
-        width: 7%;
+        width: 3%;
       }
       .validation-results {
-        width: 7%;
-        padding-top: 11px;
+        width: 3%;
+        vertical-align: middle;
+        padding-top: 0px;
+        padding-left: 4px;
+        padding-right: 4px;
+      }
+      .clearAll-icon {
+        width: 2%;
+        vertical-align: middle;
+        padding-top: 0px;
+        padding-left: 4px;
+        padding-right: 4px;
+        a {
+          cursor: pointer;
+          color: #808080;
+        }
       }
       .action {
         width: 10%;
       }
       .action-results {
         width: 10%;
-        padding-top: 11px;
+        vertical-align: middle;
+        padding-top: 0px;
+        padding-left: 4px;
+        padding-right: 4px;
         a {
           cursor: pointer;
         }
