@@ -226,6 +226,7 @@ UPGRADE_STACK_CMD = ['su', 'postgres',
         '--command=psql -f {0} -v stack_name="\'{1}\'"  -v stack_version="\'{2}\'" -v dbname="{3}"']
 UPDATE_METAINFO_CMD = 'curl -X PUT "http://{0}:{1}/api/v1/stacks2" -u "{2}":"{3}"'
 
+PG_ERROR_BLOCKED = "is being accessed by other users"
 PG_STATUS_RUNNING = "running"
 PG_DEFAULT_PASSWORD = "bigdata"
 SERVICE_CMD = "/sbin/service"
@@ -907,11 +908,11 @@ def setup_db(args):
     print 'Connecting to the database. Attempt %d...' % (i+1)
     retcode, outdata, errdata = run_os_command(command)
     if retcode == 0:
-      return retcode
+      return retcode, outdata, errdata
     time.sleep(SETUP_DB_CONNECT_TIMEOUT)
 
   print_error_msg(errdata)
-  return retcode
+  return retcode, outdata, errdata
 
 
 def store_password_file(password, filename):
@@ -2133,6 +2134,10 @@ def reset(args):
     err = 'Ambari-server reset should be run with ' \
           'root-level privileges'
     raise FatalException(4, err)
+  status, pid = is_server_runing()
+  if status:
+    err = 'Ambari-server must be stopped to reset'
+    raise FatalException(1, err)
   choice = get_YN_input("**** WARNING **** You are about to reset and clear the "
                      "Ambari Server database. This will remove all cluster "
                      "host and configuration information from the database. "
@@ -2209,15 +2214,22 @@ def reset(args):
     password = args.database_password
     command = SETUP_DB_CMD[:]
     command[-1] = command[-1].format(filename, username, password, dbname)
-    retcode, outdata, errdata = run_os_command(command)
-    if not retcode == 0:
-      raise FatalException(1, errdata)
-    if errdata:
-      print_warning_msg(errdata)
+    drop_retcode, drop_outdata, drop_errdata = run_os_command(command)
+    if not drop_retcode == 0:
+      raise FatalException(1, drop_errdata)
+    if drop_errdata and PG_ERROR_BLOCKED in drop_errdata:
+      raise FatalException(1, "Database is in use. Please, make sure all connections to the database are closed")
+    if drop_errdata and VERBOSE:
+      print_warning_msg(drop_errdata)
     print_info_msg ("About to run database setup")
-    setup_db(args)
-
-
+    retcode, outdata, errdata = setup_db(args)
+    if errdata and VERBOSE:
+      print_warning_msg(errdata)
+    if (errdata and 'ERROR' in errdata.upper()) or (drop_errdata and 'ERROR' in drop_errdata.upper()):
+      if not VERBOSE:
+        raise NonFatalException("Non critical error in DDL, use --verbose for more information")
+      else:
+        raise NonFatalException("Non critical error in DDL")
 
 #
 # Starts the Ambari Server.
