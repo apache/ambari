@@ -50,15 +50,27 @@ App.WizardStep1View = Em.View.extend({
     return (this.get('allRepositoriesGroup').filterProperty('empty-error', true).length != 0);
   }.property('allRepositoriesGroup.@each.empty-error'),
   isSubmitDisabled: function() {
-    return this.get('emptyRepoExist') || this.get('allRepoUnchecked') ;
-  }.property('emptyRepoExist', 'allRepoUnchecked'),
+    return this.get('emptyRepoExist') || this.get('allRepoUnchecked') || this.get('invalidUrlExist') ;
+  }.property('emptyRepoExist', 'allRepoUnchecked', 'invalidUrlExist'),
   invalidUrlExist: function () {
     var selectedStack = this.get('controller.content.stacks').findProperty('isSelected', true);
-    return (selectedStack.get('invalidCnt') > 0);
-  }.property('controller.content.stacks.@each.invalidCnt'),
+    var invalidExist = this.get('allRepositoriesGroup').filterProperty('validation', 'icon-remove').length != 0;
+    return (selectedStack.get('invalidCnt') > 0) && invalidExist;
+  }.property('controller.content.stacks.@each.invalidCnt', 'allRepositoriesGroup.@each.validation'),
   allRepoUnchecked: function () {
     return (!this.get('allRepositoriesGroup').filterProperty('checked', true).length);
   }.property('allRepositoriesGroup.@each.checked'),
+  totalErrorCnt: function () {
+    var emptyCnt = this.get('allRepositoriesGroup').filterProperty('empty-error', true).length;
+    var invalidCnt = this.get('allRepositoriesGroup').filterProperty('validation', 'icon-remove').length;
+    if (this.get('allRepoUnchecked')) {
+      return 1;
+    } else if ( emptyCnt || invalidCnt) {
+      return emptyCnt + invalidCnt;
+    } else {
+      return 0;
+    }
+  }.property('allRepositoriesGroup.@each.empty-error', 'allRepoUnchecked', 'allRepositoriesGroup.@each.validation'),
 
   /**
    * Onclick handler for Config Group Header. Used to show/hide block
