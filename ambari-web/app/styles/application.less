@@ -2651,24 +2651,49 @@ table.graphs {
   .width70{
     width:70%;
   }
-  .table { //margin-bottom: 0;
-    thead { //background: #EDF5FC;
-    }
+  .table {
     th {
       border-top: none;
     }
     th, td {
-      width: 82px;
       border-left-width: 0;
     }
+
+    .col0,
+    td:first-child,
+    th:first-child {
+      width: 3%;
+      min-width:13px!important;
+    }
+    .col1,
+    td:first-child + td,
+    th:first-child + th{
+      width: 19%;
+    }
+    .col2,.col3,.col4,.col5,.col6,
+    td:first-child + td + td,
+    th:first-child + th + th,
+    td:first-child + td + td + td,
+    th:first-child + th + th + th,
+    td:first-child + td + td + td + td,
+    th:first-child + th + th + th + th,
+    td:first-child + td + td + td + td + td,
+    th:first-child + th + th + th + th + th,
+    td:first-child + td + td + td + td + td + td,
+    th:first-child + th + th + th + th + th + th{
+      width: 12%;
+    }
+    .col7,
+    td:first-child + td + td + td + td + td + td + td,
+    th:first-child + th + th + th + th + th + th + th{
+      width: 18%;
+    }
+
     td.name {
-      min-width: 260px;
-      max-width: 360px;
       overflow: auto;
       overflow-wrap: break-word;
     }
     th.first, td.first {
-      width: 10px !important;
       border-left-width: 1px;
     }
     td.first label {
