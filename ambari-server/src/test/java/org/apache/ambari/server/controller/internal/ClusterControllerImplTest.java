@@ -103,7 +103,7 @@ public class ClusterControllerImplTest {
 
   @Test
   public void testGetResources() throws Exception{
-    ClusterController controller = new ClusterControllerImpl(new TestProviderModule());
+    ClusterControllerImpl controller = new ClusterControllerImpl(new TestProviderModule());
 
     Set<String> propertyIds = new HashSet<String>();
 
@@ -124,7 +124,7 @@ public class ClusterControllerImplTest {
 
   @Test
   public void testGetResourcesPageFromStart() throws Exception{
-    ClusterController controller = new ClusterControllerImpl(new TestProviderModule());
+    ClusterControllerImpl controller = new ClusterControllerImpl(new TestProviderModule());
 
     Set<String> propertyIds = new HashSet<String>();
 
@@ -167,7 +167,7 @@ public class ClusterControllerImplTest {
 
   @Test
   public void testGetResourcesPageFromOffset() throws Exception{
-    ClusterController controller = new ClusterControllerImpl(new TestProviderModule());
+    ClusterControllerImpl controller = new ClusterControllerImpl(new TestProviderModule());
 
     Set<String> propertyIds = new HashSet<String>();
 
@@ -218,7 +218,7 @@ public class ClusterControllerImplTest {
 
   @Test
   public void testGetResourcesPageToEnd() throws Exception{
-    ClusterController controller = new ClusterControllerImpl(new TestProviderModule());
+    ClusterControllerImpl controller = new ClusterControllerImpl(new TestProviderModule());
 
     Set<String> propertyIds = new HashSet<String>();
 
@@ -261,7 +261,7 @@ public class ClusterControllerImplTest {
 
   @Test
   public void testGetResourcesPageToOffset() throws Exception{
-    ClusterController controller = new ClusterControllerImpl(new TestProviderModule());
+    ClusterControllerImpl controller = new ClusterControllerImpl(new TestProviderModule());
 
     Set<String> propertyIds = new HashSet<String>();
 
@@ -312,7 +312,7 @@ public class ClusterControllerImplTest {
 
   @Test
   public void testGetResourcesEmptyRequest() throws Exception{
-    ClusterController controller = new ClusterControllerImpl(new TestProviderModule());
+    ClusterControllerImpl controller = new ClusterControllerImpl(new TestProviderModule());
 
     Set<String> propertyIds = new HashSet<String>();
 
@@ -330,7 +330,7 @@ public class ClusterControllerImplTest {
 
   @Test
   public void testGetResourcesCheckOrder() throws Exception{
-    ClusterController controller = new ClusterControllerImpl(new TestProviderModule());
+    ClusterControllerImpl controller = new ClusterControllerImpl(new TestProviderModule());
 
     Set<String> propertyIds = new HashSet<String>();
 
@@ -356,7 +356,7 @@ public class ClusterControllerImplTest {
 
   @Test
   public void testGetResourcesWithPredicate() throws Exception{
-    ClusterController controller = new ClusterControllerImpl(new TestProviderModule());
+    ClusterControllerImpl controller = new ClusterControllerImpl(new TestProviderModule());
 
     Set<String> propertyIds = new HashSet<String>();
 
@@ -381,7 +381,7 @@ public class ClusterControllerImplTest {
 
   @Test
   public void testGetResourcesWithUnsupportedPropertyPredicate() throws Exception{
-    ClusterController controller = new ClusterControllerImpl(new TestProviderModule());
+    ClusterControllerImpl controller = new ClusterControllerImpl(new TestProviderModule());
 
     Set<String> propertyIds = new HashSet<String>();
 
@@ -404,7 +404,7 @@ public class ClusterControllerImplTest {
 
   @Test
   public void testGetResourcesWithUnsupportedPropertyRequest() throws Exception{
-    ClusterController controller = new ClusterControllerImpl(new TestProviderModule());
+    ClusterControllerImpl controller = new ClusterControllerImpl(new TestProviderModule());
 
     Set<String> propertyIds = new HashSet<String>();
 

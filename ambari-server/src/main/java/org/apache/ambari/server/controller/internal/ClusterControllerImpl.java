@@ -91,28 +91,22 @@ public class ClusterControllerImpl implements ClusterController {
 
   // ----- ClusterController -------------------------------------------------
 
-  @Override
   public Iterable<Resource> getResources(Resource.Type type, Request request, Predicate predicate)
       throws UnsupportedPropertyException,
              SystemException,
              NoSuchParentResourceException,
              NoSuchResourceException {
-    PageResponse response = getResources(type, request, predicate, null);
-    return response.getIterable();
+    return getResources(type, request, predicate, null).getIterable();
   }
 
   @Override
-  public PageResponse getResources(Resource.Type type, Request request, Predicate predicate, PageRequest pageRequest)
-      throws UnsupportedPropertyException,
-             SystemException,
-             NoSuchResourceException,
-             NoSuchParentResourceException {
-    ResourceProvider provider = ensureResourceProvider(type);
-    ensurePropertyProviders(type);
+  public Set<Resource> getRawResources(Resource.Type type, Request request, Predicate predicate)
+      throws UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException, SystemException {
+
     Set<Resource> resources;
 
-    ResourcePredicateEvaluator evaluator = provider instanceof ResourcePredicateEvaluator ?
-      (ResourcePredicateEvaluator) provider : DEFAULT_RESOURCE_PREDICATE_EVALUATOR;
+    ResourceProvider provider = ensureResourceProvider(type);
+    ensurePropertyProviders(type);
 
     if (provider == null) {
       resources = Collections.emptySet();
@@ -125,8 +119,32 @@ public class ClusterControllerImpl implements ClusterController {
       }
       checkProperties(type, request, predicate);
 
-      Set<Resource> providerResources = provider.getResources(request, predicate);
-      providerResources               = populateResources(type, providerResources, request, predicate);
+      resources = provider.getResources(request, predicate);
+    }
+    return resources;
+  }
+
+  @Override
+  public Iterable<Resource> getResources(Resource.Type type, Set<Resource> providerResources, Predicate predicate)
+      throws NoSuchParentResourceException, UnsupportedPropertyException, NoSuchResourceException, SystemException {
+    return getResources(type, providerResources, predicate, null).getIterable();
+  }
+
+  @Override
+  public PageResponse getResources(Resource.Type type, Set<Resource> providerResources, Predicate predicate, PageRequest pageRequest)
+      throws UnsupportedPropertyException,
+      SystemException,
+      NoSuchResourceException,
+      NoSuchParentResourceException {
+
+    Set<Resource> resources;
+    ResourceProvider provider = ensureResourceProvider(type);
+
+    ResourcePredicateEvaluator evaluator = provider instanceof ResourcePredicateEvaluator ?
+        (ResourcePredicateEvaluator) provider : DEFAULT_RESOURCE_PREDICATE_EVALUATOR;
+
+    if (!providerResources.isEmpty()) {
+
 
       Comparator<Resource> resourceComparator = pageRequest == null || pageRequest.getComparator() == null ?
           comparator : pageRequest.getComparator();
@@ -154,10 +172,23 @@ public class ClusterControllerImpl implements ClusterController {
         }
       }
       resources = sortedResources;
+    } else {
+      resources = providerResources;
     }
 
     return new PageResponseImpl(new ResourceIterable(resources, predicate, evaluator),
       0, null, null);
+  }
+
+  public PageResponse getResources(Resource.Type type, Request request, Predicate predicate, PageRequest pageRequest)
+      throws UnsupportedPropertyException,
+             SystemException,
+             NoSuchResourceException,
+             NoSuchParentResourceException {
+
+    Set<Resource> providerResources = getRawResources(type, request, predicate);
+    populateResources(type, providerResources, request, predicate);
+    return getResources(type, providerResources, predicate, pageRequest);
   }
 
   @Override
@@ -353,10 +384,11 @@ public class ClusterControllerImpl implements ClusterController {
    *
    * @throws SystemException if unable to populate the resources
    */
-  private Set<Resource> populateResources(Resource.Type type,
-                                          Set<Resource> resources,
-                                          Request request,
-                                          Predicate predicate) throws SystemException {
+  @Override
+  public Set<Resource> populateResources(Resource.Type type,
+                                         Set<Resource> resources,
+                                         Request request,
+                                         Predicate predicate) throws SystemException {
     Set<Resource> keepers = resources;
 
     for (PropertyProvider propertyProvider : propertyProviders.get(type)) {
@@ -364,6 +396,30 @@ public class ClusterControllerImpl implements ClusterController {
         keepers = propertyProvider.populateResources(keepers, request, predicate);
       }
     }
+    return keepers;
+  }
+
+  /**
+   * Performs bulk population of the given resources from the associated property providers.  This
+   * method may filter the resources based on the predicate and return a subset
+   * of the given resources.
+   * @param resourceMap resources grouped by type
+   * @param requestMap type-request map
+   * @param predicateMap type-predicate map
+   * @return the set of resources that were successfully populated grouped by resource type
+   * @throws SystemException
+   */
+  @Override
+  public Map<Resource.Type, Set<Resource>> populateResources(Map<Resource.Type, Set<Resource>> resourceMap,
+                                Map<Resource.Type, Request> requestMap,
+                                Map<Resource.Type, Predicate> predicateMap) throws SystemException {
+
+    Map<Resource.Type, Set<Resource>> keepers = new HashMap<Resource.Type, Set<Resource>>();
+
+    for (Resource.Type type : resourceMap.keySet()) {
+      keepers.put(type, populateResources(type, resourceMap.get(type), requestMap.get(type), predicateMap.get(type)));
+    }
+
     return keepers;
   }
 

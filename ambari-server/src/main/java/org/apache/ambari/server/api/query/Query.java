@@ -92,4 +92,5 @@ public interface Query {
    * @param pageRequest  the page request information
    */
   public void setPageRequest(PageRequest pageRequest);
+
 }
