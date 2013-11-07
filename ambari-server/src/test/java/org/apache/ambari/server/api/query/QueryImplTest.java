@@ -55,10 +55,12 @@ public class QueryImplTest {
     Schema componentSchema = createNiceMock(Schema.class);
     Resource componentResource = createNiceMock(Resource.class);
     String componentPropertyId = "componentId";
-    QueryImpl hostComponentQuery = createStrictMock(QueryImpl.class);
+    Query hostComponentQuery = createStrictMock(Query.class);
+    Result hostComponentQueryResult = createNiceMock(Result.class);
 
     TreeNode<Resource> tree = new TreeNodeImpl<Resource>(null, null, null);
-    Set<Resource> listResources = Collections.singleton(componentResource);
+    TreeNode<Resource> hostComponentResultNode = new TreeNodeImpl<Resource>(null, null, null);
+    List<Resource> listResources = Collections.singletonList(componentResource);
 
     Map<Resource.Type, String> mapResourceIds = new HashMap<Resource.Type, String>();
     mapResourceIds.put(Resource.Type.Cluster, "clusterName");
@@ -78,8 +80,6 @@ public class QueryImplTest {
     expect(componentResourceInstance.getSubResources()).andReturn(mapChildren).anyTimes();
     expect(componentResourceInstance.getIds()).andReturn(mapResourceIds).anyTimes();
 
-    expect(hostResourceInstance.createCopy()).andReturn(hostResourceInstance).anyTimes();
-
     expect(componentResourceDefinition.getType()).andReturn(Resource.Type.Component).anyTimes();
 
     expect(componentResource.getType()).andReturn(Resource.Type.Component).anyTimes();
@@ -91,11 +91,8 @@ public class QueryImplTest {
     expect(componentSchema.getKeyPropertyId(Resource.Type.Service)).andReturn("serviceId");
     expect(componentSchema.getKeyPropertyId(Resource.Type.Component)).andReturn(componentPropertyId).atLeastOnce();
 
-    expect(m_controller.getRawResources(eq(Resource.Type.Component), eq(PropertyHelper.getReadRequest(Collections.<String>emptySet())),
+    expect(m_controller.getResources(eq(Resource.Type.Component), eq(PropertyHelper.getReadRequest(Collections.<String>emptySet())),
         eq(predicate))).andReturn(listResources);
-
-    expect(m_controller.getResources(eq(Resource.Type.Component), eq(listResources), eq(predicate))).andReturn(
-        listResources);
 
     expect(result.getResultTree()).andReturn(tree).anyTimes();
 
@@ -106,32 +103,25 @@ public class QueryImplTest {
     expect(hostResourceInstance.getQuery()).andReturn(hostComponentQuery).anyTimes();
 
     expect(hostResourceDefinition.getType()).andReturn(Resource.Type.Host);
-
-//    expect(hostComponentQuery.getResourceInstance()).andReturn(hostResourceInstance);
-    expect(hostComponentQuery.getResourceType()).andReturn(Resource.Type.Host);
-    expect(hostComponentQuery.getPredicate()).andReturn(predicate);
-    expect(hostComponentQuery.createRequest()).andReturn(PropertyHelper.getReadRequest(Collections.<String>emptySet()));
-    expect(hostComponentQuery.getProviderResources()).andReturn(Collections.<Resource>emptySet());
-    expect(hostComponentQuery.getSubQueries()).andReturn(Collections.<QueryImpl, Resource>emptyMap());
-    expect(hostComponentQuery.getResourceIterable()).andReturn(Collections.<Resource>emptySet());
-    expect(hostComponentQuery.getResultName()).andReturn("host_components");
-
+    expect(hostComponentQuery.execute()).andReturn(hostComponentQueryResult);
+    expect(hostComponentQueryResult.getResultTree()).andReturn(hostComponentResultNode);
 
     replay(m_controller, result, componentResourceInstance, componentResourceDefinition, hostResourceInstance, componentSchema, componentResource,
-        hostComponentQuery);
+        hostComponentQuery, hostComponentQueryResult);
 
     QueryImpl query = new TestQuery(componentResourceInstance, result);
     query.execute();
 
     verify(m_controller, result, componentResourceInstance, componentResourceDefinition, hostResourceInstance, componentSchema, componentResource,
-        hostComponentQuery);
+        hostComponentQuery, hostComponentQueryResult);
 
     assertEquals(1, tree.getChildren().size());
     TreeNode<Resource> componentNode = tree.getChild("Component:1");
     assertEquals("Component:1", componentNode.getName());
     assertEquals(componentResource, componentNode.getObject());
     assertEquals(1, componentNode.getChildren().size());
-    assertEquals("false", componentNode.getChild("host_components").getProperty("isCollection"));
+    assertSame(hostComponentResultNode, componentNode.getChild("host_components"));
+    assertEquals("false", hostComponentResultNode.getProperty("isCollection"));
   }
 
   @Test
@@ -151,7 +141,7 @@ public class QueryImplTest {
     setPropertyIds.add(componentPropertyId);
 
     TreeNode<Resource> tree = new TreeNodeImpl<Resource>(null, null, null);
-    Set<Resource> resourceSet = Collections.singleton(componentResource);
+    List<Resource> listResources = Collections.singletonList(componentResource);
 
     Map<Resource.Type, String> mapResourceIds = new HashMap<Resource.Type, String>();
     mapResourceIds.put(Resource.Type.Cluster, "clusterName");
@@ -178,12 +168,8 @@ public class QueryImplTest {
 
     expect(result.getResultTree()).andReturn(tree).anyTimes();
 
-
-    expect(m_controller.getRawResources(eq(Resource.Type.Component), eq(PropertyHelper.getReadRequest(setPropertyIds)),
-        eq(predicate))).andReturn(resourceSet);
-
-    expect(m_controller.getResources(eq(Resource.Type.Component), eq(resourceSet), eq(predicate))).andReturn(
-        resourceSet);
+    expect(m_controller.getResources(eq(Resource.Type.Component), eq(PropertyHelper.getReadRequest(setPropertyIds)),
+        eq(predicate))).andReturn(listResources);
 
     expect(componentResourceInstance.getSubResources()).andReturn(Collections.<String, ResourceInstance>emptyMap()).anyTimes();
 
@@ -211,7 +197,7 @@ public class QueryImplTest {
     String clusterPropertyId = "clusterId";
 
     TreeNode<Resource> tree = new TreeNodeImpl<Resource>(null, null, null);
-    Set<Resource> resourceSet = Collections.singleton(clusterResource);
+    List<Resource> listResources = Collections.singletonList(clusterResource);
 
     Map<Resource.Type, String> mapResourceIds = new HashMap<Resource.Type, String>();
 
@@ -229,11 +215,8 @@ public class QueryImplTest {
 
     expect(result.getResultTree()).andReturn(tree).atLeastOnce();
 
-    expect(m_controller.getRawResources(eq(Resource.Type.Component), eq(PropertyHelper.getReadRequest(Collections.singleton(clusterPropertyId))),
-        isNull(Predicate.class))).andReturn(resourceSet);
-
-    expect(m_controller.getResources(eq(Resource.Type.Component), eq(resourceSet), isNull(Predicate.class))).andReturn(
-        resourceSet);
+    expect(m_controller.getResources(eq(Resource.Type.Component), eq(PropertyHelper.getReadRequest(Collections.singleton(clusterPropertyId))),
+        (Predicate) isNull())).andReturn(listResources);
 
 
     expect(clusterResourceInstance.getSubResources()).andReturn(Collections.<String, ResourceInstance>emptyMap()).anyTimes();
@@ -264,7 +247,7 @@ public class QueryImplTest {
     Predicate userPredicate = createNiceMock(Predicate.class);
 
     TreeNode<Resource> tree = new TreeNodeImpl<Resource>(null, null, null);
-    Set<Resource> resourceSet = Collections.singleton(clusterResource);
+    List<Resource> listResources = Collections.singletonList(clusterResource);
 
     Map<Resource.Type, String> mapResourceIds = new HashMap<Resource.Type, String>();
 
@@ -281,14 +264,8 @@ public class QueryImplTest {
 
     expect(result.getResultTree()).andReturn(tree).anyTimes();
 
-//    expect(m_controller.getResources(eq(Resource.Type.Component), eq(PropertyHelper.getReadRequest(Collections.singleton(clusterPropertyId))),
-//        eq(userPredicate))).andReturn(resourceSet);
-
-    expect(m_controller.getRawResources(eq(Resource.Type.Component), eq(PropertyHelper.getReadRequest(Collections.singleton(clusterPropertyId))),
-        eq(userPredicate))).andReturn(resourceSet);
-
-    expect(m_controller.getResources(eq(Resource.Type.Component), eq(resourceSet), eq(userPredicate))).andReturn(
-        resourceSet);
+    expect(m_controller.getResources(eq(Resource.Type.Component), eq(PropertyHelper.getReadRequest(Collections.singleton(clusterPropertyId))),
+        eq(userPredicate))).andReturn(listResources);
 
     expect(clusterResourceInstance.getSubResources()).andReturn(Collections.<String, ResourceInstance>emptyMap()).anyTimes();
 
@@ -324,7 +301,7 @@ public class QueryImplTest {
     setPropertyIds.add(componentPropertyId);
 
     TreeNode<Resource> tree = new TreeNodeImpl<Resource>(null, null, null);
-    Set<Resource> resourceSet = Collections.singleton(componentResource);
+    List<Resource> listResources = Collections.singletonList(componentResource);
 
     Map<Resource.Type, String> mapResourceIds = new HashMap<Resource.Type, String>();
     mapResourceIds.put(Resource.Type.Cluster, "clusterName");
@@ -356,14 +333,8 @@ public class QueryImplTest {
 
     expect(result.getResultTree()).andReturn(tree).anyTimes();
 
-//    expect(m_controller.getResources(eq(Resource.Type.Component), eq(PropertyHelper.getReadRequest(setPropertyIds)),
-//        eq(predicate))).andReturn(resourceSet);
-
-    expect(m_controller.getRawResources(eq(Resource.Type.Component), eq(PropertyHelper.getReadRequest(setPropertyIds)),
-        eq(predicate))).andReturn(resourceSet);
-
-    expect(m_controller.getResources(eq(Resource.Type.Component), eq(resourceSet), eq(predicate))).andReturn(
-        resourceSet);
+    expect(m_controller.getResources(eq(Resource.Type.Component), eq(PropertyHelper.getReadRequest(setPropertyIds)),
+        eq(predicate))).andReturn(listResources);
 
     expect(componentResourceInstance.getSubResources()).andReturn(Collections.<String, ResourceInstance>emptyMap()).anyTimes();
 

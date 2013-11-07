@@ -132,11 +132,25 @@ public class ResourceInstanceImpl implements ResourceInstance {
   }
 
   @Override
-  public ResourceInstance createCopy() {
-    ResourceInstanceImpl resourceInstance = new ResourceInstanceImpl(m_mapResourceIds, m_resourceDefinition, m_resourceFactory);
-    resourceInstance.m_mapSubResources = m_mapSubResources;
-    ((QueryImpl) m_query).cloneFields((QueryImpl) resourceInstance.m_query);
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
 
-    return resourceInstance;
+    ResourceInstanceImpl that = (ResourceInstanceImpl) o;
+
+    return m_mapResourceIds.equals(that.m_mapResourceIds) &&
+           m_query == that.m_query &&
+           m_resourceDefinition.equals(that.m_resourceDefinition) &&
+           m_mapSubResources == null ? that.m_mapSubResources == null :
+               m_mapSubResources.equals(that.m_mapSubResources);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = 13;
+    result = 31 * result + m_mapResourceIds.hashCode();
+    result = 31 * result + m_resourceDefinition.hashCode();
+    result = 31 * result + (m_mapSubResources != null ? m_mapSubResources.hashCode() : 0);
+    return result;
   }
 }
