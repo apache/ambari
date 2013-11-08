@@ -133,7 +133,7 @@ App.Host = DS.Model.extend({
       'UNKNOWN': 'health-status-DEAD-YELLOW',
       'HEALTHY': 'health-status-LIVE',
       'UNHEALTHY': 'health-status-DEAD-RED',
-      'ALERT ': 'health-status-DEAD-ORANGE'
+      'ALERT': 'health-status-DEAD-ORANGE'
     };
     return statusMap[this.get('healthStatus')] || 'health-status-DEAD-YELLOW';
   }.property('healthStatus'),
