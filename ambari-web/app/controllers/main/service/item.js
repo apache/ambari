@@ -76,7 +76,7 @@ App.MainServiceItemController = Em.Controller.extend({
     else {
       App.router.get('clusterController').loadUpdatedStatusDelayed(500);// @todo check working without param 500
     }
-    if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked()) {
+    if (App.router.get('applicationController').loadShowBgChecked()) {
       App.router.get('backgroundOperationsController').showPopup();
     }
   },
@@ -142,7 +142,7 @@ App.MainServiceItemController = Em.Controller.extend({
     var self = this;
     App.showConfirmationPopup(function() {
       self.content.set('runRebalancer', true);
-      if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked()) {
+      if (App.router.get('applicationController').loadShowBgChecked()) {
         App.router.get('backgroundOperationsController').showPopup();
       }
     });
@@ -156,7 +156,7 @@ App.MainServiceItemController = Em.Controller.extend({
     var self = this;
     App.showConfirmationPopup(function() {
       self.content.set('runCompaction', true);
-      if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked()) {
+      if (App.router.get('applicationController').loadShowBgChecked()) {
         App.router.get('backgroundOperationsController').showPopup();
       }
     });
@@ -192,7 +192,7 @@ App.MainServiceItemController = Em.Controller.extend({
 
   runSmokeTestSuccessCallBack: function(data) {
     if (data.Requests.id) {
-      if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked()) {
+      if (App.router.get('applicationController').loadShowBgChecked()) {
         App.router.get('backgroundOperationsController').showPopup();
       }
     }

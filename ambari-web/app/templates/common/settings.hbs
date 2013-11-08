@@ -17,13 +17,10 @@
 }}
 
 <div class="admin-user-settings">
-  <div class="header">
-    <strong>{{t admin.userSettings.header}}</strong>
-  </div>
   <div>
     <label>
-      {{view Ember.Checkbox checkedBinding="view.isShowBgChecked" classNames="checkbox"}}
-      {{t admin.userSettings.showBgOperations}}
+      {{view Ember.Checkbox checkedBinding="view.isShowBgChecked" class="checkbox"}}
+      {{t app.settings.showBgOperations}}
     </label>
   </div>
 </div>

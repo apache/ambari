@@ -156,7 +156,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       } else {
         App.router.get('clusterController').loadUpdatedStatusDelayed(500);
       }
-      if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked()) {
+      if (App.router.get('applicationController').loadShowBgChecked()) {
         App.router.get('backgroundOperationsController').showPopup();
       }
     });
@@ -278,7 +278,7 @@ App.MainHostDetailsController = Em.Controller.extend({
               App.router.get('clusterController').loadUpdatedStatusDelayed(500);
             }
 
-            if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked()) {
+            if (App.router.get('applicationController').loadShowBgChecked()) {
               App.router.get('backgroundOperationsController').showPopup();
             }
 
@@ -356,7 +356,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         App.router.get('clusterController').loadUpdatedStatusDelayed(500);
       }
 
-      if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked()) {
+      if (App.router.get('applicationController').loadShowBgChecked()) {
         App.router.get('backgroundOperationsController').showPopup();
       }
     });
@@ -471,7 +471,7 @@ App.MainHostDetailsController = Em.Controller.extend({
               App.router.get('clusterController').loadUpdatedStatusDelayed(500);
             }
 
-            if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked() && showPopup) {
+            if (App.router.get('applicationController').loadShowBgChecked() && showPopup) {
               App.router.get('backgroundOperationsController').showPopup();
             }
           });
@@ -527,7 +527,7 @@ App.MainHostDetailsController = Em.Controller.extend({
               App.router.get('clusterController').loadUpdatedStatusDelayed(500);
             }
 
-            if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked()) {
+            if (App.router.get('applicationController').loadShowBgChecked()) {
               App.router.get('backgroundOperationsController').showPopup();
             }
 
@@ -557,7 +557,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         }
         self.doDatanodeDecommission(decommissionHostNames, true);
       }
-      if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked()) {
+      if (App.router.get('applicationController').loadShowBgChecked()) {
         App.router.get('backgroundOperationsController').showPopup();
       }
     });
@@ -662,7 +662,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         decommissionHostNames.splice(index, 1);
         self.doDatanodeDecommission(decommissionHostNames, false);
       }
-      if (App.router.get('mainAdminUserSettingsController').loadShowBgChecked()) {
+      if (App.router.get('applicationController').loadShowBgChecked()) {
         App.router.get('backgroundOperationsController').showPopup();
       }
     });

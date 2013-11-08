@@ -473,7 +473,7 @@ App.HostPopup = Em.Object.create({
       isOpen: false,
       didInsertElement: function(){
         this.set('isOpen', true);
-        this.set ('isNotShowBgChecked', !App.router.get('mainAdminUserSettingsController').loadShowBgChecked());
+        this.set ('isNotShowBgChecked', !App.router.get('applicationController').loadShowBgChecked());
       },
       headerClass: Ember.View.extend({
         controller: this,
@@ -485,9 +485,9 @@ App.HostPopup = Em.Object.create({
       isNotShowBgChecked : null,
       updateNotShowBgChecked: function () {
         var curVal = !this.get('isNotShowBgChecked');
-        var key = App.router.get('mainAdminUserSettingsController').persistKey();
+        var key = App.router.get('applicationController').persistKey();
         if (!App.testMode) {
-          App.router.get('mainAdminUserSettingsController').postUserPref(key, curVal);
+          App.router.get('applicationController').postUserPref(key, curVal);
         }
       }.observes('isNotShowBgChecked'),
 

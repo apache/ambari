@@ -793,13 +793,6 @@ module.exports = Em.Route.extend({
         router.get('mainAdminController').connectOutlet('mainAdminAdvanced');
       }
     }),
-    adminUserSettings: Em.Route.extend({
-      route: '/userSettings',
-      connectOutlets: function (router) {
-        router.set('mainAdminController.category', "userSettings");
-        router.get('mainAdminController').connectOutlet('mainAdminUserSettings');
-      }
-    }),
     adminMisc: Em.Route.extend({
       route: '/misc',
       connectOutlets: function (router) {

@@ -21,9 +21,7 @@ var App = require('app');
 App.ModalPopup = Ember.View.extend({
 
   viewName: 'modalPopup',
-
   templateName: require('templates/common/modal_popup'),
-
   header: '&nbsp;',
   body: '&nbsp;',
   encodeBody: true,

@@ -25,6 +25,9 @@ Em.I18n.translations = {
 
   'app.loadingPlaceholder': 'Loading...',
   'app.signout':'Sign out',
+  'app.settings':'Settings',
+  'app.settings.showBgOperations': 'Show background operations dialog when an operation is started',
+  'app.settings.notShowBgOperations': 'Do not show this dialog again when starting a background operation',
 
   'apply':'apply',
   'and':'and',
@@ -882,9 +885,6 @@ Em.I18n.translations = {
   'admin.cluster.repositories.os':'OS',
   'admin.cluster.repositories.baseUrl':'Base URL',
 
-  'admin.userSettings.header': 'Customize User Settings',
-  'admin.userSettings.showBgOperations': 'Show background operations dialog when an operation is started',
-  'admin.userSettings.notShowBgOperations': 'Do not show this dialog again when starting a background operation',
   'admin.misc.header': 'Service Users and Groups',
   'admin.misc.nothingToShow': 'No user accounts to display',
 
