@@ -29,7 +29,7 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "confgroupclusterconfigmapping")
+@Table(name = "configgroupclusterconfigmapping")
 @IdClass(ConfigGroupConfigMappingEntityPK.class)
 @NamedQueries({
   @NamedQuery(name = "configsByGroup", query =
