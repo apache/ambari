@@ -24,33 +24,5 @@ require('mappers/status_mapper');
 
 describe('App.statusMapper', function () {
 
-  describe('#parse_host_components', function() {
-    var test_data = {
-      items: [
-        {
-          components: [
-            {
-              host_components: [
-                {
-                  HostRoles : {
-                    component_name: "OOZIE_CLIENT",
-                    host_name: "ip-10-40-35-199.ec2.internal",
-                    state: "STATE"
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    };
-    var result = App.statusMapper.parse_host_components(test_data);
-    var k = 'OOZIE_CLIENT_ip-10-40-35-199.ec2.internal';
-    var e = 'STATE';
-    console.log(result);
-    it('get host_component id', function() {
-      expect(result[k].work_status).to.equal(e);
-    });
-  });
 
 });

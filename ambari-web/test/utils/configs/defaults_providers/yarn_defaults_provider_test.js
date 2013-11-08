@@ -142,12 +142,12 @@ describe('YARNDefaultsProvider', function() {
       },
       {
         clusterData: {
-          disk: 12,
+          disk: 6,
           ram: 48 * 1024,
-          cpu: 12,
+          cpu: 6,
           hBaseInstalled: true
         },
-        e: 17
+        e: 11
       }
     ];
 
@@ -218,12 +218,10 @@ describe('YARNDefaultsProvider', function() {
       {
         localDB: {
           "hosts": {
-            "host1": {"name": "host1","cpu": 8,"memory": "25165824.00","disk_info": [{},{},{},{},{},{},{},{}]},
-            "host2": {"name": "host2","cpu": 4,"memory": "25165824.00","disk_info": [{},{},{},{}]}
+            "host1": {"name": "host1","cpu": 8,"memory": "25165824.00","disk_info": [{mountpoint:'/'},{mountpoint:'/'},{mountpoint:'/'},{mountpoint:'/'},{mountpoint:'/'},{mountpoint:'/'},{mountpoint:'/'},{mountpoint:'/'}]},
+            "host2": {"name": "host2","cpu": 4,"memory": "25165824.00","disk_info": [{mountpoint:'/'},{mountpoint:'/'},{mountpoint:'/'},{mountpoint:'/'}]}
           },
-          "masterComponentHosts": [
-            {"component": "RESOURCEMANAGER","hostName": "host1","serviceId": "HDFS"}
-          ],
+          "masterComponentHosts": [],
           "slaveComponentHosts": [
             {
               "componentName": "NODEMANAGER",
@@ -233,25 +231,25 @@ describe('YARNDefaultsProvider', function() {
         },
         m: 'Without HBase',
         e: {
-          'mapreduce.map.java.opts': 1638,
-          'mapreduce.map.memory.mb': 2048,
-          'mapreduce.reduce.java.opts': 3277,
-          'mapreduce.reduce.memory.mb': 4096,
-          'yarn.app.mapreduce.am.command-opts': 3277,
-          'yarn.app.mapreduce.am.resource.mb': 4096,
-          'yarn.nodemanager.resource.memory-mb': 43008,
-          'yarn.scheduler.maximum-allocation-mb': 43008,
-          'yarn.scheduler.minimum-allocation-mb': 2048
+          'mapreduce.map.java.opts': '-Xmx2048m',
+          'mapreduce.map.memory.mb': 2560,
+          'mapreduce.reduce.java.opts': '-Xmx2048m',
+          'mapreduce.reduce.memory.mb': 2560,
+          'yarn.app.mapreduce.am.command-opts': '-Xmx2048m',
+          'yarn.app.mapreduce.am.resource.mb': 2560,
+          'yarn.nodemanager.resource.memory-mb': 20480,
+          'yarn.scheduler.maximum-allocation-mb': 20480,
+          'yarn.scheduler.minimum-allocation-mb': 2560,
+          'mapreduce.task.io.sort.mb': 1024
         }
       },
       {
         localDB: {
           "hosts": {
-            "host1": {"name": "host1","cpu": 8,"memory": "25165824.00","disk_info": [{},{},{},{},{},{},{},{}]},
-            "host2": {"name": "host2","cpu": 4,"memory": "12582912.00","disk_info": [{},{},{},{}]}
+            "host1": {"name": "host1","cpu": 8,"memory": "25165824.00","disk_info": [{mountpoint:'/'},{mountpoint:'/'},{mountpoint:'/'},{mountpoint:'/'},{mountpoint:'/'},{mountpoint:'/'},{mountpoint:'/'},{mountpoint:'/'}]},
+            "host2": {"name": "host2","cpu": 4,"memory": "12582912.00","disk_info": [{mountpoint:'/'},{mountpoint:'/'},{mountpoint:'/'},{mountpoint:'/'}]}
           },
           "masterComponentHosts": [
-            {"component": "RESOURCEMANAGER","hostName": "host1","serviceId": "HDFS"},
             {"component": "HBASE_MASTER","hostName": "host1","serviceId": "HDFS"}
           ],
           "slaveComponentHosts": [
@@ -263,15 +261,16 @@ describe('YARNDefaultsProvider', function() {
         },
         m: 'With HBase',
         e: {
-          'mapreduce.map.java.opts': 1638,
-          'mapreduce.map.memory.mb': 2048,
-          'mapreduce.reduce.java.opts': 3277,
-          'mapreduce.reduce.memory.mb': 4096,
-          'yarn.app.mapreduce.am.command-opts': 3277,
-          'yarn.app.mapreduce.am.resource.mb': 4096,
-          'yarn.nodemanager.resource.memory-mb': 22528,
-          'yarn.scheduler.maximum-allocation-mb': 22528,
-          'yarn.scheduler.minimum-allocation-mb': 2048
+          'mapreduce.map.java.opts': '-Xmx819m',
+          'mapreduce.map.memory.mb': 1024,
+          'mapreduce.reduce.java.opts': '-Xmx1638m',
+          'mapreduce.reduce.memory.mb': 2048,
+          'yarn.app.mapreduce.am.command-opts': '-Xmx1638m',
+          'yarn.app.mapreduce.am.resource.mb': 2048,
+          'yarn.nodemanager.resource.memory-mb': 8192,
+          'yarn.scheduler.maximum-allocation-mb': 8192,
+          'yarn.scheduler.minimum-allocation-mb': 1024,
+          'mapreduce.task.io.sort.mb': 410
         }
       }
     ];
@@ -279,7 +278,6 @@ describe('YARNDefaultsProvider', function() {
       it(test.m, function() {
         App.YARNDefaultsProvider.set('clusterData', null);
         var configs = App.YARNDefaultsProvider.getDefaults(test.localDB);
-
         for(var config in configs) {
           if (test.e) {
             expect(configs[config]).to.equal(test.e[config]);

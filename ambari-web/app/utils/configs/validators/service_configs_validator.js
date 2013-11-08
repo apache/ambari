@@ -56,8 +56,11 @@ App.ServiceConfigsValidator = Em.Object.extend({
    * @param {object} config - configProperty name
    */
   validatorLessThenDefaultValue: function(config) {
-    var defaultValue = this.recommendedDefaults[config.get('name')];
+    var defaultValue = this.get('recommendedDefaults')[config.get('name')];
     var currentValue = parseInt(config.get('value').toString().replace( /\D+/g, ''));
+    if (!defaultValue) {
+      return null;
+    }
     defaultValue = parseInt(defaultValue.toString().replace( /\D+/g, ''));
     if (defaultValue && currentValue &&  currentValue < defaultValue) {
       return "Value is less than the recommended default of "+defaultValue;
