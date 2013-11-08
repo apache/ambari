@@ -23,9 +23,13 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 
 /**
@@ -137,6 +141,278 @@ public class PropertyHelperTest {
     Assert.assertTrue(PropertyHelper.containsArguments("metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)"));
 
     Assert.assertFalse(PropertyHelper.containsArguments("$X/foo/bar/$Y/baz/$Z"));
+  }
+
+  @Test
+  /**
+   * Test to make sure that point in time metrics are not in both JMX and Ganglia.
+   * A metric marked as point in time should not be available from both JMX
+   * and Ganglia.  The preference is to get point in time metrics from JMX
+   * but they may come from Ganglia if not available from JMX.
+   *
+   * If there is a legitimate exception and the point in time metric should
+   * be available from both property providers then please add an exception to
+   * this test.
+   */
+  public void testDuplicatePointInTimeMetrics() {
+    for (PropertyHelper.MetricsVersion version : PropertyHelper.MetricsVersion.values()) {
+
+      TreeSet<String> set = new TreeSet<String>();
+
+      for (Resource.Type type : Resource.Type.values()) {
+
+        Map<String, Map<String, PropertyInfo>> gids =
+            PropertyHelper.getGangliaPropertyIds(type, version);
+
+        Map<String, Map<String, PropertyInfo>> jids =
+            PropertyHelper.getJMXPropertyIds(type, version);
+
+        if (gids != null && jids != null) {
+
+          gids = normalizeMetricNames(gids);
+          jids = normalizeMetricNames(jids);
+
+          for (Map.Entry<String, Map<String, PropertyInfo>> gComponentEntry : gids.entrySet()) {
+
+            String gComponent = gComponentEntry.getKey();
+
+            Set<Map.Entry<String, PropertyInfo>> gComponentEntries = gComponentEntry.getValue().entrySet();
+
+            for (Map.Entry<String, PropertyInfo> gMetricEntry : gComponentEntries) {
+
+              Map<String, PropertyInfo> jMetrics = jids.get(gComponent);
+
+              if (jMetrics != null) {
+                String gMetric = gMetricEntry.getKey();
+                PropertyInfo jProperty = jMetrics.get(gMetric);
+
+                if (jProperty != null) {
+                  PropertyInfo gProperty = gMetricEntry.getValue();
+                  if (gProperty.isPointInTime()) {
+                    String s = type + " : " + gComponent + " : " + gMetric + " : " + gProperty.getPropertyId();
+                    set.add(s);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      if (set.size() > 0) {
+        System.out.println("The following point in time metrics are defined for both JMX and Ganglia.");
+        System.out.println("The preference is to get point in time metrics from JMX only if possible.");
+        System.out.println("If the metric can be obtained from JMX then set \"pointInTime\" : false for ");
+        System.out.println("the metric in the Ganglia properties definition, otherwise remove the metric ");
+        System.out.println("from the JMX properties definition.\n");
+        System.out.println("Metric version :" + version + "\n");
+        for (String s : set) {
+          System.out.println(s);
+        }
+        Assert.fail("Found duplicate point in time metrics.");
+      }
+    }
+  }
+
+  @Test
+  /**
+   * Test to make sure that any metrics that are marked as temporal only in Ganglia are available
+   * as point in time from JMX.  If a metric can not be provided by JMX it may be marked
+   * as point in time from Ganglia.
+   *
+   * If there is a legitimate exception and the metric should be temporal only then please add an
+   * exception to this test.
+   */
+  public void testTemporalOnlyMetrics() {
+
+    for (PropertyHelper.MetricsVersion version : PropertyHelper.MetricsVersion.values()) {
+
+      TreeSet<String> set = new TreeSet<String>();
+
+      for (Resource.Type type : Resource.Type.values()) {
+
+        Map<String, Map<String, PropertyInfo>> gids =
+            PropertyHelper.getGangliaPropertyIds(type, version);
+
+        Map<String, Map<String, PropertyInfo>> jids =
+            PropertyHelper.getJMXPropertyIds(type, version);
+
+        if (gids != null && jids != null) {
+
+          gids = normalizeMetricNames(gids);
+          jids = normalizeMetricNames(jids);
+
+          for (Map.Entry<String, Map<String, PropertyInfo>> gComponentEntry : gids.entrySet()) {
+
+            String gComponent = gComponentEntry.getKey();
+
+            Set<Map.Entry<String, PropertyInfo>> gComponentEntries = gComponentEntry.getValue().entrySet();
+
+            for (Map.Entry<String, PropertyInfo> gMetricEntry : gComponentEntries) {
+
+              Map<String, PropertyInfo> jMetrics = jids.get(gComponent);
+
+              if (jMetrics != null) {
+
+                String gMetric = gMetricEntry.getKey();
+                PropertyInfo gProperty = gMetricEntry.getValue();
+
+                if (!gProperty.isPointInTime()) {
+
+                  PropertyInfo jProperty = jMetrics.get(gMetric);
+
+                  if (jProperty == null || !jProperty.isPointInTime()) {
+
+                    String s = type + " : " + gComponent + " : " + gMetric + " : " + gProperty.getPropertyId();
+
+                    set.add(s);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      if (set.size() > 0) {
+        System.out.println("The following metrics are marked as temporal only for Ganglia ");
+        System.out.println("but are not defined for JMX.");
+        System.out.println("The preference is to get point in time metrics from JMX if possible.");
+        System.out.println("If the metric can be obtained from JMX then add it to the JMX properties");
+        System.out.println("definition, otherwise set set \"pointInTime\" : true for the metric in ");
+        System.out.println("the Ganglia properties definition.\n");
+        System.out.println("Metric version :" + version + "\n");
+        for (String s : set) {
+          System.out.println(s);
+        }
+        Assert.fail("Found temporal only metrics.");
+      }
+    }
+  }
+
+  @Test
+  /**
+   * Test to make sure that no JMX metrics are marked as point in time.
+   */
+  public void testJMXTemporal() {
+
+    for (PropertyHelper.MetricsVersion version : PropertyHelper.MetricsVersion.values()) {
+
+      TreeSet<String> set = new TreeSet<String>();
+
+      for (Resource.Type type : Resource.Type.values()) {
+
+        Map<String, Map<String, PropertyInfo>> jids =
+            PropertyHelper.getJMXPropertyIds(type, version);
+
+        if (jids != null) {
+
+          for (Map.Entry<String, Map<String, PropertyInfo>> jComponentEntry : jids.entrySet()) {
+
+            String jComponent = jComponentEntry.getKey();
+
+            Set<Map.Entry<String, PropertyInfo>> jComponentEntries = jComponentEntry.getValue().entrySet();
+            for (Map.Entry<String, PropertyInfo> jMetricEntry : jComponentEntries) {
+
+              String jMetric = jMetricEntry.getKey();
+
+              PropertyInfo jProperty = jMetricEntry.getValue();
+
+              if (jProperty.isTemporal()) {
+                String s = type + " : " + jComponent + " : " + jMetric + " : " + jProperty.getPropertyId();
+
+                set.add(s);
+              }
+            }
+          }
+        }
+      }
+
+      if (set.size() > 0) {
+        System.out.println("The following metrics are marked as temporal JMX.");
+        System.out.println("JMX can provide point in time metrics only.\n");
+        System.out.println("Metric version :" + version + "\n");
+        for (String s : set) {
+          System.out.println(s);
+        }
+        Assert.fail("Found temporal JMX metrics.");
+      }
+    }
+  }
+
+  @Test
+  /**
+   * Test to look for changes in case of the metric names
+   * (e.g. metrics/rpc/RpcQueueTime_num_ops to metrics/rpc/rpcQueueTime_num_ops).
+   */
+  public void testMetricCaseChange() {
+    Map<String, Set<String>> metricSet = new HashMap<String, Set<String>>();
+    for (int i = 0; i < 2; ++i) {
+      for (PropertyHelper.MetricsVersion version : PropertyHelper.MetricsVersion.values()) {
+        for (Resource.Type type : Resource.Type.values()) {
+
+          Map<String, Map<String, PropertyInfo>> ids = i == 0 ?
+              PropertyHelper.getGangliaPropertyIds(type, version) :
+              PropertyHelper.getJMXPropertyIds(type, version);
+
+          if (ids != null) {
+
+            for (Map.Entry<String, Map<String, PropertyInfo>> gComponentEntry : ids.entrySet()) {
+              Set<Map.Entry<String, PropertyInfo>> gComponentEntries = gComponentEntry.getValue().entrySet();
+              for (Map.Entry<String, PropertyInfo> gMetricEntry : gComponentEntries) {
+
+                String gMetric = gMetricEntry.getKey();
+                String key = gMetric.toLowerCase();
+
+                Set<String> metrics = metricSet.get(key);
+                if (metrics == null) {
+                  metrics = new HashSet<String>();
+                  metricSet.put(key, metrics);
+                }
+                metrics.add(gMetric);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    List<Set<String>> failureList = new LinkedList<Set<String>>();
+    for (Set<String> metrics : metricSet.values()) {
+      if (metrics.size() > 1) {
+        failureList.add(metrics);
+      }
+    }
+
+    if (failureList.size() > 1) {
+      System.out.println("The following metrics differ only by case.\n");
+      for (Set<String> metrics : failureList) {
+        System.out.println("  " + metrics);
+      }
+      Assert.fail("Found metric name case differences.");
+    }
+  }
+
+  // remove any replacement tokens (e.g. $1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)) in the metric names
+  private static Map<String, Map<String, PropertyInfo>> normalizeMetricNames(Map<String, Map<String, PropertyInfo>> gids) {
+
+    Map<String, Map<String, PropertyInfo>> returnMap = new HashMap<String, Map<String, PropertyInfo>>();
+
+    for (Map.Entry<String, Map<String, PropertyInfo>> gComponentEntry : gids.entrySet()) {
+
+      String gComponent = gComponentEntry.getKey();
+      Map<String, PropertyInfo> newMap = new HashMap<String, PropertyInfo>();
+
+      Set<Map.Entry<String, PropertyInfo>> gComponentEntries = gComponentEntry.getValue().entrySet();
+
+      for (Map.Entry<String, PropertyInfo> gMetricEntry : gComponentEntries) {
+
+        String gMetric = gMetricEntry.getKey();
+        PropertyInfo propertyInfo = gMetricEntry.getValue();
+
+        newMap.put(gMetric.replaceAll("\\$\\d+(\\.\\S+\\(\\S+\\))*", "*"), propertyInfo);
+      }
+      returnMap.put(gComponent, newMap);
+    }
+    return returnMap;
   }
 }
 

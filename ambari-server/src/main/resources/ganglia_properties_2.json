@@ -2166,12 +2166,12 @@
       },
       "metrics/rpcdetailed/renewLease_avg_time":{
         "metric":"rpcdetailed.rpcdetailed.RenewLeaseAvgTime",
-        "pointInTime":false,
+        "pointInTime":true,
         "temporal":true
       },
       "metrics/rpcdetailed/renewLease_num_ops":{
         "metric":"rpcdetailed.rpcdetailed.RenewLeaseNumOps",
-        "pointInTime":false,
+        "pointInTime":true,
         "temporal":true
       },
       "metrics/rpcdetailed/rollEditLog_avg_time":{
@@ -2925,37 +2925,37 @@
         "pointInTime":true,
         "temporal":true
       },
-      "metrics/rpc/numOpenConnections":{
+      "metrics/rpc/NumOpenConnections":{
         "metric":"rpc.rpc.NumOpenConnections",
         "pointInTime":true,
         "temporal":true
       },
-      "metrics/rpc/receivedBytes":{
+      "metrics/rpc/ReceivedBytes":{
         "metric":"rpc.rpc.ReceivedBytes",
         "pointInTime":true,
         "temporal":true
       },
-      "metrics/rpc/rpcProcessingTime_avg_time":{
+      "metrics/rpc/RpcProcessingTime_avg_time":{
         "metric":"rpc.rpc.RpcProcessingTimeAvgTime",
         "pointInTime":true,
         "temporal":true
       },
-      "metrics/rpc/rpcProcessingTime_num_ops":{
+      "metrics/rpc/RpcProcessingTime_num_ops":{
         "metric":"rpc.rpc.RpcProcessingTimeNumOps",
         "pointInTime":true,
         "temporal":true
       },
-      "metrics/rpc/rpcQueueTime_avg_time":{
+      "metrics/rpc/RpcQueueTime_avg_time":{
         "metric":"rpc.rpc.RpcQueueTimeAvgTime",
         "pointInTime":true,
         "temporal":true
       },
-      "metrics/rpc/rpcQueueTime_num_ops":{
+      "metrics/rpc/RpcQueueTime_num_ops":{
         "metric":"rpc.rpc.RpcQueueTimeNumOps",
         "pointInTime":true,
         "temporal":true
       },
-      "metrics/rpc/sentBytes":{
+      "metrics/rpc/SentBytes":{
         "metric":"rpc.rpc.SentBytes",
         "pointInTime":true,
         "temporal":true
@@ -3359,22 +3359,22 @@
       },
       "metrics/jvm/gcCountCopy":{
         "metric":"jvm.JvmMetrics.GcCountCopy",
-        "pointInTime":false,
+        "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/gcCountMarkSweepCompact":{
         "metric":"jvm.JvmMetrics.GcCountMarkSweepCompact",
-        "pointInTime":false,
+        "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/gcTimeMillisCopy":{
         "metric":"jvm.JvmMetrics.GcTimeMillisCopy",
-        "pointInTime":false,
+        "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/gcTimeMillisMarkSweepCompact":{
         "metric":"jvm.JvmMetrics.GcTimeMillisMarkSweepCompact",
-        "pointInTime":false,
+        "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memMaxM":{
@@ -3557,7 +3557,7 @@
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcAuthorizationSuccesses":{
+      "metrics/rpc/rpcAuthorizationSuccesses":{
         "metric":"rpc.rpc.RpcAuthorizationSuccesses",
         "pointInTime":false,
         "temporal":true
@@ -3567,7 +3567,7 @@
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/CallQueueLen":{
+      "metrics/rpc/callQueueLen":{
         "metric":"rpc.rpc.CallQueueLength",
         "pointInTime":false,
         "temporal":true
@@ -3597,122 +3597,22 @@
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/yarn/Queue/AllocatedVCores":{
-        "metric":"yarn.QueueMetrics.AllocatedVCores",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/AvailableVCores":{
-        "metric":"yarn.QueueMetrics.AvailableVCores",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/PendingVCores":{
-        "metric":"yarn.QueueMetrics.PendingVCores",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/running_0":{
-        "metric":"yarn.QueueMetrics.running_0",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/running_60":{
-        "metric":"yarn.QueueMetrics.running_60",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/running_300":{
-        "metric":"yarn.QueueMetrics.running_300",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/running_1440":{
-        "metric":"yarn.QueueMetrics.running_1440",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/AppsSubmitted":{
-        "metric":"yarn.QueueMetrics.AppsSubmitted",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/AppsRunning":{
-        "metric":"yarn.QueueMetrics.AppsRunning",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/AppsPending":{
-        "metric":"yarn.QueueMetrics.AppsPending",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/AppsCompleted":{
-        "metric":"yarn.QueueMetrics.AppsCompleted",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/AllocatedMB":{
-        "metric":"yarn.QueueMetrics.AllocatedMB",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/AllocatedContainers":{
-        "metric":"yarn.QueueMetrics.AllocatedContainers",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/AggregateContainersAllocated":{
-        "metric":"yarn.QueueMetrics.AggregateContainersAllocated",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/AggregateContainersReleased":{
-        "metric":"yarn.QueueMetrics.AggregateContainersReleased",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/AvailableMB":{
-        "metric":"yarn.QueueMetrics.AvailableMB",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/PendingMB":{
-        "metric":"yarn.QueueMetrics.PendingMB",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/PendingContainers":{
-        "metric":"yarn.QueueMetrics.PendingContainers",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/ActiveUsers":{
-        "metric":"yarn.QueueMetrics.ActiveUsers",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/ActiveApplications":{
-        "metric":"yarn.QueueMetrics.ActiveApplications",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/ugi/LoginSuccessNumOps":{
+      "metrics/ugi/loginSuccess_num_ops":{
         "metric":"ugi.ugi.LoginSuccessNumOps",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/ugi/LoginSuccessAvgTime":{
+      "metrics/ugi/loginSuccess_avg_time":{
         "metric":"ugi.ugi.LoginSuccessAvgTime",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/ugi/LoginFailureNumOps":{
+      "metrics/ugi/loginFailure_num_ops":{
         "metric":"ugi.ugi.LoginFailureNumOps",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/ugi/LoginFailureAvgTime":{
+      "metrics/ugi/loginFailure_avg_time":{
         "metric":"ugi.ugi.LoginFailureAvgTime",
         "pointInTime":false,
         "temporal":true
@@ -4086,22 +3986,22 @@
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcAuthenticationFailures":{
+      "metrics/rpc/rpcAuthenticationFailures":{
         "metric":"rpc.metrics.RpcAuthenticationFailures",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcAuthenticationSuccesses":{
+      "metrics/rpc/rpcAuthenticationSuccesses":{
         "metric":"rpc.metrics.RpcAuthenticationSuccesses",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcAuthorizationFailures":{
+      "metrics/rpc/rpcAuthorizationFailures":{
         "metric":"rpc.metrics.RpcAuthorizationFailures",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcAuthorizationSuccesses":{
+      "metrics/rpc/rpcAuthorizationSuccesses":{
         "metric":"rpc.rpc.RpcAuthorizationSuccesses",
         "pointInTime":false,
         "temporal":true
@@ -4111,35 +4011,32 @@
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/CallQueueLen":{
+      "metrics/rpc/callQueueLen":{
         "metric":"rpc.rpc.CallQueueLength",
         "pointInTime":false,
         "temporal":true
       },
-
-      "metrics/ugi/LoginSuccessNumOps":{
+      "metrics/ugi/loginSuccess_num_ops":{
         "metric":"ugi.ugi.LoginSuccessNumOps",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/ugi/LoginSuccessAvgTime":{
+      "metrics/ugi/loginSuccess_avg_time":{
         "metric":"ugi.ugi.LoginSuccessAvgTime",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/ugi/LoginFailureNumOps":{
+      "metrics/ugi/loginFailure_num_ops":{
         "metric":"ugi.ugi.LoginFailureNumOps",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/ugi/LoginFailureAvgTime":{
+      "metrics/ugi/loginFailure_avg_time":{
         "metric":"ugi.ugi.LoginFailureAvgTime",
         "pointInTime":false,
         "temporal":true
       }
-
     },
-
     "HISTORYSERVER":{
       "metrics/boottime":{
         "metric":"boottime",
@@ -4381,22 +4278,22 @@
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcAuthenticationFailures":{
+      "metrics/rpc/rpcAuthenticationFailures":{
         "metric":"rpc.metrics.RpcAuthenticationFailures",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcAuthenticationSuccesses":{
+      "metrics/rpc/rpcAuthenticationSuccesses":{
         "metric":"rpc.metrics.RpcAuthenticationSuccesses",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcAuthorizationFailures":{
+      "metrics/rpc/rpcAuthorizationFailures":{
         "metric":"rpc.metrics.RpcAuthorizationFailures",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcAuthorizationSuccesses":{
+      "metrics/rpc/rpcAuthorizationSuccesses":{
         "metric":"rpc.rpc.RpcAuthorizationSuccesses",
         "pointInTime":false,
         "temporal":true
@@ -4406,37 +4303,33 @@
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/CallQueueLen":{
+      "metrics/rpc/callQueueLen":{
         "metric":"rpc.rpc.CallQueueLength",
         "pointInTime":false,
         "temporal":true
       },
-
-      "metrics/ugi/LoginSuccessNumOps":{
+      "metrics/ugi/loginSuccess_num_ops":{
         "metric":"ugi.ugi.LoginSuccessNumOps",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/ugi/LoginSuccessAvgTime":{
+      "metrics/ugi/loginSuccess_avg_time":{
         "metric":"ugi.ugi.LoginSuccessAvgTime",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/ugi/LoginFailureNumOps":{
+      "metrics/ugi/loginFailure_num_ops":{
         "metric":"ugi.ugi.LoginFailureNumOps",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/ugi/LoginFailureAvgTime":{
+      "metrics/ugi/loginFailure_avg_time":{
         "metric":"ugi.ugi.LoginFailureAvgTime",
         "pointInTime":false,
         "temporal":true
       }
-
     },
-
    "HBASE_MASTER":{
-
       "metrics/boottime":{
         "metric":"boottime",
         "pointInTime":true,
@@ -4509,7 +4402,7 @@
       },
       "metrics/hbase/master/splitSize_num_ops":{
         "metric":"master.FileSystem.HlogSplitSize_num_ops",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/master/splitTime_avg_time":{
@@ -6122,12 +6015,12 @@
       },
       "metrics/rpcdetailed/renewLease_avg_time":{
         "metric":"rpcdetailed.rpcdetailed.RenewLeaseAvgTime",
-        "pointInTime":false,
+        "pointInTime":true,
         "temporal":true
       },
       "metrics/rpcdetailed/renewLease_num_ops":{
         "metric":"rpcdetailed.rpcdetailed.RenewLeaseNumOps",
-        "pointInTime":false,
+        "pointInTime":true,
         "temporal":true
       },
       "metrics/rpcdetailed/rollEditLog_avg_time":{
@@ -6411,7 +6304,7 @@
       },
       "metrics/jvm/gcCount":{
         "metric":"jvm.JvmMetrics.GcCount",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/gcTimeMillis":{
@@ -6421,22 +6314,22 @@
       },
       "metrics/jvm/logError":{
         "metric":"jvm.JvmMetrics.LogError",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logFatal":{
         "metric":"jvm.JvmMetrics.LogFatal",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logInfo":{
         "metric":"jvm.JvmMetrics.LogInfo",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logWarn":{
         "metric":"jvm.JvmMetrics.LogWarn",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/maxMemoryM":{
@@ -6446,52 +6339,52 @@
       },
       "metrics/jvm/memHeapCommittedM":{
         "metric":"jvm.JvmMetrics.MemHeapCommittedM",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/memHeapUsedM":{
         "metric":"jvm.JvmMetrics.MemHeapUsedM",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/memNonHeapCommittedM":{
         "metric":"jvm.JvmMetrics.MemNonHeapCommittedM",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/memNonHeapUsedM":{
         "metric":"jvm.JvmMetrics.MemNonHeapUsedM",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsBlocked":{
         "metric":"jvm.JvmMetrics.ThreadsBlocked",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsNew":{
         "metric":"jvm.JvmMetrics.ThreadsNew",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsRunnable":{
         "metric":"jvm.JvmMetrics.ThreadsRunnable",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsTerminated":{
         "metric":"jvm.JvmMetrics.ThreadsTerminated",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsTimedWaiting":{
         "metric":"jvm.JvmMetrics.ThreadsTimedWaiting",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsWaiting":{
         "metric":"jvm.JvmMetrics.ThreadsWaiting",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/load/load_fifteen":{
@@ -6576,86 +6469,85 @@
       },
       "metrics/rpc/NumOpenConnections":{
         "metric":"rpc.rpc.NumOpenConnections",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/ReceivedBytes":{
         "metric":"rpc.rpc.ReceivedBytes",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/RpcProcessingTime_avg_time":{
         "metric":"rpc.rpc.RpcProcessingTimeAvgTime",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/RpcProcessingTime_num_ops":{
         "metric":"rpc.rpc.RpcProcessingTimeNumOps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/RpcQueueTime_avg_time":{
         "metric":"rpc.rpc.RpcQueueTimeAvgTime",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/RpcQueueTime_num_ops":{
         "metric":"rpc.rpc.RpcQueueTimeNumOps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/SentBytes":{
         "metric":"rpc.rpc.SentBytes",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/callQueueLen":{
         "metric":"rpc.rpc.CallQueueLength",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/rpcAuthenticationFailures":{
         "metric":"rpc.rpc.RpcAuthenticationFailures",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/rpcAuthenticationSuccesses":{
         "metric":"rpc.rpc.RpcAuthenticationSuccesses",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/rpcAuthorizationFailures":{
         "metric":"rpc.rpc.RpcAuthorizationFailures",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/rpcAuthorizationSuccesses":{
         "metric":"rpc.rpc.RpcAuthorizationSuccesses",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginFailure_avg_time":{
         "metric":"ugi.UgiMetrics.LoginFailureAvgTime",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginFailure_num_ops":{
         "metric":"ugi.UgiMetrics.LoginFailureNumOps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginSuccess_avg_time":{
         "metric":"ugi.UgiMetrics.LoginSuccessAvgTime",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginSuccess_num_ops":{
         "metric":"ugi.UgiMetrics.LoginSuccessNumOps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       }
     },
-
     "JOURNALNODE":{
       "metrics/boottime":{
         "metric":"boottime",
@@ -6719,7 +6611,7 @@
       },
       "metrics/jvm/gcCount":{
         "metric":"jvm.JvmMetrics.GcCount",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/gcTimeMillis":{
@@ -6729,77 +6621,77 @@
       },
       "metrics/jvm/logError":{
         "metric":"jvm.JvmMetrics.LogError",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logFatal":{
         "metric":"jvm.JvmMetrics.LogFatal",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logInfo":{
         "metric":"jvm.JvmMetrics.LogInfo",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/logWarn":{
         "metric":"jvm.JvmMetrics.LogWarn",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/memMaxM":{
         "metric":"jvm.JvmMetrics.MemMaxM",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/memHeapCommittedM":{
         "metric":"jvm.JvmMetrics.MemHeapCommittedM",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/memHeapUsedM":{
         "metric":"jvm.JvmMetrics.MemHeapUsedM",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/memNonHeapCommittedM":{
         "metric":"jvm.JvmMetrics.MemNonHeapCommittedM",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/memNonHeapUsedM":{
         "metric":"jvm.JvmMetrics.MemNonHeapUsedM",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsBlocked":{
         "metric":"jvm.JvmMetrics.ThreadsBlocked",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsNew":{
         "metric":"jvm.JvmMetrics.ThreadsNew",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsRunnable":{
         "metric":"jvm.JvmMetrics.ThreadsRunnable",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsTerminated":{
         "metric":"jvm.JvmMetrics.ThreadsTerminated",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsTimedWaiting":{
         "metric":"jvm.JvmMetrics.ThreadsTimedWaiting",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/jvm/threadsWaiting":{
         "metric":"jvm.JvmMetrics.ThreadsWaiting",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/load/load_fifteen":{
@@ -6882,164 +6774,164 @@
         "pointInTime":true,
         "temporal":true
       },
-      "metrics/rpc/numOpenConnections":{
+      "metrics/rpc/NumOpenConnections":{
         "metric":"rpc.rpc.NumOpenConnections",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/receivedBytes":{
+      "metrics/rpc/ReceivedBytes":{
         "metric":"rpc.rpc.ReceivedBytes",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/rpcProcessingTime_avg_time":{
+      "metrics/rpc/RpcProcessingTime_avg_time":{
         "metric":"rpc.rpc.RpcProcessingTimeAvgTime",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/rpcProcessingTime_num_ops":{
+      "metrics/rpc/RpcProcessingTime_num_ops":{
         "metric":"rpc.rpc.RpcProcessingTimeNumOps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/rpcQueueTime_avg_time":{
+      "metrics/rpc/RpcQueueTime_avg_time":{
         "metric":"rpc.rpc.RpcQueueTimeAvgTime",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/rpcQueueTime_num_ops":{
+      "metrics/rpc/RpcQueueTime_num_ops":{
         "metric":"rpc.rpc.RpcQueueTimeNumOps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/sentBytes":{
+      "metrics/rpc/SentBytes":{
         "metric":"rpc.rpc.SentBytes",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/callQueueLength":{
+      "metrics/rpc/callQueueLen":{
         "metric":"rpc.rpc.CallQueueLength",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/rpcAuthenticationFailures":{
         "metric":"rpc.rpc.RpcAuthenticationFailures",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/rpcAuthenticationSuccesses":{
         "metric":"rpc.rpc.RpcAuthenticationSuccesses",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/rpcAuthorizationFailures":{
         "metric":"rpc.rpc.RpcAuthorizationFailures",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpc/rpcAuthorizationSuccesses":{
         "metric":"rpc.rpc.RpcAuthorizationSuccesses",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginFailure_avg_time":{
         "metric":"ugi.UgiMetrics.LoginFailureAvgTime",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginFailure_num_ops":{
         "metric":"ugi.UgiMetrics.LoginFailureNumOps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginSuccess_avg_time":{
         "metric":"ugi.UgiMetrics.LoginSuccessAvgTime",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/ugi/loginSuccess_num_ops":{
         "metric":"ugi.UgiMetrics.LoginSuccessNumOps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpcdetailed/acceptRecovery_avg_time":{
         "metric":"rpcdetailed.rpcdetailed.AcceptRecoveryAvgTime",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpcdetailed/acceptRecovery_num_ops":{
         "metric":"rpcdetailed.rpcdetailed.AcceptRecoveryNumOps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpcdetailed/finalizeLogSegment_avg_time":{
         "metric":"rpcdetailed.rpcdetailed.FinalizeLogSegmentAvgTime",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpcdetailed/finalizeLogSegment_num_ops":{
         "metric":"rpcdetailed.rpcdetailed.FinalizeLogSegmentNumOps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpcdetailed/getEditLogManifest_avg_time":{
         "metric":"rpcdetailed.rpcdetailed.GetEditLogManifestAvgTime",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpcdetailed/getEditLogManifest_num_ops":{
         "metric":"rpcdetailed.rpcdetailed.GetEditLogManifestNumOps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpcdetailed/getJournalState_avg_time":{
         "metric":"rpcdetailed.rpcdetailed.GetJournalStateAvgTime",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpcdetailed/getJournalState_num_ops":{
         "metric":"rpcdetailed.rpcdetailed.GetJournalStateNumOps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpcdetailed/journal_avg_time":{
         "metric":"rpcdetailed.rpcdetailed.JournalAvgTime",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpcdetailed/journal_num_ops":{
         "metric":"rpcdetailed.rpcdetailed.JournalNumOps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpcdetailed/newEpoch_avg_time":{
         "metric":"rpcdetailed.rpcdetailed.NewEpochAvgTime",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpcdetailed/newEpoch_num_ops":{
         "metric":"rpcdetailed.rpcdetailed.NewEpochNumOps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpcdetailed/prepareRecovery_avg_time":{
         "metric":"rpcdetailed.rpcdetailed.PrepareRecoveryAvgTime",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpcdetailed/prepareRecovery_num_ops":{
         "metric":"rpcdetailed.rpcdetailed.PrepareRecoveryNumOps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpcdetailed/startLogSegment_avg_time":{
         "metric":"rpcdetailed.rpcdetailed.StartLogSegmentAvgTime",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/rpcdetailed/startLogSegment_num_ops":{
         "metric":"rpcdetailed.rpcdetailed.StartLogSegmentNumOps",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/dfs/journalNode/batchesWritten":{
@@ -7316,22 +7208,22 @@
       },
       "metrics/jvm/gcCountCopy":{
         "metric":"jvm.JvmMetrics.GcCountCopy",
-        "pointInTime":false,
+        "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/gcCountMarkSweepCompact":{
         "metric":"jvm.JvmMetrics.GcCountMarkSweepCompact",
-        "pointInTime":false,
+        "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/gcTimeMillisCopy":{
         "metric":"jvm.JvmMetrics.GcTimeMillisCopy",
-        "pointInTime":false,
+        "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/gcTimeMillisMarkSweepCompact":{
         "metric":"jvm.JvmMetrics.GcTimeMillisMarkSweepCompact",
-        "pointInTime":false,
+        "pointInTime":true,
         "temporal":true
       },
       "metrics/jvm/memMaxM":{
@@ -7514,7 +7406,7 @@
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcAuthorizationSuccesses":{
+      "metrics/rpc/rpcAuthorizationSuccesses":{
         "metric":"rpc.rpc.RpcAuthorizationSuccesses",
         "pointInTime":false,
         "temporal":true
@@ -7524,7 +7416,7 @@
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/CallQueueLen":{
+      "metrics/rpc/callQueueLen":{
         "metric":"rpc.rpc.CallQueueLength",
         "pointInTime":false,
         "temporal":true
@@ -7554,132 +7446,22 @@
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/yarn/Queue/AllocatedVCores":{
-        "metric":"yarn.QueueMetrics.AllocatedVCores",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/AvailableVCores":{
-        "metric":"yarn.QueueMetrics.AvailableVCores",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/PendingVCores":{
-        "metric":"yarn.QueueMetrics.PendingVCores",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/running_0":{
-        "metric":"yarn.QueueMetrics.running_0",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/running_60":{
-        "metric":"yarn.QueueMetrics.running_60",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/running_300":{
-        "metric":"yarn.QueueMetrics.running_300",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/running_1440":{
-        "metric":"yarn.QueueMetrics.running_1440",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/AppsSubmitted":{
-        "metric":"yarn.QueueMetrics.AppsSubmitted",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/AppsRunning":{
-        "metric":"yarn.QueueMetrics.AppsRunning",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/AppsPending":{
-        "metric":"yarn.QueueMetrics.AppsPending",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/AppsCompleted":{
-        "metric":"yarn.QueueMetrics.AppsCompleted",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/AllocatedMB":{
-        "metric":"yarn.QueueMetrics.AllocatedMB",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/AllocatedContainers":{
-        "metric":"yarn.QueueMetrics.AllocatedContainers",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/AggregateContainersAllocated":{
-        "metric":"yarn.QueueMetrics.AggregateContainersAllocated",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/AggregateContainersReleased":{
-        "metric":"yarn.QueueMetrics.AggregateContainersReleased",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/AvailableMB":{
-        "metric":"yarn.QueueMetrics.AvailableMB",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/PendingMB":{
-        "metric":"yarn.QueueMetrics.PendingMB",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/PendingContainers":{
-        "metric":"yarn.QueueMetrics.PendingContainers",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/AllocatedContainers":{
-        "metric":"yarn.QueueMetrics.AllocatedContainers",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/ReservedContainers":{
-        "metric":"yarn.QueueMetrics.ReservedContainers",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/ActiveUsers":{
-        "metric":"yarn.QueueMetrics.ActiveUsers",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/yarn/Queue/ActiveApplications":{
-        "metric":"yarn.QueueMetrics.ActiveApplications",
-        "pointInTime":false,
-        "temporal":true
-      },
-      "metrics/ugi/LoginSuccessNumOps":{
+      "metrics/ugi/loginSuccess_num_ops":{
         "metric":"ugi.ugi.LoginSuccessNumOps",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/ugi/LoginSuccessAvgTime":{
+      "metrics/ugi/loginSuccess_avg_time":{
         "metric":"ugi.ugi.LoginSuccessAvgTime",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/ugi/LoginFailureNumOps":{
+      "metrics/ugi/loginFailure_num_ops":{
         "metric":"ugi.ugi.LoginFailureNumOps",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/ugi/LoginFailureAvgTime":{
+      "metrics/ugi/loginFailure_avg_time":{
         "metric":"ugi.ugi.LoginFailureAvgTime",
         "pointInTime":false,
         "temporal":true
@@ -8053,22 +7835,22 @@
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcAuthenticationFailures":{
+      "metrics/rpc/rpcAuthenticationFailures":{
         "metric":"rpc.metrics.RpcAuthenticationFailures",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcAuthenticationSuccesses":{
+      "metrics/rpc/rpcAuthenticationSuccesses":{
         "metric":"rpc.metrics.RpcAuthenticationSuccesses",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcAuthorizationFailures":{
+      "metrics/rpc/rpcAuthorizationFailures":{
         "metric":"rpc.metrics.RpcAuthorizationFailures",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/RpcAuthorizationSuccesses":{
+      "metrics/rpc/rpcAuthorizationSuccesses":{
         "metric":"rpc.rpc.RpcAuthorizationSuccesses",
         "pointInTime":false,
         "temporal":true
@@ -8078,27 +7860,27 @@
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/rpc/CallQueueLen":{
+      "metrics/rpc/callQueueLen":{
         "metric":"rpc.rpc.CallQueueLength",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/ugi/LoginSuccessNumOps":{
+      "metrics/ugi/loginSuccess_num_ops":{
         "metric":"ugi.ugi.LoginSuccessNumOps",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/ugi/LoginSuccessAvgTime":{
+      "metrics/ugi/loginSuccess_avg_time":{
         "metric":"ugi.ugi.LoginSuccessAvgTime",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/ugi/LoginFailureNumOps":{
+      "metrics/ugi/loginFailure_num_ops":{
         "metric":"ugi.ugi.LoginFailureNumOps",
         "pointInTime":false,
         "temporal":true
       },
-      "metrics/ugi/LoginFailureAvgTime":{
+      "metrics/ugi/loginFailure_avg_time":{
         "metric":"ugi.ugi.LoginFailureAvgTime",
         "pointInTime":false,
         "temporal":true
@@ -8180,7 +7962,7 @@
       },
       "metrics/hbase/master/splitSize_num_ops":{
         "metric":"master.FileSystem.HlogSplitSize_num_ops",
-        "pointInTime":true,
+        "pointInTime":false,
         "temporal":true
       },
       "metrics/hbase/master/splitTime_avg_time":{

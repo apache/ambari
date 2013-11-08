@@ -195,6 +195,11 @@
         "pointInTime" : true,
         "temporal" : false
       },
+      "metrics/jvm/memMaxM":{
+        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.MemMaxM",
+        "pointInTime" : true,
+        "temporal" : false
+      },
       "metrics/jvm/threadsBlocked":{
         "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.ThreadsBlocked",
         "pointInTime" : true,
@@ -230,6 +235,66 @@
         "pointInTime" : true,
         "temporal" : false
       },
+      "metrics/rpc/NumOpenConnections":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.NumOpenConnections",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/ReceivedBytes":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.ReceivedBytes",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/RpcProcessingTime_avg_time":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.RpcProcessingTimeAvgTime",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/RpcProcessingTime_num_ops":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.RpcProcessingTimeNumOps",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/RpcQueueTime_avg_time":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.RpcQueueTimeAvgTime",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/RpcQueueTime_num_ops":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.RpcQueueTimeNumOps",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/SentBytes":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.SentBytes",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/callQueueLen":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.CallQueueLength",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/rpcAuthenticationFailures":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.RpcAuthenticationFailures",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/rpcAuthenticationSuccesses":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.RpcAuthenticationSuccesses",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/rpcAuthorizationFailures":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.RpcAuthorizationFailures",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/rpcAuthorizationSuccesses":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.RpcAuthorizationSuccesses",
+        "pointInTime" : true,
+        "temporal" : false
+      },
       "ServiceComponentInfo/rm_metrics/cluster/activeNMcount":{
         "metric" : "Hadoop:service=ResourceManager,name=ClusterMetrics.NumActiveNMs",
         "pointInTime" : true,
@@ -260,7 +325,32 @@
         "pointInTime" : true,
         "temporal" : false
        },
-       "metrics/yarn/ClusterMetrics/NumActiveNMs":{
+      "metrics/ugi/loginFailure_avg_time":{
+        "metric":"Hadoop:service=ResourceManager,name=UgiMetrics.LoginFailureAvgTime",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/ugi/loginFailure_num_ops":{
+        "metric":"Hadoop:service=ResourceManager,name=UgiMetrics.LoginFailureNumOps",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/ugi/loginSuccess_avg_time":{
+        "metric":"Hadoop:service=ResourceManager,name=UgiMetrics.LoginSuccessAvgTime",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/ugi/loginSuccess_num_ops":{
+        "metric":"Hadoop:service=ResourceManager,name=UgiMetrics.LoginSuccessNumOps",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/runtime/StartTime":{
+        "metric" : "java.lang:type=Runtime.StartTime",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/yarn/ClusterMetrics/NumActiveNMs":{
         "metric" : "Hadoop:service=ResourceManager,name=ClusterMetrics.NumActiveNMs",
         "pointInTime":true,
         "temporal":false
@@ -1052,6 +1142,26 @@
         "pointInTime" : true,
         "temporal" : false
       },
+      "metrics/rpcdetailed/addBlock_avg_time":{
+        "metric" : "Hadoop:service=NameNode,name=RpcDetailedActivity.AddBlockAvgTime",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpcdetailed/addBlock_num_ops":{
+        "metric" : "Hadoop:service=NameNode,name=RpcDetailedActivity.AddBlockNumOps",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpcdetailed/blockReceived_avg_time":{
+        "metric" : "Hadoop:service=NameNode,name=RpcDetailedActivity.BlockReceivedAndDeletedAvgTime",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpcdetailed/blockReceived_num_ops":{
+        "metric" : "Hadoop:service=NameNode,name=RpcDetailedActivity.BlockReceivedAndDeletedNumOps",
+        "pointInTime" : true,
+        "temporal" : false
+      },
       "metrics/rpcdetailed/blockReport_avg_time":{
         "metric" : "Hadoop:service=NameNode,name=RpcDetailedActivity.BlockReportAvgTime",
         "pointInTime" : true,
@@ -1059,6 +1169,46 @@
       },
       "metrics/rpcdetailed/blockReport_num_ops":{
         "metric" : "Hadoop:service=NameNode,name=RpcDetailedActivity.BlockReportNumOps",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpcdetailed/complete_avg_time":{
+        "metric" : "Hadoop:service=NameNode,name=RpcDetailedActivity.CompleteAvgTime",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpcdetailed/complete_num_ops":{
+        "metric" : "Hadoop:service=NameNode,name=RpcDetailedActivity.CompleteNumOps",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpcdetailed/create_avg_time":{
+        "metric" : "Hadoop:service=NameNode,name=RpcDetailedActivity.CreateAvgTime",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpcdetailed/create_num_ops":{
+        "metric" : "Hadoop:service=NameNode,name=RpcDetailedActivity.CreateNumOps",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpcdetailed/fsync_avg_time":{
+        "metric" : "Hadoop:service=NameNode,name=RpcDetailedActivity.FsyncAvgTime",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpcdetailed/fsync_num_ops":{
+        "metric" : "Hadoop:service=NameNode,name=RpcDetailedActivity.FsyncNumOps",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpcdetailed/getBlockLocations_avg_time":{
+        "metric" : "Hadoop:service=NameNode,name=RpcDetailedActivity.GetBlockLocationsAvgTime",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpcdetailed/getBlockLocations_num_ops":{
+        "metric" : "Hadoop:service=NameNode,name=RpcDetailedActivity.GetBlockLocationsNumOps",
         "pointInTime" : true,
         "temporal" : false
       },
@@ -1537,6 +1687,86 @@
         "metric" : "Hadoop:service=NodeManager,name=JvmMetrics.ThreadsWaiting",
         "pointInTime" : true,
         "temporal" : false
+      },
+      "metrics/rpc/NumOpenConnections":{
+        "metric" : "Hadoop:service=NodeManager,name=RpcActivity.NumOpenConnections",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/ReceivedBytes":{
+        "metric" : "Hadoop:service=NodeManager,name=RpcActivity.ReceivedBytes",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/RpcProcessingTime_avg_time":{
+        "metric" : "Hadoop:service=NodeManager,name=RpcActivity.RpcProcessingTimeAvgTime",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/RpcProcessingTime_num_ops":{
+        "metric" : "Hadoop:service=NodeManager,name=RpcActivity.RpcProcessingTimeNumOps",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/RpcQueueTime_avg_time":{
+        "metric" : "Hadoop:service=NodeManager,name=RpcActivity.RpcQueueTimeAvgTime",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/RpcQueueTime_num_ops":{
+        "metric" : "Hadoop:service=NodeManager,name=RpcActivity.RpcQueueTimeNumOps",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/SentBytes":{
+        "metric" : "Hadoop:service=NodeManager,name=RpcActivity.SentBytes",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/callQueueLen":{
+        "metric" : "Hadoop:service=NodeManager,name=RpcActivity.CallQueueLength",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/rpcAuthenticationFailures":{
+        "metric" : "Hadoop:service=NodeManager,name=RpcActivity.RpcAuthenticationFailures",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/rpcAuthenticationSuccesses":{
+        "metric" : "Hadoop:service=NodeManager,name=RpcActivity.RpcAuthenticationSuccesses",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/rpcAuthorizationFailures":{
+        "metric" : "Hadoop:service=NodeManager,name=RpcActivity.RpcAuthorizationFailures",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/rpcAuthorizationSuccesses":{
+        "metric" : "Hadoop:service=NodeManager,name=RpcActivity.RpcAuthorizationSuccesses",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/ugi/loginFailure_avg_time":{
+        "metric":"Hadoop:service=NodeManager,name=UgiMetrics.LoginFailureAvgTime",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/ugi/loginFailure_num_ops":{
+        "metric":"Hadoop:service=NodeManager,name=UgiMetrics.LoginFailureNumOps",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/ugi/loginSuccess_avg_time":{
+        "metric":"Hadoop:service=NodeManager,name=UgiMetrics.LoginSuccessAvgTime",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/ugi/loginSuccess_num_ops":{
+        "metric":"Hadoop:service=NodeManager,name=UgiMetrics.LoginSuccessNumOps",
+        "pointInTime":true,
+        "temporal":false
       }
     },
     "HISTORYSERVER":{
@@ -1925,6 +2155,11 @@
         "pointInTime" : true,
         "temporal" : false
       },
+      "metrics/jvm/memMaxM":{
+        "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.MemMaxM",
+        "pointInTime" : true,
+        "temporal" : false
+      },
       "metrics/jvm/threadsBlocked":{
         "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.ThreadsBlocked",
         "pointInTime" : true,
@@ -1954,6 +2189,86 @@
         "metric" : "Hadoop:service=ResourceManager,name=JvmMetrics.ThreadsWaiting",
         "pointInTime" : true,
         "temporal" : false
+      },
+      "metrics/rpc/NumOpenConnections":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.NumOpenConnections",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/ReceivedBytes":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.ReceivedBytes",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/RpcProcessingTime_avg_time":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.RpcProcessingTimeAvgTime",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/RpcProcessingTime_num_ops":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.RpcProcessingTimeNumOps",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/RpcQueueTime_avg_time":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.RpcQueueTimeAvgTime",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/RpcQueueTime_num_ops":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.RpcQueueTimeNumOps",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/SentBytes":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.SentBytes",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/callQueueLen":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.CallQueueLength",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/rpcAuthenticationFailures":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.RpcAuthenticationFailures",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/rpcAuthenticationSuccesses":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.RpcAuthenticationSuccesses",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/rpcAuthorizationFailures":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.RpcAuthorizationFailures",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/rpc/rpcAuthorizationSuccesses":{
+        "metric" : "Hadoop:service=ResourceManager,name=RpcActivity.RpcAuthorizationSuccesses",
+        "pointInTime" : true,
+        "temporal" : false
+      },
+      "metrics/ugi/loginFailure_avg_time":{
+        "metric":"Hadoop:service=ResourceManager,name=UgiMetrics.LoginFailureAvgTime",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/ugi/loginFailure_num_ops":{
+        "metric":"Hadoop:service=ResourceManager,name=UgiMetrics.LoginFailureNumOps",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/ugi/loginSuccess_avg_time":{
+        "metric":"Hadoop:service=ResourceManager,name=UgiMetrics.LoginSuccessAvgTime",
+        "pointInTime":true,
+        "temporal":false
+      },
+      "metrics/ugi/loginSuccess_num_ops":{
+        "metric":"Hadoop:service=ResourceManager,name=UgiMetrics.LoginSuccessNumOps",
+        "pointInTime":true,
+        "temporal":false
       },
       "metrics/yarn/ClusterMetrics/NumActiveNMs":{
         "metric" : "Hadoop:service=ResourceManager,name=ClusterMetrics.NumActiveNMs",
@@ -2107,22 +2422,22 @@
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/jvm/heapMemoryMax":{
+      "metrics/jvm/HeapMemoryMax":{
         "metric" : "java.lang:type=Memory.HeapMemoryUsage[max]",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/jvm/heapMemoryUsed":{
+      "metrics/jvm/HeapMemoryUsed":{
         "metric" : "java.lang:type=Memory.HeapMemoryUsage[used]",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/jvm/nonHeapMemoryMax":{
+      "metrics/jvm/NonHeapMemoryMax":{
         "metric" : "java.lang:type=Memory.NonHeapMemoryUsage[max]",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/jvm/nonHeapMemoryUsed":{
+      "metrics/jvm/NonHeapMemoryUsed":{
         "metric" : "java.lang:type=Memory.NonHeapMemoryUsage[used]",
         "pointInTime" : true,
         "temporal" : false
@@ -2167,6 +2482,11 @@
         "pointInTime" : true,
         "temporal" : false
       },
+      "metrics/jvm/memMaxM":{
+        "metric" : "Hadoop:service=JournalNode,name=JvmMetrics.MemMaxM",
+        "pointInTime" : true,
+        "temporal" : false
+      },
       "metrics/jvm/memNonHeapCommittedM":{
         "metric" : "Hadoop:service=JournalNode,name=JvmMetrics.MemNonHeapCommittedM",
         "pointInTime" : true,
@@ -2207,37 +2527,37 @@
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/rpc/numOpenConnections":{
+      "metrics/rpc/NumOpenConnections":{
         "metric" : "Hadoop:service=JournalNode,name=RpcActivity.NumOpenConnections",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/rpc/receivedBytes":{
+      "metrics/rpc/ReceivedBytes":{
         "metric" : "Hadoop:service=JournalNode,name=RpcActivity.ReceivedBytes",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/rpc/rpcProcessingTime_avg_time":{
+      "metrics/rpc/RpcProcessingTime_avg_time":{
         "metric" : "Hadoop:service=JournalNode,name=RpcActivity.RpcProcessingTimeAvgTime",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/rpc/rpcProcessingTime_num_ops":{
+      "metrics/rpc/RpcProcessingTime_num_ops":{
         "metric" : "Hadoop:service=JournalNode,name=RpcActivity.RpcProcessingTimeNumOps",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/rpc/rpcQueueTime_avg_time":{
+      "metrics/rpc/RpcQueueTime_avg_time":{
         "metric" : "Hadoop:service=JournalNode,name=RpcActivity.RpcQueueTimeAvgTime",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/rpc/rpcQueueTime_num_ops":{
+      "metrics/rpc/RpcQueueTime_num_ops":{
         "metric" : "Hadoop:service=JournalNode,name=RpcActivity.RpcQueueTimeNumOps",
         "pointInTime" : true,
         "temporal" : false
       },
-      "metrics/rpc/sentBytes":{
+      "metrics/rpc/SentBytes":{
         "metric" : "Hadoop:service=JournalNode,name=RpcActivity.SentBytes",
         "pointInTime" : true,
         "temporal" : false

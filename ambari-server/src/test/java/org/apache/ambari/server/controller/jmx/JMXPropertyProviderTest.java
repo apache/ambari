@@ -692,10 +692,10 @@ public class JMXPropertyProviderTest {
 
     // see test/resources/hdfs_journalnode_jmx.json for values
     Assert.assertEquals(1377795104272L, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "startTime")));
-    Assert.assertEquals(954466304, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "heapMemoryMax")));
-    Assert.assertEquals(14569736, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "heapMemoryUsed")));
-    Assert.assertEquals(136314880, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "nonHeapMemoryMax")));
-    Assert.assertEquals(24993392, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "nonHeapMemoryUsed")));
+    Assert.assertEquals(954466304, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax")));
+    Assert.assertEquals(14569736, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryUsed")));
+    Assert.assertEquals(136314880, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryMax")));
+    Assert.assertEquals(24993392, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "NonHeapMemoryUsed")));
     Assert.assertEquals(9100, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "gcCount")));
     Assert.assertEquals(31641, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "gcTimeMillis")));
     Assert.assertEquals(0, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "logError")));
@@ -713,13 +713,13 @@ public class JMXPropertyProviderTest {
     Assert.assertEquals(3, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "threadsTimedWaiting")));
     Assert.assertEquals(8, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "threadsWaiting")));
 
-    Assert.assertEquals(1, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "numOpenConnections")));
-    Assert.assertEquals(4928861, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "receivedBytes")));
-    Assert.assertEquals(13.211112159230245, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "rpcProcessingTime_avg_time")));
-    Assert.assertEquals(25067, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "rpcProcessingTime_num_ops")));
-    Assert.assertEquals(0.19686821997924706, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "rpcQueueTime_avg_time")));
-    Assert.assertEquals(25067, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "rpcQueueTime_num_ops")));
-    Assert.assertEquals(6578899, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "sentBytes")));
+    Assert.assertEquals(1, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "NumOpenConnections")));
+    Assert.assertEquals(4928861, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "ReceivedBytes")));
+    Assert.assertEquals(13.211112159230245, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "RpcProcessingTime_avg_time")));
+    Assert.assertEquals(25067, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "RpcProcessingTime_num_ops")));
+    Assert.assertEquals(0.19686821997924706, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "RpcQueueTime_avg_time")));
+    Assert.assertEquals(25067, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "RpcQueueTime_num_ops")));
+    Assert.assertEquals(6578899, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "SentBytes")));
     Assert.assertEquals(0, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "callQueueLen")));
     Assert.assertEquals(0, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "rpcAuthenticationFailures")));
     Assert.assertEquals(0, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/rpc", "rpcAuthenticationSuccesses")));
