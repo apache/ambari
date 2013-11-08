@@ -573,7 +573,7 @@ class TestAmbariServer(TestCase):
     run_os_command_mock.return_value = (0, None, None)
     result = ambari_server.setup_db(MagicMock())
     self.assertTrue(configure_database_username_password_mock.called)
-    self.assertEqual(0, result)
+    self.assertEqual((0, None, None), result)
 
   @patch.object(ambari_server, "configure_database_username_password")
   @patch("time.sleep")
@@ -584,7 +584,7 @@ class TestAmbariServer(TestCase):
                                        (1, "error", "error")]
     result = ambari_server.setup_db(MagicMock())
     self.assertTrue(run_os_command_mock.called)
-    self.assertEqual(1, result)
+    self.assertEqual((1, 'error', 'error') , result)
     self.assertEqual(3, sleep_mock.call_count)
     pass
 
@@ -597,7 +597,7 @@ class TestAmbariServer(TestCase):
                                        (0, None, None)]
     result = ambari_server.setup_db(MagicMock())
     self.assertTrue(run_os_command_mock.called)
-    self.assertEqual(0, result)
+    self.assertEqual((0, None, None) , result)
     self.assertEqual(1, sleep_mock.call_count)
     pass
 
@@ -2182,7 +2182,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     check_jdbc_drivers_mock.return_value = 0
     check_iptables_mock.return_value = (0, "other")
     check_postgre_up_mock.return_value = 0
-    setup_db_mock.return_value = 0
+    setup_db_mock.return_value = (0, None, None)
     setup_remote_db_mock.return_value = 0
     is_local_database_mock.return_value = False
     configure_postgres_mock.return_value = 0
@@ -2240,7 +2240,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     except NonFatalException as fe:
       self.assertTrue("cli was not found" in fe.reason)
 
-
+  @patch.object(ambari_server, 'is_server_runing')
   @patch.object(ambari_server, "get_YN_input")
   @patch.object(ambari_server, "setup_db")
   @patch.object(ambari_server, "print_info_msg")
@@ -2253,12 +2253,14 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   def test_reset(self, check_database_name_property_mock, is_root_mock, execute_remote_script_mock,
                  parse_properties_file_mock, configure_database_username_password_mock,
                  run_os_command_mock, print_info_msg_mock,
-                 setup_db_mock, get_YN_inputMock):
+                 setup_db_mock, get_YN_inputMock, is_server_running_mock):
 
     parse_properties_file_mock.return_value = 0
     args = MagicMock()
     args.persistence_type = "local"
     get_YN_inputMock.return_value = False
+    is_server_running_mock.return_value = (False, 0)
+    setup_db_mock.side_effect = [(0,None, None),(0,None, "ERROR: database 'ambari' is being accessed by other users"), (0, None, "ERROR: user 'mapred' already exist")]
 
     # Testing call under non-root
     is_root_mock.return_value = False
@@ -2292,6 +2294,23 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     run_os_command_mock.return_value = (0, None, None)
     ambari_server.reset(args)
     self.assertTrue(setup_db_mock.called)
+
+    # Database errors cases
+    is_server_running_mock.side_effect = [(True, 123), (False, 0), (False, 0)]
+
+    try:
+      ambari_server.reset(args)
+      self.fail("Should throw exception")
+    except FatalException:
+      # Expected
+      pass
+
+    try:
+      ambari_server.reset(args)
+      self.fail("Should throw exception")
+    except NonFatalException:
+      # Expected
+      pass
 
     #remote db case
     args.persistence_type = "remote"
@@ -2334,6 +2353,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     args = MagicMock()
     ambari_server.SILENT = True
     self.assertTrue(ambari_server.SILENT)
+    setup_db_mock.return_value = (0, None, None)
     run_os_command_mock.return_value = (0, None, None)
 
     def signal_handler(signum, frame):
@@ -4378,7 +4398,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     download_jdk_mock.return_value = 0
     configure_os_settings_mock.return_value = 0
     is_jdbc_user_changed_mock.return_value = False
-    setup_db_mock.return_value = 0
+    setup_db_mock.return_value = (0, None, None)
     get_is_secure_mock.return_value = False
     store_password_file_mock.return_value = "password"
 
