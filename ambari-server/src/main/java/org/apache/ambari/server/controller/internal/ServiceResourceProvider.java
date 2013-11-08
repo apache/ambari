@@ -870,7 +870,7 @@ class ServiceResourceProvider extends AbstractControllerResourceProvider {
             StackId stackId = cluster.getDesiredStackVersion();
 
             ServiceComponentHostRequest request = new ServiceComponentHostRequest(clusterName,
-                serviceName, "NAMENODE", null, null, null);
+                serviceName, null, null, null, null);
 
             Set<ServiceComponentHostResponse> hostComponentResponses =
                 controller.getHostComponents(Collections.singleton(request));
@@ -949,7 +949,7 @@ class ServiceResourceProvider extends AbstractControllerResourceProvider {
             StackId stackId = cluster.getDesiredStackVersion();
 
             ServiceComponentHostRequest request = new ServiceComponentHostRequest(clusterName,
-                serviceName, "NAMENODE", null, null, null);
+                serviceName, null, null, null, null);
 
             Set<ServiceComponentHostResponse> hostComponentResponses =
                 controller.getHostComponents(Collections.singleton(request));
