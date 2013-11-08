@@ -130,7 +130,7 @@ public class TestHeartbeatMonitor {
     ActionQueue aq = new ActionQueue();
     ActionManager am = mock(ActionManager.class);
     HeartbeatMonitor hm = new HeartbeatMonitor(clusters, aq, am,
-      heartbeatMonitorWakeupIntervalMS, ambariMetaInfo);
+      heartbeatMonitorWakeupIntervalMS, injector);
     HeartBeatHandler handler = new HeartBeatHandler(clusters, aq, am, injector);
     Register reg = new Register();
     reg.setHostname(hostname1);
@@ -217,7 +217,7 @@ public class TestHeartbeatMonitor {
     ActionQueue aq = new ActionQueue();
     ActionManager am = mock(ActionManager.class);
     HeartbeatMonitor hm = new HeartbeatMonitor(clusters, aq, am,
-      heartbeatMonitorWakeupIntervalMS, ambariMetaInfo);
+      heartbeatMonitorWakeupIntervalMS, injector);
     HeartBeatHandler handler = new HeartBeatHandler(clusters, aq, am, injector);
     Register reg = new Register();
     reg.setHostname(hostname1);
@@ -298,7 +298,7 @@ public class TestHeartbeatMonitor {
 
     ActionManager am = mock(ActionManager.class);
     HeartbeatMonitor hm = new HeartbeatMonitor(clusters, aqMock, am,
-      heartbeatMonitorWakeupIntervalMS, ambariMetaInfo);
+      heartbeatMonitorWakeupIntervalMS, injector);
     HeartBeatHandler handler = new HeartBeatHandler(clusters, aqMock, am,
         injector);
     Register reg = new Register();
@@ -343,7 +343,7 @@ public class TestHeartbeatMonitor {
     fsm.addHost(hostname);
     ActionQueue aq = new ActionQueue();
     ActionManager am = mock(ActionManager.class);
-    HeartbeatMonitor hm = new HeartbeatMonitor(fsm, aq, am, 10, ambariMetaInfo);
+    HeartbeatMonitor hm = new HeartbeatMonitor(fsm, aq, am, 10, injector);
     HeartBeatHandler handler = new HeartBeatHandler(fsm, aq, am, injector);
     Register reg = new Register();
     reg.setHostname(hostname);
@@ -400,7 +400,7 @@ public class TestHeartbeatMonitor {
     
     ActionQueue aq = new ActionQueue();
     ActionManager am = mock(ActionManager.class);
-    HeartbeatMonitor hm = new HeartbeatMonitor(clusters, aq, am, 10, ambariMetaInfo);
+    HeartbeatMonitor hm = new HeartbeatMonitor(clusters, aq, am, 10, injector);
     HeartBeatHandler handler = new HeartBeatHandler(clusters, aq, am, injector);
     
     Register reg = new Register();

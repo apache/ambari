@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -55,12 +56,12 @@ public class HeartbeatMonitor implements Runnable {
   private final ConfigHelper configHelper;
 
   public HeartbeatMonitor(Clusters clusters, ActionQueue aq, ActionManager am,
-                          int threadWakeupInterval, AmbariMetaInfo ambariMetaInfo) {
+                          int threadWakeupInterval, Injector injector) {
     this.clusters = clusters;
     this.actionQueue = aq;
     this.actionManager = am;
     this.threadWakeupInterval = threadWakeupInterval;
-    this.configHelper = new ConfigHelper(this.clusters, ambariMetaInfo);
+    this.configHelper = injector.getInstance(ConfigHelper.class);
   }
 
   public void shutdown() {
