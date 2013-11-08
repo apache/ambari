@@ -128,6 +128,7 @@ App.UpdateController = Em.Controller.extend({
     var realUrl = '/components/?ServiceComponentInfo/category=MASTER&fields=' +
       'ServiceComponentInfo,' +
       'host_components/HostRoles/state,' +
+      'host_components/HostRoles/stale_configs,' +
       'host_components/metrics/jvm/memHeapUsedM,' +
       'host_components/metrics/jvm/memHeapCommittedM,' +
       'host_components/metrics/mapred/jobtracker/trackers_decommissioned,' +
