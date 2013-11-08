@@ -33,6 +33,11 @@ App.MapReduce2ConfigsValidator = App.ServiceConfigsValidator.create({
     'yarn.app.mapreduce.am.command-opts': 'yarnAppMapreduceAmCommandOpts'
   },
 
+  /**
+   * List of the real configProperty objects
+   */
+  configProperties: [],
+
   mapreduceMapJavaOpts: function(config) {
     return null;
   },

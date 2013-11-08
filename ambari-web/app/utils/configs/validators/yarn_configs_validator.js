@@ -28,6 +28,11 @@ App.YARNConfigsValidator = App.ServiceConfigsValidator.create({
     'yarn.scheduler.maximum-allocation-mb': 'yarnSchedulerMaximumAllocationMb'
   },
 
+  /**
+   * List of the real configProperty objects
+   */
+  configProperties: [],
+
   yarnNodemanagerResourceMemoryMb: function(config) {
     return this.validatorLessThenDefaultValue(config);
   },

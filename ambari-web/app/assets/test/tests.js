@@ -62,7 +62,6 @@ require('test/mappers/service_mapper_test');
 require('test/mappers/status_mapper_test');
 require('test/mappers/users_mapper_test');
 require('test/utils/configs/defaults_providers/yarn_defaults_provider_test');
-require('test/utils/configs/validators/service_configs_validator_test');
 require('test/utils/config_test');
 require('test/utils/date_test');
 require('test/utils/config_test');

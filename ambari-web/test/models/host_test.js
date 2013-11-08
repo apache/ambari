@@ -118,4 +118,17 @@ describe('App.Host', function () {
     });
   });
 
+  describe('#updateHealthClass', function () {
+
+    it('host1 has status health-status-DEAD-YELLOW', function () {
+      var host = App.Host.find().findProperty('hostName', 'host1');
+      host.updateHealthClass();
+      expect(host.get('healthClass')).to.equal('health-status-DEAD-YELLOW');
+    });
+    it('host3 has status health-status-DEAD-YELLOW', function () {
+      var host = App.Host.find().findProperty('hostName', 'host3');
+      host.updateHealthClass();
+      expect(host.get('healthClass')).to.equal('health-status-DEAD-YELLOW');
+    });
+  });
 });
