@@ -878,6 +878,9 @@ Em.I18n.translations = {
   'admin.cluster.stackVersion':'Cluster Stack Version',
   'admin.cluster.upgradeAvailable':'Upgrade available',
   'admin.cluster.upgradeUnavailable':'Upgrade unavailable',
+  'admin.cluster.repositories.repositories':'Repositories',
+  'admin.cluster.repositories.os':'OS',
+  'admin.cluster.repositories.baseUrl':'Base URL',
 
   'admin.userSettings.header': 'Customize User Settings',
   'admin.userSettings.showBgOperations': 'Show background operations dialog when an operation is started',

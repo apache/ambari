@@ -550,6 +550,16 @@ var urls = {
       };
     }
   },
+  'cluster.load_repositories': {
+    'real': '/stacks2/{stackName}/versions/{stackVersion}/operatingSystems?fields=repositories/*',
+    'mock': '',
+    'type': 'GET',
+    'format': function (data, opt) {
+      return {
+        async: false
+      };
+    }
+  },
   'admin.high_availability.stop_all_services': {
     'real': '/clusters/{clusterName}/services',
     'mock': '',

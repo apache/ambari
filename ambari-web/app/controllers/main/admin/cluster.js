@@ -22,6 +22,7 @@ var stringUtils = require('utils/string_utils');
 App.MainAdminClusterController = Em.Controller.extend({
   name:'mainAdminClusterController',
   services: [],
+  repositories: [],
   upgradeVersion: '',
   /**
    * get the newest version of HDP from server
@@ -67,6 +68,44 @@ App.MainAdminClusterController = Em.Controller.extend({
   updateUpgradeVersionErrorCallback: function(request, ajaxOptions, error) {
     console.log('Error message is: ' + request.responseText);
     console.log('HDP stack doesn\'t have services with defaultStackVersion');
+  },
+
+  /**
+   * get the installed repositories of HDP from server
+   */
+  loadRepositories: function(){
+    if(App.router.get('clusterController.isLoaded')){
+      var nameVersionCombo = App.get('currentStackVersion');
+      var stackName = nameVersionCombo.split('-')[0];
+      var stackVersion = nameVersionCombo.split('-')[1];
+      App.ajax.send({
+        name: 'cluster.load_repositories',
+        sender: this,
+        data: {
+          stackName: stackName,
+          stackVersion: stackVersion
+        },
+        success: 'loadRepositoriesSuccessCallback',
+        error: 'loadRepositoriesErrorCallback'
+      });
+    }
+  }.observes('App.router.clusterController.isLoaded'),
+
+  loadRepositoriesSuccessCallback: function (data) {
+    var allRepos = [];
+    data.items.forEach(function(os) {
+      var repo = Em.Object.create({
+        baseUrl: os.repositories[0].Repositories.base_url,
+        osType: os.repositories[0].Repositories.os_type
+      });
+      allRepos.push(repo);
+    }, this);
+    allRepos.stackVersion = App.get('currentStackVersionNumber');
+    this.set('repositories', allRepos);
+  },
+
+  loadRepositoriesErrorCallback: function(request, ajaxOptions, error) {
+    console.log('Error message is: ' + request.responseText);
   },
 
   /**
