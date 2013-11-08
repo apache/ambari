@@ -74,4 +74,10 @@ public interface ResourceInstance {
    * @return true if the resource is a collection resource; false otherwise
    */
   public boolean isCollectionResource();
+
+  /**
+   * Create clear copy of current resource instance
+   * @return new ResourceInstance
+   */
+  ResourceInstance createCopy();
 }
