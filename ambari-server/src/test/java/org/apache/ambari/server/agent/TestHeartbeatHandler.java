@@ -454,8 +454,7 @@ public class TestHeartbeatHandler {
     s.addHostRoleExecutionCommand(DummyHostname1, Role.HBASE_MASTER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
-            DummyHostname1, System.currentTimeMillis(),
-            new HashMap<String, String>()), DummyCluster, HBASE);
+            DummyHostname1, System.currentTimeMillis()), DummyCluster, HBASE);
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
     db.persistActions(stages);

@@ -17,22 +17,30 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.ServiceComponentHostRequest;
-import org.apache.ambari.server.controller.ServiceComponentHostResponse;
-import org.apache.ambari.server.controller.spi.*;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import org.apache.ambari.server.Role;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.ServiceComponentHostRequest;
+import org.apache.ambari.server.controller.ServiceComponentHostResponse;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.PropertyProvider;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 /**
  * Resource provider for host component resources.
@@ -54,10 +62,6 @@ class HostComponentResourceProvider extends AbstractControllerResourceProvider {
       = PropertyHelper.getPropertyId("HostRoles", "state");
   protected static final String HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID
       = PropertyHelper.getPropertyId("HostRoles", "desired_state");
-  protected static final String HOST_COMPONENT_CONFIGS_PROPERTY_ID
-      = PropertyHelper.getPropertyId("HostRoles", "configs");
-  protected static final String HOST_COMPONENT_DESIRED_CONFIGS_PROPERTY_ID
-      = PropertyHelper.getPropertyId("HostRoles", "desired_configs");
   protected static final String HOST_COMPONENT_STACK_ID_PROPERTY_ID
       = PropertyHelper.getPropertyId("HostRoles", "stack_id");
   protected static final String HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID
@@ -174,10 +178,6 @@ class HostComponentResourceProvider extends AbstractControllerResourceProvider {
           response.getStackVersion(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID,
           response.getDesiredStackVersion(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_CONFIGS_PROPERTY_ID,
-          response.getConfigs(), requestedIds);
-      setResourceProperty(resource, HOST_COMPONENT_DESIRED_CONFIGS_PROPERTY_ID,
-          response.getDesiredConfigs(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_ACTUAL_CONFIGS_PROPERTY_ID,
           response.getActualConfigs(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID,
@@ -282,17 +282,10 @@ class HostComponentResourceProvider extends AbstractControllerResourceProvider {
         (String) properties.get(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID),
         (String) properties.get(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID),
         (String) properties.get(HOST_COMPONENT_HOST_NAME_PROPERTY_ID),
-        null,
         (String) properties.get(HOST_COMPONENT_STATE_PROPERTY_ID));
     serviceComponentHostRequest.setDesiredStackId(
         (String) properties.get(HOST_COMPONENT_STACK_ID_PROPERTY_ID));
 
-    Map<String, String> configMappings =
-        ConfigurationResourceProvider.getConfigPropertyValues(properties);
-
-    if (configMappings.size() > 0) {
-      serviceComponentHostRequest.setConfigVersions(configMappings);
-    }
     return serviceComponentHostRequest;
   }
 }

@@ -70,8 +70,7 @@ public class JMXHostProviderTest {
     if (desiredState != null) {
       dStateStr = desiredState.toString();
     }
-    ServiceRequest r1 = new ServiceRequest(clusterName, serviceName, null,
-      dStateStr);
+    ServiceRequest r1 = new ServiceRequest(clusterName, serviceName, dStateStr);
     Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
     requests.add(r1);
     ServiceResourceProviderTest.createServices(controller, requests);
@@ -85,7 +84,7 @@ public class JMXHostProviderTest {
       dStateStr = desiredState.toString();
     }
     ServiceComponentRequest r = new ServiceComponentRequest(clusterName,
-      serviceName, componentName, null, dStateStr);
+      serviceName, componentName, dStateStr);
     Set<ServiceComponentRequest> requests =
       new HashSet<ServiceComponentRequest>();
     requests.add(r);
@@ -100,7 +99,7 @@ public class JMXHostProviderTest {
       dStateStr = desiredState.toString();
     }
     ServiceComponentHostRequest r = new ServiceComponentHostRequest(clusterName,
-      serviceName, componentName, hostname, null, dStateStr);
+      serviceName, componentName, hostname, dStateStr);
     Set<ServiceComponentHostRequest> requests =
       new HashSet<ServiceComponentHostRequest>();
     requests.add(r);
@@ -161,8 +160,7 @@ public class JMXHostProviderTest {
     Map<String, String> configVersions = new HashMap<String, String>();
     Set<ServiceRequest> sReqs = new HashSet<ServiceRequest>();
     configVersions.put("hdfs-site", "version1");
-    sReqs.add(new ServiceRequest(clusterName, serviceName, configVersions,
-      null));
+    sReqs.add(new ServiceRequest(clusterName, serviceName, null));
     ServiceResourceProviderTest.updateServices(controller, sReqs, mapRequestProps, true, false);
   }
 

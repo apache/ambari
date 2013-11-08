@@ -17,6 +17,15 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -29,27 +38,24 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceComponentRequest;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
-import org.apache.ambari.server.controller.spi.*;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Resource provider for component resources.
@@ -64,7 +70,6 @@ class ComponentResourceProvider extends AbstractControllerResourceProvider {
   protected static final String COMPONENT_SERVICE_NAME_PROPERTY_ID    = "ServiceComponentInfo/service_name";
   protected static final String COMPONENT_COMPONENT_NAME_PROPERTY_ID  = "ServiceComponentInfo/component_name";
   protected static final String COMPONENT_STATE_PROPERTY_ID           = "ServiceComponentInfo/state";
-  protected static final String COMPONENT_DESIRED_CONFIGS_PROPERTY_ID = "ServiceComponentInfo/desired_configs";
   protected static final String COMPONENT_CATEGORY_PROPERTY_ID        = "ServiceComponentInfo/category";
 
   //Parameters from the predicate
@@ -148,8 +153,6 @@ class ComponentResourceProvider extends AbstractControllerResourceProvider {
       setResourceProperty(resource, COMPONENT_COMPONENT_NAME_PROPERTY_ID, response.getComponentName(), requestedIds);
       setResourceProperty(resource, COMPONENT_STATE_PROPERTY_ID,
           response.getDesiredState(), requestedIds);
-      setResourceProperty(resource, COMPONENT_DESIRED_CONFIGS_PROPERTY_ID,
-          response.getConfigVersions(), requestedIds);
       setResourceProperty(resource, COMPONENT_CATEGORY_PROPERTY_ID, response.getCategory(), requestedIds);
 
       resources.add(resource);
@@ -164,17 +167,6 @@ class ComponentResourceProvider extends AbstractControllerResourceProvider {
     final Set<ServiceComponentRequest> requests = new HashSet<ServiceComponentRequest>();
     for (Map<String, Object> propertyMap : getPropertyMaps(request.getProperties().iterator().next(), predicate)) {
       ServiceComponentRequest compRequest = getRequest(propertyMap);
-      Map<String, String>     configMap   = new HashMap<String,String>();
-
-      for (Map.Entry<String,Object> entry : propertyMap.entrySet()) {
-        String propertyCategory = PropertyHelper.getPropertyCategory(entry.getKey());
-        if (propertyCategory != null && propertyCategory.equals("config")) {
-          configMap.put(PropertyHelper.getPropertyName(entry.getKey()), (String) entry.getValue());
-        }
-      }
-
-      if (0 != configMap.size())
-        compRequest.setConfigVersions(configMap);
 
       requests.add(compRequest);
     }
@@ -232,7 +224,6 @@ class ComponentResourceProvider extends AbstractControllerResourceProvider {
         (String) properties.get(COMPONENT_CLUSTER_NAME_PROPERTY_ID),
         (String) properties.get(COMPONENT_SERVICE_NAME_PROPERTY_ID),
         (String) properties.get(COMPONENT_COMPONENT_NAME_PROPERTY_ID),
-        null,
         (String) properties.get(COMPONENT_STATE_PROPERTY_ID));
   }
 
@@ -406,12 +397,6 @@ class ComponentResourceProvider extends AbstractControllerResourceProvider {
         sc.setDesiredState(s.getDesiredState());
       }
 
-      // FIXME fix config versions to configs conversion
-      Map<String, Config> configs = new HashMap<String, Config>();
-      if (request.getConfigVersions() != null) {
-      }
-
-      sc.updateDesiredConfigs(configs);
       s.addServiceComponent(sc);
       sc.persist();
     }
@@ -660,27 +645,6 @@ class ComponentResourceProvider extends AbstractControllerResourceProvider {
         }
       }
 
-      if (request.getConfigVersions() != null) {
-        State.checkUpdateConfiguration(sc, newState);
-
-        for (Map.Entry<String,String> entry :
-            request.getConfigVersions().entrySet()) {
-          Config config = cluster.getConfig(
-              entry.getKey(), entry.getValue());
-          if (null == config) {
-            // throw error for invalid config
-            throw new AmbariException("Trying to update servicecomponent with"
-                + " invalid configs"
-                + ", clusterName=" + cluster.getClusterName()
-                + ", clusterId=" + cluster.getClusterId()
-                + ", serviceName=" + s.getName()
-                + ", componentName=" + sc.getName()
-                + ", invalidConfigType=" + entry.getKey()
-                + ", invalidConfigTag=" + entry.getValue());
-          }
-        }
-      }
-
       if (newState == null) {
         if (LOG.isDebugEnabled()) {
           LOG.debug("Nothing to do for new updateServiceComponent request"
@@ -798,34 +762,6 @@ class ComponentResourceProvider extends AbstractControllerResourceProvider {
 
     // TODO if all components reach a common state, should service state be
     // modified?
-
-    for (ServiceComponentRequest request : requests) {
-      Cluster cluster = clusters.getCluster(request.getClusterName());
-      Service s = cluster.getService(request.getServiceName());
-      ServiceComponent sc = s.getServiceComponent(
-          request.getComponentName());
-      if (request.getConfigVersions() != null) {
-        Map<String, Config> updated = new HashMap<String, Config>();
-
-        for (Map.Entry<String,String> entry :
-            request.getConfigVersions().entrySet()) {
-          Config config = cluster.getConfig(
-              entry.getKey(), entry.getValue());
-          updated.put(config.getType(), config);
-        }
-
-        if (!updated.isEmpty()) {
-          sc.updateDesiredConfigs(updated);
-          for (ServiceComponentHost sch :
-              sc.getServiceComponentHosts().values()) {
-            sch.deleteDesiredConfigs(updated.keySet());
-            sch.persist();
-          }
-          sc.persist();
-        }
-      }
-    }
-
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
     return getManagementController().createStages(cluster, requestProperties, null, null, changedComps, changedScHosts,

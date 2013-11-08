@@ -14,7 +14,6 @@
         "Services/description",
         "Services/display_name",
         "Services/attributes",
-        "ServiceInfo/desired_configs",
         "params/run_smoke_test",
         "params/reconfigure_client",
         "_"
@@ -48,7 +47,6 @@
         "ServiceComponentInfo/state",
         "ServiceComponents/display_name",
         "ServiceComponents/description",
-        "ServiceComponentInfo/desired_configs",
         "ServiceComponentInfo/category",
         "params/run_smoke_test",
         "_"
@@ -60,8 +58,6 @@
         "HostRoles/component_name",
         "HostRoles/state",
         "HostRoles/desired_state",
-        "HostRoles/configs",
-        "HostRoles/desired_configs",
         "HostRoles/stack_id",
         "HostRoles/desired_stack_id",
         "HostRoles/actual_configs",

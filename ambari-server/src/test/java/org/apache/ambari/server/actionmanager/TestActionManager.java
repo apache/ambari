@@ -162,8 +162,7 @@ public class TestActionManager {
     s.addHostRoleExecutionCommand(hostname, Role.HBASE_MASTER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
-            hostname, System.currentTimeMillis(),
-            new HashMap<String, String>()), "cluster1", "HBASE");
+            hostname, System.currentTimeMillis()), "cluster1", "HBASE");
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
     db.persistActions(stages);

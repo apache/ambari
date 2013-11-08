@@ -18,15 +18,11 @@
 
 package org.apache.ambari.server.state.svccomphost;
 
-import static org.junit.Assert.fail;
-
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
-import com.google.inject.Provider;
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
@@ -34,14 +30,22 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
-import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
-import org.apache.ambari.server.orm.entities.HostComponentConfigMappingEntity;
-import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
-import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
-import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostConfig;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentFactory;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceComponentHostEvent;
+import org.apache.ambari.server.state.ServiceComponentHostEventType;
+import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -55,9 +59,8 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Provider;
 import com.google.inject.persist.PersistService;
-
-import javax.persistence.EntityManager;
 
 public class ServiceComponentHostTest {
   private static Logger LOG = LoggerFactory.getLogger(ServiceComponentHostTest.class);
@@ -73,10 +76,6 @@ public class ServiceComponentHostTest {
   private ServiceComponentHostFactory serviceComponentHostFactory;
   @Inject
   private AmbariMetaInfo metaInfo;
-  @Inject
-  private HostComponentStateDAO hostComponentStateDAO;
-  @Inject
-  private HostComponentDesiredStateDAO hostComponentDesiredStateDAO;
   @Inject
   Provider<EntityManager> entityManagerProvider;
   @Inject
@@ -186,8 +185,7 @@ public class ServiceComponentHostTest {
             impl.getDesiredStackVersion().getStackId());
       case HOST_SVCCOMP_START:
         return new ServiceComponentHostStartEvent(
-            impl.getServiceComponentName(), impl.getHostName(), timestamp,
-            configs);
+            impl.getServiceComponentName(), impl.getHostName(), timestamp);
       case HOST_SVCCOMP_STOP:
         return new ServiceComponentHostStopEvent(
             impl.getServiceComponentName(), impl.getHostName(), timestamp);
@@ -209,8 +207,9 @@ public class ServiceComponentHostTest {
       case HOST_SVCCOMP_WIPEOUT:
         return new ServiceComponentHostWipeoutEvent(
             impl.getServiceComponentName(), impl.getHostName(), timestamp);
+      default:
+        return null;
     }
-    return null;
   }
 
   private void runStateChanges(ServiceComponentHostImpl impl,
@@ -222,10 +221,6 @@ public class ServiceComponentHostTest {
     throws Exception {
     long timestamp = 0;
 
-    boolean checkConfigs = false;
-    if (startEventType == ServiceComponentHostEventType.HOST_SVCCOMP_START) {
-      checkConfigs = true;
-    }
     boolean checkStack = false;
     if (startEventType == ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL) {
       checkStack = true;
@@ -244,10 +239,6 @@ public class ServiceComponentHostTest {
     Assert.assertEquals(-1, impl.getLastOpEndTime());
     Assert.assertEquals(inProgressState,
         impl.getState());
-    if (checkConfigs) {
-      Assert.assertTrue(impl.getConfigVersions().size() > 0);
-      Assert.assertEquals("" + startTime, impl.getConfigVersions().get("time"));
-    }
     if (checkStack) {
       Assert.assertNotNull(impl.getStackVersion());
       Assert.assertEquals(impl.getDesiredStackVersion().getStackId(),
@@ -605,120 +596,6 @@ public class ServiceComponentHostTest {
     Assert.assertEquals(-1, impl.getLastOpEndTime());
     Assert.assertEquals(State.STOPPING,
         impl.getState());
-  }
-
-  @Test
-  public void testLiveStateUpdatesForReconfigure() throws Exception {
-    ServiceComponentHost sch =
-        createNewServiceComponentHost("HDFS", "DATANODE", "h1", false);
-    ServiceComponentHostImpl impl =  (ServiceComponentHostImpl) sch;
-
-    sch.setDesiredState(State.INSTALLED);
-    sch.setState(State.INSTALLED);
-
-    Map<String, Config> desired = new HashMap<String, Config>();
-    ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
-
-    Cluster cluster = clusters.getCluster("C1");
-    Config c1 = configFactory.createNew(cluster, "type1", new HashMap<String, String>());
-//        new ConfigImpl(cluster, "type1", new HashMap<String, String>(), injector);
-    Config c2 = configFactory.createNew(cluster, "type2", new HashMap<String, String>());
-//        new ConfigImpl(cluster, "type2", new HashMap<String, String>(),        injector);
-    Config c3 = configFactory.createNew(cluster, "type3", new HashMap<String, String>());
-//        new ConfigImpl(cluster, "type3", new HashMap<String, String>(),   injector);
-    Config c4v5 = configFactory.createNew(cluster, "type4", new HashMap<String, String>());
-    Config c2v3 = configFactory.createNew(cluster, "type2", new HashMap<String, String>());
-
-
-    c1.setVersionTag("v1");
-    c2.setVersionTag("v1");
-    c3.setVersionTag("v1");
-    c4v5.setVersionTag("v5");
-    c2v3.setVersionTag("v3");
-
-    c1.persist();
-    c2.persist();
-    c3.persist();
-    c4v5.persist();
-    c2v3.persist();
-
-    desired.put("type1", c1);
-    desired.put("type2", c2);
-    desired.put("type3", c3);
-    impl.updateDesiredConfigs(desired);
-    impl.persist();
-
-    HostComponentDesiredStateEntityPK desiredPK =
-        new HostComponentDesiredStateEntityPK();
-    desiredPK.setClusterId(clusters.getCluster("C1").getClusterId());
-    desiredPK.setServiceName("HDFS");
-    desiredPK.setComponentName("DATANODE");
-    desiredPK.setHostName("h1");
-
-    HostComponentDesiredStateEntity desiredEntity =
-        hostComponentDesiredStateDAO.findByPK(desiredPK);
-    Assert.assertEquals(3,
-        desiredEntity.getHostComponentDesiredConfigMappingEntities().size());
-
-    Map<String, String> oldConfigs = new HashMap<String, String>();
-    oldConfigs.put("type1", "v1");
-    oldConfigs.put("type2", "v1");
-    oldConfigs.put("type3", "v1");
-
-    HostComponentStateEntityPK primaryKey =
-        new HostComponentStateEntityPK();
-    primaryKey.setClusterId(clusters.getCluster("C1").getClusterId());
-    primaryKey.setServiceName("HDFS");
-    primaryKey.setComponentName("DATANODE");
-    primaryKey.setHostName("h1");
-    HostComponentStateEntity entity =
-        hostComponentStateDAO.findByPK(primaryKey);
-    Collection<HostComponentConfigMappingEntity> entities =
-        entity.getHostComponentConfigMappingEntities();
-    Assert.assertEquals(0, entities.size());
-
-    impl.setConfigs(oldConfigs);
-    impl.persist();
-
-    Assert.assertEquals(3, impl.getConfigVersions().size());
-    entity = hostComponentStateDAO.findByPK(primaryKey);
-    entities = entity.getHostComponentConfigMappingEntities();
-    Assert.assertEquals(3, entities.size());
-
-    Map<String, String> newConfigs = new HashMap<String, String>();
-    newConfigs.put("type1", "v1");
-    newConfigs.put("type2", "v3");
-    newConfigs.put("type4", "v5");
-
-    ServiceComponentHostStartEvent startEvent =
-        new ServiceComponentHostStartEvent("DATANODE", "h1", 1, newConfigs);
-
-    impl.handleEvent(startEvent);
-
-    Assert.assertEquals(newConfigs.size(),
-        impl.getConfigVersions().size());
-
-    entity = hostComponentStateDAO.findByPK(primaryKey);
-    entities = entity.getHostComponentConfigMappingEntities();
-    Assert.assertEquals(3, entities.size());
-
-    for (HostComponentConfigMappingEntity e : entities) {
-      LOG.debug("Found live config "
-          + e.getConfigType() + ":" + e.getVersionTag());
-      Assert.assertTrue(e.getComponentName().equals("DATANODE")
-          && e.getClusterId() == primaryKey.getClusterId()
-          && e.getHostName().equals("h1")
-          && e.getServiceName().equals("HDFS"));
-      if (e.getConfigType().equals("type1")) {
-        Assert.assertEquals("v1", e.getVersionTag());
-      } else if (e.getConfigType().equals("type2")) {
-        Assert.assertEquals("v3", e.getVersionTag());
-      } else if (e.getConfigType().equals("type4")) {
-        Assert.assertEquals("v5", e.getVersionTag());
-      } else {
-        fail("Found invalid type");
-      }
-    }
   }
 
   @Test

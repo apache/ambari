@@ -55,9 +55,6 @@ public class ClusterServiceEntity {
   @OneToMany(mappedBy = "clusterServiceEntity")
   private Collection<ServiceComponentDesiredStateEntity> serviceComponentDesiredStateEntities;
 
-  @OneToMany(mappedBy = "serviceEntity", cascade = CascadeType.ALL)
-  private Collection<ServiceConfigMappingEntity> serviceConfigMappings;
-
   public Long getClusterId() {
     return clusterId;
   }
@@ -128,15 +125,5 @@ public class ClusterServiceEntity {
   public void setServiceComponentDesiredStateEntities(Collection<ServiceComponentDesiredStateEntity> serviceComponentDesiredStateEntities) {
     this.serviceComponentDesiredStateEntities = serviceComponentDesiredStateEntities;
   }
-
-  public Collection<ServiceConfigMappingEntity> getServiceConfigMappings() {
-    return serviceConfigMappings;
-  }
-
-  public void setServiceConfigMappings(Collection<ServiceConfigMappingEntity> entities) {
-    serviceConfigMappings = entities;
-  }
-
-
 
 }

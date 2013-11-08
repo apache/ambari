@@ -170,9 +170,9 @@ public class ComponentResourceProviderTest {
 
     expect(service.getServiceComponents()).andReturn(serviceComponentMap).anyTimes();
 
-    expect(serviceComponent1.convertToResponse()).andReturn(new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component100", null, null, ""));
-    expect(serviceComponent2.convertToResponse()).andReturn(new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, null, ""));
-    expect(serviceComponent3.convertToResponse()).andReturn(new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, null, ""));
+    expect(serviceComponent1.convertToResponse()).andReturn(new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component100", null, ""));
+    expect(serviceComponent2.convertToResponse()).andReturn(new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, ""));
+    expect(serviceComponent3.convertToResponse()).andReturn(new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, ""));
 
 
     expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
@@ -252,9 +252,9 @@ public class ComponentResourceProviderTest {
 
     expect(service.getServiceComponents()).andReturn(serviceComponentMap).anyTimes();
 
-    expect(serviceComponent1.convertToResponse()).andReturn(new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, null, ""));
-    expect(serviceComponent2.convertToResponse()).andReturn(new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, null, ""));
-    expect(serviceComponent3.convertToResponse()).andReturn(new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component103", null, null, ""));
+    expect(serviceComponent1.convertToResponse()).andReturn(new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, ""));
+    expect(serviceComponent2.convertToResponse()).andReturn(new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, ""));
+    expect(serviceComponent3.convertToResponse()).andReturn(new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component103", null, ""));
     expect(serviceComponent1.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(serviceComponent2.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(serviceComponent3.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
@@ -362,7 +362,7 @@ public class ComponentResourceProviderTest {
 
     // requests
     ServiceComponentRequest request1 = new ServiceComponentRequest("cluster1", "service1", "component1",
-        Collections.<String, String>emptyMap(), null);
+        null);
 
     Set<ServiceComponentRequest> setRequests = new HashSet<ServiceComponentRequest>();
     setRequests.add(request1);
@@ -414,13 +414,13 @@ public class ComponentResourceProviderTest {
 
     // requests
     ServiceComponentRequest request1 = new ServiceComponentRequest("cluster1", "service1", "component1",
-        Collections.<String, String>emptyMap(), null);
+        null);
     ServiceComponentRequest request2 = new ServiceComponentRequest("cluster1", "service1", "component2",
-        Collections.<String, String>emptyMap(), null);
+        null);
     ServiceComponentRequest request3 = new ServiceComponentRequest("cluster1", "service1", "component3",
-        Collections.<String, String>emptyMap(), null);
+        null);
     ServiceComponentRequest request4 = new ServiceComponentRequest("cluster1", "service1", "component4",
-        Collections.<String, String>emptyMap(), null);
+        null);
 
     Set<ServiceComponentRequest> setRequests = new HashSet<ServiceComponentRequest>();
     setRequests.add(request1);
@@ -484,7 +484,7 @@ public class ComponentResourceProviderTest {
 
     // requests
     ServiceComponentRequest request1 = new ServiceComponentRequest("cluster1", "service1", "component1",
-        Collections.<String, String>emptyMap(), null);
+        null);
 
     Set<ServiceComponentRequest> setRequests = new HashSet<ServiceComponentRequest>();
     setRequests.add(request1);

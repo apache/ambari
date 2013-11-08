@@ -66,9 +66,6 @@ public class HostComponentStateEntity {
   @JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false)
   private HostEntity hostEntity;
 
-  @OneToMany(mappedBy = "hostComponentStateEntity", cascade = {CascadeType.REMOVE, CascadeType.REFRESH})
-  private Collection<HostComponentConfigMappingEntity> configMappingEntities;
-
   public Long getClusterId() {
     return clusterId;
   }
@@ -161,14 +158,5 @@ public class HostComponentStateEntity {
   public void setHostEntity(HostEntity hostEntity) {
     this.hostEntity = hostEntity;
   }
-
-  public Collection<HostComponentConfigMappingEntity> getHostComponentConfigMappingEntities() {
-    return configMappingEntities;
-  }
-
-  public void setHostComponentConfigMappingEntities(Collection<HostComponentConfigMappingEntity> entities) {
-    configMappingEntities = entities;
-  }
-
 
 }

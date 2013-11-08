@@ -157,8 +157,7 @@ public class ExecutionCommandWrapperTest {
     s.addHostRoleExecutionCommand(hostName, Role.NAMENODE,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.NAMENODE.toString(),
-            hostName, System.currentTimeMillis(),
-            new HashMap<String, String>()), clusterName, "HDFS");
+            hostName, System.currentTimeMillis()), clusterName, "HDFS");
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
     db.persistActions(stages);

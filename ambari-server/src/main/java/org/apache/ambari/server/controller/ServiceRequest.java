@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.controller;
 
-import java.util.Map;
-import java.util.Map.Entry;
 
 public class ServiceRequest {
 
@@ -26,17 +24,13 @@ public class ServiceRequest {
 
   private String serviceName; // GET/CREATE/UPDATE/DELETE
 
-  // Config type -> version mapping
-  private Map<String, String> configVersions; // CREATE/UPDATE
-
   private String desiredState; // CREATE/UPDATE
 
   public ServiceRequest(String clusterName, String serviceName,
-                        Map<String, String> configVersions, String desiredState) {
+                        String desiredState) {
     super();
     this.clusterName = clusterName;
     this.serviceName = serviceName;
-    this.configVersions = configVersions;
     this.desiredState = desiredState;
   }
 
@@ -52,20 +46,6 @@ public class ServiceRequest {
    */
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
-  }
-
-  /**
-   * @return the configVersions
-   */
-  public Map<String, String> getConfigVersions() {
-    return configVersions;
-  }
-
-  /**
-   * @param configVersions the configVersions to set
-   */
-  public void setConfigVersions(Map<String, String> configVersions) {
-    this.configVersions = configVersions;
   }
 
   /**
@@ -100,15 +80,7 @@ public class ServiceRequest {
     StringBuilder sb = new StringBuilder();
     sb.append("clusterName=" + clusterName
         + ", serviceName=" + serviceName
-        + ", desiredState=" + desiredState
-        + ", configs=[ ");
-    if (configVersions != null) {
-      for (Entry<String, String> entry : configVersions.entrySet()) {
-        sb.append("{ type=" + entry.getKey()
-            + ", versionTag=" + entry.getValue() + "}, ");
-      }
-    }
-    sb.append(" ]");
+        + ", desiredState=" + desiredState);
     return sb.toString();
   }
 }

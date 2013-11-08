@@ -426,7 +426,6 @@ public class ClusterTest {
     clusterServiceEntity.setClusterEntity(clusterEntity);
     clusterServiceEntity.setServiceComponentDesiredStateEntities(
         Collections.EMPTY_LIST);
-    clusterServiceEntity.setServiceConfigMappings(Collections.EMPTY_LIST);
     ServiceDesiredStateEntity stateEntity = mock(ServiceDesiredStateEntity.class);
     Gson gson = new Gson();
     when(stateEntity.getDesiredStackVersion()).thenReturn(gson.toJson(new StackId("HDP-0.1"),

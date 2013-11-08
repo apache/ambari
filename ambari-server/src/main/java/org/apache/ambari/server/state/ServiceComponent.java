@@ -19,12 +19,12 @@
 package org.apache.ambari.server.state;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 
-import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
+
+import com.google.inject.persist.Transactional;
 
 public interface ServiceComponent {
 
@@ -39,12 +39,6 @@ public interface ServiceComponent {
   public State getDesiredState();
 
   public void setDesiredState(State state);
-
-  public Map<String, Config> getDesiredConfigs();
-
-  public void updateDesiredConfigs(Map<String, Config> configs);
-
-  public void deleteDesiredConfigs(Set<String> configTypes);
 
   public StackId getDesiredStackVersion();
 

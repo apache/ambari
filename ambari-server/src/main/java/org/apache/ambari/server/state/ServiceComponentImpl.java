@@ -55,21 +55,14 @@ public class ServiceComponentImpl implements ServiceComponent {
   @Inject
   private ClusterServiceDAO clusterServiceDAO;
   @Inject
-  private HostComponentStateDAO hostComponentStateDAO;
-  @Inject
   private HostComponentDesiredStateDAO hostComponentDesiredStateDAO;
   @Inject
   private ServiceComponentHostFactory serviceComponentHostFactory;
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
-  @Inject
-  private ComponentConfigMappingDAO componentConfigMappingDAO;
 
   boolean persisted = false;
   private ServiceComponentDesiredStateEntity desiredStateEntity;
-
-  // [ type -> versionTag ]
-  private Map<String, String>  desiredConfigs;
 
   private Map<String, ServiceComponentHost> hostComponents;
 
@@ -90,7 +83,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     desiredStateEntity.setComponentName(componentName);
     desiredStateEntity.setDesiredState(State.INIT);
 
-    this.desiredConfigs = new HashMap<String, String>();
     setDesiredStackVersion(service.getDesiredStackVersion());
 
     this.hostComponents = new HashMap<String, ServiceComponentHost>();
@@ -121,8 +113,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     this.service = service;
     this.desiredStateEntity = serviceComponentDesiredStateEntity;
 
-    this.desiredConfigs = new HashMap<String, String>();
-
     this.hostComponents = new HashMap<String, ServiceComponentHost>();
     for (HostComponentStateEntity hostComponentStateEntity : desiredStateEntity.getHostComponentStateEntities()) {
       HostComponentDesiredStateEntityPK pk = new HostComponentDesiredStateEntityPK();
@@ -136,10 +126,6 @@ public class ServiceComponentImpl implements ServiceComponent {
       hostComponents.put(hostComponentStateEntity.getHostName(),
           serviceComponentHostFactory.createExisting(this,
               hostComponentStateEntity, hostComponentDesiredStateEntity));
-    }
-
-    for (ComponentConfigMappingEntity entity : desiredStateEntity.getComponentConfigMappingEntities()) {
-      desiredConfigs.put(entity.getConfigType(), entity.getVersionTag());
     }
 
     StackId stackId = service.getDesiredStackVersion();
@@ -406,89 +392,6 @@ public class ServiceComponentImpl implements ServiceComponent {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-
-  }
-
-  @Override
-  public Map<String, Config> getDesiredConfigs() {
-    clusterGlobalLock.readLock().lock();
-    try {
-      readWriteLock.readLock().lock();
-      try {
-        Map<String, Config> map = new HashMap<String, Config>();
-        for (Entry<String, String> entry : desiredConfigs.entrySet()) {
-          Config config = service.getCluster().getConfig(entry.getKey(), entry.getValue());
-          if (null != config) {
-            map.put(entry.getKey(), config);
-          }
-        }
-
-        Map<String, Config> svcConfigs = service.getDesiredConfigs();
-        for (Entry<String, Config> entry : svcConfigs.entrySet()) {
-          if (!map.containsKey(entry.getKey())) {
-            map.put(entry.getKey(), entry.getValue());
-          }
-        }
-
-        return Collections.unmodifiableMap(map);
-      } finally {
-        readWriteLock.readLock().unlock();
-      }
-    } finally {
-      clusterGlobalLock.readLock().unlock();
-    }
-
-
-  }
-
-  @Override
-  public void updateDesiredConfigs(Map<String, Config> configs) {
-
-    clusterGlobalLock.readLock().lock();
-    try {
-      readWriteLock.writeLock().lock();
-      try {
-        for (Entry<String, Config> entry : configs.entrySet()) {
-          boolean contains = false;
-
-          for (ComponentConfigMappingEntity componentConfigMappingEntity : desiredStateEntity.getComponentConfigMappingEntities()) {
-            if (entry.getKey().equals(componentConfigMappingEntity.getConfigType())) {
-              contains = true;
-              componentConfigMappingEntity.setTimestamp(new Date().getTime());
-              componentConfigMappingEntity.setVersionTag(entry.getValue().getVersionTag());
-              if (persisted) {
-                componentConfigMappingDAO.merge(componentConfigMappingEntity);
-              }
-            }
-          }
-
-          if (!contains) {
-            ComponentConfigMappingEntity newEntity = new ComponentConfigMappingEntity();
-            newEntity.setClusterId(desiredStateEntity.getClusterId());
-            newEntity.setServiceName(desiredStateEntity.getServiceName());
-            newEntity.setComponentName(desiredStateEntity.getComponentName());
-            newEntity.setConfigType(entry.getKey());
-            newEntity.setVersionTag(entry.getValue().getVersionTag());
-            newEntity.setTimestamp(new Date().getTime());
-            newEntity.setServiceComponentDesiredStateEntity(desiredStateEntity);
-            desiredStateEntity.getComponentConfigMappingEntities().add(newEntity);
-
-          }
-
-
-          this.desiredConfigs.put(entry.getKey(), entry.getValue().getVersionTag());
-        }
-
-        saveIfPersisted();
-      } finally {
-        readWriteLock.writeLock().unlock();
-      }
-    } finally {
-      clusterGlobalLock.readLock().unlock();
-    }
-
-
   }
 
   @Override
@@ -543,7 +446,7 @@ public class ServiceComponentImpl implements ServiceComponent {
       try {
         ServiceComponentResponse r = new ServiceComponentResponse(
             getClusterId(), service.getCluster().getClusterName(),
-            service.getName(), getName(), this.desiredConfigs,
+            service.getName(), getName(),
             getDesiredStackVersion().getStackId(),
             getDesiredState().toString());
         return r;
@@ -816,26 +719,6 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Override
-  public void deleteDesiredConfigs(Set<String> configTypes) {
-    clusterGlobalLock.readLock().lock();
-    try {
-      readWriteLock.writeLock().lock();
-      try {
-        componentConfigMappingDAO.removeByType(configTypes);
-        for (String configType : configTypes) {
-          desiredConfigs.remove(configType);
-        }
-      } finally {
-        readWriteLock.writeLock().unlock();
-      }
-    } finally {
-      clusterGlobalLock.readLock().unlock();
-    }
-
-
-  }
-
-  @Override
   @Transactional
   public void delete() throws AmbariException {
     clusterGlobalLock.writeLock().lock();
@@ -848,8 +731,6 @@ public class ServiceComponentImpl implements ServiceComponent {
           removeEntities();
           persisted = false;
         }
-
-        desiredConfigs.clear();
       } finally {
         readWriteLock.writeLock().unlock();
       }

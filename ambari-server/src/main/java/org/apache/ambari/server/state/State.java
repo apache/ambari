@@ -24,61 +24,55 @@ public enum State {
   /**
    * Initial/Clean state.
    */
-  INIT(0),
+  INIT,
   /**
    * In the process of installing.
    */
-  INSTALLING(1),
+  INSTALLING,
   /**
    * Install failed.
    */
-  INSTALL_FAILED(2),
+  INSTALL_FAILED,
   /**
    * State when install completed successfully.
    */
-  INSTALLED(3),
+  INSTALLED,
   /**
    * In the process of starting.
    */
-  STARTING(4),
+  STARTING,
   /**
    * State when start completed successfully.
    */
-  STARTED(5),
+  STARTED,
   /**
    * In the process of stopping.
    */
-  STOPPING(6),
+  STOPPING,
   /**
    * In the process of uninstalling.
    */
-  UNINSTALLING(7),
+  UNINSTALLING,
   /**
    * State when uninstall completed successfully.
    */
-  UNINSTALLED(8),
+  UNINSTALLED,
   /**
    * In the process of wiping out the install.
    */
-  WIPING_OUT(9),
+  WIPING_OUT,
   /**
    * In the process of upgrading the deployed bits.
    */
-  UPGRADING(10),
+  UPGRADING,
   /**
    * Disabled master's backup state
    */
-  MAINTENANCE(11),
+  MAINTENANCE,
   /**
    * State could not be determined.
    */
-  UNKNOWN(12);
-
-  private final int state;
-
-  private State(int state) {
-    this.state = state;
-  }
+  UNKNOWN;
 
   /**
    * Indicates whether or not it is a valid desired state.
@@ -86,7 +80,7 @@ public enum State {
    * @return true if this is a valid desired state.
    */
   public boolean isValidDesiredState() {
-    switch (State.values()[this.state]) {
+    switch (this) {
       case INIT:
       case INSTALLED:
       case STARTED:
@@ -104,7 +98,7 @@ public enum State {
    * @return true if this is a valid state for a client component.
    */
   public boolean isValidClientComponentState() {
-    switch (State.values()[this.state]) {
+    switch (this) {
       case STARTING:
       case STARTED:
       case STOPPING:
@@ -120,7 +114,7 @@ public enum State {
    * @return true if this is a removable state
    */
   public boolean isRemovableState() {
-    switch (State.values()[this.state]) {
+    switch (this) {
       case INIT:
       case INSTALLING:
       case INSTALLED:
@@ -245,46 +239,5 @@ public enum State {
       }
     }
   }
-
-  /**
-   * Determine whether or not it is safe to update the configuration of the given service
-   * component for the given state.
-   *
-   * @param serviceComponent  the service component
-   * @param desiredState      the desired state
-   *
-   * @throws AmbariException if the changing of configuration is not supported
-   */
-  public static void checkUpdateConfiguration(
-      ServiceComponent serviceComponent,
-      State desiredState)
-      throws AmbariException {
-    for (ServiceComponentHost sch :
-        serviceComponent.getServiceComponentHosts().values()) {
-      checkUpdateConfiguration(sch,
-          sch.getState(), desiredState);
-    }
-  }
-
-  /**
-   * Determine whether or not it is safe to update the configuration of the given service
-   * for the given state.
-   *
-   * @param service       the service
-   * @param desiredState  the desired state
-   *
-   * @throws AmbariException if the changing of configuration is not supported
-   */
-  public static void checkUpdateConfiguration(Service service,
-                                              State desiredState)
-      throws AmbariException {
-    for (ServiceComponent component :
-        service.getServiceComponents().values()) {
-      checkUpdateConfiguration(component,
-          desiredState);
-    }
-  }
-
-
 
 }

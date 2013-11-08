@@ -18,8 +18,25 @@
 
 package org.apache.ambari.server.controller;
 
-import com.google.gson.Gson;
-import com.google.inject.Injector;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.HostNotFoundException;
@@ -38,24 +55,8 @@ import org.apache.ambari.server.state.StackId;
 import org.easymock.Capture;
 import org.junit.Test;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import com.google.gson.Gson;
+import com.google.inject.Injector;
 
 /**
  * AmbariManagementControllerImpl unit tests
@@ -281,7 +282,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component1", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<ServiceComponentHostRequest>();
@@ -344,7 +345,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component1", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<ServiceComponentHostRequest>();
@@ -416,13 +417,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", null, "component2", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component2", "host1", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", null, "component3", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<ServiceComponentHostRequest>();
@@ -511,13 +512,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", null, "component2", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component2", "host1", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", null, "component3", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<ServiceComponentHostRequest>();
@@ -605,13 +606,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", null, "component2", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component2", "host1", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", null, "component3", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<ServiceComponentHostRequest>();
@@ -700,13 +701,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", null, Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component1", null, null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", null, "component2", "host2", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component2", "host2", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", null, "component3", null, Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component3", null, null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<ServiceComponentHostRequest>();
@@ -780,13 +781,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", null, "component2", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component2", "host1", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", null, "component3", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<ServiceComponentHostRequest>();
@@ -838,13 +839,13 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component1", "host1", null);
 
     ServiceComponentHostRequest request2 = new ServiceComponentHostRequest(
-        "cluster1", null, "component2", "host2", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component2", "host2", null);
 
     ServiceComponentHostRequest request3 = new ServiceComponentHostRequest(
-        "cluster1", null, "component3", "host1", Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component3", "host1", null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<ServiceComponentHostRequest>();
@@ -903,7 +904,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, "component1", null, Collections.<String, String>emptyMap(), null);
+        "cluster1", null, "component1", null, null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<ServiceComponentHostRequest>();
@@ -980,7 +981,7 @@ public class AmbariManagementControllerImplTest {
 
     // requests
     ServiceComponentHostRequest request1 = new ServiceComponentHostRequest(
-        "cluster1", null, null, null, Collections.<String, String>emptyMap(), null);
+        "cluster1", null, null, null, null);
 
 
     Set<ServiceComponentHostRequest> setRequests = new HashSet<ServiceComponentHostRequest>();

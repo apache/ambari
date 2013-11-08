@@ -33,11 +33,6 @@ public class ServiceComponentHostResponse {
 
   private String hostname;
 
-  // Config type -> version mapping
-  private Map<String, String> configs;
-
-  private Map<String, String> desiredConfigs;
-  
   // type -> desired config
   private Map<String, HostConfig> actualConfigs;
 
@@ -54,17 +49,13 @@ public class ServiceComponentHostResponse {
 
   public ServiceComponentHostResponse(String clusterName, String serviceName,
                                       String componentName, String hostname,
-                                      Map<String, String> configVersions,
-                                      Map<String, String> desiredConfigs,
-                                      String liveState, String stackVersion,
+                                      String liveState,
+                                      String stackVersion,
                                       String desiredState, String desiredStackVersion) {
-    super();
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.componentName = componentName;
     this.hostname = hostname;
-    this.configs = configVersions;
-    this.desiredConfigs = desiredConfigs;
     this.liveState = liveState;
     this.stackVersion = stackVersion;
     this.desiredState = desiredState;
@@ -111,20 +102,6 @@ public class ServiceComponentHostResponse {
    */
   public void setHostname(String hostname) {
     this.hostname = hostname;
-  }
-
-  /**
-   * @return the configVersions
-   */
-  public Map<String, String> getConfigs() {
-    return configs;
-  }
-
-  /**
-   * @param configVersions the configVersions to set
-   */
-  public void setConfigs(Map<String, String> configVersions) {
-    this.configs = configVersions;
   }
 
   /**
@@ -232,10 +209,6 @@ public class ServiceComponentHostResponse {
     result = 71 * result + (componentName != null ? componentName.hashCode():0);
     result = 71 * result + (hostname != null ? hostname.hashCode() : 0);
     return result;
-  }
-
-  public Map<String, String> getDesiredConfigs() {
-    return desiredConfigs;
   }
 
   /**

@@ -290,7 +290,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
       ServiceComponentHostRequest componentRequest = new ServiceComponentHostRequest(clusterName, "GANGLIA",
                                                                                      Role.GANGLIA_SERVER.name(),
                                                                                      gangliaCollectorHostName,
-                                                                                     Collections.<String, String>emptyMap(), null);
+                                                                                     null);
       
       Set<ServiceComponentHostResponse> hostComponents =
           managementController.getHostComponents(Collections.singleton(componentRequest));

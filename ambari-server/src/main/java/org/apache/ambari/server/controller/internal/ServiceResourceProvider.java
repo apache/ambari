@@ -17,6 +17,17 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -30,7 +41,15 @@ import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.ServiceRequest;
 import org.apache.ambari.server.controller.ServiceResponse;
-import org.apache.ambari.server.controller.spi.*;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -44,17 +63,6 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 /**
  * Resource provider for service resources.
  */
@@ -67,7 +75,6 @@ class ServiceResourceProvider extends AbstractControllerResourceProvider {
   protected static final String SERVICE_CLUSTER_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("ServiceInfo", "cluster_name");
   protected static final String SERVICE_SERVICE_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("ServiceInfo", "service_name");
   protected static final String SERVICE_SERVICE_STATE_PROPERTY_ID   = PropertyHelper.getPropertyId("ServiceInfo", "state");
-  protected static final String SERVICE_DESIRED_CONFIGS_PROPERTY_ID = PropertyHelper.getPropertyId("ServiceInfo", "desired_configs");
 
   //Parameters from the predicate
   private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID =
@@ -157,8 +164,6 @@ class ServiceResourceProvider extends AbstractControllerResourceProvider {
           response.getClusterName(), requestedIds);
       setResourceProperty(resource, SERVICE_SERVICE_NAME_PROPERTY_ID,
           response.getServiceName(), requestedIds);
-      setResourceProperty(resource, SERVICE_DESIRED_CONFIGS_PROPERTY_ID,
-          response.getConfigVersions(), requestedIds);
       setResourceProperty(resource, SERVICE_SERVICE_STATE_PROPERTY_ID,
           calculateServiceState(response.getClusterName(), response.getServiceName()),
           requestedIds);
@@ -259,15 +264,8 @@ class ServiceResourceProvider extends AbstractControllerResourceProvider {
     ServiceRequest svcRequest = new ServiceRequest(
         (String) properties.get(SERVICE_CLUSTER_NAME_PROPERTY_ID),
         (String) properties.get(SERVICE_SERVICE_NAME_PROPERTY_ID),
-        null,
         (String) properties.get(SERVICE_SERVICE_STATE_PROPERTY_ID));
 
-    Map<String, String> configMappings =
-        ConfigurationResourceProvider.getConfigPropertyValues(properties);
-
-    if (configMappings.size() > 0) {
-      svcRequest.setConfigVersions(configMappings);
-    }
     return svcRequest;
   }
 
@@ -387,16 +385,12 @@ class ServiceResourceProvider extends AbstractControllerResourceProvider {
     for (ServiceRequest request : requests) {
       Cluster cluster = clusters.getCluster(request.getClusterName());
 
-      // FIXME initialize configs based off service.configVersions
-      Map<String, Config> configs = new HashMap<String, Config>();
-
       State state = State.INIT;
 
       // Already checked that service does not exist
       Service s = serviceFactory.createNew(cluster, request.getServiceName());
 
       s.setDesiredState(state);
-      s.updateDesiredConfigs(configs);
       s.setDesiredStackVersion(cluster.getDesiredStackVersion());
       cluster.addService(s);
       s.persist();
@@ -542,34 +536,6 @@ class ServiceResourceProvider extends AbstractControllerResourceProvider {
               + " desired state, desiredState=" + newState);
         }
       }
-
-      if (request.getConfigVersions() != null) {
-        State.checkUpdateConfiguration(s, newState);
-
-        for (Map.Entry<String,String> entry :
-            request.getConfigVersions().entrySet()) {
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("Attaching config to service"
-                + ", clusterName=" + cluster.getClusterName()
-                + ", serviceName=" + s.getName()
-                + ", configType=" + entry.getKey()
-                + ", configTag=" + entry.getValue());
-          }
-          Config config = cluster.getConfig(
-              entry.getKey(), entry.getValue());
-          if (null == config) {
-            // throw error for invalid config
-            throw new AmbariException("Trying to update service with"
-                + " invalid configs"
-                + ", clusterName=" + cluster.getClusterName()
-                + ", clusterId=" + cluster.getClusterId()
-                + ", serviceName=" + s.getName()
-                + ", invalidConfigType=" + entry.getKey()
-                + ", invalidConfigTag=" + entry.getValue());
-          }
-        }
-      }
-
 
       if (newState == null) {
         if (LOG.isDebugEnabled()) {
@@ -718,40 +684,6 @@ class ServiceResourceProvider extends AbstractControllerResourceProvider {
           + " changes for a set of services at the same time");
     }
 
-    for (ServiceRequest request : requests) {
-      Cluster cluster = clusters.getCluster(request.getClusterName());
-      Service s = cluster.getService(request.getServiceName());
-      if (request.getConfigVersions() != null) {
-        Map<String, Config> updated = new HashMap<String, Config>();
-
-        for (Map.Entry<String,String> entry : request.getConfigVersions().entrySet()) {
-          Config config = cluster.getConfig(entry.getKey(), entry.getValue());
-          updated.put(config.getType(), config);
-        }
-
-        if (!updated.isEmpty()) {
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("Updating service configs, attaching configs"
-                + ", clusterName=" + request.getClusterName()
-                + ", serviceName=" + s.getName()
-                + ", configCount=" + updated.size());
-          }
-          s.updateDesiredConfigs(updated);
-          s.persist();
-        }
-
-        for (ServiceComponent sc : s.getServiceComponents().values()) {
-          sc.deleteDesiredConfigs(updated.keySet());
-          for (ServiceComponentHost sch :
-              sc.getServiceComponentHosts().values()) {
-            sch.deleteDesiredConfigs(updated.keySet());
-            sch.persist();
-          }
-          sc.persist();
-        }
-      }
-    }
-
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
 
     return controller.createStages(cluster, requestProperties, null, changedServices, changedComps, changedScHosts,
@@ -820,7 +752,7 @@ class ServiceResourceProvider extends AbstractControllerResourceProvider {
             StackId stackId = cluster.getDesiredStackVersion();
 
             ServiceComponentHostRequest request = new ServiceComponentHostRequest(clusterName,
-                serviceName, null, null, null, null);
+                serviceName, null, null, null);
 
             Set<ServiceComponentHostResponse> hostComponentResponses =
                 controller.getHostComponents(Collections.singleton(request));
@@ -870,7 +802,7 @@ class ServiceResourceProvider extends AbstractControllerResourceProvider {
             StackId stackId = cluster.getDesiredStackVersion();
 
             ServiceComponentHostRequest request = new ServiceComponentHostRequest(clusterName,
-                serviceName, null, null, null, null);
+                serviceName, null, null, null);
 
             Set<ServiceComponentHostResponse> hostComponentResponses =
                 controller.getHostComponents(Collections.singleton(request));
@@ -949,7 +881,7 @@ class ServiceResourceProvider extends AbstractControllerResourceProvider {
             StackId stackId = cluster.getDesiredStackVersion();
 
             ServiceComponentHostRequest request = new ServiceComponentHostRequest(clusterName,
-                serviceName, null, null, null, null);
+                serviceName, null, null, null);
 
             Set<ServiceComponentHostResponse> hostComponentResponses =
                 controller.getHostComponents(Collections.singleton(request));

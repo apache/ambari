@@ -240,27 +240,23 @@ public class TestActionDBAccessorImpl {
     s.addHostRoleExecutionCommand("host1", Role.HBASE_MASTER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
-            "host1", System.currentTimeMillis(),
-            new HashMap<String, String>()), "cluster1", "HBASE");
+            "host1", System.currentTimeMillis()), "cluster1", "HBASE");
     s.addHostRoleExecutionCommand("host2", Role.HBASE_MASTER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
-            "host2", System.currentTimeMillis(),
-            new HashMap<String, String>()), "cluster1", "HBASE");
+            "host2", System.currentTimeMillis()), "cluster1", "HBASE");
     s.addHostRoleExecutionCommand(
         "host3",
         Role.HBASE_REGIONSERVER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_REGIONSERVER
-            .toString(), "host3", System.currentTimeMillis(),
-            new HashMap<String, String>()), "cluster1", "HBASE");
+            .toString(), "host3", System.currentTimeMillis()), "cluster1", "HBASE");
     s.addHostRoleExecutionCommand(
         "host4",
         Role.HBASE_REGIONSERVER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_REGIONSERVER
-            .toString(), "host4", System.currentTimeMillis(),
-            new HashMap<String, String>()), "cluster1", "HBASE");
+            .toString(), "host4", System.currentTimeMillis()), "cluster1", "HBASE");
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
     s.getOrderedHostRoleCommands().get(0).setStatus(HostRoleStatus.PENDING);
@@ -291,15 +287,13 @@ public class TestActionDBAccessorImpl {
     s.addHostRoleExecutionCommand(hostname, Role.HBASE_MASTER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
-            hostname, System.currentTimeMillis(),
-            new HashMap<String, String>()), "cluster1", "HBASE");
+            hostname, System.currentTimeMillis()), "cluster1", "HBASE");
     s.addHostRoleExecutionCommand(
         hostname,
         Role.HBASE_REGIONSERVER,
         RoleCommand.START,
         new ServiceComponentHostStartEvent(Role.HBASE_REGIONSERVER
-            .toString(), hostname, System.currentTimeMillis(),
-            new HashMap<String, String>()), "cluster1", "HBASE");
+            .toString(), hostname, System.currentTimeMillis()), "cluster1", "HBASE");
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
     db.persistActions(stages);

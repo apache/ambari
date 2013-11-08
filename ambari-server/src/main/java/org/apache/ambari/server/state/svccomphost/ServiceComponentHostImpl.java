@@ -18,22 +18,20 @@
 
 package org.apache.ambari.server.state.svccomphost;
 
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
-import com.google.inject.persist.Transactional;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
-import org.apache.ambari.server.orm.dao.HostComponentConfigMappingDAO;
-import org.apache.ambari.server.orm.dao.HostComponentDesiredConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
-import org.apache.ambari.server.orm.entities.HostComponentConfigMappingEntity;
-import org.apache.ambari.server.orm.entities.HostComponentDesiredConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
@@ -43,7 +41,6 @@ import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostConfig;
@@ -62,17 +59,12 @@ import org.apache.ambari.server.state.fsm.StateMachineFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+import com.google.inject.persist.Transactional;
 
 public class ServiceComponentHostImpl implements ServiceComponentHost {
 
@@ -103,17 +95,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   @Inject
   Clusters clusters;
   @Inject
-  HostComponentDesiredConfigMappingDAO hostComponentDesiredConfigMappingDAO;
-  @Inject
-  HostComponentConfigMappingDAO hostComponentConfigMappingDAO;
-  @Inject
   ConfigHelper helper;
 
   private HostComponentStateEntity stateEntity;
   private HostComponentDesiredStateEntity desiredStateEntity;
-
-  private Map<String, String> configs;
-  private Map<String, String> desiredConfigs;
 
   private long lastOpStartTime;
   private long lastOpEndTime;
@@ -525,15 +510,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       // TODO Audit logs
       // FIXME handle restartOp event
       impl.updateLastOpInfo(event.getType(), event.getOpTimestamp());
-      if (event.getType() == ServiceComponentHostEventType.HOST_SVCCOMP_START) {
-        ServiceComponentHostStartEvent e =
-            (ServiceComponentHostStartEvent) event;
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Updating live state configs during START event"
-              + ", updated configs set size=" + e.getConfigs().size());
-        }
-        impl.setConfigs(e.getConfigs());
-      } else if (event.getType() ==
+      if (event.getType() ==
           ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL) {
         ServiceComponentHostInstallEvent e =
             (ServiceComponentHostInstallEvent) event;
@@ -652,8 +629,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     }
 
     this.resetLastOpInfo();
-    this.desiredConfigs = new HashMap<String, String>();
-    this.configs = new HashMap<String, String>();
   }
 
   @AssistedInject
@@ -682,14 +657,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       LOG.error("Host '{}' was not found " + stateEntity.getHostName());
       throw new RuntimeException(e);
     }
-
-    desiredConfigs = new HashMap<String, String>();
-    configs = new HashMap<String, String>();
-
-    for (HostComponentDesiredConfigMappingEntity entity : desiredStateEntity.getHostComponentDesiredConfigMappingEntities()) {
-      desiredConfigs.put(entity.getConfigType(), entity.getVersionTag());
-    }
-    // FIXME no configs in live state being persisted in DB??
 
     persisted = true;
   }
@@ -953,149 +920,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   }
 
-  Map<String, String> getConfigVersions() {
-    clusterGlobalLock.readLock().lock();
-    try {
-      readLock.lock();
-      try {
-        if (this.configs != null) {
-          return Collections.unmodifiableMap(configs);
-        } else {
-          return new HashMap<String, String>();
-        }
-      } finally {
-        readLock.unlock();
-      }
-    } finally {
-      clusterGlobalLock.readLock().unlock();
-    }
-
-
-  }
-
-  @Override
-  public Map<String, Config> getConfigs() throws AmbariException {
-    clusterGlobalLock.readLock().lock();
-    try {
-      readLock.lock();
-      try {
-        Map<String, Config> map = new HashMap<String, Config>();
-        Cluster cluster = clusters.getClusterById(getClusterId());
-        for (Entry<String, String> entry : configs.entrySet()) {
-          Config config = cluster.getConfig(
-              entry.getKey(), entry.getValue());
-          if (null != config) {
-            map.put(entry.getKey(), config);
-          }
-        }
-        return map;
-      } finally {
-        readLock.unlock();
-      }
-    } finally {
-      clusterGlobalLock.readLock().unlock();
-    }
-
-  }
-
-  @Transactional
-  void setConfigs(Map<String, String> configs) {
-    clusterGlobalLock.readLock().lock();
-    try {
-      writeLock.lock();
-      try {
-
-        Set<String> deletedTypes = new HashSet<String>();
-        for (String type : this.configs.keySet()) {
-          if (!configs.containsKey(type)) {
-            deletedTypes.add(type);
-          }
-        }
-
-        long now = Long.valueOf(new Date().getTime());
-
-        for (Entry<String, String> entry : configs.entrySet()) {
-
-          boolean contains = false;
-          for (HostComponentConfigMappingEntity mappingEntity : stateEntity.getHostComponentConfigMappingEntities()) {
-            if (entry.getKey().equals(mappingEntity.getConfigType())) {
-              if (LOG.isDebugEnabled()) {
-                LOG.debug("Updating live config to ServiceComponentHost"
-                    + ", clusterId=" + stateEntity.getClusterId()
-                    + ", serviceName=" + stateEntity.getServiceName()
-                    + ", componentName=" + stateEntity.getComponentName()
-                    + ", hostname=" + stateEntity.getHostName()
-                    + ", configType=" + entry.getKey()
-                    + ", configVersionTag=" + entry.getValue());
-              }
-              contains = true;
-              mappingEntity.setVersionTag(entry.getValue());
-              mappingEntity.setTimestamp(now);
-              hostComponentConfigMappingDAO.merge(mappingEntity);
-              break;
-            }
-          }
-
-          if (!contains) {
-            HostComponentConfigMappingEntity newEntity =
-                new HostComponentConfigMappingEntity();
-            newEntity.setClusterId(stateEntity.getClusterId());
-            newEntity.setServiceName(stateEntity.getServiceName());
-            newEntity.setComponentName(stateEntity.getComponentName());
-            newEntity.setHostName(stateEntity.getHostName());
-            newEntity.setConfigType(entry.getKey());
-            newEntity.setVersionTag(entry.getValue());
-            newEntity.setTimestamp(now);
-
-            if (LOG.isDebugEnabled()) {
-              LOG.debug("Adding new live config to ServiceComponentHost"
-                  + ", clusterId=" + stateEntity.getClusterId()
-                  + ", serviceName=" + stateEntity.getServiceName()
-                  + ", componentName=" + stateEntity.getComponentName()
-                  + ", hostname=" + stateEntity.getHostName()
-                  + ", configType=" + entry.getKey()
-                  + ", configVersionTag=" + entry.getValue());
-            }
-            stateEntity.getHostComponentConfigMappingEntities().add(newEntity);
-            newEntity.setHostComponentStateEntity(stateEntity);
-            hostComponentConfigMappingDAO.create(newEntity);
-          }
-        }
-
-        if (!deletedTypes.isEmpty()) {
-          List<HostComponentConfigMappingEntity> deleteEntities =
-              hostComponentConfigMappingDAO.findByHostComponentAndType(
-                  stateEntity.getClusterId(), stateEntity.getServiceName(),
-                  stateEntity.getComponentName(),
-                  stateEntity.getHostName(), deletedTypes);
-          for (HostComponentConfigMappingEntity deleteEntity : deleteEntities) {
-            if (LOG.isDebugEnabled()) {
-              LOG.debug("Deleting live config to ServiceComponentHost"
-                  + ", clusterId=" + stateEntity.getClusterId()
-                  + ", serviceName=" + stateEntity.getServiceName()
-                  + ", componentName=" + stateEntity.getComponentName()
-                  + ", hostname=" + stateEntity.getHostName()
-                  + ", configType=" + deleteEntity.getConfigType()
-                  + ", configVersionTag=" + deleteEntity.getVersionTag());
-            }
-            stateEntity.getHostComponentConfigMappingEntities().remove(
-                deleteEntity);
-            if (persisted) {
-              hostComponentConfigMappingDAO.remove(deleteEntity);
-            }
-          }
-        }
-        this.configs = configs;
-        saveIfPersisted();
-      } finally {
-        writeLock.unlock();
-      }
-    } finally {
-      clusterGlobalLock.readLock().unlock();
-    }
-
-  }
-
   @Override
   public StackId getStackVersion() {
     clusterGlobalLock.readLock().lock();
@@ -1160,112 +984,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-  }
-
-  @Override
-  public Map<String, String> getDesiredConfigVersionsRecursive() {
-    clusterGlobalLock.readLock().lock();
-    try {
-      readLock.lock();
-      try {
-        Map<String, String> fullDesiredConfigVersions =
-            new HashMap<String, String>();
-        Map<String, Config> desiredConfs = getDesiredConfigs();
-        for (Config c : desiredConfs.values()) {
-          fullDesiredConfigVersions.put(c.getType(), c.getVersionTag());
-        }
-        return fullDesiredConfigVersions;
-      } finally {
-        readLock.unlock();
-      }
-    } finally {
-      clusterGlobalLock.readLock().unlock();
-    }
-
-  }
-
-
-  @Override
-  public Map<String, Config> getDesiredConfigs() {
-    clusterGlobalLock.readLock().lock();
-    try {
-      Map<String, Config> map = new HashMap<String, Config>();
-      readLock.lock();
-      try {
-        for (Entry<String, String> entry : desiredConfigs.entrySet()) {
-          Config config = clusters.getClusterById(getClusterId()).getConfig(
-              entry.getKey(), entry.getValue());
-          if (null != config) {
-            map.put(entry.getKey(), config);
-          }
-        }
-      } catch (AmbariException e) {
-        // TODO do something
-        return null;
-      } finally {
-        readLock.unlock();
-      }
-      // do a union with component level configs
-      Map<String, Config> compConfigs = serviceComponent.getDesiredConfigs();
-      for (Entry<String, Config> entry : compConfigs.entrySet()) {
-        if (!map.containsKey(entry.getKey())) {
-          map.put(entry.getKey(), entry.getValue());
-        }
-      }
-      return Collections.unmodifiableMap(map);
-    } finally {
-      clusterGlobalLock.readLock().unlock();
-    }
-
-  }
-
-  @Override
-  @Transactional
-  public void updateDesiredConfigs(Map<String, Config> configs) {
-    clusterGlobalLock.readLock().lock();
-    try {
-      writeLock.lock();
-      try {
-
-        for (Entry<String, Config> entry : configs.entrySet()) {
-
-          boolean contains = false;
-          for (HostComponentDesiredConfigMappingEntity desiredConfigMappingEntity : desiredStateEntity.getHostComponentDesiredConfigMappingEntities()) {
-            if (entry.getKey().equals(desiredConfigMappingEntity.getConfigType())) {
-              contains = true;
-              desiredConfigMappingEntity.setVersionTag(entry.getValue().getVersionTag());
-              desiredConfigMappingEntity.setTimestamp(new Date().getTime());
-              hostComponentDesiredConfigMappingDAO.merge(desiredConfigMappingEntity);
-              break;
-            }
-          }
-
-          if (!contains) {
-            HostComponentDesiredConfigMappingEntity newEntity = new HostComponentDesiredConfigMappingEntity();
-            newEntity.setClusterId(desiredStateEntity.getClusterId());
-            newEntity.setServiceName(desiredStateEntity.getServiceName());
-            newEntity.setComponentName(desiredStateEntity.getComponentName());
-            newEntity.setHostName(desiredStateEntity.getHostName());
-            newEntity.setConfigType(entry.getKey());
-            newEntity.setVersionTag(entry.getValue().getVersionTag());
-            newEntity.setTimestamp(new Date().getTime());
-            newEntity.setHostComponentDesiredStateEntity(desiredStateEntity);
-            desiredStateEntity.getHostComponentDesiredConfigMappingEntities().add(newEntity);
-            hostComponentDesiredConfigMappingDAO.create(newEntity);
-          }
-
-          this.desiredConfigs.put(entry.getKey(), entry.getValue().getVersionTag());
-        }
-
-        saveIfPersisted();
-      } finally {
-        writeLock.unlock();
-      }
-    } finally {
-      clusterGlobalLock.readLock().unlock();
-    }
-
   }
 
   @Override
@@ -1312,8 +1030,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
             serviceComponent.getServiceName(),
             serviceComponent.getName(),
             getHostName(),
-            configs,
-            desiredConfigs,
             getState().toString(),
             getStackVersion().getStackId(),
             getDesiredState().toString(),
@@ -1502,25 +1218,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
-  public void deleteDesiredConfigs(Set<String> configTypes) {
-    clusterGlobalLock.readLock().lock();
-    try {
-      writeLock.lock();
-      try {
-        hostComponentDesiredConfigMappingDAO.removeByType(configTypes);
-        for (String configType : configTypes) {
-          desiredConfigs.remove(configType);
-        }
-      } finally {
-        writeLock.unlock();
-      }
-    } finally {
-      clusterGlobalLock.readLock().unlock();
-    }
-
-  }
-
-  @Override
   public void delete() {
     clusterGlobalLock.writeLock().lock();
     try {
@@ -1531,7 +1228,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           persisted = false;
         }
         clusters.getCluster(this.getClusterName()).removeServiceComponentHost(this);
-        desiredConfigs.clear();
       } catch (AmbariException ex) {
         if (LOG.isDebugEnabled()) {
           LOG.error(ex.getMessage());

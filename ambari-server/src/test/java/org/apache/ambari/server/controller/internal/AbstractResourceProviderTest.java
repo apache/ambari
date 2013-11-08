@@ -18,7 +18,14 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import org.apache.ambari.server.controller.ActionRequest;
+import static org.easymock.EasyMock.createMock;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
@@ -34,14 +41,6 @@ import org.easymock.EasyMock;
 import org.easymock.IArgumentMatcher;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import static org.easymock.EasyMock.createMock;
 
 /**
  * Resource provider tests.
@@ -373,7 +372,7 @@ public class AbstractResourceProviderTest {
                                       Map<String, String> configVersions, String desiredState) {
       this.hostComponentRequest =
           new ServiceComponentHostRequest(clusterName, serviceName, componentName,
-              hostName, configVersions, desiredState);
+              hostName, desiredState);
       add(this.hostComponentRequest);
     }
 
@@ -397,7 +396,6 @@ public class AbstractResourceProviderTest {
           eq(((ServiceComponentHostRequest) request).getServiceName(), hostComponentRequest.getServiceName()) &&
           eq(((ServiceComponentHostRequest) request).getComponentName(), hostComponentRequest.getComponentName()) &&
           eq(((ServiceComponentHostRequest) request).getHostname(), hostComponentRequest.getHostname()) &&
-          eq(((ServiceComponentHostRequest) request).getConfigVersions(), hostComponentRequest.getConfigVersions()) &&
           eq(((ServiceComponentHostRequest) request).getDesiredState(), hostComponentRequest.getDesiredState());
     }
 

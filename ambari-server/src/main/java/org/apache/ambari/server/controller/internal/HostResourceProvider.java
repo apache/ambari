@@ -677,7 +677,7 @@ class HostResourceProvider extends AbstractControllerResourceProvider {
           StackId  stackId = cluster.getDesiredStackVersion();
 
           ServiceComponentHostRequest request = new ServiceComponentHostRequest(clusterName,
-              null, null, response.getHostname(), null, null);
+              null, null, response.getHostname(), null);
 
           Set<ServiceComponentHostResponse> hostComponentResponses =
               controller.getHostComponents(Collections.singleton(request));

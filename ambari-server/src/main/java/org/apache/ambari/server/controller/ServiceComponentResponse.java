@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import java.util.Map;
 
 public class ServiceComponentResponse {
 
@@ -30,9 +29,6 @@ public class ServiceComponentResponse {
 
   private String componentName;
 
-  // Config type -> version mapping
-  private Map<String, String> configVersions;
-
   private String desiredStackVersion;
 
   private String desiredState;
@@ -42,7 +38,6 @@ public class ServiceComponentResponse {
   public ServiceComponentResponse(Long clusterId, String clusterName,
                                   String serviceName,
                                   String componentName,
-                                  Map<String, String> configVersions,
                                   String desiredStackVersion,
                                   String desiredState) {
     super();
@@ -50,7 +45,6 @@ public class ServiceComponentResponse {
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.componentName = componentName;
-    this.configVersions = configVersions;
     this.desiredStackVersion = desiredStackVersion;
     this.desiredState = desiredState;
   }
@@ -81,20 +75,6 @@ public class ServiceComponentResponse {
    */
   public void setComponentName(String componentName) {
     this.componentName = componentName;
-  }
-
-  /**
-   * @return the configVersions
-   */
-  public Map<String, String> getConfigVersions() {
-    return configVersions;
-  }
-
-  /**
-   * @param configVersions the configVersions to set
-   */
-  public void setConfigVersions(Map<String, String> configVersions) {
-    this.configVersions = configVersions;
   }
 
   /**

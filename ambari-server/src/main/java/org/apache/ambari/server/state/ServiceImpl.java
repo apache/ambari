@@ -18,8 +18,9 @@
 
 package org.apache.ambari.server.state;
 
-import java.util.*;
-import java.util.Map.Entry;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -27,8 +28,14 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceResponse;
-import org.apache.ambari.server.orm.dao.*;
-import org.apache.ambari.server.orm.entities.*;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
+import org.apache.ambari.server.orm.dao.ServiceDesiredStateDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,8 +59,6 @@ public class ServiceImpl implements Service {
 
   private boolean persisted = false;
   private final Cluster cluster;
-  // [ String type -> Config Tag ], no need to hold the direct reference to the config
-  private Map<String, String> desiredConfigs;
   private Map<String, ServiceComponent> components;
   private final boolean isClientOnlyService;
 
@@ -62,15 +67,9 @@ public class ServiceImpl implements Service {
   @Inject
   private ClusterServiceDAO clusterServiceDAO;
   @Inject
-  private Clusters clusters;
-  @Inject
   private ServiceDesiredStateDAO serviceDesiredStateDAO;
   @Inject
-  private ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO;
-  @Inject
   private ClusterDAO clusterDAO;
-  @Inject
-  private ServiceConfigMappingDAO serviceConfigMappingDAO;
   @Inject
   private ServiceComponentFactory serviceComponentFactory;
   @Inject
@@ -93,7 +92,6 @@ public class ServiceImpl implements Service {
     serviceEntity.setServiceDesiredStateEntity(serviceDesiredStateEntity);
 
     this.cluster = cluster;
-    this.desiredConfigs = new HashMap<String, String>();
 
     this.components = new HashMap<String, ServiceComponent>();
 
@@ -118,8 +116,6 @@ public class ServiceImpl implements Service {
     //TODO check for null states?
     this.serviceDesiredStateEntity = serviceEntity.getServiceDesiredStateEntity();
 
-    this.desiredConfigs = new HashMap<String, String>();
-
     this.components = new HashMap<String, ServiceComponent>();
 
     if (!serviceEntity.getServiceComponentDesiredStateEntities().isEmpty()) {
@@ -129,12 +125,6 @@ public class ServiceImpl implements Service {
             serviceComponentFactory.createExisting(this,
                 serviceComponentDesiredStateEntity));
       }
-    }
-
-    for (ServiceConfigMappingEntity mappingEntity :
-        serviceEntity.getServiceConfigMappings()) {
-      desiredConfigs.put(mappingEntity.getConfigType(),
-          mappingEntity.getVersionTag());
     }
 
     StackId stackId = getDesiredStackVersion();
@@ -343,77 +333,6 @@ public class ServiceImpl implements Service {
   }
 
   @Override
-  public Map<String, Config> getDesiredConfigs() {
-    clusterGlobalLock.readLock().lock();
-    try {
-      readWriteLock.readLock().lock();
-      try {
-        Map<String, Config> map = new HashMap<String, Config>();
-        for (Entry<String, String> entry : desiredConfigs.entrySet()) {
-          Config config = cluster.getConfig(entry.getKey(), entry.getValue());
-          if (null != config) {
-            map.put(entry.getKey(), config);
-          } else {
-            // FIXME this is an error - should throw a proper exception
-            throw new RuntimeException("Found an invalid config"
-                + ", clusterName=" + getCluster().getClusterName()
-                + ", serviceName=" + getName()
-                + ", configType=" + entry.getKey()
-                + ", configVersionTag=" + entry.getValue());
-          }
-        }
-        return Collections.unmodifiableMap(map);
-      } finally {
-        readWriteLock.readLock().unlock();
-      }
-    } finally {
-      clusterGlobalLock.readLock().unlock();
-    }
-  }
-
-  @Override
-  public void updateDesiredConfigs(Map<String, Config> configs) {
-    clusterGlobalLock.readLock().lock();
-    try {
-      readWriteLock.writeLock().lock();
-      try {
-        for (Entry<String, Config> entry : configs.entrySet()) {
-          boolean contains = false;
-
-          for (ServiceConfigMappingEntity serviceConfigMappingEntity : serviceEntity.getServiceConfigMappings()) {
-            if (entry.getKey().equals(serviceConfigMappingEntity.getConfigType())) {
-              contains = true;
-              serviceConfigMappingEntity.setTimestamp(new Date().getTime());
-              serviceConfigMappingEntity.setVersionTag(entry.getValue().getVersionTag());
-            }
-          }
-
-          if (!contains) {
-            ServiceConfigMappingEntity newEntity = new ServiceConfigMappingEntity();
-            newEntity.setClusterId(serviceEntity.getClusterId());
-            newEntity.setServiceName(serviceEntity.getServiceName());
-            newEntity.setConfigType(entry.getKey());
-            newEntity.setVersionTag(entry.getValue().getVersionTag());
-            newEntity.setTimestamp(new Date().getTime());
-            newEntity.setServiceEntity(serviceEntity);
-            serviceEntity.getServiceConfigMappings().add(newEntity);
-
-          }
-
-
-          this.desiredConfigs.put(entry.getKey(), entry.getValue().getVersionTag());
-        }
-
-        saveIfPersisted();
-      } finally {
-        readWriteLock.writeLock().unlock();
-      }
-    } finally {
-      clusterGlobalLock.readLock().unlock();
-    }
-  }
-
-  @Override
   public StackId getDesiredStackVersion() {
     clusterGlobalLock.readLock().lock();
     try {
@@ -426,8 +345,6 @@ public class ServiceImpl implements Service {
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
-
-
   }
 
   @Override
@@ -465,7 +382,6 @@ public class ServiceImpl implements Service {
         ServiceResponse r = new ServiceResponse(cluster.getClusterId(),
             cluster.getClusterName(),
             getName(),
-            desiredConfigs,
             getDesiredStackVersion().getStackId(),
             getDesiredState().toString());
         return r;
@@ -493,21 +409,8 @@ public class ServiceImpl implements Service {
             + ", clusterId=" + cluster.getClusterId()
             + ", desiredStackVersion=" + getDesiredStackVersion()
             + ", desiredState=" + getDesiredState().toString()
-            + ", configs=[");
+            + ", components=[ ");
         boolean first = true;
-        if (desiredConfigs != null) {
-          for (Entry<String, String> entry : desiredConfigs.entrySet()) {
-            if (!first) {
-              sb.append(" , ");
-            }
-            first = false;
-            sb.append("{ Config type=" + entry.getKey()
-                + ", versionTag=" + entry.getValue() + "}");
-          }
-        }
-        sb.append("], components=[ ");
-
-        first = true;
         for (ServiceComponent sc : components.values()) {
           if (!first) {
             sb.append(" , ");
@@ -727,8 +630,6 @@ public class ServiceImpl implements Service {
           removeEntities();
           persisted = false;
         }
-
-        desiredConfigs.clear();
       } finally {
         readWriteLock.writeLock().unlock();
       }

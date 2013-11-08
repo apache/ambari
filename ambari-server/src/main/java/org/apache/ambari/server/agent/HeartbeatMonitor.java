@@ -219,14 +219,6 @@ public class HeartbeatMonitor implements Runnable {
           configurations.put("global", props);
         }
 
-        // HACK - if any service exists with global tag, and we have none, use
-        // that instead
-        if (configurations.isEmpty()) {
-          Config config = service.getDesiredConfigs().get("global");
-          if (null != config)
-            configurations.put("global", new HashMap<String, String>(config.getProperties()));
-        }
-
         StatusCommand statusCmd = new StatusCommand();
         statusCmd.setClusterName(cl.getClusterName());
         statusCmd.setServiceName(serviceName);

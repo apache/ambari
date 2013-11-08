@@ -48,10 +48,6 @@ public interface Service {
 
   public void setDesiredState(State state);
 
-  public Map<String, Config> getDesiredConfigs();
-
-  public void updateDesiredConfigs(Map<String, Config> configs);
-
   public StackId getDesiredStackVersion();
 
   public void setDesiredStackVersion(StackId stackVersion);

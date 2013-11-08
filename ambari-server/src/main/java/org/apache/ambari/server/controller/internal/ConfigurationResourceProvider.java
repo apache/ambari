@@ -213,26 +213,6 @@ public class ConfigurationResourceProvider extends
   // ----- utility methods ---------------------------------------------------
 
   /**
-   * Get the config related property ids from the given map of property ids.
-   *
-   * @param propertyIdMap  the map of property ids
-   *
-   * @return  a subset of the given map containing olny the property ids that have a
-   *          category of "config"
-   */
-  public static Map<String, String> getConfigPropertyValues(Map<String, Object> propertyIdMap) {
-    Map<String, String> configMap = new HashMap<String, String>();
-
-    for (Map.Entry<String,Object> entry : propertyIdMap.entrySet()) {
-      String propertyId = entry.getKey();
-      if (PropertyHelper.getPropertyCategory(propertyId).equals("config")) {
-        configMap.put(PropertyHelper.getPropertyName(propertyId), (String) entry.getValue());
-      }
-    }
-    return configMap;
-  }
-
-  /**
    * Get a configuration request object from the given map of properties.
    *
    * @param properties  the map of properties

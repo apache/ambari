@@ -347,10 +347,6 @@ public class ClustersTest {
     Service hdfs = cluster.addService("HDFS");
     hdfs.persist();
     
-    // service config
-    hdfs.updateDesiredConfigs(new HashMap<String,Config>() {{ put("t1", config1); }});
-    hdfs.persist();
-
     Assert.assertNotNull(injector.getInstance(ClusterServiceDAO.class).findByClusterAndServiceNames(c1, "HDFS"));
 
     ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
@@ -389,7 +385,6 @@ public class ClustersTest {
     Assert.assertEquals(2, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
     Assert.assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT state FROM ClusterStateEntity state").getResultList().size());
     Assert.assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigMappingEntity config").getResultList().size());
-    Assert.assertEquals(1, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ServiceConfigMappingEntity config").getResultList().size());
     
     clusters.deleteCluster(c1);
 
@@ -399,7 +394,6 @@ public class ClustersTest {
     Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());
     Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT state FROM ClusterStateEntity state").getResultList().size());
     Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigMappingEntity config").getResultList().size());
-    Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ServiceConfigMappingEntity config").getResultList().size());
     
   }
   @Test

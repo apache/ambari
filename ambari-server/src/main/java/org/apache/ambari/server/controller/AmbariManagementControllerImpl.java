@@ -467,12 +467,6 @@ public class AmbariManagementControllerImpl implements
 
       sch.setDesiredStackVersion(sc.getDesiredStackVersion());
 
-      // TODO fix config versions to configs conversion
-      Map<String, Config> configs = new HashMap<String, Config>();
-      if (request.getConfigVersions() != null) {
-      }
-
-      sch.updateDesiredConfigs(configs);
       sc.addServiceComponentHost(sch);
       sch.persist();
     }
@@ -1235,7 +1229,7 @@ public class AmbariManagementControllerImpl implements
                   roleCommand = RoleCommand.START;
                   event = new ServiceComponentHostStartEvent(
                       scHost.getServiceComponentName(), scHost.getHostName(),
-                      nowTimestamp, scHost.getDesiredConfigVersionsRecursive());
+                      nowTimestamp);
                 } else {
                   String error = "Invalid transition for"
                       + " servicecomponenthost"
@@ -1260,7 +1254,7 @@ public class AmbariManagementControllerImpl implements
                   roleCommand = RoleCommand.UNINSTALL;
                   event = new ServiceComponentHostStartEvent(
                       scHost.getServiceComponentName(), scHost.getHostName(),
-                      nowTimestamp, scHost.getDesiredConfigVersionsRecursive());
+                      nowTimestamp);
                 } else {
                   throw new AmbariException("Invalid transition for"
                       + " servicecomponenthost"
@@ -1547,27 +1541,6 @@ public class AmbariManagementControllerImpl implements
         }
       }
 
-      if (request.getConfigVersions() != null) {
-        State.checkUpdateConfiguration(sch, oldState, newState);
-
-        for (Entry<String, String> entry :
-            request.getConfigVersions().entrySet()) {
-          Config config = cluster.getConfig(
-              entry.getKey(), entry.getValue());
-          if (null == config) {
-            throw new AmbariException("Trying to update servicecomponenthost"
-                + " with invalid configs"
-                + ", clusterName=" + cluster.getClusterName()
-                + ", clusterId=" + cluster.getClusterId()
-                + ", serviceName=" + s.getName()
-                + ", componentName=" + sc.getName()
-                + ", hostname=" + sch.getHostName()
-                + ", invalidConfigType=" + entry.getKey()
-                + ", invalidConfigTag=" + entry.getValue());
-          }
-        }
-      }
-
       // If upgrade request comes without state information then its an error
       boolean upgradeRequest = checkIfUpgradeRequestAndValidate(request, cluster, s, sc, sch);
 
@@ -1690,29 +1663,6 @@ public class AmbariManagementControllerImpl implements
       // FIXME should we handle this scenario
       throw new IllegalArgumentException("Cannot handle different desired"
           + " state changes for a set of service components at the same time");
-    }
-
-    // TODO additional validation?
-    for (ServiceComponentHostRequest request : requests) {
-      Cluster cluster = clusters.getCluster(request.getClusterName());
-      Service s = cluster.getService(request.getServiceName());
-      ServiceComponent sc = s.getServiceComponent(
-          request.getComponentName());
-      ServiceComponentHost sch = sc.getServiceComponentHost(
-          request.getHostname());
-      if (request.getConfigVersions() != null) {
-        Map<String, Config> updated = new HashMap<String, Config>();
-
-        for (Entry<String, String> entry : request.getConfigVersions().entrySet()) {
-          Config config = cluster.getConfig(
-              entry.getKey(), entry.getValue());
-          updated.put(config.getType(), config);
-
-          if (!updated.isEmpty()) {
-            sch.updateDesiredConfigs(updated);
-          }
-        }
-      }
     }
 
     // Perform direct transitions (without task generation)
@@ -1851,11 +1801,7 @@ public class AmbariManagementControllerImpl implements
           throw getHostComponentUpgradeException(request, cluster, s, sc, sch,
               "Component host is in an invalid state for upgrade");
         }
-        // Ensure that the request only updates the stack id
-        if (request.getConfigVersions() != null) {
-          throw getHostComponentUpgradeException(request, cluster, s, sc, sch,
-              "Upgrade cannot be accompanied with config modification");
-        }
+
         if (request.getDesiredState() == null
             || !request.getDesiredState().equals(State.INSTALLED.toString())) {
           throw getHostComponentUpgradeException(request, cluster, s, sc, sch,
@@ -1952,7 +1898,7 @@ public class AmbariManagementControllerImpl implements
         
         for (ServiceComponentHost sch : cluster.getServiceComponentHosts(request.getHostname())) {
           ServiceComponentHostRequest schr = new ServiceComponentHostRequest(request.getClusterName(),
-              sch.getServiceName(), sch.getServiceComponentName(), sch.getHostName(), null, null);
+              sch.getServiceName(), sch.getServiceComponentName(), sch.getHostName(), null);
           expanded.add(schr);
         }
       }

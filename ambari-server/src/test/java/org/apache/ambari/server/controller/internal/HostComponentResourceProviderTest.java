@@ -106,16 +106,13 @@ public class HostComponentResourceProviderTest {
     StackId stackId = new StackId("HDP-0.1");
     StackId stackId2 = new StackId("HDP-0.2");
     allResponse.add(new ServiceComponentHostResponse(
-        "Cluster100", "Service100", "Component100", "Host100", null, null, State.INSTALLED.toString(),
-        stackId.getStackId(), State.STARTED.toString(),
+        "Cluster100", "Service100", "Component100", "Host100", State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
         stackId2.getStackId()));
     allResponse.add(new ServiceComponentHostResponse(
-        "Cluster100", "Service100", "Component101", "Host100", null, null, State.INSTALLED.toString(),
-        stackId.getStackId(), State.STARTED.toString(),
+        "Cluster100", "Service100", "Component101", "Host100", State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
         stackId2.getStackId()));
     allResponse.add(new ServiceComponentHostResponse(
-        "Cluster100", "Service100", "Component102", "Host100", null, null, State.INSTALLED.toString(),
-        stackId.getStackId(), State.STARTED.toString(),
+        "Cluster100", "Service100", "Component102", "Host100", State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
         stackId2.getStackId()));
     Map<String, String> expectedNameValues = new HashMap<String, String>();
     expectedNameValues.put(
@@ -187,7 +184,7 @@ public class HostComponentResourceProviderTest {
 
     Set<ServiceComponentHostResponse> nameResponse = new HashSet<ServiceComponentHostResponse>();
     nameResponse.add(new ServiceComponentHostResponse(
-        "Cluster102", "Service100", "Component100", "Host100", null, null, "STARTED", "", "", ""));
+        "Cluster102", "Service100", "Component100", "Host100", "STARTED", "", "", ""));
 
     // set expectations
     expect(managementController.getHostComponents(
