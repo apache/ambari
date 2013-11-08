@@ -33,4 +33,8 @@
             <category>CLIENT</category>
         </component>
     </components>
+    <configuration-dependencies>
+      <config-type>yarn-site</config-type>
+      <config-type>global</config-type>
+    </configuration-dependencies>
 </metainfo>

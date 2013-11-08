@@ -34,6 +34,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 
 import com.google.inject.Inject;
+import org.apache.ambari.server.configuration.Configuration;
 
 /**
  * Helper class that works with config traversals.
@@ -271,7 +272,7 @@ public class ConfigHelper {
         // desired is set, but actual is not
         if (!serviceInfo.hasConfigType(type)) {
           stale = false;
-        } else {
+        } else if (type.equals(Configuration.GLOBAL_CONFIG_TAG)) {
           // find out if the keys are stale by first checking the target service,
           // then all services
           Collection<String> keys = mergeKeyNames(cluster, type, tags.values());
@@ -279,6 +280,8 @@ public class ConfigHelper {
           if (serviceInfo.hasPropertyFor(type, keys) || !hasPropertyFor(stackId, type, keys)) {
             stale = true;
           }
+        } else {
+          stale = true;
         }
       } else {
         // desired and actual both define the type
@@ -287,15 +290,19 @@ public class ConfigHelper {
         
         if (!isTagChanged(tags, actualTags)) {
           stale = false;
-        } else {
-          // tags are change, need to find out what has changed, and if it applies
+        } else if (type.equals(Configuration.GLOBAL_CONFIG_TAG)) {
+          // tags are changed, need to find out what has changed,
+          // and if it applies
           // to the service
           Collection<String> changed = findChangedKeys(cluster, type, tags.values(), actualTags.values());
           if (serviceInfo.hasPropertyFor(type, changed)) {
             stale = true;
           }
+        } else if (!serviceInfo.hasConfigType(type)) {
+          stale = false;
+        } else {
+          stale = true;
         }
-
       }
     }
     return stale;
@@ -305,7 +312,7 @@ public class ConfigHelper {
    * @return <code>true</code> if any service on the stack defines a property
    * for the type.
    */
-  // TODO: Create a static hash map for quick lookup
+
   private boolean hasPropertyFor(StackId stack, String type,
       Collection<String> keys) throws AmbariException {
 
@@ -364,7 +371,7 @@ public class ConfigHelper {
     map.put(CLUSTER_DEFAULT_TAG, hc.getDefaultVersionTag());
     if (hc.getConfigGroupOverrides() != null) {
       for (Entry<Long, String> entry : hc.getConfigGroupOverrides().entrySet()) {
-        map.put(entry.toString(), entry.getValue());
+        map.put(entry.getKey().toString(), entry.getValue());
       }
     }
     return map;

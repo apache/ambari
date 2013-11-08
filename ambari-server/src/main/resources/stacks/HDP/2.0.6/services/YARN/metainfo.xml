@@ -33,4 +33,10 @@
             <category>CLIENT</category>
         </component>
     </components>
+    <configuration-dependencies>
+      <config-type>global</config-type>
+      <config-type>core-site</config-type>
+      <config-type>yarn-site</config-type>
+      <config-type>capacity-scheduler</config-type>
+    </configuration-dependencies>
 </metainfo>

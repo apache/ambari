@@ -42,7 +42,10 @@ public class ServiceMetainfoXml {
   @XmlElementWrapper(name="components")
   @XmlElements(@XmlElement(name="component"))
   private List<ComponentInfo> components;
-  
+
+  @XmlElementWrapper(name="configuration-dependencies")
+  @XmlElement(name="config-type")
+  private List<String> configDependencies;
   /**
    * @return the user
    */
@@ -77,5 +80,12 @@ public class ServiceMetainfoXml {
   public boolean isDeleted() {
     return deleted;
   }
-  
+
+  public List<String> getConfigDependencies() {
+    return configDependencies;
+  }
+
+  public void setConfigDependencies(List<String> configDependencies) {
+    this.configDependencies = configDependencies;
+  }
 }

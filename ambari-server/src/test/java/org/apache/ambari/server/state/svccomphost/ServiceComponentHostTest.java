@@ -739,15 +739,47 @@ public class ServiceComponentHostTest {
     
     // change 'global' property only affecting global/HDFS
     makeConfig(cluster, "global", "version2",
-        new HashMap<String,String>() {{
-          put("a", "b");
-          put("dfs_namenode_name_dir", "/foo3"); // HDFS only
-          put("mapred_log_dir_prefix", "/foo2"); // MR2 only
-        }});
+      new HashMap<String,String>() {{
+        put("a", "b");
+        put("dfs_namenode_name_dir", "/foo3"); // HDFS only
+        put("mapred_log_dir_prefix", "/foo2"); // MR2 only
+      }});
     
     Assert.assertTrue(sch1.convertToResponse().isStaleConfig());
     Assert.assertTrue(sch2.convertToResponse().isStaleConfig());
     Assert.assertFalse(sch3.convertToResponse().isStaleConfig());
+
+    // Change core-site property, only HDFS property
+    makeConfig(cluster, "core-site", "version1",
+      new HashMap<String,String>() {{
+        put("a", "b");
+        put("fs.trash.interval", "360"); // HDFS only
+      }});
+
+    Assert.assertTrue(sch1.convertToResponse().isStaleConfig());
+    Assert.assertTrue(sch2.convertToResponse().isStaleConfig());
+    Assert.assertTrue(sch3.convertToResponse().isStaleConfig());
+
+    actual.put("core-site", new HashMap<String, String>() {{
+      put("tag", "version1");
+    }});
+
+    sch1.updateActualConfigs(actual);
+
+    final Config c1 = configFactory.createNew(cluster, "core-site",
+      new HashMap<String, String>() {{ put("fs.trash.interval", "400"); }});
+    c1.setVersionTag("version2");
+    c1.persist();
+    cluster.addConfig(c1);
+    configGroup = configGroupFactory.createNew(cluster, "g2",
+      "t2", "", new HashMap<String, Config>() {{ put("core-site", c1); }},
+      new HashMap<String, Host>() {{ put("h3", host); }});
+    configGroup.persist();
+    cluster.addConfigGroup(configGroup);
+
+    Assert.assertTrue(sch1.convertToResponse().isStaleConfig());
+    Assert.assertTrue(sch2.convertToResponse().isStaleConfig());
+    Assert.assertTrue(sch3.convertToResponse().isStaleConfig());
   }
 
   /**

@@ -20,6 +20,7 @@ package org.apache.ambari.server.state;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -41,6 +42,7 @@ public class ServiceInfo {
   private boolean isDeleted = false;
   @JsonIgnore
   private volatile Map<String, Set<String>> configLayout = null;
+  private List<String> configDependencies;
 
   public boolean isDeleted() {
     return isDeleted;
@@ -141,8 +143,8 @@ public class ServiceInfo {
   }
   
   public List<String> getConfigTypes() {
-    buildConfigLayout();
-    return new ArrayList<String>(configLayout.keySet());
+    return configDependencies != null ? configDependencies :
+      Collections.unmodifiableList(new ArrayList<String>());
   }
 
   
@@ -151,9 +153,7 @@ public class ServiceInfo {
    * @return <code>true</code> if the service defines the supplied type
    */
   public boolean hasConfigType(String type) {
-    buildConfigLayout();
-    
-    return configLayout.containsKey(type);
+    return configDependencies != null && configDependencies.contains(type);
   }
 
   /**
@@ -170,7 +170,8 @@ public class ServiceInfo {
   public boolean hasPropertyFor(String type, Collection<String> keyNames) {
     if (!hasConfigType(type))
       return false;
-    
+
+    buildConfigLayout();
     Set<String> keys = configLayout.get(type);
 
     for (String staleCheck : keyNames) {
@@ -180,7 +181,7 @@ public class ServiceInfo {
     
     return false;
   }
-  
+
   /**
    * Builds the config map specific to this service.
    */
@@ -189,19 +190,27 @@ public class ServiceInfo {
       synchronized(this) {
         if (null == configLayout) {
           configLayout = new HashMap<String, Set<String>>();
-        
+
           for (PropertyInfo pi : getProperties()) {
             String type = pi.getFilename();
             int idx = type.indexOf(".xml");
-              type = type.substring(0, idx);
-            
+            type = type.substring(0, idx);
+
             if (!configLayout.containsKey(type))
-                configLayout.put(type, new HashSet<String>());
-            
+              configLayout.put(type, new HashSet<String>());
+
             configLayout.get(type).add(pi.getName());
           }
         }
       }
     }
+  }
+
+  public List<String> getConfigDependencies() {
+    return configDependencies;
+  }
+
+  public void setConfigDependencies(List<String> configDependencies) {
+    this.configDependencies = configDependencies;
   }
 }

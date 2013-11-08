@@ -133,6 +133,7 @@ public class AmbariManagementControllerTest {
   private static final String STACK_NAME = "HDP";
 
   private static final String STACK_VERSION = "0.2";
+  private static final String NEW_STACK_VERSION = "2.0.6";
   private static final String OS_TYPE = "centos5";
   private static final String REPO_ID = "HDP-1.1.1.16";
   private static final String PROPERTY_NAME = "hbase.regionserver.msginterval";
@@ -6054,12 +6055,12 @@ public class AmbariManagementControllerTest {
   public void testGetStackServices() throws Exception {
 
 
-    StackServiceRequest request = new StackServiceRequest(STACK_NAME, STACK_VERSION, null);
+    StackServiceRequest request = new StackServiceRequest(STACK_NAME, NEW_STACK_VERSION, null);
     Set<StackServiceResponse> responses = controller.getStackServices(Collections.singleton(request));
-    Assert.assertEquals(STACK_SERVICES_CNT, responses.size());
+    Assert.assertEquals(12, responses.size());
 
 
-    StackServiceRequest requestWithParams = new StackServiceRequest(STACK_NAME, STACK_VERSION, SERVICE_NAME);
+    StackServiceRequest requestWithParams = new StackServiceRequest(STACK_NAME, NEW_STACK_VERSION, SERVICE_NAME);
     Set<StackServiceResponse> responsesWithParams = controller.getStackServices(Collections.singleton(requestWithParams));
     Assert.assertEquals(1, responsesWithParams.size());
     for (StackServiceResponse responseWithParams: responsesWithParams) {
@@ -6068,7 +6069,7 @@ public class AmbariManagementControllerTest {
     }
     
 
-    StackServiceRequest invalidRequest = new StackServiceRequest(STACK_NAME, STACK_VERSION, NON_EXT_VALUE);
+    StackServiceRequest invalidRequest = new StackServiceRequest(STACK_NAME, NEW_STACK_VERSION, NON_EXT_VALUE);
     try {
       controller.getStackServices(Collections.singleton(invalidRequest));
     } catch (StackAccessException e) {

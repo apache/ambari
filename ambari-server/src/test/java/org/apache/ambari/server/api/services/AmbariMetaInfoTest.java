@@ -65,6 +65,7 @@ public class AmbariMetaInfoTest {
   private static String STACK_VERSION_HDP_02 = "0.2";
   private static final String STACK_MINIMAL_VERSION_HDP = "0.0";
   private static String SERVICE_NAME_HDFS = "HDFS";
+  private static String SERVICE_NAME_MAPRED2 = "MAPREDUCE2";
   private static String SERVICE_COMPONENT_NAME = "NAMENODE";
   private static final String OS_TYPE = "centos5";
   private static final String REPO_ID = "HDP-UTILS-1.1.0.15";
@@ -200,6 +201,14 @@ public class AmbariMetaInfoTest {
     ServiceInfo si = metaInfo.getServiceInfo(STACK_NAME_HDP, STACK_VERSION_HDP,
         SERVICE_NAME_HDFS);
     assertNotNull(si);
+  }
+
+  @Test
+  public void testConfigDependencies() throws Exception {
+    ServiceInfo serviceInfo = metaInfo.getServiceInfo(STACK_NAME_HDP, EXT_STACK_NAME,
+      SERVICE_NAME_MAPRED2);
+    assertNotNull(serviceInfo);
+    assertTrue(!serviceInfo.getConfigDependencies().isEmpty());
   }
 
   /**
@@ -519,6 +528,7 @@ public class AmbariMetaInfoTest {
     Assert.assertEquals("mapreduce.shuffle", originalProperty.getValue());
     Assert.assertEquals("Auxilliary services of NodeManager",
       originalProperty.getDescription());
+    Assert.assertEquals(3, redefinedService.getConfigDependencies().size());
   }
 
   @Test

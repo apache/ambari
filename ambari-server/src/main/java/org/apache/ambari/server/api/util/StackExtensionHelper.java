@@ -95,6 +95,7 @@ public class StackExtensionHelper {
     mergedServiceInfo.setComment(childService.getComment());
     mergedServiceInfo.setUser(childService.getUser());
     mergedServiceInfo.setVersion(childService.getVersion());
+    mergedServiceInfo.setConfigDependencies(childService.getConfigDependencies());
     // Add all child components to service
     List<String> deleteList = new ArrayList<String>();
     List<String> appendList = new ArrayList<String>();
@@ -129,6 +130,15 @@ public class StackExtensionHelper {
       if (!deleteList.contains(parentPropertyInfo.getName()) && !appendList
           .contains(parentPropertyInfo.getName())) {
         mergedServiceInfo.getProperties().add(parentPropertyInfo);
+      }
+    }
+    // Add all parent config dependencies
+    if (parentService.getConfigDependencies() != null && !parentService
+        .getConfigDependencies().isEmpty()) {
+      for (String configDep : parentService.getConfigDependencies()) {
+        if (!mergedServiceInfo.getConfigDependencies().contains(configDep)) {
+          mergedServiceInfo.getConfigDependencies().add(configDep);
+        }
       }
     }
     return mergedServiceInfo;
@@ -294,6 +304,7 @@ public class StackExtensionHelper {
       serviceInfo.setUser(smx.getUser());
       serviceInfo.setVersion(smx.getVersion());
       serviceInfo.setDeleted(smx.isDeleted());
+      serviceInfo.setConfigDependencies(smx.getConfigDependencies());
       
       serviceInfo.getComponents().addAll(smx.getComponents());
     } catch (Exception e) {
