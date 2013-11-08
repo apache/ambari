@@ -58,6 +58,10 @@ App.YARNService = App.Service.extend({
    * Provides a flat array of queue names.
    * Example: root, root/default
    */
+  maxMemory: function() {
+    return this.get('allocatedMemory') + this.get('availableMemory');
+  }.property('allocatedMemory','availableMemory'),
+
   queueNames: function () {
     var queueString = this.get('queue');
     var allQueueNames = [];

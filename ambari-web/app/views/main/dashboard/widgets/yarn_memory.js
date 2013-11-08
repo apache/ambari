@@ -27,7 +27,7 @@ App.YARNMemoryPieChartView = App.PieChartDashboardWidgetView.extend({
   widgetHtmlId: 'widget-yarn-memory',
   model_type: 'yarn',
   modelFieldUsed: 'allocatedMemory',
-  modelFieldMax: 'availableMemory',
+  modelFieldMax: 'maxMemory',
 
   didInsertElement: function() {
     this._super();
