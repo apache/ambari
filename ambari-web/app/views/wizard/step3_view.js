@@ -50,7 +50,7 @@ App.WizardStep3View = Em.View.extend({
       this.set('status', 'alert-warn');
       this.set('linkText', '');
       this.set('message', Em.I18n.t('installer.step3.warnings.missingHosts'));
-    } else if (this.get('controller.isHostHaveWarnings')) {
+    } else if (this.get('controller.isHostHaveWarnings') || this.get('controller.repoCategoryWarnings.length')) {
       this.set('status', 'alert-warn');
       this.set('linkText', Em.I18n.t('installer.step3.warnings.linkText'));
       this.set('message', Em.I18n.t('installer.step3.warnings.fails').format(hosts.length - failedHosts));
@@ -70,7 +70,7 @@ App.WizardStep3View = Em.View.extend({
         this.set('message', Em.I18n.t('installer.step3.warnings.someWarnings').format((hosts.length-failedHosts), failedHosts));
       }
     }
-  }.observes('controller.isHostHaveWarnings', 'controller.bootHosts.@each.bootStatus')
+  }.observes('controller.isHostHaveWarnings', 'controller.bootHosts.@each.bootStatus', 'controller.repoCategoryWarnings')
 });
 
 //todo: move it inside WizardStep3View

@@ -537,7 +537,10 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   getHostInfoSuccessCallback: function (jsonData) {
     var hosts = this.get('bootHosts');
+    var self = this;
     this.parseWarnings(jsonData);
+    var repoWarnings = [];
+    var hostsContext = [];
     hosts.forEach(function (_host) {
       var host = (App.testMode) ? jsonData.items[0] : jsonData.items.findProperty('Hosts.host_name', _host.name);
       if (App.skipBootstrap) {
@@ -548,10 +551,25 @@ App.WizardStep3Controller = Em.Controller.extend({
         _host.cpu = host.Hosts.cpu_count;
         _host.memory = ((parseInt(host.Hosts.total_mem))).toFixed(2);
         _host.disk_info = host.Hosts.disk_info;
+        _host.os_type = host.Hosts.os_type;
 
+        var context = self.checkHostOSType(host.Hosts.os_type, host.Hosts.host_name);
+        if(context) {
+          hostsContext.push(context);
+        }
         console.log("The value of memory is: " + _host.memory);
       }
     });
+    if (hostsContext.length > 0) { // warning exist
+      var repoWarning = {
+        name: 'Repository for OS not available',
+        hosts: hostsContext,
+        category: 'repositories',
+        onSingleHost: false
+      };
+      repoWarnings.push(repoWarning);
+    }
+    this.set('repoCategoryWarnings', repoWarnings);
     this.set('bootHosts', hosts);
     console.log("The value of hosts: " + JSON.stringify(hosts));
     this.stopRegistration();
@@ -565,6 +583,32 @@ App.WizardStep3Controller = Em.Controller.extend({
   stopRegistration: function () {
     this.set('isSubmitDisabled', !this.get('bootHosts').someProperty('bootStatus', 'REGISTERED'));
     this.set('isRetryDisabled', !this.get('bootHosts').someProperty('bootStatus', 'FAILED'));
+  },
+
+  /**
+   * Check if the customized os group contains the registered host os type. If not the repo on that host is invalid.
+   */
+  checkHostOSType: function (osType, hostName) {
+    var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
+    var selectedOS = [];
+    var isValid = false;
+    if (selectedStack && selectedStack.operatingSystems) {
+      selectedStack.get('operatingSystems').filterProperty('selected', true).forEach( function(os) {
+        selectedOS.pushObject(os.osType);
+        if ( os.osType == osType) {
+          isValid = true;
+        }
+      });
+    }
+
+    if (!isValid) {
+      console.log('WARNING: Getting host os type does NOT match the user selected os group in step1. ' +
+        'Host Name: '+ hostName + '. Host os type:' + osType + '. Selected group:' + selectedOS);
+      return Em.I18n.t('installer.step3.hostWarningsPopup.repositories.context').format(hostName, osType, selectedOS);
+    } else {
+      return null;
+    }
+
   },
 
   selectCategory: function(event, context){
@@ -921,6 +965,7 @@ App.WizardStep3Controller = Em.Controller.extend({
    */
   hostWarningsPopup: function(event){
     var self = this;
+    var repoCategoryWarnings = this.get('repoCategoryWarnings');
     App.ModalPopup.show({
 
       header: Em.I18n.t('installer.step3.warnings.popup.header'),
@@ -1009,6 +1054,15 @@ App.WizardStep3Controller = Em.Controller.extend({
         content: function () {
           var categoryWarnings = this.get('categoryWarnings');
           return [
+             Ember.Object.create({
+                warnings: repoCategoryWarnings,
+                title: Em.I18n.t('installer.step3.hostWarningsPopup.repositories'),
+                message: Em.I18n.t('installer.step3.hostWarningsPopup.repositories.message'),
+                type: Em.I18n.t('common.issues'),
+                emptyName: Em.I18n.t('installer.step3.hostWarningsPopup.empty.repositories'),
+                action: Em.I18n.t('installer.step3.hostWarningsPopup.action.invalid'),
+                category: 'repositories'
+             }),
              Ember.Object.create({
                warnings: categoryWarnings.filterProperty('category', 'firewall'),
                title: Em.I18n.t('installer.step3.hostWarningsPopup.firewall'),
