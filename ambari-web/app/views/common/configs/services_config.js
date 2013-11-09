@@ -19,6 +19,7 @@
 var App = require('app');
 var validator = require('utils/validator');
 var stringUtils = require('utils/string_utils');
+var hostsUtils = require('utils/hosts');
 
 App.ServicesConfigView = Em.View.extend({
   templateName: require('templates/common/configs/services_config'),
@@ -541,30 +542,13 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
      * we ask for a normalized array back.
      */
     var validComponents = this.get('controller.getCurrentServiceComponents');
-    App.ModalPopup.show({
-      classNames: [ 'sixty-percent-width-modal' ],
-      header: Em.I18n.t('hosts.selectHostsDialog.title'),
-      primary: Em.I18n.t('ok'),
-      secondary: Em.I18n.t('common.cancel'),
-      warningMessage: null,
-      onPrimary: function () {
-        console.debug('serviceConfigProperty.(old-selectedHosts)=' + serviceConfigProperty.get('selectedHosts'));
-        var arrayOfSelectedHosts = [];
-        var selectedHosts = availableHosts.filterProperty('selected', true);
-        selectedHosts.forEach(function (host) {
-          arrayOfSelectedHosts.push(host.get('host.id'));
-        });
-        if (arrayOfSelectedHosts.length > 0) {
-          this.set('warningMessage', null);
-          serviceConfigProperty.set('selectedHostOptions', arrayOfSelectedHosts);
-          serviceConfigProperty.validate();
-          console.debug('serviceConfigProperty.(new-selectedHosts)=', arrayOfSelectedHosts);
-          this.hide();
-        } else {
-          this.set('warningMessage', 'Atleast one host needs to be selected.');
-        }
-      },
-      onSecondary: function () {
+    hostsUtils.launchHostsSelectionDialog(availableHosts, selectedHosts,
+        false, validComponents, function(newSelectedHosts){
+      if (newSelectedHosts!=null) {
+        serviceConfigProperty.set('selectedHostOptions', newSelectedHosts);
+        serviceConfigProperty.validate();
+      } else {
+        // Dialog cancelled
         // If property has no hosts already, then remove it from the parent.
         var hostCount = serviceConfigProperty.get('selectedHostOptions.length');
         if (hostCount < 1) {
@@ -572,126 +556,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
           var overrides = parentSCP.get('overrides');
           overrides.removeObject(serviceConfigProperty);
         }
-        this.hide();
-      },
-      bodyClass: Ember.View.extend({
-        templateName: require('templates/common/configs/overrideWindow'),
-        controllerBinding: 'App.router.mainServiceInfoConfigsController',
-        serviceConfigProperty: serviceConfigProperty,
-        filterText: '',
-        filterTextPlaceholder: Em.I18n.t('hosts.selectHostsDialog.filter.placeHolder'),
-        availableHosts: availableHosts,
-        filterColumn: Ember.Object.create({id: 'ip', name: 'IP Address', selected: false}),
-        filterColumns: Ember.A([
-          Ember.Object.create({id: 'ip', name: 'IP Address', selected: false}),
-          Ember.Object.create({id: 'cpu', name: 'CPU', selected: false}),
-          Ember.Object.create({id: 'memory', name: 'RAM', selected: false}),
-          Ember.Object.create({id: 'diskUsage', name: 'Disk Usage', selected: false}),
-          Ember.Object.create({id: 'loadAvg', name: 'Load Average', selected: false}),
-          Ember.Object.create({id: 'osArch', name: 'OS Architecture', selected: false}),
-          Ember.Object.create({id: 'osType', name: 'OS Type', selected: false})
-        ]),
-        showOnlySelectedHosts: false,
-        filterComponents: validComponents,
-        filterComponent: null,
-        filteredHosts: function () {
-          var hosts = this.get('availableHosts');
-          var filterText = this.get('filterText');
-          var showOnlySelectedHosts = this.get('showOnlySelectedHosts');
-          var filteredHosts = Ember.A([]);
-          var self = this;
-          hosts.forEach(function (host) {
-            var skip = false;
-            var ahost = host.get('host');
-            var filterColumn = self.get('filterColumn');
-            if (filterColumn == null) {
-              filterColumn = self.get('filterColumns').objectAt(0);
-            }
-            var value = ahost.get(filterColumn.id);
-            host.set('filterColumnValue', value);
-            if (filterText != null && filterText.length > 0) {
-              if ((value == null || !value.match(filterText)) && !host.get('host.publicHostName').match(filterText)) {
-                skip = true;
-              }
-            }
-            var filterComponent = self.get('filterComponent');
-            if (!skip && filterComponent != null) {
-              var componentFound = false;
-              var fcn = filterComponent.get('componentName');
-              var hcs = ahost.get('hostComponents');
-              if (hcs != null) {
-                hcs.forEach(function (hc) {
-                  if (fcn === hc.get('componentName')) {
-                    componentFound = true;
-                  }
-                });
-              }
-              if (!componentFound) {
-                skip = true;
-              }
-            }
-            if (!skip && showOnlySelectedHosts && !host.get('selected')) {
-              skip = true;
-            }
-            if (!skip) {
-              filteredHosts.pushObject(host);
-            }
-          });
-          return filteredHosts;
-        }.property('availableHosts', 'filterText', 'filterColumn', 'filterComponent', 'filterComponent.componentName', 'showOnlySelectedHosts'),
-        hostColumnValue: function (host, column) {
-          return host.get(column.id);
-        },
-        hostSelectMessage: function () {
-          var hosts = this.get('availableHosts');
-          var selectedHosts = hosts.filterProperty('selected', true);
-          return this.t('hosts.selectHostsDialog.selectedHostsLink').format(selectedHosts.get('length'), hosts.get('length'))
-        }.property('availableHosts.@each.selected'),
-        selectFilterColumn: function (event) {
-          if (event != null && event.context != null && event.context.id != null) {
-            var filterColumn = this.get('filterColumn');
-            if (filterColumn != null) {
-              filterColumn.set('selected', false);
-            }
-            event.context.set('selected', true);
-            this.set('filterColumn', event.context);
-          }
-        },
-        selectFilterComponent: function (event) {
-          if (event != null && event.context != null && event.context.componentName != null) {
-            var currentFilter = this.get('filterComponent');
-            if (currentFilter != null) {
-              currentFilter.set('selected', false);
-            }
-            if (currentFilter != null && currentFilter.componentName === event.context.componentName) {
-              // selecting the same filter deselects it.
-              this.set('filterComponent', null);
-            } else {
-              this.set('filterComponent', event.context);
-              event.context.set('selected', true);
-            }
-          }
-        },
-        allHostsSelected: false,
-        toggleSelectAllHosts: function (event) {
-          if (this.get('allHostsSelected')) {
-            // Select all hosts
-            this.get('availableHosts').setEach('selected', true);
-          } else {
-            // Deselect all hosts
-            this.get('availableHosts').setEach('selected', false);
-          }
-        }.observes('allHostsSelected'),
-        toggleShowSelectedHosts: function () {
-          var currentFilter = this.get('filterComponent');
-          if (currentFilter != null) {
-            currentFilter.set('selected', false);
-          }
-          this.set('filterComponent', null);
-          this.set('filterText', null);
-          this.set('showOnlySelectedHosts', !this.get('showOnlySelectedHosts'));
-        }
-      })
+      }
     });
   }
 });
