@@ -106,7 +106,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
       if (key != null) {
         this.master = key.toCharArray();
       } else {
-        LOG.error("Master key is not provided as a System property or an " +
+        LOG.debug("Master key is not provided as a System property or an " +
           "environment varialble.");
       }
     }

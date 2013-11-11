@@ -422,7 +422,7 @@ public class Configuration {
         this.credentialProvider = new CredentialProvider(null,
           getMasterKeyLocation(), isMasterKeyPersisted());
       } catch (Exception e) {
-        LOG.info("Credential provider creation failed.\n" + e.getMessage());
+        LOG.info("Credential provider creation failed. Reason: " + e.getMessage());
         if (LOG.isDebugEnabled()) {
           e.printStackTrace();
         }
