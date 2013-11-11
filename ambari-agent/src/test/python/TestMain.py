@@ -94,6 +94,7 @@ class TestMain(unittest.TestCase):
 
     # Testing with default setup (config file does not contain loglevel entry)
     # Log level should not be changed
+    config.set('agent', 'loglevel', None)
     main.update_log_level(config)
     self.assertFalse(setLevel_mock.called)
 

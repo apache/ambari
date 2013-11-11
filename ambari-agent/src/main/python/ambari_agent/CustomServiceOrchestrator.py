@@ -48,19 +48,18 @@ class CustomServiceOrchestrator():
 
   def runCommand(self, command, tmpoutfile, tmperrfile):
     try:
-      # TODO: Adjust variables
-      service_name = command['serviceName']
       component_name = command['role']
-      stack_name = command['stackName'] # TODO: add at the server side
-      stack_version = command['stackVersion'] # TODO: add at the server side
-      script_type = command['scriptType'] # TODO: add at the server side
-      script = command['script']
+      stack_name = command['hostLevelParams']['stack_name']
+      stack_version = command['hostLevelParams']['stack_version']
+      script_type = command['commandParams']['script_type']
+      script = command['commandParams']['script']
       command_name = command['roleCommand']
-      timeout = int(command['timeout']) # TODO: add at the server side
+      timeout = int(command['commandParams']['command_timeout'])
+      metadata_folder = command['commandParams']['service_metadata_folder']
       base_dir = self.file_cache.get_service_base_dir(
-          stack_name, stack_version, service_name, component_name)
+          stack_name, stack_version, metadata_folder, component_name)
       script_path = self.resolve_script_path(base_dir, script, script_type)
-      if script_type == self.SCRIPT_TYPE_PYTHON:
+      if script_type.upper() == self.SCRIPT_TYPE_PYTHON:
         json_path = self.dump_command_to_json(command)
         script_params = [command_name, json_path, base_dir]
         ret = self.python_executor.run_file(
@@ -76,7 +75,7 @@ class CustomServiceOrchestrator():
       ret = {
         'stdout' : message,
         'stderr' : message,
-        'exitCode': 1,
+        'exitcode': 1,
       }
     return ret
 
@@ -96,37 +95,10 @@ class CustomServiceOrchestrator():
     """
     Converts command to json file and returns file path
     """
-    command_id = command['commandId']
-    file_path = os.path.join(self.tmp_dir, "command-{0}.json".format(command_id))
-    with open(file_path, "w") as f:
+    task_id = command['taskId']
+    file_path = os.path.join(self.tmp_dir, "command-{0}.json".format(task_id))
+    # Command json contains passwords, that's why we need proper permissions
+    with os.fdopen(os.open(file_path, os.O_WRONLY | os.O_CREAT,0600), 'w') as f:
       content = json.dumps(command)
       f.write(content)
     return file_path
-
-
-def main():
-  """
-  May be used for manual testing if needed
-  """
-  config = AmbariConfig().getConfig()
-  orchestrator = CustomServiceOrchestrator(config)
-  config.set('agent', 'prefix', "/tmp")
-  command = {
-    "serviceName" : "HBASE",
-    "role" : "HBASE_MASTER",
-    "stackName" : "HDP",
-    "stackVersion" : "1.2.0",
-    "scriptType" : "PYTHON",
-    "script" : "/tmp/1.py",
-    "roleCommand" : "START",
-    "timeout": 600
-  }
-
-  result = orchestrator.runCommand(command, "/tmp/out-1.txt", "/tmp/err-1.txt")
-  pprint.pprint(result)
-  pass
-
-
-
-if __name__ == "__main__":
-  main()
