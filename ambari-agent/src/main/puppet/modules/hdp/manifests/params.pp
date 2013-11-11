@@ -243,7 +243,7 @@ class hdp::params()
   ############ Hdfs apps directories
   $hive_apps_whs_dir = hdp_default("hive_apps_whs_dir", "/apps/hive/warehouse")
   $webhcat_apps_dir = hdp_default("webhcat_apps_dir", "/apps/webhcat")
-  $hbase_hdfs_root_dir = hdp_default("hbase-site/hbase.hdfs.root.dir","/apps/hbase/data")
+  $hbase_hdfs_root_dir = hdp_get_dir_from_url(hdp_default("hbase-site/hbase.rootdir"),"/apps/hbase/data")
   $hbase_staging_dir = hdp_default("hbase-site/hbase.bulkload.staging.dir","/apps/hbase/staging")
 
   $yarn_nm_app_log_dir = hdp_default("yarn-site/yarn.nodemanager.remote-app-log-dir","/app-logs")

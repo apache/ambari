@@ -27,6 +27,9 @@ class hdp-hadoop::params(
   ####  
   $conf_dir = $hdp::params::hadoop_conf_dir 
 
+  ####hbase
+  $hdfs_root_dir = $hdp::params::hbase_hdfs_root_dir
+
   ####### users
 
   $mapred_user = $hdp::params::mapred_user
