@@ -38,7 +38,7 @@ App.UpdateController = Em.Controller.extend({
   updateAll:function(){
     if(this.get('isWorking')) {
       App.updater.run(this, 'updateHostConditionally', 'isWorking');
-      App.updater.run(this, 'updateServiceMetric', 'isWorking', App.componentsUpdateInterval);
+      App.updater.run(this, 'updateServiceMetricConditionally', 'isWorking', App.componentsUpdateInterval);
       App.updater.run(this, 'graphsUpdate', 'isWorking');
       if (App.supports.hostOverrides) {
         App.updater.run(this, 'updateComponentConfig', 'isWorking');
@@ -57,6 +57,21 @@ App.UpdateController = Em.Controller.extend({
     var location = App.router.get('location.lastSetURL');
     if (/\/main\/(hosts|charts\/heatmap).*/.test(location)) {
       this.updateHost(callback);
+    } else {
+      callback();
+    }
+  },
+  /**
+   * Update service metrics depending on which page is open
+   * Make a call only on follow pages:
+   * /main/dashboard
+   * /main/services/*
+   * @param callback
+   */
+  updateServiceMetricConditionally: function(callback){
+    var location = App.router.get('location.lastSetURL');
+    if (/\/main\/(dashboard|services).*/.test(location)) {
+      this.updateServiceMetric(callback);
     } else {
       callback();
     }

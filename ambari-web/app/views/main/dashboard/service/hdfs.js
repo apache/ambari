@@ -55,9 +55,9 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   }.property('service.hostComponents.@each'),
 
   dataNodeHostText: function () {
-    if (this.get("service.dataNodes").content.length == 0) {
+    if (this.get("service.dataNodes").length == 0) {
       return '';
-    } else if (this.get("service.dataNodes").content.length > 1) {
+    } else if (this.get("service.dataNodes").length > 1) {
       return Em.I18n.t('services.service.summary.viewHosts');
     } else {
       return Em.I18n.t('services.service.summary.viewHost');

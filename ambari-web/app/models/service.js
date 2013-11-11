@@ -30,7 +30,8 @@ App.Service = DS.Model.extend({
   quickLinks: DS.hasMany('App.QuickLinks'),
   hostComponents: DS.hasMany('App.HostComponent'),
   serviceConfigsTemplate: App.config.get('preDefinedServiceConfigs'),
-  runningHostComponents: null,
+  runningHostComponents: DS.hasMany('App.HostComponent'),
+  unknownHostComponents: DS.hasMany('App.HostComponent'),
 
   // Instead of making healthStatus a computed property that listens on hostComponents.@each.workStatus,
   // we are creating a separate observer _updateHealthStatus.  This is so that healthStatus is updated

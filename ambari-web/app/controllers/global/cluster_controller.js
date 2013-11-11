@@ -262,8 +262,7 @@ App.ClusterController = Em.Controller.extend({
    * @return {Boolean} Whether we have errors
    */
   loadUpdatedStatus: function(callback){
-    var location = App.router.get('location.lastSetURL');
-    if(!this.get('clusterName') || (this.get('isLoaded') && !(/\/main\/hosts.*/.test(location)))){
+    if(!this.get('clusterName')){
       callback();
       return false;
     }

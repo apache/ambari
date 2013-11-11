@@ -22,7 +22,8 @@ var App = require('app');
 App.cache = {
   'Hosts': {},
   'previousHostStatuses': {},
-  'previousComponentStatuses': {}
+  'previousComponentStatuses': {},
+  'hostComponentsOnService': {}
 };
 
 App.ServerDataMapper = Em.Object.extend({

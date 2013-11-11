@@ -55,7 +55,9 @@ App.servicesMapper = App.QuickDataMapper.create({
     work_status: 'ServiceInfo.state',
     $rand: Math.random(),
     $alerts: [ 1, 2, 3 ],
-    host_components: 'host_components'
+    host_components: 'host_components',
+    running_host_components: 'running_host_components',
+    unknown_host_components: 'unknown_host_components'
   },
   hdfsConfig: {
     version: 'nameNodeComponent.host_components[0].metrics.dfs.namenode.Version',
@@ -64,7 +66,6 @@ App.servicesMapper = App.QuickDataMapper.create({
     active_name_node_id: 'active_name_node_id',
     standby_name_node_id: 'standby_name_node_id',
     standby_name_node2_id: 'standby_name_node2_id',
-    data_nodes: 'data_nodes',
     journal_nodes: 'journal_nodes',
     name_node_start_time: 'nameNodeComponent.host_components[0].metrics.runtime.StartTime',
     jvm_memory_heap_used: 'nameNodeComponent.host_components[0].metrics.jvm.memHeapUsedM',
@@ -88,9 +89,7 @@ App.servicesMapper = App.QuickDataMapper.create({
   yarnConfig: {
     version: 'resourceManagerComponent.ServiceComponentInfo.Version',
     resource_manager_node_id: 'resourceManagerComponent.host_components[0].HostRoles.host_name',
-    node_manager_nodes: 'node_manager_nodes',
     node_manager_live_nodes: 'node_manager_live_nodes',
-    yarn_client_nodes: 'yarn_client_nodes',
     resource_manager_start_time: 'resourceManagerComponent.ServiceComponentInfo.StartTime',
     jvm_memory_heap_used: 'resourceManagerComponent.host_components[0].metrics.jvm.memHeapUsedM',
     jvm_memory_heap_committed: 'resourceManagerComponent.host_components[0].metrics.jvm.memHeapCommittedM',
@@ -115,13 +114,11 @@ App.servicesMapper = App.QuickDataMapper.create({
   },
   mapReduce2Config: {
     version: 'jobHistoryServerComponent.ServiceComponentInfo.Version',
-    job_history_server_id: 'jobHistoryServerComponent.host_components[0].HostRoles.host_name',
-    map_reduce2_clients: 'map_reduce2_clients'
+    job_history_server_id: 'jobHistoryServerComponent.host_components[0].HostRoles.host_name'
   },
   mapReduceConfig: {
     version: 'jobTrackerComponent.ServiceComponentInfo.Version',
     job_tracker_id: 'jobTrackerComponent.host_components[0].HostRoles.host_name',
-    task_trackers: 'task_trackers',
     job_tracker_start_time: 'jobTrackerComponent.ServiceComponentInfo.StartTime',
     job_tracker_heap_used: 'jobTrackerComponent.ServiceComponentInfo.HeapMemoryUsed',
     job_tracker_heap_max: 'jobTrackerComponent.ServiceComponentInfo.HeapMemoryMax',
@@ -148,7 +145,6 @@ App.servicesMapper = App.QuickDataMapper.create({
   hbaseConfig: {
     version: 'masterComponent.ServiceComponentInfo.Version',
     master_id: 'masterComponent.host_components[0].HostRoles.host_name',
-    region_servers: 'region_servers',
     master_start_time: 'masterComponent.ServiceComponentInfo.MasterStartTime',
     master_active_time: 'masterComponent.ServiceComponentInfo.MasterActiveTime',
     average_load: 'masterComponent.ServiceComponentInfo.AverageLoad',
@@ -214,70 +210,27 @@ App.servicesMapper = App.QuickDataMapper.create({
 
       var result = [];
 
-      //establish relations between services and host-components
-      var serviceComponents = {},
-          masterComponents = [],
-          datanodeHosts = [],
-          taskTrackerHosts = [],
-          hbaseRegionserverHosts = [],
-          nodemanagerHosts = [],
-          yarnClientHosts = [],
-          mapreduce2ClientHosts = [];
-      App.HostComponent.find().forEach(function (hostComponent) {
-        if (serviceComponents[hostComponent.get('service.id')]) {
-          serviceComponents[hostComponent.get('service.id')].hostComponents.push(hostComponent.get('id'));
-        } else {
-          serviceComponents[hostComponent.get('service.id')] = {
-            hostComponents: [hostComponent.get('id')]
-          }
-        }
-
-        if (hostComponent.get('isMaster')) {
-          masterComponents.push(hostComponent);
-        }
-
-        switch (hostComponent.get('componentName')) {
-          case 'DATANODE':
-            datanodeHosts.push(hostComponent.get('host.id'));
-            break;
-          case 'TASKTRACKER':
-            taskTrackerHosts.push(hostComponent.get('host.id'));
-            break;
-          case 'HBASE_REGIONSERVER':
-            hbaseRegionserverHosts.push(hostComponent.get('host.id'));
-            break;
-          case 'NODEMANAGER':
-            nodemanagerHosts.push(hostComponent.get('host.id'));
-            break;
-          case 'YARN_CLIENT':
-            yarnClientHosts.push(hostComponent.get('host.id'));
-            break;
-          case 'MAPREDUCE2_CLIENT':
-            mapreduce2ClientHosts.push(hostComponent.get('host.id'));
-            break;
-        }
-      });
       //parse service metrics from components
       services.forEach(function (item) {
         var finalJson = [];
-        item.host_components = serviceComponents[item.ServiceInfo.service_name].hostComponents;
+        var serviceData = App.cache['hostComponentsOnService'][item.ServiceInfo.service_name];
+        item.host_components = serviceData.host_components;
+        item.running_host_components = serviceData.running_host_components;
+        item.unknown_host_components = serviceData.unknown_host_components;
         item.host_components.sort();
 
         if (item && item.ServiceInfo && item.ServiceInfo.service_name == "HDFS") {
           finalJson = this.hdfsMapper(item);
-          finalJson.data_nodes = datanodeHosts;
           finalJson.rand = Math.random();
           result.push(finalJson);
           App.store.load(App.HDFSService, finalJson);
         } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "MAPREDUCE") {
           finalJson = this.mapreduceMapper(item);
-          finalJson.task_trackers = taskTrackerHosts;
           finalJson.rand = Math.random();
           result.push(finalJson);
           App.store.load(App.MapReduceService, finalJson);
         } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "HBASE") {
           finalJson = this.hbaseMapper(item);
-          finalJson.region_servers = hbaseRegionserverHosts;
           finalJson.rand = Math.random();
           result.push(finalJson);
           App.store.load(App.HBaseService, finalJson);
@@ -293,14 +246,11 @@ App.servicesMapper = App.QuickDataMapper.create({
           App.store.load(App.FlumeService, finalJson);
         } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "YARN") {
           finalJson = this.yarnMapper(item);
-          finalJson.node_manager_nodes = nodemanagerHosts;
-          finalJson.yarn_client_nodes = yarnClientHosts;
           finalJson.rand = Math.random();
           result.push(finalJson);
           App.store.load(App.YARNService, finalJson);
         } else if (item && item.ServiceInfo && item.ServiceInfo.service_name == "MAPREDUCE2") {
           finalJson = this.mapreduce2Mapper(item);
-          finalJson.map_reduce2_clients = mapreduce2ClientHosts;
           finalJson.rand = Math.random();
           result.push(finalJson);
           App.store.load(App.MapReduce2Service, finalJson);
@@ -319,7 +269,7 @@ App.servicesMapper = App.QuickDataMapper.create({
 
       var servicesMap = {};
       //calculate service statuses according to their host-components
-      masterComponents.forEach(function (item) {
+      App.HostComponent.find().filterProperty('isMaster').forEach(function (item) {
         if (item) {
           this.countServiceComponents(item, servicesMap, servicesMap[item.get('service.id')]);
         }
@@ -348,8 +298,6 @@ App.servicesMapper = App.QuickDataMapper.create({
         isHbaseActive: false,
         serviceName: hostComponent.get('service.id'),
         isRunning: true,
-        runningHCs: [],
-        unknownHCs: [],
         hdfsHealthStatus: '',
         toolTipContent: ''
       };
@@ -435,9 +383,6 @@ App.servicesMapper = App.QuickDataMapper.create({
       hostComponent.get('workStatus') !== App.HostComponentStatus.unknown &&
       hostComponent.get('workStatus') !== App.HostComponentStatus.maintenance) {
       service.isRunning = false;
-      service.runningHCs.addObject(hostComponent);
-    } else if (hostComponent.get('workStatus') == App.HostComponentStatus.unknown) {
-      service.unknownHCs.addObject(hostComponent);
     }
   },
 
@@ -505,8 +450,6 @@ App.servicesMapper = App.QuickDataMapper.create({
         }
 
         _service.set('isStarted', service.everyStarted);
-        _service.set('runningHostComponents', service.runningHCs);
-        _service.set('unknownHostComponents', service.unknownHCs);
         _service.set('isStopped', service.isRunning);
         _service.set('toolTipContent', service.toolTipContent);
         if (serviceSpecificObj != null) {

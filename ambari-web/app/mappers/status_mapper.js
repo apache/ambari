@@ -70,6 +70,7 @@ App.statusMapper = App.QuickDataMapper.create({
       var currentHostStatuses = {};
       var previousHostStatuses = App.cache['previousHostStatuses'];
       var previousComponentStatuses = App.cache['previousComponentStatuses'];
+      var hostComponentsOnService = {};
 
       json.items.forEach(function (host) {
         //update hosts, which have status changed
@@ -81,6 +82,8 @@ App.statusMapper = App.QuickDataMapper.create({
         host.host_components.forEach(function (host_component) {
           host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
           var existedComponent = previousComponentStatuses[host_component.id];
+          var service = componentServiceMap[host_component.HostRoles.component_name];
+
           if (existedComponent) {
             //update host-components, which have status changed
             if (existedComponent !== host_component.HostRoles.state) {
@@ -92,11 +95,30 @@ App.statusMapper = App.QuickDataMapper.create({
               component_name: host_component.HostRoles.component_name,
               work_status: host_component.HostRoles.state,
               host_id: host.Hosts.host_name,
-              service_id: componentServiceMap[host_component.HostRoles.component_name]
+              service_id: service
             });
           }
-          hostComponentsOnHost.push(host_component.id);
           currentComponentStatuses[host_component.id] = host_component.HostRoles.state;
+
+          //host-components to host relations
+          hostComponentsOnHost.push(host_component.id);
+          //host-component to service relations
+          if (!hostComponentsOnService[service]) {
+            hostComponentsOnService[service] = {
+              host_components: [],
+              running_host_components: [],
+              unknown_host_components: []
+            };
+          }
+          if (host_component.HostRoles.state === App.HostComponentStatus.started) {
+            hostComponentsOnService[service].running_host_components.push(host_component.id);
+          }
+          if (host_component.HostRoles.state === App.HostComponentStatus.unknown) {
+            hostComponentsOnService[service].unknown_host_components.push(host_component.id);
+          }
+          hostComponentsOnService[service].host_components.push(host_component.id);
+
+
         }, this);
         /**
          * updating relation between Host and his host-components
@@ -131,6 +153,7 @@ App.statusMapper = App.QuickDataMapper.create({
 
       App.cache['previousHostStatuses'] = currentHostStatuses;
       App.cache['previousComponentStatuses'] = currentComponentStatuses;
+      App.cache['hostComponentsOnService'] = hostComponentsOnService;
 
       hosts.forEach(function (host) {
         var status = hostStatuses[host.get('id')];

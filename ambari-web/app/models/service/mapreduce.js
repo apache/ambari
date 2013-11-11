@@ -20,7 +20,9 @@ var App = require('app');
 App.MapReduceService = App.Service.extend({
   version: DS.attr('string'),
   jobTracker: DS.belongsTo('App.Host'),
-  taskTrackers: DS.hasMany('App.Host'),
+  taskTrackers: function () {
+    return this.get('hostComponents').filterProperty('componentName', 'TASKTRACKER').mapProperty('host');
+  }.property('hostComponents.length'),
   jobTrackerStartTime: DS.attr('number'),
   jobTrackerHeapUsed: DS.attr('number'),
   jobTrackerHeapMax: DS.attr('number'),

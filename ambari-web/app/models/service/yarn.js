@@ -21,7 +21,9 @@ var objectUtils = require('utils/object_utils');
 App.YARNService = App.Service.extend({
   version: DS.attr('string'),
   resourceManagerNode: DS.belongsTo('App.Host'),
-  nodeManagerNodes: DS.hasMany('App.Host'),
+  nodeManagerNodes: function(){
+    return this.get('hostComponents').filterProperty('componentName', 'NODEMANAGER').mapProperty('host');
+  }.property('hostComponents.length'),
   nodeManagerLiveNodes: DS.hasMany('App.Host'),
   nodeManagersCountActive: DS.attr('number'),
   nodeManagersCountUnhealthy: DS.attr('number'),
@@ -36,7 +38,9 @@ App.YARNService = App.Service.extend({
   appsCompleted: DS.attr('number'),
   appsKilled: DS.attr('number'),
   appsFailed: DS.attr('number'),
-  yarnClientNodes: DS.hasMany('App.Host'),
+  yarnClientNodes: function(){
+    return this.get('hostComponents').filterProperty('componentName', 'YARN_CLIENT').mapProperty('host');
+  }.property('hostComponents.length'),
   resourceManagerStartTime: DS.attr('number'),
   jvmMemoryHeapUsed: DS.attr('number'),
   jvmMemoryHeapCommitted: DS.attr('number'),
@@ -102,7 +106,7 @@ App.YARNService = App.Service.extend({
     var decomCount = this.get('nodeManagersCountDecommissioned');
     var nonLostHostsCount = activeCount + rebootedCount + decomCount + unhealthyCount;
     return totalCount >= nonLostHostsCount ? totalCount - nonLostHostsCount : 0;
-  }.property('nodeManagerNodes', 'nodeManagersCountActive', 'nodeManagersCountRebooted', 'nodeManagersCountUnhealthy', 'nodeManagersCountDecommissioned'),
+  }.property('nodeManagerNodes', 'nodeManagersCountActive', 'nodeManagersCountRebooted', 'nodeManagersCountUnhealthy', 'nodeManagersCountDecommissioned')
 });
 
 App.YARNService.FIXTURES = [];
