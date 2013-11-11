@@ -39,7 +39,7 @@
           {{#each component in view.sortedComponents}}
           <div class="row-fluid">
           {{#view view.ComponentView contentBinding="component" decommissionDataNodeHostNamesBinding="view.decommissionDataNodeHostNames"}}
-            <div class="span8">
+            <div class="span7">
               {{#if view.isUpgradeFailed}}
                 {{#if App.isAdmin}}
                   <a href="#" {{action "upgradeComponent" view.content target="controller"}} >
@@ -61,9 +61,9 @@
                 <i class="text-warning icon-refresh"></i>
               {{/if}}
             </div>
-            <div class="span4">
+            <div class="span5 pull-right">
               {{#if App.isAdmin}}
-              <div class="btn-group">
+              <div class="btn-group pull-right">
                 <a {{ bindAttr class="view.disabled :btn :dropdown-toggle"}} data-toggle="dropdown">
                   {{t hosts.host.summary.action}}
                   <span class="caret pull-right"></span>
@@ -144,10 +144,10 @@
         {{/if}}
           {{!clients and add component button}}
           <div class="clients row-fluid">
-            <div class="span8 row">
+            <div class="span7 row">
               {{#if view.clients.length}}
-                  <div class="span2" style="margin-left: 21px">{{t common.clients}}&nbsp;/</div>
-                  <div class="span8">
+                  <div class="span3 align-right">{{t common.clients}}&nbsp;/</div>
+                  <div class="span7">
                     {{#each component in view.clients}}
                       {{#if component.isLast}}
                         {{component.displayName}}
@@ -158,11 +158,11 @@
                 </div>
               {{/if}}
             </div>
-            <div class="span4 row">
+            <div class="span5 row">
               {{#if App.isAdmin}}
                 {{#if view.isAddComponent}}
                   {{#if view.addableComponents.length}}
-                    <div class="btn-group">
+                    <div class="btn-group pull-right">
                       <button id="add_component" class="btn btn-info dropdown-toggle" data-toggle="dropdown">
                         {{t hosts.host.summary.addComponent}}
                         <span class="caret pull-right"></span>
