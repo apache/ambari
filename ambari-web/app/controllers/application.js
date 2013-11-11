@@ -58,58 +58,59 @@ App.ApplicationController = Em.Controller.extend({
   },
   persistKey: function () {
     var loginName = App.router.get('loginName');
-    return 'admin-settings-show-bg-' + loginName;
+    return 'app-settings-show-bg-' + loginName;
   },
   currentPrefObject: null,
+
   /**
    * get persist value from server with persistKey
    */
-  getUserPref: function (key) {
-    var self = this;
-    var url = App.apiPrefix + '/persist/' + key;
-    jQuery.ajax(
-      {
-        url: url,
-        context: this,
-        async: false,
-        success: function (response) {
-          if (response) {
-            var value = jQuery.parseJSON(response);
-            console.log('Got persist value from server with key: ' + key + '. Value is: ' + response);
-            self.set('currentPrefObject', value);
-            return value;
-          }
-        },
-        error: function (xhr) {
-          // this user is first time login
-          if (xhr.status == 404) {
-            console.log('Persist did NOT find the key: '+ key);
-            self.set('currentPrefObject', null);
-            return null;
-          }
-        },
-        statusCode: require('data/statusCodes')
-      }
-    );
+  getUserPref: function(key){
+    App.ajax.send({
+      name: 'settings.get.user_pref',
+      sender: this,
+      data: {
+        key: key
+      },
+      success: 'getUserPrefSuccessCallback',
+      error: 'getUserPrefErrorCallback'
+    });
   },
+  getUserPrefSuccessCallback: function (response, request, data) {
+    if (response != null) {
+      console.log('Got persist value from server with key ' + data.key + '. Value is: ' + response);
+      this.set('currentPrefObject', response);
+      return response;
+    }
+  },
+  getUserPrefErrorCallback: function (request, ajaxOptions, error) {
+    // this user is first time login
+    if (request.status == 404) {
+      console.log('Persist did NOT find the key');
+      this.set('currentPrefObject', null);
+      return null;
+    }
+  },
+
   /**
    * post persist key/value to server, value is object
    */
   postUserPref: function (key, value) {
-    var url = App.apiPrefix + '/persist/';
     var keyValuePair = {};
     keyValuePair[key] = JSON.stringify(value);
-    jQuery.ajax({
-      async: false,
-      context: this,
-      type: "POST",
-      url: url,
-      data: JSON.stringify(keyValuePair),
-      beforeSend: function () {
-        console.log('BeforeSend to persist: persistKeyValues', keyValuePair);
+    App.ajax.send({
+      'name': 'settings.post.user_pref',
+      'sender': this,
+      'beforeSend': 'postUserPrefBeforeSend',
+      'data': {
+        'keyValuePair': keyValuePair
       }
     });
   },
+  postUserPrefBeforeSend: function(request, ajaxOptions, data){
+    console.log('BeforeSend to persist: persistKeyValues', data.keyValuePair);
+  },
+
   showSettingsPopup: function() {
     var self = this;
     var initValue = this.loadShowBgChecked();

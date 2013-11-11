@@ -49,7 +49,7 @@
       <div class="modal-footer">
         {{#if view.hasFooterCheckbox}}
           <label id="footer-checkbox">{{view Ember.Checkbox classNames="checkbox" checkedBinding="view.isNotShowBgChecked"}} &nbsp;
-          {{t admin.userSettings.notShowBgOperations}}</label>
+          {{t app.settings.notShowBgOperations}}</label>
         {{/if}}
         {{#if view.secondary}}
           <a class="btn" {{action onSecondary target="view"}}>{{view.secondary}}</a>
