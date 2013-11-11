@@ -110,10 +110,11 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
   }.property('clusterData.cpu', 'clusterData.ram', 'clusterData.hBaseInstalled', 'clusterData.disk', 'reservedRam', 'hBaseRam', 'recommendedMinimumContainerSize'),
 
   /**
-   * amount of RAM per container
-   * RAM-per-container = abs(MIN_CONTAINER_SIZE, (Total Available RAM) / containers))
+   * Amount of RAM per container.
+   * Calculated to be max(1GB, RAM - reservedRam - hBaseRam) / containers
    *
-   * Value in MB!
+   * @return Memory per container in MB. If greater than 1GB, 
+   *          value will be in multiples of 512. 
    */
   ramPerContainer: function () {
     var containers = this.get('containers');
@@ -122,12 +123,18 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
     if (this.get('clusterData.hBaseInstalled')) {
       ram -= this.get('hBaseRam')
     }
+    // On low memory systems, memory left over after
+    // removing reserved-RAM and HBase might be
+    // less than 1GB (even negative). If so, we force
+    // a 1GB value relying on virtual memory.
     if (ram < 1) {
       ram = 1;
     }
     ram *= this.get('GB');
     var container_ram = Math.abs(ram / containers);
-    return container_ram > this.get('GB') ? container_ram / (512 * 512) : container_ram;
+    // If container memory is greater than 1GB, 
+    // we use multiples of 512 as value
+    return container_ram > this.get('GB') ? (Math.floor(container_ram / 512) * 512) : container_ram;
   }.property('recommendedMinimumContainerSize', 'containers', 'clusterData.ram', 'clusterData.hBaseInstalled', 'hBaseRam', 'reservedRam'),
 
   mapMemory: function () {
