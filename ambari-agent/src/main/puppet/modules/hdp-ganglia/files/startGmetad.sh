@@ -39,7 +39,14 @@ then
         env RRDCACHED_ADDRESS=${RRDCACHED_ALL_ACCESS_UNIX_SOCKET} \
                     ${GMETAD_BIN} --conf=${GMETAD_CONF_FILE} --pid-file=${GMETAD_PID_FILE};
 
-        gmetadRunningPid=`getGmetadRunningPid`;
+        for i in `seq 0 5`; do
+          gmetadRunningPid=`getGmetadRunningPid`;
+          if [ -n "${gmetadRunningPid}" ]
+          then
+            break;
+          fi
+          sleep 1;
+        done
 
         if [ -n "${gmetadRunningPid}" ]
         then

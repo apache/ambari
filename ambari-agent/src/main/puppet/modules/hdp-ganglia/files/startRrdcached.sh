@@ -48,7 +48,14 @@ then
     chgrp ${WEBSERVER_GROUP} ${RRDCACHED_LIMITED_ACCESS_UNIX_SOCKET};
 
     # Check to make sure rrdcached actually started up.
-    rrdcachedRunningPid=`getRrdcachedRunningPid`;
+    for i in `seq 0 5`; do
+      rrdcachedRunningPid=`getRrdcachedRunningPid`;
+      if [ -n "${rrdcachedRunningPid}" ]
+        then
+          break;
+      fi
+      sleep 1;
+    done
 
     if [ -n "${rrdcachedRunningPid}" ]
     then
