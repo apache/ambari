@@ -214,9 +214,11 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
             var nameServices = configs['hdfs-site']['dfs.nameservices'];
             if (configs['hdfs-site']['dfs.namenode.http-address.' + nameServices + '.nn1'] === sourceHostName + ':50070') {
               configs['hdfs-site']['dfs.namenode.http-address.' + nameServices + '.nn1'] = targetHostName + ':50070';
+              configs['hdfs-site']['dfs.namenode.https-address.' + nameServices + '.nn1'] = targetHostName + ':50470';
               configs['hdfs-site']['dfs.namenode.rpc-address.' + nameServices + '.nn1'] = targetHostName + ':8020';
             } else {
               configs['hdfs-site']['dfs.namenode.http-address.' + nameServices + '.nn2'] = targetHostName + ':50070';
+              configs['hdfs-site']['dfs.namenode.https-address.' + nameServices + '.nn2'] = targetHostName + ':50470';
               configs['hdfs-site']['dfs.namenode.rpc-address.' + nameServices + '.nn2'] = targetHostName + ':8020';
             }
           } else {
@@ -231,8 +233,10 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
           configs['hdfs-site']['dfs.https.address'] = targetHostName + ':50470';
           configs['core-site']['fs.default.name'] = 'hdfs://' + targetHostName + ':8020';
         }
-        if (App.Service.find().someProperty('serviceName', 'HBASE')) {
-          configs['hbase-site']['hbase.rootdir'] = configs['hbase-site']['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + targetHostName);
+        if (App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
+          if (App.Service.find().someProperty('serviceName', 'HBASE')) {
+            configs['hbase-site']['hbase.rootdir'] = configs['hbase-site']['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + targetHostName);
+          }
         }
         if (securityEnabled) {
           secureConfigs.push({keytab: configs['hdfs-site']['dfs.namenode.keytab.file'], principal: configs['hdfs-site']['dfs.namenode.kerberos.principal']});
