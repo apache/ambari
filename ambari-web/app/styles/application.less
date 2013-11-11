@@ -2610,7 +2610,7 @@ table.graphs {
       margin-top: -5px;
     }
     .health-status-bar {
-      font-size: 14px;
+      font-size: 0.9em;
       margin-left: 0;
       min-width: 790px;
       a {
@@ -2618,11 +2618,14 @@ table.graphs {
         text-decoration: none;
       }
       .category-item {
-        padding: 6px 1px 6px 1px;
+        padding: 3px 0px;
         margin-right: 3px;
         border:1px solid transparent;
         -webkit-border-radius: 4px;
         border-radius: 4px;
+      }
+      .category-item .label-important {
+        padding: 0px 2px;
       }
       .category-item:hover {
         cursor: pointer;
@@ -2635,13 +2638,12 @@ table.graphs {
         a {
           color: #ffffff;
         }
-        background-color: #666666;
-        border-color: #666666;
+        background-color: #888888;
+        border-color: #888888;
         border:1px solid transparent;
         -webkit-box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.25);
         -moz-box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.25);
         box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.25);
-
       }
       .category-item.active:hover {
         border:1px solid transparent;
