@@ -1185,7 +1185,6 @@ Em.I18n.translations = {
   /** services page constants **/
 
   'service.hbase.activeMaster': 'Active Master',
-  'service.hbase.passiveMasters': 'and {0} Standby Masters',
 
   'services.hive.client': 'Hive Client',
   'services.hive.clients': 'Hive Clients',

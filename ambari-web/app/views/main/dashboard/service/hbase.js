@@ -63,12 +63,6 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   }),
 
   /**
-   * Formatted output for passive master components
-   */
-  passiveMasterOutput: function () {
-    return Em.I18n.t('service.hbase.passiveMasters').format(this.get('passiveMasters').length);
-  }.property('passiveMasters'),
-  /**
    * One(!) active master component
    */
   activeMaster: function () {
