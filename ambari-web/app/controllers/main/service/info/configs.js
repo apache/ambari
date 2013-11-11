@@ -1357,33 +1357,29 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   recordHostOverride: function (serviceConfigObj, siteName, tagName, self) {
+    var overrides = null;
+    var name = '';
     if ('get' in serviceConfigObj) {
-      return this._recordHostOverrideFromEmberObj(serviceConfigObj, siteName, tagName, self);
+      overrides = serviceConfigObj.get('overrides');
+      name = serviceConfigObj.get('name');
     } else {
-      return this._recordHostOverrideFromObj(serviceConfigObj, siteName, tagName, self);
+      overrides = serviceConfigObj.overrides;
+      name = serviceConfigObj.name;
     }
-  },
-
-  /**
-   * Records all the host overrides per site/tag
-   */
-  _recordHostOverrideFromObj: function (serviceConfigObj, siteName, tagName, self) {
-    var overrides = serviceConfigObj.overrides;
-    if (overrides) {
-      for (var value in overrides) {
-        overrides[value].forEach(function (host) {
-          if (!(host in self.savedHostToOverrideSiteToTagMap)) {
-            self.savedHostToOverrideSiteToTagMap[host] = {};
-          }
-          if (!(siteName in self.savedHostToOverrideSiteToTagMap[host])) {
-            self.savedHostToOverrideSiteToTagMap[host][siteName] = {};
-            self.savedHostToOverrideSiteToTagMap[host][siteName].map = {};
-          }
-          var finalTag = tagName + '_' + host;
-          console.log("recordHostOverride(): Saving host override for host=" + host + ", site=" + siteName + ", tag=" + finalTag + ", (key,value)=(" + serviceConfigObj.name + "," + value + ")");
-          self.savedHostToOverrideSiteToTagMap[host][siteName].tagName = finalTag;
-          self.savedHostToOverrideSiteToTagMap[host][siteName].map[serviceConfigObj.name] = value;
+    if(overrides){
+      if('get' in overrides) {
+        overrides.forEach(function (override) {
+          override.get('selectedHostOptions').forEach(function (host) {
+            var value = override.get('value');
+            self._recordHostOverride(value, host, name, siteName, tagName, self);
+          });
         });
+      } else {
+        for (var value in overrides) {
+          overrides[value].forEach(function (host) {
+            self._recordHostOverride(value, host, name, siteName, tagName, self);
+          });
+        }
       }
     }
   },
@@ -1391,25 +1387,19 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   /**
    * Records all the host overrides per site/tag
    */
-  _recordHostOverrideFromEmberObj: function (serviceConfigObj, siteName, tagName, self) {
-    var overrides = serviceConfigObj.get('overrides');
-    if (overrides) {
-      overrides.forEach(function (override) {
-        override.get('selectedHostOptions').forEach(function (host) {
-          if (!(host in self.savedHostToOverrideSiteToTagMap)) {
-            self.savedHostToOverrideSiteToTagMap[host] = {};
-          }
-          if (!(siteName in self.savedHostToOverrideSiteToTagMap[host])) {
-            self.savedHostToOverrideSiteToTagMap[host][siteName] = {};
-            self.savedHostToOverrideSiteToTagMap[host][siteName].map = {};
-          }
-          var finalTag = tagName + '_' + host;
-          console.log("recordHostOverride(): Saving host override for host=" + host + ", site=" + siteName + ", tag=" + finalTag + ", (key,value)=(" + serviceConfigObj.name + "," + override.get('value') + ")");
-          self.savedHostToOverrideSiteToTagMap[host][siteName].tagName = finalTag;
-          self.savedHostToOverrideSiteToTagMap[host][siteName].map[serviceConfigObj.name] = override.get('value');
-        });
-      });
+
+  _recordHostOverride: function(value, host, serviceConfigObjName, siteName, tagName, self) {
+    if (!(host in self.savedHostToOverrideSiteToTagMap)) {
+      self.savedHostToOverrideSiteToTagMap[host] = {};
     }
+    if (!(siteName in self.savedHostToOverrideSiteToTagMap[host])) {
+      self.savedHostToOverrideSiteToTagMap[host][siteName] = {};
+      self.savedHostToOverrideSiteToTagMap[host][siteName].map = {};
+    }
+    var finalTag = tagName + '_' + host;
+    console.log("recordHostOverride(): Saving host override for host=" + host + ", site=" + siteName + ", tag=" + finalTag + ", (key,value)=(" + serviceConfigObjName + "," + value + ")");
+    self.savedHostToOverrideSiteToTagMap[host][siteName].tagName = finalTag;
+    self.savedHostToOverrideSiteToTagMap[host][siteName].map[serviceConfigObjName] = value;
   },
 
   /**
