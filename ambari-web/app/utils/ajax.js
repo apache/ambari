@@ -556,7 +556,7 @@ var urls = {
     'type': 'GET',
     'format': function (data, opt) {
       return {
-        data: data.data
+        async: false
       };
     }
   },
@@ -855,27 +855,6 @@ var urls = {
   'admin.stack_upgrade.do_poll': {
     'real': '/clusters/{cluster}/requests/{requestId}?fields=tasks/*',
     'mock': '/data/wizard/{mock}'
-  },
-  'settings.get.user_pref': {
-    'real': '/persist/{key}',
-    'mock': '',
-    'type': 'GET',
-    'format': function (data, opt) {
-      return {
-        async: false
-      };
-    }
-  },
-  'settings.post.user_pref': {
-    'real': '/persist',
-    'mock': '',
-    'type': 'POST',
-    'format': function (data) {
-      return {
-        async: false,
-        data: JSON.stringify(data.keyValuePair)
-      }
-    }
   },
   'wizard.advanced_repositories.valid_url': {
     'real': '/stacks2/{stackName}/versions/{stackVersion}/operatingSystems/{osType}/repositories/{nameVersionCombo}',
