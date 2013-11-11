@@ -974,6 +974,147 @@ App.config = Em.Object.create({
     }
   },
   
+  /**
+   * Launches a dialog where an existing config-group can be selected, or a new
+   * one can be created. This is different than the config-group management
+   * dialog where host membership can be managed.
+   *
+   * The callback will be passed the created/selected config-group in the form
+   * of {id:2, name:'New hardware group'}. In the case of dialog being cancelled,
+   * the callback is provided <code>null</code>
+   *
+   * @param callback  Callback function which is invoked when dialog
+   *  is closed, cancelled or OK is pressed.
+   */
+  launchConfigGroupSelectionCreationDialog : function(serviceId, availableConfigGroups, callback) {
+    var self = this;
+    var selectedConfigGroup = availableConfigGroups && availableConfigGroups.length > 0 ?
+        availableConfigGroups[0] : null;
+    App.ModalPopup.show({
+      classNames: [ 'sixty-percent-width-modal' ],
+      header: Em.I18n.t('config.group.selection.dialog.title'),
+      primary: Em.I18n.t('ok'),
+      secondary: Em.I18n.t('common.cancel'),
+      warningMessage: null,
+      optionSelectConfigGroup: true,
+      optionCreateConfigGroup: function(){
+        return !this.get('optionSelectConfigGroup');
+      }.property('optionSelectConfigGroup'),
+      availableConfigGroups: availableConfigGroups,
+      selectedConfigGroup: selectedConfigGroup,
+      newConfigGroupName: '',
+      onPrimary: function () {
+        if (this.get('optionSelectConfigGroup')) {
+          var selectedConfigGroup = this.get('selectedConfigGroup');
+          this.hide();
+          callback(selectedConfigGroup);
+        } else {
+          var newConfigGroupName = this.get('newConfigGroupName');
+          var newConfigGroup = self.createNewConfigurationGroup(serviceId, newConfigGroupName);
+          if (newConfigGroup.configGroup!=null) {
+            this.hide();
+            newConfigGroup.configGroup.name = newConfigGroupName;
+            callback(newConfigGroup.configGroup);
+          } else {
+            this.set('warningMessage', this.t('config.group.selection.dialog.err.create').format(newConfigGroup.error));
+          }
+        }
+      },
+      onSecondary: function () {
+        this.hide();
+        callback(null);
+      },
+      doSelectConfigGroup: function (event) {
+        var configGroup = event.context;
+        console.log(configGroup);
+        this.set('selectedConfigGroup', configGroup);
+      },
+      validate: function () {
+        var msg = null;
+        var optionSelect = this.get('optionSelectConfigGroup');
+        if (optionSelect) {
+        } else {
+          var nn = this.get('newConfigGroupName');
+          var allCG = this.get('availableConfigGroups');
+          if (nn) {
+            allCG.forEach(function(cg){
+              if(!msg && nn === cg.get('name')) {
+                msg = Em.I18n.t("config.group.selection.dialog.err.name.exists");
+              }
+            });
+          }
+        }
+        this.set('warningMessage', msg);
+      }.observes('newConfigGroupName', 'availableConfigGroups', 'optionSelectConfigGroup'),
+      bodyClass: Ember.View.extend({
+        templateName: require('templates/common/configs/selectCreateConfigGroup'),
+        controllerBinding: 'App.router.mainServiceInfoConfigsController',
+        selectConfigGroupRadioButton: Ember.Checkbox.extend({
+          tagName: 'input',
+          attributeBindings: ['type', 'checked'],
+          checked: function () {
+            return this.get('parentView.parentView.optionSelectConfigGroup');
+          }.property('parentView.parentView.optionSelectConfigGroup'),
+          type: 'radio',
+          click: function () {
+            this.set('parentView.parentView.optionSelectConfigGroup', true);
+          }
+        }),
+        createConfigGroupRadioButton: Ember.Checkbox.extend({
+          tagName: 'input',
+          attributeBindings: ['type', 'checked'],
+          checked: function () {
+            return !this.get('parentView.parentView.optionSelectConfigGroup');
+          }.property('parentView.parentView.optionSelectConfigGroup'),
+          type: 'radio',
+          click: function () {
+            this.set('parentView.parentView.optionSelectConfigGroup', false);
+          }
+        })
+      })
+    });
+  },
+
+  /**
+   * Creates a new config-group for a service.
+   *
+   * @param serviceId   Service for which this group has to be created
+   * @param configGroupName    Name of the new config-group
+   * @return  Returns the created config-group or error as
+   *        { configGroup: {id:4}, error: {...}}
+   */
+  createNewConfigurationGroup: function (serviceId, configGroupName) {
+    var newConfigGroupData = {
+        configGroup: null,
+        error: null
+    };
+    var sendData = {
+      name: 'config_groups.create',
+      data: {
+        'group_name': configGroupName,
+        'service_id': serviceId,
+        'description': "New configuration group created on " + new Date().toDateString()
+      },
+      success: 'successFunction',
+      error: 'errorFunction',
+      successFunction: function(response){
+        newConfigGroupData.configGroup = response.resources[0].ConfigGroup;
+        newConfigGroupData.error = null;
+      },
+      errorFunction: function(request, ajaxOptions, error){
+        newConfigGroupData.configGroup = null;
+        try{
+          var errResponse = JSON.parse(request.responseText);
+          error = errResponse.message;
+        }catch(e){
+        }
+        newConfigGroupData.error = request.status + ": " + error;
+      }
+    };
+    sendData.sender = sendData;
+    App.ajax.send(sendData);
+    return newConfigGroupData;
+  },
 
   /**
    * Gets all the configuration-groups for the given service.

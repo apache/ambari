@@ -488,24 +488,34 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
 
   createOverrideProperty: function (event) {
     var serviceConfigProperty = event.contexts[0];
-    var overrides = serviceConfigProperty.get('overrides');
-    if (!overrides) {
-      overrides = [];
-      serviceConfigProperty.set('overrides', overrides);
-    }
-
-    // create new override with new value
-    var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty);
-    newSCP.set('value', '');
-    newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
-    newSCP.set('parentSCP', serviceConfigProperty);
-    newSCP.set('selectedHostOptions', Ember.A([]));
-    console.debug("createOverrideProperty(): Added:", newSCP, " to main-property:", serviceConfigProperty);
-    overrides.pushObject(newSCP);
-
-    // Launch override window
-    var dummyEvent = {contexts: [newSCP]};
-    this.showOverrideWindow(dummyEvent);
+    // Launch dialog to pick/create Config-group
+    var serviceConfigGroups = [];
+    App.config.launchConfigGroupSelectionCreationDialog(this.get('service.serviceName'), 
+        serviceConfigGroups, function(selectedConfigGroup){
+      console.log("launchConfigGroupSelectionCreationDialog(): Selected/Created:", selectedConfigGroup);
+      if (selectedConfigGroup) {
+        // TODO - show configurations for this new config-group
+//        var overrides = serviceConfigProperty.get('overrides');
+//        if (!overrides) {
+//          overrides = [];
+//          serviceConfigProperty.set('overrides', overrides);
+//        }
+//        // create new override with new value
+//        var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty);
+//        newSCP.set('value', '');
+//        newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
+//        newSCP.set('parentSCP', serviceConfigProperty);
+//        newSCP.set('selectedHostOptions', Ember.A([]));
+//        console.debug("createOverrideProperty(): Added:", newSCP, " to main-property:", serviceConfigProperty);
+//        overrides.pushObject(newSCP);
+//
+//        // Launch override window
+//        var dummyEvent = {contexts: [newSCP]};
+//        this.showOverrideWindow(dummyEvent);
+      } else {
+        // Cancelled dialog
+      }
+    });
   },
 
   showOverrideWindow: function (event) {

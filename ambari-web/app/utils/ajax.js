@@ -1113,6 +1113,23 @@ var urls = {
         data: JSON.stringify(data.keyValuePair)
       }
     }
+  },
+  'config_groups.create': {
+    'real': '/clusters/{clusterName}/config_groups',
+    'mock': '',
+    'format': function (data) {
+      return {
+        async: false,
+        type: 'POST',
+        data: JSON.stringify([{
+          "ConfigGroup": {
+            "group_name": data.group_name,
+            "tag": data.service_id,
+            "description": data.description
+          }
+        }])
+      }
+    }
   }
 };
 /**

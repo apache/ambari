@@ -1672,6 +1672,13 @@ Em.I18n.translations = {
 
   'quick.links.error.label': 'Hostname is undefined',
 
-  'contact.administrator': 'Contact System Administrator for more information!'
+  'contact.administrator': 'Contact System Administrator for more information!',
 
+  'config.group.selection.dialog.title': 'Configuration Group',
+  'config.group.selection.dialog.option.select': 'Select existing configuration group',
+  'config.group.selection.dialog.option.select.msg': 'Overridden property will be changed for hosts belonging to the selected group.',
+  'config.group.selection.dialog.option.create': 'Create new configuration group',
+  'config.group.selection.dialog.option.create.msg': 'A new configuration group will be created with the given name. Initially there will be no hosts in the group, with only the selected property overridden.',
+  'config.group.selection.dialog.err.name.exists': 'Configuration group with given name already exists',
+  'config.group.selection.dialog.err.create': 'Error creating new configuration group [{0}]'
 };
