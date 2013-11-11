@@ -22,33 +22,7 @@ App.ModalPopup = Ember.View.extend({
 
   viewName: 'modalPopup',
 
-  template: Ember.Handlebars.compile([
-    '<div class="modal-backdrop"></div><div class="modal" id="modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true">',
-    '<div class="modal-header">',
-    '{{#if showCloseButton}}<a class="close" {{action onClose target="view"}}>x</a>{{/if}}',
-    '<h3 id="modal-label">',
-    '{{#if headerClass}}{{view headerClass}}',
-    '{{else}}{{header}}{{/if}}',
-    '</h3>',
-    '</div>',
-    '<div class="modal-body">',
-    '{{#if bodyClass}}{{view bodyClass}}',
-    '{{else}}{{#if encodeBody}}{{body}}{{else}}{{{body}}}{{/if}}{{/if}}',
-    '</div>',
-    '{{#if showFooter}}',
-    '{{#if footerClass}}{{view footerClass}}',
-    '{{else}}',
-    '<div class="modal-footer">',
-    '{{#if view.hasFooterCheckbox}} <label id="footer-checkbox" class="span8">  {{view Ember.Checkbox classNames="checkbox" checkedBinding="view.isNotShowBgChecked"}} &nbsp;' +
-      '{{t admin.userSettings.notShowBgOperations}}</label> {{/if}}',
-    '{{#if view.secondary}}<a class="btn" {{action onSecondary target="view"}}>{{view.secondary}}</a>{{/if}}',
-    '{{#if view.primary}}<a {{bindAttr class="view.enablePrimary::disabled :btn :btn-success"}} {{action onPrimary target="view"}}>{{view.primary}}</a>{{/if}}',
-    '</div>',
-    '{{/if}}',
-    '{{/if}}',
-
-    '</div>'
-  ].join('\n')),
+  templateName: require('templates/common/modal_popup'),
 
   header: '&nbsp;',
   body: '&nbsp;',
