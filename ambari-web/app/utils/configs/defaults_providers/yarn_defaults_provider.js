@@ -79,7 +79,7 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
 
   /**
    * Maximum number of containers allowed per node
-   * min (2*cores,min (1.8*DISKS,(Total available RAM) / MIN_CONTAINER_SIZE)))
+   * max(3, min (2*cores,min (1.8*DISKS,(Total available RAM) / MIN_CONTAINER_SIZE))))
    */
   containers: function () {
     if (!this.clusterDataIsValid()) return null;
@@ -98,12 +98,12 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
     }
     ram *= this.get('GB');
     ram /= containerSize;
-    return Math.round(Math.min(cpu, Math.min(disk, ram)));
+    return Math.round(Math.max(3, Math.min(cpu, Math.min(disk, ram))));
   }.property('clusterData.cpu', 'clusterData.ram', 'clusterData.hBaseInstalled', 'clusterData.disk', 'reservedRam', 'hBaseRam', 'recommendedMinimumContainerSize'),
 
   /**
    * Amount of RAM per container.
-   * Calculated to be max(1GB, RAM - reservedRam - hBaseRam) / containers
+   * Calculated to be max(2GB, RAM - reservedRam - hBaseRam) / containers
    *
    * @return Memory per container in MB. If greater than 1GB, 
    *          value will be in multiples of 512. 
@@ -120,10 +120,10 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
     }
     // On low memory systems, memory left over after
     // removing reserved-RAM and HBase might be
-    // less than 1GB (even negative). If so, we force
-    // a 1GB value relying on virtual memory.
-    if (ram < 1) {
-      ram = 1;
+    // less than 2GB (even negative). If so, we force
+    // a 2GB value relying on virtual memory.
+    if (ram < 2) {
+      ram = 2;
     }
     ram *= this.get('GB');
     var container_ram = Math.abs(ram / containers);
@@ -133,12 +133,11 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
   }.property('containers', 'clusterData.ram', 'clusterData.hBaseInstalled', 'hBaseRam', 'reservedRam'),
 
   mapMemory: function () {
-    return this.get('ramPerContainer');
+    return Math.floor(this.get('ramPerContainer') / 2);
   }.property('ramPerContainer'),
 
   reduceMemory: function () {
-    var ramPerContainer = this.get('ramPerContainer');
-    return ramPerContainer <= 2048 ? 2 * ramPerContainer : ramPerContainer;
+    return this.get('ramPerContainer');
   }.property('ramPerContainer'),
 
   amMemory: function () {
