@@ -348,7 +348,7 @@ Em.I18n.translations = {
   'installer.step3.hosts.remove.popup.body':'Are you sure you want to remove the selected host(s)?',
   'installer.step3.hostInformation.popup.header':'Error in retrieving host Information',
   'installer.step3.hostInformation.popup.body' : 'All bootstrapped hosts registered but unable to retrieve cpu and memory related information',
-  'installer.step3.hostOsTypeCheck.popup.body' : 'Host registered successfully, but the host operating system type NOT match the selected group in step 1:Advanced Repository Option.<br> You can go back to step 1 OR remove this host. <br>' +
+  'installer.step3.hostOsTypeCheck.popup.body' : 'Host registered successfully, but the host operating system type NOT match the selected group in "Select Stack" step: Advanced Repository Option. You can go back to "Select Stack" step OR remove this host.' +
     'The host type is {0}, but you selected group {1} in step 1.',
   'installer.step3.hostWarningsPopup.report':'Show Report',
   'installer.step3.hostWarningsPopup.report.header': '<p style="font-family: monospace">######################################<br># Host Checks Report<br>#<br># Generated: ',
@@ -367,6 +367,7 @@ Em.I18n.translations = {
   'installer.step3.hostWarningsPopup.summary':'{0} on {1}',
   'installer.step3.hostWarningsPopup.firewall':'Firewall Issues',
   'installer.step3.hostWarningsPopup.repositories':'Repositories Issues',
+  'installer.step3.hostWarningsPopup.repositories.name':'Repository for OS not available',
   'installer.step3.hostWarningsPopup.repositories.context':'Host ({0}) has a {1} OS type, But the repositories chosen in "Select Stack" step was {2}.',
   'installer.step3.hostWarningsPopup.repositories.message':'The following registered hosts have different Operating System types from the local repositories chosen in "Select Stack" step. You can go back to "Select Stack" step to select another os group OR remove related host.',
   'installer.step3.hostWarningsPopup.firewall.message':'Firewall is running on the following hosts. Please configure the firewall to allow communications on the ports documented in the <i>Configuring Ports</i> section of  the <a target=\"_blank\" href=\"http://incubator.apache.org/ambari/current/installing-hadoop-using-ambari/content/\">Ambari documentation</a>',

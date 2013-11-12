@@ -562,7 +562,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     });
     if (hostsContext.length > 0) { // warning exist
       var repoWarning = {
-        name: 'Repository for OS not available',
+        name: Em.I18n.t('installer.step3.hostWarningsPopup.repositories.name'),
         hosts: hostsContext,
         category: 'repositories',
         onSingleHost: false
