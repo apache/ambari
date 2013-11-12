@@ -21,6 +21,7 @@ require('controllers/wizard/slave_component_groups_controller');
 
 App.MainServiceInfoConfigsController = Em.Controller.extend({
   name: 'mainServiceInfoConfigsController',
+  isHostsConfigsPage: false,
   dataIsLoaded: false,
   stepConfigs: [], //contains all field properties that are viewed in this service
   selectedService: null,
@@ -69,7 +70,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    *
    * @see savedHostToOverrideSiteToTagMap
    */
-  loadedHostToOverrideSiteToTagMap: {},
+  loadedGroupToOverrideSiteToTagMap: {},
 
   /**
    * During page load time the cluster level site to tag
@@ -149,7 +150,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.get('globalConfigs').clear();
     this.get('uiConfigs').clear();
     this.get('customConfig').clear();
-    this.set('loadedHostToOverrideSiteToTagMap', {});
+    this.set('loadedGroupToOverrideSiteToTagMap', {});
     this.set('savedHostToOverrideSiteToTagMap', {});
     this.set('savedSiteNameToServerServiceConfigDataMap', {});
     if (this.get('serviceConfigTags')) {
@@ -242,7 +243,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    */
   loadServiceConfigs: function () {
     App.ajax.send({
-      name: 'config.tags',
+      name: 'config.tags_and_groups',
       sender: this,
       data: {
         serviceName: this.get('content.serviceName'),
@@ -256,53 +257,84 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var serviceConfigsDef = params.serviceConfigsDef;
     var serviceName = this.get('content.serviceName');
     console.debug("loadServiceConfigs(): data=", data);
-    var allConfigGroups = [];
     // Create default configuration group
+    var defaultConfigGroupHosts = App.Host.find().mapProperty('hostName');
+    var selectedConfigGroup;
+    var siteToTagMap = {};
+    for (var site in data.Clusters.desired_configs) {
+      if (serviceConfigsDef.sites.indexOf(site) > -1) {
+        siteToTagMap[site] = data.Clusters.desired_configs[site].tag;
+      }
+    }
+    this.loadedClusterSiteToTagMap = siteToTagMap;
+    //parse loaded config groups
+    if (App.supports.hostOverrides) {
+      var configGroups = [];
+      if (data.config_groups.length) {
+        data.config_groups.forEach(function (item) {
+          item = item.ConfigGroup;
+          var groupHosts = item.hosts.mapProperty('host_name');
+          var newConfigGroup = App.ConfigGroup.create({
+            name: item.group_name,
+            description: item.description,
+            isDefault: false,
+            parentConfigGroup: null,
+            service: App.Service.find().findProperty('serviceName', item.tag),
+            hosts: groupHosts,
+            configSiteTags: []
+          });
+          groupHosts.forEach(function (host) {
+            defaultConfigGroupHosts = defaultConfigGroupHosts.without(host);
+          }, this);
+          item.desired_configs.forEach(function (config) {
+            newConfigGroup.configSiteTags.push(App.ConfigSiteTag.create({
+              site: config.type,
+              tag: config.tag
+            }));
+          }, this);
+          // select default selected group for hosts page
+          if (!selectedConfigGroup && this.get('isHostsConfigsPage') && newConfigGroup.get('hosts').contains(this.get('host.hostName')) && this.get('content.serviceName') === item.tag) {
+            selectedConfigGroup = newConfigGroup;
+          }
+          configGroups.push(newConfigGroup);
+        }, this);
+      }
+      this.set('configGroups', configGroups);
+    }
     var defaultConfigGroup = App.ConfigGroup.create({
       name: "Default",
       description: "Default cluster level " + serviceName + " configuration",
       isDefault: true,
+      hosts: defaultConfigGroupHosts,
       parentConfigGroup: null,
       service: this.get('content'),
       configSiteTags: []
     });
-    var configSiteTags = defaultConfigGroup.configSiteTags;
-    for (var site in data.Clusters.desired_configs) {
-      if (serviceConfigsDef.sites.indexOf(site) > -1) {
-        configSiteTags.push(App.ConfigSiteTag.create({
-          site: site,
-          tag: data.Clusters.desired_configs[site].tag
-        }));
-      }
+    if (!selectedConfigGroup) {
+      selectedConfigGroup = defaultConfigGroup;
     }
-    
-    allConfigGroups.push(defaultConfigGroup);
-    this.configGroups = allConfigGroups;
-    this.set('selectedConfigGroup', defaultConfigGroup);
+    this.get('configGroups').push(defaultConfigGroup);
+    this.set('selectedConfigGroup', selectedConfigGroup);
   },
-  
-  loadConfigGroup: function () {
+
+  onConfigGroupChange: function () {
+    this.get('stepConfigs').clear();
     var selectedConfigGroup = this.get('selectedConfigGroup');
-    var serviceName = selectedConfigGroup.get('service.serviceName');
-    this.loadedClusterSiteToTagMap = {};
-    //STEP 1: handle tags from JSON data
-    var selectedSiteTags = selectedConfigGroup.get('configSiteTags');
-    selectedSiteTags.forEach( function(siteTag) {
-      var site = siteTag.get('site');
-      var tag = siteTag.get('tag');
-      this.loadedClusterSiteToTagMap[site] = tag;
-//      var overrides = data.Clusters.desired_configs[site].host_overrides;
-//      if (overrides) {
-//        overrides.forEach(function (override) {
-//          var hostname = override.host_name;
-//          var tag = override.tag;
-//          if (!this.loadedHostToOverrideSiteToTagMap[hostname]) {
-//            this.loadedHostToOverrideSiteToTagMap[hostname] = {};
-//          }
-//          this.loadedHostToOverrideSiteToTagMap[hostname][site] = tag;
-//        }, this);
-//      }
-    }, this);
+    var serviceName = this.get('content.serviceName');
+    //STEP 1: handle tags from JSON data for host overrides
+    this.loadedGroupToOverrideSiteToTagMap = {};
+    if (App.supports.hostOverrides) {
+      var configGroupsWithOverrides = selectedConfigGroup.get('isDefault') && !this.get('isHostsConfigsPage') ? this.get('configGroups') : [selectedConfigGroup];
+      configGroupsWithOverrides.forEach(function (item) {
+        var groupName = item.get('name');
+        this.loadedGroupToOverrideSiteToTagMap[groupName] = {};
+        item.get('configSiteTags').forEach(function (siteTag) {
+          var site = siteTag.get('site');
+          var tag = siteTag.get('tag');
+          this.loadedGroupToOverrideSiteToTagMap[groupName][site] = tag;
+        }, this);
+      }, this);
+    }
     //STEP 2: Create an array of objects defining tag names to be polled and new tag names to be set after submit
     this.setServiceConfigTags(this.loadedClusterSiteToTagMap);
     //STEP 3: Load advanced configs from server
@@ -330,7 +362,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
 
     var allConfigs = this.get('globalConfigs').concat(configs);
     //STEP 9: Load and add host override configs
-    this.loadServiceConfigHostsOverrides(allConfigs, this.loadedHostToOverrideSiteToTagMap);
+    this.loadServiceConfigHostsOverrides(allConfigs, this.loadedGroupToOverrideSiteToTagMap, this.get('configGroups'));
     var restartData = this.loadActualConfigsAndCalculateRestarts();
     //STEP 10: creation of serviceConfig object which contains configs for current service
     var serviceConfig = App.config.createServiceConfig(serviceName);
@@ -348,11 +380,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.checkForSecureConfig(this.get('selectedService'));
     this.set('dataIsLoaded', true);
   }.observes('selectedConfigGroup'),
-  
-  loadServiceConfigHostsOverrides: function(allConfigs, loadedHostToOverrideSiteToTagMap) {
-    App.config.loadServiceConfigHostsOverrides(allConfigs, loadedHostToOverrideSiteToTagMap);
+
+  loadServiceConfigHostsOverrides: function (allConfigs, loadedGroupToOverrideSiteToTagMap, configGroups) {
+    App.config.loadServiceConfigHostsOverrides(allConfigs, loadedGroupToOverrideSiteToTagMap, configGroups);
   },
-  
+
   /**
    * Changes format from Object to Array
    *
@@ -491,7 +523,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var localDB = this.getInfoForDefaults();
     var recommendedDefaults = {};
     var s = this.get('serviceConfigsData').findProperty('serviceName', this.get('content.serviceName'));
-
+    var defaultGroupSelected = this.get('selectedConfigGroup.isDefault');
     var defaults = [];
     if (s.defaultsProviders) {
       s.defaultsProviders.forEach(function(defaultsProvider) {
@@ -557,25 +589,20 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           }
         }
 
-        // serviceConfigProperty.serviceConfig = componentConfig;
-        if (App.get('isAdmin')) {
-          serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
-        } else {
-          serviceConfigProperty.set('isEditable', false);
-        }
-
         console.log("config result", serviceConfigProperty);
       } else {
         serviceConfigProperty.set('isVisible', false);
       }
       if (overrides != null) {
         for (var overridenValue in overrides) {
-          var hostsArray = overrides[overridenValue];
           var newSCP = App.ServiceConfigProperty.create(_serviceConfigProperty);
           newSCP.set('value', overridenValue);
           newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
           newSCP.set('parentSCP', serviceConfigProperty);
-          newSCP.set('selectedHostOptions', Ember.A(hostsArray));
+          if (App.supports.hostOverrides && defaultGroupSelected) {
+            newSCP.set('group', overrides[overridenValue]);
+            newSCP.set('isEditable', false);
+          }
           var parentOverridesArray = serviceConfigProperty.get('overrides');
           if (parentOverridesArray == null) {
             parentOverridesArray = Ember.A([]);
@@ -583,6 +610,16 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           }
           parentOverridesArray.pushObject(newSCP);
           console.debug("createOverrideProperty(): Added:", newSCP, " to main-property:", serviceConfigProperty)
+        }
+      }
+      // serviceConfigProperty.serviceConfig = componentConfig;
+      if (App.supports.hostOverrides) {
+        serviceConfigProperty.set('isEditable', defaultGroupSelected && !this.get('isHostsConfigsPage'));
+      } else {
+        if (App.get('isAdmin')) {
+          serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
+        } else {
+          serviceConfigProperty.set('isEditable', false);
         }
       }
       componentConfig.configs.pushObject(serviceConfigProperty);
@@ -839,7 +876,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     if (!result.flag) {
       result.message = Em.I18n.t('services.service.config.failSaveConfig');
     } else {
-      result.flag = result.flag && this.doPUTHostOverridesConfigurationSites();
       if (!result.flag) {
         result.message = Em.I18n.t('services.service.config.failSaveConfigHostExceptions');
       }
@@ -1272,8 +1308,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       }
     }
     // Now cleanup removed overrides
-    for (var loadedHost in this.loadedHostToOverrideSiteToTagMap) {
-      for (var loadedSiteName in this.loadedHostToOverrideSiteToTagMap[loadedHost]) {
+    for (var loadedHost in this.loadedGroupToOverrideSiteToTagMap) {
+      for (var loadedSiteName in this.loadedGroupToOverrideSiteToTagMap[loadedHost]) {
         if (!(savedHostSiteArray.contains(loadedHost + "///" + loadedSiteName))) {
           // This host-site combination was loaded, but not saved.
           // Meaning it is not needed anymore. Hence send a DELETE command.
@@ -1285,7 +1321,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
               Hosts: {
                 desired_config: {
                   type: loadedSiteName,
-                  tag: this.loadedHostToOverrideSiteToTagMap[loadedHost][loadedSiteName],
+                  tag: this.loadedGroupToOverrideSiteToTagMap[loadedHost][loadedSiteName],
                   selected: false
                 }
               }
@@ -1646,7 +1682,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       secondary: null
     });
   },
-  
+
   selectConfigGroup: function (event) {
     this.set('selectedConfigGroup', event.context);
   }

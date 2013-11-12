@@ -197,6 +197,10 @@ var urls = {
     'real': '/clusters/{clusterName}?fields=Clusters/desired_configs',
     'mock': '/data/clusters/cluster.json'
   },
+  'config.tags_and_groups': {
+    'real': '/clusters/{clusterName}?fields=Clusters/desired_configs,config_groups/*',
+    'mock': '/data/clusters/tags_and_groups.json'
+  },
   'config.tags.sync': {
     'real': '/clusters/{clusterName}?fields=Clusters/desired_configs',
     'mock': '/data/clusters/cluster.json',

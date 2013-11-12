@@ -723,18 +723,18 @@ App.config = Em.Object.create({
    *
    *
    */
-  loadServiceConfigHostsOverrides: function (serviceConfigs, loadedHostToOverrideSiteToTagMap) {
+  loadServiceConfigHostsOverrides: function (serviceConfigs, loadedGroupToOverrideSiteToTagMap, configGroups) {
     var configKeyToConfigMap = {};
     serviceConfigs.forEach(function (item) {
       configKeyToConfigMap[item.name] = item;
     });
-    var typeTagToHostMap = {};
+    var typeTagToGroupMap = {};
     var urlParams = [];
-    for (var hostname in loadedHostToOverrideSiteToTagMap) {
-      var overrideTypeTags = loadedHostToOverrideSiteToTagMap[hostname];
+    for (var group in loadedGroupToOverrideSiteToTagMap) {
+      var overrideTypeTags = loadedGroupToOverrideSiteToTagMap[group];
       for (var type in overrideTypeTags) {
         var tag = overrideTypeTags[type];
-        typeTagToHostMap[type + "///" + tag] = hostname;
+        typeTagToGroupMap[type + "///" + tag] = configGroups.findProperty('name', group);
         urlParams.push('(type=' + type + '&tag=' + tag + ')');
       }
     }
@@ -746,7 +746,7 @@ App.config = Em.Object.create({
         data: {
           params: params,
           configKeyToConfigMap: configKeyToConfigMap,
-          typeTagToHostMap: typeTagToHostMap
+          typeTagToGroupMap: typeTagToGroupMap
         },
         success: 'loadServiceConfigHostsOverridesSuccess'
       });
@@ -756,7 +756,7 @@ App.config = Em.Object.create({
     console.debug("loadServiceConfigHostsOverrides: Data=", data);
     data.items.forEach(function (config) {
       App.config.loadedConfigurationsCache[config.type + "_" + config.tag] = config.properties;
-      var hostname = params.typeTagToHostMap[config.type + "///" + config.tag];
+      var group = params.typeTagToGroupMap[config.type + "///" + config.tag];
       var properties = config.properties;
       for (var prop in properties) {
         var serviceConfig = params.configKeyToConfigMap[prop];
@@ -781,11 +781,8 @@ App.config = Em.Object.create({
           if (!(overrides in serviceConfig)) {
             serviceConfig.overrides = {};
           }
-          if (!(hostOverrideValue in serviceConfig.overrides)) {
-            serviceConfig.overrides[hostOverrideValue] = [];
-          }
-          console.log("loadServiceConfigHostsOverrides(): [" + hostname + "] OVERRODE(" + serviceConfig.name + "): " + serviceConfig.value + " -> " + hostOverrideValue);
-          serviceConfig.overrides[hostOverrideValue].push(hostname);
+          console.log("loadServiceConfigHostsOverrides(): [" + group + "] OVERRODE(" + serviceConfig.name + "): " + serviceConfig.value + " -> " + hostOverrideValue);
+          serviceConfig.overrides[hostOverrideValue] = group;
         }
       }
     });

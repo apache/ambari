@@ -49,8 +49,8 @@
 	<div class="alert alert-info">
 	  {{t common.group}}&nbsp; 
 	  <span class="btn-group">
-		  <button class="btn">{{selectedConfigGroup.name}}</button>
-		  <button class="btn dropdown-toggle" data-toggle="dropdown">
+		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn">{{selectedConfigGroup.name}}</button>
+		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn dropdown-toggle" data-toggle="dropdown">
 		    <span class="caret"></span>
 		  </button>
 		  <ul class="dropdown-menu">
@@ -58,12 +58,15 @@
 		    {{#each configGroup in configGroups}}
            <li>
              <a href="#" {{action "selectConfigGroup" configGroup target="controller"}}>
-               {{configGroup.name}}
+               {{configGroup.name}} ({{configGroup.hosts.length}})
              </a>
            </li>
         {{/each}}
 		  </ul>
 		</span>
+    {{#if controller.isHostsConfigsPage}}
+      &nbsp;<a href="">{{t common.change}}</a>
+    {{/if}}
      <div class="pull-right">
        {{view App.FilterComboboxView filterBinding="view.filter" columnsBinding="view.columns" }}
      </div>

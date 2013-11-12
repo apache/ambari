@@ -20,6 +20,7 @@ var App = require('app');
 App.MainHostServiceConfigsController = App.MainServiceInfoConfigsController.extend({
   name: 'mainHostServiceConfigsController',
   host: null,
+  isHostsConfigsPage: true,
   /**
    * On load function
    */
@@ -69,25 +70,26 @@ App.MainHostServiceConfigsController = App.MainServiceInfoConfigsController.exte
    * This method will *not load* the overridden properties. However it will
    * replace the value shown for properties which this host has override for.
    */
-  loadServiceConfigHostsOverrides: function (serviceConfigs, loadedHostToOverrideSiteToTagMap) {
+  loadServiceConfigHostsOverrides: function (serviceConfigs, loadedGroupToOverrideSiteToTagMap, configGroups) {
     var thisHostName = this.get('host.hostName');
     var configKeyToConfigMap = {};
     serviceConfigs.forEach(function (item) {
       configKeyToConfigMap[item.name] = item;
     });
-    var typeTagToHostMap = {};
+    var typeTagToGroupMap = {};
     var urlParams = [];
-    for ( var hostname in loadedHostToOverrideSiteToTagMap) {
-      if (hostname === thisHostName) {
-        var overrideTypeTags = loadedHostToOverrideSiteToTagMap[hostname];
-        for ( var type in overrideTypeTags) {
+    for (var group in loadedGroupToOverrideSiteToTagMap) {
+      var groupObj = configGroups.findProperty('name', group);
+      if (groupObj.get('hosts').contains(thisHostName)) {
+        var overrideTypeTags = loadedGroupToOverrideSiteToTagMap[group];
+        for (var type in overrideTypeTags) {
           var tag = overrideTypeTags[type];
-          typeTagToHostMap[type + "///" + tag] = hostname;
+          typeTagToGroupMap[type + "///" + tag] = groupObj;
           urlParams.push('(type=' + type + '&tag=' + tag + ')');
         }
       }
     }
-    this.set('typeTagToHostMap', typeTagToHostMap);
+    this.set('typeTagToGroupMap', typeTagToGroupMap);
     this.set('configKeyToConfigMap', configKeyToConfigMap);
     if (urlParams.length > 0) {
       App.ajax.send({
@@ -102,10 +104,10 @@ App.MainHostServiceConfigsController = App.MainServiceInfoConfigsController.exte
     }
   },
   loadServiceConfigHostsOverridesSuccessCallback: function (data) {
-    var typeTagToHostMap = this.get('typeTagToHostMap');
+    var typeTagToGroupMap = this.get('typeTagToGroupMap');
     var configKeyToConfigMap = this.get('configKeyToConfigMap');
     data.items.forEach(function (config) {
-      var hostname = typeTagToHostMap[config.type + "///" + config.tag];
+      var group = typeTagToGroupMap[config.type + "///" + config.tag];
       var properties = config.properties;
       for ( var prop in properties) {
         var serviceConfig = configKeyToConfigMap[prop];
@@ -126,11 +128,11 @@ App.MainHostServiceConfigsController = App.MainServiceInfoConfigsController.exte
         }
         if (serviceConfig) {
           // Value of this property is different for this host.
-          console.log("loadServiceConfigHostsOverrides(" + hostname + "): [" + hostname + "] OVERRODE(" + serviceConfig.name + "): " + serviceConfig.value + " -> " + hostOverrideValue);
+          console.log("loadServiceConfigHostsOverrides(" + group + "): [" + group + "] OVERRODE(" + serviceConfig.name + "): " + serviceConfig.value + " -> " + hostOverrideValue);
           serviceConfig.value = hostOverrideValue;
           serviceConfig.defaultValue = hostOverrideValue;
           serviceConfig.isOriginalSCP = false;
-          serviceConfig.selectedHostOptions = [hostname];
+          serviceConfig.group = group;
         }
       }
     });

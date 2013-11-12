@@ -20,8 +20,10 @@
     {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
     <div {{bindAttr class="overriddenSCP.errorMessage:error: :control-group :overrideField"}}>
       {{view overriddenSCP.viewClass serviceConfigBinding="overriddenSCP" categoryConfigsBinding="view.categoryConfigs"}}
+      {{#if overriddenSCP.group}}
+        <a class="action" {{action selectConfigGroup overriddenSCP.group target="controller"}}>{{overriddenSCP.group.name}}</a>
+      {{/if}}
       {{#if overriddenSCP.isEditable}}
-	      {{view view.hostsCountView overriddenSCPBinding="overriddenSCP"}}
 	      {{#if isNotDefaultValue}}
 	        <a class="action" {{action "doRestoreDefaultValue" this target="view" }} ><i class="icon-undo"></i>Undo</a>
 	      {{/if}}
