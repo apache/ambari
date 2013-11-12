@@ -24,7 +24,7 @@ App.MainAdminView = Em.View.extend({
   categories: function() {
     var items = [{
       name: 'user',
-      url: 'adminUser',
+      url: 'admin.index',
       label: Em.I18n.t('common.users')
     }];
     if (App.get('isHadoop2Stack') && App.supports.highAvailability) {
