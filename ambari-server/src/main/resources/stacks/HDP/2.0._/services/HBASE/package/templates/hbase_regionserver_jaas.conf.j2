@@ -1,0 +1,8 @@
+Client {
+com.sun.security.auth.module.Krb5LoginModule required
+useKeyTab=true
+storeKey=true
+useTicketCache=false
+keyTab="{{regionserver_keytab_path}}"
+principal="{{regionserver_jaas_princ}}";
+};
