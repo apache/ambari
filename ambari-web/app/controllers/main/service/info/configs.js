@@ -1633,11 +1633,50 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.loadStep();
   },
 
-  restartComponents: function() {
-    App.showConfirmationPopup(function() {
-
+  restartComponents: function(e) {
+    var commandName = "stop_component";
+    if(e.context) {
+      if(this.get('content.healthStatus') != 'green'){
+        return;
+      }
+    }else {
+      commandName = "start_component";
+      if(this.get('content.healthStatus') != 'red'){
+        return;
+      }
+    };
+    var content = this;
+    return App.ModalPopup.show({
+      primary: Em.I18n.t('ok'),
+      secondary: Em.I18n.t('common.cancel'),
+      header: Em.I18n.t('popup.confirmation.commonHeader'),
+      body: Em.I18n.t('question.sure'),
+      content: content,
+      onPrimary: function () {
+        var selectedService = this.content.get('content.id');
+        var hostComponents = App.HostComponent.find().filterProperty('service.id', selectedService).filterProperty('staleConfigs', true)
+        hostComponents.forEach(function(item){
+          var componentName = item.get('componentName');
+          var hostName = item.get('host.hostName');
+          App.ajax.send({
+            name: 'config.stale.'+commandName,
+            sender: this,
+            data: {
+              hostName: hostName,
+              componentName: componentName,
+              displayName: App.format.role(componentName)
+            }
+          });
+        })
+        this.hide();
+        App.router.get('backgroundOperationsController').showPopup();
+      },
+      onSecondary: function () {
+        this.hide();
+      }
     });
   },
+
   showHostsShouldBeRestarted: function() {
     var hosts = [];
     for(var hostName in this.get('content.restartRequiredHostsAndComponents')) {

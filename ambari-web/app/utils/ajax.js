@@ -228,6 +228,44 @@ var urls = {
       };
     }
   },
+  'config.stale.stop_component': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          RequestInfo: {
+            "context": "Stop " + data.displayName
+          },
+          Body: {
+            "HostRoles": {
+              "state": "INSTALLED"
+            }
+          }
+        })
+      }
+    }
+  },
+  'config.stale.start_component': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          RequestInfo: {
+            "context": "Start " + data.displayName
+          },
+          Body: {
+            "HostRoles": {
+              "state": "STARTED"
+            }
+          }
+        })
+      }
+    }
+  },
   'service.metrics.flume.channel_fill_percent': {
     'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_SERVER?fields=host_components/metrics/flume/flume/CHANNEL/*/ChannelFillPercentage[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/flume/channelFillPct.json',

@@ -27,6 +27,26 @@ App.MainServiceInfoConfigsView = Em.View.extend({
 
   componentsCount: null,
   hostsCount: null,
+  isStopCommand:true,
+
+
+  stopComponentsIsDisabled: function () {
+    var controller = this.get('controller');
+    if(controller.get('content.healthStatus') == 'green'){
+      return false;
+    }else{
+      return true;
+    }
+  }.property('controller.content.healthStatus'),
+
+  startComponentsIsDisabled:function () {
+    var controller = this.get('controller');
+    if(controller.get('content.healthStatus') == 'red'){
+      return false;
+    }else{
+      return true;
+    }
+  }.property('controller.content.healthStatus'),
 
   calculateCounts: function() {
     var hc = this.get('controller.content.restartRequiredHostsAndComponents');

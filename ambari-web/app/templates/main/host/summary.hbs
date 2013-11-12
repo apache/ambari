@@ -30,9 +30,14 @@
           {{#if view.needToRestartComponentsCount}}
               <div class="alert alert-warning clearfix">
                 <i class="icon-refresh"></i> {{view.needToRestartMessage}}
-                <button class="btn btn-warning restart-components pull-right" {{action restartComponents target="controller"}}>
-                  {{t hosts.host.details.needToRestart.button}}
+                <br/>
+                <button {{bindAttr class=":btn :btn-warning :restart-components :pull-left view.stopComponentsIsDisabled:disabled" }} {{action restartComponents view.isStopCommand target="controller"}}>
+                  {{t hosts.host.details.needToRestart.stopButton}}
                 </button>
+                 <span class="restart-components  pull-left">&nbsp</span>
+                 <button {{bindAttr class=":btn :btn-warning :restart-components :pull-left view.startComponentsIsDisabled:disabled" }} {{action restartComponents target="controller"}}>
+                  {{t hosts.host.details.needToRestart.startButton}}
+                 </button>
               </div>
           {{/if}}
 
