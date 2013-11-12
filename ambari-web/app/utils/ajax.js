@@ -556,7 +556,7 @@ var urls = {
     'type': 'GET',
     'format': function (data, opt) {
       return {
-        async: false
+        data: data.data
       };
     }
   },
