@@ -18,7 +18,10 @@
 
 var App = require('app');
 
-//initialize common cache container for mappers
+/**
+ * initialize common cache container for mappers
+ * App.cache contains shared data, used for syncronizing incoming server data among mappers
+ */
 App.cache = {
   'Hosts': {},
   'previousHostStatuses': {},

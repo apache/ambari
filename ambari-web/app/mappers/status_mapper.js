@@ -97,6 +97,8 @@ App.statusMapper = App.QuickDataMapper.create({
               host_id: host.Hosts.host_name,
               service_id: service
             });
+            //update host-components only on adding due to Ember Data features
+            if (hostsCache[host.Hosts.host_name]) hostsCache[host.Hosts.host_name].is_modified = true;
           }
           currentComponentStatuses[host_component.id] = host_component.HostRoles.state;
 
@@ -142,6 +144,7 @@ App.statusMapper = App.QuickDataMapper.create({
             }
           } else {
             hostComponent.deleteRecord();
+            App.store.commit();
             hostComponent.get('stateManager').transitionTo('loading');
           }
         }
