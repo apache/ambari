@@ -41,7 +41,7 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
    * Example:
    * {
    *   disk: 12,
-   *   ram: 48 * 1024, // MB
+   *   ram: 48,
    *   cpu: 12,
    *   hBaseInstalled: false
    * }
@@ -50,15 +50,11 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
 
   /**
    * Reserved for system memory
-   *
-   * Value in MB!
    */
   reservedRam: null,
 
   /**
    * Reserved for HBase memory
-   *
-   * Value in MB!
    */
   hBaseRam: null,
 
@@ -72,22 +68,18 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
   recommendedMinimumContainerSize: function () {
     if (!this.clusterDataIsValid()) return null;
     var ram = this.get('clusterData.ram');
-    switch (true) {
-      case (ram <=4 ):
-        return 256;
-      case (ram <= 8):
-        return 512;
-      case (ram <= 24):
-        return 1024;
-      default:
-        return 2048;
+    switch(true) {
+      case (ram < 4): return 256;
+      case (ram >= 4 && ram < 8): return 512;
+      case (ram >= 8 && ram < 24): return 1024;
+      case (ram >= 24):
+      default: return 2048;
     }
   }.property('clusterData.ram'),
 
   /**
    * Maximum number of containers allowed per node
-   * max (2*cores,min (1.8*DISKS,(Total available RAM) / MIN_CONTAINER_SIZE)))
-   * min (2*CORES, 1.8*DISKS, (Total available RAM) / MIN_CONTAINER_SIZE)
+   * min (2*cores,min (1.8*DISKS,(Total available RAM) / MIN_CONTAINER_SIZE)))
    */
   containers: function () {
     if (!this.clusterDataIsValid()) return null;
@@ -97,9 +89,9 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
     var containerSize = this.get('recommendedMinimumContainerSize');
     cpu *= 2;
     disk = Math.ceil(disk * 1.8);
-    ram = (ram - this.get('reservedRam'));
+    ram -= this.get('reservedRam');
     if (this.get('clusterData.hBaseInstalled')) {
-      ram -= this.get('hBaseRam')
+      ram -= this.get('hBaseRam');
     }
     if (ram < 1) {
       ram = 1;
@@ -118,10 +110,13 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
    */
   ramPerContainer: function () {
     var containers = this.get('containers');
+    if (!containers) {
+      return null;
+    }
     var ram = this.get('clusterData.ram');
     ram = (ram - this.get('reservedRam'));
     if (this.get('clusterData.hBaseInstalled')) {
-      ram -= this.get('hBaseRam')
+      ram -= this.get('hBaseRam');
     }
     // On low memory systems, memory left over after
     // removing reserved-RAM and HBase might be
@@ -135,7 +130,7 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
     // If container memory is greater than 1GB, 
     // we use multiples of 512 as value
     return container_ram > this.get('GB') ? (Math.floor(container_ram / 512) * 512) : container_ram;
-  }.property('recommendedMinimumContainerSize', 'containers', 'clusterData.ram', 'clusterData.hBaseInstalled', 'hBaseRam', 'reservedRam'),
+  }.property('containers', 'clusterData.ram', 'clusterData.hBaseInstalled', 'hBaseRam', 'reservedRam'),
 
   mapMemory: function () {
     return this.get('ramPerContainer');
@@ -153,40 +148,38 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
   /**
    * Reserved for HBase and system memory is based on total available memory
    */
-
-
-
-  reservedStackRecommendations: function () {
-    var memory = this.get('clusterData.ram');
-    var reservedStack = { 4: 1, 8: 2, 16: 2, 24: 4, 48: 6, 64: 8, 72: 8, 96: 12,
-      128: 24, 256: 32, 512: 64};
-
-    if (memory in reservedStack) {
-      this.set('reservedRam', reservedStack[memory]);
+  reservedMemoryRecommendations: function() {
+    var table = [
+      {os:1,hbase:1},
+      {os:2,hbase:1},
+      {os:2,hbase:2},
+      {os:4,hbase:4},
+      {os:6,hbase:8},
+      {os:8,hbase:8},
+      {os:8,hbase:8},
+      {os:12,hbase:16},
+      {os:24,hbase:24},
+      {os:32,hbase:32},
+      {os:64,hbase:64}
+    ];
+    var ram = this.get('clusterData.ram');
+    var index = 0;
+    switch (true) {
+      case (ram <= 4): index = 0; break;
+      case (ram > 4 && ram <= 8): index = 1; break;
+      case (ram > 8 && ram <= 16): index = 2; break;
+      case (ram > 16 && ram <= 24): index = 3; break;
+      case (ram > 24 && ram <= 48): index = 4; break;
+      case (ram > 48 && ram <= 64): index = 5; break;
+      case (ram > 64 && ram <= 72): index = 6; break;
+      case (ram > 72 && ram <= 96): index = 7; break;
+      case (ram > 96 && ram <= 128): index = 8; break;
+      case (ram > 128 && ram <= 256): index = 9; break;
+      case (ram > 256 && ram <= 512): index = 10; break;
+      default: index = 10; break;
     }
-    if (memory <= 4)
-      this.set('reservedRam', 1);
-    else if (memory >= 512)
-      this.set('reservedRam', 64);
-    else
-      this.set('reservedRam', 1);
-  }.observes('clusterData.ram'),
-
-  hbaseMemRecommendations: function () {
-    var memory = this.get('clusterData.ram');
-    var reservedHBase = {4:1, 8:1, 16:2, 24:4, 48:8, 64:8, 72:8, 96:16,
-      128:24, 256:32, 512:64};
-
-    if (memory in reservedHBase) {
-      this.set('reservedRam', reservedHBase[memory]);
-    }
-    if (memory <= 4)
-      this.set('hBaseRam', 1);
-    else if (memory >= 512)
-      this.set('hBaseRam', 64);
-    else
-      this.set('hBaseRam', 2);
-
+    this.set('reservedRam', table[index].os);
+    this.set('hBaseRam', table[index].hbase);
   }.observes('clusterData.ram'),
 
   /**
@@ -225,6 +218,9 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
     this.getClusterData(localDB);
     var configs = {};
     jQuery.extend(configs, this.get('configsTemplate'));
+    if (!this.clusterDataIsValid()) {
+      return configs;
+    }
     configs['yarn.nodemanager.resource.memory-mb'] = Math.round(this.get('containers') * this.get('ramPerContainer'));
     configs['yarn.scheduler.minimum-allocation-mb'] = Math.round(this.get('ramPerContainer'));
     configs['yarn.scheduler.maximum-allocation-mb'] = Math.round(this.get('containers') * this.get('ramPerContainer'));
