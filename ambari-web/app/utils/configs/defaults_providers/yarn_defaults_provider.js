@@ -69,10 +69,10 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
     if (!this.clusterDataIsValid()) return null;
     var ram = this.get('clusterData.ram');
     switch(true) {
-      case (ram < 4): return 256;
-      case (ram >= 4 && ram < 8): return 512;
-      case (ram >= 8 && ram < 24): return 1024;
-      case (ram >= 24):
+      case (ram <= 4): return 256;
+      case (ram > 4 && ram <= 8): return 512;
+      case (ram > 8 && ram <= 24): return 1024;
+      case (ram > 24):
       default: return 2048;
     }
   }.property('clusterData.ram'),
