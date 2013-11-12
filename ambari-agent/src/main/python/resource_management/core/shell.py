@@ -1,5 +1,8 @@
+__all__ = ["checked_call"]
+
 import logging
 import subprocess
+import pipes
 from exceptions import Fail
 
 log = logging.getLogger("resource_management.provider")
@@ -25,11 +28,14 @@ def _call(command, logoutput=False, throw_on_failure=True,
   
   @return: retrun_code, stdout
   """
-  
-  shell = not isinstance(command, (list, tuple))
-  
+  # convert to string and escape
+  if isinstance(command, (list, tuple)):
+    command = ' '.join(pipes.quote(x) for x in command)
+
+  command = ["/bin/bash","--login","-c", command]
+
   proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                          cwd=cwd, env=env, shell=shell,
+                          cwd=cwd, env=env, shell=False,
                           preexec_fn=preexec_fn)
   
   out = proc.communicate()[0]
@@ -39,7 +45,7 @@ def _call(command, logoutput=False, throw_on_failure=True,
     log.info(out)
   
   if throw_on_failure and code:
-    err_msg = ("Execution of '%s' returned %d. %s") % (command, code, out)
+    err_msg = ("Execution of '%s' returned %d. %s") % (command[-1], code, out)
     raise Fail(err_msg)
   
   return code, out

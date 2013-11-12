@@ -8,5 +8,6 @@ class TemplateConfig(Resource):
   owner = ResourceArgument()
   group = ResourceArgument()
   template_tag = ResourceArgument()
+  extra_imports = ResourceArgument(default=[])
 
   actions = Resource.actions + ["create"]

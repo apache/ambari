@@ -131,6 +131,10 @@ class DirectoryProvider(Provider):
       if self.resource.recursive:
         os.makedirs(path, self.resource.mode or 0755)
       else:
+        dirname = os.path.dirname(path)
+        if not os.path.isdir(dirname):
+          raise Fail("Applying %s failed, parent directory %s doesn't exist" % (self.resource, dirname))
+        
         os.mkdir(path, self.resource.mode or 0755)
       self.resource.updated()
       
@@ -214,6 +218,9 @@ class ExecuteProvider(Provider):
     self.log.info("Executing %s" % self.resource)
     
     if self.resource.path != []:
+      if not self.resource.environment:
+        self.resource.environment = {}
+      
       self.resource.environment['PATH'] = os.pathsep.join(self.resource.path) 
     
     for i in range (0, self.resource.tries):
@@ -232,7 +239,7 @@ class ExecuteProvider(Provider):
     self.resource.updated()
        
 
-class ScriptProvider(Provider):
+class ExecuteScriptProvider(Provider):
   def action_run(self):
     from tempfile import NamedTemporaryFile
 

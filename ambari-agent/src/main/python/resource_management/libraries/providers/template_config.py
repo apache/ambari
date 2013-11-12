@@ -12,9 +12,11 @@ class TemplateConfigProvider(Provider):
     else:
       template_name = format("{file_name}-{template_tag}.j2")
 
-    File( qualified_file_name,
-     owner   = self.resource.owner,
-     group   = self.resource.group,
-     mode    = self.resource.mode,
-     content = Template(template_name)
-    )
+    with Environment.get_instance_copy() as env:
+      File( qualified_file_name,
+       owner   = self.resource.owner,
+       group   = self.resource.group,
+       mode    = self.resource.mode,
+       content = Template(template_name, extra_imports=self.resource.extra_imports)
+      )
+    env.run()

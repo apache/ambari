@@ -9,12 +9,12 @@ class ExecuteHadoop(Resource):
   try_sleep = ResourceArgument(default=0) # seconds
   user = ResourceArgument()
   logoutput = BooleanArgument(default=False)
+  principal = ResourceArgument()
   
   conf_dir = ResourceArgument()
   
   security_enabled = BooleanArgument(default=False)
   keytab = ResourceArgument()
-  principal = ResourceArgument()
   kinit_path_local = ResourceArgument()
   
   actions = Resource.actions + ["run"]

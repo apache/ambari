@@ -17,13 +17,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+__all__ = ["Script"]
 
 import sys
 import json
 import logging
 
-from resource_management.environment import Environment
-from resource_management.exceptions import Fail
+from resource_management.core.environment import Environment
+from resource_management.core.exceptions import Fail
 
 
 class Script():
@@ -31,15 +32,6 @@ class Script():
   Executes a command for custom service. stdout and stderr are written to
   tmpoutfile and to tmperrfile respectively.
   """
-
-  def __init__(self):
-    pass
-
-
-  def start(self, env, params):  # TODO: just for test runs; remove
-    print "Start!"
-    pass
-
 
   def execute(self):
     """
@@ -57,6 +49,7 @@ class Script():
     cherr.setLevel(logging.ERROR)
     cherr.setFormatter(formatter)
     logger.addHandler(cherr)
+    logger.addHandler(chout)
     # parse arguments
     if len(sys.argv) < 1+3:
       logger.error("Script expects at least 3 arguments")
@@ -68,7 +61,7 @@ class Script():
     try:
       with open(command_data_file, "r") as f:
         pass
-        params = json.load(f)
+        Script.config = ConfigDictionary(json.load(f))
     except IOError:
       logger.exception("Can not read json file with command parameters: ")
       sys.exit(1)
@@ -79,14 +72,16 @@ class Script():
       sys.exit(1)
     method = getattr(self, command_type)
     try:
-      with Environment(basedir, params) as env:
-        method(env, params)
+      with Environment(basedir) as env:
+        method(env)
       env.run()
     except Fail:
       logger.exception("Got exception while executing method '{0}':".format(command_type))
       sys.exit(1)
-
-
+      
+  @staticmethod
+  def get_config():
+    return Script.config
 
   def fail_with_error(self, message):
     """
@@ -96,6 +91,41 @@ class Script():
     sys.stderr.write("Error: " + message)
     sys.exit(1)
 
+class ConfigDictionary(dict):
+  """
+  Immutable config dictionary
+  """
+  
+  def __init__(self, dictionary):
+    """
+    Recursively turn dict to ConfigDictionary
+    """
+    for k, v in dictionary.iteritems():
+      if isinstance(v, dict):
+        dictionary[k] = ConfigDictionary(v)
+        
+    super(ConfigDictionary, self).__init__(dictionary)
 
-if __name__ == "__main__":
-  Script().execute()
+  def __setitem__(self, name, value):
+    raise Fail("Configuration dictionary is immutable!")
+
+  def __getitem__(self, name):
+    """
+    Use Python types
+    """
+    value = super(ConfigDictionary, self).__getitem__(name)
+    
+    if value == "true":
+      value = True
+    elif value == "false":
+      value = False
+    else: 
+      try:
+        value = int(value)
+      except (ValueError, TypeError):
+        try:
+          value =  float(value)
+        except (ValueError, TypeError):
+          pass
+    
+    return value

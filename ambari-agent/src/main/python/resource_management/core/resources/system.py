@@ -1,4 +1,4 @@
-__all__ = ["File", "Directory", "Link", "Execute", "Script", "Mount"]
+__all__ = ["File", "Directory", "Link", "Execute", "ExecuteScript", "Mount"]
 
 from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
 
@@ -53,7 +53,7 @@ class Execute(Resource):
   creates = ResourceArgument()
   cwd = ResourceArgument()
   # this runs command with a specific env variables, env={'JAVA_HOME': '/usr/jdk'}
-  environment = ResourceArgument(default={})
+  environment = ResourceArgument()
   user = ResourceArgument()
   group = ResourceArgument()
   returns = ForcedListArgument(default=0)
@@ -64,7 +64,7 @@ class Execute(Resource):
   logoutput = BooleanArgument(default=False)
 
 
-class Script(Resource):
+class ExecuteScript(Resource):
   action = ForcedListArgument(default="run")
   code = ResourceArgument(required=True)
   cwd = ResourceArgument()

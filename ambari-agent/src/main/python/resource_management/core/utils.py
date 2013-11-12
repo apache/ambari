@@ -74,7 +74,8 @@ class AttributeDictionary(object):
 def checked_unite(dict1, dict2):
   for key in dict1:
     if key in dict2:
-      raise Fail("Variable '%s' already exists more than once as a variable/configuration/kwarg parameter. Cannot evaluate it." % key)
+      if not dict2[key] is dict1[key]: # it's not a big deal if this is the same variable
+        raise Fail("Variable '%s' already exists more than once as a variable/configuration/kwarg parameter. Cannot evaluate it." % key)
   
   result = dict1.copy()
   result.update(dict2)

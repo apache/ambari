@@ -19,10 +19,12 @@ class XmlConfigProvider(Provider):
    
   
     self.log.debug(format("Generating config: {conf_dir}/{filename}"))
-  
-    File (format("{conf_dir}/{filename}"),
-      content = config_content,
-      owner = self.resource.owner,
-      group = self.resource.group,
-      mode = self.resource.mode
-    )
+    
+    with Environment.get_instance_copy() as env:
+      File (format("{conf_dir}/{filename}"),
+        content = config_content,
+        owner = self.resource.owner,
+        group = self.resource.group,
+        mode = self.resource.mode
+      )
+    env.run()

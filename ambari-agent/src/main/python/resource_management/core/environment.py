@@ -1,36 +1,33 @@
 #!/usr/bin/env python
 
-__all__ = ["Environment","format"]
+__all__ = ["Environment"]
 
 import logging
-import sys
 import os
 import shutil
 import time
 from datetime import datetime
-from string import Formatter
 
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from resource_management.core.providers import find_provider
-from resource_management.core.utils import AttributeDictionary, checked_unite
+from resource_management.core.utils import AttributeDictionary
 from resource_management.core.system import System
 
 
 class Environment(object):
   _instances = []
 
-  def __init__(self, basedir=None, params=None):
+  def __init__(self, basedir=None):
     """
     @param basedir: basedir/files, basedir/templates are the places where templates / static files
     are looked up
     @param params: configurations dictionary (this will be accessible in the templates)
     """
     self.log = logging.getLogger("resource_management")
-    self.formatter = ConfigurationFormatter()
-    self.reset(basedir, params)
+    self.reset(basedir)
 
-  def reset(self, basedir, params):
+  def reset(self, basedir):
     self.system = System.get_instance()
     self.config = AttributeDictionary()
     self.resources = {}
@@ -46,7 +43,7 @@ class Environment(object):
       # dir where templates,failes dirs are 
       'basedir': basedir, 
       # variables, which can be used in templates
-      'params': params.copy(),
+      'params': {},
     })
 
   def backup_file(self, path):
@@ -69,14 +66,21 @@ class Environment(object):
       if overwrite or path[-1] not in attr:
         attr[path[-1]] = value
         
-  def add_params(self, params):
-    variables = [item for item in dir(params) if not item.startswith("__")]
-
-    for variable in variables:
-      value = getattr(params, variable)
-      if not hasattr(value, '__call__'):
-        if variable in self.config.params:
-          raise Fail("Variable %s already exists in the resource management parameters" % variable)
+  def set_params(self, arg):
+    """
+    @param arg: is a dictionary of configurations, or a module with the configurations
+    """
+    if isinstance(arg, dict):
+      variables = arg
+    else:
+      variables = dict((var, getattr(arg, var)) for var in dir(arg))
+    
+    for variable, value in variables.iteritems():
+      # don't include system variables, methods, classes, modules
+      if not variable.startswith("__") and \
+          not hasattr(value, '__call__')and \
+          not hasattr(value, '__module__') and \
+          not hasattr(value, '__file__'):
         self.config.params[variable] = value
         
   def run_action(self, resource, action):
@@ -147,6 +151,17 @@ class Environment(object):
   @classmethod
   def get_instance(cls):
     return cls._instances[-1]
+  
+  @classmethod
+  def get_instance_copy(cls):
+    """
+    Copy only configurations, but not resources execution state
+    """
+    old_instance = cls.get_instance()
+    new_instance = Environment()
+    new_instance.config = old_instance.config.copy()
+    
+    return new_instance
 
   def __enter__(self):
     self.__class__._instances.append(self)
@@ -170,21 +185,3 @@ class Environment(object):
     self.resources = state['resources']
     self.resource_list = state['resource_list']
     self.delayed_actions = state['delayed_actions']
-    
-class ConfigurationFormatter(Formatter):
-  def format(self, format_string, *args, **kwargs):
-    env = Environment.get_instance()
-    variables = kwargs
-    params = env.config.params
-    
-    result = checked_unite(variables, params)
-    return self.vformat(format_string, args, result)
-  
-def format(format_string, *args, **kwargs):
-  env = Environment.get_instance()
-  variables = sys._getframe(1).f_locals
-  
-  result = checked_unite(kwargs, variables)
-  result.pop("self", None) # self kwarg would result in an error
-  return env.formatter.format(format_string, args, **result)
-  
