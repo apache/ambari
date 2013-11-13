@@ -169,18 +169,9 @@ App.MainHostDetailsController = Em.Controller.extend({
   deleteComponent: function (event) {
     var self = this;
     var component = event.context;
-    var componentName = component.get('componentName').toUpperCase().toString();
+    var componentName = component.get('componentName');
     var displayName = component.get('displayName');
-    var numberOfComponents = 0;
-    var isLastComponent = false;
-    var allComponents = component.get('service.hostComponents');
-    allComponents.forEach(function(component) {
-      if (component.get('componentName') == componentName) numberOfComponents++;
-      if (numberOfComponents > 1) return;
-    });
-    if (numberOfComponents == 1) {
-      isLastComponent = true;
-    }
+    var isLastComponent = (App.HostComponent.find().filterProperty('componentName', componentName).get('length') === 1);
     App.ModalPopup.show({
       header: Em.I18n.t('popup.confirmation.commonHeader'),
       bodyClass: Ember.View.extend({
@@ -711,57 +702,52 @@ App.MainHostDetailsController = Em.Controller.extend({
   /**
    * Deletion of hosts not supported for this version
    */
-   validateAndDeleteHost: function () {
-     if (!App.supports.deleteHost) {
-       return;
-     }
-     var stoppedStates = [App.HostComponentStatus.stopped, 
-                          App.HostComponentStatus.install_failed, 
-                          App.HostComponentStatus.upgrade_failed,
-                          App.HostComponentStatus.unknown];
-     var masterComponents = [];
-     var runningComponents = [];
-     var unknownComponents = [];
-     var nonDeletableComponents = [];
-     var lastComponents = [];
-     var components = this.get('content.hostComponents');
-     if (components!=null && components.get('length')>0){
-       components.forEach(function (cInstance) {
-         var numberOfComponents = 0;
-         var allComponents = cInstance.get('service.hostComponents');
-         allComponents.forEach(function(component) {
-           if (component.get('componentName') == cInstance.get('componentName')) numberOfComponents++;
-           if (numberOfComponents > 1) return;
-         });
-         if (numberOfComponents == 1) {
-           lastComponents.push(cInstance.get('displayName'));
-         }
-         var workStatus = cInstance.get('workStatus');
-         if (cInstance.get('isMaster') && !cInstance.get('isDeletable')) {
-           masterComponents.push(cInstance.get('displayName'));
-         }
-         if (stoppedStates.indexOf(workStatus) < 0) {
-           runningComponents.push(cInstance.get('displayName'));
-         }
-         if (!cInstance.get('isDeletable')) {
-           nonDeletableComponents.push(cInstance.get('displayName'));
-         }
-         if (workStatus === App.HostComponentStatus.unknown) {
-           unknownComponents.push(cInstance.get('displayName'));
-         }
-       });
-     }
-     if (masterComponents.length > 0) {
-       this.raiseDeleteComponentsError(masterComponents, 'masterList');
-       return;
-     } else if (nonDeletableComponents.length > 0) {
-       this.raiseDeleteComponentsError(nonDeletableComponents, 'nonDeletableList');
-       return;
-     } else if(runningComponents.length > 0) {
-       this.raiseDeleteComponentsError(runningComponents, 'runningList');
-       return;
-     }
-     this._doDeleteHost(unknownComponents,lastComponents);
+  validateAndDeleteHost: function () {
+    if (!App.supports.deleteHost) {
+      return;
+    }
+    var stoppedStates = [App.HostComponentStatus.stopped,
+                         App.HostComponentStatus.install_failed,
+                         App.HostComponentStatus.upgrade_failed,
+                         App.HostComponentStatus.unknown];
+    var masterComponents = [];
+    var runningComponents = [];
+    var unknownComponents = [];
+    var nonDeletableComponents = [];
+    var lastComponents = [];
+    var componentsOnHost = this.get('content.hostComponents');
+    var allComponents = App.HostComponent.find();
+    if (componentsOnHost && componentsOnHost.get('length') > 0) {
+      componentsOnHost.forEach(function (cInstance) {
+        if (allComponents.filterProperty('componentName', cInstance.get('componentName')).get('length') === 1) {
+          lastComponents.push(cInstance.get('displayName'));
+        }
+        var workStatus = cInstance.get('workStatus');
+        if (cInstance.get('isMaster') && !cInstance.get('isDeletable')) {
+          masterComponents.push(cInstance.get('displayName'));
+        }
+        if (stoppedStates.indexOf(workStatus) < 0) {
+          runningComponents.push(cInstance.get('displayName'));
+        }
+        if (!cInstance.get('isDeletable')) {
+          nonDeletableComponents.push(cInstance.get('displayName'));
+        }
+        if (workStatus === App.HostComponentStatus.unknown) {
+          unknownComponents.push(cInstance.get('displayName'));
+        }
+      });
+    }
+    if (masterComponents.length > 0) {
+      this.raiseDeleteComponentsError(masterComponents, 'masterList');
+      return;
+    } else if (nonDeletableComponents.length > 0) {
+      this.raiseDeleteComponentsError(nonDeletableComponents, 'nonDeletableList');
+      return;
+    } else if (runningComponents.length > 0) {
+      this.raiseDeleteComponentsError(runningComponents, 'runningList');
+      return;
+    }
+    this._doDeleteHost(unknownComponents, lastComponents);
   },
   
   raiseDeleteComponentsError: function (components, type) {
