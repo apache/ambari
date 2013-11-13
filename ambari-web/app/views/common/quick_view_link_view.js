@@ -73,14 +73,19 @@ App.QuickViewLinks = Em.View.extend({
   /**
    * Updated quick links. Here we put correct hostname to url
    */
-  quickLinks: function () {
+  quickLinks: [],
+
+  didInsertElement: function() {
+    this.setQuickLinks();
+  },
+  setQuickLinks: function () {
     this.loadTags();
     var serviceName = this.get('content.serviceName');
     var components = this.get('content.hostComponents');
     var host;
     var self = this;
     var version = App.get('currentStackVersionNumber');
-
+    var quickLinks = [];
     switch (serviceName) {
       case "HDFS":
         if ( this.get('content.snameNode')) { // not HA
@@ -125,14 +130,14 @@ App.QuickViewLinks = Em.View.extend({
     }
 
     if (!host) {
-      return [
+      quickLinks = [
         {
           label: this.t('quick.links.error.label'),
           url: 'javascript:alert("' + this.t('contact.administrator') + '");return false;'
         }
       ];
-    }
-    return this.get('content.quickLinks').map(function (item) {
+    } else {
+    quickLinks = this.get('content.quickLinks').map(function (item) {
       if (host == 'noActiveNN') {
         item.set('disabled', true);
       } else {
@@ -149,7 +154,9 @@ App.QuickViewLinks = Em.View.extend({
       }
       return item;
     });
-  }.property('content.quickLinks.@each.label','actualTags'),
+    }
+    this.set('quickLinks',quickLinks);
+  }.observes('content.quickLinks.@each.label'),
 
   setProtocol: function(service_id){
     var properties  = this.ambariProperties();
