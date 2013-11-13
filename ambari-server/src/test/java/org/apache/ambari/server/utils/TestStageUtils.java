@@ -168,8 +168,8 @@ public class TestStageUtils {
   @Test
   public void testJasonToExecutionCommand() throws JsonGenerationException,
       JsonMappingException, JAXBException, IOException {
-    Stage s = StageUtils.getATestStage(1, 2, "host1");
-    ExecutionCommand cmd = s.getExecutionCommands("host1").get(0).getExecutionCommand();
+    Stage s = StageUtils.getATestStage(1, 2, "host1", "clusterHostInfo");
+    ExecutionCommand cmd = s.getExecutionCommands("host1").get(0).getExecutionCommand();    
     cmd.setConfigurationTags(new HashMap<String, Map<String,String>>() {{
       put("global", new HashMap<String, String>() {{ put("tag", "version1"); }});
     }});

@@ -47,6 +47,19 @@ public class StageEntity {
   @Column(name = "request_context")
   @Basic
   private String requestContext = "";
+  
+  @Column(name = "cluster_host_info")
+  @Basic
+  private byte[] clusterHostInfo;
+  
+
+  public String getClusterHostInfo() {
+    return clusterHostInfo == null ? new String() : new String(clusterHostInfo);
+  }
+
+  public void setClusterHostInfo(String clusterHostInfo) {
+    this.clusterHostInfo = clusterHostInfo.getBytes();
+  }
 
   @ManyToOne(cascade = {CascadeType.MERGE})
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id")
@@ -111,6 +124,7 @@ public class StageEntity {
     if (logInfo != null ? !logInfo.equals(that.logInfo) : that.logInfo != null) return false;
     if (requestId != null ? !requestId.equals(that.requestId) : that.requestId != null) return false;
     if (stageId != null ? !stageId.equals(that.stageId) : that.stageId != null) return false;
+    if (clusterHostInfo != null ? !clusterHostInfo.equals(that.clusterHostInfo) : that.clusterHostInfo != null) return false;
     return !(requestContext != null ? !requestContext.equals(that.requestContext) : that.requestContext != null);
 
   }
@@ -121,6 +135,7 @@ public class StageEntity {
     result = 31 * result + (requestId != null ? requestId.hashCode() : 0);
     result = 31 * result + (stageId != null ? stageId.hashCode() : 0);
     result = 31 * result + (logInfo != null ? logInfo.hashCode() : 0);
+    result = 31 * result + (clusterHostInfo != null ? clusterHostInfo.hashCode() : 0);
     result = 31 * result + (requestContext != null ? requestContext.hashCode() : 0);
     return result;
   }

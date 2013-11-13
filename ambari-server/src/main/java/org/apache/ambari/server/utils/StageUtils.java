@@ -42,7 +42,6 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
@@ -125,33 +124,30 @@ public class StageUtils {
     return requestStageIds;
   }
 
-  public static Stage getATestStage(long requestId, long stageId) {
+  public static Stage getATestStage(long requestId, long stageId, String clusterHostInfo) {
     String hostname;
     try {
       hostname = InetAddress.getLocalHost().getHostName();
     } catch (UnknownHostException e) {
       hostname = "host-dummy";
     }
-    return getATestStage(requestId, stageId, hostname);
+    return getATestStage(requestId, stageId, hostname, clusterHostInfo);
   }
 
   //For testing only
-  public static Stage getATestStage(long requestId, long stageId, String hostname) {
-    Stage s = new Stage(requestId, "/tmp", "cluster1", "context");
+  public static Stage getATestStage(long requestId, long stageId, String hostname, String clusterHostInfo) {
+    
+    Stage s = new Stage(requestId, "/tmp", "cluster1", "context", clusterHostInfo);
     s.setStageId(stageId);
     long now = System.currentTimeMillis();
-    String filename = null;
     s.addHostRoleExecutionCommand(hostname, Role.NAMENODE, RoleCommand.INSTALL,
         new ServiceComponentHostInstallEvent("NAMENODE", hostname, now, "HDP-1.2.0"),
         "cluster1", "HDFS");
     ExecutionCommand execCmd = s.getExecutionCommandWrapper(hostname, "NAMENODE").getExecutionCommand();
     execCmd.setCommandId(s.getActionId());
-    Map<String, List<String>> clusterHostInfo = new TreeMap<String, List<String>>();
     List<String> slaveHostList = new ArrayList<String>();
     slaveHostList.add(hostname);
     slaveHostList.add("host2");
-    clusterHostInfo.put("slave_hosts", slaveHostList);
-    execCmd.setClusterHostInfo(clusterHostInfo);
     Map<String, String> hdfsSite = new TreeMap<String, String>();
     hdfsSite.put("dfs.block.size", "2560000000");
     Map<String, Map<String, String>> configurations =

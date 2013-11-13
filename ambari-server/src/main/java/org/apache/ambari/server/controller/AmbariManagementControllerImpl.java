@@ -535,9 +535,9 @@ public class AmbariManagementControllerImpl implements
     }
   }
 
-  private Stage createNewStage(Cluster cluster, long requestId, String requestContext) {
+  private Stage createNewStage(Cluster cluster, long requestId, String requestContext, String clusterHostInfo) {
     String logDir = BASE_LOG_DIR + File.pathSeparator + requestId;
-    return stageFactory.createNew(requestId, logDir, cluster.getClusterName(), requestContext);
+    return stageFactory.createNew(requestId, logDir, cluster.getClusterName(), requestContext, clusterHostInfo);
   }
 
   private void createHostAction(Cluster cluster,
@@ -546,8 +546,7 @@ public class AmbariManagementControllerImpl implements
                                 Map<String, Map<String, String>> configTags,
                                 RoleCommand command,
                                 Map<String, String> commandParams,
-                                ServiceComponentHostEvent event,
-                                Map<String, List<String>> clusterHostInfo) throws AmbariException {
+                                ServiceComponentHostEvent event) throws AmbariException {
 
     stage.addHostRoleExecutionCommand(scHost.getHostName(), Role.valueOf(scHost
         .getServiceComponentName()), command,
@@ -555,9 +554,6 @@ public class AmbariManagementControllerImpl implements
         scHost.getServiceName());
     ExecutionCommand execCmd = stage.getExecutionCommandWrapper(scHost.getHostName(),
         scHost.getServiceComponentName()).getExecutionCommand();
-
-    // Generate cluster host info
-    execCmd.setClusterHostInfo(clusterHostInfo);
 
     Host host = clusters.getHost(scHost.getHostName());
 
@@ -1145,7 +1141,13 @@ public class AmbariManagementControllerImpl implements
       // FIXME cannot work with a single stage
       // multiple stages may be needed for reconfigure
       long stageId = 0;
-      Stage stage = createNewStage(cluster, requestId, requestContext);
+      Map<String, List<String>> clusterHostInfo = StageUtils.getClusterHostInfo(
+          clusters.getHostsForCluster(cluster.getClusterName()), cluster, hostsMap, injector);
+      
+      
+      String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
+      
+      Stage stage = createNewStage(cluster, requestId, requestContext, clusterHostInfoJson);
       stage.setStageId(stageId);
 
       Set<String> hostnames = new HashSet<String>();
@@ -1159,8 +1161,6 @@ public class AmbariManagementControllerImpl implements
 
       //HACK
       String jobtrackerHost = getJobTrackerHost(cluster);
-      Map<String, List<String>> clusterHostInfo = StageUtils.getClusterHostInfo(
-          clusters.getHostsForCluster(cluster.getClusterName()), cluster, hostsMap, injector);
       for (String compName : changedScHosts.keySet()) {
         for (State newState : changedScHosts.get(compName).keySet()) {
           for (ServiceComponentHost scHost :
@@ -1307,7 +1307,7 @@ public class AmbariManagementControllerImpl implements
             }
 
             createHostAction(cluster, stage, scHost, configurations, configTags,
-                roleCommand, requestParameters, event, clusterHostInfo);
+                roleCommand, requestParameters, event);
           }
         }
       }
@@ -2267,10 +2267,6 @@ public class AmbariManagementControllerImpl implements
     params.put("jdk_location", this.jdkResourceUrl);
     params.put("stack_version", cluster.getDesiredStackVersion().getStackVersion());
     execCmd.setHostLevelParams(params);
-
-    // Generate cluster host info
-    execCmd.setClusterHostInfo(
-      StageUtils.getClusterHostInfo(clusters.getHostsForCluster(clusterName), cluster, hostsMap, injector));
   }
 
   private void addDecommissionDatanodeAction(
@@ -2372,9 +2368,15 @@ public class AmbariManagementControllerImpl implements
     }
 
     clusterName = actionRequest.getClusterName();
+    
+    Cluster cluster = clusters.getCluster(clusterName);
+    
+    Map<String, List<String>> clusterHostInfoMap = StageUtils.getClusterHostInfo(clusters.getHostsForCluster(cluster.getClusterName()), cluster, hostsMap, injector);
 
+    String clusterHostInfo = StageUtils.getGson().toJson(clusterHostInfoMap);
+    
     Stage stage = stageFactory.createNew(actionManager.getNextRequestId(),
-        logDir, clusterName, requestContext);
+        logDir, clusterName, requestContext, clusterHostInfo);
 
     stage.setStageId(0);
     LOG.info("Received a createAction request"
@@ -2395,7 +2397,6 @@ public class AmbariManagementControllerImpl implements
       throw new AmbariException("Unsupported action " + actionRequest.getCommandName());
     }
 
-    Cluster cluster = clusters.getCluster(clusterName);
     RoleCommandOrder rco = this.getRoleCommandOrder(cluster);
     RoleGraph rg = new RoleGraph(rco);
     rg.build(stage);

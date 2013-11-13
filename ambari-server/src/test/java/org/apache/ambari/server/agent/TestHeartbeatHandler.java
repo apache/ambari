@@ -448,7 +448,7 @@ public class TestHeartbeatHandler {
   }
 
   private void populateActionDB(ActionDBAccessor db, String DummyHostname1) {
-    Stage s = new Stage(requestId, "/a/b", DummyCluster, "heartbeat handler test");
+    Stage s = new Stage(requestId, "/a/b", DummyCluster, "heartbeat handler test", "clusterHostInfo");
     s.setStageId(stageId);
     String filename = null;
     s.addHostRoleExecutionCommand(DummyHostname1, Role.HBASE_MASTER,

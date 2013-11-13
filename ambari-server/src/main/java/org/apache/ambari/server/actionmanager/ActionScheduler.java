@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,9 +42,11 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpFailedEvent;
+import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.reflect.TypeToken;
 import com.google.inject.persist.UnitOfWork;
 
 /**
@@ -438,6 +441,12 @@ class ActionScheduler implements Runnable {
     LOG.debug("Scheduling command: "+cmd.toString()+" for host: "+hostname);
     /** change the hostname in the command for the host itself **/
     cmd.setHostname(hostsMap.getHostMap(hostname));
+    
+
+    Type type = new TypeToken<Map<String, List<String>>>() {}.getType();
+    Map<String, List<String>> clusterHostInfo = StageUtils.getGson().fromJson(s.getClusterHostInfo(), type);
+    cmd.setClusterHostInfo(clusterHostInfo);
+
     actionQueue.enqueue(hostname, cmd);
     db.hostRoleScheduled(s, hostname, roleStr);
   }

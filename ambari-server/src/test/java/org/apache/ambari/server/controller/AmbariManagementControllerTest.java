@@ -153,6 +153,8 @@ public class AmbariManagementControllerTest {
   
   private static final String REQUEST_CONTEXT_PROPERTY = "context";
 
+  private static final String CLUSTER_HOST_INFO = "clusterHostInfo";
+
   private AmbariManagementController controller;
   private Clusters clusters;
   private ActionDBAccessor actionDB;
@@ -6815,7 +6817,7 @@ public class AmbariManagementControllerTest {
 
 
     List<Stage> stages = new ArrayList<Stage>();
-    stages.add(new Stage(requestId1, "/a1", clusterName, context));
+    stages.add(new Stage(requestId1, "/a1", clusterName, context, CLUSTER_HOST_INFO));
     stages.get(0).setStageId(1);
     stages.get(0).addHostRoleExecutionCommand(hostName1, Role.HBASE_MASTER,
             RoleCommand.START,
@@ -6823,14 +6825,14 @@ public class AmbariManagementControllerTest {
                     hostName1, System.currentTimeMillis()),
             clusterName, "HBASE");
 
-    stages.add(new Stage(requestId1, "/a2", clusterName, context));
+    stages.add(new Stage(requestId1, "/a2", clusterName, context, CLUSTER_HOST_INFO));
     stages.get(1).setStageId(2);
     stages.get(1).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
                     hostName1, System.currentTimeMillis()), clusterName, "HBASE");
 
-    stages.add(new Stage(requestId1, "/a3", clusterName, context));
+    stages.add(new Stage(requestId1, "/a3", clusterName, context, CLUSTER_HOST_INFO));
     stages.get(2).setStageId(3);
     stages.get(2).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
@@ -6838,14 +6840,14 @@ public class AmbariManagementControllerTest {
                     hostName1, System.currentTimeMillis()), clusterName, "HBASE");
 
 
-    stages.add(new Stage(requestId2, "/a4", clusterName, context));
+    stages.add(new Stage(requestId2, "/a4", clusterName, context, CLUSTER_HOST_INFO));
     stages.get(3).setStageId(4);
     stages.get(3).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,
             new ServiceComponentHostStartEvent(Role.HBASE_CLIENT.toString(),
                     hostName1, System.currentTimeMillis()), clusterName, "HBASE");
 
-    stages.add(new Stage(requestId2, "/a5", clusterName, context));
+    stages.add(new Stage(requestId2, "/a5", clusterName, context, CLUSTER_HOST_INFO));
     stages.get(4).setStageId(5);
     stages.get(4).addHostRoleExecutionCommand(hostName1, Role.HBASE_CLIENT,
             RoleCommand.START,

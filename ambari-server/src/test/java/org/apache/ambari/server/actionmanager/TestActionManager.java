@@ -27,7 +27,6 @@ import static org.junit.Assert.assertSame;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 import com.google.inject.persist.UnitOfWork;
@@ -51,7 +50,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.inject.Guice;
-import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 
@@ -157,7 +155,7 @@ public class TestActionManager {
   }
 
   private void populateActionDB(ActionDBAccessor db, String hostname) {
-    Stage s = new Stage(requestId, "/a/b", "cluster1", "action manager test");
+    Stage s = new Stage(requestId, "/a/b", "cluster1", "action manager test", "clusterHostInfo");
     s.setStageId(stageId);
     s.addHostRoleExecutionCommand(hostname, Role.HBASE_MASTER,
         RoleCommand.START,

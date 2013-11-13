@@ -71,6 +71,7 @@ ALTER TABLE ambari.hostconfigmapping ADD CONSTRAINT FK_hostconfigmapping_host_na
 
 --updating stage table
 ALTER TABLE ambari.stage ADD COLUMN request_context VARCHAR(255);
+ALTER TABLE ambari.stage ADD COLUMN cluster_host_info BYTEA;
 
 -- portability changes for MySQL/Oracle support
 ALTER TABLE ambari.hostcomponentdesiredconfigmapping rename to hcdesiredconfigmapping;
@@ -130,4 +131,21 @@ ALTER TABLE ambari.confgroupclusterconfigmapping ADD CONSTRAINT FK_confgroupclus
 ALTER TABLE ambari.confgroupclusterconfigmapping ADD CONSTRAINT FK_confgroupclusterconfigmapping_group_id FOREIGN KEY (config_group_id) REFERENCES ambari.configgroup (group_id);
 ALTER TABLE ambari.configgrouphostmapping ADD CONSTRAINT FK_configgrouphostmapping_configgroup_id FOREIGN KEY (config_group_id) REFERENCES ambari.configgroup (group_id);
 ALTER TABLE ambari.configgrouphostmapping ADD CONSTRAINT FK_configgrouphostmapping_host_name FOREIGN KEY (host_name) REFERENCES ambari.hosts (host_name);
+
+
+--Move cluster host info for old execution commands to stage table
+UPDATE ambari.stage sd
+  SET 
+    cluster_host_info = substring(ec.command, position('clusterHostInfo' in ec.command) + 17, position('configurations' in ec.command) - position('clusterHostInfo' in ec.command) - 19)
+  FROM
+    ambari.execution_command ec,
+    ambari.host_role_command hrc,
+    ambari.stage ss
+  WHERE ec.task_id = hrc.task_id
+  AND hrc.stage_id = ss.stage_id
+  AND hrc.request_id = ss.request_id
+  AND sd.cluster_host_info IS NULL;
+  
+--Set cluster_host_info column mandatory
+ALTER TABLE ambari.stage ALTER COLUMN cluster_host_info SET NOT NULL;
 

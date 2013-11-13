@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,14 +24,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import com.google.gson.reflect.TypeToken;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
-import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
@@ -58,6 +55,11 @@ public class Stage {
   private long stageId = -1;
   private final String logDir;
   private final String requestContext;
+  private final String clusterHostInfo;
+
+  public String getClusterHostInfo() {
+    return clusterHostInfo;
+  }
 
   private int taskTimeout = -1;
   private int perTaskTimeFactor = 60000;
@@ -73,11 +75,12 @@ public class Stage {
 
   @AssistedInject
   public Stage(@Assisted long requestId, @Assisted("logDir") String logDir, @Assisted("clusterName") String clusterName,
-               @Assisted("requestContext") @Nullable String requestContext) {
+               @Assisted("requestContext") @Nullable String requestContext, @Assisted("clusterHostInfo") String clusterHostInfo) {
     this.requestId = requestId;
     this.logDir = logDir;
     this.clusterName = clusterName;
     this.requestContext = requestContext == null ? "" : requestContext;
+    this.clusterHostInfo = clusterHostInfo;
   }
 
   /**
@@ -100,6 +103,7 @@ public class Stage {
     logDir = stageEntity.getLogInfo();
     clusterName = stageEntity.getCluster().getClusterName();
     requestContext = stageEntity.getRequestContext();
+    clusterHostInfo = stageEntity.getClusterHostInfo();
 
 
     Map<String, List<HostRoleCommandEntity>> hostCommands = hostRoleCommandDAO.findSortedCommandsByStage(stageEntity);
@@ -134,6 +138,7 @@ public class Stage {
     stageEntity.setRequestContext(requestContext);
     stageEntity.setHostRoleCommands(new ArrayList<HostRoleCommandEntity>());
     stageEntity.setRoleSuccessCriterias(new ArrayList<RoleSuccessCriteriaEntity>());
+    stageEntity.setClusterHostInfo(clusterHostInfo);
 
     for (Role role : successFactors.keySet()) {
       RoleSuccessCriteriaEntity roleSuccessCriteriaEntity = new RoleSuccessCriteriaEntity();
@@ -199,6 +204,7 @@ public class Stage {
     cmd.setCommandId(this.getActionId());
     cmd.setRole(role.name());
     cmd.setRoleCommand(command);
+    
     Map<String, HostRoleCommand> hrcMap = this.hostRoleCommands.get(host);
     if (hrcMap == null) {
       hrcMap = new TreeMap<String, HostRoleCommand>();
@@ -476,6 +482,7 @@ public class Stage {
     builder.append("clusterName="+clusterName+"\n");
     builder.append("logDir=" + logDir+"\n");
     builder.append("requestContext="+requestContext+"\n");
+    builder.append("clusterHostInfo="+clusterHostInfo+"\n");
     builder.append("Success Factors:\n");
     for (Role r : successFactors.keySet()) {
       builder.append("  role: "+r+", factor: "+successFactors.get(r)+"\n");

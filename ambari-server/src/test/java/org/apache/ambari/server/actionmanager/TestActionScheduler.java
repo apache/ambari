@@ -24,11 +24,13 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.reflect.TypeToken;
 import com.google.inject.persist.UnitOfWork;
 import junit.framework.Assert;
 
@@ -52,7 +54,6 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
 import org.apache.ambari.server.utils.StageUtils;
-import org.easymock.EasyMock;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +61,10 @@ import org.slf4j.LoggerFactory;
 public class TestActionScheduler {
 
   private static final Logger log = LoggerFactory.getLogger(TestActionScheduler.class);
+  private static final String CLUSTER_HOST_INFO = "{all_hosts=[c6403.ambari.apache.org," +
+  		" c6401.ambari.apache.org, c6402.ambari.apache.org], slave_hosts=[c6403.ambari.apache.org," +
+  		" c6401.ambari.apache.org, c6402.ambari.apache.org]}";
+;
 
   /**
    * This test sends a new action to the action scheduler and verifies that the action
@@ -67,6 +72,10 @@ public class TestActionScheduler {
    */
   @Test
   public void testActionSchedule() throws Exception {
+    
+    Type type = new TypeToken<Map<String, List<String>>>() {}.getType();
+    Map<String, List<String>> clusterHostInfo = StageUtils.getGson().fromJson(CLUSTER_HOST_INFO, type);
+    
     ActionQueue aq = new ActionQueue();
     Clusters fsm = mock(Clusters.class);
     Cluster oneClusterMock = mock(Cluster.class);
@@ -87,7 +96,7 @@ public class TestActionScheduler {
 
     ActionDBAccessor db = mock(ActionDBAccessorImpl.class);
     List<Stage> stages = new ArrayList<Stage>();
-    Stage s = StageUtils.getATestStage(1, 977, hostname);
+    Stage s = StageUtils.getATestStage(1, 977, hostname, CLUSTER_HOST_INFO);
     stages.add(s);
     when(db.getStagesInProgress()).thenReturn(stages);
 
@@ -102,11 +111,13 @@ public class TestActionScheduler {
     List<AgentCommand> ac = waitForQueueSize(hostname, aq, 1);
     assertTrue(ac.get(0) instanceof ExecutionCommand);
     assertEquals("1-977", ((ExecutionCommand) (ac.get(0))).getCommandId());
+    assertEquals(clusterHostInfo, ((ExecutionCommand) (ac.get(0))).getClusterHostInfo());
 
     //The action status has not changed, it should be queued again.
     ac = waitForQueueSize(hostname, aq, 1);
     assertTrue(ac.get(0) instanceof ExecutionCommand);
     assertEquals("1-977", ((ExecutionCommand) (ac.get(0))).getCommandId());
+    assertEquals(clusterHostInfo, ((ExecutionCommand) (ac.get(0))).getClusterHostInfo());
 
     //Now change the action status
     s.setHostRoleStatus(hostname, "NAMENODE", HostRoleStatus.COMPLETED);
@@ -158,7 +169,7 @@ public class TestActionScheduler {
 
     ActionDBAccessor db = new ActionDBInMemoryImpl();
     List<Stage> stages = new ArrayList<Stage>();
-    Stage s = StageUtils.getATestStage(1, 977, hostname);
+    Stage s = StageUtils.getATestStage(1, 977, hostname, CLUSTER_HOST_INFO);
     stages.add(s);
     db.persistActions(stages);
 
@@ -199,7 +210,7 @@ public class TestActionScheduler {
 
     ActionDBAccessor db = new ActionDBInMemoryImpl();
     List<Stage> stages = new ArrayList<Stage>();
-    Stage s = StageUtils.getATestStage(1, 977, hostname);
+    Stage s = StageUtils.getATestStage(1, 977, hostname, CLUSTER_HOST_INFO);
     stages.add(s);
     db.persistActions(stages);
 
@@ -280,7 +291,7 @@ public class TestActionScheduler {
 
   private static Stage getStageWithServerAction(long requestId, long stageId, String hostName,
                                                 Map<String, String> payload, String requestContext) {
-    Stage stage = new Stage(requestId, "/tmp", "cluster1", requestContext);
+    Stage stage = new Stage(requestId, "/tmp", "cluster1", requestContext, CLUSTER_HOST_INFO);
     stage.setStageId(stageId);
     long now = System.currentTimeMillis();
     stage.addServerActionCommand(ServerAction.Command.FINALIZE_UPGRADE, Role.AMBARI_SERVER_ACTION,
@@ -366,7 +377,7 @@ public class TestActionScheduler {
     List<Stage> stages = new ArrayList<Stage>();
 
     long now = System.currentTimeMillis();
-    Stage stage = new Stage(1, "/tmp", "cluster1", "testRequestFailureBasedOnSuccessFactor");
+    Stage stage = new Stage(1, "/tmp", "cluster1", "testRequestFailureBasedOnSuccessFactor", CLUSTER_HOST_INFO);
     stage.setStageId(1);
 
     addHostRoleExecutionCommand(now, stage, Role.SQOOP, Service.Type.SQOOP,
@@ -494,7 +505,7 @@ public class TestActionScheduler {
     List<Stage> stages = new ArrayList<Stage>();
 
     long now = System.currentTimeMillis();
-    Stage stage = new Stage(1, "/tmp", "cluster1", "testRequestFailureBasedOnSuccessFactor");
+    Stage stage = new Stage(1, "/tmp", "cluster1", "testRequestFailureBasedOnSuccessFactor", CLUSTER_HOST_INFO);
     stage.setStageId(1);
     stage.addHostRoleExecutionCommand("host1", Role.DATANODE, RoleCommand.UPGRADE,
         new ServiceComponentHostUpgradeEvent(Role.DATANODE.toString(), "host1", now, "HDP-0.2"),
@@ -564,7 +575,7 @@ public class TestActionScheduler {
   private Stage getStageWithSingleTask(String hostname, String clusterName, Role role,
                                        RoleCommand roleCommand, Service.Type service, int taskId,
                                        int stageId, int requestId) {
-    Stage stage = new Stage(requestId, "/tmp", clusterName, "getStageWithSingleTask");
+    Stage stage = new Stage(requestId, "/tmp", clusterName, "getStageWithSingleTask", CLUSTER_HOST_INFO);
     stage.setStageId(stageId);
     stage.addHostRoleExecutionCommand(hostname, role, roleCommand,
         new ServiceComponentHostUpgradeEvent(role.toString(), hostname, System.currentTimeMillis(), "HDP-0.2"),
@@ -577,7 +588,7 @@ public class TestActionScheduler {
 
   @Test
   public void testSuccessFactors() {
-    Stage s = StageUtils.getATestStage(1, 1);
+    Stage s = StageUtils.getATestStage(1, 1, CLUSTER_HOST_INFO);
     assertEquals(new Float(0.5), new Float(s.getSuccessFactor(Role.DATANODE)));
     assertEquals(new Float(0.5), new Float(s.getSuccessFactor(Role.TASKTRACKER)));
     assertEquals(new Float(0.5), new Float(s.getSuccessFactor(Role.GANGLIA_MONITOR)));

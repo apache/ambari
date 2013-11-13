@@ -18,7 +18,6 @@
 package org.apache.ambari.server.actionmanager;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import com.google.inject.persist.UnitOfWork;
@@ -227,7 +226,7 @@ public class TestActionDBAccessorImpl {
 
   @Test
   public void testAbortRequest() throws AmbariException {
-    Stage s = new Stage(requestId, "/a/b", "cluster1", "action db accessor test");
+    Stage s = new Stage(requestId, "/a/b", "cluster1", "action db accessor test", "clusterHostInfo");
     s.setStageId(stageId);
 
     clusters.addHost("host2");
@@ -282,7 +281,7 @@ public class TestActionDBAccessorImpl {
 
   private void populateActionDB(ActionDBAccessor db, String hostname,
       long requestId, long stageId) {
-    Stage s = new Stage(requestId, "/a/b", "cluster1", "action db accessor test");
+    Stage s = new Stage(requestId, "/a/b", "cluster1", "action db accessor test", "clusterHostInfo");
     s.setStageId(stageId);
     s.addHostRoleExecutionCommand(hostname, Role.HBASE_MASTER,
         RoleCommand.START,

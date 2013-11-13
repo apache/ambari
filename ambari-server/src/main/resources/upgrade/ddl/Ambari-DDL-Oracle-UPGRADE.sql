@@ -23,6 +23,8 @@ ALTER TABLE clusterconfigmapping ADD (user_name VARCHAR2 (255) DEFAULT '_db');
 
 ALTER TABLE hostconfigmapping ADD (user_name VARCHAR2 (255) DEFAULT '_db');
 
+ALTER TABLE stage ADD (cluster_host_info BLOB DEFAULT NULL);
+
 -- DML
 --Upgrade version to current
 UPDATE metainfo SET "metainfo_key" = 'version', "metainfo_value" = '${ambariVersion}';
@@ -44,5 +46,30 @@ ALTER TABLE ambari.confgroupclusterconfigmapping ADD CONSTRAINT FK_confgroupclus
 ALTER TABLE ambari.confgroupclusterconfigmapping ADD CONSTRAINT FK_confgroupclusterconfigmapping_group_id FOREIGN KEY (config_group_id) REFERENCES ambari.configgroup (group_id);
 ALTER TABLE ambari.configgrouphostmapping ADD CONSTRAINT FK_configgrouphostmapping_configgroup_id FOREIGN KEY (config_group_id) REFERENCES ambari.configgroup (group_id);
 ALTER TABLE ambari.configgrouphostmapping ADD CONSTRAINT FK_configgrouphostmapping_host_name FOREIGN KEY (host_name) REFERENCES ambari.hosts (host_name);
+
+
+UPDATE
+  stage sd
+SET
+  (sd.cluster_host_info) =
+  (
+    SELECT DISTINCT
+      (dbms_lob.substr(ec.command, dbms_lob.instr(ec.command,
+      '636f6e66696775726174696f6e73')   - dbms_lob.instr(ec.command,
+      '636c7573746572486f7374496e666f') - 19, dbms_lob.instr(ec.command,
+      '636c7573746572486f7374496e666f') + 17) )
+    FROM
+      execution_command ec ,
+      host_role_command hrc,
+      stage ss
+    WHERE
+      ec.task_id       = hrc.task_id
+    AND hrc.stage_id   = ss.stage_id
+    AND hrc.request_id = ss.request_id
+    AND ss.stage_id    = sd.stage_id
+    AND ss.request_id  = sd.request_id
+  );
+  
+ALTER TABLE stage MODIFY (cluster_host_info NOT NULL);
 
 commit;

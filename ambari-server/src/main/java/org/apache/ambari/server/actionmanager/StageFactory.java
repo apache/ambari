@@ -24,7 +24,7 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 public interface StageFactory {
 
   Stage createNew(long requestId, @Assisted("logDir") String logDir, @Assisted("clusterName") String clusterName,
-                   @Assisted("requestContext") String requestContext);
+                   @Assisted("requestContext") String requestContext, @Assisted("clusterHostInfo") String clusterHostInfo);
 
   Stage createExisting(String actionId);
 
