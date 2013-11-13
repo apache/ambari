@@ -100,8 +100,12 @@ App.YARNDefaultsProvider = App.DefaultsProvider.create({
     if (this.get('clusterData.hBaseInstalled')) {
       ram -= this.get('hBaseRam')
     }
-    if (ram < 1) {
-      ram = 1;
+    // On low memory systems, memory left over after
+    // removing reserved-RAM and HBase might be
+    // less than 2GB (even negative). If so, we force
+    // a 2GB value relying on virtual memory.
+    if (ram < 2) {
+      ram = 2;
     }
     ram *= this.get('GB');
     ram /= containerSize;
