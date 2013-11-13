@@ -99,6 +99,10 @@ public class ClusterControllerImplTest {
     resourceProviderProperties.add(PropertyHelper.getPropertyId("c1", "p2"));
     resourceProviderProperties.add(PropertyHelper.getPropertyId("c1", "p3"));
     resourceProviderProperties.add(PropertyHelper.getPropertyId("c2", "p4"));
+    // add the categories
+    resourceProviderProperties.add("Hosts");
+    resourceProviderProperties.add("c1");
+    resourceProviderProperties.add("c2");
   }
 
   @Test
@@ -112,7 +116,7 @@ public class ClusterControllerImplTest {
 
     Request request = PropertyHelper.getReadRequest(propertyIds);
 
-    Iterable<Resource> iterable = controller.getResources(Resource.Type.Host, request, null);
+    Iterable<Resource> iterable = controller.getResourceIterable(Resource.Type.Host, request, null);
 
     int cnt = 0;
     for (Resource resource : iterable) {
@@ -141,9 +145,9 @@ public class ClusterControllerImplTest {
       list.add(resource);
     }
     Assert.assertEquals(2, list.size());
-    Assert.assertEquals("host:1", (String) list.get(0).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals("host:0", (String) list.get(0).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
     Assert.assertEquals(Resource.Type.Host, list.get(0).getType());
-    Assert.assertEquals("host:2", (String) list.get(1).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals("host:1", (String) list.get(1).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
     Assert.assertEquals(Resource.Type.Host, list.get(1).getType());
 
     // get the first three
@@ -157,11 +161,11 @@ public class ClusterControllerImplTest {
       list.add(resource);
     }
     Assert.assertEquals(3, list.size());
-    Assert.assertEquals("host:1", (String) list.get(0).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals("host:0", (String) list.get(0).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
     Assert.assertEquals(Resource.Type.Host, list.get(0).getType());
-    Assert.assertEquals("host:2", (String) list.get(1).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals("host:1", (String) list.get(1).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
     Assert.assertEquals(Resource.Type.Host, list.get(1).getType());
-    Assert.assertEquals("host:3", (String) list.get(2).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals("host:2", (String) list.get(2).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
     Assert.assertEquals(Resource.Type.Host, list.get(2).getType());
   }
 
@@ -178,8 +182,8 @@ public class ClusterControllerImplTest {
     PageResponse pageResponse = controller.getResources(Resource.Type.Host, request, null, pageRequest);
 
     Assert.assertEquals(1, pageResponse.getOffset());
-    Assert.assertEquals("host:1", pageResponse.getPreviousResource().getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
-    Assert.assertEquals("host:4", pageResponse.getNextResource().getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals("host:0", pageResponse.getPreviousResource().getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals("host:3", pageResponse.getNextResource().getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
 
     Iterable<Resource> iterable = pageResponse.getIterable();
     List<Resource> list = new LinkedList<Resource>();
@@ -188,9 +192,9 @@ public class ClusterControllerImplTest {
       list.add(resource);
     }
     Assert.assertEquals(2, list.size());
-    Assert.assertEquals("host:2", (String) list.get(0).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals("host:1", (String) list.get(0).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
     Assert.assertEquals(Resource.Type.Host, list.get(0).getType());
-    Assert.assertEquals("host:3", (String) list.get(1).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals("host:2", (String) list.get(1).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
     Assert.assertEquals(Resource.Type.Host, list.get(1).getType());
 
     // get the last three (0 - 2)
@@ -199,7 +203,7 @@ public class ClusterControllerImplTest {
 
     Assert.assertEquals(0, pageResponse.getOffset());
     Assert.assertNull(pageResponse.getPreviousResource());
-    Assert.assertEquals("host:4", pageResponse.getNextResource().getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals("host:3", pageResponse.getNextResource().getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
 
     iterable = pageResponse.getIterable();
     list = new LinkedList<Resource>();
@@ -208,11 +212,11 @@ public class ClusterControllerImplTest {
       list.add(resource);
     }
     Assert.assertEquals(3, list.size());
-    Assert.assertEquals("host:1", (String) list.get(0).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals("host:0", (String) list.get(0).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
     Assert.assertEquals(Resource.Type.Host, list.get(0).getType());
-    Assert.assertEquals("host:2", (String) list.get(1).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals("host:1", (String) list.get(1).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
     Assert.assertEquals(Resource.Type.Host, list.get(1).getType());
-    Assert.assertEquals("host:3", (String) list.get(2).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals("host:2", (String) list.get(2).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
     Assert.assertEquals(Resource.Type.Host, list.get(2).getType());
   }
 
@@ -235,65 +239,14 @@ public class ClusterControllerImplTest {
       list.add(resource);
     }
     Assert.assertEquals(2, list.size());
-    Assert.assertEquals("host:3", (String) list.get(0).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals("host:2", (String) list.get(0).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
     Assert.assertEquals(Resource.Type.Host, list.get(0).getType());
-    Assert.assertEquals("host:4", (String) list.get(1).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals("host:3", (String) list.get(1).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
     Assert.assertEquals(Resource.Type.Host, list.get(1).getType());
 
     // get the last three
     pageRequest = new PageRequestImpl(PageRequest.StartingPoint.End, 3, 0, null, null);
     pageResponse = controller.getResources(Resource.Type.Host, request, null, pageRequest);
-
-    iterable = pageResponse.getIterable();
-    list = new LinkedList<Resource>();
-
-    for (Resource resource : iterable) {
-      list.add(resource);
-    }
-    Assert.assertEquals(3, list.size());
-    Assert.assertEquals("host:2", (String) list.get(0).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
-    Assert.assertEquals(Resource.Type.Host, list.get(0).getType());
-    Assert.assertEquals("host:3", (String) list.get(1).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
-    Assert.assertEquals(Resource.Type.Host, list.get(1).getType());
-    Assert.assertEquals("host:4", (String) list.get(2).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
-    Assert.assertEquals(Resource.Type.Host, list.get(2).getType());
-  }
-
-  @Test
-  public void testGetResourcesPageToOffset() throws Exception{
-    ClusterControllerImpl controller = new ClusterControllerImpl(new TestProviderModule());
-
-    Set<String> propertyIds = new HashSet<String>();
-
-    Request request = PropertyHelper.getReadRequest(propertyIds);
-
-    // get the middle two (1 - 2)
-    PageRequest pageRequest = new PageRequestImpl(PageRequest.StartingPoint.OffsetEnd, 2, 2, null, null);
-    PageResponse pageResponse = controller.getResources(Resource.Type.Host, request, null, pageRequest);
-
-    Assert.assertEquals(1, pageResponse.getOffset());
-    Assert.assertEquals("host:1", pageResponse.getPreviousResource().getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
-    Assert.assertEquals("host:4", pageResponse.getNextResource().getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
-
-    Iterable<Resource> iterable = pageResponse.getIterable();
-    List<Resource> list = new LinkedList<Resource>();
-
-    for (Resource resource : iterable) {
-      list.add(resource);
-    }
-    Assert.assertEquals(2, list.size());
-    Assert.assertEquals("host:2", (String) list.get(0).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
-    Assert.assertEquals(Resource.Type.Host, list.get(0).getType());
-    Assert.assertEquals("host:3", (String) list.get(1).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
-    Assert.assertEquals(Resource.Type.Host, list.get(1).getType());
-
-    // get the last three (0 - 2)
-    pageRequest = new PageRequestImpl(PageRequest.StartingPoint.OffsetEnd, 3, 2, null, null);
-    pageResponse = controller.getResources(Resource.Type.Host, request, null, pageRequest);
-
-    Assert.assertEquals(0, pageResponse.getOffset());
-    Assert.assertNull(pageResponse.getPreviousResource());
-    Assert.assertEquals("host:4", pageResponse.getNextResource().getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
 
     iterable = pageResponse.getIterable();
     list = new LinkedList<Resource>();
@@ -311,6 +264,57 @@ public class ClusterControllerImplTest {
   }
 
   @Test
+  public void testGetResourcesPageToOffset() throws Exception{
+    ClusterControllerImpl controller = new ClusterControllerImpl(new TestProviderModule());
+
+    Set<String> propertyIds = new HashSet<String>();
+
+    Request request = PropertyHelper.getReadRequest(propertyIds);
+
+    // get the middle two (1 - 2)
+    PageRequest pageRequest = new PageRequestImpl(PageRequest.StartingPoint.OffsetEnd, 2, 2, null, null);
+    PageResponse pageResponse = controller.getResources(Resource.Type.Host, request, null, pageRequest);
+
+    Assert.assertEquals(1, pageResponse.getOffset());
+    Assert.assertEquals("host:0", pageResponse.getPreviousResource().getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals("host:3", pageResponse.getNextResource().getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+
+    Iterable<Resource> iterable = pageResponse.getIterable();
+    List<Resource> list = new LinkedList<Resource>();
+
+    for (Resource resource : iterable) {
+      list.add(resource);
+    }
+    Assert.assertEquals(2, list.size());
+    Assert.assertEquals("host:1", (String) list.get(0).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals(Resource.Type.Host, list.get(0).getType());
+    Assert.assertEquals("host:2", (String) list.get(1).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals(Resource.Type.Host, list.get(1).getType());
+
+    // get the last three (0 - 2)
+    pageRequest = new PageRequestImpl(PageRequest.StartingPoint.OffsetEnd, 3, 2, null, null);
+    pageResponse = controller.getResources(Resource.Type.Host, request, null, pageRequest);
+
+    Assert.assertEquals(0, pageResponse.getOffset());
+    Assert.assertNull(pageResponse.getPreviousResource());
+    Assert.assertEquals("host:3", pageResponse.getNextResource().getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+
+    iterable = pageResponse.getIterable();
+    list = new LinkedList<Resource>();
+
+    for (Resource resource : iterable) {
+      list.add(resource);
+    }
+    Assert.assertEquals(3, list.size());
+    Assert.assertEquals("host:0", (String) list.get(0).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals(Resource.Type.Host, list.get(0).getType());
+    Assert.assertEquals("host:1", (String) list.get(1).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals(Resource.Type.Host, list.get(1).getType());
+    Assert.assertEquals("host:2", (String) list.get(2).getPropertyValue(PropertyHelper.getPropertyId("Hosts", "host_name")));
+    Assert.assertEquals(Resource.Type.Host, list.get(2).getType());
+  }
+
+  @Test
   public void testGetResourcesEmptyRequest() throws Exception{
     ClusterControllerImpl controller = new ClusterControllerImpl(new TestProviderModule());
 
@@ -318,7 +322,7 @@ public class ClusterControllerImplTest {
 
     Request request = PropertyHelper.getReadRequest(propertyIds);
 
-    Iterable<Resource> iterable = controller.getResources(Resource.Type.Host, request, null);
+    Iterable<Resource> iterable = controller.getResourceIterable(Resource.Type.Host, request, null);
 
     int cnt = 0;
     for (Resource resource : iterable) {
@@ -336,7 +340,7 @@ public class ClusterControllerImplTest {
 
     Request request = PropertyHelper.getReadRequest(propertyIds);
 
-    Iterable<Resource> iterable = controller.getResources(Resource.Type.Host, request, null);
+    Iterable<Resource> iterable = controller.getResourceIterable(Resource.Type.Host, request, null);
 
     String lastHostName = null;
     int cnt = 0;
@@ -369,7 +373,7 @@ public class ClusterControllerImplTest {
 
     Predicate predicate = new PredicateBuilder().property("c1/p2").equals(1).toPredicate();
 
-    Iterable<Resource> iterable = controller.getResources(Resource.Type.Host, request, predicate);
+    Iterable<Resource> iterable = controller.getResourceIterable(Resource.Type.Host, request, predicate);
 
     int cnt = 0;
     for (Resource resource : iterable) {
@@ -395,7 +399,7 @@ public class ClusterControllerImplTest {
     Predicate predicate = new PredicateBuilder().property(UNSUPPORTED_PROPERTY).equals(1).toPredicate();
 
     try {
-      controller.getResources(Resource.Type.Host, request, predicate);
+      controller.getResourceIterable(Resource.Type.Host, request, predicate);
       Assert.fail("Expected an UnsupportedPropertyException for the unsupported properties.");
     } catch (UnsupportedPropertyException e) {
       // Expected
@@ -418,7 +422,7 @@ public class ClusterControllerImplTest {
     Predicate predicate = new PredicateBuilder().property("c1/p2").equals(1).toPredicate();
 
     try {
-      controller.getResources(Resource.Type.Host, request, predicate);
+      controller.getResourceIterable(Resource.Type.Host, request, predicate);
       Assert.fail("Expected an UnsupportedPropertyException for the unsupported properties.");
     } catch (UnsupportedPropertyException e) {
       // Expected
@@ -428,7 +432,7 @@ public class ClusterControllerImplTest {
   @Test
   public void testCreateResources() throws Exception{
     TestProviderModule providerModule = new TestProviderModule();
-    TestResourceProvider resourceProvider = (TestResourceProvider) providerModule.getResourceProvider(Resource.Type.Host);
+    TestHostResourceProvider resourceProvider = (TestHostResourceProvider) providerModule.getResourceProvider(Resource.Type.Host);
     ClusterController controller = new ClusterControllerImpl(providerModule);
 
     Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
@@ -443,7 +447,7 @@ public class ClusterControllerImplTest {
 
     controller.createResources(Resource.Type.Host, request);
 
-    Assert.assertEquals(TestResourceProvider.Action.Create, resourceProvider.getLastAction());
+    Assert.assertEquals(TestHostResourceProvider.Action.Create, resourceProvider.getLastAction());
     Assert.assertSame(request, resourceProvider.getLastRequest());
     Assert.assertNull(resourceProvider.getLastPredicate());
   }
@@ -474,7 +478,7 @@ public class ClusterControllerImplTest {
   @Test
   public void testUpdateResources() throws Exception{
     TestProviderModule providerModule = new TestProviderModule();
-    TestResourceProvider resourceProvider = (TestResourceProvider) providerModule.getResourceProvider(Resource.Type.Host);
+    TestHostResourceProvider resourceProvider = (TestHostResourceProvider) providerModule.getResourceProvider(Resource.Type.Host);
     ClusterController controller = new ClusterControllerImpl(providerModule);
 
     Map<String, Object> propertyMap = new HashMap<String, Object>();
@@ -488,7 +492,7 @@ public class ClusterControllerImplTest {
 
     controller.updateResources(Resource.Type.Host, request, predicate);
 
-    Assert.assertEquals(TestResourceProvider.Action.Update, resourceProvider.getLastAction());
+    Assert.assertEquals(TestHostResourceProvider.Action.Update, resourceProvider.getLastAction());
     Assert.assertSame(request, resourceProvider.getLastRequest());
     Assert.assertSame(predicate, resourceProvider.getLastPredicate());
   }
@@ -540,7 +544,7 @@ public class ClusterControllerImplTest {
   @Test
   public void testUpdateResourcesResolvePredicate() throws Exception{
     TestProviderModule providerModule = new TestProviderModule();
-    TestResourceProvider resourceProvider = (TestResourceProvider) providerModule.getResourceProvider(Resource.Type.Host);
+    TestHostResourceProvider resourceProvider = (TestHostResourceProvider) providerModule.getResourceProvider(Resource.Type.Host);
     ClusterController controller = new ClusterControllerImpl(providerModule);
 
     Map<String, Object> propertyMap = new HashMap<String, Object>();
@@ -554,7 +558,7 @@ public class ClusterControllerImplTest {
 
     controller.updateResources(Resource.Type.Host, request, predicate);
 
-    Assert.assertEquals(TestResourceProvider.Action.Update, resourceProvider.getLastAction());
+    Assert.assertEquals(TestHostResourceProvider.Action.Update, resourceProvider.getLastAction());
     Assert.assertSame(request, resourceProvider.getLastRequest());
     Predicate lastPredicate = resourceProvider.getLastPredicate();
     Assert.assertFalse(predicate.equals(lastPredicate));
@@ -567,14 +571,14 @@ public class ClusterControllerImplTest {
   @Test
   public void testDeleteResources() throws Exception{
     TestProviderModule providerModule = new TestProviderModule();
-    TestResourceProvider resourceProvider = (TestResourceProvider) providerModule.getResourceProvider(Resource.Type.Host);
+    TestHostResourceProvider resourceProvider = (TestHostResourceProvider) providerModule.getResourceProvider(Resource.Type.Host);
     ClusterController controller = new ClusterControllerImpl(providerModule);
 
     Predicate predicate = new PredicateBuilder().property("c1/p2").equals(1).toPredicate();
 
     controller.deleteResources(Resource.Type.Host, predicate);
 
-    Assert.assertEquals(TestResourceProvider.Action.Delete, resourceProvider.getLastAction());
+    Assert.assertEquals(TestHostResourceProvider.Action.Delete, resourceProvider.getLastAction());
     Assert.assertNull(resourceProvider.getLastRequest());
     Assert.assertSame(predicate, resourceProvider.getLastPredicate());
   }
@@ -597,14 +601,14 @@ public class ClusterControllerImplTest {
   @Test
   public void testDeleteResourcesResolvePredicate() throws Exception{
     TestProviderModule providerModule = new TestProviderModule();
-    TestResourceProvider resourceProvider = (TestResourceProvider) providerModule.getResourceProvider(Resource.Type.Host);
+    TestHostResourceProvider resourceProvider = (TestHostResourceProvider) providerModule.getResourceProvider(Resource.Type.Host);
     ClusterController controller = new ClusterControllerImpl(providerModule);
 
     Predicate predicate = new PredicateBuilder().property("c3/p6").equals(1).toPredicate();
 
     controller.deleteResources(Resource.Type.Host, predicate);
 
-    Assert.assertEquals(TestResourceProvider.Action.Delete, resourceProvider.getLastAction());
+    Assert.assertEquals(TestHostResourceProvider.Action.Delete, resourceProvider.getLastAction());
     Assert.assertNull(resourceProvider.getLastRequest());
     Predicate lastPredicate = resourceProvider.getLastPredicate();
     Assert.assertFalse(predicate.equals(lastPredicate));
@@ -659,12 +663,16 @@ public class ClusterControllerImplTest {
     Assert.assertFalse(comparator.compare(resource2, resource1) == 0);
   }
 
-  private static class TestProviderModule implements ProviderModule {
+  public static class TestProviderModule implements ProviderModule {
     private Map<Resource.Type, ResourceProvider> providers = new HashMap<Resource.Type, ResourceProvider>();
 
-    private TestProviderModule() {
-      providers.put(Resource.Type.Cluster, new TestResourceProvider());
-      providers.put(Resource.Type.Host, new TestResourceProvider());
+    public TestProviderModule() {
+
+      for (Resource.Type type : Resource.Type.values()) {
+        providers.put(type, new TestResourceProvider(type));
+      }
+      providers.put(Resource.Type.Cluster, new TestClusterResourceProvider());
+      providers.put(Resource.Type.Host, new TestHostResourceProvider());
     }
 
     @Override
@@ -679,9 +687,68 @@ public class ClusterControllerImplTest {
   }
 
   private static class TestResourceProvider implements ResourceProvider {
+
+    private Resource.Type type;
+
+    private TestResourceProvider(Resource.Type type) {
+      this.type = type;
+    }
+
+    @Override
+    public RequestStatus createResources(Request request) throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
+      throw new UnsupportedOperationException(); // not needed for testing
+    }
+
+    @Override
+    public Set<Resource> getResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      return Collections.emptySet();
+    }
+
+    @Override
+    public RequestStatus updateResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      throw new UnsupportedOperationException(); // not needed for testing
+    }
+
+    @Override
+    public RequestStatus deleteResources(Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      throw new UnsupportedOperationException(); // not needed for testing
+    }
+
+    @Override
+    public Map<Resource.Type, String> getKeyPropertyIds() {
+      return PropertyHelper.getKeyPropertyIds(type);
+    }
+
+    @Override
+    public Set<String> checkPropertyIds(Set<String> propertyIds) {
+      return Collections.emptySet();
+    }
+  }
+
+
+  private static class TestClusterResourceProvider extends TestResourceProvider {
+    private TestClusterResourceProvider() {
+      super(Resource.Type.Cluster);
+    }
+
+    @Override
+    public Set<Resource> getResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      ResourceImpl resource = new ResourceImpl(Resource.Type.Cluster);
+
+      resource.setProperty(PropertyHelper.getPropertyId("Clusters", "cluster_name"), "cluster");
+
+      return Collections.<Resource>singleton(resource);
+    }
+  }
+
+  private static class TestHostResourceProvider extends TestResourceProvider {
     private Action lastAction = null;
     private Request lastRequest = null;
     private Predicate lastPredicate = null;
+
+    private TestHostResourceProvider() {
+      super(Resource.Type.Host);
+    }
 
     @Override
     public Set<Resource> getResources(Request request, Predicate predicate) throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
@@ -693,6 +760,9 @@ public class ClusterControllerImplTest {
 
         resource.setProperty(PropertyHelper.getPropertyId("Hosts", "cluster_name"), "cluster");
         resource.setProperty(PropertyHelper.getPropertyId("Hosts", "host_name"), "host:" + (4 - cnt));
+
+        resource.setProperty(PropertyHelper.getPropertyId("Hosts", "cluster_name"), "cluster");
+        resource.setProperty(PropertyHelper.getPropertyId("Hosts", "host_name"), "host:" + cnt);
 
         resource.setProperty(PropertyHelper.getPropertyId("c1", "p1"), cnt);
         resource.setProperty(PropertyHelper.getPropertyId("c1", "p2"), cnt % 2);

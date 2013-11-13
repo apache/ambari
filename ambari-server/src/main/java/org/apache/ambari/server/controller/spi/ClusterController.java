@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.controller.spi;
 
-
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -28,8 +26,79 @@ import java.util.Set;
  */
 public interface ClusterController {
 
+
   // ----- Monitoring ------------------------------------------------------
 
+  /**
+   * Get the resources of the given type filtered by the given request and
+   * predicate objects.
+   *
+   * @param type      the type of the requested resources
+   * @param request   the request object which defines the desired set of properties
+   * @param predicate the predicate object which filters which resources are returned
+   *
+   * @return an iterable object of the requested resources
+   *
+   * @throws UnsupportedPropertyException thrown if the request or predicate contain
+   *                                      unsupported property ids
+   * @throws SystemException an internal exception occurred
+   * @throws NoSuchResourceException no matching resource(s) found
+   * @throws NoSuchParentResourceException a specified parent resource doesn't exist
+   */
+  Set<Resource> getResources(Resource.Type type, Request request, Predicate predicate)
+      throws UnsupportedPropertyException,
+      NoSuchResourceException,
+      NoSuchParentResourceException,
+      SystemException;
+
+  /**
+   * Get an iterable set of resources from the given set of resources filtered by the
+   * given request and predicate objects.
+   *
+   * @param type               type of resources
+   * @param providerResources  set of populated Resources
+   * @param request            the request
+   * @param predicate          the predicate object which filters which resources are returned
+   *
+   * @return a page response representing the requested page of resources
+   *
+   * @throws UnsupportedPropertyException thrown if the request or predicate contain
+   *                                      unsupported property ids
+   * @throws SystemException an internal exception occurred
+   * @throws NoSuchResourceException no matching resource(s) found
+   * @throws NoSuchParentResourceException a specified parent resource doesn't exist
+   */
+  Iterable<Resource> getIterable(Resource.Type type, Set<Resource> providerResources,
+                                 Request request, Predicate predicate)
+      throws NoSuchParentResourceException,
+      UnsupportedPropertyException,
+      NoSuchResourceException,
+      SystemException;
+
+  /**
+   * Get a page of resources from the given set filtered by the given request,
+   * predicate objects and page request.
+   *
+   * @param type               type of resources
+   * @param providerResources  set of populated Resources
+   * @param request            the request
+   * @param predicate          the predicate object which filters which resources are returned
+   * @param pageRequest        the page request for a paginated response
+   *
+   * @return a page response representing the requested page of resources
+   *
+   * @throws UnsupportedPropertyException thrown if the request or predicate contain
+   *                                      unsupported property ids
+   * @throws SystemException an internal exception occurred
+   * @throws NoSuchResourceException no matching resource(s) found
+   * @throws NoSuchParentResourceException a specified parent resource doesn't exist
+   */
+  PageResponse getPage(Resource.Type type, Set<Resource> providerResources,
+                       Request request, Predicate predicate, PageRequest pageRequest)
+      throws UnsupportedPropertyException,
+      SystemException,
+      NoSuchResourceException,
+      NoSuchParentResourceException;
 
   /**
    * Get the {@link Schema schema} for the given resource type.  The schema
@@ -106,103 +175,4 @@ public interface ClusterController {
              SystemException,
              NoSuchResourceException,
              NoSuchParentResourceException ;
-
-  /**
-   * Get the not populated resources of the given type filtered by the given request and
-   * predicate objects.
-   *
-   * @param type      the type of the requested resources
-   * @param request   the request object which defines the desired set of properties
-   * @param predicate the predicate object which filters which resources are returned
-   *
-   * @return an iterable object of the requested resources
-   *
-   * @throws UnsupportedPropertyException thrown if the request or predicate contain
-   *                                      unsupported property ids
-   * @throws SystemException an internal exception occurred
-   * @throws NoSuchResourceException no matching resource(s) found
-   * @throws NoSuchParentResourceException a specified parent resource doesn't exist
-   */
-  Set<Resource> getRawResources(Resource.Type type, Request request, Predicate predicate)
-      throws UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException, SystemException;
-
-  /**
-   * Get a page of resources of the given type filtered by the given request,
-   * predicate objects and page request.
-   *
-   *
-   * @param type type of resources
-   * @param providerResources set of populated Resources
-   * @param predicate   the predicate object which filters which resources are returned
-   * @param pageRequest the page request for a paginated response
-   *
-   * @return a page response representing the requested page of resources
-   *
-   * @throws UnsupportedPropertyException thrown if the request or predicate contain
-   *                                      unsupported property ids
-   * @throws SystemException an internal exception occurred
-   * @throws NoSuchResourceException no matching resource(s) found
-   * @throws NoSuchParentResourceException a specified parent resource doesn't exist
-   */
-  PageResponse getResources(Resource.Type type, Set<Resource> providerResources, Predicate predicate, PageRequest pageRequest)
-      throws UnsupportedPropertyException,
-      SystemException,
-      NoSuchResourceException,
-      NoSuchParentResourceException;
-
-  /**
-   * Get a page of resources of the given type filtered by the given request,
-   * predicate objects and page request.
-   *
-   *
-   * @param type type of resources
-   * @param providerResources set of populated Resources
-   * @param predicate   the predicate object which filters which resources are returned
-   *
-   * @return a page response representing the requested page of resources
-   *
-   * @throws UnsupportedPropertyException thrown if the request or predicate contain
-   *                                      unsupported property ids
-   * @throws SystemException an internal exception occurred
-   * @throws NoSuchResourceException no matching resource(s) found
-   * @throws NoSuchParentResourceException a specified parent resource doesn't exist
-   */
-  Iterable<Resource> getResources(Resource.Type type, Set<Resource> providerResources, Predicate predicate)
-  throws NoSuchParentResourceException, UnsupportedPropertyException, NoSuchResourceException, SystemException;
-
-  /**
-   * Populate the given resources from the associated property providers.  This
-   * method may filter the resources based on the predicate and return a subset
-   * of the given resources.
-   *
-   * @param type       the resource type
-   * @param resources  the resources to be populated
-   * @param request    the request
-   * @param predicate  the predicate
-   *
-   * @return the set of resources that were successfully populated
-   *
-   * @throws SystemException if unable to populate the resources
-   */
-  Set<Resource> populateResources(Resource.Type type,
-                                  Set<Resource> resources,
-                                  Request request,
-                                  Predicate predicate) throws SystemException;
-
-  /**
-   * Performs bulk population of the given resources from the associated property providers.  This
-   * method may filter the resources based on the predicate and return a subset
-   * of the given resources.
-   *
-   * @param resourceMap resources grouped by type
-   * @param requestMap type-request map
-   * @param predicateMap type-predicate map
-   *
-   * @return the set of resources that were successfully populated grouped by resource type
-   *
-   * @throws SystemException
-   */
-  Map<Resource.Type, Set<Resource>> populateResources(Map<Resource.Type, Set<Resource>> resourceMap,
-                         Map<Resource.Type, Request> requestMap,
-                         Map<Resource.Type, Predicate> predicateMap) throws SystemException;
 }

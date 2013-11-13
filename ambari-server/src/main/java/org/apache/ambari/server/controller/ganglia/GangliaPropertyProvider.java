@@ -275,7 +275,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
 
     String clusters = getSetString(clusterSet, -1);
     String hosts    = getSetString(hostSet, 100);
-    String metrics  = getSetString(metricSet, 50);
+    String metrics  = getSetString(metricSet, 60);
 
     URIBuilder uriBuilder = new URIBuilder();
 
@@ -285,7 +285,6 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
       uriBuilder.setScheme("http");
     }
 
-    
     uriBuilder.setHost(hostProvider.getGangliaCollectorHostName(clusterName));
     
     uriBuilder.setPath("/cgi-bin/rrd.py");
@@ -299,6 +298,9 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
 
     if (metrics.length() > 0) {
       uriBuilder.setParameter("m", metrics);
+    } else {
+      // get all metrics
+      uriBuilder.setParameter("m", ".*");
     }
 
     if (temporalInfo != null) {

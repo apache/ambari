@@ -22,13 +22,34 @@ package org.apache.ambari.server.api;
  * All api unit tests.
  */
 
-import org.apache.ambari.server.api.handlers.*;
-import org.apache.ambari.server.api.predicate.QueryLexerTest;
-import org.apache.ambari.server.api.predicate.QueryParserTest;
-import org.apache.ambari.server.api.predicate.operators.*;
+import org.apache.ambari.server.api.handlers.CreateHandlerTest;
+import org.apache.ambari.server.api.handlers.DeleteHandlerTest;
+import org.apache.ambari.server.api.handlers.QueryCreateHandlerTest;
+import org.apache.ambari.server.api.handlers.ReadHandlerTest;
+import org.apache.ambari.server.api.handlers.UpdateHandlerTest;
+import org.apache.ambari.server.api.predicate.operators.AndOperatorTest;
+import org.apache.ambari.server.api.predicate.operators.EqualsOperatorTest;
+import org.apache.ambari.server.api.predicate.operators.GreaterEqualsOperatorTest;
+import org.apache.ambari.server.api.predicate.operators.GreaterOperatorTest;
+import org.apache.ambari.server.api.predicate.operators.InOperatorTest;
+import org.apache.ambari.server.api.predicate.operators.LessEqualsOperatorTest;
+import org.apache.ambari.server.api.predicate.operators.NotEqualsOperatorTest;
+import org.apache.ambari.server.api.predicate.operators.NotOperatorTest;
+import org.apache.ambari.server.api.predicate.operators.OrOperatorTest;
 import org.apache.ambari.server.api.query.QueryImplTest;
-import org.apache.ambari.server.api.resources.ResourceInstanceImplTest;
-import org.apache.ambari.server.api.services.*;
+import org.apache.ambari.server.api.services.ClusterServiceTest;
+import org.apache.ambari.server.api.services.ComponentServiceTest;
+import org.apache.ambari.server.api.services.DeleteRequestTest;
+import org.apache.ambari.server.api.services.GetRequestTest;
+import org.apache.ambari.server.api.services.HostComponentServiceTest;
+import org.apache.ambari.server.api.services.HostServiceTest;
+import org.apache.ambari.server.api.services.NamedPropertySetTest;
+import org.apache.ambari.server.api.services.PersistenceManagerImplTest;
+import org.apache.ambari.server.api.services.PostRequestTest;
+import org.apache.ambari.server.api.services.PutRequestTest;
+import org.apache.ambari.server.api.services.QueryPostRequestTest;
+import org.apache.ambari.server.api.services.RequestBodyTest;
+import org.apache.ambari.server.api.services.ServiceServiceTest;
 import org.apache.ambari.server.api.services.parsers.BodyParseExceptionTest;
 import org.apache.ambari.server.api.services.parsers.JsonRequestBodyParserTest;
 import org.apache.ambari.server.api.services.serializers.JsonSerializerTest;
@@ -41,7 +62,6 @@ import org.junit.runners.Suite;
     JsonRequestBodyParserTest.class, CreateHandlerTest.class, UpdateHandlerTest.class, DeleteHandlerTest.class,
     PersistenceManagerImplTest.class, GetRequestTest.class, PutRequestTest.class, PostRequestTest.class,
     DeleteRequestTest.class, QueryPostRequestTest.class, JsonSerializerTest.class, QueryCreateHandlerTest.class,
-    ResourceInstanceImplTest.class, QueryLexerTest.class, QueryParserTest.class, IsEmptyOperatorTest.class,
     InOperatorTest.class,AndOperatorTest.class, OrOperatorTest.class, EqualsOperatorTest.class,
     GreaterEqualsOperatorTest.class, GreaterOperatorTest.class, LessEqualsOperatorTest.class,
     LessEqualsOperatorTest.class, NotEqualsOperatorTest.class, NotOperatorTest.class, RequestBodyTest.class,

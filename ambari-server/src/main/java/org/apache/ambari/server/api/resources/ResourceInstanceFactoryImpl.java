@@ -19,7 +19,9 @@
 
 package org.apache.ambari.server.api.resources;
 
+import org.apache.ambari.server.api.query.QueryImpl;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 
 import java.util.Map;
 
@@ -34,6 +36,20 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
     /**
      * The resource definition for the specified type.
      */
+    ResourceDefinition resourceDefinition = getResourceDefinition(type, mapIds);
+
+    return new QueryImpl(mapIds, resourceDefinition, ClusterControllerHelper.getClusterController());
+  }
+
+  /**
+   * Get a resource definition for the given type.
+   *
+   * @param type    the resource type
+   * @param mapIds  the map of ids
+   *
+   * @return the resource definition
+   */
+  public static ResourceDefinition getResourceDefinition(Resource.Type type, Map<Resource.Type, String> mapIds) {
     ResourceDefinition resourceDefinition;
 
     //todo: consider ResourceDependencyManager : Map<Resource.Type, ResourceDefinition>
@@ -52,7 +68,7 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         break;
 
       case Component:
-        resourceDefinition = new  ComponentResourceDefinition();
+        resourceDefinition = new ComponentResourceDefinition();
         break;
 
       case HostComponent:
@@ -82,27 +98,27 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
       case Stack:
         resourceDefinition = new StackResourceDefinition();
         break;
-        
+
       case StackVersion:
         resourceDefinition = new StackVersionResourceDefinition();
         break;
-        
+
       case StackService:
         resourceDefinition = new StackServiceResourceDefinition();
         break;
-        
+
       case StackServiceComponent:
         resourceDefinition = new StackServiceComponentResourceDefinition();
         break;
-        
+
       case StackConfiguration:
         resourceDefinition = new StackConfigurationResourceDefinition();
         break;
-        
+
       case OperatingSystem:
         resourceDefinition = new OperatingSystemResourceDefinition();
         break;
-        
+
       case Repository:
         resourceDefinition = new RepositoryResourceDefinition();
         break;
@@ -130,15 +146,15 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
       case TaskAttempt:
         resourceDefinition = new TaskAttemptResourceDefinition();
         break;
-        
+
       case RootService:
         resourceDefinition = new RootServiceResourceDefinition();
         break;
-        
+
       case RootServiceComponent:
         resourceDefinition = new RootServiceComponentResourceDefinition();
         break;
-        
+
       case RootServiceHostComponent:
         resourceDefinition = new RootServiceHostComponentResourceDefinition();
         break;
@@ -150,7 +166,6 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }
-
-    return new ResourceInstanceImpl(mapIds, resourceDefinition, this);
+    return resourceDefinition;
   }
 }
