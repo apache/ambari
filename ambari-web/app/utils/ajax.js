@@ -1255,7 +1255,7 @@ App.ajax = {
         config.sender[config.beforeSend](opt, xhr, params);
       }
     };
-    opt.success = function (data) {
+    opt.success = function (data, textStatus, xhr) {
       console.log("TRACE: The url is: " + opt.url);
       if (config.success) {
         config.sender[config.success](data, opt, params);
@@ -1276,7 +1276,7 @@ App.ajax = {
     if ($.mocho) {
       opt.url = 'http://' + $.hostName + opt.url;
     }
-      return $.ajax(opt);
+    return $.ajax(opt);
   },
 
   // A single instance of App.ModalPopup view
@@ -1315,10 +1315,7 @@ App.ajax = {
         },
         bodyClass: Ember.View.extend({
           classNames: ['api-error'],
-          template: Ember.Handlebars.compile(['<span class="text-error">{{view.statusCode}}</span><span>{{view.api}}</span>',
-            '{{#if view.showMessage}}',
-            '<br><br><pre><strong>Error message: </strong><span class="text-error">{{view.message}}</span></pre>',
-            '{{/if}}'].join('\n')),
+          templateName: require('templates/utils/ajax'),
           api: api,
           statusCode: statusCode,
           message: message,
