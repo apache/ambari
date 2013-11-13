@@ -45,6 +45,8 @@ public abstract class BaseManagementHandler implements RequestHandler {
   protected final static Logger LOG =
       LoggerFactory.getLogger(BaseManagementHandler.class);
 
+  public static final String RESOURCES_NODE_NAME = "resources";
+
   /**
    * PersistenceManager implementation.
    */
@@ -84,10 +86,10 @@ public abstract class BaseManagementHandler implements RequestHandler {
       tree.addChild(requestStatus.getRequestResource(), "request");
     }
 
-    //todo: currently always empty
     Set<Resource> setResources = requestStatus.getAssociatedResources();
     if (! setResources.isEmpty()) {
-      TreeNode<Resource> resourcesNode = tree.addChild(null, "resources");
+      TreeNode<Resource> resourcesNode = tree.addChild(null, RESOURCES_NODE_NAME);
+      resourcesNode.setProperty("isCollection", "true");
 
       int count = 1;
       for (Resource resource : setResources) {
