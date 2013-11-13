@@ -589,26 +589,29 @@ App.WizardStep3Controller = Em.Controller.extend({
    * Check if the customized os group contains the registered host os type. If not the repo on that host is invalid.
    */
   checkHostOSType: function (osType, hostName) {
-    var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
-    var selectedOS = [];
-    var isValid = false;
-    if (selectedStack && selectedStack.operatingSystems) {
-      selectedStack.get('operatingSystems').filterProperty('selected', true).forEach( function(os) {
-        selectedOS.pushObject(os.osType);
-        if ( os.osType == osType) {
-          isValid = true;
-        }
-      });
-    }
+    if(this.get('content.stacks')){
+      var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
+      var selectedOS = [];
+      var isValid = false;
+      if (selectedStack && selectedStack.operatingSystems) {
+        selectedStack.get('operatingSystems').filterProperty('selected', true).forEach( function(os) {
+          selectedOS.pushObject(os.osType);
+          if ( os.osType == osType) {
+            isValid = true;
+          }
+        });
+      }
 
-    if (!isValid) {
-      console.log('WARNING: Getting host os type does NOT match the user selected os group in step1. ' +
-        'Host Name: '+ hostName + '. Host os type:' + osType + '. Selected group:' + selectedOS);
-      return Em.I18n.t('installer.step3.hostWarningsPopup.repositories.context').format(hostName, osType, selectedOS);
-    } else {
+      if (!isValid) {
+        console.log('WARNING: Getting host os type does NOT match the user selected os group in step1. ' +
+          'Host Name: '+ hostName + '. Host os type:' + osType + '. Selected group:' + selectedOS);
+        return Em.I18n.t('installer.step3.hostWarningsPopup.repositories.context').format(hostName, osType, selectedOS);
+      } else {
+        return null;
+      }
+    }else{
       return null;
     }
-
   },
 
   selectCategory: function(event, context){
