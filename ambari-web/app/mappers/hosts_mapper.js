@@ -173,6 +173,9 @@ App.hostsMapper = App.QuickDataMapper.create({
       if (JSON.stringify(current.disk_info) !== JSON.stringify(previous.disk_info)) {
         result.disk_info = current.disk_info;
       }
+      if (JSON.stringify(current.host_components) !== JSON.stringify(previous.host_components)) {
+        result.host_components = current.host_components;
+      }
       result.last_heart_beat_time = current.last_heart_beat_time;
       return result;
     }
