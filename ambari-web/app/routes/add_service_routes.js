@@ -42,6 +42,7 @@ module.exports = Em.Route.extend({
             App.router.transitionTo('main.services.index');
           },
           onClose: function() {
+            this.set('showCloseButton', false); // prevent user to click "Close" many times
             App.router.get('updateController').set('isWorking', true);
             var self = this;
             App.router.get('updateController').updateServiceMetric(function(){
