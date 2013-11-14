@@ -205,8 +205,7 @@ class ActionScheduler implements Runnable {
               scheduleHostRole(s, cmd);
             } catch (InvalidStateTransitionException e) {
               LOG.warn("Could not schedule host role " + cmd.toString(), e);
-              db.abortHostRole(cmd.getHostname(), s.getRequestId(), s.getStageId(),
-                  Role.valueOf(cmd.getRole()));
+              db.abortHostRole(cmd.getHostname(), s.getRequestId(), s.getStageId(), cmd.getRole());
             }
           }
         }
@@ -326,8 +325,7 @@ class ActionScheduler implements Runnable {
           if (s.getAttemptCount(host, roleStr) >= maxAttempts) {
             LOG.warn("Host:" + host + ", role:" + roleStr + ", actionId:"
                 + s.getActionId() + " expired");
-            db.timeoutHostRole(host, s.getRequestId(), s.getStageId(),
-                Role.valueOf(c.getRole()));
+            db.timeoutHostRole(host, s.getRequestId(), s.getStageId(), c.getRole());
             //Reinitialize status
             status = s.getHostRoleStatus(host, roleStr);
             ServiceComponentHostOpFailedEvent timeoutEvent =

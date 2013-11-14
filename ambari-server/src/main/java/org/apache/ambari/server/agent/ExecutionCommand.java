@@ -54,7 +54,8 @@ public class ExecutionCommand extends AgentCommand {
   private Map<String, Map<String, String>> configurationTags;
   private Map<String, String> commandParams;
   private String serviceName;
-  
+  private String componentName;
+
   @JsonProperty("commandId")
   public String getCommandId() {
     return this.commandId;
@@ -200,6 +201,16 @@ public class ExecutionCommand extends AgentCommand {
   @JsonProperty("serviceName")
   public void setServiceName(String serviceName) {
     this.serviceName = serviceName;
+  }
+
+  @JsonProperty("componentName")
+  public String getComponentName() {
+    return componentName;
+  }
+
+  @JsonProperty("componentName")
+  public void setComponentName(String componentName) {
+    this.componentName = componentName;
   }
 
   /**

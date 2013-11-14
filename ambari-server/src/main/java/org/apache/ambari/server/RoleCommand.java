@@ -24,5 +24,6 @@ public enum RoleCommand {
   STOP,
   EXECUTE,
   ABORT,
-  UPGRADE
+  UPGRADE,
+  ACTIONEXECUTE
 }

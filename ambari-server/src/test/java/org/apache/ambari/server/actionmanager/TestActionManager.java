@@ -175,7 +175,7 @@ public class TestActionManager {
     populateActionDB(db, hostname);
     assertEquals(1, clusters.getClusters().size());
 
-    Cluster cluster = clusters.getCluster(clusterName);
+    clusters.getCluster(clusterName);
 
     assertEquals(1, am.getRequests().size());
 

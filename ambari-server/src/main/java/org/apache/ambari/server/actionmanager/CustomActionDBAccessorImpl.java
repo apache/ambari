@@ -98,7 +98,8 @@ public class CustomActionDBAccessorImpl implements CustomActionDBAccessor {
                                      TargetHostType targetType, String serviceType, String componentType,
                                      Short defaultTimeout)
       throws AmbariException {
-    validateCreateInput(actionName, actionType, inputs, description, defaultTimeout);
+    validateCreateInput(actionName, actionType, inputs, description, defaultTimeout,
+        targetType, serviceType, componentType);
     ActionEntity entity =
         actionDefinitionDAO.findByPK(actionName);
     if (entity == null) {
@@ -178,7 +179,8 @@ public class CustomActionDBAccessorImpl implements CustomActionDBAccessor {
   }
 
   private void validateCreateInput(String actionName, ActionType actionType, String inputs,
-                                   String description, Short defaultTimeout)
+                                   String description, Short defaultTimeout,
+                                   TargetHostType targetType, String serviceType, String componentType)
       throws AmbariException {
 
     validateActionName(actionName);
@@ -197,6 +199,12 @@ public class CustomActionDBAccessorImpl implements CustomActionDBAccessor {
 
     if (actionType == null || actionType == ActionType.SYSTEM_DISABLED) {
       throw new AmbariException("Action type cannot be " + actionType);
+    }
+
+    if (serviceType == null || serviceType.isEmpty()) {
+      if (componentType != null && !componentType.isEmpty()) {
+        throw new AmbariException("Target component cannot be specified unless target service is specified");
+      }
     }
 
     if (inputs != null && !inputs.isEmpty()) {

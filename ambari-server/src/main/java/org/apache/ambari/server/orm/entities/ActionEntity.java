@@ -21,7 +21,15 @@ package org.apache.ambari.server.orm.entities;
 import org.apache.ambari.server.actionmanager.ActionType;
 import org.apache.ambari.server.actionmanager.TargetHostType;
 
-import javax.persistence.*;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
 
 @NamedQueries({
     @NamedQuery(name = "allActions", query =
@@ -52,11 +60,11 @@ public class ActionEntity {
   @Basic
   private String targetComponent;
 
-  @Column(name = "description")
+  @Column(name = "description", nullable = false)
   @Basic
   private String description = "";
 
-  @Column(name = "target_type")
+  @Column(name = "target_type", nullable = false)
   @Enumerated(EnumType.STRING)
   private TargetHostType targetType = TargetHostType.ANY;
 

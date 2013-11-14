@@ -17,38 +17,42 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import java.util.*;
-
-import org.apache.ambari.server.Role;
+import com.google.inject.Singleton;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.agent.ExecutionCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Singleton;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Singleton
 public class ActionDBInMemoryImpl implements ActionDBAccessor {
 
+  private static Logger LOG = LoggerFactory.getLogger(ActionDBInMemoryImpl.class);
   // for a persisted DB, this will be initialized in the ctor
   // with the highest persisted requestId value in the DB
   private final long lastRequestId = 0;
-  private static Logger LOG = LoggerFactory.getLogger(ActionDBInMemoryImpl.class);
   List<Stage> stageList = new ArrayList<Stage>();
 
   @Override
-  public synchronized Stage getAction(String actionId) {
-    for (Stage s: stageList) {
+  public synchronized Stage getStage(String actionId) {
+    for (Stage s : stageList) {
       if (s.getActionId().equals(actionId)) {
         return s;
       }
     }
     return null;
   }
+
   @Override
   public synchronized List<Stage> getAllStages(long requestId) {
     List<Stage> l = new ArrayList<Stage>();
-    for (Stage s: stageList) {
+    for (Stage s : stageList) {
       if (s.getRequestId() == requestId) {
         l.add(s);
       }
@@ -80,7 +84,7 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
 
   @Override
   public synchronized void timeoutHostRole(String host, long requestId,
-      long stageId, Role role) {
+                                           long stageId, String role) {
     for (Stage s : stageList) {
       s.setHostRoleStatus(host, role.toString(), HostRoleStatus.TIMEDOUT);
     }
@@ -89,7 +93,7 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
   @Override
   public synchronized List<Stage> getStagesInProgress() {
     List<Stage> l = new ArrayList<Stage>();
-    for (Stage s: stageList) {
+    for (Stage s : stageList) {
       if (s.isStageInProgress()) {
         l.add(s);
       }
@@ -99,15 +103,16 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
 
   @Override
   public synchronized void persistActions(List<Stage> stages) {
-    for (Stage s: stages) {
+    for (Stage s : stages) {
       stageList.add(s);
     }
   }
+
   @Override
   public synchronized void updateHostRoleState(String hostname, long requestId,
-      long stageId, String role, CommandReport report) {
-    LOG.info("DEBUG stages to iterate: "+stageList.size());
-    if(null == report.getStatus()
+                                               long stageId, String role, CommandReport report) {
+    LOG.info("DEBUG stages to iterate: " + stageList.size());
+    if (null == report.getStatus()
         || null == report.getStdOut()
         || null == report.getStdErr()) {
       throw new RuntimeException("Badly formed command report.");
@@ -124,13 +129,13 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
   }
 
   @Override
-  public void abortHostRole(String host, long requestId, long stageId, Role role) {
+  public void abortHostRole(String host, long requestId, long stageId, String role) {
     CommandReport report = new CommandReport();
     report.setExitCode(999);
     report.setStdErr("Host Role in invalid state");
     report.setStdOut("");
     report.setStatus("ABORTED");
-    updateHostRoleState(host, requestId, stageId, role.toString(), report);
+    updateHostRoleState(host, requestId, stageId, role, report);
   }
 
   @Override
@@ -168,17 +173,18 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
   @Override
   public List<Stage> getStagesByHostRoleStatus(Set<HostRoleStatus> statuses) {
     List<Stage> l = new ArrayList<Stage>();
-    for (Stage s: stageList) {
+    for (Stage s : stageList) {
       if (s.doesStageHaveHostRoleStatus(statuses)) {
         l.add(s);
       }
     }
     return l;
   }
+
   @Override
   public synchronized List<Long> getRequests() {
     Set<Long> requestIds = new HashSet<Long>();
-    for (Stage s: stageList) {
+    for (Stage s : stageList) {
       requestIds.add(s.getRequestId());
     }
     List<Long> ids = new ArrayList<Long>();
@@ -199,6 +205,7 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
     }
     return null;
   }
+
   @Override
   public List<Long> getRequestsByStatus(RequestStatus status) {
     // TODO
@@ -211,7 +218,7 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
     for (Long requestId : requestIds) {
       List<Stage> stages = getAllStages(requestId);
       result.put(requestId, stages != null && !stages.isEmpty() ? stages.get
-        (0).getRequestContext() : "");
+          (0).getRequestContext() : "");
     }
     return result;
   }
@@ -220,6 +227,6 @@ public class ActionDBInMemoryImpl implements ActionDBAccessor {
   public String getRequestContext(long requestId) {
     List<Stage> stages = getAllStages(requestId);
     return stages != null && !stages.isEmpty() ? stages.get(0)
-      .getRequestContext() : "";
+        .getRequestContext() : "";
   }
 }

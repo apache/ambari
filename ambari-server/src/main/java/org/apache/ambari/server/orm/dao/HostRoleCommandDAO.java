@@ -129,14 +129,14 @@ public class HostRoleCommandDAO {
   }
 
   @Transactional
-  public List<HostRoleCommandEntity> findByHostRole(String hostName, long requestId, long stageId, Role role) {
+  public List<HostRoleCommandEntity> findByHostRole(String hostName, long requestId, long stageId, String role) {
     TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery("SELECT command " +
         "FROM HostRoleCommandEntity command " +
         "WHERE command.hostName=?1 AND command.requestId=?2 " +
         "AND command.stageId=?3 AND command.role=?4 " +
         "ORDER BY command.taskId", HostRoleCommandEntity.class);
 
-    return daoUtils.selectList(query, hostName, requestId, stageId, role.name());
+    return daoUtils.selectList(query, hostName, requestId, stageId, role);
   }
 
   @Transactional

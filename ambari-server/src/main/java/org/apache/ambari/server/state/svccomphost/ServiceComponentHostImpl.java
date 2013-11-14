@@ -363,9 +363,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
          State.INSTALLED,
          ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
          new ServiceComponentHostOpCompletedTransition())
-    
 
-    
      .addTransition(State.INSTALLING,
          State.INSTALLING,
          ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,

@@ -86,10 +86,6 @@ public class HostRoleCommand {
     //make use of lazy loading
 
     executionCommandDAO = injector.getInstance(ExecutionCommandDAO.class);
-//    executionCommandWrapper = new ExecutionCommandWrapper(new String(
-//        hostRoleCommandEntity
-//            .getExecutionCommand().getCommand()
-//    ));
   }
 
   HostRoleCommandEntity constructNewPersistenceEntity() {
@@ -106,10 +102,6 @@ public class HostRoleCommand {
     hostRoleCommandEntity.setRoleCommand(roleCommand);
 
     hostRoleCommandEntity.setEvent(event.getEventJson());
-//    ExecutionCommandEntity executionCommandEntity = new ExecutionCommandEntity();
-//    executionCommandEntity.setCommand(executionCommandWrapper.getJson().getBytes());
-//    executionCommandEntity.setHostRoleCommand(hostRoleCommandEntity);
-//    hostRoleCommandEntity.setExecutionCommand(executionCommandEntity);
 
     return hostRoleCommandEntity;
   }
@@ -119,7 +111,6 @@ public class HostRoleCommand {
     executionCommandEntity.setCommand(executionCommandWrapper.getJson().getBytes());
     return executionCommandEntity;
   }
-
 
   public long getTaskId() {
     return taskId;

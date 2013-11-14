@@ -24,6 +24,7 @@ import com.google.inject.persist.UnitOfWork;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.serveraction.ServerActionManager;
 import org.apache.ambari.server.state.Clusters;
@@ -73,11 +74,15 @@ public class ActionManager {
     scheduler.stop();
   }
 
-  public void sendActions(List<Stage> stages) {
+  public void sendActions(List<Stage> stages, ExecuteActionRequest request) {
 
     if (LOG.isDebugEnabled()) {
       for (Stage s : stages) {
         LOG.debug("Persisting stage into db: " + s.toString());
+      }
+
+      if (request != null) {
+        LOG.debug("In response to request: " + request.toString());
       }
     }
     db.persistActions(stages);
@@ -91,7 +96,7 @@ public class ActionManager {
   }
 
   public Stage getAction(long requestId, long stageId) {
-    return db.getAction(StageUtils.getActionId(requestId, stageId));
+    return db.getStage(StageUtils.getActionId(requestId, stageId));
   }
 
   /**

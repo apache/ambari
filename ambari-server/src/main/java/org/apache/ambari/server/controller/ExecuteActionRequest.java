@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.controller;
 
+import org.apache.ambari.server.utils.StageUtils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,26 +37,29 @@ public class ExecuteActionRequest {
   private Map<String, String> parameters;
 
   public ExecuteActionRequest(String clusterName, String commandName,
-                       String actionName, String serviceName, String componentName,
-                       List<String> hosts, Map<String, String> parameters) {
-    this.clusterName = clusterName;
-    this.commandName = commandName;
+                              String actionName, String serviceName, String componentName,
+                              List<String> hosts, Map<String, String> parameters) {
+    this(clusterName, commandName, serviceName, parameters);
     this.actionName = actionName;
-    this.serviceName = serviceName;
     this.componentName = componentName;
-    this.parameters = parameters;
-    this.hosts = hosts;
+    if (hosts != null) {
+      this.hosts.addAll(hosts);
+    }
   }
 
   /**
    * Create an ExecuteActionRequest to execute a command
    */
   public ExecuteActionRequest(String clusterName, String commandName, String serviceName,
-                       Map<String, String> parameters) {
+                              Map<String, String> parameters) {
     this.clusterName = clusterName;
     this.commandName = commandName;
     this.serviceName = serviceName;
-    this.parameters = parameters;
+    this.parameters = new HashMap<String, String>();
+    if (parameters != null) {
+      this.parameters.putAll(parameters);
+    }
+    this.hosts = new ArrayList<String>();
   }
 
   public String getClusterName() {
@@ -85,5 +92,18 @@ public class ExecuteActionRequest {
 
   public Boolean isCommand() {
     return actionName == null || actionName.isEmpty();
+  }
+
+  @Override
+  public synchronized String toString() {
+    return (new StringBuilder()).
+        append("isCommand :" + isCommand().toString()).
+        append(", action :" + actionName).
+        append(", command :" + commandName).
+        append(", inputs :" + parameters.toString()).
+        append(", targetService :" + serviceName).
+        append(", targetComponent :" + componentName).
+        append(", targetHosts :" + hosts.toString()).
+        append(", clusterName :" + clusterName).toString();
   }
 }

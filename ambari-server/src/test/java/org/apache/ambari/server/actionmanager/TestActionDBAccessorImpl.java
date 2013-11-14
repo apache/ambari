@@ -28,6 +28,7 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -57,9 +58,11 @@ public class TestActionDBAccessorImpl {
   private long stageId = 31;
   private String hostName = "host1";
   private String clusterName = "cluster1";
+  private String actionName = "validate_kerberos";
   private Injector injector;
   ActionDBAccessor db;
   ActionManager am;
+  CustomActionDBAccessor cdb;
 
   @Inject
   private Clusters clusters;
@@ -77,9 +80,10 @@ public class TestActionDBAccessorImpl {
     clusters.getHost(hostName).persist();
     clusters.addCluster(clusterName);
     db = injector.getInstance(ActionDBAccessorImpl.class);
-    
+    cdb = injector.getInstance(CustomActionDBAccessor.class);
+
     am = new ActionManager(5000, 1200000, new ActionQueue(), clusters, db,
-        new HostsMap((String) null), null, injector.getInstance(UnitOfWork.class), null);
+        new HostsMap((String) null), null, injector.getInstance(UnitOfWork.class), cdb);
   }
 
   @After
@@ -150,26 +154,26 @@ public class TestActionDBAccessorImpl {
   @Test
   public void testHostRoleScheduled() throws InterruptedException {
     populateActionDB(db, hostName, requestId, stageId);
-    Stage stage = db.getAction(StageUtils.getActionId(requestId, stageId));
+    Stage stage = db.getStage(StageUtils.getActionId(requestId, stageId));
     assertEquals(HostRoleStatus.PENDING, stage.getHostRoleStatus(hostName, Role.HBASE_MASTER.toString()));
     List<HostRoleCommandEntity> entities=
-        hostRoleCommandDAO.findByHostRole(hostName, requestId, stageId, Role.HBASE_MASTER);
+        hostRoleCommandDAO.findByHostRole(hostName, requestId, stageId, Role.HBASE_MASTER.toString());
 
     assertEquals(HostRoleStatus.PENDING, entities.get(0).getStatus());
     stage.setHostRoleStatus(hostName, Role.HBASE_MASTER.toString(), HostRoleStatus.QUEUED);
 
-    entities = hostRoleCommandDAO.findByHostRole(hostName, requestId, stageId, Role.HBASE_MASTER);
+    entities = hostRoleCommandDAO.findByHostRole(hostName, requestId, stageId, Role.HBASE_MASTER.toString());
     assertEquals(HostRoleStatus.QUEUED, stage.getHostRoleStatus(hostName, Role.HBASE_MASTER.toString()));
     assertEquals(HostRoleStatus.PENDING, entities.get(0).getStatus());
     db.hostRoleScheduled(stage, hostName, Role.HBASE_MASTER.toString());
 
-    entities = hostRoleCommandDAO.findByHostRole(hostName, requestId, stageId, Role.HBASE_MASTER);
+    entities = hostRoleCommandDAO.findByHostRole(hostName, requestId, stageId, Role.HBASE_MASTER.toString());
     assertEquals(HostRoleStatus.QUEUED, entities.get(0).getStatus());
 
     Thread thread = new Thread(){
       @Override
       public void run() {
-        Stage stage1 = db.getAction("23-31");
+        Stage stage1 = db.getStage("23-31");
         stage1.setHostRoleStatus(hostName, Role.HBASE_MASTER.toString(), HostRoleStatus.COMPLETED);
         db.hostRoleScheduled(stage1, hostName, Role.HBASE_MASTER.toString());
       }
@@ -178,9 +182,47 @@ public class TestActionDBAccessorImpl {
     thread.start();
     thread.join();
 
-    entities = hostRoleCommandDAO.findByHostRole(hostName, requestId, stageId, Role.HBASE_MASTER);
+    entities = hostRoleCommandDAO.findByHostRole(hostName, requestId, stageId, Role.HBASE_MASTER.toString());
     assertEquals("Concurrent update failed", HostRoleStatus.COMPLETED, entities.get(0).getStatus());
+  }
 
+  @Test
+  public void testCustomActionScheduled() throws InterruptedException {
+    populateActionDBWithCustomAction(db, hostName, requestId, stageId);
+    Stage stage = db.getStage(StageUtils.getActionId(requestId, stageId));
+    assertEquals(HostRoleStatus.PENDING, stage.getHostRoleStatus(hostName, actionName));
+    List<HostRoleCommandEntity> entities =
+        hostRoleCommandDAO.findByHostRole(hostName, requestId, stageId, actionName);
+
+    assertEquals(HostRoleStatus.PENDING, entities.get(0).getStatus());
+    stage.setHostRoleStatus(hostName, actionName, HostRoleStatus.QUEUED);
+
+    entities = hostRoleCommandDAO.findByHostRole(hostName, requestId, stageId, actionName);
+    assertEquals(HostRoleStatus.QUEUED, stage.getHostRoleStatus(hostName, actionName));
+    assertEquals(HostRoleStatus.PENDING, entities.get(0).getStatus());
+
+    long now = System.currentTimeMillis();
+    db.hostRoleScheduled(stage, hostName, actionName);
+
+    entities = hostRoleCommandDAO.findByHostRole(
+        hostName, requestId, stageId, actionName);
+    assertEquals(HostRoleStatus.QUEUED, entities.get(0).getStatus());
+
+
+    Thread thread = new Thread() {
+      @Override
+      public void run() {
+        Stage stage1 = db.getStage("23-31");
+        stage1.setHostRoleStatus(hostName, actionName, HostRoleStatus.COMPLETED);
+        db.hostRoleScheduled(stage1, hostName, actionName);
+      }
+    };
+
+    thread.start();
+    thread.join();
+
+    entities = hostRoleCommandDAO.findByHostRole(hostName, requestId, stageId, actionName);
+    assertEquals("Concurrent update failed", HostRoleStatus.COMPLETED, entities.get(0).getStatus());
   }
 
   @Test
@@ -199,7 +241,8 @@ public class TestActionDBAccessorImpl {
     commandReport.setExitCode(123);
     db.updateHostRoleState(hostName, requestId, stageId, Role.HBASE_MASTER.toString(), commandReport);
 
-    List<HostRoleCommandEntity> commandEntities = hostRoleCommandDAO.findByHostRole(hostName, requestId, stageId, Role.HBASE_MASTER);
+    List<HostRoleCommandEntity> commandEntities =
+        hostRoleCommandDAO.findByHostRole(hostName, requestId, stageId, Role.HBASE_MASTER.toString());
     assertEquals(1, commandEntities.size());
     HostRoleCommandEntity commandEntity = commandEntities.get(0);
     HostRoleCommand command = db.getTask(commandEntity.getTaskId());
@@ -295,6 +338,21 @@ public class TestActionDBAccessorImpl {
             .toString(), hostname, System.currentTimeMillis()), "cluster1", "HBASE");
     List<Stage> stages = new ArrayList<Stage>();
     stages.add(s);
+    db.persistActions(stages);
+  }
+
+  private void populateActionDBWithCustomAction(ActionDBAccessor db, String hostname,
+                                long requestId, long stageId) {
+    Stage s = new Stage(requestId, "/a/b", "cluster1", "action db accessor test", "");
+    s.setStageId(stageId);
+    s.addHostRoleExecutionCommand(hostname, Role.valueOf(actionName),
+        RoleCommand.ACTIONEXECUTE,
+        new ServiceComponentHostStartEvent(Role.HBASE_MASTER.toString(),
+            hostname, System.currentTimeMillis()), "cluster1", "HBASE");
+    List<Stage> stages = new ArrayList<Stage>();
+    stages.add(s);
+    ExecuteActionRequest request = new ExecuteActionRequest("cluster1", null, actionName, "HBASE",
+        "HBASE_MASTER", null, null);
     db.persistActions(stages);
   }
 }

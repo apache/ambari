@@ -187,7 +187,9 @@ public class TestOrmImpl extends Assert {
   public void testAbortHostRoleCommands() {
     injector.getInstance(OrmTestHelper.class).createStageCommands();
     HostRoleCommandDAO hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
-    int result = hostRoleCommandDAO.updateStatusByRequestId(0L, HostRoleStatus.ABORTED, Arrays.asList(HostRoleStatus.QUEUED, HostRoleStatus.IN_PROGRESS, HostRoleStatus.PENDING));
+    int result = hostRoleCommandDAO.updateStatusByRequestId(
+        0L, HostRoleStatus.ABORTED, Arrays.asList(HostRoleStatus.QUEUED,
+        HostRoleStatus.IN_PROGRESS, HostRoleStatus.PENDING));
     //result always 1 in batch mode
     List<HostRoleCommandEntity> commandEntities = hostRoleCommandDAO.findByRequest(0L);
     int count = 0;
@@ -203,7 +205,7 @@ public class TestOrmImpl extends Assert {
   public void testFindStageByHostRole() {
     injector.getInstance(OrmTestHelper.class).createStageCommands();
     HostRoleCommandDAO hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
-    List<HostRoleCommandEntity> list = hostRoleCommandDAO.findByHostRole("test_host1", 0L, 0L, Role.DATANODE);
+    List<HostRoleCommandEntity> list = hostRoleCommandDAO.findByHostRole("test_host1", 0L, 0L, Role.DATANODE.toString());
     assertEquals(1, list.size());
   }
 

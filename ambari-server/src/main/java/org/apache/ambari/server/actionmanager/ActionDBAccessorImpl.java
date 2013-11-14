@@ -17,16 +17,17 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ImmutableMap;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
 import com.google.inject.name.Named;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.controller.ExecuteActionRequest;
+import org.apache.ambari.server.orm.dao.ActionDefinitionDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -44,15 +45,20 @@ import org.apache.ambari.server.state.Clusters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 @Singleton
 public class ActionDBAccessorImpl implements ActionDBAccessor {
   private static final Logger LOG = LoggerFactory.getLogger(ActionDBAccessorImpl.class);
-
+  private final long requestId;
   @Inject
   private ClusterDAO clusterDAO;
   @Inject
@@ -71,11 +77,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   private HostRoleCommandFactory hostRoleCommandFactory;
   @Inject
   private Clusters clusters;
-
   private Cache<Long, HostRoleCommand> hostRoleCommandCache;
   private long cacheLimit; //may be exceeded to store tasks from one request
-
-  private final long requestId;
 
   @Inject
   public ActionDBAccessorImpl(Injector injector, @Named("executionCommandCacheSize") long cacheLimit) {
@@ -90,10 +93,10 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   }
 
   /* (non-Javadoc)
-   * @see org.apache.ambari.server.actionmanager.ActionDBAccessor#getAction(java.lang.String)
+   * @see org.apache.ambari.server.actionmanager.ActionDBAccessor#getStage(java.lang.String)
    */
   @Override
-  public Stage getAction(String actionId) {
+  public Stage getStage(String actionId) {
     return stageFactory.createExisting(actionId);
   }
 
@@ -137,7 +140,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   @Override
   @Transactional
   public void timeoutHostRole(String host, long requestId, long stageId,
-                              Role role) {
+                              String role) {
     List<HostRoleCommandEntity> commands =
         hostRoleCommandDAO.findByHostRole(host, requestId, stageId, role);
     for (HostRoleCommandEntity command : commands) {
@@ -170,6 +173,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Adding stages to DB, stageCount=" + stages.size());
     }
+
     for (Stage stage : stages) {
       StageEntity stageEntity = stage.constructNewPersistenceEntity();
       Cluster cluster;
@@ -213,7 +217,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       for (RoleSuccessCriteriaEntity roleSuccessCriteriaEntity : stageEntity.getRoleSuccessCriterias()) {
         roleSuccessCriteriaDAO.create(roleSuccessCriteriaEntity);
       }
-
     }
   }
 
@@ -227,7 +230,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
           + stageId + " role " + role + " report " + report);
     }
     List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findByHostRole(
-        hostname, requestId, stageId, Role.valueOf(role));
+        hostname, requestId, stageId, role);
     for (HostRoleCommandEntity command : commands) {
       command.setStatus(HostRoleStatus.valueOf(report.getStatus()));
       command.setStdOut(report.getStdOut().getBytes());
@@ -238,13 +241,13 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   }
 
   @Override
-  public void abortHostRole(String host, long requestId, long stageId, Role role) {
+  public void abortHostRole(String host, long requestId, long stageId, String role) {
     CommandReport report = new CommandReport();
     report.setExitCode(999);
     report.setStdErr("Host Role in invalid state");
     report.setStdOut("");
     report.setStatus("ABORTED");
-    updateHostRoleState(host, requestId, stageId, role.toString(), report);
+    updateHostRoleState(host, requestId, stageId, role, report);
   }
 
   @Override
@@ -266,7 +269,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     } else {
       throw new RuntimeException("HostRoleCommand is not persisted, cannot update:\n" + hostRoleCommand);
     }
-
   }
 
   @Override
@@ -275,11 +277,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     return getTasks(
         hostRoleCommandDAO.findTaskIdsByRequest(requestId)
     );
-
-//    for (HostRoleCommandEntity hostRoleCommandEntity : hostRoleCommandDAO.findByRequest(requestId)) {
-//      tasks.add(hostRoleCommandFactory.createExisting(hostRoleCommandEntity));
-//    }
-//    return tasks;
   }
 
   @Override
@@ -291,12 +288,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     return getTasks(
         hostRoleCommandDAO.findTaskIdsByRequestIds(requestIds)
     );
-
-//    List<HostRoleCommand> tasks = new ArrayList<HostRoleCommand>();
-//    for (HostRoleCommandEntity hostRoleCommandEntity : hostRoleCommandDAO.findByRequestIds(requestIds)) {
-//      tasks.add(hostRoleCommandFactory.createExisting(hostRoleCommandEntity));
-//    }
-//    return tasks;
   }
 
   @Override
@@ -304,11 +295,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     if (!requestIds.isEmpty() && !taskIds.isEmpty()) {
       return getTasks(hostRoleCommandDAO.findTaskIdsByRequestAndTaskIds(requestIds, taskIds));
 
-//      List<HostRoleCommand> tasks = new ArrayList<HostRoleCommand>();
-//      for (HostRoleCommandEntity hostRoleCommandEntity : hostRoleCommandDAO.findByRequestAndTaskIds(requestIds, taskIds)) {
-//        tasks.add(hostRoleCommandFactory.createExisting(hostRoleCommandEntity));
-//      }
-//      return tasks;
     } else if (requestIds.isEmpty()) {
       return getTasks(taskIds);
     } else if (taskIds.isEmpty()) {
@@ -335,7 +321,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
     if (!absent.isEmpty()) {
       boolean allowStore = hostRoleCommandCache.size() <= cacheLimit;
-//      LOG.info("Cache size {}, enable = {}", hostRoleCommandCache.size(), allowStore);
 
       for (HostRoleCommandEntity commandEntity : hostRoleCommandDAO.findByPKs(absent)) {
         HostRoleCommand hostRoleCommand = hostRoleCommandFactory.createExisting(commandEntity);

@@ -187,16 +187,19 @@ public class HeartBeatHandler {
     return response;
   }
 
-  protected void processCommandReports(HeartBeat heartbeat,
-                                       String hostname,
-                                       Clusters clusterFsm, long now)
+  protected void processCommandReports(
+      HeartBeat heartbeat, String hostname, Clusters clusterFsm, long now)
       throws AmbariException {
     List<CommandReport> reports = heartbeat.getReports();
     for (CommandReport report : reports) {
       LOG.debug("Received command report: " + report);
+      if (RoleCommand.ACTIONEXECUTE.equals(report.getRoleCommand())) {
+        continue;
+      }
+
       Cluster cl = clusterFsm.getCluster(report.getClusterName());
       String service = report.getServiceName();
-      if (service == null || "".equals(service)) {
+      if (service == null || service.isEmpty()) {
         throw new AmbariException("Invalid command report, service: " + service);
       }
       if (actionMetadata.getActions(service.toLowerCase()).contains(report.getRole())) {
@@ -217,7 +220,7 @@ public class HeartBeatHandler {
                 && null != report.getConfigurationTags()
                 && !report.getConfigurationTags().isEmpty()) {
               LOG.info("Updating applied config on service " + scHost.getServiceName() +
-              ", component " + scHost.getServiceComponentName() + ", host " + scHost.getHostName());
+                  ", component " + scHost.getServiceComponentName() + ", host " + scHost.getHostName());
               scHost.updateActualConfigs(report.getConfigurationTags());
             }
 

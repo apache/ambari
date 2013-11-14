@@ -77,10 +77,6 @@ public class StageDAO {
 
   @Transactional
   public List<StageEntity> findByCommandStatuses(Collection<HostRoleStatus> statuses) {
-//    TypedQuery<StageEntity> query = entityManagerProvider.get().createQuery("SELECT stage " +
-//        "FROM StageEntity stage JOIN stage.hostRoleCommands command " +
-//        "WHERE command.status IN ?1 " +
-//        "ORDER BY stage.requestId, stage.stageId", StageEntity.class);
     TypedQuery<StageEntity> query = entityManagerProvider.get().createQuery("SELECT stage " +
           "FROM StageEntity stage WHERE stage.stageId IN (SELECT hrce.stageId FROM " +
           "HostRoleCommandEntity hrce WHERE stage.requestId = hrce.requestId and hrce.status IN ?1 ) " +

@@ -211,7 +211,8 @@ public class TestStageUtils {
     addHbaseService(fsm.getCluster("c1"), hostList, injector);
     addMapreduceService(fsm.getCluster("c1"), hostList, injector);
     Map<String, List<String>> info = StageUtils.getClusterHostInfo(fsm.getHostsForCluster("c1"),
-        fsm.getCluster("c1"), new HostsMap(injector.getInstance(Configuration.class)), injector);
+        fsm.getCluster("c1"), new HostsMap(injector.getInstance(Configuration.class)),
+        injector.getInstance(Configuration.class));
     assertEquals(2, info.get("slave_hosts").size());
     assertEquals(2, info.get("mapred_tt_hosts").size());
     assertEquals(2, info.get("hbase_rs_hosts").size());

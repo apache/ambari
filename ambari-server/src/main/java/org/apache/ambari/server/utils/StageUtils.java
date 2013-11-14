@@ -188,7 +188,7 @@ public class StageUtils {
 
   public static Map<String, List<String>> getClusterHostInfo(
       Map<String, Host> allHosts, Cluster cluster, HostsMap hostsMap,
-      Injector injector) throws AmbariException {
+      Configuration configuration) throws AmbariException {
     Map<String, List<String>> info = new HashMap<String, List<String>>();
     if (cluster.getServices() != null) {
       String hostName = getHostName();
@@ -213,8 +213,7 @@ public class StageUtils {
               info.put(clusterInfoKey, hostList);
             }
             //Set up ambari-rca connection properties, is this a hack?
-//            info.put("ambari_db_server_host", Arrays.asList(hostsMap.getHostMap(getHostName())));
-            Configuration configuration = injector.getInstance(Configuration.class);
+            //info.put("ambari_db_server_host", Arrays.asList(hostsMap.getHostMap(getHostName())));
             String url = configuration.getRcaDatabaseUrl();
             if (url.contains(Configuration.HOSTNAME_MACRO)) {
               url = url.replace(Configuration.HOSTNAME_MACRO, hostsMap.getHostMap(hostName));
