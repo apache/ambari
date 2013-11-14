@@ -126,11 +126,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   filter: '',
 
   /**
-   * Dropdown menu items in filter compbobox
+   * Dropdown menu items in filter combobox
    */
   filterColumns: function () {
     var result = [];
-    for (var i = 1; i < 4; i++) {
+    for (var i = 1; i < 2; i++) {
       result.push(Ember.Object.create({
         name: this.t('common.combobox.dropdown.' + i),
         selected: false
