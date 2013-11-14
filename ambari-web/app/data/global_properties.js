@@ -2036,9 +2036,11 @@ module.exports =
       "description": "Default directory for saving the rrd files on ganglia server",
       "defaultValue": "/var/lib/ganglia/rrds",
       "displayType": "directory",
+      "isReconfigurable": true,
       "isOverridable": false,
       "domain": "global",
-      "serviceName": "MISC",
+      "isVisible": true,
+      "serviceName": "GANGLIA",
       "category": "General",
       "belongsToService":["GANGLIA"]
     }

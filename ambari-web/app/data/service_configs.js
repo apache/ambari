@@ -175,6 +175,16 @@ module.exports = [
   },
 
   {
+    serviceName: 'GANGLIA',
+    displayName: 'Ganglia',
+    configCategories: [
+      App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'})
+    ],
+    sites: ['global'],
+    configs: []
+  },
+
+  {
     serviceName: 'HUE',
     displayName: 'Hue',
     filename: 'hue-site',
