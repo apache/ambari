@@ -57,6 +57,7 @@ public class Configuration {
   public static final String BOOTSTRAP_MASTER_HOSTNAME = "bootstrap.master_host_name";
   public static final String API_AUTHENTICATE = "api.authenticate";
   public static final String API_USE_SSL = "api.ssl";
+  public static final String API_CSRF_PREVENTION_KEY = "api.csrfPrevention.enabled";
   public static final String SRVR_TWO_WAY_SSL_KEY = "security.server.two_way_ssl";
   public static final String SRVR_TWO_WAY_SSL_PORT_KEY = "security.server.two_way_ssl.port";
   public static final String SRVR_ONE_WAY_SSL_PORT_KEY = "security.server.one_way_ssl.port";
@@ -197,6 +198,8 @@ public class Configuration {
   public static final String CLIENT_API_SSL_CRT_PASS_FILE_NAME_DEFAULT = "https.pass.txt";
   public static final String CLIENT_API_SSL_KEY_NAME_DEFAULT = "https.key";
   public static final String CLIENT_API_SSL_CRT_NAME_DEFAULT = "https.crt";
+
+  private static final String API_CSRF_PREVENTION_DEFAULT = "false"; //TODO should be set to true for release
 
   private static final String SRVR_CRT_PASS_FILE_DEFAULT ="pass.txt";
   private static final String SRVR_CRT_PASS_LEN_DEFAULT = "50";
@@ -491,6 +494,14 @@ public class Configuration {
    */
   public Map<String, String> getConfigsMap() {
     return configsMap;
+  }
+
+  /**
+   * Checks if CSRF protection enabled
+   * @return true if CSRF protection filter should be enabled
+   */
+  public boolean csrfProtectionEnabled() {
+    return "true".equalsIgnoreCase(properties.getProperty(API_CSRF_PREVENTION_KEY, API_CSRF_PREVENTION_DEFAULT));
   }
 
   /**

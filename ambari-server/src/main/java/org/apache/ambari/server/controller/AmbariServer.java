@@ -27,7 +27,6 @@ import java.util.Map;
 import org.apache.ambari.eventdb.webservice.WorkflowJsonService;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.agent.HeartBeatHandler;
 import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.api.AmbariPersistFilter;
@@ -42,7 +41,6 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
-import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.resources.ResourceManager;
 import org.apache.ambari.server.resources.api.rest.GetResource;
@@ -253,6 +251,10 @@ public class AmbariServer {
               "org.apache.ambari.server.api");
       sh.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature",
           "true");
+      if (configs.csrfProtectionEnabled()) {
+        sh.setInitParameter("com.sun.jersey.spi.container.ContainerRequestFilters",
+            "com.sun.jersey.api.container.filter.CsrfProtectionFilter");
+      }
       root.addServlet(sh, "/api/v1/*");
       sh.setInitOrder(2);
 
