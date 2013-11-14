@@ -72,6 +72,7 @@ require('controllers/main/service/reassign/step3_controller');
 require('controllers/main/service/reassign/step4_controller');
 require('controllers/main/service/reassign/step5_controller');
 require('controllers/main/service/reassign/step6_controller');
+require('controllers/main/service/manage_config_groups_controller');
 require('controllers/main/host');
 require('controllers/main/host/details');
 require('controllers/main/host/configs_service');

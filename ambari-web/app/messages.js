@@ -156,6 +156,8 @@ Em.I18n.translations = {
   'common.allServices':'All Services',
   'common.move':'Move',
   'common.change': 'Change',
+  'common.overrides': 'Overrides',
+  'common.properties': 'properties',
 
   'requestInfo.installComponents':'Install Components',
   'requestInfo.installServices':'Install Services',
@@ -953,6 +955,7 @@ Em.I18n.translations = {
   'services.service.actions.run.smoke':'Run Smoke Test',
   'services.service.actions.reassign.master':'Reassign {0}',
   'services.service.actions.reassign.master.hive':'Reassign HiveServer2, WebHCat Server, MySQL Server',
+  'services.service.actions.manage_configuration_groups':'Manage Configuration Groups...',
   'services.service.actions.serviceActions':'Service Actions...',
   'services.service.summary.unknown':'unknown',
   'services.service.summary.notRunning':'Not Running',
@@ -1111,7 +1114,12 @@ Em.I18n.translations = {
   'services.service.add':'Add Service',
   'services.service.startAll':'Start All',
   'services.service.stopAll':'Stop All',
-
+  'services.service.config_groups_popup.header':'Manage {0} Configuration Groups',
+  'services.service.config_groups_popup.notice':'Manage configuration groups of this service. Groups can be created, renamed and deleted and from here. Host memberships can also be changed. A host can belong to only one configuration group.',
+  'services.service.config_groups_popup.config_groups':'Configuration Groups',
+  'services.service.config_groups_popup.rename':'Rename',
+  'services.service.config_groups_popup.duplicate':'Duplicate',
+  'services.service.config_groups_popup.properties':'Properties',
   'services.reassign.closePopup':'Reassign {0} wizard is in progress. It\'s necessary to complete the wizard for Ambari to be in usable state. If you choose to quit, you must follow manual instructions to complete or revert reassign {0} wizard as documented in the Ambari User Guide. Are you sure you want to exit the wizard ?',
 
   'services.reassign.step1.header':'Get Started',

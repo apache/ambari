@@ -215,6 +215,25 @@ App.MainServiceItemController = Em.Controller.extend({
     App.router.transitionTo('reassign');
   },
 
+  manageConfigurationGroups: function () {
+    var serviceName = this.get('content.serviceName');
+    var displayName = this.get('content.displayName');
+    App.ModalPopup.show({
+      header: Em.I18n.t('services.service.config_groups_popup.header').format(displayName),
+      bodyClass: App.MainServiceManageConfigGroupView.extend({
+        serviceName: serviceName,
+        controllerBinding: 'App.router.manageConfigGroupsController'
+      }),
+      classNames: ['sixty-percent-width-modal', 'manage-configuration-group-popup'],
+      primary: Em.I18n.t('common.save'),
+      onPrimary: function() {
+        this.hide();
+      },
+      secondary : Em.I18n.t('common.cancel'),
+      didInsertElement: function () {}
+    });
+  },
+
   /**
    * On click callback for <code>action</code> dropdown menu
    * Calls runSmokeTest, runRebalancer, runCompaction or reassignMaster depending on context

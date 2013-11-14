@@ -196,6 +196,7 @@ require('views/main/service/reassign/step3_view');
 require('views/main/service/reassign/step4_view');
 require('views/main/service/reassign/step5_view');
 require('views/main/service/reassign/step6_view');
+require('views/main/service/manage_config_groups_view');
 require('views/main/charts/menu');
 require('views/main/charts/heatmap');
 require('views/main/charts/heatmap/heatmap_rack');
