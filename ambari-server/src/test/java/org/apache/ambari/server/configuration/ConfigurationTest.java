@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.powermock.api.easymock.PowerMock;
 import org.powermock.api.support.membermodification.MemberMatcher;
@@ -43,6 +44,8 @@ import static org.powermock.api.easymock.PowerMock.replayAll;
 import static org.powermock.api.easymock.PowerMock.verifyAll;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -52,7 +55,7 @@ import java.util.Properties;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ Configuration.class })
 public class ConfigurationTest {
-
+  public TemporaryFolder temp = new TemporaryFolder();
   private Injector injector;
 
   @Inject
@@ -62,10 +65,12 @@ public class ConfigurationTest {
   public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.injectMembers(this);
+    temp.create();
   }
 
   @After
   public void teardown() throws AmbariException {
+    temp.delete();
   }
 
   /**
@@ -205,6 +210,26 @@ public class ConfigurationTest {
     ambariProperties.setProperty("server.jdbc.database", "ambaritestdatabase");
     Configuration conf = new Configuration(ambariProperties);
     Assert.assertEquals(conf.getLocalDatabaseUrl(), Configuration.JDBC_LOCAL_URL.concat("ambaritestdatabase"));
+  }
+
+  @Test
+  public void testNoNewlineInPassword() throws Exception {
+    Properties ambariProperties = new Properties();
+    File f = temp.newFile("password.dat");
+    FileOutputStream fos = new FileOutputStream(f);
+    fos.write("ambaritest\r\n".getBytes());
+    fos.close();
+    String passwordFile = temp.getRoot().getAbsolutePath()
+      + System.getProperty("file.separator") + "password.dat";
+
+    ambariProperties.setProperty(Configuration.SERVER_JDBC_USER_PASSWD_KEY,
+      passwordFile);
+
+    Configuration conf = new Configuration(ambariProperties);
+    PowerMock.stub(PowerMock.method(Configuration.class,
+      "readPasswordFromStore")).toReturn(null);
+
+    Assert.assertEquals("ambaritest", conf.getDatabasePassword());
   }
   
   @Test

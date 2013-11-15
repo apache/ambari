@@ -27,6 +27,7 @@ import org.apache.ambari.server.security.encryption.CredentialProvider;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.File;
@@ -649,6 +650,7 @@ public class Configuration {
       String password;
       try {
         password = FileUtils.readFileToString(new File(filePath));
+        password = StringUtils.chomp(password);
       } catch (IOException e) {
         throw new RuntimeException("Unable to read database password", e);
       }
@@ -848,5 +850,4 @@ public class Configuration {
     
     return value.split(",");
   }
-
 }
