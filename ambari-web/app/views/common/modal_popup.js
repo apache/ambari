@@ -95,7 +95,7 @@ App.ModalPopup.reopenClass({
     return popup;
   }
 
-});
+})
 
 App.showReloadPopup = function () {
   return App.ModalPopup.show({
@@ -106,7 +106,7 @@ App.showReloadPopup = function () {
     body: "<div class='alert alert-info'><div class='spinner'><span>" + this.t('app.reloadPopup.text') + "</span></div></div><div><a href='#' onclick='location.reload();'>" + this.t('app.reloadPopup.link') + "</a></div>",
     encodeBody: false
   });
-};
+}
 
 /**
  * Show confirmation popup
@@ -121,7 +121,6 @@ App.showConfirmationPopup = function (primary, body, secondary) {
   }
   return App.ModalPopup.show({
     primary: Em.I18n.t('ok'),
-    encodeBody: false,
     secondary: Em.I18n.t('common.cancel'),
     header: Em.I18n.t('popup.confirmation.commonHeader'),
     body: body || Em.I18n.t('question.sure'),
@@ -159,4 +158,4 @@ App.showAlertPopup = function (header, body, primary) {
       }
     }
   });
-};
+}
