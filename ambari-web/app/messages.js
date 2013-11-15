@@ -1692,6 +1692,7 @@ Em.I18n.translations = {
   'config.group.selection.dialog.option.create.msg': 'A new configuration group will be created with the given name. Initially there will be no hosts in the group, with only the selected property overridden.',
   'config.group.selection.dialog.err.name.exists': 'Configuration group with given name already exists',
   'config.group.selection.dialog.err.create': 'Error creating new configuration group [{0}]',
+  'config.group.selection.dialog.no.groups': 'There are no existed Config Groups for this Service',
 
   'utils.ajax.errorMessage': 'Error message'
 };

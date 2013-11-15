@@ -44,7 +44,7 @@ App.MainServiceItemView = Em.View.extend({
       default:
         options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke'), disabled:disabled});
     }
-    if (App.supports.hostOverrides && service.get('serviceName') !== 'GANGLIA') {
+    if (App.supports.hostOverrides) {
       options.push({action: 'manageConfigurationGroups', 'label': Em.I18n.t('services.service.actions.manage_configuration_groups'), disabled: false});
     }
     return options;

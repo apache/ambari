@@ -273,30 +273,33 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       if (data.config_groups.length) {
         data.config_groups.forEach(function (item) {
           item = item.ConfigGroup;
-          var groupHosts = item.hosts.mapProperty('host_name');
-          var newConfigGroup = App.ConfigGroup.create({
-            name: item.group_name,
-            description: item.description,
-            isDefault: false,
-            parentConfigGroup: null,
-            service: App.Service.find().findProperty('serviceName', item.tag),
-            hosts: groupHosts,
-            configSiteTags: []
-          });
-          groupHosts.forEach(function (host) {
-            defaultConfigGroupHosts = defaultConfigGroupHosts.without(host);
-          }, this);
-          item.desired_configs.forEach(function (config) {
-            newConfigGroup.configSiteTags.push(App.ConfigSiteTag.create({
-              site: config.type,
-              tag: config.tag
-            }));
-          }, this);
-          // select default selected group for hosts page
-          if (!selectedConfigGroup && this.get('isHostsConfigsPage') && newConfigGroup.get('hosts').contains(this.get('host.hostName')) && this.get('content.serviceName') === item.tag) {
-            selectedConfigGroup = newConfigGroup;
+          if (item.tag === this.get('content.serviceName')) {
+            var groupHosts = item.hosts.mapProperty('host_name');
+            var newConfigGroup = App.ConfigGroup.create({
+              id: item.id,
+              name: item.group_name,
+              description: item.description,
+              isDefault: false,
+              parentConfigGroup: null,
+              service: App.Service.find().findProperty('serviceName', item.tag),
+              hosts: groupHosts,
+              configSiteTags: []
+            });
+            groupHosts.forEach(function (host) {
+              defaultConfigGroupHosts = defaultConfigGroupHosts.without(host);
+            }, this);
+            item.desired_configs.forEach(function (config) {
+              newConfigGroup.configSiteTags.push(App.ConfigSiteTag.create({
+                site: config.type,
+                tag: config.tag
+              }));
+            }, this);
+            // select default selected group for hosts page
+            if (!selectedConfigGroup && this.get('isHostsConfigsPage') && newConfigGroup.get('hosts').contains(this.get('host.hostName')) && this.get('content.serviceName') === item.tag) {
+              selectedConfigGroup = newConfigGroup;
+            }
+            configGroups.push(newConfigGroup);
           }
-          configGroups.push(newConfigGroup);
         }, this);
       }
       this.set('configGroups', configGroups);

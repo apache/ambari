@@ -487,13 +487,15 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
   },
 
   createOverrideProperty: function (event) {
+    var serviceConfigController = this.get('controller');
     var serviceConfigProperty = event.contexts[0];
     // Launch dialog to pick/create Config-group
-    var serviceConfigGroups = [];
+    var serviceConfigGroups = serviceConfigController.get('configGroups');
     App.config.launchConfigGroupSelectionCreationDialog(this.get('service.serviceName'), 
         serviceConfigGroups, function(selectedConfigGroup){
       console.log("launchConfigGroupSelectionCreationDialog(): Selected/Created:", selectedConfigGroup);
       if (selectedConfigGroup) {
+        serviceConfigController.set('selectedConfigGroup', selectedConfigGroup);
         // TODO - show configurations for this new config-group
 //        var overrides = serviceConfigProperty.get('overrides');
 //        if (!overrides) {

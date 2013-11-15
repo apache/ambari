@@ -22,31 +22,34 @@
   {{else}}
     &nbsp;
   {{/if}}
-  </div>
-  <label class="radio">
-    {{view view.selectConfigGroupRadioButton}} 
-    {{t config.group.selection.dialog.option.select}}
-  </label>
-  <div class="select-create-config-group-div">
-    <span class="btn-group">
-      <button class="btn" {{bindAttr disabled="view.parentView.optionCreateConfigGroup"}}>{{view.parentView.selectedConfigGroup.name}}</button>
-      <button class="btn dropdown-toggle" data-toggle="dropdown" {{bindAttr disabled="view.parentView.optionCreateConfigGroup"}}>
-        <span class="caret"></span>
-      </button>
-      <ul class="dropdown-menu">
-        <!-- available config group menu links -->
-        {{#each configGroup in view.parentView.availableConfigGroups}}
-           <li>
-             <a href="#" {{action "doSelectConfigGroup" configGroup target="view.parentView"}}>
-               {{configGroup.name}}
-             </a>
-           </li>
-        {{/each}}
-      </ul>
-    </span>
-    <div class="message">{{t config.group.selection.dialog.option.select.msg}}</div>
-  </div>
-
+    </div>
+    <label class="radio">
+      {{view view.selectConfigGroupRadioButton}}
+      {{t config.group.selection.dialog.option.select}}
+    </label>
+    {{#if view.parentView.availableConfigGroups.length}}
+    <div class="select-create-config-group-div">
+      <span class="btn-group">
+        <button class="btn" {{bindAttr disabled="view.parentView.optionCreateConfigGroup"}}>{{view.parentView.selectedConfigGroup.name}}</button>
+        <button class="btn dropdown-toggle" data-toggle="dropdown" {{bindAttr disabled="view.parentView.optionCreateConfigGroup"}}>
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <!-- available config group menu links -->
+          {{#each configGroup in view.parentView.availableConfigGroups}}
+             <li>
+               <a href="#" {{action "doSelectConfigGroup" configGroup target="view.parentView"}}>
+                 {{configGroup.name}}
+               </a>
+             </li>
+          {{/each}}
+        </ul>
+      </span>
+      <div class="message">{{t config.group.selection.dialog.option.select.msg}}</div>
+    </div>
+  {{else}}
+    <div class="alert alert-block">{{t config.group.selection.dialog.no.groups}}</div>
+  {{/if}}
   <label class="radio">
     {{view view.createConfigGroupRadioButton}}
     {{t config.group.selection.dialog.option.create}}

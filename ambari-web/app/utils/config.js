@@ -983,8 +983,11 @@ App.config = Em.Object.create({
    * @param callback  Callback function which is invoked when dialog
    *  is closed, cancelled or OK is pressed.
    */
-  launchConfigGroupSelectionCreationDialog : function(serviceId, availableConfigGroups, callback) {
+  launchConfigGroupSelectionCreationDialog : function(serviceId, configGroups, callback) {
     var self = this;
+    var availableConfigGroups = configGroups.slice();
+    // delete Default Config Group
+    availableConfigGroups.pop();
     var selectedConfigGroup = availableConfigGroups && availableConfigGroups.length > 0 ?
         availableConfigGroups[0] : null;
     App.ModalPopup.show({
@@ -1008,12 +1011,11 @@ App.config = Em.Object.create({
         } else {
           var newConfigGroupName = this.get('newConfigGroupName');
           var newConfigGroup = self.createNewConfigurationGroup(serviceId, newConfigGroupName);
-          if (newConfigGroup.configGroup!=null) {
+          if (newConfigGroup) {
+            var defaultConfigGroup = configGroups.popObject();
+            configGroups.pushObjects([newConfigGroup, defaultConfigGroup]);
             this.hide();
-            newConfigGroup.configGroup.name = newConfigGroupName;
-            callback(newConfigGroup.configGroup);
-          } else {
-            this.set('warningMessage', this.t('config.group.selection.dialog.err.create').format(newConfigGroup.error));
+            callback(newConfigGroup);
           }
         }
       },
@@ -1048,13 +1050,20 @@ App.config = Em.Object.create({
         controllerBinding: 'App.router.mainServiceInfoConfigsController',
         selectConfigGroupRadioButton: Ember.Checkbox.extend({
           tagName: 'input',
-          attributeBindings: ['type', 'checked'],
+          attributeBindings: ['type', 'checked', 'disabled'],
           checked: function () {
             return this.get('parentView.parentView.optionSelectConfigGroup');
           }.property('parentView.parentView.optionSelectConfigGroup'),
           type: 'radio',
+          disabled: false,
           click: function () {
             this.set('parentView.parentView.optionSelectConfigGroup', true);
+          },
+          didInsertElement: function () {
+            if (!this.get('parentView.parentView.availableConfigGroups').length) {
+              this.set('disabled', true);
+              this.set('parentView.parentView.optionSelectConfigGroup', false);
+            }
           }
         }),
         createConfigGroupRadioButton: Ember.Checkbox.extend({
@@ -1081,35 +1090,40 @@ App.config = Em.Object.create({
    *        { configGroup: {id:4}, error: {...}}
    */
   createNewConfigurationGroup: function (serviceId, configGroupName) {
-    var newConfigGroupData = {
-        configGroup: null,
-        error: null
-    };
+    var newConfigGroupData = null;
+    var description = "New configuration group created on " + new Date().toDateString();
     var sendData = {
       name: 'config_groups.create',
       data: {
         'group_name': configGroupName,
         'service_id': serviceId,
-        'description': "New configuration group created on " + new Date().toDateString()
+        'description': description
       },
       success: 'successFunction',
       error: 'errorFunction',
-      successFunction: function(response){
-        newConfigGroupData.configGroup = response.resources[0].ConfigGroup;
-        newConfigGroupData.error = null;
+      successFunction: function (response) {
+        newConfigGroupData = App.ConfigGroup.create({
+          id: response.resources[0].ConfigGroup.id,
+          name: null,
+          description: null,
+          isDefault: false,
+          parentConfigGroup: null,
+          service: null,
+          hosts: [],
+          configSiteTags: []
+        });
       },
-      errorFunction: function(request, ajaxOptions, error){
-        newConfigGroupData.configGroup = null;
-        try{
-          var errResponse = JSON.parse(request.responseText);
-          error = errResponse.message;
-        }catch(e){
-        }
-        newConfigGroupData.error = request.status + ": " + error;
+      errorFunction: function () {
+        console.error('Error in creating new Config Group');
       }
     };
     sendData.sender = sendData;
     App.ajax.send(sendData);
+    if (newConfigGroupData) {
+      newConfigGroupData.set('service', App.Service.find().filterProperty('serviceName', serviceId));
+      newConfigGroupData.set('name', configGroupName);
+      newConfigGroupData.set('description', description);
+    }
     return newConfigGroupData;
   },
 
