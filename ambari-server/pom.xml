@@ -384,15 +384,6 @@
               </sources>
             </mapping>
             <mapping>
-              <directory>/var/lib/ambari-server/resources/stacks/HDPLocal</directory>
-              <configuration>noreplace</configuration>
-              <sources>
-                <source>
-                  <location>target/classes/stacks/HDPLocal</location>
-                </source>
-              </sources>
-            </mapping>
-            <mapping>
               <directory>/usr/lib/python2.6/site-packages/ambari_server</directory>
               <filemode>755</filemode>
               <username>root</username>
