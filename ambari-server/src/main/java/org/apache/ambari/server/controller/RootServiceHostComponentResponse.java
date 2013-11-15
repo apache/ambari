@@ -22,6 +22,7 @@ import java.util.Map;
 
 public class RootServiceHostComponentResponse {
 
+  private String serviceName;
   private String hostName;
   private String componentName;
   private String componentState;
@@ -37,6 +38,14 @@ public class RootServiceHostComponentResponse {
     this.componentState = componentState;
     this.componentVersion = componentVersion;
     this.properties = properties;
+  }
+
+  public String getServiceName() {
+    return serviceName;
+  }
+
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
   }
 
   public String getHostName() {
@@ -66,38 +75,17 @@ public class RootServiceHostComponentResponse {
 
     RootServiceHostComponentResponse that = (RootServiceHostComponentResponse) o;
 
-    if (hostName != null ?
-        !hostName.equals(that.hostName) : that.hostName != null) {
-      return false;
-    }
-    
-    if (componentName != null ?
-        !componentName.equals(that.componentName) : that.componentName != null) {
-      return false;
-    }
-    
-    if (componentState != null ?
-        !componentState.equals(that.componentState) : that.componentState != null) {
-      return false;
-    }
-    
-    if (componentVersion != null ?
-        !componentVersion.equals(that.componentVersion) : that.componentVersion != null) {
-      return false;
-    }
-    
-    if (properties != null ?
-        !properties.equals(that.properties) : that.properties != null) {
-      return false;
-    }
-    
-    return true;
+    return !(hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) &&
+        !(componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) &&
+        !(componentState != null ? !componentState.equals(that.componentState) : that.componentState != null) &&
+        !(componentVersion != null ? !componentVersion.equals(that.componentVersion) : that.componentVersion != null) &&
+        !(properties != null ? !properties.equals(that.properties) : that.properties != null);
+
   }
 
   @Override
   public int hashCode() {
-    int result = 1;
-    result = 31 + (hostName != null ? hostName.hashCode() : 0);
+    int result = 31 + (hostName != null ? hostName.hashCode() : 0);
     result = result + (componentName != null ? componentName.hashCode() : 0);
     result = result + (componentState != null ? componentState.hashCode() : 0);
     result = result + (componentVersion != null ? componentVersion.hashCode() : 0);
@@ -108,15 +96,7 @@ public class RootServiceHostComponentResponse {
     return componentState;
   }
 
-  public void setComponentState(String componentState) {
-    this.componentState = componentState;
-  }
-
   public String getComponentVersion() {
     return componentVersion;
-  }
-
-  public void setComponentVersion(String componentVersion) {
-    this.componentVersion = componentVersion;
   }
 }

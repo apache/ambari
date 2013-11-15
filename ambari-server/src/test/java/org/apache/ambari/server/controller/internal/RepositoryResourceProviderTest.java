@@ -58,6 +58,8 @@ public class RepositoryResourceProviderTest {
 
     RepositoryResponse rr = new RepositoryResponse(VAL_BASE_URL, VAL_OS,
         VAL_REPO_ID, VAL_REPO_NAME, null, null);
+    rr.setStackName(VAL_STACK_NAME);
+    rr.setStackVersion(VAL_STACK_VERSION);
     Set<RepositoryResponse> allResponse = new HashSet<RepositoryResponse>();
     allResponse.add(rr);
     

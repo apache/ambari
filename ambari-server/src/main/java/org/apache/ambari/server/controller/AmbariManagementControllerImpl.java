@@ -1093,18 +1093,17 @@ public class AmbariManagementControllerImpl implements
   /**
    * Find configuration tags with applied overrides
    *
-   * @param cluster
-   * @param hostName
-   * @return
-   * @throws AmbariException
+   * @param cluster   the cluster
+   * @param hostName  the host name
+   *
+   * @return the configuration tags
+   *
+   * @throws AmbariException if configuration tags can not be obtained
    */
   protected Map<String, Map<String,String>> findConfigurationTagsWithOverrides(
     Cluster cluster, String hostName) throws AmbariException {
 
-    Map<String, Map<String,String>> configTags =
-      configHelper.getEffectiveDesiredTags(cluster, hostName);
-
-    return configTags;
+    return configHelper.getEffectiveDesiredTags(cluster, hostName);
   }
 
   private List<Stage> doStageCreation(Cluster cluster,
@@ -1156,15 +1155,6 @@ public class AmbariManagementControllerImpl implements
       
       Stage stage = createNewStage(cluster, requestId, requestContext, clusterHostInfoJson);
       stage.setStageId(stageId);
-
-      Set<String> hostnames = new HashSet<String>();
-      for (Map<State, List<ServiceComponentHost>> stateListMap : changedScHosts.values()) {
-        for (List<ServiceComponentHost> serviceComponentHosts : stateListMap.values()) {
-          for (ServiceComponentHost serviceComponentHost : serviceComponentHosts) {
-            hostnames.add(serviceComponentHost.getHostName());
-          }
-        }
-      }
 
       //HACK
       String jobtrackerHost = getJobTrackerHost(cluster);
@@ -1480,11 +1470,8 @@ public class AmbariManagementControllerImpl implements
     Map<String, Map<String, Map<String, Set<String>>>> hostComponentNames =
         new HashMap<String, Map<String, Map<String, Set<String>>>>();
     Set<State> seenNewStates = new HashSet<State>();
-    int numberOfRequestsProcessed = 0;
-    StackId fromStackVersion = new StackId();
     Map<ServiceComponentHost, State> directTransitionScHosts = new HashMap<ServiceComponentHost, State>();
     for (ServiceComponentHostRequest request : requests) {
-      numberOfRequestsProcessed++;
       validateServiceComponentHostRequest(request);
 
       Cluster cluster = clusters.getCluster(request.getClusterName());
@@ -1726,83 +1713,6 @@ public class AmbariManagementControllerImpl implements
     return false;
   }
 
-  private boolean checkIfUpgradeRequestAndValidate(ServiceComponentHostRequest request, Cluster cluster, Service s,
-                                                   ServiceComponent sc, ServiceComponentHost sch)
-      throws AmbariException {
-    boolean isUpgradeRequest = false;
-    String requestedStackIdString = request.getDesiredStackId();
-    StackId requestedStackId;
-
-    if (requestedStackIdString == null) {
-      return isUpgradeRequest;
-    }
-
-    try {
-      requestedStackId = new StackId(request.getDesiredStackId());
-    } catch (RuntimeException re) {
-      throw getHostComponentUpgradeException(request, cluster, s, sc, sch,
-          "Invalid desired stack id");
-    }
-
-    StackId clusterStackId = cluster.getCurrentStackVersion();
-    StackId currentSchStackId = sch.getStackVersion();
-    if (clusterStackId == null || clusterStackId.getStackName().equals("")) {
-      // cluster has not been upgraded yet
-      if (requestedStackId.compareTo(currentSchStackId) != 0) {
-        throw getHostComponentUpgradeException(request, cluster, s, sc, sch,
-            "Cluster has not been upgraded yet, component host cannot be upgraded");
-      }
-    } else {
-      // cluster is upgraded and sch can be independently upgraded
-      if (clusterStackId.getStackName().compareTo(requestedStackId.getStackName()) != 0) {
-        throw getHostComponentUpgradeException(request, cluster, s, sc, sch,
-            "Deployed stack name and requested stack names do not match");
-      }
-      if (clusterStackId.compareTo(requestedStackId) != 0) {
-        throw getHostComponentUpgradeException(request, cluster, s, sc, sch,
-            "Component host can only be upgraded to the same version as the cluster");
-      } else if (requestedStackId.compareTo(currentSchStackId) > 0) {
-        isUpgradeRequest = true;
-        if (sch.getState() != State.INSTALLED && sch.getState() != State.UPGRADING) {
-          throw getHostComponentUpgradeException(request, cluster, s, sc, sch,
-              "Component host is in an invalid state for upgrade");
-        }
-
-        if (request.getDesiredState() == null
-            || !request.getDesiredState().equals(State.INSTALLED.toString())) {
-          throw getHostComponentUpgradeException(request, cluster, s, sc, sch,
-              "The desired state for an upgrade request must be " + State.INSTALLED);
-        }
-        LOG.info("Received upgrade request to " + requestedStackId + " for "
-            + "component " + sch.getServiceComponentName()
-            + " on " + sch.getHostName());
-      } else {
-        LOG.info("Stack id " + requestedStackId + " provided in the request matches"
-            + " the current stack id of the "
-            + "component " + sch.getServiceComponentName()
-            + " on " + sch.getHostName() + ". It will not be upgraded.");
-      }
-    }
-
-    return isUpgradeRequest;
-  }
-
-  private AmbariException getHostComponentUpgradeException(
-      ServiceComponentHostRequest request, Cluster cluster,
-      Service s, ServiceComponent sc, ServiceComponentHost sch,
-      String message) throws AmbariException {
-    return new AmbariException(message
-        + ", clusterName=" + cluster.getClusterName()
-        + ", clusterId=" + cluster.getClusterId()
-        + ", serviceName=" + s.getName()
-        + ", componentName=" + sc.getName()
-        + ", hostname=" + sch.getHostName()
-        + ", requestedStackId=" + request.getDesiredStackId()
-        + ", requestedState=" + request.getDesiredState()
-        + ", clusterStackId=" + cluster.getCurrentStackVersion()
-        + ", hostComponentCurrentStackId=" + sch.getStackVersion());
-  }
-
   @Override
   public synchronized void updateUsers(Set<UserRequest> requests) throws AmbariException {
     for (UserRequest request : requests) {
@@ -1985,7 +1895,8 @@ public class AmbariManagementControllerImpl implements
 
     Set<TaskStatusResponse> responses = new HashSet<TaskStatusResponse>();
     for (HostRoleCommand command : actionManager.getTasksByRequestAndTaskIds(requestIds, taskIds)) {
-      responses.add(new TaskStatusResponse(command));
+      TaskStatusResponse taskStatusResponse = new TaskStatusResponse(command);
+      responses.add(taskStatusResponse);
     }
 
     if (responses.size() == 0) {
@@ -2285,7 +2196,16 @@ public class AmbariManagementControllerImpl implements
     Set<RepositoryResponse> response = new HashSet<RepositoryResponse>();
     for (RepositoryRequest request : requests) {
       try {
-        response.addAll(getRepositories(request));
+        String stackName    = request.getStackName();
+        String stackVersion = request.getStackVersion();
+
+        Set<RepositoryResponse> repositories = getRepositories(request);
+
+        for (RepositoryResponse repositoryResponse : repositories) {
+          repositoryResponse.setStackName(stackName);
+          repositoryResponse.setStackVersion(stackVersion);
+        }
+        response.addAll(repositories);
       } catch (StackAccessException e) {
         if (requests.size() == 1) {
           // only throw exception if 1 request.
@@ -2387,8 +2307,13 @@ public class AmbariManagementControllerImpl implements
       Set<StackVersionRequest> requests) throws AmbariException {
     Set<StackVersionResponse> response = new HashSet<StackVersionResponse>();
     for (StackVersionRequest request : requests) {
+      String stackName = request.getStackName();
       try {
-        response.addAll(getStackVersions(request));
+        Set<StackVersionResponse> stackVersions = getStackVersions(request);
+        for (StackVersionResponse stackVersionResponse : stackVersions) {
+          stackVersionResponse.setStackName(stackName);
+        }
+        response.addAll(stackVersions);
       } catch (StackAccessException e) {
         if (requests.size() == 1) {
           // only throw exception if 1 request.
@@ -2429,8 +2354,18 @@ public class AmbariManagementControllerImpl implements
     Set<StackServiceResponse> response = new HashSet<StackServiceResponse>();
 
     for (StackServiceRequest request : requests) {
+      String stackName    = request.getStackName();
+      String stackVersion = request.getStackVersion();
+
       try {
-        response.addAll(getStackServices(request));
+        Set<StackServiceResponse> stackServices = getStackServices(request);
+
+        for (StackServiceResponse stackServiceResponse : stackServices) {
+          stackServiceResponse.setStackName(stackName);
+          stackServiceResponse.setStackVersion(stackVersion);
+        }
+
+        response.addAll(stackServices);
       } catch (StackAccessException e) {
         if (requests.size() == 1) {
           // only throw exception if 1 request.
@@ -2468,7 +2403,20 @@ public class AmbariManagementControllerImpl implements
       Set<StackConfigurationRequest> requests) throws AmbariException {
     Set<StackConfigurationResponse> response = new HashSet<StackConfigurationResponse>();
     for (StackConfigurationRequest request : requests) {
-      response.addAll(getStackConfigurations(request));
+
+      String stackName    = request.getStackName();
+      String stackVersion = request.getStackVersion();
+      String serviceName  = request.getServiceName();
+
+      Set<StackConfigurationResponse> stackConfigurations = getStackConfigurations(request);
+
+      for (StackConfigurationResponse stackConfigurationResponse : stackConfigurations) {
+        stackConfigurationResponse.setStackName(stackName);
+        stackConfigurationResponse.setStackVersion(stackVersion);
+        stackConfigurationResponse.setServiceName(serviceName);
+      }
+
+      response.addAll(stackConfigurations);
     }
 
     return response;
@@ -2505,8 +2453,20 @@ public class AmbariManagementControllerImpl implements
       Set<StackServiceComponentRequest> requests) throws AmbariException {
     Set<StackServiceComponentResponse> response = new HashSet<StackServiceComponentResponse>();
     for (StackServiceComponentRequest request : requests) {
+      String stackName    = request.getStackName();
+      String stackVersion = request.getStackVersion();
+      String serviceName  = request.getServiceName();
+
       try {
-        response.addAll(getStackComponents(request));
+        Set<StackServiceComponentResponse> stackComponents = getStackComponents(request);
+
+        for (StackServiceComponentResponse stackServiceComponentResponse : stackComponents) {
+          stackServiceComponentResponse.setStackName(stackName);
+          stackServiceComponentResponse.setStackVersion(stackVersion);
+          stackServiceComponentResponse.setServiceName(serviceName);
+        }
+
+        response.addAll(stackComponents);
       } catch (StackAccessException e) {
         if (requests.size() == 1) {
           // only throw exception if 1 request.
@@ -2523,11 +2483,10 @@ public class AmbariManagementControllerImpl implements
       StackServiceComponentRequest request) throws AmbariException {
     Set<StackServiceComponentResponse> response;
 
-    String stackName = request.getStackName();
-    String stackVersion = request.getStackVersion();
-    String serviceName = request.getServiceName();
+    String stackName     = request.getStackName();
+    String stackVersion  = request.getStackVersion();
+    String serviceName   = request.getServiceName();
     String componentName = request.getComponentName();
-
 
     if (componentName != null) {
       ComponentInfo component = this.ambariMetaInfo.getComponent(stackName, stackVersion, serviceName, componentName);
@@ -2550,7 +2509,16 @@ public class AmbariManagementControllerImpl implements
     Set<OperatingSystemResponse> response = new HashSet<OperatingSystemResponse>();
     for (OperatingSystemRequest request : requests) {
       try {
-        response.addAll(getStackOperatingSystems(request));
+        String stackName    = request.getStackName();
+        String stackVersion = request.getStackVersion();
+
+        Set<OperatingSystemResponse> stackOperatingSystems = getStackOperatingSystems(request);
+
+        for (OperatingSystemResponse operatingSystemResponse : stackOperatingSystems) {
+          operatingSystemResponse.setStackName(stackName);
+          operatingSystemResponse.setStackVersion(stackVersion);
+        }
+        response.addAll(stackOperatingSystems);
       } catch (StackAccessException e) {
         if (requests.size() == 1) {
           // only throw exception if 1 request.
@@ -2617,8 +2585,15 @@ public class AmbariManagementControllerImpl implements
       Set<RootServiceComponentRequest> requests) throws AmbariException {
     Set<RootServiceComponentResponse> response = new HashSet<RootServiceComponentResponse>();
     for (RootServiceComponentRequest request : requests) {
+      String serviceName  = request.getServiceName();
       try {
-        response.addAll(getRootServiceComponents(request));
+        Set<RootServiceComponentResponse> rootServiceComponents = getRootServiceComponents(request);
+
+        for (RootServiceComponentResponse serviceComponentResponse : rootServiceComponents) {
+          serviceComponentResponse.setServiceName(serviceName);
+        }
+
+        response.addAll(rootServiceComponents);
       } catch (AmbariException e) {
         if (requests.size() == 1) {
           // only throw exception if 1 request.

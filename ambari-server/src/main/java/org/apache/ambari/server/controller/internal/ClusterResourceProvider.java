@@ -38,7 +38,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 /**
@@ -101,14 +100,21 @@ class ClusterResourceProvider extends AbstractControllerResourceProvider {
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
-    final ClusterRequest clusterRequest = getRequest(PredicateHelper.getProperties(predicate));
+    final Set<ClusterRequest> requests = new HashSet<ClusterRequest>();
+
+    if (predicate == null) {
+      requests.add(getRequest(Collections.<String, Object>emptyMap()));
+    } else {
+      for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
+        requests.add(getRequest(propertyMap));
+      }
+    }
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
-    // TODO : handle multiple requests
     Set<ClusterResponse> responses = getResources(new Command<Set<ClusterResponse>>() {
       @Override
       public Set<ClusterResponse> invoke() throws AmbariException {
-        return getManagementController().getClusters(Collections.singleton(clusterRequest));
+        return getManagementController().getClusters(requests);
       }
     });
 

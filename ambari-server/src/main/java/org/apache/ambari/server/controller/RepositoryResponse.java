@@ -19,7 +19,9 @@
 package org.apache.ambari.server.controller;
 
 public class RepositoryResponse {
-  
+
+  private String stackName;
+  private String stackVersion;
   private String baseUrl;
   private String osType;
   private String repoId;
@@ -38,6 +40,21 @@ public class RepositoryResponse {
     setDefaultBaseUrl(defaultBaseUrl);
   }
 
+  public String getStackName() {
+    return stackName;
+  }
+
+  public void setStackName(String stackName) {
+    this.stackName = stackName;
+  }
+
+  public String getStackVersion() {
+    return stackVersion;
+  }
+
+  public void setStackVersion(String stackVersion) {
+    this.stackVersion = stackVersion;
+  }
 
   public String getBaseUrl() {
     return baseUrl;

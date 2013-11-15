@@ -40,7 +40,6 @@ import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 public class RepositoryResourceProvider extends AbstractControllerResourceProvider {
@@ -117,15 +116,21 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final RepositoryRequest repositoryRequest = getRequest(PredicateHelper
-        .getProperties(predicate));
+    final Set<RepositoryRequest> requests = new HashSet<RepositoryRequest>();
+
+    if (predicate == null) {
+      requests.add(getRequest(Collections.<String, Object>emptyMap()));
+    } else {
+      for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
+        requests.add(getRequest(propertyMap));
+      }
+    }
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
     Set<RepositoryResponse> responses = getResources(new Command<Set<RepositoryResponse>>() {
       @Override
       public Set<RepositoryResponse> invoke() throws AmbariException {
-        return getManagementController().getRepositories(
-            Collections.singleton(repositoryRequest));
+        return getManagementController().getRepositories(requests);
       }
     });
 
@@ -135,10 +140,10 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
         Resource resource = new ResourceImpl(Resource.Type.Repository);
 
         setResourceProperty(resource, STACK_NAME_PROPERTY_ID,
-            repositoryRequest.getStackName(), requestedIds);
+            response.getStackName(), requestedIds);
 
         setResourceProperty(resource, STACK_VERSION_PROPERTY_ID,
-            repositoryRequest.getStackVersion(), requestedIds);
+            response.getStackVersion(), requestedIds);
 
         setResourceProperty(resource, REPOSITORY_NAME_PROPERTY_ID,
             response.getRepoName(), requestedIds);

@@ -20,11 +20,28 @@
 package org.apache.ambari.server.controller;
 
 public class OperatingSystemResponse {
-  
+  private String stackName;
+  private String stackVersion;
   private String osType;
 
   public OperatingSystemResponse(String osType) {
     setOsType(osType);
+  }
+
+  public String getStackName() {
+    return stackName;
+  }
+
+  public void setStackName(String stackName) {
+    this.stackName = stackName;
+  }
+
+  public String getStackVersion() {
+    return stackVersion;
+  }
+
+  public void setStackVersion(String stackVersion) {
+    this.stackVersion = stackVersion;
   }
 
   public String getOsType() {
@@ -34,5 +51,4 @@ public class OperatingSystemResponse {
   public void setOsType(String osType) {
     this.osType = osType;
   }
-
 }

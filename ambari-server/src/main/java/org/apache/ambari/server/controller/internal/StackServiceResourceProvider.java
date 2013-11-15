@@ -37,7 +37,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
@@ -78,15 +77,22 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final StackServiceRequest stackServiceRequest = getRequest(PredicateHelper
-        .getProperties(predicate));
+    final Set<StackServiceRequest> requests = new HashSet<StackServiceRequest>();
+
+    if (predicate == null) {
+      requests.add(getRequest(Collections.<String, Object>emptyMap()));
+    } else {
+      for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
+        requests.add(getRequest(propertyMap));
+      }
+    }
+
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
     Set<StackServiceResponse> responses = getResources(new Command<Set<StackServiceResponse>>() {
       @Override
       public Set<StackServiceResponse> invoke() throws AmbariException {
-        return getManagementController().getStackServices(
-            Collections.singleton(stackServiceRequest));
+        return getManagementController().getStackServices(requests);
       }
     });
 
@@ -96,10 +102,10 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
       Resource resource = new ResourceImpl(Resource.Type.StackService);
 
       setResourceProperty(resource, STACK_NAME_PROPERTY_ID,
-          stackServiceRequest.getStackName(), requestedIds);
+          response.getStackName(), requestedIds);
 
       setResourceProperty(resource, STACK_VERSION_PROPERTY_ID,
-          stackServiceRequest.getStackVersion(), requestedIds);
+          response.getStackVersion(), requestedIds);
 
       setResourceProperty(resource, SERVICE_NAME_PROPERTY_ID,
           response.getServiceName(), requestedIds);

@@ -37,7 +37,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
@@ -72,15 +71,22 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final StackVersionRequest stackVersionRequest = getRequest(PredicateHelper
-        .getProperties(predicate));
+    final Set<StackVersionRequest> requests = new HashSet<StackVersionRequest>();
+
+    if (predicate == null) {
+      requests.add(getRequest(Collections.<String, Object>emptyMap()));
+    } else {
+      for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
+        requests.add(getRequest(propertyMap));
+      }
+    }
+
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
     Set<StackVersionResponse> responses = getResources(new Command<Set<StackVersionResponse>>() {
       @Override
       public Set<StackVersionResponse> invoke() throws AmbariException {
-        return getManagementController().getStackVersions(
-            Collections.singleton(stackVersionRequest));
+        return getManagementController().getStackVersions(requests);
       }
     });
 
@@ -90,7 +96,7 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
       Resource resource = new ResourceImpl(Resource.Type.StackVersion);
 
       setResourceProperty(resource, STACK_NAME_PROPERTY_ID,
-          stackVersionRequest.getStackName(), requestedIds);
+          response.getStackName(), requestedIds);
 
       setResourceProperty(resource, STACK_VERSION_PROPERTY_ID,
           response.getStackVersion(), requestedIds);

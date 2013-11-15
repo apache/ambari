@@ -31,16 +31,16 @@ public interface ResourceInstance {
   /**
    * Set the values of the parent foreign keys.
    *
-   * @param mapIds  map of all parent foreign keys. Map from resource type to id value.
+   * @param keyValueMap  map of all parent foreign keys. Map from resource type to id value.
    */
-  public void setIds(Map<Resource.Type, String> mapIds);
+  public void setKeyValueMap(Map<Resource.Type, String> keyValueMap);
 
   /**
    * Obtain the primary and foreign key properties for the resource.
    *
    * @return map of primary and foreign key values keyed by resource type
    */
-  public Map<Resource.Type, String> getIds();
+  public Map<Resource.Type, String> getKeyValueMap();
 
   /**
    * Return the query associated with the resource.

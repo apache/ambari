@@ -62,9 +62,14 @@ public class QueryImpl implements Query, ResourceInstance {
   private final Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
 
   /**
-   * Map of primary and foreign keys and values necessary to identify the resource.
+   * Map of primary and foreign key values.
    */
-  private final Map<Resource.Type, String> resourceIds = new HashMap<Resource.Type, String>();
+  private final Map<Resource.Type, String> keyValueMap = new HashMap<Resource.Type, String>();
+
+  /**
+   * Set of maps of primary and foreign key values.
+   */
+  Set<Map<Resource.Type, String>> keyValueMaps = new HashSet<Map<Resource.Type, String>>();
 
   /**
    * Sub-resources of the resource which is being operated on.
@@ -109,16 +114,16 @@ public class QueryImpl implements Query, ResourceInstance {
   /**
    * Constructor
    *
-   * @param mapIds              the map of ids
+   * @param keyValueMap         the map of key values
    * @param resourceDefinition  the resource definition
    * @param clusterController   the cluster controller
    */
-  public QueryImpl(Map<Resource.Type, String> mapIds,
+  public QueryImpl(Map<Resource.Type, String> keyValueMap,
                    ResourceDefinition resourceDefinition,
                    ClusterController clusterController) {
     this.resourceDefinition = resourceDefinition;
     this.clusterController  = clusterController;
-    setIds(mapIds);
+    setKeyValueMap(keyValueMap);
   }
 
 
@@ -135,7 +140,7 @@ public class QueryImpl implements Query, ResourceInstance {
         Resource.Type resourceType = getResourceDefinition().getType();
         Schema        schema       = clusterController.getSchema(resourceType);
 
-        for (Resource.Type type : getIds().keySet()) {
+        for (Resource.Type type : getKeyValueMap().keySet()) {
           addLocalProperty(schema.getKeyPropertyId(type));
         }
       } else {
@@ -188,13 +193,13 @@ public class QueryImpl implements Query, ResourceInstance {
   // ----- ResourceInstance --------------------------------------------------
 
   @Override
-  public void setIds(Map<Resource.Type, String> mapIds) {
-    resourceIds.putAll(mapIds);
+  public void setKeyValueMap(Map<Resource.Type, String> keyValueMap) {
+    this.keyValueMap.putAll(keyValueMap);
   }
 
   @Override
-  public Map<Resource.Type, String> getIds() {
-    return new HashMap<Resource.Type, String>((resourceIds));
+  public Map<Resource.Type, String> getKeyValueMap() {
+    return new HashMap<Resource.Type, String>((keyValueMap));
   }
 
   @Override
@@ -209,7 +214,7 @@ public class QueryImpl implements Query, ResourceInstance {
 
   @Override
   public boolean isCollectionResource() {
-    return getIds().get(getResourceDefinition().getType()) == null;
+    return getKeyValueMap().get(getResourceDefinition().getType()) == null;
   }
 
   @Override
@@ -235,7 +240,7 @@ public class QueryImpl implements Query, ResourceInstance {
         !pageRequest.equals(query.pageRequest) :
         query.pageRequest != null) && queryPropertySet.equals(query.queryPropertySet) &&
         resourceDefinition.equals(query.resourceDefinition) &&
-        resourceIds.equals(query.resourceIds) && !(userPredicate != null ?
+        keyValueMap.equals(query.keyValueMap) && !(userPredicate != null ?
         !userPredicate.equals(query.userPredicate) :
         query.userPredicate != null);
   }
@@ -245,7 +250,7 @@ public class QueryImpl implements Query, ResourceInstance {
     int result = resourceDefinition.hashCode();
     result = 31 * result + clusterController.hashCode();
     result = 31 * result + queryPropertySet.hashCode();
-    result = 31 * result + resourceIds.hashCode();
+    result = 31 * result + keyValueMap.hashCode();
     result = 31 * result + (userPredicate != null ? userPredicate.hashCode() : 0);
     result = 31 * result + (pageRequest != null ? pageRequest.hashCode() : 0);
     return result;
@@ -266,9 +271,9 @@ public class QueryImpl implements Query, ResourceInstance {
       ClusterController controller = clusterController;
       for (SubResourceDefinition subResDef : setSubResourceDefs) {
         Resource.Type type = subResDef.getType();
-        Map<Resource.Type, String> ids = getIds();
-        QueryImpl resource =  new QueryImpl(ids,
-            ResourceInstanceFactoryImpl.getResourceDefinition(type, ids),
+        Map<Resource.Type, String> valueMap = getKeyValueMap();
+        QueryImpl resource =  new QueryImpl(valueMap,
+            ResourceInstanceFactoryImpl.getResourceDefinition(type, valueMap),
             controller);
 
         // ensure pk is returned
@@ -304,6 +309,8 @@ public class QueryImpl implements Query, ResourceInstance {
     for (Resource resource : doQuery(getPredicate())) {
       providerResourceSet.add(resource);
     }
+    keyValueMaps.add(getKeyValueMap());
+
     queryForSubResources();
   }
 
@@ -344,7 +351,7 @@ public class QueryImpl implements Query, ResourceInstance {
 
     Resource.Type resourceType1 = getResourceDefinition().getType();
 
-    if (getIds().get(resourceType1) == null) {
+    if (getKeyValueMap().get(resourceType1) == null) {
       addCollectionProperties(resourceType1);
     }
     if (queryPropertySet.isEmpty() && querySubResourceSet.isEmpty()) {
@@ -375,13 +382,17 @@ public class QueryImpl implements Query, ResourceInstance {
       for (Map.Entry<String, QueryImpl> entry : querySubResourceSet.entrySet()) {
         QueryImpl subResourceInstance = entry.getValue();
         String    subResCategory      = entry.getKey();
-        Predicate predicate           = predicateMap.get(subResCategory);
 
-        setParentIdsOnSubResource(resource, subResourceInstance);
+        Set<Map<Resource.Type, String>> resourceKeyValueMaps = getKeyValueMaps(resource, keyValueMaps);
 
-        predicateMap.put(subResCategory, predicate == null ?
-            subResourceInstance.getPredicate() :
-            new OrPredicate(predicate, subResourceInstance.getPredicate()));
+        for( Map<Resource.Type, String> map : resourceKeyValueMaps) {
+          Predicate predicate = predicateMap.get(subResCategory);
+
+          predicateMap.put(subResCategory, predicate == null ?
+              subResourceInstance.createPredicate(map) :
+              new OrPredicate(predicate, subResourceInstance.createPredicate(map)));
+        }
+        subResourceInstance.keyValueMaps.addAll(resourceKeyValueMaps);
       }
     }
     return predicateMap;
@@ -395,7 +406,7 @@ public class QueryImpl implements Query, ResourceInstance {
 
     Result result = new ResultImpl(true);
     Resource.Type resourceType = getResourceDefinition().getType();
-    if (getIds().get(resourceType) == null) {
+    if (getKeyValueMap().get(resourceType) == null) {
       result.getResultTree().setProperty("isCollection", "true");
     }
 
@@ -423,7 +434,7 @@ public class QueryImpl implements Query, ResourceInstance {
         String    subResCategory = entry.getKey();
         QueryImpl subResource    = entry.getValue();
 
-        setParentIdsOnSubResource(resource, subResource);
+        subResource.setKeyValueMap(getKeyValueMap(resource, getKeyValueMap()));
 
         TreeNode<Resource> childResult = subResource.getResult().getResultTree();
         childResult.setName(subResCategory);
@@ -442,7 +453,7 @@ public class QueryImpl implements Query, ResourceInstance {
     addProperty(PropertyHelper.getPropertyCategory(property),
         PropertyHelper.getPropertyName(property), null);
 
-    for (Resource.Type type : getIds().keySet()) {
+    for (Resource.Type type : getKeyValueMap().keySet()) {
       // add fk's
       String keyPropertyId = schema.getKeyPropertyId(type);
       if (keyPropertyId != null) {
@@ -495,9 +506,8 @@ public class QueryImpl implements Query, ResourceInstance {
     return resourceAdded;
   }
 
-  private Predicate createInternalPredicate() {
+  private Predicate createInternalPredicate(Map<Resource.Type, String> mapResourceIds) {
     Resource.Type resourceType = getResourceDefinition().getType();
-    Map<Resource.Type, String> mapResourceIds = getIds();
     Schema schema = clusterController.getSchema(resourceType);
 
     Set<Predicate> setPredicates = new HashSet<Predicate>();
@@ -520,8 +530,12 @@ public class QueryImpl implements Query, ResourceInstance {
   }
 
   private Predicate createPredicate() {
+    return createPredicate(getKeyValueMap());
+  }
+
+  private Predicate createPredicate(Map<Resource.Type, String> keyValueMap) {
     Predicate predicate = null;
-    Predicate internalPredicate = createInternalPredicate();
+    Predicate internalPredicate = createInternalPredicate(keyValueMap);
     if (internalPredicate == null) {
       if (userPredicate != null) {
         predicate = userPredicate;
@@ -549,13 +563,27 @@ public class QueryImpl implements Query, ResourceInstance {
       setProperties.add(group);
     }
 
-    return PropertyHelper.getReadRequest(allProperties ? Collections.<String>emptySet() : setProperties, mapTemporalInfo);
+    return PropertyHelper.getReadRequest(allProperties ?
+        Collections.<String>emptySet() : setProperties, mapTemporalInfo);
   }
 
-  private void setParentIdsOnSubResource(Resource resource, ResourceInstance r) {
-    Map<Resource.Type, String> mapParentIds = getIds();
-    Map<Resource.Type, String> mapResourceIds = new HashMap<Resource.Type, String>(mapParentIds.size());
-    for (Map.Entry<Resource.Type, String> resourceIdEntry : mapParentIds.entrySet()) {
+  // Get a set of key value maps based on the given resource and an existing set of key value maps
+  private Set<Map<Resource.Type, String>> getKeyValueMaps(Resource resource,
+                                                          Set<Map<Resource.Type, String>> keyValueMaps) {
+    Set<Map<Resource.Type, String>> resourceKeyValueMaps = new HashSet<Map<Resource.Type, String>>();
+
+    for(Map<Resource.Type, String> keyValueMap : keyValueMaps) {
+      Map<Resource.Type, String> resourceKeyValueMap = getKeyValueMap(resource, keyValueMap);
+      resourceKeyValueMaps.add(resourceKeyValueMap);
+    }
+    return resourceKeyValueMaps;
+  }
+
+  // Get a key value map based on the given resource and an existing key value map
+  private Map<Resource.Type, String> getKeyValueMap(Resource resource,
+                                                    Map<Resource.Type, String> keyValueMap) {
+    Map<Resource.Type, String> resourceKeyValueMap = new HashMap<Resource.Type, String>(keyValueMap.size());
+    for (Map.Entry<Resource.Type, String> resourceIdEntry : keyValueMap.entrySet()) {
       Resource.Type type = resourceIdEntry.getKey();
       String value = resourceIdEntry.getValue();
 
@@ -564,13 +592,13 @@ public class QueryImpl implements Query, ResourceInstance {
         value = o == null ? null : o.toString();
       }
       if (value != null) {
-        mapResourceIds.put(type, value);
+        resourceKeyValueMap.put(type, value);
       }
     }
     String resourceKeyProp = clusterController.getSchema(resource.getType()).
         getKeyPropertyId(resource.getType());
 
-    mapResourceIds.put(resource.getType(), resource.getPropertyValue(resourceKeyProp).toString());
-    r.setIds(mapResourceIds);
+    resourceKeyValueMap.put(resource.getType(), resource.getPropertyValue(resourceKeyProp).toString());
+    return resourceKeyValueMap;
   }
 }

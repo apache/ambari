@@ -149,7 +149,7 @@ public class QueryCreateHandlerTest {
     expect(body.getNamedPropertySets()).andReturn(setRequestProps).anyTimes();
 
     expect(resourceInstance.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
-    expect(resourceInstance.getIds()).andReturn(mapIds).anyTimes();
+    expect(resourceInstance.getKeyValueMap()).andReturn(mapIds).anyTimes();
     expect(resourceInstance.getSubResources()).andReturn(mapSubResources).anyTimes();
 
     expect(resourceDefinition.getType()).andReturn(Resource.Type.Service).anyTimes();
@@ -282,7 +282,7 @@ public class QueryCreateHandlerTest {
     expect(body.getNamedPropertySets()).andReturn(setRequestProps).anyTimes();
 
     expect(resourceInstance.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
-    expect(resourceInstance.getIds()).andReturn(mapIds).anyTimes();
+    expect(resourceInstance.getKeyValueMap()).andReturn(mapIds).anyTimes();
 
     expect(resourceDefinition.getType()).andReturn(Resource.Type.Service).anyTimes();
     expect(controller.getSchema(Resource.Type.Service)).andReturn(serviceSchema).anyTimes();
@@ -385,7 +385,7 @@ public class QueryCreateHandlerTest {
     expect(body.getNamedPropertySets()).andReturn(setRequestProps).anyTimes();
 
     expect(resourceInstance.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
-    expect(resourceInstance.getIds()).andReturn(mapIds).anyTimes();
+    expect(resourceInstance.getKeyValueMap()).andReturn(mapIds).anyTimes();
     expect(resourceInstance.getSubResources()).andReturn(mapSubResources).anyTimes();
 
     expect(resourceDefinition.getType()).andReturn(Resource.Type.Service).anyTimes();
@@ -459,7 +459,7 @@ public class QueryCreateHandlerTest {
     expect(body.getNamedPropertySets()).andReturn(setRequestProps).anyTimes();
 
     expect(resourceInstance.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
-    expect(resourceInstance.getIds()).andReturn(mapIds).anyTimes();
+    expect(resourceInstance.getKeyValueMap()).andReturn(mapIds).anyTimes();
 
     expect(resourceDefinition.getType()).andReturn(Resource.Type.Service).anyTimes();
     expect(controller.getSchema(Resource.Type.Service)).andReturn(serviceSchema).anyTimes();
@@ -568,7 +568,7 @@ public class QueryCreateHandlerTest {
     expect(body.getNamedPropertySets()).andReturn(setRequestProps).anyTimes();
 
     expect(resourceInstance.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
-    expect(resourceInstance.getIds()).andReturn(mapIds).anyTimes();
+    expect(resourceInstance.getKeyValueMap()).andReturn(mapIds).anyTimes();
     expect(resourceInstance.getSubResources()).andReturn(mapSubResources).anyTimes();
 
     expect(resourceDefinition.getType()).andReturn(Resource.Type.Service).anyTimes();

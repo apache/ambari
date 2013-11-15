@@ -36,7 +36,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.spi.Resource.Type;
-import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 public class RootServiceResourceProvider extends ReadOnlyResourceProvider {
@@ -58,15 +57,22 @@ public class RootServiceResourceProvider extends ReadOnlyResourceProvider {
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final RootServiceRequest ambariServiceRequest = getRequest(PredicateHelper
-        .getProperties(predicate));
+    final Set<RootServiceRequest> requests = new HashSet<RootServiceRequest>();
+
+    if (predicate == null) {
+      requests.add(getRequest(Collections.<String, Object>emptyMap()));
+    } else {
+      for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
+        requests.add(getRequest(propertyMap));
+      }
+    }
+
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
     Set<RootServiceResponse> responses = getResources(new Command<Set<RootServiceResponse>>() {
       @Override
       public Set<RootServiceResponse> invoke() throws AmbariException {
-        return getManagementController().getRootServices(
-            Collections.singleton(ambariServiceRequest));
+        return getManagementController().getRootServices(requests);
       }
     });
 

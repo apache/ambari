@@ -18,16 +18,13 @@
 
 package org.apache.ambari.server.controller;
 
-import java.util.List;
-
-import org.apache.ambari.server.state.RepositoryInfo;
 
 public class StackVersionResponse {
 
+  private String stackName;
   private String stackVersion;
   private String minUpgradeVersion;
   private boolean active;
-  private List<RepositoryInfo> repositories;
   private String parentVersion;
 
   public StackVersionResponse(String stackVersion, String minUpgradeVersion,
@@ -38,20 +35,20 @@ public class StackVersionResponse {
     setParentVersion(parentVersion);
   }
 
+  public String getStackName() {
+    return stackName;
+  }
+
+  public void setStackName(String stackName) {
+    this.stackName = stackName;
+  }
+
   public String getStackVersion() {
     return stackVersion;
   }
 
   public void setStackVersion(String stackVersion) {
     this.stackVersion = stackVersion;
-  }
-
-  public List<RepositoryInfo> getRepositories() {
-    return repositories;
-  }
-
-  public void setRepositories(List<RepositoryInfo> repositories) {
-    this.repositories = repositories;
   }
 
   public String getMinUpgradeVersion() {

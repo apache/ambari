@@ -22,6 +22,8 @@ import java.util.List;
 
 public class StackServiceResponse {
 
+  private String stackName;
+  private String stackVersion;
   private String serviceName;
 
   private String userName;
@@ -39,6 +41,22 @@ public class StackServiceResponse {
     setComments(comments);
     setServiceVersion(serviceVersion);
     configTypes = types;
+  }
+
+  public String getStackName() {
+    return stackName;
+  }
+
+  public void setStackName(String stackName) {
+    this.stackName = stackName;
+  }
+
+  public String getStackVersion() {
+    return stackVersion;
+  }
+
+  public void setStackVersion(String stackVersion) {
+    this.stackVersion = stackVersion;
   }
 
   public String getServiceName() {

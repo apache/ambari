@@ -23,6 +23,7 @@ import java.util.Map;
 
 public class RootServiceComponentResponse {
 
+  private String serviceName;
   private String componentName;
   private Map<String, String> properties;
   private String componentVersion;
@@ -32,6 +33,14 @@ public class RootServiceComponentResponse {
     this.setComponentVersion(componentVersion); 
     this.setProperties(properties);
     
+  }
+
+  public String getServiceName() {
+    return serviceName;
+  }
+
+  public void setServiceName(String serviceName) {
+    this.serviceName = serviceName;
   }
 
   public String getComponentName() {
@@ -61,28 +70,15 @@ public class RootServiceComponentResponse {
 
     RootServiceComponentResponse that = (RootServiceComponentResponse) o;
 
-    if (componentName != null ?
-        !componentName.equals(that.componentName) : that.componentName != null) {
-      return false;
-    }
-    
-    if (componentVersion != null ?
-        !componentVersion.equals(that.componentVersion) : that.componentVersion != null) {
-      return false;
-    }
-    
-    if (properties != null ?
-        !properties.equals(that.properties) : that.properties != null) {
-      return false;
-    }
-    
-    return true;
+    return !(componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) &&
+        !(componentVersion != null ? !componentVersion.equals(that.componentVersion) : that.componentVersion != null) &&
+        !(properties != null ? !properties.equals(that.properties) : that.properties != null);
+
   }
 
   @Override
   public int hashCode() {
-    int result = 1;
-    result = 31 + (componentName != null ? componentName.hashCode() : 0);
+    int result = 31 + (componentName != null ? componentName.hashCode() : 0);
     result += (componentVersion != null ? componentVersion.hashCode() : 0);
     return result;
   }

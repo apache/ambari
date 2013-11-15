@@ -71,7 +71,7 @@ public class PersistenceManagerImplTest {
     setExpected.add(mapExpected);
 
     //expectations
-    expect(resource.getIds()).andReturn(mapResourceIds);
+    expect(resource.getKeyValueMap()).andReturn(mapResourceIds);
     expect(resource.getResourceDefinition()).andReturn(resourceDefinition).atLeastOnce();
     expect(resourceDefinition.getType()).andReturn(Resource.Type.Component);
     expect(controller.getSchema(Resource.Type.Component)).andReturn(schema);
@@ -112,7 +112,7 @@ public class PersistenceManagerImplTest {
     setExpected.add(mapExpected);
 
     //expectations
-    expect(resource.getIds()).andReturn(mapResourceIds);
+    expect(resource.getKeyValueMap()).andReturn(mapResourceIds);
     expect(resource.getResourceDefinition()).andReturn(resourceDefinition).atLeastOnce();
     expect(resourceDefinition.getType()).andReturn(Resource.Type.Component);
     expect(controller.getSchema(Resource.Type.Component)).andReturn(schema);
@@ -170,7 +170,7 @@ public class PersistenceManagerImplTest {
     setExpected.add(mapExpected2);
 
     //expectations
-    expect(resource.getIds()).andReturn(mapResourceIds);
+    expect(resource.getKeyValueMap()).andReturn(mapResourceIds);
     expect(resource.getResourceDefinition()).andReturn(resourceDefinition);
     expect(resourceDefinition.getType()).andReturn(Resource.Type.Component);
     expect(controller.getSchema(Resource.Type.Component)).andReturn(schema);

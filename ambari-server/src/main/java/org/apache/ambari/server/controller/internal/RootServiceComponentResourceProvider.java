@@ -36,7 +36,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.spi.Resource.Type;
-import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 public class RootServiceComponentResourceProvider extends
@@ -68,15 +67,22 @@ public class RootServiceComponentResourceProvider extends
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final RootServiceComponentRequest rootServiceComponentRequest = getRequest(PredicateHelper
-        .getProperties(predicate));
+    final Set<RootServiceComponentRequest> requests = new HashSet<RootServiceComponentRequest>();
+
+    if (predicate == null) {
+      requests.add(getRequest(Collections.<String, Object>emptyMap()));
+    } else {
+      for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
+        requests.add(getRequest(propertyMap));
+      }
+    }
+
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
     Set<RootServiceComponentResponse> responses = getResources(new Command<Set<RootServiceComponentResponse>>() {
       @Override
       public Set<RootServiceComponentResponse> invoke() throws AmbariException {
-        return getManagementController().getRootServiceComponents(
-            Collections.singleton(rootServiceComponentRequest));
+        return getManagementController().getRootServiceComponents(requests);
       }
     });
 
@@ -86,7 +92,7 @@ public class RootServiceComponentResourceProvider extends
       Resource resource = new ResourceImpl(Resource.Type.RootServiceComponent);
 
       setResourceProperty(resource, SERVICE_NAME_PROPERTY_ID,
-          rootServiceComponentRequest.getServiceName(), requestedIds);
+          response.getServiceName(), requestedIds);
       
       setResourceProperty(resource, COMPONENT_NAME_PROPERTY_ID,
           response.getComponentName(), requestedIds);

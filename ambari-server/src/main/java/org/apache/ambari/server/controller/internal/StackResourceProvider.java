@@ -27,7 +27,6 @@ import org.apache.ambari.server.controller.StackRequest;
 import org.apache.ambari.server.controller.StackResponse;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.spi.Resource.Type;
-import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 public class StackResourceProvider extends ReadOnlyResourceProvider {
@@ -50,15 +49,18 @@ public class StackResourceProvider extends ReadOnlyResourceProvider {
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
-    final StackRequest stackRequest = getRequest(PredicateHelper
-        .getProperties(predicate));
+    final Set<StackRequest> requests = new HashSet<StackRequest>();
+
+    for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
+      requests.add(getRequest(propertyMap));
+    }
+
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
     Set<StackResponse> responses = getResources(new Command<Set<StackResponse>>() {
       @Override
       public Set<StackResponse> invoke() throws AmbariException {
-        return getManagementController().getStacks(
-            Collections.singleton(stackRequest));
+        return getManagementController().getStacks(requests);
       }
     });
 
