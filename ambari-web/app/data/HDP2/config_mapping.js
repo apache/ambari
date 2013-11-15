@@ -67,6 +67,21 @@ var configs = [
     "filename": "core-site.xml",
     "isOverridable": true
   },
+/**********************************************hdfs-site***************************************/
+  {
+    "name": "dfs.datanode.address",
+    "templateName": ["dfs_datanode_address"],
+    "foreignKey": null,
+    "value": "0.0.0.0:<templateName[0]>",
+    "filename": "hdfs-site.xml"
+  },
+  {
+    "name": "dfs.datanode.http.address",
+    "templateName": ["dfs_datanode_http_address"],
+    "foreignKey": null,
+    "value": "0.0.0.0:<templateName[0]>",
+    "filename": "hdfs-site.xml"
+  },
 
 /**********************************************hbase-site***************************************/
   {

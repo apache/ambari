@@ -19,12 +19,6 @@ limitations under the License.
 
 <configuration>
   <property>
-    <name>ambari.hive.db.schema.name</name>
-    <value>hive</value>
-    <description>Database name used as the Hive Metastore</description>
-  </property>
-
-  <property>
     <name>javax.jdo.option.ConnectionURL</name>
     <value>jdbc</value>
     <description>JDBC connect string for a JDBC metastore</description>
@@ -58,21 +52,21 @@ limitations under the License.
     <name>hive.metastore.sasl.enabled</name>
     <value></value>
     <description>If true, the metastore thrift interface will be secured with SASL.
-      Clients must authenticate with Kerberos.</description>
+     Clients must authenticate with Kerberos.</description>
   </property>
 
   <property>
     <name>hive.metastore.kerberos.keytab.file</name>
     <value></value>
     <description>The path to the Kerberos Keytab file containing the metastore
-      thrift server's service principal.</description>
+     thrift server's service principal.</description>
   </property>
 
   <property>
     <name>hive.metastore.kerberos.principal</name>
     <value></value>
     <description>The service principal for the metastore thrift server. The special
-      string _HOST will be replaced automatically with the correct host name.</description>
+    string _HOST will be replaced automatically with the correct host name.</description>
   </property>
 
   <property>
@@ -115,7 +109,7 @@ limitations under the License.
     <name>hive.security.authorization.manager</name>
     <value>org.apache.hcatalog.security.HdfsAuthorizationProvider</value>
     <description>the hive client authorization manager class name.
-      The user defined authorization class should implement interface org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider.  </description>
+    The user defined authorization class should implement interface org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider.  </description>
   </property>
 
   <property>

@@ -1378,7 +1378,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var globalSiteProperties = {};
     this.get('globalConfigs').forEach(function (_globalSiteObj) {
       // do not pass any globalConfigs whose name ends with _host or _hosts
-      if (_globalSiteObj.isRequiredByAgent === true) {
+      if (!/_hosts?$/.test(_globalSiteObj.name)) {
         // append "m" to JVM memory options except for hadoop_heapsize
         if (/_heapsize|_newsize|_maxnewsize$/.test(_globalSiteObj.name) && !heapsizeException.contains(_globalSiteObj.name)) {
           _globalSiteObj.value += "m";

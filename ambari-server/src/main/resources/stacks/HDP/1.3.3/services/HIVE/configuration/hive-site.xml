@@ -19,12 +19,6 @@ limitations under the License.
 
 <configuration>
   <property>
-    <name>ambari.hive.db.schema.name</name>
-    <value>hive</value>
-    <description>Database name used as the Hive Metastore</description>
-  </property>
-
-  <property>
     <name>javax.jdo.option.ConnectionURL</name>
     <value>jdbc</value>
     <description>JDBC connect string for a JDBC metastore</description>

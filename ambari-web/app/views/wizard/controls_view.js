@@ -251,7 +251,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
   databaseName: function () {
     switch (this.get('serviceConfig.serviceName')) {
       case 'HIVE':
-        return this.get('categoryConfigsAll').findProperty('name', 'ambari.hive.db.schema.name').get('value');
+        return this.get('categoryConfigsAll').findProperty('name', 'hive_database_name').get('value');
       case 'OOZIE':
         return this.get('categoryConfigsAll').findProperty('name', 'oozie.db.schema.name').get('value');
       default:

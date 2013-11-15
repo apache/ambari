@@ -1404,16 +1404,18 @@ App.WizardStep8Controller = Em.Controller.extend({
     globalSiteObj.forEach(function (_globalSiteObj) {
       var heapsizeException =  ['hadoop_heapsize','yarn_heapsize','nodemanager_heapsize','resourcemanager_heapsize'];
       // do not pass any globals whose name ends with _host or _hosts
-      if (_globalSiteObj.isRequiredByAgent === true) {
+      if (!/_hosts?$/.test(_globalSiteObj.name)) {
         // append "m" to JVM memory options except for hadoop_heapsize
         if (/_heapsize|_newsize|_maxnewsize$/.test(_globalSiteObj.name) && !heapsizeException.contains(_globalSiteObj.name)) {
           globalSiteProperties[_globalSiteObj.name] = _globalSiteObj.value + "m";
         } else {
           globalSiteProperties[_globalSiteObj.name] = App.config.escapeXMLCharacters(_globalSiteObj.value);
         }
-        if (_globalSiteObj.name == 'java64_home') {
-          globalSiteProperties['java64_home'] = this.get('content.installOptions.javaHome');
-        }
+        console.log("STEP8: name of the global property is: " + _globalSiteObj.name);
+        console.log("STEP8: value of the global property is: " + _globalSiteObj.value);
+      }
+      if (_globalSiteObj.name == 'java64_home') {
+        globalSiteProperties['java64_home'] = this.get('content.installOptions.javaHome');
       }
       this._recordHostOverrideFromObj(_globalSiteObj, 'global', 'version1', this);
     }, this);
@@ -1570,11 +1572,16 @@ App.WizardStep8Controller = Em.Controller.extend({
     var globals = this.get('content.serviceConfigProperties').filterProperty('id', 'puppet var');
     if (globals.someProperty('name', 'hive_database')) {
       var hiveDb = globals.findProperty('name', 'hive_database');
+      var hiveHost = globals.findProperty('name', 'hive_hostname').value;
+      var hiveDbName = globals.findProperty('name', 'hive_database_name').value;
       if (hiveDb.value === 'New MySQL Database') {
+        // hiveProperties["javax.jdo.option.ConnectionURL"] = "jdbc:mysql://"+ hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
         hiveProperties["javax.jdo.option.ConnectionDriverName"] = "com.mysql.jdbc.Driver";
       } else if (hiveDb.value === 'Existing MySQL Database'){
+        // hiveProperties["javax.jdo.option.ConnectionURL"] = "jdbc:mysql://"+ hiveHost + "/" + hiveDbName + "?createDatabaseIfNotExist=true";
         hiveProperties["javax.jdo.option.ConnectionDriverName"] = "com.mysql.jdbc.Driver";
       } else { //existing oracle database
+        // hiveProperties["javax.jdo.option.ConnectionURL"] = "jdbc:oracle:thin:@//"+ hiveHost + ":1521/" + hiveDbName;
         hiveProperties["javax.jdo.option.ConnectionDriverName"] = "oracle.jdbc.driver.OracleDriver";
       }
     }
