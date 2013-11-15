@@ -114,36 +114,36 @@ App.clusterStatus = Ember.Object.create({
    */
   setClusterStatus: function(newValue){
     if(App.testMode) return false;
+    var val = {clusterName: this.get('clusterName')};
     if (newValue) {
       //setter
-      if (newValue.clusterState) {
-        this.set('clusterState', newValue.clusterState);
-      }
       if (newValue.clusterName) {
         this.set('clusterName', newValue.clusterName);
+        val.clusterName =  newValue.clusterName;
+      }
+
+      if (newValue.clusterState) {
+        this.set('clusterState', newValue.clusterState);
+        val.clusterState = newValue.clusterState;
       }
       if (newValue.wizardControllerName) {
         this.set('wizardControllerName', newValue.wizardControllerName);
+        val.wizardControllerName = newValue.wizardControllerName;
       }
       if (newValue.localdb) {
         this.set('localdb', newValue.localdb);
+        val.localdb = newValue.localdb;
       }
 
       var keyValuePair = {};
-      var val = {
-        clusterName: this.get('clusterName'),
-        clusterState: this.get('clusterState'),
-        wizardControllerName: this.get('wizardControllerName'),
-        localdb: this.get('localdb')
-      };
+
       keyValuePair[this.get('key')] = JSON.stringify(val);
 
       App.ajax.send({
         name: 'cluster.state',
         sender: this,
         data: {
-            key: keyValuePair,
-            newVal: newValue
+          keyValuePair: keyValuePair
         },
         beforeSend: 'clusterStatusBeforeSend',
         error: 'clusterStatusErrorCallBack'

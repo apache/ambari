@@ -83,9 +83,7 @@ module.exports = Em.Route.extend({
               router.get('addSecurityController').setCurrentStep(1);
               App.clusterStatus.setClusterStatus({
                 clusterName: router.get('content.cluster.name'),
-                clusterState: 'DEFAULT',
-                wizardControllerName: router.get('addSecurityController.name'),
-                localdb: App.db.data.AddSecurity
+                clusterState: 'DEFAULT'
               });
               router.transitionTo('adminSecurity.index');
             },

@@ -747,9 +747,7 @@ module.exports = Em.Route.extend({
                   router.get('mainAdminSecurityController').setDisableSecurityStatus(undefined);
                   App.clusterStatus.setClusterStatus({
                     clusterName: router.get('content.cluster.name'),
-                    clusterState: 'DEFAULT',
-                    wizardControllerName: router.get('mainAdminSecurityDisableController.name'),
-                    localdb: App.db.data.AddSecurity
+                    clusterState: 'DEFAULT'
                   });
                   this.hide();
                   router.transitionTo('adminSecurity.index');

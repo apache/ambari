@@ -581,8 +581,7 @@ var urls = {
     'format': function (data, opt) {
       return {
         async: false,
-        data: JSON.stringify(data.key),
-        newValue: data.newVal
+        data: JSON.stringify(data.keyValuePair)
       };
     }
   },
