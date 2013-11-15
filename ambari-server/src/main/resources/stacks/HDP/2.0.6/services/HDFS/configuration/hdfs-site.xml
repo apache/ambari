@@ -181,13 +181,23 @@
   </property>
 
   <property>
+    <name>ambari.dfs.datanode.port</name>
+    <value>50010</value>
+  </property>
+
+  <property>
     <name>dfs.datanode.address</name>
-    <value>0.0.0.0:50010</value>
+    <value>0.0.0.0:${ambari.dfs.datanode.port}</value>
+  </property>
+
+  <property>
+    <name>ambari.dfs.datanode.http.port</name>
+    <value>50075</value>
   </property>
 
   <property>
     <name>dfs.datanode.http.address</name>
-    <value>0.0.0.0:50075</value>
+    <value>0.0.0.0:${ambari.dfs.datanode.http.port}</value>
   </property>
 
   <property>

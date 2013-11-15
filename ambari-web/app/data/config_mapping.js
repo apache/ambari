@@ -66,29 +66,6 @@ var configs = [
     "filename": "core-site.xml",
     "isOverridable" : true
   },
-  {
-    "name": "dfs.datanode.address",
-    "templateName": ["dfs_datanode_address"],
-    "foreignKey": null,
-    "value": "0.0.0.0:<templateName[0]>",
-    "filename": "hdfs-site.xml"
-  },
-  {
-    "name": "dfs.datanode.http.address",
-    "templateName": ["dfs_datanode_http_address"],
-    "foreignKey": null,
-    "value": "0.0.0.0:<templateName[0]>",
-    "filename": "hdfs-site.xml"
-  },
-
-  /******************************************MAPREDUCE***************************************/
-  {
-    "name": "mapred.child.java.opts",
-    "templateName": ["mapred_child_java_opts_sz"],
-    "foreignKey": null,
-    "value": "-server -Xmx<templateName[0]>m -Djava.net.preferIPv4Stack=true",
-    "filename": "mapred-site.xml"
-  },
 
 /**********************************************hbase-site***************************************/
   {

@@ -91,10 +91,9 @@
     <name>mapred.job.tracker.http.address</name>
     <!-- cluster variant -->
     <value>localhost:50030</value>
-    <description>Http address for JobTracker</description>
+    <description>JobTracker host and http port address</description>
     <final>true</final>
   </property>
-
 
   <property>
     <!-- cluster specific -->
@@ -271,10 +270,16 @@
   </property>
 
   <property>
-    <name>mapred.child.java.opts</name>
-    <value></value>
+    <name>ambari.mapred.child.java.opts.memory</name>
+    <value>768</value>
 
-    <description>No description</description>
+    <description>Java options Memory for the TaskTracker child processes</description>
+  </property>
+
+  <property>
+    <name>mapred.child.java.opts</name>
+    <value>-server -Xmx${ambari.mapred.child.java.opts.memory}m -Djava.net.preferIPv4Stack=true</value>
+    <description>Java options for the TaskTracker child processes</description>
   </property>
 
   <property>

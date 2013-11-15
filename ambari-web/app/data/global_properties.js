@@ -85,6 +85,7 @@ module.exports =
       "description": "The host that has been assigned to run NameNode",
       "displayType": "masterHost",
       "isOverridable": false,
+      "isRequiredByAgent": false,
       "isVisible": true,
       "domain": "global",
       "serviceName": "HDFS",
@@ -129,6 +130,7 @@ module.exports =
       "defaultValue": "",
       "description": "The host that has been assigned to run SecondaryNameNode",
       "displayType": "masterHost",
+      "isRequiredByAgent": false,
       "isOverridable": false,
       "isVisible": true,
       "domain": "global",
@@ -145,6 +147,7 @@ module.exports =
       "description": "The hosts that have been assigned to run DataNode",
       "displayType": "slaveHosts",
       "isRequired": false,
+      "isRequiredByAgent": false,
       "isOverridable": false,
       "isVisible": true,
       "domain": "datanode-global",
@@ -262,20 +265,7 @@ module.exports =
       "serviceName": "HDFS",
       "category": "NameNode"
     },
-    {
-      "id": "puppet var",
-      "name": "hcat_conf_dir",
-      "displayName": "HCat conf directory",
-      "description": "",
-      "defaultValue": "",
-      "isRequired": false,
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "HDFS",
-      "category": "Advanced"
-    },
+
     /**********************************************HCFS***************************************/    
     {
       "id": "puppet var",
@@ -371,6 +361,7 @@ module.exports =
       "description": "The host that has been assigned to run JobTracker",
       "displayType": "masterHost",
       "isOverridable": false,
+      "isRequiredByAgent": false,
       "isVisible": true,
       "domain": "global",
       "serviceName": "MAPREDUCE",
@@ -433,24 +424,11 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "isRequired": false,
+      "isRequiredByAgent": false,
       "domain": "tasktracker-global",
       "serviceName": "MAPREDUCE",
       "category": "TaskTracker",
       "index": 0
-    },
-    {
-      "id": "puppet var",
-      "name": "mapred_child_java_opts_sz",
-      "displayName": "Java options for MapReduce tasks",
-      "description": "Java options for the TaskTracker child processes.",
-      "defaultValue": "768",
-      "displayType": "int",
-      "unit": "MB",
-      "isVisible": true,
-      "domain": "tasktracker-global",
-      "serviceName": "MAPREDUCE",
-      "category": "TaskTracker",
-      "index": 4
     },
     {
       "id": "puppet var",
@@ -503,6 +481,7 @@ module.exports =
       "description": "The host that has been assigned to run HBase Master",
       "displayType": "masterHosts",
       "isOverridable": false,
+      "isRequiredByAgent": false,
       "isVisible": true,
       "domain": "global",
       "serviceName": "HBASE",
@@ -533,6 +512,7 @@ module.exports =
       "description": "The hosts that have been assigned to run RegionServer",
       "displayType": "slaveHosts",
       "isOverridable": false,
+      "isRequiredByAgent": false,
       "isVisible": true,
       "isRequired": false,
       "domain": "regionserver-global",
@@ -604,6 +584,7 @@ module.exports =
       "defaultValue": "",
       "description": "The host that has been assigned to run Hive Metastore",
       "displayType": "masterHost",
+      "isRequiredByAgent": false,
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "HIVE",
@@ -716,6 +697,7 @@ module.exports =
       "defaultValue": "",
       "isReconfigurable": false,
       "displayType": "host",
+      "isRequiredByAgent": false,
       "isOverridable": false,
       "isVisible": false,
       "isObserved": true,
@@ -733,6 +715,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "host",
       "isOverridable": false,
+      "isRequiredByAgent": false,
       "isVisible": false,
       "isObserved": true,
       "domain": "global",
@@ -749,28 +732,13 @@ module.exports =
       "description": "The host where Hive Metastore database is located",
       "isReconfigurable": false,
       "displayType": "masterHost",
+      "isRequiredByAgent": false,
       "isOverridable": false,
       "isVisible": false,
       "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore",
       "index": 3
-    },
-    {
-      "id": "puppet var",
-      "name": "hive_database_name",
-      "displayName": "Database Name",
-      "description": "Database name used as the Hive Metastore",
-      "defaultValue": "hive",
-      "isReconfigurable": true,
-      "displayType": "host",
-      "isOverridable": false,
-      "isVisible": true,
-      "isObserved": true,
-      "domain": "global",
-      "serviceName": "HIVE",
-      "category": "Hive Metastore",
-      "index": 4
     },
     {
       "id": "puppet var",
@@ -781,45 +749,6 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "int",
       "isOverridable": false,
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "HIVE",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
-      "name": "hive_lib",
-      "displayName": "Hive library",
-      "description": "",
-      "defaultValue": "/usr/lib/hive/lib/",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "HIVE",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
-      "name": "hive_conf_dir",
-      "displayName": "Hive conf directory",
-      "description": "",
-      "defaultValue": "/etc/hive/conf",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "HIVE",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
-      "name": "hive_dbroot",
-      "displayName": "Hive db directory",
-      "description": "",
-      "defaultValue": "/usr/lib/hive/lib",
-      "isReconfigurable": false,
-      "displayType": "directory",
       "isVisible": false,
       "domain": "global",
       "serviceName": "HIVE",
@@ -889,6 +818,7 @@ module.exports =
       "description": "The host that has been assigned to run WebHCat Server",
       "displayType": "masterHost",
       "isOverridable": false,
+      "isRequiredByAgent": false,
       "isVisible": true,
       "domain": "global",
       "serviceName": "WEBHCAT",
@@ -932,6 +862,7 @@ module.exports =
       "description": "The host that has been assigned to run Oozie Server",
       "displayType": "masterHost",
       "isOverridable": false,
+      "isRequiredByAgent": false,
       "isVisible": true,
       "domain": "global",
       "serviceName": "OOZIE",
@@ -956,22 +887,6 @@ module.exports =
       "category": "Oozie Server",
       "index": 1
     },
-    // for new MySQL
-    /*{
-      "id": "puppet var",
-      "name": "oozie_ambari_database",
-      "displayName": "Database Type",
-      "value": "",
-      "defaultValue": "MySQL",
-      "description": "MySQL will be installed by Ambari",
-      "displayType": "masterHost",
-      "isVisible": false,
-      "isOverridable": false,
-      // "domain": "global",
-      "serviceName": "OOZIE",
-      "category": "Oozie Server",
-      "index": 1
-    },*/
     // for current derby
     {
       "id": "puppet var",
@@ -1068,6 +983,7 @@ module.exports =
           "isReconfigurable": false,
           "isOverridable": false,
           "displayType": "host",
+          "isRequiredByAgent": false,
           "isVisible": false,
           "isObserved": true,
           "domain": "global",
@@ -1083,6 +999,7 @@ module.exports =
           "defaultValue": "",
           "isReconfigurable": false,
           "isOverridable": false,
+          "isRequiredByAgent": false,
           "displayType": "host",
           "isVisible": false,
           "isObserved": true,
@@ -1100,6 +1017,7 @@ module.exports =
           "description": "Host on which the database will be created by Ambari",
           "isReconfigurable": false,
           "isOverridable": false,
+          "isRequiredByAgent": false,
           "displayType": "masterHost",
           "isVisible": false,
           "domain": "global",
@@ -1153,80 +1071,6 @@ module.exports =
       "serviceName": "OOZIE",
       "category": "Advanced"
     },
-    /*  {
-     "id": "puppet var",
-     "name": "oozie_database",
-     "displayName": "Oozie Database",
-     "value": "",
-     "defaultValue": "New PostgreSQL Database",
-     "options": [
-     {
-     displayName: 'New PostgreSQL Database',
-     foreignKeys: ['oozie_ambari_database', 'oozie_ambari_host']
-     },
-     {
-     displayName: 'Existing Database',
-     foreignKeys: ['oozie_existing_database', 'oozie_existing_host']
-     }
-     ],
-     "description": "PostgreSQL will be installed by ambari. Any other database will have to be installed by the user.",
-     "displayType": "radio button",
-     "radioName": "oozie-database",
-     "isVisible": true,
-     "serviceName": "OOZIE",
-     "category": "Oozie Server"
-     },
-     {
-     "id": "puppet var",
-     "name": "oozie_existing_database",
-     "displayName": "Oozie Database",
-     "value": "",
-     "defaultValue": "MySQL",
-     "description": "Select the database, if you already have existing one for Oozie.",
-     "displayType": "combobox",
-     "isVisible": false,
-     "options": ['MySQL', 'PostgreSQL'],
-     "serviceName": "OOZIE",
-     "category": "Oozie Server"
-     },
-     {
-     "id": "puppet var",
-     "name": "oozie_existing_host",
-     "displayName": "Database Host",
-     "description": "Select the host on which the existing database is hosted.",
-     "defaultValue": "",
-     "isReconfigurable": false,
-     "displayType": "host",
-     "isVisible": false,
-     "serviceName": "OOZIE",
-     "category": "Oozie Server"
-     },
-     {
-     "id": "puppet var",
-     "name": "oozie_ambari_database",
-     "displayName": "Oozie Database",
-     "value": "",
-     "defaultValue": "PostgreSQL",
-     "description": "PostgreSQL will be installed by ambari.",
-     "displayType": "masterHost",
-     "isVisible": true,
-     "serviceName": "OOZIE",
-     "category": "Oozie Server"
-     },
-     {
-     "id": "puppet var",
-     "name": "oozie_ambari_host",
-     "value": "",
-     "defaultValue": "",
-     "displayName": "PostgreSQL host",
-     "description": "Host  on which the PostgreSQL database will be created by ambari. ",
-     "isReconfigurable": false,
-     "displayType": "masterHost",
-     "isVisible": true,
-     "serviceName": "OOZIE",
-     "category": "Oozie Server"
-     },
-     */
   /**********************************************NAGIOS***************************************/
     {
       "id": "puppet var",
@@ -1278,6 +1122,7 @@ module.exports =
       "defaultValue": "",
       "description": "The host that has been assigned to run ZooKeeper Server",
       "displayType": "masterHosts",
+      "isRequiredByAgent": false,
       "isVisible": true,
       "isOverridable": false,
       "isRequired": false,
@@ -1387,19 +1232,6 @@ module.exports =
       "category": "Advanced",
       "index": 1
     },
-    {
-      "id": "puppet var",
-      "name": "zk_pid_file",
-      "displayName": "ZooKeeper PID File",
-      "description": "",
-      "defaultValue": "/var/run/zookeeper/zookeeper_server.pid",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "ZOOKEEPER",
-      "category": "Advanced"
-    },
   /**********************************************HUE***************************************/
     {
       "id": "puppet var",
@@ -1409,6 +1241,7 @@ module.exports =
       "defaultValue": "",
       "description": "The host that has been assigned to run Hue Server",
       "displayType": "masterHost",
+      "isRequiredByAgent": false,
       "isOverridable": false,
       "isVisible": true,
       "domain": "global",
@@ -1424,6 +1257,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isOverridable": false,
+      "isRequiredByAgent": false,
       "isVisible": true,
       "domain": "global",
       "serviceName": "HUE",
@@ -1438,6 +1272,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isOverridable": false,
+      "isRequiredByAgent": false,
       "isVisible": true,
       "domain": "global",
       "serviceName": "HUE",
@@ -1457,21 +1292,7 @@ module.exports =
       "serviceName": "GANGLIA",
       "category": "Advanced"
     },
-  /**********************************************MISC***************************************/
-    {
-      "id": "puppet var",
-      "name": "hbase_conf_dir",
-      "displayName": "HBase conf dir",
-      "description": "",
-      "defaultValue": "/etc/hbase",
-      "isRequired": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "General",
-      "belongsToService":[]
-    },
+  /**********************************************MISC******************************************/
     {
       "id": "puppet var",
       "name": "proxyuser_group",
@@ -1490,64 +1311,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "dfs_datanode_address",
-      "displayName": "dfs_datanode_address",
-      "description": "",
-      "defaultValue": "50010",
-      "isReconfigurable": true,
-      "displayType": "int",
-      "isVisible": true,
-      "filename": "hdfs-site.xml",
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "Advanced",
-      "belongsToService":[]
-    },
-    {
-      "id": "puppet var",
-      "name": "dfs_datanode_http_address",
-      "displayName": "dfs_datanode_http_address",
-      "description": "",
-      "defaultValue": "50075",
-      "isReconfigurable": true,
-      "displayType": "int",
-      "isVisible": true,
-      "filename": "hdfs-site.xml",
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "Advanced",
-      "belongsToService":[]
-    },
-    {
-      "id": "puppet var",
-      "name": "gpl_artifacts_download_url",
-      "displayName": "gpl artifact download url",
-      "description": "",
-      "defaultValue": "",
-      "isReconfigurable": false,
-      "displayType": "advanced",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "General",
-      "belongsToService":[]
-    },
-    {
-      "id": "puppet var",
-      "name": "apache_artifacts_download_url",
-      "displayName": "apache artifact download url",
-      "description": "",
-      "defaultValue": "",
-      "isReconfigurable": false,
-      "displayType": "advanced",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "General",
-      "belongsToService":[]
-    },
-    {
-      "id": "puppet var",
       "name": "ganglia_runtime_dir",
       "displayName": "Ganglia runtime directory",
       "description": "",
@@ -1560,48 +1323,6 @@ module.exports =
       "category": "General",
       "belongsToService":[]
     },
-    /*
-    {
-      "id": "puppet var",
-      "name": "ganglia_shell_cmds_dir",
-      "displayName": "ganglia_shell_cmds_dir",
-      "description": "",
-      "defaultValue": "/usr/libexec/hdp/ganglia",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "General"
-    },
-    {
-      "id": "puppet var",
-      "name": "webserver_group",
-      "displayName": "ganglia_shell_cmds_dir",
-      "description": "",
-      "defaultValue": "apache",
-      "isReconfigurable": false,
-      "displayType": "advanced",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "General"
-    },
-    */
-    /*
-    {
-      "id": "puppet var",
-      "name": "jdk_location",
-      "displayName": "URL to download 64-bit JDK",
-      "description": "URL from where the 64-bit JDK binary can be downloaded",
-      "defaultValue": "",
-      "isRequired": false,
-      "isReconfigurable": false,
-      "displayType": "url",
-      "isVisible": true,
-      "serviceName": "MISC"
-    },
-    */
     {
       "id": "puppet var",
       "name": "java64_home",
@@ -1616,138 +1337,6 @@ module.exports =
       "serviceName": "MISC",
       "belongsToService":[]
     },
-    {
-      "id": "puppet var",
-      "name": "run_dir",
-      "displayName": "Hadoop run directory",
-      "description": "",
-      "defaultValue": "/var/run/hadoop",
-      "isRequired": false,
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "Advanced",
-      "belongsToService":[]
-    },
-    {
-      "id": "puppet var",
-      "name": "hadoop_conf_dir",
-      "displayName": "Hadoop conf directory",
-      "description": "",
-      "defaultValue": "/etc/hadoop/conf",
-      "isRequired": false,
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "Advanced",
-      "belongsToService":[]
-    },
-    /*
-    {
-      "id": "puppet var",
-      "name": "hcat_metastore_port",
-      "displayName": "hcat_metastore_port",
-      "description": "",
-      "defaultValue": "/usr/lib/hcatalog/share/hcatalog",
-      "isRequired": true,
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC"
-    },
-    {
-      "id": "puppet var",
-      "name": "hcat_lib",
-      "displayName": "hcat_lib",
-      "description": "",
-      "defaultValue": "/usr/lib/hcatalog/share/hcatalog",
-      "isRequired": true,
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC"
-    },
-
-    {
-      "id": "puppet var",
-      "name": "hcat_dbroot",
-      "displayName": "hcat_dbroot",
-      "description": "",
-      "defaultValue": "/usr/lib/hcatalog/share/hcatalog",
-      "isRequired": true,
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC"
-    },
-    {
-      "id": "puppet var",
-      "name": "hcat_dbroot",
-      "displayName": "hcat_dbroot",
-      "description": "",
-      "defaultValue": "/usr/lib/hcatalog/share/hcatalog",
-      "isRequired": true,
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC"
-    },
-
-     {
-     "id": "puppet var",
-     "name": "hadoop_log_dir",
-     "displayName": "Hadoop Log Dir",
-     "description": "Directory for Hadoop log files",
-     "defaultValue": "/var/log/hadoop",
-     "isReconfigurable": false,
-     "displayType": "directory",
-     "isVisible":  true, "serviceName": "MISC",
-     "category": "Advanced"
-     },
-     {
-     "id": "puppet var",
-     "name": "hadoop_pid_dir",
-     "displayName": "Hadoop PID Dir",
-     "description": "Directory in which the pid files for Hadoop processes will be created",
-     "defaultValue": "/var/run/hadoop",
-     "isReconfigurable": false,
-     "displayType": "directory",
-     "isVisible":  true, "serviceName": "MISC",
-     "category": "Advanced"
-     },
-    {
-      "id": "puppet var",
-      "name": "using_local_repo",
-      "displayName": "Whether a local repo is being used",
-      "description": "Whether a local repo is being used",
-      "defaultValue": false,
-      "isReconfigurable": false,
-      "displayType": "checkbox",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC"
-    },
-    {
-      "id": "puppet var",
-      "name": "yum_repo_file",
-      "displayName": "Path to local repo file",
-      "description": "Path to local repository file that configures from where to download software packages",
-      "defaultValue": "/etc/yum.repos.d/hdp.repo",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "MISC"
-    },
-    */
     {
       "id": "puppet var",
       "name": "hdfs_user",
@@ -1853,63 +1442,6 @@ module.exports =
       "category": "Users and Groups",
       "belongsToService":["OOZIE"]
     },
-    /*
-    {
-      "id": "puppet var",
-      "name": "oozie_conf_dir",
-      "displayName": "Oozie conf dir",
-      "description": "",
-      "defaultValue": "/etc/oozie",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "General"
-    },
-
-    {
-      "id": "puppet var",
-      "name": "pig_conf_dir",
-      "displayName": "Pig conf dir",
-      "description": "",
-      "defaultValue": "/etc/pig",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "General"
-    },
-    */
-    /*
-    {
-      "id": "puppet var",
-      "name": "sqoop_conf_dir",
-      "displayName": "sqoop conf dir",
-      "description": "",
-      "defaultValue": "/etc/sqoop",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "General"
-    },
-    {
-      "id": "puppet var",
-      "name": "sqoop_lib",
-      "displayName": "sqoop conf dir",
-      "description": "",
-      "defaultValue": "/usr/lib/sqoop/lib/",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "General"
-    },
-    */
     {
       "id": "puppet var",
       "name": "zk_user",
@@ -2015,20 +1547,6 @@ module.exports =
       "category": "Users and Groups",
       "belongsToService":["HDFS"]
     },
-    /*
-    {
-      "id": "puppet var",
-      "name": "zk_conf_dir",
-      "displayName": "zk_conf_dir",
-      "description": "",
-      "defaultValue": "/etc/conf/",
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "General"
-    },
-    */
     {
       "id": "puppet var",
       "name": "rrdcached_base_dir",

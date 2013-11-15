@@ -485,6 +485,20 @@ module.exports =
       "serviceName": "HIVE",
       "index": 7
     },
+    {
+      "id": "site property",
+      "name": "ambari.hive.db.schema.name",
+      "displayName": "Database Name",
+      "description": "Database name used as the Hive Metastore",
+      "defaultValue": "",
+      "isReconfigurable": true,
+      "displayType": "host",
+      "isOverridable": false,
+      "isObserved": true,
+      "serviceName": "HIVE",
+      "category": "Hive Metastore",
+      "index": 4
+    },
 
   /**********************************************hbase-site***************************************/
     {
