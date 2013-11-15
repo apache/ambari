@@ -366,48 +366,55 @@ App.MainHostDetailsController = Em.Controller.extend({
 
     var securityEnabled = App.router.get('mainAdminSecurityController').getUpdatedSecurityStatus();
 
-    if (securityEnabled) {
+    if (componentName === 'ZOOKEEPER_SERVER') {
       App.showConfirmationPopup(function() {
         self.primary(component);
-      }, Em.I18n.t('hosts.host.addComponent.securityNote').format(componentName,self.get('content.hostName')));
+      }, Em.I18n.t('hosts.host.addComponent.addZooKeeper'));
     }
     else {
-      var dn = displayName;
-      if (subComponentNames !== null && subComponentNames.length > 0) {
-        var dns = [];
-        subComponentNames.forEach(function(scn){
-          dns.push(App.format.role(scn));
-        });
-        dn += " ("+dns.join(", ")+")";
+      if (securityEnabled) {
+        App.showConfirmationPopup(function() {
+          self.primary(component);
+        }, Em.I18n.t('hosts.host.addComponent.securityNote').format(componentName,self.get('content.hostName')));
       }
-      App.ModalPopup.show({
-        primary: Em.I18n.t('yes'),
-        secondary: Em.I18n.t('no'),
-        header: Em.I18n.t('popup.confirmation.commonHeader'),
-        addComponentMsg: function() {
-          return Em.I18n.t('hosts.host.addComponent.msg').format(dn);
-        }.property(),
-        bodyClass: Ember.View.extend({
-          templateName: require('templates/main/host/details/addComponentPopup')
-        }),
-        onPrimary: function () {
-          this.hide();
-          if (component.get('componentName') === 'CLIENTS') {
-            // Clients component has many sub-components which
-            // need to be installed.
-            var scs = component.get('subComponentNames');
-            scs.forEach(function (sc, index) {
-              var c = Em.Object.create({
-                displayName: App.format.role(sc),
-                componentName: sc
-              });
-              self.primary(c, scs.length - index === 1);
-            });
-          } else {
-            self.primary(component, true);
-          }
+      else {
+        var dn = displayName;
+        if (subComponentNames !== null && subComponentNames.length > 0) {
+          var dns = [];
+          subComponentNames.forEach(function(scn){
+            dns.push(App.format.role(scn));
+          });
+          dn += " ("+dns.join(", ")+")";
         }
-      });
+        App.ModalPopup.show({
+          primary: Em.I18n.t('yes'),
+          secondary: Em.I18n.t('no'),
+          header: Em.I18n.t('popup.confirmation.commonHeader'),
+          addComponentMsg: function() {
+            return Em.I18n.t('hosts.host.addComponent.msg').format(dn);
+          }.property(),
+          bodyClass: Ember.View.extend({
+            templateName: require('templates/main/host/details/addComponentPopup')
+          }),
+          onPrimary: function () {
+            this.hide();
+            if (component.get('componentName') === 'CLIENTS') {
+              // Clients component has many sub-components which
+              // need to be installed.
+              var scs = component.get('subComponentNames');
+              scs.forEach(function (sc, index) {
+                var c = Em.Object.create({
+                  displayName: App.format.role(sc),
+                  componentName: sc
+                });
+                self.primary(c, scs.length - index === 1);
+              });
+            } else {
+              self.primary(component, true);
+            }
+          }
+        });
+      }
     }
   },
 
@@ -465,9 +472,84 @@ App.MainHostDetailsController = Em.Controller.extend({
             if (App.router.get('applicationController').loadShowBgChecked() && showPopup) {
               App.router.get('backgroundOperationsController').showPopup();
             }
+            if (componentName === 'ZOOKEEPER_SERVER') {
+              self.checkZkConfigs();
+            }
           });
       });
   },
+  /**
+   * Load tags
+   */
+  checkZkConfigs: function() {
+    App.ajax.send({
+      name: 'config.tags',
+      sender: this,
+      success: 'checkZkConfigsSuccessCallback'
+    });
+  },
+  /**
+   * Load needed configs
+   * @param data
+   */
+  checkZkConfigsSuccessCallback: function(data) {
+    var urlParams = [];
+    urlParams.push('(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')');
+    if (App.Service.find().someProperty('serviceName', 'HBASE')) {
+      urlParams.push('(type=hbase-site&tag=' + data.Clusters.desired_configs['hbase-site'].tag + ')');
+    }
+    if (App.Service.find().someProperty('serviceName', 'HIVE')) {
+      urlParams.push('(type=webhcat-site&tag=' + data.Clusters.desired_configs['webhcat-site'].tag + ')');
+    }
+    App.ajax.send({
+      name: 'reassign.load_configs',
+      sender: this,
+      data: {
+        urlParams: urlParams.join('|')
+      },
+      success: 'setNewZkConfigs'
+    });
+  },
+  /**
+   * Set new values for some configs
+   * @param data
+   */
+  setNewZkConfigs: function(data) {
+    var configs = [];
+    data.items.forEach(function (item) {
+      configs[item.type] = item.properties;
+    }, this);
+    if (App.isHadoop2Stack) {
+      if (!App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
+        var zks = App.HostComponent.find().filterProperty('componentName', 'ZOOKEEPER_SERVER').mapProperty('host.hostName');
+        var value = '';
+        zks.forEach(function(zk) {
+          value += zk + ':2181,';
+        });
+        value.slice(0,-1);
+        configs['core-site']['ha.zookeeper.quorum'] = value;
+      }
+    }
+    var oneZk = App.HostComponent.find().findProperty('componentName', 'ZOOKEEPER_SERVER').get('host.hostName');
+    if (configs['hbase-site']) {
+      configs['hbase-site']['hbase.zookeeper.quorum'] = oneZk;
+    }
+    if (configs['webhcat-site']) {
+      configs['webhcat-site']['templeton.zookeeper.hosts'] = oneZk;
+    }
+    for (var site in configs) {
+      if (!configs.hasOwnProperty(site)) continue;
+      App.ajax.send({
+        name: 'reassign.save_configs',
+        sender: this,
+        data: {
+          siteName: site,
+          properties: configs[site]
+        }
+      });
+    }
+  },
+
   /**
    * send command to server to install selected host component
    * @param event

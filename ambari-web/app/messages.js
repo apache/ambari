@@ -1319,6 +1319,7 @@ Em.I18n.translations = {
   'hosts.host.deleteComponent.popup.warning':'<b>WARNING!</b> Delete the last <i>{0}</i> component in the cluster?</br>Deleting the last component in the cluster could result in permanent loss of service data.',
   'hosts.host.installComponent.msg':'Are you sure you want to install {0}?',
   'hosts.host.addComponent.msg':'Are you sure you want to add {0}?',
+  'hosts.host.addComponent.addZooKeeper':'Adding ZooKeeper Server may reconfigure such properties:<ul><li>ha.zookeeper.quorum</li><li>hbase.zookeeper.quorum</li><li>templeton.zookeeper.hosts</li></ul>',
   'hosts.host.addComponent.note':'Note: After this component is installed, go to Services -> Nagios to restart the Nagios service.  This is required for the alerts and notifications to work properly.',
   'hosts.host.addComponent.securityNote':'You are running your cluster in secure mode. You must set up the keytab for {0} on {1} before you proceed. Otherwise, the component will not be able to start properly.',
   'hosts.host.datanode.decommission':'Decommission DataNode',
