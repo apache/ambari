@@ -176,12 +176,13 @@ App.ServiceConfigProperty = Ember.Object.extend({
    * No override capabilities for fields which are not edtiable
    * and fields which represent master hosts.
    */
-  isPropertyOverridable : function() {
+  isPropertyOverridable: function () {
     var overrideable = this.get('isOverridable');
-  	var editable = this.get('isEditable');
-  	var dt = this.get('displayType');
-  	return overrideable && editable && ("masterHost"!=dt);
-  }.property('isEditable', 'displayType', 'isOverridable'),
+    var editable = this.get('isEditable');
+    var overrides = this.get('overrides');
+    var dt = this.get('displayType');
+    return overrideable && (editable || !overrides || !overrides.length) && ("masterHost" != dt);
+  }.property('isEditable', 'displayType', 'isOverridable', 'overrides.length'),
   isOverridden: function() {
     var overrides = this.get('overrides');
     return (overrides != null && overrides.get('length')>0) || !this.get('isOriginalSCP');

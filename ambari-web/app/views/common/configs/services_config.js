@@ -487,37 +487,39 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
   },
 
   createOverrideProperty: function (event) {
-    var serviceConfigController = this.get('controller');
     var serviceConfigProperty = event.contexts[0];
-    // Launch dialog to pick/create Config-group
-    var serviceConfigGroups = serviceConfigController.get('configGroups');
-    App.config.launchConfigGroupSelectionCreationDialog(this.get('service.serviceName'), 
-        serviceConfigGroups, function(selectedConfigGroup){
-      console.log("launchConfigGroupSelectionCreationDialog(): Selected/Created:", selectedConfigGroup);
-      if (selectedConfigGroup) {
-        serviceConfigController.set('selectedConfigGroup', selectedConfigGroup);
-        // TODO - show configurations for this new config-group
-//        var overrides = serviceConfigProperty.get('overrides');
-//        if (!overrides) {
-//          overrides = [];
-//          serviceConfigProperty.set('overrides', overrides);
-//        }
-//        // create new override with new value
-//        var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty);
-//        newSCP.set('value', '');
-//        newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
-//        newSCP.set('parentSCP', serviceConfigProperty);
-//        newSCP.set('selectedHostOptions', Ember.A([]));
-//        console.debug("createOverrideProperty(): Added:", newSCP, " to main-property:", serviceConfigProperty);
-//        overrides.pushObject(newSCP);
-//
-//        // Launch override window
-//        var dummyEvent = {contexts: [newSCP]};
-//        this.showOverrideWindow(dummyEvent);
-      } else {
-        // Cancelled dialog
-      }
-    });
+    var self = this;
+    var serviceConfigController = this.get('controller');
+    var selectedConfigGroup = serviceConfigController.get('selectedConfigGroup');
+    if (selectedConfigGroup.get('isDefault')) {
+      // Launch dialog to pick/create Config-group
+      App.config.launchConfigGroupSelectionCreationDialog(this.get('service.serviceName'),
+          serviceConfigController.get('configGroups'), function (selectedGroupInPopup) {
+            console.log("launchConfigGroupSelectionCreationDialog(): Selected/Created:", selectedGroupInPopup);
+            if (selectedGroupInPopup) {
+              serviceConfigController.set('selectedConfigGroup', selectedGroupInPopup);
+              self.addOverrideProperty(serviceConfigProperty);
+            }
+          });
+    } else {
+      this.addOverrideProperty(serviceConfigProperty);
+    }
+  },
+
+  addOverrideProperty: function(serviceConfigProperty) {
+    var overrides = serviceConfigProperty.get('overrides');
+    if (!overrides) {
+      overrides = [];
+      serviceConfigProperty.set('overrides', overrides);
+    }
+    // create new override with new value
+    var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty);
+    newSCP.set('value', '');
+    newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
+    newSCP.set('parentSCP', serviceConfigProperty);
+    newSCP.set('isEditable', true);
+    console.debug("createOverrideProperty(): Added:", newSCP, " to main-property:", serviceConfigProperty);
+    overrides.pushObject(newSCP);
   },
 
   showOverrideWindow: function (event) {
