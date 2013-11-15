@@ -55,11 +55,12 @@ class TestController(unittest.TestCase):
 
 
   @patch("json.dumps")
+  @patch("json.loads")
   @patch("time.sleep")
   @patch("pprint.pformat")
   @patch.object(Controller, "randint")
   def test_registerWithServer(self, randintMock, pformatMock, sleepMock,
-                              dumpsMock):
+                              loadsMock, dumpsMock):
 
     out = StringIO.StringIO()
     sys.stdout = out
@@ -67,20 +68,19 @@ class TestController(unittest.TestCase):
     register = MagicMock()
     self.controller.register = register
 
-    self.controller.sendRequest = MagicMock()
+    sendRequest = MagicMock()
+    self.controller.sendRequest = sendRequest
 
     dumpsMock.return_value = "request"
-    self.controller.sendRequest.return_value = '{"errors":"Error text"}'
+    response = {"responseId":1,}
+    loadsMock.return_value = response
 
-    self.assertEqual({'errors': 'Error text'}, self.controller.registerWithServer())
+    self.assertEqual(response, self.controller.registerWithServer())
 
-    self.controller.sendRequest.return_value = '{"responseId":1}'
-    self.assertEqual({"responseId":1}, self.controller.registerWithServer())
-
-    self.controller.sendRequest.return_value = '{"responseId":1, "statusCommands": "commands"}'
+    response["statusCommands"] = "commands"
     self.controller.addToQueue = MagicMock(name="addToQueue")
 
-    self.assertEqual({"responseId":1, "statusCommands": "commands"}, self.controller.registerWithServer())
+    self.assertEqual(response, self.controller.registerWithServer())
     self.controller.addToQueue.assert_called_with("commands")
 
     calls = []
@@ -91,10 +91,10 @@ class TestController(unittest.TestCase):
         raise Exception("test")
       return "request"
 
-    self.controller.sendRequest.return_value = '{"responseId":1}'
+    del response["statusCommands"]
 
     dumpsMock.side_effect = side_effect
-    self.assertEqual({"responseId":1}, self.controller.registerWithServer())
+    self.assertEqual(response, self.controller.registerWithServer())
     self.assertTrue(randintMock.called)
     self.assertTrue(sleepMock.called)
 

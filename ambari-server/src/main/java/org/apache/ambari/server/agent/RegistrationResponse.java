@@ -30,9 +30,6 @@ import org.codehaus.jackson.annotate.JsonProperty;
 public class RegistrationResponse {
   @JsonProperty("response")
   private RegistrationStatus response;
-
-  @JsonProperty("errors")
-  private String errors;
   
   //Response id to start with, usually zero.
   @JsonProperty("responseId")
@@ -65,10 +62,6 @@ public class RegistrationResponse {
     this.responseId = responseId;
   }
 
-  public void setErrors(String errors) {
-    this.errors = errors;
-  }  
-  
   @Override
   public String toString() {
     return "RegistrationResponse{" +
