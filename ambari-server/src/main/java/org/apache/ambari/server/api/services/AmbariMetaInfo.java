@@ -83,7 +83,8 @@ public class AmbariMetaInfo {
   public static final FilenameFilter FILENAME_FILTER = new FilenameFilter() {
     @Override
     public boolean accept(File dir, String s) {
-      if (s.equals(".svn") || s.equals(".git"))
+      if (s.equals(".svn") || s.equals(".git")
+              || s.endsWith("_")) // Temporary hack: ignore such names
         return false;
       return true;
     }
