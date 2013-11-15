@@ -85,8 +85,31 @@ App.ConfigGroup = Ember.Object.extend({
    * non-default configuration groups.
    */
   availableHosts: function () {
+    if (this.get('isDefault')) return [];
+    var unusedHostsMap = {};
+    var availableHosts = [];
+    // parentConfigGroup.hosts(hosts from default group) - are available hosts, which don't belong to any group
+    this.get('parentConfigGroup.hosts').forEach(function (hostName) {
+      unusedHostsMap[hostName] = true;
+    });
+    App.Host.find().filter(function (host) {
+      if(unusedHostsMap[host.get('id')]) {
+        availableHosts.pushObject(Ember.Object.create({
+          selected: false,
+          host: host
+        }));
+      }
+    });
+    return availableHosts;
+  }.property('isDefault', 'parentConfigGroup', 'childConfigGroups', 'parentConfigGroup.hosts.@each'),
 
-  }.property('isDefault', 'parentConfigGroup', 'childConfigGroups'),
+  isAddHostsDisabled: function () {
+    return (this.get('isDefault') || this.get('availableHosts.length') === 0);
+  }.property('availableHosts.length'),
+
+  isDeleteHostsDisabled: function () {
+    return (this.get('isDefault') || this.get('hosts.length') === 0);
+  }.property('hosts.length'),
 
   /**
    * Collection of (site, tag) pairs representing properties.

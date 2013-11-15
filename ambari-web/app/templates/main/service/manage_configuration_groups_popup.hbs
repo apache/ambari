@@ -43,11 +43,12 @@
               contentBinding="selectedConfigGroup.hosts"
               multiple="multiple"
               class="group-select"
+              selectionBinding="selectedHosts"
             }}
           </div>
           <div class="button-group pull-right">
-            <a class="btn">+</a>
-            <a class="btn">-</a>
+            <button class="btn" {{bindAttr disabled="selectedConfigGroup.isAddHostsDisabled"}} {{action addHosts target="controller"}} >+</button>
+            <button class="btn" {{bindAttr disabled="selectedConfigGroup.isDeleteHostsDisabled"}} {{action deleteHosts target="controller"}} >-</button>
           </div>
         </div>
         <div class="row-fluid">

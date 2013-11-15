@@ -18,8 +18,9 @@
 
 
 var App = require('app');
-App.ManageConfigGroupsController = App.WizardController.extend({
+var hostsManagement = require('utils/hosts');
 
+App.ManageConfigGroupsController = Em.Controller.extend({
   name: 'manageConfigGroupsController',
 
   isLoaded: false,
@@ -29,6 +30,8 @@ App.ManageConfigGroupsController = App.WizardController.extend({
   configGroups: [],
 
   selectedConfigGroup: null,
+
+  selectedHosts: [],
 
   loadConfigGroups: function (serviceName) {
     this.set('serviceName', serviceName);
@@ -140,5 +143,35 @@ App.ManageConfigGroupsController = App.WizardController.extend({
     if (properies) {
       App.showAlertPopup(Em.I18n.t('services.service.config_groups_popup.properties'), properies);
     }
+  },
+  /**
+   * add hosts to group
+   * @return {Array}
+   */
+  addHosts: function () {
+    var availableHosts = this.get('selectedConfigGroup.availableHosts');
+    var group = this.get('selectedConfigGroup');
+    hostsManagement.launchHostsSelectionDialog(availableHosts, [], false, [], function (selectedHosts) {
+      if (selectedHosts) {
+        var defaultHosts = group.get('parentConfigGroup.hosts');
+        var configGroupHosts = group.get('hosts');
+        selectedHosts.forEach(function (hostName) {
+          configGroupHosts.pushObject(hostName);
+          defaultHosts.removeObject(hostName);
+        });
+      }
+    });
+  },
+  /**
+   * delete hosts from group
+   */
+  deleteHosts: function () {
+    var groupHosts = this.get('selectedConfigGroup.hosts');
+    var defaultGroupHosts = this.get('selectedConfigGroup.parentConfigGroup.hosts');
+    this.get('selectedHosts').forEach(function (hostName) {
+      defaultGroupHosts.pushObject(hostName);
+      groupHosts.removeObject(hostName);
+    });
+    this.set('selectedHosts', []);
   }
 });

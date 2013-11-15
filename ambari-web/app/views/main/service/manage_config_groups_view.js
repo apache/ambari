@@ -33,6 +33,7 @@ App.MainServiceManageConfigGroupView = Em.View.extend({
     if (selectedConfigGroup.length > 1) {
       this.set('selectedConfigGroup', selectedConfigGroup[selectedConfigGroup.length - 1]);
     }
+    this.set('controller.selectedHosts', []);
   }.observes('selectedConfigGroup'),
 
   onLoad: function () {
