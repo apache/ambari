@@ -34,10 +34,8 @@ then
   if [ "$#" != 2 ]
   then
     HDPREPO=target/classes/stacks/HDP/${VERSION}/repos
-    HDPLOCALREPO=target/classes/stacks/HDPLocal/${VERSION}/repos
   else
     HDPREPO=$2/var/lib/ambari-server/resources/stacks/HDP/${VERSION}/repos
-    HDPLOCALREPO=$2/var/lib/ambari-server/resources/stacks/HDPLocal/${VERSION}/repos
   fi
 
   echo "Processing '${HDPREPO}/repoinfo.xml' and '${HDPLOCALREPO}/repoinfo.xml'"
@@ -45,13 +43,10 @@ then
 
   echo "Setting centos5 stack url to '$C5URL'"
   sed "s;REPLACE_WITH_CENTOS5_URL;$C5URL;" ${HDPREPO}/repoinfo.xml >  ${HDPREPO}/repoinfo.xml.tmp; mv ${HDPREPO}/repoinfo.xml.tmp ${HDPREPO}/repoinfo.xml
-  sed "s;REPLACE_WITH_CENTOS5_URL;$C5URL;" ${HDPLOCALREPO}/repoinfo.xml >  ${HDPLOCALREPO}/repoinfo.xml.tmp; mv ${HDPLOCALREPO}/repoinfo.xml.tmp ${HDPLOCALREPO}/repoinfo.xml
 
   echo "Setting centos6 stack url to '$C6URL'"
   sed "s;REPLACE_WITH_CENTOS6_URL;$C6URL;" ${HDPREPO}/repoinfo.xml >  ${HDPREPO}/repoinfo.xml.tmp; mv ${HDPREPO}/repoinfo.xml.tmp ${HDPREPO}/repoinfo.xml
-  sed "s;REPLACE_WITH_CENTOS6_URL;$C6URL;" ${HDPLOCALREPO}/repoinfo.xml >  ${HDPLOCALREPO}/repoinfo.xml.tmp; mv ${HDPLOCALREPO}/repoinfo.xml.tmp ${HDPLOCALREPO}/repoinfo.xml
 
   echo "Setting suse11 stack url to '$S11URL'"
   sed  "s;REPLACE_WITH_SUSE11_URL;$S11URL;" ${HDPREPO}/repoinfo.xml >  ${HDPREPO}/repoinfo.xml.tmp; mv ${HDPREPO}/repoinfo.xml.tmp ${HDPREPO}/repoinfo.xml
-  sed  "s;REPLACE_WITH_SUSE11_URL;$S11URL;" ${HDPLOCALREPO}/repoinfo.xml >  ${HDPLOCALREPO}/repoinfo.xml.tmp; mv ${HDPLOCALREPO}/repoinfo.xml.tmp ${HDPLOCALREPO}/repoinfo.xml
 fi
