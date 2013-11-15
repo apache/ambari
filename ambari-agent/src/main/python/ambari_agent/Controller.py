@@ -84,7 +84,13 @@ class Controller(threading.Thread):
         logger.info("Registering with the server " + pprint.pformat(data))
         response = self.sendRequest(self.registerUrl, data)
         ret = json.loads(response)
-
+        errors = None
+        if 'errors' in ret.keys():
+          errors = ret['errors']
+        print str(errors)
+        if not (errors == None or errors == ""):
+          logger.error(ret['errors'])
+          return ret
         logger.info("Registered with the server with " + pprint.pformat(ret))
         print("Registered with the server")
         self.responseId= int(ret['responseId'])
