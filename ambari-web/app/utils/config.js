@@ -1126,6 +1126,65 @@ App.config = Em.Object.create({
     }
     return newConfigGroupData;
   },
+  
+  /**
+   * PUTs the new configuration-group on the server.
+   * Changes possible here are the name, description and
+   * host memberships of the configuration-group.
+   * 
+   * @param configGroup  (App.ConfigGroup) Configuration group to update
+   */
+  updateConfigurationGroup: function (configGroup, successCallback, errorCallback) {
+    var putConfigGroup = {
+      ConfigGroup: {
+        group_name: configGroup.get('name'),
+        description: configGroup.get('description'),
+        tag: configGroup.get('service.serviceName'),
+        hosts: [],
+        desired_configs: []
+      }  
+    };
+    configGroup.get('hosts').forEach(function(h){
+      putConfigGroup.ConfigGroup.hosts.push({
+        host_name: h
+      });
+    });
+    configGroup.get('configSiteTags').forEach(function(cst){
+      putConfigGroup.ConfigGroup.desired_configs.push({
+        type: cst.type,
+        tag: cst.tag
+      });
+    });
+    
+    var sendData = {
+      name: 'config_groups.update',
+      data: {
+        id: configGroup.get('id'),
+        data: putConfigGroup
+      },
+      success: 'successFunction',
+      error: 'errorFunction',
+      successFunction: function () {
+        if(successCallback) {
+          successCallback();
+        }
+      },
+      errorFunction: function (xhr, text, errorThrown) {
+        error = xhr.status + "(" + errorThrown + ") ";
+        try {
+          var json = $.parseJSON(xhr.responseText);
+          error += json.message;
+        } catch (err) {
+        }
+        console.error('Error updating Config Group:', error, configGroup);
+        if(errorCallback) {
+          errorCallback(error);
+        }
+      }
+    };
+    sendData.sender = sendData;
+    App.ajax.send(sendData);
+  },
 
   /**
    * Gets all the configuration-groups for the given service.

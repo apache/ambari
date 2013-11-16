@@ -1178,6 +1178,17 @@ var urls = {
         }])
       }
     }
+  },
+  'config_groups.update': {
+    'real': '/clusters/{clusterName}/config_groups/{id}',
+    'mock': '',
+    'format': function (data) {
+      return {
+        async: true,
+        type: 'PUT',
+        data: JSON.stringify(data.data)
+      }
+    }
   }
 };
 /**

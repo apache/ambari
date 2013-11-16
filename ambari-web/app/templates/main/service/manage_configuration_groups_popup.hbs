@@ -16,11 +16,11 @@
 * limitations under the License.
 }}
 <div class="alert alert-info">{{t services.service.config_groups_popup.notice}}</div>
-<div class="row-fluid">
+<div class="row-fluid  manage-configuration-group-content">
   <div class="span12">
     {{t services.service.config_groups_popup.config_groups}}
     <div class="row-fluid">
-      <div class="span6">
+      <div class="span5">
         {{view Em.Select
           contentBinding="configGroups"
           optionLabelPath="content.displayName"
@@ -28,14 +28,26 @@
           multiple="multiple"
           class="group-select"
         }}
-        <div class="button-group pull-right">
-          <a class="btn" {{action addConfigGroup target="controller"}}>+</a>
-          <a class="btn" {{action deleteConfigGroup target="controller"}}>-</a>
-          <a class="btn" {{action renameConfigGroup target="controller"}}>{{t services.service.config_groups_popup.rename}}</a>
-          <a class="btn" {{action addConfigGroup target="controller"}}>{{t services.service.config_groups_popup.duplicate}}</a>
+        <div class="btn-toolbar pull-right">
+          <button class="btn" {{bindAttr disabled="isHostsModified"}} {{action addConfigGroup target="controller"}}><i class="icon-plus"></i></button>
+          <button class="btn" {{bindAttr disabled="isHostsModified"}} {{action deleteConfigGroup target="controller"}}><i class="icon-minus"></i></button>
+          <div class="btn-group">
+            <button class="btn" {{bindAttr disabled="isHostsModified"}}><i class="icon-cog"></i></button>
+            <button class="btn dropdown-toggle" data-toggle="dropdown" {{bindAttr disabled="isHostsModified"}}>
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+              <li>
+                <a {{action renameConfigGroup target="controller"}}>{{t services.service.config_groups_popup.rename}}</a>
+              </li>
+              <li>
+                <a {{action addConfigGroup target="controller"}}>{{t services.service.config_groups_popup.duplicate}}</a>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
-      <div class="span6">
+      <div class="span7">
         <div class="row-fluid">
           <div class="span2">{{t common.hosts}}</div>
           <div class="span10">
@@ -47,8 +59,8 @@
             }}
           </div>
           <div class="button-group pull-right">
-            <button class="btn" {{bindAttr disabled="selectedConfigGroup.isAddHostsDisabled"}} {{action addHosts target="controller"}} >+</button>
-            <button class="btn" {{bindAttr disabled="selectedConfigGroup.isDeleteHostsDisabled"}} {{action deleteHosts target="controller"}} >-</button>
+            <button class="btn" {{bindAttr disabled="selectedConfigGroup.isAddHostsDisabled"}} {{action addHosts target="controller"}} ><i class="icon-plus"></i></button>
+            <button class="btn" {{bindAttr disabled="selectedConfigGroup.isDeleteHostsDisabled"}} {{action deleteHosts target="controller"}} ><i class="icon-minus"></i></button>
           </div>
         </div>
         <div class="row-fluid">
@@ -58,6 +70,13 @@
                rel="HealthTooltip" {{bindAttr data-original-title="selectedConfigGroup.propertiesList" }}>{{selectedConfigGroup.properties.length}} {{t common.properties}}</a>
           </div>
         </div>
+      </div>
+      <div class="span12 text-error" id="manage-config-group-error-div">
+        {{#if errorMessage}}
+          {{errorMessage}}
+        {{else}}
+          &nbsp;
+        {{/if}}
       </div>
     </div>
   </div>

@@ -62,6 +62,12 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       var configGroups = [];
       data.items.forEach(function (configGroup) {
         configGroup = configGroup.ConfigGroup;
+        var hostNames = configGroup.hosts.mapProperty('host_name');
+        var loadedHostNamesMap = {};
+        hostNames.forEach(function(h){
+          loadedHostNamesMap[h] = true;
+        });
+        loadedHostNamesMap.length = hostNames.length;
         var newConfigGroup = App.ConfigGroup.create({
           id: configGroup.id,
           name: configGroup.group_name,
@@ -69,10 +75,12 @@ App.ManageConfigGroupsController = Em.Controller.extend({
           isDefault: false,
           parentConfigGroup: defaultConfigGroup,
           service: App.Service.find().findProperty('serviceName', configGroup.tag),
-          hosts: configGroup.hosts.mapProperty('host_name'),
+          hosts: hostNames,
           configSiteTags: [],
           properties: [],
-          apiResponse: configGroup
+          apiResponse: configGroup,
+          loadedHostNamesMap: loadedHostNamesMap,
+          hostsModified: false
         });
         usedHosts = usedHosts.concat(newConfigGroup.get('hosts'));
         configGroups.push(newConfigGroup);
@@ -277,6 +285,8 @@ App.ManageConfigGroupsController = Em.Controller.extend({
    * On successful api resonse for creating new config group
    */
   onAddNewConfigGroup: function (data) {
+    var loadedHostNamesMap = {};
+    loadedHostNamesMap.length = 0;
     var newConfigGroupData = App.ConfigGroup.create({
       id: data.resources[0].ConfigGroup.id,
       name: this.get('configGroupName'),
@@ -285,7 +295,9 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       parentConfigGroup: null,
       service: this.get('serviceName'),
       hosts: [],
-      configSiteTags: []
+      configSiteTags: [],
+      loadedHostNamesMap: loadedHostNamesMap,
+      hostsModified: false
     });
     var defaultConfigGroup = this.get('configGroups').popObject();
     this.get('configGroups').pushObjects([newConfigGroupData, defaultConfigGroup]);
@@ -310,5 +322,49 @@ App.ManageConfigGroupsController = Em.Controller.extend({
   successLoadingConfigGroup: function (data) {
     var confGroup = this.get('configGroups').findProperty('id', data.ConfigGroup.id);
     confGroup.set('apiResponse', data.ConfigGroup);
-  }
+  },
+  
+  hostsModifiedConfigGroups: function() {
+    var groups = this.get('configGroups');
+    var hostsRemovedGroup = [];
+    var hostsAddedGroup = [];
+    var hostsChangedGroup = [];
+    groups.forEach(function(g) {
+      if (!g.get('isDefault')) {
+        var loadedMap = g.get('loadedHostNamesMap');
+        var current = g.get('hosts');
+        var currentLength = current ? current.length : 0;
+        if (currentLength == loadedMap.length) {
+          if (currentLength>0) {
+            var changed = false;
+            current.forEach(function(c) {
+              if (!changed && loadedMap[c] == null) {
+                changed = true;
+              }
+            });
+            if (changed) {
+              hostsChangedGroup.push(g);
+            }
+          }
+        } else {
+          if (currentLength < loadedMap.length) {
+            hostsRemovedGroup.push(g);
+          } else {
+            hostsAddedGroup.push(g);
+          }
+        }
+      }
+    });
+    // First PUT removed hosts, then PUT added hosts, then changed hosts
+    var modifiedGroups = [];
+    modifiedGroups = modifiedGroups.concat(hostsRemovedGroup);
+    modifiedGroups = modifiedGroups.concat(hostsAddedGroup);
+    modifiedGroups = modifiedGroups.concat(hostsChangedGroup);
+    return modifiedGroups;
+  }.property('selectedConfigGroup', 'selectedConfigGroup.hosts.@each'),
+  
+  isHostsModified: function () {
+    var groups = this.get('hostsModifiedConfigGroups');
+    return groups && groups.length > 0;
+  }.property('hostsModifiedConfigGroups', 'hostsModifiedConfigGroups.length')
 });

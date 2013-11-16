@@ -227,8 +227,38 @@ App.MainServiceItemController = Em.Controller.extend({
       classNames: ['sixty-percent-width-modal', 'manage-configuration-group-popup'],
       primary: Em.I18n.t('common.save'),
       onPrimary: function() {
-        this.hide();
+        // Save modified config-groups
+        var modifiedConfigGroups = this.get('subViewController.hostsModifiedConfigGroups');
+        console.log("manageConfigurationGroups(): Saving modified config-groups: ", modifiedConfigGroups);
+        var self = this;
+        var errors = [];
+        var putCount = modifiedConfigGroups.length;
+        var finishFunction = function(error) {
+          if (error != null) {
+            errors.push(error);
+          }
+          if (--putCount <= 0) {
+            // Done with all the PUTs
+            if (errors.length > 0) {
+              console.log(errors);
+              self.get('subViewController').set('errorMessage',
+                  errors.join(". "));
+            } else {
+              self.hide();
+            }
+          }
+        };
+        modifiedConfigGroups.forEach(function(cg) {
+          App.config.updateConfigurationGroup(cg, finishFunction, finishFunction);
+        });
       },
+      subViewController: function(){
+        return App.router.get('manageConfigGroupsController');
+      }.property('App.router.manageConfigGroupsController'),
+      updateButtons: function(){
+        var modified = this.get('subViewController.isHostsModified');
+        this.set('enablePrimary', modified);
+      }.observes('subViewController.isHostsModified'),
       secondary : Em.I18n.t('common.cancel'),
       didInsertElement: function () {}
     });
