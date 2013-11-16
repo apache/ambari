@@ -28,12 +28,12 @@
         {{#each category in view.categories}}
           {{#if category.isVisible}}
             |
-            <span {{bindAttr class=":category-item category.itemClass"}}>
+            <span {{bindAttr class="aaa :category-item category.itemClass"}}>
               <a {{action selectCategory category target="view"}} href="#">
                 {{#if category.alerts}}
                   <span class="label label-important">{{t hosts.host.alerts.st}}</span>
                 {{else}}
-                  <span {{bindAttr class="category.healthStatusValue"}}> &nbsp;&nbsp;&nbsp; </span>
+                  <span {{bindAttr class=":health-status category.healthStatusValue"}}> &nbsp;&nbsp;&nbsp; </span>
                 {{/if}}
                 {{category.label}}
               </a>
@@ -55,8 +55,7 @@
 
   <table class="datatable table table-bordered table-striped" id="hosts-table">
     <thead>
-    <tr>
-        {{#view view.sortView contentBinding="view.filteredContent"}}
+        {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
           <th class="first"> </th>
           {{view view.parentView.nameSort}}
           {{view view.parentView.ipSort}}
@@ -65,9 +64,8 @@
           {{view view.parentView.diskUsageSort}}
           {{view view.parentView.loadAvgSort}}
           <th>{{t common.components}}</th>
-        {{/view}}
-    </tr>
-    <tr>
+      {{/view}}
+    <tr id="filter-row">
       <th class="first"> </th>
       <th>{{view view.nameFilterView}}</th>
       <th>{{view view.ipFilterView}}</th>
@@ -125,7 +123,7 @@
 
   <div class="page-bar">
     <div class="filtered-hosts-info span4">
-      <label>{{view.filteredHostsInfo}} &nbsp; <a {{action clearFilters target="view"}} href="#">{{t apps.filters.clearAllFilters}}</a></label>
+      <label>{{view.filteredHostsInfo}} <a {{action clearFilters target="view"}} href="#">{{t apps.filters.clearAllFilters}}</a></label>
     </div>
     <div class="items-on-page">
       <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>

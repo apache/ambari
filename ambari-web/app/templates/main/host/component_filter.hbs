@@ -16,9 +16,7 @@
 * limitations under the License.
 }}
 
-    <button class="btn btn-info single-btn-group" {{action "clickFilterButton" target="view"}}>
-        {{t common.components}} <span class="caret"></span>
-    </button>
+    <button class="btn single-btn-group filter-btn" {{action "clickFilterButton" target="view"}}><i class="icon-filter"></i> {{t apps.filters.filter}}</button>
     <ul class="dropdown-menu filter-components">
         <li>
             <ul>
