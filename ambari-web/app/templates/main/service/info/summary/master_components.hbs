@@ -19,18 +19,17 @@
 {{#each masterComp in view.mastersComp}}
   <tr>
      <td>
+      <a href="#" {{action showDetails masterComp.host}} title="{{unbound masterComp.host.publicHostNameFormatted}}" rel="UsageTooltip">
        {{#if masterComp.displayNameAdvanced}}
          {{masterComp.displayNameAdvanced}}
        {{else}}
          {{masterComp.displayName}}
        {{/if}}
+      </a>
      </td>
    <td>
      <span {{bindAttr class="masterComp.workStatus"}}></span>
      {{masterComp.componentTextStatus}}
-     <div class="summary-view-host">
-       <a href="#" {{action showDetails masterComp.host}}>{{t services.service.summary.viewHost}}</a>
-     </div>
    </td>
   </tr>
 {{/each}}

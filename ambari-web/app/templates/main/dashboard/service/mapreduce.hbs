@@ -46,16 +46,13 @@
 
       <!-- TaskTrackers -->
       <tr>
-        <td>{{t dashboard.services.mapreduce.taskTrackers}}</td>
+        <td><a href="#" {{action filterHosts view.taskTrackerComponent}}>{{t dashboard.services.mapreduce.taskTrackers}}</a></td>
         <td>
           <span>
             {{#view view.trackersLiveTextView}}
               {{view.liveComponents}}/{{view.totalComponents}}
             {{/view}}
           </span> {{t services.service.summary.TrackersLive}}
-          <div class="summary-view-host">
-            <a href="#" {{action filterHosts view.taskTrackerComponent}}>{{view.trackersText}}</a>
-          </div>
         </td>
       </tr>
       <!-- Job Tracker Uptime -->

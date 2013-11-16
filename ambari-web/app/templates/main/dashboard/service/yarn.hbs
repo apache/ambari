@@ -46,33 +46,21 @@
 
       <!-- NodeManagers -->
       <tr>
-        <td>{{t dashboard.services.yarn.nodeManagers}}</td>
+        <td><a href="#" {{action filterHosts view.nodeManagerComponent}}>{{t dashboard.services.yarn.nodeManagers}}</a></td>
         <td>
           <span>
             {{#view view.nodeManagersLiveTextView}}
               {{view.liveComponents}}/{{view.totalComponents}}
             {{/view}}
           </span>{{t services.service.summary.nodeManagersLive}}
-          <div class="summary-view-host">
-            <a href="#" {{action filterHosts view.nodeManagerComponent}}>{{view.nodeManagerText}}</a>
-          </div>
         </td>
       </tr>
       <!-- YARN Clients -->
       <tr>
-        <td class="summary-label">{{t dashboard.services.yarn.clients}}</td>
+        <td class="summary-label"><a {{action filterHosts view.yarnClientComponent}} href="javascript:void(null)">{{t dashboard.services.yarn.clients}}</a></td>
         <td>
           <span class="green-live">{{view.service.yarnClientNodes.length}} </span>
           {{t dashboard.services.yarn.client}}{{#if view.hasManyYarnClients}}s{{/if}} {{t common.installed}}
-          <div class="summary-view-host">
-             <a {{action filterHosts view.yarnClientComponent}} href="javascript:void(null)">
-              {{#if view.hasManyYarnClients}}
-                {{t services.service.summary.viewHosts}}
-              {{else}}
-                {{t services.service.summary.viewHost}}
-              {{/if}}
-             </a>
-          </div>
         </td>
       </tr>
       <!-- ResourceManager Uptime -->

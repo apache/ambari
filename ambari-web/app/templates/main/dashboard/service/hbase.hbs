@@ -47,16 +47,13 @@
 
       <!-- RegionServers -->
       <tr>
-        <td>{{t dashboard.services.hbase.regionServers}}</td>
+        <td><a href="#" {{action filterHosts view.regionServerComponent}}>{{t dashboard.services.hbase.regionServers}}</a></td>
         <td>
           <span>
             {{#view view.regionServersLiveTextView}}
               {{view.liveComponents}}/{{view.totalComponents}}
             {{/view}}
           </span> {{t services.service.summary.RegionServersLIVE}}
-          <div class="summary-view-host">
-            <a href="#" {{action filterHosts view.regionServerComponent}}>{{view.regionServesText}}</a>
-          </div>
         </td>
       </tr>
       <!-- Regions in Transition -->

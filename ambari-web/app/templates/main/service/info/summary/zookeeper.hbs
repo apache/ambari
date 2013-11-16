@@ -19,11 +19,8 @@
 
 
 {{view view.sumMasterComponentView}}
-<td class="summary-label">{{t services.zookeeper.client}}</td>
+<td class="summary-label"><a {{action filterHosts view.clientObj}} href="javascript:void(null)" >{{t services.zookeeper.client}}</a></td>
   <td>
     <span class="green-live">{{view.clients.length}} </span>{{t services.zookeeper.client}}{{#if view.hasManyClients}}s{{/if}} {{t common.installed}}
-    <div class="summary-view-host">
-       <a {{action filterHosts view.clientObj}} href="javascript:void(null)" >{{view.clientsHostText}}</a>
-    </div>
   </td>
 </tr>

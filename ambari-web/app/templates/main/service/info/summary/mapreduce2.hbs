@@ -18,11 +18,8 @@
 
 {{view view.sumMasterComponentView}}
 <tr>
-  <td class="summary-label">{{t services.service.summary.mapreduce2.clients}}</td>
+  <td class="summary-label"><a {{action filterHosts view.clientObj}} href="javascript:void(null)" >{{t services.service.summary.mapreduce2.clients}}</a></td>
   <td>
     <span class="green-live">{{view.clients.length}} </span>{{t services.service.summary.mapreduce2.client}}{{#if view.hasManyClients}}s{{/if}} {{t common.installed}}
-    <div class="summary-view-host">
-      <a {{action filterHosts view.clientObj}} href="javascript:void(null)" >{{view.clientsHostText}}</a>
-    </div>
   </td>
 </tr>
