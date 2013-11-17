@@ -51,8 +51,12 @@ public class StackResourceProvider extends ReadOnlyResourceProvider {
 
     final Set<StackRequest> requests = new HashSet<StackRequest>();
 
-    for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
-      requests.add(getRequest(propertyMap));
+    if (predicate == null) {
+      requests.add(getRequest(Collections.<String, Object>emptyMap()));
+    } else {
+      for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
+        requests.add(getRequest(propertyMap));
+      }
     }
 
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
