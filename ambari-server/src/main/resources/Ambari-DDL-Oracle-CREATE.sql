@@ -42,6 +42,8 @@ CREATE TABLE ambari_sequences (sequence_name VARCHAR2(50) NOT NULL, value NUMBER
 CREATE TABLE ambari.configgroup (group_id NUMBER(19), cluster_id NUMBER(19) NOT NULL, group_name VARCHAR2(255) NOT NULL, tag VARCHAR2(1024) NOT NULL, description VARCHAR2(1024), create_timestamp NUMBER(19) NOT NULL, PRIMARY KEY(group_id), UNIQUE(group_name));
 CREATE TABLE ambari.confgroupclusterconfigmapping (config_group_id NUMBER(19) NOT NULL, cluster_id NUMBER(19) NOT NULL, config_type VARCHAR2(255) NOT NULL, version_tag VARCHAR2(255) NOT NULL, user_name VARCHAR2(255) DEFAULT '_db', create_timestamp NUMBER(19) NOT NULL, PRIMARY KEY(config_group_id, cluster_id, config_type));
 CREATE TABLE ambari.configgrouphostmapping (config_group_id NUMBER(19) NOT NULL, host_name VARCHAR2(255) NOT NULL, PRIMARY KEY(config_group_id, host_name));
+CREATE TABLE ambari.action (action_name VARCHAR2(255) NOT NULL, action_type VARCHAR2(255) NOT NULL, inputs VARCHAR2(1024), target_service VARCHAR2(255), target_component VARCHAR2(255), default_timeout NUMBER(10) NOT NULL, description VARCHAR2(1024), target_type VARCHAR2(255), PRIMARY KEY (action_name));
+
 
 
 ALTER TABLE users ADD CONSTRAINT UNQ_users_0 UNIQUE (user_name, ldap_user);
