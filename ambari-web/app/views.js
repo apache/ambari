@@ -52,6 +52,7 @@ require('views/main/host/metrics/load');
 require('views/main/host/metrics/memory');
 require('views/main/host/metrics/network');
 require('views/main/host/metrics/processes');
+require('views/main/host/addHost/step4_view');
 require('views/main/admin');
 require('views/main/admin/highAvailability_view');
 require('views/main/admin/highAvailability/wizard_view');

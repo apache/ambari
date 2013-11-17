@@ -23,7 +23,7 @@ App.AddHostController = App.WizardController.extend({
 
   name: 'addHostController',
 
-  totalSteps: 6,
+  totalSteps: 7,
 
   /**
    * Used for hiding back button in wizard
@@ -39,6 +39,8 @@ App.AddHostController = App.WizardController.extend({
    * hostsInfo - list of selected hosts
    * slaveComponentHosts, hostSlaveComponents - info about slave hosts
    * masterComponentHosts - info about master hosts
+   * serviceConfigGroups - info about selected config group for service
+   * configGroups - all config groups
    * config??? - to be described later
    */
   content: Em.Object.create({
@@ -50,7 +52,9 @@ App.AddHostController = App.WizardController.extend({
     masterComponentHosts: null,
     serviceConfigProperties: null,
     advancedServiceConfig: null,
-    controllerName: 'addHostController'
+    controllerName: 'addHostController',
+    serviceConfigGroups: null,
+    configGroups: null
   }),
 
   components:require('data/service_components'),
@@ -294,15 +298,111 @@ App.AddHostController = App.WizardController.extend({
   },
 
   /**
+   *  Apply config groups from step4 Configurations
+   */
+  applyConfigGroup: function () {
+    var serviceConfigGroups = this.get('content.serviceConfigGroups');
+    serviceConfigGroups.forEach(function (group){
+      if(group.selectedConfigGroup != "Default") {
+        var configGroup = group.configGroups.findProperty('ConfigGroup.group_name', group.selectedConfigGroup);
+        group.hosts.forEach(function(host){
+          configGroup.ConfigGroup.hosts.push({
+            host_name: host
+          });
+        },this);
+        delete configGroup.href;
+        App.ajax.send({
+          name: 'config_groups.update_config_group',
+          sender: this,
+          data: {
+            id: configGroup.ConfigGroup.id,
+            configGroup: configGroup
+          }
+        });
+      }
+    },this);
+  },
+
+  /**
+   * Load information about selected config groups
+   */
+  getServiceConfigGroups: function () {
+    var serviceConfigGroups = this.getDBProperty('serviceConfigGroups');
+    this.set('content.serviceConfigGroups', serviceConfigGroups);
+  },
+
+  /**
+   * Save information about selected config groups
+   */
+  saveServiceConfigGroups: function () {
+    this.setDBProperty('serviceConfigGroups', this.get('content.serviceConfigGroups'));
+    this.set('content.serviceConfigGroups', this.get('content.serviceConfigGroups'));
+  },
+
+  /**
+   * Set content.serviceConfigGroups for step4
+   */
+  loadServiceConfigGroups: function () {
+    var slaveComponentHosts = this.get('content.slaveComponentHosts');
+    var selectedServices = [];
+    var selectedClientHosts = slaveComponentHosts.findProperty('componentName','CLIENT').hosts.mapProperty('hostName');
+
+    slaveComponentHosts.forEach(function (slave){
+      if(slave.hosts.length > 0){
+        if(slave.componentName != "CLIENT"){
+          var service = App.HostComponent.find().findProperty('componentName', slave.componentName).get('service');
+          var configGroups = this.get('content.configGroups').filterProperty('ConfigGroup.tag', service.get('id'));
+          var configGroupsNames = configGroups.mapProperty('ConfigGroup.group_name')
+          configGroupsNames.push('Default');
+          selectedServices.push({
+            serviceId : service.get('id'),
+            displayName : service.get('displayName'),
+            hosts : slave.hosts.mapProperty('hostName'),
+            configGroupsNames : configGroupsNames,
+            configGroups : configGroups,
+            selectedConfigGroup: "Default"
+          });
+        }
+      }
+    },this);
+    if(selectedClientHosts.length > 0){
+      this.loadClients();
+      var clients = this.get('content.clients');
+      clients.forEach(function (client) {
+        var service = App.HostComponent.find().findProperty('componentName', client.component_name).get('service');
+        var serviceMatch = selectedServices.findProperty('serviceId',service.get('id'));
+        if(serviceMatch){
+          serviceMatch.hosts = serviceMatch.hosts.concat(selectedClientHosts).uniq();
+        }else{
+          var configGroups = this.get('content.configGroups').filterProperty('ConfigGroup.tag', service.get('id'));
+          var configGroupsNames = configGroups.mapProperty('ConfigGroup.group_name')
+          configGroupsNames.push('Default');
+          selectedServices.push({
+            serviceId : service.get('id'),
+            displayName : service.get('displayName'),
+            hosts : selectedClientHosts,
+            configGroupsNames : configGroupsNames,
+            configGroups : configGroups,
+            selectedConfigGroup: "Default"
+          });
+        }
+      },this);
+    }
+    this.set('content.serviceConfigGroups', selectedServices);
+  },
+
+  /**
    * Load data for all steps until <code>current step</code>
    */
   loadAllPriorSteps: function () {
     var step = this.get('currentStep');
     switch (step) {
+      case '7':
       case '6':
       case '5':
-      case '4':
         this.loadServiceConfigProperties();
+        this.getServiceConfigGroups();
+      case '4':
       case '3':
         this.loadClients();
         this.loadServices();

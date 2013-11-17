@@ -213,6 +213,23 @@ var urls = {
       };
     }
   },
+  'config_groups.all_fields': {
+    'real': '/clusters/{clusterName}/config_groups?fields=*'
+  },
+  'config_groups.update_config_group': {
+    'real': '/clusters/{clusterName}/config_groups/{id}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify(
+          [
+            data.configGroup
+          ]
+        )
+      }
+    }
+  },
   'config.on_site': {
     'real': '/clusters/{clusterName}/configurations?{params}',
     'mock': '/data/configurations/cluster_level_configs.json?{params}',

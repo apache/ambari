@@ -77,6 +77,7 @@ require('controllers/main/host');
 require('controllers/main/host/details');
 require('controllers/main/host/configs_service');
 require('controllers/main/host/add_controller');
+require('controllers/main/host/addHost/step4_controller');
 require('controllers/main/charts');
 require('controllers/main/charts/heatmap_metrics/heatmap_metric');
 require('controllers/main/charts/heatmap_metrics/heatmap_metric_processrun');

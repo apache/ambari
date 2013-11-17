@@ -158,6 +158,7 @@ Em.I18n.translations = {
   'common.change': 'Change',
   'common.overrides': 'Overrides',
   'common.properties': 'properties',
+  'common.conf.group': 'Configuration Group',
 
   'requestInfo.installComponents':'Install Components',
   'requestInfo.installServices':'Install Services',
@@ -575,6 +576,10 @@ Em.I18n.translations = {
   'installer.step10.startStatus.started':'All services started',
   'installer.step10.installTime.seconds':'Install and start completed in {0} seconds',
   'installer.step10.installTime.minutes':'Install and start completed in {0} minutes and {1} seconds',
+
+  'addHost.step4.header':'Configurations',
+  'addHost.step4.title':'Select the configuration groups to which the added hosts will belong to.',
+
   
   'installer.stackUpgrade.header':'Stack Upgrade Wizard',
   'installer.stackUpgrade.step1.newVersion':'New Version',
