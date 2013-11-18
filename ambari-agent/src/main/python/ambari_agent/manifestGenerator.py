@@ -73,49 +73,59 @@ def generateManifest(parsedJson, fileName, modulesdir, ambariconfig):
   roles = [{'role' : parsedJson['role'],
             'cmd' : parsedJson['roleCommand'],
             'roleParams' : roleParams}]
-  #writing manifest
-  manifest = open(fileName, 'w')
-  #Change mode to make site.pp files readable to owner and group only
-  os.chmod(fileName, 0660)
+  errMsg = ''
+  try:
+    #writing manifest
+    manifest = open(fileName, 'w')
+    #Change mode to make site.pp files readable to owner and group only
+    os.chmod(fileName, 0660)
 
-  #Check for Ambari Config and make sure you pick the right imports file
-    
-  #writing imports from external static file
-  writeImports(outputFile=manifest, modulesdir=modulesdir, importsList=AmbariConfig.imports)
+    #Check for Ambari Config and make sure you pick the right imports file
 
-  #writing hostname
-  writeHostnames(manifest)
+    #writing imports from external static file
+    writeImports(outputFile=manifest, modulesdir=modulesdir, importsList=AmbariConfig.imports)
 
-  #writing nodes
-  writeNodes(manifest, clusterHostInfo)
-  
-  #writing params from map
-  writeParams(manifest, params, modulesdir)
+    #writing hostname
+    writeHostnames(manifest)
 
-  nonGlobalConfigurations = {}
-  flatConfigurations = {}
+    #writing nodes
+    writeNodes(manifest, clusterHostInfo)
 
-  if configurations: 
-    for configKey in configurations.iterkeys():
-      if configKey in nonGlobalConfigurationsKeys:
-        nonGlobalConfigurations[configKey] = configurations[configKey]
-      else:
-        flatConfigurations[configKey] = configurations[configKey]
-      
-  #writing config maps
-  if (nonGlobalConfigurations):
-    writeNonGlobalConfigurations(manifest, nonGlobalConfigurations)
-  if (flatConfigurations):
-    writeFlatConfigurations(manifest, flatConfigurations)
+    #writing params from map
+    writeParams(manifest, params, modulesdir)
 
-  #writing host attributes
-  #writeHostAttributes(manifest, hostAttributes)
+    nonGlobalConfigurations = {}
+    flatConfigurations = {}
 
-  #writing task definitions 
-  writeTasks(manifest, roles, ambariconfig, clusterHostInfo, hostname)
-     
-  manifest.close()
-    
+    if configurations:
+      for configKey in configurations.iterkeys():
+        if configKey in nonGlobalConfigurationsKeys:
+          nonGlobalConfigurations[configKey] = configurations[configKey]
+        else:
+          flatConfigurations[configKey] = configurations[configKey]
+
+    #writing config maps
+    if (nonGlobalConfigurations):
+      writeNonGlobalConfigurations(manifest, nonGlobalConfigurations)
+    if (flatConfigurations):
+      writeFlatConfigurations(manifest, flatConfigurations)
+
+    #writing host attributes
+    #writeHostAttributes(manifest, hostAttributes)
+
+    #writing task definitions
+    writeTasks(manifest, roles, ambariconfig, clusterHostInfo, hostname)
+
+
+  except TypeError:
+    errMsg = 'Manifest can\'t be generated from the JSON \n' + \
+                    json.dumps(parsedJson, sort_keys=True, indent=4)
+
+    logger.error(errMsg)
+  finally:
+    manifest.close()
+
+  return errMsg
 
 def writeHostnames(outputFile):
   fqdn = hostname.hostname()

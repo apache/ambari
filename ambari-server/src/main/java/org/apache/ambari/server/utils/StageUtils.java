@@ -60,6 +60,7 @@ public class StageUtils {
       new HashMap<String, String>();
 
   private volatile static Gson gson;
+  private static final String DEFAULT_PING_PORT = "8670";
 
   public static void setGson(Gson gson) {
     if (gson==null) {
@@ -233,7 +234,8 @@ public class StageUtils {
     List<String> allHostPingPorts = new ArrayList<String>();
     for (Host host : allHosts.values()) {
       allHostNames.add(host.getHostName());
-      allHostPingPorts.add(host.getCurrentPingPort() == null ? null : host.getCurrentPingPort().toString());
+      allHostPingPorts.add(host.getCurrentPingPort() == null ?
+        DEFAULT_PING_PORT : host.getCurrentPingPort().toString());
     }
     info.put("all_hosts", allHostNames);
     info.put("all_ping_ports", allHostPingPorts);

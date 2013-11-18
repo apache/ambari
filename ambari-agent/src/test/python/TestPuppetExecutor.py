@@ -31,6 +31,7 @@ from AmbariConfig import AmbariConfig
 from mock.mock import patch, MagicMock, call
 from threading import Thread
 from shell import shellRunner
+import manifestGenerator
 
 class TestPuppetExecutor(TestCase):
 
@@ -55,11 +56,11 @@ class TestPuppetExecutor(TestCase):
     
     cmdrun_mock.return_value = {'exitCode': 0, 'output': 'OK', 'error': ''}
     self.assertEquals(puppetInstance.isJavaAvailable(command), True)
-    
-    
+
+  @patch.object(manifestGenerator, 'generateManifest')
   @patch.object(PuppetExecutor, 'isJavaAvailable')
   @patch.object(PuppetExecutor, 'runPuppetFile')
-  def test_run_command(self, runPuppetFileMock, isJavaAvailableMock):
+  def test_run_command(self, runPuppetFileMock, isJavaAvailableMock, generateManifestMock):
     tmpdir = tempfile.gettempdir()
     puppetInstance = PuppetExecutor("/tmp", "/x", "/y", tmpdir, AmbariConfig().getConfig())
     jsonFile = open('../../main/python/ambari_agent/test.json', 'r')
@@ -69,6 +70,7 @@ class TestPuppetExecutor(TestCase):
     def side_effect1(puppetFile, result, puppetEnv, tmpoutfile, tmperrfile):
         result["exitcode"] = 0
     runPuppetFileMock.side_effect = side_effect1
+    generateManifestMock.return_value = ''
     puppetInstance.reposInstalled = False
     isJavaAvailableMock.return_value = True
     res = puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
@@ -83,8 +85,13 @@ class TestPuppetExecutor(TestCase):
     res = puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
     self.assertEquals(res["exitcode"], 999)
     self.assertFalse(puppetInstance.reposInstalled)
-    os.unlink(tmpdir + os.sep + 'site-' + str(parsedJson["taskId"]) + '.pp')
-    
+
+    generateManifestMock.return_value = 'error during manifest generation'
+    res = puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
+    self.assertTrue(generateManifestMock.called)
+    self.assertEquals(res["exitcode"], 1)
+    generateManifestMock.return_value = ''
+
     def side_effect2(puppetFile, result, puppetEnv, tmpoutfile, tmperrfile):
         result["exitcode"] = 0
     runPuppetFileMock.side_effect = side_effect2
@@ -104,6 +111,7 @@ class TestPuppetExecutor(TestCase):
     res = puppetInstance.runCommand(parsedJson, tmpdir + '/out.txt', tmpdir + '/err.txt')
     self.assertEquals(res["exitcode"], 1)
     self.assertEquals(res["stderr"], "Cannot access JDK! Make sure java64_home is specified in global config")
+
 
   @patch.object(PuppetExecutor, 'isJavaAvailable')
   @patch.object(RepoInstaller, 'generate_repo_manifests')

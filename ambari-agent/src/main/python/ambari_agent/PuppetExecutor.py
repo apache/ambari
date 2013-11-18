@@ -26,7 +26,7 @@ import threading
 from threading import Thread
 
 from shell import shellRunner
-from manifestGenerator import generateManifest
+import manifestGenerator
 from RepoInstaller import RepoInstaller
 from Grep import Grep
 import shell
@@ -170,8 +170,12 @@ class PuppetExecutor:
     if command.has_key("taskId"):
       taskId = command['taskId']
     siteppFileName = os.path.join(self.tmpDir, "site-" + str(taskId) + ".pp")
-    generateManifest(command, siteppFileName, self.modulesdir, self.config)
-    result = self.run_manifest(command, siteppFileName, tmpoutfile, tmperrfile)
+    errMsg = manifestGenerator.generateManifest(command, siteppFileName,
+                                                self.modulesdir, self.config)
+    if not errMsg:
+      result = self.run_manifest(command, siteppFileName, tmpoutfile, tmperrfile)
+    else:
+      result = {'stdout': '', 'stderr': errMsg, 'exitcode': 1}
     return result
 
   def runPuppetFile(self, puppetFile, result, puppetEnv, tmpoutfile, tmperrfile):

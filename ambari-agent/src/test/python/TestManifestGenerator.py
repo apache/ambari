@@ -78,6 +78,10 @@ class TestManifestGenerator(TestCase):
 
     print file(tmpFileName).read()
 
+    def raiseTypeError():
+      raise TypeError()
+    writeNodesMock.side_effect = raiseTypeError
+    manifestGenerator.generateManifest(self.parsedJson, tmpFileName, '../../main/puppet/modules', self.config.getConfig())
     pass
 
   def testEscape(self):
@@ -98,6 +102,18 @@ class TestManifestGenerator(TestCase):
     tmpFile.close()
     os.remove(tmpFileName)
 
+  def test_writeNodes_failed(self):
+    tmpFileName = tempfile.mkstemp(dir=self.dir, text=True)[1]
+    tmpFile = file(tmpFileName, 'r+')
+
+    clusterHostInfo = self.parsedJson['clusterHostInfo']
+    clusterHostInfo.update({u'ZOOKEEPER':[None]})
+    clusterHostInfo['zookeeper_hosts'] = ["h1.hortonworks.com", "h2.hortonworks.com"]
+    self.assertRaises(TypeError, manifestGenerator.writeNodes, tmpFile, clusterHostInfo)
+    tmpFile.seek(0)
+    print tmpFile.read()
+    tmpFile.close()
+    os.remove(tmpFileName)
 
   def test_writeHostAttributes(self):
     tmpFileName = tempfile.mkstemp(dir=self.dir, text=True)[1]

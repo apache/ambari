@@ -194,10 +194,10 @@ public class TestStageUtils {
     fsm.getHost("h2").setOsType("centos5");
     fsm.getHost("h3").setOsType("centos5");
     fsm.getHost("h4").setOsType("centos5");
-    fsm.getHost("h1").setCurrentPingPort(1024);
-    fsm.getHost("h2").setCurrentPingPort(1024);
-    fsm.getHost("h3").setCurrentPingPort(1024);
-    fsm.getHost("h4").setCurrentPingPort(1024);
+    fsm.getHost("h1").setCurrentPingPort(8670);
+    fsm.getHost("h2").setCurrentPingPort(null);
+    fsm.getHost("h3").setCurrentPingPort(null);
+    fsm.getHost("h4").setCurrentPingPort(8670);
     fsm.getHost("h1").persist();
     fsm.getHost("h2").persist();
     fsm.getHost("h3").persist();
@@ -220,6 +220,10 @@ public class TestStageUtils {
     assertEquals(4, info.get("all_hosts").size());
     assertEquals(4, info.get("all_ping_ports").size());
     assertEquals("h1", info.get("hbase_master_hosts").get(0));
+    assertEquals("8670", info.get("all_ping_ports").get(0));
+    assertEquals("8670", info.get("all_ping_ports").get(1));
+    assertEquals("8670", info.get("all_ping_ports").get(2));
+    assertEquals("8670", info.get("all_ping_ports").get(3));
 
     assertFalse(info.get("ambari_db_rca_url").get(0).contains(Configuration.HOSTNAME_MACRO));
     String address = InetAddress.getLocalHost().getCanonicalHostName();
