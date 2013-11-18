@@ -20,18 +20,24 @@
 package org.apache.ambari.server.state.host;
 
 import org.apache.ambari.server.agent.AgentEnv;
+import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.state.HostEvent;
 import org.apache.ambari.server.state.HostEventType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class HostHealthyHeartbeatEvent extends HostEvent {
 
   private final long heartbeatTime;
   private AgentEnv agentEnv = null;
+  private List<DiskInfo> mounts = new ArrayList<DiskInfo>();;
 
-  public HostHealthyHeartbeatEvent(String hostName, long heartbeatTime, AgentEnv env) {
+  public HostHealthyHeartbeatEvent(String hostName, long heartbeatTime, AgentEnv env, List<DiskInfo> mounts) {
     super(hostName, HostEventType.HOST_HEARTBEAT_HEALTHY);
     this.heartbeatTime = heartbeatTime;
     agentEnv = env;
+    this.mounts = mounts;
   }
 
   /**
@@ -49,4 +55,11 @@ public class HostHealthyHeartbeatEvent extends HostEvent {
     return agentEnv;
   }
 
+  /**
+   * @return the disks info, if present.  Can return <code>null</code> if
+   * there was no new info.
+   */
+  public List<DiskInfo> getMounts() {
+    return mounts;
+  }
 }

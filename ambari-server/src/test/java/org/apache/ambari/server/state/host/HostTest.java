@@ -187,7 +187,7 @@ public class HostTest {
   private void sendHealthyHeartbeat(Host host, long counter)
       throws Exception {
     HostHealthyHeartbeatEvent e = new HostHealthyHeartbeatEvent(
-        host.getHostName(), counter, null);
+        host.getHostName(), counter, null, null);
     host.handleEvent(e);
   }
 

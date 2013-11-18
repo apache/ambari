@@ -63,12 +63,6 @@ public class HostEntity {
   @Basic
   private String osArch = "";
 
-  @Lob
-  @Column(name = "disks_info", nullable = false, insertable = true,
-      updatable = true, length = 32000)
-  @Basic
-  private String disksInfo = "";
-
   @Column(name = "os_info", insertable = true, updatable = true,
       length = 1000)
   @Basic
@@ -188,14 +182,6 @@ public class HostEntity {
     this.osArch = osArch;
   }
 
-  public String getDisksInfo() {
-    return defaultString(disksInfo);
-  }
-
-  public void setDisksInfo(String disksInfo) {
-    this.disksInfo = disksInfo;
-  }
-
   public String getOsInfo() {
     return defaultString(osInfo);
   }
@@ -257,7 +243,6 @@ public class HostEntity {
     if (cpuInfo != null ? !cpuInfo.equals(that.cpuInfo) : that.cpuInfo != null) return false;
     if (discoveryStatus != null ? !discoveryStatus.equals(that.discoveryStatus) : that.discoveryStatus != null)
       return false;
-    if (disksInfo != null ? !disksInfo.equals(that.disksInfo) : that.disksInfo != null) return false;
     if (hostAttributes != null ? !hostAttributes.equals(that.hostAttributes) : that.hostAttributes != null)
       return false;
     if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
@@ -278,7 +263,6 @@ public class HostEntity {
     result = 31 * result + cpuCount;
     result = 31 * result + (cpuInfo != null ? cpuInfo.hashCode() : 0);
     result = 31 * result + (osArch != null ? osArch.hashCode() : 0);
-    result = 31 * result + (disksInfo != null ? disksInfo.hashCode() : 0);
     result = 31 * result + (osInfo != null ? osInfo.hashCode() : 0);
     result = 31 * result + (osType != null ? osType.hashCode() : 0);
     result = 31 * result + (discoveryStatus != null ? discoveryStatus.hashCode() : 0);

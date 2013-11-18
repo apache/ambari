@@ -232,7 +232,6 @@ class TestHostInfo(TestCase):
 
   @patch.object(HostInfo, 'get_os_type')
   @patch('os.umask')
-  @patch.object(HostInfo, 'osdiskAvailableSpace')
   @patch.object(HostCheckReportFileHandler, 'writeHostCheckFile')
   @patch.object(PackagesAnalyzer, 'allAvailablePackages')
   @patch.object(PackagesAnalyzer, 'allInstalledPackages')
@@ -249,14 +248,12 @@ class TestHostInfo(TestCase):
   @patch.object(HostInfo, 'hadoopVarLogCount')
   def test_hostinfo_register_suse(self, hvlc_mock, hvrc_mock, eac_mock, cf_mock, jp_mock,
                              cls_mock, cu_mock, gir_mock, gipbr_mock, gipbn_mock,
-                             gpd_mock, aip_mock, aap_mock, whcf_mock, odas_mock,
-                             os_umask_mock, get_os_type_mock):
+                             gpd_mock, aip_mock, aap_mock, whcf_mock, os_umask_mock, get_os_type_mock):
     hvlc_mock.return_value = 1
     hvrc_mock.return_value = 1
     gipbr_mock.return_value = ["pkg1"]
     gipbn_mock.return_value = ["pkg2"]
     gpd_mock.return_value = ["pkg1", "pkg2"]
-    odas_mock.return_value = [{'name':'name1'}]
     get_os_type_mock.return_value = "suse"
 
     hostInfo = HostInfo()
@@ -266,7 +263,6 @@ class TestHostInfo(TestCase):
     self.assertFalse(gpd_mock.called)
     self.assertFalse(aip_mock.called)
     self.assertFalse(aap_mock.called)
-    self.assertTrue(odas_mock.called)
     self.assertTrue(os_umask_mock.called)
     self.assertFalse(whcf_mock.called)
 
@@ -276,7 +272,6 @@ class TestHostInfo(TestCase):
 
   @patch.object(HostInfo, 'get_os_type')
   @patch('os.umask')
-  @patch.object(HostInfo, 'osdiskAvailableSpace')
   @patch.object(HostCheckReportFileHandler, 'writeHostCheckFile')
   @patch.object(PackagesAnalyzer, 'allAvailablePackages')
   @patch.object(PackagesAnalyzer, 'allInstalledPackages')
@@ -294,15 +289,13 @@ class TestHostInfo(TestCase):
   @patch.object(HostInfo, 'checkIptables')
   def test_hostinfo_register(self, cit_mock, hvlc_mock, hvrc_mock, eac_mock, cf_mock, jp_mock,
                              cls_mock, cu_mock, gir_mock, gipbr_mock, gipbn_mock,
-                             gpd_mock, aip_mock, aap_mock, whcf_mock, odas_mock,
-                             os_umask_mock, get_os_type_mock):
+                             gpd_mock, aip_mock, aap_mock, whcf_mock, os_umask_mock, get_os_type_mock):
     cit_mock.return_value = True
     hvlc_mock.return_value = 1
     hvrc_mock.return_value = 1
     gipbr_mock.return_value = ["pkg1"]
     gipbn_mock.return_value = ["pkg2"]
     gpd_mock.return_value = ["pkg1", "pkg2"]
-    odas_mock.return_value = [{'name':'name1'}]
     get_os_type_mock.return_value = "redhat"
 
     hostInfo = HostInfo()
@@ -323,7 +316,6 @@ class TestHostInfo(TestCase):
     self.assertTrue(gir_mock.called)
     self.assertTrue(gpd_mock.called)
     self.assertTrue(aip_mock.called)
-    self.assertTrue(odas_mock.called)
     self.assertTrue(cit_mock.called)
 
     for existingPkg in ["pkg1", "pkg2"]:
@@ -339,7 +331,6 @@ class TestHostInfo(TestCase):
     self.assertEqual(dict['existingUsers'], [])
     self.assertEqual(dict['existingRepos'][0], hostInfo.RESULT_UNAVAILABLE)
     self.assertEqual(dict['installedPackages'], [])
-    self.assertEqual(1, len(dict['hostHealth']['diskStatus']))
     self.assertTrue(dict['iptablesIsRunning'])
 
   @patch("os.path.exists")

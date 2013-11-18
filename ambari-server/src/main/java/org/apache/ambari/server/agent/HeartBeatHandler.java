@@ -162,7 +162,7 @@ public class HeartBeatHandler {
     try {
       if (heartbeat.getNodeStatus().getStatus().equals(HostStatus.Status.HEALTHY)) {
         hostObject.handleEvent(new HostHealthyHeartbeatEvent(hostname, now,
-            heartbeat.getAgentEnv()));
+            heartbeat.getAgentEnv(), heartbeat.getMounts()));
       } else {
         hostObject.handleEvent(new HostUnhealthyHeartbeatEvent(hostname, now,
             null));

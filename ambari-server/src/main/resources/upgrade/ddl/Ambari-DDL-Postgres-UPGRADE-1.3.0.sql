@@ -153,3 +153,4 @@ UPDATE ambari.stage sd
 --Set cluster_host_info column mandatory
 ALTER TABLE ambari.stage ALTER COLUMN cluster_host_info SET NOT NULL;
 
+ALTER TABLE ambari.hosts DROP COLUMN disks_info;

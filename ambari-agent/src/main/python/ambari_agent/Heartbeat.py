@@ -27,6 +27,7 @@ from ActionQueue import ActionQueue
 import AmbariConfig
 import hostname
 from HostInfo import HostInfo
+from Hardware import Hardware
 
 
 logger = logging.getLogger()
@@ -83,6 +84,9 @@ class Heartbeat:
       hostInfo.register(nodeInfo, componentsMapped, commandsInProgress)
       heartbeat['agentEnv'] = nodeInfo
       logger.debug("agentEnv : " + str(nodeInfo))
+      mounts = Hardware.osdisks()
+      heartbeat['mounts'] = mounts
+      logger.debug("mounts : " + str(mounts))
 
     return heartbeat
 

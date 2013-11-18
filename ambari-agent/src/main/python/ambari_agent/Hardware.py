@@ -63,7 +63,8 @@ class Hardware:
     else:
       return None
 
-  def osdisks(self):
+  @staticmethod
+  def osdisks():
     """ Run df to find out the disks on the host. Only works on linux 
     platforms. Note that this parser ignores any filesystems with spaces 
     and any mounts with spaces. """
@@ -72,7 +73,7 @@ class Hardware:
     dfdata = df.communicate()[0]
     lines = dfdata.splitlines()
     for l in lines:
-      mountinfo = self.extractMountInfo(l)
+      mountinfo = Hardware.extractMountInfo(l)
       if mountinfo != None and os.access(mountinfo['mountpoint'], os.W_OK):
         mounts.append(mountinfo)
       pass

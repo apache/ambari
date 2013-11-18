@@ -74,4 +74,6 @@ SET
   
 ALTER TABLE stage MODIFY (cluster_host_info NOT NULL);
 
+ALTER TABLE ambari.hosts DROP COLUMN disks_info;
+
 commit;

@@ -313,8 +313,6 @@ class HostInfo:
     self.javaProcs(java)
     dict['hostHealth']['activeJavaProcs'] = java
 
-    dict['hostHealth']['diskStatus'] = [self.osdiskAvailableSpace("/")]
-
     liveSvcs = []
     self.checkLiveServices(self.DEFAULT_LIVE_SERVICES, liveSvcs)
     dict['hostHealth']['liveServices'] = liveSvcs

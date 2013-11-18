@@ -172,7 +172,7 @@ public class ClusterTest {
 
     try {
       clusters.getHost("h1").handleEvent(
-          new HostHealthyHeartbeatEvent("h1", currentTime, null));
+          new HostHealthyHeartbeatEvent("h1", currentTime, null, null));
       fail("Exception should be thrown on invalid event");
     }
     catch (InvalidStateTransitionException e) {

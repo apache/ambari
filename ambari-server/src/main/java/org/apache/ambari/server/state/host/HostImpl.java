@@ -18,6 +18,7 @@
 package org.apache.ambari.server.state.host;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,6 +94,7 @@ public class HostImpl implements Host {
 
   private long lastHeartbeatTime = 0L;
   private AgentEnv lastAgentEnv = null;
+  private List<DiskInfo> disksInfo = new ArrayList<DiskInfo>();
   private boolean persisted = false;
   private Integer currentPingPort = null;
 
@@ -298,8 +300,12 @@ public class HostImpl implements Host {
         case HOST_HEARTBEAT_HEALTHY:
           HostHealthyHeartbeatEvent hhevent = (HostHealthyHeartbeatEvent) event;
           heartbeatTime = hhevent.getHeartbeatTime();
-          if (null != hhevent.getAgentEnv())
+          if (null != hhevent.getAgentEnv()) {
             host.setLastAgentEnv(hhevent.getAgentEnv());
+          }
+          if (null != hhevent.getMounts() && !hhevent.getMounts().isEmpty()) {
+            host.setDisksInfo(hhevent.getMounts());
+          }
           break;
         case HOST_HEARTBEAT_UNHEALTHY:
           heartbeatTime =
@@ -815,8 +821,7 @@ public class HostImpl implements Host {
   public List<DiskInfo> getDisksInfo() {
     try {
       readLock.lock();
-      return gson.<List<DiskInfo>>fromJson(
-                hostEntity.getDisksInfo(), diskInfoType);
+      return this.disksInfo;
     } finally {
       readLock.unlock();
     }
@@ -826,8 +831,7 @@ public class HostImpl implements Host {
   public void setDisksInfo(List<DiskInfo> disksInfo) {
     try {
       writeLock.lock();
-      hostEntity.setDisksInfo(gson.toJson(disksInfo, diskInfoType));
-      saveIfPersisted();
+      this.disksInfo = disksInfo;
     } finally {
       writeLock.unlock();
     }

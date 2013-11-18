@@ -149,12 +149,6 @@ public class AgentEnv {
     @SerializedName("liveServices")
     private LiveService[] liveServices = new LiveService[0];
 
-    /**
-     * The available space in the root disk
-     */
-    @SerializedName("diskStatus")
-    private DiskInfo[] diskStatus = new DiskInfo[0];
-
     public void setAgentTimeStampAtReporting(long currentTime) {
       agentTimeStampAtReporting = currentTime;
     }
@@ -185,14 +179,6 @@ public class AgentEnv {
 
     public LiveService[] getLiveServices() {
       return liveServices;
-    }
-
-    public void setDiskStatus(DiskInfo[] diskInfo) {
-      diskStatus = diskInfo;
-    }
-
-    public DiskInfo[] getDiskStatus() {
-      return diskStatus;
     }
   }
 

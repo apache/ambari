@@ -1041,6 +1041,7 @@ public class TestHeartbeatHandler {
     hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
     hb.setReports(new ArrayList<CommandReport>());
     hb.setAgentEnv(new AgentEnv());
+    hb.setMounts(new ArrayList<DiskInfo>());
 
     ArrayList<ComponentStatus> componentStatuses = new ArrayList<ComponentStatus>();
     ComponentStatus componentStatus1 = createComponentStatus(DummyCluster, HDFS, DummyHostStatus, State.STARTED,
