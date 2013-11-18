@@ -17,6 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+
 __all__ = ["Script"]
 
 import sys
@@ -25,12 +26,15 @@ import logging
 
 from resource_management.core.environment import Environment
 from resource_management.core.exceptions import Fail
-
+from resource_management.core.resources.packaging import Package
 
 class Script():
   """
   Executes a command for custom service. stdout and stderr are written to
   tmpoutfile and to tmperrfile respectively.
+  Script instances share configuration as a class parameter and therefore
+  even different Script instances can not be used from different threads at
+  the same time
   """
 
   def execute(self):
@@ -81,7 +85,42 @@ class Script():
       
   @staticmethod
   def get_config():
+    """
+    HACK. Uses static field to store configuration. This is a workaround for
+    "circular dependency" issue when importing params.py file and passing to
+     it a configuration instance.
+    """
     return Script.config
+
+
+  def install(self, env):
+    """
+    Default implementation of install command is to install all packages
+    from a list, received from the server.
+    Feel free to override install() method with your implementation. It
+    usually makes sense to call install_packages() manually in this case
+    """
+    self.install_packages(env)
+
+
+  def install_packages(self, env):
+    """
+    List of packages that are required by service is received from the server
+    as a command parameter. The method installs all packages
+    from this list
+    """
+    config = self.get_config()
+    try:
+      package_list_str = config['hostLevelParams']['package_list']
+      if isinstance(package_list_str,basestring) and len(package_list_str) > 0:
+        package_list = json.loads(package_list_str)
+        for package in package_list:
+          name = package['name']
+          Package(name)
+    except KeyError:
+      pass # No reason to worry
+
+
 
   def fail_with_error(self, message):
     """

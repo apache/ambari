@@ -99,6 +99,6 @@ class CustomServiceOrchestrator():
     file_path = os.path.join(self.tmp_dir, "command-{0}.json".format(task_id))
     # Command json contains passwords, that's why we need proper permissions
     with os.fdopen(os.open(file_path, os.O_WRONLY | os.O_CREAT,0600), 'w') as f:
-      content = json.dumps(command)
+      content = json.dumps(command, sort_keys = False, indent = 4)
       f.write(content)
     return file_path
