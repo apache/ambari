@@ -71,7 +71,8 @@ App.ManageConfigGroupsController = Em.Controller.extend({
           service: App.Service.find().findProperty('serviceName', configGroup.tag),
           hosts: configGroup.hosts.mapProperty('host_name'),
           configSiteTags: [],
-          properties: []
+          properties: [],
+          apiResponse: configGroup
         });
         usedHosts = usedHosts.concat(newConfigGroup.get('hosts'));
         configGroups.push(newConfigGroup);
@@ -162,6 +163,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       }
     });
   },
+
   /**
    * delete hosts from group
    */
@@ -173,5 +175,140 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       groupHosts.removeObject(hostName);
     });
     this.set('selectedHosts', []);
+  },
+
+  /**
+   * delete selected config group
+   */
+  deleteConfigGroup: function () {
+    var selectedConfigGroup = this.get('selectedConfigGroup');
+    if(selectedConfigGroup.get('name') == "Default") {
+      return;
+    }
+      App.ajax.send({
+        name: 'config_groups.delete_config_group',
+        sender: this,
+        data: {
+          configGroupName: selectedConfigGroup.get('name')
+        }
+      });
+      this.get('configGroups').removeObject(selectedConfigGroup);
+
+  },
+
+  /**
+   * rename new config group
+   */
+  renameConfigGroup: function () {
+    if(this.get('selectedConfigGroup.name') == "Default") {
+      return;
+    }
+    var content = this;
+    this.renameGroupPopup = App.ModalPopup.show({
+      primary: Em.I18n.t('ok'),
+      secondary: Em.I18n.t('common.cancel'),
+      header: Em.I18n.t('services.service.config_groups.rename_config_group_popup.header'),
+      bodyClass: Ember.View.extend({
+        template: Ember.Handlebars.compile('' +
+          '<p>' +
+          '{{t services.service.config_groups_popup.group_name_lable }}: {{view Ember.TextField valueBinding="configGroupName"}}' +
+          '</p>')
+      }),
+      configGroupName: "",
+      content: content,
+      onPrimary: function () {
+        this.get('content.selectedConfigGroup').set('name', this.get('configGroupName'));
+        this.get('content.selectedConfigGroup.apiResponse').group_name = this.get('configGroupName');
+        var configGroup = {
+          ConfigGroup: this.get('content.selectedConfigGroup.apiResponse')
+        };
+        App.ajax.send({
+          name: 'config_groups.update_config_group',
+          sender: this,
+          data: {
+            id: this.get('content.selectedConfigGroup.id'),
+            configGroup: configGroup
+          }
+        });
+        this.hide();
+      },
+      onSecondary: function () {
+        this.hide();
+      }
+    });
+  },
+
+  /**
+   * add new config group
+   */
+  addConfigGroup: function () {
+    var content = this;
+    this.addGroupPopup = App.ModalPopup.show({
+      primary: Em.I18n.t('ok'),
+      secondary: Em.I18n.t('common.cancel'),
+      header: Em.I18n.t('services.service.config_groups.add_config_group_popup.header'),
+      bodyClass: Ember.View.extend({
+        templateName: require('templates/main/service/new_config_group')
+      }),
+      configGroupName: "",
+      configGroupDesc: "",
+      content: content,
+      onPrimary: function () {
+        this.get('content').set('configGroupName', this.get('configGroupName'));
+        this.get('content').set('configGroupDesc', this.get('configGroupDesc'));
+        App.ajax.send({
+          name: 'config_groups.create',
+          sender: this.get('content'),
+          data: {
+            'group_name': this.get('configGroupName'),
+            'service_id': this.get('content.serviceName'),
+            'description': this.get('configGroupDesc')
+          },
+          success: 'onAddNewConfigGroup'
+        });
+      },
+      onSecondary: function () {
+        this.hide();
+      }
+    });
+  },
+
+  /**
+   * On successful api resonse for creating new config group
+   */
+  onAddNewConfigGroup: function (data) {
+    var newConfigGroupData = App.ConfigGroup.create({
+      id: data.resources[0].ConfigGroup.id,
+      name: this.get('configGroupName'),
+      description: this.get('configGroupDesc'),
+      isDefault: false,
+      parentConfigGroup: null,
+      service: this.get('serviceName'),
+      hosts: [],
+      configSiteTags: []
+    });
+    var defaultConfigGroup = this.get('configGroups').popObject();
+    this.get('configGroups').pushObjects([newConfigGroupData, defaultConfigGroup]);
+    this.updateConfigGroup(data.resources[0].ConfigGroup.id);
+    this.addGroupPopup.hide();
+  },
+
+  /**
+   * update config group apiResponse property
+   */
+  updateConfigGroup: function (id) {
+    App.ajax.send({
+      name: 'config_groups.get_config_group_by_id',
+      sender: this,
+      data: {
+        'id': id
+      },
+      success: 'successLoadingConfigGroup'
+    });
+  },
+
+  successLoadingConfigGroup: function (data) {
+    var confGroup = this.get('configGroups').findProperty('id', data.ConfigGroup.id);
+    confGroup.set('apiResponse', data.ConfigGroup);
   }
 });

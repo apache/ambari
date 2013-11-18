@@ -80,6 +80,8 @@ App.ConfigGroup = Ember.Object.extend({
     return this.get('name') + ' (' + this.get('hosts.length') + ')';
   }.property('name', 'hosts.length'),
 
+  apiResponse: null,
+
   /**
    * Provides hosts which are available for inclusion in
    * non-default configuration groups.

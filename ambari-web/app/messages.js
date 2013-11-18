@@ -1124,7 +1124,12 @@ Em.I18n.translations = {
   'services.service.config_groups_popup.config_groups':'Configuration Groups',
   'services.service.config_groups_popup.rename':'Rename',
   'services.service.config_groups_popup.duplicate':'Duplicate',
+  'services.service.config_groups_popup.group_name_lable':'Group name',
+  'services.service.config_groups_popup.group_desc_lable':'Group description',
   'services.service.config_groups_popup.properties':'Properties',
+  'services.service.config_groups.add_config_group_popup.header':'Create new config group',
+  'services.service.config_groups.duplicate_config_group_popup.header':'Duplicate config group',
+  'services.service.config_groups.rename_config_group_popup.header':'Rename config group',
   'services.reassign.closePopup':'Reassign {0} wizard is in progress. It\'s necessary to complete the wizard for Ambari to be in usable state. If you choose to quit, you must follow manual instructions to complete or revert reassign {0} wizard as documented in the Ambari User Guide. Are you sure you want to exit the wizard ?',
 
   'services.reassign.step1.header':'Get Started',

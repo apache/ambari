@@ -29,10 +29,10 @@
           class="group-select"
         }}
         <div class="button-group pull-right">
-          <a class="btn">+</a>
-          <a class="btn">-</a>
-          <a class="btn">{{t services.service.config_groups_popup.rename}}</a>
-          <a class="btn">{{t services.service.config_groups_popup.duplicate}}</a>
+          <a class="btn" {{action addConfigGroup target="controller"}}>+</a>
+          <a class="btn" {{action deleteConfigGroup target="controller"}}>-</a>
+          <a class="btn" {{action renameConfigGroup target="controller"}}>{{t services.service.config_groups_popup.rename}}</a>
+          <a class="btn" {{action addConfigGroup target="controller"}}>{{t services.service.config_groups_popup.duplicate}}</a>
         </div>
       </div>
       <div class="span6">

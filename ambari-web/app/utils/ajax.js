@@ -216,6 +216,9 @@ var urls = {
   'config_groups.all_fields': {
     'real': '/clusters/{clusterName}/config_groups?fields=*'
   },
+  'config_groups.get_config_group_by_id': {
+    'real': '/clusters/{clusterName}/config_groups/{id}'
+  },
   'config_groups.update_config_group': {
     'real': '/clusters/{clusterName}/config_groups/{id}',
     'mock': '',
@@ -229,6 +232,11 @@ var urls = {
         )
       }
     }
+  },
+  'config_groups.delete_config_group': {
+    'real': '/clusters/{clusterName}/config_groups/{configGroupName}',
+    'mock': '',
+    'type': 'DELETE'
   },
   'config.on_site': {
     'real': '/clusters/{clusterName}/configurations?{params}',
