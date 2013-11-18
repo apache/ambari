@@ -33,6 +33,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   customConfig: [],
   serviceConfigsData: require('data/service_configs'),
   isApplyingChanges: false,
+  // contain Service Config Property, when user proceed from Select Config Group dialog
+  overrideToAdd: null,
   serviceConfigs: function () {
     return App.config.get('preDefinedServiceConfigs');
   }.property('App.config.preDefinedServiceConfigs'),
@@ -628,6 +630,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       componentConfig.configs.pushObject(serviceConfigProperty);
       serviceConfigProperty.validate();
     }, this);
+    var overrideToAdd = this.get('overrideToAdd');
+    if (overrideToAdd) {
+      overrideToAdd = componentConfig.configs.findProperty('name', overrideToAdd.name);
+      if (overrideToAdd) {
+        this.addOverrideProperty(overrideToAdd);
+        this.set('overrideToAdd', null);
+      }
+    }
   },
 
   /**
@@ -1723,6 +1733,22 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       }),
       secondary: null
     });
+  },
+
+  addOverrideProperty: function(serviceConfigProperty) {
+    var overrides = serviceConfigProperty.get('overrides');
+    if (!overrides) {
+      overrides = [];
+      serviceConfigProperty.set('overrides', overrides);
+    }
+    // create new override with new value
+    var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty);
+    newSCP.set('value', '');
+    newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
+    newSCP.set('parentSCP', serviceConfigProperty);
+    newSCP.set('isEditable', true);
+    console.debug("createOverrideProperty(): Added:", newSCP, " to main-property:", serviceConfigProperty);
+    overrides.pushObject(newSCP);
   },
 
   selectConfigGroup: function (event) {
