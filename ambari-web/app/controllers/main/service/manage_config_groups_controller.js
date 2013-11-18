@@ -197,7 +197,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
         name: 'config_groups.delete_config_group',
         sender: this,
         data: {
-          configGroupName: selectedConfigGroup.get('name')
+          id: selectedConfigGroup.get('id')
         }
       });
       this.get('configGroups').removeObject(selectedConfigGroup);

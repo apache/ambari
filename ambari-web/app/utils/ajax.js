@@ -225,6 +225,7 @@ var urls = {
     'type': 'PUT',
     'format': function (data) {
       return {
+        async: false,
         data: JSON.stringify(
           [
             data.configGroup
@@ -234,7 +235,7 @@ var urls = {
     }
   },
   'config_groups.delete_config_group': {
-    'real': '/clusters/{clusterName}/config_groups/{configGroupName}',
+    'real': '/clusters/{clusterName}/config_groups/{id}',
     'mock': '',
     'type': 'DELETE'
   },

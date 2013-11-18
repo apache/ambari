@@ -873,19 +873,40 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       message: null,
       value: null
     };
-    this.savedHostToOverrideSiteToTagMap = {};
+    var selectedConfigGroup = this.get('selectedConfigGroup');
     var configs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs');
-    this.saveGlobalConfigs(configs);
-    if (this.get('content.serviceName') === 'YARN' && !App.supports.capacitySchedulerUi) {
-      configs = App.config.textareaIntoFileConfigs(configs, 'capacity-scheduler.xml');
-    }
-    this.saveSiteConfigs(configs);
 
-    /**
-     * First we put cluster configurations, which automatically creates /configurations
-     * resources. Next we update host level overrides.
-     */
-    result.flag = this.doPUTClusterConfigurations();
+    if (selectedConfigGroup.get('isDefault')) {
+      this.saveGlobalConfigs(configs);
+      if (this.get('content.serviceName') === 'YARN' && !App.supports.capacitySchedulerUi) {
+        configs = App.config.textareaIntoFileConfigs(configs, 'capacity-scheduler.xml');
+      }
+      this.saveSiteConfigs(configs);
+
+      /**
+       * First we put cluster configurations, which automatically creates /configurations
+       * resources. Next we update host level overrides.
+       */
+      result.flag = this.doPUTClusterConfigurations();
+    } else {
+      var overridenConfigs = [];
+      configs.filterProperty('isOverridden', true).forEach(function (config) {
+        overridenConfigs = overridenConfigs.concat(config.get('overrides'));
+      });
+
+      this.putConfigGroupChanges({
+        ConfigGroup: {
+          "id": selectedConfigGroup.get('id'),
+          "cluster_name": App.get('clusterName'),
+          "group_name": selectedConfigGroup.get('name'),
+          "tag": selectedConfigGroup.get('service.id'),
+          "description": selectedConfigGroup.get('description'),
+          "hosts": selectedConfigGroup.get('hosts'),
+          "desired_configs": this.buildGroupDesiredConfigs(overridenConfigs)
+        }
+      });
+      result.flag = this.get('isPutConfigGroupChangesSuccess');
+    }
     if (!result.flag) {
       result.message = Em.I18n.t('services.service.config.failSaveConfig');
     } else {
@@ -896,7 +917,45 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     console.log("The result from applyCreatdConfToService is: " + result);
     return result;
   },
-
+  /**
+   * construct desired_configs for config groups from overriden properties
+   * @param configs
+   * @return {Array}
+   */
+  buildGroupDesiredConfigs: function (configs) {
+    var sites = [];
+    var time = (new Date).getTime();
+    configs.forEach(function (config) {
+      var type = config.get('filename').replace('.xml', '');
+      var site = sites.findProperty('type', type) || {
+        type: type,
+        tag: 'version' + time,
+        properties: {}
+      };
+      site.properties[config.get('name')] = config.get('value');
+      sites.push(site);
+    });
+    return sites;
+  },
+  /**
+   * persist properties of config groups to server
+   * @param data
+   */
+  putConfigGroupChanges: function (data) {
+    App.ajax.send({
+      name: 'config_groups.update_config_group',
+      sender: this,
+      data: {
+        id: data.ConfigGroup.id,
+        configGroup: data
+      },
+      success: "putConfigGroupChangesSuccess"
+    });
+  },
+  isPutConfigGroupChangesSuccess: false,
+  putConfigGroupChangesSuccess: function () {
+    this.set('isPutConfigGroupChangesSuccess', true);
+  },
   /**
    * save new or change exist configs in global configs
    * @param configs
@@ -904,7 +963,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   saveGlobalConfigs: function (configs) {
     var globalConfigs = this.get('globalConfigs');
     configs.filterProperty('id', 'puppet var').forEach(function (uiConfigProperty) {
-      uiConfigProperty.set('value', App.config.trimProperty(uiConfigProperty), true);
+      uiConfigProperty.set('value', App.config.trimProperty(uiConfigProperty));
       if (globalConfigs.someProperty('name', uiConfigProperty.name)) {
         var modelGlobalConfig = globalConfigs.findProperty('name', uiConfigProperty.name);
         modelGlobalConfig.value = uiConfigProperty.value;
@@ -1397,7 +1456,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           _globalSiteObj.value += "m";
         }
         globalSiteProperties[_globalSiteObj.name] = App.config.escapeXMLCharacters(_globalSiteObj.value);
-        this.recordHostOverride(_globalSiteObj, 'global', tagName, this);
+        //this.recordHostOverride(_globalSiteObj, 'global', tagName, this);
         //console.log("TRACE: name of the global property is: " + _globalSiteObj.name);
         //console.log("TRACE: value of the global property is: " + _globalSiteObj.value);
       }
@@ -1461,7 +1520,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var coreSiteProperties = {};
     coreSiteObj.forEach(function (_coreSiteObj) {
       coreSiteProperties[_coreSiteObj.name] = App.config.escapeXMLCharacters(_coreSiteObj.value);
-      this.recordHostOverride(_coreSiteObj, 'core-site', tagName, this);
+      //this.recordHostOverride(_coreSiteObj, 'core-site', tagName, this);
     }, this);
     return {"type": "core-site", "tag": tagName, "properties": coreSiteProperties};
   },
@@ -1477,7 +1536,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var siteProperties = {};
     siteObj.forEach(function (_siteObj) {
       siteProperties[_siteObj.name] = App.config.escapeXMLCharacters(_siteObj.value);
-      this.recordHostOverride(_siteObj, siteName, tagName, this);
+      //this.recordHostOverride(_siteObj, siteName, tagName, this);
     }, this);
     return {"type": siteName, "tag": tagName, "properties": siteProperties};
   },
