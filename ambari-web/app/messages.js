@@ -1364,8 +1364,8 @@ Em.I18n.translations = {
   'hosts.cant.do.popup.masterList.body':'Host cannot be deleted with the master components installed',
   'hosts.cant.do.popup.masterList.body.end':'The master components on this host must to be stopped and moved to a different host to be able to delete this host',
   'hosts.cant.do.popup.nonDeletableList.body':'Deletion of the following {0} components is not supported. ',
-  'hosts.cant.do.popup.runningList.body':'Host cannot be deleted with the following {0} components running. ',
-  'hosts.cant.do.popup.runningList.body.end':'Stop the components before reattempting to delete host. Some components might need special actions performed before deletion from cluster. For example, DataNode has to be decommissioned before being deleted.',
+  'hosts.cant.do.popup.runningList.body':'This host cannot be deleted since it has the following master components: ',
+  'hosts.cant.do.popup.runningList.body.end':'<strong>Note:</strong> To delete this host, you must first move all the master components listed above to another host.',
   'hosts.add.header':'Add Host Wizard',
   'hosts.assignRack':'Assign Rack',
 
