@@ -1167,7 +1167,7 @@ Em.I18n.translations = {
   'services.reassign.step5.body.namenode':
       '<div class="alert alert-info">' +
       '<ol>' +
-      '<li>Copy contents of <b>{0}</b> from source host <b>{1}</b> to the target host <b>{2}</b> same locations</li>' +
+      '<li>Copy the contents of <b>{0}</b> on the source host <b>{1}</b> to <b>{0}</b> on the target host <b>{2}</b>.</li>' +
       '<li>Login to the target host <b>{2}</b> and change permissions for the NameNode dirs by running:' +
       '<div class="code-snippet">chown -R {3}:{5} /hadoop/hdfs/namenode/</div></li>' +
       '<li>Create marker directory by running:' +
@@ -1194,7 +1194,7 @@ Em.I18n.translations = {
   'services.reassign.step5.body.secondary_namenode':
       '<div class="alert alert-info">' +
       '<ol>' +
-      '<li>Copy contents of <b>{0}</b> from source host <b>{1}</b> to the target host <b>{2}</b> same locations</li>' +
+      '<li>Copy the contents of <b>{0}</b> on the source host <b>{1}</b> to <b>{0}</b> on the target host <b>{2}</b>.</li>' +
       '<li>Login to the target host <b>{2}</b> and change permissions for the SNameNode dirs by running:' +
       '<div class="code-snippet">chown -R {3}:{5} /hadoop/hdfs/namesecondary/</div></li>' +
       '</ol>' +
