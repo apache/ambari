@@ -130,7 +130,7 @@ Em.I18n.translations = {
   'common.edit': 'Edit',
   'common.delete': 'Delete',
   'common.empty': 'Empty',
-  'common.exception':'Exception',
+  'common.override':'Override',
   'common.undo':'Undo',
   'common.details':'Details',
   'common.stats':'Stats',
@@ -1107,7 +1107,7 @@ Em.I18n.translations = {
   'services.service.config.msgHDFSMapRServiceStop':'Could not save configuration changes.  Please stop both HDFS and MapReduce first.  You will be able to save configuration changes after all HDFS and MapReduce components are stopped.',
   'services.service.config.failCreateConfig' : 'Failure in creating service configuration',
   'services.service.config.failSaveConfig':'Failure in saving service configuration',
-  'services.service.config.failSaveConfigHostExceptions':'Failure in saving service configuration host exceptions',
+  'services.service.config.failSaveConfigHostOverrides':'Failure in saving service configuration overrides',
   'services.service.config.addPropertyWindow.errorMessage':'This is required',
   'services.service.config.addPropertyWindow.error.derivedKey':'This property is already defined',
   'services.service.config.stopService.runningHostComponents':'{0} components on {1} hosts are still running',
@@ -1272,8 +1272,8 @@ Em.I18n.translations = {
   'hosts.host.add':'Add New Hosts',
   'hosts.table.noHosts':'No hosts to display',
   
-  'hosts.selectHostsDialog.title': 'Select Exception Hosts',
-  'hosts.selectHostsDialog.message': 'Select hosts where the exception has to be applied',
+  'hosts.selectHostsDialog.title': 'Select Hosts to override',
+  'hosts.selectHostsDialog.message': 'Select hosts where the override config group has to be applied',
   'hosts.selectHostsDialog.filter.placeHolder': 'Filter...',
   'hosts.selectHostsDialog.selectedHostsLink': '{0} out of {1} hosts selected',
 

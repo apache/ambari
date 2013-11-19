@@ -114,7 +114,7 @@
                                 {{#if view.canEdit}}
 	                                {{#if isPropertyOverridable}}
                                     {{#if App.supports.hostOverrides}}
-	                                    <a class="action" {{action "createOverrideProperty" this target="view" }} ><i class="icon-plus-sign"></i>{{t common.exception}}</a>
+	                                    <a class="action" {{action "createOverrideProperty" this target="view" }} ><i class="icon-plus-sign"></i>{{t common.override}}</a>
                                     {{/if}}
 	                                {{/if}}
 	                                {{#unless cantBeUndone}}

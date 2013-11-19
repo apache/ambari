@@ -700,13 +700,13 @@ App.ServiceConfigProperty = Ember.Object.extend({
       if (!isOriginalSCP) {
         if (!isError && parentSCP != null) {
           if (value === parentSCP.get('value')) {
-            this.set('errorMessage', 'Host exceptions must have different value');
+            this.set('errorMessage', 'Configuration overrides must have different value');
             isError = true;
           } else {
             var overrides = parentSCP.get('overrides');
             overrides.forEach(function (override) {
               if (self != override && value === override.get('value')) {
-                self.set('errorMessage', 'Multiple host exceptions cannot have same value');
+                self.set('errorMessage', 'Multiple configuration overrides cannot have same value');
                 isError = true;
               }
             });

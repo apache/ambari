@@ -911,7 +911,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       result.message = Em.I18n.t('services.service.config.failSaveConfig');
     } else {
       if (!result.flag) {
-        result.message = Em.I18n.t('services.service.config.failSaveConfigHostExceptions');
+        result.message = Em.I18n.t('services.service.config.failSaveConfigHostOverrides');
       }
     }
     console.log("The result from applyCreatdConfToService is: " + result);
