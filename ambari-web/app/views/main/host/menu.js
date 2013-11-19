@@ -28,7 +28,7 @@ App.MainHostMenuView = Em.CollectionView.extend({
     }
     /* { label:'Audit', routing:'audit'} */
     ];
-    if (App.supports.hostOverrides) {
+    if (App.supports.hostOverridesHost) {
       array.push({
         label: 'Configs',
         routing: 'configs'

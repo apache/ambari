@@ -35,6 +35,16 @@ App.ServiceConfigView = Em.View.extend({
   filter: '', //from template
   columns: [], //from template
   canEdit: true, // View is editable or read-only?
+  supportsHostOverrides: function () {
+    switch (this.get('controller.name')) {
+      case 'wizardStep7Controller':
+        return App.supports.hostOverridesInstaller;
+      case 'mainServiceInfoConfigsController':
+        return App.supports.hostOverrides;
+      default:
+        return false;
+    }
+  }.property('controller.name'),
   toggleRestartMessageView: function () {
     this.$('.service-body').toggle('blind', 200);
     this.set('isRestartMessageCollapsed', !this.get('isRestartMessageCollapsed'));
