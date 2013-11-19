@@ -113,18 +113,23 @@ public class ClusterControllerImpl implements ClusterController {
 
       // get the resources
       resources = provider.getResources(request, predicate);
-
-      // populate the resources with metrics and properties.
-      populateResources(type, resources, request, predicate);
-
-      // filter the fully populated resources with the given predicate
-      Iterable<Resource> iterable = getIterable(type, resources, request, predicate);
-      resources = new LinkedHashSet<Resource>();
-      for (Resource resource : iterable){
-        resources.add(resource);
-      }
     }
     return resources;
+  }
+
+  @Override
+  public Set<Resource> populateResources(Resource.Type type,
+                                         Set<Resource> resources,
+                                         Request request,
+                                         Predicate predicate) throws SystemException {
+    Set<Resource> keepers = resources;
+
+    for (PropertyProvider propertyProvider : propertyProviders.get(type)) {
+      if (providesRequestProperties(propertyProvider, request, predicate)) {
+        keepers = propertyProvider.populateResources(keepers, request, predicate);
+      }
+    }
+    return keepers;
   }
 
   @Override
@@ -279,7 +284,8 @@ public class ClusterControllerImpl implements ClusterController {
       SystemException,
       NoSuchParentResourceException,
       NoSuchResourceException {
-    return getResources(type, request, predicate, null).getIterable();
+    PageResponse resources = getResources(type, request, predicate, null);
+    return resources.getIterable();
   }
 
   /**
@@ -412,34 +418,6 @@ public class ClusterControllerImpl implements ClusterController {
       }
     }
     return pbWithPredicate == null ? null : pbWithPredicate.toPredicate();
-  }
-
-  /**
-   * Populate the given resources from the associated property providers.  This
-   * method may filter the resources based on the predicate and return a subset
-   * of the given resources.
-   *
-   * @param type       the resource type
-   * @param resources  the resources to be populated
-   * @param request    the request
-   * @param predicate  the predicate
-   *
-   * @return the set of resources that were successfully populated
-   *
-   * @throws SystemException if unable to populate the resources
-   */
-  protected Set<Resource> populateResources(Resource.Type type,
-                                         Set<Resource> resources,
-                                         Request request,
-                                         Predicate predicate) throws SystemException {
-    Set<Resource> keepers = resources;
-
-    for (PropertyProvider propertyProvider : propertyProviders.get(type)) {
-      if (providesRequestProperties(propertyProvider, request, predicate)) {
-        keepers = propertyProvider.populateResources(keepers, request, predicate);
-      }
-    }
-    return keepers;
   }
 
   /**
