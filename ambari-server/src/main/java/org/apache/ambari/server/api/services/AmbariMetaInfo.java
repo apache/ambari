@@ -116,7 +116,7 @@ public class AmbariMetaInfo {
     this.stackRoot = stackRoot;
     this.serverVersionFile = serverVersionFile;
   }
-  
+
   /**
    * Initialize the Ambari Meta Info
    *
@@ -255,7 +255,7 @@ public class AmbariMetaInfo {
           + ", repoId= " + repoId);
     return repoResult;
   }
-  
+
   /*
    * function for given a stack name and version, is it a supported stack
    */
@@ -629,22 +629,20 @@ public class AmbariMetaInfo {
         + REPOSITORY_FILE_NAME);
 
       if (repositoryFolder.exists()) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Adding repositories to stack"
-            + ", stackName=" + stack.getName()
-            + ", stackVersion=" + stack.getVersion()
-            + ", repoFolder=" + repositoryFolder.getPath());
-        } else {
-          LOG.warn("No repository information defined for "
-            + ", stackName=" + stack.getName()
-            + ", stackVersion=" + stack.getVersion()
-            + ", repoFolder=" + repositoryFolder.getPath());
-        }
-        
+        LOG.debug("Adding repositories to stack"
+          + ", stackName=" + stack.getName()
+          + ", stackVersion=" + stack.getVersion()
+          + ", repoFolder=" + repositoryFolder.getPath());
+
         List<RepositoryInfo> repositoryInfoList = getRepository
           (repositoryFolder, stack.getVersion());
 
         stack.getRepositories().addAll(repositoryInfoList);
+      } else {
+        LOG.warn("No repository information defined for "
+          + ", stackName=" + stack.getName()
+          + ", stackVersion=" + stack.getVersion()
+          + ", repoFolder=" + repositoryFolder.getPath());
       }
 
       List<ServiceInfo> services = stackExtensionHelper
@@ -662,9 +660,9 @@ public class AmbariMetaInfo {
       throws JAXBException {
 
     RepositoryXml rxml = StackExtensionHelper.unmarshal(RepositoryXml.class, repositoryFile);
-    
+
     List<RepositoryInfo> list = new ArrayList<RepositoryInfo>();
-    
+
     for (Os o : rxml.getOses()) {
       for (String os : o.getType().split(",")) {
         for (Repo r : o.getRepos()) {
@@ -675,7 +673,7 @@ public class AmbariMetaInfo {
           ri.setOsType(os.trim());
           ri.setRepoId(r.getRepoId());
           ri.setRepoName(r.getRepoName());
-          
+
           if (null != metainfoDAO) {
             LOG.debug("Checking for override for base_url");
             String key = generateRepoMetaKey(r.getRepoName(), stackVersion,
@@ -685,17 +683,17 @@ public class AmbariMetaInfo {
               ri.setBaseUrl(entity.getMetainfoValue());
             }
           }
-  
+
           if (LOG.isDebugEnabled()) {
             LOG.debug("Adding repo to stack"
                 + ", repoInfo=" + ri.toString());
           }
-  
+
           list.add(ri);
         }
       }
     }
-    
+
     return list;
 
   }
@@ -703,20 +701,20 @@ public class AmbariMetaInfo {
   public boolean isOsSupported(String osType) {
     return ALL_SUPPORTED_OS.contains(osType);
   }
-  
+
   private String generateRepoMetaKey(String stackName, String stackVersion,
       String osType, String repoId, String field) {
-    
+
     StringBuilder sb = new StringBuilder("repo:/");
     sb.append(stackName).append('/');
     sb.append(stackVersion).append('/');
     sb.append(osType).append('/');
     sb.append(repoId);
     sb.append(':').append(field);
-    
+
     return sb.toString();
   }
-  
+
 
 
   /**
@@ -731,20 +729,20 @@ public class AmbariMetaInfo {
 
     // validate existing
     RepositoryInfo ri = getRepository(stackName, stackVersion, osType, repoId);
-    
+
     if (!stackRoot.exists())
       throw new StackAccessException("Stack root does not exist.");
-    
+
     ri.setBaseUrl(newBaseUrl);
-    
+
     if (null != metainfoDAO) {
       String metaKey = generateRepoMetaKey(stackName, stackVersion, osType,
           repoId, REPOSITORY_XML_PROPERTY_BASEURL);
-      
+
       MetainfoEntity entity = new MetainfoEntity();
       entity.setMetainfoName(metaKey);
       entity.setMetainfoValue(newBaseUrl);
-      
+
       if (null != ri.getDefaultBaseUrl() && newBaseUrl.equals(ri.getDefaultBaseUrl())) {
         metainfoDAO.remove(entity);
       } else {
@@ -752,7 +750,7 @@ public class AmbariMetaInfo {
       }
     }
   }
-  
+
   public File getStackRoot() {
     return stackRoot;
   }
