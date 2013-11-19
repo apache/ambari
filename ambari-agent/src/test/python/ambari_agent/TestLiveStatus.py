@@ -42,9 +42,9 @@ class TestLiveStatus(TestCase):
   def test_build(self, read_actual_component_mock):
     for component in LiveStatus.COMPONENTS:
       config = AmbariConfig().getConfig()
-      config.set('agent', 'prefix', "dummy_files")
+      config.set('agent', 'prefix', "ambari_agent" + os.sep + "dummy_files")
       livestatus = LiveStatus('', component['serviceName'], component['componentName'], {}, config)
-      livestatus.versionsHandler.versionsFilePath = os.path.join("dummy_files","dummy_current_stack")
+      livestatus.versionsHandler.versionsFilePath = "ambari_agent" + os.sep + "dummy_files" + os.sep + "dummy_current_stack"
       result = livestatus.build()
       print "LiveStatus of {0}: {1}".format(component['serviceName'], str(result))
       self.assertEquals(len(result) > 0, True, 'Livestatus should not be empty')

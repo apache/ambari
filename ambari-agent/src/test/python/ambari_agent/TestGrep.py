@@ -32,8 +32,8 @@ class TestGrep(TestCase):
   grep = Grep()
 
   def setUp(self):
-    self.string_good = open('dummy_puppet_output_good.txt', 'r').read().replace("\n", os.linesep)
-    self.string_bad = open('dummy_puppet_output_error.txt', 'r').read().replace("\n", os.linesep)
+    self.string_good = open('ambari_agent' + os.sep + 'dummy_puppet_output_good.txt', 'r').read().replace("\n", os.linesep)
+    self.string_bad = open('ambari_agent' + os.sep + 'dummy_puppet_output_error.txt', 'r').read().replace("\n", os.linesep)
     pass
 
   def test_grep_many_lines(self):

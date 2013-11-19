@@ -51,7 +51,10 @@ def all_tests_suite():
 
 
   src_dir = os.getcwd()
-  files_list=os.listdir(src_dir)
+  files_list = []
+  for directory in os.listdir(src_dir):
+    if os.path.isdir(directory):
+      files_list += os.listdir(src_dir + os.sep + directory)
   shuffle(files_list)
   tests_list = []
 

@@ -172,7 +172,7 @@ class TestPuppetExecutor(TestCase):
     puppetexecutor.grep = grep
     grep.ERROR_LAST_LINES_BEFORE = 2
     grep.ERROR_LAST_LINES_AFTER = 3
-    string_err = open('dummy_puppet_output_error2.txt', 'r').read().replace("\n", os.linesep)
+    string_err = open('ambari_agent' + os.sep + 'dummy_puppet_output_error2.txt', 'r').read().replace("\n", os.linesep)
     result = puppetexecutor.condenseOutput(string_err, '', 1)
     stripped_string = string_err.strip()
     lines = stripped_string.splitlines(True)
@@ -189,7 +189,7 @@ class TestPuppetExecutor(TestCase):
     puppetexecutor = PuppetExecutor("/tmp", "/x", "/y", "/z", AmbariConfig().getConfig())
     grep = Grep()
     puppetexecutor.grep = grep
-    string_err = open('dummy_puppet_output_error3.txt', 'r').read().replace("\n", os.linesep)
+    string_err = open('ambari_agent' + os.sep + 'dummy_puppet_output_error3.txt', 'r').read().replace("\n", os.linesep)
     result = puppetexecutor.condenseOutput(string_err, '', 1)
     stripped_string = string_err.strip()
     lines = stripped_string.splitlines(True)
@@ -208,7 +208,7 @@ class TestPuppetExecutor(TestCase):
     grep = Grep()
     puppetexecutor.grep = grep
     grep.OUTPUT_LAST_LINES = 2
-    string_good = open('dummy_puppet_output_good.txt', 'r').read().replace("\n", os.linesep)
+    string_good = open('ambari_agent' + os.sep + 'dummy_puppet_output_good.txt', 'r').read().replace("\n", os.linesep)
     result = puppetexecutor.condenseOutput(string_good, PuppetExecutor.NO_ERROR, 0)
     stripped_string = string_good.strip()
     lines = stripped_string.splitlines(True)

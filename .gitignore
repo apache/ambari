@@ -18,4 +18,4 @@ target
 .hgtags
 derby.log
 pass.txt
-ambari-agent/src/test/python/dummy_files/current-stack
+ambari-agent/src/test/python/ambari_agent/dummy_files/current-stack
