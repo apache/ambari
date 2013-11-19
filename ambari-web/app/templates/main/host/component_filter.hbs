@@ -16,56 +16,58 @@
 * limitations under the License.
 }}
 
-    <button class="btn single-btn-group filter-btn" {{action "clickFilterButton" target="view"}}><i class="icon-filter"></i> {{t apps.filters.filter}}</button>
+<button class="btn single-btn-group filter-btn" {{action "clickFilterButton" target="view"}}>{{t apps.filters.filter}} <i class="icon-filter"></i></button>
     <ul class="dropdown-menu filter-components">
-        <li>
+      <li id="title-bar">{{t apps.filters.filterComponents}}
+        <a class="close" {{action "closeFilter" target="view"}}>X</a>
+      </li>
+      <li id="list-area">
+        <ul>
+          <li>
+            <label class="checkbox">
+            {{view Ember.Checkbox checkedBinding="view.masterComponentsChecked"}} {{t host.host.componentFilter.master}}:
+            </label>
             <ul>
-                <li>
-                    <label class="checkbox">
-                        {{view Ember.Checkbox checkedBinding="view.masterComponentsChecked"}} {{t host.host.componentFilter.master}}:
-                    </label>
-                    <ul>
-                        {{#each component in masterComponents}}
-                            <li>
-                                <label class="checkbox">
-                                    {{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.displayName}}
-                                </label>
-                            </li>
-                        {{/each}}
-                    </ul>
-                </li>
-                <li>
-                    <label class="checkbox">
-                        {{view Ember.Checkbox checkedBinding="view.slaveComponentsChecked"}} {{t host.host.componentFilter.slave}}:
-                    </label>
-                    <ul>
-                        {{#each component in slaveComponents}}
-                            <li>
-                                <label class="checkbox">
-                                    {{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.displayName}}
-                                </label>
-                            </li>
-                        {{/each}}
-                    </ul>
-                </li>
-                <li>
-                    <label class="checkbox">
-                        {{view Ember.Checkbox checkedBinding="view.clientComponentsChecked"}} {{t host.host.componentFilter.client}}:
-                    </label>
-                    <ul>
-                        {{#each component in clientComponents}}
-                            <li>
-                                <label class="checkbox">
-                                    {{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.displayName}}
-                                </label>
-                            </li>
-                        {{/each}}
-                    </ul>
-                </li>
+            {{#each component in masterComponents}}
+              <li>
+                <label class="checkbox">
+                {{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.displayName}}
+                </label>
+              </li>
+            {{/each}}
             </ul>
-        </li>
-        <li>
-            <button class="btn" {{action "closeFilter" target="view"}}>{{t common.cancel}}</button>
-            <button class="btn btn-primary" {{action "applyFilter" target="view"}}>{{t common.apply}}</button>
-        </li>
+          </li>
+          <li>
+            <label class="checkbox">
+            {{view Ember.Checkbox checkedBinding="view.slaveComponentsChecked"}} {{t host.host.componentFilter.slave}}:
+            </label>
+            <ul>
+            {{#each component in slaveComponents}}
+              <li>
+                <label class="checkbox">
+                {{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.displayName}}
+                </label>
+              </li>
+            {{/each}}
+            </ul>
+          </li>
+          <li>
+            <label class="checkbox">
+            {{view Ember.Checkbox checkedBinding="view.clientComponentsChecked"}} {{t host.host.componentFilter.client}}:
+            </label>
+            <ul>
+            {{#each component in clientComponents}}
+              <li>
+              <label class="checkbox">
+              {{view Ember.Checkbox checkedBinding="component.checkedForHostFilter" }} {{unbound component.displayName}}
+              </label>
+              </li>
+            {{/each}}
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li id="button-bar">
+        <button class="btn btn-inverse" {{action "applyFilter" target="view"}}>{{t common.apply}}</button>
+      </li>
     </ul>

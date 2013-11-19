@@ -1625,6 +1625,7 @@ Em.I18n.translations = {
   'apps.filters.filteredHostsInfo': '{0} of {1} hosts showing - ',
   'apps.filters.customRunDate':'Run Date custom filter',
   'apps.filters.nothingToShow': 'No jobs to display',
+  'apps.filters.filterComponents': 'Filter by <strong>Component</strong>',
   'apps.dagCharts.popup':'Job Charts',
   'apps.dagCharts.popup.job': 'Job',
   'apps.dagCharts.popup.dag':'Job Timeline',

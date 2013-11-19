@@ -2541,6 +2541,9 @@ table.graphs {
         padding-left: 6px;
         text-align: left;
         width: 100px;
+        .icon-filter {
+          color: #999999;
+        }
       }
     }
 	thead {
@@ -2757,22 +2760,64 @@ table.graphs {
     }
     ul.filter-components {
       padding: 5px 0;
+      background: #777777;
+      color: #ffffff;
+      font-weight: normal;
+      font-size: 12px;
+      label {
+        font-size: 12px;
+      }
       li {
         display: block;
         padding: 3px 0 3px 5px;
         line-height: 20px;
-
         label.checkbox {
           padding-left: 3px;
         }
-
         input[type="checkbox"] {
           margin: 4px 4px 2px 2px;
         }
       }
+      li#title-bar {
+        text-align: left;
+        border-bottom: 1px solid #e4e4e4;
+        a.close {
+          background: #777777;
+          display: inline;
+          color: #ffffff;
+          padding-left: 35px;
+          padding-right: 12px;
+          text-shadow: 0 1px 0 #ffffff;
+          float: none;
+          font-size: 10px;
+          opacity: 0.6;
+        }
+        a.close:hover {
+          background: #777777;
+          opacity: 1.0;
+        }
+      }
+      li#selector-bar {
+        text-align: left;
+        border-bottom: 1px solid #e4e4e4;
+        font-size: 6px;
+      }
+      li#list-area {
+        font-weight: normal;
+        text-align: left;
+      }
+      li#button-bar {
+        text-align: center;
+        button {
+          font-size: 12px;
+        }
+      }
+      ul {
+        margin-left: 10px;
+      }
       &>li {
         &>ul {
-          height: 250px;
+          height: 150px;
           margin-left: 0;
           overflow-y: scroll;
         }
