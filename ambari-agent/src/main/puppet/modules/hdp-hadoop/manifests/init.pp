@@ -190,7 +190,9 @@ class hdp-hadoop::initialize()
 
   if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2) {
     if (hdp_is_empty($configuration) == false and hdp_is_empty($configuration['hdfs-site']) == false) {
-      if (hdp_is_empty($configuration['hdfs-site']['dfs.hosts.exclude']) == false) {
+      if (hdp_is_empty($configuration['hdfs-site']['dfs.hosts.exclude']) == false) and
+         (hdp_is_empty($configuration['hdfs-exclude-file']) or
+          has_key($configuration['hdfs-exclude-file'], 'datanodes') == false) {
         $exlude_file_path = $configuration['hdfs-site']['dfs.hosts.exclude']
         file { $exlude_file_path :
         ensure => present,
