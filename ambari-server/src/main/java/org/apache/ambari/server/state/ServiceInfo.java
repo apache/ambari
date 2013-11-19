@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.state;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.StackServiceResponse;
+import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonFilter;
 
@@ -43,6 +45,9 @@ public class ServiceInfo {
   @JsonIgnore
   private volatile Map<String, Set<String>> configLayout = null;
   private List<String> configDependencies;
+  
+  private File metricsFile = null;
+  private Map<String, Map<String, List<MetricDefinition>>> metrics = null;
 
   public boolean isDeleted() {
     return isDeleted;
@@ -213,4 +218,33 @@ public class ServiceInfo {
   public void setConfigDependencies(List<String> configDependencies) {
     this.configDependencies = configDependencies;
   }
+
+  /**
+   * @param file the file containing the metrics definitions
+   */
+  public void setMetricsFile(File file) {
+    metricsFile = file;
+  }
+  
+  /**
+   * @return the metrics file, or <code>null</code> if none exists
+   */
+  public File getMetricsFile() {
+    return metricsFile;
+  }
+
+  /**
+   * @return the metrics defined for this service
+   */
+  public Map<String, Map<String, List<MetricDefinition>>> getMetrics() {
+    return metrics;
+  }
+  
+  /**
+   * @param map the metrics for this service
+   */
+  public void setMetrics(Map<String, Map<String, List<MetricDefinition>>> map) {
+    metrics = map;
+  }
+
 }

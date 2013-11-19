@@ -96,6 +96,11 @@ public class StackExtensionHelper {
     mergedServiceInfo.setUser(childService.getUser());
     mergedServiceInfo.setVersion(childService.getVersion());
     mergedServiceInfo.setConfigDependencies(childService.getConfigDependencies());
+    
+    // metrics
+    if (null == childService.getMetricsFile() && null != parentService.getMetricsFile())
+      mergedServiceInfo.setMetricsFile(parentService.getMetricsFile());
+    
     // Add all child components to service
     List<String> deleteList = new ArrayList<String>();
     List<String> appendList = new ArrayList<String>();
@@ -203,8 +208,15 @@ public class StackExtensionHelper {
           serviceInfo.setName(serviceFolder.getName());
           File metainfoFile = new File(serviceFolder.getAbsolutePath()
             + File.separator + AmbariMetaInfo.SERVICE_METAINFO_FILE_NAME);
-
+          
           setMetaInfo(metainfoFile, serviceInfo);
+          
+          // get metrics file, if it exists
+          File metricsJson = new File(serviceFolder.getAbsolutePath()
+              + File.separator + AmbariMetaInfo.SERVICE_METRIC_FILE_NAME);
+          if (metricsJson.exists())
+            serviceInfo.setMetricsFile(metricsJson);
+          
           // Add now to be removed while iterating extension graph
           services.add(serviceInfo);
 

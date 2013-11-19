@@ -357,8 +357,9 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
             PropertyHelper.getPropertyId("Hosts", "host_name")
         ));
         break;
-      case Component :
-        providers.add(createJMXPropertyProvider(
+      case Component : {
+        // TODO as we fill out stack metric definitions, these can be phased out
+        PropertyProvider jpp = createJMXPropertyProvider(
             type,
             streamProvider,
             this,
@@ -366,18 +367,32 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
             null,
             PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"),
             PropertyHelper.getPropertyId("ServiceComponentInfo", "state"),
-            Collections.singleton("STARTED")));
+            Collections.singleton("STARTED"));
 
-        providers.add(createGangliaComponentPropertyProvider(
+        PropertyProvider gpp = createGangliaComponentPropertyProvider(
             type,
             streamProvider,
             ComponentSSLConfiguration.instance(),
             this,
             PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
-            PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name")));
+            PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"));
+        
+        providers.add(new StackDefinedPropertyProvider(
+            type,
+            this,
+            this,
+            streamProvider,
+            PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
+            PropertyHelper.getPropertyId("ServiceComponentInfo", "host_name"),
+            PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"),
+            PropertyHelper.getPropertyId("ServiceComponentInfo", "state"),
+            jpp,
+            gpp));
+        }
         break;
-      case HostComponent:
-        providers.add(createJMXPropertyProvider(
+      case HostComponent: {
+        // TODO as we fill out stack metric definitions, these can be phased out
+        PropertyProvider jpp = createJMXPropertyProvider(
             type,
             streamProvider,
             this,
@@ -385,17 +400,29 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
             PropertyHelper.getPropertyId("HostRoles", "host_name"),
             PropertyHelper.getPropertyId("HostRoles", "component_name"),
             PropertyHelper.getPropertyId("HostRoles", "state"),
-            Collections.singleton("STARTED")));
+            Collections.singleton("STARTED"));
 
-        providers.add(createGangliaHostComponentPropertyProvider(
+        PropertyProvider gpp = createGangliaHostComponentPropertyProvider(
             type,
             streamProvider,
             ComponentSSLConfiguration.instance(),
             this,
             PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
             PropertyHelper.getPropertyId("HostRoles", "host_name"),
-            PropertyHelper.getPropertyId("HostRoles", "component_name")));
+            PropertyHelper.getPropertyId("HostRoles", "component_name"));
         
+        providers.add(new StackDefinedPropertyProvider(
+            type,
+            this,
+            this,
+            streamProvider,
+            PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+            PropertyHelper.getPropertyId("HostRoles", "host_name"),
+            PropertyHelper.getPropertyId("HostRoles", "component_name"),
+            PropertyHelper.getPropertyId("HostRoles", "state"),
+            jpp,
+            gpp));
+        }
         break;
       default :
         break;
@@ -692,6 +719,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
 
     return new VersioningPropertyProvider(clusterVersionsMap, providers, lastProvider, clusterNamePropertyId);
   }
+
 
   /**
    * Create the Ganglia host component property provider for the given type.

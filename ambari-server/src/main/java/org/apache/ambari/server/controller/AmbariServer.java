@@ -20,9 +20,10 @@ package org.apache.ambari.server.controller;
 
 
 import java.io.File;
-import javax.crypto.BadPaddingException;
 import java.net.BindException;
 import java.util.Map;
+
+import javax.crypto.BadPaddingException;
 
 import org.apache.ambari.eventdb.webservice.WorkflowJsonService;
 import org.apache.ambari.server.AmbariException;
@@ -37,8 +38,10 @@ import org.apache.ambari.server.api.services.KeyService;
 import org.apache.ambari.server.api.services.PersistKeyValueImpl;
 import org.apache.ambari.server.api.services.PersistKeyValueService;
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.ClusterControllerImpl;
+import org.apache.ambari.server.controller.internal.StackDefinedPropertyProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
@@ -439,6 +442,7 @@ public class AmbariServer {
     WorkflowJsonService.setDBProperties(
         injector.getInstance(Configuration.class));
     SecurityFilter.init(injector.getInstance(Configuration.class));
+    StackDefinedPropertyProvider.init(injector);
   }
 
   public static void main(String[] args) throws Exception {

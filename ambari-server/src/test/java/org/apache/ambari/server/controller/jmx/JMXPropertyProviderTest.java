@@ -845,10 +845,10 @@ public class JMXPropertyProviderTest {
     Assert.assertTrue(map.get("metrics/hbase/master").containsKey("IsActiveMaster"));
   }  
     
-  private static class TestJMXHostProvider implements JMXHostProvider {
+  public static class TestJMXHostProvider implements JMXHostProvider {
     private final boolean unknownPort;
 
-    private TestJMXHostProvider(boolean unknownPort) {
+    public TestJMXHostProvider(boolean unknownPort) {
       this.unknownPort = unknownPort;
     }
 

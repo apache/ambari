@@ -49,6 +49,7 @@ import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.Stack;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -59,10 +60,10 @@ import org.slf4j.LoggerFactory;
 
 public class AmbariMetaInfoTest {
 
-  private static String STACK_NAME_HDP = "HDP";
-  private static String STACK_VERSION_HDP = "0.1";
-  private static String EXT_STACK_NAME = "2.0.6";
-  private static String STACK_VERSION_HDP_02 = "0.2";
+  private static final String STACK_NAME_HDP = "HDP";
+  private static final String STACK_VERSION_HDP = "0.1";
+  private static final String EXT_STACK_NAME = "2.0.6";
+  private static final String STACK_VERSION_HDP_02 = "0.2";
   private static final String STACK_MINIMAL_VERSION_HDP = "0.0";
   private static String SERVICE_NAME_HDFS = "HDFS";
   private static String SERVICE_NAME_MAPRED2 = "MAPREDUCE2";
@@ -623,5 +624,31 @@ public class AmbariMetaInfoTest {
     } catch(Exception e) {
       assertTrue(JAXBException.class.isInstance(e));
     }
+  }
+  
+  @Test
+  public void testMetricsJson() throws Exception {
+    ServiceInfo svc = metaInfo.getService(STACK_NAME_HDP, "2.0.5", "HDFS");
+    Assert.assertNotNull(svc);
+    Assert.assertNotNull(svc.getMetricsFile());
+    
+    svc = metaInfo.getService(STACK_NAME_HDP, "2.0.6", "HDFS");
+    Assert.assertNotNull(svc);
+    Assert.assertNotNull(svc.getMetricsFile());
+    
+    List<MetricDefinition> list = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.5", "HDFS", "NAMENODE", "Component");
+    Assert.assertNotNull(list);
+    
+    list = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.5", "HDFS", "DATANODE", "Component");
+    Assert.assertNull(list);
+    
+    List<MetricDefinition> list0 = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.5", "HDFS", "DATANODE", "Component");
+    Assert.assertNull(list0);
+    Assert.assertTrue("Expecting subsequent calls to use a cached value for the definition", list == list0);
+    
+
+    // not explicitly defined, uses 2.0.5
+    list = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.6", "HDFS", "DATANODE", "Component");
+    Assert.assertNull(list);
   }
 }

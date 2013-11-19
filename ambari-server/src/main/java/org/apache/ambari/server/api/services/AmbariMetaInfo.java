@@ -19,9 +19,12 @@
 package org.apache.ambari.server.api.services;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -45,13 +48,15 @@ import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.Stack;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.RepositoryXml.Os;
 import org.apache.ambari.server.state.stack.RepositoryXml.Repo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.Arrays;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -74,11 +79,11 @@ public class AmbariMetaInfo {
   private static final String REPOSITORY_FOLDER_NAME = "repos";
   private static final String REPOSITORY_XML_PROPERTY_BASEURL = "baseurl";
   // all the supported OS'es
-  private static final ArrayList<String> ALL_SUPPORTED_OS = new
-    ArrayList<String>(
-    Arrays.asList("centos5", "redhat5", "centos6", "redhat6", "oraclelinux5",
-      "oraclelinux6", "suse11", "sles11", "ubuntu12")
-  );
+  private static final List<String> ALL_SUPPORTED_OS = Arrays.asList(
+      "centos5", "redhat5", "centos6", "redhat6", "oraclelinux5",
+      "oraclelinux6", "suse11", "sles11", "ubuntu12");
+  
+  public static final String SERVICE_METRIC_FILE_NAME = "metrics.json";
 
   public static final FilenameFilter FILENAME_FILTER = new FilenameFilter() {
     @Override
@@ -753,6 +758,52 @@ public class AmbariMetaInfo {
 
   public File getStackRoot() {
     return stackRoot;
+  }
+  
+  /**
+   * Gets the metrics for a Role (component).
+   * @return the list of defined metrics.
+   */
+  public List<MetricDefinition> getMetrics(String stackName, String stackVersion,
+      String serviceName, String componentName, String metricType)
+  throws AmbariException {
+    
+    ServiceInfo svc = getService(stackName, stackVersion, serviceName);
+    
+    if (null == svc.getMetricsFile() || !svc.getMetricsFile().exists()) {
+      LOG.debug("Metrics file for " + stackName + "/" + stackVersion + "/" + serviceName + " not found.");
+      return null;
+    }
+    
+    Map<String, Map<String, List<MetricDefinition>>> map = svc.getMetrics();
+    
+    // check for cached
+    if (null == map) {
+      // data layout:
+      // "DATANODE" -> "Component" -> [ MetricDefinition, MetricDefinition, ... ]
+      //           \-> "HostComponent" -> [ MetricDefinition, ... ]
+      Type type = new TypeToken<Map<String, Map<String, List<MetricDefinition>>>>(){}.getType();
+      
+      Gson gson = new Gson();
+
+      try {
+        map = gson.fromJson(new FileReader(svc.getMetricsFile()), type);
+    
+        svc.setMetrics(map);
+        
+      } catch (Exception e) {
+        LOG.error ("Could not read the metrics file", e);
+        throw new AmbariException("Could not read metrics file", e);
+      }
+    }
+    
+    if (map.containsKey(componentName)) {
+      if (map.get(componentName).containsKey(metricType)) {
+        return map.get(componentName).get(metricType);
+      }
+    }
+	  
+	  return null;
   }
 
 }

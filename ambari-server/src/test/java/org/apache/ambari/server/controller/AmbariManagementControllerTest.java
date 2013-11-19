@@ -7290,7 +7290,7 @@ public class AmbariManagementControllerTest {
     assertEquals(original, repo.getDefaultBaseUrl());
   }
   
-  @Test
+  @Ignore
   public void testUpdateRepoUrlController() throws Exception {
     RepositoryInfo repo = ambariMetaInfo.getRepository(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
     

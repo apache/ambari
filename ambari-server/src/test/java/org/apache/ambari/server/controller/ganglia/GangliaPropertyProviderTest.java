@@ -997,7 +997,7 @@ public class GangliaPropertyProviderTest {
     return metricsBuilder.toString();
   }
 
-  private static class TestGangliaHostProvider implements GangliaHostProvider {
+  public static class TestGangliaHostProvider implements GangliaHostProvider {
 
     private boolean isHostLive;
     private boolean isComponentLive;
