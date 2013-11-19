@@ -84,7 +84,12 @@ App.ManageConfigGroupsController = Em.Controller.extend({
         });
         usedHosts = usedHosts.concat(newConfigGroup.get('hosts'));
         configGroups.push(newConfigGroup);
+        var newConfigGroupSiteTags = newConfigGroup.get('configSiteTags');
         configGroup.desired_configs.forEach(function (config) {
+          newConfigGroupSiteTags.push(App.ConfigSiteTag.create({
+            site: config.type,
+            tag: config.tag
+          }));
           if (!groupToTypeToTagMap[configGroup.group_name]) {
             groupToTypeToTagMap[configGroup.group_name] = {}
           }

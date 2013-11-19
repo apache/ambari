@@ -1162,8 +1162,8 @@ App.config = Em.Object.create({
     });
     configGroup.get('configSiteTags').forEach(function(cst){
       putConfigGroup.ConfigGroup.desired_configs.push({
-        type: cst.type,
-        tag: cst.tag
+        type: cst.get('site'),
+        tag: cst.get('tag')
       });
     });
     
