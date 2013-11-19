@@ -125,8 +125,8 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   clearStep: function () {
     this.set('stopBootstrap', false);
-    this.hosts.clear();
-    this.bootHosts.clear();
+    this.set('hosts', []);
+    this.get('bootHosts').clear();
     this.get('wizardController').setDBProperty('bootStatus', false);
     this.set('isSubmitDisabled', true);
     this.set('isRetryDisabled', true);
@@ -474,7 +474,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       sender: this,
       success: 'getAllRegisteredHostsCallback'
     });
-  }.observes('bootHosts.@each.name'),
+  }.observes('bootHosts'),
 
   hostsInCluster: function() {
     return App.Host.find().getEach('hostName');
