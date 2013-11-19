@@ -890,8 +890,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       result.flag = this.doPUTClusterConfigurations();
     } else {
       var overridenConfigs = [];
+      var groupHosts = [];
       configs.filterProperty('isOverridden', true).forEach(function (config) {
         overridenConfigs = overridenConfigs.concat(config.get('overrides'));
+      });
+      selectedConfigGroup.get('hosts').forEach(function(hostName){
+        groupHosts.push({"host_name": hostName});
       });
 
       this.putConfigGroupChanges({
@@ -901,7 +905,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           "group_name": selectedConfigGroup.get('name'),
           "tag": selectedConfigGroup.get('service.id'),
           "description": selectedConfigGroup.get('description'),
-          "hosts": selectedConfigGroup.get('hosts'),
+          "hosts": groupHosts,
           "desired_configs": this.buildGroupDesiredConfigs(overridenConfigs)
         }
       });
@@ -967,17 +971,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       if (globalConfigs.someProperty('name', uiConfigProperty.name)) {
         var modelGlobalConfig = globalConfigs.findProperty('name', uiConfigProperty.name);
         modelGlobalConfig.value = uiConfigProperty.value;
-        var uiOverrides = uiConfigProperty.get('overrides');
-        if (uiOverrides != null && uiOverrides.get('length') > 0) {
-          modelGlobalConfig.overrides = {};
-          uiOverrides.forEach(function (uiOverride) {
-            var value = uiOverride.get('value');
-            modelGlobalConfig.overrides[value] = [];
-            uiOverride.get('selectedHostOptions').forEach(function (host) {
-              modelGlobalConfig.overrides[value].push(host);
-            });
-          });
-        }
       } else {
         globalConfigs.pushObject({
           name: uiConfigProperty.name,
