@@ -54,7 +54,7 @@ App.WizardStep1View = Em.View.extend({
   }.property('emptyRepoExist', 'allRepoUnchecked', 'invalidUrlExist'),
   invalidUrlExist: function () {
     var selectedStack = this.get('controller.content.stacks').findProperty('isSelected', true);
-    var invalidExist = this.get('allRepositoriesGroup').filterProperty('validation', 'icon-remove').length != 0;
+    var invalidExist = this.get('allRepositoriesGroup').filterProperty('validation', 'icon-exclamation-sign').length != 0;
     return (selectedStack.get('invalidCnt') > 0) && invalidExist;
   }.property('controller.content.stacks.@each.invalidCnt', 'allRepositoriesGroup.@each.validation'),
   allRepoUnchecked: function () {
@@ -62,7 +62,7 @@ App.WizardStep1View = Em.View.extend({
   }.property('allRepositoriesGroup.@each.checked'),
   totalErrorCnt: function () {
     var emptyCnt = this.get('allRepositoriesGroup').filterProperty('empty-error', true).length;
-    var invalidCnt = this.get('allRepositoriesGroup').filterProperty('validation', 'icon-remove').length;
+    var invalidCnt = this.get('allRepositoriesGroup').filterProperty('validation', 'icon-exclamation-sign').length;
     if (this.get('allRepoUnchecked')) {
       return 1;
     } else if ( emptyCnt || invalidCnt) {
@@ -144,7 +144,7 @@ App.WizardStep1View = Em.View.extend({
     group.set('baseUrl', os.baseUrl);
     group.set('defaultBaseUrl', os.defaultBaseUrl);
     group.set('empty-error', !os.baseUrl);
-    group.set('invalid-error', os.validation == 'icon-remove');
+    group.set('invalid-error', os.validation == 'icon-exclamation-sign');
     group.set('validation', os.validation);
     group.set('undo', os.baseUrl != os.defaultBaseUrl);
     group.set('clearAll', os.baseUrl);

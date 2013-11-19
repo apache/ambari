@@ -426,7 +426,7 @@ App.InstallerController = App.WizardController.extend({
     var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
     if (selectedStack && selectedStack.operatingSystems) {
       var os = selectedStack.operatingSystems.findProperty('osType', osType);
-      os.validation = 'icon-remove';
+      os.validation = 'icon-exclamation-sign';
       selectedStack.set('reload', !selectedStack.get('reload'));
       this.set('validationCnt', this.get('validationCnt') - 1);
       this.set('invalidCnt', this.get('invalidCnt') + 1);

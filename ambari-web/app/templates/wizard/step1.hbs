@@ -42,15 +42,15 @@
       <div  class="accordion-body collapse in">
         <div class="accordion-inner">
           <div class="alert alert-info">{{t installer.step1.advancedRepo.message}}</div>
-          <div class="alert alert-danger">{{t installer.step1.advancedRepo.importantMassage}}</div>
+          <div class="alert alert-warning">{{t installer.step1.advancedRepo.importantMassage}}</div>
 
           <table class="table">
             <thead>
             <tr>
               <th></th>
               <th class="os">{{t common.os}}</th>
-              <th class="url">{{t installer.step1.advancedRepo.localRepo.column.baseUrl}}</th>
               <th class="validations"></th>
+              <th class="url">{{t installer.step1.advancedRepo.localRepo.column.baseUrl}}</th>
               <th class="actions"></th>
             </tr>
             </thead>
@@ -69,6 +69,11 @@
                       </tbody>
                     </table>
                   </td>
+                  <td class="validation-results">
+                    {{#if repoGroup.validation}}
+                      <i {{bindAttr class="repoGroup.validation"}}></i>
+                    {{/if}}
+                  </td>
                   <td  {{bindAttr class=":url-results repoGroup.checked::disabled-textfield repoGroup.empty-error:textfield-error repoGroup.invalid-error:textfield-error"}}>
                     {{view Ember.TextField valueBinding="repoGroup.baseUrl"}}
                   </td>
@@ -77,11 +82,6 @@
                       <a {{action "clearGroupLocalRepository" repoGroup target="view" }}>
                         <i class="icon-remove-sign"></i>
                       </a>
-                    {{/if}}
-                  </td>
-                  <td class="validation-results">
-                    {{#if repoGroup.validation}}
-                      <i {{bindAttr class="repoGroup.validation"}}></i>
                     {{/if}}
                   </td>
                   <td class="action-results">
