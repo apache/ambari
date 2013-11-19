@@ -19,5 +19,13 @@
 var App = require('app');
 
 App.MainServiceView = Em.View.extend({
-  templateName:require('templates/main/service')
+  templateName:require('templates/main/service'),
+  didInsertElement: function() {
+    this.addToolTip();
+  },
+  addToolTip: function() {
+    if (this.get('controller.isAllServicesInstalled')) {
+      $('.add-service-button a').tooltip({title: Em.I18n.t('services.nothingToAdd')});
+    }
+  }.observes('controller.isAllServicesInstalled')
 });

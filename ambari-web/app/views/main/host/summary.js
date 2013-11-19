@@ -122,7 +122,13 @@ App.MainHostSummaryView = Em.View.extend({
   },
   didInsertElement: function () {
     this.loadDecommissionNodesList();
+    this.addToolTip();
   },
+  addToolTip: function() {
+    if (this.get('addComponentDisabled')) {
+      $('#add_component').tooltip({title: Em.I18n.t('services.nothingToAdd')});
+    }
+  }.observes('addComponentDisabled'),
   sortedComponents: function () {
     var slaveComponents = [];
     var masterComponents = [];
@@ -166,7 +172,11 @@ App.MainHostSummaryView = Em.View.extend({
   isAddComponent: function () {
     return this.get('content.healthClass') !== 'health-status-DEAD-YELLOW';
   }.property('content.healthClass'),
-  
+
+  addComponentDisabled: function() {
+    return (!this.get('isAddComponent')) || (this.get('addableComponents.length') == 0);
+  }.property('isAddComponent', 'addableComponents.length'),
+
   installableClientComponents: function() {
     var installableClients = [];
     if (!App.supports.deleteHost) {

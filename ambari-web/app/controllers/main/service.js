@@ -34,6 +34,39 @@ App.MainServiceController = Em.ArrayController.extend({
     return App.Cluster.find().objectAt(0);
   }.property('App.router.clusterController.isLoaded'),
 
+  isAllServicesInstalled: function() {
+    var availableServices = App.db.getServices();
+    if (!availableServices) {
+      this.loadAvailableServices();
+      availableServices = App.db.getServices();
+    }
+    return this.get('content').length == availableServices.length;
+  }.property('content.@each', 'content.length'),
+
+  loadAvailableServices: function() {
+    App.ajax.send({
+      name: 'wizard.service_components',
+      sender: this,
+      data: {
+        stackUrl: App.get('stack2VersionURL'),
+        stackVersion: App.get('currentStackVersionNumber')
+      },
+      success: 'loadAvailableServicesSuccessCallback'
+    });
+  },
+
+  loadAvailableServicesSuccessCallback: function(jsonData) {
+    var data = [];
+    var displayOrderConfig = require('data/services');
+    for (var i = 0; i < displayOrderConfig.length; i++) {
+      var entry = jsonData.items.findProperty("StackServices.service_name", displayOrderConfig[i].serviceName);
+      if (entry) {
+        data.push(entry.StackServices.service_name);
+      }
+    }
+    App.db.setServices(data);
+  },
+
   isStartAllDisabled: function(){
     if(this.get('isStartStopAllClicked') == true) {
       return true;
@@ -51,7 +84,7 @@ App.MainServiceController = Em.ArrayController.extend({
       if(!['HCATALOG', 'PIG', 'SQOOP'].contains(item.get('serviceName'))){
         flag = false;
       }
-    })
+    });
     return flag;
   }.property('isStartStopAllClicked', 'content.@each.healthStatus'),
   isStartStopAllClicked: function(){
@@ -115,5 +148,13 @@ App.MainServiceController = Em.ArrayController.extend({
   },
   allServicesCallErrorCallback: function() {
     console.log("ERROR");
+  },
+
+  gotoAddService: function() {
+    if (this.get('isAllServicesInstalled')) {
+      return;
+    }
+    App.router.transitionTo('main.serviceAdd');
   }
-})
+
+});

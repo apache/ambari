@@ -165,25 +165,21 @@
             </div>
             <div class="span5 row">
               {{#if App.isAdmin}}
-                {{#if view.isAddComponent}}
-                  {{#if view.addableComponents.length}}
-                    <div class="btn-group pull-right">
-                      <button id="add_component" class="btn btn-info dropdown-toggle" data-toggle="dropdown">
-                        {{t hosts.host.summary.addComponent}}
-                        <span class="caret pull-right"></span>
-                      </button>
-                      <ul class="dropdown-menu">
-                        {{#each component in view.addableComponents}}
-                          <li>
-                            <a href="javascript:void(null)" data-toggle="modal" {{action addComponent component target="controller"}}>
-                              {{component.displayName}}
-                            </a>
-                          </li>
-                        {{/each}}
-                      </ul>
-                    </div>
-                  {{/if}}
-                {{/if}}
+                <div class="btn-group pull-right">
+                  <button id="add_component" data-toggle="dropdown" {{bindAttr class="view.addComponentDisabled:disabled :btn :btn-info :dropdown-toggle"}}>
+                    {{t hosts.host.summary.addComponent}}
+                    <span class="caret pull-right"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    {{#each component in view.addableComponents}}
+                      <li>
+                        <a href="javascript:void(null)" data-toggle="modal" {{action addComponent component target="controller"}}>
+                          {{component.displayName}}
+                        </a>
+                      </li>
+                    {{/each}}
+                  </ul>
+                </div>
               {{/if}}
             </div>
           </div>

@@ -296,6 +296,12 @@ App.db.setStacks = function (stacks) {
   localStorage.setObject('ambari', App.db.data);
 };
 
+App.db.setServices = function (services) {
+  App.db.data = localStorage.getObject('ambari');
+  App.db.data.app.services = services;
+  localStorage.setObject('ambari', App.db.data);
+};
+
 App.db.setConfigs = function (configs) {
   App.db.data = localStorage.getObject('ambari');
   App.db.data.app.configs = configs;
@@ -699,6 +705,11 @@ App.db.getIsNameNodeHa = function (haStatus) {
 App.db.getStacks = function () {
   App.db.data = localStorage.getObject('ambari');
   return App.db.data.app.stacksVersions;
+};
+
+App.db.getServices = function () {
+  App.db.data = localStorage.getObject('ambari');
+  return App.db.data.app.services;
 };
 
 App.db.getHighAvailabilityWizardHdfsUser = function () {
