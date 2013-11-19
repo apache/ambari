@@ -30,6 +30,21 @@ import org.codehaus.jackson.annotate.JsonProperty;
 public class RegistrationResponse {
   @JsonProperty("response")
   private RegistrationStatus response;
+
+  /**
+   * exitstatus is a code of error which was rised on server side.
+   * exitstatus = 0 (OK - Default)
+   * exitstatus = 1 (Registration failed because
+   *                different version of agent and server)
+   */
+  @JsonProperty("exitstatus")
+  private int exitstatus;
+
+  /**
+   * log - message, which will be printed to agents  log
+   */
+  @JsonProperty("log")
+  private String log;  
   
   //Response id to start with, usually zero.
   @JsonProperty("responseId")
@@ -62,6 +77,14 @@ public class RegistrationResponse {
     this.responseId = responseId;
   }
 
+  public void setExitstatus(int exitstatus) {
+    this.exitstatus = exitstatus;
+  }
+
+  public void setLog(String log) {
+    this.log = log;
+  }
+ 
   @Override
   public String toString() {
     return "RegistrationResponse{" +

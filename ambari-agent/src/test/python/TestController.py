@@ -55,12 +55,11 @@ class TestController(unittest.TestCase):
 
 
   @patch("json.dumps")
-  @patch("json.loads")
   @patch("time.sleep")
   @patch("pprint.pformat")
   @patch.object(Controller, "randint")
   def test_registerWithServer(self, randintMock, pformatMock, sleepMock,
-                              loadsMock, dumpsMock):
+                              dumpsMock):
 
     out = StringIO.StringIO()
     sys.stdout = out
@@ -68,19 +67,20 @@ class TestController(unittest.TestCase):
     register = MagicMock()
     self.controller.register = register
 
-    sendRequest = MagicMock()
-    self.controller.sendRequest = sendRequest
+    self.controller.sendRequest = MagicMock()
 
     dumpsMock.return_value = "request"
-    response = {"responseId":1,}
-    loadsMock.return_value = response
+    self.controller.sendRequest.return_value = '{"log":"Error text", "exitstatus":"1"}'
 
-    self.assertEqual(response, self.controller.registerWithServer())
+    self.assertEqual({u'exitstatus': u'1', u'log': u'Error text'}, self.controller.registerWithServer())
 
-    response["statusCommands"] = "commands"
+    self.controller.sendRequest.return_value = '{"responseId":1}'
+    self.assertEqual({"responseId":1}, self.controller.registerWithServer())
+
+    self.controller.sendRequest.return_value = '{"responseId":1, "statusCommands": "commands", "log":"", "exitstatus":"0"}'
     self.controller.addToQueue = MagicMock(name="addToQueue")
-
-    self.assertEqual(response, self.controller.registerWithServer())
+    self.controller.isRegistered = False
+    self.assertEqual({'exitstatus': '0', 'responseId': 1, 'log': '', 'statusCommands': 'commands'}, self.controller.registerWithServer())
     self.controller.addToQueue.assert_called_with("commands")
 
     calls = []
@@ -91,10 +91,11 @@ class TestController(unittest.TestCase):
         raise Exception("test")
       return "request"
 
-    del response["statusCommands"]
+    self.controller.sendRequest.return_value = '{"responseId":1}'
 
     dumpsMock.side_effect = side_effect
-    self.assertEqual(response, self.controller.registerWithServer())
+    self.controller.isRegistered = False
+    self.assertEqual({"responseId":1}, self.controller.registerWithServer())
     self.assertTrue(randintMock.called)
     self.assertTrue(sleepMock.called)
 
@@ -189,6 +190,7 @@ class TestController(unittest.TestCase):
 
     Controller.Controller.__sendRequest__ = MagicMock(side_effect=Exception())
 
+    self.controller.isRegistered = True
     self.controller.registerAndHeartbeat()
     registerWithServer.assert_called_once_with()
     heartbeatWithServer.assert_called_once_with()
@@ -207,6 +209,7 @@ class TestController(unittest.TestCase):
     heartbeatWithServer = MagicMock(name="heartbeatWithServer")
     self.controller.heartbeatWithServer = heartbeatWithServer
 
+    self.controller.isRegistered = True;
     self.controller.registerAndHeartbeat()
     registerWithServer.assert_called_once_with()
     heartbeatWithServer.assert_called_once_with()

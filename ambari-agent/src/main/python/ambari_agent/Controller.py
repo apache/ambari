@@ -60,6 +60,7 @@ class Controller(threading.Thread):
     self.netutil = NetUtil()
     self.responseId = -1
     self.repeatRegistration = False
+    self.isRegistered = False
     self.cachedconnect = None
     self.range = range
     self.hasMappedComponents = True
@@ -74,21 +75,34 @@ class Controller(threading.Thread):
   def registerWithServer(self):
     retry=False
     firstTime=True
-    registered=False
     id = -1
     ret = {}
 
-    while not registered:
+    while not self.isRegistered:
       try:
         data = json.dumps(self.register.build(id))
         logger.info("Registering with the server " + pprint.pformat(data))
         response = self.sendRequest(self.registerUrl, data)
         ret = json.loads(response)
-
+        exitstatus = 0
+        # exitstatus is a code of error which was rised on server side.
+        # exitstatus = 0 (OK - Default)
+        # exitstatus = 1 (Registration failed because
+        #                different version of agent and server)
+        if 'exitstatus' in ret.keys():
+          exitstatus = int(ret['exitstatus'])
+        # log - message, which will be printed to agents  log  
+        if 'log' in ret.keys():
+          log = ret['log']
+        if exitstatus == 1:
+          logger.error(log)
+          self.isRegistered = False
+          self.repeatRegistration=False
+          return ret
         logger.info("Registered with the server with " + pprint.pformat(ret))
         print("Registered with the server")
         self.responseId= int(ret['responseId'])
-        registered = True
+        self.isRegistered = True
         if 'statusCommands' in ret.keys():
           logger.info("Got status commands on registration " + pprint.pformat(ret['statusCommands']) )
           self.addToQueue(ret['statusCommands'])
@@ -98,6 +112,7 @@ class Controller(threading.Thread):
         pass
       except ssl.SSLError:
         self.repeatRegistration=False
+        self.isRegistered = False
         return
       except Exception, err:
         # try a reconnect only after a certain amount of random time
@@ -160,6 +175,7 @@ class Controller(threading.Thread):
           # check if the registration command is None. If none skip
           if response['registrationCommand'] is not None:
             logger.info("RegistrationCommand received - repeat agent registration")
+            self.isRegistered = False
             self.repeatRegistration = True
             return
 
@@ -192,6 +208,7 @@ class Controller(threading.Thread):
         self.heartbeat_wait_event.clear()
       except ssl.SSLError:
         self.repeatRegistration=False
+        self.isRegistered = False
         return
       except Exception, err:
         #randomize the heartbeat
@@ -239,8 +256,9 @@ class Controller(threading.Thread):
     registerResponse = self.registerWithServer()
     message = registerResponse['response']
     logger.info("Response from server = " + message)
-    time.sleep(self.netutil.HEARTBEAT_IDDLE_INTERVAL_SEC)
-    self.heartbeatWithServer()
+    if self.isRegistered:
+     time.sleep(self.netutil.HEARTBEAT_IDDLE_INTERVAL_SEC)
+     self.heartbeatWithServer()
 
   def restartAgent(self):
     os._exit(AGENT_AUTO_RESTART_EXIT_CODE)
