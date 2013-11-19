@@ -23,7 +23,6 @@ import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.api.services.ResultImpl;
-import org.apache.ambari.server.controller.predicate.OrPredicate;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
@@ -67,9 +66,9 @@ public class QueryImpl implements Query, ResourceInstance {
   private final Map<Resource.Type, String> keyValueMap = new HashMap<Resource.Type, String>();
 
   /**
-   * Set of maps of primary and foreign key values.
+   * Set of query results.
    */
-  Set<Map<Resource.Type, String>> keyValueMaps = new HashSet<Map<Resource.Type, String>>();
+  Map<Resource, QueryResult> queryResults = new LinkedHashMap<Resource, QueryResult>();
 
   /**
    * Sub-resources of the resource which is being operated on.
@@ -96,11 +95,6 @@ public class QueryImpl implements Query, ResourceInstance {
    * The user supplied page request information.
    */
   private PageRequest pageRequest;
-
-  /**
-   * Query resources.
-   */
-  private Set<Resource> providerResourceSet;
 
   /**
    * The logger.
@@ -166,7 +160,7 @@ public class QueryImpl implements Query, ResourceInstance {
              NoSuchParentResourceException {
 
     queryForResources();
-    return getResult();
+    return getResult(null);
   }
 
   @Override
@@ -303,14 +297,21 @@ public class QueryImpl implements Query, ResourceInstance {
       NoSuchResourceException,
       NoSuchParentResourceException {
 
-    providerResourceSet = new LinkedHashSet<Resource>();
+    Set<Resource> providerResourceSet = new HashSet<Resource>();
 
-    // save the top level resources
-    for (Resource resource : doQuery(getPredicate())) {
-      providerResourceSet.add(resource);
+    Resource.Type resourceType = getResourceDefinition().getType();
+    Request       request      = createRequest();
+    Predicate     predicate    = getPredicate();
+
+    Set<Resource> resourceSet = new LinkedHashSet<Resource>();
+
+    for (Resource queryResource : doQuery(resourceType, request, predicate)) {
+      providerResourceSet.add(queryResource);
+      resourceSet.add(queryResource);
     }
-    keyValueMaps.add(getKeyValueMap());
+    queryResults.put(null, new QueryResult(request, predicate, getKeyValueMap(), resourceSet));
 
+    clusterController.populateResources(resourceType, providerResourceSet, request, predicate);
     queryForSubResources();
   }
 
@@ -325,17 +326,31 @@ public class QueryImpl implements Query, ResourceInstance {
       NoSuchResourceException,
       NoSuchParentResourceException {
 
-    // get predicates for all of the sub resource types
-    Map<String, Predicate> predicateMap = getSubResourcePredicates(providerResourceSet);
-
     for (Map.Entry<String, QueryImpl> entry : querySubResourceSet.entrySet()) {
-      QueryImpl subResource  = entry.getValue();
 
-      subResource.providerResourceSet = new LinkedHashSet<Resource>();
+      QueryImpl     subResource  = entry.getValue();
+      Resource.Type resourceType = subResource.getResourceDefinition().getType();
+      Request       request      = subResource.createRequest();
 
-      for (Resource resource : subResource.doQuery(predicateMap.get(entry.getKey()))) {
-        subResource.providerResourceSet.add(resource);
+      Set<Resource> providerResourceSet = new HashSet<Resource>();
+
+      for (QueryResult queryResult : queryResults.values()) {
+        for (Resource resource : queryResult.getProviderResourceSet()) {
+
+          Map<Resource.Type, String> map = getKeyValueMap(resource, queryResult.getKeyValueMap());
+
+          Predicate predicate = subResource.createPredicate(map);
+
+          Set<Resource> resourceSet = new LinkedHashSet<Resource>();
+
+          for (Resource queryResource : subResource.doQuery(resourceType, request, predicate)) {
+            providerResourceSet.add(queryResource);
+            resourceSet.add(queryResource);
+          }
+          subResource.queryResults.put(resource, new QueryResult(request, predicate, map, resourceSet));
+        }
       }
+      clusterController.populateResources(resourceType, providerResourceSet, request, null);
       subResource.queryForSubResources();
     }
   }
@@ -343,103 +358,69 @@ public class QueryImpl implements Query, ResourceInstance {
   /**
    * Query the cluster controller for the resources.
    */
-  private Set<Resource> doQuery(Predicate predicate)
+  private Set<Resource> doQuery(Resource.Type type, Request request, Predicate predicate)
       throws UnsupportedPropertyException,
       SystemException,
       NoSuchResourceException,
       NoSuchParentResourceException {
 
-    Resource.Type resourceType1 = getResourceDefinition().getType();
-
-    if (getKeyValueMap().get(resourceType1) == null) {
-      addCollectionProperties(resourceType1);
-    }
     if (queryPropertySet.isEmpty() && querySubResourceSet.isEmpty()) {
       //Add sub resource properties for default case where no fields are specified.
       querySubResourceSet.putAll(ensureSubResources());
     }
 
-    Resource.Type resourceType = getResourceDefinition().getType();
-    Request       request      = createRequest();
-
     if (LOG.isDebugEnabled()) {
       LOG.debug("Executing resource query: " + request + " where " + predicate);
     }
-    return clusterController.getResources(resourceType, request, predicate);
-  }
-
-  /**
-   * Get a map of predicates for the given resource's sub-resources keyed 
-   * by resource type.  Each predicate is a combined predicate of all 
-   * the sub resource predicates for a given type OR'd together.  This 
-   * allows for all of the sub-resources of a given type to be 
-   * acquired in a single query.
-   */
-  private Map<String, Predicate> getSubResourcePredicates(Set<Resource> resources) {
-    Map<String, Predicate> predicateMap = new HashMap<String, Predicate>();
-
-    for (Resource resource : resources) {
-      for (Map.Entry<String, QueryImpl> entry : querySubResourceSet.entrySet()) {
-        QueryImpl subResourceInstance = entry.getValue();
-        String    subResCategory      = entry.getKey();
-
-        Set<Map<Resource.Type, String>> resourceKeyValueMaps = getKeyValueMaps(resource, keyValueMaps);
-
-        for( Map<Resource.Type, String> map : resourceKeyValueMaps) {
-          Predicate predicate = predicateMap.get(subResCategory);
-
-          predicateMap.put(subResCategory, predicate == null ?
-              subResourceInstance.createPredicate(map) :
-              new OrPredicate(predicate, subResourceInstance.createPredicate(map)));
-        }
-        subResourceInstance.keyValueMaps.addAll(resourceKeyValueMaps);
-      }
-    }
-    return predicateMap;
+    return clusterController.getResources(type, request, predicate);
   }
 
   /**
    * Get a result from this query.
    */
-  private Result getResult()
+  private Result getResult(Resource parentResource)
       throws UnsupportedPropertyException, SystemException, NoSuchResourceException, NoSuchParentResourceException {
 
     Result result = new ResultImpl(true);
     Resource.Type resourceType = getResourceDefinition().getType();
-    if (getKeyValueMap().get(resourceType) == null) {
-      result.getResultTree().setProperty("isCollection", "true");
-    }
-
-    Predicate predicate = createPredicate();
-    Request   request   = createRequest();
-
-    Iterable<Resource> iterResource;
-
-    if (pageRequest == null) {
-      iterResource = clusterController.getIterable(
-          resourceType, providerResourceSet, request, predicate);
-    } else {
-      PageResponse pageResponse = clusterController.getPage(
-          resourceType, providerResourceSet, request, predicate, pageRequest);
-      iterResource = pageResponse.getIterable();
-    }
-
     TreeNode<Resource> tree = result.getResultTree();
 
-    int count = 1;
-    for (Resource resource : iterResource) {
-      // add a child node for the resource and provide a unique name.  The name is never used.
-      TreeNode<Resource> node = tree.addChild(resource, resource.getType() + ":" + count++);
-      for (Map.Entry<String, QueryImpl> entry : querySubResourceSet.entrySet()) {
-        String    subResCategory = entry.getKey();
-        QueryImpl subResource    = entry.getValue();
+    if (isCollectionResource()) {
+      tree.setProperty("isCollection", "true");
+    }
 
-        subResource.setKeyValueMap(getKeyValueMap(resource, getKeyValueMap()));
+    QueryResult queryResult = queryResults.get(parentResource);
 
-        TreeNode<Resource> childResult = subResource.getResult().getResultTree();
-        childResult.setName(subResCategory);
-        childResult.setProperty("isCollection", "false");
-        node.addChild(childResult);
+    if (queryResult != null) {
+      Predicate predicate = queryResult.getPredicate();
+      Request   request   = queryResult.getRequest();
+
+      Iterable<Resource> iterResource;
+
+      Set<Resource> providerResourceSet = queryResult.getProviderResourceSet();
+
+      if (pageRequest == null) {
+        iterResource = clusterController.getIterable(
+            resourceType, providerResourceSet, request, predicate);
+      } else {
+        PageResponse pageResponse = clusterController.getPage(
+            resourceType, providerResourceSet, request, predicate, pageRequest);
+        iterResource = pageResponse.getIterable();
+      }
+
+      int count = 1;
+      for (Resource resource : iterResource) {
+        // add a child node for the resource and provide a unique name.  The name is never used.
+        TreeNode<Resource> node = tree.addChild(resource, resource.getType() + ":" + count++);
+        for (Map.Entry<String, QueryImpl> entry : querySubResourceSet.entrySet()) {
+          String    subResCategory = entry.getKey();
+          QueryImpl subResource    = entry.getValue();
+
+          TreeNode<Resource> childResult = subResource.getResult(resource).getResultTree();
+          childResult.setName(subResCategory);
+          childResult.setProperty("isCollection", "false");
+          node.addChild(childResult);
+        }
       }
     }
     return result;
@@ -552,6 +533,11 @@ public class QueryImpl implements Query, ResourceInstance {
 
     Map<String, TemporalInfo> mapTemporalInfo    = new HashMap<String, TemporalInfo>();
     TemporalInfo              globalTemporalInfo = temporalInfoMap.get(null);
+    Resource.Type             resourceType       = getResourceDefinition().getType();
+
+    if (getKeyValueMap().get(resourceType) == null) {
+      addCollectionProperties(resourceType);
+    }
 
     for (String group : queryPropertySet) {
       TemporalInfo temporalInfo = temporalInfoMap.get(group);
@@ -565,18 +551,6 @@ public class QueryImpl implements Query, ResourceInstance {
 
     return PropertyHelper.getReadRequest(allProperties ?
         Collections.<String>emptySet() : setProperties, mapTemporalInfo);
-  }
-
-  // Get a set of key value maps based on the given resource and an existing set of key value maps
-  private Set<Map<Resource.Type, String>> getKeyValueMaps(Resource resource,
-                                                          Set<Map<Resource.Type, String>> keyValueMaps) {
-    Set<Map<Resource.Type, String>> resourceKeyValueMaps = new HashSet<Map<Resource.Type, String>>();
-
-    for(Map<Resource.Type, String> keyValueMap : keyValueMaps) {
-      Map<Resource.Type, String> resourceKeyValueMap = getKeyValueMap(resource, keyValueMap);
-      resourceKeyValueMaps.add(resourceKeyValueMap);
-    }
-    return resourceKeyValueMaps;
   }
 
   // Get a key value map based on the given resource and an existing key value map
@@ -600,5 +574,46 @@ public class QueryImpl implements Query, ResourceInstance {
 
     resourceKeyValueMap.put(resource.getType(), resource.getPropertyValue(resourceKeyProp).toString());
     return resourceKeyValueMap;
+  }
+
+  // ----- inner class : QueryResult -----------------------------------------
+
+  /**
+   * Maintain information about an individual query and its result.
+   */
+  private static class QueryResult {
+    private final Request request;
+    private final Predicate predicate;
+    private final Map<Resource.Type, String> keyValueMap;
+    private final Set<Resource> providerResourceSet;
+
+    // ----- Constructor -----------------------------------------------------
+
+    private QueryResult(Request request, Predicate predicate,
+                        Map<Resource.Type, String> keyValueMap,
+                        Set<Resource> providerResourceSet) {
+      this.request = request;
+      this.predicate = predicate;
+      this.keyValueMap = keyValueMap;
+      this.providerResourceSet = providerResourceSet;
+    }
+
+    // ----- accessors -------------------------------------------------------
+
+    public Request getRequest() {
+      return request;
+    }
+
+    public Predicate getPredicate() {
+      return predicate;
+    }
+
+    public Map<Resource.Type, String> getKeyValueMap() {
+      return keyValueMap;
+    }
+
+    public Set<Resource> getProviderResourceSet() {
+      return providerResourceSet;
+    }
   }
 }

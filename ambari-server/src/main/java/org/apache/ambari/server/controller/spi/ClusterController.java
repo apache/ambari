@@ -52,6 +52,25 @@ public interface ClusterController {
       SystemException;
 
   /**
+   * Populate the given resources from the associated property providers.  This
+   * method may filter the resources based on the predicate and return a subset
+   * of the given resources.
+   *
+   * @param type       the resource type
+   * @param resources  the resources to be populated
+   * @param request    the request
+   * @param predicate  the predicate
+   *
+   * @return the set of resources that were successfully populated
+   *
+   * @throws SystemException if unable to populate the resources
+   */
+  public Set<Resource> populateResources(Resource.Type type,
+                                            Set<Resource> resources,
+                                            Request request,
+                                            Predicate predicate) throws SystemException;
+
+  /**
    * Get an iterable set of resources from the given set of resources filtered by the
    * given request and predicate objects.
    *

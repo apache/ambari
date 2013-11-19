@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -673,6 +674,15 @@ public class ClusterControllerImplTest {
       }
       providers.put(Resource.Type.Cluster, new TestClusterResourceProvider());
       providers.put(Resource.Type.Host, new TestHostResourceProvider());
+
+
+      providers.put(Resource.Type.Stack, new TestStackResourceProvider());
+      providers.put(Resource.Type.StackVersion, new TestStackVersionResourceProvider());
+      providers.put(Resource.Type.OperatingSystem, new TestOperatingSystemResourceProvider());
+      providers.put(Resource.Type.Repository, new TestRepositoryResourceProvider());
+
+
+
     }
 
     @Override
@@ -686,12 +696,10 @@ public class ClusterControllerImplTest {
     }
   }
 
-  private static class TestResourceProvider implements ResourceProvider {
-
-    private Resource.Type type;
+  private static class TestResourceProvider extends AbstractResourceProvider {
 
     private TestResourceProvider(Resource.Type type) {
-      this.type = type;
+      super(PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type));
     }
 
     @Override
@@ -715,16 +723,38 @@ public class ClusterControllerImplTest {
     }
 
     @Override
-    public Map<Resource.Type, String> getKeyPropertyIds() {
-      return PropertyHelper.getKeyPropertyIds(type);
-    }
-
-    @Override
-    public Set<String> checkPropertyIds(Set<String> propertyIds) {
+    protected Set<String> getPKPropertyIds() {
       return Collections.emptySet();
     }
-  }
 
+    protected Set<Resource> getResources(Resource.Type type, Predicate predicate, String keyPropertyId, Set<String> keyPropertyValues)
+        throws SystemException, UnsupportedPropertyException, NoSuchParentResourceException, NoSuchResourceException {
+      Set<Resource> resources = new HashSet<Resource>();
+
+      for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
+
+        Set<Resource> resources2 = new HashSet<Resource>();
+
+        if (!propertyMap.containsKey(keyPropertyId)) {
+          for (String keyPropertyValue : keyPropertyValues) {
+            ResourceImpl resource = new ResourceImpl(type);
+            resource.setProperty(keyPropertyId, keyPropertyValue);
+            resources2.add(resource);
+          }
+        } else {
+          resources2.add(new ResourceImpl(type));
+        }
+
+        for (Resource resource : resources2) {
+          for (Map.Entry<String, Object> entry : propertyMap.entrySet()) {
+            resource.setProperty(entry.getKey(), entry.getValue());
+          }
+        }
+        resources.addAll(resources2);
+      }
+      return resources;
+    }
+  }
 
   private static class TestClusterResourceProvider extends TestResourceProvider {
     private TestClusterResourceProvider() {
@@ -831,6 +861,76 @@ public class ClusterControllerImplTest {
       Delete
     }
   }
+
+
+  private static class TestStackResourceProvider extends TestResourceProvider {
+    private TestStackResourceProvider() {
+      super(Resource.Type.Stack);
+    }
+
+    @Override
+    public Set<Resource> getResources(Request request, Predicate predicate)
+        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+
+      Set<String> keyPropertyValues = new HashSet<String>();
+
+      return getResources(Resource.Type.Stack, predicate, "Stacks/stack_name", keyPropertyValues);
+    }
+  }
+
+
+  private static class TestStackVersionResourceProvider extends TestResourceProvider {
+    private TestStackVersionResourceProvider() {
+      super(Resource.Type.StackVersion);
+    }
+
+    @Override
+    public Set<Resource> getResources(Request request, Predicate predicate)
+        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      Set<String> keyPropertyValues = new LinkedHashSet<String>();
+
+      keyPropertyValues.add("1.2.1");
+      keyPropertyValues.add("1.2.2");
+      keyPropertyValues.add("2.0.1");
+
+      return getResources(Resource.Type.StackVersion, predicate, "Versions/stack_version", keyPropertyValues);
+    }
+  }
+
+  private static class TestOperatingSystemResourceProvider extends TestResourceProvider {
+    private TestOperatingSystemResourceProvider() {
+      super(Resource.Type.OperatingSystem);
+    }
+
+    @Override
+    public Set<Resource> getResources(Request request, Predicate predicate)
+        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      Set<String> keyPropertyValues = new LinkedHashSet<String>();
+
+      keyPropertyValues.add("centos5");
+      keyPropertyValues.add("centos6");
+      keyPropertyValues.add("oraclelinux5");
+
+      return getResources(Resource.Type.OperatingSystem, predicate, "OperatingSystems/os_type", keyPropertyValues);
+    }
+  }
+
+  private static class TestRepositoryResourceProvider extends TestResourceProvider {
+    private TestRepositoryResourceProvider() {
+      super(Resource.Type.Repository);
+    }
+
+    @Override
+    public Set<Resource> getResources(Request request, Predicate predicate)
+        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      Set<String> keyPropertyValues = new LinkedHashSet<String>();
+
+      keyPropertyValues.add("repo1");
+
+      return getResources(Resource.Type.Repository, predicate, "Repositories/repo_id", keyPropertyValues);
+    }
+  }
+
 }
 
 
