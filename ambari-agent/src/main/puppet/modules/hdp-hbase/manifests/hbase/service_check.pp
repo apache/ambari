@@ -22,16 +22,22 @@ class hdp-hbase::hbase::service_check() inherits hdp-hbase::params
 {
   $smoke_test_user = $hdp::params::smokeuser
   $security_enabled = $hdp::params::security_enabled
-  $output_file = "/apps/hbase/data/ambarismoketest"
   $conf_dir = $hdp::params::hbase_conf_dir
   $smoke_user_keytab = $hdp::params::smokeuser_keytab
   $hbase_user = $hdp-hbase::params::hbase_user
   $hbase_keytab = $hdp::params::hbase_user_keytab
-  $test_cmd = "fs -test -e ${output_file}"
   $serviceCheckData = hdp_unique_id_and_date()
   $kinit_cmd = "${hdp::params::kinit_path_local} -kt ${smoke_user_keytab} ${smoke_test_user};"
 
   anchor { 'hdp-hbase::hbase::service_check::begin':}
+
+  if (hdp_get_major_stack_version($hdp::params::stack_version) >= 2){
+    $output_file = "${hbase_hdfs_root_dir}/data/default/ambarismoketest"
+  } else {
+    $output_file = "${hbase_hdfs_root_dir}/ambarismoketest"
+  }
+
+  $test_cmd = "fs -test -e ${output_file}"
 
   $hbase_servicecheck_file = '/tmp/hbase-smoke.sh'
 
