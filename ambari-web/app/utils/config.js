@@ -1120,7 +1120,7 @@ App.config = Em.Object.create({
     sendData.sender = sendData;
     App.ajax.send(sendData);
     if (newConfigGroupData) {
-      newConfigGroupData.set('service', App.Service.find().filterProperty('serviceName', serviceId));
+      newConfigGroupData.set('service', App.Service.find().findProperty('serviceName', serviceId));
       newConfigGroupData.set('name', configGroupName);
       newConfigGroupData.set('description', description);
     }
