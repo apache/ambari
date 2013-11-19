@@ -30,14 +30,14 @@
         }}
         <div class="btn-toolbar pull-right">
           <button class="btn" {{bindAttr disabled="isHostsModified"}} {{action addConfigGroup target="controller"}}><i class="icon-plus"></i></button>
-          <button class="btn" {{bindAttr disabled="isHostsModified"}} {{action deleteConfigGroup target="controller"}}><i class="icon-minus"></i></button>
+          <button class="btn" {{bindAttr disabled="view.isRemoveButtonDisabled"}} {{action deleteConfigGroup target="controller"}}><i class="icon-minus"></i></button>
           <div class="btn-group">
             <button class="btn" {{bindAttr disabled="isHostsModified"}}><i class="icon-cog"></i></button>
             <button class="btn dropdown-toggle" data-toggle="dropdown" {{bindAttr disabled="isHostsModified"}}>
               <span class="caret"></span>
             </button>
             <ul class="dropdown-menu">
-              <li>
+              <li {{bindAttr class="view.isRenameButtonDisabled:disabled"}}>
                 <a {{action renameConfigGroup target="controller"}}>{{t services.service.config_groups_popup.rename}}</a>
               </li>
               <li>
