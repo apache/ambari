@@ -983,11 +983,22 @@ App.config = Em.Object.create({
    * @param callback  Callback function which is invoked when dialog
    *  is closed, cancelled or OK is pressed.
    */
-  launchConfigGroupSelectionCreationDialog : function(serviceId, configGroups, callback) {
+  launchConfigGroupSelectionCreationDialog : function(serviceId, configGroups, configProperty, callback) {
     var self = this;
     var availableConfigGroups = configGroups.slice();
     // delete Default Config Group
     availableConfigGroups.pop();
+    // delete Config Groups, that already have selected property overridden
+    if (configProperty.get('overrides')) {
+      var alreadyOverriddenGroups = configProperty.get('overrides').mapProperty('group.name');
+      var result = [];
+      availableConfigGroups.forEach(function (group) {
+        if (!alreadyOverriddenGroups.contains(group.name)) {
+          result.push(group);
+        }
+      }, this);
+      availableConfigGroups = result;
+    }
     var selectedConfigGroup = availableConfigGroups && availableConfigGroups.length > 0 ?
         availableConfigGroups[0] : null;
     App.ModalPopup.show({
