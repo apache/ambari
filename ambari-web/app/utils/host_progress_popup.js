@@ -473,7 +473,6 @@ App.HostPopup = Em.Object.create({
       isOpen: false,
       didInsertElement: function(){
         this.set('isOpen', true);
-        this.set ('isNotShowBgChecked', !App.router.get('applicationController').loadShowBgChecked());
       },
       headerClass: Ember.View.extend({
         controller: this,

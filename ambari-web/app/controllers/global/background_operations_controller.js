@@ -223,15 +223,18 @@ App.BackgroundOperationsController = Em.Controller.extend({
    * @return PopupObject For testing purposes
    */
   showPopup: function(){
-    App.updater.immediateRun('requestMostRecent');
-
-    if(this.get('popupView') && App.HostPopup.get('isBackgroundOperations')){
-      this.set ('popupView.isNotShowBgChecked', !App.router.get('applicationController').loadShowBgChecked());
-      this.set('popupView.isOpen', true);
-      $(this.get('popupView.element')).appendTo('#wrapper');
-    } else {
-      this.set('popupView', App.HostPopup.initPopup("", this, true));
-    }
+    // load the checkbox on footer first, then show popup.
+    var self = this;
+    App.router.get('applicationController').dataLoading().done(function (initValue) {
+      App.updater.immediateRun('requestMostRecent');
+      if(self.get('popupView') && App.HostPopup.get('isBackgroundOperations')){
+        self.set ('popupView.isNotShowBgChecked', !initValue);
+        self.set('popupView.isOpen', true);
+        $(self.get('popupView.element')).appendTo('#wrapper');
+      } else {
+        self.set('popupView', App.HostPopup.initPopup("", self, true));
+      }
+    });
   }
 
 });

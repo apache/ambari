@@ -156,9 +156,13 @@ App.MainHostDetailsController = Em.Controller.extend({
       } else {
         App.router.get('clusterController').loadUpdatedStatusDelayed(500);
       }
-      if (App.router.get('applicationController').loadShowBgChecked()) {
-        App.router.get('backgroundOperationsController').showPopup();
-      }
+      // load data (if we need to show this background operations popup) from persist
+      App.router.get('applicationController').dataLoading().done(function (initValue) {
+        if (initValue) {
+          App.router.get('backgroundOperationsController').showPopup();
+        }
+      });
+
     });
   },
 
@@ -269,9 +273,12 @@ App.MainHostDetailsController = Em.Controller.extend({
               App.router.get('clusterController').loadUpdatedStatusDelayed(500);
             }
 
-            if (App.router.get('applicationController').loadShowBgChecked()) {
-              App.router.get('backgroundOperationsController').showPopup();
-            }
+            // load data (if we need to show this background operations popup) from persist
+            App.router.get('applicationController').dataLoading().done(function (initValue) {
+              if (initValue) {
+                App.router.get('backgroundOperationsController').showPopup();
+              }
+            });
 
           });
     });
@@ -347,9 +354,12 @@ App.MainHostDetailsController = Em.Controller.extend({
         App.router.get('clusterController').loadUpdatedStatusDelayed(500);
       }
 
-      if (App.router.get('applicationController').loadShowBgChecked()) {
-        App.router.get('backgroundOperationsController').showPopup();
-      }
+      // load data (if we need to show this background operations popup) from persist
+      App.router.get('applicationController').dataLoading().done(function (initValue) {
+        if (initValue) {
+          App.router.get('backgroundOperationsController').showPopup();
+        }
+      });
     });
   },
 
@@ -469,9 +479,12 @@ App.MainHostDetailsController = Em.Controller.extend({
               App.router.get('clusterController').loadUpdatedStatusDelayed(500);
             }
 
-            if (App.router.get('applicationController').loadShowBgChecked() && showPopup) {
-              App.router.get('backgroundOperationsController').showPopup();
-            }
+            // load data (if we need to show this background operations popup) from persist
+            App.router.get('applicationController').dataLoading().done(function (initValue) {
+              if (initValue) {
+                App.router.get('backgroundOperationsController').showPopup();
+              }
+            });
             if (componentName === 'ZOOKEEPER_SERVER') {
               self.checkZkConfigs();
             }
@@ -600,10 +613,12 @@ App.MainHostDetailsController = Em.Controller.extend({
               App.router.get('clusterController').loadUpdatedStatusDelayed(500);
             }
 
-            if (App.router.get('applicationController').loadShowBgChecked()) {
-              App.router.get('backgroundOperationsController').showPopup();
-            }
-
+            // load data (if we need to show this background operations popup) from persist
+            App.router.get('applicationController').dataLoading().done(function (initValue) {
+              if (initValue) {
+                App.router.get('backgroundOperationsController').showPopup();
+              }
+            });
           });
       }
     });
@@ -630,9 +645,12 @@ App.MainHostDetailsController = Em.Controller.extend({
         }
         self.doDatanodeDecommission(decommissionHostNames, true);
       }
-      if (App.router.get('applicationController').loadShowBgChecked()) {
-        App.router.get('backgroundOperationsController').showPopup();
-      }
+      // load data (if we need to show this background operations popup) from persist
+      App.router.get('applicationController').dataLoading().done(function (initValue) {
+        if (initValue) {
+          App.router.get('backgroundOperationsController').showPopup();
+        }
+      });
     });
   },
 
@@ -735,9 +753,12 @@ App.MainHostDetailsController = Em.Controller.extend({
         decommissionHostNames.splice(index, 1);
         self.doDatanodeDecommission(decommissionHostNames, false);
       }
-      if (App.router.get('applicationController').loadShowBgChecked()) {
-        App.router.get('backgroundOperationsController').showPopup();
-      }
+      // load data (if we need to show this background operations popup) from persist
+      App.router.get('applicationController').dataLoading().done(function (initValue) {
+        if (initValue) {
+          App.router.get('backgroundOperationsController').showPopup();
+        }
+      });
     });
   },
   

@@ -142,9 +142,12 @@ App.MainServiceController = Em.ArrayController.extend({
     var requestId = data.Requests.id;
     console.log('requestId is: ' + requestId);
 
-    if (App.router.get('applicationController').loadShowBgChecked()) {
-      App.router.get('backgroundOperationsController').showPopup();
-    }
+    // load data (if we need to show this background operations popup) from persist
+    App.router.get('applicationController').dataLoading().done(function (initValue) {
+      if (initValue) {
+        App.router.get('backgroundOperationsController').showPopup();
+      }
+    });
   },
   allServicesCallErrorCallback: function() {
     console.log("ERROR");

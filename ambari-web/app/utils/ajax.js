@@ -591,6 +591,25 @@ var urls = {
       };
     }
   },
+  'settings.get.user_pref': {
+    'real': '/persist/{key}',
+    'mock': '',
+    'type': 'GET',
+    'format': function (data, opt) {
+      return {
+      };
+    }
+  },
+  'settings.post.user_pref': {
+    'real': '/persist',
+    'mock': '',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        data: JSON.stringify(data.keyValuePair)
+      }
+    }
+  },
   'cluster.load_cluster_name': {
     'real': '/clusters',
     'mock': '/data/clusters/info.json',
