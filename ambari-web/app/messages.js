@@ -303,8 +303,9 @@ Em.I18n.translations = {
   'installer.step2.sshKey.error.required':'SSH Private Key is required',
   'installer.step2.passphrase.error.match':'Passphrases do not match',
   'installer.step2.manualInstall.label':'Do not use SSH to automatically configure hosts ',
-  'installer.step2.manualInstall.info':'By not using SSH to connect to the target hosts, you must manually install the ' +
-    'Ambari Agent on each host in order for the wizard to perform the necessary configurations and software installs.',
+  'installer.step2.manualInstall.info':'By not using SSH to connect to the target hosts, you must manually install and' +
+    ' start the Ambari Agent on each host in order for the wizard to perform the necessary configurations and' +
+    ' software installs.',
   'installer.step2.advancedOption':'Advanced Options',
   'installer.step2.repoConf':'Software Repository Configuration File Path',
   'installer.step2.advancedOptions.header':'Advanced Options',
