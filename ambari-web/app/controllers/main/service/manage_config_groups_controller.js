@@ -292,19 +292,20 @@ App.ManageConfigGroupsController = Em.Controller.extend({
   onAddNewConfigGroup: function (data) {
     var loadedHostNamesMap = {};
     loadedHostNamesMap.length = 0;
+    var defaultConfigGroup = this.get('configGroups').popObject();
     var newConfigGroupData = App.ConfigGroup.create({
       id: data.resources[0].ConfigGroup.id,
       name: this.get('configGroupName'),
       description: this.get('configGroupDesc'),
       isDefault: false,
-      parentConfigGroup: null,
+      parentConfigGroup: defaultConfigGroup,
       service: this.get('serviceName'),
       hosts: [],
       configSiteTags: [],
       loadedHostNamesMap: loadedHostNamesMap,
       hostsModified: false
     });
-    var defaultConfigGroup = this.get('configGroups').popObject();
+    defaultConfigGroup.get('childConfigGroups').push(newConfigGroupData);
     this.get('configGroups').pushObjects([newConfigGroupData, defaultConfigGroup]);
     this.updateConfigGroup(data.resources[0].ConfigGroup.id);
     this.addGroupPopup.hide();
