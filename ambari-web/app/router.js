@@ -266,7 +266,7 @@ App.Router = Em.Router.extend({
         return 'main.index';
       }
     }
-    App.clusterStatus.updateFromServer();
+    App.clusterStatus.updateFromServer(false, false);
     var clusterStatusOnServer = App.clusterStatus.get('value');
     if (!App.get('isAdmin') || clusterStatusOnServer && clusterStatusOnServer.clusterState === 'DEFAULT') {
       return 'main.index';

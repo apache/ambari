@@ -472,7 +472,7 @@ App.MainAdminSecurityDisableController = Em.Controller.extend({
           clusterName: this.get('clusterName'),
           clusterState: 'DISABLE_SECURITY',
           wizardControllerName: this.get('name'),
-          localdb: App.db.data.AddSecurity
+          localdb: App.db.data
         });
       }
     }

@@ -710,7 +710,7 @@ App.MainAdminSecurityAddStep4Controller = Em.Controller.extend({
           clusterName: this.get('clusterName'),
           clusterState: 'ADD_SECURITY_STEP_4',
           wizardControllerName: App.router.get('addSecurityController.name'),
-          localdb: App.db.data.AddSecurity
+          localdb: App.db.data
         });
       }
     }

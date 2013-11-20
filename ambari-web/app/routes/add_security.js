@@ -109,7 +109,7 @@ module.exports = Em.Route.extend({
           clusterName: this.get('clusterName'),
           clusterState: 'ADD_SECURITY_STEP_1',
           wizardControllerName: router.get('addSecurityController.name'),
-          localdb: App.db.data.AddSecurity
+          localdb: App.db.data
         });
       }
     },
@@ -145,7 +145,7 @@ module.exports = Em.Route.extend({
           clusterName: this.get('clusterName'),
           clusterState: 'ADD_SECURITY_STEP_2',
           wizardControllerName: router.get('addSecurityController.name'),
-          localdb:  App.db.data.AddSecurity
+          localdb:  App.db.data
         });
       }
     },
@@ -179,7 +179,7 @@ module.exports = Em.Route.extend({
           clusterName: this.get('clusterName'),
           clusterState: 'ADD_SECURITY_STEP_3',
           wizardControllerName: router.get('addSecurityController.name'),
-          localdb:  App.db.data.AddSecurity
+          localdb:  App.db.data
         });
       }
     },

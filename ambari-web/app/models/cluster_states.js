@@ -56,9 +56,15 @@ App.clusterStatus = Ember.Object.create({
    * @param isAsync: set this to true if the call is to be made asynchronously.  if unspecified, false is assumed
    * @return promise object for the get call
    */
-  updateFromServer: function(isAsync) {
+  updateFromServer: function(isAsync, overrideLocaldb) {
     // if isAsync is undefined, set it to false
     isAsync = isAsync || false;
+    // if overrideLocaldb is undefined, set it to true
+    if(typeof overrideLocaldb == "undefined"){
+      overrideLocaldb =  true;
+    }
+    var user = App.db.getUser();
+    var login = App.db.getLoginName();
     var url = App.apiPrefix + '/persist/' + this.get('key');
     return jQuery.ajax(
       {
@@ -79,8 +85,12 @@ App.clusterStatus = Ember.Object.create({
             }
             if (newValue.localdb) {
               this.set('localdb', newValue.localdb);
-              App.db.data = newValue.localdb;
-              App.db.setLocalStorage();
+              if (overrideLocaldb) {
+                App.db.data = newValue.localdb;
+                App.db.setLocalStorage();
+                App.db.setUser(user);
+                App.db.setLoginName(login);
+              }
             }
           } else {
             // default status already set
@@ -114,6 +124,8 @@ App.clusterStatus = Ember.Object.create({
    */
   setClusterStatus: function(newValue){
     if(App.testMode) return false;
+    var user = App.db.getUser();
+    var login = App.db.getLoginName();
     var val = {clusterName: this.get('clusterName')};
     if (newValue) {
       //setter
@@ -131,8 +143,18 @@ App.clusterStatus = Ember.Object.create({
         val.wizardControllerName = newValue.wizardControllerName;
       }
       if (newValue.localdb) {
+        if (newValue.localdb.app && newValue.localdb.app.user)
+          delete newValue.localdb.app.user;
+        if (newValue.localdb.app && newValue.localdb.app.loginName)
+          delete newValue.localdb.app.loginName;
         this.set('localdb', newValue.localdb);
         val.localdb = newValue.localdb;
+      } else {
+        delete App.db.data.app.user;
+        delete App.db.data.app.loginName;
+          val.localdb = App.db.data;
+        App.db.setUser(user);
+        App.db.setLoginName(login);
       }
 
       var keyValuePair = {};
