@@ -260,13 +260,34 @@ App.MainServiceItemController = Em.Controller.extend({
             }
           }
         };
+        this.updateConfigGroupOnServicePage();
         modifiedConfigGroups.forEach(function(cg) {
           App.config.updateConfigurationGroup(cg, finishFunction, finishFunction);
         });
       },
+      onSecondary: function () {
+        this.updateConfigGroupOnServicePage();
+        this.hide();
+      },
+      onClose: function () {
+        this.updateConfigGroupOnServicePage();
+        this.hide();
+      },
       subViewController: function(){
         return App.router.get('manageConfigGroupsController');
       }.property('App.router.manageConfigGroupsController'),
+      updateConfigGroupOnServicePage: function () {
+        var mainServiceInfoConfigsController = App.get('router.mainServiceInfoConfigsController');
+        var selectedConfigGroup = mainServiceInfoConfigsController.get('selectedConfigGroup');
+        var managedConfigGroups = this.get('subViewController.configGroups');
+        selectedConfigGroup = managedConfigGroups.findProperty('id', selectedConfigGroup.id);
+        if(selectedConfigGroup){
+          mainServiceInfoConfigsController.set('selectedConfigGroup', selectedConfigGroup);
+        }else{
+          mainServiceInfoConfigsController.set('selectedConfigGroup',  managedConfigGroups.findProperty('isDefault', true));
+        }
+        mainServiceInfoConfigsController.set('configGroups',this.get('subViewController.configGroups'));
+      },
       updateButtons: function(){
         var modified = this.get('subViewController.isHostsModified');
         this.set('enablePrimary', modified);
