@@ -56,7 +56,7 @@ var urls = {
     }
   },
   'service.item.start_stop': {
-    'real': '/clusters/{clusterName}/services/{serviceName}?params/run_smoke_test=true',
+    'real': '/clusters/{clusterName}/services/{serviceName}',
     'mock': '/data/wizard/deploy/poll_1.json',
     'format': function (data, opt) {
       return {
