@@ -68,8 +68,10 @@
                                 <div {{bindAttr class="errorMessage:error: :control-group"}}>
                                   {{view viewClass serviceConfigBinding="this" categoryConfigsBinding="view.categoryConfigs" }}
                                   {{#if view.canEdit}}
-                                      {{#if isRemovable}}
-                                          <a class="action" {{action "removeProperty" this target="view" }} ><i class="icon-minus-sign"></i>{{t common.remove}}</a>
+                                      {{#if App.isAdmin}}
+                                        {{#if isRemovable}}
+                                            <a class="action" {{action "removeProperty" this target="view" }} ><i class="icon-minus-sign"></i>{{t common.remove}}</a>
+                                        {{/if}}
                                       {{/if}}
                                   {{/if}}
                                     <span class="help-inline">{{errorMessage}}</span>

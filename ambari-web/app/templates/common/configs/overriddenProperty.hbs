@@ -25,9 +25,11 @@
       {{/if}}
       {{#if overriddenSCP.isEditable}}
 	      {{#if isNotDefaultValue}}
-	        <a class="action" {{action "doRestoreDefaultValue" this target="view" }} ><i class="icon-undo"></i>Undo</a>
+	        <a class="action" {{action "doRestoreDefaultValue" this target="view" }} ><i class="icon-undo"></i>{{t common.undo}}</a>
 	      {{/if}}
-	      <a class="action" {{action "removeOverride" overriddenSCP target="view" }} ><i class="icon-minus-sign"></i>Remove</a>
+        {{#if App.isAdmin}}
+	        <a class="action" {{action "removeOverride" overriddenSCP target="view" }} ><i class="icon-minus-sign"></i>{{t common.remove}}</a>
+        {{/if}}
 	      <span class="help-inline">{{overriddenSCP.errorMessage}}</span>
 	    {{/if}}
     </div>

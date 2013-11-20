@@ -114,7 +114,9 @@
                                 {{#if view.canEdit}}
 	                                {{#if isPropertyOverridable}}
                                     {{#if view.supportsHostOverrides}}
+                                      {{#if App.isAdmin}}
 	                                    <a class="action" {{action "createOverrideProperty" this target="view" }} ><i class="icon-plus-sign"></i>{{t common.override}}</a>
+                                      {{/if}}
                                     {{/if}}
 	                                {{/if}}
 	                                {{#unless cantBeUndone}}
@@ -123,7 +125,9 @@
 	                                  {{/if}}
 	                                {{/unless}}
 	                                {{#if isRemovable}}
+                                    {{#if App.isAdmin}}
 	                                    <a class="action" {{action "removeProperty" this target="view" }} ><i class="icon-minus-sign"></i>{{t common.remove}}</a>
+                                    {{/if}}
 	                                {{/if}}
                                 {{/if}}
                                   <span class="help-inline">{{errorMessage}}</span>
