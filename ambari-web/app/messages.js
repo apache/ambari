@@ -1702,13 +1702,14 @@ Em.I18n.translations = {
   'contact.administrator': 'Contact System Administrator for more information!',
 
   'config.group.selection.dialog.title': 'Configuration Group',
+  'config.group.selection.dialog.subtitle': 'Select or create a configuration group where the configuration value can be overridden',
   'config.group.selection.dialog.option.select': 'Select existing configuration group',
   'config.group.selection.dialog.option.select.msg': 'Overridden property will be changed for hosts belonging to the selected group.',
   'config.group.selection.dialog.option.create': 'Create new configuration group',
   'config.group.selection.dialog.option.create.msg': 'A new configuration group will be created with the given name. Initially there will be no hosts in the group, with only the selected property overridden.',
   'config.group.selection.dialog.err.name.exists': 'Configuration group with given name already exists',
   'config.group.selection.dialog.err.create': 'Error creating new configuration group [{0}]',
-  'config.group.selection.dialog.no.groups': 'There are no existed Config Groups for this Service',
+  'config.group.selection.dialog.no.groups': 'There are no existing Configuration Groups to select for this service',
   'config.group.host.switch.dialog.title': 'Change Group',
 
   'utils.ajax.errorMessage': 'Error message'
