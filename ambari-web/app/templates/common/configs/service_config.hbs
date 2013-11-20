@@ -65,7 +65,7 @@
 		  </ul>
 		</span>
     {{#if controller.isHostsConfigsPage}}
-      &nbsp;<a href="">{{t common.change}}</a>
+      &nbsp;<a href="#" {{action "switchHostGroup" target="controller"}}>{{t common.change}}</a>
     {{/if}}
      <div class="pull-right">
        {{view App.FilterComboboxView filterBinding="view.filter" columnsBinding="view.columns" }}

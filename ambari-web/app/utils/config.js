@@ -1091,7 +1091,45 @@ App.config = Em.Object.create({
       })
     });
   },
-
+  /**
+   * launch dialog where can be assigned another group to host
+   * @param selectedGroup
+   * @param configGroups
+   * @param hostName
+   * @param callback
+   */
+  launchSwitchConfigGroupOfHostDialog: function (selectedGroup, configGroups, hostName, callback) {
+    var self = this;
+    App.ModalPopup.show({
+      header: Em.I18n.t('config.group.host.switch.dialog.title'),
+      primary: Em.I18n.t('ok'),
+      secondary: Em.I18n.t('common.cancel'),
+      configGroups: configGroups,
+      selectedConfigGroup: selectedGroup,
+      enablePrimary: function () {
+        return this.get('selectedConfigGroup.name') !== selectedGroup.get('name');
+      }.property('selectedConfigGroup'),
+      onPrimary: function () {
+        if (this.get('enablePrimary')) {
+          var newGroup = this.get('selectedConfigGroup');
+          selectedGroup.get('hosts').removeObject(hostName);
+          if (!selectedGroup.get('isDefault')) {
+            self.updateConfigurationGroup(selectedGroup, function(){}, function(){});
+          }
+          newGroup.get('hosts').pushObject(hostName);
+          callback(newGroup);
+          if (!newGroup.get('isDefault')) {
+            self.updateConfigurationGroup(newGroup, function(){}, function(){});
+          }
+          this.hide();
+        }
+      },
+      bodyClass: Ember.View.extend({
+        template: Em.Handlebars.compile('{{t installer.controls.slaveComponentGroups}}&#58;&nbsp;' +
+          '{{view Em.Select contentBinding="view.parentView.configGroups" optionLabelPath="content.name" selectionBinding="view.parentView.selectedConfigGroup"}}')
+      })
+    });
+  },
   /**
    * Creates a new config-group for a service.
    *

@@ -140,5 +140,14 @@ App.MainHostServiceConfigsController = App.MainServiceInfoConfigsController.exte
   },
   loadServiceConfigHostsOverridesErrorCallback: function (request, ajaxOptions, error) {
     console.log("TRACE: error code status is: " + request.status);
+  },
+  /**
+   * invoke dialog for switching group of host
+   */
+  switchHostGroup: function () {
+    var self = this;
+    App.config.launchSwitchConfigGroupOfHostDialog(this.get('selectedConfigGroup'), this.get('configGroups'), this.get('host.hostName'), function(newGroup){
+      self.set('selectedConfigGroup', newGroup);
+    })
   }
 });

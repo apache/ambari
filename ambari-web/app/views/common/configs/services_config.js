@@ -41,6 +41,8 @@ App.ServiceConfigView = Em.View.extend({
         return App.supports.hostOverridesInstaller;
       case 'mainServiceInfoConfigsController':
         return App.supports.hostOverrides;
+      case 'mainHostServiceConfigsController':
+        return App.supports.hostOverridesHost;
       default:
         return false;
     }

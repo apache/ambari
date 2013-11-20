@@ -1708,6 +1708,7 @@ Em.I18n.translations = {
   'config.group.selection.dialog.err.name.exists': 'Configuration group with given name already exists',
   'config.group.selection.dialog.err.create': 'Error creating new configuration group [{0}]',
   'config.group.selection.dialog.no.groups': 'There are no existed Config Groups for this Service',
+  'config.group.host.switch.dialog.title': 'Change Group',
 
   'utils.ajax.errorMessage': 'Error message'
 };
