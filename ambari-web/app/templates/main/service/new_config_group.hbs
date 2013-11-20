@@ -24,7 +24,9 @@
     </tr>
     <tr>
       <td>{{t services.service.config_groups_popup.group_desc_lable }}:</td>
-      <td>{{view Ember.TextField valueBinding="configGroupDesc"}}</td>
+      <td class="textarea-full-width" style="width: 100%;">
+        {{view Ember.TextArea valueBinding="configGroupDesc" rows="4"}}
+      </td>
     </tr>
-  </table>
+</table>
 </p>
