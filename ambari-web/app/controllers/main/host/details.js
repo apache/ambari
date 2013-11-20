@@ -972,12 +972,12 @@ App.MainHostDetailsController = Em.Controller.extend({
     var staleComponents = this.get('content.hostComponents').filterProperty('staleConfigs', true);
     var commandName = "stop_component";
     if(e.context) {
-      if(!staleComponents.findProperty('workStatus','INSTALLED')){
+      if(!staleComponents.findProperty('workStatus','STARTED')){
         return;
       }
-    }else {
+    } else {
       commandName = "start_component";
-      if(!staleComponents.findProperty('workStatus','STARTED')){
+      if(!staleComponents.findProperty('workStatus','INSTALLED')){
         return;
       }
     };

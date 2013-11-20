@@ -25,11 +25,11 @@
             <div class="alert alert-warning clearfix">
               <i class="icon-refresh"></i> {{{view.needToRestartMessage}}} <a href="#" {{action showComponentsShouldBeRestarted target="controller"}}>{{view.componentsCount}} {{t common.components}}</a> {{t on}} <a href="#" {{action showHostsShouldBeRestarted target="controller"}}>{{view.hostsCount}} {{t dashboard.services.hosts}}</a> {{t services.service.config.restartService.needToRestartEnd}}
 
-              <button {{bindAttr class=":btn :btn-warning :restart-components :pull-right view.startComponentsIsDisabled:disabled" }} {{action restartComponents target="controller"}}>
+              <button {{bindAttr class=":btn :restart-components :pull-right view.startComponentsIsDisabled::btn-success view.startComponentsIsDisabled:disabled" }} {{action restartComponents target="controller"}}>
                 {{t hosts.host.details.needToRestart.startButton}}
               </button>
               <span class="restart-components pull-right">&nbsp</span>
-              <button {{bindAttr class=":btn :btn-warning :restart-components :pull-right view.stopComponentsIsDisabled:disabled" }} {{action restartComponents view.isStopCommand target="controller"}}>
+              <button {{bindAttr class=":btn :restart-components :pull-right view.stopComponentsIsDisabled::btn-danger view.stopComponentsIsDisabled:disabled" }} {{action restartComponents view.isStopCommand target="controller"}}>
                 {{t hosts.host.details.needToRestart.stopButton}}
               </button>
             </div>

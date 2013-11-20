@@ -40,18 +40,18 @@ App.MainHostSummaryView = Em.View.extend({
 
   stopComponentsIsDisabled: function () {
     var staleComponents = this.get('sortedComponents').filterProperty('staleConfigs', true);
-    if(!staleComponents.findProperty('workStatus','INSTALLED')){
+    if(!staleComponents.findProperty('workStatus','STARTED')){
       return true;
-    }else{
+    } else {
       return false;
     }
   }.property('sortedComponents.@each.workStatus'),
 
   startComponentsIsDisabled:function () {
     var staleComponents = this.get('sortedComponents').filterProperty('staleConfigs', true);
-    if(!staleComponents.findProperty('workStatus','STARTED')){
+    if(!staleComponents.findProperty('workStatus','INSTALLED')){
       return true;
-    }else{
+    } else {
       return false;
     }
   }.property('sortedComponents.@each.workStatus'),

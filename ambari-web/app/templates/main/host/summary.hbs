@@ -31,11 +31,11 @@
               <div class="alert alert-warning clearfix">
                 <i class="icon-refresh"></i> {{view.needToRestartMessage}}
                 <br/>
-                <button {{bindAttr class=":btn :btn-warning :restart-components :pull-left view.stopComponentsIsDisabled:disabled" }} {{action restartComponents view.isStopCommand target="controller"}}>
+                <button {{bindAttr class=":btn :restart-components :pull-left view.stopComponentsIsDisabled::btn-danger view.stopComponentsIsDisabled:disabled" }} {{action restartComponents view.isStopCommand target="controller"}}>
                   {{t hosts.host.details.needToRestart.stopButton}}
                 </button>
                  <span class="restart-components  pull-left">&nbsp</span>
-                 <button {{bindAttr class=":btn :btn-warning :restart-components :pull-left view.startComponentsIsDisabled:disabled" }} {{action restartComponents target="controller"}}>
+                 <button {{bindAttr class=":btn :restart-components :pull-left view.startComponentsIsDisabled::btn-success view.startComponentsIsDisabled:disabled" }} {{action restartComponents target="controller"}}>
                   {{t hosts.host.details.needToRestart.startButton}}
                  </button>
               </div>
