@@ -18,9 +18,32 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import com.google.gson.Gson;
-import com.google.inject.Injector;
+import static org.easymock.EasyMock.anyBoolean;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -47,29 +70,8 @@ import org.easymock.Capture;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.easymock.EasyMock.anyBoolean;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import com.google.gson.Gson;
+import com.google.inject.Injector;
 
 /**
  * Tests for the component resource provider.
@@ -421,12 +423,14 @@ public class ComponentResourceProviderTest {
         null);
     ServiceComponentRequest request4 = new ServiceComponentRequest("cluster1", "service1", "component4",
         null);
+    ServiceComponentRequest request5 = new ServiceComponentRequest("cluster1", "service2", null, null);
 
     Set<ServiceComponentRequest> setRequests = new HashSet<ServiceComponentRequest>();
     setRequests.add(request1);
     setRequests.add(request2);
     setRequests.add(request3);
     setRequests.add(request4);
+    setRequests.add(request5);
 
     // expectations
     // constructor init
@@ -434,9 +438,10 @@ public class ComponentResourceProviderTest {
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
 
     // getComponents
-    expect(clusters.getCluster("cluster1")).andReturn(cluster).times(4);
+    expect(clusters.getCluster("cluster1")).andReturn(cluster).times(5);
     expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
     expect(cluster.getService("service1")).andReturn(service).times(4);
+    expect(cluster.getService("service2")).andThrow(new ObjectNotFoundException("service2"));
 
     expect(service.getServiceComponent("component1")).andThrow(new ServiceComponentNotFoundException("cluster1", "service1", "component1"));
     expect(service.getServiceComponent("component2")).andThrow(new ServiceComponentNotFoundException("cluster1", "service1", "component2"));
@@ -516,7 +521,7 @@ public class ComponentResourceProviderTest {
     assertSame(controller, controllerCapture.getValue());
     verify(injector, clusters, cluster, service);
   }
-
+  
   public static void createComponents(AmbariManagementController controller, Set<ServiceComponentRequest> requests) throws AmbariException {
     ComponentResourceProvider provider = getComponentResourceProvider(controller);
     provider.createComponents(requests);

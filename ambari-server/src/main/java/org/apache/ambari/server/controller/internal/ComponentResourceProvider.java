@@ -31,7 +31,6 @@ import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
-import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -410,13 +409,18 @@ class ComponentResourceProvider extends AbstractControllerResourceProvider {
     for (ServiceComponentRequest request : requests) {
       try {
         response.addAll(getComponents(request));
-      } catch (ServiceComponentNotFoundException e) {
+      } catch (ObjectNotFoundException e) {
         if (requests.size() == 1) {
           // only throw exception if 1 request.
           // there will be > 1 request in case of OR predicate
           throw e;
         }
+      } catch (ParentObjectNotFoundException ee) {
+        if (requests.size() == 1) {
+          throw ee;
+        }
       }
+      
     }
     return response;
   }
@@ -476,7 +480,6 @@ class ComponentResourceProvider extends AbstractControllerResourceProvider {
       ServiceComponent sc = s.getServiceComponent(request.getComponentName());
       ServiceComponentResponse serviceComponentResponse = sc.convertToResponse();
 
-
       ComponentInfo componentInfo = ambariMetaInfo.getComponentCategory(stackId.getStackName(),
           stackId.getStackVersion(), s.getName(), request.getComponentName());
       if (componentInfo != null) {
@@ -505,7 +508,11 @@ class ComponentResourceProvider extends AbstractControllerResourceProvider {
     Set<Service> services = new HashSet<Service>();
     if (request.getServiceName() != null
         && !request.getServiceName().isEmpty()) {
-      services.add(cluster.getService(request.getServiceName()));
+      try {
+        services.add(cluster.getService(request.getServiceName()));
+      } catch (ObjectNotFoundException e) {
+        throw new ParentObjectNotFoundException("Could not find service", e);
+      }
     } else {
       services.addAll(cluster.getServices().values());
     }
