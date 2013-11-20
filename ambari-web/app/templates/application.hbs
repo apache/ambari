@@ -25,18 +25,17 @@
           <a class="brand" {{translateAttr href="topnav.logo.href"}} target="_blank" alt="Apache Ambari" title="Apache Ambari">{{t app.name}}</a>
 
           {{#if isClusterDataLoaded}}
-              <a class="brand cluster-name" href="javascript:void(null);" {{bindAttr title="clusterName"}}>
-                <span {{action "showPopup" target="App.router.backgroundOperationsController"}} >{{clusterDisplayName}} </span>
+            <a class="brand cluster-name" href="javascript:void(null);" {{bindAttr title="clusterName"}}>
+              <span {{action "showPopup" target="App.router.backgroundOperationsController"}} >{{clusterDisplayName}} </span>
 
-                {{#with App.router.backgroundOperationsController}}
-                  {{#if allOperationsCount}}
-                      <span class="label operations-count" {{action "showPopup" target="App.router.backgroundOperationsController"}}>{{allOperationsCount}}</span>
-                      {{else}}
-                      <span class="label" {{action "showPopup" target="App.router.backgroundOperationsController"}}>{{allOperationsCount}}</span>
-                  {{/if}}
-                {{/with}}
-
-              </a>
+              {{#with App.router.backgroundOperationsController}}
+                {{#if allOperationsCount}}
+                  <span class="label operations-count" {{action "showPopup" target="App.router.backgroundOperationsController"}}>{{allOperationsCount}}</span>
+                {{else}}
+                  <span class="label" {{action "showPopup" target="App.router.backgroundOperationsController"}}>{{allOperationsCount}}</span>
+                {{/if}}
+              {{/with}}
+            </a>
           {{/if}}
 
           {{#if App.router.loggedIn}}
@@ -45,8 +44,8 @@
                 {{App.router.loginName}}&nbsp;<span class="caret"></span>
               </button>
               <ul class="dropdown-menu">
-                <li><a href="" {{action logoff}}>{{t app.signout}}</a></li>
                 <li><a href="" {{action showSettingsPopup target="controller"}}>{{t app.settings}}</a></li>
+                <li><a href="" {{action logoff}}>{{t app.signout}}</a></li>
               </ul>
             </div>
           {{/if}}

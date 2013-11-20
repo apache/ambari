@@ -233,6 +233,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
         $(self.get('popupView.element')).appendTo('#wrapper');
       } else {
         self.set('popupView', App.HostPopup.initPopup("", self, true));
+        self.set ('popupView.isNotShowBgChecked', !initValue);
       }
     });
   }

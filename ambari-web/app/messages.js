@@ -26,7 +26,7 @@ Em.I18n.translations = {
   'app.loadingPlaceholder': 'Loading...',
   'app.signout':'Sign out',
   'app.settings':'Settings',
-  'app.settings.showBgOperations': 'Show background operations dialog when an operation is started',
+  'app.settings.notshowBgOperationsPopup': 'Do not show the Background Operations dialog when starting an operation',
   'app.settings.notShowBgOperations': 'Do not show this dialog again when starting a background operation',
 
   'apply':'apply',

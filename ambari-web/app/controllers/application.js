@@ -114,10 +114,10 @@ App.ApplicationController = Em.Controller.extend({
         header: Em.I18n.t('common.userSettings'),
         bodyClass: Em.View.extend({
           templateName: require('templates/common/settings'),
-          isShowBgChecked: initValue,
+          isNotShowBgChecked: !initValue,
           updateValue: function () {
-            curValue = this.get('isShowBgChecked');
-          }.observes('isShowBgChecked')
+            curValue = !this.get('isNotShowBgChecked');
+          }.observes('isNotShowBgChecked')
         }),
         primary: Em.I18n.t('common.save'),
         onPrimary: function() {
