@@ -300,6 +300,7 @@ module.exports = Em.Route.extend({
       controller.setCurrentStep('7');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps();
+        controller.setLowerStepsDisable(7);
         controller.connectOutlet('wizardStep10', controller.get('content'));
       })
     },
