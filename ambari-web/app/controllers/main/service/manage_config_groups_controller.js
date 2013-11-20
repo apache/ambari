@@ -222,16 +222,15 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       secondary: Em.I18n.t('common.cancel'),
       header: Em.I18n.t('services.service.config_groups.rename_config_group_popup.header'),
       bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile('' +
-          '<p>' +
-          '{{t services.service.config_groups_popup.group_name_lable }}: {{view Ember.TextField valueBinding="configGroupName"}}' +
-          '</p>')
+        templateName: require('templates/main/service/new_config_group')
       }),
       configGroupName: "",
       content: content,
       onPrimary: function () {
         this.get('content.selectedConfigGroup').set('name', this.get('configGroupName'));
+        this.get('content.selectedConfigGroup').set('description', this.get('configGroupDesc'));
         this.get('content.selectedConfigGroup.apiResponse').group_name = this.get('configGroupName');
+        this.get('content.selectedConfigGroup.apiResponse').description = this.get('configGroupDesc');
         var configGroup = {
           ConfigGroup: this.get('content.selectedConfigGroup.apiResponse')
         };
@@ -249,6 +248,8 @@ App.ManageConfigGroupsController = Em.Controller.extend({
         this.hide();
       }
     });
+    this.get('renameGroupPopup').set('configGroupName', this.get('selectedConfigGroup.name'));
+    this.get('renameGroupPopup').set('configGroupDesc', this.get('selectedConfigGroup.description'));
   },
 
   /**
@@ -329,7 +330,17 @@ App.ManageConfigGroupsController = Em.Controller.extend({
     var confGroup = this.get('configGroups').findProperty('id', data.ConfigGroup.id);
     confGroup.set('apiResponse', data.ConfigGroup);
   },
-  
+
+  /**
+   * duplicate config group
+   */
+  duplicateConfigGroup: function() {
+    this.addConfigGroup();
+    this.get('addGroupPopup').set('header',Em.I18n.t('services.service.config_groups.duplicate_config_group_popup.header'));
+    this.get('addGroupPopup').set('configGroupName', this.get('selectedConfigGroup.name') + ' Copy');
+    this.get('addGroupPopup').set('configGroupDesc', this.get('selectedConfigGroup.description') + ' (Copy)');
+  },
+
   hostsModifiedConfigGroups: function() {
     var groups = this.get('configGroups');
     var hostsRemovedGroup = [];
