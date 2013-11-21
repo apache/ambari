@@ -244,25 +244,31 @@ App.MainServiceItemController = Em.Controller.extend({
         console.log("manageConfigurationGroups(): Saving modified config-groups: ", modifiedConfigGroups);
         var self = this;
         var errors = [];
-        var putCount = modifiedConfigGroups.length;
+        var clearHostsPutCount = modifiedConfigGroups.toClearHosts.length;
+        var setHostsPutCount = modifiedConfigGroups.toSetHosts.length;
         var finishFunction = function(error) {
           if (error != null) {
             errors.push(error);
           }
-          if (--putCount <= 0) {
-            // Done with all the PUTs
-            if (errors.length > 0) {
-              console.log(errors);
-              self.get('subViewController').set('errorMessage',
-                  errors.join(". "));
+          if (--clearHostsPutCount <= 0) {
+            // Done with all the clear hosts PUTs
+            if (--setHostsPutCount < 0) {
+              // Done with all the PUTs
+              if (errors.length > 0) {
+                console.log(errors);
+                self.get('subViewController').set('errorMessage',
+                    errors.join(". "));
+              } else {
+                self.hide();
+              }
             } else {
-              self.hide();
+              App.config.updateConfigurationGroup(modifiedConfigGroups.toSetHosts[setHostsPutCount], finishFunction, finishFunction);
             }
           }
         };
         this.updateConfigGroupOnServicePage();
-        modifiedConfigGroups.forEach(function(cg) {
-          App.config.updateConfigurationGroup(cg, finishFunction, finishFunction);
+        modifiedConfigGroups.toClearHosts.forEach(function (cg) {
+          App.config.clearConfigurationGroupHosts(cg, finishFunction, finishFunction);
         });
       },
       onSecondary: function () {

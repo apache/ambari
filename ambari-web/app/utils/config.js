@@ -1235,6 +1235,12 @@ App.config = Em.Object.create({
     App.ajax.send(sendData);
   },
 
+  clearConfigurationGroupHosts: function (configGroup, successCallback, errorCallback) {
+    configGroup = jQuery.extend({}, configGroup);
+    configGroup.set('hosts', []);
+    this.updateConfigurationGroup(configGroup, successCallback, errorCallback);
+  },
+
   /**
    * Gets all the configuration-groups for the given service.
    * 

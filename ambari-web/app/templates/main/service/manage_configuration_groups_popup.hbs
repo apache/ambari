@@ -29,13 +29,13 @@
           class="group-select"
         }}
         <div class="btn-toolbar pull-right">
-          <button rel="button-info" class="btn" {{bindAttr data-original-title="view.addButtonTooltip" disabled="isHostsModified"}}
+          <button rel="button-info" class="btn" {{bindAttr data-original-title="view.addButtonTooltip"}}
             {{action addConfigGroup target="controller"}}><i class="icon-plus"></i></button>
           <button rel="button-info" class="btn" {{bindAttr data-original-title="view.removeButtonTooltip" disabled="view.isRemoveButtonDisabled"}}
             {{action confirmDelete target="controller"}}><i class="icon-minus"></i></button>
           <div class="btn-group">
-            <button class="btn" {{bindAttr disabled="isHostsModified"}}><i class="icon-cog"></i></button>
-            <button class="btn dropdown-toggle" data-toggle="dropdown" {{bindAttr disabled="isHostsModified"}}>
+            <button class="btn"><i class="icon-cog"></i></button>
+            <button class="btn dropdown-toggle" data-toggle="dropdown">
               <span class="caret"></span>
             </button>
             <ul class="dropdown-menu">

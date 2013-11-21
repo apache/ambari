@@ -33,6 +33,8 @@ App.ManageConfigGroupsController = Em.Controller.extend({
 
   selectedHosts: [],
 
+  loadedHostsToGroupMap: {},
+
   loadConfigGroups: function (serviceName) {
     this.set('serviceName', serviceName);
     App.ajax.send({
@@ -47,6 +49,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
   },
 
   onLoadConfigGroupsSuccess: function (data) {
+    var loadedHostsToGroupMap = this.get('loadedHostsToGroupMap');
     var usedHosts = [];
     var unusedHosts = [];
     var defaultConfigGroup = App.ConfigGroup.create({
@@ -63,11 +66,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       data.items.forEach(function (configGroup) {
         configGroup = configGroup.ConfigGroup;
         var hostNames = configGroup.hosts.mapProperty('host_name');
-        var loadedHostNamesMap = {};
-        hostNames.forEach(function(h){
-          loadedHostNamesMap[h] = true;
-        });
-        loadedHostNamesMap.length = hostNames.length;
+        loadedHostsToGroupMap[configGroup.group_name] = hostNames.slice();
         var newConfigGroup = App.ConfigGroup.create({
           id: configGroup.id,
           name: configGroup.group_name,
@@ -78,9 +77,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
           hosts: hostNames,
           configSiteTags: [],
           properties: [],
-          apiResponse: configGroup,
-          loadedHostNamesMap: loadedHostNamesMap,
-          hostsModified: false
+          apiResponse: configGroup
         });
         usedHosts = usedHosts.concat(newConfigGroup.get('hosts'));
         configGroups.push(newConfigGroup);
@@ -219,6 +216,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
     this.set('selectedHosts', selectedConfigGroup.get('hosts'));
     this.deleteHosts();
     this.get('configGroups').removeObject(selectedConfigGroup);
+    delete this.get('loadedHostsToGroupMap')[selectedConfigGroup.get('name')];
     this.set('selectedConfigGroup', this.get('configGroups').findProperty('isDefault'));
   },
 
@@ -304,23 +302,20 @@ App.ManageConfigGroupsController = Em.Controller.extend({
    * On successful api resonse for creating new config group
    */
   onAddNewConfigGroup: function (data) {
-    var loadedHostNamesMap = {};
-    loadedHostNamesMap.length = 0;
-    var defaultConfigGroup = this.get('configGroups').popObject();
+    var defaultConfigGroup = this.get('configGroups').findProperty('isDefault');
     var newConfigGroupData = App.ConfigGroup.create({
       id: data.resources[0].ConfigGroup.id,
       name: this.get('configGroupName'),
       description: this.get('configGroupDesc'),
       isDefault: false,
       parentConfigGroup: defaultConfigGroup,
-      service: this.get('serviceName'),
+      service: App.Service.find().findProperty('serviceName', this.get('serviceName')),
       hosts: [],
-      configSiteTags: [],
-      loadedHostNamesMap: loadedHostNamesMap,
-      hostsModified: false
+      configSiteTags: []
     });
+    this.get('loadedHostsToGroupMap')[newConfigGroupData.get('name')] = [];
     defaultConfigGroup.get('childConfigGroups').push(newConfigGroupData);
-    this.get('configGroups').pushObjects([newConfigGroupData, defaultConfigGroup]);
+    this.get('configGroups').pushObject(newConfigGroupData);
     this.updateConfigGroup(data.resources[0].ConfigGroup.id);
     this.addGroupPopup.hide();
   },
@@ -354,51 +349,29 @@ App.ManageConfigGroupsController = Em.Controller.extend({
     this.get('addGroupPopup').set('configGroupDesc', this.get('selectedConfigGroup.description') + ' (Copy)');
   },
 
-  hostsModifiedConfigGroups: function() {
+  hostsModifiedConfigGroups: function () {
+    var groupsToClearHosts = [];
+    var groupsToSetHosts = [];
     var groups = this.get('configGroups');
-    var hostsRemovedGroup = [];
-    var hostsAddedGroup = [];
-    var hostsChangedGroup = [];
-    groups.forEach(function(g) {
-      if (!g.get('isDefault')) {
-        var loadedMap = g.get('loadedHostNamesMap');
-        var current = g.get('hosts');
-        var currentLength = current ? current.length : 0;
-        if (currentLength == loadedMap.length) {
-          if (currentLength>0) {
-            var changed = false;
-            current.forEach(function(c) {
-              if (!changed && loadedMap[c] == null) {
-                changed = true;
-              }
-            });
-            if (changed) {
-              hostsChangedGroup.push(g);
-            }
-          }
-        } else {
-          if (currentLength < loadedMap.length) {
-            hostsRemovedGroup.push(g);
-          } else {
-            hostsAddedGroup.push(g);
+    var loadedHostsToGroupMap = this.get('loadedHostsToGroupMap');
+    groups.forEach(function (group) {
+      if (!group.get('isDefault')) {
+        if (!(JSON.stringify(group.get('hosts').slice().sort()) === JSON.stringify(loadedHostsToGroupMap[group.get('name')].sort()))) {
+          groupsToClearHosts.push(group);
+          if (group.get('hosts').length) {
+            groupsToSetHosts.push(group);
           }
         }
       }
     });
-    // First PUT removed hosts, then PUT added hosts, then changed hosts
-    var modifiedGroups = [];
-    modifiedGroups = modifiedGroups.concat(hostsRemovedGroup);
-    modifiedGroups = modifiedGroups.concat(hostsAddedGroup);
-    modifiedGroups = modifiedGroups.concat(hostsChangedGroup);
-    return modifiedGroups;
+    return {
+      toClearHosts: groupsToClearHosts,
+      toSetHosts: groupsToSetHosts
+    };
   }.property('selectedConfigGroup', 'selectedConfigGroup.hosts.@each'),
   
   isHostsModified: function () {
-    var groups = this.get('hostsModifiedConfigGroups');
-    return groups && groups.length > 0;
-  }.property('hostsModifiedConfigGroups', 'hostsModifiedConfigGroups.length'),
-
-  isDeleteGroupDisabled: function () {
-    return this.get('selectedConfigGroup.isDefault');
-  }.property('selectedConfigGroup')
+    var modifiedGroups = this.get('hostsModifiedConfigGroups');
+    return !!(modifiedGroups.toClearHosts.length || modifiedGroups.toSetHosts.length);
+  }.property('hostsModifiedConfigGroups', 'hostsModifiedConfigGroups.length')
 });
