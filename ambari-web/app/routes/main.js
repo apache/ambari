@@ -660,20 +660,6 @@ module.exports = Em.Route.extend({
       enter: function (router) {
         router.set('mainAdminController.category', "security");
         var controller = router.get('mainAdminSecurityController');
-        if (!App.testMode) {
-          App.clusterStatus.updateFromServer();
-          var currentClusterStatus = App.clusterStatus.get('value');
-          App.db.data.AddSecurity = currentClusterStatus.localdb;
-          if (currentClusterStatus.localdb) {
-            App.db.setSecurityDeployStages(currentClusterStatus.localdb.securityDeployStages);
-            controller.setAddSecurityWizardStatus(currentClusterStatus.localdb.status);
-            App.db.setSecureConfigProperties(currentClusterStatus.localdb.secureConfigProperties);
-            App.db.setWizardCurrentStep('AddSecurity', currentClusterStatus.localdb.currentStep);
-            App.db.setIsNameNodeHa(currentClusterStatus.localdb.haStatus);
-            App.db.setDisableSecurityStatus(currentClusterStatus.localdb.disableSecurityStatus);
-            App.db.setSecureUserInfo(currentClusterStatus.localdb.secureUserInfo);
-          }
-        }
         if (!(controller.getAddSecurityWizardStatus() === 'RUNNING') && !(controller.getDisableSecurityStatus() === 'RUNNING')) {
           Em.run.next(function () {
             router.transitionTo('adminSecurity.index');
