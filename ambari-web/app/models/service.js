@@ -165,4 +165,24 @@ App.Service.DisplayNames = {
   'FLUME': 'Flume'
 };
 
+App.Service.servicesSortOrder = [
+  'HDFS',
+  'YARN',
+  'MAPREDUCE',
+  'MAPREDUCE2',
+  'TEZ',
+  'HBASE',
+  'HIVE',
+  'HCATALOG',
+  'WEBHCAT',
+  'FLUME',
+  'OOZIE',
+  'GANGLIA',
+  'NAGIOS',
+  'ZOOKEEPER',
+  'PIG',
+  'SQOOP',
+  'HUE'
+];
+
 App.Service.FIXTURES = [];

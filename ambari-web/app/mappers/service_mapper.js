@@ -16,37 +16,9 @@
  */
 
 var App = require('app');
+var misc = require('utils/misc');
 
 App.servicesMapper = App.QuickDataMapper.create({
-  servicesSortOrder: [
-    'HDFS',
-    'YARN',
-    'MAPREDUCE',
-    'MAPREDUCE2',
-    'TEZ',
-    'HBASE',
-    'HIVE',
-    'HCATALOG',
-    'WEBHCAT',
-    'FLUME',
-    'OOZIE',
-    'GANGLIA',
-    'NAGIOS',
-    'ZOOKEEPER',
-    'PIG',
-    'SQOOP',
-    'HUE'
-  ],
-  sortByOrder: function (sortOrder, array) {
-    var sorted = [];
-    for (var i = 0; i < sortOrder.length; i++)
-      for (var j = 0; j < array.length; j++) {
-        if (sortOrder[i] == array[j].id) {
-          sorted.push(array[j]);
-        }
-      }
-    return sorted;
-  },
 
   model: App.Service,
   config: {
@@ -262,7 +234,7 @@ App.servicesMapper = App.QuickDataMapper.create({
         }
       }, this);
 
-      result = this.sortByOrder(this.get('servicesSortOrder'), result);
+      result = misc.sortByOrder(App.Service.servicesSortOrder, result);
 
       //load services to model
       App.store.loadMany(this.get('model'), result);

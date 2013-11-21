@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var misc = require('utils/misc');
 
 App.MainHostServiceMenuView = Em.CollectionView.extend({
   content:function () {
@@ -27,14 +28,18 @@ App.MainHostServiceMenuView = Em.CollectionView.extend({
       hostComponents.forEach(function (hc) {
         var service = hc.get('service');
         var serviceName = service.get('serviceName');
-        if(!['PIG', 'SQOOP', 'HCATALOG', 'GANGLIA'].contains(serviceName)){
-          if (!services.findProperty('serviceName', serviceName)) {
-            services.push(service);
+        if (serviceName) {
+          if(!['PIG', 'SQOOP', 'HCATALOG', 'GANGLIA'].contains(serviceName)){
+            if (!services.findProperty('serviceName', serviceName)) {
+              services.push(service);
+            }
           }
+        } else {
+          console.warn("serviceName not found for " + hc.get('componentName'));
         }
       });
     }
-    return services;
+    return misc.sortByOrder(App.Service.servicesSortOrder, services);
   }.property('host'),
   
   host: function(){

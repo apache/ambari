@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var misc = require('utils/misc');
 
 App.MainServiceMenuView = Em.CollectionView.extend({
   content:function () {
@@ -26,38 +27,8 @@ App.MainServiceMenuView = Em.CollectionView.extend({
       }
       return true;
     });
-    return this.sortByOrder(this.get('servicesSortOrder'), items);
+    return misc.sortByOrder(App.Service.servicesSortOrder, items);
   }.property('App.router.mainServiceController.content', 'App.router.mainServiceController.content.length'),
-
-  servicesSortOrder: [
-    'HDFS',
-    'YARN',
-    'MAPREDUCE',
-    'MAPREDUCE2',
-    'TEZ',
-    'HBASE',
-    'HIVE',
-    'HCATALOG',
-    'WEBHCAT',
-    'FLUME',
-    'OOZIE',
-    'GANGLIA',
-    'NAGIOS',
-    'ZOOKEEPER',
-    'PIG',
-    'SQOOP',
-    'HUE'
-  ],
-  sortByOrder: function (sortOrder, array) {
-    var sorted = [];
-    for (var i = 0; i < sortOrder.length; i++)
-      for (var j = 0; j < array.length; j++) {
-        if (sortOrder[i] == array[j].get('id')) {
-          sorted.push(array[j]);
-        }
-      }
-    return sorted;
-  },
 
   didInsertElement:function () {
     App.router.location.addObserver('lastSetURL', this, 'renderOnRoute');

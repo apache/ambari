@@ -52,6 +52,17 @@ module.exports = {
     // Reuse ip variable for component counter.
     var d = ip.split('.');
     return ((((((+d[0])*256)+(+d[1]))*256)+(+d[2]))*256)+(+d[3]);
+  },
+
+  sortByOrder: function (sortOrder, array) {
+    var sorted = [];
+    for (var i = 0; i < sortOrder.length; i++)
+      for (var j = 0; j < array.length; j++) {
+        if (sortOrder[i] == ('get' in array[j] ? array[j].get('id') : array[j].id)) {
+          sorted.push(array[j]);
+        }
+      }
+    return sorted;
   }
   
 };
