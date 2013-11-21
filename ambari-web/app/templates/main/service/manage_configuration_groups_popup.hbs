@@ -29,8 +29,10 @@
           class="group-select"
         }}
         <div class="btn-toolbar pull-right">
-          <button class="btn" {{bindAttr disabled="isHostsModified"}} {{action addConfigGroup target="controller"}}><i class="icon-plus"></i></button>
-          <button class="btn" {{bindAttr disabled="isDeleteGroupDisabled"}} {{action deleteConfigGroup target="controller"}}><i class="icon-minus"></i></button>
+          <button rel="button-info" class="btn" {{bindAttr data-original-title="view.addButtonTooltip" disabled="isHostsModified"}}
+            {{action addConfigGroup target="controller"}}><i class="icon-plus"></i></button>
+          <button rel="button-info" class="btn" {{bindAttr data-original-title="view.removeButtonTooltip" disabled="view.isRemoveButtonDisabled"}}
+            {{action confirmDelete target="controller"}}><i class="icon-minus"></i></button>
           <div class="btn-group">
             <button class="btn" {{bindAttr disabled="isHostsModified"}}><i class="icon-cog"></i></button>
             <button class="btn dropdown-toggle" data-toggle="dropdown" {{bindAttr disabled="isHostsModified"}}>
@@ -38,10 +40,10 @@
             </button>
             <ul class="dropdown-menu">
               <li {{bindAttr class="view.isRenameButtonDisabled:disabled"}}>
-                <a {{action renameConfigGroup target="controller"}}>{{t services.service.config_groups_popup.rename}}</a>
+                <a  rel="button-info" {{bindAttr data-original-title="view.renameButtonTooltip"}} {{action renameConfigGroup target="controller"}}>{{t services.service.config_groups_popup.rename}}</a>
               </li>
               <li>
-                <a {{action duplicateConfigGroup target="controller"}}>{{t services.service.config_groups_popup.duplicate}}</a>
+                <a  rel="button-info" {{bindAttr data-original-title="view.duplicateButtonTooltip"}} {{action duplicateConfigGroup target="controller"}}>{{t services.service.config_groups_popup.duplicate}}</a>
               </li>
             </ul>
           </div>
@@ -59,18 +61,19 @@
             }}
           </div>
           <div class="button-group pull-right">
-            <button class="btn" {{bindAttr disabled="selectedConfigGroup.isAddHostsDisabled"}} {{action addHosts target="controller"}} ><i class="icon-plus"></i></button>
-            <button class="btn" {{bindAttr disabled="selectedConfigGroup.isDeleteHostsDisabled"}} {{action deleteHosts target="controller"}} ><i class="icon-minus"></i></button>
+            <button rel="button-info" class="btn" {{bindAttr data-original-title="view.addHostTooltip" disabled="selectedConfigGroup.isAddHostsDisabled"}} {{action addHosts target="controller"}} ><i class="icon-plus"></i></button>
+            <button rel="button-info" class="btn" {{bindAttr data-original-title="view.removeHostTooltip" disabled="selectedConfigGroup.isDeleteHostsDisabled"}} {{action deleteHosts target="controller"}} ><i class="icon-minus"></i></button>
           </div>
         </div>
         <div class="row-fluid">
           <div class="span2">{{t common.overrides}}</div>
           <div class="span10">
             <a href="" class="properties-link" {{action showProperties target="controller"}}
-               rel="HealthTooltip" {{bindAttr data-original-title="selectedConfigGroup.propertiesList" }}>{{selectedConfigGroup.properties.length}} {{t common.properties}}</a>
+              {{bindAttr data-original-title="selectedConfigGroup.propertiesList" }}>{{selectedConfigGroup.properties.length}} {{t common.properties}}</a>
           </div>
         </div>
       </div>
+      <div class="span12">{{selectedConfigGroup.description}}</div>
       <div class="span12 text-error" id="manage-config-group-error-div">
         {{#if errorMessage}}
           {{errorMessage}}

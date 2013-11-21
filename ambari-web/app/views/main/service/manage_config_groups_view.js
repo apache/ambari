@@ -61,5 +61,26 @@ App.MainServiceManageConfigGroupView = Em.View.extend({
   didInsertElement: function () {
     this.get('controller').loadConfigGroups(this.get('serviceName'));
     $('.properties-link').tooltip();
-  }
+    $("[rel='button-info']").tooltip();
+  },
+
+  addButtonTooltip: function () {
+    return  Em.I18n.t('services.service.config_groups_popup.addButton');
+  }.property(),
+  removeButtonTooltip: function () {
+    return  Em.I18n.t('services.service.config_groups_popup.removeButton');
+  }.property(),
+  renameButtonTooltip: function () {
+    return  Em.I18n.t('services.service.config_groups_popup.renameButton');
+  }.property(),
+  duplicateButtonTooltip: function () {
+    return  Em.I18n.t('services.service.config_groups_popup.duplicateButton');
+  }.property(),
+  addHostTooltip: function () {
+    return  Em.I18n.t('services.service.config_groups_popup.addHost');
+  }.property(),
+  removeHostTooltip: function () {
+    return  Em.I18n.t('services.service.config_groups_popup.removeHost');
+  }.property()
+
 });

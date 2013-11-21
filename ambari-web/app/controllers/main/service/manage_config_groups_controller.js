@@ -191,6 +191,16 @@ App.ManageConfigGroupsController = Em.Controller.extend({
   },
 
   /**
+   * confirm delete config group
+   */
+  confirmDelete : function () {
+    var self = this;
+    App.showConfirmationPopup(function() {
+      self.deleteConfigGroup();
+    });
+  },
+
+  /**
    * delete selected config group
    */
   deleteConfigGroup: function () {
