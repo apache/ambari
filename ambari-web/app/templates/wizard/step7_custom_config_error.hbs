@@ -16,19 +16,23 @@
 * limitations under the License.
 }}
 
-<ul class="nav nav-tabs">
-  {{#each service in controller.stepConfigs}}
-    {{#if service.showConfig}}
-      {{#view App.ServiceConfigTab}}
-        <a href="#{{unbound service.serviceName}}" {{bindAttr class=":active service.selected:new"}}
-           data-toggle="tab" {{action selectService service target="view"}}>
-          {{service.displayName}}{{#if service.errorCount}}<span
-                class="badge badge-important">{{service.errorCount}}</span>{{/if}}</a>
-      {{/view}}
-    {{/if}}
-  {{/each}}
-</ul>
-{{view App.ServiceConfigView isNotEditableBinding="controller.isNotEditable"}}
-{{#if isSubmitDisabled}}
-  <div class="alert">{{t installer.step7.attentionNeeded}}</div>
-{{/if}}
+<h5>{{view.message}}</h5>
+<br />
+<div class="pre-scrollable" style="max-height: 250px;">
+  <ul>
+    {{#each val in view.customConfig}}
+      {{#if val.siteProperties}}
+        <li>
+          {{val.serviceName}}
+            <ul>
+              {{#each item in val.siteProperties}}
+                <li>
+                  {{item.displayMsg}}
+                </li>
+              {{/each}}
+            </ul>
+        </li>
+      {{/if}}
+    {{/each}}
+  </ul>
+</div>

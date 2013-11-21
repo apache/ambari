@@ -99,6 +99,14 @@ App.WizardStep7Controller = Em.Controller.extend({
     };
     //STEP 6: Distribute configs by service and wrap each one in App.ServiceConfigProperty (configs -> serviceConfigs)
     var serviceConfigs = App.config.renderConfigs(configs, storedConfigs, this.get('allInstalledServiceNames'), this.get('selectedServiceNames'), localDB);
+    if (this.get('wizardController.name') === 'addServiceController') {
+      serviceConfigs.setEach('showConfig', true);
+      serviceConfigs.setEach('selected', false);
+      this.get('selectedServiceNames').forEach(function(serviceName) {
+        serviceConfigs.findProperty('serviceName', serviceName).set('selected', true);
+      });
+    }
+
     this.set('stepConfigs', serviceConfigs);
     this.activateSpecialConfigs();
     this.set('selectedService', this.get('stepConfigs').filterProperty('showConfig', true).objectAt(0));
@@ -177,28 +185,7 @@ App.WizardStep7Controller = Em.Controller.extend({
 
         }.property('customConfig.@each.siteProperties.@each.siteProperty'),
         customConfig: customConfig,
-        template: Ember.Handlebars.compile([
-          '<h5>{{view.message}}</h5>',
-          '<br/>',
-          '<div class="pre-scrollable" style="max-height: 250px;">',
-          '<ul>',
-          '{{#each val in view.customConfig}}',
-          '{{#if val.siteProperties}}',
-          '<li>',
-          '{{val.serviceName}}',
-          '<ul>',
-          '{{#each item in  val.siteProperties}}',
-          '<li>',
-          '{{item.displayMsg}}',
-          '</li>',
-          '{{/each}}',
-          '</ul>',
-          '</li>',
-          '{{/if}}',
-          '{{/each}}',
-          '</ul>',
-          '</div>'
-        ].join('\n'))
+        templateName: require('templates/wizard/step7_custom_config_error')
       })
     });
   },
