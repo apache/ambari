@@ -894,6 +894,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       configs.filterProperty('isOverridden', true).forEach(function (config) {
         overridenConfigs = overridenConfigs.concat(config.get('overrides'));
       });
+      this.formatConfigValues(overridenConfigs);
       selectedConfigGroup.get('hosts').forEach(function(hostName){
         groupHosts.push({"host_name": hostName});
       });
@@ -931,14 +932,31 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var time = (new Date).getTime();
     configs.forEach(function (config) {
       var type = config.get('filename').replace('.xml', '');
-      var site = sites.findProperty('type', type) || {
-        type: type,
-        tag: 'version' + time,
-        properties: {}
-      };
-      site.properties[config.get('name')] = config.get('value');
-      sites.push(site);
+      var site = sites.findProperty('type', type);
+      if (site) {
+        site.properties.push({
+          name: config.get('name'),
+          value: config.get('value')
+        });
+      } else {
+        site = {
+          type: type,
+          tag: 'version' + time,
+          properties: [{
+            name: config.get('name'),
+            value: config.get('value')
+          }]
+        };
+        sites.push(site);
+      }
     });
+    sites.forEach(function(site){
+      if(site.type === 'global') {
+        site.properties = this.createGlobalSiteObj(site.tag, site.properties).properties;
+      } else {
+        site.properties = this.createSiteObj(site.type, site.tag, site.properties).properties;
+      }
+    }, this);
     return sites;
   },
   /**
@@ -1080,13 +1098,17 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   saveSiteConfigs: function (configs) {
     //storedConfigs contains custom configs as well
     var serviceConfigProperties = configs.filterProperty('id', 'site property');
+    this.formatConfigValues(serviceConfigProperties);
+    var storedConfigs = serviceConfigProperties.filterProperty('value');
+    var allUiConfigs = this.loadUiSideConfigs(this.get('configMapping').all());
+    this.set('uiConfigs', storedConfigs.concat(allUiConfigs));
+  },
+
+  formatConfigValues: function(serviceConfigProperties){
     serviceConfigProperties.forEach(function (_config) {
       if (typeof _config.get('value') === "boolean") _config.set('value', _config.value.toString());
       _config.set('value', App.config.trimProperty(_config), true);
     });
-    var storedConfigs = serviceConfigProperties.filterProperty('value');
-    var allUiConfigs = this.loadUiSideConfigs(this.get('configMapping').all());
-    this.set('uiConfigs', storedConfigs.concat(allUiConfigs));
   },
 
   /**
@@ -1238,7 +1260,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     serviceConfigTags.forEach(function (_serviceTags) {
       if (_serviceTags.siteName === 'global') {
         console.log("TRACE: Inside global");
-        var serverGlobalConfigs = this.createGlobalSiteObj(_serviceTags.newTagName);
+        var serverGlobalConfigs = this.createGlobalSiteObj(_serviceTags.newTagName, this.get('globalConfigs'));
         siteNameToServerDataMap['global'] = serverGlobalConfigs;
         var loadedProperties = configController.getConfigsByTags([{siteName: 'global', tagName: this.loadedClusterSiteToTagMap['global']}]);
         if (loadedProperties && loadedProperties[0]) {
@@ -1261,7 +1283,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           }
         }
       } else {
-        var serverConfigs = this.createSiteObj(_serviceTags.siteName, _serviceTags.newTagName);
+        var siteConfigs = this.get('uiConfigs').filterProperty('filename', _serviceTags.siteName + '.xml');
+        var serverConfigs = this.createSiteObj(_serviceTags.siteName, _serviceTags.newTagName, siteConfigs);
         siteNameToServerDataMap[_serviceTags.siteName] = serverConfigs;
         var loadedProperties = configController.getConfigsByTags([{siteName: _serviceTags.siteName, tagName: this.loadedClusterSiteToTagMap[_serviceTags.siteName]}]);
         if (loadedProperties && loadedProperties[0]) {
@@ -1438,10 +1461,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @param tagName
    * @return {Object}
    */
-  createGlobalSiteObj: function (tagName) {
+  createGlobalSiteObj: function (tagName, globalConfigs) {
     var heapsizeException = ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize'];
     var globalSiteProperties = {};
-    this.get('globalConfigs').forEach(function (_globalSiteObj) {
+    globalConfigs.forEach(function (_globalSiteObj) {
       // do not pass any globalConfigs whose name ends with _host or _hosts
       if (!/_hosts?$/.test(_globalSiteObj.name)) {
         // append "m" to JVM memory options except for hadoop_heapsize
@@ -1524,8 +1547,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * @param tagName
    * @return {Object}
    */
-  createSiteObj: function (siteName, tagName) {
-    var siteObj = this.get('uiConfigs').filterProperty('filename', siteName + '.xml');
+  createSiteObj: function (siteName, tagName, siteObj) {
     var siteProperties = {};
     siteObj.forEach(function (_siteObj) {
       siteProperties[_siteObj.name] = App.config.escapeXMLCharacters(_siteObj.value);
