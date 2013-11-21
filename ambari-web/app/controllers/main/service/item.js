@@ -279,14 +279,17 @@ App.MainServiceItemController = Em.Controller.extend({
       updateConfigGroupOnServicePage: function () {
         var mainServiceInfoConfigsController = App.get('router.mainServiceInfoConfigsController');
         var selectedConfigGroup = mainServiceInfoConfigsController.get('selectedConfigGroup');
-        var managedConfigGroups = this.get('subViewController.configGroups');
-        selectedConfigGroup = managedConfigGroups.findProperty('id', selectedConfigGroup.id);
-        if(selectedConfigGroup){
-          mainServiceInfoConfigsController.set('selectedConfigGroup', selectedConfigGroup);
-        }else{
-          mainServiceInfoConfigsController.set('selectedConfigGroup',  managedConfigGroups.findProperty('isDefault', true));
+        //check whether selectedConfigGroup was selected
+        if (selectedConfigGroup) {
+          var managedConfigGroups = this.get('subViewController.configGroups');
+          selectedConfigGroup = managedConfigGroups.findProperty('id', selectedConfigGroup.id);
+          if (selectedConfigGroup) {
+            mainServiceInfoConfigsController.set('selectedConfigGroup', selectedConfigGroup);
+          } else {
+            mainServiceInfoConfigsController.set('selectedConfigGroup', managedConfigGroups.findProperty('isDefault', true));
+          }
         }
-        mainServiceInfoConfigsController.set('configGroups',this.get('subViewController.configGroups'));
+        mainServiceInfoConfigsController.set('configGroups', this.get('subViewController.configGroups'));
       },
       updateButtons: function(){
         var modified = this.get('subViewController.isHostsModified');

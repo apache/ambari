@@ -195,18 +195,18 @@ App.ManageConfigGroupsController = Em.Controller.extend({
    */
   deleteConfigGroup: function () {
     var selectedConfigGroup = this.get('selectedConfigGroup');
-    if(selectedConfigGroup.get('name') == "Default") {
+    if (this.get('isDeleteGroupDisabled')) {
       return;
     }
-      App.ajax.send({
-        name: 'config_groups.delete_config_group',
-        sender: this,
-        data: {
-          id: selectedConfigGroup.get('id')
-        }
-      });
-      this.get('configGroups').removeObject(selectedConfigGroup);
-
+    App.ajax.send({
+      name: 'config_groups.delete_config_group',
+      sender: this,
+      data: {
+        id: selectedConfigGroup.get('id')
+      }
+    });
+    this.get('configGroups').removeObject(selectedConfigGroup);
+    this.set('selectedConfigGroup', this.get('configGroups').findProperty('isDefault'));
   },
 
   /**
@@ -383,5 +383,9 @@ App.ManageConfigGroupsController = Em.Controller.extend({
   isHostsModified: function () {
     var groups = this.get('hostsModifiedConfigGroups');
     return groups && groups.length > 0;
-  }.property('hostsModifiedConfigGroups', 'hostsModifiedConfigGroups.length')
+  }.property('hostsModifiedConfigGroups', 'hostsModifiedConfigGroups.length'),
+
+  isDeleteGroupDisabled: function () {
+    return this.get('selectedConfigGroup.isDefault');
+  }.property('selectedConfigGroup')
 });
