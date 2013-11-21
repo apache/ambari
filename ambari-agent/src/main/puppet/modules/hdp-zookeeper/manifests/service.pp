@@ -69,13 +69,21 @@ class hdp-zookeeper::service(
     }
   }
 
+  hdp-hadoop::namenode::create_app_directories { 'create_app_directories' :
+    service_state => $service_state
+  }
+
+  hdp-hadoop::namenode::create_user_directories { 'create_user_directories' :
+    service_state => $service_state
+  }
+
   if ($ensure == 'uninstalled') {
     anchor{'hdp-zookeeper::service::begin':} -> Hdp::Directory_recursive_create<|context_tag == 'zk_service'|> ->  anchor{'hdp-zookeeper::service::end':}
   } else {
     class { 'hdp-zookeeper::set_myid': myid => $myid}
 
-    anchor{'hdp-zookeeper::service::begin':} -> Hdp::Directory_recursive_create<|context_tag == 'zk_service'|> -> 
-    Class['hdp-zookeeper::set_myid'] -> anchor{'hdp-zookeeper::service::end':}
+    anchor{'hdp-zookeeper::service::begin':} -> Hdp-hadoop::Namenode::Create_user_directories['create_user_directories'] -> Hdp-hadoop::Namenode::Create_app_directories['create_app_directories'] -> 
+    Hdp::Directory_recursive_create<|context_tag == 'zk_service'|> -> Class['hdp-zookeeper::set_myid'] -> anchor{'hdp-zookeeper::service::end':}
 
     if ($daemon_cmd != undef) {
       Class['hdp-zookeeper::set_myid'] -> Hdp::Exec[$daemon_cmd] -> Anchor['hdp-zookeeper::service::end']
