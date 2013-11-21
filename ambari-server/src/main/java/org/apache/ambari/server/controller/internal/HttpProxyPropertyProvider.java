@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.gson.JsonSyntaxException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
@@ -135,6 +136,9 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
     }
     catch (IOException ioe) {
       LOG.error("Error reading HTTP response from " + url);
+      r.setProperty(propertyIdToSet, null);
+    } catch (JsonSyntaxException jse) {
+      LOG.error("Error parsing HTTP response from " + url);
       r.setProperty(propertyIdToSet, null);
     } finally {
       if (in != null) {
