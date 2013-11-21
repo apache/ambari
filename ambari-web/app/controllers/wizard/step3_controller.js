@@ -323,7 +323,14 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   doBootstrapSuccessCallback: function (data) {
-    if (data.hostsStatus !== null) {
+    var self = this;
+    var pollingInterval = 3000;
+    if (data.hostsStatus === undefined) {
+      console.log('Invalid response, setting timeout');
+      window.setTimeout(function () {
+        self.doBootstrap()
+      }, pollingInterval);
+    } else {
       // in case of bootstrapping just one host, the server returns an object rather than an array, so
       // force into an array
       if (!(data.hostsStatus instanceof Array)) {
@@ -356,10 +363,9 @@ App.WizardStep3Controller = Em.Controller.extend({
         this.startRegistration();
       }
       if (keepPolling) {
-        var self = this;
         window.setTimeout(function () {
           self.doBootstrap()
-        }, 3000);
+        }, pollingInterval);
       }
     }
   },
