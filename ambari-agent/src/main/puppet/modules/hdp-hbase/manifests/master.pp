@@ -44,14 +44,6 @@ class hdp-hbase::master(
       type          => 'master',
       service_state => $service_state
     }
-    
-    hdp-hadoop::namenode::create_app_directories { 'create_app_directories' :
-      service_state => $service_state
-    }
-
-    hdp-hadoop::namenode::create_user_directories { 'create_user_directories' :
-      service_state => $service_state
-    }
 
     Hdp-hbase::Configfile<||>{hbase_master_hosts => $hdp::params::host_address}
   

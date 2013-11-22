@@ -51,14 +51,6 @@ class hdp-oozie::server(
       }
     }
 
-    hdp-hadoop::namenode::create_app_directories { 'create_app_directories' :
-      service_state => $service_state
-    }
-
-    hdp-hadoop::namenode::create_user_directories { 'create_user_directories' :
-      service_state => $service_state
-    }
-
     #installs package, creates user, sets configuration
     class{ 'hdp-oozie' : 
       service_state => $service_state,
@@ -73,7 +65,7 @@ class hdp-oozie::server(
     }
   
     #top level does not need anchors
-    Hdp-Hadoop::Namenode::Create_app_directories['create_app_directories'] -> Hdp-Hadoop::Namenode::Create_user_directories['create_user_directories'] -> Class['hdp-oozie'] -> Class['hdp-oozie::service']
+    Class['hdp-oozie'] -> Class['hdp-oozie::service']
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
   }
