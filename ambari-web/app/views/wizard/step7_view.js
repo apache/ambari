@@ -35,7 +35,7 @@ App.WizardStep7View = Em.View.extend({
           break;
         }
       }
-      $('.nav-tabs li:eq(' + tabIndex + ') a').trigger('click');
+      self.$().find('.nav-tabs li:eq(' + tabIndex + ') a').trigger('click');
     });
   }
 

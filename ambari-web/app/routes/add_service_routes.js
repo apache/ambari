@@ -45,6 +45,12 @@ module.exports = Em.Route.extend({
             this.set('showCloseButton', false); // prevent user to click "Close" many times
             App.router.get('updateController').set('isWorking', true);
             var self = this;
+            App.clusterStatus.setClusterStatus({
+              clusterName: App.router.get('content.cluster.name'),
+              clusterState: 'DEFAULT',
+              wizardControllerName: App.router.get('addServiceController.name'),
+              localdb: App.db.data
+            });
             App.router.get('updateController').updateServiceMetric(function(){
               self.hide();
             });
