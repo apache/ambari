@@ -140,7 +140,8 @@ App.UpdateController = Em.Controller.extend({
     var methodStartTs = new Date().getTime();
     var testUrl = App.get('isHadoop2Stack') ? '/data/dashboard/HDP2/services.json':'/data/dashboard/services.json';
 
-    var realUrl = '/components/?ServiceComponentInfo/category=MASTER&fields=' +
+    var realUrl = '/components/?ServiceComponentInfo/category=MASTER' +
+      '|ServiceComponentInfo/component_name=SQOOP|ServiceComponentInfo/component_name=HCAT|ServiceComponentInfo/component_name=PIG&fields=' +
       'ServiceComponentInfo,' +
       'host_components/HostRoles/state,' +
       'host_components/HostRoles/stale_configs,' +
