@@ -43,6 +43,12 @@ module.exports = Em.Route.extend({
         onClose: function() {
           this.hide();
           App.router.get('updateController').set('isWorking', true);
+          App.clusterStatus.setClusterStatus({
+            clusterName: App.router.get('content.cluster.name'),
+            clusterState: 'DEFAULT',
+            wizardControllerName: App.router.get('addHostController.name'),
+            localdb: App.db.data
+          });
           router.transitionTo('hosts.index');
         },
         didInsertElement: function(){
