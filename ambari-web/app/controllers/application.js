@@ -107,6 +107,9 @@ App.ApplicationController = Em.Controller.extend({
   },
 
   showSettingsPopup: function() {
+    // Settings only for admins
+    if (!App.get('isAdmin')) return;
+
     var self = this;
     var curValue = null;
     this.dataLoading().done(function (initValue) {

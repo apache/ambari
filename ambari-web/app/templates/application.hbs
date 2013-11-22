@@ -44,7 +44,9 @@
                 {{App.router.loginName}}&nbsp;<span class="caret"></span>
               </button>
               <ul class="dropdown-menu">
-                <li><a href="" {{action showSettingsPopup target="controller"}}>{{t app.settings}}</a></li>
+                {{#if App.isAdmin}}
+                  <li><a href="" {{action showSettingsPopup target="controller"}}>{{t app.settings}}</a></li>
+                {{/if}}
                 <li><a href="" {{action logoff}}>{{t app.signout}}</a></li>
               </ul>
             </div>
