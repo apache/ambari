@@ -168,11 +168,18 @@ class HostCleanup:
     except:
       logger.warn("Cannot read dir list: " + str(sys.exc_info()[0]))
 
+    process_items = []
     try:
-      if config.has_option(PROCESS_SECTION, PROCESS_KEY):
-        propertyMap[PROCESS_SECTION] = config.get(PROCESS_SECTION, PROCESS_KEY).split(',')
+      pids = [pid for pid in os.listdir('/proc') if pid.isdigit()]
+      for pid in pids:
+        cmd = open(os.path.join('/proc', pid, 'cmdline'), 'rb').read()
+        cmd = cmd.replace('\0', ' ')
+        if not 'AmbariServer' in cmd and not 'HostCleanup' in cmd:
+          if 'java' in cmd and JAVA_HOME in cmd:
+            process_items.append(int(pid))
     except:
-      logger.warn("Cannot read process list: " + str(sys.exc_info()[0]))
+      pass
+    propertyMap[PROCESS_SECTION] = process_items
 
     try:
       alt_map = {}
@@ -473,6 +480,8 @@ def main():
   parser.add_option("-s", "--silent",
                     action="store_true", dest="silent", default=False,
                     help="Silently accepts default prompt values")
+  parser.add_option('-j', '--java-home', default="/usr/jdk64/jdk1.6.0_31", dest="java_home",
+                    help="Use specified java_home.")
 
 
   (options, args) = parser.parse_args()
@@ -484,6 +493,10 @@ def main():
   formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
   handler.setFormatter(formatter)
   logger.addHandler(handler)
+
+  # set java_home
+  global JAVA_HOME
+  JAVA_HOME = options.java_home
 
   # set verbose
   if options.verbose:

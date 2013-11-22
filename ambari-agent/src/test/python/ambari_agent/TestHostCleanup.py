@@ -20,7 +20,7 @@ limitations under the License.
 
 from unittest import TestCase
 import unittest
-from mock.mock import patch, MagicMock, call, create_autospec
+from mock.mock import patch, Mock, MagicMock, call, create_autospec
 from ambari_agent import HostCleanup
 import StringIO
 import sys
@@ -58,7 +58,8 @@ class TestHostCleanup(TestCase):
     # enable stdout
     sys.stdout = sys.__stdout__
 
-  def test_read_host_check_file_with_content(self):
+  @patch("os.listdir", create=True, autospec=True)
+  def test_read_host_check_file_with_content(self, os_listdir_mock):
     out = StringIO.StringIO()
     sys.stdout = out
     tmpfile = tempfile.mktemp()
@@ -87,8 +88,16 @@ created = 2013-07-02 20:39:22.162757"""
     f.write(fileContent)
     f.close()
 
-    propMap = self.hostcleanup.read_host_check_file(tmpfile)
-    self.assertTrue("323" in propMap["processes"])
+    os_listdir_mock.return_value = ['111']
+    tf2 = tempfile.mktemp()
+    f2 = open(tf2,'w')
+    f2.write('java_home|hadoop')
+    f2.close()
+    with patch('os.path.join') as patch_join_mock:
+      patch_join_mock.return_value = f2.name
+      propMap = self.hostcleanup.read_host_check_file(tmpfile)
+
+    self.assertTrue(111 in propMap["processes"])
     self.assertTrue("mysql" in propMap["users"])
     self.assertTrue("HDP-epel" in propMap["repositories"])
     self.assertTrue("/etc/hadoop" in propMap["directories"])
@@ -98,12 +107,13 @@ created = 2013-07-02 20:39:22.162757"""
     sys.stdout = sys.__stdout__
 
   class HostCleanupOptions:
-    def __init__(self, outputfile, inputfile, skip, verbose, silent):
+    def __init__(self, outputfile, inputfile, skip, verbose, silent, java_home):
       self.outputfile = outputfile
       self.inputfile = inputfile
       self.skip = skip
       self.verbose = verbose
       self.silent = silent
+      self.java_home = java_home
 
   @patch.object(HostCleanup, 'get_YN_input')
   @patch.object(HostCleanup.HostCleanup, 'do_cleanup')
@@ -116,12 +126,12 @@ created = 2013-07-02 20:39:22.162757"""
   def test_options(self, parser_mock, file_handler_mock, logging_mock, read_host_check_file_mock,
                    set_formatter_mock, user_root_mock, do_cleanup_mock, get_yn_input_mock):
     parser_mock.return_value = (TestHostCleanup.HostCleanupOptions('/someoutputfile', '/someinputfile', '', False,
-                                                                   False), [])
+                                                                   False, 'java_home'), [])
     file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
     user_root_mock.return_value = True
     get_yn_input_mock.return_value = True
     HostCleanup.main()
-    
+
     # test --out
     file_handler_mock.assert_called_with('/someoutputfile')
     # test --skip
@@ -144,7 +154,7 @@ created = 2013-07-02 20:39:22.162757"""
   def test_options_silent(self, parser_mock, file_handler_mock, logging_mock, read_host_check_file_mock,
                    set_formatter_mock, user_root_mock, do_cleanup_mock, get_yn_input_mock):
     parser_mock.return_value = (TestHostCleanup.HostCleanupOptions('/someoutputfile', '/someinputfile', '', False,
-                                                                   True), [])
+                                                                   True, 'java_home'), [])
     file_handler_mock.return_value = logging.FileHandler('') # disable creating real file
     user_root_mock.return_value = True
     get_yn_input_mock.return_value = True
@@ -307,11 +317,16 @@ created = 2013-07-02 20:39:22.162757"""
 
   @patch("ConfigParser.RawConfigParser")
   @patch("__builtin__.open")
-  def test_read_host_check_file(self, openMock, readMock):
+  @patch("os.listdir", create=True, autospec=True)
+  def test_read_host_check_file(self, os_listdir_mock, openMock, readMock):
     out = StringIO.StringIO()
     sys.stdout = out
     f = MagicMock()
-    openMock.return_value = f
+
+    openRead = MagicMock()
+    openRead.read.return_value = 'java_home|hadoop'
+    openMock.side_effect = [f, openRead]
+    os_listdir_mock.return_value = ['111']
 
     propertyMap = self.hostcleanup.read_host_check_file('test')
 
@@ -322,6 +337,7 @@ created = 2013-07-02 20:39:22.162757"""
     self.assertTrue(propertyMap.has_key(USER_SECTION))
     self.assertTrue(propertyMap.has_key(DIR_SECTION))
     self.assertTrue(propertyMap.has_key(PROCESS_SECTION))
+    self.assertEquals(propertyMap[PROCESS_SECTION][0], 111)
 
     sys.stdout = sys.__stdout__
 
