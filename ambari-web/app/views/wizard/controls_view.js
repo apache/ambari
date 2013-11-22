@@ -29,6 +29,7 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
    */
   serviceConfig: null,
   placeholderBinding: 'serviceConfig.defaultValue',
+  attributeBindings:['readOnly'],
   isPopoverEnabled: true,
 
   didInsertElement: function () {
@@ -43,7 +44,11 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
         trigger: 'hover'
       });
     }
-  }
+  },
+
+  readOnly: function () {
+    return !this.get('serviceConfig.isEditable');
+  }.property('serviceConfig.isEditable')
 });
 
 /**
@@ -82,10 +87,6 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
     }
   }.property('serviceConfig.displayType', 'serviceConfig.unit'),
 
-  disabled: function () {
-    return !this.get('serviceConfig.isEditable');
-  }.property('serviceConfig.isEditable')
-
 });
 
 /**
@@ -97,12 +98,7 @@ App.ServiceConfigTextFieldWithUnit = Ember.View.extend(App.ServiceConfigPopoverS
   classNames: ['input-append', 'with-unit'],
   placeholderBinding: 'serviceConfig.defaultValue',
 
-  template: Ember.Handlebars.compile('{{view App.ServiceConfigTextField serviceConfigBinding="view.serviceConfig" isPopoverEnabled="false"}}<span class="add-on">{{view.serviceConfig.unit}}</span>'),
-
-  disabled: function () {
-    return !this.get('serviceConfig.isEditable');
-  }.property('serviceConfig.isEditable')
-
+  template: Ember.Handlebars.compile('{{view App.ServiceConfigTextField serviceConfigBinding="view.serviceConfig" isPopoverEnabled="false"}}<span class="add-on">{{view.serviceConfig.unit}}</span>')
 });
 
 /**
@@ -113,6 +109,7 @@ App.ServiceConfigPasswordField = Ember.TextField.extend({
 
   serviceConfig: null,
   type: 'password',
+  attributeBindings:['readOnly'],
   valueBinding: 'serviceConfig.value',
   classNames: [ 'span4' ],
   placeholder: Em.I18n.t('form.item.placeholders.typePassword'),
@@ -127,6 +124,7 @@ App.ServiceConfigPasswordField = Ember.TextField.extend({
 
   retypePasswordView: Ember.TextField.extend({
     placeholder: Em.I18n.t('form.passwordRetype'),
+    attributeBindings:['readOnly'],
     type: 'password',
     classNames: [ 'span4', 'retyped-password' ],
     keyPress: function (event) {
@@ -135,12 +133,12 @@ App.ServiceConfigPasswordField = Ember.TextField.extend({
       }
     },
     valueBinding: 'parentView.serviceConfig.retypedPassword',
-    disabled: function () {
+    readOnly: function () {
       return !this.get('parentView.serviceConfig.isEditable');
     }.property('parentView.serviceConfig.isEditable')
   }),
 
-  disabled: function () {
+  readOnly: function () {
     return !this.get('serviceConfig.isEditable');
   }.property('serviceConfig.isEditable')
 
@@ -155,12 +153,7 @@ App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSuppor
   valueBinding: 'serviceConfig.value',
   rows: 4,
   classNames: ['span9', 'directories'],
-  placeholderBinding: 'serviceConfig.defaultValue',
-
-  disabled: function () {
-    return !this.get('serviceConfig.isEditable');
-  }.property('serviceConfig.isEditable')
-
+  placeholderBinding: 'serviceConfig.defaultValue'
 });
 
 /**
@@ -177,12 +170,7 @@ App.ServiceConfigBigTextArea = App.ServiceConfigTextArea.extend({
  */
 App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSupport, {
 
-  checkedBinding: 'serviceConfig.value',
-
-  disabled: function () {
-    return !this.get('serviceConfig.isEditable');
-  }.property('serviceConfig.isEditable')
-
+  checkedBinding: 'serviceConfig.value'
 });
 
 App.ServiceConfigRadioButtons = Ember.View.extend({
@@ -311,10 +299,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend({
     }
   }.property('serviceConfig.serviceName'),
 
-  optionsBinding: 'serviceConfig.options',
-  disabled: function () {
-    return !this.get('serviceConfig.isEditable');
-  }.property('serviceConfig.isEditable')
+  optionsBinding: 'serviceConfig.options'
 });
 
 App.ServiceConfigRadioButton = Ember.Checkbox.extend({
@@ -364,10 +349,7 @@ App.ServiceConfigRadioButton = Ember.Checkbox.extend({
 App.ServiceConfigComboBox = Ember.Select.extend(App.ServiceConfigPopoverSupport, {
   contentBinding: 'serviceConfig.options',
   selectionBinding: 'serviceConfig.value',
-  classNames: [ 'span3' ],
-  disabled: function () {
-    return !this.get('serviceConfig.isEditable');
-  }.property('serviceConfig.isEditable')
+  classNames: [ 'span3' ]
 });
 
 
@@ -437,7 +419,7 @@ App.ServiceConfigMultipleHostsDisplay = Ember.Mixin.create(App.ServiceConfigHost
     }
   }.property('value')
 
-})
+});
 
 
 /**
