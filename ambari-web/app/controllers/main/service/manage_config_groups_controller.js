@@ -19,6 +19,7 @@
 
 var App = require('app');
 var hostsManagement = require('utils/hosts');
+var serviceComponents = require('data/service_components');
 
 App.ManageConfigGroupsController = Em.Controller.extend({
   name: 'manageConfigGroupsController',
@@ -159,10 +160,21 @@ App.ManageConfigGroupsController = Em.Controller.extend({
    * add hosts to group
    * @return {Array}
    */
+  componentsForFilter: function() {
+    var components = serviceComponents.filterProperty('service_name',this.get('serviceName'));
+    return components.map(function(component) {
+      return Em.Object.create({
+        displayName: component.display_name,
+        componentName: component.component_name,
+        selected: false
+      });
+    });
+  }.property('serviceName'),
+
   addHosts: function () {
     var availableHosts = this.get('selectedConfigGroup.availableHosts');
     var group = this.get('selectedConfigGroup');
-    hostsManagement.launchHostsSelectionDialog(availableHosts, [], false, [], function (selectedHosts) {
+    hostsManagement.launchHostsSelectionDialog(availableHosts, [], false, this.get('componentsForFilter'), function (selectedHosts) {
       if (selectedHosts) {
         var defaultHosts = group.get('parentConfigGroup.hosts');
         var configGroupHosts = group.get('hosts');
