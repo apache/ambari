@@ -450,9 +450,6 @@ class ActionScheduler implements Runnable {
 
     //Try to get clusterHostInfo from cache
     Map<String, List<String>> clusterHostInfo = clusterHostInfoCache.getIfPresent(s.getStageId());
-    
-    LOG.info("Cluster host info cache size: " + clusterHostInfoCache.size());
-    
 
     if (clusterHostInfo == null) {
       Type type = new TypeToken<Map<String, List<String>>>() {}.getType();

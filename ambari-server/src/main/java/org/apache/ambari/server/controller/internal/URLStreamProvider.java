@@ -74,9 +74,9 @@ public class URLStreamProvider implements StreamProvider {
     appCookieManager = new AppCookieManager();
   }
 
+  
   @Override
-  public InputStream readFrom(String spec) throws IOException {
-    
+  public InputStream readFrom(String spec, String requestMethod, String params) throws IOException {
     if (LOG.isDebugEnabled()) {
       LOG.debug("readFrom spec:" + spec);
     }
@@ -93,7 +93,11 @@ public class URLStreamProvider implements StreamProvider {
     connection.setConnectTimeout(connTimeout);
     connection.setReadTimeout(readTimeout);
     connection.setDoOutput(true);
-
+    connection.setRequestMethod(requestMethod);
+    
+    if (params != null)
+      connection.getOutputStream().write(params.getBytes());
+    
     int statusCode = connection.getResponseCode();
     if (statusCode == HttpStatus.SC_UNAUTHORIZED ) {
       String wwwAuthHeader = connection.getHeaderField(WWW_AUTHENTICATE);
@@ -111,6 +115,7 @@ public class URLStreamProvider implements StreamProvider {
         connection.setConnectTimeout(connTimeout);
         connection.setReadTimeout(readTimeout);
         connection.setDoOutput(true);
+        
         return connection.getInputStream();
       } else {
         // no supported authentication type found
@@ -123,9 +128,15 @@ public class URLStreamProvider implements StreamProvider {
       // we would let the original response propogate
       return connection.getInputStream();
     }
-
   }
-
+  
+  @Override
+  public InputStream readFrom(String spec) throws IOException {
+    
+    return readFrom(spec, "GET", null);
+    
+  }
+  
   // ----- helper methods ----------------------------------------------------
 
   // Get a connection

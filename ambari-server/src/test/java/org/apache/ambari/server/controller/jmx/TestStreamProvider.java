@@ -47,6 +47,8 @@ public class TestStreamProvider implements StreamProvider {
 
   private String lastSpec;
 
+  private boolean isLastSpecUpdated;
+
   public TestStreamProvider() {
     delay = 0;
   }
@@ -57,7 +59,10 @@ public class TestStreamProvider implements StreamProvider {
 
   @Override
   public InputStream readFrom(String spec) throws IOException {
-    lastSpec = spec;
+    if (!isLastSpecUpdated)
+      lastSpec = spec;
+    
+    isLastSpecUpdated = false;
     String filename = FILE_MAPPING.get(getPort(spec));
     if (filename == null) {
       throw new IOException("Can't find JMX source for " + spec);
@@ -82,5 +87,12 @@ public class TestStreamProvider implements StreamProvider {
     int slashIndex = spec.indexOf("/", colonIndex);
 
     return spec.substring(colonIndex + 1, slashIndex);
+  }
+
+  @Override
+  public InputStream readFrom(String spec, String requestMethod, String params) throws IOException {
+    lastSpec = spec + "?" + params;
+    isLastSpecUpdated = true;
+    return readFrom(spec);
   }
 }

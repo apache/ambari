@@ -193,6 +193,7 @@ public class HttpPropertyProviderTest {
   private static class TestStreamProvider implements StreamProvider {
     private boolean throwError = false;
     private String lastSpec = null;
+    private boolean isLastSpecUpdated;
 
     private TestStreamProvider(boolean throwErr) {
       throwError = throwErr;
@@ -200,7 +201,10 @@ public class HttpPropertyProviderTest {
     
     @Override
     public InputStream readFrom(String spec) throws IOException {
-      lastSpec = spec;
+      if (!isLastSpecUpdated)
+        lastSpec = spec;
+      
+      isLastSpecUpdated = false;
 
       if (throwError) {
         throw new IOException("Fake error");
@@ -213,6 +217,13 @@ public class HttpPropertyProviderTest {
 
     public String getLastSpec() {
       return lastSpec;
+    }
+
+    @Override
+    public InputStream readFrom(String spec, String requestMethod, String params) throws IOException {
+      lastSpec = spec + "?" + params;
+      isLastSpecUpdated = true;
+      return readFrom(spec);
     }
   }
   
