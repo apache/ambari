@@ -983,22 +983,21 @@ App.config = Em.Object.create({
    * @param callback  Callback function which is invoked when dialog
    *  is closed, cancelled or OK is pressed.
    */
-  launchConfigGroupSelectionCreationDialog : function(serviceId, configGroups, configProperty, callback) {
+  launchConfigGroupSelectionCreationDialog : function(serviceId, configGroups, allConfigGroupsNames, configProperty, callback) {
     var self = this;
     var availableConfigGroups = configGroups.slice();
-    // delete Default Config Group
-    availableConfigGroups.pop();
     // delete Config Groups, that already have selected property overridden
+    var alreadyOverriddenGroups = [];
     if (configProperty.get('overrides')) {
-      var alreadyOverriddenGroups = configProperty.get('overrides').mapProperty('group.name');
-      var result = [];
-      availableConfigGroups.forEach(function (group) {
-        if (!alreadyOverriddenGroups.contains(group.name)) {
-          result.push(group);
-        }
-      }, this);
-      availableConfigGroups = result;
+      alreadyOverriddenGroups = configProperty.get('overrides').mapProperty('group.name');
     }
+    var result = [];
+    availableConfigGroups.forEach(function (group) {
+      if (!group.get('isDefault') && (!alreadyOverriddenGroups.length || !alreadyOverriddenGroups.contains(group.name))) {
+        result.push(group);
+      }
+    }, this);
+    availableConfigGroups = result;
     var selectedConfigGroup = availableConfigGroups && availableConfigGroups.length > 0 ?
         availableConfigGroups[0] : null;
     App.ModalPopup.show({
@@ -1014,6 +1013,9 @@ App.config = Em.Object.create({
       availableConfigGroups: availableConfigGroups,
       selectedConfigGroup: selectedConfigGroup,
       newConfigGroupName: '',
+      enablePrimary: function () {
+        return this.get('optionSelectConfigGroup') || (this.get('newConfigGroupName').length > 0 && !this.get('warningMessage'));
+      }.property('newConfigGroupName', 'optionSelectConfigGroup', 'warningMessage'),
       onPrimary: function () {
         if (this.get('optionSelectConfigGroup')) {
           var selectedConfigGroup = this.get('selectedConfigGroup');
@@ -1023,8 +1025,7 @@ App.config = Em.Object.create({
           var newConfigGroupName = this.get('newConfigGroupName');
           var newConfigGroup = self.createNewConfigurationGroup(serviceId, newConfigGroupName);
           if (newConfigGroup) {
-            var defaultConfigGroup = configGroups.popObject();
-            configGroups.pushObjects([newConfigGroup, defaultConfigGroup]);
+            configGroups.pushObject(newConfigGroup);
             this.hide();
             callback(newConfigGroup);
           }
@@ -1042,20 +1043,14 @@ App.config = Em.Object.create({
       validate: function () {
         var msg = null;
         var optionSelect = this.get('optionSelectConfigGroup');
-        if (optionSelect) {
-        } else {
+        if (!optionSelect) {
           var nn = this.get('newConfigGroupName');
-          var allCG = this.get('availableConfigGroups');
-          if (nn) {
-            allCG.forEach(function(cg){
-              if(!msg && nn === cg.get('name')) {
-                msg = Em.I18n.t("config.group.selection.dialog.err.name.exists");
-              }
-            });
+          if (nn && allConfigGroupsNames.contains(nn)) {
+            msg = Em.I18n.t("config.group.selection.dialog.err.name.exists");
           }
         }
         this.set('warningMessage', msg);
-      }.observes('newConfigGroupName', 'availableConfigGroups', 'optionSelectConfigGroup'),
+      }.observes('newConfigGroupName', 'optionSelectConfigGroup'),
       bodyClass: Ember.View.extend({
         templateName: require('templates/common/configs/selectCreateConfigGroup'),
         controllerBinding: 'App.router.mainServiceInfoConfigsController',

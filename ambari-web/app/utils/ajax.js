@@ -91,7 +91,7 @@ var urls = {
     }
   },
   'service.load_config_groups': {
-    'real': '/clusters/{clusterName}/config_groups?ConfigGroup/tag={serviceName}&fields=*'
+    'real': '/clusters/{clusterName}/config_groups?fields=*'
   },
   'reassign.stop_services': {
     'real': '/clusters/{clusterName}/services',

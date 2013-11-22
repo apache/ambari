@@ -36,14 +36,13 @@ App.ManageConfigGroupsController = Em.Controller.extend({
 
   loadedHostsToGroupMap: {},
 
+  allConfigGroupsNames: [],
+
   loadConfigGroups: function (serviceName) {
     this.set('serviceName', serviceName);
     App.ajax.send({
       name: 'service.load_config_groups',
       sender: this,
-      data: {
-        serviceName: serviceName
-      },
       success: 'onLoadConfigGroupsSuccess',
       error: 'onLoadConfigGroupsError'
     });
@@ -64,36 +63,42 @@ App.ManageConfigGroupsController = Em.Controller.extend({
     if (data && data.items) {
       var groupToTypeToTagMap = {};
       var configGroups = [];
+      var serviceName = this.get('serviceName');
+      var allConfigGroupsNames = [];
       data.items.forEach(function (configGroup) {
         configGroup = configGroup.ConfigGroup;
-        var hostNames = configGroup.hosts.mapProperty('host_name');
-        loadedHostsToGroupMap[configGroup.group_name] = hostNames.slice();
-        var newConfigGroup = App.ConfigGroup.create({
-          id: configGroup.id,
-          name: configGroup.group_name,
-          description: configGroup.description,
-          isDefault: false,
-          parentConfigGroup: defaultConfigGroup,
-          service: App.Service.find().findProperty('serviceName', configGroup.tag),
-          hosts: hostNames,
-          configSiteTags: [],
-          properties: [],
-          apiResponse: configGroup
-        });
-        usedHosts = usedHosts.concat(newConfigGroup.get('hosts'));
-        configGroups.push(newConfigGroup);
-        var newConfigGroupSiteTags = newConfigGroup.get('configSiteTags');
-        configGroup.desired_configs.forEach(function (config) {
-          newConfigGroupSiteTags.push(App.ConfigSiteTag.create({
-            site: config.type,
-            tag: config.tag
-          }));
-          if (!groupToTypeToTagMap[configGroup.group_name]) {
-            groupToTypeToTagMap[configGroup.group_name] = {}
-          }
-          groupToTypeToTagMap[configGroup.group_name][config.type] = config.tag;
-        });
+        allConfigGroupsNames.push(configGroup.group_name);
+        if (configGroup.tag === serviceName) {
+          var hostNames = configGroup.hosts.mapProperty('host_name');
+          loadedHostsToGroupMap[configGroup.group_name] = hostNames.slice();
+          var newConfigGroup = App.ConfigGroup.create({
+            id: configGroup.id,
+            name: configGroup.group_name,
+            description: configGroup.description,
+            isDefault: false,
+            parentConfigGroup: defaultConfigGroup,
+            service: App.Service.find().findProperty('serviceName', configGroup.tag),
+            hosts: hostNames,
+            configSiteTags: [],
+            properties: [],
+            apiResponse: configGroup
+          });
+          usedHosts = usedHosts.concat(newConfigGroup.get('hosts'));
+          configGroups.push(newConfigGroup);
+          var newConfigGroupSiteTags = newConfigGroup.get('configSiteTags');
+          configGroup.desired_configs.forEach(function (config) {
+            newConfigGroupSiteTags.push(App.ConfigSiteTag.create({
+              site: config.type,
+              tag: config.tag
+            }));
+            if (!groupToTypeToTagMap[configGroup.group_name]) {
+              groupToTypeToTagMap[configGroup.group_name] = {}
+            }
+            groupToTypeToTagMap[configGroup.group_name][config.type] = config.tag;
+          });
+        }
       }, this);
+      this.set('allConfigGroupsNames', allConfigGroupsNames);
       unusedHosts = App.Host.find().mapProperty('hostName');
       usedHosts.uniq().forEach(function (host) {
         unusedHosts = unusedHosts.without(host);
@@ -192,7 +197,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
   deleteHosts: function () {
     var groupHosts = this.get('selectedConfigGroup.hosts');
     var defaultGroupHosts = this.get('selectedConfigGroup.parentConfigGroup.hosts');
-    this.get('selectedHosts').forEach(function (hostName) {
+    this.get('selectedHosts').slice().forEach(function (hostName) {
       defaultGroupHosts.pushObject(hostName);
       groupHosts.removeObject(hostName);
     });
@@ -280,6 +285,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
    */
   addConfigGroup: function () {
     var content = this;
+    var self = this;
     this.addGroupPopup = App.ModalPopup.show({
       primary: Em.I18n.t('ok'),
       secondary: Em.I18n.t('common.cancel'),
@@ -290,6 +296,17 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       configGroupName: "",
       configGroupDesc: "",
       content: content,
+      warningMessage: '',
+      vaildate: function () {
+        var warningMessage = '';
+        if (self.get('allConfigGroupsNames').contains(this.get('configGroupName'))) {
+          warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
+        }
+        this.set('warningMessage', warningMessage);
+      }.observes('configGroupName'),
+      enablePrimary: function () {
+        return this.get('configGroupName').length > 0 && !this.get('warningMessage');
+      }.property('warningMessage', 'configGroupName'),
       onPrimary: function () {
         this.get('content').set('configGroupName', this.get('configGroupName'));
         this.get('content').set('configGroupDesc', this.get('configGroupDesc'));

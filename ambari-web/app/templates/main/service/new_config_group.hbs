@@ -17,10 +17,17 @@
 }}
 
 <div class="new-config-group-div">
+  <div class="text-warning">
+    {{#if view.parentView.warningMessage}}
+      {{view.parentView.warningMessage}}
+    {{else}}
+     &nbsp;
+    {{/if}}
+  </div>
   <table>
     <tr>
       <td>{{t services.service.config_groups_popup.group_name_lable }}:</td>
-      <td>{{view Ember.TextField valueBinding="configGroupName"}}</td>
+      <td>{{view Ember.TextField maxlength="255" valueBinding="configGroupName"}}</td>
     </tr>
     <tr>
       <td>{{t services.service.config_groups_popup.group_desc_lable }}:</td>

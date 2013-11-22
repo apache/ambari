@@ -61,7 +61,7 @@
   </label>
   <div class="select-create-config-group-div">
     {{view Ember.TextField valueBinding="view.parentView.newConfigGroupName"
-      disabledBinding="view.parentView.optionSelectConfigGroup" class="span5"}}
+      disabledBinding="view.parentView.optionSelectConfigGroup" maxlength="255" class="span5"}}
     <div class="message">{{t config.group.selection.dialog.option.create.msg}}</div>
   </div>
 </div>
