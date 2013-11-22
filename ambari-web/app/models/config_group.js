@@ -109,10 +109,6 @@ App.ConfigGroup = Ember.Object.extend({
     return (this.get('isDefault') || this.get('availableHosts.length') === 0);
   }.property('availableHosts.length'),
 
-  isDeleteHostsDisabled: function () {
-    return (this.get('isDefault') || this.get('hosts.length') === 0);
-  }.property('hosts.length'),
-
   /**
    * Collection of (site, tag) pairs representing properties.
    *

@@ -64,6 +64,18 @@ App.MainServiceManageConfigGroupView = Em.View.extend({
     $("[rel='button-info']").tooltip();
   },
 
+  isDeleteHostsDisabled: function () {
+    var selectedConfigGroup = this.get('controller.selectedConfigGroup');
+    if(selectedConfigGroup){
+      if(selectedConfigGroup.isDefault || this.get('controller.selectedHosts').length === 0){
+        return true;
+      }else{
+        return false;
+      }
+    }
+    return true;
+  }.property('controller.selectedConfigGroup', 'controller.selectedConfigGroup.hosts.length', 'controller.selectedHosts.length'),
+
   addButtonTooltip: function () {
     return  Em.I18n.t('services.service.config_groups_popup.addButton');
   }.property(),
