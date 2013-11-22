@@ -200,7 +200,7 @@ public class Configuration {
   public static final String CLIENT_API_SSL_KEY_NAME_DEFAULT = "https.key";
   public static final String CLIENT_API_SSL_CRT_NAME_DEFAULT = "https.crt";
 
-  private static final String API_CSRF_PREVENTION_DEFAULT = "false"; //TODO should be set to true for release
+  private static final String API_CSRF_PREVENTION_DEFAULT = "true";
 
   private static final String SRVR_CRT_PASS_FILE_DEFAULT ="pass.txt";
   private static final String SRVR_CRT_PASS_LEN_DEFAULT = "50";
