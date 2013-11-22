@@ -49,14 +49,29 @@
 # template which is defined elsewhere.
 
 define contact{
-        contact_name                    <%=scope.function_hdp_template_var("nagios_web_login")%>		; Short name of user
-	use				generic-contact		; Inherit default values from generic-contact template (defined above)
-        alias                           Nagios Admin		; Full name of user
+        contact_name    <%=scope.function_hdp_template_var("nagios_web_login")%>    ; Short name of user
+        use             generic-contact                                             ; Inherit default values from generic-contact template (defined above)
+        alias           Nagios Admin                                                ; Full name of user
 
         email                           <%=scope.function_hdp_template_var("nagios_contact")%>	; <<***** CHANGE THIS TO YOUR EMAIL ADDRESS ******
         }
 
-
+# Contact which writes all Nagios alerts to the system logger.
+define contact{
+        contact_name                    sys_logger         ; Short name of user
+        use                             generic-contact    ; Inherit default values from generic-contact template (defined above)
+        alias                           System Logger      ; Full name of user
+        host_notifications_enabled      1
+        service_notifications_enabled   1
+        service_notification_period     24x7
+        host_notification_period        24x7
+        service_notification_options    w,u,c,r,s
+        host_notification_options       d,u,r,s
+        can_submit_commands             1
+        retain_status_information       1
+        service_notification_commands   service_sys_logger
+        host_notification_commands      host_sys_logger
+        }
 
 ###############################################################################
 ###############################################################################
@@ -72,5 +87,5 @@ define contact{
 define contactgroup {
         contactgroup_name       admins
         alias                   Nagios Administrators
-        members                 <%=scope.function_hdp_template_var("nagios_web_login")%>
+        members                 <%=scope.function_hdp_template_var("nagios_web_login")%>,sys_logger
 }
