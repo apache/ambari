@@ -321,6 +321,13 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
       var searchString = config.get('defaultValue') + config.get('description') +
         config.get('displayName') + config.get('name');
 
+     if (config.get('overrides')) {
+       config.get('overrides').forEach(function(overriddenConf){
+         searchString += overriddenConf.get('value') + overriddenConf.get('group.name');
+       });
+     }
+
+
       return searchString.toLowerCase().indexOf(filter) > -1;
     });
     filteredResult = this.sortByIndex(filteredResult);
