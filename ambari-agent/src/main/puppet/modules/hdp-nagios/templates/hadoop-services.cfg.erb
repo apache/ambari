@@ -25,9 +25,13 @@
 define service {
         name                            hadoop-service
         use                             generic-service
-        notification_options            w,u,c
+        notification_options            w,u,c,r,f,s
         first_notification_delay        0
-        notification_interval           0     # Send the notification once
+        notification_interval           0                 # Send the notification once
+        contact_groups                  admins
+        notifications_enabled           1
+        event_handler_enabled           1
+        register                        0
 }
 
 define service {        
