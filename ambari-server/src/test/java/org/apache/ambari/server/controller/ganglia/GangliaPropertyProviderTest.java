@@ -319,10 +319,17 @@ public class GangliaPropertyProviderTest {
 
     Set<Resource> resources = new HashSet<Resource>();
 
+    StringBuilder hostsList = new StringBuilder();
+    
     for (int i = 0; i < 150; ++i) {
       Resource resource = new ResourceImpl(Resource.Type.Host);
       resource.setProperty(HOST_NAME_PROPERTY_ID, "host" + i);
       resources.add(resource);
+      
+      if (hostsList.length() != 0)
+        hostsList.append("," + "host" + i );
+      else
+        hostsList.append("host" + i); 
     }
 
     // only ask for one property
@@ -333,21 +340,26 @@ public class GangliaPropertyProviderTest {
     Assert.assertEquals(150, propertyProvider.populateResources(resources, request, null).size());
 
     
-    URIBuilder uriBuilder = new URIBuilder();
+    URIBuilder expectedUri = new URIBuilder();
     
-    uriBuilder.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
-    uriBuilder.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
-    uriBuilder.setPath("/cgi-bin/rrd.py");
-    uriBuilder.setParameter("c", "HDPJobTracker,HDPHBaseMaster,HDPResourceManager,HDPSlaves,HDPHistoryServer,HDPNameNode");
-    uriBuilder.setParameter("m", "jvm.metrics.gcCount");
-    uriBuilder.setParameter("s", "10");
-    uriBuilder.setParameter("e", "20");
-    uriBuilder.setParameter("r", "1");
+    expectedUri.setScheme((configuration.isGangliaSSL() ? "https" : "http"));
+    expectedUri.setHost("domU-12-31-39-0E-34-E1.compute-1.internal");
+    expectedUri.setPath("/cgi-bin/rrd.py");
+    expectedUri.setParameter("c", "HDPJobTracker,HDPHBaseMaster,HDPResourceManager,HDPSlaves,HDPHistoryServer,HDPNameNode");
+   
+    expectedUri.setParameter("h", hostsList.toString());
+    expectedUri.setParameter("m", "jvm.metrics.gcCount");
+    expectedUri.setParameter("s", "10");
+    expectedUri.setParameter("e", "20");
+    expectedUri.setParameter("r", "1");
     
-    String expected = uriBuilder.toString();
+    URIBuilder actualUri = new URIBuilder(streamProvider.getLastSpec());
     
-    Assert.assertEquals(expected, streamProvider.getLastSpec());
-
+    Assert.assertEquals(expectedUri.getScheme(), actualUri.getScheme());
+    Assert.assertEquals(expectedUri.getHost(), actualUri.getHost());
+    Assert.assertEquals(expectedUri.getPath(), actualUri.getPath());
+    
+    Assert.assertTrue(isUrlParamsEquals(actualUri, expectedUri));
   }
   
   class PopulateResourceManagerResourcesTest{

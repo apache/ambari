@@ -263,7 +263,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
    * @param metricSet     the set of metric names
    * @param temporalInfo  the temporal information
    *
-   * @return the spec
+   * @return the spec, like http://example.com/path?param1=val1&paramn=valn
    *
    * @throws SystemException if unable to get the Ganglia Collector host name
    */
@@ -272,11 +272,11 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
                          Set<String> hostSet,
                          Set<String> metricSet,
                          TemporalInfo temporalInfo) throws SystemException {
-
+    
     String clusters = getSetString(clusterSet, -1);
-    String hosts    = getSetString(hostSet, 100);
-    String metrics  = getSetString(metricSet, 60);
-
+    String hosts = getSetString(hostSet, -1);
+    String metrics = getSetString(metricSet, -1);
+    
     URIBuilder uriBuilder = new URIBuilder();
 
     if (configuration.isGangliaSSL()) {
@@ -286,11 +286,10 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
     }
 
     uriBuilder.setHost(hostProvider.getGangliaCollectorHostName(clusterName));
-    
+
     uriBuilder.setPath("/cgi-bin/rrd.py");
     
     uriBuilder.setParameter("c", clusters);
-    
 
     if (hosts.length() > 0) {
       uriBuilder.setParameter("h", hosts);
@@ -318,14 +317,14 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
       if (step != -1) {
         uriBuilder.setParameter("r", String.valueOf(step));
       }
-    }
-    else {
+    } else {
       uriBuilder.setParameter("e", "now");
       uriBuilder.setParameter("pt", "true");
     }
 
     return uriBuilder.toString();
   }
+  
 
   /**
    * Get value from the given metric.
@@ -425,7 +424,23 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
      */
     public Collection<Resource> populateResources() throws SystemException {
 
-      String spec = getSpec(clusterName, clusterSet, hostSet, metrics.keySet(), temporalInfo);
+      //Get full url with parameters
+      String specWithParams = getSpec(clusterName, clusterSet, hostSet, metrics.keySet(), temporalInfo);
+      
+      //URL
+      String spec = null;
+      //Parameters
+      String params = null;
+      
+      String[] tokens = specWithParams.split("\\?", 2);
+
+      try {
+        spec = tokens[0];
+        params = tokens[1];
+      } catch (ArrayIndexOutOfBoundsException e) {
+        LOG.info(e.toString());
+      }
+      
 
       BufferedReader reader = null;
       try {
@@ -443,7 +458,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
         }
 
         reader = new BufferedReader(new InputStreamReader(
-            getStreamProvider().readFrom(spec)));
+            getStreamProvider().readFrom(spec, "POST", params)));
 
         String feedStart = reader.readLine();
         if (feedStart == null || feedStart.isEmpty()) {

@@ -24,6 +24,7 @@ import rrdtool
 import sys
 import time
 import re
+import urlparse
 
 # place this script in /var/www/cgi-bin of the Ganglia collector
 # requires 'yum install rrdtool-python' on the Ganglia collector
@@ -94,7 +95,14 @@ sys.stdout.write("Content-type: text/plain\n\n")
 sys.stdout.write(str(time.mktime(time.gmtime())))
 sys.stdout.write("\n")
 
-queryString = dict(cgi.parse_qsl(os.environ['QUERY_STRING']));
+requestMethod = os.environ['REQUEST_METHOD']
+
+if requestMethod == 'POST':
+  postData = sys.stdin.read()
+  queryString = urlparse.parse_qs(postData)
+  queryString = dict((k, v[0]) for k, v in queryString.items())
+elif requestMethod == 'GET':
+  queryString = dict(cgi.parse_qsl(os.environ['QUERY_STRING']));
 
 if "m" in queryString:
   metricParts = queryString["m"].split(",")

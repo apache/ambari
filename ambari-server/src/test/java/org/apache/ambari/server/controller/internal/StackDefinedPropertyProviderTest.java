@@ -167,6 +167,12 @@ public class StackDefinedPropertyProviderTest {
         return ClassLoader.getSystemResourceAsStream("temporal_ganglia_data.txt");
       }
     }
+
+    @Override
+    public InputStream readFrom(String spec, String requestMethod, String params)
+        throws IOException {
+      return readFrom(spec);
+    }
   }
   
   private static class EmptyPropertyProvider implements PropertyProvider {

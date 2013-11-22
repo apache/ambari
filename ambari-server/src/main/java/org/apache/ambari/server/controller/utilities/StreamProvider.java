@@ -26,4 +26,5 @@ import java.io.InputStream;
  */
 public interface StreamProvider {
   public InputStream readFrom(String spec) throws IOException;
+  public InputStream readFrom(String spec, String requestMethod, String params) throws IOException;
 }
