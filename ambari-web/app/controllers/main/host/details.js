@@ -991,6 +991,9 @@ App.MainHostDetailsController = Em.Controller.extend({
       onPrimary: function () {
         var hostComponents = this.content.get('content.hostComponents').filterProperty('staleConfigs', true);
         hostComponents.forEach(function(item){
+          if (item.get('isClient') && commandName === 'start_component') {
+            return false;
+          }
           var componentName = item.get('componentName');
           var hostName = item.get('host.hostName');
           App.ajax.send({

@@ -154,11 +154,7 @@
                   <div class="span3 align-right">{{t common.clients}}&nbsp;/</div>
                   <div class="span7">
                     {{#each component in view.clients}}
-                      {{#if component.isLast}}
-                        {{component.displayName}}
-                        {{else}}
-                        {{component.displayName}},
-                      {{/if}}
+                      {{component.displayName}}{{#if component.staleConfigs}} <i class="text-warning icon-refresh"></i>{{/if}}{{#unless component.isLast}},{{/unless}}
                     {{/each}}
                 </div>
               {{/if}}

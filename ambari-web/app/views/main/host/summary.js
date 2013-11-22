@@ -35,8 +35,8 @@ App.MainHostSummaryView = Em.View.extend({
   },
 
   needToRestartComponentsCount: function() {
-    return this.get('sortedComponents').filterProperty('staleConfigs', true).length;
-  }.property('sortedComponents.@each.staleConfigs'),
+    return this.get('content.hostComponents').filterProperty('staleConfigs', true).length;
+  }.property('content.hostComponents.@each.staleConfigs'),
 
   stopComponentsIsDisabled: function () {
     var staleComponents = this.get('sortedComponents').filterProperty('staleConfigs', true);
