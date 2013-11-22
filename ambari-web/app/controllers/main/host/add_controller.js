@@ -92,6 +92,19 @@ App.AddHostController = App.WizardController.extend({
   },
 
   /**
+   * Remove host from model. Used at <code>Confirm hosts</code> step
+   * @param hosts Array of hosts, which we want to delete
+   */
+  removeHosts: function (hosts) {
+    var dbHosts = this.getDBProperty('hosts');
+    hosts.forEach(function (_hostInfo) {
+      var host = _hostInfo.hostName;
+      delete dbHosts[host];
+    });
+    this.setDBProperty('hosts', dbHosts);
+  },
+
+  /**
    * Load services data from server.
    */
   loadServicesFromServer: function() {

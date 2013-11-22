@@ -75,13 +75,12 @@ App.InstallerController = App.WizardController.extend({
    * @param hosts Array of hosts, which we want to delete
    */
   removeHosts: function (hosts) {
-    //todo Replace this code with real logic
-    var DBhosts = this.getDBProperty('hosts');
+    var dbHosts = this.getDBProperty('hosts');
     hosts.forEach(function (_hostInfo) {
       var host = _hostInfo.hostName;
-      delete DBhosts[host];
+      delete dbHosts[host];
     });
-    this.setDBProperty('hosts', DBhosts);
+    this.setDBProperty('hosts', dbHosts);
   },
 
   /**
