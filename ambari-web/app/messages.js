@@ -243,7 +243,7 @@ Em.I18n.translations = {
   'services.alerts.goToService': 'Go to Service',
   'services.alerts.goToNagios': 'Go to Nagios Web UI',
 
-  'topnav.logo.href':'http://incubator.apache.org/ambari/',
+  'topnav.logo.href':'http://ambari.apache.org/',
   'topnav.help.href':'https://cwiki.apache.org/confluence/display/AMBARI/Ambari',
 
   'installer.header':'Cluster Install Wizard',
@@ -375,7 +375,7 @@ Em.I18n.translations = {
   'installer.step3.hostWarningsPopup.repositories.name':'Repository for OS not available',
   'installer.step3.hostWarningsPopup.repositories.context':'Host ({0}) has a {1} OS type, But the repositories chosen in "Select Stack" step was {2}.',
   'installer.step3.hostWarningsPopup.repositories.message':'The following registered hosts have different Operating System types from the available Repositories chosen in "Select Stack" step. You can go back to "Select Stack" step to select another OS repository <b>or</b> remove the host.',
-  'installer.step3.hostWarningsPopup.firewall.message':'Firewall is running on the following hosts. Please configure the firewall to allow communications on the ports documented in the <i>Configuring Ports</i> section of  the <a target=\"_blank\" href=\"http://incubator.apache.org/ambari/current/installing-hadoop-using-ambari/content/\">Ambari documentation</a>',
+  'installer.step3.hostWarningsPopup.firewall.message':'Firewall is running on the following hosts. Please configure the firewall to allow communications on the ports documented in the <i>Configuring Ports</i> section of  the <a target=\"_blank\" href=\"http://ambari.apache.org/current/installing-hadoop-using-ambari/content/\">Ambari documentation</a>',
   'installer.step3.hostWarningsPopup.firewall.name':'<i>iptables</i> Running',
   'installer.step3.hostWarningsPopup.process':'Process Issues',
   'installer.step3.hostWarningsPopup.processes.message':'The following processes should not be running',
