@@ -539,16 +539,17 @@ App.WizardController = Em.Controller.extend({
    */
   saveConfirmedHosts: function (stepController) {
     var hostInfo = {};
-
     stepController.get('content.hosts').forEach(function (_host) {
-      hostInfo[_host.name] = {
-        name: _host.name,
-        cpu: _host.cpu,
-        memory: _host.memory,
-        disk_info: _host.disk_info,
-        bootStatus: _host.bootStatus,
-        isInstalled: false
-      };
+      if (_host.bootStatus == 'REGISTERED') {
+        hostInfo[_host.name] = {
+          name: _host.name,
+          cpu: _host.cpu,
+          memory: _host.memory,
+          disk_info: _host.disk_info,
+          bootStatus: _host.bootStatus,
+          isInstalled: false
+        };
+      }
     });
     console.log('wizardController:saveConfirmedHosts: save hosts ', hostInfo);
     this.setDBProperty('hosts', hostInfo);
