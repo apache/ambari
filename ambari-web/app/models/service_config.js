@@ -272,12 +272,16 @@ App.ServiceConfigProperty = Ember.Object.extend({
         }
         break;
       case 'dfs.secondary.http.address':
-        var snnHost = masterComponentHostsInDB.findProperty('component', 'SECONDARY_NAMENODE').hostName;
-        this.setDefaultValue("(\\w*)(?=:)",snnHost);
+        var snnHost = masterComponentHostsInDB.findProperty('component', 'SECONDARY_NAMENODE');
+        if (snnHost) {
+          this.setDefaultValue("(\\w*)(?=:)",snnHost.hostName);
+        }
         break;
       case 'dfs.namenode.secondary.http-address':
-        var snnHost = masterComponentHostsInDB.findProperty('component', 'SECONDARY_NAMENODE').hostName;
-        this.setDefaultValue("(\\w*)(?=:)",snnHost);
+        var snnHost = masterComponentHostsInDB.findProperty('component', 'SECONDARY_NAMENODE');
+        if (snnHost) {
+          this.setDefaultValue("(\\w*)(?=:)",snnHost.hostName);
+        }
         break;
       case 'datanode_hosts':
         this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'DATANODE').hosts.mapProperty('hostName'));
