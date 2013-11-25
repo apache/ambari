@@ -137,6 +137,11 @@
         "metric":"java.lang:type=Runtime.SystemProperties.user.name",
         "pointInTime":true,
         "temporal":false
+      },
+      "metrics/jvm/memMaxM":{
+        "metric" : "Hadoop:service=HBase,name=JvmMetrics.MemMaxM",
+        "pointInTime" : true,
+        "temporal" : false
       }
     },
     "RESOURCEMANAGER":{
@@ -1052,6 +1057,11 @@
         "pointInTime" : true,
         "temporal" : false
       },
+      "metrics/jvm/memMaxM":{
+        "metric" : "Hadoop:service=NameNode,name=JvmMetrics.MemMaxM",
+        "pointInTime" : true,
+        "temporal" : false
+      },
       "metrics/jvm/threadsBlocked":{
         "metric" : "Hadoop:service=NameNode,name=JvmMetrics.ThreadsBlocked",
         "pointInTime" : true,
@@ -1605,6 +1615,11 @@
         "metric":"java.lang:type=Runtime.SystemProperties.user.name",
         "pointInTime":true,
         "temporal":false
+      },
+      "metrics/jvm/memMaxM":{
+        "metric" : "Hadoop:service=HBase,name=JvmMetrics.MemMaxM",
+        "pointInTime" : true,
+        "temporal" : false
       }
     },
     "NODEMANAGER":{
