@@ -247,14 +247,14 @@ module.exports = Em.Route.extend({
     next: function (router) {
       var addHostController = router.get('addHostController');
       var wizardStep8Controller = router.get('wizardStep8Controller');
+      if(App.supports.hostOverrides){
+        addHostController.applyConfigGroup();
+      }
       addHostController.installServices();
       addHostController.setInfoForStep9();
       // We need to do recovery based on whether we are in Add Host or Installer wizard
       addHostController.saveClusterState('ADD_HOSTS_INSTALLING_3');
       wizardStep8Controller.set('servicesInstalled', true);
-      if(App.supports.hostOverrides){
-        addHostController.applyConfigGroup();
-      }
       router.transitionTo('step6');
     }
   }),
