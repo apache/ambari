@@ -74,6 +74,21 @@ App.MainServiceMenuView = Em.CollectionView.extend({
       }
       return 0;
     }.property('App.router.clusterController.alerts'),
+    
+    restartRequiredMessage: function() {
+      var restarted, componentsCount, hostsCount, message;
+      restarted = this.get('content.restartRequiredHostsAndComponents');
+      componentsCount = 0;
+      hostsCount = 0;
+      message = "";
+      for (var host in restarted) {
+        hostsCount++;
+        componentsCount += restarted[host].length;
+      }
+      message += componentsCount + ' ' + Em.I18n.t('common.components') + ' ' + Em.I18n.t('on') + ' ' +
+        hostsCount + ' ' + Em.I18n.t('common.hosts') + ' ' + Em.I18n.t('services.service.config.restartService.needToRestartEnd');
+      return message;
+    }.property('content.isRestartRequired'),
 
     templateName:require('templates/main/service/menu_item')
   })
