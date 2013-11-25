@@ -1796,12 +1796,23 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   showComponentsShouldBeRestarted: function() {
     var rhc = this.get('content.restartRequiredHostsAndComponents');
     var hostsComponets = [];
+    var componentsObject = {};
     for(var hostName in rhc) {
       rhc[hostName].forEach(function(hostComponent) {
         hostsComponets.push(hostComponent);
+        if(componentsObject[hostComponent] != undefined) {
+          componentsObject[hostComponent]++;
+        } else {
+          componentsObject[hostComponent] = 1;
+        }
       })
     }
-    hostsComponets = hostsComponets.join(', ');
+    var componentsList = [];
+    for( var obj in componentsObject) {
+      var componentDisplayName = (componentsObject[obj] > 1) ? obj + 's' : obj;
+      componentsList.push(componentsObject[obj] + ' ' + componentDisplayName);
+    }
+    hostsComponets = componentsList.join(', ');
     this.showItemsShouldBeRestarted(hostsComponets, Em.I18n.t('service.service.config.restartService.componentsShouldBeRestarted'));
   },
 
