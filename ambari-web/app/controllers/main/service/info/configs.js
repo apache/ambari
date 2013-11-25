@@ -621,15 +621,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           console.debug("createOverrideProperty(): Added:", newSCP, " to main-property:", serviceConfigProperty)
         }
       }
-      // serviceConfigProperty.serviceConfig = componentConfig;
-      if (App.supports.hostOverrides) {
-        serviceConfigProperty.set('isEditable', defaultGroupSelected && !this.get('isHostsConfigsPage'));
-      } else {
-        if (App.get('isAdmin')) {
+      if (App.get('isAdmin')) {
+        if(defaultGroupSelected && !this.get('isHostsConfigsPage')){
           serviceConfigProperty.set('isEditable', serviceConfigProperty.get('isReconfigurable'));
-        } else {
+        }else{
           serviceConfigProperty.set('isEditable', false);
         }
+      } else {
+        serviceConfigProperty.set('isEditable', false);
       }
       componentConfig.configs.pushObject(serviceConfigProperty);
       serviceConfigProperty.validate();
