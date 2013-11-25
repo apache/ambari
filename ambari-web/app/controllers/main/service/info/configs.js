@@ -558,6 +558,18 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       if (_serviceConfigProperty.isOverridable === undefined) {
         _serviceConfigProperty.isOverridable = true;
       }
+      if (_serviceConfigProperty.displayType === 'checkbox') {
+        switch (_serviceConfigProperty.value) {
+          case 'true':
+            _serviceConfigProperty.value = true;
+            _serviceConfigProperty.defaultValue = true;
+            break;
+          case 'false':
+            _serviceConfigProperty.value = false;
+            _serviceConfigProperty.defaultValue = false;
+            break;
+        }
+      }
       var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
       var propertyName = serviceConfigProperty.get('name');
       if (restartData != null && propertyName in restartData.propertyToHostAndComponent) {
@@ -603,13 +615,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         serviceConfigProperty.set('isVisible', false);
       }
       if (overrides != null) {
-        for (var overridenValue in overrides) {
+        overrides.forEach(function (override) {
           var newSCP = App.ServiceConfigProperty.create(_serviceConfigProperty);
-          newSCP.set('value', overridenValue);
+          newSCP.set('value', override.value);
           newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
           newSCP.set('parentSCP', serviceConfigProperty);
           if (App.supports.hostOverrides && defaultGroupSelected) {
-            newSCP.set('group', overrides[overridenValue]);
+            newSCP.set('group', override.group);
             newSCP.set('isEditable', false);
           }
           var parentOverridesArray = serviceConfigProperty.get('overrides');
@@ -619,7 +631,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           }
           parentOverridesArray.pushObject(newSCP);
           console.debug("createOverrideProperty(): Added:", newSCP, " to main-property:", serviceConfigProperty)
-        }
+        }, this)
       }
       if (App.get('isAdmin')) {
         if(defaultGroupSelected && !this.get('isHostsConfigsPage')){

@@ -779,10 +779,10 @@ App.config = Em.Object.create({
           // Value of this property is different for this host.
           var overrides = 'overrides';
           if (!(overrides in serviceConfig)) {
-            serviceConfig.overrides = {};
+            serviceConfig.overrides = [];
           }
           console.log("loadServiceConfigHostsOverrides(): [" + group + "] OVERRODE(" + serviceConfig.name + "): " + serviceConfig.value + " -> " + hostOverrideValue);
-          serviceConfig.overrides[hostOverrideValue] = group;
+          serviceConfig.overrides.push({value: hostOverrideValue, group: group});
         }
       }
     });

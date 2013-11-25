@@ -170,7 +170,11 @@ App.ServiceConfigBigTextArea = App.ServiceConfigTextArea.extend({
  */
 App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSupport, {
 
-  checkedBinding: 'serviceConfig.value'
+  checkedBinding: 'serviceConfig.value',
+
+  disabled: function () {
+    return !this.get('serviceConfig.isEditable');
+  }.property('serviceConfig.isEditable')
 });
 
 App.ServiceConfigRadioButtons = Ember.View.extend({
