@@ -90,7 +90,7 @@ def getOptimalVersion(initialProjectVersion):
   else:
     ret = findNearestAgentPackageVersion(optimalVersion)
 
-  if ret["exitstatus"] == 0 and ret["log"][0].strip() != "":
+  if ret["exitstatus"] == 0 and ret["log"][0].strip() != "" and ret["log"][0].strip() == initialProjectVersion:
     optimalVersion = ret["log"][0].strip()
     retcode = 0
   else:
