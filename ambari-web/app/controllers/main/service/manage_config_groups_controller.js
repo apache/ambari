@@ -292,7 +292,8 @@ App.ManageConfigGroupsController = Em.Controller.extend({
   /**
    * add new config group
    */
-  addConfigGroup: function () {
+  addConfigGroup: function (isDuplicated) {
+    isDuplicated = isDuplicated === true ? true : false;
     var content = this;
     var self = this;
     this.addGroupPopup = App.ModalPopup.show({
@@ -319,16 +320,21 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       onPrimary: function () {
         this.get('content').set('configGroupName', this.get('configGroupName'));
         this.get('content').set('configGroupDesc', this.get('configGroupDesc'));
-        App.ajax.send({
-          name: 'config_groups.create',
-          sender: this.get('content'),
-          data: {
-            'group_name': this.get('configGroupName'),
-            'service_id': this.get('content.serviceName'),
-            'description': this.get('configGroupDesc')
-          },
-          success: 'onAddNewConfigGroup'
-        });
+        var desiredConfig = [];
+         if (isDuplicated) {
+          this.get('content.selectedConfigGroup.apiResponse.desired_configs').forEach(function(desired_config){
+            var properties = {};
+            this.get('content.selectedConfigGroup.properties').forEach(function(property){
+              properties[property.name] = property.value;
+            });
+            desiredConfig.push({
+              tag: 'version' + (new Date).getTime(),
+              type: desired_config.type,
+              properties : properties
+            })
+          }, this);
+        }
+        self.createNewConfigurationGroup(this.get('configGroupName'),this.get('content.serviceName'),this.get('configGroupDesc'), desiredConfig, this.get('content'));
       },
       onSecondary: function () {
         this.hide();
@@ -336,11 +342,40 @@ App.ManageConfigGroupsController = Em.Controller.extend({
     });
   },
 
+
+  createNewConfigurationGroup: function(configGroupName, serviceName, configGroupDesc, desiredConfigs, sender) {
+    App.ajax.send({
+      name: 'config_groups.create',
+      sender: sender,
+      data: {
+        'group_name': configGroupName,
+        'service_id': serviceName,
+        'description': configGroupDesc,
+        'desired_configs': desiredConfigs
+      },
+      success: 'onAddNewConfigGroup',
+      error: 'onAddNewConfigGroupError'
+    });
+  },
   /**
    * On successful api resonse for creating new config group
    */
-  onAddNewConfigGroup: function (data) {
+  onAddNewConfigGroup: function (data,response) {
     var defaultConfigGroup = this.get('configGroups').findProperty('isDefault');
+    var desiredConfigs = jQuery.parseJSON(response.data)[0].ConfigGroup.desired_configs;
+    var properties = [];
+    var configSiteTags = [];
+    if (desiredConfigs && desiredConfigs.length > 0) {
+      desiredConfigs.forEach(function(configs){
+        var configSiteTag = {
+          site: configs.type,
+          tag: configs.tag
+        }
+        configSiteTags.push(configSiteTag);
+      });
+      properties = this.get('selectedConfigGroup.properties');
+    }
+
     var newConfigGroupData = App.ConfigGroup.create({
       id: data.resources[0].ConfigGroup.id,
       name: this.get('configGroupName'),
@@ -349,7 +384,8 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       parentConfigGroup: defaultConfigGroup,
       service: App.Service.find().findProperty('serviceName', this.get('serviceName')),
       hosts: [],
-      configSiteTags: []
+      configSiteTags: configSiteTags,
+      properties: properties
     });
     this.get('loadedHostsToGroupMap')[newConfigGroupData.get('name')] = [];
     defaultConfigGroup.get('childConfigGroups').push(newConfigGroupData);
@@ -358,6 +394,9 @@ App.ManageConfigGroupsController = Em.Controller.extend({
     this.addGroupPopup.hide();
   },
 
+  onAddNewConfigGroupError: function() {
+    console.warn('Can\'t add configuration group');
+  },
   /**
    * update config group apiResponse property
    */
@@ -381,7 +420,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
    * duplicate config group
    */
   duplicateConfigGroup: function() {
-    this.addConfigGroup();
+    this.addConfigGroup(true);
     this.get('addGroupPopup').set('header',Em.I18n.t('services.service.config_groups.duplicate_config_group_popup.header'));
     this.get('addGroupPopup').set('configGroupName', this.get('selectedConfigGroup.name') + ' Copy');
     this.get('addGroupPopup').set('configGroupDesc', this.get('selectedConfigGroup.description') + ' (Copy)');

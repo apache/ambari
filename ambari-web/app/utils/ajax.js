@@ -1193,7 +1193,8 @@ var urls = {
           "ConfigGroup": {
             "group_name": data.group_name,
             "tag": data.service_id,
-            "description": data.description
+            "description": data.description,
+            "desired_configs": data.desired_configs
           }
         }])
       }
