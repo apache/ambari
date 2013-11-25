@@ -1280,8 +1280,8 @@ Em.I18n.translations = {
   'hosts.host.add':'Add New Hosts',
   'hosts.table.noHosts':'No hosts to display',
   
-  'hosts.selectHostsDialog.title': 'Select Hosts to override',
-  'hosts.selectHostsDialog.message': 'Select hosts where the override config group has to be applied',
+  'hosts.selectHostsDialog.title': 'Select Configuration Group Hosts',
+  'hosts.selectHostsDialog.message': 'Select hosts that should belong to this configuration group. Configurations for these hosts will be overridden from the default values.',
   'hosts.selectHostsDialog.filter.placeHolder': 'Filter...',
   'hosts.selectHostsDialog.selectedHostsLink': '{0} out of {1} hosts selected',
 

@@ -28,16 +28,25 @@ module.exports = {
    * @param selectedHosts {App.Host[]} List of hosts already selected from the available hosts
    * @param selectAtleastOneHost  {boolean} If true atleast one host has to be selected
    * @param validComponents {App.HostComponent[]} List of host-component types to pick from.
-   * @param callback  Callback function which is invoked when dialog 
+   * @param callback  Callback function which is invoked when dialog
+   * @param popupDescription {Object} Consist header and message for popup
+   *   Example: {header: 'header', dialogMessage: 'message'}
    *  is closed, cancelled or OK is pressed.
    */
   launchHostsSelectionDialog : function(availableHosts, selectedHosts, 
-      selectAtleastOneHost, validComponents, callback) {
+      selectAtleastOneHost, validComponents, callback, popupDescription) {
+    // set default popup description
+    var defaultPopupDescription = {
+      header: Em.I18n.t('hosts.selectHostsDialog.title'),
+      dialogMessage: Em.I18n.t('hosts.selectHostsDialog.message')
+    };
+    if (popupDescription !== null) {
+      popupDescription = $.extend(true, defaultPopupDescription, popupDescription);
+    }
     App.ModalPopup.show({
       classNames: [ 'sixty-percent-width-modal' ],
-      header: Em.I18n.t('hosts.selectHostsDialog.title'),
-      primary: Em.I18n.t('ok'),
-      secondary: Em.I18n.t('common.cancel'),
+      header: popupDescription.header,
+      dialogMessage: popupDescription.dialogMessage,
       warningMessage: null,
       onPrimary: function () {
         console.debug('(old-selectedHosts)=', selectedHosts);

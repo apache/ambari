@@ -178,17 +178,26 @@ App.ManageConfigGroupsController = Em.Controller.extend({
 
   addHosts: function () {
     var availableHosts = this.get('selectedConfigGroup.availableHosts');
-    var group = this.get('selectedConfigGroup');
-    hostsManagement.launchHostsSelectionDialog(availableHosts, [], false, this.get('componentsForFilter'), function (selectedHosts) {
-      if (selectedHosts) {
-        var defaultHosts = group.get('parentConfigGroup.hosts');
-        var configGroupHosts = group.get('hosts');
-        selectedHosts.forEach(function (hostName) {
-          configGroupHosts.pushObject(hostName);
-          defaultHosts.removeObject(hostName);
-        });
-      }
-    });
+    var popupDescription = {
+      header: Em.I18n.t('hosts.selectHostsDialog.title'),
+      dialogMessage: Em.I18n.t('hosts.selectHostsDialog.message')
+    };
+    hostsManagement.launchHostsSelectionDialog(availableHosts, [], false, [], this.addHostsCallback.bind(this), popupDescription);
+  },
+
+  /**
+   * add hosts callback
+   */
+  addHostsCallback: function (selectedHosts) {
+    var group = this.get('selectedConfigGroup');    
+    if (selectedHosts) {
+      var defaultHosts = group.get('parentConfigGroup.hosts');
+      var configGroupHosts = group.get('hosts');
+      selectedHosts.forEach(function (hostName) {
+        configGroupHosts.pushObject(hostName);
+        defaultHosts.removeObject(hostName);
+      });
+    }
   },
 
   /**

@@ -19,7 +19,7 @@
 {{! #with view.categoryConfigProperty}}
   <form class="form-horizontal" autocomplete="off">
       <div class="override-controls">
-        <h4 class="message">{{t hosts.selectHostsDialog.message}}</h4>
+        <h4 class="message">{{view.parentView.dialogMessage}}</h4>
         {{#if view.parentView.warningMessage}}
 	        <div class="text-warning">
 	          {{view.parentView.warningMessage}}
@@ -64,7 +64,7 @@
                   <!-- Host-components drop-down -->
 		              <div class="btn-group">
 		                <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-		                  Components
+		                  {{t common.components}}
 		                  <span class="caret"></span>
 		                </a>
 		                <ul class="dropdown-menu">
@@ -94,7 +94,7 @@
               <th width="10%">
                 {{view Ember.Checkbox checkedBinding="view.allHostsSelected"}}
               </th>
-              <th width="45%">Host</th>
+              <th width="45%">{{t common.host}}</th>
               <th width="45%">{{view.filterColumn.name}}</th>
             </tr>
           </thead>
