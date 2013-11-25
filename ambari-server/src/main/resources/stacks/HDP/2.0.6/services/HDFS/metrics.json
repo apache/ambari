@@ -59,6 +59,11 @@
             "pointInTime": false,
             "temporal": true
           },
+          "metrics/jvm/memMaxM":{
+            "metric" : "jvm.JvmMetrics.MemMaxM",
+            "pointInTime" : true,
+            "temporal" : false
+          },
           "metrics/rpcdetailed/complete_avg_time": {
             "metric": "rpcdetailed.rpcdetailed.CompleteAvgTime",
             "pointInTime": false,
@@ -1450,6 +1455,11 @@
             "metric": "jvm.JvmMetrics.MemNonHeapUsedM",
             "pointInTime": false,
             "temporal": true
+          },
+          "metrics/jvm/memMaxM":{
+            "metric" : "jvm.JvmMetrics.MemMaxM",
+            "pointInTime" : true,
+            "temporal" : false
           },
           "metrics/rpcdetailed/complete_avg_time": {
             "metric": "rpcdetailed.rpcdetailed.CompleteAvgTime",
