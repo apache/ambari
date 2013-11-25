@@ -115,7 +115,7 @@ class TestSetupAgent(TestCase):
 
     self.assertTrue(findNearestAgentPackageVersionSuse_method.called)
     self.assertFalse(findNearestAgentPackageVersion_method.called)
-    self.assertTrue(result_version["log"] == nearest_version)
+    self.assertTrue(result_version["exitstatus"] == 1)
     pass
 
 
@@ -136,27 +136,6 @@ class TestSetupAgent(TestCase):
     self.assertTrue(result_version["log"] == projectVersion)
     pass
 
-  @patch.object(setup_agent, 'is_suse')
-  @patch.object(setup_agent, 'findNearestAgentPackageVersionSuse')
-  @patch.object(setup_agent, 'findNearestAgentPackageVersion')
-  def test_returned_optimal_version_is_nearest(self, findNearestAgentPackageVersion_method,
-                                               findNearestAgentPackageVersionSuse_method,
-                                               is_suse_method):
-    is_suse_method.return_value = False
-
-    projectVersion = ""
-    nearest_version = projectVersion + "1.1.1"
-    findNearestAgentPackageVersion_method.return_value = {
-      "exitstatus" : 0,
-      "log": [nearest_version, ""]
-    }
-
-    result_version = setup_agent.getOptimalVersion(projectVersion)
-
-    self.assertFalse(findNearestAgentPackageVersionSuse_method.called)
-    self.assertTrue(findNearestAgentPackageVersion_method.called)
-    self.assertTrue(result_version["log"] == nearest_version)
-    pass
 
   @patch.object(setup_agent, 'getAvaliableAgentPackageVersions')
   @patch.object(setup_agent, 'is_suse')
@@ -169,7 +148,7 @@ class TestSetupAgent(TestCase):
     is_suse_method.return_value = False
     findNearestAgentPackageVersion_method.return_value = {
       "exitstatus" : 0,
-      "log": ["", ""]
+      "log": ["1.1.1.1", ""]
     }
 
     projectVersion = "1.1.1"
@@ -177,7 +156,7 @@ class TestSetupAgent(TestCase):
 
     self.assertFalse(findNearestAgentPackageVersionSuse_method.called)
     self.assertTrue(findNearestAgentPackageVersion_method.called)
-    self.assertTrue(result_version["log"] == "1.1.1")
+    self.assertTrue(result_version["exitstatus"] == 1)
 
   @patch.object(subprocess, 'Popen')
   def test_execOsCommand(self, Popen_mock):
