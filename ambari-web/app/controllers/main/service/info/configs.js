@@ -323,6 +323,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       selectedConfigGroup = defaultConfigGroup;
     }
     this.get('configGroups').push(defaultConfigGroup);
+    this.get('configGroups').sort(function(configGroup){
+      if(configGroup.isDefault){
+        return false;
+      }
+      return true;
+    });
     this.set('selectedConfigGroup', selectedConfigGroup);
   },
 

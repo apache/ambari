@@ -106,6 +106,12 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       defaultConfigGroup.set('childConfigGroups', configGroups);
       defaultConfigGroup.set('hosts', unusedHosts);
       this.set('configGroups', [defaultConfigGroup].concat(configGroups));
+      this.get('configGroups').sort(function(configGroup){
+        if(configGroup.isDefault){
+          return false;
+        }
+        return true;
+      });
       this.loadProperties(groupToTypeToTagMap);
       this.set('isLoaded', true);
     }
