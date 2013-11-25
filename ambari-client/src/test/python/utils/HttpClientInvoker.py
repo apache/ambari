@@ -1,8 +1,11 @@
+import logging
+import unittest
 class HttpClientInvoker():
   @staticmethod
   def http_client_invoke_side_effects(*args, **kwargs):
-      print locals()
-      
+      localss = locals()
+      logger = logging.getLogger()
+      logger.info(localss)
       http_method = args[0]
       url = args[1]
       payload = kwargs.get("payload",None)

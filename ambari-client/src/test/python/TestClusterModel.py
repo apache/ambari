@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-
+import logging
 
 from mock.mock import MagicMock, patch
 from HttpClientInvoker import HttpClientInvoker
@@ -29,7 +29,11 @@ from ambari_client.core.errors import BadRequest
 import unittest
 
 class TestClusterModel(unittest.TestCase):
-  
+
+  def setUp(self):
+    http_client_logger = logging.getLogger()
+    http_client_logger.info('Running test:' + self.id())
+
   def create_cluster(self, http_client_mock = MagicMock()):    
     http_client_mock.invoke.side_effect = HttpClientInvoker.http_client_invoke_side_effects
     client = AmbariClient("localhost", 8080, "admin", "admin", version=1, client=http_client_mock)
@@ -80,7 +84,7 @@ class TestClusterModel(unittest.TestCase):
     self.assertEqual(hostlist.to_json_dict(), expected_dict_output)
     self.assertEqual(hostlist[1].host_name, 'dev06.hortonworks.com')
     self.assertEqual(len(hostlist), 2)  
-    
+
   def test_get_host(self):
     """
     Get cluster host

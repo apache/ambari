@@ -24,9 +24,14 @@ from ambari_client.ambari_api import  AmbariClient
 from HttpClientInvoker import HttpClientInvoker
 from ambari_client.model.stack import StackConfigModel, StackComponentModel
 import unittest
+import logging
 
 class TestAmbariClient(unittest.TestCase):
-  
+
+  def setUp(self):
+    http_client_logger = logging.getLogger()
+    http_client_logger.info('Running test:' + self.id())
+
   def create_client(self, http_client_mock = MagicMock()):
     http_client_mock.invoke.side_effect = HttpClientInvoker.http_client_invoke_side_effects
     client = AmbariClient("localhost", 8080, "admin", "admin", version=1, client=http_client_mock)

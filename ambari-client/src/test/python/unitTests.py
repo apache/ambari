@@ -79,7 +79,12 @@ def main():
   logger.info('------------------------------------------------------------------------')
   runner = unittest.TextTestRunner(verbosity=2, stream=sys.stdout)
   suite = all_tests_suite()
-  status = runner.run(suite).wasSuccessful()
+  result = runner.run(suite)
+  for error in result.errors:
+    logger.error('Failed test:' + error[0]._testMethodName + '\n' + error[1])
+  for failure in result.failures:
+    logger.error('Failed test:' + failure[0]._testMethodName + '\n' + failure[1])
+  status = result.wasSuccessful()
 
   if not status:
     logger.error('-----------------------------------------------------------------------')

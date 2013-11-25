@@ -17,7 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-
+import logging
 
 from mock.mock import MagicMock, patch
 from HttpClientInvoker import HttpClientInvoker
@@ -27,6 +27,10 @@ from ambari_client.ambari_api import  AmbariClient
 import unittest
 
 class TestClusterModel(unittest.TestCase):
+
+  def setUp(self):
+    http_client_logger = logging.getLogger()
+    http_client_logger.info('Running test:' + self.id())
 
   def create_component(self, http_client_mock = MagicMock()):
     http_client_mock.invoke.side_effect = HttpClientInvoker.http_client_invoke_side_effects
