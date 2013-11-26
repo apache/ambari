@@ -383,7 +383,7 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
             this,
             streamProvider,
             PropertyHelper.getPropertyId("ServiceComponentInfo", "cluster_name"),
-            PropertyHelper.getPropertyId("ServiceComponentInfo", "host_name"),
+            null,
             PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"),
             PropertyHelper.getPropertyId("ServiceComponentInfo", "state"),
             jpp,

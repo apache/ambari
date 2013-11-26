@@ -279,6 +279,15 @@ public class JMXPropertyProvider extends AbstractPropertyProvider {
       throws SystemException {
 
     Set<String> ids = getRequestPropertyIds(request, predicate);
+    Set<String> temporalIds = new HashSet<String>();
+
+    for (String id : ids) {
+      if (request.getTemporalInfo(id) != null) {
+        temporalIds.add(id);
+      }
+    }
+    ids.removeAll(temporalIds);
+
     if (ids.isEmpty()) {
       // no properties requested
       return resource;
