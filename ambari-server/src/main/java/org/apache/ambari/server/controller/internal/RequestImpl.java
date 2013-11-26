@@ -105,7 +105,7 @@ public class RequestImpl implements Request {
 
   @Override
   public TemporalInfo getTemporalInfo(String id) {
-    return m_mapTemporalInfo.get(id);
+    return m_mapTemporalInfo == null ? null : m_mapTemporalInfo.get(id);
   }
 
   private void setTemporalInfo(Map<String, TemporalInfo> mapTemporalInfo) {
