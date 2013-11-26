@@ -91,7 +91,8 @@ var urls = {
     }
   },
   'service.load_config_groups': {
-    'real': '/clusters/{clusterName}/config_groups?fields=*'
+    'real': '/clusters/{clusterName}/config_groups?fields=*',
+    'mock': ''
   },
   'reassign.stop_services': {
     'real': '/clusters/{clusterName}/services',
@@ -214,10 +215,12 @@ var urls = {
     }
   },
   'config_groups.all_fields': {
-    'real': '/clusters/{clusterName}/config_groups?fields=*'
+    'real': '/clusters/{clusterName}/config_groups?fields=*',
+    'mock': ''
   },
   'config_groups.get_config_group_by_id': {
-    'real': '/clusters/{clusterName}/config_groups/{id}'
+    'real': '/clusters/{clusterName}/config_groups/{id}',
+    'mock': ''
   },
   'config_groups.update_config_group': {
     'real': '/clusters/{clusterName}/config_groups/{id}',
@@ -1138,7 +1141,8 @@ var urls = {
     'mock': '/data/clusters/info.json'
   },
   'router.logoff': {
-    'real': '/logout'
+    'real': '/logout',
+    'mock': ''
   },
   'router.set_ambari_stacks': {
     'real': '/stacks',
@@ -1220,13 +1224,14 @@ var urls = {
  * @return {String}
  */
 var formatUrl = function (url, data) {
+  if (!url) return null;
   var keys = url.match(/\{\w+\}/g);
   keys = (keys === null) ? [] : keys;
   if (keys) {
     keys.forEach(function (key) {
       var raw_key = key.substr(1, key.length - 2);
       var replace;
-      if (!data[raw_key]) {
+      if (!data || !data[raw_key]) {
         replace = '';
       }
       else {
@@ -1268,7 +1273,7 @@ var formatRequest = function (data) {
  *
  * @type {Object}
  */
-App.ajax = {
+var ajax = Em.Object.extend({
   /**
    * Send ajax request
    *
@@ -1304,6 +1309,10 @@ App.ajax = {
     }
 
     var opt = {};
+    if (!urls[config.name]) {
+      console.warn('Invalid name provided!');
+      return null;
+    }
     opt = formatRequest.call(urls[config.name], params);
 
     opt.context = this;
@@ -1383,4 +1392,59 @@ App.ajax = {
       });
     }
   }
-};
+
+});
+
+/**
+ * Add few access-methods for test purposes
+ */
+if ($.mocho) {
+  ajax.reopen({
+    /**
+     * Don't use it anywhere except tests!
+     * @deprecated
+     * @returns {Array}
+     */
+    fakeGetUrlNames: function() {
+      var names = [];
+      for (var name in urls) {
+        names.push(name);
+      }
+      return names;
+    },
+
+    /**
+     * Don't use it anywhere except tests!
+     * @deprecated
+     * @param name
+     * @returns {*}
+     */
+    fakeGetUrl: function(name) {
+      return urls[name];
+    },
+
+    /**
+     * Don't use it anywhere except tests!
+     * @deprecated
+     * @param url
+     * @param data
+     * @returns {String}
+     */
+    fakeFormatUrl: function(url, data) {
+      return formatUrl(url, data);
+    },
+
+    /**
+     * Don't use it anywhere except tests!
+     * @deprecated
+     * @param urlObj
+     * @param data
+     * @returns {Object}
+     */
+    fakeFormatRequest: function(urlObj, data) {
+      return formatRequest.call(urlObj, data);
+    }
+  });
+}
+
+App.ajax = ajax.create({});

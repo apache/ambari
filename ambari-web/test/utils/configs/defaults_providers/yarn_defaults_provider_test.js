@@ -110,11 +110,11 @@ describe('YARNDefaultsProvider', function() {
 
     var tests = [
       {ram: 3, e: 256},
-      {ram: 4, e: 512},
+      {ram: 4, e: 256},
       {ram: 6, e: 512},
-      {ram: 8, e: 1024},
+      {ram: 8, e: 512},
       {ram: 12, e: 1024},
-      {ram: 24, e: 2048}
+      {ram: 24, e: 1024}
     ];
 
     tests.forEach(function(test) {
@@ -246,8 +246,8 @@ describe('YARNDefaultsProvider', function() {
         },
         m: 'Without HBase',
         e: {
-          'mapreduce.map.java.opts': '-Xmx2048m',
-          'mapreduce.map.memory.mb': 2560,
+          'mapreduce.map.java.opts': '-Xmx1024m',
+          'mapreduce.map.memory.mb': 1280,
           'mapreduce.reduce.java.opts': '-Xmx2048m',
           'mapreduce.reduce.memory.mb': 2560,
           'yarn.app.mapreduce.am.command-opts': '-Xmx2048m',
@@ -255,7 +255,7 @@ describe('YARNDefaultsProvider', function() {
           'yarn.nodemanager.resource.memory-mb': 20480,
           'yarn.scheduler.maximum-allocation-mb': 20480,
           'yarn.scheduler.minimum-allocation-mb': 2560,
-          'mapreduce.task.io.sort.mb': 1024
+          'mapreduce.task.io.sort.mb': 512
         }
       },
       {
@@ -276,16 +276,16 @@ describe('YARNDefaultsProvider', function() {
         },
         m: 'With HBase',
         e: {
-          'mapreduce.map.java.opts': '-Xmx819m',
-          'mapreduce.map.memory.mb': 1024,
-          'mapreduce.reduce.java.opts': '-Xmx1638m',
-          'mapreduce.reduce.memory.mb': 2048,
-          'yarn.app.mapreduce.am.command-opts': '-Xmx1638m',
-          'yarn.app.mapreduce.am.resource.mb': 2048,
+          'mapreduce.map.java.opts': '-Xmx410m',
+          'mapreduce.map.memory.mb': 512,
+          'mapreduce.reduce.java.opts': '-Xmx819m',
+          'mapreduce.reduce.memory.mb': 1024,
+          'yarn.app.mapreduce.am.command-opts': '-Xmx819m',
+          'yarn.app.mapreduce.am.resource.mb': 1024,
           'yarn.nodemanager.resource.memory-mb': 8192,
           'yarn.scheduler.maximum-allocation-mb': 8192,
           'yarn.scheduler.minimum-allocation-mb': 1024,
-          'mapreduce.task.io.sort.mb': 410
+          'mapreduce.task.io.sort.mb': 205
         }
       }
     ];

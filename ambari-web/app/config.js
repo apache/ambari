@@ -73,10 +73,12 @@ if (App.enableExperimental) {
 }
 
 // this is to make sure that IE does not cache data when making AJAX calls to the server
-$.ajaxSetup({
-  cache: false,
-  headers: {"X-Requested-By": "X-Requested-By"}
-});
+if (!$.mocho) {
+  $.ajaxSetup({
+    cache: false,
+    headers: {"X-Requested-By": "X-Requested-By"}
+  });
+}
 
 /**
  * Test Mode values

@@ -103,11 +103,6 @@ describe('App.Host', function () {
   });
 
   describe('#isNotHeartBeating', function () {
-
-    it('host1 - true ', function () {
-      var host = App.Host.find().findProperty('hostName', 'host1');
-      expect(host.get('isNotHeartBeating')).to.equal(true);
-    });
     it('host2 - false', function () {
       var host = App.Host.find().findProperty('hostName', 'host2');
       expect(host.get('isNotHeartBeating')).to.equal(false);
