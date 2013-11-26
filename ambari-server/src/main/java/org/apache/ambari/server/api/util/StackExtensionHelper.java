@@ -18,6 +18,7 @@
 package org.apache.ambari.server.api.util;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -29,18 +30,22 @@ import java.util.Map;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.StackInfo;
-import org.apache.ambari.server.state.stack.ConfigurationXml;
-import org.apache.ambari.server.state.stack.RepositoryXml;
-import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
-import org.apache.ambari.server.state.stack.StackMetainfoXml;
+import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.state.stack.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
 /**
  * Helper methods for providing stack extension behavior -
@@ -52,25 +57,40 @@ public class StackExtensionHelper {
     .getLogger(StackExtensionHelper.class);
   private final Map<String, StackInfo> stackVersionMap = new HashMap<String,
     StackInfo>();
-  private final Map<String, List<StackInfo>> stackParentsMap;
+  private Map<String, List<StackInfo>> stackParentsMap = null;
 
   private static final Map<Class<?>, JAXBContext> _jaxbContexts =
       new HashMap<Class<?>, JAXBContext> ();
   static {
     try {
-      // two classes define the top-level element "metainfo", so we need 2 contexts.
+      // three classes define the top-level element "metainfo", so we need 3 contexts.
       JAXBContext ctx = JAXBContext.newInstance(StackMetainfoXml.class, RepositoryXml.class, ConfigurationXml.class);
       _jaxbContexts.put(StackMetainfoXml.class, ctx);
       _jaxbContexts.put(RepositoryXml.class, ctx);
       _jaxbContexts.put(ConfigurationXml.class, ctx);
       _jaxbContexts.put(ServiceMetainfoXml.class, JAXBContext.newInstance(ServiceMetainfoXml.class));
+      _jaxbContexts.put(ServiceMetainfoV2Xml.class, JAXBContext.newInstance(ServiceMetainfoV2Xml.class));
     } catch (JAXBException e) {
       throw new RuntimeException (e);
     }
-  }  
-  
-  public StackExtensionHelper(File stackRoot) throws Exception {
+  }
+
+  /**
+   * Note: constructor does not perform inialisation now. After instance
+   * creation, you have to call fillInfo() manually
+   */
+  public StackExtensionHelper(File stackRoot) {
     this.stackRoot = stackRoot;
+  }
+
+
+  /**
+   * Must be manually called after creation of StackExtensionHelper instance
+   */
+  public void fillInfo() throws Exception {
+    if (stackParentsMap != null) {
+      throw new AmbariException("fillInfo() method has already been called");
+    }
     File[] stackFiles = stackRoot.listFiles(AmbariMetaInfo.FILENAME_FILTER);
     for (File stack : stackFiles) {
       if (stack.isFile()) {
@@ -85,11 +105,13 @@ public class StackExtensionHelper {
         stackVersionMap.put(stackName + stackVersion, getStackInfo(stackFolder));
       }
     }
-    this.stackParentsMap = getParentStacksInOrder(stackVersionMap.values());
+    stackParentsMap = getParentStacksInOrder(stackVersionMap.values());
   }
+
 
   private ServiceInfo mergeServices(ServiceInfo parentService,
                                     ServiceInfo childService) {
+    // TODO: Allow extending stack with custom services
     ServiceInfo mergedServiceInfo = new ServiceInfo();
     mergedServiceInfo.setName(childService.getName());
     mergedServiceInfo.setComment(childService.getComment());
@@ -186,7 +208,9 @@ public class StackExtensionHelper {
     return new ArrayList<ServiceInfo>(serviceInfoMap.values());
   }
 
-  private void populateServicesForStack(StackInfo stackInfo) {
+  void populateServicesForStack(StackInfo stackInfo) throws
+          ParserConfigurationException, SAXException,
+          XPathExpressionException, IOException, JAXBException {
     List<ServiceInfo> services = new ArrayList<ServiceInfo>();
     File servicesFolder = new File(stackRoot.getAbsolutePath() + File
       .separator + stackInfo.getName() + File.separator + stackInfo.getVersion()
@@ -196,49 +220,75 @@ public class StackExtensionHelper {
       "-" + stackInfo.getVersion());
 
     } else {
-      File[] servicesFolders = servicesFolder.listFiles(AmbariMetaInfo
-        .FILENAME_FILTER);
-      if (servicesFolders != null) {
+      try {
+        File[] servicesFolders = servicesFolder.listFiles(AmbariMetaInfo
+          .FILENAME_FILTER);
+        if (servicesFolders == null) {
+          String message = String.format("No service folders found at %s",
+                  servicesFolder.getAbsolutePath());
+          throw new AmbariException(message);
+        }
+        // Iterate over service folders
         for (File serviceFolder : servicesFolders) {
           if (!serviceFolder.isDirectory())
             continue;
-          
-          // Get information about service
-          ServiceInfo serviceInfo = new ServiceInfo();
-          serviceInfo.setName(serviceFolder.getName());
+          // Get metainfo schema format version
           File metainfoFile = new File(serviceFolder.getAbsolutePath()
-            + File.separator + AmbariMetaInfo.SERVICE_METAINFO_FILE_NAME);
-          
-          setMetaInfo(metainfoFile, serviceInfo);
-          
+                  + File.separator + AmbariMetaInfo.SERVICE_METAINFO_FILE_NAME);
           // get metrics file, if it exists
           File metricsJson = new File(serviceFolder.getAbsolutePath()
-              + File.separator + AmbariMetaInfo.SERVICE_METRIC_FILE_NAME);
-          if (metricsJson.exists())
-            serviceInfo.setMetricsFile(metricsJson);
-          
-          // Add now to be removed while iterating extension graph
-          services.add(serviceInfo);
+            + File.separator + AmbariMetaInfo.SERVICE_METRIC_FILE_NAME);
+          String version = getSchemaVersion(metainfoFile);
+          if (AmbariMetaInfo.SCHEMA_VERSION_LEGACY.equals(version)) {
+            // Get information about service
+            ServiceInfo serviceInfo = new ServiceInfo();
+            serviceInfo.setSchemaVersion(AmbariMetaInfo.SCHEMA_VERSION_LEGACY);
+            serviceInfo.setName(serviceFolder.getName());
+            ServiceMetainfoXml smx = unmarshal(ServiceMetainfoXml.class, metainfoFile);
+            serviceInfo.setComment(smx.getComment());
+            serviceInfo.setUser(smx.getUser());
+            serviceInfo.setVersion(smx.getVersion());
+            serviceInfo.setDeleted(smx.isDeleted());
+			      serviceInfo.setConfigDependencies(smx.getConfigDependencies());
+            serviceInfo.getComponents().addAll(smx.getComponents());
 
-          // Get all properties from all "configs/*-site.xml" files
-          File serviceConfigFolder = new File(serviceFolder.getAbsolutePath()
-            + File.separator + AmbariMetaInfo.SERVICE_CONFIG_FOLDER_NAME);
-          File[] configFiles = serviceConfigFolder.listFiles
-            (AmbariMetaInfo.FILENAME_FILTER);
-          if (configFiles != null) {
-            for (File config : configFiles) {
-              if (config.getName().endsWith
-                (AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX)) {
-                serviceInfo.getProperties().addAll(getProperties(config));
-              }
+            if (metricsJson.exists())
+              serviceInfo.setMetricsFile(metricsJson);            
+
+            // Get all properties from all "configs/*-site.xml" files
+            setPropertiesFromConfigs(serviceFolder, serviceInfo);
+
+            // Add now to be removed while iterating extension graph
+            services.add(serviceInfo);
+          } else { //Reading v2 service metainfo (may contain multiple services)
+            // Get services from metadata
+            ServiceMetainfoV2Xml smiv2x =
+                    unmarshal(ServiceMetainfoV2Xml.class, metainfoFile);
+            List<ServiceInfo> serviceInfos = smiv2x.getServices();
+            for (ServiceInfo serviceInfo : serviceInfos) {
+              serviceInfo.setSchemaVersion(AmbariMetaInfo.SCHEMA_VERSION_2);
+              serviceInfo.setServiceMetadataFolder(serviceFolder.getName());
+              // TODO: allow repository overriding when extending stack
+
+              if (metricsJson.exists())
+                serviceInfo.setMetricsFile(metricsJson);
+
+              // Get all properties from all "configs/*-site.xml" files
+              setPropertiesFromConfigs(serviceFolder, serviceInfo);
+
+              // Add now to be removed while iterating extension graph
+              services.add(serviceInfo);
             }
           }
         }
+      } catch (Exception e) {
+        LOG.error("Error while parsing metainfo.xml for a service", e);
       }
     }
 
     stackInfo.getServices().addAll(services);
   }
+
 
   public List<StackInfo> getAllAvailableStacks() {
     return new ArrayList<StackInfo>(stackVersionMap.values());
@@ -270,6 +320,36 @@ public class StackExtensionHelper {
     }
     return parentStacksMap;
   }
+
+
+  /**
+   * Determines schema version of a given metainfo file
+   * @param stackMetainfoFile  xml file
+   */
+  String getSchemaVersion(File stackMetainfoFile) throws IOException,
+          ParserConfigurationException, SAXException, XPathExpressionException {
+    // Using XPath to get a single value from an metainfo file
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    DocumentBuilder builder = factory.newDocumentBuilder();
+    Document doc = builder.parse(stackMetainfoFile);
+    XPathFactory xPathfactory = XPathFactory.newInstance();
+    XPath xpath = xPathfactory.newXPath();
+    XPathExpression schemaPath = xpath.compile("/metainfo/schemaVersion[1]");
+
+    String value = schemaPath.evaluate(doc).trim();
+    if ( "".equals(value) || // If schemaVersion is not defined
+            AmbariMetaInfo.SCHEMA_VERSION_LEGACY.equals(value)) {
+      return AmbariMetaInfo.SCHEMA_VERSION_LEGACY;
+    } else if (AmbariMetaInfo.SCHEMA_VERSION_2.equals(value)) {
+      return AmbariMetaInfo.SCHEMA_VERSION_2;
+    } else {
+      String message = String.format("Unknown schema version %s at file " +
+              "%s", value, stackMetainfoFile.getAbsolutePath());
+      throw new AmbariException(message);
+    }
+
+  }
+
 
   private StackInfo getStackInfo(File stackVersionFolder) throws JAXBException {
     StackInfo stackInfo = new StackInfo();
@@ -308,22 +388,6 @@ public class StackExtensionHelper {
     return stackInfo;
   }
 
-  private void setMetaInfo(File metainfoFile, ServiceInfo serviceInfo) {
-    try {
-      ServiceMetainfoXml smx = unmarshal(ServiceMetainfoXml.class, metainfoFile);
-      
-      serviceInfo.setComment(smx.getComment());
-      serviceInfo.setUser(smx.getUser());
-      serviceInfo.setVersion(smx.getVersion());
-      serviceInfo.setDeleted(smx.isDeleted());
-      serviceInfo.setConfigDependencies(smx.getConfigDependencies());
-      
-      serviceInfo.getComponents().addAll(smx.getComponents());
-    } catch (Exception e) {
-      LOG.error("Error while parsing metainfo.xml for a service", e);
-    }
-
-  }
 
   private List<PropertyInfo> getProperties(File propertyFile) {
     
@@ -340,13 +404,32 @@ public class StackExtensionHelper {
         pi.setFilename(propertyFile.getName());
         list.add(pi);
       }
-      
       return list;
     } catch (Exception e) {
       LOG.error("Could not load configuration for " + propertyFile, e);
       return null;
     }
   }
+
+
+  /**
+   * Get all properties from all "configs/*-site.xml" files
+   */
+  void setPropertiesFromConfigs(File serviceFolder, ServiceInfo serviceInfo) {
+    File serviceConfigFolder = new File(serviceFolder.getAbsolutePath()
+            + File.separator + AmbariMetaInfo.SERVICE_CONFIG_FOLDER_NAME);
+    File[] configFiles = serviceConfigFolder.listFiles
+            (AmbariMetaInfo.FILENAME_FILTER);
+    if (configFiles != null) {
+      for (File config : configFiles) {
+        if (config.getName().endsWith
+                (AmbariMetaInfo.SERVICE_CONFIG_FILE_NAME_POSTFIX)) {
+          serviceInfo.getProperties().addAll(getProperties(config));
+        }
+      }
+    }
+  }
+
   
   public static <T> T unmarshal(Class<T> clz, File file) throws JAXBException {
     Unmarshaller u = _jaxbContexts.get(clz).createUnmarshaller();

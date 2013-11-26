@@ -548,6 +548,7 @@ public class AmbariMetaInfoTest {
       ("getParentStacksInOrder", Collection.class);
     method.setAccessible(true);
     StackExtensionHelper helper = new StackExtensionHelper(metaInfo.getStackRoot());
+    helper.fillInfo();
     Map<String, List<StackInfo>> stacks = (Map<String, List<StackInfo>>)
       method.invoke(helper, allStacks);
 
@@ -573,6 +574,7 @@ public class AmbariMetaInfoTest {
   public void testGetApplicableServices() throws Exception {
     StackExtensionHelper helper = new StackExtensionHelper(
       metaInfo.getStackRoot());
+    helper.fillInfo();
     List<ServiceInfo> allServices = helper.getAllApplicableServices(metaInfo
       .getStackInfo(STACK_NAME_HDP, EXT_STACK_NAME));
 

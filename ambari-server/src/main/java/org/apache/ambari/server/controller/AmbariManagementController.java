@@ -441,5 +441,46 @@ public interface AmbariManagementController {
                                             Map<String, Map<State, List<ServiceComponentHost>>> changedHosts,
                                             Collection<ServiceComponentHost> ignoredHosts,
                                             boolean runSmokeTest, boolean reconfigureClients) throws AmbariException;
+
+
+  /**
+   * Getter for the url of JDK, stored at server resources folder
+   */
+  public String getJdkResourceUrl();
+
+  /**
+   * Getter for the name of server database
+   */
+  public String getServerDB();
+
+  /**
+   * Getter for the url of Oracle JDBC driver, stored at server resources folder
+   */
+  public String getOjdbcUrl();
+
+  /**
+   * Getter for the url of MySQL JDBC driver, stored at server resources folder
+   */
+  public String getMysqljdbcUrl();
+
+  /**
+   * Return a healthy host if found otherwise any random host
+   * @throws AmbariException
+   */
+  public String getHealthyHost(Set<String> hostList) throws AmbariException;
+
+
+  /**
+   * Find configuration tags with applied overrides
+   *
+   * @param cluster   the cluster
+   * @param hostName  the host name
+   *
+   * @return the configuration tags
+   *
+   * @throws AmbariException if configuration tags can not be obtained
+   */
+  public Map<String, Map<String,String>> findConfigurationTagsWithOverrides(
+          Cluster cluster, String hostName) throws AmbariException;
 }
   

@@ -97,6 +97,7 @@ public class ControllerModule extends AbstractModule {
 
     bind(Gson.class).in(Scopes.SINGLETON);
     bind(Clusters.class).to(ClustersImpl.class);
+    bind(AmbariCustomCommandExecutionHelper.class).to(AmbariCustomCommandExecutionHelperImpl.class);
     bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
     bind(CustomActionDBAccessor.class).to(CustomActionDBAccessorImpl.class);
     bindConstant().annotatedWith(Names.named("schedulerSleeptime")).to(10000L);

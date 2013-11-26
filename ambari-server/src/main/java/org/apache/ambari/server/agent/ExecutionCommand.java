@@ -40,6 +40,8 @@ public class ExecutionCommand extends AgentCommand {
   public ExecutionCommand() {
     super(AgentCommandType.EXECUTION_COMMAND);
   }
+
+
   private String clusterName;
   private long taskId;
   private String commandId;
@@ -225,6 +227,34 @@ public class ExecutionCommand extends AgentCommand {
    */
   public Map<String, Map<String, String>> getConfigurationTags() {
     return configurationTags;
+  }
+
+
+  /**
+   * Contains key name strings. These strings are used inside maps
+   * incapsulated inside command.
+   */
+  public static interface KeyNames {
+
+    String SCHEMA_VERSION = "schema_version";
+    String COMMAND_TIMEOUT = "command_timeout";
+    String SCRIPT = "script";
+    String SCRIPT_TYPE = "script_type";
+    String SERVICE_METADATA_FOLDER = "service_metadata_folder";
+    String STACK_NAME = "stack_name";
+    String STACK_VERSION = "stack_version";
+    String SERVICE_REPO_INFO = "service_repo_info";
+    String PACKAGE_LIST = "package_list";
+    String JDK_LOCATION = "jdk_location";
+    String MYSQL_JDBC_URL = "mysql_jdbc_url";
+    String ORACLE_JDBC_URL = "oracle_jdbc_url";
+    String DB_DRIVER_FILENAME = "db_driver_filename";
+    String REPO_INFO = "repo_info";
+    String DB_NAME = "db_name";
+    String SERVICE_CHECK = "SERVICE_CHECK"; // TODO: is it standart command? maybe add it to RoleCommand enum?
+
+    String COMMAND_TIMEOUT_DEFAULT = "600"; // TODO: Will be replaced by proper initialization in another jira
+
   }
 
 }

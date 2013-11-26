@@ -58,7 +58,8 @@ class TestFileCache(TestCase):
     isdir_mock.return_value = True
     base = fileCache.get_service_base_dir("HDP", "2.0.7",
                                           "HBASE", "REGION_SERVER")
-    self.assertEqual(base, "/var/lib/ambari-agent/cache/stacks/HDP/2.0.7/services/HBASE")
+    self.assertEqual(base, "/var/lib/ambari-agent/cache/stacks/HDP/2.0.7/"
+                           "services/HBASE/package")
 
 
   def tearDown(self):

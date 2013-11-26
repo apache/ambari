@@ -140,7 +140,7 @@ public class AmbariManagementControllerTest {
   private static final String REPO_ID = "HDP-1.1.1.16";
   private static final String PROPERTY_NAME = "hbase.regionserver.msginterval";
   private static final String SERVICE_NAME = "HDFS";
-  private static final int STACK_VERSIONS_CNT = 8;
+  private static final int STACK_VERSIONS_CNT = 9;
   private static final int REPOS_CNT = 3;
   private static final int STACKS_CNT = 1;
   private static final int STACK_SERVICES_CNT = 5 ;
@@ -5062,7 +5062,7 @@ public class AmbariManagementControllerTest {
     List<HostRoleCommand> commands = actionDB.getRequestTasks(requestId);
     int commandCount = 0;
     for(HostRoleCommand command : commands) {
-      if(command.getRoleCommand() == RoleCommand.EXECUTE &&
+      if(command.getRoleCommand() == RoleCommand.SERVICE_CHECK &&
           command.getRole() == Role.HDFS_SERVICE_CHECK) {
         Assert.assertTrue(command.getHostName().equals("h2"));
         commandCount++;
@@ -5079,7 +5079,7 @@ public class AmbariManagementControllerTest {
     commands = actionDB.getRequestTasks(requestId);
     commandCount = 0;
     for(HostRoleCommand command : commands) {
-      if(command.getRoleCommand() == RoleCommand.EXECUTE &&
+      if(command.getRoleCommand() == RoleCommand.SERVICE_CHECK &&
           command.getRole() == Role.HDFS_SERVICE_CHECK) {
         Assert.assertTrue(command.getHostName().equals("h3"));
         commandCount++;
@@ -5095,7 +5095,7 @@ public class AmbariManagementControllerTest {
     commands = actionDB.getRequestTasks(response.getRequestId());
     commandCount = 0;
     for(HostRoleCommand command : commands) {
-      if(command.getRoleCommand() == RoleCommand.EXECUTE &&
+      if(command.getRoleCommand() == RoleCommand.SERVICE_CHECK &&
           command.getRole() == Role.HDFS_SERVICE_CHECK) {
         Assert.assertTrue(command.getHostName().equals("h3"));
         commandCount++;
@@ -5110,7 +5110,7 @@ public class AmbariManagementControllerTest {
     commands = actionDB.getRequestTasks(response.getRequestId());
     commandCount = 0;
     for(HostRoleCommand command : commands) {
-      if(command.getRoleCommand() == RoleCommand.EXECUTE &&
+      if(command.getRoleCommand() == RoleCommand.SERVICE_CHECK &&
           command.getRole() == Role.HDFS_SERVICE_CHECK) {
         Assert.assertTrue(command.getHostName().equals("h3") ||
             command.getHostName().equals("h2"));

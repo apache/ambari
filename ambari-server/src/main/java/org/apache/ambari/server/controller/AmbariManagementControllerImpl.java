@@ -18,11 +18,21 @@
 
 package org.apache.ambari.server.controller;
 
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -39,7 +49,6 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
-import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
@@ -49,33 +58,11 @@ import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.stageplanner.RoleGraph;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigFactory;
-import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.HostState;
-import org.apache.ambari.server.state.OperatingSystemInfo;
-import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.RepositoryInfo;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceComponentFactory;
-import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceComponentHostEvent;
-import org.apache.ambari.server.state.ServiceComponentHostFactory;
-import org.apache.ambari.server.state.ServiceFactory;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
-import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostMaintenanceEvent;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostRestoreEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
@@ -86,20 +73,13 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
+
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.*;
 
 @Singleton
 public class AmbariManagementControllerImpl implements
@@ -166,7 +146,8 @@ public class AmbariManagementControllerImpl implements
   final private String serverDB;
   final private String mysqljdbcUrl;
 
-  final private AmbariCustomCommandExecutionHelper customCommandExecutionHelper;
+  @Inject
+  private AmbariCustomCommandExecutionHelper customCommandExecutionHelper;
   final private AmbariActionExecutionHelper actionExecutionHelper;
 
   @Inject
@@ -204,8 +185,6 @@ public class AmbariManagementControllerImpl implements
       this.serverDB = null;
     }
 
-    this.customCommandExecutionHelper = new AmbariCustomCommandExecutionHelper(
-        this.actionMetadata, this.clusters, this);
     this.actionExecutionHelper = new AmbariActionExecutionHelper(
         this.actionMetadata, this.clusters, this);
   }
@@ -548,76 +527,6 @@ public class AmbariManagementControllerImpl implements
     return stageFactory.createNew(requestId, logDir, cluster.getClusterName(), requestContext, clusterHostInfo);
   }
 
-  private void createHostAction(Cluster cluster,
-                                Stage stage, ServiceComponentHost scHost,
-                                Map<String, Map<String, String>> configurations,
-                                Map<String, Map<String, String>> configTags,
-                                RoleCommand command,
-                                Map<String, String> commandParams,
-                                ServiceComponentHostEvent event) throws AmbariException {
-
-    stage.addHostRoleExecutionCommand(scHost.getHostName(), Role.valueOf(scHost
-        .getServiceComponentName()), command,
-        event, scHost.getClusterName(),
-        scHost.getServiceName());
-    ExecutionCommand execCmd = stage.getExecutionCommandWrapper(scHost.getHostName(),
-        scHost.getServiceComponentName()).getExecutionCommand();
-
-    Host host = clusters.getHost(scHost.getHostName());
-
-    // Hack - Remove passwords from configs
-    if (event.getServiceComponentName().equals(Role.HIVE_CLIENT.toString())) {
-      configHelper.applyCustomConfig(configurations, Configuration.HIVE_CONFIG_TAG,
-          Configuration.HIVE_METASTORE_PASSWORD_PROPERTY, "", true);
-    }
-
-    execCmd.setConfigurations(configurations);
-    execCmd.setConfigurationTags(configTags);
-    execCmd.setCommandParams(commandParams);
-
-    // send stack info to agent
-    StackId stackId = scHost.getDesiredStackVersion();
-    Map<String, List<RepositoryInfo>> repos = ambariMetaInfo.getRepository(
-        stackId.getStackName(), stackId.getStackVersion());
-    String repoInfo = "";
-    if (!repos.containsKey(host.getOsType())) {
-      // FIXME should this be an error?
-      LOG.warn("Could not retrieve repo information for host"
-          + ", hostname=" + scHost.getHostName()
-          + ", clusterName=" + cluster.getClusterName()
-          + ", stackInfo=" + stackId.getStackId());
-    } else {
-      repoInfo = gson.toJson(repos.get(host.getOsType()));
-    }
-
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Sending repo information to agent"
-          + ", hostname=" + scHost.getHostName()
-          + ", clusterName=" + cluster.getClusterName()
-          + ", stackInfo=" + stackId.getStackId()
-          + ", repoInfo=" + repoInfo);
-    }
-
-    Map<String, String> params = new TreeMap<String, String>();
-    params.put("repo_info",       repoInfo);
-    params.put("jdk_location",    jdkResourceUrl);
-    params.put("stack_version",   stackId.getStackVersion());
-    params.put("db_name",         serverDB);
-    params.put("mysql_jdbc_url" , mysqljdbcUrl);
-    params.put("oracle_jdbc_url", ojdbcUrl);
-
-    if (configs.getServerDBName().equalsIgnoreCase(Configuration
-        .ORACLE_DB_NAME)) {
-      params.put("db_driver_filename", configs.getOjdbcJarName());
-    } else if (configs.getServerDBName().equalsIgnoreCase(Configuration
-        .MYSQL_DB_NAME)) {
-      params.put("db_driver_filename", configs.getMySQLJarName());
-    }
-    execCmd.setHostLevelParams(params);
-
-    Map<String, String> roleParams = new TreeMap<String, String>();
-    execCmd.setRoleParams(roleParams);
-  }
 
   private synchronized Set<ClusterResponse> getClusters(ClusterRequest request)
       throws AmbariException {
@@ -1090,18 +999,9 @@ public class AmbariManagementControllerImpl implements
     }
   }
 
-  /**
-   * Find configuration tags with applied overrides
-   *
-   * @param cluster   the cluster
-   * @param hostName  the host name
-   *
-   * @return the configuration tags
-   *
-   * @throws AmbariException if configuration tags can not be obtained
-   */
-  protected Map<String, Map<String,String>> findConfigurationTagsWithOverrides(
-    Cluster cluster, String hostName) throws AmbariException {
+  @Override
+  public Map<String, Map<String,String>> findConfigurationTagsWithOverrides(
+          Cluster cluster, String hostName) throws AmbariException {
 
     return configHelper.getEffectiveDesiredTags(cluster, hostName);
   }
@@ -1303,15 +1203,15 @@ public class AmbariManagementControllerImpl implements
               }
             }
 
-            createHostAction(cluster, stage, scHost, configurations, configTags,
-                roleCommand, requestParameters, event);
+            customCommandExecutionHelper.createHostAction(cluster, stage, scHost,
+                    configurations, configTags,
+                    roleCommand, requestParameters, event);
           }
         }
       }
 
-      for (String serviceName : smokeTestServices) {
+      for (String serviceName : smokeTestServices) { // Creates smoke test commands
         Service s = cluster.getService(serviceName);
-
         // find service component host
         String clientHost = getClientHostForRunningAction(cluster, s);
         String smokeTestRole =
@@ -1326,39 +1226,10 @@ public class AmbariManagementControllerImpl implements
               + ", serviceCheckRole=" + smokeTestRole);
           continue;
         }
-
-        stage.addHostRoleExecutionCommand(clientHost,
-            Role.valueOf(smokeTestRole),
-            RoleCommand.EXECUTE,
-            new ServiceComponentHostOpInProgressEvent(null, clientHost,
-                nowTimestamp), cluster.getClusterName(), serviceName);
-
-        // [ type -> [ key, value ] ]
-        Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String,String>>();
-        Map<String, Map<String, String>> configTags =
-          findConfigurationTagsWithOverrides(cluster, clientHost);
-
-        stage.getExecutionCommandWrapper(clientHost,
-            smokeTestRole).getExecutionCommand()
-            .setConfigurations(configurations);
-
-        stage.getExecutionCommandWrapper(clientHost,
-          smokeTestRole).getExecutionCommand()
-          .setConfigurationTags(configTags);
-        
-        // Generate cluster host info
-        stage.getExecutionCommandWrapper(clientHost, smokeTestRole)
-            .getExecutionCommand()
-            .setClusterHostInfo(StageUtils.getClusterHostInfo(
-                clusters.getHostsForCluster(cluster.getClusterName()), cluster, hostsMap,
-                injector.getInstance(Configuration.class)));
-
-        Map<String,String> hostParams = new HashMap<String, String>();
-        hostParams.put("stack_version", cluster.getDesiredStackVersion().getStackVersion());
-        // smoke tests need stack version
-        stage.getExecutionCommandWrapper(clientHost,
-            smokeTestRole).getExecutionCommand()
-            .setHostLevelParams(hostParams);
+        Configuration configuration = injector.getInstance(Configuration.class);
+        customCommandExecutionHelper.addServiceCheckActionImpl(stage, clientHost,
+                smokeTestRole, nowTimestamp, serviceName,
+                null, null, hostsMap, null);
 
       }
 
@@ -2064,8 +1935,9 @@ public class AmbariManagementControllerImpl implements
     return null;
   }
 
-  protected String getHealthyHost(Set<String> hostList) throws AmbariException {
-    // Return a healthy host if found otherwise any random host
+
+  @Override
+  public String getHealthyHost(Set<String> hostList) throws AmbariException {
     String hostName = null;
     for (String candidateHostName : hostList) {
       hostName = candidateHostName;
@@ -2081,7 +1953,6 @@ public class AmbariManagementControllerImpl implements
   public RequestStatusResponse createAction(ExecuteActionRequest actionRequest, Map<String, String> requestProperties)
       throws AmbariException {
     String clusterName;
-    Configuration configuration = injector.getInstance(Configuration.class);
     String requestContext = "";
 
     if (requestProperties != null) {
@@ -2109,7 +1980,7 @@ public class AmbariManagementControllerImpl implements
 
     Map<String, List<String>> clusterHostInfo = StageUtils.getClusterHostInfo(
         clusters.getHostsForCluster(cluster.getClusterName()), cluster, hostsMap,
-        injector.getInstance(Configuration.class));
+        configs);
 
     String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
     Stage stage = createNewStage(cluster, actionManager.getNextRequestId(), requestContext, clusterHostInfoJson);
@@ -2117,13 +1988,14 @@ public class AmbariManagementControllerImpl implements
     stage.setStageId(0);
 
     Map<String, String> params = new TreeMap<String, String>();
-    params.put("jdk_location", this.jdkResourceUrl);
-    params.put("stack_version", cluster.getDesiredStackVersion().getStackVersion());
+    // TODO : Update parameter population to be done only here
+    params.put(JDK_LOCATION, this.jdkResourceUrl);
+    params.put(STACK_VERSION, cluster.getDesiredStackVersion().getStackVersion());
 
     if (actionRequest.isCommand()) {
-      customCommandExecutionHelper.addAction(actionRequest, stage, configuration, hostsMap, params);
+      customCommandExecutionHelper.addAction(actionRequest, stage, hostsMap, params);
     } else {
-      actionExecutionHelper.addAction(actionExecContext, stage, configuration, hostsMap, params);
+      actionExecutionHelper.addAction(actionExecContext, stage, configs, hostsMap, params);
     }
 
     RoleCommandOrder rco = this.getRoleCommandOrder(cluster);
@@ -2644,5 +2516,25 @@ public class AmbariManagementControllerImpl implements
   @Override
   public ActionManager getActionManager() {
     return actionManager;
+  }
+
+  @Override
+  public String getJdkResourceUrl() {
+    return jdkResourceUrl;
+  }
+
+  @Override
+  public String getServerDB() {
+    return serverDB;
+  }
+
+  @Override
+  public String getOjdbcUrl() {
+    return ojdbcUrl;
+  }
+
+  @Override
+  public String getMysqljdbcUrl() {
+    return mysqljdbcUrl;
   }
 }

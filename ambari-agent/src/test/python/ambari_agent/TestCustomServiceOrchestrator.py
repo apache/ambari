@@ -82,7 +82,7 @@ class TestCustomServiceOrchestrator(TestCase):
     # Testing existing path
     exists_mock.return_value = True
     path = orchestrator.\
-      resolve_script_path("/HBASE", "scripts/hbase_master.py", "PYTHON")
+      resolve_script_path("/HBASE/package", "scripts/hbase_master.py", "PYTHON")
     self.assertEqual("/HBASE/package/scripts/hbase_master.py", path)
     # Testing not existing path
     exists_mock.return_value = False

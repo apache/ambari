@@ -18,16 +18,30 @@
 
 package org.apache.ambari.server.state;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.*;
 
 import org.apache.ambari.server.controller.StackServiceComponentResponse;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ComponentInfo {
   private String name;
   private String category;
   private boolean deleted;
+
+  /**
+  * Added at schema ver 2
+  */
+  private CommandScriptDefinition commandScript;
+
+  /**
+   * Added at schema ver 2
+   */
+  @XmlElementWrapper(name="customCommands")
+  @XmlElements(@XmlElement(name="customCommand"))
+  private List<CustomCommandDefinition> customCommands;
 
   public String getName() {
     return name;
@@ -63,5 +77,16 @@ public class ComponentInfo {
 
   public void setDeleted(boolean deleted) {
     this.deleted = deleted;
+  }
+
+  public CommandScriptDefinition getCommandScript() {
+    return commandScript;
+  }
+
+  public List<CustomCommandDefinition> getCustomCommands() {
+    if (customCommands == null) {
+      customCommands = new ArrayList<CustomCommandDefinition>();
+    }
+    return customCommands;
   }
 }

@@ -57,15 +57,15 @@
         <component>
           <name>HBASE_CLIENT</name>
           <category>CLIENT</category>
+          <commandScript>
+            <script>scripts/hbase_client.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
         </component>
-        <commandScript>
-          <script>scripts/hbase_client.py</script>
-          <scriptType>PYTHON</scriptType>
-        </commandScript>
       </components>
 
-      <osSpecificPackages>
-        <osSpecificPackage>
+      <osSpecifics>
+        <osSpecific>
           <osType>centos6</osType>
           <packages>
             <package>
@@ -73,19 +73,21 @@
               <name>hbase</name>
             </package>
           </packages>
-        </osSpecificPackage>
-      </osSpecificPackages>
+        </osSpecific>
+      </osSpecifics>
 
-      <customCommands>
-        <customCommand>
-          <name>SERVICE_CHECK</name>
-          <commandScript>
-            <script>scripts/hbase_service.py</script>
-            <scriptType>PYTHON</scriptType>
-            <timeout>300</timeout>
-          </commandScript>
-        </customCommand>
-      </customCommands>
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
+      <configuration-dependencies>
+        <config-type>global</config-type>
+        <config-type>hbase-policy</config-type>
+        <config-type>hbase-site</config-type>
+      </configuration-dependencies>
+
     </service>
   </services>
 </metainfo>

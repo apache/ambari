@@ -35,7 +35,6 @@ import com.google.inject.Injector;
  * particular role which action manager needs. It doesn't capture actual
  * command and parameters, but just the stuff enough for action manager to
  * track the request.
- * For the actual command refer {@link HostAction#commandToHost}
  */
 public class HostRoleCommand {
   private static final Logger log = LoggerFactory.getLogger(HostRoleCommand.class);

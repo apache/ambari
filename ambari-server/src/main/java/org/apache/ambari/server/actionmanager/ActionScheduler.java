@@ -193,7 +193,7 @@ class ActionScheduler implements Runnable {
             try {
               long now = System.currentTimeMillis();
               String hostName = cmd.getHostname();
-              String roleName = cmd.getRole().toString();
+              String roleName = cmd.getRole();
 
               s.setStartTime(hostName, roleName, now);
               s.setLastAttemptTime(hostName, roleName, now);
@@ -323,7 +323,7 @@ class ActionScheduler implements Runnable {
       Host hostObj = fsmObject.getHost(host);
       for(ExecutionCommandWrapper wrapper : commandWrappers) {
         ExecutionCommand c = wrapper.getExecutionCommand();
-        String roleStr = c.getRole().toString();
+        String roleStr = c.getRole();
         HostRoleStatus status = s.getHostRoleStatus(host, roleStr);
         if (timeOutActionNeeded(status, s, hostObj, roleStr, now,
           taskTimeout)) {

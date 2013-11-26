@@ -85,11 +85,27 @@ public class AmbariMetaInfo {
   
   public static final String SERVICE_METRIC_FILE_NAME = "metrics.json";
 
+  /**
+   * This string is used in placeholder in places that are common for
+   * all operating systems or in situations where os type is not important.
+   */
+  public static final String ANY_OS = "any";
+
+  /**
+   * Value for legacy xml files that don't contain schema property
+   */
+  public static final String SCHEMA_VERSION_LEGACY = "1.0";
+
+  /**
+   * Version of XML files with support of custom services and custom commands
+   */
+  public static final String SCHEMA_VERSION_2 = "2.0";
+
+
   public static final FilenameFilter FILENAME_FILTER = new FilenameFilter() {
     @Override
     public boolean accept(File dir, String s) {
-      if (s.equals(".svn") || s.equals(".git")
-              || s.endsWith("_")) // Temporary hack: ignore such names
+      if (s.equals(".svn") || s.equals(".git"))
         return false;
       return true;
     }
@@ -554,6 +570,10 @@ public class AmbariMetaInfo {
     return propertyResult;
   }
 
+
+  /**
+   * Lists operatingsystems supported by stack
+   */
   public Set<OperatingSystemInfo> getOperatingSystems(String stackName, String version)
       throws AmbariException {
 
@@ -613,6 +633,7 @@ public class AmbariMetaInfo {
 
     StackExtensionHelper stackExtensionHelper = new StackExtensionHelper
       (stackRoot);
+    stackExtensionHelper.fillInfo();
 
     List<StackInfo> stacks = stackExtensionHelper.getAllAvailableStacks();
     if (stacks.isEmpty()) {

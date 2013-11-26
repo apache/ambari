@@ -19,35 +19,88 @@
 package org.apache.ambari.server.state;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.StackServiceResponse;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonFilter;
 
+import javax.xml.bind.annotation.*;
+
+@XmlAccessorType(XmlAccessType.FIELD)
 @JsonFilter("propertiesfilter")
 public class ServiceInfo {
+  /**
+   * Format version. Added at schema ver 2
+   */
+  @XmlTransient
+  private String schemaVersion;
+
   private String name;
   private String version;
   private String user;
   private String comment;
   private List<PropertyInfo> properties;
+
+  @XmlElementWrapper(name="components")
+  @XmlElements(@XmlElement(name="component"))
   private List<ComponentInfo> components;
+
   private boolean isDeleted = false;
+
   @JsonIgnore
+  @XmlTransient
   private volatile Map<String, Set<String>> configLayout = null;
+
+  @XmlElementWrapper(name="configuration-dependencies")
+  @XmlElement(name="config-type")
   private List<String> configDependencies;
   
+  @XmlTransient
   private File metricsFile = null;
+  @XmlTransient
   private Map<String, Map<String, List<MetricDefinition>>> metrics = null;
+
+
+  /**
+   * Internal list of os-specific details (loaded from xml). Added at schema ver 2
+   */
+  @JsonIgnore
+  @XmlElementWrapper(name="osSpecifics")
+  @XmlElements(@XmlElement(name="osSpecific"))
+  private List<ServiceOsSpecific> serviceOsSpecifics;
+
+
+  /**
+   * Map of of os-specific details that is exposed (and initialised from list)
+   * at getter.
+   * Added at schema ver 2
+   */
+  private volatile Map<String, ServiceOsSpecific> serviceOsSpecificsMap;
+
+
+  /**
+   * Added at schema ver 2
+   */
+  private CommandScriptDefinition commandScript;
+
+  /**
+   * Added at schema ver 2
+   */
+  @XmlElementWrapper(name="customCommands")
+  @XmlElements(@XmlElement(name="customCommand"))
+  private List<CustomCommandDefinition> customCommands;
+
+
+  /**
+   * Directory, that contains service metadata. Since schema ver 2,
+   * we may have multiple service metadata inside folder.
+   * Added at schema ver 2
+   */
+  @XmlTransient
+  private String serviceMetadataFolder;
 
   public boolean isDeleted() {
     return isDeleted;
@@ -217,6 +270,61 @@ public class ServiceInfo {
 
   public void setConfigDependencies(List<String> configDependencies) {
     this.configDependencies = configDependencies;
+  }
+
+  public String getSchemaVersion() {
+    if (schemaVersion == null) {
+      return AmbariMetaInfo.SCHEMA_VERSION_LEGACY;
+    } else {
+      return schemaVersion;
+    }
+  }
+
+
+  public void setSchemaVersion(String schemaVersion) {
+    this.schemaVersion = schemaVersion;
+  }
+
+
+  public String getServiceMetadataFolder() {
+    return serviceMetadataFolder;
+  }
+
+  public void setServiceMetadataFolder(String serviceMetadataFolder) {
+    this.serviceMetadataFolder = serviceMetadataFolder;
+  }
+
+  /**
+   * Exposes (and initializes on first use) map of os-specific details.
+   * @return
+   */
+  public Map<String, ServiceOsSpecific> getOsSpecifics() {
+    if (serviceOsSpecificsMap == null) {
+      synchronized (this) { // Double-checked locking pattern
+        if (serviceOsSpecificsMap == null) {
+          Map<String, ServiceOsSpecific> tmpMap =
+                  new TreeMap<String, ServiceOsSpecific>();
+          if (serviceOsSpecifics != null) {
+            for (ServiceOsSpecific osSpecific : serviceOsSpecifics) {
+              tmpMap.put(osSpecific.getOsType(), osSpecific);
+            }
+          }
+          serviceOsSpecificsMap = tmpMap;
+        }
+      }
+    }
+    return serviceOsSpecificsMap;
+  }
+
+  public List<CustomCommandDefinition> getCustomCommands() {
+    if (customCommands == null) {
+      customCommands = new ArrayList<CustomCommandDefinition>();
+    }
+    return customCommands;
+  }
+
+  public CommandScriptDefinition getCommandScript() {
+    return commandScript;
   }
 
   /**

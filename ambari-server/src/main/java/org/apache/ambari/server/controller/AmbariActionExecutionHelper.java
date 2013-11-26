@@ -51,7 +51,7 @@ import java.util.TreeMap;
  */
 public class AmbariActionExecutionHelper {
   private final static Logger LOG =
-      LoggerFactory.getLogger(AmbariCustomCommandExecutionHelper.class);
+      LoggerFactory.getLogger(AmbariActionExecutionHelper.class);
   private ActionMetadata actionMetadata;
   private Clusters clusters;
   private AmbariManagementControllerImpl amcImpl;
@@ -275,6 +275,10 @@ public class AmbariActionExecutionHelper {
       ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostName,
           actionContext.getActionName()).getExecutionCommand();
 
+      /*
+       * TODO Execution command field population should be (partially?)
+        * combined with the same code at createHostAction()
+        */
       execCmd.setConfigurations(configurations);
       execCmd.setConfigurationTags(configTags);
       execCmd.setHostLevelParams(hostLevelParams);

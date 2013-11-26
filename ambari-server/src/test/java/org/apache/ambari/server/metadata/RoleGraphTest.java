@@ -102,15 +102,15 @@ public class RoleGraphTest {
     Assert.assertEquals(1, rco.order(nagios_server_install, hcat_client_install));
     Assert.assertEquals(1, rco.order(nagios_server_install, oozie_client_install));
 
-    RoleGraphNode pig_service_check = new RoleGraphNode(Role.PIG_SERVICE_CHECK, RoleCommand.EXECUTE);
+    RoleGraphNode pig_service_check = new RoleGraphNode(Role.PIG_SERVICE_CHECK, RoleCommand.SERVICE_CHECK);
     RoleGraphNode resourcemanager_start = new RoleGraphNode(Role.RESOURCEMANAGER, RoleCommand.START);
     Assert.assertEquals(-1, rco.order(resourcemanager_start, pig_service_check));
 
-    RoleGraphNode hdfs_service_check = new RoleGraphNode(Role.HDFS_SERVICE_CHECK, RoleCommand.EXECUTE);
+    RoleGraphNode hdfs_service_check = new RoleGraphNode(Role.HDFS_SERVICE_CHECK, RoleCommand.SERVICE_CHECK);
     RoleGraphNode snamenode_start = new RoleGraphNode(Role.SECONDARY_NAMENODE, RoleCommand.START);
     Assert.assertEquals(-1, rco.order(snamenode_start, hdfs_service_check));
     
-    RoleGraphNode mapred2_service_check = new RoleGraphNode(Role.MAPREDUCE2_SERVICE_CHECK, RoleCommand.EXECUTE);
+    RoleGraphNode mapred2_service_check = new RoleGraphNode(Role.MAPREDUCE2_SERVICE_CHECK, RoleCommand.SERVICE_CHECK);
     RoleGraphNode rm_start = new RoleGraphNode(Role.RESOURCEMANAGER, RoleCommand.START);
     RoleGraphNode nm_start = new RoleGraphNode(Role.NODEMANAGER, RoleCommand.START);
     RoleGraphNode hs_start = new RoleGraphNode(Role.HISTORYSERVER, RoleCommand.START);

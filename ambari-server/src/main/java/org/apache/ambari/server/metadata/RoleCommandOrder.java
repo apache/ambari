@@ -54,6 +54,16 @@ public class RoleCommandOrder {
   private final static String COMMENT_STR = "_comment";
   private static final String ROLE_COMMAND_ORDER_FILE = "role_command_order.json";
 
+  /**
+   * Commands that are independent, role order matters
+   */
+  private static final Set<RoleCommand> independentCommands =
+          new HashSet<RoleCommand>() {{
+            add(RoleCommand.START);
+            add(RoleCommand.EXECUTE);
+            add(RoleCommand.SERVICE_CHECK);
+          }};
+
   static class RoleCommandPair {
     Role role;
     RoleCommand cmd;
@@ -279,16 +289,16 @@ public class RoleCommandOrder {
   }
 
   private int compareCommands(RoleGraphNode rgn1, RoleGraphNode rgn2) {
+    // TODO: add proper order comparison support for RoleCommand.ACTIONEXECUTE
+
     RoleCommand rc1 = rgn1.getCommand();
     RoleCommand rc2 = rgn2.getCommand();
     if (rc1.equals(rc2)) {
       //If its coming here means roles have no dependencies.
       return 0;
     }
-   
-    if ((rc1.equals(RoleCommand.START) && rc2.equals(RoleCommand.EXECUTE)) ||
-        (rc2.equals(RoleCommand.START) && rc1.equals(RoleCommand.EXECUTE))) {
-      //START and execute are independent, role order matters
+
+    if (independentCommands.contains(rc1) && independentCommands.contains(rc2)) {
       return 0;
     }
     
@@ -296,9 +306,11 @@ public class RoleCommandOrder {
       return -1;
     } else if (rc2.equals(RoleCommand.INSTALL)) {
       return 1;
-    } else if (rc1.equals(RoleCommand.START) || rc1.equals(RoleCommand.EXECUTE)) {
+    } else if (rc1.equals(RoleCommand.START) || rc1.equals(RoleCommand.EXECUTE)
+            || rc1.equals(RoleCommand.SERVICE_CHECK)) {
       return -1;
-    } else if (rc2.equals(RoleCommand.START) || rc2.equals(RoleCommand.EXECUTE)) {
+    } else if (rc2.equals(RoleCommand.START) || rc2.equals(RoleCommand.EXECUTE)
+            || rc2.equals(RoleCommand.SERVICE_CHECK)) {
       return 1;
     } else if (rc1.equals(RoleCommand.STOP)) {
       return -1;

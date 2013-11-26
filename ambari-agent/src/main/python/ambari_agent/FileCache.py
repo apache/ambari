@@ -46,7 +46,8 @@ class FileCache():
     Returns a base directory for service
     """
     metadata_path = os.path.join(self.cache_dir, "stacks", str(stack_name),
-                                 str(stack_version), "services", str(service))
+                                 str(stack_version), "services", str(service),
+                                 "package")
     if not os.path.isdir(metadata_path):
       # TODO: Metadata downloading will be implemented at Phase 2
       # As of now, all stack definitions are packaged and distributed with

@@ -25,7 +25,7 @@ import functions
 
 
 class HbaseServiceCheck(Script):
-  def perform(self, env):
+  def service_check(self, env):
     import params
     env.set_params(params)
     

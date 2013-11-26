@@ -84,7 +84,7 @@ class CustomServiceOrchestrator():
     """
     Incapsulates logic of script location determination.
     """
-    path = os.path.join(base_dir, "package", script)
+    path = os.path.join(base_dir, script)
     if not os.path.exists(path):
       message = "Script {0} does not exist".format(path)
       raise AgentException(message)

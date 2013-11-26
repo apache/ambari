@@ -39,6 +39,7 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.state.Cluster;
@@ -157,6 +158,8 @@ public class StageUtils {
     execCmd.setConfigurations(configurations);
     Map<String, String> params = new TreeMap<String, String>();
     params.put("jdklocation", "/x/y/z");
+    params.put("stack_version", "1.2.0");
+    params.put("stack_name", "HDP");
     execCmd.setHostLevelParams(params);
     Map<String, String> roleParams = new TreeMap<String, String>();
     roleParams.put("format", "false");
@@ -251,20 +254,4 @@ public class StageUtils {
     }
   }
 
-  public static String getHostsToDecommission(List<String> hosts) {
-    StringBuilder builder = new StringBuilder();
-    builder.append("[");
-    boolean first = true;
-    for (String host : hosts) {
-      if (!first) {
-        builder.append(",");
-      } else {
-        first = false;
-      }
-      builder.append("'");
-      builder.append(host);
-      builder.append("'");
-    }
-    return builder.toString();
-  }
 }

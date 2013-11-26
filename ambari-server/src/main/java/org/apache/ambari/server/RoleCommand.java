@@ -25,5 +25,6 @@ public enum RoleCommand {
   EXECUTE,
   ABORT,
   UPGRADE,
+  SERVICE_CHECK,
   ACTIONEXECUTE
 }

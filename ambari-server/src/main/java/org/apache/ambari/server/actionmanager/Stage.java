@@ -231,6 +231,11 @@ public class Stage {
     execCmdList.add(wrapper);
   }
 
+
+  /**
+   *  Creates server-side execution command. As of now, it seems to
+   *  be used only for server upgrade
+   */
   public synchronized void addServerActionCommand(
       String actionName, Role role,  RoleCommand command, String clusterName,
       ServiceComponentHostUpgradeEvent event, String hostName) {
