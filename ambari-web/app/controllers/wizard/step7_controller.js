@@ -84,6 +84,8 @@ App.WizardStep7Controller = Em.Controller.extend({
 
   clearStep: function () {
     this.get('stepConfigs').clear();
+    this.set('filter', '');
+    this.get('filterColumns').setEach('selected', false);
   },
 
   /**
@@ -236,6 +238,24 @@ App.WizardStep7Controller = Em.Controller.extend({
   manageConfigurationGroup: function () {
     App.router.get('mainServiceItemController').manageConfigurationGroups(this);
   },
+  /**
+   * Filter text will be located here
+   */
+  filter: '',
+
+  /**
+   * Dropdown menu items in filter combobox
+   */
+  filterColumns: function () {
+    var result = [];
+    for (var i = 1; i < 2; i++) {
+      result.push(Ember.Object.create({
+        name: this.t('common.combobox.dropdown.' + i),
+        selected: false
+      }));
+    }
+    return result;
+  }.property(),
    /**
    * make some configs visible depending on active services
    */
