@@ -1375,7 +1375,8 @@ Em.I18n.translations = {
   'hosts.cant.do.popup.masterList.body.end':'<strong>Note:</strong> To delete this host, you must first move all the master components listed above to another host.',
   'hosts.cant.do.popup.nonDeletableList.body':'Deletion of the following {0} components is not supported. ',
   'hosts.cant.do.popup.runningList.body':'This host cannot be deleted since the following components are still running:',
-  'hosts.cant.do.popup.runningList.body.end':'<strong>Note:</strong> To delete this host, you must first stop all the running components listed above.',
+  'hosts.cant.do.popup.runningList.body.end':'<strong>Note:</strong> To delete this host, you must first stop all the running components listed above. ' +
+    'If this host has a DataNode, it should be decommissioned first to prevent data loss.',
   'hosts.add.header':'Add Host Wizard',
   'hosts.assignRack':'Assign Rack',
 
