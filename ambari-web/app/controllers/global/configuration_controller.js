@@ -23,12 +23,13 @@ App.ConfigurationController = Em.Controller.extend({
 
   getConfigsByTags: function (tags) {
     var storedTags = [];
-    App.db.getConfigs().forEach(function(site){
-      storedTags.push({
-        siteName: site.type,
-        tagName: site.tag
-      })
-    });
+    // Access the Local storage App.db.data.app.configs object only if its defined
+      !!App.db.getConfigs() && App.db.getConfigs().forEach(function(site){
+        storedTags.push({
+          siteName: site.type,
+          tagName: site.tag
+        })
+      });
     if (this.checkTagsChanges(tags, storedTags)) {
       return this.loadFromServer(tags);
     } else {
@@ -69,11 +70,16 @@ App.ConfigurationController = Em.Controller.extend({
     var loadedConfigs = App.config.loadConfigsByTags(tags);
     var storedConfigs = App.db.getConfigs();
     loadedConfigs.forEach(function (loadedSite) {
-      var storedSite = storedConfigs.findProperty('type', loadedSite.type);
+      // Access the Local storage App.db.data.app.configs object only if its defined
+      var storedSite = !!storedConfigs && storedConfigs.findProperty('type', loadedSite.type);
       if (storedSite) {
         storedConfigs.tag = loadedSite.tag;
         storedConfigs.properties = loadedSite.properties;
       } else {
+        // Initialize storedConfigs object if it's undefined
+        if (storedConfigs === undefined) {
+          storedConfigs = [];
+        }
         storedConfigs.push(loadedSite);
       }
     });
