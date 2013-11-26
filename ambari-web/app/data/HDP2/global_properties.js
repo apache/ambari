@@ -1606,7 +1606,7 @@ module.exports =
       "description": "The user used to run Ganglia",
       "defaultValue": "nobody",
       "isReconfigurable": false,
-      "displayType": "advanced",
+      "displayType": "user",
       "isOverridable": false,
       "isVisible": true,
       "domain": "global",
