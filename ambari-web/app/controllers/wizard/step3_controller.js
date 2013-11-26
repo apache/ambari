@@ -1160,8 +1160,10 @@ App.WizardStep3Controller = Em.Controller.extend({
           var warnings = this.get('warnings');
           var warningsByHost = self.get('warningsByHost').slice();
           warningsByHost.shift();
-          var issues = warnings.length + ' ' + (warnings.length === 1 ? Em.I18n.t('installer.step3.hostWarningsPopup.issue') : Em.I18n.t('installer.step3.hostWarningsPopup.issues'));
-          var hostsNumber = warningsByHost.length - warningsByHost.filterProperty('warnings.length', 0).length;
+          var issuesNumber = warnings.length + repoCategoryWarnings.length;
+          var issues = issuesNumber + ' ' + (issuesNumber.length === 1 ? Em.I18n.t('installer.step3.hostWarningsPopup.issue') : Em.I18n.t('installer.step3.hostWarningsPopup.issues'));
+          var repoHostsNumber = (repoCategoryWarnings.length > 0 ? repoCategoryWarnings[0].hosts.length : 0);
+          var hostsNumber = repoHostsNumber + warningsByHost.length - warningsByHost.filterProperty('warnings.length', 0).length;
           var hosts = hostsNumber + ' ' + (hostsNumber === 1 ? Em.I18n.t('installer.step3.hostWarningsPopup.host') : Em.I18n.t('installer.step3.hostWarningsPopup.hosts'));
           return Em.I18n.t('installer.step3.hostWarningsPopup.summary').format(issues, hosts);
         }.property('warnings', 'warningsByHost'),
