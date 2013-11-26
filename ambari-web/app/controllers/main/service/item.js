@@ -235,7 +235,7 @@ App.MainServiceItemController = Em.Controller.extend({
       header: Em.I18n.t('services.service.config_groups_popup.header').format(displayName),
       bodyClass: App.MainServiceManageConfigGroupView.extend({
         serviceName: serviceName,
-        allConfigGroupsNames: (controller && controller.get('allConfigGroupsNames')),
+        usedConfigGroupNames: (controller && controller.get('usedConfigGroupNames')),
         controllerBinding: (!!controller) ? 'App.router.installerManageConfigGroupsController' : 'App.router.manageConfigGroupsController'
       }),
       classNames: ['sixty-percent-width-modal', 'manage-configuration-group-popup'],

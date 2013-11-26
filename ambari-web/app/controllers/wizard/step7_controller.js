@@ -52,12 +52,14 @@ App.WizardStep7Controller = Em.Controller.extend({
 
   configGroups: [],
   selectedConfigGroup: null,
-  allConfigGroupsNames: function () {
+  usedConfigGroupNames: function () {
     var names = [];
+    var selectedServiceName = this.get('selectedService.serviceName');
     this.get('stepConfigs').forEach(function (service) {
-      names.pushObjects(service.get('configGroups').mapProperty('name'));
-    });
-    return names.uniq();
+      if (selectedServiceName != service.get('serviceName')) {
+      names.pushObjects(service.get('configGroups').mapProperty('name'));}
+    }, this);
+    return names;
   }.property('selectedService.configGroups.@each.name'),
 
   isSubmitDisabled: function () {

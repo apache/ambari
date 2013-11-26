@@ -36,7 +36,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
 
   loadedHostsToGroupMap: {},
 
-  allConfigGroupsNames: [],
+  usedConfigGroupNames: [],
 
   loadConfigGroups: function (serviceName) {
     this.set('serviceName', serviceName);
@@ -64,10 +64,9 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       var groupToTypeToTagMap = {};
       var configGroups = [];
       var serviceName = this.get('serviceName');
-      var allConfigGroupsNames = [];
+      var usedConfigGroupNames = [];
       data.items.forEach(function (configGroup) {
         configGroup = configGroup.ConfigGroup;
-        allConfigGroupsNames.push(configGroup.group_name);
         if (configGroup.tag === serviceName) {
           var hostNames = configGroup.hosts.mapProperty('host_name');
           loadedHostsToGroupMap[configGroup.group_name] = hostNames.slice();
@@ -96,9 +95,11 @@ App.ManageConfigGroupsController = Em.Controller.extend({
             }
             groupToTypeToTagMap[configGroup.group_name][config.type] = config.tag;
           });
+        } else {
+          usedConfigGroupNames.push(configGroup.group_name);
         }
       }, this);
-      this.set('allConfigGroupsNames', allConfigGroupsNames);
+      this.set('usedConfigGroupNames', usedConfigGroupNames);
       unusedHosts = App.Host.find().mapProperty('hostName');
       usedHosts.uniq().forEach(function (host) {
         unusedHosts = unusedHosts.without(host);
@@ -260,6 +261,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       return;
     }
     var content = this;
+    var self = this;
     this.renameGroupPopup = App.ModalPopup.show({
       primary: Em.I18n.t('ok'),
       secondary: Em.I18n.t('common.cancel'),
@@ -269,7 +271,20 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       }),
       configGroupName: "",
       content: content,
+      validate: function () {
+        var warningMessage = '';
+        if (self.get('usedConfigGroupNames').concat(self.get('configGroups').mapProperty('name')).contains(this.get('configGroupName'))) {
+          warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
+        }
+        this.set('warningMessage', warningMessage);
+      }.observes('configGroupName'),
+      enablePrimary: function () {
+        return this.get('configGroupName').length > 0 && !this.get('warningMessage');
+      }.property('warningMessage', 'configGroupName'),
       onPrimary: function () {
+        if (!this.get('enablePrimary')) {
+          return false;
+        }
         this.get('content.selectedConfigGroup').set('name', this.get('configGroupName'));
         this.get('content.selectedConfigGroup').set('description', this.get('configGroupDesc'));
         this.get('content.selectedConfigGroup.apiResponse').group_name = this.get('configGroupName');
@@ -313,9 +328,9 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       configGroupDesc: "",
       content: content,
       warningMessage: '',
-      vaildate: function () {
+      validate: function () {
         var warningMessage = '';
-        if (self.get('allConfigGroupsNames').contains(this.get('configGroupName'))) {
+        if (self.get('usedConfigGroupNames').concat(self.get('configGroups').mapProperty('name')).contains(this.get('configGroupName'))) {
           warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
         }
         this.set('warningMessage', warningMessage);
@@ -324,6 +339,9 @@ App.ManageConfigGroupsController = Em.Controller.extend({
         return this.get('configGroupName').length > 0 && !this.get('warningMessage');
       }.property('warningMessage', 'configGroupName'),
       onPrimary: function () {
+        if (!this.get('enablePrimary')) {
+          return false;
+        }
         this.get('content').set('configGroupName', this.get('configGroupName'));
         this.get('content').set('configGroupDesc', this.get('configGroupDesc'));
         var desiredConfig = [];
@@ -463,9 +481,9 @@ App.ManageConfigGroupsController = Em.Controller.extend({
 App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.extend({
   name: 'installerManageConfigGroupsController',
 
-  loadConfigGroups: function (serviceName, allConfigGroupsNames) {
+  loadConfigGroups: function (serviceName, usedConfigGroupNames) {
     this.set('serviceName', serviceName);
-    this.set('allConfigGroupsNames', allConfigGroupsNames);
+    this.set('usedConfigGroupNames', usedConfigGroupNames);
     var loadedHostsToGroupMap = this.get('loadedHostsToGroupMap');
     var configGroups = this.copyConfigGroups(App.router.get('wizardStep7Controller.selectedService.configGroups'));
     configGroups.forEach(function (configGroup) {
@@ -528,9 +546,9 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
       configGroupName: self.get('selectedConfigGroup.name'),
       configGroupDesc: self.get('selectedConfigGroup.description'),
       warningMessage: '',
-      vaildate: function () {
+      validate: function () {
         var warningMessage = '';
-        if (self.get('allConfigGroupsNames').contains(this.get('configGroupName'))) {
+        if (self.get('usedConfigGroupNames').concat(self.get('configGroups').mapProperty('name')).contains(this.get('configGroupName'))) {
           warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
         }
         this.set('warningMessage', warningMessage);
@@ -539,6 +557,9 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
         return this.get('configGroupName').length > 0 && !this.get('warningMessage');
       }.property('warningMessage', 'configGroupName'),
       onPrimary: function () {
+        if (!this.get('enablePrimary')) {
+          return false;
+        }
         self.set('selectedConfigGroup.name', this.get('configGroupName'));
         self.set('selectedConfigGroup.description', this.get('configGroupDesc'));
         this.hide();
@@ -560,9 +581,9 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
       configGroupName: "",
       configGroupDesc: "",
       warningMessage: '',
-      vaildate: function () {
+      validate: function () {
         var warningMessage = '';
-        if (self.get('allConfigGroupsNames').contains(this.get('configGroupName'))) {
+        if (self.get('usedConfigGroupNames').concat(self.get('configGroups').mapProperty('name')).contains(this.get('configGroupName'))) {
           warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
         }
         this.set('warningMessage', warningMessage);
@@ -571,6 +592,9 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
         return this.get('configGroupName').length > 0 && !this.get('warningMessage');
       }.property('warningMessage', 'configGroupName'),
       onPrimary: function () {
+        if (!this.get('enablePrimary')) {
+          return false;
+        }
         var defaultConfigGroup = self.get('configGroups').findProperty('isDefault');
         var newConfigGroupData = App.ConfigGroup.create({
           id: null,

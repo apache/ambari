@@ -35,7 +35,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   isApplyingChanges: false,
   // contain Service Config Property, when user proceed from Select Config Group dialog
   overrideToAdd: null,
-  allConfigGroupsNames: [],
+  usedConfigGroupNames: [],
   serviceConfigs: function () {
     return App.config.get('preDefinedServiceConfigs');
   }.property('App.config.preDefinedServiceConfigs'),
@@ -263,7 +263,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     // Create default configuration group
     var defaultConfigGroupHosts = App.Host.find().mapProperty('hostName');
     var selectedConfigGroup;
-    var allConfigGroupsNames = ['Default'];
+    var usedConfigGroupNames = ['Default'];
     var siteToTagMap = {};
     for (var site in data.Clusters.desired_configs) {
       if (serviceConfigsDef.sites.indexOf(site) > -1) {
@@ -277,7 +277,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       if (data.config_groups.length) {
         data.config_groups.forEach(function (item) {
           item = item.ConfigGroup;
-          allConfigGroupsNames.push(item.group_name);
           if (item.tag === this.get('content.serviceName')) {
             var groupHosts = item.hosts.mapProperty('host_name');
             var newConfigGroup = App.ConfigGroup.create({
@@ -304,9 +303,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
               selectedConfigGroup = newConfigGroup;
             }
             configGroups.push(newConfigGroup);
+          } else {
+            usedConfigGroupNames.push(item.group_name);
           }
         }, this);
-        this.set('allConfigGroupsNames', allConfigGroupsNames);
+        this.set('usedConfigGroupNames', usedConfigGroupNames);
       }
       this.set('configGroups', configGroups);
     }

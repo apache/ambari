@@ -984,7 +984,7 @@ App.config = Em.Object.create({
    * @param callback  Callback function which is invoked when dialog
    *  is closed, cancelled or OK is pressed.
    */
-  launchConfigGroupSelectionCreationDialog : function(serviceId, configGroups, allConfigGroupsNames, configProperty, callback, isInstaller) {
+  launchConfigGroupSelectionCreationDialog : function(serviceId, configGroups, usedConfigGroupNames, configProperty, callback, isInstaller) {
     var self = this;
     var availableConfigGroups = configGroups.slice();
     // delete Config Groups, that already have selected property overridden
@@ -1018,6 +1018,9 @@ App.config = Em.Object.create({
         return this.get('optionSelectConfigGroup') || (this.get('newConfigGroupName').length > 0 && !this.get('warningMessage'));
       }.property('newConfigGroupName', 'optionSelectConfigGroup', 'warningMessage'),
       onPrimary: function () {
+        if (!this.get('enablePrimary')) {
+          return false;
+        }
         if (this.get('optionSelectConfigGroup')) {
           var selectedConfigGroup = this.get('selectedConfigGroup');
           this.hide();
@@ -1047,7 +1050,7 @@ App.config = Em.Object.create({
         var optionSelect = this.get('optionSelectConfigGroup');
         if (!optionSelect) {
           var nn = this.get('newConfigGroupName');
-          if (nn && allConfigGroupsNames.contains(nn)) {
+          if (nn && usedConfigGroupNames.concat(configGroups.mapProperty('name')).contains(nn)) {
             msg = Em.I18n.t("config.group.selection.dialog.err.name.exists");
           }
         }
