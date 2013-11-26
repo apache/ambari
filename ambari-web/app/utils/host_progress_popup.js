@@ -478,7 +478,7 @@ App.HostPopup = Em.Object.create({
         controller: this,
         template: Ember.Handlebars.compile('{{popupHeaderName}}')
       }),
-      classNames: ['sixty-percent-width-modal'],
+      classNames: ['sixty-percent-width-modal', 'host-progress-popup'],
       // for the checkbox: do not show this dialog again
       hasFooterCheckbox: true,
       isNotShowBgChecked : null,
