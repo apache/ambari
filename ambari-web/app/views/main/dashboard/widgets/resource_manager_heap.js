@@ -25,7 +25,7 @@ App.ResourceManagerHeapPieChartView = App.PieChartDashboardWidgetView.extend({
   id: '24',
 
   model_type: 'yarn',
-  modelFieldMax: 'jvmMemoryHeapCommitted',
+  modelFieldMax: 'jvmMemoryHeapMax',
   modelFieldUsed: 'jvmMemoryHeapUsed',
   widgetHtmlId: 'widget-rm-heap',
 

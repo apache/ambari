@@ -43,7 +43,7 @@ App.YARNService = App.Service.extend({
   }.property('hostComponents.length'),
   resourceManagerStartTime: DS.attr('number'),
   jvmMemoryHeapUsed: DS.attr('number'),
-  jvmMemoryHeapCommitted: DS.attr('number'),
+  jvmMemoryHeapMax: DS.attr('number'),
   allocatedMemory: DS.attr('number'),
   reservedMemory: DS.attr('number'),
   availableMemory: DS.attr('number'),

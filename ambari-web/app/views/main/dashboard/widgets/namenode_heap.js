@@ -25,7 +25,7 @@ App.NameNodeHeapPieChartView = App.PieChartDashboardWidgetView.extend({
   id: '1',
 
   model_type: 'hdfs',
-  modelFieldMax: 'jvmMemoryHeapCommitted',
+  modelFieldMax: 'jvmMemoryHeapMax',
   modelFieldUsed: 'jvmMemoryHeapUsed',
   widgetHtmlId: 'widget-nn-heap',
 

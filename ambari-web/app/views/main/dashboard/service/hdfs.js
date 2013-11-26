@@ -135,13 +135,13 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
 
   nodeHeap: function () {
     var memUsed = this.get('service').get('jvmMemoryHeapUsed');
-    var memCommitted = this.get('service').get('jvmMemoryHeapCommitted');
-    var percent = memCommitted > 0 ? ((100 * memUsed) / memCommitted) : 0;
+    var memMax = this.get('service').get('jvmMemoryHeapMax');
+    var percent = memMax > 0 ? ((100 * memUsed) / memMax) : 0;
     return this.t('dashboard.services.hdfs.nodes.heapUsed').format(
         numberUtils.bytesToSize(memUsed, 1, 'parseFloat', 1024 * 1024), 
-        numberUtils.bytesToSize(memCommitted, 1, 'parseFloat', 1024 * 1024), 
+        numberUtils.bytesToSize(memMax, 1, 'parseFloat', 1024 * 1024),
         percent.toFixed(1));
-  }.property('service.jvmMemoryHeapUsed', 'service.jvmMemoryHeapCommitted'),
+  }.property('service.jvmMemoryHeapUsed', 'service.jvmMemoryHeapMax'),
 
   summaryHeader: function () {
     var text = this.t("dashboard.services.hdfs.summary");
