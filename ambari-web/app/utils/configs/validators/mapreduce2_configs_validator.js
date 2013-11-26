@@ -34,11 +34,11 @@ App.MapReduce2ConfigsValidator = App.ServiceConfigsValidator.create({
   },
 
   mapreduceMapJavaOpts: function(config) {
-    return null;
+    return this.validateXmxValue(config);
   },
 
   mapreduceReduceJavaOpts: function(config) {
-    return null;
+    return this.validateXmxValue(config);
   },
 
   mapreduceTaskIoSortMb: function(config) {
@@ -58,7 +58,7 @@ App.MapReduce2ConfigsValidator = App.ServiceConfigsValidator.create({
   },
 
   yarnAppMapreduceAmCommandOpts: function(config) {
-    return null;
+    return this.validateXmxValue(config);
   }
 
 });

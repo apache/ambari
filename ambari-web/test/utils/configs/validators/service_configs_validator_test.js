@@ -78,4 +78,183 @@ describe('App.ServiceConfigsValidator', function() {
     });
   });
 
+  describe('#_checkXmxValueFormat', function() {
+    var tests = [
+      {value: '',e: false},
+      {value: '-',e: false},
+      {value: '100',e: false},
+      {value: '-Xmx',e: false},
+      {value: '-XMX1',e: false},
+      {value: '-Xmxb',e: false},
+      {value: '-Xmxk',e: false},
+      {value: '-Xmxm',e: false},
+      {value: '-Xmxg',e: false},
+      {value: '-Xmxp',e: false},
+      {value: '-Xmxt',e: false},
+      {value: '-XmxB',e: false},
+      {value: '-XmxK',e: false},
+      {value: '-XmxM',e: false},
+      {value: '-XmxG',e: false},
+      {value: '-XmxP',e: false},
+      {value: '-XmxT',e: false},
+      {value: '-Xmx1',e: true},
+      {value: '-Xmx1b',e: true},
+      {value: '-Xmx1k',e: true},
+      {value: '-Xmx1m',e: true},
+      {value: '-Xmx1g',e: true},
+      {value: '-Xmx1t',e: true},
+      {value: '-Xmx1p',e: true},
+      {value: '-Xmx1B',e: true},
+      {value: '-Xmx1K',e: true},
+      {value: '-Xmx1M',e: true},
+      {value: '-Xmx1G',e: true},
+      {value: '-Xmx1T',e: true},
+      {value: '-Xmx1P',e: true},
+      {value: '-Xmx100',e: true},
+      {value: '-Xmx100b',e: true},
+      {value: '-Xmx100k',e: true},
+      {value: '-Xmx100m',e: true},
+      {value: '-Xmx100g',e: true},
+      {value: '-Xmx100t',e: true},
+      {value: '-Xmx100p',e: true},
+      {value: '-Xmx100B',e: true},
+      {value: '-Xmx100K',e: true},
+      {value: '-Xmx100M',e: true},
+      {value: '-Xmx100G',e: true},
+      {value: '-Xmx100T',e: true},
+      {value: '-Xmx100P',e: true},
+      {value: '-Xmx100Psome',e: false},
+      {value: '-Xmx100P-Xmx',e: false},
+      {value: '-Xmx100P -Xmx',e: false},
+      {value: '-Xmx100P -XMX',e: false}
+    ];
+    tests.forEach(function(test) {
+      it(test.value, function() {
+        var v = App.ServiceConfigsValidator.create({});
+        expect(v._checkXmxValueFormat(test.value)).to.equal(test.e);
+      });
+    });
+  });
+
+  describe('#_getXmxSize', function() {
+    var tests = [
+      {value: '-Xmx1', e: '1'},
+      {value: '-Xmx1b', e: '1b'},
+      {value: '-Xmx1k', e: '1k'},
+      {value: '-Xmx1m', e: '1m'},
+      {value: '-Xmx1g', e: '1g'},
+      {value: '-Xmx1t', e: '1t'},
+      {value: '-Xmx1p', e: '1p'},
+      {value: '-Xmx1B', e: '1b'},
+      {value: '-Xmx1K', e: '1k'},
+      {value: '-Xmx1M', e: '1m'},
+      {value: '-Xmx1G', e: '1g'},
+      {value: '-Xmx1T', e: '1t'},
+      {value: '-Xmx1P', e: '1p'},
+      {value: '-Xmx100b', e: '100b'},
+      {value: '-Xmx100k', e: '100k'},
+      {value: '-Xmx100m', e: '100m'},
+      {value: '-Xmx100g', e: '100g'},
+      {value: '-Xmx100t', e: '100t'},
+      {value: '-Xmx100p', e: '100p'},
+      {value: '-Xmx100B', e: '100b'},
+      {value: '-Xmx100K', e: '100k'},
+      {value: '-Xmx100M', e: '100m'},
+      {value: '-Xmx100G', e: '100g'},
+      {value: '-Xmx100T', e: '100t'},
+      {value: '-Xmx100P', e: '100p'}
+    ];
+    tests.forEach(function(test) {
+      it(test.value, function() {
+        var v = App.ServiceConfigsValidator.create({});
+        expect(v._getXmxSize(test.value)).to.equal(test.e);
+      });
+    });
+  });
+
+  describe('#_formatXmxSizeToBytes', function() {
+    var tests = [
+      {value: '1', e: 1},
+      {value: '1 ', e: 1},
+      {value: '100', e: 100},
+      {value: '100 ', e: 100},
+      {value: '100b', e: 100},
+      {value: '100B', e: 100},
+      {value: '100k', e: 100 * 1024},
+      {value: '100K', e: 100 * 1024},
+      {value: '100m', e: 100 * 1024 * 1024},
+      {value: '100M', e: 100 * 1024 * 1024},
+      {value: '100g', e: 100 * 1024 * 1024 * 1024},
+      {value: '100G', e: 100 * 1024 * 1024 * 1024},
+      {value: '100t', e: 100 * 1024 * 1024 * 1024 * 1024},
+      {value: '100T', e: 100 * 1024 * 1024 * 1024 * 1024},
+      {value: '100p', e: 100 * 1024 * 1024 * 1024 * 1024 * 1024},
+      {value: '100P', e: 100 * 1024 * 1024 * 1024 * 1024 * 1024}
+    ];
+    tests.forEach(function(test) {
+      it(test.value, function() {
+        var v = App.ServiceConfigsValidator.create({});
+        expect(v._formatXmxSizeToBytes(test.value)).to.equal(test.e);
+      });
+    });
+  });
+
+  describe('#validateXmxValue', function() {
+    var tests = [
+      {
+        recommendedDefaults: {
+          'property1': '-Xmx1024m'
+        },
+        config: Em.Object.create({
+          value: '-Xmx2g',
+          name: 'property1'
+        }),
+        e: null
+      },
+      {
+        recommendedDefaults: {
+          'property1': '-Xmx12'
+        },
+        config: Em.Object.create({
+          value: '-Xmx24',
+          name: 'property1'
+        }),
+        e: null
+      },
+      {
+        recommendedDefaults: {
+          'property1': '-Xmx333k'
+        },
+        config: Em.Object.create({
+          value: '-Xmx134k',
+          name: 'property1'
+        }),
+        e: 'string'
+      },
+      {
+        recommendedDefaults: {
+          'property1': '-Xmx333k'
+        },
+        config: Em.Object.create({
+          value: '-Xmx534',
+          name: 'property1'
+        }),
+        e: 'string'
+      }
+    ];
+    tests.forEach(function(test) {
+      it(test.config.get('value'), function() {
+        var v = App.ServiceConfigsValidator.create({});
+        v.set('recommendedDefaults', test.recommendedDefaults);
+        var r = v.validateXmxValue(test.config);
+        if (test.e) {
+          expect(r).to.be.a(test.e);
+        }
+        else {
+          expect(r).to.equal(null)
+        }
+      });
+    });
+  });
+
 });
