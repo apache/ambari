@@ -587,7 +587,8 @@ App.config = Em.Object.create({
       serviceName: preDefinedServiceConfig.serviceName,
       displayName: preDefinedServiceConfig.displayName,
       configCategories: preDefinedServiceConfig.configCategories,
-      configs: []
+      configs: [],
+      configGroups: []
     });
     serviceConfig.configCategories.filterProperty('isCustomView', true).forEach(function (category) {
       switch (category.name) {
@@ -983,7 +984,7 @@ App.config = Em.Object.create({
    * @param callback  Callback function which is invoked when dialog
    *  is closed, cancelled or OK is pressed.
    */
-  launchConfigGroupSelectionCreationDialog : function(serviceId, configGroups, allConfigGroupsNames, configProperty, callback) {
+  launchConfigGroupSelectionCreationDialog : function(serviceId, configGroups, allConfigGroupsNames, configProperty, callback, isInstaller) {
     var self = this;
     var availableConfigGroups = configGroups.slice();
     // delete Config Groups, that already have selected property overridden
@@ -1023,8 +1024,9 @@ App.config = Em.Object.create({
           callback(selectedConfigGroup);
         } else {
           var newConfigGroupName = this.get('newConfigGroupName');
-          var newConfigGroup = self.createNewConfigurationGroup(serviceId, newConfigGroupName);
+          var newConfigGroup = self.createNewConfigurationGroup(serviceId, newConfigGroupName, isInstaller);
           if (newConfigGroup) {
+            newConfigGroup.set('parentConfigGroup', configGroups.findProperty('isDefault'));
             configGroups.pushObject(newConfigGroup);
             this.hide();
             callback(newConfigGroup);
@@ -1133,41 +1135,41 @@ App.config = Em.Object.create({
    * @return  Returns the created config-group or error as
    *        { configGroup: {id:4}, error: {...}}
    */
-  createNewConfigurationGroup: function (serviceId, configGroupName) {
-    var newConfigGroupData = null;
-    var description = "New configuration group created on " + new Date().toDateString();
+  createNewConfigurationGroup: function (serviceId, configGroupName, isInstaller) {
+    var newConfigGroupData = App.ConfigGroup.create({
+      id: null,
+      name: configGroupName,
+      description: "New configuration group created on " + new Date().toDateString(),
+      isDefault: false,
+      parentConfigGroup: null,
+      service: App.Service.find().findProperty('serviceName', serviceId),
+      hosts: [],
+      configSiteTags: [],
+      properties: []
+    });
+    if (isInstaller) {
+      newConfigGroupData.set('service', Em.Object.create({id: serviceId}));
+      return newConfigGroupData;
+    }
     var sendData = {
       name: 'config_groups.create',
       data: {
         'group_name': configGroupName,
         'service_id': serviceId,
-        'description': description
+        'description': newConfigGroupData.description
       },
       success: 'successFunction',
       error: 'errorFunction',
       successFunction: function (response) {
-        newConfigGroupData = App.ConfigGroup.create({
-          id: response.resources[0].ConfigGroup.id,
-          name: null,
-          description: null,
-          isDefault: false,
-          parentConfigGroup: null,
-          service: null,
-          hosts: [],
-          configSiteTags: []
-        });
+        newConfigGroupData.id = response.resources[0].ConfigGroup.id;
       },
       errorFunction: function () {
+        newConfigGroupData = null;
         console.error('Error in creating new Config Group');
       }
     };
     sendData.sender = sendData;
     App.ajax.send(sendData);
-    if (newConfigGroupData) {
-      newConfigGroupData.set('service', App.Service.find().findProperty('serviceName', serviceId));
-      newConfigGroupData.set('name', configGroupName);
-      newConfigGroupData.set('description', description);
-    }
     return newConfigGroupData;
   },
   

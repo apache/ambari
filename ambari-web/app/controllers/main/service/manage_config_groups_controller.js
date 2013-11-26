@@ -458,3 +458,135 @@ App.ManageConfigGroupsController = Em.Controller.extend({
     return !!(modifiedGroups.toClearHosts.length || modifiedGroups.toSetHosts.length);
   }.property('hostsModifiedConfigGroups', 'hostsModifiedConfigGroups.length')
 });
+
+
+App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.extend({
+  name: 'installerManageConfigGroupsController',
+
+  loadConfigGroups: function (serviceName, allConfigGroupsNames) {
+    this.set('serviceName', serviceName);
+    this.set('allConfigGroupsNames', allConfigGroupsNames);
+    var loadedHostsToGroupMap = this.get('loadedHostsToGroupMap');
+    var configGroups = this.copyConfigGroups(App.router.get('wizardStep7Controller.selectedService.configGroups'));
+    configGroups.forEach(function (configGroup) {
+      if (!configGroup.get('isDefault')) {
+        loadedHostsToGroupMap[configGroup.name] = configGroup.hosts.slice();
+      }
+    });
+    this.set('configGroups', configGroups);
+    this.set('isLoaded', true);
+  },
+  /**
+   * copy config groups to manage popup to give user choice whether or not save changes
+   * @param originGroups
+   * @return {Array}
+   */
+  copyConfigGroups: function (originGroups) {
+    var configGroups = [];
+    var defaultConfigGroup = App.ConfigGroup.create(originGroups.findProperty('isDefault'));
+    originGroups.forEach(function (configGroup) {
+      if (!configGroup.get('isDefault')) {
+        var copiedGroup = App.ConfigGroup.create($.extend(true, {}, configGroup));
+        copiedGroup.set('parentConfigGroup', defaultConfigGroup);
+        configGroups.pushObject(copiedGroup);
+      }
+    });
+    defaultConfigGroup.set('childConfigGroups', configGroups.slice());
+    configGroups.pushObject(defaultConfigGroup);
+    return configGroups;
+  },
+  /**
+   * delete selected config group
+   */
+  deleteConfigGroup: function () {
+    var selectedConfigGroup = this.get('selectedConfigGroup');
+    if (this.get('isDeleteGroupDisabled')) {
+      return;
+    }
+    //move hosts of group to default group (available hosts)
+    this.set('selectedHosts', selectedConfigGroup.get('hosts'));
+    this.deleteHosts();
+    this.get('configGroups').removeObject(selectedConfigGroup);
+    delete this.get('loadedHostsToGroupMap')[selectedConfigGroup.get('name')];
+    this.set('selectedConfigGroup', this.get('configGroups').findProperty('isDefault'));
+  },
+  /**
+   * rename new config group
+   */
+  renameConfigGroup: function () {
+    if(this.get('selectedConfigGroup.name') == "Default") {
+      return;
+    }
+    var self = this;
+    App.ModalPopup.show({
+      primary: Em.I18n.t('ok'),
+      secondary: Em.I18n.t('common.cancel'),
+      header: Em.I18n.t('services.service.config_groups.rename_config_group_popup.header'),
+      bodyClass: Ember.View.extend({
+        templateName: require('templates/main/service/new_config_group')
+      }),
+      configGroupName: self.get('selectedConfigGroup.name'),
+      configGroupDesc: self.get('selectedConfigGroup.description'),
+      warningMessage: '',
+      vaildate: function () {
+        var warningMessage = '';
+        if (self.get('allConfigGroupsNames').contains(this.get('configGroupName'))) {
+          warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
+        }
+        this.set('warningMessage', warningMessage);
+      }.observes('configGroupName'),
+      enablePrimary: function () {
+        return this.get('configGroupName').length > 0 && !this.get('warningMessage');
+      }.property('warningMessage', 'configGroupName'),
+      onPrimary: function () {
+        self.set('selectedConfigGroup.name', this.get('configGroupName'));
+        self.set('selectedConfigGroup.description', this.get('configGroupDesc'));
+        this.hide();
+      }
+    });
+  },
+  /**
+   * add new config group
+   */
+  addConfigGroup: function () {
+    var self = this;
+    this.addGroupPopup = App.ModalPopup.show({
+      primary: Em.I18n.t('ok'),
+      secondary: Em.I18n.t('common.cancel'),
+      header: Em.I18n.t('services.service.config_groups.add_config_group_popup.header'),
+      bodyClass: Ember.View.extend({
+        templateName: require('templates/main/service/new_config_group')
+      }),
+      configGroupName: "",
+      configGroupDesc: "",
+      warningMessage: '',
+      vaildate: function () {
+        var warningMessage = '';
+        if (self.get('allConfigGroupsNames').contains(this.get('configGroupName'))) {
+          warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
+        }
+        this.set('warningMessage', warningMessage);
+      }.observes('configGroupName'),
+      enablePrimary: function () {
+        return this.get('configGroupName').length > 0 && !this.get('warningMessage');
+      }.property('warningMessage', 'configGroupName'),
+      onPrimary: function () {
+        var defaultConfigGroup = self.get('configGroups').findProperty('isDefault');
+        var newConfigGroupData = App.ConfigGroup.create({
+          id: null,
+          name: this.get('configGroupName'),
+          description: this.get('configGroupDesc'),
+          isDefault: false,
+          parentConfigGroup: defaultConfigGroup,
+          service: Em.Object.create({id: self.get('serviceName')}),
+          hosts: [],
+          configSiteTags: []
+        });
+        self.get('loadedHostsToGroupMap')[newConfigGroupData.get('name')] = [];
+        self.get('configGroups').pushObject(newConfigGroupData);
+        defaultConfigGroup.get('childConfigGroups').pushObject(newConfigGroupData);
+        this.hide();
+      }
+    });
+  }
+})

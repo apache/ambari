@@ -309,6 +309,9 @@ module.exports = Em.Route.extend({
       var installerController = router.get('installerController');
       var wizardStep7Controller = router.get('wizardStep7Controller');
       installerController.saveServiceConfigProperties(wizardStep7Controller);
+      if (App.supports.hostOverridesInstaller) {
+        installerController.saveServiceConfigGroups(wizardStep7Controller);
+      }
       router.transitionTo('step8');
     }
   }),

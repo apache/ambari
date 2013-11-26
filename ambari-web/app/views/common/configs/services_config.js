@@ -38,7 +38,7 @@ App.ServiceConfigView = Em.View.extend({
   supportsHostOverrides: function () {
     switch (this.get('controller.name')) {
       case 'wizardStep7Controller':
-        return App.supports.hostOverridesInstaller;
+        return App.supports.hostOverridesInstaller && (this.get('controller.selectedService.serviceName') !== 'MISC');
       case 'mainServiceInfoConfigsController':
         return App.supports.hostOverrides;
       case 'mainHostServiceConfigsController':
@@ -46,7 +46,7 @@ App.ServiceConfigView = Em.View.extend({
       default:
         return false;
     }
-  }.property('controller.name'),
+  }.property('controller.name', 'controller.selectedService'),
   toggleRestartMessageView: function () {
     this.$('.service-body').toggle('blind', 200);
     this.set('isRestartMessageCollapsed', !this.get('isRestartMessageCollapsed'));
@@ -509,16 +509,18 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
     var serviceConfigProperty = event.contexts[0];
     var serviceConfigController = this.get('controller');
     var selectedConfigGroup = serviceConfigController.get('selectedConfigGroup');
+    var isInstaller = (this.get('controller.name') === 'wizardStep7Controller');
+    var configGroups = (isInstaller) ? serviceConfigController.get('selectedService.configGroups') : serviceConfigController.get('configGroups');
     if (selectedConfigGroup.get('isDefault')) {
       // Launch dialog to pick/create Config-group
       App.config.launchConfigGroupSelectionCreationDialog(this.get('service.serviceName'),
-          serviceConfigController.get('configGroups'), serviceConfigController.get('allConfigGroupsNames'), serviceConfigProperty, function (selectedGroupInPopup) {
-            console.log("launchConfigGroupSelectionCreationDialog(): Selected/Created:", selectedGroupInPopup);
-            if (selectedGroupInPopup) {
-              serviceConfigController.set('overrideToAdd', serviceConfigProperty);
-              serviceConfigController.set('selectedConfigGroup', selectedGroupInPopup);
-            }
-          });
+        configGroups, serviceConfigController.get('allConfigGroupsNames'), serviceConfigProperty, function (selectedGroupInPopup) {
+          console.log("launchConfigGroupSelectionCreationDialog(): Selected/Created:", selectedGroupInPopup);
+          if (selectedGroupInPopup) {
+            serviceConfigController.set('overrideToAdd', serviceConfigProperty);
+            serviceConfigController.set('selectedConfigGroup', selectedGroupInPopup);
+          }
+        }, isInstaller);
     } else {
       serviceConfigController.addOverrideProperty(serviceConfigProperty);
     }

@@ -227,19 +227,27 @@ App.MainServiceItemController = Em.Controller.extend({
     App.router.transitionTo('reassign');
   },
 
-  manageConfigurationGroups: function () {
-    var serviceName = this.get('content.serviceName');
-    var displayName = this.get('content.displayName');
+  manageConfigurationGroups: function (controller) {
+    var serviceData = (controller && controller.get('selectedService')) || this.get('content');
+    var serviceName = serviceData.get('serviceName');
+    var displayName = serviceData.get('displayName');
     App.ModalPopup.show({
       header: Em.I18n.t('services.service.config_groups_popup.header').format(displayName),
       bodyClass: App.MainServiceManageConfigGroupView.extend({
         serviceName: serviceName,
-        controllerBinding: 'App.router.manageConfigGroupsController'
+        allConfigGroupsNames: (controller && controller.get('allConfigGroupsNames')),
+        controllerBinding: (!!controller) ? 'App.router.installerManageConfigGroupsController' : 'App.router.manageConfigGroupsController'
       }),
       classNames: ['sixty-percent-width-modal', 'manage-configuration-group-popup'],
       primary: Em.I18n.t('common.save'),
       onPrimary: function() {
         // Save modified config-groups
+        if (!!controller) {
+          controller.set('selectedService.configGroups', App.router.get('installerManageConfigGroupsController.configGroups'));
+          controller.selectedServiceObserver();
+          this.hide();
+          return;
+        }
         var modifiedConfigGroups = this.get('subViewController.hostsModifiedConfigGroups');
         console.log("manageConfigurationGroups(): Saving modified config-groups: ", modifiedConfigGroups);
         var self = this;

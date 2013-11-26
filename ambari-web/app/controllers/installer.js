@@ -34,6 +34,7 @@ App.InstallerController = App.WizardController.extend({
     masterComponentHosts: null,
     serviceConfigProperties: null,
     advancedServiceConfig: null,
+    configGroups: [],
     slaveGroupProperties: null,
     stacks: null,
     controllerName: 'installerController'
@@ -311,6 +312,14 @@ App.InstallerController = App.WizardController.extend({
 
     this.set('content.advancedServiceConfig', this.getDBProperty('advancedServiceConfig'));
   },
+  /**
+   * Load config groups from local DB
+   */
+  loadServiceConfigGroups: function () {
+    var serviceConfigGroups = this.getDBProperty('serviceConfigGroups') || [];
+    this.set('content.configGroups', serviceConfigGroups);
+    console.log("InstallerController.configGroups: loaded config ", serviceConfigGroups);
+  },
 
   /**
    * Load information about hosts with clients components
@@ -442,6 +451,7 @@ App.InstallerController = App.WizardController.extend({
       case '9':
       case '8':
       case '7':
+        this.loadServiceConfigGroups();
         this.loadServiceConfigProperties();
       case '6':
         this.loadSlaveComponentHosts();

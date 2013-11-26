@@ -20,7 +20,6 @@ var App = require('app');
 
 App.ServiceConfigView.SCPOverriddenRowsView = Ember.View.extend({
   templateName: require('templates/common/configs/overriddenProperty'),
-  controllerBinding: 'App.router.mainServiceInfoConfigsController',
   serviceConfigProperty: null, // is passed dynamically at runtime where ever
   // we are declaring this from configs.hbs ( we are initializing this from UI )
   categoryConfigs: null, // just declared as viewClass need it

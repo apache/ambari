@@ -46,6 +46,20 @@ App.WizardStep7Controller = Em.Controller.extend({
 
   gangliaMoutDir:'/',
 
+  overrideToAdd: null,
+
+  isInstaller: true,
+
+  configGroups: [],
+  selectedConfigGroup: null,
+  allConfigGroupsNames: function () {
+    var names = [];
+    this.get('stepConfigs').forEach(function (service) {
+      names.pushObjects(service.get('configGroups').mapProperty('name'));
+    });
+    return names.uniq();
+  }.property('selectedService.configGroups.@each.name'),
+
   isSubmitDisabled: function () {
     return (!this.stepConfigs.filterProperty('showConfig', true).everyProperty('errorCount', 0) || this.get("miscModalVisible"));
   }.property('stepConfigs.@each.errorCount', 'miscModalVisible'),
@@ -108,6 +122,9 @@ App.WizardStep7Controller = Em.Controller.extend({
     }
 
     this.set('stepConfigs', serviceConfigs);
+    if (App.supports.hostOverridesInstaller) {
+      this.loadConfigGroups(this.get('content.configGroups'));
+    }
     this.activateSpecialConfigs();
     this.set('selectedService', this.get('stepConfigs').filterProperty('showConfig', true).objectAt(0));
 
@@ -116,6 +133,109 @@ App.WizardStep7Controller = Em.Controller.extend({
     }
   },
 
+  selectedServiceObserver: function () {
+    if (App.supports.hostOverridesInstaller && this.get('selectedService') && (this.get('selectedService.serviceName') !== 'MISC')) {
+      var serviceGroups = this.get('selectedService.configGroups');
+      this.set('configGroups', serviceGroups);
+      this.set('selectedConfigGroup', serviceGroups.findProperty('isDefault'));
+    }
+  }.observes('selectedService.configGroups.@each'),
+  /**
+   * load default groups for each service in case of initial load
+   * @param serviceConfigGroups
+   */
+  loadConfigGroups: function (serviceConfigGroups) {
+    var services = this.get('stepConfigs');
+    var hosts = this.get('getAllHosts').mapProperty('hostName');
+    services.forEach(function (service) {
+      if (service.get('serviceName') === 'MISC') return;
+      var serviceRawGroups = serviceConfigGroups.filterProperty('service.id', service.serviceName);
+      if (!serviceRawGroups.length) {
+        service.set('configGroups', [
+          App.ConfigGroup.create({
+            name: "Default",
+            description: "Default cluster level " + service.serviceName + " configuration",
+            isDefault: true,
+            hosts: hosts,
+            service: Em.Object.create({
+              id: service.serviceName
+            })
+          })
+        ]);
+      } else {
+        var defaultGroup = App.ConfigGroup.create(serviceRawGroups.findProperty('isDefault'));
+        var serviceGroups = service.get('configGroups');
+        serviceRawGroups.filterProperty('isDefault', false).forEach(function (configGroup) {
+          var readyGroup = App.ConfigGroup.create(configGroup);
+          var wrappedProperties = [];
+          readyGroup.get('properties').forEach(function(property){
+            wrappedProperties.pushObject(App.ServiceConfigProperty.create(property));
+          });
+          wrappedProperties.setEach('group', readyGroup);
+          readyGroup.set('properties', wrappedProperties);
+          readyGroup.set('parentConfigGroup', defaultGroup);
+          serviceGroups.pushObject(readyGroup);
+        });
+        defaultGroup.set('childConfigGroups', serviceGroups);
+        serviceGroups.pushObject(defaultGroup);
+      }
+    });
+  },
+
+  selectConfigGroup: function (event) {
+    this.set('selectedConfigGroup', event.context);
+  },
+
+  /**
+   * rebuild list of configs switch of config group:
+   * on default - display all configs from default group and configs from non-default groups as disabled
+   * on non-default - display all from default group as disabled and configs from selected non-default group
+   */
+  switchConfigGroupConfigs: function () {
+    var serviceConfigs = this.get('selectedService.configs');
+    var selectedGroup = this.get('selectedConfigGroup');
+    var overrideToAdd = this.get('overrideToAdd');
+    var displayedConfigGroups = (selectedGroup.get('isDefault')) ?
+        this.get('selectedService.configGroups').filterProperty('isDefault', false) :
+        [this.get('selectedConfigGroup')];
+    var overrides = [];
+
+    displayedConfigGroups.forEach(function (group) {
+      overrides.pushObjects(group.get('properties'));
+    });
+    serviceConfigs.forEach(function (config) {
+      var configOverrides = overrides.filterProperty('name', config.get('name'));
+      config.set('isEditable', selectedGroup.get('isDefault'));
+      if (overrideToAdd && overrideToAdd.get('name') === config.get('name')) {
+        configOverrides.push(this.addOverrideProperty(config));
+        this.set('overrideToAdd', null);
+      }
+      configOverrides.setEach('isEditable', !selectedGroup.get('isDefault'));
+      config.set('overrides', configOverrides);
+    }, this);
+  }.observes('selectedConfigGroup'),
+  /**
+   * create overriden property and push it into Config group
+   * @param serviceConfigProperty
+   * @return {*}
+   */
+  addOverrideProperty: function (serviceConfigProperty) {
+    var overrides = serviceConfigProperty.get('overrides') || [];
+    var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty);
+    var group = this.get('selectedService.configGroups').findProperty('name', this.get('selectedConfigGroup.name'));
+    newSCP.set('group', group);
+    newSCP.set('value', '');
+    newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
+    newSCP.set('parentSCP', serviceConfigProperty);
+    newSCP.set('isEditable', true);
+    group.get('properties').pushObject(newSCP);
+    overrides.pushObject(newSCP);
+    return newSCP;
+  },
+
+  manageConfigurationGroup: function () {
+    App.router.get('mainServiceItemController').manageConfigurationGroups(this);
+  },
    /**
    * make some configs visible depending on active services
    */

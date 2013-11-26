@@ -963,6 +963,7 @@ Em.I18n.translations = {
   'services.service.actions.reassign.master':'Reassign {0}',
   'services.service.actions.reassign.master.hive':'Reassign HiveServer2, WebHCat Server, MySQL Server',
   'services.service.actions.manage_configuration_groups':'Manage Configuration Groups...',
+  'services.service.actions.manage_configuration_groups.short':'Manage Config Groups',
   'services.service.actions.serviceActions':'Service Actions',
   'services.service.summary.unknown':'unknown',
   'services.service.summary.notRunning':'Not Running',

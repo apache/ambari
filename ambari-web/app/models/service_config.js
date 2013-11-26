@@ -26,6 +26,7 @@ App.ServiceConfig = Ember.Object.extend({
   restartRequired: false,
   restartRequiredMessage: '',
   restartRequiredHostsAndComponents: {},
+  configGroups: [],
   errorCount: function () {
     var overrideErrors = 0;
     this.get('configs').filterProperty("overrides").forEach(function (e) {

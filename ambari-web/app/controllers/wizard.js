@@ -712,21 +712,6 @@ App.WizardController = Em.Controller.extend({
       }
 
       _content.get('configs').forEach(function (_configProperties) {
-        var overrides = _configProperties.get('overrides');
-        var overridesArray = [];
-        if (overrides != null) {
-          overrides.forEach(function (override) {
-            var overrideEntry = {
-              value: override.get('value'),
-              hosts: []
-            };
-            override.get('selectedHostOptions').forEach(function (host) {
-              overrideEntry.hosts.push(host);
-            });
-            overridesArray.push(overrideEntry);
-          });
-        }
-        overridesArray = (overridesArray.length) ? overridesArray : null;
         var configProperty = {
           id: _configProperties.get('id'),
           name: _configProperties.get('name'),
@@ -736,13 +721,41 @@ App.WizardController = Em.Controller.extend({
           serviceName: _configProperties.get('serviceName'),
           domain: _configProperties.get('domain'),
           filename: _configProperties.get('filename'),
-          displayType: _configProperties.get('displayType'),
-          overrides: overridesArray
+          displayType: _configProperties.get('displayType')
         };
         serviceConfigProperties.push(configProperty);
       }, this);
     }, this);
     this.setDBProperty('serviceConfigProperties', serviceConfigProperties);
     this.set('content.serviceConfigProperties', serviceConfigProperties);
+  },
+  /**
+   * save Config groups
+   * @param stepController
+   */
+  saveServiceConfigGroups: function (stepController) {
+    var serviceConfigGroups = [];
+    stepController.get('stepConfigs').forEach(function (service) {
+      service.get('configGroups').forEach(function (configGroup) {
+        var properties = [];
+        configGroup.get('properties').forEach(function (property) {
+          properties.push({
+            name: property.get('name'),
+            value: property.get('value')
+          })
+        });
+        //configGroup copied into plain JS object to avoid Converting circular structure to JSON
+        serviceConfigGroups.push({
+          name: configGroup.get('name'),
+          description: configGroup.get('description'),
+          hosts: configGroup.get('hosts'),
+          properties: properties,
+          isDefault: configGroup.get('isDefault'),
+          service: {id: configGroup.get('service.id')}
+        });
+      }, this)
+    }, this);
+    this.setDBProperty('serviceConfigGroups', serviceConfigGroups);
+    this.set('content.serviceConfigProperties', serviceConfigGroups);
   }
 });
