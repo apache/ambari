@@ -604,7 +604,8 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
           parentConfigGroup: defaultConfigGroup,
           service: Em.Object.create({id: self.get('serviceName')}),
           hosts: [],
-          configSiteTags: []
+          configSiteTags: [],
+          properties: []
         });
         self.get('loadedHostsToGroupMap')[newConfigGroupData.get('name')] = [];
         self.get('configGroups').pushObject(newConfigGroupData);

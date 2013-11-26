@@ -741,7 +741,8 @@ App.WizardController = Em.Controller.extend({
         configGroup.get('properties').forEach(function (property) {
           properties.push({
             name: property.get('name'),
-            value: property.get('value')
+            value: property.get('value'),
+            filename: property.get('filename')
           })
         });
         //configGroup copied into plain JS object to avoid Converting circular structure to JSON

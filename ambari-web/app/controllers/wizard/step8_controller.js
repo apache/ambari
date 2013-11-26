@@ -884,6 +884,9 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.createConfigurations();
     this.createComponents();
     this.registerHostsToCluster();
+    if (App.supports.hostOverridesInstaller) {
+      this.createConfigurationGroups();
+    }
     this.createAllHostComponents();
     this.createHostOverrideConfigurations();
 
@@ -1386,6 +1389,43 @@ App.WizardStep8Controller = Em.Controller.extend({
       beforeSend: function () {
         console.log("BeforeSend: Updating cluster config");
       }
+    });
+  },
+
+  createConfigurationGroups: function () {
+    var configGroups = this.get('content.configGroups').filterProperty('isDefault', false);
+    var clusterName = this.get('clusterName');
+    var sendData = [];
+    var serviceConfigController = App.router.get('mainServiceInfoConfigsController');
+    configGroups.forEach(function (configGroup) {
+      var groupConfigs = [];
+      var groupData = {
+        "cluster_name": clusterName,
+        "group_name": configGroup.name,
+        "tag": configGroup.service.id,
+        "description": configGroup.description,
+        "hosts": [],
+        "desired_configs": []
+      };
+      configGroup.hosts.forEach(function (hostName) {
+        groupData.hosts.push({"host_name": hostName});
+      });
+      //wrap properties into Em.Object to make them compatible with buildGroupDesiredConfigs method
+      configGroup.properties.forEach(function (property) {
+        groupConfigs.push(Em.Object.create(property));
+      });
+      groupData.desired_configs = serviceConfigController.buildGroupDesiredConfigs.call(serviceConfigController, groupConfigs);
+      sendData.push({"ConfigGroup": groupData});
+    }, this);
+    this.applyConfigurationGroups(sendData);
+  },
+
+  applyConfigurationGroups: function (sendData) {
+    var url = App.apiPrefix + '/clusters/' + this.get('clusterName') + '/config_groups';
+    this.ajax({
+      type: 'POST',
+      url: url,
+      data: JSON.stringify(sendData)
     });
   },
 

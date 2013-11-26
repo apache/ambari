@@ -215,6 +215,7 @@ App.WizardStep7Controller = Em.Controller.extend({
         this.set('overrideToAdd', null);
       }
       configOverrides.setEach('isEditable', !selectedGroup.get('isDefault'));
+      configOverrides.setEach('parentSCP', config);
       config.set('overrides', configOverrides);
     }, this);
   }.observes('selectedConfigGroup'),
