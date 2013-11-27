@@ -160,9 +160,9 @@ public class QueryImplTest {
     //test
     QueryImpl instance = new TestQuery(mapIds, resourceDefinition);
 
-    instance.addProperty("versions", "*", null);
-    instance.addProperty("versions/operatingSystems", "*", null);
-    instance.addProperty("versions/operatingSystems/repositories", "*", null);
+    instance.addProperty("versions/*", null);
+    instance.addProperty("versions/operatingSystems/*", null);
+    instance.addProperty("versions/operatingSystems/repositories/*", null);
 
     Result result = instance.execute();
 

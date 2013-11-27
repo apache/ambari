@@ -45,9 +45,11 @@ public class ReadHandler implements RequestHandler {
   public Result handleRequest(Request request) {
     Query query = request.getResource().getQuery();
 
+    query.setPageRequest(request.getPageRequest());
+    query.setMinimal(request.isMinimal());
+
     try {
       addFieldsToQuery(request, query);
-      query.setPageRequest(request.getPageRequest());
     } catch (IllegalArgumentException e) {
       return new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e.getMessage()));
     }
@@ -100,8 +102,7 @@ public class ReadHandler implements RequestHandler {
     for (Map.Entry<String, TemporalInfo> entry : request.getFields().entrySet()) {
       // Iterate over map and add props/temporalInfo
       String propertyId = entry.getKey();
-      query.addProperty(PropertyHelper.getPropertyCategory(propertyId),
-          PropertyHelper.getPropertyName(propertyId), entry.getValue());
+      query.addProperty(propertyId, entry.getValue());
     }
   }
 }

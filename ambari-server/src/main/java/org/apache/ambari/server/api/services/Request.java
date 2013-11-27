@@ -114,4 +114,11 @@ public interface Request {
    * @return the page request
    */
   public PageRequest getPageRequest();
+
+  /**
+   * Is the minimal response parameter specified as true.
+   *
+   * @return true if the minimal response parameter is specified as true
+   */
+  public boolean isMinimal();
 }

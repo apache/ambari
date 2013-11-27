@@ -184,6 +184,32 @@ public class PropertyHelper {
   }
 
   /**
+   * Check if the given property id or one of its parent category ids is contained
+   * in the given set of property ids.
+   *
+   * @param propertyIds  the set of property ids
+   * @param propertyId   the property id
+   *
+   * @return true if the given property id of one of its parent category ids is
+   *         contained in the given set of property ids
+   */
+  public static boolean containsProperty(Set<String> propertyIds, String propertyId) {
+
+    if (propertyIds.contains(propertyId)){
+      return true;
+    }
+
+    String category = PropertyHelper.getPropertyCategory(propertyId);
+    while (category != null) {
+      if ( propertyIds.contains(category)) {
+        return true;
+      }
+      category = PropertyHelper.getPropertyCategory(category);
+    }
+    return false;
+  }
+
+  /**
    * Check to see if the given property id contains replacement arguments (e.g. $1)
    *
    * @param propertyId  the property id to check

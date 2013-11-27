@@ -53,7 +53,7 @@ public class JsonSerializer implements ResultSerializer {
 
 
   @Override
-  public Object serialize(Result result) {
+  public Object serialize(Result result, boolean minimal) {
     try {
       ByteArrayOutputStream bytesOut = init();
 
@@ -61,7 +61,7 @@ public class JsonSerializer implements ResultSerializer {
         return serializeError(result.getStatus());
       }
 
-      processNode(result.getResultTree());
+      processNode(result.getResultTree(), minimal);
 
       m_generator.close();
       return bytesOut.toString("UTF-8");
@@ -100,10 +100,13 @@ public class JsonSerializer implements ResultSerializer {
     return bytesOut;
   }
 
-  private void processNode(TreeNode<Resource> node) throws IOException {
+  private void processNode(TreeNode<Resource> node, boolean minimal) throws IOException {
     if (isObject(node)) {
       m_generator.writeStartObject();
-      writeHref(node);
+
+      if (!minimal) {
+        writeHref(node);
+      }
 
       Resource r = node.getObject();
       if (r != null) {
@@ -115,7 +118,7 @@ public class JsonSerializer implements ResultSerializer {
     }
 
     for (TreeNode<Resource> child : node.getChildren()) {
-      processNode(child);
+      processNode(child, minimal);
     }
 
     if (isArray(node)) {

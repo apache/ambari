@@ -21,6 +21,7 @@ package org.apache.ambari.server.api.services;
 import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;
+import org.apache.ambari.server.api.predicate.QueryLexer;
 import org.apache.ambari.server.api.resources.*;
 import org.apache.ambari.server.controller.internal.PageRequestImpl;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
@@ -144,7 +145,7 @@ public abstract class BaseRequest implements Request {
   @Override
   public Map<String, TemporalInfo> getFields() {
     Map<String, TemporalInfo> mapProperties;
-    String partialResponseFields = m_uriInfo.getQueryParameters().getFirst("fields");
+    String partialResponseFields = m_uriInfo.getQueryParameters().getFirst(QueryLexer.QUERY_FIELDS);
     if (partialResponseFields == null) {
       mapProperties = Collections.emptyMap();
     } else {
@@ -192,9 +193,9 @@ public abstract class BaseRequest implements Request {
   @Override
   public PageRequest getPageRequest() {
 
-    String pageSize = m_uriInfo.getQueryParameters().getFirst("page_size");
-    String from     = m_uriInfo.getQueryParameters().getFirst("from");
-    String to       = m_uriInfo.getQueryParameters().getFirst("to");
+    String pageSize = m_uriInfo.getQueryParameters().getFirst(QueryLexer.QUERY_PAGE_SIZE);
+    String from     = m_uriInfo.getQueryParameters().getFirst(QueryLexer.QUERY_FROM);
+    String to       = m_uriInfo.getQueryParameters().getFirst(QueryLexer.QUERY_TO);
 
     if (pageSize == null && from == null && to == null) {
       return null;
@@ -228,10 +229,15 @@ public abstract class BaseRequest implements Request {
   }
 
   @Override
+  public boolean isMinimal() {
+    String minimal = m_uriInfo.getQueryParameters().getFirst(QueryLexer.QUERY_MINIMAL);
+    return minimal != null && minimal.equalsIgnoreCase("true");
+  }
+
+  @Override
   public RequestBody getBody() {
     return m_body;
   }
-
 
   /**
    * Obtain the result post processor for the request.
@@ -252,7 +258,6 @@ public abstract class BaseRequest implements Request {
   protected PredicateCompiler getPredicateCompiler() {
     return new PredicateCompiler();
   }
-
 
   /**
    * Parse the query string and compile it into a predicate.

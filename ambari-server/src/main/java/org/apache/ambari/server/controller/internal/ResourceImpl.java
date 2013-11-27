@@ -23,6 +23,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -57,16 +58,30 @@ public class ResourceImpl implements Resource {
    * @param resource  the resource to copy
    */
   public ResourceImpl(Resource resource) {
+    this(resource, null);
+  }
+
+  /**
+   * Construct a resource from the given resource, setting only the properties
+   * that are found in the given set of property and category ids.
+   *
+   * @param resource     the resource to copy
+   * @param propertyIds  the set of requested property and category ids
+   */
+  public ResourceImpl(Resource resource, Set<String> propertyIds) {
     this.type = resource.getType();
 
-    for (Map.Entry<String, Map<String, Object>> categoryEntry : resource.getPropertiesMap().entrySet()) {
+    for (Map.Entry<String, Map<String, Object>> categoryEntry :
+        resource.getPropertiesMap().entrySet()) {
       String category = categoryEntry.getKey();
       Map<String, Object> propertyMap = categoryEntry.getValue();
       if (propertyMap != null) {
         for (Map.Entry<String, Object> propertyEntry : propertyMap.entrySet()) {
-          String propertyId    = PropertyHelper.getPropertyId(category, propertyEntry.getKey());
-          Object propertyValue = propertyEntry.getValue();
-          setProperty(propertyId, propertyValue);
+          String propertyId = PropertyHelper.getPropertyId(category, propertyEntry.getKey());
+          if (propertyIds == null || propertyIds.isEmpty() || PropertyHelper.containsProperty(propertyIds, propertyId)) {
+            Object propertyValue = propertyEntry.getValue();
+            setProperty(propertyId, propertyValue);
+          }
         }
       }
     }
@@ -143,11 +158,10 @@ public class ResourceImpl implements Resource {
 
   @Override
   public int hashCode() {
-    int result =  31 * type.hashCode() + (propertiesMap != null ? propertiesMap.hashCode() : 0);
-    return result;
+    return 31 * type.hashCode() + (propertiesMap != null ? propertiesMap.hashCode() : 0);
   }
 
-// ----- utility methods ---------------------------------------------------
+  // ----- utility methods ---------------------------------------------------
 
   private String getCategoryKey(String category) {
     return category == null ? "" : category;

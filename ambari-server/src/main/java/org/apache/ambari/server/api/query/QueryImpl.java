@@ -23,6 +23,7 @@ import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.api.services.ResultImpl;
+import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
@@ -97,6 +98,11 @@ public class QueryImpl implements Query, ResourceInstance {
   private PageRequest pageRequest;
 
   /**
+   * Indicates whether or not the response should be minimal.
+   */
+  private boolean minimal;
+
+  /**
    * The logger.
    */
   private final static Logger LOG =
@@ -124,21 +130,17 @@ public class QueryImpl implements Query, ResourceInstance {
   // ----- Query -------------------------------------------------------------
 
   @Override
-  public void addProperty(String category, String name, TemporalInfo temporalInfo) {
-    if (category == null && name.equals("*")) {
+  public void addProperty(String propertyId, TemporalInfo temporalInfo) {
+    if (propertyId.equals("*")) {
       // wildcard
       addAllProperties(temporalInfo);
     } else{
-      if (addPropertyToSubResource(category, name, temporalInfo)){
-        // add pk/fk properties of the resource to this query
-        Resource.Type resourceType = getResourceDefinition().getType();
-        Schema        schema       = clusterController.getSchema(resourceType);
-
-        for (Resource.Type type : getKeyValueMap().keySet()) {
-          addLocalProperty(schema.getKeyPropertyId(type));
-        }
+      if (addPropertyToSubResource(propertyId, temporalInfo)){
+        addKeyProperties(getResourceDefinition().getType(), !minimal);
       } else {
-        String propertyId = PropertyHelper.getPropertyId(category, name.equals("*") ? null : name);
+        if (propertyId.endsWith("/*")) {
+          propertyId = propertyId.substring(0, propertyId.length() - 2);
+        }
         addLocalProperty(propertyId);
         if (temporalInfo != null) {
           temporalInfoMap.put(propertyId, temporalInfo);
@@ -183,8 +185,13 @@ public class QueryImpl implements Query, ResourceInstance {
     this.pageRequest = pageRequest;
   }
 
+  @Override
+  public void setMinimal(boolean minimal) {
+    this.minimal = minimal;
+  }
 
-  // ----- ResourceInstance --------------------------------------------------
+
+// ----- ResourceInstance --------------------------------------------------
 
   @Override
   public void setKeyValueMap(Map<Resource.Type, String> keyValueMap) {
@@ -263,19 +270,25 @@ public class QueryImpl implements Query, ResourceInstance {
           getResourceDefinition().getSubResourceDefinitions();
 
       ClusterController controller = clusterController;
+
       for (SubResourceDefinition subResDef : setSubResourceDefs) {
         Resource.Type type = subResDef.getType();
         Map<Resource.Type, String> valueMap = getKeyValueMap();
         QueryImpl resource =  new QueryImpl(valueMap,
             ResourceInstanceFactoryImpl.getResourceDefinition(type, valueMap),
             controller);
+        resource.setMinimal(minimal);
+
+        Schema schema = controller.getSchema(type);
 
         // ensure pk is returned
-        resource.addLocalProperty(controller.getSchema(
-            type).getKeyPropertyId(type));
-        // add additionally required fk properties
-        for (Resource.Type fkType : subResDef.getAdditionalForeignKeys()) {
-          resource.addLocalProperty(controller.getSchema(type).getKeyPropertyId(fkType));
+        resource.addLocalProperty(schema.getKeyPropertyId(type));
+
+        if (!minimal) {
+          // add additionally required fk properties
+          for (Resource.Type fkType : subResDef.getAdditionalForeignKeys()) {
+            resource.addLocalProperty(schema.getKeyPropertyId(fkType));
+          }
         }
 
         String subResourceName = subResDef.isCollection() ?
@@ -300,18 +313,19 @@ public class QueryImpl implements Query, ResourceInstance {
     Set<Resource> providerResourceSet = new HashSet<Resource>();
 
     Resource.Type resourceType = getResourceDefinition().getType();
-    Request       request      = createRequest();
+    Request       request      = createRequest(!minimal);
+    Request       qRequest     = createRequest(true);
     Predicate     predicate    = getPredicate();
 
     Set<Resource> resourceSet = new LinkedHashSet<Resource>();
 
-    for (Resource queryResource : doQuery(resourceType, request, predicate)) {
+    for (Resource queryResource : doQuery(resourceType, qRequest, predicate)) {
       providerResourceSet.add(queryResource);
       resourceSet.add(queryResource);
     }
     queryResults.put(null, new QueryResult(request, predicate, getKeyValueMap(), resourceSet));
 
-    clusterController.populateResources(resourceType, providerResourceSet, request, predicate);
+    clusterController.populateResources(resourceType, providerResourceSet, qRequest, predicate);
     queryForSubResources();
   }
 
@@ -330,7 +344,8 @@ public class QueryImpl implements Query, ResourceInstance {
 
       QueryImpl     subResource  = entry.getValue();
       Resource.Type resourceType = subResource.getResourceDefinition().getType();
-      Request       request      = subResource.createRequest();
+      Request       request      = subResource.createRequest(!minimal);
+      Request       qRequest     = subResource.createRequest(true);
 
       Set<Resource> providerResourceSet = new HashSet<Resource>();
 
@@ -343,14 +358,14 @@ public class QueryImpl implements Query, ResourceInstance {
 
           Set<Resource> resourceSet = new LinkedHashSet<Resource>();
 
-          for (Resource queryResource : subResource.doQuery(resourceType, request, predicate)) {
+          for (Resource queryResource : subResource.doQuery(resourceType, qRequest, predicate)) {
             providerResourceSet.add(queryResource);
             resourceSet.add(queryResource);
           }
           subResource.queryResults.put(resource, new QueryResult(request, predicate, map, resourceSet));
         }
       }
-      clusterController.populateResources(resourceType, providerResourceSet, request, null);
+      clusterController.populateResources(resourceType, providerResourceSet, qRequest, null);
       subResource.queryForSubResources();
     }
   }
@@ -408,10 +423,16 @@ public class QueryImpl implements Query, ResourceInstance {
         iterResource = pageResponse.getIterable();
       }
 
+      Set<String> propertyIds = request.getPropertyIds();
+
       int count = 1;
       for (Resource resource : iterResource) {
+
         // add a child node for the resource and provide a unique name.  The name is never used.
-        TreeNode<Resource> node = tree.addChild(resource, resource.getType() + ":" + count++);
+        TreeNode<Resource> node = tree.addChild(
+            minimal ? new ResourceImpl(resource, propertyIds) : resource,
+            resource.getType() + ":" + count++);
+
         for (Map.Entry<String, QueryImpl> entry : querySubResourceSet.entrySet()) {
           String    subResCategory = entry.getKey();
           QueryImpl subResource    = entry.getValue();
@@ -426,21 +447,21 @@ public class QueryImpl implements Query, ResourceInstance {
     return result;
   }
 
-  private void addCollectionProperties(Resource.Type resourceType) {
+  private void addKeyProperties(Resource.Type resourceType, boolean includeFKs) {
     Schema schema = clusterController.getSchema(resourceType);
 
-    // add pk
-    String property = schema.getKeyPropertyId(resourceType);
-    addProperty(PropertyHelper.getPropertyCategory(property),
-        PropertyHelper.getPropertyName(property), null);
-
-    for (Resource.Type type : getKeyValueMap().keySet()) {
-      // add fk's
-      String keyPropertyId = schema.getKeyPropertyId(type);
-      if (keyPropertyId != null) {
-        addProperty(PropertyHelper.getPropertyCategory(keyPropertyId),
-            PropertyHelper.getPropertyName(keyPropertyId), null);
+    if (includeFKs) {
+      for (Resource.Type type : Resource.Type.values()) {
+        // add fk's
+        String propertyId = schema.getKeyPropertyId(type);
+        if (propertyId != null) {
+          addProperty(propertyId, null);
+        }
       }
+    } else {
+      // add pk only
+      String propertyId = schema.getKeyPropertyId(resourceType);
+      addProperty(propertyId, null);
     }
   }
 
@@ -458,33 +479,23 @@ public class QueryImpl implements Query, ResourceInstance {
     }
   }
 
-  private boolean addPropertyToSubResource(String path, String property, TemporalInfo temporalInfo) {
-    // cases:
-    // - path is null, property is path (all sub-resource props will have a path)
-    // - path is single token and prop in non null
-    //      (path only will presented as above case with property only)
-    // - path is multi level and prop is non null
+  private boolean addPropertyToSubResource(String propertyId, TemporalInfo temporalInfo) {
+    int    index    = propertyId.indexOf("/");
+    String category = index == -1 ? propertyId : propertyId.substring(0, index);
 
-    boolean resourceAdded = false;
-    if (path == null) {
-      path = property;
-      property = null;
-    }
+    Map<String, QueryImpl> subResources = ensureSubResources();
 
-    int i = path.indexOf("/");
-    String p = i == -1 ? path : path.substring(0, i);
-
-    QueryImpl subResource = ensureSubResources().get(p);
+    QueryImpl subResource = subResources.get(category);
     if (subResource != null) {
-      querySubResourceSet.put(p, subResource);
+      querySubResourceSet.put(category, subResource);
 
-      if (property != null || !path.equals(p)) {
-        //only add if a sub property is set or if a sub category is specified
-        subResource.getQuery().addProperty(i == -1 ? null : path.substring(i + 1), property, temporalInfo);
+      //only add if a sub property is set or if a sub category is specified
+      if (index != -1) {
+        subResource.addProperty(propertyId.substring(index + 1), temporalInfo);
       }
-      resourceAdded = true;
+      return true;
     }
-    return resourceAdded;
+    return false;
   }
 
   private Predicate createInternalPredicate(Map<Resource.Type, String> mapResourceIds) {
@@ -528,7 +539,12 @@ public class QueryImpl implements Query, ResourceInstance {
     return predicate;
   }
 
-  private Request createRequest() {
+  private Request createRequest(boolean includeFKs) {
+    
+    if (allProperties) {
+      return PropertyHelper.getReadRequest(Collections.<String>emptySet());
+    }
+    
     Set<String> setProperties = new HashSet<String>();
 
     Map<String, TemporalInfo> mapTemporalInfo    = new HashMap<String, TemporalInfo>();
@@ -536,22 +552,22 @@ public class QueryImpl implements Query, ResourceInstance {
     Resource.Type             resourceType       = getResourceDefinition().getType();
 
     if (getKeyValueMap().get(resourceType) == null) {
-      addCollectionProperties(resourceType);
+      addKeyProperties(resourceType, includeFKs);
     }
 
-    for (String group : queryPropertySet) {
-      TemporalInfo temporalInfo = temporalInfoMap.get(group);
+    setProperties.addAll(queryPropertySet);
+    
+    for (String propertyId : setProperties) {
+      TemporalInfo temporalInfo = temporalInfoMap.get(propertyId);
       if (temporalInfo != null) {
-        mapTemporalInfo.put(group, temporalInfo);
+        mapTemporalInfo.put(propertyId, temporalInfo);
       } else if (globalTemporalInfo != null) {
-        mapTemporalInfo.put(group, globalTemporalInfo);
+        mapTemporalInfo.put(propertyId, globalTemporalInfo);
       }
-      setProperties.add(group);
     }
-
-    return PropertyHelper.getReadRequest(allProperties ?
-        Collections.<String>emptySet() : setProperties, mapTemporalInfo);
+    return PropertyHelper.getReadRequest(setProperties, mapTemporalInfo);
   }
+
 
   // Get a key value map based on the given resource and an existing key value map
   private Map<Resource.Type, String> getKeyValueMap(Resource resource,
