@@ -311,5 +311,11 @@ public interface Host {
    */
   public Map<String, DesiredConfig> getDesiredConfigs(long clusterId);
 
+  /**
+   * Get the desired configurations for the host including overrides
+   * @param cluster
+   * @return
+   * @throws AmbariException
+   */
   public Map<String, HostConfig> getDesiredHostConfigs(Cluster cluster) throws AmbariException;
 }

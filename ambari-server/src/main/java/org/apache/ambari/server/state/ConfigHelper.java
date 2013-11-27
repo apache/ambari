@@ -257,7 +257,6 @@ public class ConfigHelper {
     // --- desired tags DO match actual tags: not_stale
     // --- desired tags DO NOT match actual tags
     // ---- merge values, determine changed keys, check stack: stale
-    
     boolean stale = false;
 
     Iterator<Entry<String, Map<String, String>>> it = desired.entrySet().iterator();
@@ -294,7 +293,8 @@ public class ConfigHelper {
           // tags are changed, need to find out what has changed,
           // and if it applies
           // to the service
-          Collection<String> changed = findChangedKeys(cluster, type, tags.values(), actualTags.values());
+          Collection<String> changed = findChangedKeys(cluster, type,
+            tags.values(), actualTags.values());
           if (serviceInfo.hasPropertyFor(type, changed)) {
             stale = true;
           }
@@ -312,7 +312,6 @@ public class ConfigHelper {
    * @return <code>true</code> if any service on the stack defines a property
    * for the type.
    */
-
   private boolean hasPropertyFor(StackId stack, String type,
       Collection<String> keys) throws AmbariException {
 
@@ -384,15 +383,11 @@ public class ConfigHelper {
     if (!actualTags.get(CLUSTER_DEFAULT_TAG).equals(desiredTags.get(CLUSTER_DEFAULT_TAG)))
       return true;
 
-    Set<String> desiredSet = new HashSet<String>(desiredTags.keySet());
-    Set<String> actualSet = new HashSet<String>(actualTags.keySet());
+    Set<String> desiredSet = new HashSet<String>(desiredTags.values());
+    Set<String> actualSet = new HashSet<String>(actualTags.values());
 
-    desiredSet.removeAll(actualSet);
-
-    if (!desiredSet.isEmpty())
-      return true;
-
-    return false;
+    // Both desired and actual should be exactly the same
+    return !desiredSet.equals(actualSet);
   }
 
   /**
