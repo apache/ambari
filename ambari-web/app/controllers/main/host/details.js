@@ -990,19 +990,31 @@ App.MainHostDetailsController = Em.Controller.extend({
       content: content,
       onPrimary: function () {
         var hostComponents = this.content.get('content.hostComponents').filterProperty('staleConfigs', true);
-        hostComponents.forEach(function(item){
-          if (item.get('isClient') && commandName === 'start_component') {
+        hostComponents.forEach(function (item) {
+          var state = 'INSTALLED',
+              componentName = item.get('componentName'),
+              context = "Stop " + App.format.role(componentName),
+              hostName = item.get('host.hostName');
+
+          if (commandName === 'start_component') {
+            context = "Start " + App.format.role(componentName);
+            state = 'STARTED';
+            if (item.get('isClient')) {
+              //start components action includes install of clients
+              context = "Install " + App.format.role(componentName);
+              state = "INSTALLED";
+            }
+          } else if (item.get('isClient')) {
             return false;
           }
-          var componentName = item.get('componentName');
-          var hostName = item.get('host.hostName');
           App.ajax.send({
-            name: 'config.stale.'+commandName,
+            name: 'host.host_component.action',
             sender: this,
             data: {
               hostName: hostName,
               componentName: componentName,
-              displayName: App.format.role(componentName)
+              context: context,
+              state: state
             }
           });
         })

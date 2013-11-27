@@ -260,6 +260,25 @@ var urls = {
       };
     }
   },
+  'host.host_component.action': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          RequestInfo: {
+            "context": data.context
+          },
+          Body: {
+            "HostRoles": {
+              "state": data.state
+            }
+          }
+        })
+      }
+    }
+  },
   'config.stale.stop_component': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
     'mock': '',
