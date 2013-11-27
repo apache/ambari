@@ -62,6 +62,9 @@ App.MainAdminUserCreateView = Em.View.extend({
             this.hide();
           }
         });
+        var persists = App.router.get('applicationController').persistKey(form.getField("userName").get('value'));
+        App.router.get('applicationController').postUserPref(persists,true);
+
         form.save();
 
         App.router.transitionTo("allUsers");

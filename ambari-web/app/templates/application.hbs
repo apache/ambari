@@ -44,8 +44,10 @@
                 {{App.router.loginName}}&nbsp;<span class="caret"></span>
               </button>
               <ul class="dropdown-menu">
-                {{#if App.isAdmin}}
-                  <li><a href="" {{action showSettingsPopup target="controller"}}>{{t app.settings}}</a></li>
+                {{#if isClusterDataLoaded}}
+                  {{#if App.isAdmin}}
+                    <li><a href="" {{action showSettingsPopup target="controller"}}>{{t app.settings}}</a></li>
+                  {{/if}}
                 {{/if}}
                 <li><a href="" {{action logoff}}>{{t app.signout}}</a></li>
               </ul>

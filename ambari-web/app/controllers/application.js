@@ -51,8 +51,9 @@ App.ApplicationController = Em.Controller.extend({
     });
     return dfd.promise();
   },
-  persistKey: function () {
-    var loginName = App.router.get('loginName');
+  persistKey: function (loginName) {
+    if (!loginName)
+      loginName = App.router.get('loginName');
     return 'admin-settings-show-bg-' + loginName;
   },
   currentPrefObject: null,
