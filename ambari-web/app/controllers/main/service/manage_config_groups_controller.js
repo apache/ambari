@@ -391,10 +391,10 @@ App.ManageConfigGroupsController = Em.Controller.extend({
     var configSiteTags = [];
     if (desiredConfigs && desiredConfigs.length > 0) {
       desiredConfigs.forEach(function(configs){
-        var configSiteTag = {
+        var configSiteTag = App.ConfigSiteTag.create({
           site: configs.type,
           tag: configs.tag
-        }
+        });
         configSiteTags.push(configSiteTag);
       });
       properties = this.get('selectedConfigGroup.properties');

@@ -294,12 +294,11 @@ App.MainServiceItemController = Em.Controller.extend({
         var mainServiceInfoConfigsController = App.get('router.mainServiceInfoConfigsController');
         var selectedConfigGroup = mainServiceInfoConfigsController.get('selectedConfigGroup');
         var managedConfigGroups = this.get('subViewController.configGroups');
-
         //check whether selectedConfigGroup was selected
         if(!selectedConfigGroup){
           return;
         }
-
+        mainServiceInfoConfigsController.set('configGroups',this.get('subViewController.configGroups'));
         if(selectedConfigGroup.isDefault) {
           mainServiceInfoConfigsController.set('selectedConfigGroup',  managedConfigGroups.findProperty('isDefault', true));
         }else{
@@ -310,7 +309,6 @@ App.MainServiceItemController = Em.Controller.extend({
             mainServiceInfoConfigsController.set('selectedConfigGroup',  managedConfigGroups.findProperty('isDefault', true));
           }
         }
-        mainServiceInfoConfigsController.set('configGroups',this.get('subViewController.configGroups'));
       },
       updateButtons: function(){
         var modified = this.get('subViewController.isHostsModified');
