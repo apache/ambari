@@ -1134,6 +1134,7 @@ Em.I18n.translations = {
   'services.service.config_groups_popup.removeButton':'Delete Configuration Group',
   'services.service.config_groups_popup.renameButton':'Rename Configuration Group',
   'services.service.config_groups_popup.addHost':'Add hosts to selected Configuration Group',
+  'services.service.config_groups_popup.addHostDisabled':'There are no available hosts to add.',
   'services.service.config_groups_popup.removeHost':'Remove hosts from selected Configuration Group',
   'services.service.config_groups_popup.duplicateButton':'Duplicate Configuration Group',
   'services.service.config_groups.add_config_group_popup.header':'Create New Configuration Group',

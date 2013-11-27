@@ -40,10 +40,10 @@
             </button>
             <ul class="dropdown-menu">
               <li {{bindAttr class="view.isRenameButtonDisabled:disabled"}}>
-                <a  rel="button-info" {{bindAttr data-original-title="view.renameButtonTooltip"}} {{action renameConfigGroup target="controller"}}>{{t services.service.config_groups_popup.rename}}</a>
+                <a  rel="button-info-dropdown" {{bindAttr data-original-title="view.renameButtonTooltip"}} {{action renameConfigGroup target="controller"}}>{{t services.service.config_groups_popup.rename}}</a>
               </li>
               <li>
-                <a  rel="button-info" {{bindAttr data-original-title="view.duplicateButtonTooltip"}} {{action duplicateConfigGroup target="controller"}}>{{t services.service.config_groups_popup.duplicate}}</a>
+                <a  rel="button-info-dropdown" {{bindAttr data-original-title="view.duplicateButtonTooltip"}} {{action duplicateConfigGroup target="controller"}}>{{t services.service.config_groups_popup.duplicate}}</a>
               </li>
             </ul>
           </div>
@@ -61,8 +61,8 @@
             }}
           </div>
           <div class="button-group pull-right">
-            <button rel="button-info" class="btn" {{bindAttr data-original-title="view.addHostTooltip" disabled="selectedConfigGroup.isAddHostsDisabled"}} {{action addHosts target="controller"}} ><i class="icon-plus"></i></button>
-            <button rel="button-info" class="btn" {{bindAttr data-original-title="view.removeHostTooltip" disabled="view.isDeleteHostsDisabled"}} {{action deleteHosts target="controller"}} ><i class="icon-minus"></i></button>
+            <a rel="button-info" class="btn" {{bindAttr data-original-title="view.addHostTooltip" class="selectedConfigGroup.isAddHostsDisabled:disabled"}} {{action addHosts target="controller"}} ><i class="icon-plus"></i></a>
+            <a rel="button-info" class="btn" {{bindAttr data-original-title="view.removeHostTooltip" class="isDeleteHostsDisabled:disabled"}} {{action deleteHosts target="controller"}} ><i class="icon-minus"></i></a>
           </div>
         </div>
         <div class="row-fluid">

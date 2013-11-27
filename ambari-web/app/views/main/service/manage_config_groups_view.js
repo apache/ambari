@@ -62,19 +62,8 @@ App.MainServiceManageConfigGroupView = Em.View.extend({
     this.get('controller').loadConfigGroups(this.get('serviceName'), this.get('usedConfigGroupNames'));
     $('.properties-link').tooltip();
     $("[rel='button-info']").tooltip();
+    $("[rel='button-info-dropdown']").tooltip({placement: 'left'});
   },
-
-  isDeleteHostsDisabled: function () {
-    var selectedConfigGroup = this.get('controller.selectedConfigGroup');
-    if(selectedConfigGroup){
-      if(selectedConfigGroup.isDefault || this.get('controller.selectedHosts').length === 0){
-        return true;
-      }else{
-        return false;
-      }
-    }
-    return true;
-  }.property('controller.selectedConfigGroup', 'controller.selectedConfigGroup.hosts.length', 'controller.selectedHosts.length'),
 
   addButtonTooltip: function () {
     return  Em.I18n.t('services.service.config_groups_popup.addButton');
@@ -89,8 +78,12 @@ App.MainServiceManageConfigGroupView = Em.View.extend({
     return  Em.I18n.t('services.service.config_groups_popup.duplicateButton');
   }.property(),
   addHostTooltip: function () {
-    return  Em.I18n.t('services.service.config_groups_popup.addHost');
-  }.property(),
+    if (!this.get('controller.selectedConfigGroup.isDefault') && this.get('controller.selectedConfigGroup.isAddHostsDisabled')) {
+      return Em.I18n.t('services.service.config_groups_popup.addHostDisabled');
+    } else {
+      return  Em.I18n.t('services.service.config_groups_popup.addHost');
+    }
+  }.property('controller.selectedConfigGroup.isDefault', 'controller.selectedConfigGroup.isAddHostsDisabled'),
   removeHostTooltip: function () {
     return  Em.I18n.t('services.service.config_groups_popup.removeHost');
   }.property()

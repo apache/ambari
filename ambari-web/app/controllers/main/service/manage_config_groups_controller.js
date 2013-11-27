@@ -184,6 +184,9 @@ App.ManageConfigGroupsController = Em.Controller.extend({
   }.property('serviceName'),
 
   addHosts: function () {
+    if (this.get('selectedConfigGroup.isAddHostsDisabled')){
+      return false;
+    }
     var availableHosts = this.get('selectedConfigGroup.availableHosts');
     var popupDescription = {
       header: Em.I18n.t('hosts.selectHostsDialog.title'),
@@ -211,6 +214,9 @@ App.ManageConfigGroupsController = Em.Controller.extend({
    * delete hosts from group
    */
   deleteHosts: function () {
+    if (this.get('isDeleteHostsDisabled')) {
+      return false;
+    }
     var groupHosts = this.get('selectedConfigGroup.hosts');
     var defaultGroupHosts = this.get('selectedConfigGroup.parentConfigGroup.hosts');
     this.get('selectedHosts').slice().forEach(function (hostName) {
@@ -219,6 +225,18 @@ App.ManageConfigGroupsController = Em.Controller.extend({
     });
     this.set('selectedHosts', []);
   },
+
+  isDeleteHostsDisabled: function () {
+    var selectedConfigGroup = this.get('selectedConfigGroup');
+    if (selectedConfigGroup) {
+      if (selectedConfigGroup.isDefault || this.get('selectedHosts').length === 0) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+    return true;
+  }.property('selectedConfigGroup', 'selectedConfigGroup.hosts.length', 'selectedHosts.length'),
 
   /**
    * confirm delete config group
