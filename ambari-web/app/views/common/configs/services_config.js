@@ -58,7 +58,24 @@ App.ServiceConfigView = Em.View.extend({
     this.$('.service-body').hide();
     $(".restart-required-property").tooltip({html: true});
     $(".icon-lock").tooltip({placement: 'right'});
-  }
+  },
+
+  /**
+   * Check if we should show Custom Property category
+   */
+  checkCanEdit: function () {
+    var controller = App.get('router.'+this.get('controller.name'));
+    var canAddProperty = false;
+    if(controller.get('selectedConfigGroup').isDefault){
+     canAddProperty = true;
+    }
+    this.get('controller.selectedService.configCategories').filterProperty('siteFileName').forEach(function (config) {
+      config.set('canAddProperty', canAddProperty);
+    });
+  }.observes(
+    'App.router.mainServiceInfoConfigsController.selectedConfigGroup.name',
+    'App.router.wizardStep7Controller.selectedConfigGroup.name'
+  )
 });
 
 
