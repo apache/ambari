@@ -467,6 +467,8 @@ App.InstallerController = App.WizardController.extend({
   finish: function () {
     this.setCurrentStep('0');
     this.clearStorageData();
+    var persists = App.router.get('applicationController').persistKey();
+    App.router.get('applicationController').postUserPref(persists,true);
   },
 
   setStepsEnable: function () {
