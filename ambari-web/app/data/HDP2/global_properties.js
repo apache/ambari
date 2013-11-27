@@ -265,19 +265,6 @@ module.exports =
     },
     {
       "id": "puppet var",
-      "name": "hdfs_enable_shortcircuit_read",
-      "displayName": "HDFS Short-circuit read",
-      "description": "",
-      "defaultValue": true,
-      "isRequired": false,
-      "displayType": "checkbox",
-      "isVisible": true,
-      "domain": "global",
-      "serviceName": "HDFS",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
       "name": "lzo_enabled",
       "displayName": "LZO compression",
       "description": "LZO compression enabled",
