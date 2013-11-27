@@ -1417,7 +1417,9 @@ App.WizardStep8Controller = Em.Controller.extend({
       groupData.desired_configs = serviceConfigController.buildGroupDesiredConfigs.call(serviceConfigController, groupConfigs);
       sendData.push({"ConfigGroup": groupData});
     }, this);
-    this.applyConfigurationGroups(sendData);
+    if (sendData.length > 0) {
+      this.applyConfigurationGroups(sendData);
+    }
   },
 
   applyConfigurationGroups: function (sendData) {
