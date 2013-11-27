@@ -48,12 +48,19 @@ public class StackExtensionHelperTest {
         assertEquals("RESOURCEMANAGER", components.get(0).getName());
         assertEquals("MASTER", components.get(0).getCategory());
         List<PropertyInfo> properties = serviceInfo.getProperties();
-        // Check some properties
+        // Check some property
         assertEquals(4, properties.size());
-        assertEquals("yarn.resourcemanager.resource-tracker.address",
-                properties.get(0).getName());
-        assertEquals("localhost:8025",
-                properties.get(0).getValue());
+        boolean found = false;
+        for (PropertyInfo property : properties) {
+          if (property.getName().equals("yarn.resourcemanager.resource-tracker.address")) {
+            assertEquals("localhost:8025", property.getValue());
+            assertEquals("yarn-site.xml",
+                    property.getFilename());
+            assertEquals(true, property.isDeleted());
+            found = true;
+          }
+        }
+        assertTrue("Property not found in a list of properties", found);
         // Check config dependencies
         List<String> configDependencies = serviceInfo.getConfigDependencies();
         assertEquals(1, configDependencies.size());
@@ -122,16 +129,21 @@ public class StackExtensionHelperTest {
         assertEquals(CommandScriptDefinition.Type.PYTHON,
                 serviceScriptDefinition.getScriptType());
         assertEquals(50, serviceScriptDefinition.getTimeout());
-        // Check some properties
+        // Check some property
         List<PropertyInfo> properties = serviceInfo.getProperties();
         assertEquals(38, properties.size());
-        assertEquals("hbase.cluster.distributed",
-                properties.get(0).getName());
-        assertEquals("true",
-                properties.get(0).getValue());
-        assertTrue(properties.get(0).getDescription().startsWith("The mode the"));
-        assertEquals("hbase-site.xml",
-                properties.get(0).getFilename());
+        boolean found = false;
+        for (PropertyInfo property : properties) {
+          if (property.getName().equals("hbase.cluster.distributed")) {
+            assertEquals("true",
+                    property.getValue());
+            assertTrue(property.getDescription().startsWith("The mode the"));
+            assertEquals("hbase-site.xml",
+                    property.getFilename());
+            found = true;
+          }
+        }
+        assertTrue("Property not found in a list of properties", found);
         List<String> configDependencies = serviceInfo.getConfigDependencies();
         assertEquals(3, configDependencies.size());
         assertEquals("global", configDependencies.get(0));
