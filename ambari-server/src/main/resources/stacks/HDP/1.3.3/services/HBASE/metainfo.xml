@@ -36,5 +36,9 @@
             <category>CLIENT</category>
         </component>
     </components>
-
+    <configuration-dependencies>
+      <config-type>global</config-type>
+      <config-type>hbase-site</config-type>
+      <config-type>hbase-policy</config-type>
+    </configuration-dependencies>
 </metainfo>
