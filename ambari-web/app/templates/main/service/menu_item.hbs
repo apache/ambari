@@ -24,9 +24,5 @@
       {{view.alertsCount}}
     </span>
   {{/if}}
-  {{#if App.supports.hostOverrides}}
-	  {{#if view.content.isRestartRequired}}
-	    <i class="icon-refresh restart-required-service" rel="tooltip" title="{{unbound view.restartRequiredMessage}}"></i>
-	  {{/if}}
-	{{/if}}
+  <i rel="tooltip" {{bindAttr class=":icon-refresh :restart-required-service view.content.isRestartRequired::hide" data-original-title="view.restartRequiredMessage"}}"></i>
 </a>

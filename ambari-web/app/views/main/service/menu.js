@@ -58,14 +58,18 @@ App.MainServiceMenuView = Em.CollectionView.extend({
 
   itemViewClass:Em.View.extend({
 
+    classNameBindings:["active", "clients"],
+    templateName:require('templates/main/service/menu_item'),
+    restartRequiredMessage: null,
+
     shouldBeRestarted: function() {
       return this.get('content.hostComponents').someProperty('staleConfigs', true);
     }.property('content.hostComponents.@each.staleConfigs'),
 
-    classNameBindings:["active", "clients"],
     active:function () {
       return this.get('content.id') == this.get('parentView.activeServiceId') ? 'active' : '';
     }.property('parentView.activeServiceId'),
+
     alertsCount: function () {
       var allAlerts = App.router.get('clusterController.alerts');
       var serviceId = this.get('content.serviceName');
@@ -74,8 +78,8 @@ App.MainServiceMenuView = Em.CollectionView.extend({
       }
       return 0;
     }.property('App.router.clusterController.alerts'),
-    
-    restartRequiredMessage: function() {
+
+    refreshRestartRequiredMessage: function() {
       var restarted, componentsCount, hostsCount, message;
       restarted = this.get('content.restartRequiredHostsAndComponents');
       componentsCount = 0;
@@ -87,9 +91,8 @@ App.MainServiceMenuView = Em.CollectionView.extend({
       }
       message += componentsCount + ' ' + Em.I18n.t('common.components') + ' ' + Em.I18n.t('on') + ' ' +
         hostsCount + ' ' + Em.I18n.t('common.hosts') + ' ' + Em.I18n.t('services.service.config.restartService.needToRestartEnd');
-      return message;
-    }.property('content.isRestartRequired'),
-
-    templateName:require('templates/main/service/menu_item')
+      this.set('restartRequiredMessage', message);
+    }.observes('content.restartRequiredHostsAndComponents')
   })
+
 });
