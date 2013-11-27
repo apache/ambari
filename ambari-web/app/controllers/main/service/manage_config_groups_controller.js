@@ -189,7 +189,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       header: Em.I18n.t('hosts.selectHostsDialog.title'),
       dialogMessage: Em.I18n.t('hosts.selectHostsDialog.message')
     };
-    hostsManagement.launchHostsSelectionDialog(availableHosts, [], false, [], this.addHostsCallback.bind(this), popupDescription);
+    hostsManagement.launchHostsSelectionDialog(availableHosts, [], false, this.get('componentsForFilter'), this.addHostsCallback.bind(this), popupDescription);
   },
 
   /**
