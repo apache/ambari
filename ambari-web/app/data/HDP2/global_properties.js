@@ -383,7 +383,7 @@ module.exports =
       "displayName": "NodeManager Java heap size",
       "description": "Max heapsize for NodeManager",
       "defaultValue": "1024",
-      "isOverridable": false,
+      "isOverridable": true,
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
