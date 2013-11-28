@@ -19,45 +19,6 @@ var App = require('app');
 
 App.statusMapper = App.QuickDataMapper.create({
   model: App.HostComponent,
-  componentServiceMap: {
-    'NAMENODE': 'HDFS',
-    'SECONDARY_NAMENODE': 'HDFS',
-    'DATANODE': 'HDFS',
-    'HDFS_CLIENT': 'HDFS',
-    'JOBTRACKER': 'MAPREDUCE',
-    'TASKTRACKER': 'MAPREDUCE',
-    'MAPREDUCE_CLIENT': 'MAPREDUCE',
-    'MAPREDUCE2_CLIENT': 'MAPREDUCE2',
-    'HISTORYSERVER': 'MAPREDUCE2',
-    'TEZ_CLIENT': 'TEZ',
-    'RESOURCEMANAGER': 'YARN',
-    'YARN_CLIENT': 'YARN',
-    'NODEMANAGER': 'YARN',
-    'ZOOKEEPER_SERVER': 'ZOOKEEPER',
-    'ZOOKEEPER_CLIENT': 'ZOOKEEPER',
-    'HBASE_MASTER': 'HBASE',
-    'HBASE_REGIONSERVER': 'HBASE',
-    'HBASE_CLIENT': 'HBASE',
-    'PIG': 'PIG',
-    'SQOOP': 'SQOOP',
-    'OOZIE_SERVER': 'OOZIE',
-    'OOZIE_CLIENT': 'OOZIE',
-    'HIVE_SERVER': 'HIVE',
-    'HIVE_METASTORE': 'HIVE',
-    'HIVE_CLIENT': 'HIVE',
-    'MYSQL_SERVER': 'HIVE',
-    'HCAT': 'HCATALOG',
-    'WEBHCAT_SERVER': 'WEBHCAT',
-    'NAGIOS_SERVER': 'NAGIOS',
-    'GANGLIA_SERVER': 'GANGLIA',
-    'GANGLIA_MONITOR': 'GANGLIA',
-    'KERBEROS_SERVER': 'KERBEROS',
-    'KERBEROS_ADMIN_CLIENT': 'KERBEROS',
-    'KERBEROS_CLIENT': 'KERBEROS',
-    'HUE_SERVER': 'HUE',
-    'HCFS_CLIENT': 'HCFS'
-  },
-
   map: function (json) {
     console.time('App.statusMapper execution time');
     if (json.items) {
@@ -65,7 +26,7 @@ App.statusMapper = App.QuickDataMapper.create({
       var hostStatuses = {};
       var hostComponentStatuses = {};
       var addedHostComponents = [];
-      var componentServiceMap = this.get('componentServiceMap');
+      var componentServiceMap = App.QuickDataMapper.componentServiceMap;
       var currentComponentStatuses = {};
       var currentHostStatuses = {};
       var previousHostStatuses = App.cache['previousHostStatuses'];
