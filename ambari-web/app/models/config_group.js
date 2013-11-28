@@ -126,7 +126,7 @@ App.ConfigGroup = Ember.Object.extend({
   propertiesList: function () {
     var result = '';
     this.get('properties').forEach(function (item) {
-      result += item.name + " : " + item.value + '\n';
+      result += item.name + " : " + item.value + '<br/>';
     }, this);
     return result;
   }.property('properties.length')

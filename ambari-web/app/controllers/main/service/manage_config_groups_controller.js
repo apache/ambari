@@ -163,7 +163,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
   },
 
   showProperties: function () {
-    var properies = this.get('selectedConfigGroup.propertiesList');
+    var properies = this.get('selectedConfigGroup.propertiesList').htmlSafe();
     if (properies) {
       App.showAlertPopup(Em.I18n.t('services.service.config_groups_popup.properties'), properies);
     }
