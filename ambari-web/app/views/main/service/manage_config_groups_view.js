@@ -28,15 +28,19 @@ App.MainServiceManageConfigGroupView = Em.View.extend({
 
   isRenameButtonDisabled: true,
 
+  isDuplicateButtonDisabled: true,
+
   //Disable actions remove and rename for Default config group
   buttonObserver: function () {
     var selectedConfigGroup = this.get('controller.selectedConfigGroup');
     if(selectedConfigGroup.isDefault){
       this.set('isRemoveButtonDisabled', true);
       this.set('isRenameButtonDisabled', true);
+      this.set('isDuplicateButtonDisabled', true);
     }else{
       this.set('isRemoveButtonDisabled', false);
       this.set('isRenameButtonDisabled', false);
+      this.set('isDuplicateButtonDisabled', false);
     }
   }.observes('controller.selectedConfigGroup', 'controller.isHostsModified'),
 

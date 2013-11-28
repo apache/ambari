@@ -462,6 +462,9 @@ App.ManageConfigGroupsController = Em.Controller.extend({
    * duplicate config group
    */
   duplicateConfigGroup: function() {
+    if(this.get('selectedConfigGroup.name') == "Default") {
+      return;
+    }
     this.addConfigGroup(true);
     this.get('addGroupPopup').set('header',Em.I18n.t('services.service.config_groups.duplicate_config_group_popup.header'));
     this.get('addGroupPopup').set('configGroupName', this.get('selectedConfigGroup.name') + ' Copy');
