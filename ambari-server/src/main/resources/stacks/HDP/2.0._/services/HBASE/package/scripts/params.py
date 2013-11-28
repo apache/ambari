@@ -57,7 +57,7 @@ rs_hosts = default('hbase_rs_hosts', config['clusterHostInfo']['slave_hosts']) #
 
 smoke_test_user = config['configurations']['global']['smokeuser']
 smokeuser_permissions = default('smokeuser_permissions', "RWXCA")
-service_check_data = functions.get_unique_id_and_date()
+service_check_data = get_unique_id_and_date()
 
 if security_enabled:
   
@@ -75,11 +75,11 @@ if security_enabled:
     master_jaas_princ = format("{_master_principal_name}@{_kerberos_domain}")
     regionserver_jaas_princ = format("{_regionserver_primary_name}@{_kerberos_domain}")
     
-master_keytab_path = default('configurations/hbase-site/hbase.master.keytab.file')
+master_keytab_path = default('/configurations/hbase-site/hbase.master.keytab.file')
 regionserver_keytab_path = default('/configurations/hbase-site/hbase.regionserver.keytab.file')
 smoke_user_keytab = default('smokeuser_keytab')
 hbase_user_keytab = default('hbase_user_keytab')
-kinit_path_local = functions.get_kinit_path([default('kinit_path_local'),"/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = get_kinit_path([default('kinit_path_local'),"/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 
 # fix exeuteHadoop calls for secured cluster
 # to string template...
