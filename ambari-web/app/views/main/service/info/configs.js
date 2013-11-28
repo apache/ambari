@@ -31,7 +31,7 @@ App.MainServiceInfoConfigsView = Em.View.extend({
 
 
   stopComponentsIsDisabled: function () {
-    var staleComponents = this.get('controller.content.hostComponents').filterProperty('staleConfigs', true).filterProperty('isClient', false);
+    var staleComponents = this.get('controller.content.hostComponents').filterProperty('staleConfigs', true);
     if (!staleComponents.findProperty('workStatus', 'STARTED')) {
       return true;
     } else {
@@ -40,7 +40,7 @@ App.MainServiceInfoConfigsView = Em.View.extend({
   }.property('controller.content.hostComponents.@each.workStatus', 'controller.content.hostComponents.@each.staleConfigs'),
 
   startComponentsIsDisabled: function () {
-    var staleComponents = this.get('controller.content.hostComponents').filterProperty('staleConfigs', true).filterProperty('isClient', false);
+    var staleComponents = this.get('controller.content.hostComponents').filterProperty('staleConfigs', true);
     if (!staleComponents.findProperty('workStatus', 'INSTALLED')) {
       return true;
     } else {
