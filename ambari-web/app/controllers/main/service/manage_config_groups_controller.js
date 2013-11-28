@@ -38,6 +38,23 @@ App.ManageConfigGroupsController = Em.Controller.extend({
 
   usedConfigGroupNames: [],
 
+  resortConfigGroup: function() {
+    var configGroups = Ember.copy(this.get('configGroups'));
+    if(configGroups.length < 2){
+      return;
+    }
+    var defaultConfigGroup = configGroups.findProperty('isDefault');
+    configGroups.removeObject(defaultConfigGroup);
+    var sorted = configGroups.sort(function(configGroupA, configGroupB){
+      return String(configGroupA.get('name')) >= String(configGroupB.get('name'));
+    });
+    sorted = [defaultConfigGroup].concat(sorted);
+
+    this.removeObserver('configGroups.@each.name', this, 'resortConfigGroup');
+    this.set('configGroups', sorted);
+    this.addObserver('configGroups.@each.name', this, 'resortConfigGroup');
+  }.observes('configGroups.@each.name'),
+
   loadConfigGroups: function (serviceName) {
     this.set('serviceName', serviceName);
     App.ajax.send({
@@ -107,12 +124,6 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       defaultConfigGroup.set('childConfigGroups', configGroups);
       defaultConfigGroup.set('hosts', unusedHosts);
       this.set('configGroups', [defaultConfigGroup].concat(configGroups));
-      this.get('configGroups').sort(function(configGroup){
-        if(configGroup.isDefault){
-          return false;
-        }
-        return true;
-      });
       this.loadProperties(groupToTypeToTagMap);
       this.set('isLoaded', true);
     }
@@ -454,8 +465,10 @@ App.ManageConfigGroupsController = Em.Controller.extend({
   },
 
   successLoadingConfigGroup: function (data) {
-    var confGroup = this.get('configGroups').findProperty('id', data.ConfigGroup.id);
-    confGroup.set('apiResponse', data.ConfigGroup);
+    if(data.ConfigGroup) {
+      var confGroup = this.get('configGroups').findProperty('id', data.ConfigGroup.id);
+      confGroup.set('apiResponse', data.ConfigGroup);
+    }
   },
 
   /**
