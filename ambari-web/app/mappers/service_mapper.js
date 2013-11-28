@@ -186,10 +186,13 @@ App.servicesMapper = App.QuickDataMapper.create({
       services.forEach(function (item) {
         var finalJson = [];
         var serviceData = App.cache['hostComponentsOnService'][item.ServiceInfo.service_name];
-        item.host_components = serviceData.host_components;
-        item.running_host_components = serviceData.running_host_components;
-        item.unknown_host_components = serviceData.unknown_host_components;
-        item.host_components.sort();
+        //service can have zero number of host-components
+        if (serviceData) {
+          item.host_components = serviceData.host_components;
+          item.running_host_components = serviceData.running_host_components;
+          item.unknown_host_components = serviceData.unknown_host_components;
+          item.host_components.sort();
+        }
 
         if (item && item.ServiceInfo && item.ServiceInfo.service_name == "HDFS") {
           finalJson = this.hdfsMapper(item);
