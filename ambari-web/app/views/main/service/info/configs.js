@@ -31,22 +31,22 @@ App.MainServiceInfoConfigsView = Em.View.extend({
 
 
   stopComponentsIsDisabled: function () {
-    var controller = this.get('controller');
-    if(controller.get('content.healthStatus') == 'green'){
-      return false;
-    }else{
+    var staleComponents = this.get('controller.content.hostComponents').filterProperty('staleConfigs', true).filterProperty('isClient', false);
+    if (!staleComponents.findProperty('workStatus', 'STARTED')) {
       return true;
+    } else {
+      return false;
     }
-  }.property('controller.content.healthStatus'),
+  }.property('controller.content.hostComponents.@each.workStatus', 'controller.content.hostComponents.@each.staleConfigs'),
 
-  startComponentsIsDisabled:function () {
-    var controller = this.get('controller');
-    if(controller.get('content.healthStatus') == 'red'){
-      return false;
-    }else{
+  startComponentsIsDisabled: function () {
+    var staleComponents = this.get('controller.content.hostComponents').filterProperty('staleConfigs', true).filterProperty('isClient', false);
+    if (!staleComponents.findProperty('workStatus', 'INSTALLED')) {
       return true;
+    } else {
+      return false;
     }
-  }.property('controller.content.healthStatus'),
+  }.property('controller.content.hostComponents.@each.workStatus', 'controller.content.hostComponents.@each.staleConfigs'),
 
   calculateCounts: function() {
     var hc = this.get('controller.content.restartRequiredHostsAndComponents');
