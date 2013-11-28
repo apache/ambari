@@ -314,10 +314,14 @@ App.ManageConfigGroupsController = Em.Controller.extend({
         if (!this.get('enablePrimary')) {
           return false;
         }
+        var copyHsots = this.get('content.loadedHostsToGroupMap')[this.get('content.selectedConfigGroup.name')];
+        delete this.get('content.loadedHostsToGroupMap')[this.get('content.selectedConfigGroup.name')];
+        this.get('content.loadedHostsToGroupMap')[this.get('configGroupName')] = copyHsots;
         this.get('content.selectedConfigGroup').set('name', this.get('configGroupName'));
         this.get('content.selectedConfigGroup').set('description', this.get('configGroupDesc'));
         this.get('content.selectedConfigGroup.apiResponse').group_name = this.get('configGroupName');
         this.get('content.selectedConfigGroup.apiResponse').description = this.get('configGroupDesc');
+
         var configGroup = {
           ConfigGroup: this.get('content.selectedConfigGroup.apiResponse')
         };
@@ -594,6 +598,9 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
         if (!this.get('enablePrimary')) {
           return false;
         }
+        var copyHsots = self.get('loadedHostsToGroupMap')[self.get('selectedConfigGroup.name')];
+        delete self.get('loadedHostsToGroupMap')[self.get('selectedConfigGroup.name')];
+        self.get('loadedHostsToGroupMap')[this.get('configGroupName')] = copyHsots;
         self.set('selectedConfigGroup.name', this.get('configGroupName'));
         self.set('selectedConfigGroup.description', this.get('configGroupDesc'));
         this.hide();
