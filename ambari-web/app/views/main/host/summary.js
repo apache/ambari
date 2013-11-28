@@ -133,7 +133,7 @@ App.MainHostSummaryView = Em.View.extend({
   },
   addToolTip: function() {
     if (this.get('addComponentDisabled')) {
-      $('#add_component').tooltip({title: Em.I18n.t('services.nothingToAdd')});
+      App.tooltip($('#add_component'), {title: Em.I18n.t('services.nothingToAdd')});
     }
   }.observes('addComponentDisabled'),
   sortedComponents: function () {

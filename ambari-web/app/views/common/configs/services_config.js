@@ -56,8 +56,8 @@ App.ServiceConfigView = Em.View.extend({
       this.set('canEdit', false);
     }
     this.$('.service-body').hide();
-    $(".restart-required-property").tooltip({html: true});
-    $(".icon-lock").tooltip({placement: 'right'});
+    App.tooltip($(".restart-required-property"), {html: true});
+    App.tooltip($(".icon-lock"), {placement: 'right'});
   },
 
   /**

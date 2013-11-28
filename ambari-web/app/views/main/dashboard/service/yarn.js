@@ -144,7 +144,7 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
   }.property('service.queuesCount'),
   
   didInsertElement: function(){
-    $("[rel='queue-tooltip']").tooltip({html: true, placement: "right"});
+    App.tooltip($("[rel='queue-tooltip']"), {html: true, placement: "right"});
   }
 
 });

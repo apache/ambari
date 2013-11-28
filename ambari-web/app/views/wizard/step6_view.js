@@ -35,9 +35,7 @@ App.WizardStep6View = Em.View.extend({
       this.set('title', Em.I18n.t('installer.step6.header'));
       this.setLabel();
     }
-    $('body').tooltip({
-      selector: '[rel=tooltip]'
-    });
+    App.tooltip($('body'), {selector: '[rel=tooltip]'});
     controller.loadStep();
   },
 

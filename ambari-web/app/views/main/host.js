@@ -81,7 +81,7 @@ App.MainHostView = App.TableView.extend({
     content:null,
     tagName: 'tr',
     didInsertElement: function(){
-      this.$("[rel='HealthTooltip'], [rel='UsageTooltip']").tooltip();
+      App.tooltip(this.$("[rel='HealthTooltip'], [rel='UsageTooltip']"));
     },
 
     toggleComponents: function(event) {

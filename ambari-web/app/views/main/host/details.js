@@ -34,6 +34,6 @@ App.MainHostDetailsView = Em.View.extend({
     return options;
   }.property('controller.content'),
   didInsertElement: function() {
-    $("[rel='HealthTooltip']").tooltip();
+    App.tooltip($("[rel='HealthTooltip']"));
   }
 });

@@ -1043,8 +1043,8 @@ App.WizardStep3Controller = Em.Controller.extend({
         classNames: ['host-check'],
         didInsertElement: function () {
           Ember.run.next(this, function () {
-            this.$("[rel='HostsListTooltip']").tooltip({html: true, placement: "right"});
-            this.$('#process .warning-name').tooltip({html: true, placement: "top"});
+            App.tooltip(this.$("[rel='HostsListTooltip']"), {html: true, placement: "right"});
+            App.tooltip(this.$('#process .warning-name'), {html: true, placement: "top"});
           })
         }.observes('content'),
         warningsByHost: function () {

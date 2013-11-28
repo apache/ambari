@@ -64,9 +64,9 @@ App.MainServiceManageConfigGroupView = Em.View.extend({
 
   didInsertElement: function () {
     this.get('controller').loadConfigGroups(this.get('serviceName'), this.get('usedConfigGroupNames'));
-    $('.properties-link').tooltip();
-    $("[rel='button-info']").tooltip();
-    $("[rel='button-info-dropdown']").tooltip({placement: 'left'});
+    App.tooltip($('.properties-link'));
+    App.tooltip($("[rel='button-info']"));
+    App.tooltip($("[rel='button-info-dropdown']"), {placement: 'left'});
   },
 
   addButtonTooltip: function () {

@@ -371,6 +371,19 @@ App.popover = function(self, options) {
   });
 }
 
+/**
+ * wrapper to bootstrap tooltip
+ * fix issue when tooltip stuck on view routing
+ * @param self - DOM element
+ * @param options
+ */
+App.tooltip = function(self, options) {
+  self.tooltip(options);
+  self.on("remove", function () {
+    $(this).trigger('mouseleave');
+  });
+}
+
 /*
  * Helper function for bound property helper registration
  * @params name {String} - name of helper

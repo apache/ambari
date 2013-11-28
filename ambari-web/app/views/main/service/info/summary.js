@@ -26,7 +26,7 @@ App.AlertItemView = Em.View.extend({
   }.property('content'),
   didInsertElement: function () {
     // Tooltips for alerts need to be enabled.
-    $("div[rel=tooltip]").tooltip();
+    App.tooltip($("div[rel=tooltip]"));
     $(".tooltip").remove();
   }
 })
