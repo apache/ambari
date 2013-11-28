@@ -1791,8 +1791,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     for(var hostName in this.get('content.restartRequiredHostsAndComponents')) {
       hosts.push(hostName);
     }
+    var hostsText = hosts.length == 1 ? Em.I18n.t('common.host') : Em.I18n.t('common.hosts');
     hosts = hosts.join(', ');
-    this.showItemsShouldBeRestarted(hosts, Em.I18n.t('service.service.config.restartService.hostsShouldBeRestarted'));
+    this.showItemsShouldBeRestarted(hosts, Em.I18n.t('service.service.config.restartService.shouldBeRestarted').format(hostsText));
   },
   showComponentsShouldBeRestarted: function() {
     var rhc = this.get('content.restartRequiredHostsAndComponents');
@@ -1813,8 +1814,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       var componentDisplayName = (componentsObject[obj] > 1) ? obj + 's' : obj;
       componentsList.push(componentsObject[obj] + ' ' + componentDisplayName);
     }
+    var componentsText = componentsList.length == 1 ? Em.I18n.t('common.component') : Em.I18n.t('common.components');
     hostsComponets = componentsList.join(', ');
-    this.showItemsShouldBeRestarted(hostsComponets, Em.I18n.t('service.service.config.restartService.componentsShouldBeRestarted'));
+    this.showItemsShouldBeRestarted(hostsComponets, Em.I18n.t('service.service.config.restartService.shouldBeRestarted').format(componentsText));
   },
 
   showItemsShouldBeRestarted: function(content, header) {
