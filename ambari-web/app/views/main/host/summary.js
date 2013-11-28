@@ -58,7 +58,6 @@ App.MainHostSummaryView = Em.View.extend({
 
   needToRestartMessage: function() {
     var componentsCount, word;
-    this.set('needToRestartComponentsCount', 1);
     componentsCount = this.get('needToRestartComponentsCount');
     if (componentsCount > 1) {
       word = Em.I18n.t('common.components').toLowerCase();

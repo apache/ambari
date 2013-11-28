@@ -100,41 +100,6 @@ Em.Handlebars.registerHelper('highlight', function (property, words, fn) {
   return new Em.Handlebars.SafeString(property);
 })
 
-/*
- * Return singular or plural word based on Em.I18n property key.
- *  @param count - integer count property *required
- *  @param singular - singular version of word, for example "t:common.host" *required
- *  @param plural - plural version of word *required
- *  @return {String}
- *
- *  Example: {{pluralize hostsCount "t:host" "t:hosts"}}
- */
-Em.Handlebars.registerHelper('pluralize', function(count, singular, plural, fn) {
-  var context = (fn.contexts && fn.contexts[0]) || this;
-  count = Em.Handlebars.getPath(context, count, fn);
-
-  tDetect = function(word, keyOnly) {
-    var splitted = word.split(':');
-    if (splitted.length > 1 && splitted[0] == 't') {
-      if (keyOnly) {
-        return splitted[1];
-      }
-      return Em.I18n.t(splitted[1]);
-    } else {
-      return splitted[0];
-    }
-  }
-  singular = tDetect(singular);
-  plural = tDetect(plural);
-  if (singular && plural) {
-    if (count > 1) {
-      return plural;
-    } else {
-      return singular;
-    }
-  }
-});
-
 /**
  * Replace {i} with argument. where i is number of argument to replace with
  * @return {String}
@@ -405,3 +370,60 @@ App.popover = function(self, options) {
     $(this).trigger('mouseleave');
   });
 }
+
+/*
+ * Helper function for bound property helper registration
+ * @params name {String} - name of helper
+ * @params view {Em.View} - view
+ */
+App.registerBoundHelper = function(name, view) {
+  Em.Handlebars.registerHelper(name, function(property, options) {
+    options.hash.contentBinding = property;
+    return Em.Handlebars.helpers.view.call(this, view, options);
+  });
+}
+
+/*
+ * Return singular or plural word based on Em.I18n property key.
+ *
+ *  Example: {{pluralize hostsCount singular="t:host" plural="t:hosts"}}
+ */
+App.registerBoundHelper('pluralize', Em.View.extend({
+  tagName: 'span',
+  template: Em.Handlebars.compile('{{view.wordOut}}'),
+
+  wordOut: function() {
+    var count, singular, plural;
+    count = this.get('content');
+    singular = this.get('singular');
+    plural = this.get('plural');
+    return this.getWord(count, singular, plural);
+  }.property('content'),
+
+  getWord: function(count, singular, plural) {
+    singular = this.tDetect(singular);
+    plural = this.tDetect(plural);
+    if (singular && plural) {
+      if (count > 1) {
+        return plural;
+      } else {
+        return singular;
+      }
+    }
+  },
+
+  /*
+   * Detect for Em.I18n.t reference call
+   * @params word {String}
+   * return {String}
+  */
+  tDetect: function(word) {
+    var splitted = word.split(':');
+    if (splitted.length > 1 && splitted[0] == 't') {
+      return Em.I18n.t(splitted[1]);
+    } else {
+      return splitted[0];
+    }
+  }
+  })
+)

@@ -23,7 +23,7 @@
         {{#if App.isAdmin}}
           <div>
             <div class="alert alert-warning clearfix">
-              <i class="icon-refresh"></i> {{{view.needToRestartMessage}}} {{t services.service.config.restartService.needToRestart}}  <a href="#" {{action showComponentsShouldBeRestarted target="controller"}}>{{view.componentsCount}} {{pluralize view.componentsCount "t:common.component" "t:common.components"}}</a> {{t on}} <a href="#" {{action showHostsShouldBeRestarted target="controller"}}>{{view.hostsCount}} {{pluralize view.hostsCount "t:common.host" "t:common.hosts"}}</a> {{t services.service.config.restartService.needToRestartEnd}}
+              <i class="icon-refresh"></i> {{{view.needToRestartMessage}}} {{t services.service.config.restartService.needToRestart}}  <a href="#" {{action showComponentsShouldBeRestarted target="controller"}}>{{view.componentsCount}} {{pluralize view.componentsCount singular="t:common.component" plural="t:common.components"}}</a> {{t on}} <a href="#" {{action showHostsShouldBeRestarted target="controller"}}>{{view.hostsCount}} {{pluralize view.hostsCount singular="t:common.host" plural="t:common.hosts"}}</a> {{t services.service.config.restartService.needToRestartEnd}}
 
               <button {{bindAttr class=":btn :restart-components :pull-right view.startComponentsIsDisabled::btn-success view.startComponentsIsDisabled:disabled" }} {{action restartComponents target="controller"}}>
                 {{t hosts.host.details.needToRestart.startButton}}
