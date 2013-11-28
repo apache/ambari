@@ -95,12 +95,9 @@ class Resource(object):
   __metaclass__ = ResourceMetaclass
 
   log = logging.getLogger("resource_management.resource")
-  is_updated = False
 
   action = ForcedListArgument(default="nothing")
   ignore_failures = BooleanArgument(default=False)
-  notifies = ResourceArgument(default=[]) # this is not supported/recommended
-  subscribes = ResourceArgument(default=[]) # this is not supported/recommended
   not_if = ResourceArgument() # pass command e.g. not_if = ('ls','/root/jdk')
   only_if = ResourceArgument() # pass command
   initial_wait = ResourceArgument() # in seconds
@@ -159,32 +156,12 @@ class Resource(object):
           raise InvalidArgument("%s %s" % (self, exc))
 
     Resource.log.debug("New resource %s: %s" % (self, self.arguments))
-    self.subscriptions = {'immediate': set(), 'delayed': set()}
-
-    for sub in self.subscribes:
-      if len(sub) == 2:
-        action, res = sub
-        immediate = False
-      else:
-        action, res, immediate = sub
-
-      res.subscribe(action, self, immediate)
-
-    for sub in self.notifies:
-      self.subscribe(*sub)
-
-    self.validate()
+    
+    if not self.env.test_mode:
+      self.env.run()
 
   def validate(self):
     pass
-
-  def subscribe(self, action, resource, immediate=False):
-    imm = "immediate" if immediate else "delayed"
-    sub = (action, resource)
-    self.subscriptions[imm].add(sub)
-
-  def updated(self):
-    self.is_updated = True
 
   def override(self, **kwargs):
     for key, value in kwargs.items():
@@ -215,9 +192,6 @@ class Resource(object):
       name=self.name,
       provider=self.provider,
       arguments=self.arguments,
-      subscriptions=self.subscriptions,
-      subscribes=self.subscribes,
-      notifies=self.notifies,
       env=self.env,
     )
 
@@ -225,9 +199,6 @@ class Resource(object):
     self.name = state['name']
     self.provider = state['provider']
     self.arguments = state['arguments']
-    self.subscriptions = state['subscriptions']
-    self.subscribes = state['subscribes']
-    self.notifies = state['notifies']
     self.env = state['env']
 
     Resource.log = logging.getLogger("resource_management.resource")

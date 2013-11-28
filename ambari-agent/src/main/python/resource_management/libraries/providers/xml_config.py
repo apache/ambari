@@ -49,4 +49,3 @@ class XmlConfigProvider(Provider):
         group = self.resource.group,
         mode = self.resource.mode
       )
-    env.run()

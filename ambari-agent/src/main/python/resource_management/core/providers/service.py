@@ -31,28 +31,22 @@ class ServiceProvider(Provider):
   def action_start(self):
     if not self.status():
       self._exec_cmd("start", 0)
-      self.resource.updated()
 
   def action_stop(self):
     if self.status():
       self._exec_cmd("stop", 0)
-      self.resource.updated()
 
   def action_restart(self):
     if not self.status():
       self._exec_cmd("start", 0)
-      self.resource.updated()
     else:
       self._exec_cmd("restart", 0)
-      self.resource.updated()
 
   def action_reload(self):
     if not self.status():
       self._exec_cmd("start", 0)
-      self.resource.updated()
     else:
       self._exec_cmd("reload", 0)
-      self.resource.updated()
 
   def status(self):
     return self._exec_cmd("status") == 0

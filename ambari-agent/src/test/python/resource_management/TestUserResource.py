@@ -37,11 +37,10 @@ class TestUserResource(TestCase):
     getpwnam_mock.return_value = None
     with Environment('/') as env:
       user = User("mapred", action = "create")
-    env.run()
+    
 
     popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'useradd -m -s /bin/bash mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
-    self.assertTrue(user.is_updated)
 
   @patch.object(subprocess, "Popen")
   @patch.object(pwd, "getpwnam")
@@ -53,11 +52,10 @@ class TestUserResource(TestCase):
 
     with Environment('/') as env:
       user = User("mapred", action = "create")
-    env.run()
+    
 
     popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'usermod -s /bin/bash mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
-    self.assertTrue(user.is_updated)
 
   @patch.object(subprocess, "Popen")
   @patch.object(pwd, "getpwnam")
@@ -69,11 +67,10 @@ class TestUserResource(TestCase):
 
     with Environment('/') as env:
       user = User("mapred", action = "remove")
-    env.run()
+    
 
     popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'userdel mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
-    self.assertTrue(user.is_updated)
 
   @patch.object(subprocess, "Popen")
   @patch.object(pwd, "getpwnam")
@@ -87,11 +84,10 @@ class TestUserResource(TestCase):
       user = User("mapred",
                   action = "create",
                   comment = "testComment")
-    env.run()
+    
 
     popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'usermod -c testComment -s /bin/bash mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
-    self.assertTrue(user.is_updated)
 
   @patch.object(subprocess, "Popen")
   @patch.object(pwd, "getpwnam")
@@ -105,11 +101,10 @@ class TestUserResource(TestCase):
       user = User("mapred",
                   action = "create",
                   home = "/test/home")
-    env.run()
+    
 
     popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'usermod -s /bin/bash -d /test/home mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
-    self.assertTrue(user.is_updated)
 
   @patch.object(subprocess, "Popen")
   @patch.object(pwd, "getpwnam")
@@ -123,11 +118,10 @@ class TestUserResource(TestCase):
       user = User("mapred",
                   action = "create",
                   password = "secure")
-    env.run()
+    
 
     popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'usermod -s /bin/bash -p secure mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
-    self.assertTrue(user.is_updated)
 
   @patch.object(subprocess, "Popen")
   @patch.object(pwd, "getpwnam")
@@ -141,11 +135,10 @@ class TestUserResource(TestCase):
       user = User("mapred",
                   action = "create",
                   shell = "/bin/sh")
-    env.run()
+    
 
     popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'usermod -s /bin/sh mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
-    self.assertTrue(user.is_updated)
 
   @patch.object(subprocess, "Popen")
   @patch.object(pwd, "getpwnam")
@@ -159,11 +152,10 @@ class TestUserResource(TestCase):
       user = User("mapred",
                   action = "create",
                   uid = "1")
-    env.run()
+    
 
     popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'usermod -s /bin/bash -u 1 mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
-    self.assertTrue(user.is_updated)
 
   @patch.object(subprocess, "Popen")
   @patch.object(pwd, "getpwnam")
@@ -177,11 +169,10 @@ class TestUserResource(TestCase):
       user = User("mapred",
                   action = "create",
                   gid = "1")
-    env.run()
+    
 
     popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'usermod -s /bin/bash -g 1 mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
-    self.assertTrue(user.is_updated)
 
   @patch.object(subprocess, "Popen")
   @patch.object(pwd, "getpwnam")
@@ -195,8 +186,7 @@ class TestUserResource(TestCase):
       user = User("mapred",
                   action = "create",
                   groups = ['1','2','3'])
-    env.run()
+    
 
     popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'usermod -G 1,2,3 -s /bin/bash mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
     self.assertEqual(popen_mock.call_count, 1)
-    self.assertTrue(user.is_updated)

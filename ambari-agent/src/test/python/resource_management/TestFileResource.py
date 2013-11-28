@@ -44,7 +44,7 @@ class TestFileResource(TestCase):
              mode=0777,
              content='file-content'
         )
-      env.run()
+      
       self.fail("Must fail when directory with name 'path' exist")
     except Fail as e:
       self.assertEqual("Applying File['/existent_directory'] failed, directory with name /existent_directory exists",
@@ -67,7 +67,7 @@ class TestFileResource(TestCase):
              mode=0777,
              content='file-content'
         )
-      env.run()
+      
       self.fail('Must fail on non existent parent directory')
     except Fail as e:
       self.assertEqual(
@@ -93,7 +93,7 @@ class TestFileResource(TestCase):
            mode=0777,
            content='file-content'
       )
-    env.run()
+    
 
     open_mock.assert_called_with('/directory/file', 'wb')
     new_file.__enter__().write.assert_called_with('file-content')
@@ -123,7 +123,7 @@ class TestFileResource(TestCase):
            content='new-content'
       )
 
-    env.run()
+    
     old_file.read.assert_called()
     new_file.__enter__().write.assert_called_with('new-content')
     ensure_mock.assert_called()
@@ -149,7 +149,7 @@ class TestFileResource(TestCase):
              backup=False,
              content='new-content'
         )
-      env.run()
+      
       self.fail("Should fail when deleting directory")
     except Fail:
       pass
@@ -174,7 +174,7 @@ class TestFileResource(TestCase):
            backup=False,
            content='new-content'
       )
-    env.run()
+    
 
     self.assertEqual(isdir_mock.call_count, 1)
     self.assertEqual(exist_mock.call_count, 1)
@@ -195,7 +195,7 @@ class TestFileResource(TestCase):
              mode=0777,
              content='file-content'
         )
-      env.run()
+      
       self.fail("Must fail when directory with name 'path' exist")
     except Fail as e:
       pass
@@ -222,7 +222,7 @@ class TestFileResource(TestCase):
            backup=False,
            content='new-content'
       )
-    env.run()
+    
 
     self.assertEqual(backup_file_mock.call_count, 0)
 
@@ -233,7 +233,7 @@ class TestFileResource(TestCase):
            backup=True,
            content='new-content'
       )
-    env.run()
+    
 
     self.assertEqual(backup_file_mock.call_count, 1)
     backup_file_mock.assert_called_with('/directory/file')
@@ -262,7 +262,7 @@ class TestFileResource(TestCase):
            replace=False
       )
 
-    env.run()
+    
     old_file.read.assert_called()
     self.assertEqual(new_file.__enter__().write.call_count, 0)
     ensure_mock.assert_called()
@@ -303,7 +303,7 @@ class TestFileResource(TestCase):
            owner='root',
            group='hdfs'
       )
-    env.run()
+    
 
     open_mock.assert_called_with('/directory/file', 'wb')
     self.assertEqual(open_mock.call_count, 1)
@@ -326,7 +326,7 @@ class TestFileResource(TestCase):
            owner='root',
            group='hdfs'
       )
-    env.run()
+    
 
     self.assertEqual(chmod_mock.call_count, 1)
     self.assertEqual(chown_mock.call_count, 0)

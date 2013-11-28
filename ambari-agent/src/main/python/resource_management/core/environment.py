@@ -38,21 +38,22 @@ from resource_management.core.system import System
 class Environment(object):
   _instances = []
 
-  def __init__(self, basedir=None):
+  def __init__(self, basedir=None, test_mode=False):
     """
     @param basedir: basedir/files, basedir/templates are the places where templates / static files
     are looked up
-    @param params: configurations dictionary (this will be accessible in the templates)
+    @param test_mode: if this is enabled, resources won't be executed until manualy running env.run().
     """
     self.log = logging.getLogger("resource_management")
-    self.reset(basedir)
+    self.reset(basedir, test_mode)
 
-  def reset(self, basedir):
+  def reset(self, basedir, test_mode):
     self.system = System.get_instance()
     self.config = AttributeDictionary()
     self.resources = {}
     self.resource_list = []
     self.delayed_actions = set()
+    self.test_mode = test_mode
     self.update_config({
       # current time
       'date': datetime.now(),
@@ -115,16 +116,6 @@ class Environment(object):
       raise Fail("%r does not implement action %s" % (provider, action))
     provider_action()
 
-    if resource.is_updated:
-      for action, res in resource.subscriptions['immediate']:
-        self.log.info(
-          "%s sending %s action to %s (immediate)" % (resource, action, res))
-        self.run_action(res, action)
-      for action, res in resource.subscriptions['delayed']:
-        self.log.info(
-          "%s sending %s action to %s (delayed)" % (resource, action, res))
-      self.delayed_actions |= resource.subscriptions['delayed']
-
   def _check_condition(self, cond):
     if hasattr(cond, '__call__'):
       return cond()
@@ -138,7 +129,8 @@ class Environment(object):
   def run(self):
     with self:
       # Run resource actions
-      for resource in self.resource_list:
+      while self.resource_list:
+        resource = self.resource_list.pop(0)
         self.log.debug("Running resource %r" % resource)
         
         if resource.initial_wait:

@@ -60,13 +60,11 @@ class UserProvider(Provider):
     command.append(self.resource.username)
 
     shell.checked_call(command)
-    self.resource.updated()
 
   def action_remove(self):
     if self.user:
       command = ['userdel', self.resource.username]
       shell.checked_call(command)
-      self.resource.updated()
       self.log.info("Removed user %s" % self.resource)
 
   @property
@@ -100,7 +98,6 @@ class GroupProvider(Provider):
     command.append(self.resource.group_name)
 
     shell.checked_call(command)
-    self.resource.updated()
 
     group = self.group
 
@@ -108,7 +105,6 @@ class GroupProvider(Provider):
     if self.group:
       command = ['groupdel', self.resource.group_name]
       shell.checked_call(command)
-      self.resource.updated()
       self.log.info("Removed group %s" % self.resource)
 
   @property

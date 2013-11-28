@@ -48,14 +48,12 @@ class MountProvider(Provider):
       check_call(args)
 
       self.log.info("%s mounted" % self)
-      self.resource.updated()
 
   def action_umount(self):
     if self.is_mounted():
       check_call(["umount", self.resource.mount_point])
 
       self.log.info("%s unmounted" % self)
-      self.resource.updated()
     else:
       self.log.debug("%s is not mounted" % self)
 
@@ -79,7 +77,6 @@ class MountProvider(Provider):
         ))
 
       self.log.info("%s enabled" % self)
-      self.resource.updated()
 
   def action_disable(self):
     pass # TODO

@@ -62,21 +62,21 @@ class TestScript(TestCase):
     }
 
     # Testing config without any keys
-    with Environment(".") as env:
+    with Environment(".", test_mode=True) as env:
       script = Script()
       Script.config = no_such_entry_config
       script.install_packages(env)
     self.assertEquals(len(env.resource_list), 0)
 
     # Testing empty package list
-    with Environment(".") as env:
+    with Environment(".", test_mode=True) as env:
       script = Script()
       Script.config = empty_config
       script.install_packages(env)
     self.assertEquals(len(env.resource_list), 0)
 
     # Testing installing of a list of packages
-    with Environment(".") as env:
+    with Environment(".", test_mode=True) as env:
       Script.config = dummy_config
       script.install_packages("env")
     resource_dump = pprint.pformat(env.resource_list)

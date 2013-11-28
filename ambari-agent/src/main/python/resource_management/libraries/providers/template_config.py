@@ -41,4 +41,3 @@ class TemplateConfigProvider(Provider):
        mode    = self.resource.mode,
        content = Template(template_name, extra_imports=self.resource.extra_imports)
       )
-    env.run()

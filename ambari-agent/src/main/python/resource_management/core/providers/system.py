@@ -56,7 +56,6 @@ def _coerce_gid(group):
 
 def _ensure_metadata(path, user, group, mode=None, log=None):
   stat = os.stat(path)
-  updated = False
 
   if mode:
     existing_mode = stat.st_mode & 07777
@@ -64,7 +63,6 @@ def _ensure_metadata(path, user, group, mode=None, log=None):
       log and log.info("Changing permission for %s from %o to %o" % (
       path, existing_mode, mode))
       os.chmod(path, mode)
-      updated = True
 
   if user:
     uid = _coerce_uid(user)
@@ -72,7 +70,6 @@ def _ensure_metadata(path, user, group, mode=None, log=None):
       log and log.info(
         "Changing owner for %s from %d to %s" % (path, stat.st_uid, user))
       os.chown(path, uid, -1)
-      updated = True
 
   if group:
     gid = _coerce_gid(group)
@@ -80,9 +77,6 @@ def _ensure_metadata(path, user, group, mode=None, log=None):
       log and log.info(
         "Changing group for %s from %d to %s" % (path, stat.st_gid, group))
       os.chown(path, -1, gid)
-      updated = True
-
-  return updated
 
 
 class FileProvider(Provider):
@@ -116,12 +110,10 @@ class FileProvider(Provider):
       with open(path, "wb") as fp:
         if content:
           fp.write(content)
-      self.resource.updated()
 
-    if _ensure_metadata(self.resource.path, self.resource.owner,
+    _ensure_metadata(self.resource.path, self.resource.owner,
                         self.resource.group, mode=self.resource.mode,
-                        log=self.log):
-      self.resource.updated()
+                        log=self.log)
 
   def action_delete(self):
     path = self.resource.path
@@ -132,7 +124,6 @@ class FileProvider(Provider):
     if os.path.exists(path):
       self.log.info("Deleting %s" % self.resource)
       os.unlink(path)
-      self.resource.updated()
 
   def _get_content(self):
     content = self.resource.content
@@ -158,14 +149,12 @@ class DirectoryProvider(Provider):
           raise Fail("Applying %s failed, parent directory %s doesn't exist" % (self.resource, dirname))
         
         os.mkdir(path, self.resource.mode or 0755)
-      self.resource.updated()
       
     if not os.path.isdir(path):
       raise Fail("Applying %s failed, file %s already exists" % (self.resource, path))
 
-    if _ensure_metadata(path, self.resource.owner, self.resource.group,
-                        mode=self.resource.mode, log=self.log):
-      self.resource.updated()
+    _ensure_metadata(path, self.resource.owner, self.resource.group,
+                        mode=self.resource.mode, log=self.log)
 
   def action_delete(self):
     path = self.resource.path
@@ -175,7 +164,6 @@ class DirectoryProvider(Provider):
       
       self.log.info("Removing directory %s and all its content" % self.resource)
       shutil.rmtree(path)
-      self.resource.updated()
 
 
 class LinkProvider(Provider):
@@ -200,21 +188,18 @@ class LinkProvider(Provider):
       
       self.log.info("Creating hard %s" % self.resource)
       os.link(self.resource.to, path)
-      self.resource.updated()
     else:
       if not os.path.exists(self.resource.to):
         self.log.info("Warning: linking to nonexistent location %s", self.resource.to)
         
       self.log.info("Creating symbolic %s" % self.resource)
       os.symlink(self.resource.to, path)
-      self.resource.updated()
 
   def action_delete(self):
     path = self.resource.path
     if os.path.exists(path):
       self.log.info("Deleting %s" % self.resource)
       os.unlink(path)
-      self.resource.updated()
 
 
 def _preexec_fn(resource):
@@ -257,8 +242,6 @@ class ExecuteProvider(Provider):
         else:
           self.log.info("Retrying after %d seconds. Reason: %s", self.resource.try_sleep, str(ex))
           time.sleep(self.resource.try_sleep)
-
-    self.resource.updated()
        
 
 class ExecuteScriptProvider(Provider):
@@ -274,4 +257,3 @@ class ExecuteScriptProvider(Provider):
       shell.call([self.resource.interpreter, tf.name],
                       cwd=self.resource.cwd, env=self.resource.environment,
                       preexec_fn=_preexec_fn(self.resource))
-    self.resource.updated()

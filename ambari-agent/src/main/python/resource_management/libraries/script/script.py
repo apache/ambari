@@ -78,7 +78,6 @@ class Script():
     try:
       with Environment(basedir) as env:
         method(env)
-      env.run()
     except Fail:
       logger.exception("Got exception while executing method '{0}':".format(command_type))
       sys.exit(1)

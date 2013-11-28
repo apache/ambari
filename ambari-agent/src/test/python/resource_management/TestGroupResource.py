@@ -42,7 +42,7 @@ class TestGroupResource(TestCase):
             action='create',
             password='secure'
       )
-    env.run()
+    
 
     self.assertEqual(popen_mock.call_count, 1)
     popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'groupadd -p secure hadoop'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
@@ -63,7 +63,7 @@ class TestGroupResource(TestCase):
             gid=2,
             password='secure'
       )
-    env.run()
+    
 
     self.assertEqual(popen_mock.call_count, 1)
     popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'groupmod -p secure -g 2 mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
@@ -85,7 +85,7 @@ class TestGroupResource(TestCase):
               gid=2,
               password='secure'
         )
-      env.run()
+      
       self.fail("Action 'create' should fail when checked_call fails")
     except Fail:
       pass
@@ -107,7 +107,7 @@ class TestGroupResource(TestCase):
       Group('mapred',
             action='remove'
       )
-    env.run()
+    
 
     self.assertEqual(popen_mock.call_count, 1)
     popen_mock.assert_called_with(['/bin/bash', '--login', '-c', 'groupdel mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env=None, cwd=None)
@@ -128,7 +128,7 @@ class TestGroupResource(TestCase):
         Group('mapred',
               action='remove'
         )
-      env.run()
+      
       self.fail("Action 'delete' should fail when checked_call fails")
     except Fail:
       pass

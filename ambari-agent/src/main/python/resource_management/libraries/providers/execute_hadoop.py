@@ -51,4 +51,3 @@ class ExecuteHadoopProvider(Provider):
         try_sleep   = self.resource.try_sleep,
         logoutput   = self.resource.logoutput,
       )
-    env.run()
