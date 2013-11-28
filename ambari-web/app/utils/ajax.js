@@ -279,6 +279,16 @@ var urls = {
       }
     }
   },
+  'host.delete': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}',
+    'mock': '',
+    'type': 'DELETE',
+    'format': function (data) {
+      return {
+        async: false
+      }
+    }
+  },
   'config.stale.stop_component': {
     'real': '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}',
     'mock': '',

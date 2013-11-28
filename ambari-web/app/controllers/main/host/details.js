@@ -926,7 +926,6 @@ App.MainHostDetailsController = Em.Controller.extend({
       }),
       onPrimary: function() {
         if (!this.get('enablePrimary')) return;
-        var dialogSelf = this;
         var allComponents = self.get('content.hostComponents');
         var deleteError = null;
         allComponents.forEach(function(component){
@@ -935,35 +934,37 @@ App.MainHostDetailsController = Em.Controller.extend({
           }
         });
         if (!deleteError) {
-          var url = App.apiPrefix + '/clusters/' + App.router.getClusterName() + '/hosts/' + self.get('content.hostName');
-          $.ajax({
-            type: 'DELETE',
-            url: url,
-            timeout: App.timeout,
-            async: false,
-            success: function (data) {
-              dialogSelf.hide();
-              App.router.get('updateController').updateAll();
-              App.router.transitionTo('hosts.index');
+          App.ajax.send({
+            name: 'host.delete',
+            sender: this,
+            data: {
+              hostName: self.get('content.hostName')
             },
-            error: function (xhr, textStatus, errorThrown) {
-              console.log('Error deleting host component');
-              console.log(textStatus);
-              console.log(errorThrown);
-              dialogSelf.hide();
-              xhr.responseText = "{\"message\": \"" + xhr.statusText + "\"}";
-              App.ajax.defaultErrorHandler(xhr, url, 'DELETE', xhr.status);
-            },
-            statusCode: require('data/statusCodes')
+            success: 'deleteHostSuccessCallback',
+            error: 'deleteHostErrorCallback'
           });
-        } else {
-          dialogSelf.hide();
+
+        }
+        else {
+          this.hide();
           deleteError.xhr.responseText = "{\"message\": \"" + deleteError.xhr.statusText + "\"}";
           App.ajax.defaultErrorHandler(deleteError.xhr, deleteError.url, deleteError.method, deleteError.xhr.status);
         }
       },
-      onSecondary: function() {
+      deleteHostSuccessCallback: function(data) {
+        var dialogSelf = this;
+        App.router.get('updateController').updateHost(function(){
+          dialogSelf.hide();
+          App.router.transitionTo('hosts.index');
+        });
+      },
+      deleteHostErrorCallback: function (xhr, textStatus, errorThrown, opt) {
+        console.log('Error deleting host.');
+        console.log(textStatus);
+        console.log(errorThrown);
+        xhr.responseText = "{\"message\": \"" + xhr.statusText + "\"}";
         this.hide();
+        App.ajax.defaultErrorHandler(xhr, opt.url, 'DELETE', xhr.status);
       }
     })
   },
@@ -980,7 +981,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       if(!staleComponents.findProperty('workStatus','INSTALLED')){
         return;
       }
-    };
+    }
     var content = this;
     return App.ModalPopup.show({
       primary: Em.I18n.t('ok'),
@@ -1017,12 +1018,9 @@ App.MainHostDetailsController = Em.Controller.extend({
               state: state
             }
           });
-        })
+        });
         this.hide();
         App.router.get('backgroundOperationsController').showPopup();
-      },
-      onSecondary: function () {
-        this.hide();
       }
     });
   },
