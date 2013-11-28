@@ -45,7 +45,7 @@ App.enableExperimental = false;
 App.supports = {
   addServices: false,
   hostOverrides: true,
-  hostOverridesInstaller: true,
+  hostOverridesInstaller: false,
   hostOverridesHost: true,
   mirroring: false,
   secureCluster: true,

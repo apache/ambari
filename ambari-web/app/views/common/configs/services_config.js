@@ -317,9 +317,13 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
    * Filtered <code>categoryConfigs</code> array. Used to show filtered result
    */
   filteredCategoryConfigs: function () {
-    var filter = this.get('parentView.filter').toLowerCase();
+    var filter = this.get('parentView.filter');
+    var columns = this.get('parentView.columns');
+    if (filter != null) {
+      filter = filter.toLowerCase();
+    }
     //var isOnlyModified = this.get('parentView.columns').length && this.get('parentView.columns')[1].get('selected');
-    var isOnlyOverridden = this.get('parentView.columns').length && this.get('parentView.columns')[0].get('selected');
+    var isOnlyOverridden = columns!=null ? (columns.length && columns[0].get('selected')) : false;
     //var isOnlyRestartRequired = this.get('parentView.columns').length && this.get('parentView.columns')[2].get('selected');
     var filteredResult = this.get('categoryConfigs').filter(function (config) {
 
@@ -344,8 +348,11 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
        });
      }
 
-
-      return searchString.toLowerCase().indexOf(filter) > -1;
+     if (filter != null) {
+       return searchString.toLowerCase().indexOf(filter) > -1;
+     } else {
+       return true;
+     }
     });
     filteredResult = this.sortByIndex(filteredResult);
     return filteredResult;
