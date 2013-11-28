@@ -191,8 +191,9 @@ App.ServiceConfigProperty = Ember.Object.extend({
   isRemovable: function() {
     var isOriginalSCP = this.get('isOriginalSCP');
     var isUserProperty = this.get('isUserProperty');
-    // Removable when this is a user property, or it is not an original property
-    return isUserProperty || !isOriginalSCP;
+    var isEditable = this.get('isEditable');
+    // Removable when this is a user property, or it is not an original property and it is editable
+    return isEditable && (isUserProperty || !isOriginalSCP);
   }.property('isUserProperty', 'isOriginalSCP'),
   init: function () {
     if(this.get("displayType")=="password"){
