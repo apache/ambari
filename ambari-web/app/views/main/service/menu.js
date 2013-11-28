@@ -80,7 +80,7 @@ App.MainServiceMenuView = Em.CollectionView.extend({
     }.property('App.router.clusterController.alerts'),
 
     refreshRestartRequiredMessage: function() {
-      var restarted, componentsCount, hostsCount, message;
+      var restarted, componentsCount, hostsCount, message, tHosts, tComponents;
       restarted = this.get('content.restartRequiredHostsAndComponents');
       componentsCount = 0;
       hostsCount = 0;
@@ -89,8 +89,18 @@ App.MainServiceMenuView = Em.CollectionView.extend({
         hostsCount++;
         componentsCount += restarted[host].length;
       }
-      message += componentsCount + ' ' + Em.I18n.t('common.components') + ' ' + Em.I18n.t('on') + ' ' +
-        hostsCount + ' ' + Em.I18n.t('common.hosts') + ' ' + Em.I18n.t('services.service.config.restartService.needToRestartEnd');
+      if (hostsCount > 1) {
+        tHosts = Em.I18n.t('common.hosts');
+      } else {
+        tHosts = Em.I18n.t('common.host');
+      }
+      if (componentsCount > 1) {
+        tComponents = Em.I18n.t('common.components');
+      } else {
+        tComponents = Em.I18n.t('common.component');
+      }
+      message += componentsCount + ' ' + tComponents + ' ' + Em.I18n.t('on') + ' ' +
+        hostsCount + ' ' + tHosts + ' ' + Em.I18n.t('services.service.config.restartService.needToRestartEnd');
       this.set('restartRequiredMessage', message);
     }.observes('content.restartRequiredHostsAndComponents')
   })

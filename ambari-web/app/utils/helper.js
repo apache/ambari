@@ -99,6 +99,42 @@ Em.Handlebars.registerHelper('highlight', function (property, words, fn) {
 
   return new Em.Handlebars.SafeString(property);
 })
+
+/*
+ * Return singular or plural word based on Em.I18n property key.
+ *  @param count - integer count property *required
+ *  @param singular - singular version of word, for example "t:common.host" *required
+ *  @param plural - plural version of word *required
+ *  @return {String}
+ *
+ *  Example: {{pluralize hostsCount "t:host" "t:hosts"}}
+ */
+Em.Handlebars.registerHelper('pluralize', function(count, singular, plural, fn) {
+  var context = (fn.contexts && fn.contexts[0]) || this;
+  count = Em.Handlebars.getPath(context, count, fn);
+
+  tDetect = function(word, keyOnly) {
+    var splitted = word.split(':');
+    if (splitted.length > 1 && splitted[0] == 't') {
+      if (keyOnly) {
+        return splitted[1];
+      }
+      return Em.I18n.t(splitted[1]);
+    } else {
+      return splitted[0];
+    }
+  }
+  singular = tDetect(singular);
+  plural = tDetect(plural);
+  if (singular && plural) {
+    if (count > 1) {
+      return plural;
+    } else {
+      return singular;
+    }
+  }
+});
+
 /**
  * Replace {i} with argument. where i is number of argument to replace with
  * @return {String}

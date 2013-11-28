@@ -57,7 +57,15 @@ App.MainHostSummaryView = Em.View.extend({
   }.property('sortedComponents.@each.workStatus'),
 
   needToRestartMessage: function() {
-    return Em.I18n.t('hosts.host.details.needToRestart').format(this.get('needToRestartComponentsCount'));
+    var componentsCount, word;
+    this.set('needToRestartComponentsCount', 1);
+    componentsCount = this.get('needToRestartComponentsCount');
+    if (componentsCount > 1) {
+      word = Em.I18n.t('common.components').toLowerCase();
+    } else {
+      word = Em.I18n.t('common.component').toLowerCase();
+    }
+    return Em.I18n.t('hosts.host.details.needToRestart').format(this.get('needToRestartComponentsCount'), word);
   }.property('needToRestartComponentsCount'),
 
   /**

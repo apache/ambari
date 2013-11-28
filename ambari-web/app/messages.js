@@ -1324,7 +1324,7 @@ Em.I18n.translations = {
   'hosts.host.summary.addComponent':'Add Component',
 
   'hosts.host.details.hostActions':'Host Actions',
-  'hosts.host.details.needToRestart':'Host needs {0} components restarted',
+  'hosts.host.details.needToRestart':'Host needs {0} {1} restarted',
   'hosts.host.details.needToRestart.button':'Restart components',
   'hosts.host.details.needToRestart.stopButton':'Stop Components',
   'hosts.host.details.needToRestart.startButton':'Start Components',
