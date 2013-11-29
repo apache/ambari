@@ -307,6 +307,7 @@ App.WizardStep9Controller = Em.Controller.extend({
             return role + Em.I18n.t('installer.step9.serviceStatus.stop.failed');
         }
       case 'EXECUTE' :
+      case 'SERVICE_CHECK' :
         switch (task.status) {
           case 'PENDING':
             return Em.I18n.t('installer.step9.serviceStatus.execute.pending') + role;
