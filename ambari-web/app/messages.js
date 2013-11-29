@@ -276,7 +276,7 @@ Em.I18n.translations = {
   'installer.step1.header':'Select Stack',
   'installer.step1.body':'Please select the service stack that you want to use to install your Hadoop cluster.',
   'installer.step1.advancedRepo.title':'Advanced Repository Options',
-  'installer.step1.advancedRepo.message':'Customize the repository Base URLs for downloading the Stack software packages. If your hosts do not have access to the internet, you will have to create a local mirror of the Stack repository that is accessible by all hosts and use those Base URLs shere.',
+  'installer.step1.advancedRepo.message':'Customize the repository Base URLs for downloading the Stack software packages. If your hosts do not have access to the internet, you will have to create a local mirror of the Stack repository that is accessible by all hosts and use those Base URLs here.',
   'installer.step1.advancedRepo.importantMassage':'<b>Important:</b> When using local mirror repositories, you only need to provide Base URLs for the Operating System you are installing for your Stack. Uncheck all other repositories.',
   'installer.step1.advancedRepo.localRepo.error.modifyUrl':'Local repository URL must be modified',
   'installer.step1.advancedRepo.localRepo.error.noUrl':'Base URL required for a local repository',
@@ -285,7 +285,7 @@ Em.I18n.translations = {
   'installer.step1.advancedRepo.localRepo.label.baseUrl':'Repository Base URL',
   'installer.step1.advancedRepo.localRepo.label.stack':'Stack',
   'installer.step1.attentionNeeded':'<b>Attention:</b> Repository URLs are REQUIRED before you can proceed.',
-  'installer.step1.invalidURLAttention': '<b>Attention:</b> Please make sure all repository URLs are valid before proceed.',
+  'installer.step1.invalidURLAttention': '<b>Attention:</b> Please make sure all repository URLs are valid before proceeding.',
   'installer.step1.checkAtLeastOneAttention': '<b>Attention:</b> Please check at least one repository.',
 
   'installer.step2.header':'Install Options',
