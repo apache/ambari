@@ -295,6 +295,15 @@ var urls = {
       }
     }
   },
+  'host.delete': {
+    'real': '/clusters/{clusterName}/hosts/{hostName}',
+    'mock': '',
+    'type': 'DELETE',
+    'format': function (data) {
+      return {
+        async: false
+      }
+    }
   'service.metrics.flume.channel_fill_percent': {
     'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_SERVER?fields=host_components/metrics/flume/flume/CHANNEL/*/ChannelFillPercentage[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/flume/channelFillPct.json',
