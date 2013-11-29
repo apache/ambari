@@ -99,9 +99,18 @@ public class HostRoleCommandEntity {
   @Basic
   private byte[] stdOut = new byte[0];
 
+  @Column(name = "structured_out")
+  @Lob
+  @Basic
+  private byte[] structuredOut = new byte[0];
+
   @Basic
   @Column(name = "start_time", nullable = false)
   private Long startTime = -1L;
+
+  @Basic
+  @Column(name = "end_time", nullable = false)
+  private Long endTime = -1L;
 
   @Basic
   @Column(name = "last_attempt_time", nullable = false)
@@ -238,6 +247,22 @@ public class HostRoleCommandEntity {
     this.roleCommand = roleCommand;
   }
 
+  public byte[] getStructuredOut() {
+    return structuredOut;
+  }
+
+  public void setStructuredOut(byte[] structuredOut) {
+    this.structuredOut = structuredOut;
+  }
+
+  public Long getEndTime() {
+    return endTime;
+  }
+
+  public void setEndTime(Long endTime) {
+    this.endTime = endTime;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -259,6 +284,8 @@ public class HostRoleCommandEntity {
     if (stdError != null ? !Arrays.equals(stdError, that.stdError) : that.stdError != null) return false;
     if (stdOut != null ? !Arrays.equals(stdOut, that.stdOut) : that.stdOut != null) return false;
     if (taskId != null ? !taskId.equals(that.taskId) : that.taskId != null) return false;
+    if (structuredOut != null ? !Arrays.equals(structuredOut, that.structuredOut) : that.structuredOut != null) return false;
+    if (endTime != null ? !endTime.equals(that.endTime) : that.endTime != null) return false;
 
     return true;
   }
@@ -278,6 +305,8 @@ public class HostRoleCommandEntity {
     result = 31 * result + (startTime != null ? startTime.hashCode() : 0);
     result = 31 * result + (lastAttemptTime != null ? lastAttemptTime.hashCode() : 0);
     result = 31 * result + (attemptCount != null ? attemptCount.hashCode() : 0);
+    result = 31 * result + (endTime != null ? endTime.hashCode() : 0);
+    result = 31 * result + (structuredOut != null ? Arrays.hashCode(structuredOut) : 0);
     return result;
   }
 

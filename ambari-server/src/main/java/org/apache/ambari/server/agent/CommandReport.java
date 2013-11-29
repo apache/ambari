@@ -28,6 +28,7 @@ public class CommandReport {
   private String actionId;
   private String stdout;
   private String stderr;
+  private String structuredOut;
   private String status;
   int exitCode;
   private String clusterName;
@@ -95,6 +96,17 @@ public class CommandReport {
   @JsonProperty("stdout")
   public void setStdOut(String stdout) {
     this.stdout = stdout;
+  }
+
+  @JsonProperty("structuredOut")
+  public String getStructuredOut() {
+    return this.structuredOut;
+  }
+
+
+  @JsonProperty("structuredOut")
+  public void setStructuredOut(String structuredOut) {
+    this.structuredOut = structuredOut;
   }
 
   @JsonProperty("roleCommand")

@@ -47,9 +47,11 @@ public class HostRoleCommand {
   private HostRoleStatus status = HostRoleStatus.PENDING;
   private String stdout = "";
   private String stderr = "";
+  private String structuredOut = "";
   private int exitCode = 999; //Default is unknown
   private final ServiceComponentHostEventWrapper event;
   private long startTime = -1;
+  private long endTime = -1;
   private long lastAttemptTime = -1;
   private short attemptCount = 0;
   private RoleCommand roleCommand;
@@ -76,8 +78,10 @@ public class HostRoleCommand {
     status = hostRoleCommandEntity.getStatus();
     stdout = hostRoleCommandEntity.getStdOut() != null ? new String(hostRoleCommandEntity.getStdOut()) : "";
     stderr = hostRoleCommandEntity.getStdError() != null ? new String(hostRoleCommandEntity.getStdError()) : "";
+    structuredOut = hostRoleCommandEntity.getStructuredOut() != null ? new String(hostRoleCommandEntity.getStructuredOut()) : "";
     exitCode = hostRoleCommandEntity.getExitcode();
     startTime = hostRoleCommandEntity.getStartTime();
+    endTime = hostRoleCommandEntity.getEndTime() != null ? hostRoleCommandEntity.getEndTime() : -1L;
     lastAttemptTime = hostRoleCommandEntity.getLastAttemptTime();
     attemptCount = hostRoleCommandEntity.getAttemptCount();
     roleCommand = hostRoleCommandEntity.getRoleCommand();
@@ -95,7 +99,9 @@ public class HostRoleCommand {
     hostRoleCommandEntity.setStdError(stderr.getBytes());
     hostRoleCommandEntity.setExitcode(exitCode);
     hostRoleCommandEntity.setStdOut(stdout.getBytes());
+    hostRoleCommandEntity.setStructuredOut(structuredOut.getBytes());
     hostRoleCommandEntity.setStartTime(startTime);
+    hostRoleCommandEntity.setEndTime(endTime);
     hostRoleCommandEntity.setLastAttemptTime(lastAttemptTime);
     hostRoleCommandEntity.setAttemptCount(attemptCount);
     hostRoleCommandEntity.setRoleCommand(roleCommand);
@@ -191,6 +197,22 @@ public class HostRoleCommand {
 
   public void incrementAttemptCount() {
     this.attemptCount++;
+  }
+
+  public String getStructuredOut() {
+    return structuredOut;
+  }
+
+  public void setStructuredOut(String structuredOut) {
+    this.structuredOut = structuredOut;
+  }
+
+  public long getEndTime() {
+    return endTime;
+  }
+
+  public void setEndTime(long endTime) {
+    this.endTime = endTime;
   }
 
   public ExecutionCommandWrapper getExecutionCommandWrapper() {

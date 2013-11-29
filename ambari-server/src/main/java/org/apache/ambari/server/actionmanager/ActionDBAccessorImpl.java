@@ -117,6 +117,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    */
   @Override
   public void abortOperation(long requestId) {
+    long now = System.currentTimeMillis();
     List<HostRoleCommandEntity> commands =
         hostRoleCommandDAO.findByRequest(requestId);
     for (HostRoleCommandEntity command : commands) {
@@ -124,6 +125,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
           command.getStatus() == HostRoleStatus.IN_PROGRESS ||
           command.getStatus() == HostRoleStatus.PENDING) {
         command.setStatus(HostRoleStatus.ABORTED);
+        command.setEndTime(now);
         hostRoleCommandDAO.merge(command);
         LOG.info("Aborting command. Hostname " + command.getHostName()
             + " role " + command.getRole()
@@ -141,10 +143,12 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   @Transactional
   public void timeoutHostRole(String host, long requestId, long stageId,
                               String role) {
+    long now = System.currentTimeMillis();
     List<HostRoleCommandEntity> commands =
         hostRoleCommandDAO.findByHostRole(host, requestId, stageId, role);
     for (HostRoleCommandEntity command : commands) {
       command.setStatus(HostRoleStatus.TIMEDOUT);
+      command.setEndTime(now);
       hostRoleCommandDAO.merge(command);
     }
   }
@@ -229,12 +233,20 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
           + "HostName " + hostname + " requestId " + requestId + " stageId "
           + stageId + " role " + role + " report " + report);
     }
+    long now = System.currentTimeMillis();
     List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findByHostRole(
         hostname, requestId, stageId, role);
     for (HostRoleCommandEntity command : commands) {
       command.setStatus(HostRoleStatus.valueOf(report.getStatus()));
       command.setStdOut(report.getStdOut().getBytes());
       command.setStdError(report.getStdErr().getBytes());
+      command.setStructuredOut(report.getStructuredOut() == null ? null :
+        report.getStructuredOut().getBytes());           // ===================================
+      if (command.getStatus() == HostRoleStatus.COMPLETED ||
+          command.getStatus() == HostRoleStatus.ABORTED ||
+          command.getStatus() == HostRoleStatus.FAILED) {
+        command.setEndTime(now);
+      }
       command.setExitcode(report.getExitCode());
       hostRoleCommandDAO.merge(command);
     }

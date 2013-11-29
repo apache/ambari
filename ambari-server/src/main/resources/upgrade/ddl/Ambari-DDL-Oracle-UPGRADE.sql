@@ -76,4 +76,8 @@ ALTER TABLE stage MODIFY (cluster_host_info NOT NULL);
 
 ALTER TABLE ambari.hosts DROP COLUMN disks_info;
 
+--Added end_time and structured output support to command execution result
+ALTER TABLE host_role_command ADD (end_time NUMBER(19) DEFAULT NULL);
+ALTER TABLE host_role_command ADD (structured_out BLOB DEFAULT NULL);
+
 commit;

@@ -238,6 +238,7 @@ public class TestActionDBAccessorImpl {
     commandReport.setStatus(HostRoleStatus.COMPLETED.toString());
     commandReport.setStdOut(largeString);
     commandReport.setStdErr(largeString);
+    commandReport.setStructuredOut(largeString);
     commandReport.setExitCode(123);
     db.updateHostRoleState(hostName, requestId, stageId, Role.HBASE_MASTER.toString(), commandReport);
 
@@ -249,6 +250,10 @@ public class TestActionDBAccessorImpl {
     assertNotNull(command);
 
     assertEquals(largeString, command.getStdout());
+    assertEquals(largeString, command.getStructuredOut());
+
+    //endTime for completed commands should be set
+    assertTrue(command.getEndTime() != -1);
 
   }
 

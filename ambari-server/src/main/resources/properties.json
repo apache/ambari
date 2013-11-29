@@ -118,6 +118,8 @@
         "Tasks/stderr",
         "Tasks/stdout",
         "Tasks/start_time",
+        "Tasks/end_time",
+        "Tasks/structured_out",
         "Tasks/attempt_cnt",
         "_"
     ],

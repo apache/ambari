@@ -98,6 +98,7 @@ public class TestActionManager {
     cr.setStatus("COMPLETED");
     cr.setStdErr("ERROR");
     cr.setStdOut("OUTPUT");
+    cr.setStructuredOut("STRUCTURED_OUTPUT");
     cr.setExitCode(215);
     reports.add(cr);
     am.processTaskResponse(hostname, reports);
@@ -113,7 +114,10 @@ public class TestActionManager {
         "OUTPUT",
         am.getAction(requestId, stageId)
             .getHostRoleCommand(hostname, "HBASE_MASTER").getStdout());
-    
+    assertEquals(
+      "STRUCTURED_OUTPUT",
+      am.getAction(requestId, stageId)
+        .getHostRoleCommand(hostname, "HBASE_MASTER").getStructuredOut());
   }
   
   @Test
@@ -136,6 +140,7 @@ public class TestActionManager {
     String outLog = Arrays.toString(new byte[110000]);
     cr.setStdErr(errLog);
     cr.setStdOut(outLog);
+    cr.setStructuredOut(outLog);
     cr.setExitCode(215);
     reports.add(cr);
     am.processTaskResponse(hostname, reports);
@@ -151,7 +156,10 @@ public class TestActionManager {
         outLog.length(),
         am.getAction(requestId, stageId)
             .getHostRoleCommand(hostname, "HBASE_MASTER").getStdout().length());
-    
+    assertEquals(
+        outLog.length(),
+        am.getAction(requestId, stageId)
+            .getHostRoleCommand(hostname, "HBASE_MASTER").getStructuredOut().length());
   }
 
   private void populateActionDB(ActionDBAccessor db, String hostname) {

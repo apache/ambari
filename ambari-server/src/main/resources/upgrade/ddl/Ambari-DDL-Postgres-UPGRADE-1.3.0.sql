@@ -154,3 +154,7 @@ UPDATE ambari.stage sd
 ALTER TABLE ambari.stage ALTER COLUMN cluster_host_info SET NOT NULL;
 
 ALTER TABLE ambari.hosts DROP COLUMN disks_info;
+
+--Added end_time and structured output support to command execution result
+ALTER TABLE ambari.host_role_command ADD COLUMN end_time BIGINT;
+ALTER TABLE ambari.host_role_command ADD COLUMN structured_out BYTEA;
