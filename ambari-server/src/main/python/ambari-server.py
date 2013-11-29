@@ -291,7 +291,7 @@ DATABASE_INDEX = 0
 PROMPT_DATABASE_OPTIONS = False
 USERNAME_PATTERN = "^[a-zA-Z_][a-zA-Z0-9_\-]*$"
 PASSWORD_PATTERN = "^[a-zA-Z0-9_-]*$"
-DATABASE_NAMES =["postgres", "oracle"]
+DATABASE_NAMES =["postgres", "oracle", "mysql"]
 DATABASE_STORAGE_NAMES =["Database","Service","Schema"]
 DATABASE_PORTS =["5432", "1521", "3306"]
 DATABASE_DRIVER_NAMES = ["org.postgresql.Driver", "oracle.jdbc.driver.OracleDriver", "com.mysql.jdbc.Driver"]
@@ -1106,9 +1106,9 @@ def prompt_db_properties(args):
 
       database_num = str(DATABASE_INDEX + 1)
       database_num = get_validated_string_input(
-        "[1] - PostgreSQL (Embedded)\n[2] - Oracle\n==============================================================================\nEnter choice (" + database_num + "): ",
+        "[1] - PostgreSQL (Embedded)\n[2] - Oracle\n[3] - MySQL\n==============================================================================\nEnter choice (" + database_num + "): ",
         database_num,
-        "^[12]$",
+        "^[123]$",
         "Invalid number.",
         False
       )
@@ -1152,8 +1152,11 @@ def prompt_db_properties(args):
           IDTYPE_INDEX = int(idType) - 1
           args.database_name = get_validated_service_name(args.database_name, 
                                                           IDTYPE_INDEX)
+        elif args.database == "mysql":
+          args.database_name = get_validated_db_name(args.database_name)
+
         else:
-          # MySQL and other DB types
+          # other DB types
           pass
         pass
       else:

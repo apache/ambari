@@ -2830,7 +2830,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     failed = False
     args = MagicMock()
-    ambari_server.DATABASE_INDEX = 2
+    ambari_server.DATABASE_INDEX = 999
     try:
       ambari_server.load_default_db_properties(args)
     except:
