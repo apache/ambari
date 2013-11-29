@@ -76,9 +76,22 @@ App.ConfigGroup = Ember.Object.extend({
    */
   hosts: [],
 
+  /**
+   * Provides a display friendly name. This includes trimming
+   * names to a certain length.
+   */
   displayName: function () {
-    return this.get('name') + ' (' + this.get('hosts.length') + ')';
-  }.property('name', 'hosts.length'),
+    var name = this.get('name');
+    if (name && name.length>App.config.CONFIG_GROUP_NAME_MAX_LENGTH) {
+      var middle = Math.floor(App.config.CONFIG_GROUP_NAME_MAX_LENGTH / 2);
+      name = name.substring(0, middle) + "..." + name.substring(name.length-middle);
+    }
+    return name;
+  }.property('name'),
+
+  displayNameHosts: function () {
+    return this.get('displayName') + ' (' + this.get('hosts.length') + ')';
+  }.property('displayName', 'hosts.length'),
 
   apiResponse: null,
 

@@ -363,19 +363,19 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       warningMessage: '',
       validate: function () {
         var warningMessage = '';
-        if (self.get('usedConfigGroupNames').concat(self.get('configGroups').mapProperty('name')).contains(this.get('configGroupName'))) {
+        if (self.get('usedConfigGroupNames').concat(self.get('configGroups').mapProperty('name')).contains(this.get('configGroupName').trim())) {
           warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
         }
         this.set('warningMessage', warningMessage);
       }.observes('configGroupName'),
       enablePrimary: function () {
-        return this.get('configGroupName').length > 0 && !this.get('warningMessage');
+        return this.get('configGroupName').trim().length > 0 && !this.get('warningMessage');
       }.property('warningMessage', 'configGroupName'),
       onPrimary: function () {
         if (!this.get('enablePrimary')) {
           return false;
         }
-        this.get('content').set('configGroupName', this.get('configGroupName'));
+        this.get('content').set('configGroupName', this.get('configGroupName').trim());
         this.get('content').set('configGroupDesc', this.get('configGroupDesc'));
         var desiredConfig = [];
          if (isDuplicated) {
@@ -391,7 +391,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
             })
           }, this);
         }
-        self.createNewConfigurationGroup(this.get('configGroupName'),this.get('content.serviceName'),this.get('configGroupDesc'), desiredConfig, this.get('content'));
+        self.createNewConfigurationGroup(this.get('configGroupName').trim(),this.get('content.serviceName'),this.get('configGroupDesc'), desiredConfig, this.get('content'));
       },
       onSecondary: function () {
         this.hide();

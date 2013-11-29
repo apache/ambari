@@ -43,6 +43,8 @@ App.config = Em.Object.create({
     "&apos;": "'"
   },
   
+  CONFIG_GROUP_NAME_MAX_LENGTH: 40,
+
   /**
    * Since values end up in XML files (core-sit.xml, etc.), certain
    * XML sensitive characters should be escaped. If not we will have

@@ -21,7 +21,7 @@
     <div {{bindAttr class="overriddenSCP.errorMessage:error: :control-group :overrideField"}}>
       {{view overriddenSCP.viewClass serviceConfigBinding="overriddenSCP" categoryConfigsBinding="view.categoryConfigs"}}
       {{#if overriddenSCP.group}}
-        <a class="action" {{action selectConfigGroup overriddenSCP.group target="controller"}}>{{overriddenSCP.group.name}}</a>
+        <a class="action" {{action selectConfigGroup overriddenSCP.group target="controller"}}>{{overriddenSCP.group.displayName}}</a>
       {{/if}}
       {{#if overriddenSCP.isEditable}}
 	      {{#if isNotDefaultValue}}
