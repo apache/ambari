@@ -46,21 +46,25 @@ App.NodeManagersLiveView = App.TextDashboardWidgetView.extend({
   thresh2: 70,
   maxValue: 100,
 
-  data:  function () {
+  nodeManagersLive: function(){
+    return App.HostComponent.find().filterProperty('componentName', 'NODEMANAGER').filterProperty("workStatus","STARTED");
+  }.property('model.hostComponents.@each'),
+
+  data: function () {
     var nodeManagers = this.get('model.nodeManagerNodes.length');
-    var nodeManagersLive = this.get('model.nodeManagerLiveNodes.length');
+    var nodeManagersLive = this.get('nodeManagersLive').length;
     if (!nodeManagers) {
       return -1;
     } else {
       return (nodeManagersLive / nodeManagers).toFixed(2) * 100;
     }
-  }.property('model.nodeManagerNodes.length', 'model.nodeManagerLiveNodes.length'),
+  }.property('model.nodeManagerNodes.length', 'nodeManagersLive'),
 
   content: function () {
     var nodeManagers = this.get('model.nodeManagerNodes.length');
-    var nodeManagersLive = this.get('model.nodeManagerLiveNodes.length');
+    var nodeManagersLive = this.get('nodeManagersLive').length;
     return nodeManagersLive + '/' + nodeManagers;
-  }.property('model.nodeManagerNodes.length', 'model.nodeManagerLiveNodes.length'),
+  }.property('model.nodeManagerNodes.length', 'nodeManagersLive'),
 
   editWidget: function (event) {
     var parent = this;
