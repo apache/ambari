@@ -522,12 +522,13 @@ module.exports = Em.Route.extend({
     }),
 
     back: function (router, event) {
-      window.history.back();
-    },
-
-    showDetails: function (router, event) {
-      router.get('mainHostDetailsController').setBack(true);
-      router.transitionTo('hostDetails.summary', event.context)
+      var referer = router.get('mainHostDetailsController.referer');
+      if (referer) {
+        router.route(referer);
+      }
+      else {
+        window.history.back();
+      }
     },
 
     addHost: function (router) {
@@ -815,10 +816,6 @@ module.exports = Em.Route.extend({
     route: '/dashboard',
     connectOutlets: function (router, context) {
       router.get('mainController').connectOutlet('mainDashboard');
-    },
-    showDetails: function (router, event) {
-      router.get('mainHostDetailsController').setBack(true);
-      router.transitionTo('hosts.hostDetails.summary', event.context);
     }
   }),
 
@@ -885,10 +882,6 @@ module.exports = Em.Route.extend({
         parent.deactivateChildViews();
         event.view.set('active', "active");
         router.transitionTo(event.context);
-      },
-      showDetails: function (router, event) {
-        router.get('mainHostDetailsController').setBack(true);
-        router.transitionTo('hosts.hostDetails.summary', event.context);
       }
     }),
     showService: Em.Router.transitionTo('service'),
@@ -901,7 +894,7 @@ module.exports = Em.Route.extend({
 
   selectService: Em.Route.transitionTo('services.service.summary'),
   selectHost: function (router, event) {
-    router.get('mainHostDetailsController').setBack(false);
+    router.get('mainHostDetailsController').set('isFromHosts', false);
     router.transitionTo('hosts.hostDetails.index', event.context);
   },
   filterHosts: function (router, component) {
@@ -909,5 +902,10 @@ module.exports = Em.Route.extend({
       return;
     router.get('mainHostController').filterByComponent(component.context);
     router.transitionTo('hosts.index');
+  },
+  showDetails: function (router, event) {
+    router.get('mainHostDetailsController').set('referer', router.location.lastSetURL);
+    router.get('mainHostDetailsController').set('isFromHosts', true);
+    router.transitionTo('hosts.hostDetails.summary', event.context);
   }
 });

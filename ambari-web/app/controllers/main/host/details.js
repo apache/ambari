@@ -24,6 +24,10 @@ App.MainHostDetailsController = Em.Controller.extend({
   isFromHosts: false,
 
   /**
+   * path to page visited before
+   */
+  referer: '',
+  /**
    * open dashboard page
    */
   routeHome: function () {
@@ -37,14 +41,6 @@ App.MainHostDetailsController = Em.Controller.extend({
   routeToService: function(event){
     var service = event.context;
     App.router.transitionTo('main.services.service.summary',service);
-  },
-
-  /**
-   * set new value to isFromHosts property
-   * @param isFromHosts new value
-   */
-  setBack: function(isFromHosts){
-    this.set('isFromHosts', isFromHosts);
   },
 
   /**
