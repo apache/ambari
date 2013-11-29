@@ -367,7 +367,7 @@ App.AddHostController = App.WizardController.extend({
           var service = componentServiceMap[slave.componentName];
           var configGroups = this.get('content.configGroups').filterProperty('ConfigGroup.tag', service);
           var configGroupsNames = configGroups.mapProperty('ConfigGroup.group_name');
-          configGroupsNames.push('Default');
+          configGroupsNames.unshift('Default');
           selectedServices.push({
             serviceId: service,
             displayName: App.Service.DisplayNames[service],
@@ -389,8 +389,8 @@ App.AddHostController = App.WizardController.extend({
           serviceMatch.hosts = serviceMatch.hosts.concat(selectedClientHosts).uniq();
         } else {
           var configGroups = this.get('content.configGroups').filterProperty('ConfigGroup.tag', service);
-          var configGroupsNames = configGroups.mapProperty('ConfigGroup.group_name');
-          configGroupsNames.push('Default');
+          var configGroupsNames = configGroups.mapProperty('ConfigGroup.group_name').sort();
+          configGroupsNames.unshift('Default');
           selectedServices.push({
             serviceId: service,
             displayName: App.Service.DisplayNames[service],
@@ -402,6 +402,11 @@ App.AddHostController = App.WizardController.extend({
         }
       }, this);
     }
+    selectedServices.forEach(function(selectedService){
+      selectedService.configGroups.sort(function(cfgA, cfgB){
+        return cfgA.ConfigGroup.group_name >= cfgB.ConfigGroup.group_name;
+      });
+    });
     this.set('content.serviceConfigGroups', selectedServices);
   },
 
