@@ -315,34 +315,44 @@ App.ServiceConfigRadioButton = Ember.Checkbox.extend({
   value: null,
 
   didInsertElement: function () {
+    console.debug('App.ServiceConfigRadioButton.didInsertElement');
     if (this.get('parentView.serviceConfig.value') === this.get('value')) {
+      console.debug(this.get('name') + ":" + this.get('value') + ' is checked');
       this.set('checked', true);
     }
   },
 
   click: function () {
     this.set('checked', true);
+    console.debug('App.ServiceConfigRadioButton.click');
     this.onChecked();
   },
 
   onChecked: function () {
-    this.set('parentView.serviceConfig.value', this.get('value'));
-    var components = this.get('parentView.serviceConfig.options');
-    components
-      .forEach(function (_component) {
-        if (_component.foreignKeys) {
-          _component.foreignKeys.forEach(function (_componentName) {
-            if (this.get('parentView.categoryConfigsAll').someProperty('name', _componentName)) {
-              var component = this.get('parentView.categoryConfigsAll').findProperty('name', _componentName);
-              if (_component.displayName === this.get('value')) {
-                component.set('isVisible', true);
-              } else {
-                component.set('isVisible', false);
+    // Wrapping the call with Ember.run.next prevents a problem where setting isVisible on component
+    // causes JS error due to re-rendering.  For example, this occurs when switching the Config Group
+    // in Service Config page
+    Ember.run.next(this, function() {
+      console.debug('App.ServiceConfigRadioButton.onChecked');
+      this.set('parentView.serviceConfig.value', this.get('value'));
+      var components = this.get('parentView.serviceConfig.options');
+      components
+        .forEach(function (_component) {
+          if (_component.foreignKeys) {
+            _component.foreignKeys.forEach(function (_componentName) {
+              if (this.get('parentView.categoryConfigsAll').someProperty('name', _componentName)) {
+                var component = this.get('parentView.categoryConfigsAll').findProperty('name', _componentName);
+                if (_component.displayName === this.get('value')) {
+                  console.debug('setting isVisible on ' + component.get('name'));
+                  component.set('isVisible', true);
+                } else {
+                  component.set('isVisible', false);
+                }
               }
-            }
-          }, this);
-        }
-      }, this);
+            }, this);
+          }
+        }, this);
+    });
   }.observes('checked'),
 
   disabled: function () {
