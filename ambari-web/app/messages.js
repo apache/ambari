@@ -1122,8 +1122,8 @@ Em.I18n.translations = {
   'services.service.startAll':'Start All',
   'services.service.stopAll':'Stop All',
   'services.service.config_groups_popup.header':'Manage {0} Configuration Groups',
-  'services.service.config_groups_popup.notice':'Manage configuration groups of this service. Groups can be created, renamed and deleted and from here. Host memberships can also be changed. A host can belong to only one configuration group.',
-  'services.service.config_groups_popup.config_groups':'Configuration Groups',
+  'services.service.config_groups_popup.notice':'You can apply different sets of {{serviceName}} configurations to groups of hosts by managing {{serviceName}} Configuration Groups and their host membership.  Hosts belonging to a {{serviceName}} Configuration Group have the same set of configurations for {{serviceName}}. Each host belongs to one {{serviceName}} Configuration Group.',
+  'services.service.config_groups_popup.config_groups':'{{serviceName}} Configuration Groups',
   'services.service.config_groups_popup.rename':'Rename',
   'services.service.config_groups_popup.duplicate':'Duplicate',
   'services.service.config_groups_popup.group_name_lable':'Name',
@@ -1282,7 +1282,7 @@ Em.I18n.translations = {
   'hosts.table.noHosts':'No hosts to display',
   
   'hosts.selectHostsDialog.title': 'Select Configuration Group Hosts',
-  'hosts.selectHostsDialog.message': 'Select hosts that should belong to this configuration group. Configurations for these hosts will be overridden from the default values.',
+  'hosts.selectHostsDialog.message': 'Select hosts that should belong to this {0} Configuration Group.  All hosts belonging to this group will have the same set of {0} configurations.',
   'hosts.selectHostsDialog.filter.placeHolder': 'Filter...',
   'hosts.selectHostsDialog.selectedHostsLink': '{0} out of {1} hosts selected',
 
@@ -1709,15 +1709,15 @@ Em.I18n.translations = {
 
   'contact.administrator': 'Contact System Administrator for more information!',
 
-  'config.group.selection.dialog.title': 'Configuration Group',
-  'config.group.selection.dialog.subtitle': 'Select or create a configuration group where the configuration value can be overridden',
-  'config.group.selection.dialog.option.select': 'Select existing configuration group',
+  'config.group.selection.dialog.title': '{0} Configuration Group',
+  'config.group.selection.dialog.subtitle': 'Select or create a {{serviceName}} Configuration Group where the configuration value will be overridden.',
+  'config.group.selection.dialog.option.select': 'Select an existing {{serviceName}} Configuration Group',
   'config.group.selection.dialog.option.select.msg': 'Overridden property will be changed for hosts belonging to the selected group.',
-  'config.group.selection.dialog.option.create': 'Create new configuration group',
-  'config.group.selection.dialog.option.create.msg': 'A new configuration group will be created with the given name. Initially there will be no hosts in the group, with only the selected property overridden.',
-  'config.group.selection.dialog.err.name.exists': 'Configuration group with given name already exists',
-  'config.group.selection.dialog.err.create': 'Error creating new configuration group [{0}]',
-  'config.group.selection.dialog.no.groups': 'There are no existing Configuration Groups to select for this service',
+  'config.group.selection.dialog.option.create': 'Create a new {{serviceName}} Configuration Group',
+  'config.group.selection.dialog.option.create.msg': 'A new {{serviceName}} Configuration Group will be created with the given name. Initially there will be no hosts in the group, with only the selected property overridden.',
+  'config.group.selection.dialog.err.name.exists': 'Configuration Group with given name already exists',
+  'config.group.selection.dialog.err.create': 'Error creating new Configuration Group [{0}]',
+  'config.group.selection.dialog.no.groups': 'There are no existing {{serviceName}} Configuration Groups.',
   'config.group.host.switch.dialog.title': 'Change Group',
 
   'utils.ajax.errorMessage': 'Error message'

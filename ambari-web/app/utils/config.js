@@ -1005,7 +1005,7 @@ App.config = Em.Object.create({
         availableConfigGroups[0] : null;
     App.ModalPopup.show({
       classNames: [ 'sixty-percent-width-modal' ],
-      header: Em.I18n.t('config.group.selection.dialog.title'),
+      header: Em.I18n.t('config.group.selection.dialog.title').format(App.Service.DisplayNames[serviceId]),
       primary: Em.I18n.t('ok'),
       secondary: Em.I18n.t('common.cancel'),
       warningMessage: null,

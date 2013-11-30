@@ -17,7 +17,7 @@
 }}
 <div id="config-group-select-create-dialog">
   <div class="alert alert-info">
-    {{t config.group.selection.dialog.subtitle}}
+    {{t config.group.selection.dialog.subtitle serviceNameBinding="selectedService.displayName"}}
   </div>
   <div class="text-warning">
   {{#if view.parentView.warningMessage}}
@@ -28,7 +28,7 @@
     </div>
     <label class="radio">
       {{view view.selectConfigGroupRadioButton}}
-      {{t config.group.selection.dialog.option.select}}
+      {{t config.group.selection.dialog.option.select serviceNameBinding="selectedService.displayName"}}
     </label>
     {{#if view.parentView.availableConfigGroups.length}}
     <div class="select-create-config-group-div">
@@ -52,16 +52,16 @@
     </div>
   {{else}}
     <div class="select-create-config-group-div">
-      <div class="alert alert-block">{{t config.group.selection.dialog.no.groups}}</div>
+      <div class="alert alert-block">{{t config.group.selection.dialog.no.groups serviceNameBinding="selectedService.displayName"}}</div>
     </div>
   {{/if}}
   <label class="radio">
     {{view view.createConfigGroupRadioButton}}
-    {{t config.group.selection.dialog.option.create}}
+    {{t config.group.selection.dialog.option.create serviceNameBinding="selectedService.displayName"}}
   </label>
   <div class="select-create-config-group-div">
     {{view Ember.TextField valueBinding="view.parentView.newConfigGroupName"
       disabledBinding="view.parentView.optionSelectConfigGroup" maxlength="255" class="span5"}}
-    <div class="message">{{t config.group.selection.dialog.option.create.msg}}</div>
+    <div class="message">{{t config.group.selection.dialog.option.create.msg serviceNameBinding="selectedService.displayName"}}</div>
   </div>
 </div>

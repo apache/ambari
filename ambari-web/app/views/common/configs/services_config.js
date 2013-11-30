@@ -584,6 +584,10 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
      * we ask for a normalized array back.
      */
     var validComponents = this.get('controller.getCurrentServiceComponents');
+    var popupDescription = {
+      header: Em.I18n.t('hosts.selectHostsDialog.title'),
+      dialogMessage: Em.I18n.t('hosts.selectHostsDialog.message').format(App.Service.DisplayNames[this.get('service.serviceName')])
+    };
     hostsUtils.launchHostsSelectionDialog(availableHosts, selectedHosts,
         false, validComponents, function(newSelectedHosts){
       if (newSelectedHosts!=null) {
@@ -599,7 +603,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
           overrides.removeObject(serviceConfigProperty);
         }
       }
-    });
+    }, popupDescription);
   }
 });
 

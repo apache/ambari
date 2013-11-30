@@ -201,7 +201,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
     var availableHosts = this.get('selectedConfigGroup.availableHosts');
     var popupDescription = {
       header: Em.I18n.t('hosts.selectHostsDialog.title'),
-      dialogMessage: Em.I18n.t('hosts.selectHostsDialog.message')
+      dialogMessage: Em.I18n.t('hosts.selectHostsDialog.message').format(App.Service.DisplayNames[this.get('serviceName')])
     };
     hostsManagement.launchHostsSelectionDialog(availableHosts, [], false, this.get('componentsForFilter'), this.addHostsCallback.bind(this), popupDescription);
   },

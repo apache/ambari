@@ -15,10 +15,10 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div class="alert alert-info">{{t services.service.config_groups_popup.notice}}</div>
+<div class="alert alert-info">{{t services.service.config_groups_popup.notice serviceNameBinding="view.displayName"}}</div>
 <div class="row-fluid  manage-configuration-group-content">
   <div class="span12">
-    {{t services.service.config_groups_popup.config_groups}}
+    {{t services.service.config_groups_popup.config_groups  serviceNameBinding="view.displayName"}}
     <div class="row-fluid">
       <div class="span5">
         {{view Em.Select
