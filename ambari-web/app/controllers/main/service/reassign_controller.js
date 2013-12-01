@@ -105,6 +105,7 @@ App.ReassignMasterController = App.WizardController.extend({
     this.saveSecurityEnabled(result);
     App.clusterStatus.setClusterStatus({
       clusterName: this.get('content.cluster.name'),
+      clusterState: 'DEFAULT',
       wizardControllerName: 'reassignMasterController',
       localdb: App.db.data
     });
