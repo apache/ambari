@@ -23,7 +23,7 @@ import pprint
 import threading
 from threading import Thread
 from Grep import Grep
-import shell
+import shell, sys
 
 
 logger = logging.getLogger()
@@ -55,7 +55,7 @@ class PythonExecutor:
     """
     tmpout =  open(tmpoutfile, 'w')
     tmperr =  open(tmperrfile, 'w')
-    pythonCommand = self.pythonCommand(script, script_params)
+    pythonCommand = self.python_command(script, script_params)
     logger.info("Running command " + pprint.pformat(pythonCommand))
     process = self.launch_python_subprocess(pythonCommand, tmpout, tmperr)
     logger.debug("Launching watchdog thread")
@@ -92,9 +92,10 @@ class PythonExecutor:
   def isSuccessfull(self, returncode):
     return not self.python_process_has_been_killed and returncode == 0
 
-  def pythonCommand(self, script, script_params):
-    puppetcommand = ['python', script] + script_params
-    return puppetcommand
+  def python_command(self, script, script_params):
+    python_binary = sys.executable
+    python_command = [python_binary, script] + script_params
+    return python_command
 
   def condenseOutput(self, stdout, stderr, retcode):
     grep = self.grep

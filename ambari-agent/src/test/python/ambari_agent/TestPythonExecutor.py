@@ -124,6 +124,15 @@ class TestPythonExecutor(TestCase):
     self.assertFalse(executor.isSuccessfull(1))
 
 
+  def test_python_command(self):
+    executor = PythonExecutor("/tmp", AmbariConfig().getConfig())
+    command = executor.python_command("script", ["script_param1"])
+    self.assertEqual(3, len(command))
+    self.assertTrue("python" in command[0])
+    self.assertEquals("script", command[1])
+    self.assertEquals("script_param1", command[2])
+    pprint.pprint(command)
+
 
   class Subprocess_mockup():
     """
