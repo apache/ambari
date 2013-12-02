@@ -1017,7 +1017,7 @@ App.config = Em.Object.create({
       selectedConfigGroup: selectedConfigGroup,
       newConfigGroupName: '',
       enablePrimary: function () {
-        return this.get('optionSelectConfigGroup') || (this.get('newConfigGroupName').length > 0 && !this.get('warningMessage'));
+        return this.get('optionSelectConfigGroup') || (this.get('newConfigGroupName').trim().length > 0 && !this.get('warningMessage'));
       }.property('newConfigGroupName', 'optionSelectConfigGroup', 'warningMessage'),
       onPrimary: function () {
         if (!this.get('enablePrimary')) {
@@ -1028,7 +1028,7 @@ App.config = Em.Object.create({
           this.hide();
           callback(selectedConfigGroup);
         } else {
-          var newConfigGroupName = this.get('newConfigGroupName');
+          var newConfigGroupName = this.get('newConfigGroupName').trim();
           var newConfigGroup = self.createNewConfigurationGroup(serviceId, newConfigGroupName, isInstaller);
           if (newConfigGroup) {
             newConfigGroup.set('parentConfigGroup', configGroups.findProperty('isDefault'));
