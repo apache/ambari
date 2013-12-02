@@ -160,7 +160,7 @@ App.WizardStep7Controller = Em.Controller.extend({
             name: "Default",
             description: "Default cluster level " + service.serviceName + " configuration",
             isDefault: true,
-            hosts: hosts,
+            hosts: Em.copy(hosts),
             service: Em.Object.create({
               id: service.serviceName
             })

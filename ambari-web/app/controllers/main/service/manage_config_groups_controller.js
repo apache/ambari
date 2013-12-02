@@ -210,7 +210,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
    * add hosts callback
    */
   addHostsCallback: function (selectedHosts) {
-    var group = this.get('selectedConfigGroup');    
+    var group = this.get('selectedConfigGroup');
     if (selectedHosts) {
       var defaultHosts = group.get('parentConfigGroup.hosts');
       var configGroupHosts = group.get('hosts');
