@@ -66,9 +66,9 @@ App.ServiceConfigView = Em.View.extend({
    */
   checkCanEdit: function () {
     var controller = App.get('router.'+this.get('controller.name'));
-    var canAddProperty = false;
-    if(controller.get('selectedConfigGroup').isDefault){
-     canAddProperty = true;
+    var canAddProperty = true;
+    if(controller.get('selectedConfigGroup') && !controller.get('selectedConfigGroup').isDefault){
+     canAddProperty = false;
     }
     this.get('controller.selectedService.configCategories').filterProperty('siteFileName').forEach(function (config) {
       config.set('canAddProperty', canAddProperty);
