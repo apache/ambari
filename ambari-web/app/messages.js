@@ -960,8 +960,8 @@ Em.I18n.translations = {
   'services.service.actions.run.rebalancer':'Run Rebalancer',
   'services.service.actions.run.compaction':'Run Compaction',
   'services.service.actions.run.smoke':'Run Smoke Test',
-  'services.service.actions.reassign.master':'Reassign {0}',
-  'services.service.actions.reassign.master.hive':'Reassign HiveServer2, WebHCat Server, MySQL Server',
+  'services.service.actions.reassign.master':'Move {0}',
+  'services.service.actions.reassign.master.hive':'Move HiveServer2, WebHCat Server, MySQL Server',
   'services.service.actions.manage_configuration_groups':'Manage Configuration Groups...',
   'services.service.actions.manage_configuration_groups.short':'Manage Config Groups',
   'services.service.actions.serviceActions':'Service Actions',
@@ -1117,7 +1117,7 @@ Em.I18n.translations = {
   'services.service.config.confirmDirectoryChange':'You are about to make changes to service directories that are core to {0}. Before you proceed, be absolutely certain of the implications and that you have taken necessary manual steps, if any, for the changes. Are you sure you want to proceed?',
 
   'services.add.header':'Add Service Wizard',
-  'services.reassign.header':'Reassign Master Wizard',
+  'services.reassign.header':'Move Master Wizard',
   'services.service.add':'Add Service',
   'services.service.startAll':'Start All',
   'services.service.stopAll':'Stop All',
@@ -1139,18 +1139,18 @@ Em.I18n.translations = {
   'services.service.config_groups.add_config_group_popup.header':'Create New Configuration Group',
   'services.service.config_groups.duplicate_config_group_popup.header':'Duplicate Configuration Group',
   'services.service.config_groups.rename_config_group_popup.header':'Rename Configuration Group',
-  'services.reassign.closePopup':'Reassign {0} wizard is in progress. It\'s necessary to complete the wizard for Ambari to be in usable state. If you choose to quit, you must follow manual instructions to complete or revert reassign {0} wizard as documented in the Ambari User Guide. Are you sure you want to exit the wizard ?',
+  'services.reassign.closePopup':'Move {0} wizard is in progress. You must allow the wizard to complete for Ambari to be in usable state. If you choose to quit, you must follow manual instructions to complete or revert move {0} wizard as documented in the Ambari User Guide. Are you sure you want to exit the wizard?',
 
   'services.reassign.step1.header':'Get Started',
-  'services.reassign.step1.message1': 'This wizard will walk you through reassigning {0}.<br/>',
+  'services.reassign.step1.message1': 'This wizard will walk you through moving {0}.<br/>',
   'services.reassign.step1.message2': 'The process to reassign {0} involves a combination of <b>automated steps</b> (that will be handled by the wizard) and ' +
       '<b>manual steps</b> (that you must perform in sequence as instructed by the wizard).<br/><br/>',
   'services.reassign.step1.message3': '<b>All services will be restarted as part of the wizard. You should plan a cluster maintenance window and prepare ' +
-    'for cluster downtime when reassigning {0}.</b>',
+    'for cluster downtime when moving {0}.</b>',
 
   'services.reassign.step2.header':'Assign Master',
   'services.reassign.step2.body':'Assign {0} to new host.',
-  'services.reassign.step2.body.namenodeHA':'Assign {0} to new host. You can reassign only one master component at a time.',
+  'services.reassign.step2.body.namenodeHA':'Move {0} to new host. You can move only one master component at a time.',
   'services.reassign.step3.header':'Review',
   'services.reassign.step3.body':'Please review the changes you made',
   'services.reassign.step3.targetHost':'Target Host:',
