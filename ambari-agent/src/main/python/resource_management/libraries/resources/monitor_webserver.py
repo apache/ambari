@@ -20,21 +20,10 @@ Ambari Agent
 
 """
 
-PROVIDERS = dict(
-  redhat=dict(
-  ),
-  centos=dict(
-  ),
-  suse=dict(
-  ),
-  fedora=dict(
-  ),
-  amazon=dict(
-  ),
-  default=dict(
-    ExecuteHadoop="resource_management.libraries.providers.execute_hadoop.ExecuteHadoopProvider",
-    TemplateConfig="resource_management.libraries.providers.template_config.TemplateConfigProvider",
-    XmlConfig="resource_management.libraries.providers.xml_config.XmlConfigProvider",
-    MonitorWebserver="resource_management.libraries.providers.monitor_webserver.MonitorWebserverProvider"
-  ),
-)
+_all__ = ["MonitorWebserver"]
+from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
+
+
+class MonitorWebserver(Resource):
+  action = ForcedListArgument(default=lambda obj: [obj.name])
+  actions = Resource.actions + ["start", "stop", "restart"]

@@ -1,4 +1,3 @@
-#!/usr/bin/env python2.6
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -15,26 +14,18 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-Ambari Agent
-
 """
 
-PROVIDERS = dict(
-  redhat=dict(
-  ),
-  centos=dict(
-  ),
-  suse=dict(
-  ),
-  fedora=dict(
-  ),
-  amazon=dict(
-  ),
-  default=dict(
-    ExecuteHadoop="resource_management.libraries.providers.execute_hadoop.ExecuteHadoopProvider",
-    TemplateConfig="resource_management.libraries.providers.template_config.TemplateConfigProvider",
-    XmlConfig="resource_management.libraries.providers.xml_config.XmlConfigProvider",
-    MonitorWebserver="resource_management.libraries.providers.monitor_webserver.MonitorWebserverProvider"
-  ),
-)
+from resource_management import *
+
+
+def monitor(action=None):# 'start' or 'stop'
+  if action == "start":
+    Execute("chkconfig gmond off",
+            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+    )
+  Execute(
+    format(
+      "service hdp-gmond {action} >> /tmp/gmond.log  2>&1 ; /bin/ps auwx | /bin/grep [g]mond  >> /tmp/gmond.log  2>&1"),
+    path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
+  )
