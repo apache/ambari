@@ -34,32 +34,6 @@ App.MainHostSummaryView = Em.View.extend({
     window.open(gangliaMobileUrl);
   },
 
-  needToRestartComponentsCount: function() {
-    return this.get('sortedComponents').filterProperty('staleConfigs', true).length;
-  }.property('sortedComponents.@each.staleConfigs'),
-
-  stopComponentsIsDisabled: function () {
-    var staleComponents = this.get('sortedComponents').filterProperty('staleConfigs', true);
-    if(!staleComponents.findProperty('workStatus','STARTED')){
-      return true;
-    } else {
-      return false;
-    }
-  }.property('sortedComponents.@each.workStatus'),
-
-  startComponentsIsDisabled:function () {
-    var staleComponents = this.get('sortedComponents').filterProperty('staleConfigs', true);
-    if(!staleComponents.findProperty('workStatus','INSTALLED')){
-      return true;
-    } else {
-      return false;
-    }
-  }.property('sortedComponents.@each.workStatus'),
-
-  needToRestartMessage: function() {
-    return Em.I18n.t('hosts.host.details.needToRestart').format(this.get('needToRestartComponentsCount'));
-  }.property('needToRestartComponentsCount'),
-
   /**
    * @type: [{String}]
    */

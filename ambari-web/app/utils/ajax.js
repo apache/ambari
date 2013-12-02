@@ -304,6 +304,7 @@ var urls = {
         async: false
       }
     }
+  },
   'service.metrics.flume.channel_fill_percent': {
     'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_SERVER?fields=host_components/metrics/flume/flume/CHANNEL/*/ChannelFillPercentage[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/flume/channelFillPct.json',
