@@ -647,16 +647,16 @@ define service {
 }
 
 # HBASE:: MASTER Checks
-define service {
-        hostgroup_name          hbasemasters
-        use                     hadoop-service
-        service_description     HBASEMASTER::HBase Master Web UI
-        servicegroups           HBASE
-        check_command           check_webui!hbase!<%=scope.function_hdp_template_var("::hdp::hbase_master_port")%>
-        normal_check_interval   1
-        retry_check_interval    1
-        max_check_attempts      3
-}
+# define service {
+#         hostgroup_name          hbasemasters
+#         use                     hadoop-service
+#         service_description     HBASEMASTER::HBase Master Web UI
+#         servicegroups           HBASE
+#         check_command           check_webui!hbase!<%=scope.function_hdp_template_var("::hdp::hbase_master_port")%>
+#         normal_check_interval   1
+#         retry_check_interval    1
+#         max_check_attempts      3
+# }
 <% if scope.function_hdp_template_var("hdp_os_type") != "suse"%>
 define service {
         hostgroup_name          hbasemasters
@@ -674,7 +674,7 @@ define service {
         use                     hadoop-service
         service_description     HBASEMASTER::HBase Master process
         servicegroups           HBASE
-        check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::hbase_master_port")%>!-w 1 -c 1
+        check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::hbase_master_rpc_port")%>!-w 1 -c 1
         normal_check_interval   0.5
         retry_check_interval    0.25
         max_check_attempts      4
