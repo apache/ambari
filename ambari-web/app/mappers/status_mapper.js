@@ -68,20 +68,10 @@ App.statusMapper = App.QuickDataMapper.create({
           //host-component to service relations
           if (!hostComponentsOnService[service]) {
             hostComponentsOnService[service] = {
-              host_components: [],
-              running_host_components: [],
-              unknown_host_components: []
+              host_components: []
             };
           }
-          if (host_component.HostRoles.state === App.HostComponentStatus.started) {
-            hostComponentsOnService[service].running_host_components.push(host_component.id);
-          }
-          if (host_component.HostRoles.state === App.HostComponentStatus.unknown) {
-            hostComponentsOnService[service].unknown_host_components.push(host_component.id);
-          }
           hostComponentsOnService[service].host_components.push(host_component.id);
-
-
         }, this);
         /**
          * updating relation between Host and his host-components

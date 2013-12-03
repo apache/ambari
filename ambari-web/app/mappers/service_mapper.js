@@ -27,9 +27,7 @@ App.servicesMapper = App.QuickDataMapper.create({
     work_status: 'ServiceInfo.state',
     $rand: Math.random(),
     $alerts: [ 1, 2, 3 ],
-    host_components: 'host_components',
-    running_host_components: 'running_host_components',
-    unknown_host_components: 'unknown_host_components'
+    host_components: 'host_components'
   },
   hdfsConfig: {
     version: 'nameNodeComponent.host_components[0].metrics.dfs.namenode.Version',
@@ -189,8 +187,6 @@ App.servicesMapper = App.QuickDataMapper.create({
         //service can have zero number of host-components
         if (serviceData) {
           item.host_components = serviceData.host_components;
-          item.running_host_components = serviceData.running_host_components;
-          item.unknown_host_components = serviceData.unknown_host_components;
           item.host_components.sort();
         }
 

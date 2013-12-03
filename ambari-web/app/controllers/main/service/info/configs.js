@@ -677,7 +677,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var componentCount = 0;
     var hostToIndexMap = {};
     services.forEach(function (service) {
-      var hostComponents = (status == App.HostComponentStatus.started) ? service.get('runningHostComponents') : service.get('unknownHostComponents');
+      var hostComponents = service.get('hostComponents').filterProperty('workStatus', status);
       if (hostComponents != null) {
         hostComponents.forEach(function (hc) {
           var hostName = hc.get('host.publicHostName');

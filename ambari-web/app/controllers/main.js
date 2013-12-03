@@ -44,7 +44,6 @@ App.MainController = Em.Controller.extend({
    */
   initialize: function(){
     App.router.get('clusterController').loadClusterData();
-    this.startPolling();
   },
 
   dataLoading: function () {
@@ -63,11 +62,13 @@ App.MainController = Em.Controller.extend({
     return dfd.promise();
   },
 
-  startPolling: function(){
-    App.router.get('updateController').set('isWorking', true);
-    App.router.get('backgroundOperationsController').set('isWorking', true);
-    App.router.get('clusterController').set('isWorking', true);
-  },
+  startPolling: function () {
+    if (App.router.get('clusterController.isLoaded')) {
+      App.router.get('updateController').set('isWorking', true);
+      App.router.get('backgroundOperationsController').set('isWorking', true);
+      App.router.get('clusterController').set('isWorking', true);
+    }
+  }.observes('App.router.clusterController.isLoaded'),
   stopPolling: function(){
     App.router.get('updateController').set('isWorking', false);
     App.router.get('backgroundOperationsController').set('isWorking', false);
