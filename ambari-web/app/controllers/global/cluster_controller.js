@@ -52,7 +52,8 @@ App.ClusterController = Em.Controller.extend({
 
   dataLoadList:Em.Object.create({
     'hosts':false,
-    'services':false,
+    'serviceMetrics':false,
+    'services': false,
     'cluster':false,
     'clusterStatus':false,
     'racks':false,
@@ -374,16 +375,19 @@ App.ClusterController = Em.Controller.extend({
         self.updateLoadStatus('users');
     });
 
-    self.loadUpdatedStatus(function () {
-      self.updateLoadStatus('status');
-      App.router.get('updateController').updateServiceMetric(function () {
-        if (App.supports.hostOverrides) {
-          App.router.get('updateController').updateComponentConfig(function () {
-            self.updateLoadStatus('componentConfigs');
-          });
-        }
-        self.updateLoadStatus('services');
-      }, true);
+    App.router.get('updateController').updateServices(function () {
+      self.updateLoadStatus('services');
+      self.loadUpdatedStatus(function () {
+        self.updateLoadStatus('status');
+        App.router.get('updateController').updateServiceMetric(function () {
+          if (App.supports.hostOverrides) {
+            App.router.get('updateController').updateComponentConfig(function () {
+              self.updateLoadStatus('componentConfigs');
+            });
+          }
+          self.updateLoadStatus('serviceMetrics');
+        }, true);
+      });
     });
 
     this.loadAlerts(function(){

@@ -45,6 +45,7 @@ require('mappers/racks_mapper');
 require('mappers/alerts_mapper');
 require('mappers/users_mapper');
 require('mappers/service_mapper');
+require('mappers/service_metrics_mapper');
 require('mappers/target_cluster_mapper');
 require('mappers/dataset_mapper');
 require('mappers/component_config_mapper');

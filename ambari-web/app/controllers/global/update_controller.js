@@ -37,6 +37,7 @@ App.UpdateController = Em.Controller.extend({
    */
   updateAll:function(){
     if(this.get('isWorking')) {
+      App.updater.run(this, 'updateServices', 'isWorking');
       App.updater.run(this, 'updateHostConditionally', 'isWorking');
       App.updater.run(this, 'updateServiceMetricConditionally', 'isWorking', App.componentsUpdateInterval);
       App.updater.run(this, 'graphsUpdate', 'isWorking');
@@ -138,10 +139,9 @@ App.UpdateController = Em.Controller.extend({
     var conditionalFieldsString = conditionalFields.length > 0 ? ',' + conditionalFields.join(',') : '';
     var initialFieldsString = initialFields.length > 0 ? ',' + initialFields.join(',') : '';
     var methodStartTs = new Date().getTime();
-    var testUrl = App.get('isHadoop2Stack') ? '/data/dashboard/HDP2/services.json':'/data/dashboard/services.json';
+    var testUrl = App.get('isHadoop2Stack') ? '/data/dashboard/HDP2/master_components.json':'/data/dashboard/services.json';
 
-    var realUrl = '/components/?ServiceComponentInfo/category=MASTER' +
-      '|ServiceComponentInfo/component_name=SQOOP|ServiceComponentInfo/component_name=HCAT|ServiceComponentInfo/component_name=PIG&fields=' +
+    var realUrl = '/components/?ServiceComponentInfo/category=MASTER&fields=' +
       'ServiceComponentInfo,' +
       'host_components/HostRoles/state,' +
       'host_components/HostRoles/stale_configs,' +
@@ -173,11 +173,18 @@ App.UpdateController = Em.Controller.extend({
     var callback = callback || function (jqXHR, textStatus) {
       self.set('isUpdated', true);
     };
-    App.HttpClient.get(servicesUrl, App.servicesMapper, {
+    App.HttpClient.get(servicesUrl, App.serviceMetricsMapper, {
       complete: function(){
         console.log("UpdateServiceMetric() Finished in:"+ (new Date().getTime()-methodStartTs) + " ms");
         callback();
       }
+    });
+  },
+  updateServices: function (callback) {
+    var testUrl = '/data/services/HDP2/services.json';
+    var componentConfigUrl = this.getUrl(testUrl, '/services');
+    App.HttpClient.get(componentConfigUrl, App.serviceMapper, {
+      complete: callback
     });
   },
   updateComponentConfig: function (callback) {

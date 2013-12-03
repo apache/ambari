@@ -21,9 +21,9 @@ var App = require('app');
 
 require('utils/helper');
 require('mappers/server_data_mapper');
-require('mappers/service_mapper');
+require('mappers/service_metrics_mapper');
 
-describe('App.servicesMapper', function () {
+describe('App.serviceMetricsMapper', function () {
 
   describe('#hbaseMapper', function() {
 
@@ -79,7 +79,7 @@ describe('App.servicesMapper', function () {
         }
       ];
       tests.forEach(function(test) {
-        var result = App.servicesMapper.hbaseMapper(test);
+        var result = App.serviceMetricsMapper.hbaseMapper(test);
         expect(result.average_load).to.equal(test.e);
       });
     });
