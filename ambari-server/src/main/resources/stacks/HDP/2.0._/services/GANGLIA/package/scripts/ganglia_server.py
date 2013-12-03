@@ -86,7 +86,7 @@ class GangliaServer(Script):
                       role = "server",
                       owner = "root",
                       group = params.user_group)
-    generate_daemon("gmond",
+    generate_daemon("gmetad",
                     name = "gmetad",
                     role = "server",
                     owner = "root",
