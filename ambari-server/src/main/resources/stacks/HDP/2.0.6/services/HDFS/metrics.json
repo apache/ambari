@@ -734,6 +734,11 @@
             "pointInTime": true,
             "temporal": false
           },
+          "metrics/jvm/memMaxM":{
+            "metric" : "Hadoop:service=NameNode,name=JvmMetrics.MemMaxM",
+            "pointInTime" : true,
+            "temporal" : false
+          },
           "metrics/dfs/FSNamesystem/TotalLoad": {
             "metric": "Hadoop:service=NameNode,name=FSNamesystemMetrics.TotalLoad",
             "pointInTime": true,
@@ -2130,6 +2135,11 @@
             "metric": "Hadoop:service=NameNode,name=FSNamesystem.TotalLoad",
             "pointInTime": true,
             "temporal": false
+          },
+          "metrics/jvm/memMaxM":{
+            "metric" : "Hadoop:service=NameNode,name=JvmMetrics.MemMaxM",
+            "pointInTime" : true,
+            "temporal" : false
           },
           "metrics/dfs/FSNamesystem/BlockCapacity": {
             "metric": "Hadoop:service=NameNode,name=FSNamesystem.BlockCapacity",

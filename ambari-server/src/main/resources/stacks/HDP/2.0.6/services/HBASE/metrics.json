@@ -8376,6 +8376,11 @@
             "pointInTime": true,
             "temporal": false
           },
+          "metrics/jvm/memMaxM":{
+            "metric" : "Hadoop:service=HBase,name=JvmMetrics.MemMaxM",
+            "pointInTime" : true,
+            "temporal" : false
+          },
           "metrics/rpc/reportRSFatalError.aboveOneSec.AvgTime": {
             "metric": "hadoop:service=HBase,name=RPCStatistics.reportRSFatalError.aboveOneSec.AvgTime",
             "pointInTime": true,
@@ -11577,6 +11582,11 @@
             "metric": "hadoop:service=HBase,name=RPCStatistics.regionServerReport.aboveOneSec.MaxTime",
             "pointInTime": true,
             "temporal": false
+          },
+          "metrics/jvm/memMaxM":{
+            "metric" : "Hadoop:service=HBase,name=JvmMetrics.MemMaxM",
+            "pointInTime" : true,
+            "temporal" : false
           },
           "metrics/rpc/reportRSFatalError.aboveOneSec.AvgTime": {
             "metric": "hadoop:service=HBase,name=RPCStatistics.reportRSFatalError.aboveOneSec.AvgTime",
