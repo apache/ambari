@@ -226,6 +226,7 @@ UPGRADE_STACK_CMD = ['su', 'postgres',
         '--command=psql -f {0} -v stack_name="\'{1}\'"  -v stack_version="\'{2}\'" -v dbname="{3}"']
 UPDATE_METAINFO_CMD = 'curl -X PUT "http://{0}:{1}/api/v1/stacks2" -u "{2}":"{3}"'
 
+
 PG_ERROR_BLOCKED = "is being accessed by other users"
 PG_STATUS_RUNNING = "running"
 PG_DEFAULT_PASSWORD = "bigdata"
@@ -376,6 +377,15 @@ JCE_DOWNLOAD_CMD = "curl -o {0} {1}"
 JCE_MIN_FILESIZE = 5000
 
 DEFAULT_DB_NAME = "ambari"
+
+# stack repo upgrade
+STACK_LOCATION_KEY = 'metadata.path'
+STACK_LOCATION_DEFAULT = '/var/lib/ambari-server/resources/stacks'
+DATABASE_INSERT_METAINFO_SCRIPTS = ['/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-Postgres-INSERT_METAINFO.sql',
+                                  '/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-Oracle-INSERT_METAINFO.sql',
+                                  '/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-MySQL-INSERT_METAINFO.sql']
+INSERT_METAINFO_CMD = ['su', 'postgres',
+        '--command=psql -f {0} -v metainfo_key="\'{1}\'" -v metainfo_value="\'{2}\'" -v dbname="{3}"']
 
 #Apache License Header
 ASF_LICENSE_HEADER = '''
@@ -2425,6 +2435,134 @@ def upgrade_stack(args, stack_id):
       print_warning_msg(errdata)
     return retcode
 
+def load_stack_values(version, filename):
+  import xml.etree.ElementTree as ET
+  values = {}
+  root = ET.parse(filename).getroot()
+  for ostag in root:
+    ostype = ostag.attrib['type']
+    for repotag in ostag:
+      reponametag = repotag.find('reponame')
+      repoidtag = repotag.find('repoid')
+      baseurltag = repotag.find('baseurl')
+      if reponametag is not None and repoidtag is not None and baseurltag is not None:
+        key = "repo:/" + reponametag.text
+        key += "/" + version
+        key += "/" + ostype
+        key += "/" + repoidtag.text
+        key += ":baseurl"
+        values[key] = baseurltag.text
+
+  return values
+
+def upgrade_local_repo_remote_db(args, sqlfile, dbkey, dbvalue):
+  tool = get_db_cli_tool(args)
+  if not tool:
+    args.warnings.append('{0} not found. Please, run DDL script manually'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
+    if VERBOSE:
+      print_warning_msg('{0} not found'.format(DATABASE_CLI_TOOLS[DATABASE_INDEX]))
+    return -1, "Client wasn't found", "Client wasn't found"
+
+  #TODO add support of other databases with scripts
+  if args.database == "oracle":
+    sid_or_sname = "sid"
+    if (hasattr(args, 'sid_or_sname') and args.sid_or_sname == "sname") or \
+        (hasattr(args, 'jdbc_url') and args.jdbc_url and re.match(ORACLE_SNAME_PATTERN, args.jdbc_url)):
+      print_info_msg("using SERVICE_NAME instead of SID for Oracle")
+      sid_or_sname = "service_name"
+
+    retcode, out, err = run_in_shell('{0} {1}'.format(tool, ORACLE_UPGRADE_STACK_ARGS.format(
+      args.database_username,
+      args.database_password,
+      args.database_host,
+      args.database_port,
+      args.database_name,
+      sqlfile,
+      sid_or_sname,
+      dbkey,
+      dbvalue
+    )))
+    return retcode, out, err
+
+  return -2, "Wrong database", "Wrong database"
+  pass
+
+def upgrade_local_repo_db(args, dbkey, dbvalue):
+  if not is_root():
+    err = 'Ambari-server upgrade_local_repo_db should be run with ' \
+          'root-level privileges'
+    raise FatalException(4, err)
+  check_database_name_property()
+
+  parse_properties_file(args)
+  if args.persistence_type == "remote":
+    client_desc = DATABASE_NAMES[DATABASE_INDEX] + ' ' + DATABASE_CLI_TOOLS_DESC[DATABASE_INDEX]
+    client_usage_cmd = DATABASE_CLI_TOOLS_USAGE[DATABASE_INDEX].format(DATABASE_INSERT_METAINFO_SCRIPTS[DATABASE_INDEX], args.database_username,
+                                                                       BLIND_PASSWORD, args.database_name)
+    #TODO temporarty code
+    if not args.database == "oracle":
+      raise FatalException(-20, "Upgrade for remote database only supports Oracle.")
+
+    if get_db_cli_tool(args):
+      retcode, out, err = upgrade_local_repo_remote_db(args, DATABASE_INSERT_METAINFO_SCRIPTS[DATABASE_INDEX],
+        dbkey, dbvalue)
+      if not retcode == 0:
+        raise NonFatalException(err)
+
+    else:
+      err = 'Cannot find ' + client_desc + ' client in the path to upgrade the local ' + \
+            'repo information.'
+      raise NonFatalException(err)
+
+    pass
+  else:
+    #password access to ambari-server and mapred
+    configure_database_username_password(args)
+    dbname = args.database_name
+    sqlfile = DATABASE_INSERT_METAINFO_SCRIPTS[0]
+    command = INSERT_METAINFO_CMD[:]
+    command[-1] = command[-1].format(sqlfile, dbkey, dbvalue, dbname)
+    retcode, outdata, errdata = run_os_command(command)
+    if not retcode == 0:
+      raise FatalException(retcode, errdata)
+    if errdata:
+      print_warning_msg(errdata)
+    return retcode
+  pass
+
+def upgrade_local_repo(args):
+  properties = get_ambari_properties()
+  if properties == -1:
+    print_error_msg ("Error getting ambari properties")
+    return -1
+
+  stack_location = properties[STACK_LOCATION_KEY]
+  if stack_location is None:
+    stack_location = STACK_LOCATION_DEFAULT
+
+  stack_root_local = os.path.join(stack_location, "HDPLocal")
+  if not os.path.exists(stack_root_local):
+    print_info_msg("HDPLocal stack directory does not exist, skipping")
+    return
+
+  stack_root = os.path.join(stack_location, "HDP")
+  if not os.path.exists(stack_root):
+    print_info_msg("HDP stack directory does not exist, skipping")
+    return
+
+  for stack_version_local in os.listdir(stack_root_local):
+    repo_file_local = os.path.join(stack_root_local, stack_version_local, "repos", "repoinfo.xml")
+    repo_file = os.path.join(stack_root, stack_version_local, "repos", "repoinfo.xml")
+
+    if os.path.exists(repo_file_local) and os.path.exists(repo_file):
+      local_values = load_stack_values(stack_version_local, repo_file_local)
+      repo_values = load_stack_values(stack_version_local, repo_file)
+      for k, v in local_values.iteritems():
+        if repo_values.has_key(k):
+          local_url = local_values[k]
+          repo_url = repo_values[k]
+          if repo_url != local_url:
+            upgrade_local_repo_db(args, k, local_url)
 
 #
 # Upgrades the Ambari Server.
@@ -2518,6 +2656,8 @@ def upgrade(args):
   else:
     adjust_directory_permissions(user)
 
+  # local repo
+  upgrade_local_repo(args)
 
 #
 # The Ambari Server status.

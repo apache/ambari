@@ -2695,7 +2695,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(ambari_server, "get_ambari_properties")
   @patch.object(ambari_server, "get_db_cli_tool")
   @patch.object(ambari_server, "execute_remote_script")
-  def test_upgrade(self, execute_remote_script_mock, get_db_cli_tool_mock, get_ambari_properties_mock, is_root_mock,
+  @patch.object(ambari_server, "upgrade_local_repo")
+  def test_upgrade(self, upgrade_local_repo_mock, execute_remote_script_mock,
+                   get_db_cli_tool_mock, get_ambari_properties_mock, is_root_mock,
                    parse_properties_file_mock,
                    update_ambari_properties_mock,
                    check_postgre_up_mock, execute_db_script_mock,
@@ -2733,6 +2735,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(print_warning_msg_mock.called)
     warning_args = print_warning_msg_mock.call_args[0][0]
     self.assertTrue("custom ambari user" in warning_args)
+    self.assertTrue(upgrade_local_repo_mock.called)
 
     # Testing with defined custom user
     read_ambari_user_mock.return_value = "ambari-custom-user"
@@ -4460,4 +4463,72 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertTrue(get_validated_string_input_mock.called)
     self.assertEqual(get_validated_string_input_mock.call_count, 2)
 
+  @patch("os.listdir")
+  @patch("os.path.exists")
+  @patch.object(ambari_server, "load_stack_values")
+  @patch.object(ambari_server, "get_ambari_properties")
+  @patch.object(ambari_server, "upgrade_local_repo_db")
+  def test_upgrade_local_repo(self,
+                         upgrade_local_repo_db_mock,
+                         get_ambari_properties_mock,
+                         load_stack_values_mock,
+                         os_path_exists_mock,
+                         os_listdir_mock):
 
+    from mock.mock import call
+    args = MagicMock()
+    args.persistence_type = "local"
+
+    def load_values_side_effect(*args, **kwargs):
+      res = {}
+      res['a'] = 'http://oldurl'
+      if -1 != args[1].find("HDPLocal"):
+        res['a'] = 'http://newurl'
+      return res
+
+    load_stack_values_mock.side_effect = load_values_side_effect
+
+    properties = ambari_server.Properties()
+    get_ambari_properties_mock.return_value = properties
+    os_path_exists_mock.return_value = 1
+    os_listdir_mock.return_value = ['1.1']
+
+    ambari_server.upgrade_local_repo(args)
+
+    self.assertTrue(get_ambari_properties_mock.called)
+    self.assertTrue(load_stack_values_mock.called)
+    self.assertTrue(upgrade_local_repo_db_mock.called)
+
+  @patch("os.listdir")
+  @patch("os.path.exists")
+  @patch.object(ambari_server, "load_stack_values")
+  @patch.object(ambari_server, "get_ambari_properties")
+  @patch.object(ambari_server, "upgrade_local_repo_db")
+  def test_upgrade_local_repo_nochange(self,
+                         upgrade_local_repo_db_mock,
+                         get_ambari_properties_mock,
+                         load_stack_values_mock,
+                         os_path_exists_mock,
+                         os_listdir_mock):
+
+    from mock.mock import call
+    args = MagicMock()
+    args.persistence_type = "local"
+
+    def load_values_side_effect(*args, **kwargs):
+      res = {}
+      res['a'] = 'http://oldurl'
+      return res
+
+    load_stack_values_mock.side_effect = load_values_side_effect
+
+    properties = ambari_server.Properties()
+    get_ambari_properties_mock.return_value = properties
+    os_path_exists_mock.return_value = 1
+    os_listdir_mock.return_value = ['1.1']
+
+    ambari_server.upgrade_local_repo(args)
+
+    self.assertTrue(get_ambari_properties_mock.called)
+    self.assertTrue(load_stack_values_mock.called)
+    self.assertFalse(upgrade_local_repo_db_mock.called)
