@@ -78,6 +78,8 @@ class hdp(
 
   $hbase_master_port = hdp_default("hbase-site/hbase.master.info.port","60010")
   $hbase_rs_port = hdp_default("hbase-site/hbase.regionserver.info.port","60030")
+  ## Nagios check_tcp port
+  $hbase_master_rpc_port = hdp_default("hbase-site/hbase.master.port", "60000")
   
   $ganglia_port = hdp_default("ganglia_port","8651")
   $ganglia_collector_slaves_port = hdp_default("ganglia_collector_slaves_port","8660")
