@@ -67,9 +67,7 @@
     {{#if controller.isHostsConfigsPage}}
       &nbsp;<a href="#" {{action "switchHostGroup" target="controller"}}>{{t common.change}}</a>
     {{/if}}
-    {{#if controller.isInstaller}}
-        <a href="#" class="link" {{action "manageConfigurationGroup" target="controller"}}>{{t services.service.actions.manage_configuration_groups.short}}</a>
-    {{/if}}
+     <a href="#" class="link" {{action "manageConfigurationGroup" target="controller"}}>{{t services.service.actions.manage_configuration_groups.short}}</a>
      <div class="pull-right">
        {{view App.FilterComboboxView filterBinding="view.filter" columnsBinding="view.columns" }}
      </div>

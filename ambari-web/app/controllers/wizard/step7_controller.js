@@ -239,7 +239,7 @@ App.WizardStep7Controller = Em.Controller.extend({
   },
 
   manageConfigurationGroup: function () {
-    App.router.get('mainServiceItemController').manageConfigurationGroups(this);
+    App.router.get('mainServiceInfoConfigsController').manageConfigurationGroups(this);
   },
   /**
    * Filter text will be located here
