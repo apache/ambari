@@ -75,7 +75,8 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       isDefault: true,
       parentConfigGroup: null,
       service: this.get('content'),
-      configSiteTags: []
+      configSiteTags: [],
+      serviceName: this.get('serviceName')
     });
     if (data && data.items) {
       var groupToTypeToTagMap = {};

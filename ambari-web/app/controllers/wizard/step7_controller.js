@@ -173,7 +173,8 @@ App.WizardStep7Controller = Em.Controller.extend({
             hosts: Em.copy(hosts),
             service: Em.Object.create({
               id: service.serviceName
-            })
+            }),
+            serviceName: service.serviceName
           })
         ]);
       } else {

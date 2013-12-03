@@ -1128,7 +1128,7 @@ App.config = Em.Object.create({
       },
       bodyClass: Ember.View.extend({
         template: Em.Handlebars.compile('{{t installer.controls.slaveComponentGroups}}&#58;&nbsp;' +
-          '{{view Em.Select contentBinding="view.parentView.configGroups" optionLabelPath="content.name" selectionBinding="view.parentView.selectedConfigGroup"}}')
+          '{{view Em.Select contentBinding="view.parentView.configGroups" optionLabelPath="content.displayName" selectionBinding="view.parentView.selectedConfigGroup"}}')
       })
     });
   },

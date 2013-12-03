@@ -318,6 +318,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       hosts: defaultConfigGroupHosts,
       parentConfigGroup: null,
       service: this.get('content'),
+      serviceName: serviceName,
       configSiteTags: []
     });
     if (!selectedConfigGroup) {
