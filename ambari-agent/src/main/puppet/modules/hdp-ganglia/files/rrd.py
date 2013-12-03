@@ -98,8 +98,8 @@ sys.stdout.write("\n")
 requestMethod = os.environ['REQUEST_METHOD']
 
 if requestMethod == 'POST':
-  postData = sys.stdin.read()
-  queryString = urlparse.parse_qs(postData)
+  postData = sys.stdin.readline()
+  queryString = cgi.parse_qs(postData)
   queryString = dict((k, v[0]) for k, v in queryString.items())
 elif requestMethod == 'GET':
   queryString = dict(cgi.parse_qsl(os.environ['QUERY_STRING']));
