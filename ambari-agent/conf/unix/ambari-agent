@@ -36,6 +36,9 @@ esac
 export PATH=/usr/lib/ambari-server/*:$PATH
 export AMBARI_CONF_DIR=/etc/ambari-server/conf:$PATH
 
+# Because Ambari rpm unpacks modules here on all systems
+export PYTHONPATH=/usr/lib/python2.6/site-packages:$PYTHONPATH
+
 AMBARI_AGENT=ambari-agent
 PIDFILE=/var/run/ambari-agent/$AMBARI_AGENT.pid
 OUTFILE=/var/log/ambari-agent/ambari-agent.out
