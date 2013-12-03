@@ -480,10 +480,12 @@ App.MainHostDetailsController = Em.Controller.extend({
               if (initValue) {
                 App.router.get('backgroundOperationsController').showPopup();
               }
+              if (componentName === 'ZOOKEEPER_SERVER') {
+                self.set('zkRequestId', requestId);
+                self.addObserver('App.router.backgroundOperationsController.serviceTimestamp', self, self.checkZkConfigs);
+                self.checkZkConfigs();
+              }
             });
-            if (componentName === 'ZOOKEEPER_SERVER') {
-              self.checkZkConfigs();
-            }
           });
       });
   },
@@ -491,17 +493,25 @@ App.MainHostDetailsController = Em.Controller.extend({
    * Load tags
    */
   checkZkConfigs: function() {
+    var bg = App.router.get('backgroundOperationsController.services').findProperty('id', this.get('zkRequestId'));
+    if (!bg) return;
+    if (!bg.get('isRunning')) {
+      this.loadConfigs();
+    }
+  },
+  loadConfigs: function() {
+    this.removeObserver('App.router.backgroundOperationsController.serviceTimestamp', this, this.checkZkConfigs);
     App.ajax.send({
       name: 'config.tags',
       sender: this,
-      success: 'checkZkConfigsSuccessCallback'
+      success: 'loadConfigsSuccessCallback'
     });
   },
   /**
    * Load needed configs
    * @param data
    */
-  checkZkConfigsSuccessCallback: function(data) {
+  loadConfigsSuccessCallback: function(data) {
     var urlParams = [];
     urlParams.push('(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')');
     if (App.Service.find().someProperty('serviceName', 'HBASE')) {
@@ -520,7 +530,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     });
   },
   /**
-   * Set new values for some configs
+   * Set new values for some configs (based on available ZooKeeper Servers)
    * @param data
    */
   setNewZkConfigs: function(data) {
@@ -528,23 +538,24 @@ App.MainHostDetailsController = Em.Controller.extend({
     data.items.forEach(function (item) {
       configs[item.type] = item.properties;
     }, this);
-    if (App.isHadoop2Stack) {
+
+    var zks = this.getZkServerHosts();
+    var zks_with_port = '';
+    zks.forEach(function(zk) {
+      zks_with_port += zk + ':2181,';
+    });
+    zks_with_port = zks_with_port.slice(0,-1);
+
+    if (App.get('isHadoop2Stack')) {
       if (!App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
-        var zks = App.HostComponent.find().filterProperty('componentName', 'ZOOKEEPER_SERVER').mapProperty('host.hostName');
-        var value = '';
-        zks.forEach(function(zk) {
-          value += zk + ':2181,';
-        });
-        value.slice(0,-1);
-        configs['core-site']['ha.zookeeper.quorum'] = value;
+        configs['core-site']['ha.zookeeper.quorum'] = zks_with_port;
       }
     }
-    var oneZk = App.HostComponent.find().findProperty('componentName', 'ZOOKEEPER_SERVER').get('host.hostName');
     if (configs['hbase-site']) {
-      configs['hbase-site']['hbase.zookeeper.quorum'] = oneZk;
+      configs['hbase-site']['hbase.zookeeper.quorum'] = zks.join(',');
     }
     if (configs['webhcat-site']) {
-      configs['webhcat-site']['templeton.zookeeper.hosts'] = oneZk;
+      configs['webhcat-site']['templeton.zookeeper.hosts'] = zks_with_port;
     }
     for (var site in configs) {
       if (!configs.hasOwnProperty(site)) continue;
@@ -557,6 +568,19 @@ App.MainHostDetailsController = Em.Controller.extend({
         }
       });
     }
+  },
+
+  /**
+   * Is deleteHost action id fired
+   */
+  fromDeleteHost: false,
+
+  getZkServerHosts: function() {
+    var zks = App.HostComponent.find().filterProperty('componentName', 'ZOOKEEPER_SERVER').mapProperty('host.hostName');
+    if (this.get('fromDeleteHost')) {
+      return zks.without(this.get('content.hostName'));
+    }
+    return zks;
   },
 
   /**
@@ -921,6 +945,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         templateName: require('templates/main/host/details/doDeleteHostPopup')
       }),
       onPrimary: function() {
+        self.set('fromDeleteHost', true);
         if (!this.get('enablePrimary')) return;
         var allComponents = self.get('content.hostComponents');
         var deleteError = null;
@@ -950,6 +975,8 @@ App.MainHostDetailsController = Em.Controller.extend({
       deleteHostSuccessCallback: function(data) {
         var dialogSelf = this;
         App.router.get('updateController').updateHost(function(){
+          self.loadConfigs();
+          self.set('fromDeleteHost', false);
           dialogSelf.hide();
           App.router.transitionTo('hosts.index');
         });
@@ -959,6 +986,8 @@ App.MainHostDetailsController = Em.Controller.extend({
         console.log(textStatus);
         console.log(errorThrown);
         xhr.responseText = "{\"message\": \"" + xhr.statusText + "\"}";
+        self.loadConfigs();
+        this.set('fromDeleteHost', false);
         this.hide();
         App.ajax.defaultErrorHandler(xhr, opt.url, 'DELETE', xhr.status);
       }
