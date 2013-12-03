@@ -406,7 +406,7 @@ define service {
 define service {
         hostgroup_name          tasktracker-servers
         use                     hadoop-service
-        service_description     TASKTRACKER::MapReduce local dir space
+        service_description     ::MapReduce local dir space
         servicegroups           MAPREDUCE
         check_command           check_mapred_local_dir_used_space!<%=scope.function_hdp_default("::hdp::mapred-site/mapred.local.dir")%>!85%
         normal_check_interval   0.5
