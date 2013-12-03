@@ -657,11 +657,12 @@ define service {
 #         retry_check_interval    1
 #         max_check_attempts      3
 # }
+<% @hbasemasters = scope.function_hdp_template_var("::hdp::params::hbase_master_hosts"); @hbasemasters.each do |hbasemaster| -%>
 <% if scope.function_hdp_template_var("hdp_os_type") != "suse"%>
 define service {
-        hostgroup_name          hbasemasters
+        host_name               <%= hbasemaster %>
         use                     hadoop-service
-        service_description     HBASEMASTER::HBase Master CPU utilization
+        service_description     HBASEMASTER::HBase Master CPU utilization on <%= hbasemaster %>
         servicegroups           HBASE
         check_command           check_cpu!200%!250%
         normal_check_interval   5
@@ -670,15 +671,16 @@ define service {
 }
 <% end %>
 define service {
-        hostgroup_name          hbasemasters
+        host_name               <%= hbasemaster %>
         use                     hadoop-service
-        service_description     HBASEMASTER::HBase Master process
+        service_description     HBASEMASTER::HBase Master process on <%= hbasemaster %>
         servicegroups           HBASE
         check_command           check_tcp!<%=scope.function_hdp_template_var("::hdp::hbase_master_rpc_port")%>!-w 1 -c 1
         normal_check_interval   0.5
         retry_check_interval    0.25
         max_check_attempts      4
 }
+<%end-%>
 <%end-%>
 
 <%if scope.function_hdp_nagios_members_exist('hiveserver')-%>
