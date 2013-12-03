@@ -123,6 +123,16 @@ App.WizardStep7Controller = Em.Controller.extend({
       this.get('selectedServiceNames').forEach(function(serviceName) {
         serviceConfigs.findProperty('serviceName', serviceName).set('selected', true);
       });
+
+      // Remove SNameNode if HA is enabled
+      if (!App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
+        configs = serviceConfigs.findProperty('serviceName', 'HDFS').configs;
+        var removedConfigs = configs.filterProperty('category', 'SNameNode');
+        removedConfigs.map(function(config) {
+          configs = configs.without(config);
+        });
+        serviceConfigs.findProperty('serviceName', 'HDFS').configs = configs;
+      }
     }
 
     this.set('stepConfigs', serviceConfigs);

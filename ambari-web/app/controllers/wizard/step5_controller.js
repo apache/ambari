@@ -33,6 +33,10 @@ App.WizardStep5Controller = Em.Controller.extend({
     return this.get('content.controllerName') == 'reassignMasterController';
   }.property('content.controllerName'),
 
+  isAddServiceWizard: function() {
+    return this.get('content.controllerName') == 'addServiceController';
+  }.property('content.controllerName'),
+
   isReassignHive: function () {
     return this.get('servicesMasters').objectAt(0) && this.get('servicesMasters').objectAt(0).component_name == 'HIVE_SERVER' && this.get('isReassignWizard');
   }.property('isReassignWizard', 'servicesMasters'),
@@ -219,6 +223,7 @@ App.WizardStep5Controller = Em.Controller.extend({
    * @param masterComponents
    */
   renderComponents:function (masterComponents) {
+    var self = this;
     var services = this.get('content.services')
       .filterProperty('isInstalled', true).mapProperty('serviceName'); //list of shown services
     var hosts = this.get('hosts');
@@ -235,6 +240,14 @@ App.WizardStep5Controller = Em.Controller.extend({
     this.set('isLazyLoading', isLazyLoading);
 
     masterComponents.forEach(function (item) {
+
+      if (item.component_name == 'SECONDARY_NAMENODE') {
+        if (self.get('isAddServiceWizard')) {
+          if (!App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
+            return;
+          }
+        }
+      }
 
       var componentObj = Ember.Object.create(item);
       console.log("TRACE: render master component name is: " + item.component_name);
