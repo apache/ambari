@@ -35,8 +35,8 @@
   </custom>
   <bannerLeft>
     <name>Ambari</name>
-    <src>http://incubator.apache.org/ambari/images/apache-ambari-project.jpg</src>
-    <href>http://incubator.apache.org/ambari</href>
+    <src>http://ambari.apache.org/images/apache-ambari-project.jpg</src>
+    <href>http://ambari.apache.org/</href>
   </bannerLeft>
 
   <publishDate position="right"/>

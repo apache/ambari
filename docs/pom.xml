@@ -115,7 +115,7 @@
             <email>atkach@apache.org</email>
             <timezone>+2</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -127,7 +127,7 @@
             <email>akovalenko@apache.org</email>
             <timezone>+2</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -139,7 +139,7 @@
             <email>alexantonenko@apache.org</email>
             <timezone>+2</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -160,7 +160,7 @@
             <email>billie@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -172,7 +172,7 @@
             <email>croberts@apache.org</email>
             <timezone></timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Red Hat
@@ -196,7 +196,7 @@
             <email>dmitriusan@apache.org</email>
             <timezone>+2</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -208,7 +208,7 @@
             <email>dsen@apache.org</email>
             <timezone>+2</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -247,7 +247,7 @@
                 <role>PMC</role>
             </roles>
             <organization>
-                                
+                WANdisco                
             </organization>            
         </developer>
         <developer>
@@ -280,7 +280,7 @@
             <email>jspeidel@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -316,7 +316,7 @@
             <email>mpapirkovskyy@apache.org</email>
             <timezone>+2</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -340,7 +340,7 @@
             <email>odiachenko@apache.org</email>
             <timezone>+2</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -352,7 +352,7 @@
             <email>onechiporenko@apache.org</email>
             <timezone>+2</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -376,7 +376,7 @@
             <email>reznor@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 - 
@@ -419,6 +419,18 @@
             </organization>
         </developer>
         <developer>
+            <id>subin</id>
+            <name>Subin </name>
+            <email>subin@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>PMC</role>
+            </roles>
+            <organization>
+                HP
+            </organization>
+        </developer>
+        <developer>
             <id>tbeerbower</id>
             <name>Thomas Beerbower</name>
             <email>tbeerbower@apache.org</email>
@@ -436,7 +448,7 @@
             <email>vikram@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
@@ -451,7 +463,7 @@
                 <role>PMC</role>
             </roles>
             <organization>
-                -
+                Pivotal
             </organization>           
         </developer>
         <developer>
@@ -460,7 +472,7 @@
             <email>vinodkv@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks                
@@ -472,7 +484,7 @@
             <email>xiwang@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
