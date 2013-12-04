@@ -136,12 +136,10 @@ App.hostsMapper = App.QuickDataMapper.create({
             if (host && !hostIds[host.get('hostName')]) {
               // Delete old ones as new ones will be
               // loaded by loadMany().
-              host.deleteRecord();
-              App.store.commit();
-              host.get('stateManager').transitionTo('loading');
+              this.deleteRecord(host);
               delete cacheData[host.get('id')];
             }
-          });
+          }, this);
         }
       }
       if (!isModelLoaded) {

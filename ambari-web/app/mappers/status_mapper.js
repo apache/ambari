@@ -95,9 +95,7 @@ App.statusMapper = App.QuickDataMapper.create({
               hostComponent.set('workStatus', status);
             }
           } else {
-            hostComponent.deleteRecord();
-            App.store.commit();
-            hostComponent.get('stateManager').transitionTo('loading');
+            this.deleteRecord(hostComponent);
           }
         }
       }, this);

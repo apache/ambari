@@ -424,7 +424,6 @@ App.WizardStep3Controller = Em.Controller.extend({
       // REGISTERING - bootstrap is done but has not registered; transition to REGISTERED if host found in polling API result
       // REGISTERED - bootstrap and registration is done; leave it alone
       // FAILED - either bootstrap or registration failed; leave it alone
-      console.log(_host.name + ' bootStatus=' + _host.get('bootStatus'));
       switch (_host.get('bootStatus')) {
         case 'DONE':
           _host.set('bootStatus', 'REGISTERING');

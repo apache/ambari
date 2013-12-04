@@ -124,6 +124,17 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
     return current;
   },
 
+  /**
+   * properly delete record from model
+   * @param item
+   */
+  deleteRecord: function (item) {
+    item.deleteRecord();
+    App.store.commit();
+    item.get('stateManager').transitionTo('loading');
+    console.log('Record with id:' + item.get('id') + ' was deleted from model');
+  },
+
   calculateState: function (json) {
 //    var stateEqual = (json.desired_status != json.work_status);
 //    if (stateEqual) {

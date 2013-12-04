@@ -17,6 +17,8 @@
 
 var App = require('app');
 var misc = require('utils/misc');
+var stringUtils = require('utils/string_utils');
+var previousResponse = [];
 
 App.serviceMetricsMapper = App.QuickDataMapper.create({
 
@@ -227,7 +229,24 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       result = misc.sortByOrder(App.Service.servicesSortOrder, result);
 
       //load services to model
-      App.store.loadMany(this.get('model'), result);
+      if (previousResponse.length !== result.length) {
+        App.store.loadMany(this.get('model'), result);
+      } else {
+        result.forEach(function (serviceJson) {
+          var fields = ['work_status', 'rand', 'alerts', 'quick_links', 'host_components'];
+          var service = this.get('model').find(serviceJson.id);
+          var modifiedData = this.getDiscrepancies(serviceJson, previousResponse.findProperty('id', serviceJson.id), fields);
+          if (modifiedData.isLoadNeeded) {
+            App.store.load(this.get('model'), serviceJson);
+          } else {
+            for (var property in modifiedData) {
+              service.set(stringUtils.underScoreToCamelCase(property), modifiedData[property]);
+            }
+          }
+        }, this)
+      }
+
+      previousResponse = result;
 
       var servicesMap = {};
       //calculate service statuses according to their host-components
@@ -239,6 +258,31 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       this.updateServicesStatus(App.Service.find(), servicesMap);
     }
     console.timeEnd('App.serviceMetricsMapper execution time');
+  },
+  /**
+   * check mutable fields whether they have been changed and if positive
+   * return host object only with properties, that contains new value
+   * @param current
+   * @param previous
+   * @param fields
+   * @return {*}
+   */
+  getDiscrepancies: function (current, previous, fields) {
+    var result = {};
+    if (previous) {
+      fields.forEach(function (field) {
+        if (Array.isArray(current[field])) {
+          if (JSON.stringify(current[field]) !== JSON.stringify(previous[field])) {
+            result[field] = current[field];
+            result.isLoadNeeded = true;
+          }
+        } else {
+          if (current[field] != previous[field]) result[field] = current[field];
+        }
+      });
+      return result;
+    }
+    return current;
   },
 
   /**
