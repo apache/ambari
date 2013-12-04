@@ -49,14 +49,6 @@ public class StacksService extends BaseService {
       createStackResource(null));
   }
 
-  @PUT
-  @Produces("text/plain")
-  public Response updateStacks(@Context HttpHeaders headers, @Context UriInfo ui) {
-
-    return handleRequest(headers, null, ui, Request.Type.PUT,
-      createStackResource(null));
-  }
-
   @GET
   @Path("{stackName}")
   @Produces("text/plain")

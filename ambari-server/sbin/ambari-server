@@ -100,10 +100,6 @@ case "$1" in
         echo -e "Upgrading stack of ambari-server"
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
-  update-metainfo)
-        echo -e "Updating ambari-server meta information"
-        $PYTHON /usr/sbin/ambari-server.py $@
-        ;;
   setup)
         echo -e "Setup ambari-server"
         $PYTHON /usr/sbin/ambari-server.py $@
