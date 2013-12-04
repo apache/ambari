@@ -229,7 +229,7 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isOverridable": false,
-      "isVisible": true,
+      "isVisible": false,
       "domain": "global",
       "serviceName": "HDFS",
       "category": "NameNode"
