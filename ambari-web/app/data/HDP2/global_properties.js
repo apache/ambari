@@ -212,11 +212,11 @@ module.exports =
       "name": "namenode_opt_maxnewsize",
       "displayName": "NameNode maximum new generation size",
       "description": "",
-      "defaultValue": "640",
+      "defaultValue": "200",
       "displayType": "int",
       "unit": "MB",
       "isOverridable": false,
-      "isVisible": false,
+      "isVisible": true,
       "domain": "global",
       "serviceName": "HDFS",
       "category": "NameNode"
