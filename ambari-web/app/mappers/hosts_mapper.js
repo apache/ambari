@@ -68,17 +68,18 @@ App.hostsMapper = App.QuickDataMapper.create({
       var isModelLoaded = false;
 
       json.items.forEach(function (item) {
+        var hostName = item.Hosts.host_name;
         //receive host_components when hosts were added
         item.host_components = item.host_components || [];
         item.host_components.forEach(function (host_component) {
-          host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
+          host_component.id = host_component.HostRoles.component_name + "_" + hostName;
         }, this);
 
-        hostIds[item.Hosts.host_name] = true;
-        currentHostStatuses[item.Hosts.host_name] = item.Hosts.host_status;
+        hostIds[hostName] = true;
+        currentHostStatuses[hostName] = item.Hosts.host_status;
 
         var parsedItem = this.parseIt(item, this.config);
-        var hostCache = cacheData[item.Hosts.host_name];
+        var hostCache = cacheData[hostName];
 
         hostsWithFullInfo.push(parsedItem);
         if (hostCache) {
@@ -86,10 +87,10 @@ App.hostsMapper = App.QuickDataMapper.create({
             modifiedHosts.push(parsedItem);
             delete hostCache.is_modified;
           } else {
-            hostsData[item.Hosts.host_name] = this.getDiscrepancies(parsedItem, previousResponse[item.Hosts.host_name]);
+            hostsData[hostName] = this.getDiscrepancies(parsedItem, previousResponse[hostName]);
           }
         }
-        previousResponse[item.Hosts.host_name] = parsedItem;
+        previousResponse[hostName] = parsedItem;
       }, this);
 
       App.cache['previousHostStatuses'] = currentHostStatuses;

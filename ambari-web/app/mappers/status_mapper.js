@@ -34,14 +34,15 @@ App.statusMapper = App.QuickDataMapper.create({
       var hostComponentsOnService = {};
 
       json.items.forEach(function (host) {
+        var hostName = host.Hosts.host_name;
         //update hosts, which have status changed
-        if (previousHostStatuses[host.Hosts.host_name] !== host.Hosts.host_status) {
-          hostStatuses[host.Hosts.host_name] = host.Hosts.host_status;
+        if (previousHostStatuses[hostName] !== host.Hosts.host_status) {
+          hostStatuses[hostName] = host.Hosts.host_status;
         }
-        currentHostStatuses[host.Hosts.host_name] = host.Hosts.host_status;
+        currentHostStatuses[hostName] = host.Hosts.host_status;
         var hostComponentsOnHost = [];
         host.host_components.forEach(function (host_component) {
-          host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
+          host_component.id = host_component.HostRoles.component_name + "_" + hostName;
           var existedComponent = previousComponentStatuses[host_component.id];
           var service = componentServiceMap[host_component.HostRoles.component_name];
 
@@ -55,11 +56,11 @@ App.statusMapper = App.QuickDataMapper.create({
               id: host_component.id,
               component_name: host_component.HostRoles.component_name,
               work_status: host_component.HostRoles.state,
-              host_id: host.Hosts.host_name,
+              host_id: hostName,
               service_id: service
             });
             //update host-components only on adding due to Ember Data features
-            if (hostsCache[host.Hosts.host_name]) hostsCache[host.Hosts.host_name].is_modified = true;
+            if (hostsCache[hostName]) hostsCache[hostName].is_modified = true;
           }
           currentComponentStatuses[host_component.id] = host_component.HostRoles.state;
 
@@ -76,8 +77,8 @@ App.statusMapper = App.QuickDataMapper.create({
         /**
          * updating relation between Host and his host-components
          */
-        if (hostsCache[host.Hosts.host_name]) {
-          hostsCache[host.Hosts.host_name].host_components = hostComponentsOnHost;
+        if (hostsCache[hostName]) {
+          hostsCache[hostName].host_components = hostComponentsOnHost;
         }
       }, this);
 

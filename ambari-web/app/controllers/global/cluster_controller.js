@@ -268,7 +268,7 @@ App.ClusterController = Em.Controller.extend({
       return false;
     }
     var testUrl = App.get('isHadoop2Stack') ? '/data/hosts/HDP2/hc_host_status.json':'/data/dashboard/services.json';
-    var statusUrl = '/hosts?fields=Hosts/host_status,host_components/HostRoles/state';
+    var statusUrl = '/hosts?fields=Hosts/host_status,host_components/HostRoles/state&minimal_response=true';
     //desired_state property is eliminated since calculateState function is commented out, it become useless
     statusUrl = this.getUrl(testUrl, statusUrl);
 
@@ -316,7 +316,8 @@ App.ClusterController = Em.Controller.extend({
     var clusterUrl = this.getUrl('/data/clusters/cluster.json', '?fields=Clusters');
     var hostsRealUrl = '/hosts?fields=Hosts/host_name,Hosts/public_host_name,Hosts/cpu_count,Hosts/total_mem,' +
       'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components,Hosts/disk_info,' +
-      'metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free';
+      'metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free'+
+      '&minimal_response=true';
     var usersUrl = App.testMode ? '/data/users/users.json' : App.apiPrefix + '/users/?fields=*';
     var racksUrl = "/data/racks/racks.json";
     var dataSetUrl = "/data/mirroring/all_datasets.json";
