@@ -28,6 +28,7 @@ class hdp-yarn::params(
   ## security params
   $security_enabled = $hdp::params::security_enabled
   $smoke_user_keytab = $hdp::params::smokeuser_keytab
+  $yarn_executor_container_group = hdp_default("yarn-site/yarn.nodemanager.linux-container-executor.group","hadoop")
   $kinit_cmd = "${hdp::params::kinit_path_local} -kt ${smoke_user_keytab} ${smoke_test_user};"
   $rm_host = $hdp::params::rm_host
   $rm_port = $hdp::rm_port

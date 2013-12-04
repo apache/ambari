@@ -290,7 +290,7 @@ class hdp-hadoop(
     if ($hdp::params::security_enabled == true) {
       file { "${hdp::params::hadoop_bin}/task-controller":
         owner   => 'root',
-        group   => $hdp::params::user_group,
+        group   => $hdp::params::mapred_tt_group,
         mode    => '6050',
         require => Hdp-hadoop::Package['hadoop'],
         before  => Anchor['hdp-hadoop::end']
