@@ -415,6 +415,7 @@ App.WizardStep9Controller = Em.Controller.extend({
     // We need to do recovery if there is a browser crash
     App.clusterStatus.setClusterStatus({
       clusterState: 'SERVICE_STARTING_3',
+      wizardControllerName: this.get('content.controllerName'),
       localdb: App.db.data
     });
 

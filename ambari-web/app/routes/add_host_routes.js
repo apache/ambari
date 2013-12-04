@@ -298,11 +298,11 @@ module.exports = Em.Route.extend({
     next: function (router) {
       var addHostController = router.get('addHostController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
+      wizardStep9Controller.set('wizardController', addHostController);
       addHostController.saveInstalledHosts(wizardStep9Controller);
 
       // We need to do recovery based on whether we are in Add Host or Installer wizard
       addHostController.saveClusterState('ADD_HOSTS_INSTALLED_4');
-
       router.transitionTo('step7');
     }
   }),
