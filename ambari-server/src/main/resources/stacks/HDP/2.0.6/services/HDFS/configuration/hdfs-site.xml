@@ -481,4 +481,11 @@ don't exist, they will be created with this permission.</description>
     </description>
   </property>
 
+  <property>
+    <name>dfs.namenode.name.dir.restore</name>
+    <value>true</value>
+    <description>Set to true to enable NameNode to attempt recovering a previously failed dfs.namenode.name.dir.
+      When enabled, a recovery of any failed directory is attempted during checkpoint.</description>
+  </property>
+
 </configuration>
