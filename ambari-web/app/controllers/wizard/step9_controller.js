@@ -702,6 +702,16 @@ App.WizardStep9Controller = Em.Controller.extend({
       // current requestId.
       return false;
     }
+    tasksData.setEach('Tasks.stderr', '');
+    tasksData.setEach('Tasks.stdout', '');
+    if (this.get('currentOpenTaskId')) {
+      var currentTask = tasksData.findProperty('Tasks.id', this.get('currentOpenTaskId'));
+      var log = this.get('currentOpenTaskLog');
+      if (currentTask && log) {
+        currentTask.Tasks.stderr = log.stderr;
+        currentTask.Tasks.stdout = log.stdout;
+      }
+    }
     this.replacePolledData(tasksData);
     this.get('hosts').forEach(function (_host) {
       var actionsPerHost = tasksData.filterProperty('Tasks.host_name', _host.name); // retrieved from polled Data
@@ -740,7 +750,7 @@ App.WizardStep9Controller = Em.Controller.extend({
   getUrl: function (requestId) {
     var clusterName = this.get('content.cluster.name');
     var requestId = requestId || this.get('content.cluster.requestId');
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/requests/' + requestId + '?fields=tasks/*';
+    var url = App.apiPrefix + '/clusters/' + clusterName + '/requests/' + requestId + '?fields=*,tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status';
     console.log("URL for step9 is: " + url);
     return url;
   },
@@ -762,6 +772,88 @@ App.WizardStep9Controller = Em.Controller.extend({
     }, this);
   },
 
+  /**
+   * {Number}
+   * <code>taskId</code> of current open task
+   */
+  currentOpenTaskId: 0,
+  /**
+   * {Number}
+   * <code>requestId</code> of current open task
+   */
+  currentOpenTaskRequestId: 0,
+  /**
+   * {Object}
+   * Log of current open task (loaded from server)
+   * Fields: {
+   *   stdout: '',
+   *   stderr: ''
+   * }
+   */
+  currentOpenTaskLog: null,
+
+  /**
+   * Load form server <code>stderr, stdout</code> of current open task
+   */
+  loadCurrentTaskLog: function() {
+    var taskId = this.get('currentOpenTaskId');
+    var requestId = this.get('currentOpenTaskRequestId');
+    var clusterName = this.get('content.cluster.name');
+    if (!taskId) {
+      console.log('taskId is null.');
+      return;
+    }
+    App.ajax.send({
+      name: 'background_operations.get_by_task',
+      sender: this,
+      data: {
+        'taskId': taskId,
+        'requestId': requestId,
+        'clusterName': clusterName,
+        'sync': true
+      },
+      success: 'loadCurrentTaskLogSuccessCallback',
+      error: 'loadCurrentTaskLogErrorCallback'
+    });
+  },
+
+  loadCurrentTaskLogSuccessCallback: function(data) {
+    this.set('currentOpenTaskLog', {
+      stdout: data.Tasks.stdout,
+      stderr: data.Tasks.stderr
+    });
+    var taskId = this.get('currentOpenTaskId');
+    if (taskId) {
+      var currentTask = this.get('polledData').findProperty('Tasks.id', taskId);
+      var log = this.get('currentOpenTaskLog');
+      if (currentTask && log) {
+        currentTask.Tasks.stderr = data.Tasks.stderr;
+        currentTask.Tasks.stdout = data.Tasks.stdout;
+        this.updateHostLogTask(data.Tasks.host_name, data.Tasks.id, data.Tasks.stderr, data.Tasks.stdout);
+      }
+    }
+    this.set('logTasksChangesCounter', this.get('logTasksChangesCounter') + 1);
+  },
+
+  loadCurrentTaskLogErrorCallback: function() {
+    this.set('currentOpenTaskId', 0);
+    this.set('currentOpenTaskRequestId', 0);
+  },
+  /**
+   * Update log task for provided host
+   * @param {String} hostName
+   * @param {Number} taskId
+   * @param {String} stderr
+   * @param {String} stdout
+   */
+  updateHostLogTask: function(hostName, taskId, stderr, stdout) {
+    var logTask = this.get('hosts').findProperty('name', hostName).get('logTasks').findProperty('Tasks.id', taskId);
+    if (logTask) {
+      logTask.Tasks.stderr = stderr;
+      logTask.Tasks.stdout = stdout;
+    }
+  },
+
   // polling: whether to continue polling for status or not
   getLogsByRequest: function(url, polling){
     var self = this;
@@ -781,6 +873,9 @@ App.WizardStep9Controller = Em.Controller.extend({
         }
         if (result !== true) {
           window.setTimeout(function () {
+            if (self.get('currentOpenTaskId')) {
+              self.loadCurrentTaskLog();
+            }
             self.doPolling();
           }, self.POLL_INTERVAL);
         } else {
