@@ -57,7 +57,7 @@
 
   <property>
     <name>dfs.datanode.failed.volumes.tolerated</name>
-    <value>1</value>
+    <value>0</value>
     <description>#of failed disks dn would tolerate</description>
     <final>true</final>
   </property>
