@@ -1115,6 +1115,8 @@ Em.I18n.translations = {
   'services.service.config.stopService.runningHostComponents':'{0} components on {1} hosts are still running',
   'services.service.config.stopService.unknownHostComponents':'{0} components on {1} hosts are in unknown state.  These components might actually be running and need restarting later to make the changes effective.',
   'services.service.config.confirmDirectoryChange':'You are about to make changes to service directories that are core to {0}. Before you proceed, be absolutely certain of the implications and that you have taken necessary manual steps, if any, for the changes. Are you sure you want to proceed?',
+  'services.service.config.configOverride.head':'Config Override',
+  'services.service.config.configOverride.body':'Cannot override a config that has not been saved yet.',
 
   'services.add.header':'Add Service Wizard',
   'services.reassign.header':'Move Master Wizard',

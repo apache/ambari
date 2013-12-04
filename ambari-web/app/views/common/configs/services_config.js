@@ -429,6 +429,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
       filename: '',
       isUserProperty: true,
       isKeyError: false,
+      isNotSaved: true,
       errorMessage: "",
       observeAddPropertyValue: function () {
         var name = this.get('name');
@@ -536,6 +537,19 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
     var selectedConfigGroup = serviceConfigController.get('selectedConfigGroup');
     var isInstaller = (this.get('controller.name') === 'wizardStep7Controller');
     var configGroups = (isInstaller) ? serviceConfigController.get('selectedService.configGroups') : serviceConfigController.get('configGroups');
+
+    //user property is added, and it has not been saved, not allow override
+    if(serviceConfigProperty.get('isUserProperty') && serviceConfigProperty.get('isNotSaved') && !isInstaller){
+      App.ModalPopup.show({
+        header: Em.I18n.t('services.service.config.configOverride.head'),
+        body: Em.I18n.t('services.service.config.configOverride.body'),
+        onPrimary: function () {
+          this.hide();
+        },
+        secondary: false
+      });
+      return;
+    }
     if (selectedConfigGroup.get('isDefault')) {
       // Launch dialog to pick/create Config-group
       App.config.launchConfigGroupSelectionCreationDialog(this.get('service.serviceName'),
