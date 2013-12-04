@@ -80,7 +80,8 @@ class ActionScheduler implements Runnable {
    * we receive awake() request during running a scheduler iteration.
    */
   private boolean activeAwakeRequest = false;
-  private Cache<Long, Map<String, List<String>>> clusterHostInfoCache;
+  //Cache for clusterHostinfo, key - stageId-requestId
+  private Cache<String, Map<String, List<String>>> clusterHostInfoCache;
 
   public ActionScheduler(long sleepTimeMilliSec, long actionTimeoutMilliSec,
       ActionDBAccessor db, ActionQueue actionQueue, Clusters fsmObject,
@@ -449,12 +450,13 @@ class ActionScheduler implements Runnable {
     
 
     //Try to get clusterHostInfo from cache
-    Map<String, List<String>> clusterHostInfo = clusterHostInfoCache.getIfPresent(s.getStageId());
-
+    String stagePk = s.getStageId() + "-" + s.getRequestId();
+    Map<String, List<String>> clusterHostInfo = clusterHostInfoCache.getIfPresent(stagePk);
+    
     if (clusterHostInfo == null) {
       Type type = new TypeToken<Map<String, List<String>>>() {}.getType();
       clusterHostInfo = StageUtils.getGson().fromJson(s.getClusterHostInfo(), type);
-      clusterHostInfoCache.put(s.getStageId(), clusterHostInfo);
+      clusterHostInfoCache.put(stagePk, clusterHostInfo);
     }
     
     cmd.setClusterHostInfo(clusterHostInfo);
