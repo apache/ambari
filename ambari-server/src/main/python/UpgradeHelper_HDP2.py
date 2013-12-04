@@ -707,6 +707,7 @@ def delete_mr(options):
       for host in value:
         response = curl(options.printonly, '-u',
                         AUTH_FORMAT.format(options.user, options.password),
+                        '-H', 'X-Requested-By: ambari',
                         '-X', 'PUT', '-d',
                         PUT_IN_MAINTENANCE,
                         COMPONENT_URL_FORMAT.format(options.hostname, options.clustername, host, key))
@@ -720,6 +721,7 @@ def delete_mr(options):
 
   response = curl(options.printonly, '-u',
                   AUTH_FORMAT.format(options.user, options.password),
+                  '-H', 'X-Requested-By: ambari',
                   '-X', 'DELETE',
                   SERVICE_URL_FORMAT.format(options.hostname, options.clustername))
   retcode, errdata = validate_response(response, False)
@@ -746,6 +748,7 @@ def add_services(options):
   for service in service_comp.keys():
     response = curl(options.printonly, '-u',
                     AUTH_FORMAT.format(options.user, options.password),
+                    '-H', 'X-Requested-By: ambari',
                     '-X', 'POST',
                     SERVICE_URL_FORMAT.format(options.hostname, options.clustername, service))
     retcode, errdata = validate_response(response, False)
@@ -754,6 +757,7 @@ def add_services(options):
     for component in service_comp[service]:
       response = curl(options.printonly, '-u',
                       AUTH_FORMAT.format(options.user, options.password),
+                      '-H', 'X-Requested-By: ambari',
                       '-X', 'POST',
                       COMPONENT_URL_FORMAT.format(options.hostname, options.clustername, service, component))
       retcode, errdata = validate_response(response, False)
@@ -762,6 +766,7 @@ def add_services(options):
       for host in hostmapping[new_old_host_map[component]]:
         response = curl(options.printonly, '-u',
                         AUTH_FORMAT.format(options.user, options.password),
+                        '-H', 'X-Requested-By: ambari',
                         '-X', 'POST',
                         HOST_COMPONENT_URL_FORMAT.format(options.hostname, options.clustername, host, component))
         retcode, errdata = validate_response(response, False)
@@ -778,6 +783,7 @@ def update_config(options, properties, type):
   properties_payload = {"Clusters": {"desired_config": {"type": type, "tag": tag, "properties": properties}}}
   response = curl(options.printonly, '-u',
                   AUTH_FORMAT.format(options.user, options.password),
+                  '-H', 'X-Requested-By: ambari',
                   '-X', 'PUT', '-d',
                   json.dumps(properties_payload),
                   URL_FORMAT.format(options.hostname, options.clustername))
@@ -990,6 +996,7 @@ def install_services(options):
   for index in [0, 1]:
     response = curl(options.printonly, '-u',
                     AUTH_FORMAT.format(options.user, options.password),
+                    '-H', 'X-Requested-By: ambari',
                     '-X', 'PUT', '-d',
                     PUT_IN_INSTALLED[index],
                     SERVICE_URL_FORMAT.format(options.hostname, options.clustername, SERVICES[index]))
