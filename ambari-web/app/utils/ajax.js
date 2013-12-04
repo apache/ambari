@@ -82,7 +82,7 @@ var urls = {
         'type': 'POST',
         data: JSON.stringify({
           RequestInfo: {
-            "context": data.displayName + " Smoke Test",
+            "context": data.displayName + " Service Check",
             "command" : data.actionName,
             "service_name" : data.serviceName
           }

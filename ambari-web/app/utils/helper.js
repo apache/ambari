@@ -228,13 +228,13 @@ App.format = {
       case 'NAMENODE':
         return 'NameNode';
       case 'NAMENODE_SERVICE_CHECK':
-        return 'NameNode Check';
+        return 'NameNode Service Check';
       case 'DATANODE':
         return 'DataNode';
       case 'JOURNALNODE':
         return 'JournalNode';
       case 'HDFS_SERVICE_CHECK':
-        return 'HDFS Check';
+        return 'HDFS Service Check';
       case 'SECONDARY_NAMENODE':
         return 'SNameNode';
       case 'HDFS_CLIENT':
@@ -274,15 +274,15 @@ App.format = {
       case 'HADOOP_CLIENT':
         return 'Hadoop Client';
       case 'JOBTRACKER_SERVICE_CHECK':
-        return 'JobTracker Check';
+        return 'JobTracker Service Check';
       case 'MAPREDUCE_SERVICE_CHECK':
-        return 'MapReduce Check';
+        return 'MapReduce Service Check';
       case 'ZOOKEEPER_SERVICE_CHECK':
-        return 'ZooKeeper Check';
+        return 'ZooKeeper Service Check';
       case 'ZOOKEEPER_QUORUM_SERVICE_CHECK':
-        return 'ZK Quorum Check';
+        return 'ZK Quorum Service Check';
       case  'HBASE_SERVICE_CHECK':
-        return 'HBase Check';
+        return 'HBase Service Check';
       case 'MYSQL_SERVER':
         return 'MySQL Server';
       case 'HIVE_SERVER':
@@ -292,33 +292,33 @@ App.format = {
       case 'HIVE_CLIENT':
         return 'Hive Client';
       case 'HIVE_SERVICE_CHECK':
-        return 'Hive Check';
+        return 'Hive Service Check';
       case 'HCAT':
         return 'HCat';
       case 'HCAT_SERVICE_CHECK':
-        return 'HCat Check';
+        return 'HCat Service Check';
       case 'OOZIE_CLIENT':
         return 'Oozie Client';
       case 'OOZIE_SERVER':
         return 'Oozie Server';
       case 'OOZIE_SERVICE_CHECK':
-        return 'Oozie Check';
+        return 'Oozie Service Check';
       case 'PIG':
         return 'Pig';
       case 'PIG_SERVICE_CHECK':
-        return 'Pig Check';
+        return 'Pig Service Check';
       case 'MAPREDUCE2_SERVICE_CHECK':
-        return 'MapReduce2 Check';
+        return 'MapReduce2 Service Check';
       case 'YARN_SERVICE_CHECK':
-        return 'YARN Check';
+        return 'YARN Service Check';
       case 'SQOOP':
         return 'Sqoop';
       case 'SQOOP_SERVICE_CHECK':
-        return 'Sqoop Check';
+        return 'Sqoop Service Check';
       case 'WEBHCAT_SERVER':
         return 'WebHCat Server';
       case 'WEBHCAT_SERVICE_CHECK':
-        return 'WebHCat Check';
+        return 'WebHCat Service Check';
       case 'NAGIOS_SERVER':
         return 'Nagios Server';
       case 'GANGLIA_SERVER':
@@ -326,9 +326,9 @@ App.format = {
       case 'GANGLIA_MONITOR':
         return 'Ganglia Monitor';
       case 'GMOND_SERVICE_CHECK':
-        return 'Gmond Check';
+        return 'Gmond Service Check';
       case 'GMETAD_SERVICE_CHECK':
-        return 'Gmetad Check';
+        return 'Gmetad Service Check';
       case 'DECOMMISSION_DATANODE':
         return 'Update Exclude File';
       case 'HUE_SERVER':

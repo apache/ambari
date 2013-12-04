@@ -42,7 +42,7 @@ App.MainServiceItemView = Em.View.extend({
           })
         }
       default:
-        options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke'), disabled:disabled});
+        options.push({action: 'runSmokeTest', 'label': Em.I18n.t('services.service.actions.run.smoke').format(service.get('serviceName')), disabled:disabled});
     }
     return options;
   }.property('controller.content', 'controller.isStopDisabled'),

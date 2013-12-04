@@ -338,10 +338,13 @@ App.HostPopup = Em.Object.create({
                   delete existTaskMap[newTask.Tasks.id];
                 } else {
                   // create new
+                  var command_string = (newTask.Tasks.command.toLowerCase() != 'service_check')
+                    ?  newTask.Tasks.command.toLowerCase()
+                    : '';
                   var taskInfo = Ember.Object.create({
                     id: newTask.Tasks.id,
                     hostName: newHostInfo.publicName,
-                    command: newTask.Tasks.command.toLowerCase(),
+                    command: command_string,
                     status: App.format.taskStatus(newTask.Tasks.status),
                     role: App.format.role(newTask.Tasks.role),
                     stderr: newTask.Tasks.stderr,
@@ -363,10 +366,13 @@ App.HostPopup = Em.Object.create({
               // Tasks have changed
               var tasksArr = [];
               newTasks.forEach(function (newTask) {
+                var command_string = (newTask.Tasks.command.toLowerCase() != 'service_check')
+                  ?  newTask.Tasks.command.toLowerCase()
+                  : '';
                 var taskInfo = Ember.Object.create({
                   id: newTask.Tasks.id,
                   hostName: newHostInfo.publicName,
-                  command: newTask.Tasks.command.toLowerCase(),
+                  command: command_string,
                   status: App.format.taskStatus(newTask.Tasks.status),
                   role: App.format.role(newTask.Tasks.role),
                   stderr: newTask.Tasks.stderr,
@@ -411,10 +417,13 @@ App.HostPopup = Em.Object.create({
             hostInfo.set('barWidth', "width:" + hostProgress + "%;");
 
             tasks.forEach(function (_task) {
+              var command_string = ( _task.Tasks.command.toLowerCase() != 'service_check')
+                ?  _task.Tasks.command.toLowerCase()
+                : '';
               var taskInfo = Ember.Object.create({
                 id: _task.Tasks.id,
                 hostName: _host.publicName,
-                command: _task.Tasks.command.toLowerCase(),
+                command: command_string,
                 status: App.format.taskStatus(_task.Tasks.status),
                 role: App.format.role(_task.Tasks.role),
                 stderr: _task.Tasks.stderr,
