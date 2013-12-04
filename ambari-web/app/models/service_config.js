@@ -192,9 +192,10 @@ App.ServiceConfigProperty = Ember.Object.extend({
     var isOriginalSCP = this.get('isOriginalSCP');
     var isUserProperty = this.get('isUserProperty');
     var isEditable = this.get('isEditable');
+    var hasOverrides = this.get('overrides.length') > 0;
     // Removable when this is a user property, or it is not an original property and it is editable
-    return isEditable && (isUserProperty || !isOriginalSCP);
-  }.property('isUserProperty', 'isOriginalSCP'),
+    return isEditable && !hasOverrides && (isUserProperty || !isOriginalSCP);
+  }.property('isUserProperty', 'isOriginalSCP', 'overrides.length'),
   init: function () {
     if(this.get("displayType")=="password"){
       this.set('retypedPassword', this.get('value'));
