@@ -135,7 +135,7 @@
                                   <span class="help-inline">{{warnMessage}}</span>
                               </div>
                             {{#if this.isOverridden}}
-                              {{view App.ServiceConfigView.SCPOverriddenRowsView serviceConfigPropertyBinding="this"}}
+                              {{view App.ServiceConfigView.SCPOverriddenRowsView serviceConfigPropertyBinding="this" isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"}}
                             {{/if}}
                           </div>
                       </div>

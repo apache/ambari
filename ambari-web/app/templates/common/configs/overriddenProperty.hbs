@@ -15,13 +15,14 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-
 {{#each overriddenSCP in view.serviceConfigProperty.overrides}}
     {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
     <div {{bindAttr class="overriddenSCP.errorMessage:error: :control-group :overrideField"}}>
       {{view overriddenSCP.viewClass serviceConfigBinding="overriddenSCP" categoryConfigsBinding="view.categoryConfigs"}}
-      {{#if overriddenSCP.group}}
-        <a class="action" {{action selectConfigGroup overriddenSCP.group target="controller"}}>{{overriddenSCP.group.displayName}}</a>
+      {{#if view.isDefaultGroupSelected}}
+        {{#if overriddenSCP.group}}
+            <a class="action" {{action selectConfigGroup overriddenSCP.group target="controller"}}>{{overriddenSCP.group.displayName}}</a>
+        {{/if}}
       {{/if}}
       {{#if overriddenSCP.isEditable}}
 	      {{#if isNotDefaultValue}}
