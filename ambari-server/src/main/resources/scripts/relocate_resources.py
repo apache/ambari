@@ -114,10 +114,12 @@ class AmbariResource:
     if not self.isInitialized:
       raise Exception('Resource not initialized')
 
-    if self.old_hostname == new_hostname:
-      raise Exception('New hostname is same as existing host name, %s' % self.old_hostname)
-
-    self.verifyHostComponentStatus(self.old_hostname, new_hostname, self.componentName)
+    try:
+      self.verifyHostComponentStatus(self.old_hostname, new_hostname, self.componentName)
+    except Exception, e:
+      logger.error("Exception caught on verify relocate request.")
+      logger.error(e.message)
+      sys.exit(1)
 
     # Delete current host component
     self.deleteHostComponent(self.old_hostname, self.componentName)
@@ -210,6 +212,9 @@ class AmbariResource:
     pass
 
   def verifyHostComponentStatus(self, old_hostname, new_hostname, componentName):
+    if old_hostname == new_hostname:
+      raise Exception('New hostname is same as existing host name, %s' % old_hostname)
+
     # Check desired state of host component is not STOPPED or host is
     # unreachable
     actualState = self.getHostComponentState(old_hostname, componentName)
