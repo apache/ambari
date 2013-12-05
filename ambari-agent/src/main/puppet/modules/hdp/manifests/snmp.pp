@@ -33,8 +33,13 @@ class hdp::snmp(
   service { 'snmpd' :
     ensure => $service_state
   }
-  
-  anchor{'hdp::snmp::begin':} -> Hdp::Package['snmp'] -> Hdp::Snmp-configfile<||> -> Service['snmpd'] -> anchor{'hdp::snmp::end':}
+
+  exec { "snmpd_autostart" :
+    command => "chkconfig snmpd on",
+    path => '/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+  }
+ 
+  anchor{'hdp::snmp::begin':} -> Hdp::Package['snmp'] -> Hdp::Snmp-configfile<||> -> Service['snmpd'] -> Exec['snmpd_autostart'] -> anchor{'hdp::snmp::end':}
 }
 
 define hdp::snmp-configfile()
