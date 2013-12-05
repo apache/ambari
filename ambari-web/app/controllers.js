@@ -52,6 +52,7 @@ require('controllers/main/admin/user/create');
 require('controllers/main/admin/advanced');
 require('utils/polling');
 require('controllers/main/admin/security');
+require('controllers/main/admin/security/security_progress_controller');
 require('controllers/main/admin/security/disable');
 require('controllers/main/admin/security/add/addSecurity_controller');
 require('controllers/main/admin/security/add/step1');

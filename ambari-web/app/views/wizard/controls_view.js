@@ -85,7 +85,7 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
     } else {
       return ['span9'];
     }
-  }.property('serviceConfig.displayType', 'serviceConfig.unit'),
+  }.property('serviceConfig.displayType', 'serviceConfig.unit')
 
 });
 

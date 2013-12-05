@@ -872,7 +872,7 @@ var urls = {
     'mock': '',
     'type': 'DELETE'
   },
-  'admin.security.all_configurations': {
+  'admin.get.all_configurations': {
     'real': '/clusters/{clusterName}/configurations?{urlParams}',
     'mock': '',
     'format': function (data, opt) {
