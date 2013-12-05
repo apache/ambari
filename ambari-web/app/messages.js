@@ -1722,5 +1722,11 @@ Em.I18n.translations = {
   'config.group.selection.dialog.no.groups': 'There are no existing {{serviceName}} Configuration Groups.',
   'config.group.host.switch.dialog.title': 'Change Group',
 
+  'config.group.save.confirmation.header': 'Save Configuration Group',
+  'config.group.save.confirmation.msg': 'Click <em>Manage Hosts</em> to manage host membership to the configuration group',
+  'config.group.save.confirmation.configGroup': 'Configuration Group',
+  'config.group.save.confirmation.saved': 'has been successfully saved',
+  'config.group.save.confirmation.manage.button': 'Manage Hosts',
+
   'utils.ajax.errorMessage': 'Error message'
 };

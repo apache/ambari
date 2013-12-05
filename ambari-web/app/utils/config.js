@@ -986,6 +986,23 @@ App.config = Em.Object.create({
    * @param callback  Callback function which is invoked when dialog
    *  is closed, cancelled or OK is pressed.
    */
+
+  saveGroupConfirmationPopup: function(groupName,isInstaller) {
+    App.ModalPopup.show({
+      header: Em.I18n.t('config.group.save.confirmation.header'),
+      secondary: Em.I18n.t('config.group.save.confirmation.manage.button'),
+      groupName: groupName,
+      bodyClass: Ember.View.extend({
+        templateName: require('templates/common/configs/saveConfigGroup')
+      }),
+      onSecondary: function() {
+        var controller = isInstaller ? App.router.get('wizardStep7Controller') : undefined;
+        App.router.get('mainServiceInfoConfigsController').manageConfigurationGroups(controller);
+        this.hide();
+      }
+    });
+  },
+
   launchConfigGroupSelectionCreationDialog : function(serviceId, configGroups, usedConfigGroupNames, configProperty, callback, isInstaller) {
     var self = this;
     var availableConfigGroups = configGroups.slice();
@@ -1026,6 +1043,7 @@ App.config = Em.Object.create({
         if (this.get('optionSelectConfigGroup')) {
           var selectedConfigGroup = this.get('selectedConfigGroup');
           this.hide();
+          self.saveGroupConfirmationPopup(selectedConfigGroup,isInstaller);
           callback(selectedConfigGroup);
         } else {
           var newConfigGroupName = this.get('newConfigGroupName').trim();
@@ -1034,6 +1052,7 @@ App.config = Em.Object.create({
             newConfigGroup.set('parentConfigGroup', configGroups.findProperty('isDefault'));
             configGroups.pushObject(newConfigGroup);
             this.hide();
+            self.saveGroupConfirmationPopup(newConfigGroupName,isInstaller);
             callback(newConfigGroup);
           }
         }
