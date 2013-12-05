@@ -24,7 +24,7 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
 
   isHA: true,
 
-  commands: ['stopAllServices', 'installNameNode', 'installJournalNodes', 'startJournalNodes', 'disableSNameNode', 'reconfigureHDFS'],
+  commands: ['stopAllServices', 'installNameNode', 'installJournalNodes', 'reconfigureHDFS', 'startJournalNodes', 'disableSNameNode'],
 
   hdfsSiteTag : "",
   coreSiteTag : "",
@@ -77,63 +77,9 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
   },
 
   reconfigureHDFS: function () {
-    this.loadConfigsTags();
-  },
-
-  loadConfigsTags: function () {
-    App.ajax.send({
-      name: 'config.tags',
-      sender: this,
-      success: 'onLoadConfigsTags',
-      error: 'onTaskError'
-    });
-  },
-
-  onLoadConfigsTags: function (data) {
-    var hdfsSiteTag = data.Clusters.desired_configs['hdfs-site'].tag;
-    var coreSiteTag = data.Clusters.desired_configs['core-site'].tag;
-    this.set("hdfsSiteTag", {name : "hdfsSiteTag", value : hdfsSiteTag});
-    this.set("coreSiteTag", {name : "coreSiteTag", value : coreSiteTag});
-    App.ajax.send({
-      name: 'admin.high_availability.load_configs',
-      sender: this,
-      data: {
-        hdfsSiteTag: hdfsSiteTag,
-        coreSiteTag: coreSiteTag
-      },
-      success: 'onLoadConfigs',
-      error: 'onTaskError'
-    });
-  },
-
-  onLoadConfigs: function (data) {
+    var data = this.get('content.serviceConfigProperties');
     var hdfsSiteProperties = data.items.findProperty('type', 'hdfs-site').properties;
     var coreSiteProperties = data.items.findProperty('type', 'core-site').properties;
-
-    var currentNameNodeHost = this.get('content.masterComponentHosts').findProperty('isCurNameNode').hostName;
-    var newNameNodeHost = this.get('content.masterComponentHosts').findProperty('isAddNameNode').hostName;
-    var journalNodeHosts = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName');
-    var zooKeeperHosts = this.get('content.masterComponentHosts').filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
-    var nameServiceId = this.get('content.nameServiceId');
-
-    //hdfs-site configs changes
-    hdfsSiteProperties['dfs.nameservices'] = nameServiceId;
-    hdfsSiteProperties['dfs.ha.namenodes.' + nameServiceId] = 'nn1,nn2';
-    hdfsSiteProperties['dfs.namenode.rpc-address.' + nameServiceId + '.nn1'] = currentNameNodeHost + ':8020';
-    hdfsSiteProperties['dfs.namenode.rpc-address.' + nameServiceId + '.nn2'] = newNameNodeHost + ':8020';
-    hdfsSiteProperties['dfs.namenode.http-address.' + nameServiceId + '.nn1'] = currentNameNodeHost + ':50070';
-    hdfsSiteProperties['dfs.namenode.http-address.' + nameServiceId + '.nn2'] = newNameNodeHost + ':50070';
-    hdfsSiteProperties['dfs.namenode.https-address.' + nameServiceId + '.nn1'] = currentNameNodeHost + ':50470';
-    hdfsSiteProperties['dfs.namenode.https-address.' + nameServiceId + '.nn2'] = newNameNodeHost + ':50470';
-    hdfsSiteProperties['dfs.namenode.shared.edits.dir'] = 'qjournal://' + journalNodeHosts[0] + ':8485;' + journalNodeHosts[1] + ':8485;' + journalNodeHosts[2] + ':8485/' + nameServiceId;
-    hdfsSiteProperties['dfs.client.failover.proxy.provider.' + nameServiceId] = 'org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider';
-    hdfsSiteProperties['dfs.ha.fencing.methods'] = 'shell(/bin/true)';
-    hdfsSiteProperties['dfs.journalnode.edits.dir'] = '/grid/0/hdfs/journal';
-    hdfsSiteProperties['dfs.ha.automatic-failover.enabled'] = 'true';
-
-    //core-site configs changes
-    coreSiteProperties['ha.zookeeper.quorum'] = zooKeeperHosts[0] + ':2181,' + zooKeeperHosts[1] + ':2181,' + zooKeeperHosts[2] + ':2181';
-    coreSiteProperties['fs.defaultFS'] = 'hdfs://' + nameServiceId;
     this.set('configsSaved', false);
     App.ajax.send({
       name: 'admin.high_availability.save_configs',
@@ -164,10 +110,10 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
       this.set('configsSaved', true);
       return;
     }
-    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
+    var nnHostNames = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
+    var jnHostNames = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName');
+    var hostNames = $.extend([], nnHostNames, jnHostNames);
     this.createComponent('HDFS_CLIENT', hostNames);
-    App.router.get(this.get('content.controllerName')).saveConfigTag(this.get("hdfsSiteTag"));
-    App.router.get(this.get('content.controllerName')).saveConfigTag(this.get("coreSiteTag"));
     App.router.get(this.get('content.controllerName')).saveHdfsClientHosts(hostNames);
     App.clusterStatus.setClusterStatus({
       clusterName: this.get('content.cluster.name'),

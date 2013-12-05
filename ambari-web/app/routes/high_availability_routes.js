@@ -154,6 +154,8 @@ module.exports = Em.Route.extend({
         localdb: App.db.data
       });
       controller.saveMasterComponentHosts(highAvailabilityWizardStep2Controller);
+      controller.get('content').set('serviceConfigProperties', null);
+      controller.setDBProperty('serviceConfigProperties', null);
       router.transitionTo('step3');
     },
     back: function (router) {
@@ -175,11 +177,17 @@ module.exports = Em.Route.extend({
       return false;
     },
     next: function (router) {
+      var controller = router.get('highAvailabilityWizardController');
+      var stepController = router.get('highAvailabilityWizardStep3Controller');
+      controller.saveServiceConfigProperties(stepController);
+      controller.saveConfigTag(stepController.get("hdfsSiteTag"));
+      controller.saveConfigTag(stepController.get("coreSiteTag"));
+      if (App.Service.find().someProperty('serviceName', 'HBASE')) {
+        controller.saveConfigTag(stepController.get("hbaseSiteTag"));
+      }
       router.transitionTo('step4');
     },
-    back: function (router) {
-      router.transitionTo('step2');
-    }
+    back: Em.Router.transitionTo('step2')
   }),
 
   step4: Em.Route.extend({

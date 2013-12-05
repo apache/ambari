@@ -26,6 +26,9 @@ String.prototype.endsWith = function(suffix) {
 String.prototype.startsWith = function (prefix){
   return this.indexOf(prefix) == 0;
 };
+String.prototype.contains = function(substring) {
+  return this.indexOf(substring) != -1;
+};
 
 /**
  * convert ip address string to long int

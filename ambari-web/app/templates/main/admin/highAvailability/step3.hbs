@@ -20,25 +20,28 @@
 <h2>{{t admin.highAvailability.wizard.step3.header}}</h2>
 
 <div class="alert alert-info">
-  {{t admin.highAvailability.wizard.step3.body}}
+  {{t admin.highAvailability.wizard.step3.confirm.host.body}}
 </div>
 
-<div id="step8-content" class="well pre-scrollable">
+<div id="ha-step3-content" class="well pre-scrollable">
   <div id="step8-info">
     <table id="ha-step3-review-table">
       <tr>
         <td>{{t admin.highAvailability.wizard.step3.curNameNode}}</td>
-        <td>{{view.curNameNode}}</td><td></td>
+        <td>{{view.curNameNode}}</td>
+        <td></td>
       </tr>
       <tr>
         <td>{{t admin.highAvailability.wizard.step3.secNameNode}}</td>
         <td>{{view.secondaryNameNode}}</td>
-        <td class="to-be-disabled-red"><i class="icon-minus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeDeleted}}</td>
+        <td class="to-be-disabled-red"><i
+                class="icon-minus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeDeleted}}</td>
       </tr>
       <tr>
         <td>{{t admin.highAvailability.wizard.step3.addNameNode}}</td>
         <td>{{view.addNameNode}}</td>
-        <td class="to-be-installed-green"><i class="icon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</td>
+        <td class="to-be-installed-green"><i
+                class="icon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</td>
       </tr>
       <tr>
         <td>{{t admin.highAvailability.wizard.step3.journalNode}}</td>
@@ -51,9 +54,12 @@
         </td>
         <td>
           <ul>
-            <div class="to-be-installed-green"><i class="icon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</div>
-            <div class="to-be-installed-green"><i class="icon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</div>
-            <div class="to-be-installed-green"><i class="icon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</div>
+            <div class="to-be-installed-green"><i
+                    class="icon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</div>
+            <div class="to-be-installed-green"><i
+                    class="icon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</div>
+            <div class="to-be-installed-green"><i
+                    class="icon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</div>
           </ul>
         </td>
       </tr>
@@ -61,7 +67,15 @@
   </div>
 </div>
 
- <div class="btn-area">
-   <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
-   <a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>
- </div>
+
+<div id="serviceConfig">
+
+  {{{t admin.highAvailability.wizard.step3.confirm.config.body}}}
+
+  {{view App.ServiceConfigView isNotEditableBinding="controller.isNotEditable"}}
+</div>
+
+<div class="btn-area">
+  <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
+  <a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>
+</div>

@@ -37,6 +37,7 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
     services: null,
     slaveComponentHosts: null,
     masterComponentHosts: null,
+    serviceConfigProperties: [],
     serviceName: 'MISC',
     hdfsUser:"hdfs",
     nameServiceId: '',
@@ -183,6 +184,25 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
     this.set('content.hdfsClientHostNames', hostNames);
   },
 
+    /**
+     * Save config properties
+     * @param stepController HighAvailabilityWizardStep3Controller
+     */
+  saveServiceConfigProperties: function(stepController) {
+    var serviceConfigProperties = [];
+    var data = stepController.get('serverConfigData');
+
+    var _content = stepController.get('stepConfigs')[0];
+    _content.get('configs').forEach(function (_configProperties) {
+      var siteObj = data.items.findProperty('type', _configProperties.get('filename'));
+      if (siteObj) {
+        siteObj.properties[_configProperties.get('name')] = _configProperties.get('value');
+      }
+    }, this);
+    this.setDBProperty('serviceConfigProperties', data);
+    this.set('content.serviceConfigProperties', data);
+  },
+
   loadHdfsClientHosts: function(){
     var hostNames = App.db.getHighAvailabilityWizardHdfsClientHosts();
     if (!(hostNames instanceof Array)) {
@@ -205,6 +225,14 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
   loadTasksStatuses: function(){
     var statuses = App.db.getHighAvailabilityWizardTasksStatuses();
     this.set('content.tasksStatuses', statuses);
+  },
+
+  /**
+   * Load serviceConfigProperties to model
+   */
+  loadServiceConfigProperties: function () {
+    var serviceConfigProperties = this.getDBProperty('serviceConfigProperties');
+    this.set('content.serviceConfigProperties', serviceConfigProperties);
   },
 
   saveRequestIds: function(requestIds){
@@ -248,12 +276,13 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
       case '7':
       case '6':
       case '5':
-        this.loadNameServiceId();
         this.loadTasksStatuses();
         this.loadRequestIds();
         this.loadLogs();
       case '4':
       case '3':
+        this.loadNameServiceId();
+        this.loadServiceConfigProperties();
       case '2':
         this.loadServicesFromServer();
         this.loadMasterComponentHosts();

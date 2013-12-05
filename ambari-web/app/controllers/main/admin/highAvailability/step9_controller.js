@@ -60,38 +60,8 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
   },
 
   reconfigureHBase: function () {
-    this.loadConfigsTags();
-  },
-
-  loadConfigsTags: function () {
-    App.ajax.send({
-      name: 'config.tags',
-      sender: this,
-      success: 'onLoadConfigsTags',
-      error: 'onTaskError'
-    });
-  },
-
-  onLoadConfigsTags: function (data) {
-    var hbaseSiteTag = data.Clusters.desired_configs['hbase-site'].tag;
-    this.set("hbaseSiteTag", {name : "hbaseSiteTag", value : hbaseSiteTag});
-    App.ajax.send({
-      name: 'admin.high_availability.load_hbase_configs',
-      sender: this,
-      data: {
-        hbaseSiteTag: hbaseSiteTag
-      },
-      success: 'onLoadConfigs',
-      error: 'onTaskError'
-    });
-  },
-
-  onLoadConfigs: function (data) {
+    var data = this.get('content.serviceConfigProperties');
     var hbaseSiteProperties = data.items.findProperty('type', 'hbase-site').properties;
-    var nameServiceId = this.get('content.nameServiceId');
-
-    //hbase-site configs changes
-    hbaseSiteProperties['hbase.rootdir'] = hbaseSiteProperties['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + nameServiceId);
 
     App.ajax.send({
       name: 'admin.high_availability.save_configs',
@@ -106,7 +76,6 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
   },
 
   saveConfigTag: function () {
-    App.router.get(this.get('content.controllerName')).saveConfigTag(this.get("hbaseSiteTag"));
     App.clusterStatus.setClusterStatus({
       clusterName: this.get('content.cluster.name'),
       clusterState: 'HIGH_AVAILABILITY_DEPLOY',

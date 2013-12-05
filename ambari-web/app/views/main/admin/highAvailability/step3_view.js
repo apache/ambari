@@ -22,7 +22,9 @@ var App = require('app');
 App.HighAvailabilityWizardStep3View = Em.View.extend({
 
   templateName: require('templates/main/admin/highAvailability/step3'),
-
+  didInsertElement: function () {
+    this.get('controller').loadStep();
+  },
   curNameNode: function () {
     var nN = this.get('controller.content.masterComponentHosts').findProperty('isCurNameNode', true);
     return nN.hostName;

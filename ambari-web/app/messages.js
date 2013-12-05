@@ -714,9 +714,9 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step5.task0.title':'Stop All Services',
   'admin.highAvailability.wizard.step5.task1.title':'Install Additional NameNode',
   'admin.highAvailability.wizard.step5.task2.title':'Install JournalNodes',
-  'admin.highAvailability.wizard.step5.task3.title':'Start JournalNodes',
-  'admin.highAvailability.wizard.step5.task4.title':'Disable Secondary NameNode',
-  'admin.highAvailability.wizard.step5.task5.title':'Reconfigure HDFS',
+  'admin.highAvailability.wizard.step5.task3.title':'Reconfigure HDFS',
+  'admin.highAvailability.wizard.step5.task4.title':'Start JournalNodes',
+  'admin.highAvailability.wizard.step5.task5.title':'Disable Secondary NameNode',
 
   'admin.highAvailability.wizard.step7.task0.title':'Start ZooKeeper Servers',
   'admin.highAvailability.wizard.step7.task1.title':'Start NameNode',
@@ -800,7 +800,11 @@ Em.I18n.translations = {
     '<li>You will be able to proceed once Ambari detects that the NameNode is in Safe Mode and the Checkpoint has been created successfully.</li>'+
     '<div class="alert alert-warn">If the <b>Next</b> button is enabled before you run the <b>"Step 3: Create a Checkpoint"</b> command, it means there is a recent Checkpoint already and you may proceed without running the <b>"Step 3: Create a Checkpoint"</b> command.</div>' +
     '</ol>',
-  'admin.highAvailability.wizard.step3.body':'Confirm your host selections.',
+  'admin.highAvailability.wizard.step3.confirm.host.body':'<b>Confirm your host selections.</b>',
+  'admin.highAvailability.wizard.step3.confirm.config.body':'<div class="alert alert-info">' +
+    '<b>Review Configuration Changes.</b></br>' +
+    'The following lists the configuration changes that will be made by the Wizard to enable NameNode HA. This information is for <b> review only </b> and is not editable except for the  <b>dfs.journalnode.edits.dir</b> property' +
+    '</div>',
   'admin.highAvailability.wizard.step2.body':'Select a host that will be running the additional NameNode.<br/> In addition,' +
     ' select the hosts to run JournalNodes, which store NameNode edit logs in a fault tolerant manner.',
   'admin.highAvailability.wizard.step1.body':'This wizard will walk you through enabling NameNode HA on your cluster.<br/>' +
