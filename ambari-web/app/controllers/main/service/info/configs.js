@@ -1792,7 +1792,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           });
         })
         this.hide();
-        App.router.get('backgroundOperationsController').showPopup();
+        // load data (if we need to show this background operations popup) from persist
+        App.router.get('applicationController').dataLoading().done(function (initValue) {
+          if (initValue) {
+            App.router.get('backgroundOperationsController').showPopup();
+          }
+        });
       },
       onSecondary: function () {
         this.hide();
