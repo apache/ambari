@@ -102,27 +102,29 @@ App.UptimeTextDashboardWidgetView = App.TextDashboardWidgetView.extend({
     }
     var formatted = date.timingFormat(diff); //17.67 days
     var timeUnit = null;
-    switch (formatted.split(" ")[1]) {
-      case 'secs':
-        timeUnit = 's';
-        break;
-      case 'hours':
-        timeUnit = 'hr';
-        break;
-      case 'days':
-        timeUnit = 'd';
-        break;
-      case 'mins':
-        timeUnit = 'min';
-        break;
-      default:
-        timeUnit = formatted.split(" ")[1];
+    if (formatted != null) {
+      switch (formatted.split(" ")[1]) {
+        case 'secs':
+          timeUnit = 's';
+          break;
+        case 'hours':
+          timeUnit = 'hr';
+          break;
+        case 'days':
+          timeUnit = 'd';
+          break;
+        case 'mins':
+          timeUnit = 'min';
+          break;
+        default:
+          timeUnit = formatted.split(" ")[1];
+      }
+      this.set('timeUnit', timeUnit);
+      this.set('hiddenInfo', []);
+      this.get('hiddenInfo').pushObject(formatted);
+      this.get('hiddenInfo').pushObject(uptimeString[0]);
+      this.get('hiddenInfo').pushObject(uptimeString[1]);
     }
-    this.set('timeUnit', timeUnit);
-    this.set('hiddenInfo', []);
-    this.get('hiddenInfo').pushObject(formatted);
-    this.get('hiddenInfo').pushObject(uptimeString[0]);
-    this.get('hiddenInfo').pushObject(uptimeString[1]);
     return formatted;
   },
 
@@ -131,7 +133,9 @@ App.UptimeTextDashboardWidgetView = App.TextDashboardWidgetView.extend({
     var uptime = this.get('model').get(field);
     if (uptime && uptime > 0) {
       var formatted = this.uptimeProcessing(uptime);
-      return parseFloat(formatted.split(" ")[0]);
+      if (formatted != null) {
+        return parseFloat(formatted.split(" ")[0]);
+      }
     }
     this.set('hiddenInfo', [this.get('component'),'Not Running']);
     return null;
