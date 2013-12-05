@@ -439,7 +439,7 @@ public class AmbariCustomCommandExecutionHelperImpl implements AmbariCustomComma
       // Choose repo that is relevant for host
       ServiceOsSpecific.Repo serviceRepo= hostOs.getRepo();
       if (serviceRepo != null) {
-        String serviceRepoInfo = gson.toJson(serviceInfo);
+        String serviceRepoInfo = gson.toJson(serviceRepo);
         hostParams.put(SERVICE_REPO_INFO, serviceRepoInfo);
       }
     }
