@@ -146,6 +146,7 @@ class AmbariResource:
   def waitOnHostComponentUpdate(self, hostname, componentName, status):
     logger.info("Waiting for host component status to update ...")
     sleep_itr = 0
+    state = None
     while sleep_itr < STATUS_WAIT_TIMEOUT:
       try:
         state = self.getHostComponentState(hostname, componentName)
@@ -156,10 +157,16 @@ class AmbariResource:
       except Exception, e:
         logger.error("Caught an exception waiting for status update.. "
                      "continuing to wait...")
+      pass
 
       time.sleep(STATUS_CHECK_INTERVAL)
       sleep_itr += STATUS_CHECK_INTERVAL
     pass
+    if state and state != status:
+      logger.error("Timed out on wait, status unchanged. status = %s" % state)
+      sys.exit(1)
+    pass
+  pass
 
   def addHostComponent(self, hostname, componentName):
     data = '{"host_components":[{"HostRoles":{"component_name":"%s"}}]}' % self.componentName
