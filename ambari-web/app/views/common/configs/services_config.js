@@ -853,12 +853,14 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
    */
   getUserAndGroupNames: function(queueName){
     queueName = queueName || '<queue-name>';
-    if(App.config.get('isHDP2')){
-      return ['yarn.scheduler.capacity.root.' + queueName + '.acl_submit_jobs',
-        'yarn.scheduler.capacity.root.' + queueName + '.acl_administer_jobs']
+    if(App.get('isHadoop2Stack') && this.get('controller.selectedService')) {
+      if (this.get('controller.selectedService.serviceName') == "YARN") {
+        return ['yarn.scheduler.capacity.root.' + queueName + '.acl_submit_jobs',
+          'yarn.scheduler.capacity.root.' + queueName + '.acl_administer_jobs']
+      }
+      return ['mapred.queue.' + queueName + '.acl-submit-job',
+        'mapred.queue.' + queueName + '.acl-administer-jobs']
     }
-    return ['mapred.queue.' + queueName + '.acl-submit-job',
-      'mapred.queue.' + queueName + '.acl-administer-jobs']
   },
   generateColor: function (str) {
     var hash = 0;
@@ -944,7 +946,7 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
       var admin = [];
       var submit = [];
       //comparison executes including 'queue.<queue-name>' to avoid false matches
-      var queueNamePrefix = App.config.get('isHDP2') ? 'root.' : 'queue.';
+      var queueNamePrefix = App.get('isHadoop2Stack') ? 'root.' : 'queue.';
       if (configNames.contains(_config.get('name'))) {
         if(configName == this.getUserAndGroupNames(queue.name)[0]){
           submit = queue.configs.filterProperty('name', configName);
