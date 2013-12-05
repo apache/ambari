@@ -111,7 +111,10 @@ App.HighAvailabilityProgressPageView = Em.View.extend({
       if(!!this.get('content.hosts.length')){
         var serviceName = event.contexts[0].title;
         var controller = this.get("controller");
-        App.HostPopup.initPopup(serviceName, controller);
+        App.router.get('applicationController').dataLoading().done(function (initValue) {
+          var popupView = App.HostPopup.initPopup(serviceName, controller);
+          popupView.set ('isNotShowBgChecked', !initValue);
+        })
       }
     }
   })

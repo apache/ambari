@@ -136,7 +136,10 @@ App.StackUpgradeStep3View = Em.View.extend({
     hostsLogPopup: function(event){
       var serviceName = event.contexts[0];
       var controller = this.get("controller");
-      App.HostPopup.initPopup(serviceName, controller);
+      App.router.get('applicationController').dataLoading().done(function (initValue) {
+        var popupView = App.HostPopup.initPopup(serviceName, controller);
+        popupView.set ('isNotShowBgChecked', !initValue);
+      })
     }
   })
 });

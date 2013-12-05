@@ -49,7 +49,10 @@ App.StageLabelView = Em.View.extend({
   showHostPopup: function (label) {
     var serviceName = label;
     var controller = this.get("controller");
-    App.HostPopup.initPopup(serviceName, controller);
+    App.router.get('applicationController').dataLoading().done(function (initValue) {
+      var popupView = App.HostPopup.initPopup(serviceName, controller);
+      popupView.set ('isNotShowBgChecked', !initValue);
+    })
   },
 
   isStarted: function () {
