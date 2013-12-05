@@ -43,12 +43,11 @@ import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.State;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * An abstract provider module implementation.
@@ -316,18 +315,6 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
 
   // ----- utility methods ---------------------------------------------------
 
-  /**
-   * Get the metrics version for the given cluster name.
-   *
-   * @param clusterName  the cluster name
-   *
-   * @return the metrics version for the given cluster name
-   */
-  protected PropertyHelper.MetricsVersion getMetricsVersion(String clusterName) {
-    updateClusterVersion();
-    return clusterVersionsMap.get(clusterName);
-  }
-
   protected abstract ResourceProvider createResourceProvider(Resource.Type type);
 
   protected void registerResourceProvider(Resource.Type type) {
@@ -457,15 +444,9 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
 
         for (Resource cluster : clusters) {
           String clusterVersion = (String) cluster.getPropertyValue(CLUSTER_VERSION_PROPERTY_ID);
-          PropertyHelper.MetricsVersion version = PropertyHelper.MetricsVersion.HDP2;
 
-          Matcher m = Pattern.compile("[0-9]+(\\.[0-9]+)+").matcher(clusterVersion);
-          if (m.find()) {
-            clusterVersion = m.group(0);
-            if (clusterVersion.equals("1") || clusterVersion.startsWith("1.")) {
-              version = PropertyHelper.MetricsVersion.HDP1;
-            }
-          }
+          PropertyHelper.MetricsVersion version =  clusterVersion.startsWith("HDP-1") ?
+              PropertyHelper.MetricsVersion.HDP1 : PropertyHelper.MetricsVersion.HDP2;
 
           clusterVersionsMap.put(
               (String) cluster.getPropertyValue(CLUSTER_NAME_PROPERTY_ID),
