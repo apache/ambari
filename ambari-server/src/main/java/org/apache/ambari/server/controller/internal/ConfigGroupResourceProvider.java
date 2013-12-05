@@ -402,11 +402,13 @@ public class ConfigGroupResourceProvider extends
       Map<Long, ConfigGroup> configGroupMap = cluster.getConfigGroups();
       if (configGroupMap != null) {
         for (ConfigGroup configGroup : configGroupMap.values()) {
-          if (configGroup.getName().equals(request.getGroupName())) {
+          if (configGroup.getName().equals(request.getGroupName()) &&
+              configGroup.getTag().equals(request.getTag())) {
             throw new DuplicateResourceException("Config group already " +
-              "exists with the same name, "
-              + "clusterName = " + request.getClusterName()
-              + ", groupName = " + request.getGroupName());
+              "exists with the same name and tag"
+              + ", clusterName = " + request.getClusterName()
+              + ", groupName = " + request.getGroupName()
+              + ", tag = " + request.getTag());
           }
         }
       }
@@ -431,7 +433,7 @@ public class ConfigGroupResourceProvider extends
         request.getConfigs(), hosts);
 
       // Persist before add, since id is auto-generated
-      configLogger.info("Persisting new Config group, "
+      configLogger.info("Persisting new Config group"
         + ", clusterName = " + cluster.getClusterName()
         + ", name = " + configGroup.getName()
         + ", tag = " + configGroup.getTag()

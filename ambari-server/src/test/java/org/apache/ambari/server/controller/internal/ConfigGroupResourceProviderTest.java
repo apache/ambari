@@ -23,34 +23,29 @@ import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.easymock.Capture;
 import org.easymock.IAnswer;
 import org.junit.Assert;
 import org.junit.Test;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
-import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
@@ -153,6 +148,65 @@ public class ConfigGroupResourceProviderTest {
       .getVersionTag());
     assertTrue(captureHosts.getValue().containsKey("h1"));
     assertTrue(captureHosts.getValue().containsKey("h2"));
+  }
+
+  @Test
+  public void testDuplicateNameConfigGroup() throws Exception {
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    ConfigGroupFactory configGroupFactory = createNiceMock(ConfigGroupFactory.class);
+    ConfigGroup configGroup = createNiceMock(ConfigGroup.class);
+    Map<Long, ConfigGroup> configGroupMap = new HashMap<Long, ConfigGroup>();
+    configGroupMap.put(1L, configGroup);
+
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
+    expect(managementController.getConfigGroupFactory()).andReturn
+      (configGroupFactory).anyTimes();
+    expect(managementController.getAuthName()).andReturn("admin").anyTimes();
+    expect(cluster.getConfigGroups()).andReturn(configGroupMap);
+
+    expect(configGroupFactory.createNew((Cluster) anyObject(), (String) anyObject(),
+      (String) anyObject(), (String) anyObject(), (HashMap) anyObject(),
+      (HashMap) anyObject())).andReturn(configGroup).anyTimes();
+
+    expect(configGroup.getClusterName()).andReturn("Cluster100").anyTimes();
+    expect(configGroup.getName()).andReturn("test-1").anyTimes();
+    expect(configGroup.getTag()).andReturn("tag-1").anyTimes();
+
+    replay(managementController, clusters, cluster, configGroupFactory,
+      configGroup, response);
+
+    ResourceProvider provider = getConfigGroupResourceProvider
+      (managementController);
+
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+
+    properties.put(ConfigGroupResourceProvider
+      .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    properties.put(ConfigGroupResourceProvider.CONFIGGROUP_NAME_PROPERTY_ID,
+      "test-1");
+    properties.put(ConfigGroupResourceProvider.CONFIGGROUP_TAG_PROPERTY_ID,
+      "tag-1");
+
+    propertySet.add(properties);
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
+
+    Exception exception = null;
+    try {
+      provider.createResources(request);
+    } catch (Exception e) {
+      exception = e;
+    }
+
+    verify(managementController, clusters, cluster, configGroupFactory,
+      configGroup, response);
+
+    assertNotNull(exception);
+    assertTrue(exception instanceof ResourceAlreadyExistsException);
   }
 
   @Test

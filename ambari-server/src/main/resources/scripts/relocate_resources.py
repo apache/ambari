@@ -28,7 +28,6 @@ import socket
 import json
 import base64
 import time
-import StringIO
 
 AMBARI_HOSTNAME = None
 AMBARI_PORT = 8080
@@ -211,7 +210,7 @@ class AmbariResource:
     try:
       logger.info("%s host component: %s" % (contextStr, req.get_full_url()))
       resp = self.urlOpener.open(req)
-      self.logResponse('Start component response: ', resp)
+      self.logResponse('Update host component response: ', resp)
     except Exception, e:
       logger.error('Update Status {0} failed.'.format(componentName))
       logger.error(e)
