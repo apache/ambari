@@ -1,3 +1,4 @@
+#!/usr/bin/env python2.6
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -14,27 +15,22 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-Ambari Agent
-
 """
+
 
 from resource_management import *
 
-config = Script.get_config()
 
-security_enabled = config['configurations']['global']['security_enabled']
-smokeuser = config['configurations']['global']['smokeuser']
-user_group = config['configurations']['global']['user_group']
+class SqoopServiceCheck(Script):
+  def service_check(self, env):
+    import params
+    env.set_params(params)
+    if params.security_enabled:
+        Execute(format("{kinit_path_local}  -kt {smoke_user_keytab} {smoke_test_user}"))
+    Execute("sqoop version",
+            user = params.smokeuser,
+            logoutput = True
+    )
 
-sqoop_conf_dir = "/usr/lib/sqoop/conf"
-hbase_home = "/usr"
-hive_home = "/usr"
-zoo_conf_dir = "/etc/zookeeper"
-sqoop_lib = "/usr/lib/sqoop/lib"
-sqoop_user = "sqoop"
-
-keytab_path = default("keytab_path")
-smoke_user_keytab = default('smokeuser_keytab')
-kinit_path_local = functions.get_kinit_path(
-  [default('kinit_path_local'), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+if __name__ == "__main__":
+  SqoopServiceCheck().execute()
