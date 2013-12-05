@@ -43,8 +43,8 @@ then
 elif [ -f  "/etc/redhat-release" ]
 then
   grep -sqiE "^centos ${pattern}5" /etc/redhat-release && current_os=$C5
-  grep -sqE "^Red Hat Enterprise Linux Server ${pattern}6" /etc/redhat-release && current_os=$RH6
-  grep -sqE "^Red Hat Enterprise Linux Server ${pattern}5" /etc/redhat-release && current_os=$RH5
+  grep -sqE "^Red Hat Enterprise Linux ${pattern}6" /etc/redhat-release && current_os=$RH6
+  grep -sqE "^Red Hat Enterprise Linux ${pattern}5" /etc/redhat-release && current_os=$RH5
 elif [ -f  "/etc/SuSE-release" ]
 then
   grep -sqE "${pattern}11" /etc/SuSE-release && current_os=$SUSE11
