@@ -44,9 +44,10 @@ def mysql():
        content=StaticFile('addMysqlUser.sh')
   )
 
-  #TODO auto escaping for hive_metastore_user_passwd
-  cmd = format("bash -x {mysql_adduser_path} {service_name} {hive_metastore_user_name} \"{hive_metastore_user_passwd}\" {mysql_host}")
-
+  # Autoescaping
+  cmd = ("bash", "-x", params.mysql_adduser_path, params.service_name, 
+         params.hive_metastore_user_name, params.hive_metastore_user_passwd, params.mysql_host[0])
+  
   Execute(cmd,
           tries=3,
           try_sleep=5,
