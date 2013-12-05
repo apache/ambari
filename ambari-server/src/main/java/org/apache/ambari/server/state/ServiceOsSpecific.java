@@ -21,6 +21,7 @@ import javax.xml.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.gson.annotations.SerializedName;
 /**
  * Represents service os-specific details (like repositories and packages). 
  * Represents <code>osSpecific</code>
@@ -58,9 +59,14 @@ public class ServiceOsSpecific {
    */
   @XmlAccessorType(XmlAccessType.FIELD)
   public static class Repo {
+
+    @SerializedName("baseUrl")
     private String baseurl;
+    @SerializedName("mirrorsList")
     private String mirrorslist;
+    @SerializedName("repoId")
     private String repoid;
+    @SerializedName("repoName")
     private String reponame;
 
     private Repo() {

@@ -52,7 +52,9 @@ class TestCustomServiceOrchestrator(TestCase):
     self.config.set('agent', 'cache_dir', "/cachedir")
 
 
-  def test_dump_command_to_json(self):
+  @patch("hostname.public_hostname")
+  def test_dump_command_to_json(self, hostname_mock):
+    hostname_mock.return_value = "test.hst"
     command = {
       'commandType': 'EXECUTION_COMMAND',
       'role': u'DATANODE',
@@ -73,6 +75,8 @@ class TestCustomServiceOrchestrator(TestCase):
     self.assertTrue(os.path.getsize(file) > 0)
     self.assertEqual(oct(os.stat(file).st_mode & 0777), '0600')
     os.unlink(file)
+    # Testing side effect of dump_command_to_json
+    self.assertEquals(command['public_hostname'], "test.hst")
 
 
   @patch("os.path.exists")
