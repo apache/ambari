@@ -1121,6 +1121,7 @@ Em.I18n.translations = {
   'services.service.config.confirmDirectoryChange':'You are about to make changes to service directories that are core to {0}. Before you proceed, be absolutely certain of the implications and that you have taken necessary manual steps, if any, for the changes. Are you sure you want to proceed?',
   'services.service.config.configOverride.head':'Config Override',
   'services.service.config.configOverride.body':'Cannot override a config that has not been saved yet.',
+  'services.service.config.exitPopup.body':'You have unsaved changes. Save changes or discard?',
 
   'services.add.header':'Add Service Wizard',
   'services.reassign.header':'Move Master Wizard',

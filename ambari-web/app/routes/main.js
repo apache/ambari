@@ -868,6 +868,12 @@ module.exports = Em.Route.extend({
         connectOutlets: function (router, context) {
           var item = router.get('mainServiceItemController.content');
           router.get('mainServiceItemController').connectOutlet('mainServiceInfoConfigs', item);
+        },
+        exit: function(router, context) {
+          var controller = router.get('mainServiceInfoConfigsController');
+          if (controller.hasUnsavedChanges()) {
+            controller.showSavePopup();
+          }
         }
       }),
       audit: Em.Route.extend({

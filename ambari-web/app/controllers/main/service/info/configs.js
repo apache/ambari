@@ -146,6 +146,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * clear and set properties to default value
    */
   clearStep: function () {
+    this.set('isInit', true);
+    this.set('hash', null);
     this.set('dataIsLoaded', false);
     this.set('filter', '');
     this.get('filterColumns').setEach('selected', false);
@@ -166,12 +168,37 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   }.property('content'),
 
   /**
+   * "Finger-print" of the <code>stepConfigs</code>. Filled after first configGroup selecting
+   * Used to determine if some changes were made (when user navigates away from this page)
+   * {String}
+   */
+  hash: null,
+  /**
+   * Is this initial config group changing
+   * {Boolean}
+   */
+  isInit: true,
+  /**
    * On load function
    */
   loadStep: function () {
     console.log("TRACE: Loading configure for service");
     this.clearStep();
     this.loadServiceConfigs();
+  },
+
+  getHash: function() {
+    var hash = {};
+    this.get('stepConfigs')[0].configs.forEach(function(config) {
+      hash[config.get('name')] = {value: config.get('value'), overrides: []};
+      if (!config.get('overrides')) return;
+      if (!config.get('overrides.length')) return;
+
+      config.get('overrides').forEach(function(override) {
+        hash[config.get('name')].overrides.push(override.get('value'));
+      });
+    });
+    return JSON.stringify(hash);
   },
 
   /**
@@ -394,6 +421,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     this.set('selectedService', this.get('stepConfigs').objectAt(0));
     this.checkForSecureConfig(this.get('selectedService'));
     this.set('dataIsLoaded', true);
+
+    this.set('hash', this.getHash());
+    this.set('isInit', false);
+
   }.observes('selectedConfigGroup'),
 
   loadServiceConfigHostsOverrides: function (allConfigs, loadedGroupToOverrideSiteToTagMap, configGroups) {
@@ -1752,7 +1783,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       if (!this.get('content.hostComponents').filterProperty('staleConfigs').findProperty('workStatus', 'INSTALLED')) {
         return;
       }
-    };
+    }
     var content = this;
     return App.ModalPopup.show({
       primary: Em.I18n.t('ok'),
@@ -1790,7 +1821,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
               state: state
             }
           });
-        })
+        });
         this.hide();
         // load data (if we need to show this background operations popup) from persist
         App.router.get('applicationController').dataLoading().done(function (initValue) {
@@ -1980,6 +2011,48 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   selectConfigGroup: function (event) {
+    if (!this.get('isInit')) {
+      if (this.hasUnsavedChanges()) {
+        this.showSavePopup(event);
+        return;
+      }
+    }
     this.set('selectedConfigGroup', event.context);
+  },
+
+  /**
+   * Are some unsaved changes available
+   * @returns {boolean}
+   */
+  hasUnsavedChanges: function() {
+    return this.get('hash') != this.getHash();
+  },
+
+  /**
+   * If some configs are changed and user navigates away or select another config-group, show this popup with propose to save changes
+   * @param {object} event - triggered event for seleting another config-group
+   */
+  showSavePopup: function(event) {
+    if (!event) event = null;
+    var _this = this;
+    App.ModalPopup.show({
+      header: Em.I18n.t('common.warning'),
+      body: Em.I18n.t('services.service.config.exitPopup.body'),
+      primary: Em.I18n.t('common.save'),
+      secondary: Em.I18n.t('common.cancel'),
+      onPrimary: function() {
+        _this.restartServicePopup();
+        this._super();
+      },
+      onSecondary: function() {
+        if (event) {
+          // Prevent multiple popups
+          _this.set('hash', _this.getHash());
+
+          _this.selectConfigGroup(event);
+        }
+        this._super();
+      }
+    });
   }
 });
