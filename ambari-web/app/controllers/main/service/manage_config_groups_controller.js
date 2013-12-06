@@ -534,7 +534,7 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
    */
   copyConfigGroups: function (originGroups) {
     var configGroups = [];
-    var defaultConfigGroup = App.ConfigGroup.create(originGroups.findProperty('isDefault'));
+    var defaultConfigGroup = App.ConfigGroup.create($.extend(true, {},originGroups.findProperty('isDefault')));
     originGroups.forEach(function (configGroup) {
       if (!configGroup.get('isDefault')) {
         var copiedGroup = App.ConfigGroup.create($.extend(true, {}, configGroup));
