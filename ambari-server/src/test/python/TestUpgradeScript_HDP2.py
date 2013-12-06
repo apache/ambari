@@ -183,13 +183,13 @@ class TestUpgradeHDP2Script(TestCase):
       "MAPREDUCE_CLIENT": ["c6401"]}
     UpgradeHelper_HDP2.main()
     expected_curl_calls = [
-      call(False, "-u", "admin:admin", "-X", "PUT", "-d", """{"HostRoles": {"state": "MAINTENANCE"}}""",
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "PUT", "-d", """{"HostRoles": {"state": "MAINTENANCE"}}""",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6401/host_components/TASKTRACKER"),
-      call(False, "-u", "admin:admin", "-X", "PUT", "-d", """{"HostRoles": {"state": "MAINTENANCE"}}""",
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "PUT", "-d", """{"HostRoles": {"state": "MAINTENANCE"}}""",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6402/host_components/TASKTRACKER"),
-      call(False, "-u", "admin:admin", "-X", "PUT", "-d", """{"HostRoles": {"state": "MAINTENANCE"}}""",
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "PUT", "-d", """{"HostRoles": {"state": "MAINTENANCE"}}""",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6401/host_components/JOBTRACKER"),
-      call(False, "-u", "admin:admin", "-X", "DELETE",
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "DELETE",
            "http://localhost:8080/api/v1/clusters/c1/services/MAPREDUCE")]
     curl_mock.assert_has_calls(expected_curl_calls, any_order=True)
     pass
@@ -214,31 +214,31 @@ class TestUpgradeHDP2Script(TestCase):
       "MAPREDUCE_CLIENT": ["c6403"]}
     UpgradeHelper_HDP2.main()
     expected_curl_calls = [
-      call(False, "-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/services/YARN"),
-      call(False, "-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/services/MAPREDUCE2"),
-      call(False, "-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/services/MAPREDUCE2/components/HISTORYSERVER"),
-      call(False, "-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/services/MAPREDUCE2/components/MAPREDUCE2_CLIENT"),
-      call(False, "-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/services/YARN/components/NODEMANAGER"),
-      call(False, "-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/services/YARN/components/YARN_CLIENT"),
-      call(False, "-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/services/YARN/components/RESOURCEMANAGER"),
-      call(False, "-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6401/host_components/HISTORYSERVER"),
-      call(False, "-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6401/host_components/NODEMANAGER"),
-      call(False, "-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6402/host_components/NODEMANAGER"),
-      call(False, "-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6403/host_components/YARN_CLIENT"),
-      call(False, "-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6403/host_components/MAPREDUCE2_CLIENT"),
-      call(False, "-u", "admin:admin", "-X", "POST",
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "POST",
            "http://localhost:8080/api/v1/clusters/c1/hosts/c6401/host_components/RESOURCEMANAGER")]
     curl_mock.assert_has_calls(expected_curl_calls, any_order=True)
     pass
@@ -258,10 +258,10 @@ class TestUpgradeHDP2Script(TestCase):
     curl_mock.return_value = '"href" : "'
     UpgradeHelper_HDP2.main()
     expected_curl_calls = [
-      call(False, "-u", "admin:admin", "-X", "PUT", "-d",
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "PUT", "-d",
            """{"RequestInfo":{"context":"Install YARN"}, "Body":{"ServiceInfo": {"state":"INSTALLED"}}}""",
            "http://localhost:8080/api/v1/clusters/c1/services/YARN"),
-      call(False, "-u", "admin:admin", "-X", "PUT", "-d",
+      call(False, "-u", "admin:admin", '-H', 'X-Requested-By: ambari', "-X", "PUT", "-d",
            """{"RequestInfo":{"context":"Install MapReduce2"}, "Body":{"ServiceInfo": {"state":"INSTALLED"}}}""",
            "http://localhost:8080/api/v1/clusters/c1/services/MAPREDUCE2")]
     curl_mock.assert_has_calls(expected_curl_calls, any_order=False)
@@ -532,35 +532,35 @@ class TestUpgradeHDP2Script(TestCase):
 
   def validate_update_config_call(self, call, type):
     args, kargs = call
-    self.assertTrue(args[4] == 'PUT')
-    self.assertTrue(type in args[6])
+    self.assertTrue(args[6] == 'PUT')
+    self.assertTrue(type in args[8])
     pass
 
   def validate_config_replacememt(self, call, type):
     args, kargs = call
-    self.assertFalse("REPLACE_WITH_" in args[6])
-    self.assertFalse("REPLACE_JH_HOST" in args[6])
-    self.assertFalse("REPLACE_RM_HOST" in args[6])
+    self.assertFalse("REPLACE_WITH_" in args[8])
+    self.assertFalse("REPLACE_JH_HOST" in args[8])
+    self.assertFalse("REPLACE_RM_HOST" in args[8])
     if type == "yarn-site":
-      self.assertTrue("c6401" in args[6])
-      self.assertFalse("an_old_value" in args[6])
+      self.assertTrue("c6401" in args[8])
+      self.assertFalse("an_old_value" in args[8])
     elif type == "mapred-site":
-      self.assertFalse("will_not_be_stored" in args[6])
-      self.assertTrue("fs.df.interval" in args[6])
-      self.assertFalse("dfs.df.interval" in args[6])
+      self.assertFalse("will_not_be_stored" in args[8])
+      self.assertTrue("fs.df.interval" in args[8])
+      self.assertFalse("dfs.df.interval" in args[8])
     elif type == "global":
-      self.assertTrue("global11" in args[6])
-      self.assertTrue("an_old_value" in args[6])
-      self.assertTrue("mapred.hosts.exclude" in args[6])
+      self.assertTrue("global11" in args[8])
+      self.assertTrue("an_old_value" in args[8])
+      self.assertTrue("mapred.hosts.exclude" in args[8])
     elif (type == "core-site") or (type == "hdfs-site"):
-      self.assertTrue("global11" in args[6])
-      self.assertTrue("global2" in args[6])
-      self.assertTrue("hbase.rpc.engine" in args[6])
+      self.assertTrue("global11" in args[8])
+      self.assertTrue("global2" in args[8])
+      self.assertTrue("hbase.rpc.engine" in args[8])
     elif type == "hbase-site":
-      self.assertTrue("global11" in args[6])
-      self.assertTrue("hbase.hstore.blockingStoreFiles" in args[6])
-      self.assertTrue("dfs.df.interval" in args[6])
-      self.assertFalse("hbase.rpc.engine" in args[6])
+      self.assertTrue("global11" in args[8])
+      self.assertTrue("hbase.hstore.blockingStoreFiles" in args[8])
+      self.assertTrue("dfs.df.interval" in args[8])
+      self.assertFalse("hbase.rpc.engine" in args[8])
     pass
 
   def get_mock_options(self, printonly=False):
