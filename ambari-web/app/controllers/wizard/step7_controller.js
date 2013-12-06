@@ -389,51 +389,54 @@ App.WizardStep7Controller = Em.Controller.extend({
     });
     return validComponents;
   }.property('content'),
-  
+
 
   getAllHosts: function () {
-    // Load hosts
-    var allHosts = Ember.A([]);
-    var hostNameToHostMap = {};
-    var hosts = this.get('content.hosts');
-    for ( var hostName in hosts) {
-      var host = hosts[hostName];
-      hostNameToHostMap[hostName] = App.Host.createRecord({
-        id: host.name,
-        hostName: host.name,
-        publicHostName: host.name,
-        cpu: host.cpu,
-        memory: host.memory
-      });
-      allHosts.pushObject(hostNameToHostMap[hostName]);
+    if (App.Host.find().content.length > 0) {
+      return App.Host.find();
     }
-
-    // Load host-components
+    var hosts = this.get('content.hosts');
     var masterComponents = this.get('content.masterComponentHosts');
     var slaveComponents = this.get('content.slaveComponentHosts');
     masterComponents.forEach(function (component) {
-      var host = hostNameToHostMap[component.hostName];
-      var hc = App.HostComponent.createRecord({
+      App.HostComponent.createRecord({
+        id: component.component + '_' + component.hostName,
         componentName: component.component,
-        host: host
+        host_id: component.hostName
       });
-      if (host != null) {
-        host.get('hostComponents').pushObject(hc);
+      if (!hosts[component.hostName].hostComponents) {
+        hosts[component.hostName].hostComponents = [];
       }
+      hosts[component.hostName].hostComponents.push(component.component + '_' + component.hostName);
     });
     slaveComponents.forEach(function (component) {
       component.hosts.forEach(function (host) {
-        var h = hostNameToHostMap[host.hostName];
-        var hc = App.HostComponent.createRecord({
+        App.HostComponent.createRecord({
+          id: component.componentName + '_' + host.hostName,
           componentName: component.componentName,
-          host: h
+          host_id: host.hostName
         });
-        if (h != null) {
-          h.get('hostComponents').pushObject(hc);
+        if (!hosts[host.hostName].hostComponents) {
+          hosts[host.hostName].hostComponents = [];
         }
+        hosts[host.hostName].hostComponents.push(component.componentName + '_' + host.hostName);
       });
     });
-    return allHosts;
+
+    for (var hostName in hosts) {
+      var host = hosts[hostName];
+      App.store.load(App.Host,
+        {
+          id: host.name,
+          host_name: host.name,
+          public_host_name: host.name,
+          cpu: host.cpu,
+          memory: host.memory,
+          host_components: host.hostComponents
+        }
+      )
+    }
+    return App.Host.find();
   }.property('content')
 
 });
