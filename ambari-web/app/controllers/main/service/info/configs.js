@@ -1902,6 +1902,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         if (!!controller) {
           controller.set('selectedService.configGroups', App.router.get('installerManageConfigGroupsController.configGroups'));
           controller.selectedServiceObserver();
+          if (controller.get('name') == "wizardStep7Controller") {
+            App.config.persistWizardStep7ConfigGroups()
+          }
           this.hide();
           return;
         }

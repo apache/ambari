@@ -1003,6 +1003,18 @@ App.config = Em.Object.create({
     });
   },
 
+  //Persist config groups created in step7 wizard controller
+  persistWizardStep7ConfigGroups: function () {
+    var installerController = App.router.get('installerController');
+    var step7Controller = App.router.get('wizardStep7Controller');
+    if (App.supports.hostOverridesInstaller) {
+      installerController.saveServiceConfigGroups(step7Controller);
+      App.clusterStatus.setClusterStatus({
+        localdb: App.db.data
+      });
+    }
+  },
+
   launchConfigGroupSelectionCreationDialog : function(serviceId, configGroups, usedConfigGroupNames, configProperty, callback, isInstaller) {
     var self = this;
     var availableConfigGroups = configGroups.slice();
@@ -1051,6 +1063,9 @@ App.config = Em.Object.create({
           if (newConfigGroup) {
             newConfigGroup.set('parentConfigGroup', configGroups.findProperty('isDefault'));
             configGroups.pushObject(newConfigGroup);
+            if (isInstaller) {
+              self.persistWizardStep7ConfigGroups();
+            }
             this.hide();
             self.saveGroupConfirmationPopup(newConfigGroupName,isInstaller);
             callback(newConfigGroup);
