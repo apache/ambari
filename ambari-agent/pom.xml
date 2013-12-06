@@ -343,6 +343,18 @@
                 </source>
               </sources>
             </mapping>
+            <mapping>
+              <!-- custom actions root-->
+              <directory>/var/lib/ambari-agent/resources</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>../ambari-server/src/main/resources/custom_actions</location>
+                </source>
+              </sources>
+            </mapping>
           </mappings>
         </configuration>
       </plugin>

@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import json
 import logging
 import threading
 from Grep import Grep
@@ -96,16 +97,20 @@ class CommandStatusDict():
     try:
       tmpout = open(report['tmpout'], 'r').read()
       tmperr = open(report['tmperr'], 'r').read()
+      with open(report['structuredOut'], 'r') as fp:
+        tmpstructuredout = json.load(fp)
     except Exception, err:
       logger.warn(err)
       tmpout = '...'
       tmperr = '...'
+      tmpstructuredout = ''
     grep = Grep()
     output = grep.tail(tmpout, Grep.OUTPUT_LAST_LINES)
     inprogress = self.generate_report_template(command)
     inprogress.update({
       'stdout': grep.filterMarkup(output),
       'stderr': tmperr,
+      'structuredOut': tmpstructuredout,
       'exitCode': 777,
       'status': ActionQueue.IN_PROGRESS_STATUS,
     })

@@ -195,10 +195,10 @@ class TestActionQueue(TestCase):
     self.assertTrue(print_exc_mock.called)
 
 
-
+  @patch("json.load")
   @patch("__builtin__.open")
   @patch.object(ActionQueue, "status_update_callback")
-  def test_execute_command(self, status_update_callback_mock, open_mock):
+  def test_execute_command(self, status_update_callback_mock, open_mock, json_load_mock):
     # Make file read calls visible
     def open_side_effect(file, mode):
       if mode == 'r':
@@ -208,6 +208,7 @@ class TestActionQueue(TestCase):
       else:
         return self.original_open(file, mode)
     open_mock.side_effect = open_side_effect
+    json_load_mock.return_value = ''
 
     config = AmbariConfig().getConfig()
     tempdir = tempfile.gettempdir()
@@ -217,6 +218,7 @@ class TestActionQueue(TestCase):
     puppet_execution_result_dict = {
       'stdout': 'out',
       'stderr': 'stderr',
+      'structuredOut' : ''
       }
     def side_effect(command, tmpoutfile, tmperrfile):
       unfreeze_flag.wait()
@@ -244,6 +246,7 @@ class TestActionQueue(TestCase):
     expected = {'status': 'IN_PROGRESS',
                 'stderr': 'Read from {0}/errors-3.txt'.format(tempdir),
                 'stdout': 'Read from {0}/output-3.txt'.format(tempdir),
+                'structuredOut' : '',
                 'clusterName': u'cc',
                 'roleCommand': u'INSTALL',
                 'serviceName': u'HDFS',
@@ -270,6 +273,7 @@ class TestActionQueue(TestCase):
                 'role': u'DATANODE',
                 'actionId': '1-1',
                 'taskId': 3,
+                'structuredOut' : '',
                 'exitCode': 0}
     self.assertEqual(len(report['reports']), 1)
     self.assertEqual(report['reports'][0], expected)
@@ -307,6 +311,7 @@ class TestActionQueue(TestCase):
                 'role': u'DATANODE',
                 'actionId': '1-1',
                 'taskId': 3,
+                'structuredOut' : '',
                 'exitCode': 13}
     self.assertEqual(len(report['reports']), 1)
     self.assertEqual(report['reports'][0], expected)
@@ -338,6 +343,7 @@ class TestActionQueue(TestCase):
                 'role': 'role',
                 'actionId': 17,
                 'taskId': 'taskId',
+                'structuredOut' : '',
                 'exitCode': 0}
     self.assertEqual(len(report['reports']), 1)
     self.assertEqual(report['reports'][0], expected)

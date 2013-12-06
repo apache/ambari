@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
@@ -420,24 +421,26 @@ class ActionScheduler implements Runnable {
     String roleStr = cmd.getRole().toString();
     String hostname = cmd.getHostname();
     if (s.getStartTime(hostname, roleStr) < 0) {
-      try {
-        Cluster c = fsmObject.getCluster(s.getClusterName());
-        Service svc = c.getService(cmd.getServiceName());
-        ServiceComponent svcComp = svc.getServiceComponent(roleStr);
-        ServiceComponentHost svcCompHost =
-            svcComp.getServiceComponentHost(hostname);
-        svcCompHost.handleEvent(s.getFsmEvent(hostname, roleStr).getEvent());
-      } catch (ServiceComponentNotFoundException scnex) {
-        LOG.info("Not a service component, assuming its an action", scnex);
-      } catch (InvalidStateTransitionException e) {
-        LOG.info(
-            "Transition failed for host: " + hostname + ", role: "
-                + roleStr, e);
-        throw e;
-      } catch (AmbariException e) {
-        LOG.warn("Exception in fsm: " + hostname + ", role: " + roleStr,
-            e);
-        throw e;
+      if (RoleCommand.ACTIONEXECUTE != cmd.getRoleCommand()) {
+        try {
+          Cluster c = fsmObject.getCluster(s.getClusterName());
+          Service svc = c.getService(cmd.getServiceName());
+          ServiceComponent svcComp = svc.getServiceComponent(roleStr);
+          ServiceComponentHost svcCompHost =
+              svcComp.getServiceComponentHost(hostname);
+          svcCompHost.handleEvent(s.getFsmEvent(hostname, roleStr).getEvent());
+        } catch (ServiceComponentNotFoundException scnex) {
+          LOG.info("Not a service component, assuming its an action", scnex);
+        } catch (InvalidStateTransitionException e) {
+          LOG.info(
+              "Transition failed for host: " + hostname + ", role: "
+                  + roleStr, e);
+          throw e;
+        } catch (AmbariException e) {
+          LOG.warn("Exception in fsm: " + hostname + ", role: " + roleStr,
+              e);
+          throw e;
+        }
       }
       s.setStartTime(hostname,roleStr, now);
       s.setHostRoleStatus(hostname, roleStr, HostRoleStatus.QUEUED);

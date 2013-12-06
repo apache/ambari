@@ -82,6 +82,25 @@ class TestScript(TestCase):
     resource_dump = pprint.pformat(env.resource_list)
     self.assertEqual(resource_dump, "[Package['hbase'], Package['yet-another-package']]")
 
+  @patch("__builtin__.open")
+  def test_structured_out(self, open_mock):
+    script = Script()
+    script.stroutfile = ''
+
+    self.assertEqual(Script.structuredOut, {})
+
+    script.put_structured_out({"1": "1"})
+    self.assertEqual(Script.structuredOut, {"1": "1"})
+    self.assertTrue(open_mock.called)
+
+    script.put_structured_out({"2": "2"})
+    self.assertEqual(open_mock.call_count, 2)
+    self.assertEqual(Script.structuredOut, {"1": "1", "2": "2"})
+
+    #Overriding
+    script.put_structured_out({"1": "3"})
+    self.assertEqual(open_mock.call_count, 3)
+    self.assertEqual(Script.structuredOut, {"1": "3", "2": "2"})
 
   def tearDown(self):
     # enable stdout

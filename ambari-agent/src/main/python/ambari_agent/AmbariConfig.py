@@ -44,6 +44,9 @@ puppet_home=/root/workspace/puppet-install/puppet-2.7.9
 facter_home=/root/workspace/puppet-install/facter-1.6.10
 timeout_seconds = 600
 
+[python]
+custom_actions_dir = /var/lib/ambari-agent/resources
+
 [command]
 maxretries=2
 sleepBetweenRetries=1

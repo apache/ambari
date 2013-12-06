@@ -50,6 +50,8 @@ class TestCustomServiceOrchestrator(TestCase):
     self.config.add_section('agent')
     self.config.set('agent', 'prefix', tmpdir)
     self.config.set('agent', 'cache_dir', "/cachedir")
+    self.config.add_section('python')
+    self.config.set('python', 'custom_actions_dir', tmpdir)
 
 
   @patch("hostname.public_hostname")
@@ -116,6 +118,7 @@ class TestCustomServiceOrchestrator(TestCase):
         'command_timeout': '600',
         'service_metadata_folder' : 'HBASE'
       },
+      'taskId' : '3',
       'roleCommand': 'INSTALL'
     }
     get_service_base_dir_mock.return_value = "/basedir/"
@@ -140,6 +143,31 @@ class TestCustomServiceOrchestrator(TestCase):
     self.assertTrue("Unknown script type" in ret['stdout'])
     pass
 
+  @patch.object(CustomServiceOrchestrator, "dump_command_to_json")
+  @patch.object(PythonExecutor, "run_file")
+  def test_runCommand(self, run_file_mock, dump_command_to_json_mock):
+    _, script = tempfile.mkstemp()
+    command = {
+      'role' : 'any',
+      'commandParams': {
+        'script_type': 'PYTHON',
+        'script': 'some_custom_action.py',
+        'command_timeout': '600',
+      },
+      'taskId' : '3',
+      'roleCommand': 'ACTIONEXECUTE'
+    }
+
+    orchestrator = CustomServiceOrchestrator(self.config)
+    # normal run case
+    run_file_mock.return_value = {
+      'stdout' : 'sss',
+      'stderr' : 'eee',
+      'exitcode': 0,
+      }
+    ret = orchestrator.runCommand(command, "out.txt", "err.txt")
+    self.assertEqual(ret['exitcode'], 0)
+    self.assertTrue(run_file_mock.called)
 
   def tearDown(self):
     # enable stdout

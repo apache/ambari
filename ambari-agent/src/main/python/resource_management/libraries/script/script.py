@@ -36,6 +36,16 @@ class Script():
   even different Script instances can not be used from different threads at
   the same time
   """
+  structuredOut = {}
+
+  def put_structured_out(self, sout):
+    Script.structuredOut.update(sout)
+    try:
+      structuredOut = json.dumps(Script.structuredOut)
+      with open(self.stroutfile, 'w') as fp:
+        json.dump(structuredOut, fp)
+    except IOError:
+      Script.structuredOut.update({"errMsg" : "Unable to write to " + self.stroutfile})
 
   def execute(self):
     """
@@ -55,13 +65,14 @@ class Script():
     logger.addHandler(cherr)
     logger.addHandler(chout)
     # parse arguments
-    if len(sys.argv) < 1+3:
-      logger.error("Script expects at least 3 arguments")
+    if len(sys.argv) < 5:
+      logger.error("Script expects at least 4 arguments")
       sys.exit(1)
-    command_type = str.lower(sys.argv[1])
+    command_name = str.lower(sys.argv[1])
     # parse command parameters
     command_data_file = sys.argv[2]
     basedir = sys.argv[3]
+    self.stroutfile = sys.argv[4]
     try:
       with open(command_data_file, "r") as f:
         pass
@@ -71,17 +82,17 @@ class Script():
       sys.exit(1)
     # Run class method mentioned by a command type
     self_methods = dir(self)
-    if not command_type in self_methods:
-      logger.error("Script {0} has not method '{1}'".format(sys.argv[0], command_type))
+    if not command_name in self_methods:
+      logger.error("Script {0} has not method '{1}'".format(sys.argv[0], command_name))
       sys.exit(1)
-    method = getattr(self, command_type)
+    method = getattr(self, command_name)
     try:
       with Environment(basedir) as env:
         method(env)
     except Fail:
-      logger.exception("Got exception while executing method '{0}':".format(command_type))
+      logger.exception("Got exception while executing method '{0}':".format(command_name))
       sys.exit(1)
-      
+
   @staticmethod
   def get_config():
     """

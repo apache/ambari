@@ -41,10 +41,9 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
+
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.*;
 
 /**
  * Helper class containing logic to process custom action execution requests
@@ -57,6 +56,8 @@ public class AmbariActionExecutionHelper {
   private AmbariManagementControllerImpl amcImpl;
   private ActionManager actionManager;
   private AmbariMetaInfo ambariMetaInfo;
+
+  private static final String TYPE_PYTHON = "PYTHON";
 
   public AmbariActionExecutionHelper(ActionMetadata actionMetadata, Clusters clusters,
                                      AmbariManagementControllerImpl amcImpl) {
@@ -272,6 +273,12 @@ public class AmbariActionExecutionHelper {
         configTags = amcImpl.findConfigurationTagsWithOverrides(cluster, hostName);
       }
 
+      Map<String, String> commandParams = actionContext.getParameters();
+      commandParams.put(COMMAND_TIMEOUT, actionContext.getTimeout().toString());
+      commandParams.put(SCRIPT, actionName + ".py");
+      commandParams.put(SCRIPT_TYPE, TYPE_PYTHON);
+      commandParams.put(SCHEMA_VERSION, AmbariMetaInfo.SCHEMA_VERSION_2);
+
       ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostName,
           actionContext.getActionName()).getExecutionCommand();
 
@@ -282,7 +289,7 @@ public class AmbariActionExecutionHelper {
       execCmd.setConfigurations(configurations);
       execCmd.setConfigurationTags(configTags);
       execCmd.setHostLevelParams(hostLevelParams);
-      execCmd.setCommandParams(actionContext.getParameters());
+      execCmd.setCommandParams(commandParams);
       execCmd.setServiceName(serviceName);
       execCmd.setComponentName(componentName);
 

@@ -17,7 +17,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import json
 import logging
+import os
 import subprocess
 import pprint
 import threading
@@ -45,7 +47,8 @@ class PythonExecutor:
     self.config = config
     pass
 
-  def run_file(self, script, script_params, tmpoutfile, tmperrfile, timeout):
+  def run_file(self, script, script_params, tmpoutfile, tmperrfile, timeout,
+               tmpstructedoutfile):
     """
     Executes the specified python file in a separate subprocess.
     Method returns only when the subprocess is finished.
@@ -55,6 +58,7 @@ class PythonExecutor:
     """
     tmpout =  open(tmpoutfile, 'w')
     tmperr =  open(tmperrfile, 'w')
+    script_params += [tmpstructedoutfile]
     pythonCommand = self.python_command(script, script_params)
     logger.info("Running command " + pprint.pformat(pythonCommand))
     process = self.launch_python_subprocess(pythonCommand, tmpout, tmperr)
@@ -72,10 +76,24 @@ class PythonExecutor:
     returncode = process.returncode
     out = open(tmpoutfile, 'r').read()
     error = open(tmperrfile, 'r').read()
+
+    try:
+      with open(tmpstructedoutfile, 'r') as fp:
+        structured_out = json.load(fp)
+    except Exception:
+      if os.path.exists(tmpstructedoutfile):
+        errMsg = 'Unable to read structured output from ' + tmpstructedoutfile
+        structured_out = {
+          'msg' : errMsg
+        }
+        logger.warn(structured_out)
+      else:
+        structured_out = ''
+
     if self.python_process_has_been_killed:
       error = str(error) + "\n Python script has been killed due to timeout"
       returncode = 999
-    result = self.condenseOutput(out, error, returncode)
+    result = self.condenseOutput(out, error, returncode, structured_out)
     logger.info("Result: %s" % result)
     return result
 
@@ -97,12 +115,13 @@ class PythonExecutor:
     python_command = [python_binary, script] + script_params
     return python_command
 
-  def condenseOutput(self, stdout, stderr, retcode):
+  def condenseOutput(self, stdout, stderr, retcode, structured_out):
     grep = self.grep
     result = {
       "exitcode": retcode,
       "stdout"  : grep.tail(stdout, grep.OUTPUT_LAST_LINES),
-      "stderr"  : grep.tail(stderr, grep.OUTPUT_LAST_LINES)
+      "stderr"  : grep.tail(stderr, grep.OUTPUT_LAST_LINES),
+      "structuredOut" : structured_out
     }
     return result
 

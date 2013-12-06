@@ -143,6 +143,7 @@ class ActionQueue(threading.Thread):
     in_progress_status.update({
       'tmpout': self.tmpdir + os.sep + 'output-' + str(taskId) + '.txt',
       'tmperr': self.tmpdir + os.sep + 'errors-' + str(taskId) + '.txt',
+      'structuredOut' : self.tmpdir + os.sep + 'structured-out-' + str(taskId) + '.json',
       'status': self.IN_PROGRESS_STATUS
     })
     self.commandStatuses.put_command_status(command, in_progress_status)
@@ -176,6 +177,10 @@ class ActionQueue(threading.Thread):
     if roleResult['stderr'] == '':
       roleResult['stderr'] = 'None'
 
+    if 'structuredOut' in commandresult:
+      roleResult['structuredOut'] = str(commandresult['structuredOut'])
+    else:
+      roleResult['structuredOut'] = ''
     # let ambari know that configuration tags were applied
     if status == self.COMPLETED_STATUS:
       configHandler = ActualConfigHandler(self.config)

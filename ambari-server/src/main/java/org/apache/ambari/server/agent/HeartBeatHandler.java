@@ -193,7 +193,7 @@ public class HeartBeatHandler {
     List<CommandReport> reports = heartbeat.getReports();
     for (CommandReport report : reports) {
       LOG.debug("Received command report: " + report);
-      if (RoleCommand.ACTIONEXECUTE.equals(report.getRoleCommand())) {
+      if (RoleCommand.ACTIONEXECUTE.toString().equals(report.getRoleCommand())) {
         continue;
       }
 
