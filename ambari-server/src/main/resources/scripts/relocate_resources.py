@@ -113,6 +113,12 @@ class AmbariResource:
     if not self.isInitialized:
       raise Exception('Resource not initialized')
 
+    # If old and new hostname are the same exit harmlessly
+    if old_hostname == new_hostname:
+      logger.error('New hostname is same as existing host name, %s' % old_hostname)
+      sys.exit(2)
+    pass
+
     try:
       self.verifyHostComponentStatus(self.old_hostname, new_hostname, self.componentName)
     except Exception, e:
@@ -218,9 +224,6 @@ class AmbariResource:
     pass
 
   def verifyHostComponentStatus(self, old_hostname, new_hostname, componentName):
-    if old_hostname == new_hostname:
-      raise Exception('New hostname is same as existing host name, %s' % old_hostname)
-
     # Check desired state of host component is not STOPPED or host is
     # unreachable
     actualState = self.getHostComponentState(old_hostname, componentName)
