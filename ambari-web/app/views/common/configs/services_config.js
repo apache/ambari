@@ -318,6 +318,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
    * Filtered <code>categoryConfigs</code> array. Used to show filtered result
    */
   filteredCategoryConfigs: function () {
+    $('.popover').remove();
     var filter = this.get('parentView.filter');
     var columns = this.get('parentView.columns');
     if (filter != null) {
