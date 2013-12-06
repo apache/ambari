@@ -51,16 +51,8 @@ App.WizardStep7Controller = Em.Controller.extend({
   isInstaller: true,
 
   configGroups: [],
+
   selectedConfigGroup: null,
-  usedConfigGroupNames: function () {
-    var names = [];
-    var selectedServiceName = this.get('selectedService.serviceName');
-    this.get('stepConfigs').forEach(function (service) {
-      if (selectedServiceName != service.get('serviceName')) {
-      names.pushObjects(service.get('configGroups').mapProperty('name'));}
-    }, this);
-    return names;
-  }.property('selectedService.configGroups.@each.name'),
 
   isSubmitDisabled: function () {
     return (!this.stepConfigs.filterProperty('showConfig', true).everyProperty('errorCount', 0) || this.get("miscModalVisible"));
@@ -167,7 +159,7 @@ App.WizardStep7Controller = Em.Controller.extend({
       if (!serviceRawGroups.length) {
         service.set('configGroups', [
           App.ConfigGroup.create({
-            name: "Default",
+            name: App.Service.DisplayNames[service.serviceName] + " Default",
             description: "Default cluster level " + service.serviceName + " configuration",
             isDefault: true,
             hosts: Em.copy(hosts),

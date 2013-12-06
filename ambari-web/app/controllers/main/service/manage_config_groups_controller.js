@@ -36,8 +36,6 @@ App.ManageConfigGroupsController = Em.Controller.extend({
 
   loadedHostsToGroupMap: {},
 
-  usedConfigGroupNames: [],
-
   resortConfigGroup: function() {
     var configGroups = Ember.copy(this.get('configGroups'));
     if(configGroups.length < 2){
@@ -59,6 +57,9 @@ App.ManageConfigGroupsController = Em.Controller.extend({
     this.set('serviceName', serviceName);
     App.ajax.send({
       name: 'service.load_config_groups',
+      data: {
+        serviceName: serviceName
+      },
       sender: this,
       success: 'onLoadConfigGroupsSuccess',
       error: 'onLoadConfigGroupsError'
@@ -69,55 +70,49 @@ App.ManageConfigGroupsController = Em.Controller.extend({
     var loadedHostsToGroupMap = this.get('loadedHostsToGroupMap');
     var usedHosts = [];
     var unusedHosts = [];
+    var serviceName = this.get('serviceName');
     var defaultConfigGroup = App.ConfigGroup.create({
-      name: "Default",
+      name: App.Service.DisplayNames[serviceName] + " Default",
       description: "Default cluster level " + this.get('serviceName') + " configuration",
       isDefault: true,
       parentConfigGroup: null,
       service: this.get('content'),
       configSiteTags: [],
-      serviceName: this.get('serviceName')
+      serviceName: serviceName
     });
     if (data && data.items) {
       var groupToTypeToTagMap = {};
       var configGroups = [];
-      var serviceName = this.get('serviceName');
-      var usedConfigGroupNames = [];
       data.items.forEach(function (configGroup) {
         configGroup = configGroup.ConfigGroup;
-        if (configGroup.tag === serviceName) {
-          var hostNames = configGroup.hosts.mapProperty('host_name');
-          loadedHostsToGroupMap[configGroup.group_name] = hostNames.slice();
-          var newConfigGroup = App.ConfigGroup.create({
-            id: configGroup.id,
-            name: configGroup.group_name,
-            description: configGroup.description,
-            isDefault: false,
-            parentConfigGroup: defaultConfigGroup,
-            service: App.Service.find().findProperty('serviceName', configGroup.tag),
-            hosts: hostNames,
-            configSiteTags: [],
-            properties: [],
-            apiResponse: configGroup
-          });
-          usedHosts = usedHosts.concat(newConfigGroup.get('hosts'));
-          configGroups.push(newConfigGroup);
-          var newConfigGroupSiteTags = newConfigGroup.get('configSiteTags');
-          configGroup.desired_configs.forEach(function (config) {
-            newConfigGroupSiteTags.push(App.ConfigSiteTag.create({
-              site: config.type,
-              tag: config.tag
-            }));
-            if (!groupToTypeToTagMap[configGroup.group_name]) {
-              groupToTypeToTagMap[configGroup.group_name] = {}
-            }
-            groupToTypeToTagMap[configGroup.group_name][config.type] = config.tag;
-          });
-        } else {
-          usedConfigGroupNames.push(configGroup.group_name);
-        }
+        var hostNames = configGroup.hosts.mapProperty('host_name');
+        loadedHostsToGroupMap[configGroup.group_name] = hostNames.slice();
+        var newConfigGroup = App.ConfigGroup.create({
+          id: configGroup.id,
+          name: configGroup.group_name,
+          description: configGroup.description,
+          isDefault: false,
+          parentConfigGroup: defaultConfigGroup,
+          service: App.Service.find().findProperty('serviceName', configGroup.tag),
+          hosts: hostNames,
+          configSiteTags: [],
+          properties: [],
+          apiResponse: configGroup
+        });
+        usedHosts = usedHosts.concat(newConfigGroup.get('hosts'));
+        configGroups.push(newConfigGroup);
+        var newConfigGroupSiteTags = newConfigGroup.get('configSiteTags');
+        configGroup.desired_configs.forEach(function (config) {
+          newConfigGroupSiteTags.push(App.ConfigSiteTag.create({
+            site: config.type,
+            tag: config.tag
+          }));
+          if (!groupToTypeToTagMap[configGroup.group_name]) {
+            groupToTypeToTagMap[configGroup.group_name] = {}
+          }
+          groupToTypeToTagMap[configGroup.group_name][config.type] = config.tag;
+        });
       }, this);
-      this.set('usedConfigGroupNames', usedConfigGroupNames);
       unusedHosts = App.Host.find().mapProperty('hostName');
       usedHosts.uniq().forEach(function (host) {
         unusedHosts = unusedHosts.without(host);
@@ -287,7 +282,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
    * rename new config group
    */
   renameConfigGroup: function () {
-    if(this.get('selectedConfigGroup.name') == "Default") {
+    if(this.get('selectedConfigGroup.isDefault')) {
       return;
     }
     var content = this;
@@ -303,7 +298,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       content: content,
       validate: function () {
         var warningMessage = '';
-        if (self.get('usedConfigGroupNames').concat(self.get('configGroups').mapProperty('name')).contains(this.get('configGroupName'))) {
+        if (self.get('configGroups').mapProperty('name').contains(this.get('configGroupName'))) {
           warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
         }
         this.set('warningMessage', warningMessage);
@@ -364,7 +359,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       warningMessage: '',
       validate: function () {
         var warningMessage = '';
-        if (self.get('usedConfigGroupNames').concat(self.get('configGroups').mapProperty('name')).contains(this.get('configGroupName').trim())) {
+        if (self.get('configGroups').mapProperty('name').contains(this.get('configGroupName').trim())) {
           warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
         }
         this.set('warningMessage', warningMessage);
@@ -480,7 +475,7 @@ App.ManageConfigGroupsController = Em.Controller.extend({
    * duplicate config group
    */
   duplicateConfigGroup: function() {
-    if(this.get('selectedConfigGroup.name') == "Default") {
+    if(this.get('selectedConfigGroup.isDefault')) {
       return;
     }
     this.addConfigGroup(true);
@@ -520,9 +515,8 @@ App.ManageConfigGroupsController = Em.Controller.extend({
 App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.extend({
   name: 'installerManageConfigGroupsController',
 
-  loadConfigGroups: function (serviceName, usedConfigGroupNames) {
+  loadConfigGroups: function (serviceName) {
     this.set('serviceName', serviceName);
-    this.set('usedConfigGroupNames', usedConfigGroupNames);
     var loadedHostsToGroupMap = this.get('loadedHostsToGroupMap');
     var configGroups = this.copyConfigGroups(App.router.get('wizardStep7Controller.selectedService.configGroups'));
     configGroups.forEach(function (configGroup) {
@@ -571,7 +565,7 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
    * rename new config group
    */
   renameConfigGroup: function () {
-    if(this.get('selectedConfigGroup.name') == "Default") {
+    if(this.get('selectedConfigGroup.isDefault')) {
       return;
     }
     var self = this;
@@ -587,7 +581,7 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
       warningMessage: '',
       validate: function () {
         var warningMessage = '';
-        if (self.get('usedConfigGroupNames').concat(self.get('configGroups').mapProperty('name')).contains(this.get('configGroupName'))) {
+        if (self.get('configGroups').mapProperty('name').contains(this.get('configGroupName'))) {
           warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
         }
         this.set('warningMessage', warningMessage);
@@ -625,7 +619,7 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
       warningMessage: '',
       validate: function () {
         var warningMessage = '';
-        if (self.get('usedConfigGroupNames').concat(self.get('configGroups').mapProperty('name')).contains(this.get('configGroupName'))) {
+        if (self.get('configGroups').mapProperty('name').contains(this.get('configGroupName'))) {
           warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
         }
         this.set('warningMessage', warningMessage);

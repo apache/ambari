@@ -83,14 +83,6 @@ App.ConfigGroup = Ember.Object.extend({
    */
   displayName: function () {
     var name = this.get('name');
-    if (name && name == "Default") {
-      if (this.get('serviceName')) {
-        name = App.Service.DisplayNames[this.get('serviceName').toUpperCase()] + " Default";
-      }
-      if (this.get('service')) {
-        name = App.Service.DisplayNames[this.get('service.id')] + " Default";
-      }
-    }
     if (name && name.length>App.config.CONFIG_GROUP_NAME_MAX_LENGTH) {
       var middle = Math.floor(App.config.CONFIG_GROUP_NAME_MAX_LENGTH / 2);
       name = name.substring(0, middle) + "..." + name.substring(name.length-middle);

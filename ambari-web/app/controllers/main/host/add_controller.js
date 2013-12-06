@@ -316,7 +316,7 @@ App.AddHostController = App.WizardController.extend({
   applyConfigGroup: function () {
     var serviceConfigGroups = this.get('content.serviceConfigGroups');
     serviceConfigGroups.forEach(function (group){
-      if(group.selectedConfigGroup != "Default") {
+      if (group.configGroups.someProperty('ConfigGroup.group_name', group.selectedConfigGroup)) {
         var configGroup = group.configGroups.findProperty('ConfigGroup.group_name', group.selectedConfigGroup);
         group.hosts.forEach(function(host){
           configGroup.ConfigGroup.hosts.push({
@@ -367,14 +367,15 @@ App.AddHostController = App.WizardController.extend({
           var service = componentServiceMap[slave.componentName];
           var configGroups = this.get('content.configGroups').filterProperty('ConfigGroup.tag', service);
           var configGroupsNames = configGroups.mapProperty('ConfigGroup.group_name');
-          configGroupsNames.unshift('Default');
+          var defaultGroupName = App.Service.DisplayNames[service] + ' Default';
+          configGroupsNames.unshift(defaultGroupName);
           selectedServices.push({
             serviceId: service,
             displayName: App.Service.DisplayNames[service],
             hosts: slave.hosts.mapProperty('hostName'),
             configGroupsNames: configGroupsNames,
             configGroups: configGroups,
-            selectedConfigGroup: "Default"
+            selectedConfigGroup: defaultGroupName
           });
         }
       }
@@ -390,14 +391,15 @@ App.AddHostController = App.WizardController.extend({
         } else {
           var configGroups = this.get('content.configGroups').filterProperty('ConfigGroup.tag', service);
           var configGroupsNames = configGroups.mapProperty('ConfigGroup.group_name').sort();
-          configGroupsNames.unshift('Default');
+          var defaultGroupName = App.Service.DisplayNames[service] + ' Default';
+          configGroupsNames.unshift(defaultGroupName);
           selectedServices.push({
             serviceId: service,
             displayName: App.Service.DisplayNames[service],
             hosts: selectedClientHosts,
             configGroupsNames: configGroupsNames,
             configGroups: configGroups,
-            selectedConfigGroup: "Default"
+            selectedConfigGroup: defaultGroupName
           });
         }
       }, this);

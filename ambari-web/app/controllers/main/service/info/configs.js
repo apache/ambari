@@ -35,7 +35,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   isApplyingChanges: false,
   // contain Service Config Property, when user proceed from Select Config Group dialog
   overrideToAdd: null,
-  usedConfigGroupNames: [],
   serviceConfigs: function () {
     return App.config.get('preDefinedServiceConfigs');
   }.property('App.config.preDefinedServiceConfigs'),
@@ -290,7 +289,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     // Create default configuration group
     var defaultConfigGroupHosts = App.Host.find().mapProperty('hostName');
     var selectedConfigGroup;
-    var usedConfigGroupNames = ['Default'];
     var siteToTagMap = {};
     for (var site in data.Clusters.desired_configs) {
       if (serviceConfigsDef.sites.indexOf(site) > -1) {
@@ -330,16 +328,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
               selectedConfigGroup = newConfigGroup;
             }
             configGroups.push(newConfigGroup);
-          } else {
-            usedConfigGroupNames.push(item.group_name);
           }
         }, this);
-        this.set('usedConfigGroupNames', usedConfigGroupNames);
       }
       this.set('configGroups', configGroups);
     }
     var defaultConfigGroup = App.ConfigGroup.create({
-      name: "Default",
+      name: App.Service.DisplayNames[serviceName] + " Default",
       description: "Default cluster level " + serviceName + " configuration",
       isDefault: true,
       hosts: defaultConfigGroupHosts,
@@ -1923,7 +1918,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       bodyClass: App.MainServiceManageConfigGroupView.extend({
         serviceName: serviceName,
         displayName: displayName,
-        usedConfigGroupNames: (controller && controller.get('usedConfigGroupNames')),
         controllerBinding: (!!controller) ? 'App.router.installerManageConfigGroupsController' : 'App.router.manageConfigGroupsController'
       }),
       classNames: ['sixty-percent-width-modal', 'manage-configuration-group-popup'],
