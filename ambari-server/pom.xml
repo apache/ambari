@@ -373,6 +373,12 @@
                 <source>
                   <location>src/main/resources/upgrade/dml/Ambari-DML-Oracle-UPGRADE_STACK.sql</location>
                 </source>
+                <source>
+                  <location>src/main/resources/upgrade/dml/Ambari-DML-Postgres-INSERT_METAINFO.sql</location>
+                </source>
+                <source>
+                  <location>src/main/resources/upgrade/dml/Ambari-DML-Oracle-INSERT_METAINFO.sql</location>
+                </source>
               </sources>
             </mapping>
             <mapping>
