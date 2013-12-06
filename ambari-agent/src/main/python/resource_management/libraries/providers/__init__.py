@@ -35,6 +35,7 @@ PROVIDERS = dict(
     ExecuteHadoop="resource_management.libraries.providers.execute_hadoop.ExecuteHadoopProvider",
     TemplateConfig="resource_management.libraries.providers.template_config.TemplateConfigProvider",
     XmlConfig="resource_management.libraries.providers.xml_config.XmlConfigProvider",
-    MonitorWebserver="resource_management.libraries.providers.monitor_webserver.MonitorWebserverProvider"
+    MonitorWebserver="resource_management.libraries.providers.monitor_webserver.MonitorWebserverProvider",
+    Repository="resource_management.libraries.providers.repository.RepositoryProvider"
   ),
 )

@@ -27,6 +27,8 @@ import logging
 from resource_management.core.environment import Environment
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.packaging import Package
+from resource_management.libraries.script.config_dictionary import ConfigDictionary
+from resource_management.libraries.script.repo_installer import RepoInstaller
 
 class Script():
   """
@@ -120,6 +122,8 @@ class Script():
     from this list
     """
     config = self.get_config()
+    RepoInstaller.install_repos(config)
+    
     try:
       package_list_str = config['hostLevelParams']['package_list']
       if isinstance(package_list_str,basestring) and len(package_list_str) > 0:
@@ -129,6 +133,8 @@ class Script():
           Package(name)
     except KeyError:
       pass # No reason to worry
+    
+    RepoInstaller.remove_repos(config)
 
 
 
@@ -139,42 +145,3 @@ class Script():
     print("Error: " + message)
     sys.stderr.write("Error: " + message)
     sys.exit(1)
-
-class ConfigDictionary(dict):
-  """
-  Immutable config dictionary
-  """
-  
-  def __init__(self, dictionary):
-    """
-    Recursively turn dict to ConfigDictionary
-    """
-    for k, v in dictionary.iteritems():
-      if isinstance(v, dict):
-        dictionary[k] = ConfigDictionary(v)
-        
-    super(ConfigDictionary, self).__init__(dictionary)
-
-  def __setitem__(self, name, value):
-    raise Fail("Configuration dictionary is immutable!")
-
-  def __getitem__(self, name):
-    """
-    Use Python types
-    """
-    value = super(ConfigDictionary, self).__getitem__(name)
-    
-    if value == "true":
-      value = True
-    elif value == "false":
-      value = False
-    else: 
-      try:
-        value = int(value)
-      except (ValueError, TypeError):
-        try:
-          value =  float(value)
-        except (ValueError, TypeError):
-          pass
-    
-    return value

@@ -20,7 +20,15 @@ Ambari Agent
 
 """
 
-from resource_management.libraries.resources.execute_hadoop import *
-from resource_management.libraries.resources.template_config import *
-from resource_management.libraries.resources.xml_config import *
-from resource_management.libraries.resources.repository import *
+_all__ = ["Repository"]
+
+from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
+
+class Repository(Resource):
+  action = ForcedListArgument(default="create")
+  repo_id = ResourceArgument(default=lambda obj: obj.name)
+  base_url = ResourceArgument()
+  mirror_list = ResourceArgument()
+  repo_file_name = ResourceArgument()
+
+  actions = Resource.actions + ["create","remove"]
