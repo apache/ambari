@@ -28,14 +28,13 @@ from resource_management.core.exceptions import Fail, InvalidArgument
 from resource_management.core.environment import Environment
 
 class ResourceArgument(object):
-  def __init__(self, default=None, required=False, allow_override=False):
+  def __init__(self, default=None, required=False):
     self.required = False # Prevents the initial validate from failing
     if hasattr(default, '__call__'):
       self.default = default
     else:
       self.default = self.validate(default)
     self.required = required
-    self.allow_override = allow_override
 
   def validate(self, value):
     if self.required and value is None:
@@ -117,18 +116,10 @@ class Resource(object):
     r_type = cls.__name__
     if r_type not in env.resources:
       env.resources[r_type] = {}
-    if name not in env.resources[r_type]:
-      obj = super(Resource, cls).__new__(cls)
-      env.resources[r_type][name] = obj
-      env.resource_list.append(obj)
-      return obj
 
-    obj = env.resources[r_type][name]
-    if obj.provider != provider:
-      raise Fail("Duplicate resource %r with a different provider %r != %r" % (
-      obj, provider, obj.provider))
-
-    obj.override(**kwargs)
+    obj = super(Resource, cls).__new__(cls)
+    env.resources[r_type][name] = obj
+    env.resource_list.append(obj)
     return obj
 
   def __init__(self, name, env=None, provider=None, **kwargs):
@@ -162,24 +153,6 @@ class Resource(object):
 
   def validate(self):
     pass
-
-  def override(self, **kwargs):
-    for key, value in kwargs.items():
-      try:
-        arg = self._arguments[key]
-      except KeyError:
-        raise Fail("%s received unsupported argument %s" % (self, key))
-      else:
-        if value != self.arguments.get(key):
-          if not arg.allow_override:
-            raise Fail(
-              "%s doesn't allow overriding argument '%s'" % (self, key))
-
-          try:
-            self.arguments[key] = arg.validate(value)
-          except InvalidArgument, exc:
-            raise InvalidArgument("%s %s" % (self, exc))
-    self.validate()
 
   def __repr__(self):
     return "%s['%s']" % (self.__class__.__name__, self.name)
