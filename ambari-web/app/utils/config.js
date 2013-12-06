@@ -1055,7 +1055,6 @@ App.config = Em.Object.create({
         if (this.get('optionSelectConfigGroup')) {
           var selectedConfigGroup = this.get('selectedConfigGroup');
           this.hide();
-          self.saveGroupConfirmationPopup(selectedConfigGroup,isInstaller);
           callback(selectedConfigGroup);
         } else {
           var newConfigGroupName = this.get('newConfigGroupName').trim();
