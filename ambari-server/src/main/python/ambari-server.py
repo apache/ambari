@@ -242,7 +242,11 @@ if OS == OS_UBUNTU:
 IP_TBLS_STATUS_CMD = "%s %s status" % (SERVICE_CMD, FIREWALL_SERVICE_NAME)
 
 PG_ST_CMD = "%s %s status" % (SERVICE_CMD, PG_SERVICE_NAME)
-PG_INITDB_CMD = "%s %s initdb" % (SERVICE_CMD, PG_SERVICE_NAME)
+if os.path.isfile("/usr/bin/postgresql-setup"):
+    PG_INITDB_CMD = "/usr/bin/postgresql-setup initdb"
+else:
+    PG_INITDB_CMD = "%s %s initdb" % (SERVICE_CMD, PG_SERVICE_NAME)
+
 PG_START_CMD = "%s %s start" % (SERVICE_CMD, PG_SERVICE_NAME)
 PG_RESTART_CMD = "%s %s restart" % (SERVICE_CMD, PG_SERVICE_NAME)
 PG_HBA_RELOAD_CMD = "%s %s reload" % (SERVICE_CMD, PG_SERVICE_NAME)
