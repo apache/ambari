@@ -381,6 +381,8 @@ public class JMXPropertyProviderTest {
     Assert.assertEquals(0,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/ClusterMetrics", "NumUnhealthyNMs")));
     Assert.assertEquals(0,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/ClusterMetrics", "NumRebootedNMs")));
 
+    Assert.assertEquals(932118528,  resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/jvm", "HeapMemoryMax")));
+
     //namenode
     resource = new ResourceImpl(Resource.Type.HostComponent);
 
