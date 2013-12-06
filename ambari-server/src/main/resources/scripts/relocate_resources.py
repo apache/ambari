@@ -36,6 +36,7 @@ PROTOCOL = "http"
 USERNAME = "admin"
 PASSWORD = "admin"
 DEFAULT_TIMEOUT = 10 # seconds
+START_ON_RELOCATE = False
 
 # Supported Actions
 RELOCATE_ACTION = 'relocate'
@@ -124,7 +125,11 @@ class AmbariResource:
     except Exception, e:
       logger.error("Exception caught on verify relocate request.")
       logger.error(e.message)
-      sys.exit(1)
+      sys.exit(3)
+
+    # Put host component in Maintenance state
+    self.updateHostComponentStatus(self.old_hostname, self.componentName,
+                                   "Maintenance", "MAINTENANCE")
 
     # Delete current host component
     self.deleteHostComponent(self.old_hostname, self.componentName)
@@ -140,12 +145,14 @@ class AmbariResource:
     self.waitOnHostComponentUpdate(new_hostname, self.componentName,
                                    "INSTALLED")
 
-    # Start host component
-    self.updateHostComponentStatus(new_hostname, self.componentName,
-                                   "Starting", "STARTED")
+    if START_ON_RELOCATE:
+      # Start host component
+      self.updateHostComponentStatus(new_hostname, self.componentName,
+                                     "Starting", "STARTED")
 
-    # Wait on start
-    self.waitOnHostComponentUpdate(new_hostname, self.componentName, "STARTED")
+      # Wait on start
+      self.waitOnHostComponentUpdate(new_hostname, self.componentName, "STARTED")
+    pass
   pass
 
   def waitOnHostComponentUpdate(self, hostname, componentName, status):
@@ -414,6 +421,9 @@ def main():
                   default="admin" ,help="Ambari server admin user. [default: admin]")
   parser.add_option("-w", "--password", dest="password",
                   default="admin" ,help="Ambari server admin password.")
+  parser.add_option("-d", "--start-component", dest="start_component",
+                  action="store_false", default=False,
+                  help="Should the script start the component after relocate.")
 
   (options, args) = parser.parse_args()
 
@@ -440,6 +450,9 @@ def main():
 
   global PASSWORD
   PASSWORD = options.password
+
+  global START_ON_RELOCATE
+  START_ON_RELOCATE = options.start_component
 
   global logger
   logger = logging.getLogger('AmbariProbe')
