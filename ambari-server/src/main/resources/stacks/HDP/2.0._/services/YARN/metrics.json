@@ -1370,6 +1370,26 @@
             "pointInTime": true,
             "temporal": false
           },
+          "metrics/jvm/HeapMemoryMax":{
+            "metric": "java.lang:type=Memory.HeapMemoryUsage[max]",
+            "pointInTime" : true,
+            "temporal" : false
+          },
+          "metrics/jvm/HeapMemoryUsed":{
+            "metric": "java.lang:type=Memory.HeapMemoryUsage[used]",
+            "pointInTime" : true,
+            "temporal" : false
+          },
+          "metrics/jvm/NonHeapMemoryMax":{
+            "metric": "java.lang:type=Memory.NonHeapMemoryUsage[max]",
+            "pointInTime" : true,
+            "temporal" : false
+          },
+          "metrics/jvm/NonHeapMemoryUsed":{
+            "metric": "java.lang:type=Memory.NonHeapMemoryUsage[used]",
+            "pointInTime" : true,
+            "temporal" : false
+          },
           "metrics/jvm/threadsRunnable": {
             "metric": "Hadoop:service=ResourceManager,name=JvmMetrics.ThreadsRunnable",
             "pointInTime": true,
@@ -2261,6 +2281,26 @@
             "metric": "Hadoop:service=ResourceManager,name=QueueMetrics(.+).running_300",
             "pointInTime": true,
             "temporal": false
+          },
+          "metrics/jvm/HeapMemoryMax":{
+            "metric": "java.lang:type=Memory.HeapMemoryUsage[max]",
+            "pointInTime" : true,
+            "temporal" : false
+          },
+          "metrics/jvm/HeapMemoryUsed":{
+            "metric": "java.lang:type=Memory.HeapMemoryUsage[used]",
+            "pointInTime" : true,
+            "temporal" : false
+          },
+          "metrics/jvm/NonHeapMemoryMax":{
+            "metric": "java.lang:type=Memory.NonHeapMemoryUsage[max]",
+            "pointInTime" : true,
+            "temporal" : false
+          },
+          "metrics/jvm/NonHeapMemoryUsed":{
+            "metric": "java.lang:type=Memory.NonHeapMemoryUsage[used]",
+            "pointInTime" : true,
+            "temporal" : false
           },
           "metrics/jvm/memNonHeapUsedM": {
             "metric": "Hadoop:service=ResourceManager,name=JvmMetrics.MemNonHeapUsedM",
