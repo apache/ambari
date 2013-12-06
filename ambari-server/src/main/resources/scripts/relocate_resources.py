@@ -114,8 +114,8 @@ class AmbariResource:
       raise Exception('Resource not initialized')
 
     # If old and new hostname are the same exit harmlessly
-    if old_hostname == new_hostname:
-      logger.error('New hostname is same as existing host name, %s' % old_hostname)
+    if self.old_hostname == new_hostname:
+      logger.error('New hostname is same as existing host name, %s' % self.old_hostname)
       sys.exit(2)
     pass
 
