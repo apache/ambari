@@ -165,7 +165,7 @@ App.ClusterController = Em.Controller.extend({
       }
       return null;
     }
-  }.property('App.router.updateController.isUpdated', 'dataLoadList.services', 'dataLoadList.hosts','nagiosWebProtocol'),
+  }.property('App.router.updateController.isUpdated', 'dataLoadList.serviceMetrics', 'dataLoadList.hosts','nagiosWebProtocol'),
 
   nagiosWebProtocol: function () {
     var properties = this.get('ambariProperties');
@@ -187,11 +187,11 @@ App.ClusterController = Em.Controller.extend({
 
   isNagiosInstalled:function () {
     return !!App.Service.find().findProperty('serviceName', 'NAGIOS');
-  }.property('App.router.updateController.isUpdated', 'dataLoadList.services'),
+  }.property('App.router.updateController.isUpdated', 'dataLoadList.serviceMetrics'),
 
   isGangliaInstalled:function () {
     return !!App.Service.find().findProperty('serviceName', 'GANGLIA');
-  }.property('App.router.updateController.isUpdated', 'dataLoadList.services'),
+  }.property('App.router.updateController.isUpdated', 'dataLoadList.serviceMetrics'),
 
   /**
    * Sorted list of alerts.
