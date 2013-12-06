@@ -2496,8 +2496,14 @@ def upgrade_local_repo(args):
     return
 
   for stack_version_local in os.listdir(stack_root_local):
-    repo_file_local = os.path.join(stack_root_local, stack_version_local, "repos", "repoinfo.xml")
+    repo_file_local = os.path.join(stack_root_local, stack_version_local, "repos", "repoinfo.xml.rpmsave")
+    if not os.path.exists(repo_file_local):
+      repo_file_local = os.path.join(stack_root_local, stack_version_local, "repos", "repoinfo.xml")
+
     repo_file = os.path.join(stack_root, stack_version_local, "repos", "repoinfo.xml")
+
+    print_info_msg("Local repo file: " + repo_file_local)
+    print_info_msg("Repo file: " + repo_file_local)
 
     if os.path.exists(repo_file_local) and os.path.exists(repo_file):
       local_values = load_stack_values(stack_version_local, repo_file_local)
