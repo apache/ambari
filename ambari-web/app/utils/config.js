@@ -679,14 +679,19 @@ App.config = Em.Object.create({
       data.items.forEach(function (item) {
         item = item.StackConfigurations;
         item.isVisible = item.type !== 'global.xml';
-        properties.push({
-          serviceName: item.service_name,
-          name: item.property_name,
-          value: item.property_value,
-          description: item.property_description,
-          isVisible: item.isVisible,
-          filename: item.filename || item.type
-        });
+        var serviceName = item.service_name;
+        var fileName = item.type;
+        // If condition makes sure that mapred-queue-acls.xml configs are not shown in Mapreduce or Mapreduce2 service page Advanced section
+        if (fileName !== 'mapred-queue-acls.xml' || App.supports.capacitySchedulerUi === true) {
+          properties.push({
+            serviceName: serviceName,
+            name: item.property_name,
+            value: item.property_value,
+            description: item.property_description,
+            isVisible: item.isVisible,
+            filename: item.filename || fileName
+          });
+        }
       }, this);
       serviceComponents[data.items[0].StackConfigurations.service_name] = properties;
     }
