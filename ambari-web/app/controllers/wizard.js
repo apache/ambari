@@ -721,7 +721,8 @@ App.WizardController = Em.Controller.extend({
           serviceName: _configProperties.get('serviceName'),
           domain: _configProperties.get('domain'),
           filename: _configProperties.get('filename'),
-          displayType: _configProperties.get('displayType')
+          displayType: _configProperties.get('displayType'),
+          isRequiredByAgent: _configProperties.get('isRequiredByAgent')
         };
         serviceConfigProperties.push(configProperty);
       }, this);

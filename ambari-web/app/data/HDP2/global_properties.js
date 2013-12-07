@@ -47,6 +47,10 @@
  *     If this is unspecified, true is assumed.
  *     E.g., true, false
  *
+ *     isRequiredByAgent:
+ *     Whether the config property is required by agent or not.
+ *     If value is false then it will be not persisted in global configuration
+ *
  *   displayType:
  *     How the config property is to be rendered for user input.
  *     If this is left unspecified, "string" is assumed
@@ -86,7 +90,7 @@ module.exports =
       "displayType": "masterHosts",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
+      "isRequiredByAgent": false,
       "serviceName": "HDFS",
       "category": "NameNode",
       "index": 0
@@ -101,7 +105,6 @@ module.exports =
       "unit": "MB",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "HDFS",
       "category": "NameNode",
       "index": 2
@@ -116,7 +119,6 @@ module.exports =
       "unit": "MB",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "HDFS",
       "category": "NameNode",
       "index": 3
@@ -130,8 +132,8 @@ module.exports =
       "description": "The host that has been assigned to run SecondaryNameNode",
       "displayType": "masterHost",
       "isOverridable": false,
+      "isRequiredByAgent": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "HDFS",
       "category": "SNameNode",
       "index": 0
@@ -147,6 +149,7 @@ module.exports =
       "isRequired": false,
       "isOverridable": false,
       "isVisible": true,
+      "isRequiredByAgent": false,
       "domain": "datanode-global",
       "serviceName": "HDFS",
       "category": "DataNode",
@@ -175,7 +178,6 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
-      "domain": "global",
       "serviceName": "HDFS",
       "index": 1
     },
@@ -189,7 +191,6 @@ module.exports =
       "displayType": "directory",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "HDFS",
       "category": "Advanced"
     },
@@ -203,7 +204,6 @@ module.exports =
       "displayType": "directory",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "HDFS",
       "category": "Advanced"
     },
@@ -217,7 +217,6 @@ module.exports =
       "unit": "MB",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "HDFS",
       "category": "NameNode"
     },
@@ -231,23 +230,8 @@ module.exports =
       "displayType": "checkbox",
       "isOverridable": false,
       "isVisible": false,
-      "domain": "global",
       "serviceName": "HDFS",
       "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
-      "name": "namenode_formatted_mark_dir",
-      "displayName": "Hadoop formatted mark directory",
-      "description": "",
-      "defaultValue": "/var/run/hadoop/hdfs/namenode/formatted/",
-      "isRequired": false,
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "HDFS",
-      "category": "NameNode"
     },
     {
       "id": "puppet var",
@@ -259,7 +243,6 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
-      "domain": "global",
       "serviceName": "HDFS",
       "category": "Advanced"
     },
@@ -272,7 +255,6 @@ module.exports =
       "displayType": "checkbox",
       "isOverridable": false,
       "isVisible": false,
-      "domain": "global",
       "serviceName": "HDFS"
     },
 
@@ -285,8 +267,8 @@ module.exports =
       "defaultValue": "",
       "isOverridable": false,
       "displayType": "masterHost",
+      "isRequiredByAgent": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "MAPREDUCE2",
       "category": "HistoryServer",
       "index": 0
@@ -300,7 +282,6 @@ module.exports =
       "displayType": "directory",
       "isVisible": true,
       "isReconfigurable": false,
-      "domain": "global",
       "serviceName": "MAPREDUCE2",
       "category": "Advanced"
     },
@@ -313,7 +294,6 @@ module.exports =
       "displayType": "directory",
       "isVisible": true,
       "isReconfigurable": false,
-      "domain": "global",
       "serviceName": "MAPREDUCE2",
       "category": "Advanced"
     },
@@ -329,7 +309,6 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
-      "domain": "global",
       "serviceName": "YARN",
       "category": "General",
       "index": 0
@@ -342,8 +321,8 @@ module.exports =
       "defaultValue": "",
       "isOverridable": false,
       "displayType": "masterHost",
+      "isRequiredByAgent": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "YARN",
       "category": "ResourceManager",
       "index": 0
@@ -358,7 +337,6 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
-      "domain": "global",
       "serviceName": "YARN",
       "category": "ResourceManager",
       "index": 1
@@ -371,8 +349,8 @@ module.exports =
       "defaultValue": "",
       "isOverridable": false,
       "displayType": "slaveHosts",
+      "isRequiredByAgent": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "YARN",
       "category": "NodeManager",
       "index": 0
@@ -387,7 +365,6 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isVisible": true,
-      "domain": "global",
       "serviceName": "YARN",
       "category": "NodeManager",
       "index": 0
@@ -401,7 +378,6 @@ module.exports =
       "displayType": "directory",
       "isReconfigurable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "YARN",
       "category": "Advanced"
     },
@@ -414,7 +390,6 @@ module.exports =
       "displayType": "directory",
       "isVisible": true,
       "isReconfigurable": false,
-      "domain": "global",
       "serviceName": "YARN",
       "category": "Advanced"
     },
@@ -428,8 +403,8 @@ module.exports =
       "description": "The host that has been assigned to run HBase Master",
       "displayType": "masterHosts",
       "isOverridable": false,
+      "isRequiredByAgent": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "HBASE",
       "category": "HBase Master",
       "index": 0
@@ -443,8 +418,8 @@ module.exports =
       "displayType": "int",
       "unit": "MB",
       "isOverridable": false,
+      
       "isVisible": true,
-      "domain": "global",
       "serviceName": "HBASE",
       "category": "HBase Master",
       "index": 1
@@ -458,6 +433,7 @@ module.exports =
       "description": "The hosts that have been assigned to run RegionServer",
       "displayType": "slaveHosts",
       "isOverridable": false,
+      "isRequiredByAgent": false,
       "isVisible": true,
       "isRequired": false,
       "domain": "regionserver-global",
@@ -489,7 +465,6 @@ module.exports =
       "displayType": "directory",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "HBASE",
       "category": "Advanced"
     },
@@ -503,7 +478,6 @@ module.exports =
       "displayType": "directory",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "HBASE",
       "category": "Advanced"
     },
@@ -516,7 +490,6 @@ module.exports =
       "isRequired": true,
       "displayType": "advanced",
       "isVisible": false,
-      "domain": "global",
       "serviceName": "HBASE",
       "category": "Advanced"
     },
@@ -530,6 +503,7 @@ module.exports =
       "description": "The host that has been assigned to run Hive Metastore",
       "displayType": "masterHost",
       "isOverridable": false,
+      "isRequiredByAgent": false,
       "isVisible": true,
       "serviceName": "HIVE",
       "category": "Hive Metastore",
@@ -547,7 +521,6 @@ module.exports =
       "isOverridable": false,
       "isVisible": false,
       "isReconfigurable": false,
-      "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore",
       "index": 1
@@ -564,7 +537,6 @@ module.exports =
       "isVisible": false,
       "isOverridable": false,
       "isReconfigurable": false,
-      "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore",
       "index": 1
@@ -580,7 +552,6 @@ module.exports =
       "displayType": "masterHost",
       "isOverridable": false,
       "isVisible": false,
-      "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore",
       "index": 1
@@ -612,7 +583,6 @@ module.exports =
       "radioName": "hive-database",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore",
       "index": 2
@@ -628,7 +598,6 @@ module.exports =
       "isOverridable": false,
       "isVisible": false,
       "isObserved": true,
-      "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore",
       "index": 3
@@ -642,9 +611,9 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "host",
       "isOverridable": false,
+      "isRequiredByAgent": false,
       "isVisible": false,
       "isObserved": true,
-      "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore",
       "index": 3
@@ -658,9 +627,9 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "host",
       "isOverridable": false,
+      "isRequiredByAgent": false,
       "isVisible": false,
       "isObserved": true,
-      "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore",
       "index": 3
@@ -674,28 +643,12 @@ module.exports =
       "description": "Host on which the database will be created by Ambari",
       "isReconfigurable": false,
       "displayType": "masterHost",
+      "isRequiredByAgent": false,
       "isOverridable": false,
       "isVisible": false,
-      "domain": "global",
       "serviceName": "HIVE",
       "category": "Hive Metastore",
       "index": 3
-    },
-    {
-      "id": "puppet var",
-      "name": "hive_database_name",
-      "displayName": "Database Name",
-      "description": "Database name used as the Hive Metastore",
-      "defaultValue": "hive",
-      "isReconfigurable": true,
-      "displayType": "host",
-      "isOverridable": false,
-      "isVisible": true,
-      "isObserved": true,
-      "domain": "global",
-      "serviceName": "HIVE",
-      "category": "Hive Metastore",
-      "index": 4
     },
     {
       "id": "puppet var",
@@ -707,7 +660,6 @@ module.exports =
       "displayType": "int",
       "isOverridable": false,
       "isVisible": false,
-      "domain": "global",
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -720,20 +672,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
-      "domain": "global",
-      "serviceName": "HIVE",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
-      "name": "hive_conf_dir",
-      "displayName": "Hive conf directory",
-      "description": "",
-      "defaultValue": "/etc/hive/conf",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
+      "isRequiredByAgent": false, // Make this to true when we expose the property on ui by making "isVisible": true
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -746,7 +685,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
-      "domain": "global",
+      "isRequiredByAgent": false, // Make this to true when we expose the property on ui by making "isVisible": true
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -760,7 +699,6 @@ module.exports =
       "displayType": "directory",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -774,20 +712,6 @@ module.exports =
       "displayType": "directory",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
-      "serviceName": "HIVE",
-      "category": "Advanced"
-    },
-    {
-      "id": "puppet var",
-      "name": "mysql_connector_url",
-      "displayName": "MySQL connector url",
-      "description": "",
-      "defaultValue": "${download_url}/mysql-connector-java-5.1.18.zip",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -800,7 +724,6 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
-      "domain": "global",
       "serviceName": "HIVE",
       "category": "Advanced"
     },
@@ -815,7 +738,7 @@ module.exports =
       "displayType": "masterHost",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
+      "isRequiredByAgent": false,
       "serviceName": "WEBHCAT",
       "category": "WebHCat Server"
     },
@@ -829,7 +752,6 @@ module.exports =
       "displayType": "directory",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "WEBHCAT",
       "category": "Advanced"
     },
@@ -843,7 +765,6 @@ module.exports =
       "displayType": "directory",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "WEBHCAT",
       "category": "Advanced"
     },
@@ -858,7 +779,7 @@ module.exports =
       "displayType": "masterHost",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
+      "isRequiredByAgent": false,
       "serviceName": "OOZIE",
       "category": "Oozie Server",
       "index": 0
@@ -876,7 +797,6 @@ module.exports =
       "isObserved": true,
       "isReconfigurable": false,
       "isOverridable": false,
-      //"domain": "global",
       "serviceName": "OOZIE",
       "category": "Oozie Server",
       "index": 1
@@ -892,7 +812,6 @@ module.exports =
       "displayType": "masterHost",
       "isVisible": false,
       "isOverridable": false,
-      // "domain": "global",
       "serviceName": "OOZIE",
       "category": "Oozie Server",
       "index": 1
@@ -909,7 +828,6 @@ module.exports =
       "isVisible": false,
       "isReconfigurable": false,
       "isOverridable": false,
-      // "domain": "global",
       "serviceName": "OOZIE",
       "category": "Oozie Server",
       "index": 1
@@ -926,7 +844,6 @@ module.exports =
       "isVisible": false,
       "isReconfigurable": false,
       "isOverridable": false,
-      //"domain": "global",
       "serviceName": "OOZIE",
       "category": "Oozie Server",
       "index": 1
@@ -964,7 +881,6 @@ module.exports =
       "isOverridable": false,
       "radioName": "oozie-database",
       "isVisible": true,
-      "domain": "global",
       "serviceName": "OOZIE",
       "category": "Oozie Server",
       "index": 2
@@ -981,7 +897,6 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "isRequired": false,
-      "domain": "global",
       "serviceName": "OOZIE",
       "category": "Oozie Server",
       "index": 7
@@ -996,7 +911,6 @@ module.exports =
       "isOverridable": false,
       "displayType": "host",
       "isVisible": false,
-      "domain": "global",
       "serviceName": "OOZIE",
       "category": "Oozie Server",
       "index": 3
@@ -1012,7 +926,6 @@ module.exports =
       "displayType": "host",
       "isVisible": false,
       "isObserved": true,
-      //"domain": "global",
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
@@ -1027,7 +940,6 @@ module.exports =
       "displayType": "host",
       "isVisible": false,
       "isObserved": true,
-      //"domain": "global",
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
@@ -1042,7 +954,7 @@ module.exports =
       "isOverridable": false,
       "displayType": "masterHost",
       "isVisible": false,
-      //"domain": "global",
+      "isRequiredByAgent": false,
       "serviceName": "OOZIE",
       "category": "Oozie Server"
     },
@@ -1056,7 +968,6 @@ module.exports =
       "displayType": "directory",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "OOZIE",
       "category": "Advanced"
     },
@@ -1070,7 +981,6 @@ module.exports =
       "displayType": "directory",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "OOZIE",
       "category": "Advanced"
     },
@@ -1084,7 +994,6 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "domain": "global",
       "isVisible": true,
       "serviceName": "NAGIOS",
       "index": 0
@@ -1099,7 +1008,6 @@ module.exports =
       "displayType": "password",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "NAGIOS",
       "index": 1
     },
@@ -1112,7 +1020,6 @@ module.exports =
       "displayType": "email",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "NAGIOS",
       "index": 2
     },
@@ -1126,6 +1033,7 @@ module.exports =
       "description": "The host that has been assigned to run ZooKeeper Server",
       "displayType": "masterHosts",
       "isVisible": true,
+      "isRequiredByAgent": false,
       "isOverridable": false,
       "isRequired": false,
       "serviceName": "ZOOKEEPER",
@@ -1142,7 +1050,6 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": true,
-      "domain": "global",
       "serviceName": "ZOOKEEPER",
       "category": "ZooKeeper Server",
       "index": 1
@@ -1157,7 +1064,6 @@ module.exports =
       "unit": "ms",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "ZOOKEEPER",
       "category": "ZooKeeper Server",
       "index": 2
@@ -1171,7 +1077,6 @@ module.exports =
       "displayType": "int",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "ZOOKEEPER",
       "category": "ZooKeeper Server",
       "index": 3
@@ -1185,7 +1090,6 @@ module.exports =
       "displayType": "int",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "ZOOKEEPER",
       "category": "ZooKeeper Server",
       "index": 4
@@ -1199,7 +1103,6 @@ module.exports =
       "displayType": "int",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "ZOOKEEPER",
       "category": "ZooKeeper Server",
       "index": 5
@@ -1214,7 +1117,6 @@ module.exports =
       "displayType": "directory",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "ZOOKEEPER",
       "category": "Advanced",
       "index": 0
@@ -1229,23 +1131,9 @@ module.exports =
       "displayType": "directory",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "ZOOKEEPER",
       "category": "Advanced",
       "index": 1
-    },
-    {
-      "id": "puppet var",
-      "name": "zk_pid_file",
-      "displayName": "ZooKeeper PID File",
-      "description": "",
-      "defaultValue": "/var/run/zookeeper/zookeeper_server.pid",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "ZOOKEEPER",
-      "category": "Advanced"
     },
   /**********************************************HUE***************************************/
     {
@@ -1257,8 +1145,8 @@ module.exports =
       "description": "The host that has been assigned to run Hue Server",
       "displayType": "masterHost",
       "isOverridable": false,
+      "isRequiredByAgent": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "HUE",
       "category": "Hue Server"
     },
@@ -1271,8 +1159,8 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isOverridable": false,
+      "isRequiredByAgent": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "HUE",
       "category": "Advanced"
     },
@@ -1285,8 +1173,8 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isOverridable": false,
+      "isRequiredByAgent": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "HUE",
       "category": "Advanced"
     },
@@ -1300,7 +1188,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
-      "domain": "global",
+      "isRequiredByAgent": false,
       "serviceName": "GANGLIA",
       "category": "Advanced"
     },
@@ -1314,7 +1202,7 @@ module.exports =
       "isRequired": false,
       "displayType": "directory",
       "isVisible": false,
-      "domain": "global",
+      "isRequiredByAgent": false,
       "serviceName": "MISC",
       "category": "General",
       "belongsToService":[]
@@ -1330,68 +1218,9 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "filename": "core-site.xml",
-      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups",
       "belongsToService":["HIVE","WEBHCAT","OOZIE"]
-    },
-    {
-      "id": "puppet var",
-      "name": "dfs_datanode_address",
-      "displayName": "dfs_datanode_address",
-      "description": "",
-      "defaultValue": "50010",
-      "isReconfigurable": true,
-      "displayType": "int",
-      "isVisible": true,
-      "filename": "hdfs-site.xml",
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "Advanced",
-      "belongsToService":[]
-    },
-    {
-      "id": "puppet var",
-      "name": "dfs_datanode_http_address",
-      "displayName": "dfs_datanode_http_address",
-      "description": "",
-      "defaultValue": "50075",
-      "isReconfigurable": true,
-      "displayType": "int",
-      "isVisible": true,
-      "filename": "hdfs-site.xml",
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "Advanced",
-      "belongsToService":[]
-    },
-    {
-      "id": "puppet var",
-      "name": "gpl_artifacts_download_url",
-      "displayName": "gpl artifact download url",
-      "description": "",
-      "defaultValue": "",
-      "isReconfigurable": false,
-      "displayType": "advanced",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "General",
-      "belongsToService":[]
-    },
-    {
-      "id": "puppet var",
-      "name": "apache_artifacts_download_url",
-      "displayName": "apache artifact download url",
-      "description": "",
-      "defaultValue": "",
-      "isReconfigurable": false,
-      "displayType": "advanced",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "General",
-      "belongsToService":[]
     },
     {
       "id": "puppet var",
@@ -1402,7 +1231,6 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
-      "domain": "global",
       "serviceName": "MISC",
       "category": "General",
       "belongsToService":[]
@@ -1417,38 +1245,7 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "directory",
       "isVisible": false,
-      "domain": "global",
       "serviceName": "MISC",
-      "belongsToService":[]
-    },
-    {
-      "id": "puppet var",
-      "name": "run_dir",
-      "displayName": "Hadoop run directory",
-      "description": "",
-      "defaultValue": "/var/run/hadoop",
-      "isRequired": false,
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "Advanced",
-      "belongsToService":[]
-    },
-    {
-      "id": "puppet var",
-      "name": "hadoop_conf_dir",
-      "displayName": "Hadoop conf directory",
-      "description": "",
-      "defaultValue": "/etc/hadoop/conf",
-      "isRequired": false,
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "domain": "global",
-      "serviceName": "MISC",
-      "category": "Advanced",
       "belongsToService":[]
     },
     {
@@ -1462,7 +1259,6 @@ module.exports =
       "isOverridable": false,
       "isVisible": true,
       "serviceName": "MISC",
-      "domain": "global",
       "category": "Users and Groups",
       "belongsToService":["HDFS"]
     },
@@ -1476,7 +1272,6 @@ module.exports =
       "displayType": "user",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups",
       "belongsToService":["MAPREDUCE2"]
@@ -1491,7 +1286,6 @@ module.exports =
       "displayType": "user",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups",
       "belongsToService":["YARN"]
@@ -1506,7 +1300,6 @@ module.exports =
       "displayType": "user",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups",
       "belongsToService":["HBASE"]
@@ -1521,7 +1314,6 @@ module.exports =
       "displayType": "user",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups",
       "belongsToService":["HIVE"]
@@ -1536,7 +1328,6 @@ module.exports =
       "displayType": "user",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups",
       "belongsToService":["HCATALOG"]
@@ -1551,7 +1342,6 @@ module.exports =
       "displayType": "user",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups",
       "belongsToService":["WEBHCAT"]
@@ -1566,7 +1356,6 @@ module.exports =
       "displayType": "user",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups",
       "belongsToService":["OOZIE"]
@@ -1581,7 +1370,6 @@ module.exports =
       "displayType": "user",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups",
       "belongsToService":["ZOOKEEPER"]
@@ -1596,7 +1384,6 @@ module.exports =
       "displayType": "user",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups",
       "belongsToService":["GANGLIA"]
@@ -1611,7 +1398,6 @@ module.exports =
       "displayType": "advanced",
       "isOverridable": false,
       "isVisible": false,
-      "domain": "global",
       "serviceName":"MISC",
       "category": "Users and Groups",
       "belongsToService":[]
@@ -1625,7 +1411,6 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "domain": "global",
       "isVisible": true,
       "serviceName":"MISC",
       "category": "Users and Groups",
@@ -1640,7 +1425,6 @@ module.exports =
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "domain": "global",
       "isVisible": true,
       "serviceName":"MISC",
       "category": "Users and Groups",
@@ -1656,7 +1440,6 @@ module.exports =
       "displayType": "user",
       "isOverridable": false,
       "isVisible": App.supports.customizeSmokeTestUser,
-      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups",
       "belongsToService":["HDFS"]
@@ -1671,7 +1454,6 @@ module.exports =
       "displayType": "user",
       "isOverridable": false,
       "isVisible": true,
-      "domain": "global",
       "serviceName": "MISC",
       "category": "Users and Groups",
       "belongsToService":["HDFS"]
@@ -1685,7 +1467,6 @@ module.exports =
       "displayType": "directory",
       "isReconfigurable": true,
       "isOverridable": false,
-      "domain": "global",
       "isVisible": true,
       "serviceName": "GANGLIA",
       "category": "General",

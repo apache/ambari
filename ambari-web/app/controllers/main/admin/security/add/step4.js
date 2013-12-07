@@ -284,12 +284,6 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
         case 'security_enabled':
           _property.value = 'true';
           break;
-        case 'dfs_datanode_address':
-          _property.value = '1019';
-          break;
-        case 'dfs_datanode_http_address':
-          _property.value = '1022';
-          break;
       }
     }, this);
   },
