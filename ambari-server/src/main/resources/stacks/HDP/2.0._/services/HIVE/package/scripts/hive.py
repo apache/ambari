@@ -23,6 +23,7 @@ Ambari Agent
 from resource_management import *
 import sys
 
+
 def hive(type=None, name=None):
   import params
 
@@ -41,18 +42,19 @@ def hive(type=None, name=None):
             recursive=True
   )
 
-  XmlConfig( "hive-site.xml",
-             conf_dir = hive_config_dir,
-             configurations = params.config['configurations']['hive-site'],
-             owner = params.hive_user,
-             group = params.user_group,
-             mode = config_file_mode
+  XmlConfig("hive-site.xml",
+            conf_dir=hive_config_dir,
+            configurations=params.config['configurations']['hive-site'],
+            owner=params.hive_user,
+            group=params.user_group,
+            mode=config_file_mode
   )
 
-  cmd = format("/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf --retry 5 {jdk_location}{check_db_connection_jar_name} -o {check_db_connection_jar_name}'")
+  cmd = format("/bin/sh -c 'cd /usr/lib/ambari-agent/ && curl -kf --retry 5 "
+               "{jdk_location}{check_db_connection_jar_name} -o {check_db_connection_jar_name}'")
 
   Execute(cmd,
-          not_if= format("[ -f {check_db_connection_jar_name}]"))
+          not_if=format("[ -f {check_db_connection_jar_name}]"))
 
   if name == 'metastore':
     File(params.start_metastore_path,
@@ -71,10 +73,10 @@ def hive(type=None, name=None):
     crt_directory(params.hive_log_dir)
     crt_directory(params.hive_var_lib)
 
-  File (format("{hive_config_dir}/hive-env.sh"),
-        owner=params.hive_user,
-        group=params.user_group,
-        content = Template('hive-env.sh.j2', conf_dir = hive_config_dir)
+  File(format("{hive_config_dir}/hive-env.sh"),
+       owner=params.hive_user,
+       group=params.user_group,
+       content=Template('hive-env.sh.j2', conf_dir=hive_config_dir)
   )
 
   crt_file(format("{hive_conf_dir}/hive-default.xml.template"))
@@ -92,6 +94,7 @@ def crt_directory(name):
             group=params.user_group,
             mode=0755)
 
+
 def crt_file(name):
   import params
 
@@ -99,6 +102,7 @@ def crt_file(name):
        owner=params.hive_user,
        group=params.user_group
   )
+
 
 def jdbc_connector():
   import params
@@ -113,7 +117,8 @@ def jdbc_connector():
 
   elif params.hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver":
     cmd = format(
-      "mkdir -p {artifact_dir} ; curl -kf --retry 10 {driver_curl_source} -o {driver_curl_target} &&  cp {driver_curl_target} {target}")
+      "mkdir -p {artifact_dir} ; curl -kf --retry 10 {driver_curl_source} -o {driver_curl_target} &&  "
+      "cp {driver_curl_target} {target}")
 
     Execute(cmd,
             not_if=format("test -f {target}"),
