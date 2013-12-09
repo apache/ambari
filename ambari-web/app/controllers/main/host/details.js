@@ -578,6 +578,7 @@ App.MainHostDetailsController = Em.Controller.extend({
   getZkServerHosts: function() {
     var zks = App.HostComponent.find().filterProperty('componentName', 'ZOOKEEPER_SERVER').mapProperty('host.hostName');
     if (this.get('fromDeleteHost')) {
+      this.set('fromDeleteHost', false);
       return zks.without(this.get('content.hostName'));
     }
     return zks;
@@ -945,8 +946,8 @@ App.MainHostDetailsController = Em.Controller.extend({
         templateName: require('templates/main/host/details/doDeleteHostPopup')
       }),
       onPrimary: function() {
-        self.set('fromDeleteHost', true);
         if (!this.get('enablePrimary')) return;
+        self.set('fromDeleteHost', true);
         var allComponents = self.get('content.hostComponents');
         var deleteError = null;
         allComponents.forEach(function(component){
@@ -976,7 +977,6 @@ App.MainHostDetailsController = Em.Controller.extend({
         var dialogSelf = this;
         App.router.get('updateController').updateHost(function(){
           self.loadConfigs();
-          self.set('fromDeleteHost', false);
           dialogSelf.hide();
           App.router.transitionTo('hosts.index');
         });
@@ -987,7 +987,6 @@ App.MainHostDetailsController = Em.Controller.extend({
         console.log(errorThrown);
         xhr.responseText = "{\"message\": \"" + xhr.statusText + "\"}";
         self.loadConfigs();
-        this.set('fromDeleteHost', false);
         this.hide();
         App.ajax.defaultErrorHandler(xhr, opt.url, 'DELETE', xhr.status);
       }
