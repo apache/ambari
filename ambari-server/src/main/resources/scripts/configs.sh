@@ -136,7 +136,7 @@ doConfigUpdate () {
         newFile="doSet_$newTag.json"
         echo "########## PUTting json into: $newFile"
         echo $finalJson > $newFile
-        curl -u $USERID:$PASSWD -X PUT "$AMBARIURL/api/v1/clusters/$CLUSTER" --data @$newFile
+        curl -u $USERID:$PASSWD -X PUT -H "X-Requested-By: ambari" "$AMBARIURL/api/v1/clusters/$CLUSTER" --data @$newFile
         currentSiteTag
         echo "########## NEW Site:$SITE, Tag:$SITETAG";
       elif [ "`echo $line | grep "\"$CONFIGKEY\""`" ]; then
@@ -163,7 +163,7 @@ doConfigFileUpdate () {
       newFile="PUT_$FILENAME"
       echo $finalJson>$newFile
       echo "########## PUTting file:\"$FILENAME\" into config(type:\"$SITE\", tag:$newTag) via $newFile"
-      curl -u $USERID:$PASSWD -X PUT "$AMBARIURL/api/v1/clusters/$CLUSTER" --data @$newFile
+      curl -u $USERID:$PASSWD -X PUT -H "X-Requested-By: ambari" "$AMBARIURL/api/v1/clusters/$CLUSTER" --data @$newFile
       currentSiteTag
       echo "########## NEW Site:$SITE, Tag:$SITETAG";
     else
