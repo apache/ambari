@@ -1928,7 +1928,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           controller.set('selectedService.configGroups', App.router.get('installerManageConfigGroupsController.configGroups'));
           controller.selectedServiceObserver();
           if (controller.get('name') == "wizardStep7Controller") {
-            App.config.persistWizardStep7ConfigGroups()
+            App.config.persistWizardStep7ConfigGroups();
+            this.updateConfigGroupOnServicePage();
           }
           this.hide();
           return;
@@ -1965,36 +1966,35 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         });
       },
       onSecondary: function () {
-        this.updateConfigGroupOnServicePage();
+        this.updateConfigGroupOnServicePage(true);
         this.hide();
       },
       onClose: function () {
-        this.updateConfigGroupOnServicePage();
+        this.updateConfigGroupOnServicePage(true);
         this.hide();
       },
-      subViewController: function(){
-        return App.router.get('manageConfigGroupsController');
-      }.property('App.router.manageConfigGroupsController'),
-      updateConfigGroupOnServicePage: function () {
-        var mainServiceInfoConfigsController = App.get('router.mainServiceInfoConfigsController');
-        var selectedConfigGroup = mainServiceInfoConfigsController.get('selectedConfigGroup');
-        var managedConfigGroups = this.get('subViewController.configGroups');
-        //check whether selectedConfigGroup was selected
-        if(!selectedConfigGroup){
-          return;
+      subViewController: function () {
+        return controller ? App.router.get('installerManageConfigGroupsController') : App.router.get('manageConfigGroupsController');
+      }.property('App.router.manageConfigGroupsController', 'App.router.installerManageConfigGroupsController'),
+
+      updateConfigGroupOnServicePage: function (onClose) {
+        var subViewController = this.get('subViewController');
+        var selectedConfigGroup = subViewController.get('selectedConfigGroup');
+        var managedConfigGroups = subViewController.get('configGroups');
+        if (!(onClose && controller)) {
+          controller.set('configGroups', managedConfigGroups);
         }
-        mainServiceInfoConfigsController.set('configGroups',this.get('subViewController.configGroups'));
-        if(selectedConfigGroup.isDefault) {
-          mainServiceInfoConfigsController.set('selectedConfigGroup',  managedConfigGroups.findProperty('isDefault', true));
-        }else{
-          selectedConfigGroup = managedConfigGroups.findProperty('id', selectedConfigGroup.id);
-          if(selectedConfigGroup){
-            mainServiceInfoConfigsController.set('selectedConfigGroup', selectedConfigGroup);
-          }else{
-            mainServiceInfoConfigsController.set('selectedConfigGroup',  managedConfigGroups.findProperty('isDefault', true));
-          }
+        if (!controller) {
+          controller = App.router.get('mainServiceInfoConfigsController');
+        }
+        //check whether selectedConfigGroup was selected
+        if (selectedConfigGroup && controller.get('configGroups').someProperty('name', selectedConfigGroup.get('name'))) {
+          controller.set('selectedConfigGroup', selectedConfigGroup);
+        } else {
+          controller.set('selectedConfigGroup', managedConfigGroups.findProperty('isDefault', true));
         }
       },
+
       updateButtons: function(){
         var modified = this.get('subViewController.isHostsModified');
         this.set('enablePrimary', modified);

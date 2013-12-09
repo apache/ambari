@@ -649,5 +649,7 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
         this.hide();
       }
     });
-  }
+  },
+  //always enable Save button in Manage Dialog in Installer
+  isHostsModified: true
 })
