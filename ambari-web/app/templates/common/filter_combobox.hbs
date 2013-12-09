@@ -25,7 +25,7 @@
         {{#each column in view.columns}}
             <li>
                 <a href="#" {{action selectFilterColumn column target="view"}}>
-                  <i {{bindAttr class="column.selected:icon-ok-sign:icon-placeholder"}}></i>
+                  <i {{bindAttr class="column.selected:icon-ok-sign:icon-placeholder :text-success"}}></i>
                   {{column.name}}
                 </a>
             </li>
