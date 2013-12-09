@@ -147,7 +147,8 @@ App.UpdateController = Em.Controller.extend({
       'host_components/HostRoles/state,' +
       'host_components/HostRoles/stale_configs,' +
       'host_components/metrics/jvm/memHeapUsedM,' +
-      'host_components/metrics/jvm/memMaxM,' +
+      'host_components/metrics/jvm/HeapMemoryMax,' +
+      'host_components/metrics/jvm/HeapMemoryUsed,' +
       'host_components/metrics/jvm/memHeapCommittedM,' +
       'host_components/metrics/mapred/jobtracker/trackers_decommissioned,' +
       'host_components/metrics/cpu/cpu_wio,' +

@@ -28,10 +28,9 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
     var memMax = this.get('service').get('jvmMemoryHeapMax');
     var percent = memMax > 0 ? ((100 * memUsed) / memMax) : 0;
     return this.t('dashboard.services.hdfs.nodes.heapUsed').format(
-        numberUtils.bytesToSize(memUsed, 1, 'parseFloat', 1024 * 1024), 
-        numberUtils.bytesToSize(memMax, 1, 'parseFloat', 1024 * 1024),
-        percent.toFixed(1));
-
+      numberUtils.bytesToSize(memUsed, 1, 'parseFloat'),
+      numberUtils.bytesToSize(memMax, 1, 'parseFloat'),
+      percent.toFixed(1));
   }.property('service.jvmMemoryHeapUsed', 'service.jvmMemoryHeapMax'),
 
   summaryHeader: function () {

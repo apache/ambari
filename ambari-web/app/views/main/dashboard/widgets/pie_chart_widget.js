@@ -59,8 +59,8 @@ App.PieChartDashboardWidgetView = App.DashboardWidgetView.extend({
   },
 
   calcDataForPieChart: function() {
-    var used = this.get('model').get(this.get('modelFieldUsed'));
-    var total = this.get('model').get(this.get('modelFieldMax'));
+    var used = this.getUsed();
+    var total = this.getMax();
     var percent = total > 0 ? ((used)*100 / total).toFixed() : 0;
     var percent_precise = total > 0 ? ((used)*100 / total).toFixed(1) : 0;
     return [percent, percent_precise];
