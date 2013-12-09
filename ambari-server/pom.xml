@@ -120,6 +120,7 @@
             <exclude>src/test/resources/users.ldif</exclude>
             <exclude>src/main/resources/ca.config</exclude>
             <exclude>src/main/resources/hive-schema-0.10.0.oracle.sql</exclude>
+            <exclude>src/main/resources/hive-schema-0.12.0.oracle.sql</exclude>
             <exclude>src/main/resources/db/serial</exclude>
             <exclude>src/main/resources/db/index.txt</exclude>
             <exclude>conf/unix/ca.config</exclude>
@@ -313,6 +314,9 @@
                 </source>
                  <source>
                   <location>src/main/resources/hive-schema-0.10.0.oracle.sql</location>
+                </source>
+                  <source>
+                  <location>src/main/resources/hive-schema-0.12.0.oracle.sql</location>
                 </source>
                 <source>
                   <location>${project.build.directory}/DBConnectionVerification.jar</location>
