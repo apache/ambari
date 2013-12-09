@@ -29,6 +29,14 @@ App.NameNodeHeapPieChartView = App.PieChartDashboardWidgetView.extend({
   modelFieldUsed: 'jvmMemoryHeapUsed',
   widgetHtmlId: 'widget-nn-heap',
 
+  getUsed: function() {
+    return (this.get('model').get(this.get('modelFieldUsed')) / (1024 * 1024)) || 0;
+  },
+
+  getMax: function() {
+    return (this.get('model').get(this.get('modelFieldMax')) / (1024 * 1024)) || 0;
+  },
+
   didInsertElement: function() {
     this._super();
     this.calc();
