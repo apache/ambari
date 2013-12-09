@@ -46,8 +46,11 @@ SILENT = False
 SERVER_START_DEBUG = False
 
 # OS info
-OS = platform.dist()[0].lower()
+OS, OS_VERSION, _ = platform.linux_distribution() 
+OS = OS.lower().strip()
 OS_UBUNTU = 'ubuntu'
+OS_FEDORA = 'fedora'
+OS_OPENSUSE = 'opensuse'
 
 # action commands
 SETUP_ACTION = "setup"
@@ -231,15 +234,6 @@ PG_DEFAULT_PASSWORD = "bigdata"
 SERVICE_CMD = "/sbin/service"
 PG_SERVICE_NAME = "postgresql"
 PG_HBA_DIR = "/var/lib/pgsql/data"
-# iptables commands
-FIREWALL_SERVICE_NAME = "iptables"
-# on ubuntu iptables service is called ufw and other changes
-if OS == OS_UBUNTU:
-  FIREWALL_SERVICE_NAME = "ufw"
-  PG_HBA_DIR = '/etc/postgresql/8.4/main'
-  SERVICE_CMD = "/usr/sbin/service"
-
-IP_TBLS_STATUS_CMD = "%s %s status" % (SERVICE_CMD, FIREWALL_SERVICE_NAME)
 
 PG_ST_CMD = "%s %s status" % (SERVICE_CMD, PG_SERVICE_NAME)
 if os.path.isfile("/usr/bin/postgresql-setup"):
@@ -410,6 +404,94 @@ ASF_LICENSE_HEADER = '''
 # limitations under the License.
 '''
 
+if OS == OS_UBUNTU:
+  PG_HBA_DIR = '/etc/postgresql/8.4/main'
+
+class FirewallChecks(object):
+  def __init__(self):
+
+    self.FIREWALL_SERVICE_NAME = "iptables"
+    self.SERVICE_CMD = SERVICE_CMD
+    self.SERVICE_SUBCMD = "status"
+
+  def get_command(self):
+    return "%s %s %s" % (self.SERVICE_CMD, self.FIREWALL_SERVICE_NAME, self.SERVICE_SUBCMD)
+
+  def check_result(self, retcode, out, err):
+      return retcode == 0
+
+  def check_iptables(self):
+    retcode, out, err = run_os_command(self.get_command())
+    if err and len(err) > 0:
+      print err
+    if self.check_result(retcode, out, err):
+      print_warning_msg("%s is running. Confirm the necessary Ambari ports are accessible. " %
+                        self.FIREWALL_SERVICE_NAME +
+                        "Refer to the Ambari documentation for more details on ports.")
+      ok = get_YN_input("OK to continue [y/n] (y)? ", True)
+      if not ok:
+        raise FatalException(1, None)
+
+  def get_running_result(self):
+    # To support test code.  Expected ouput from run_os_command.
+    return (0, "", "")
+
+  def get_stopped_result(self):
+    # To support test code.  Expected output from run_os_command.
+    return (3, "", "")
+
+class UbuntuFirewallChecks(FirewallChecks):
+  def __init__(self):
+    super(UbuntuFirewallChecks, self).__init__()
+
+    self.FIREWALL_SERVICE_NAME = "ufw"
+    self.SERVICE_CMD = "/usr/sbin/service"
+
+  def check_result(self, retcode, out, err):
+    # On ubuntu, the status command returns 0 whether running or not
+    return out and len(out) > 0 and out.strip() != "ufw stop/waiting"
+
+  def get_running_result(self):
+    # To support test code.  Expected ouput from run_os_command.
+    return (0, "ufw start/running", "")
+
+  def get_stopped_result(self):
+    # To support test code.  Expected output from run_os_command.
+    return (0, "ufw stop/waiting", "")
+
+class Fedora18FirewallChecks(FirewallChecks):
+  def __init__(self):
+    self.FIREWALL_SERVICE_NAME = "firewalld.service"
+
+  def get_command(self):
+    return "systemctl is-active firewalld.service"
+
+class OpenSuseFirewallChecks(FirewallChecks):
+  def __init__(self):
+    self.FIREWALL_SERVICE_NAME = "SuSEfirewall2"
+
+  def get_command(self):
+    return "/sbin/SuSEfirewall2 status"
+
+def get_firewall_object():
+  if OS == OS_UBUNTU:
+    return UbuntuFirewallChecks()
+  elif OS == OS_FEDORA and int(OS_VERSION) >= 18:
+    return Fedora18FirewallChecks()
+  elif OS == OS_OPENSUSE:
+    return OpenSuseFirewallChecks()
+  else:
+    return FirewallChecks()
+
+def get_firewall_object_types():
+  # To support test code, so tests can loop through the types
+  return (FirewallChecks, 
+          UbuntuFirewallChecks, 
+          Fedora18FirewallChecks,
+          OpenSuseFirewallChecks)
+
+def check_iptables():
+  return get_firewall_object().check_iptables()
 
 def get_conf_dir():
   try:
@@ -723,25 +805,6 @@ def check_ambari_user():
     print_error_msg("Unexpected error %s" % e.message)
     return 1
   return 0
-
-
-
-#
-# Checks iptables
-#
-def check_iptables():
-  retcode, out, err = run_os_command(IP_TBLS_STATUS_CMD)
-
-  if err and len(err) > 0:
-    print err
-
-  if retcode == 0:
-    print_warning_msg("%s is running. Confirm the necessary Ambari ports are accessible. " % FIREWALL_SERVICE_NAME +
-      "Refer to the Ambari documentation for more details on ports.")
-    ok = get_YN_input("OK to continue [y/n] (y)? ", True)
-    if not ok:
-      raise FatalException(1, None)
-
 
 ### Postgres ###
 
