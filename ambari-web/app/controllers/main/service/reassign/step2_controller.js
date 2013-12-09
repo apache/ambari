@@ -28,8 +28,13 @@ App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
   loadComponents: function () {
     var components = this.get('components').filterProperty('isMaster', true);
     var masterComponents = this.get('content.masterComponentHosts');
+    var componentNameToReassign = this.get('content').get('reassign').component_name;
     var result = [];
     masterComponents.forEach(function (master) {
+      var color = "grey";
+      if(master.component == componentNameToReassign){
+        color = 'green';
+      }
       result.push({
         component_name: master.component,
         display_name: App.format.role(master.component),
@@ -37,7 +42,8 @@ App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
         isInstalled: true,
         serviceId: App.HostComponent.find().findProperty('componentName', master.component).get('serviceName'),
         availableHosts: [],
-        isHiveCoHost: ['HIVE_METASTORE', 'WEBHCAT_SERVER'].contains(master.component)
+        isHiveCoHost: ['HIVE_METASTORE', 'WEBHCAT_SERVER'].contains(master.component),
+        color: color
       });
     }, this);
     return result;

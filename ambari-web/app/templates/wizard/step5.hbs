@@ -68,7 +68,7 @@
     <div class="mapping-box round-corners well">
       <div class="hostString"><span>{{hostInfo}}</span></div>
       {{#each masterServices}}
-      <span class="assignedService round-corners">{{display_name}}</span>
+      <span {{bindAttr class="color :assignedService :round-corners"}}>{{display_name}}</span>
       {{/each}}
     </div>
     {{/each}}
