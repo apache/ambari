@@ -29,7 +29,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     work_status: 'ServiceInfo.state',
     $rand: Math.random(),
     $alerts: [ 1, 2, 3 ],
-    host_components: 'host_components'
+    host_components: 'host_components',
+    tool_tip_content: 'tool_tip_content'
   },
   hdfsConfig: {
     version: 'nameNodeComponent.host_components[0].metrics.dfs.namenode.Version',
@@ -134,6 +135,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     component_name: 'HostRoles.component_name',
     host_id: 'HostRoles.host_name',
     stale_configs: 'HostRoles.stale_configs',
+    display_name_advanced: 'display_name_advanced',
     $service_id: 'none' /* will be set outside of parse function */
   },
 
@@ -168,6 +170,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         }, this);
       }, this);
 
+      this.computeAdditionalRelations(hostComponents, services);
       //load master components to model
       App.store.loadMany(this.get('model3'), hostComponents);
 
@@ -233,7 +236,7 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
         App.store.loadMany(this.get('model'), result);
       } else {
         result.forEach(function (serviceJson) {
-          var fields = ['work_status', 'rand', 'alerts', 'quick_links', 'host_components'];
+          var fields = ['work_status', 'rand', 'alerts', 'quick_links', 'host_components', 'tool_tip_content'];
           var service = this.get('model').find(serviceJson.id);
           var modifiedData = this.getDiscrepancies(serviceJson, previousResponse.findProperty('id', serviceJson.id), fields);
           if (modifiedData.isLoadNeeded) {
@@ -247,17 +250,54 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
       }
 
       previousResponse = result;
-
-      var servicesMap = {};
-      //calculate service statuses according to their host-components
-      App.HostComponent.find().filterProperty('isMaster').forEach(function (item) {
-        if (item) {
-          this.countServiceComponents(item, servicesMap, servicesMap[item.get('service.id')]);
-        }
-      }, this);
-      this.updateServicesStatus(App.Service.find(), servicesMap);
     }
     console.timeEnd('App.serviceMetricsMapper execution time');
+  },
+  /**
+   * compute display name of host-components
+   * compute tooltip content of services by host-components
+   * @param hostComponents
+   * @param services
+   */
+  computeAdditionalRelations: function (hostComponents, services) {
+    var isSecondaryNamenode = hostComponents.findProperty('component_name', 'SECONDARY_NAMENODE');
+    services.setEach('tool_tip_content', '');
+    hostComponents.forEach(function (hostComponent) {
+      var service = services.findProperty('ServiceInfo.service_name', hostComponent.service_id);
+      if (hostComponent) {
+        // set advanced nameNode display name for HA, active or standby NameNode
+        // this is useful on three places: hdfs health status hover tooltip, hdfs service summary and NN component on host detail page
+        if (hostComponent.component_name === 'NAMENODE' && !isSecondaryNamenode) {
+          var hdfs = this.hdfsMapper(service);
+          var hostName = hostComponent.host_id;
+          var activeNNText = Em.I18n.t('services.service.summary.nameNode.active');
+          var standbyNNText = Em.I18n.t('services.service.summary.nameNode.standby');
+          if (hdfs) {
+            if (hostName == hdfs.active_name_node_id) {
+              hostComponent.display_name_advanced = activeNNText;
+            } else if (hostName == hdfs.standby_name_node_id || hostName == hdfs.standby_name_node2_id) {
+              hostComponent.display_name_advanced = standbyNNText;
+            } else {
+              hostComponent.display_name_advanced = null;
+            }
+          }
+        } else if (hostComponent.component_name === 'HBASE_MASTER') {
+          if (hostComponent.work_status === 'STARTED') {
+            hostComponent.ha_status == 'true' ?
+              hostComponent.display_name_advanced = this.t('dashboard.services.hbase.masterServer.active') :
+              hostComponent.display_name_advanced = this.t('dashboard.services.hbase.masterServer.standby');
+          } else {
+            hostComponent.display_name_advanced = null;
+          }
+        }
+
+        if (hostComponent.display_name_advanced) {
+          service.tool_tip_content += hostComponent.display_name_advanced + " " + App.HostComponentStatus.getTextStatus(hostComponent.work_status) + "<br/>";
+        } else {
+          service.tool_tip_content += App.format.role(hostComponent.component_name) + " " + App.HostComponentStatus.getTextStatus(hostComponent.work_status) + "<br/>";
+        }
+      }
+    }, this)
   },
   /**
    * check mutable fields whether they have been changed and if positive
@@ -284,189 +324,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     }
     return current;
   },
-
-  /**
-   * fill serviceMap with aggregated data of hostComponents for each service
-   * @param hostComponent
-   * @param servicesMap
-   * @param service
-   */
-  countServiceComponents: function (hostComponent, servicesMap, service) {
-    if (!service) {
-      service = {
-        everyStarted: true,
-        everyStartedOrMaintenance: true,
-        masterComponents: [],
-        isStarted: false,
-        isUnknown: false,
-        isStarting: false,
-        isStopped: false,
-        isHbaseActive: false,
-        serviceName: hostComponent.get('service.id'),
-        isRunning: true,
-        hdfsHealthStatus: '',
-        toolTipContent: ''
-      };
-      servicesMap[hostComponent.get('service.id')] = service;
-    }
-    if (hostComponent.get('isMaster')) {
-      if (service.everyStartedOrMaintenance) {
-        service.everyStartedOrMaintenance = (((hostComponent.get('componentName') === 'NAMENODE' && !App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) || hostComponent.get('componentName') === 'JOURNALNODE') && App.HDFSService.find().filterProperty('activeNameNode.hostName').length > 0)
-          ? true : service.everyStartedOrMaintenance = ([App.HostComponentStatus.started, App.HostComponentStatus.maintenance].contains(hostComponent.get('workStatus')));
-      } else {
-        service.everyStartedOrMaintenance = false;
-      }
-      service.everyStarted = (service.everyStarted)
-        ? (hostComponent.get('workStatus') === App.HostComponentStatus.started)
-        : false;
-      service.isStarted = (!service.isStarted)
-        ? (hostComponent.get('workStatus') === App.HostComponentStatus.started)
-        : true;
-      service.isUnknown = (!service.isUnknown)
-        ? (hostComponent.get('workStatus') === App.HostComponentStatus.unknown)
-        : true;
-      service.isStarting = (!service.isStarting)
-        ? (hostComponent.get('workStatus') === App.HostComponentStatus.starting)
-        : true;
-      service.isStopped = (!service.isStopped)
-        ? (hostComponent.get('workStatus') === App.HostComponentStatus.stopped)
-        : true;
-      service.isHbaseActive = (!service.isHbaseActive)
-        ? (hostComponent.get('haStatus') === 'true')
-        : true;
-
-      service.masterComponents.push(hostComponent);
-
-      // set advanced nameNode display name for HA, active or standby NameNode
-      // this is useful on three places: hdfs health status hover tooltip, hdfs service summary and NN component on host detail page
-      if (hostComponent.get('componentName') === 'NAMENODE' && !App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
-        var hostName = hostComponent.get('host.hostName');
-        var services = App.Service.find();
-        var hdfs;
-        services.forEach(function (item) {
-          if (item.get("serviceName") == "HDFS") {
-            hdfs = App.HDFSService.find(item.get('id'));
-          }
-        }, this);
-        var activeNNText = Em.I18n.t('services.service.summary.nameNode.active');
-        var standbyNNText = Em.I18n.t('services.service.summary.nameNode.standby');
-        if (hdfs) {
-          if (hdfs.get('activeNameNode') && hdfs.get('activeNameNode').get('hostName')) {
-            var activeHostname = hdfs.get('activeNameNode').get('hostName');
-          }
-          if (hdfs.get('standbyNameNode') && hdfs.get('standbyNameNode').get('hostName')) {
-            var standbyHostname1 = hdfs.get('standbyNameNode').get('hostName');
-          }
-          if (hdfs.get('standbyNameNode2') && hdfs.get('standbyNameNode2').get('hostName')) {
-            var standbyHostname2 = hdfs.get('standbyNameNode2').get('hostName');
-          }
-          if (hostName == activeHostname) {
-            hostComponent.set('displayNameAdvanced', activeNNText);
-          } else if (hostName == standbyHostname1 || hostName == standbyHostname2) {
-            hostComponent.set('displayNameAdvanced', standbyNNText);
-          } else {
-            hostComponent.set('displayNameAdvanced', null);
-          }
-        }
-      } else if (hostComponent.get('componentName') === 'HBASE_MASTER') {
-        if (hostComponent.get('workStatus') === 'STARTED') {
-          hostComponent.get('haStatus') == 'true' ? hostComponent.set('displayNameAdvanced', this.t('dashboard.services.hbase.masterServer.active')) : hostComponent.set('displayNameAdvanced', this.t('dashboard.services.hbase.masterServer.standby'));
-        } else {
-          hostComponent.set('displayNameAdvanced', null);
-        }
-      }
-
-      if (hostComponent.get("displayNameAdvanced")) {
-        service.toolTipContent += hostComponent.get("displayNameAdvanced") + " " + hostComponent.get("componentTextStatus") + "<br/>";
-      } else {
-        service.toolTipContent += hostComponent.get("displayName") + " " + hostComponent.get("componentTextStatus") + "<br/>";
-      }
-
-    }
-
-    if (hostComponent.get('workStatus') !== App.HostComponentStatus.stopped &&
-      hostComponent.get('workStatus') !== App.HostComponentStatus.install_failed &&
-      hostComponent.get('workStatus') !== App.HostComponentStatus.unknown &&
-      hostComponent.get('workStatus') !== App.HostComponentStatus.maintenance) {
-      service.isRunning = false;
-    }
-  },
-
-  /**
-   * compute service status and properties by servicesMap of hostComponents
-   * @param services
-   * @param servicesMap
-   */
-  updateServicesStatus: function(services, servicesMap){
-    services.forEach(function(_service){
-      var service = servicesMap[_service.get('id')];
-      if (service) {
-        var serviceName = _service.get('serviceName');
-        var serviceSpecificObj = null;
-        switch (serviceName) {
-          case "HDFS":
-            serviceSpecificObj = App.HDFSService.find(_service.get('id'));
-            break;
-          case "YARN":
-            serviceSpecificObj = App.YARNService.find(_service.get('id'));
-            break;
-          case "MAPREDUCE":
-            serviceSpecificObj = App.MapReduceService.find(_service.get('id'));
-            break;
-          case "HBASE":
-            serviceSpecificObj = App.HBaseService.find(_service.get('id'));
-            break;
-        }
-        //computation of service health status
-        var isGreen = serviceName === 'HBASE' && App.supports.multipleHBaseMasters ? service.isStarted : service.everyStartedOrMaintenance;
-        if (isGreen) {
-          _service.set('healthStatus', 'green');
-          if (serviceSpecificObj != null) {
-            serviceSpecificObj.set('healthStatus', 'green');
-          }
-        } else if (service.isUnknown) {
-          _service.set('healthStatus', 'yellow');
-          if (serviceSpecificObj != null) {
-            serviceSpecificObj.set('healthStatus', 'yellow');
-          }
-        } else if (service.isStarting) {
-          _service.set('healthStatus', 'green-blinking');
-          if (serviceSpecificObj != null) {
-            serviceSpecificObj.set('healthStatus', 'green-blinking');
-          }
-        } else if (service.isStopped) {
-          _service.set('healthStatus', 'red');
-          if (serviceSpecificObj != null) {
-            serviceSpecificObj.set('healthStatus', 'red');
-          }
-        } else {
-          _service.set('healthStatus', 'red-blinking');
-          if (serviceSpecificObj != null) {
-            serviceSpecificObj.set('healthStatus', 'red-blinking');
-          }
-        }
-
-        if (serviceName === 'HBASE' && App.supports.multipleHBaseMasters) {
-          if (!service.isHbaseActive) {
-            _service.set('healthStatus', 'red');
-            if (serviceSpecificObj != null) {
-              serviceSpecificObj.set('healthStatus', 'red');
-            }
-          }
-        }
-
-        _service.set('isStarted', service.everyStarted);
-        _service.set('isStopped', service.isRunning);
-        _service.set('toolTipContent', service.toolTipContent);
-        if (serviceSpecificObj != null) {
-          serviceSpecificObj.set('isStarted', service.everyStarted);
-          serviceSpecificObj.set('isStopped', service.isRunning);
-          serviceSpecificObj.set('toolTipContent', service.toolTipContent);
-        }
-      }
-    }, this);
-  },
-
   /**
    * Map quick links to services:OOZIE,GANGLIA,NAGIOS,HUE
    * @param finalJson

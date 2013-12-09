@@ -26,6 +26,7 @@ App.Service = DS.Model.extend({
 
   workStatus: DS.attr('string'),
   rand: DS.attr('string'),
+  toolTipContent: DS.attr('string'),
   alerts: DS.hasMany('App.Alert'),
   quickLinks: DS.hasMany('App.QuickLinks'),
   hostComponents: DS.hasMany('App.HostComponent'),
@@ -37,9 +38,27 @@ App.Service = DS.Model.extend({
   // a property that it depends on changes.  For example, App.statusMapper's map function would invoke
   // the computed property too many times and freezes the UI without this hack.
   // See http://stackoverflow.com/questions/12467345/ember-js-collapsing-deferring-expensive-observers-or-computed-properties
-  healthStatus: '',
-  isStopped: false,
-  isStarted: false,
+  healthStatus: function(){
+    switch(this.get('workStatus')){
+      case 'STARTED':
+        return 'green';
+      case 'STARTING':
+        return 'green-blinking';
+      case 'INSTALLED':
+        return 'red';
+      case 'STOPPING':
+        return 'red-blinking';
+      case 'UNKNOWN':
+      default:
+        return 'yellow';
+    }
+  }.property('workStatus'),
+  isStopped: function () {
+    return this.get('workStatus') === 'INSTALLED';
+  }.property('workStatus'),
+  isStarted: function () {
+    return this.get('workStatus') === 'STARTED';
+  }.property('workStatus'),
 
   isConfigurable: function () {
     var configurableServices = [

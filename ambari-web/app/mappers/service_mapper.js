@@ -21,18 +21,19 @@ App.serviceMapper = App.QuickDataMapper.create({
   map: function (json) {
     console.time("App.serviceMapper execution time");
 
-    var servicesData = App.cache['services'];
+    var servicesData = [];
     json.items.forEach(function (service) {
-      if (!servicesData.someProperty('ServiceInfo.service_name', service.ServiceInfo.service_name)) {
-        servicesData.push({
-          ServiceInfo: {
-            service_name: service.ServiceInfo.service_name
-          },
-          host_components: [],
-          components: []
-        });
-      }
+      servicesData.push({
+        ServiceInfo: {
+          service_name: service.ServiceInfo.service_name,
+          state: service.ServiceInfo.state
+        },
+        host_components: [],
+        components: []
+      });
     });
+
+    App.cache['services'] = servicesData;
 
     console.timeEnd("App.serviceMapper execution time");
   }

@@ -22,6 +22,7 @@ App.HostComponent = DS.Model.extend({
   workStatus: DS.attr('string'),
   componentName: DS.attr('string'),
   haStatus: DS.attr('string'),
+  displayNameAdvanced: DS.attr('string'),
   staleConfigs: DS.attr('boolean'),
   host: DS.belongsTo('App.Host'),
   service: DS.belongsTo('App.Service'),
@@ -120,27 +121,7 @@ App.HostComponent = DS.Model.extend({
    * User friendly host component status
    */
   componentTextStatus: function () {
-    var value = this.get("workStatus");
-
-    switch(value){
-      case "INSTALLING":
-        return 'Installing...';
-      case "INSTALL_FAILED":
-        return 'Install Failed';
-      case "INSTALLED":
-        return 'Stopped';
-      case "STARTED":
-        return 'Started';
-      case "STARTING":
-        return 'Starting...';
-      case "STOPPING":
-        return 'Stopping...';
-      case "UNKNOWN":
-        return 'Heartbeat lost...';
-      case "UPGRADE_FAILED":
-        return 'Upgrade Failed';
-    }
-    return 'Unknown';
+    return App.HostComponentStatus.getTextStatus(this.get("workStatus"));
   }.property('workStatus','isDecommissioning')
 });
 
@@ -178,7 +159,29 @@ App.HostComponentStatus = {
       case this.unknown:
         return 'unknown';
     }
-    return 'none';
+    return 'Unknown';
+  },
+
+  getTextStatus: function (value) {
+    switch (value) {
+      case this.installing:
+        return 'Installing...';
+      case this.install_failed:
+        return 'Install Failed';
+      case this.stopped:
+        return 'Stopped';
+      case this.started:
+        return 'Started';
+      case this.starting:
+        return 'Starting...';
+      case this.stopping:
+        return 'Stopping...';
+      case this.unknown:
+        return 'Heartbeat lost...';
+      case this.upgrade_failed:
+        return 'Upgrade Failed';
+    }
+    return 'Unknown';
   }
 };
 
