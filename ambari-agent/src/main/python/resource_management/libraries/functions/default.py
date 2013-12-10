@@ -27,7 +27,7 @@ from resource_management.libraries.script import Script
 default_subdict='/configurations/global'
 log = logging.getLogger('resource_management')
 
-def default(name, default_value=None):
+def default(name, default_value):
   subdicts = filter(None, name.split('/'))
   
   if not name.startswith('/'):

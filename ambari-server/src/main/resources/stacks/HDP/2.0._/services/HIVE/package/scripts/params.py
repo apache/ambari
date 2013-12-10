@@ -29,7 +29,7 @@ hive_metastore_user_name = config['configurations']['hive-site']['javax.jdo.opti
 hive_server_conf_dir = "/etc/hive/conf.server"
 hive_jdbc_connection_url = config['configurations']['hive-site']['javax.jdo.option.ConnectionURL']
 
-hive_metastore_user_passwd = default("/configurations/hive-site/javax.jdo.option.ConnectionPassword")
+hive_metastore_user_passwd = config['configurations']['hive-site']['javax.jdo.option.ConnectionPassword']
 
 #users
 hive_user = config['configurations']['global']['hive_user']
@@ -53,11 +53,11 @@ hive_url = format("jdbc:hive2://{hive_server_host}:10000")
 smokeuser = config['configurations']['global']['smokeuser']
 smoke_test_sql = "/tmp/hiveserver2.sql"
 smoke_test_path = "/tmp/hiveserver2Smoke.sh"
-smoke_user_keytab = default("smokeuser_keytab")
+smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
 
 security_enabled = config['configurations']['global']['security_enabled']
 
-kinit_path_local = get_kinit_path([default('kinit_path_local'),"/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
 hive_metatore_keytab_path = default("hive-site/hive.metastore.kerberos.keytab.file","/etc/security/keytabs/hive.service.keytab")
 
 #hive_env
@@ -93,13 +93,13 @@ driver_curl_source = format("{jdk_location}/{jdbc_jar_name}")
 start_hiveserver2_path = "/tmp/start_hiveserver2_script"
 start_metastore_path = "/tmp/start_metastore_script"
 
-hive_aux_jars_path = config['configurations']['global']['hive_aux_jars_path'] #'/usr/lib/hcatalog/share/hcatalog/hcatalog-core.jar'
-hadoop_heapsize = config['configurations']['global']['hadoop_heapsize'] #default("hadoop_heapsize","1024")
-java64_home = config['configurations']['global']['java64_home'] #default("java64_home","/usr/jdk64/jdk1.6.0_31")
+hive_aux_jars_path = config['configurations']['global']['hive_aux_jars_path']
+hadoop_heapsize = config['configurations']['global']['hadoop_heapsize']
+java64_home = config['configurations']['global']['java64_home']
 
 ##### MYSQL
 
-db_name = config['configurations']['global']['hive_database_name'] #default("hive_database_name","hive")
+db_name = config['configurations']['global']['hive_database_name']
 mysql_user = "mysql"
 mysql_group = 'mysql'
 mysql_host = config['clusterHostInfo']['hive_mysql_host']

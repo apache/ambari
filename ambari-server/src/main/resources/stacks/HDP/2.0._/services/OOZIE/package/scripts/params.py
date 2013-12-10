@@ -23,11 +23,11 @@ oozie_libext_dir = "/usr/lib/oozie/libext"
 lzo_enabled = config['configurations']['global']['lzo_enabled']
 security_enabled = config['configurations']['global']['security_enabled']
 
-kinit_path_local = get_kinit_path([default('kinit_path_local'),"/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
-oozie_service_keytab = default("/configurations/oozie-site/oozie.service.HadoopAccessorService.keytab.file")
-oozie_principal = default("/configurations/oozie-site/oozie.service.HadoopAccessorService.kerberos.principal")
-smokeuser_keytab = default("/configurations/global/smokeuser_keytab")
-oozie_keytab = default("keytab_path")
+kinit_path_local = get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+oozie_service_keytab = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.keytab.file']
+oozie_principal = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.kerberos.principal']
+smokeuser_keytab = config['configurations']['global']['smokeuser_keytab']
+oozie_keytab = config['configurations']['global']['keytab_path']
 
 oracle_driver_jar_name = "ojdbc6.jar"
 java_share_dir = "/usr/share/java"

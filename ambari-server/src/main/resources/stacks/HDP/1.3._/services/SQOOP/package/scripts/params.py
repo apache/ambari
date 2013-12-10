@@ -31,7 +31,6 @@ zoo_conf_dir = "/etc/zookeeper"
 sqoop_lib = "/usr/lib/sqoop/lib"
 sqoop_user = "sqoop"
 
-keytab_path = default("keytab_path")
-smoke_user_keytab = default('smokeuser_keytab')
-kinit_path_local = functions.get_kinit_path(
-  [default('kinit_path_local'), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+keytab_path = config['configurations']['global']['keytab_path']
+smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
+kinit_path_local = get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])

@@ -39,9 +39,14 @@ class ConfigDictionary(dict):
 
   def __getitem__(self, name):
     """
-    Use Python types
+    - use Python types
+    - enable lazy failure for unknown configs. 
     """
-    value = super(ConfigDictionary, self).__getitem__(name)
+    try:
+      value = super(ConfigDictionary, self).__getitem__(name)
+    except KeyError:
+      return UnknownConfiguration(name)
+      
     
     if value == "true":
       value = True
@@ -57,3 +62,14 @@ class ConfigDictionary(dict):
           pass
     
     return value
+  
+  
+class UnknownConfiguration():
+  """
+  Lazy failing for unknown configs.
+  """
+  def __init__(self, name):
+    self.name = name
+   
+  def __getattr__(self, name):
+    raise Fail("Configuration parameter '"+self.name+"' was not found in configurations dictionary!")

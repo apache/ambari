@@ -47,40 +47,48 @@ class TestScript(TestCase):
 
   @patch("resource_management.core.providers.package.PackageProvider")
   def test_install_packages(self, package_provider_mock):
-    no_such_entry_config = {
+    no_packages_config = {
+      'hostLevelParams' : {
+        'repo_info' : "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0._\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]"
+      }
     }
     empty_config = {
       'hostLevelParams' : {
-        'package_list' : ''
+        'package_list' : '',
+        'repo_info' : "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0._\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]"
       }
     }
     dummy_config = {
       'hostLevelParams' : {
         'package_list' : "[{\"type\":\"rpm\",\"name\":\"hbase\"},"
-                         "{\"type\":\"rpm\",\"name\":\"yet-another-package\"}]"
+                         "{\"type\":\"rpm\",\"name\":\"yet-another-package\"}]",
+        'repo_info' : "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0._\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]",
+        'service_repo_info' : "[{\"mirrorsList\":\"abc\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0._\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]"
       }
     }
 
     # Testing config without any keys
     with Environment(".", test_mode=True) as env:
       script = Script()
-      Script.config = no_such_entry_config
+      Script.config = no_packages_config
       script.install_packages(env)
-    self.assertEquals(len(env.resource_list), 0)
+    resource_dump = pprint.pformat(env.resource_list)
+    self.assertEquals(resource_dump, "[Repository['HDP-2.0._'], Repository['HDP-2.0._']]")
 
     # Testing empty package list
     with Environment(".", test_mode=True) as env:
       script = Script()
       Script.config = empty_config
       script.install_packages(env)
-    self.assertEquals(len(env.resource_list), 0)
+    resource_dump = pprint.pformat(env.resource_list)
+    self.assertEquals(resource_dump, "[Repository['HDP-2.0._'], Repository['HDP-2.0._']]")
 
     # Testing installing of a list of packages
     with Environment(".", test_mode=True) as env:
       Script.config = dummy_config
       script.install_packages("env")
     resource_dump = pprint.pformat(env.resource_list)
-    self.assertEqual(resource_dump, "[Package['hbase'], Package['yet-another-package']]")
+    self.assertEqual(resource_dump, "[Repository['HDP-2.0._'],\n Repository['HDP-2.0._'],\n Package['hbase'],\n Package['yet-another-package'],\n Repository['HDP-2.0._'],\n Repository['HDP-2.0._']]")
 
   @patch("__builtin__.open")
   def test_structured_out(self, open_mock):

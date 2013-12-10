@@ -100,7 +100,6 @@ class Environment(object):
       # don't include system variables, methods, classes, modules
       if not variable.startswith("__") and \
           not hasattr(value, '__call__')and \
-          not hasattr(value, '__module__') and \
           not hasattr(value, '__file__'):
         self.config.params[variable] = value
         

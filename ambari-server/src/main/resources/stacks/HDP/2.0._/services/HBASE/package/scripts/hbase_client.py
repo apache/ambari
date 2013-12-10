@@ -41,10 +41,12 @@ class HbaseClient(Script):
 def main():
   command_type = 'install'
   command_data_file = '/root/workspace/HBase/input.json'
-  basedir = '/root/workspace/HBase/main'
-  sys.argv = ["", command_type, command_data_file, basedir]
+  basedir = '/root/workspace/HBase/'
+  stdoutfile = '/1.txt'
+  sys.argv = ["", command_type, command_data_file, basedir, stdoutfile]
   
   HbaseClient().execute()
   
 if __name__ == "__main__":
-  HbaseClient().execute()
+  #HbaseClient().execute()
+  main()

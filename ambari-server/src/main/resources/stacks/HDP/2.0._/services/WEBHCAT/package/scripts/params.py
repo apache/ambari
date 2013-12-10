@@ -44,7 +44,7 @@ user_group = config['configurations']['global']['user_group']
 webhcat_server_host = config['clusterHostInfo']['webhcat_server_host']
 
 webhcat_apps_dir = "/apps/webhcat"
-smoke_user_keytab = default("smokeuser_keytab")
+smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
 smokeuser = config['configurations']['global']['smokeuser']
 security_enabled = config['configurations']['global']['security_enabled']
-kinit_path_local = get_kinit_path([default('kinit_path_local'),"/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
+kinit_path_local = get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])

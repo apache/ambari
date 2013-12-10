@@ -26,6 +26,8 @@ import functions
 # server configurations
 config = Script.get_config()
 
+abc = config['configurations']['global']['wtf']
+
 conf_dir = "/etc/hbase/conf"
 daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
 
@@ -63,7 +65,7 @@ if security_enabled:
   
   _use_hostname_in_principal = default('instance_name', True)
   _master_primary_name = config['configurations']['global']['hbase_master_primary_name']
-  _hostname = default('/hostname')
+  _hostname = config['hostname']
   _kerberos_domain = config['configurations']['global']['kerberos_domain']
   _master_principal_name = config['configurations']['global']['hbase_master_principal_name']
   _regionserver_primary_name = config['configurations']['global']['hbase_regionserver_primary_name']
@@ -75,11 +77,8 @@ if security_enabled:
     master_jaas_princ = format("{_master_principal_name}@{_kerberos_domain}")
     regionserver_jaas_princ = format("{_regionserver_primary_name}@{_kerberos_domain}")
     
-master_keytab_path = default('/configurations/hbase-site/hbase.master.keytab.file')
-regionserver_keytab_path = default('/configurations/hbase-site/hbase.regionserver.keytab.file')
-smoke_user_keytab = default('smokeuser_keytab')
-hbase_user_keytab = default('hbase_user_keytab')
-kinit_path_local = get_kinit_path([default('kinit_path_local'),"/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
-
-# fix exeuteHadoop calls for secured cluster
-# to string template...
+master_keytab_path = config['configurations']['hbase-site']['hbase.master.keytab.file']
+regionserver_keytab_path = config['configurations']['hbase-site']['hbase.regionserver.keytab.file']
+smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
+hbase_user_keytab = config['configurations']['global']['hbase_user_keytab']
+kinit_path_local = get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])

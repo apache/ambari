@@ -19,9 +19,14 @@ def oozie_smoke_shell_file(
     content = StaticFile(file_name),
     mode = 0755
   )
+  
+  if params.security_enabled:
+    sh_cmd = format("sh /tmp/{file_name} {conf_dir} {hadoop_conf_dir} {smokeuser} {security_enabled} {smokeuser_keytab} {kinit_path_local}")
+  else:
+    sh_cmd = format("sh /tmp/{file_name} {conf_dir} {hadoop_conf_dir} {smokeuser} {security_enabled}")
 
   Execute( format("/tmp/{file_name}"),
-    command   = format("sh /tmp/{file_name} {conf_dir} {hadoop_conf_dir} {smokeuser} {security_enabled} {smokeuser_keytab} {kinit_path_local}"),
+    command   = sh_cmd,
     tries     = 3,
     try_sleep = 5,
     logoutput = True
