@@ -156,7 +156,7 @@ BEGIN;
   UNION ALL
   SELECT 'host_role_command_id_seq', 1
   union all
-  select 'configgroup_id_seq', 1;
+  select 'configgroup_id_seq', 1
   union all
   select 'requestschedule_id_seq', 1;
 
