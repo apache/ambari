@@ -36,14 +36,14 @@ class hdp-hbase::client(
         service_state => $service_state
       }
 
-      hdp::directory_recursive_create_ignore_failure { $hbase_tmp_dir:
+      hdp::directory_recursive_create_ignore_failure { "${hbase_tmp_dir}/local/jars":
         owner => $hdp-hbase::params::hbase_user,
         context_tag => 'hbase_client',
         service_state => $service_state,
         force => true
       }
 
-      Class[ 'hdp-hbase' ] -> Hdp::Directory_recursive_create_ignore_failure[ $hbase_tmp_dir ]
+      Class[ 'hdp-hbase' ] -> Hdp::Directory_recursive_create_ignore_failure<||>
     }
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
