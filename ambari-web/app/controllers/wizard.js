@@ -523,11 +523,8 @@ App.WizardController = Em.Controller.extend({
     App.ModalPopup.show({
       header: header,
       secondary: false,
-      onPrimary: function () {
-        this.hide();
-      },
       bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile(['<p>{{view.message}}</p>'].join('\n')),
+        template: Ember.Handlebars.compile('<p>{{view.message}}</p>'),
         message: message
       })
     });
@@ -546,6 +543,9 @@ App.WizardController = Em.Controller.extend({
           cpu: _host.cpu,
           memory: _host.memory,
           disk_info: _host.disk_info,
+          os_type: _host.os_type,
+          os_arch: _host.os_arch,
+          ip: _host.ip,
           bootStatus: _host.bootStatus,
           isInstalled: false
         };

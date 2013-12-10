@@ -79,10 +79,10 @@ module.exports = {
           Ember.Object.create({id: 'ip', name: 'IP Address', selected: false}),
           Ember.Object.create({id: 'cpu', name: 'CPU', selected: false}),
           Ember.Object.create({id: 'memory', name: 'RAM', selected: false}),
-          Ember.Object.create({id: 'diskUsage', name: 'Disk Usage', selected: false}),
-          Ember.Object.create({id: 'loadAvg', name: 'Load Average', selected: false}),
           Ember.Object.create({id: 'osArch', name: 'OS Architecture', selected: false}),
-          Ember.Object.create({id: 'osType', name: 'OS Type', selected: false})
+          Ember.Object.create({id: 'osType', name: 'OS Type', selected: false}),
+          Ember.Object.create({id: 'diskTotal', name: 'Total Disks Capacity', selected: false}),
+          Ember.Object.create({id: 'disksMounted', name: '# of Disk Mounts', selected: false})
         ]),
         showOnlySelectedHosts: false,
         filterComponents: validComponents,
@@ -103,7 +103,7 @@ module.exports = {
             var value = ahost.get(filterColumn.id);
             host.set('filterColumnValue', value);
             if (filterText != null && filterText.length > 0) {
-              if ((value == null || !value.match(filterText)) && !host.get('host.publicHostName').match(filterText)) {
+              if ((value == null || !value.toString().match(filterText)) && !host.get('host.publicHostName').match(filterText)) {
                 skip = true;
               }
             }

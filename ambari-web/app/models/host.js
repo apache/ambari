@@ -64,6 +64,11 @@ App.Host = DS.Model.extend({
   publicHostNameFormatted: function() {
     return this.get('publicHostName').length < 43 ? this.get('publicHostName') : this.get('publicHostName').substr(0, 40) + '...';
   }.property('publicHostName'),
+
+  disksMounted: function() {
+    return this.get('diskInfo.length');
+  }.property('diskInfo.length'),
+
   /**
    * API return diskTotal and diskFree. Need to save their different
    */

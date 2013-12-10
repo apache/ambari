@@ -321,9 +321,6 @@ App.WizardStep7Controller = Em.Controller.extend({
       header: Em.I18n.t('installer.step7.ConfigErrMsg.header'),
       primary: Em.I18n.t('ok'),
       secondary: null,
-      onPrimary: function () {
-        this.hide();
-      },
       bodyClass: Ember.View.extend({
         message: Em.I18n.t('installer.step7.ConfigErrMsg.message'),
         siteProperties: customConfig,
@@ -417,13 +414,25 @@ App.WizardStep7Controller = Em.Controller.extend({
 
     for (var hostName in hosts) {
       var host = hosts[hostName];
+      var disksOverallCapacity = 0;
+      var diskFree = 0;
+      host.disk_info.forEach(function(disk) {
+        disksOverallCapacity += parseFloat(disk.size);
+        diskFree += parseFloat(disk.available);
+      });
       App.store.load(App.Host,
         {
           id: host.name,
+          ip: host.ip,
+          os_type: host.os_type,
+          os_arch: host.os_arch,
           host_name: host.name,
           public_host_name: host.name,
           cpu: host.cpu,
           memory: host.memory,
+          disk_info: host.disk_info,
+          disk_total: disksOverallCapacity / (1024 * 1024),
+          disk_free: diskFree / (1024 * 1024),
           host_components: host.hostComponents
         }
       )

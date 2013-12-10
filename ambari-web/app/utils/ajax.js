@@ -1059,7 +1059,7 @@ var urls = {
     }
   },
   'wizard.step3.host_info': {
-    'real': '/hosts?fields=Hosts/total_mem,Hosts/cpu_count,Hosts/disk_info,Hosts/last_agent_env,Hosts/host_name,Hosts/os_type',
+    'real': '/hosts?fields=Hosts/total_mem,Hosts/cpu_count,Hosts/disk_info,Hosts/last_agent_env,Hosts/host_name,Hosts/os_type,Hosts/os_arch,Hosts/ip',
     'mock': '/data/wizard/bootstrap/two_hosts_information.json',
     'format': function (data, opt) {
       return {

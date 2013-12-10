@@ -518,11 +518,8 @@ App.WizardStep3Controller = Em.Controller.extend({
     App.ModalPopup.show({
       header: header,
       secondary: false,
-      onPrimary: function () {
-        this.hide();
-      },
       bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile(['<p>{{view.message}}</p>'].join('\n')),
+        template: Ember.Handlebars.compile('<p>{{view.message}}</p>'),
         message: message
       })
     });
@@ -557,6 +554,8 @@ App.WizardStep3Controller = Em.Controller.extend({
         _host.memory = ((parseInt(host.Hosts.total_mem))).toFixed(2);
         _host.disk_info = host.Hosts.disk_info;
         _host.os_type = host.Hosts.os_type;
+        _host.os_arch = host.Hosts.os_arch;
+        _host.ip = host.Hosts.ip;
 
         var context = self.checkHostOSType(host.Hosts.os_type, host.Hosts.host_name);
         if(context) {
@@ -648,10 +647,6 @@ App.WizardStep3Controller = Em.Controller.extend({
 
       header: Em.I18n.t('installer.step3.hostLog.popup.header').format(host.get('name')),
       secondary: null,
-
-      onPrimary: function () {
-        this.hide();
-      },
 
       bodyClass: Ember.View.extend({
         templateName: require('templates/wizard/step3_host_log_popup'),
@@ -995,16 +990,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       },
 
       footerClass: Ember.View.extend({
-        template: Ember.Handlebars.compile([
-          '<div class="update-progress pull-left">',
-          '{{#if view.isUpdateInProgress}}',
-          '<div class="progress-info active progress">',
-          '<div class="bar" {{bindAttr style="view.progressWidth"}}></div></div>',
-          '{{else}}<label {{bindAttr class="view.updateStatusClass"}}>{{view.updateStatus}}</label>',
-          '{{/if}}</div>',
-          '{{#if view.parentView.secondary}}<button type="button" class="btn btn-info" {{bindAttr disabled="view.isUpdateInProgress"}} {{action onSecondary target="view.parentView"}}><i class="icon-repeat"></i>&nbsp;{{view.parentView.secondary}}</button>{{/if}}',
-          '{{#if view.parentView.primary}}<button type="button" class="btn" {{action onPrimary target="view.parentView"}}>{{view.parentView.primary}}</button>{{/if}}'
-        ].join('')),
+        templateName: require('templates/wizard/step3_host_warning_popup_footer'),
         classNames: ['modal-footer', 'host-checks-update'],
         progressWidth: function(){
           return 'width:'+App.router.get('wizardStep3Controller.checksUpdateProgress')+'%';
@@ -1145,9 +1131,6 @@ App.WizardStep3Controller = Em.Controller.extend({
               hosts: hosts.context,
               template: Ember.Handlebars.compile('<ul>{{#each host in view.hosts}}<li>{{host}}</li>{{/each}}</ul>')
             }),
-            onPrimary: function () {
-              this.hide();
-            },
             secondary: null
           });
         },
@@ -1226,12 +1209,7 @@ App.WizardStep3Controller = Em.Controller.extend({
       header: Em.I18n.t('installer.step3.warning.registeredHosts').format(this.get('registeredHosts').length),
       secondary: null,
       bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile([
-          '<p>{{view.message}}</p>',
-          '<ul>{{#each host in view.registeredHosts}}',
-              '<li>{{host}}</li>',
-          '{{/each}}</ul>'
-        ].join('')),
+        templateName: require('templates/wizard/step3_registered_hosts_popup'),
         message: Em.I18n.t('installer.step3.registeredHostsPopup'),
         registeredHosts: self.get('registeredHosts')
       })
