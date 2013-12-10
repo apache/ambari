@@ -605,7 +605,8 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
   /**
    * add new config group
    */
-  addConfigGroup: function () {
+  addConfigGroup: function (duplicated) {
+    duplicated = (duplicated === true);
     var self = this;
     this.addGroupPopup = App.ModalPopup.show({
       primary: Em.I18n.t('ok'),
@@ -614,8 +615,8 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
       bodyClass: Ember.View.extend({
         templateName: require('templates/main/service/new_config_group')
       }),
-      configGroupName: "",
-      configGroupDesc: "",
+      configGroupName: duplicated ? self.get('selectedConfigGroup.name') + ' Copy' : "",
+      configGroupDesc: duplicated ? self.get('selectedConfigGroup.description') + ' (Copy)' : "",
       warningMessage: '',
       validate: function () {
         var warningMessage = '';
@@ -632,6 +633,12 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
           return false;
         }
         var defaultConfigGroup = self.get('configGroups').findProperty('isDefault');
+        var properties = [];
+        if (duplicated) {
+          self.get('selectedConfigGroup.properties').forEach(function(property) {
+            properties.push(App.ServiceConfigProperty.create($.extend(true, {},property)));
+          });
+        }
         var newConfigGroupData = App.ConfigGroup.create({
           id: null,
           name: this.get('configGroupName'),
@@ -641,7 +648,7 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
           service: Em.Object.create({id: self.get('serviceName')}),
           hosts: [],
           configSiteTags: [],
-          properties: []
+          properties: properties
         });
         self.get('loadedHostsToGroupMap')[newConfigGroupData.get('name')] = [];
         self.get('configGroups').pushObject(newConfigGroupData);
@@ -649,6 +656,10 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
         this.hide();
       }
     });
+  },
+
+  duplicateConfigGroup: function() {
+    this.addConfigGroup(true);
   },
   //always enable Save button in Manage Dialog in Installer
   isHostsModified: true
