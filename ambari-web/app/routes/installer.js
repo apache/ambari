@@ -169,6 +169,9 @@ module.exports = Em.Route.extend({
       var controller = router.get('installerController');
       controller.setCurrentStep('2');
       controller.loadAllPriorSteps();
+      if (App.Host.find().content.length) {
+        App.Host.find().clear();
+      }
       controller.connectOutlet('wizardStep2', controller.get('content'));
     },
     back: Em.Router.transitionTo('step1'),
@@ -284,6 +287,7 @@ module.exports = Em.Route.extend({
         controller.get('content').set('serviceConfigProperties', null);
         controller.setDBProperty('serviceConfigProperties', null);
         controller.setDBProperty('advancedServiceConfig', null);
+        controller.setDBProperty('serviceConfigGroups', null);
         controller.loadAdvancedConfigs();
         router.transitionTo('step7');
       }

@@ -1981,11 +1981,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         var subViewController = this.get('subViewController');
         var selectedConfigGroup = subViewController.get('selectedConfigGroup');
         var managedConfigGroups = subViewController.get('configGroups');
+        // do not save config groups in wizards if Cancel or Close button is clicked
         if (!(onClose && controller)) {
+          if (!controller) {
+            controller = App.router.get('mainServiceInfoConfigsController');
+          }
           controller.set('configGroups', managedConfigGroups);
-        }
-        if (!controller) {
-          controller = App.router.get('mainServiceInfoConfigsController');
         }
         //check whether selectedConfigGroup was selected
         if (selectedConfigGroup && controller.get('configGroups').someProperty('name', selectedConfigGroup.get('name'))) {

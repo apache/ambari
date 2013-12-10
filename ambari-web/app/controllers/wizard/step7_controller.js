@@ -429,6 +429,6 @@ App.WizardStep7Controller = Em.Controller.extend({
       )
     }
     return App.Host.find();
-  }.property('content')
+  }.property('content.hosts')
 
 });
