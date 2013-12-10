@@ -481,18 +481,6 @@ module.exports =
       "serviceName": "HBASE",
       "category": "Advanced"
     },
-    {
-      "id": "puppet var",
-      "name": "hbase_hdfs_root_dir",
-      "displayName": "Hbase relative path to HDFS",
-      "description": "Hbase relative directory to HDFS",
-      "defaultValue": "/apps/hbase/data",
-      "isRequired": true,
-      "displayType": "advanced",
-      "isVisible": false,
-      "serviceName": "HBASE",
-      "category": "Advanced"
-    },
   /**********************************************HIVE***************************************/
     {
       "id": "puppet var",

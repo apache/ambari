@@ -70,16 +70,6 @@ var configs = [
 
 /**********************************************hbase-site***************************************/
   {
-    "name": "hbase.rootdir",
-    "templateName": ["namenode_host", "hbase_hdfs_root_dir"],
-    "foreignKey": null,
-    "value": "hdfs://<templateName[0]>:8020<templateName[1]>",
-    "precondition": function () {
-      return (App.HDFSService.find('HDFS') && App.HDFSService.find('HDFS').get('snameNode'));
-    },
-    "filename": "hbase-site.xml"
-  },
-  {
     "name": "hbase.zookeeper.quorum",
     "templateName": ["zookeeperserver_hosts"],
     "foreignKey": null,
