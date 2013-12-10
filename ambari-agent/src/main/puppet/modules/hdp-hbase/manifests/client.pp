@@ -23,6 +23,9 @@ class hdp-hbase::client(
   $opts = {}
 )
 {
+  include hdp-hbase::params
+  $hbase_tmp_dir = $hdp-hbase::params::hbase_tmp_dir
+
   #assumption is there are no other hbase components on node
   if ($service_state == 'no_op') {
   } elsif ($service_state in ['installed_and_configured','uninstalled']) {
@@ -32,6 +35,15 @@ class hdp-hbase::client(
         type          => 'client',
         service_state => $service_state
       }
+
+      hdp::directory_recursive_create_ignore_failure { "${hbase_tmp_dir}/local/jars":
+        owner => $hdp-hbase::params::hbase_user,
+        context_tag => 'hbase_client',
+        service_state => $service_state,
+        force => true
+      }
+
+      Class[ 'hdp-hbase' ] -> Hdp::Directory_recursive_create_ignore_failure<||>
     }
   } else {
     hdp_fail("TODO not implemented yet: service_state = ${service_state}")
