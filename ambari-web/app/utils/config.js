@@ -1006,7 +1006,7 @@ App.config = Em.Object.create({
    *  is closed, cancelled or OK is pressed.
    */
 
-  saveGroupConfirmationPopup: function(groupName,isInstaller) {
+  saveGroupConfirmationPopup: function(groupName) {
     App.ModalPopup.show({
       header: Em.I18n.t('config.group.save.confirmation.header'),
       secondary: Em.I18n.t('config.group.save.confirmation.manage.button'),
@@ -1015,8 +1015,7 @@ App.config = Em.Object.create({
         templateName: require('templates/common/configs/saveConfigGroup')
       }),
       onSecondary: function() {
-        var controller = isInstaller ? App.router.get('wizardStep7Controller') : undefined;
-        App.router.get('mainServiceInfoConfigsController').manageConfigurationGroups(controller);
+        App.router.get('mainServiceInfoConfigsController').manageConfigurationGroups();
         this.hide();
       }
     });
@@ -1083,9 +1082,10 @@ App.config = Em.Object.create({
             configGroups.pushObject(newConfigGroup);
             if (isInstaller) {
               self.persistWizardStep7ConfigGroups();
+            } else {
+              self.saveGroupConfirmationPopup(newConfigGroupName);
             }
             this.hide();
-            self.saveGroupConfirmationPopup(newConfigGroupName,isInstaller);
             callback(newConfigGroup);
           }
         }
@@ -1179,8 +1179,7 @@ App.config = Em.Object.create({
         }
       },
       bodyClass: Ember.View.extend({
-        template: Em.Handlebars.compile('{{t installer.controls.slaveComponentGroups}}&#58;&nbsp;' +
-          '{{view Em.Select contentBinding="view.parentView.configGroups" optionLabelPath="content.displayName" selectionBinding="view.parentView.selectedConfigGroup"}}')
+        templateName: require('templates/utils/config_launch_switch_config_group_of_host')
       })
     });
   },
