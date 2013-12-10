@@ -62,7 +62,7 @@ App.ClusterController = Em.Controller.extend({
     'datasets':false,
     'targetclusters':false,
     'status': false,
-    'componentConfigs': !App.supports.hostOverrides
+    'componentConfigs': false
   }),
 
   /**
@@ -323,22 +323,26 @@ App.ClusterController = Em.Controller.extend({
     var dataSetUrl = "/data/mirroring/all_datasets.json";
     var targetClusterUrl = "/data/mirroring/target_clusters.json";
 
-    App.HttpClient.get(targetClusterUrl, App.targetClusterMapper, {
-      complete: function (jqXHR, textStatus) {
+    if (App.supports.mirroring) {
+      App.HttpClient.get(targetClusterUrl, App.targetClusterMapper, {
+        complete: function (jqXHR, textStatus) {
+          self.updateLoadStatus('targetclusters');
+        }
+      }, function (jqXHR, textStatus) {
         self.updateLoadStatus('targetclusters');
-      }
-    }, function (jqXHR, textStatus) {
-      self.updateLoadStatus('targetclusters');
-    });
+      });
 
-
-    App.HttpClient.get(dataSetUrl, App.dataSetMapper, {
-      complete: function (jqXHR, textStatus) {
+      App.HttpClient.get(dataSetUrl, App.dataSetMapper, {
+        complete: function (jqXHR, textStatus) {
+          self.updateLoadStatus('datasets');
+        }
+      }, function (jqXHR, textStatus) {
         self.updateLoadStatus('datasets');
-      }
-    }, function (jqXHR, textStatus) {
+      });
+    } else {
+      self.updateLoadStatus('targetclusters');
       self.updateLoadStatus('datasets');
-    });
+    }
 
     App.HttpClient.get(racksUrl, App.racksMapper, {
       complete:function (jqXHR, textStatus) {
@@ -385,6 +389,8 @@ App.ClusterController = Em.Controller.extend({
             App.router.get('updateController').updateComponentConfig(function () {
               self.updateLoadStatus('componentConfigs');
             });
+          } else {
+            self.updateLoadStatus('componentConfigs');
           }
           self.updateLoadStatus('serviceMetrics');
         }, true);
