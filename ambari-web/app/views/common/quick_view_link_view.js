@@ -156,7 +156,7 @@ App.QuickViewLinks = Em.View.extend({
     });
     }
     this.set('quickLinks',quickLinks);
-  }.observes('content.quickLinks.@each.label'),
+  }.observes('App.currentStackVersionNumber', 'App.router.mainAdminSecurityController.securityEnabled'),
 
   setProtocol: function(service_id){
     var properties  = this.ambariProperties();
