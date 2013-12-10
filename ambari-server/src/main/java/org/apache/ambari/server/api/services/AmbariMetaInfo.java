@@ -84,6 +84,7 @@ public class AmbariMetaInfo {
       "oraclelinux6", "suse11", "sles11", "ubuntu12");
   
   public static final String SERVICE_METRIC_FILE_NAME = "metrics.json";
+  private final static String HOOKS_DIR = "hooks";
 
   /**
    * This string is used in placeholder in places that are common for
@@ -105,7 +106,8 @@ public class AmbariMetaInfo {
   public static final FilenameFilter FILENAME_FILTER = new FilenameFilter() {
     @Override
     public boolean accept(File dir, String s) {
-      if (s.equals(".svn") || s.equals(".git"))
+      if (s.equals(".svn") || s.equals(".git") ||
+              s.equals(HOOKS_DIR)) // Hooks dir is not a service
         return false;
       return true;
     }

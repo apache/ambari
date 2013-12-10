@@ -41,6 +41,7 @@ class FileCache():
     self.config = config
     self.cache_dir = config.get('agent', 'cache_dir')
 
+
   def get_service_base_dir(self, stack_name, stack_version, service, component):
     """
     Returns a base directory for service
@@ -60,4 +61,19 @@ class FileCache():
       raise AgentException(message)
     return metadata_path
 
+
+  def get_hook_base_dir(self, stack_name, stack_version):
+    """
+    Returns a base directory for service
+    """
+    hook_base_path = os.path.join(self.cache_dir, "stacks", str(stack_name),
+                                 str(stack_version), "hooks")
+    if not os.path.isdir(hook_base_path):
+      # TODO: Metadata downloading will be implemented at Phase 2
+      # As of now, all stack definitions are packaged and distributed with
+      # agent rpm
+      message = "Hook scripts dir for not found at " \
+                "expected location {0}".format(hook_base_path)
+      raise AgentException(message)
+    return hook_base_path
 

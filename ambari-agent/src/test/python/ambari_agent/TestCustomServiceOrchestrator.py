@@ -101,11 +101,14 @@ class TestCustomServiceOrchestrator(TestCase):
 
 
   @patch.object(CustomServiceOrchestrator, "resolve_script_path")
+  @patch.object(CustomServiceOrchestrator, "resolve_hook_script_path")
   @patch.object(FileCache, "get_service_base_dir")
+  @patch.object(FileCache, "get_hook_base_dir")
   @patch.object(CustomServiceOrchestrator, "dump_command_to_json")
   @patch.object(PythonExecutor, "run_file")
   def test_runCommand(self, run_file_mock, dump_command_to_json_mock,
-                      get_service_base_dir_mock, resolve_script_path_mock):
+                      get_hook_base_dir_mock, get_service_base_dir_mock,
+                      resolve_hook_script_path_mock, resolve_script_path_mock):
     command = {
       'role' : 'REGION_SERVER',
       'hostLevelParams' : {
@@ -123,7 +126,9 @@ class TestCustomServiceOrchestrator(TestCase):
     }
     get_service_base_dir_mock.return_value = "/basedir/"
     resolve_script_path_mock.return_value = "/basedir/scriptpath"
+    resolve_hook_script_path_mock.return_value = "/basedir/hooks/hookpath"
     orchestrator = CustomServiceOrchestrator(self.config)
+    get_hook_base_dir_mock.return_value = "/hooks/"
     # normal run case
     run_file_mock.return_value = {
         'stdout' : 'sss',
@@ -133,6 +138,7 @@ class TestCustomServiceOrchestrator(TestCase):
     ret = orchestrator.runCommand(command, "out.txt", "err.txt")
     self.assertEqual(ret['exitcode'], 0)
     self.assertTrue(run_file_mock.called)
+    self.assertEqual(run_file_mock.call_count, 3)
 
     run_file_mock.reset_mock()
     # unknown script type case
@@ -145,7 +151,7 @@ class TestCustomServiceOrchestrator(TestCase):
 
   @patch.object(CustomServiceOrchestrator, "dump_command_to_json")
   @patch.object(PythonExecutor, "run_file")
-  def test_runCommand(self, run_file_mock, dump_command_to_json_mock):
+  def test_runCommand_custom_action(self, run_file_mock, dump_command_to_json_mock):
     _, script = tempfile.mkstemp()
     command = {
       'role' : 'any',
@@ -168,6 +174,31 @@ class TestCustomServiceOrchestrator(TestCase):
     ret = orchestrator.runCommand(command, "out.txt", "err.txt")
     self.assertEqual(ret['exitcode'], 0)
     self.assertTrue(run_file_mock.called)
+    # Hoooks are not supported for custom actions,
+    # that's why run_file() should be called only once
+    self.assertEqual(run_file_mock.call_count, 1)
+
+
+  @patch("os.path.isfile")
+  def test_resolve_hook_script_path(self, isfile_mock):
+
+    orchestrator = CustomServiceOrchestrator(self.config)
+    # Testing None param
+    res1 = orchestrator.resolve_hook_script_path(None, "prefix", "command",
+                                            "script_type")
+    self.assertEqual(res1, None)
+    # Testing existing hook script
+    isfile_mock.return_value = True
+    res2 = orchestrator.resolve_hook_script_path("/hooks_dir/", "prefix", "command",
+                                            "script_type")
+    self.assertEqual(res2, "/hooks_dir/prefix-command.py")
+    # Testing not existing hook script
+    isfile_mock.return_value = False
+    res3 = orchestrator.resolve_hook_script_path("/hooks_dir/", "prefix", "command",
+                                                 "script_type")
+    self.assertEqual(res3, None)
+    pass
+
 
   def tearDown(self):
     # enable stdout

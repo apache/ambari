@@ -71,6 +71,7 @@ class TestPythonExecutor(TestCase):
     executor = PythonExecutor("/tmp", AmbariConfig().getConfig())
     _, tmpoutfile = tempfile.mkstemp()
     _, tmperrfile = tempfile.mkstemp()
+    _, tmpstrucout = tempfile.mkstemp()
     PYTHON_TIMEOUT_SECONDS =  5
 
     def launch_python_subprocess_method(command, tmpout, tmperr):
@@ -83,7 +84,8 @@ class TestPythonExecutor(TestCase):
     executor.runShellKillPgrp = runShellKillPgrp_method
     subproc_mock.returncode = 0
     thread = Thread(target =  executor.run_file, args = ("fake_puppetFile", ["arg1", "arg2"],
-                                                      tmpoutfile, tmperrfile, PYTHON_TIMEOUT_SECONDS))
+                                                      tmpoutfile, tmperrfile,
+                                                      PYTHON_TIMEOUT_SECONDS, tmpstrucout))
     thread.start()
     time.sleep(0.1)
     subproc_mock.should_finish_event.set()

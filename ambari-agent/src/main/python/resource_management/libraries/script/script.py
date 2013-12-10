@@ -30,7 +30,7 @@ from resource_management.core.resources.packaging import Package
 from resource_management.libraries.script.config_dictionary import ConfigDictionary
 from resource_management.libraries.script.repo_installer import RepoInstaller
 
-class Script():
+class Script(object):
   """
   Executes a command for custom service. stdout and stderr are written to
   tmpoutfile and to tmperrfile respectively.
@@ -82,18 +82,26 @@ class Script():
     except IOError:
       logger.exception("Can not read json file with command parameters: ")
       sys.exit(1)
-    # Run class method mentioned by a command type
-    self_methods = dir(self)
-    if not command_name in self_methods:
-      logger.error("Script {0} has not method '{1}'".format(sys.argv[0], command_name))
-      sys.exit(1)
-    method = getattr(self, command_name)
+    # Run class method depending on a command type
     try:
+      method = self.choose_method_to_execute(command_name)
       with Environment(basedir) as env:
         method(env)
     except Fail:
-      logger.exception("Got exception while executing method '{0}':".format(command_name))
+      logger.exception("Got exception while executing command {0}:".format(command_name))
       sys.exit(1)
+
+
+  def choose_method_to_execute(self, command_name):
+    """
+    Returns a callable object that should be executed for a given command.
+    """
+    self_methods = dir(self)
+    if not command_name in self_methods:
+      raise Fail("Script {0} has not method '{1}'".format(sys.argv[0], command_name))
+    method = getattr(self, command_name)
+    return method
+
 
   @staticmethod
   def get_config():

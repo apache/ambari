@@ -1,5 +1,6 @@
-#!/usr/bin/env python
-"""
+#!/usr/bin/env python2.6
+
+'''
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -15,10 +16,23 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+'''
 
-Ambari Agent
+__all__ = ["Hook"]
 
-"""
+from resource_management.libraries.script import Script
 
-from resource_management.libraries.script.script import *
-from resource_management.libraries.script.hook import *
+class Hook(Script):
+  """
+  Executes a hook for acommand for custom service. stdout and stderr are written to
+  tmpoutfile and to tmperrfile respectively.
+  """
+
+  HOOK_METHOD_NAME = "hook" # This method is always executed at hooks
+
+
+  def choose_method_to_execute(self, command_name):
+    """
+    Changes loogics of resolving method name
+    """
+    return super(Hook, self).choose_method_to_execute(self.HOOK_METHOD_NAME)

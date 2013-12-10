@@ -36,6 +36,7 @@ from mock.mock import MagicMock, patch
 import StringIO
 import sys
 from ambari_agent import AgentException
+from AgentException import AgentException
 
 
 class TestFileCache(TestCase):
@@ -55,11 +56,38 @@ class TestFileCache(TestCase):
   @patch("os.path.isdir")
   def test_get_service_base_dir(self, isdir_mock):
     fileCache = FileCache(self.config)
+    # Check existing dir case
     isdir_mock.return_value = True
     base = fileCache.get_service_base_dir("HDP", "2.0.7",
                                           "HBASE", "REGION_SERVER")
     self.assertEqual(base, "/var/lib/ambari-agent/cache/stacks/HDP/2.0.7/"
                            "services/HBASE/package")
+    # Check absent dir case
+    isdir_mock.return_value = False
+    try:
+      fileCache.get_service_base_dir("HDP", "2.0.7",
+                                          "HBASE", "REGION_SERVER")
+      self.fail("Should throw an exception")
+    except AgentException:
+      pass # Expected
+
+
+
+
+  @patch("os.path.isdir")
+  def test_get_hook_base_dir(self, isdir_mock):
+    fileCache = FileCache(self.config)
+    # Check existing dir case
+    isdir_mock.return_value = True
+    base = fileCache.get_hook_base_dir("HDP", "2.0.7")
+    self.assertEqual(base, "/var/lib/ambari-agent/cache/stacks/HDP/2.0.7/hooks")
+    # Check absent dir case
+    isdir_mock.return_value = False
+    try:
+      fileCache.get_hook_base_dir("HDP", "2.0.7")
+      self.fail("Should throw an exception")
+    except AgentException:
+      pass # Expected
 
 
   def tearDown(self):

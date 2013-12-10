@@ -257,7 +257,8 @@ class TestPuppetExecutor(TestCase):
     result = {  }
     puppetEnv = { "RUBYLIB" : ""}
     subproc_mock.returncode = 0
-    thread = Thread(target =  executor_mock.runPuppetFile, args = ("fake_puppetFile", result, puppetEnv, tmpoutfile, tmperrfile))
+    thread = Thread(target =  executor_mock.runPuppetFile, args = ("fake_puppetFile",
+                            result, puppetEnv, tmpoutfile, tmperrfile))
     thread.start()
     time.sleep(0.1)
     subproc_mock.should_finish_event.set()

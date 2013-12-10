@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+##!/usr/bin/env python2.6
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -16,9 +16,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Ambari Agent
-
 """
 
-from resource_management.libraries.script.script import *
-from resource_management.libraries.script.hook import *
+import sys
+from resource_management import *
+
+class BeforeStartHook(Hook):
+
+  def hook(self, env):
+    Execute(("touch", "/tmp/hook-test"))
+
+if __name__ == "__main__":
+  BeforeStartHook().execute()
