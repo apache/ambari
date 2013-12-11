@@ -61,7 +61,7 @@ kinit_path_local = get_kinit_path([default("kinit_path_local",None), "/usr/bin",
 hive_metatore_keytab_path = default("hive-site/hive.metastore.kerberos.keytab.file","/etc/security/keytabs/hive.service.keytab")
 
 #hive_env
-hive_conf_dir = config['configurations']['global']['hive_conf_dir']
+hive_conf_dir = "/etc/hive/conf"
 hive_dbroot = config['configurations']['global']['hive_dbroot']
 hive_log_dir = config['configurations']['global']['hive_log_dir']
 hive_pid_dir = config['configurations']['global']['hive_pid_dir']

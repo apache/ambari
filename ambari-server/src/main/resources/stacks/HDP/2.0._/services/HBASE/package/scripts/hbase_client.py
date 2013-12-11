@@ -48,5 +48,4 @@ def main():
   HbaseClient().execute()
   
 if __name__ == "__main__":
-  #HbaseClient().execute()
-  main()
+  HbaseClient().execute()
