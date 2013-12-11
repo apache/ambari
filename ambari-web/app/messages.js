@@ -66,6 +66,7 @@ Em.I18n.translations = {
   'common.cancel':'Cancel',
   'common.apply':'Apply',
   'common.done':'Done',
+  'common.failed':'Failed',
   'common.service': 'Service',
   'common.version':'Version',
   'common.description':'Description',
@@ -159,6 +160,7 @@ Em.I18n.translations = {
   'common.overrides': 'Overrides',
   'common.properties': 'properties',
   'common.conf.group': 'Configuration Group',
+  'common.ignore': 'Ignore',
 
   'requestInfo.installComponents':'Install Components',
   'requestInfo.installServices':'Install Services',
@@ -1292,6 +1294,8 @@ Em.I18n.translations = {
   'hosts.selectHostsDialog.message': 'Select hosts that should belong to this {0} Configuration Group.  All hosts belonging to this group will have the same set of {0} configurations.',
   'hosts.selectHostsDialog.filter.placeHolder': 'Filter...',
   'hosts.selectHostsDialog.selectedHostsLink': '{0} out of {1} hosts selected',
+
+  'hosts.host.serviceNotAvailable': 'Service not available on this host',
 
   'hosts.host.metrics.cpu':'CPU Usage',
   'hosts.host.metrics.cpu.displayNames.cpu_wio':'CPU I/O Idle',

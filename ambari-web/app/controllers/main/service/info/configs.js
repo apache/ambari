@@ -1824,9 +1824,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
             App.router.get('backgroundOperationsController').showPopup();
           }
         });
-      },
-      onSecondary: function () {
-        this.hide();
       }
     });
   },

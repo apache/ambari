@@ -315,9 +315,6 @@ App.MainAppsView = Em.View.extend({
         bodyClass: App.MainAppsItemView.extend({
           controllerBinding: 'App.router.mainAppsItemController'
         }),
-        onPrimary: function () {
-          this.hide();
-        },
         secondary: null
       });
     }

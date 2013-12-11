@@ -330,9 +330,6 @@ App.ManageConfigGroupsController = Em.Controller.extend({
           }
         });
         this.hide();
-      },
-      onSecondary: function () {
-        this.hide();
       }
     });
     this.get('renameGroupPopup').set('configGroupName', this.get('selectedConfigGroup.name'));
@@ -388,9 +385,6 @@ App.ManageConfigGroupsController = Em.Controller.extend({
           }, this);
         }
         self.createNewConfigurationGroup(this.get('configGroupName').trim(),this.get('content.serviceName'),this.get('configGroupDesc'), desiredConfig, this.get('content'));
-      },
-      onSecondary: function () {
-        this.hide();
       }
     });
   },

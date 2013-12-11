@@ -227,15 +227,7 @@ App.MainAdminSecurityController = Em.Controller.extend({
         },
         bodyClass: Ember.View.extend({
           isMapReduceInstalled: App.Service.find().mapProperty('serviceName').contains('MAPREDUCE'),
-          template: Ember.Handlebars.compile([
-            '<div class="alert">',
-            '{{t admin.security.disable.popup.body}}',
-            '{{#if view.isMapReduceInstalled}}',
-            '<br>',
-            '{{t admin.security.disable.popup.body.warning}}',
-            '{{/if}}',
-            '</div>'
-          ].join('\n'))
+          templateName: require('templates/main/admin/security/notify_security_off_popup')
         })
       })
     }
@@ -382,9 +374,6 @@ App.MainAdminSecurityController = Em.Controller.extend({
     App.ModalPopup.show({
       header: Em.I18n.t('common.error'),
       secondary: false,
-      onPrimary: function () {
-        this.hide();
-      },
       bodyClass: Ember.View.extend({
         template: Ember.Handlebars.compile('<p>{{t admin.security.status.error}}</p>')
       })

@@ -288,7 +288,10 @@ App.WizardStep2Controller = Em.Controller.extend({
         this.hide();
       },
       bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile('<p>{{t installer.step2.evaluateStep.installedHosts}}</p><p>' + self.get('inputtedAgainHostNames').join(', ') + '</p><p>{{t installer.step2.evaluateStep.continueConfirm}}</p>')
+        inputtedAgainHostNames: function() {
+          return self.get('inputtedAgainHostNames').join(', ');
+        }.property(),
+        templateName: require('templates/wizard/step2_installed_hosts_popup')
       })
     });
   },
@@ -306,7 +309,7 @@ App.WizardStep2Controller = Em.Controller.extend({
         this.hide();
       },
       bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile(['{{#each host in view.hostNames}}<p>{{host}}</p>{{/each}}'].join('\n')),
+        templateName: require('templates/wizard/step2_host_name_pattern_popup'),
         hostNames: hostNames
       })
     });
@@ -337,9 +340,6 @@ App.WizardStep2Controller = Em.Controller.extend({
         header: Em.I18n.t('common.warning'),
         body: Em.I18n.t('installer.step2.manualInstall.info'),
         encodeBody: false,
-        onPrimary: function () {
-          this.hide();
-        },
         secondary: null
       });
     }

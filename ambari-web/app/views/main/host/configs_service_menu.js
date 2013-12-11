@@ -50,14 +50,15 @@ App.MainHostServiceMenuView = Em.CollectionView.extend({
   
   showHostService: function(event){
     var service = event.contexts[0];
-    if(service!=null){
+    if(service != null) {
       this.set('selectedService', service);
       var context = service;
       context.host = this.get('host');
       this.get('controller').connectOutlet('service_config_outlet', 'mainHostServiceConfigs', context);
-    }else{
+    }
+    else {
       this.get('controller').connectOutlet('service_config_outlet', Em.View.extend({
-        template: Ember.Handlebars.compile('<i class="message">Service not available on this host</i>')
+        template: Ember.Handlebars.compile('<i class="message">{{t hosts.host.serviceNotAvailable}}</i>')
       }))
     }
   },
@@ -65,7 +66,7 @@ App.MainHostServiceMenuView = Em.CollectionView.extend({
   didInsertElement:function () {
     var event = {
         contexts: [this.get('content').objectAt(0)]
-    }
+    };
     this.showHostService(event);
   },
 

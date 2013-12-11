@@ -181,9 +181,6 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
         this.hide();
       },
       secondary : Em.I18n.t('common.cancel'),
-      onSecondary: function(){
-        this.hide();
-      },
       body: Em.I18n.t('admin.highAvailability.confirmRollbackBody')
     });
   },

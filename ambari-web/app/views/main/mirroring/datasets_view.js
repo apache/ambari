@@ -40,10 +40,7 @@ App.MainDatasetsView = App.TableView.extend({
       header: Em.I18n.t('mirroring.sidebar.popup.clusters.header'),
       bodyClass: Em.View.extend({
         template: Em.Handlebars.compile("{{t mirroring.sidebar.popup.clusters.body}}")
-      }),
-      onPrimary: function () {
-        this.hide();
-      }
+      })
     });
   },
 

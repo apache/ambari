@@ -224,9 +224,6 @@ App.WizardStep4Controller = Em.ArrayController.extend({
         });
         this.hide();
         self.submit();
-      },
-      onSecondary: function () {
-        this.hide();
       }
     });
   },
@@ -261,9 +258,6 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       onPrimary: function () {
         this.hide();
         App.router.send('next');
-      },
-      onSecondary: function () {
-        this.hide();
       }
     });
   }

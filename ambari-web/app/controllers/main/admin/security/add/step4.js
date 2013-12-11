@@ -375,9 +375,6 @@ App.MainAdminSecurityAddStep4Controller = App.MainAdminSecurityProgressControlle
     App.ModalPopup.show({
       header: Em.I18n.t('common.error'),
       secondary: false,
-      onPrimary: function () {
-        this.hide();
-      },
       bodyClass: Ember.View.extend({
         template: Ember.Handlebars.compile('<p>{{t admin.security.apply.configuration.error}}</p>')
       })

@@ -114,9 +114,6 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
       bodyClass: Ember.View.extend({
         template: Ember.Handlebars.compile(message)
       }),
-      onPrimary: function () {
-        this.hide();
-      },
       secondary: false
     });
   }

@@ -82,59 +82,67 @@ App.ChartLinearTimeView = Ember.View.extend({
    */
   _graph: null,
 
+  /**
+   * Array of classnames for each series (in widget)
+   * @type Rickshaw.Graph
+   */
   _popupGraph: null,
 
+  /**
+   * Array of classnames for each series
+   * @type Array
+   */
   _seriesProperties: null,
 
+  /**
+   * Array of classnames for each series (in widget)
+   * @type Array
+   */
   _seriesPropertiesWidget: null,
 
+  /**
+   * Renderer type
+   * See <code>Rickshaw.Graph.Renderer</code> for more info
+   * @type String
+   */
   renderer: 'area',
 
+  /**
+   * Suffix used in DOM-elements selectors
+   * @type String
+   */
   popupSuffix: '-popup',
 
+  /**
+   * Is popup for current graph open
+   * @type Boolean
+   */
   isPopup: false,
 
+  /**
+   * Is graph ready
+   * @type Boolean
+   */
   isReady: false,
 
+  /**
+   * Is popup-graph ready
+   * @type Boolean
+   */
   isPopupReady: false,
 
+  /**
+   * Is data for graph available
+   * @type Boolean
+   */
   hasData: true,
-  /**
-   * Current cluster name
-   */
-  clusterName: function() {
-    return App.router.get('clusterController.clusterName');
-  }.property('App.router.clusterController.clusterName'),
-  /**
-   * Url prefix common for all child views
-   */
-  urlPrefix: function() {
-    return App.apiPrefix + "/clusters/" + this.get('clusterName');
-  }.property('clusterName'),
-
-  /**
-   * Color palette used for this chart
-   *
-   * @private
-   * @type String[]
-   */
-   /*
-  _paletteScheme: [ 'rgba(181,182,169,0.4)', 'rgba(133,135,114,0.4)',
-      'rgba(120,95,67,0.4)', 'rgba(150,85,126,0.4)',
-      'rgba(70,130,180,0.4)', 'rgba(0,255,204,0.4)',
-      'rgba(255,105,180,0.4)', 'rgba(101,185,172,0.4)',
-      'rgba(115,192,58,0.4)', 'rgba(203,81,58,0.4)' ].reverse(),
-  */
-
-  selector: function () {
-    return '#' + this.get('elementId');
-  }.property('elementId'),
 
   didInsertElement: function () {
     this.loadData();
     this.registerGraph();
   },
-  registerGraph: function(){
+
+  registerGraph: function() {
     var graph = {
       name: this.get('title'),
       id: this.get('elementId'),
@@ -174,7 +182,8 @@ App.ChartLinearTimeView = Ember.View.extend({
       resourceManager: resourceManager
     };
   },
-  loadDataErrorCallback: function(xhr, textStatus, errorThrown){
+
+  loadDataErrorCallback: function(xhr, textStatus, errorThrown) {
     this.set('isReady', true);
     if (xhr.readyState == 4 && xhr.status) {
       textStatus = xhr.status + " " + textStatus;
@@ -192,7 +201,7 @@ App.ChartLinearTimeView = Ember.View.extend({
    * @param message String representing the message
    * @type: Function
    */
-  _showMessage: function(type, title, message){
+  _showMessage: function(type, title, message) {
     var chartOverlay = '#' + this.id;
     var chartOverlayId = chartOverlay + '-chart';
     var chartOverlayY = chartOverlay + '-yaxis';
@@ -268,6 +277,7 @@ App.ChartLinearTimeView = Ember.View.extend({
       }
       return series;
     }
+    return null;
   },
 
   /**
@@ -285,6 +295,7 @@ App.ChartLinearTimeView = Ember.View.extend({
   /**
    * Provides the color (in any HTML color format) to use for a particular
    * series.
+   * May be redefined in child views
    *
    * @param series
    *          Series for which color is being requested
@@ -299,16 +310,16 @@ App.ChartLinearTimeView = Ember.View.extend({
 
   /**
   * Check whether seriesData is correct data for chart drawing
-  * @param seriesData
+  * @param {Array} seriesData
   * @return {Boolean}
   */
-  checkSeries : function(seriesData){
-    if(!seriesData || !seriesData.length){
+  checkSeries : function(seriesData) {
+    if(!seriesData || !seriesData.length) {
       return false;
     }
     var result = true;
-    seriesData.forEach(function(item){
-      if(!item.data || !item.data.length || !item.data[0] || typeof item.data[0].x === 'undefined'){
+    seriesData.forEach(function(item) {
+      if(!item.data || !item.data.length || !item.data[0] || typeof item.data[0].x === 'undefined') {
         result = false;
       }
     });
@@ -329,8 +340,8 @@ App.ChartLinearTimeView = Ember.View.extend({
     var seriesData = this.transformToSeries(jsonData);
 
       //if graph opened as modal popup
-      var popup_path = $("#" + this.id + "-container" + this.get('popupSuffix'));
-      var graph_container = $("#" + this.id + "-container");
+      var popup_path = $("#" + this.get('id') + "-container" + this.get('popupSuffix'));
+      var graph_container = $("#" + this.get('id') + "-container");
       if(popup_path.length) {
         popup_path.children().each(function () {
           $(this).children().remove();
@@ -357,7 +368,8 @@ App.ChartLinearTimeView = Ember.View.extend({
       if(this.get('timeUnitSeconds') === 3600){
         this._showMessage('info', this.t('graphs.noData.title'), this.t('graphs.noData.message'));
         this.set('hasData', false);
-      } else {
+      }
+      else {
         this._showMessage('info', this.t('graphs.noData.title'), this.t('graphs.noDataAtTime.message'));
       }
       this.set('isPopup', false);
@@ -374,7 +386,7 @@ App.ChartLinearTimeView = Ember.View.extend({
    * @type Function
    * @return Rickshaw.Fixtures.Time
    */
-  localeTimeUnit: function(timeUnitSeconds){
+  localeTimeUnit: function(timeUnitSeconds) {
     var timeUnit = new Rickshaw.Fixtures.Time();
     switch (timeUnitSeconds){
       case 604800:
@@ -399,31 +411,11 @@ App.ChartLinearTimeView = Ember.View.extend({
   },
 
   /**
-   * @private
-   *
-   * When a graph is given a particular width and height,the lines are drawn
-   * in a slightly bigger area thereby chopping off some of the UI. Hence
-   * after the rendering, we adjust the SVGs size in the DOM to compensate.
-   *
-   * Opened https://github.com/shutterstock/rickshaw/issues/141
-   *
-   * @type Function
-   */
-  _adjustSVGHeight: function () {
-    if (this._graph && this._graph.element
-        && this._graph.element.firstChild) {
-      var svgElement = this._graph.element.firstChild;
-      svgElement.setAttribute('height', $(this._graph.element).height()
-          + "px");
-      svgElement.setAttribute('width', $(this._graph.element).width()
-          + "px");
-    }
-  },
-  /**
    * temporary fix for incoming data for graph
    * to shift data time to correct time point
+   * @param {Array} data
    */
-  dataShiftFix: function(data){
+  dataShiftFix: function(data) {
     var nowTime = Math.round(new Date().getTime() / 1000);
     data.forEach(function(series){
       var l = series.data.length;
@@ -440,30 +432,23 @@ App.ChartLinearTimeView = Ember.View.extend({
     }, this);
   },
 
-  draw: function(seriesData) {
-    var isPopup = this.get('isPopup');
-    var p = '';
-    if (isPopup) {
-      p = this.get('popupSuffix');
-    }
-    var palette = new Rickshaw.Color.Palette({ scheme: 'munin'});
-
-    this.dataShiftFix(seriesData);
-
-    // var palette = new Rickshaw.Color.Palette({
-    //   scheme: this._paletteScheme
-    // });
-
+  /**
+   * calculate statistic data for popup legend and set proper colors for series
+   * @param {Array} data
+   */
+  dataPreProcess: function(data) {
     var self = this;
+    var palette = new Rickshaw.Color.Palette({ scheme: 'munin'});
+    // Format series for display
     var series_min_length = 100000000;
-    seriesData.forEach(function (series, index) {
+    data.forEach(function (series, index) {
       var seriesColor = self.colorForSeries(series);
       if (seriesColor == null) {
         seriesColor = palette.color();
       }
       series.color = seriesColor;
       series.stroke = 'rgba(0,0,0,0.3)';
-      if (isPopup) {
+      if (this.get('isPopup')) {
         // calculate statistic data for popup legend
         var avg = 0;
         var min = Number.MAX_VALUE;
@@ -479,22 +464,40 @@ App.ChartLinearTimeView = Ember.View.extend({
             }
           }
         }
-        series.name = string_utils.pad(series.name, 30, '&nbsp;', 2) + string_utils.pad('min', 5, '&nbsp;', 3) + string_utils.pad(this.get('yAxisFormatter')(min), 12, '&nbsp;', 3) + string_utils.pad('avg', 5, '&nbsp;', 3) + string_utils.pad(this.get('yAxisFormatter')(avg/series.data.length), 12, '&nbsp;', 3) + string_utils.pad('max', 12, '&nbsp;', 3) + string_utils.pad(this.get('yAxisFormatter')(max), 5, '&nbsp;', 3);
+        series.name = string_utils.pad(series.name, 30, '&nbsp;', 2) +
+                      string_utils.pad('min', 5, '&nbsp;', 3) +
+                      string_utils.pad(this.get('yAxisFormatter')(min), 12, '&nbsp;', 3) +
+                      string_utils.pad('avg', 5, '&nbsp;', 3) +
+                      string_utils.pad(this.get('yAxisFormatter')(avg/series.data.length), 12, '&nbsp;', 3) +
+                      string_utils.pad('max', 12, '&nbsp;', 3) +
+                      string_utils.pad(this.get('yAxisFormatter')(max), 5, '&nbsp;', 3);
       }
       if (series.data.length < series_min_length) {
         series_min_length = series.data.length;
       }
     }.bind(this));
-    seriesData.forEach(function(series, index) {
+
+    // All series should have equal length
+    data.forEach(function(series, index) {
       if (series.data.length > series_min_length) {
         series.data.length = series_min_length;
       }
     });
-    var chartId = "#" + this.id + "-chart" + p;
-    var chartOverlayId = "#" + this.id + "-container" + p;
-    var xaxisElementId = "#" + this.id + "-xaxis" + p;
-    var yaxisElementId = "#" + this.id + "-yaxis" + p;
-    var legendElementId = "#" + this.id + "-legend" + p;
+  },
+
+  draw: function(seriesData) {
+    var self = this;
+    var isPopup = this.get('isPopup');
+    var p = isPopup ? this.get('popupSuffix') : '';
+
+    this.dataShiftFix(seriesData);
+    this.dataPreProcess(seriesData);
+
+    var chartId = "#" + this.get('id') + "-chart" + p;
+    var chartOverlayId = "#" + this.get('id') + "-container" + p;
+    var xaxisElementId = "#" + this.get('id') + "-xaxis" + p;
+    var yaxisElementId = "#" + this.get('id') + "-yaxis" + p;
+    var legendElementId = "#" + this.get('id') + "-legend" + p;
 
     var chartElement = document.querySelector(chartId);
     var overlayElement = document.querySelector(chartOverlayId);
@@ -502,22 +505,19 @@ App.ChartLinearTimeView = Ember.View.extend({
     var yaxisElement = document.querySelector(yaxisElementId);
     var legendElement = document.querySelector(legendElementId);
 
-    var strokeWidth = 1;
-    if (this.get('renderer') != 'area') {
-      strokeWidth = 2;
-    }
-
     var height = 150;
+    var width = 400;
     var diff = 32;
-    if(this.get('inWidget')){
+
+    if(this.get('inWidget')) {
       height = 105; // for widgets view
       diff = 22;
     }
-    var width = 400;
     if (isPopup) {
       height = 180;
       width = 670;
-    } else {
+    }
+    else {
       // If not in popup, the width could vary.
       // We determine width based on div's size.
       var thisElement = this.get('element');
@@ -528,6 +528,7 @@ App.ChartLinearTimeView = Ember.View.extend({
         }
       }
     }
+
     var _graph = new Rickshaw.Graph({
       height: height,
       width: width,
@@ -536,31 +537,38 @@ App.ChartLinearTimeView = Ember.View.extend({
       interpolation: 'step-after',
       stroke: true,
       renderer: this.get('renderer'),
-      strokeWidth: strokeWidth
+      strokeWidth: (this.get('renderer') != 'area' ? 2 : 1)
     });
+
     if (this.get('renderer') === 'area') {
       _graph.renderer.unstack = false;
     }
 
-    xAxis = new Rickshaw.Graph.Axis.Time({
+    new Rickshaw.Graph.Axis.Time({
       graph: _graph,
       timeUnit: this.localeTimeUnit(this.get('timeUnitSeconds'))
     });
 
-    var orientation = 'right';
-    if (isPopup) {
-      orientation = 'left';
-    }
-    yAxis = new Rickshaw.Graph.Axis.Y({
+    new Rickshaw.Graph.Axis.Y({
       tickFormat: this.yAxisFormatter,
       element: yaxisElement,
-      orientation: orientation,
+      orientation: (isPopup ? 'left' : 'right'),
       graph: _graph
     });
 
     var legend = new Rickshaw.Graph.Legend({
       graph: _graph,
       element: legendElement
+    });
+
+    new Rickshaw.Graph.Behavior.Series.Toggle({
+      graph: _graph,
+      legend: legend
+    });
+
+    new Rickshaw.Graph.Behavior.Series.Order({
+      graph: _graph,
+      legend: legend
     });
 
     if (!isPopup) {
@@ -577,24 +585,14 @@ App.ChartLinearTimeView = Ember.View.extend({
       });
     }
 
-   var shelving = new Rickshaw.Graph.Behavior.Series.Toggle({
-      graph: _graph,
-      legend: legend
-    });
-
-    var order = new Rickshaw.Graph.Behavior.Series.Order({
-      graph: _graph,
-      legend: legend
-    });
     //show the graph when it's loaded
-    _graph.onUpdate(function(){
+    _graph.onUpdate(function() {
       self.set('isReady', true);
     });
     _graph.render();
 
     if (isPopup) {
-      var self = this;
-      var hoverDetail = new Rickshaw.Graph.HoverDetail({
+      new Rickshaw.Graph.HoverDetail({
         graph: _graph,
         yFormatter:function (y) {
           return self.yAxisFormatter(y);
@@ -608,26 +606,18 @@ App.ChartLinearTimeView = Ember.View.extend({
       });
     }
 
+    _graph = this.updateSeriesInGraph(_graph);
     if (isPopup) {
-      var self = this;
-      // In popup save selected metrics and show only them after data update
-      _graph.series.forEach(function(series, index) {
-        if (self.get('_seriesProperties') !== null && self.get('_seriesProperties')[index] !== null && self.get('_seriesProperties')[index] !== undefined ) {
-          if(self.get('_seriesProperties')[self.get('_seriesProperties').length - index - 1].length > 1) {
-            $('#'+self.get('id')+'-container'+self.get('popupSuffix')+' a.action:eq('+(self.get('_seriesProperties').length - index - 1)+')').parent('li').addClass('disabled');
-            series.disable();
-          }
-        }
-      });
       //show the graph when it's loaded
-      _graph.onUpdate(function(){
+      _graph.onUpdate(function() {
         self.set('isPopupReady', true);
       });
       _graph.update();
 
-      $('#'+self.get('id')+'-container'+self.get('popupSuffix')+' li.line').click(function() {
+      var selector = '#'+this.get('id')+'-container'+this.get('popupSuffix');
+      $(selector + ' li.line').click(function() {
         var series = [];
-        $('#'+self.get('id')+'-container'+self.get('popupSuffix')+' a.action').each(function(index, v) {
+        $(selector + ' a.action').each(function(index, v) {
           series[index] = v.parentNode.classList;
         });
         self.set('_seriesProperties', series);
@@ -636,20 +626,11 @@ App.ChartLinearTimeView = Ember.View.extend({
       this.set('_popupGraph', _graph);
     }
     else {
-
-      _graph.series.forEach(function(series, index) {
-        if (self.get('_seriesPropertiesWidget') !== null && self.get('_seriesPropertiesWidget')[index] !== null && self.get('_seriesPropertiesWidget')[index] !== undefined ) {
-          if(self.get('_seriesPropertiesWidget')[self.get('_seriesPropertiesWidget').length - index - 1].length > 1) {
-            $('#'+self.get('id')+'-container'+' a.action:eq('+(self.get('_seriesPropertiesWidget').length - index - 1)+')').parent('li').addClass('disabled');
-            series.disable();
-          }
-        }
-      });
       _graph.update();
-
-      $('#'+self.get('id')+'-container'+' li.line').click(function() {
+      var selector = '#'+this.get('id')+'-container';
+      $(selector + ' li.line').click(function() {
         var series = [];
-        $('#'+self.get('id')+'-container'+' a.action').each(function(index, v) {
+        $(selector + ' a.action').each(function(index, v) {
           series[index] = v.parentNode.classList;
         });
         self.set('_seriesPropertiesWidget', series);
@@ -659,82 +640,112 @@ App.ChartLinearTimeView = Ember.View.extend({
     }
   },
 
+  /**
+   *
+   * @param {Rickshaw.Graph} graph
+   * @returns {Rickshaw.Graph}
+   */
+  updateSeriesInGraph: function(graph) {
+    var id = this.get('id');
+    var isPopup = this.get('isPopup');
+    var popupSuffix = this.get('popupSuffix');
+    var _series = isPopup ? this.get('_seriesProperties') : this.get('_seriesPropertiesWidget');
+    graph.series.forEach(function(series, index) {
+      if (_series !== null && _series[index] !== null && _series[index] !== undefined ) {
+        if(_series[_series.length - index - 1].length > 1) {
+          var s = '#' + id + '-container' + (isPopup ? popupSuffix : '') + ' a.action:eq(' + (_series.length - index - 1) + ')';
+          $(s).parent('li').addClass('disabled');
+          series.disable();
+        }
+      }
+    });
+    return graph;
+  },
 
   showGraphInPopup: function() {
-    if(!this.get('hasData')){
+    if(!this.get('hasData')) {
       return;
     }
 
     this.set('isPopup', true);
     var self = this;
-    App.ModalPopup.show({
-      template: Ember.Handlebars.compile([
-        '<div class="modal-backdrop"></div><div class="modal modal-graph-line" id="modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true">',
-        '<div class="modal-header">',
-        '<a class="close" {{action onClose target="view"}}>x</a>',
-        '<h3 id="modal-label">',
-        '{{#if headerClass}}{{view headerClass}}',
-        '{{else}}{{header}}{{/if}}',
-        '</h3>',
-        '</div>',
-        '<div class="modal-body">',
-        '{{#if bodyClass}}{{view bodyClass}}',
-        '{{else}}',
-          '<div class="screensaver no-borders chart-container" {{bindAttr class="view.isReady:hide"}} ></div>',
-          '<div class="time-label" {{bindAttr class="view.isReady::hidden"}}>{{view.currentTimeState.name}}</div>',
-          '{{#if view.isTimePagingEnable}}<div class="arrow-left" {{bindAttr class="view.leftArrowVisible:visibleArrow"}} {{action "switchTimeBack" target="view"}}></div>{{/if}}',
-          '<div id="'+this.get('id')+'-container'+this.get('popupSuffix')+'" class="chart-container chart-container'+this.get('popupSuffix')+' hide" {{bindAttr class="view.isReady:show"}} >',
-            '<div id="'+this.get('id')+'-yaxis'+this.get('popupSuffix')+'" class="'+this.get('id')+'-yaxis chart-y-axis"></div>',
-            '<div id="'+this.get('id')+'-xaxis'+this.get('popupSuffix')+'" class="'+this.get('id')+'-xaxis chart-x-axis"></div>',
-            '<div id="'+this.get('id')+'-legend'+this.get('popupSuffix')+'" class="'+this.get('id')+'-legend chart-legend"></div>',
-            '<div id="'+this.get('id')+'-chart'+this.get('popupSuffix')+'" class="'+this.get('id')+'-chart chart"></div>',
-            '<div id="'+this.get('id')+'-title'+this.get('popupSuffix')+'" class="'+this.get('id')+'-title chart-title">{{view.title}}</div>',
-          '</div>',
-        '{{#if view.isTimePagingEnable}}<div class="arrow-right" {{bindAttr class="view.rightArrowVisible:visibleArrow"}} {{action "switchTimeForward" "forward" target="view"}}></div>{{/if}}',
-        '{{/if}}',
-        '</div>',
-        '<div class="modal-footer">',
-        '{{#if view.primary}}<a class="btn btn-success" {{action onPrimary target="view"}}>{{view.primary}}</a>{{/if}}',
-        '</div>',
-        '</div>'
-      ].join('\n')),
 
+    App.ModalPopup.show({
+      bodyClass: Em.View.extend({
+
+        containerId: null,
+        containerClass: null,
+        yAxisId: null,
+        yAxisClass: null,
+        xAxisId: null,
+        xAxisClass: null,
+        legendId: null,
+        legendClass: null,
+        chartId: null,
+        chartClass: null,
+        titleId: null,
+        titleClass: null,
+
+        isReady: function() {
+          return this.get('parentView.graph.isPopupReady');
+        }.property('parentView.graph.isPopupReady'),
+
+        didInsertElement: function() {
+          $('#modal').addClass('modal-graph-line');
+          var popupSuffix = this.get('parentView.graph.popupSuffix');
+          var id = this.get('parentView.graph.id');
+          var idTemplate = id + '-{element}' + popupSuffix;
+
+          this.set('containerId', idTemplate.replace('{element}', 'container'));
+          this.set('containerClass', 'chart-container' + popupSuffix);
+          this.set('yAxisId', idTemplate.replace('{element}', 'yaxis'));
+          this.set('yAxisClass', this.get('yAxisId').replace(popupSuffix, ''));
+          this.set('xAxisId', idTemplate.replace('{element}', 'xaxis'));
+          this.set('xAxisClass', this.get('xAxisId').replace(popupSuffix, ''));
+          this.set('legendId', idTemplate.replace('{element}', 'legend'));
+          this.set('legendClass', this.get('legendId').replace(popupSuffix, ''));
+          this.set('chartId', idTemplate.replace('{element}', 'chart'));
+          this.set('chartClass', this.get('chartId').replace(popupSuffix, ''));
+          this.set('titleId', idTemplate.replace('{element}', 'title'));
+          this.set('titleClass', this.get('titleId').replace(popupSuffix, ''));
+        },
+
+        templateName: require('templates/common/chart/linear_time'),
+        /**
+         * check is time paging feature is enable for graph
+         */
+        isTimePagingEnable: function() {
+          return !self.get('isTimePagingDisable');
+        }.property(),
+        rightArrowVisible: function() {
+          return (this.get('isReady') && (this.get('parentView.currentTimeIndex') != 0));
+        }.property('isReady', 'parentView.currentTimeIndex'),
+        leftArrowVisible: function() {
+          return (this.get('isReady') && (this.get('parentView.currentTimeIndex') != 7));
+        }.property('isReady', 'parentView.currentTimeIndex')
+      }),
       header: this.get('title'),
-      self: self,
-      isReady: function(){
-        return this.get('self.isPopupReady');
-      }.property('self.isPopupReady'),
-      primary: 'OK',
+      /**
+       * App.ChartLinearTimeView
+       */
+      graph: self,
+      secondary: null,
       onPrimary: function() {
         this.hide();
         self.set('isPopup', false);
         self.set('timeUnitSeconds', 3600);
       },
-      onClose: function(){
-        this.hide();
-        self.set('isPopup', false);
-        self.set('timeUnitSeconds', 3600);
+      onClose: function() {
+        this.onPrimary();
       },
-      /**
-       * check is time paging feature is enable for graph
-       */
-      isTimePagingEnable: function(){
-        return !self.get('isTimePagingDisable');
-      }.property(),
-      rightArrowVisible: function(){
-        return (this.get('isReady') && (this.get('currentTimeIndex') != 0))? true : false;
-      }.property('isReady', 'currentTimeIndex'),
-      leftArrowVisible: function(){
-        return (this.get('isReady') && (this.get('currentTimeIndex') != 7))? true : false;
-      }.property('isReady', 'currentTimeIndex'),
       /**
        * move graph back by time
        * @param event
        */
-      switchTimeBack: function(event){
+      switchTimeBack: function(event) {
         var index = this.get('currentTimeIndex');
         // 7 - number of last time state
-        if(index < 7){
+        if(index < 7) {
           this.reloadGraphByTime(++index);
         }
       },
@@ -742,9 +753,9 @@ App.ChartLinearTimeView = Ember.View.extend({
        * move graph forward by time
        * @param event
        */
-      switchTimeForward: function(event){
+      switchTimeForward: function(event) {
         var index = this.get('currentTimeIndex');
-        if(index > 0){
+        if(index > 0) {
           this.reloadGraphByTime(--index);
         }
       },
@@ -752,7 +763,7 @@ App.ChartLinearTimeView = Ember.View.extend({
        * reload graph depending on the time
        * @param index
        */
-      reloadGraphByTime: function(index){
+      reloadGraphByTime: function(index) {
         this.set('currentTimeIndex', index);
         self.set('timeUnitSeconds', this.get('timeStates')[index].seconds);
         self.loadData();
@@ -768,7 +779,7 @@ App.ChartLinearTimeView = Ember.View.extend({
         {name: Em.I18n.t('graphs.timeRange.year'), seconds: 31104000}
       ],
       currentTimeIndex: 0,
-      currentTimeState: function(){
+      currentTimeState: function() {
         return this.get('timeStates').objectAt(this.get('currentTimeIndex'));
       }.property('currentTimeIndex')
     });

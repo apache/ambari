@@ -98,7 +98,7 @@ App.ServiceConfigTextFieldWithUnit = Ember.View.extend(App.ServiceConfigPopoverS
   classNames: ['input-append', 'with-unit'],
   placeholderBinding: 'serviceConfig.defaultValue',
 
-  template: Ember.Handlebars.compile('{{view App.ServiceConfigTextField serviceConfigBinding="view.serviceConfig" isPopoverEnabled="false"}}<span class="add-on">{{view.serviceConfig.unit}}</span>')
+  templateName: require('templates/wizard/controls_service_config_textfield_with_unit')
 });
 
 /**
@@ -178,17 +178,7 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
 });
 
 App.ServiceConfigRadioButtons = Ember.View.extend({
-  template: Ember.Handlebars.compile([
-    '{{#each option in view.options}}',
-    '{{#unless option.hidden}}',
-    '<label class="radio">',
-    '{{#view App.ServiceConfigRadioButton nameBinding = "view.name" valueBinding = "option.displayName"}}',
-    '{{/view}}',
-    '{{option.displayName}} &nbsp;',
-    '</label>',
-    '{{/unless}}',
-    '{{/each}}'
-  ].join('\n')),
+  templateName: require('templates/wizard/controls_service_config_radio_buttons'),
 
   didInsertElement: function () {
     // on page render, automatically populate JDBC URLs only for default database settings
@@ -460,9 +450,6 @@ App.ServiceConfigMasterHostsView = Ember.View.extend(App.ServiceConfigMultipleHo
         serviceConfig: serviceConfig,
         templateName: require('templates/wizard/master_hosts_popup')
       }),
-      onPrimary: function () {
-        this.hide();
-      },
       secondary: null
     });
   }
@@ -493,7 +480,7 @@ App.SlaveComponentGroupsMenu = Em.CollectionView.extend({
       return this.get('content.properties').filterProperty('isValid', false).filterProperty('isVisible', true).get('length');
     }.property('content.properties.@each.isValid', 'content.properties.@each.isVisible'),
 
-    template: Ember.Handlebars.compile('<a {{action showSlaveComponentGroup view.content target="controller"}} href="#"> {{view.content.name}}{{#if view.errorCount}}<span class="badge badge-important">{{view.errorCount}}</span>{{/if}}</a><i {{action removeSlaveComponentGroup view.content target="controller"}} class="icon-remove"></i>')
+    templateName: require('templates/wizard/controls_slave_component_groups_menu')
   })
 });
 
@@ -542,9 +529,6 @@ App.ServiceConfigSlaveHostsView = Ember.View.extend(App.ServiceConfigMultipleHos
         serviceConfig: serviceConfig,
         templateName: require('templates/wizard/master_hosts_popup')
       }),
-      onPrimary: function () {
-        this.hide();
-      },
       secondary: null
     });
   }

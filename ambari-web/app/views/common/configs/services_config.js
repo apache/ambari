@@ -275,13 +275,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
           },
           footerClass: Ember.View.extend({
             classNames: ['modal-footer'],
-            template: Ember.Handlebars.compile([
-              '<div class="pull-right">',
-              '<button class="btn" {{action onUndo target="view.parentView"}}>Cancel</button>',
-              '<button class="btn btn-warning" {{action onIgnore target="view.parentView"}}>Ignore</button>',
-              '<button class="btn btn-success" {{action onApply target="view.parentView"}}>Apply</button>',
-              '</div>'
-            ].join(''))
+            templateName: require('templates/common/configs/propertyDependence_footer')
           }),
           bodyClass: Ember.View.extend({
             templateName: require('templates/common/configs/propertyDependence'),
@@ -494,9 +488,6 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
           this.hide();
         }
       },
-      onSecondary: function () {
-        this.hide();
-      },
       bodyClass: Ember.View.extend({
         templateName: require('templates/common/configs/addPropertyWindow'),
         controllerBinding: 'App.router.mainServiceInfoConfigsController',
@@ -544,9 +535,6 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
       App.ModalPopup.show({
         header: Em.I18n.t('services.service.config.configOverride.head'),
         body: Em.I18n.t('services.service.config.configOverride.body'),
-        onPrimary: function () {
-          this.hide();
-        },
         secondary: false
       });
       return;
@@ -1165,35 +1153,10 @@ App.ServiceConfigCapacityScheduler = App.ServiceConfigsByCategoryView.extend({
       }.property(),
       footerClass: Ember.View.extend({
         classNames: ['modal-footer', 'host-checks-update'],
-        template: Ember.Handlebars.compile([
-          '{{#if view.parentView.delete}}<div class="pull-left">',
-          '<button class="btn btn-danger" {{action onDelete target="view.parentView"}}>',
-          '{{view.parentView.delete}}</button></div>{{/if}}',
-          '<p class="pull-right">',
-          '{{#if view.parentView.primary}}<button type="button" class="btn" {{action onPrimary target="view.parentView"}}>',
-          '{{view.parentView.primary}}</button>{{/if}}',
-          '{{#if view.parentView.secondary}}',
-          '<button type="button" {{bindAttr disabled="view.parentView.isError"}} class="btn btn-success" {{action onSecondary target="view.parentView"}}>',
-          '{{view.parentView.secondary}}</button>{{/if}}',
-          '</p>'
-        ].join(''))
+        templateName: require('templates/common/configs/queuePopup_footer')
       }),
       bodyClass: Ember.View.extend({
-        template: Ember.Handlebars.compile([
-          '<form class="form-horizontal pre-scrollable" autocomplete="off">{{#each view.parentView.content.configs}}',
-          '{{#if isVisible}}',
-          '<div class="row-fluid control-group">',
-          '   <div {{bindAttr class="errorMessage:error :control-label-span :span4"}}>',
-          '     <label>{{displayName}}</label>',
-          '   </div>',
-          '   <div {{bindAttr class="errorMessage:error :control-group :span8"}}>',
-          '     {{view viewClass serviceConfigBinding="this" categoryConfigsBinding="view.categoryConfigs" }}',
-          '     <span class="help-inline">{{errorMessage}}</span>',
-          '   </div>',
-          '</div>',
-          '{{/if}}',
-          '{{/each}}</form>'
-        ].join(''))
+        templateName: require('templates/common/configs/queuePopup_body')
       }),
       /**
        * Insert extra config in popup according to queue

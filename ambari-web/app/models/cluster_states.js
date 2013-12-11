@@ -105,9 +105,6 @@ App.clusterStatus = Ember.Object.create({
           App.ModalPopup.show({
             header: Em.I18n.t('common.error'),
             secondary: false,
-            onPrimary: function () {
-              this.hide();
-            },
             bodyClass: Ember.View.extend({
               template: Ember.Handlebars.compile('<p>{{t common.update.error}}</p>')
             })
@@ -189,9 +186,6 @@ App.clusterStatus = Ember.Object.create({
       header: Em.I18n.t('common.error'),
       secondary: false,
       response: msg,
-      onPrimary: function () {
-        this.hide();
-      },
       bodyClass: Ember.View.extend({
         template: Ember.Handlebars.compile('<p>{{t common.persist.error}} {{response}}</p>')
       })

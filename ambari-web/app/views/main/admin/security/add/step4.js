@@ -51,20 +51,17 @@ App.StageStatusView = Em.View.extend({
 });
 
 App.StageSuccessView = Em.View.extend({
-  template: Ember.Handlebars.compile('<i class="icon-ok icon-large"></i> Done')
+  template: Ember.Handlebars.compile('<i class="icon-ok icon-large"></i> {{t common.done}}')
 });
 
 App.StageFailureView = Em.View.extend({
-  template: Ember.Handlebars.compile('<i class="icon-remove icon-large"></i> Failed')
+  template: Ember.Handlebars.compile('<i class="icon-remove icon-large"></i> {{t comomn.failed}}')
 });
 
 App.StageInProgressView = Em.View.extend({
   stage: null,
   classNames: ['progress-striped', 'active', 'progress'],
-  template: Ember.Handlebars.compile([
-    '<div class="bar" {{bindAttr style="stage.barWidth"}}>',
-    '</div>'
-  ].join('\n')),
+  template: Ember.Handlebars.compile('<div class="bar" {{bindAttr style="stage.barWidth"}}></div>'),
 
   isStageCompleted: function () {
     return this.get('obj.progress') == 100 || this.get('controller.isStepCompleted');
