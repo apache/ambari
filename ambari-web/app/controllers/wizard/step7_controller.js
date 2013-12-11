@@ -141,7 +141,9 @@ App.WizardStep7Controller = Em.Controller.extend({
 
   selectedServiceObserver: function () {
     if (App.supports.hostOverridesInstaller && this.get('selectedService') && (this.get('selectedService.serviceName') !== 'MISC')) {
-      var serviceGroups = this.get('selectedService.configGroups');
+      var serviceGroups = this.get('selectedService.configGroups').sort(function (a, b) {
+        return a.isDefault || b.isDefault ? 1 : 0;
+      });
       this.set('configGroups', serviceGroups);
       this.set('selectedConfigGroup', serviceGroups.findProperty('isDefault'));
     }
