@@ -1923,6 +1923,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       classNames: ['sixty-percent-width-modal', 'manage-configuration-group-popup'],
       primary: Em.I18n.t('common.save'),
       onPrimary: function() {
+        if (!this.get('enablePrimary')) {
+          return false;
+        }
         // Save modified config-groups
         if (!!controller) {
           controller.set('selectedService.configGroups', App.router.get('installerManageConfigGroupsController.configGroups'));
@@ -1981,13 +1984,25 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         var subViewController = this.get('subViewController');
         var selectedConfigGroup = subViewController.get('selectedConfigGroup');
         var managedConfigGroups = subViewController.get('configGroups');
-        // do not save config groups in wizards if Cancel or Close button is clicked
-        if (!(onClose && controller)) {
-          if (!controller) {
-            controller = App.router.get('mainServiceInfoConfigsController');
+        // restore config groups hosts in wizards if Cancel or Close button is clicked
+        if (onClose && controller) {
+          var unusedHosts = controller.get('getAllHosts').slice().mapProperty('hostName');
+          var hostsToGroupMap = subViewController.get('loadedHostsToGroupMap');
+          for (var group in hostsToGroupMap) {
+            var groupToChange = managedConfigGroups.findProperty('name', group);
+            if (groupToChange) {
+              hostsToGroupMap[group].forEach(function (host) {
+                unusedHosts = unusedHosts.without(host);
+              }, this);
+              groupToChange.set('hosts', hostsToGroupMap[group]);
+            }
           }
-          controller.set('configGroups', managedConfigGroups);
+          managedConfigGroups.findProperty('isDefault').set('hosts', unusedHosts);
         }
+        if (!controller) {
+          controller = App.router.get('mainServiceInfoConfigsController');
+        }
+        controller.set('selectedService.configGroups', managedConfigGroups);
         //check whether selectedConfigGroup was selected
         if (selectedConfigGroup && controller.get('configGroups').someProperty('name', selectedConfigGroup.get('name'))) {
           controller.set('selectedConfigGroup', selectedConfigGroup);

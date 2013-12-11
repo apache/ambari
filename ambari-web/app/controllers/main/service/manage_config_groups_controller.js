@@ -518,7 +518,7 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
   loadConfigGroups: function (serviceName) {
     this.set('serviceName', serviceName);
     var loadedHostsToGroupMap = this.get('loadedHostsToGroupMap');
-    var configGroups = this.copyConfigGroups(App.router.get('wizardStep7Controller.selectedService.configGroups'));
+    var configGroups = App.router.get('wizardStep7Controller.selectedService.configGroups');
     configGroups.forEach(function (configGroup) {
       if (!configGroup.get('isDefault')) {
         loadedHostsToGroupMap[configGroup.name] = configGroup.hosts.slice();
@@ -526,25 +526,6 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
     });
     this.set('configGroups', configGroups);
     this.set('isLoaded', true);
-  },
-  /**
-   * copy config groups to manage popup to give user choice whether or not save changes
-   * @param originGroups
-   * @return {Array}
-   */
-  copyConfigGroups: function (originGroups) {
-    var configGroups = [];
-    var defaultConfigGroup = App.ConfigGroup.create($.extend(true, {},originGroups.findProperty('isDefault')));
-    originGroups.forEach(function (configGroup) {
-      if (!configGroup.get('isDefault')) {
-        var copiedGroup = App.ConfigGroup.create($.extend(true, {}, configGroup));
-        copiedGroup.set('parentConfigGroup', defaultConfigGroup);
-        configGroups.pushObject(copiedGroup);
-      }
-    });
-    defaultConfigGroup.set('childConfigGroups', configGroups.slice());
-    configGroups.pushObject(defaultConfigGroup);
-    return configGroups;
   },
   /**
    * delete selected config group
@@ -660,7 +641,5 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
 
   duplicateConfigGroup: function() {
     this.addConfigGroup(true);
-  },
-  //always enable Save button in Manage Dialog in Installer
-  isHostsModified: true
+  }
 })
