@@ -1294,6 +1294,7 @@ Em.I18n.translations = {
   'hosts.selectHostsDialog.message': 'Select hosts that should belong to this {0} Configuration Group.  All hosts belonging to this group will have the same set of {0} configurations.',
   'hosts.selectHostsDialog.filter.placeHolder': 'Filter...',
   'hosts.selectHostsDialog.selectedHostsLink': '{0} out of {1} hosts selected',
+  'hosts.selectHostsDialog.message.warning': 'Atleast one host needs to be selected.',
 
   'hosts.host.serviceNotAvailable': 'Service not available on this host',
 

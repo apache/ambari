@@ -57,7 +57,7 @@ module.exports = {
           arrayOfSelectedHosts.push(host.get('host.id'));
         });
         if (selectAtleastOneHost && arrayOfSelectedHosts.length<1) {
-          this.set('warningMessage', 'Atleast one host needs to be selected.');
+          this.set('warningMessage', Em.I18n.t('hosts.selectHostsDialog.message.warning'));
           return;
         }
         callback(arrayOfSelectedHosts);
@@ -74,9 +74,9 @@ module.exports = {
         filterText: '',
         filterTextPlaceholder: Em.I18n.t('hosts.selectHostsDialog.filter.placeHolder'),
         availableHosts: availableHosts,
-        filterColumn: Ember.Object.create({id: 'ip', name: 'IP Address', selected: false}),
+        filterColumn: null,
         filterColumns: Ember.A([
-          Ember.Object.create({id: 'ip', name: 'IP Address', selected: false}),
+          Ember.Object.create({id: 'ip', name: 'IP Address', selected: true}),
           Ember.Object.create({id: 'cpu', name: 'CPU', selected: false}),
           Ember.Object.create({id: 'memory', name: 'RAM', selected: false}),
           Ember.Object.create({id: 'osArch', name: 'OS Architecture', selected: false}),
@@ -87,54 +87,36 @@ module.exports = {
         showOnlySelectedHosts: false,
         filterComponents: validComponents,
         filterComponent: null,
-        filteredHosts: function () {
-          var hosts = this.get('availableHosts');
+        didInsertElement: function(){
+          var defaultFilterColumn = this.get('filterColumns').findProperty('selected');
+          this.set('filterColumn', defaultFilterColumn);
+        },
+        filterHosts: function () {
           var filterText = this.get('filterText');
           var showOnlySelectedHosts = this.get('showOnlySelectedHosts');
-          var filteredHosts = Ember.A([]);
-          var self = this;
-          hosts.forEach(function (host) {
-            var skip = false;
-            var ahost = host.get('host');
-            var filterColumn = self.get('filterColumn');
-            if (filterColumn == null) {
-              filterColumn = self.get('filterColumns').objectAt(0);
-            }
-            var value = ahost.get(filterColumn.id);
+          var filterComponent = this.get('filterComponent');
+          var filterColumn = this.get('filterColumn');
+
+          this.get('availableHosts').forEach(function (host) {
+            var skip = showOnlySelectedHosts && !host.get('selected');
+            var value = host.get('host').get(filterColumn.id);
+            var hostComponentNames = host.get('host.hostComponents').mapProperty('componentName');
+
             host.set('filterColumnValue', value);
-            if (filterText != null && filterText.length > 0) {
+
+            if (!skip && filterText) {
               if ((value == null || !value.toString().match(filterText)) && !host.get('host.publicHostName').match(filterText)) {
                 skip = true;
               }
             }
-            var filterComponent = self.get('filterComponent');
-            if (!skip && filterComponent != null) {
-              var componentFound = false;
-              var fcn = filterComponent.get('componentName');
-              var hcs = ahost.get('hostComponents');
-              if (hcs != null) {
-                hcs.forEach(function (hc) {
-                  if (fcn === hc.get('componentName')) {
-                    componentFound = true;
-                  }
-                });
-              }
-              if (!componentFound) {
-                skip = true;
+            if (!skip && filterComponent) {
+              if (hostComponentNames.length > 0) {
+                skip = !hostComponentNames.contains(filterComponent.get('componentName'));
               }
             }
-            if (!skip && showOnlySelectedHosts && !host.get('selected')) {
-              skip = true;
-            }
-            if (!skip) {
-              filteredHosts.pushObject(host);
-            }
-          });
-          return filteredHosts;
-        }.property('availableHosts', 'filterText', 'filterColumn', 'filterComponent', 'filterComponent.componentName', 'showOnlySelectedHosts'),
-        hostColumnValue: function (host, column) {
-          return host.get(column.id);
-        },
+            host.set('filtered', !skip);
+          }, this);
+        }.observes('availableHosts', 'filterColumn', 'filterText', 'filterComponent', 'filterComponent.componentName', 'showOnlySelectedHosts'),
         hostSelectMessage: function () {
           var hosts = this.get('availableHosts');
           var selectedHosts = hosts.filterProperty('selected', true);
@@ -167,13 +149,7 @@ module.exports = {
         },
         allHostsSelected: false,
         toggleSelectAllHosts: function (event) {
-          if (this.get('allHostsSelected')) {
-            // Select all hosts
-            this.get('availableHosts').setEach('selected', true);
-          } else {
-            // Deselect all hosts
-            this.get('availableHosts').setEach('selected', false);
-          }
+          this.get('availableHosts').filterProperty('filtered').setEach('selected', this.get('allHostsSelected'));
         }.observes('allHostsSelected'),
         toggleShowSelectedHosts: function () {
           var currentFilter = this.get('filterComponent');

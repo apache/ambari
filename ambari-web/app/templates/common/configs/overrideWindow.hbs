@@ -101,8 +101,8 @@
          </table>
         <div class="hosts-table-container">
           <table class="table table-striped hosts-table">
-          {{#each entry in view.filteredHosts}}
-            <tr>
+          {{#each entry in view.availableHosts}}
+            <tr {{bindAttr class="entry.filtered::hidden"}}>
               <td width="10%">
                 {{view Ember.Checkbox checkedBinding="entry.selected"}}
               </td>
