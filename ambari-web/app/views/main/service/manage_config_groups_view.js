@@ -64,10 +64,17 @@ App.MainServiceManageConfigGroupView = Em.View.extend({
 
   didInsertElement: function () {
     this.get('controller').loadConfigGroups(this.get('serviceName'));
+    this.selectDefaultGroup();
     App.tooltip($('.properties-link'));
     App.tooltip($("[rel='button-info']"));
     App.tooltip($("[rel='button-info-dropdown']"), {placement: 'left'});
   },
+
+  selectDefaultGroup: function () {
+    if ('controller.isLoaded') {
+      this.set('selectedConfigGroup', this.get('controller.configGroups').findProperty('isDefault'));
+    }
+  }.observes('controller.isLoaded'),
 
   addButtonTooltip: function () {
     return  Em.I18n.t('services.service.config_groups_popup.addButton');
