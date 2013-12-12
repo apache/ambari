@@ -71,8 +71,8 @@ App.MainServiceManageConfigGroupView = Em.View.extend({
   },
 
   selectDefaultGroup: function () {
-    if (this.get('controller.isLoaded')) {
-      this.set('selectedConfigGroup', [this.get('controller.configGroups').findProperty('isDefault')]);
+    if ('controller.isLoaded') {
+      this.set('selectedConfigGroup', this.get('controller.configGroups').findProperty('isDefault'));
     }
   }.observes('controller.isLoaded'),
 
