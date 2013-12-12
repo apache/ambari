@@ -271,17 +271,22 @@ App.WizardStep3Controller = Em.Controller.extend({
     this.doBootstrap();
   },
 
-  isInstallInProgress: function(){
-    var bootStatuses = this.get('bootHosts').getEach('bootStatus');
-    if(bootStatuses.length &&
-      (bootStatuses.contains('REGISTERING') ||
-        bootStatuses.contains('DONE') ||
-        bootStatuses.contains('RUNNING') ||
-        bootStatuses.contains('PENDING'))){
-      return true;
-    }
-    return false;
-  }.property('bootHosts.@each.bootStatus'),
+  installationProcess: function() {
+    Ember.run.once(this, 'setInstallationInProgress');
+  }.observes('bootHosts.@each.bootStatus'),
+
+  isInstallInProgress: true,
+
+  setInstallationInProgress: function() {
+    var result = false;
+    this.get('bootHosts').forEach(function(host) {
+      var status = host.get('bootStatus');
+      if (status != 'REGISTERED' && status != 'FAILED') {
+        result = true;
+      }
+    });
+    this.set('isInstallInProgress',result);
+  },
 
   disablePreviousSteps: function(){
     if(this.get('isInstallInProgress')){
@@ -292,7 +297,7 @@ App.WizardStep3Controller = Em.Controller.extend({
         if(step.step >= 0 && step.step <= 2) return true;
       }).setEach('value', false);
     }
-  }.observes('isInstallInProgress'),
+  }.observes('isInstallInProgress','isLoaded'),
 
   doBootstrap: function () {
     if (this.get('stopBootstrap')) {
@@ -502,17 +507,6 @@ App.WizardStep3Controller = Em.Controller.extend({
       this.set('registeredHosts','');
     }
   },
-
-  allHostsComplete: function() {
-    var result = true;
-    this.get('bootHosts').forEach(function(host) {
-      var status = host.get('bootStatus');
-      if (status != 'REGISTERED' && status != 'FAILED') {
-        result = false;
-      }
-    });
-    return result;
-  }.property('bootHosts.@each.bootStatus'),
 
   registerErrPopup: function (header, message) {
     App.ModalPopup.show({
@@ -736,8 +730,8 @@ App.WizardStep3Controller = Em.Controller.extend({
   }.property('warnings'),
 
   isWarningsBoxVisible: function(){
-    return (App.testMode) ? true : this.get('allHostsComplete');
-  }.property('allHostsComplete'),
+    return (App.testMode) ? true : !this.get('isInstallInProgress');
+  }.property('isInstallInProgress'),
 
   checksUpdateProgress:0,
   checksUpdateStatus: null,
