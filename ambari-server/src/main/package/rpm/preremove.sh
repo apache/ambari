@@ -32,6 +32,9 @@ then
     fi
 
     mv /etc/ambari-server/conf /etc/ambari-server/conf.save
+
+    chkconfig --del ambari-server
+
 fi
 
 exit 0

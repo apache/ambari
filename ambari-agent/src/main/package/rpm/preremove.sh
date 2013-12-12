@@ -25,6 +25,8 @@ then
         mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save
     fi
     mv /etc/ambari-agent/conf /etc/ambari-agent/conf.save
+
+    chkconfig --del ambari-agent
 fi
 
 exit 0

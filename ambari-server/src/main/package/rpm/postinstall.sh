@@ -21,4 +21,9 @@ fi
 
 ln -s /usr/sbin/ambari-server /etc/init.d/ambari-server
 
+if [ "$1" -eq 1 ]; # Action is install
+then
+  chkconfig --add ambari-server
+fi
+
 exit 0
