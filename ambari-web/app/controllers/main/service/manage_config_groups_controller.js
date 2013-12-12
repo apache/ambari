@@ -609,11 +609,6 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
         }
         var defaultConfigGroup = self.get('configGroups').findProperty('isDefault');
         var properties = [];
-        if (duplicated) {
-          self.get('selectedConfigGroup.properties').forEach(function(property) {
-            properties.push(App.ServiceConfigProperty.create($.extend(true, {},property)));
-          });
-        }
         var newConfigGroupData = App.ConfigGroup.create({
           id: null,
           name: this.get('configGroupName'),
@@ -623,8 +618,18 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
           service: Em.Object.create({id: self.get('serviceName')}),
           hosts: [],
           configSiteTags: [],
-          properties: properties
+          properties: []
         });
+        if (duplicated) {
+          self.get('selectedConfigGroup.properties').forEach(function(property) {
+            var property = $.extend(true, {},property);
+            property.set('group', newConfigGroupData);
+            properties.push(App.ServiceConfigProperty.create(property));
+          });
+          newConfigGroupData.set('properties', properties);
+        } else {
+          newConfigGroupData.set('properties', []);
+        }
         self.get('loadedHostsToGroupMap')[newConfigGroupData.get('name')] = [];
         self.get('configGroups').pushObject(newConfigGroupData);
         defaultConfigGroup.get('childConfigGroups').pushObject(newConfigGroupData);
