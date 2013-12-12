@@ -496,12 +496,15 @@ var urls = {
     'format': function (data, opt) {
       var field1 = 'metrics/yarn/Queue/{queueName}/AllocatedMB[{fromSeconds},{toSeconds},{stepSeconds}]';
       var field2 = 'metrics/yarn/Queue/{queueName}/AvailableMB[{fromSeconds},{toSeconds},{stepSeconds}]';
-      if (opt.url != null && data.queueNames != null) {
+      if (opt.url != null && data.queueNames != null && data.queueNames.length > 0) {
         data.queueNames.forEach(function (q) {
           data.queueName = q;
           opt.url += (formatUrl(field1, data) + ",");
           opt.url += (formatUrl(field2, data) + ",");
         });
+      } else {
+        opt.url += (formatUrl(field1, data) + ",");
+        opt.url += (formatUrl(field2, data) + ",");
       }
     },
     'testInProduction': true
