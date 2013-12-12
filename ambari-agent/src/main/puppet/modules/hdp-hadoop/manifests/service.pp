@@ -48,9 +48,10 @@ define hdp-hadoop::service(
   } 
 
   $log_dir = "${hdp-hadoop::params::hdfs_log_dir_prefix}/${user}"
+  $set_ulimit_cmd = "ulimit -c unlimited && if [ `ulimit -c` != 'unlimited' ]; then exit 1; fi"
   $hadoop_daemon = "export HADOOP_LIBEXEC_DIR=${hadoop_libexec_dir} && ${hdp::params::hadoop_bin}/hadoop-daemon.sh"
    
-  $cmd = "${hadoop_daemon} --config ${hdp-hadoop::params::conf_dir}"
+  $cmd = "${set_ulimit_cmd} && ${hadoop_daemon} --config ${hdp-hadoop::params::conf_dir}"
   if ($ensure == 'running') {
     if ($run_as_root == true) {
       $daemon_cmd = "su - root -c  '${cmd} start ${name}'"
