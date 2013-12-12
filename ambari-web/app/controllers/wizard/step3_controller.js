@@ -363,7 +363,7 @@ App.WizardStep3Controller = Em.Controller.extend({
         }
       }
 
-      if (data.hostsStatus.someProperty('status', 'DONE') || data.hostsStatus.someProperty('status', 'FAILED')) {
+      if (data.status == 'ERROR' || data.hostsStatus.someProperty('status', 'DONE') || data.hostsStatus.someProperty('status', 'FAILED')) {
         // kicking off registration polls after at least one host has succeeded
         this.startRegistration();
       }
