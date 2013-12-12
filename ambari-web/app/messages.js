@@ -1132,7 +1132,6 @@ Em.I18n.translations = {
   'services.service.stopAll':'Stop All',
   'services.service.config_groups_popup.header':'Manage {0} Configuration Groups',
   'services.service.config_groups_popup.notice':'You can apply different sets of {{serviceName}} configurations to groups of hosts by managing {{serviceName}} Configuration Groups and their host membership.  Hosts belonging to a {{serviceName}} Configuration Group have the same set of configurations for {{serviceName}}. Each host belongs to one {{serviceName}} Configuration Group.',
-  'services.service.config_groups_popup.config_groups':'{{serviceName}} Configuration Groups',
   'services.service.config_groups_popup.rename':'Rename',
   'services.service.config_groups_popup.duplicate':'Duplicate',
   'services.service.config_groups_popup.group_name_lable':'Name',

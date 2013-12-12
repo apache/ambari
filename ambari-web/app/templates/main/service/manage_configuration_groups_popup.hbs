@@ -18,9 +18,9 @@
 <div class="alert alert-info">{{t services.service.config_groups_popup.notice serviceNameBinding="view.displayName"}}</div>
 <div class="row-fluid  manage-configuration-group-content">
   <div class="span12">
-    {{t services.service.config_groups_popup.config_groups  serviceNameBinding="view.displayName"}}
     <div class="row-fluid">
-      <div class="span5">
+      <div class="span4">
+        <span>&nbsp;</span>
         {{view Em.Select
           contentBinding="configGroups"
           optionLabelPath="content.displayNameHosts"
@@ -48,10 +48,10 @@
           </div>
         </div>
       </div>
-      <div class="span7">
+      <div class="span8">
+        <span>{{t common.hosts}}</span>
         <div class="row-fluid">
-          <div class="span2">{{t common.hosts}}</div>
-          <div class="span10">
+          <div class="span12 pull-right">
             {{view Em.Select
               contentBinding="selectedConfigGroup.hosts"
               multiple="multiple"
