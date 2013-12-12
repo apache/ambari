@@ -98,17 +98,41 @@
 
     <developers>
         <developer>
-            <id>omalley</id>
-            <name>Owen O'Malley</name>
-            <email>omalley@apache.org</email>
-            <timezone>-8</timezone>
+            <id>ababiichuk</id>
+            <name>Andrii Babiichuk</name>
+            <email>ababiichuk@apache.org</email>
+            <timezone>+2</timezone>
             <roles>
                 <role>PMC</role>
             </roles>
             <organization>
-                Hortonworks                
-            </organization>            
+                Hortonworks
+            </organization>
         </developer>
+        <developer>
+            <id>abaranchuk</id>
+            <name>Artem Baranchuk</name>
+            <email>abaranchuk@apache.org</email>
+            <timezone>+2</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>aonishuk</id>
+            <name>Andrew Onischuk</name>
+            <email>aonishuk@apache.org</email>
+            <timezone>+2</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>        
         <developer>
             <id>atkach</id>
             <name>Andrii Tkach</name>
@@ -347,6 +371,18 @@
             </organization>
         </developer>
         <developer>
+            <id>omalley</id>
+            <name>Owen O'Malley</name>
+            <email>omalley@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>PMC</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>onechiporenko</id>
             <name>Oleg Nechiporenko</name>
             <email>onechiporenko@apache.org</email>
@@ -437,6 +473,18 @@
             <timezone>-8</timezone>
             <roles>
                 <role>PMC</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>vbrodetskyi</id>
+            <name>Vitaly Brodetskyi</name>
+            <email>vbrodetskyi@apache.org</email>
+            <timezone>+2</timezone>
+            <roles>
+                <role>Committer</role>
             </roles>
             <organization>
                 Hortonworks
