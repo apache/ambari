@@ -295,17 +295,31 @@ App.ManageConfigGroupsController = Em.Controller.extend({
         templateName: require('templates/main/service/new_config_group')
       }),
       configGroupName: "",
+      configGroupDesc: "",
       content: content,
+      isDescriptionDirty: false,
       validate: function () {
         var warningMessage = '';
-        if (self.get('configGroups').mapProperty('name').contains(this.get('configGroupName'))) {
-          warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
+        var originalGroup = self.get('selectedConfigGroup');
+        if (originalGroup.get('description') !== this.get('configGroupDesc') && !this.get('isDescriptionDirty')) {
+          this.set('isDescriptionDirty', true);
+        }
+        if (originalGroup.get('name') === this.get('configGroupName')) {
+          if (this.get('isDescriptionDirty')) {
+            warningMessage = '';
+          } else {
+            warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
+          }
+        } else {
+          if (self.get('configGroups').mapProperty('name').contains(this.get('configGroupName'))) {
+            warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
+          }
         }
         this.set('warningMessage', warningMessage);
-      }.observes('configGroupName'),
+      }.observes('configGroupName', 'configGroupDesc'),
       enablePrimary: function () {
         return this.get('configGroupName').length > 0 && !this.get('warningMessage');
-      }.property('warningMessage', 'configGroupName'),
+      }.property('warningMessage', 'configGroupName', 'configGroupDesc'),
       onPrimary: function () {
         if (!this.get('enablePrimary')) {
           return false;
@@ -544,7 +558,7 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
       return;
     }
     var self = this;
-    App.ModalPopup.show({
+    this.renameGroupPopup = App.ModalPopup.show({
       primary: Em.I18n.t('ok'),
       secondary: Em.I18n.t('common.cancel'),
       header: Em.I18n.t('services.service.config_groups.rename_config_group_popup.header'),
@@ -554,16 +568,29 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
       configGroupName: self.get('selectedConfigGroup.name'),
       configGroupDesc: self.get('selectedConfigGroup.description'),
       warningMessage: '',
+      isDescriptionDirty: false,
       validate: function () {
         var warningMessage = '';
-        if (self.get('configGroups').mapProperty('name').contains(this.get('configGroupName'))) {
-          warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
+        var originalGroup = self.get('selectedConfigGroup');
+        if (originalGroup.get('description') !== this.get('configGroupDesc') && !this.get('isDescriptionDirty')) {
+          this.set('isDescriptionDirty', true);
+        }
+        if (originalGroup.get('name') === this.get('configGroupName')) {
+          if (this.get('isDescriptionDirty')) {
+            warningMessage = '';
+          } else {
+            warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
+          }
+        } else {
+          if (self.get('configGroups').mapProperty('name').contains(this.get('configGroupName'))) {
+            warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
+          }
         }
         this.set('warningMessage', warningMessage);
-      }.observes('configGroupName'),
+      }.observes('configGroupName', 'configGroupDesc'),
       enablePrimary: function () {
         return this.get('configGroupName').length > 0 && !this.get('warningMessage');
-      }.property('warningMessage', 'configGroupName'),
+      }.property('warningMessage', 'configGroupName', 'configGroupDesc'),
       onPrimary: function () {
         if (!this.get('enablePrimary')) {
           return false;
@@ -576,6 +603,7 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
         this.hide();
       }
     });
+    this.get('renameGroupPopup').validate();
   },
   /**
    * add new config group
