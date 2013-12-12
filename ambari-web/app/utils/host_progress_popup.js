@@ -394,6 +394,9 @@ App.HostPopup = Em.Object.create({
           var hostInfo = Ember.Object.create({
             name: hostName,
             publicName: _host.publicName,
+            displayName: function () {
+              return this.get('name').length < 43 ? this.get('name') : (this.get('name').substr(0, 40) + '...');
+            }.property('name'),
             progress: 0,
             status: App.format.taskStatus("PENDING"),
             serviceName: _host.serviceName,
@@ -530,7 +533,7 @@ App.HostPopup = Em.Object.create({
         isHostEmptyList: true,
         isTasksEmptyList: true,
         controller: this,
-        hosts: self.get("hosts"),
+        hosts: self.get('hosts'),
         services: self.get('servicesInfo'),
 
         tasks: function () {
