@@ -481,6 +481,7 @@ App.HostPopup = Em.Object.create({
       isLoaded: !isBackgroundOperations,
       isOpen: false,
       didInsertElement: function(){
+        this._super();
         this.set('isOpen', true);
       },
       headerClass: Ember.View.extend({

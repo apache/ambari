@@ -34,10 +34,6 @@ App.MainHostSummaryView = Em.View.extend({
     window.open(gangliaMobileUrl);
   },
 
-  needToRestartComponentsCount: function() {
-    return this.get('content.hostComponents').filterProperty('staleConfigs', true).length;
-  }.property('content.hostComponents.@each.staleConfigs'),
-
   stopComponentsIsDisabled: function () {
     var staleComponents = this.get('content.hostComponents').filterProperty('staleConfigs', true);
     if(!staleComponents.findProperty('workStatus','STARTED')){
@@ -58,14 +54,14 @@ App.MainHostSummaryView = Em.View.extend({
 
   needToRestartMessage: function() {
     var componentsCount, word;
-    componentsCount = this.get('needToRestartComponentsCount');
+    componentsCount = this.get('content.componentsWithStaleConfigsCount');
     if (componentsCount > 1) {
       word = Em.I18n.t('common.components').toLowerCase();
     } else {
       word = Em.I18n.t('common.component').toLowerCase();
     }
-    return Em.I18n.t('hosts.host.details.needToRestart').format(this.get('needToRestartComponentsCount'), word);
-  }.property('needToRestartComponentsCount'),
+    return Em.I18n.t('hosts.host.details.needToRestart').format(this.get('content.componentsWithStaleConfigsCount'), word);
+  }.property('content.componentsWithStaleConfigsCount'),
 
   /**
    * @type: [{String}]

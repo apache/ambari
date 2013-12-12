@@ -61,6 +61,10 @@ App.Host = DS.Model.extend({
     return App.router.get('clusterController.alerts').filterProperty('hostName', this.get('hostName')).filterProperty('isOk', false).filterProperty('ignoredForHosts', false).length;
   }.property('App.router.clusterController.alerts.length'),
 
+  componentsWithStaleConfigsCount: function() {
+    return this.get('hostComponents').filterProperty('staleConfigs', true).length;
+  }.property('hostComponents.@each'),
+
   publicHostNameFormatted: function() {
     return this.get('publicHostName').length < 43 ? this.get('publicHostName') : this.get('publicHostName').substr(0, 40) + '...';
   }.property('publicHostName'),

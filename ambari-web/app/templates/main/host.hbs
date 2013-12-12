@@ -21,7 +21,7 @@
   <div class="box-header row">
     <div class="health-status-bar pull-left">
       <div class="pull-left">
-         <span {{bindAttr class=":category-item view.filtersUsed::active"}}><a {{action clearFilters target="view"}} href="#">{{t common.all}} ({{content.length}})</a></span>
+        <span {{bindAttr class=":category-item view.filtersUsed::active"}}><a {{action clearFilters target="view"}} href="#">{{t common.all}} ({{content.length}})</a></span>
       </div>
       {{view view.alertFilter}}
       {{#view view.statusFilter categoriesBinding="view.categories"}}
@@ -33,7 +33,11 @@
                 {{#if category.alerts}}
                   <span class="label label-important">{{t hosts.host.alerts.st}}</span>
                 {{else}}
-                  <span {{bindAttr class=":health-status category.healthStatusValue"}}> &nbsp;&nbsp;&nbsp; </span>
+                  {{#if category.restart}}
+                    <span class="muted icon-refresh"></span>
+                  {{else}}
+                    <span {{bindAttr class=":health-status category.healthStatusValue"}}> &nbsp;&nbsp;&nbsp; </span>
+                  {{/if}}
                 {{/if}}
                 {{category.label}}
               </a>
@@ -55,68 +59,75 @@
 
   <table class="datatable table table-bordered table-striped" id="hosts-table">
     <thead>
-        {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
-          <th class="first"> </th>
-          {{view view.parentView.nameSort}}
-          {{view view.parentView.ipSort}}
-          {{view view.parentView.cpuSort}}
-          {{view view.parentView.memorySort}}
-          {{view view.parentView.diskUsageSort}}
-          {{view view.parentView.loadAvgSort}}
-          <th>{{t common.components}}</th>
+      {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
+        <th class="first"> </th>
+        {{view view.parentView.nameSort}}
+        <th> </th>
+        {{view view.parentView.ipSort}}
+        {{view view.parentView.cpuSort}}
+        {{view view.parentView.memorySort}}
+        {{view view.parentView.diskUsageSort}}
+        {{view view.parentView.loadAvgSort}}
+        <th>{{t common.components}}</th>
       {{/view}}
-    <tr id="filter-row">
-      <th class="first"> </th>
-      <th>{{view view.nameFilterView}}</th>
-      <th>{{view view.ipFilterView}}</th>
-      <th>{{view view.cpuFilterView}}</th>
-      <th>{{view view.ramFilterView}}</th>
-      <th></th>
-      <th>{{view view.loadAvgFilterView}}</th>
-      <th>{{view view.componentsFilterView}}</th>
-    </tr>
+      <tr id="filter-row">
+        <th class="first"> </th>
+        <th>{{view view.nameFilterView}}</th>
+        <th> </th>
+        <th>{{view view.ipFilterView}}</th>
+        <th>{{view view.cpuFilterView}}</th>
+        <th>{{view view.ramFilterView}}</th>
+        <th> </th>
+        <th>{{view view.loadAvgFilterView}}</th>
+        <th>{{view view.componentsFilterView}}</th>
+      </tr>
     </thead>
     <tbody>
     {{#if view.pageContent}}
-    {{#each host in view.pageContent}}
-    {{#view view.HostView contentBinding="host"}}
+      {{#each host in view.pageContent}}
+        {{#view view.HostView contentBinding="host"}}
 
-      <td class="first">
-        <span rel="HealthTooltip" {{bindAttr class="host.healthClass"}} {{bindAttr data-original-title="host.healthToolTip" }}></span>
-      </td>
+          <td class="first">
+            <span rel="HealthTooltip" {{bindAttr class="host.healthClass"}} {{bindAttr data-original-title="host.healthToolTip" }}></span>
+          </td>
 
-      <td class="name">
-        <a title="{{unbound host.publicHostName}}" href="#" {{action "showDetails" host}}>{{unbound host.publicHostNameFormatted}}</a>
-        {{#if host.criticalAlertsCount}}
-          <span class="label label-important alerts-count" {{action "showAlertsPopup" host target="controller"}}>{{host.criticalAlertsCount}}</span>
-        {{/if}}
-      </td>
-      <td>{{host.ip}}</td>
-      <td>{{host.cpu}}</td>
-      <td>{{host.memoryFormatted}}</td>
+          <td class="name">
+            <a title="{{unbound host.publicHostName}}" href="#" {{action "showDetails" host}}>{{unbound host.publicHostNameFormatted}}</a>
+            {{#if host.criticalAlertsCount}}
+              <span class="label label-important alerts-count" {{action "showAlertsPopup" host target="controller"}}>{{host.criticalAlertsCount}}</span>
+            {{/if}}
+          </td>
+          <td class="restart">
+            {{#if host.componentsWithStaleConfigsCount}}
+              <span class="muted icon-refresh" rel="ComponentsTooltip" {{bindAttr title="view.restartRequiredComponentsMessage"}}></span>
+            {{/if}}
+          </td>
+          <td>{{host.ip}}</td>
+          <td>{{host.cpu}}</td>
+          <td>{{host.memoryFormatted}}</td>
 
-      <td>
-        <div class="progress progress-info" title="{{unbound host.diskInfoBar}}" rel="UsageTooltip">
-          <div class="bar" {{bindAttr style="view.usageStyle"}}></div>
-        </div>
-      </td>
+          <td>
+            <div class="progress progress-info" {{bindAttr title="host.diskInfoBar"}} rel="UsageTooltip">
+              <div class="bar" {{bindAttr style="view.usageStyle"}}></div>
+            </div>
+          </td>
 
-      <td>{{host.loadAvg}}</td>
-      <td>
-        <a href="#" class="host-components-expander" {{action toggleComponents target="view"}}> <span class="caret right"></span>{{view.componentsMessage}}</a>
-        <div id="host-{{unbound host.hostName}}" class="host-components">
-          {{{view.labels}}}
-        </div>
-      </td>
-    {{/view}}
-    {{/each}}
+          <td>{{host.loadAvg}}</td>
+          <td>
+            <a href="#" class="host-components-expander" {{action toggleComponents target="view"}}> <span class="caret right"></span>{{view.componentsMessage}}</a>
+            <div id="host-{{unbound host.hostName}}" class="host-components">
+              {{{view.labels}}}
+            </div>
+          </td>
+        {{/view}}
+      {{/each}}
     {{else}}
-    <tr>
+      <tr>
         <td class="first"></td>
-        <td colspan="7">
-            {{t hosts.table.noHosts}}
+        <td colspan="8">
+          {{t hosts.table.noHosts}}
         </td>
-    </tr>
+      </tr>
     {{/if}}
     </tbody>
   </table>

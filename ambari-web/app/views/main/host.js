@@ -81,7 +81,7 @@ App.MainHostView = App.TableView.extend({
     content:null,
     tagName: 'tr',
     didInsertElement: function(){
-      App.tooltip(this.$("[rel='HealthTooltip'], [rel='UsageTooltip']"));
+      App.tooltip(this.$("[rel='HealthTooltip'], [rel='UsageTooltip'], [rel='ComponentsTooltip']"));
     },
 
     toggleComponents: function(event) {
@@ -98,6 +98,16 @@ App.MainHostView = App.TableView.extend({
         return count + ' ' + Em.I18n.t('common.components');
       }
     }.property('content.hostComponents.@each'),
+
+    restartRequiredComponentsMessage: function() {
+      var restartRequiredComponents = this.get('content.hostComponents').filterProperty('staleConfigs', true);
+      var count = restartRequiredComponents.length;
+      if (count <= 5) {
+        var word = (count == 1) ? Em.I18n.t('common.component') : Em.I18n.t('common.components');
+        return Em.I18n.t('hosts.table.restartComponents.withNames').format(restartRequiredComponents.getEach('displayName').join(', ')) + ' ' + word.toLowerCase();
+      }
+      return Em.I18n.t('hosts.table.restartComponents.withoutNames').format(count);
+    }.property('content.hostComponents.@each.staleConfigs'),
 
     labels: function() {
       return this.get('content.hostComponents').getEach('displayName').join("<br />");
@@ -117,14 +127,24 @@ App.MainHostView = App.TableView.extend({
     hostsCount: function () {
       var statusString = this.get('healthStatusValue');
       var alerts = this.get('alerts');
-      if(alerts){
+      var restart = this.get('restart');
+      if(alerts) {
         return this.get('view.content').filterProperty('criticalAlertsCount').get('length');
-      } else if (statusString == "") {
-        return this.get('view.content').get('length');
-      } else {
-        return this.get('view.content').filterProperty('healthClass', statusString ).get('length');
       }
-    }.property('view.content.@each.healthClass', 'view.content.@each.criticalAlertsCount'),
+      else {
+        if (restart) {
+          return this.get('view.content').filterProperty('componentsWithStaleConfigsCount').get('length');
+        }
+        else {
+          if (statusString == "") {
+            return this.get('view.content').get('length');
+          }
+          else {
+            return this.get('view.content').filterProperty('healthClass', statusString ).get('length');
+          }
+        }
+      }
+    }.property('view.content.@each.healthClass', 'view.content.@each.criticalAlertsCount', 'view.content.@each.hostComponents.@each.staleConfigs'),
 
     label: function () {
       return "%@ (%@)".fmt(this.get('value'), this.get('hostsCount'));
@@ -147,7 +167,8 @@ App.MainHostView = App.TableView.extend({
       self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.red'), healthStatusValue: 'health-status-DEAD-RED', isVisible: true}),
       self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.orange'), healthStatusValue: 'health-status-DEAD-ORANGE', isVisible: true}),
       self.categoryObject.create({value: Em.I18n.t('hosts.host.healthStatusCategory.yellow'), healthStatusValue: 'health-status-DEAD-YELLOW', isVisible: true}),
-      self.categoryObject.create({value: Em.I18n.t('hosts.host.alerts.label'), healthStatusValue: 'health-status-WITH-ALERTS', last: true, alerts: true, isVisible: true })
+      self.categoryObject.create({value: Em.I18n.t('hosts.host.alerts.label'), healthStatusValue: 'health-status-WITH-ALERTS', alerts: true, isVisible: true }),
+      self.categoryObject.create({value: Em.I18n.t('common.restart'), healthStatusValue: 'health-status-RESTART', restart: true, last: true, isVisible: true })
     ];
 
     return categories;
@@ -174,12 +195,22 @@ App.MainHostView = App.TableView.extend({
     selectCategory: function(event){
       var category = event.context;
       this.set('value', category.get('healthStatusValue'));
-      if(category.get('alerts')){
+      if(category.get('alerts')) {
         this.get('parentView').updateFilter(0, '', 'string');
         this.get('parentView').updateFilter(7, '>0', 'number');
-      } else {
-        this.get('parentView').updateFilter(7, '', 'number');
-        this.get('parentView').updateFilter(0, category.get('healthStatusValue'), 'string');
+        this.get('parentView').updateFilter(8, '', 'number');
+      }
+      else {
+        if(category.get('restart')) {
+          this.get('parentView').updateFilter(0, '', 'string');
+          this.get('parentView').updateFilter(7, '', 'number');
+          this.get('parentView').updateFilter(8, '>0', 'number');
+        }
+        else {
+          this.get('parentView').updateFilter(7, '', 'number');
+          this.get('parentView').updateFilter(8, '', 'number');
+          this.get('parentView').updateFilter(0, category.get('healthStatusValue'), 'string');
+        }
       }
     },
     clearFilter: function() {
@@ -206,14 +237,22 @@ App.MainHostView = App.TableView.extend({
     }
   }),
 
-
   /**
-   * Count of the hosts with alerts
+   * view of the staleConfigs filter implemented as a category of host statuses
    */
-  hostsWithAlertsCount: function() {
-    return this.get('content.length') - this.get('content').filterProperty('criticalAlertsCount', 0).length;
-  }.property('content.@each.criticalAlertsCount'),
-
+  restartFilter: Em.View.extend({
+    column: 8,
+    value: null,
+    classNames: ['noDisplay'],
+    showClearFilter: function(){
+      var mockEvent = {
+        context: this.get('parentView.categories').findProperty('healthStatusValue', 'health-status-RESTART')
+      };
+      if(this.get('value')) {
+        this.get('parentView.childViews').findProperty('column', 0).selectCategory(mockEvent);
+      }
+    }
+  }),
 
   /**
    * Filter view for name column
@@ -409,6 +448,7 @@ App.MainHostView = App.TableView.extend({
     associations[5] = 'loadAvg';
     associations[6] = 'hostComponents';
     associations[7] = 'criticalAlertsCount';
+    associations[8] = 'componentsWithStaleConfigsCount';
     return associations;
   }.property()
 });

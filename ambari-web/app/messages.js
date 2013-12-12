@@ -161,6 +161,7 @@ Em.I18n.translations = {
   'common.properties': 'properties',
   'common.conf.group': 'Configuration Group',
   'common.ignore': 'Ignore',
+  'common.restart': 'Restart',
 
   'requestInfo.installComponents':'Install Components',
   'requestInfo.installServices':'Install Services',
@@ -1288,7 +1289,10 @@ Em.I18n.translations = {
 
   'hosts.host.add':'Add New Hosts',
   'hosts.table.noHosts':'No hosts to display',
-  
+
+  'hosts.table.restartComponents.withNames':'Restart {0}',
+  'hosts.table.restartComponents.withoutNames':'{0} components should be restarted',
+
   'hosts.selectHostsDialog.title': 'Select Configuration Group Hosts',
   'hosts.selectHostsDialog.message': 'Select hosts that should belong to this {0} Configuration Group.  All hosts belonging to this group will have the same set of {0} configurations.',
   'hosts.selectHostsDialog.filter.placeHolder': 'Filter...',
