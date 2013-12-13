@@ -19,7 +19,7 @@
 
 var App = require('app');
 var hostsManagement = require('utils/hosts');
-var serviceComponents = require('data/service_components');
+var componentHelper = require('utils/component');
 
 App.ManageConfigGroupsController = Em.Controller.extend({
   name: 'manageConfigGroupsController',
@@ -180,11 +180,11 @@ App.ManageConfigGroupsController = Em.Controller.extend({
    * @return {Array}
    */
   componentsForFilter: function() {
-    var components = serviceComponents.filterProperty('service_name',this.get('serviceName'));
+    var components = componentHelper.getInstalledComponents().filterProperty('serviceName', this.get('serviceName'));
     return components.map(function(component) {
       return Em.Object.create({
-        displayName: component.display_name,
-        componentName: component.component_name,
+        displayName: component.displayName,
+        componentName: component.id,
         selected: false
       });
     });

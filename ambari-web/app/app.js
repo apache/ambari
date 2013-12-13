@@ -60,7 +60,20 @@ module.exports = Em.Application.create({
   isHadoop2Stack: function(){
     return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") === 1 ||
       stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") === 0)
-  }.property('currentStackVersionNumber')
+  }.property('currentStackVersionNumber'),
+
+  /**
+   * If High Availability is enabled
+   * Based on <code>clusterStatus.isInstalled</code>, stack version, <code>SNameNode</code> availability
+   *
+   * @type {Boolean}
+   */
+  isHaEnabled: function() {
+    if (!this.clusterStatus.get('isInstalled')) return false;
+    if (!this.get('isHadoop2Stack')) return false;
+    return !this.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE');
+  }.property('clusterStatus.isInstalled')
+
 });
 
 /**
@@ -117,7 +130,7 @@ DS.attr.transforms.date = {
       return null;
     }
   }
-}
+};
 
 DS.attr.transforms.object = {
   from: function(serialized) {

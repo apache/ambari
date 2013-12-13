@@ -46,7 +46,8 @@ module.exports = {
         isMaster: component.get('isMaster'),
         isSlave: component.get('isSlave'),
         isClient: component.get('isClient'),
-        displayName: component.get('displayName')
+        displayName: component.get('displayName'),
+        serviceName: component.get('service.id')
       }));
     });
 
