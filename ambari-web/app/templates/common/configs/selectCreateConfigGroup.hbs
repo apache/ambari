@@ -28,7 +28,7 @@
     </div>
     <label class="radio">
       {{view view.selectConfigGroupRadioButton}}
-      {{t config.group.selection.dialog.option.select serviceNameBinding="selectedService.displayName"}}
+      <span {{bindAttr class="view.parentView.hasExistedGroups::message"}}>{{t config.group.selection.dialog.option.select serviceNameBinding="selectedService.displayName"}}</span>
     </label>
     {{#if view.parentView.availableConfigGroups.length}}
     <div class="select-create-config-group-div">

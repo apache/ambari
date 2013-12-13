@@ -1060,6 +1060,9 @@ App.config = Em.Object.create({
       optionCreateConfigGroup: function(){
         return !this.get('optionSelectConfigGroup');
       }.property('optionSelectConfigGroup'),
+      hasExistedGroups: function() {
+        return !!this.get('availableConfigGroups').length;
+      }.property('availableConfigGroups'),
       availableConfigGroups: availableConfigGroups,
       selectedConfigGroup: selectedConfigGroup,
       newConfigGroupName: '',
@@ -1125,7 +1128,7 @@ App.config = Em.Object.create({
             this.set('parentView.parentView.optionSelectConfigGroup', true);
           },
           didInsertElement: function () {
-            if (!this.get('parentView.parentView.availableConfigGroups').length) {
+            if (!this.get('parentView.parentView.hasExistedGroups')) {
               this.set('disabled', true);
               this.set('parentView.parentView.optionSelectConfigGroup', false);
             }
