@@ -47,8 +47,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * An abstract provider module implementation.
@@ -59,7 +57,6 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   private static final int PROPERTY_REQUEST_READ_TIMEOUT    = 10000;
 
   private static final String CLUSTER_NAME_PROPERTY_ID                  = PropertyHelper.getPropertyId("Clusters", "cluster_name");
-  private static final String CLUSTER_VERSION_PROPERTY_ID               = PropertyHelper.getPropertyId("Clusters", "version");
   private static final String HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID   = PropertyHelper.getPropertyId("HostRoles", "cluster_name");
   private static final String HOST_COMPONENT_HOST_NAME_PROPERTY_ID      = PropertyHelper.getPropertyId("HostRoles", "host_name");
   private static final String HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "component_name");
@@ -117,12 +114,6 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
 
   @Inject
   private AmbariManagementController managementController;
-
-  /**
-   * Cluster versions.
-   */
-  private final Map<String, PropertyHelper.MetricsVersion> clusterVersionsMap =
-      new HashMap<String, PropertyHelper.MetricsVersion>();
 
   /**
    * The map of host components.
@@ -184,11 +175,8 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
   public void update(ResourceProviderEvent event) {
     Resource.Type type = event.getResourceType();
 
-    if (type == Resource.Type.Cluster) {
-      resetInit();
-      updateClusterVersion();
-    }
-    if (type == Resource.Type.Host ||
+    if (type == Resource.Type.Cluster ||
+        type == Resource.Type.Host ||
         type == Resource.Type.HostComponent) {
       resetInit();
     }
@@ -309,18 +297,6 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
 
 
   // ----- utility methods ---------------------------------------------------
-
-  /**
-   * Get the metrics version for the given cluster name.
-   *
-   * @param clusterName  the cluster name
-   *
-   * @return the metrics version for the given cluster name
-   */
-  protected PropertyHelper.MetricsVersion getMetricsVersion(String clusterName) {
-    updateClusterVersion();
-    return clusterVersionsMap.get(clusterName);
-  }
 
   protected abstract ResourceProvider createResourceProvider(Resource.Type type);
 
@@ -458,44 +434,6 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
     if (initialized) {
       synchronized (this) {
         initialized = false;
-      }
-    }
-  }
-
-  /**
-   * Update a map of known cluster names to version of JMX metrics.  The JMX metrics version is based on the
-   * HDP version of the cluster.
-   */
-  private void updateClusterVersion() {
-    synchronized (clusterVersionsMap) {
-      clusterVersionsMap.clear();
-
-      ResourceProvider provider = getResourceProvider(Resource.Type.Cluster);
-      Request request = PropertyHelper.getReadRequest(CLUSTER_NAME_PROPERTY_ID, CLUSTER_VERSION_PROPERTY_ID);
-
-      try {
-        Set<Resource> clusters = provider.getResources(request, null);
-
-        for (Resource cluster : clusters) {
-          String clusterVersion = (String) cluster.getPropertyValue(CLUSTER_VERSION_PROPERTY_ID);
-          PropertyHelper.MetricsVersion version = PropertyHelper.MetricsVersion.HDP2;
-
-          Matcher m = Pattern.compile("[0-9]+(\\.[0-9]+)+").matcher(clusterVersion);
-          if (m.find()) {
-            clusterVersion = m.group(0);
-            if (clusterVersion.equals("1") || clusterVersion.startsWith("1.")) {
-              version = PropertyHelper.MetricsVersion.HDP1;
-            }
-          }
-
-          clusterVersionsMap.put(
-              (String) cluster.getPropertyValue(CLUSTER_NAME_PROPERTY_ID),
-              version);
-        }
-      } catch (Exception e) {
-        if (LOG.isErrorEnabled()) {
-          LOG.error("Caught exception while trying to get the cluster versions.", e);
-        }
       }
     }
   }
@@ -651,20 +589,9 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
                                                      String componentNamePropertyId,
                                                      String statePropertyId,
                                                      Set<String> healthyStates) {
-    updateClusterVersion();
-
-    Map<PropertyHelper.MetricsVersion, AbstractPropertyProvider> providers =
-        new HashMap<PropertyHelper.MetricsVersion, AbstractPropertyProvider>();
-    AbstractPropertyProvider lastProvider = null;
-
-    for (PropertyHelper.MetricsVersion version : PropertyHelper.MetricsVersion.values()) {
-
-      lastProvider = new JMXPropertyProvider(PropertyHelper.getJMXPropertyIds(type, version), streamProvider,
+    
+    return new JMXPropertyProvider(PropertyHelper.getJMXPropertyIds(type), streamProvider,
           jmxHostProvider, clusterNamePropertyId, hostNamePropertyId, componentNamePropertyId, statePropertyId, healthyStates);
-      providers.put(version, lastProvider);
-    }
-
-    return new VersioningPropertyProvider(clusterVersionsMap, providers, lastProvider, clusterNamePropertyId);
   }
 
   /**
@@ -674,20 +601,9 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
                                                                 ComponentSSLConfiguration configuration,
                                                                 GangliaHostProvider hostProvider,
                                                                 String clusterNamePropertyId) {
-    updateClusterVersion();
-
-    Map<PropertyHelper.MetricsVersion, AbstractPropertyProvider> providers =
-        new HashMap<PropertyHelper.MetricsVersion, AbstractPropertyProvider>();
-    AbstractPropertyProvider lastProvider = null;
-
-    for (PropertyHelper.MetricsVersion version : PropertyHelper.MetricsVersion.values()) {
-
-      lastProvider = new GangliaReportPropertyProvider(PropertyHelper.getGangliaPropertyIds(type, version), streamProvider,
+    
+    return new GangliaReportPropertyProvider(PropertyHelper.getGangliaPropertyIds(type), streamProvider,
           configuration, hostProvider, clusterNamePropertyId);
-      providers.put(version, lastProvider);
-    }
-
-    return new VersioningPropertyProvider(clusterVersionsMap, providers, lastProvider, clusterNamePropertyId);
   }
 
   /**
@@ -698,20 +614,8 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
                                                               GangliaHostProvider hostProvider,
                                                               String clusterNamePropertyId,
                                                               String hostNamePropertyId) {
-    updateClusterVersion();
-
-    Map<PropertyHelper.MetricsVersion, AbstractPropertyProvider> providers =
-        new HashMap<PropertyHelper.MetricsVersion, AbstractPropertyProvider>();
-    AbstractPropertyProvider lastProvider = null;
-
-    for (PropertyHelper.MetricsVersion version : PropertyHelper.MetricsVersion.values()) {
-
-      lastProvider = new GangliaHostPropertyProvider(PropertyHelper.getGangliaPropertyIds(type, version), streamProvider,
+    return new GangliaHostPropertyProvider(PropertyHelper.getGangliaPropertyIds(type), streamProvider,
           configuration, hostProvider, clusterNamePropertyId, hostNamePropertyId);
-      providers.put(version, lastProvider);
-    }
-
-    return new VersioningPropertyProvider(clusterVersionsMap, providers, lastProvider, clusterNamePropertyId);
   }
 
   /**
@@ -722,21 +626,8 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
                                                                    GangliaHostProvider hostProvider,
                                                                    String clusterNamePropertyId,
                                                                    String componentNamePropertyId) {
-    updateClusterVersion();
-
-    Map<PropertyHelper.MetricsVersion, AbstractPropertyProvider> providers =
-        new HashMap<PropertyHelper.MetricsVersion, AbstractPropertyProvider>();
-    AbstractPropertyProvider lastProvider = null;
-
-    for (PropertyHelper.MetricsVersion version : PropertyHelper.MetricsVersion.values()) {
-      lastProvider =
-          new GangliaComponentPropertyProvider(PropertyHelper.getGangliaPropertyIds(type, version),
+    return new GangliaComponentPropertyProvider(PropertyHelper.getGangliaPropertyIds(type),
               streamProvider, configuration, hostProvider, clusterNamePropertyId, componentNamePropertyId);
-
-      providers.put(version, lastProvider);
-    }
-
-    return new VersioningPropertyProvider(clusterVersionsMap, providers, lastProvider, clusterNamePropertyId);
   }
 
 
@@ -749,20 +640,9 @@ public abstract class AbstractProviderModule implements ProviderModule, Resource
                                                                        String clusterNamePropertyId,
                                                                        String hostNamePropertyId,
                                                                        String componentNamePropertyId) {
-    updateClusterVersion();
 
-    Map<PropertyHelper.MetricsVersion, AbstractPropertyProvider> providers =
-        new HashMap<PropertyHelper.MetricsVersion, AbstractPropertyProvider>();
-    AbstractPropertyProvider lastProvider = null;
-
-    for (PropertyHelper.MetricsVersion version : PropertyHelper.MetricsVersion.values()) {
-
-      lastProvider = new GangliaHostComponentPropertyProvider(PropertyHelper.getGangliaPropertyIds(type, version), streamProvider,
+    return new GangliaHostComponentPropertyProvider(PropertyHelper.getGangliaPropertyIds(type), streamProvider,
           configuration, hostProvider, clusterNamePropertyId, hostNamePropertyId, componentNamePropertyId);
-      providers.put(version, lastProvider);
-    }
-
-    return new VersioningPropertyProvider(clusterVersionsMap, providers, lastProvider, clusterNamePropertyId);
   }
   
   @Override

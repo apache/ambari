@@ -37,14 +37,14 @@ public class AbstractPropertyProviderTest {
 
   @Test
   public void testGetComponentMetrics() {
-    Map<String, Map<String, PropertyInfo>> componentMetrics = PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP1);
+    Map<String, Map<String, PropertyInfo>> componentMetrics = PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent);
     AbstractPropertyProvider provider = new TestPropertyProvider(componentMetrics);
     Assert.assertEquals(componentMetrics, provider.getComponentMetrics());
   }
 
   @Test
   public void testGetPropertyInfoMap() {
-    AbstractPropertyProvider provider = new TestPropertyProvider(PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent, PropertyHelper.MetricsVersion.HDP1));
+    AbstractPropertyProvider provider = new TestPropertyProvider(PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent));
 
     // specific property
     Map<String, PropertyInfo> propertyInfoMap = provider.getPropertyInfoMap("NAMENODE", "metrics/cpu/cpu_aidle");
@@ -92,8 +92,7 @@ public class AbstractPropertyProviderTest {
   @Test
   public void testUpdateComponentMetricMapHDP1() {
     Map<String, Map<String, PropertyInfo>> componentMetrics =
-      PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent,
-      PropertyHelper.MetricsVersion.HDP1);
+      PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent);
 
     AbstractPropertyProvider provider = new TestPropertyProvider(componentMetrics);
 
@@ -116,36 +115,8 @@ public class AbstractPropertyProviderTest {
       flumeMetrics.get(specificMetric).getPropertyId());
   }
 
-  @Test
-  public void testUpdateComponentMetricMapHDP2() {
-    Map<String, Map<String, PropertyInfo>> componentMetrics =
-      PropertyHelper.getGangliaPropertyIds(Resource.Type.HostComponent,
-      PropertyHelper.MetricsVersion.HDP2);
 
-    AbstractPropertyProvider provider = new TestPropertyProvider(componentMetrics);
-
-    Map<String, PropertyInfo> resourceManagerMetrics = provider.getComponentMetrics().get(
-      "RESOURCEMANAGER");
-
-    int metricsBefore = resourceManagerMetrics.size();
-    String specificMetric =
-      "metrics/yarn/Queue/specificQueue1/specificQueue2/AvailableMB";
-    String specificPropertyInfoId =
-      "yarn.QueueMetrics.Queue=specificQueue1.specificQueue2.AvailableMB";
-    Map<String, PropertyInfo> componentMetricMap =
-      provider.getComponentMetrics().get("RESOURCEMANAGER");
-
-    Assert.assertNull(resourceManagerMetrics.get(specificMetric));
-
-    provider.updateComponentMetricMap(componentMetricMap, specificMetric);
-
-    Assert.assertEquals(metricsBefore + 1, resourceManagerMetrics.size());
-    Assert.assertNotNull(resourceManagerMetrics.get(specificMetric));
-    Assert.assertEquals(specificPropertyInfoId,
-      resourceManagerMetrics.get(specificMetric).getPropertyId());
-  }
-
-  static class TestPropertyProvider extends AbstractPropertyProvider {
+  private static class TestPropertyProvider extends AbstractPropertyProvider {
 
     public TestPropertyProvider(Map<String, Map<String, PropertyInfo>> componentMetrics) {
       super(componentMetrics);

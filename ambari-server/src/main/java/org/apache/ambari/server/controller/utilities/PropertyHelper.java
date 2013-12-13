@@ -42,31 +42,19 @@ public class PropertyHelper {
 
   private static final String PROPERTIES_FILE = "properties.json";
   private static final String GANGLIA_PROPERTIES_FILE = "ganglia_properties.json";
-  private static final String GANGLIA_PROPERTIES_FILE_2 = "ganglia_properties_2.json";
   private static final String JMX_PROPERTIES_FILE = "jmx_properties.json";
-  private static final String JMX_PROPERTIES_FILE_2 = "jmx_properties_2.json";
   private static final String KEY_PROPERTIES_FILE = "key_properties.json";
   private static final char EXTERNAL_PATH_SEP = '/';
 
   private static final Map<Resource.Type, Set<String>> PROPERTY_IDS = readPropertyIds(PROPERTIES_FILE);
   private static final Map<Resource.Type, Map<String, Map<String, PropertyInfo>>> JMX_PROPERTY_IDS = readPropertyProviderIds(JMX_PROPERTIES_FILE);
-  private static final Map<Resource.Type, Map<String, Map<String, PropertyInfo>>> JMX_PROPERTY_IDS_2 = readPropertyProviderIds(JMX_PROPERTIES_FILE_2);
   private static final Map<Resource.Type, Map<String, Map<String, PropertyInfo>>> GANGLIA_PROPERTY_IDS = readPropertyProviderIds(GANGLIA_PROPERTIES_FILE);
-  private static final Map<Resource.Type, Map<String, Map<String, PropertyInfo>>> GANGLIA_PROPERTY_IDS_2 = readPropertyProviderIds(GANGLIA_PROPERTIES_FILE_2);
   private static final Map<Resource.Type, Map<Resource.Type, String>> KEY_PROPERTY_IDS = readKeyPropertyIds(KEY_PROPERTIES_FILE);
 
   /**
    * Regular expression to check for replacement arguments (e.g. $1) in a property id.
    */
   private static final Pattern CHECK_FOR_METRIC_ARGUMENTS_REGEX = Pattern.compile(".*\\$\\d+.*");
-
-  /**
-   * Metrics versions.
-   */
-  public enum MetricsVersion {
-    HDP1, // HDP-1.x
-    HDP2  // HDP-2.x
-  }
 
   public static String getPropertyId(String category, String name) {
     String propertyId =  (category == null || category.isEmpty())? name :
@@ -100,25 +88,12 @@ public class PropertyHelper {
     return propertyIds;
   }
 
-  public static Map<String, Map<String, PropertyInfo>> getGangliaPropertyIds(Resource.Type resourceType, MetricsVersion version) {
-    switch (version) {
-      case HDP1:
-        return GANGLIA_PROPERTY_IDS.get(resourceType);
-      case HDP2:
-      default:
-        return GANGLIA_PROPERTY_IDS_2.get(resourceType);
-    }
+  public static Map<String, Map<String, PropertyInfo>> getGangliaPropertyIds(Resource.Type resourceType) {
+    return GANGLIA_PROPERTY_IDS.get(resourceType);
   }
 
-  public static Map<String, Map<String, PropertyInfo>> getJMXPropertyIds(Resource.Type resourceType, MetricsVersion version) {
-
-    switch (version) {
-      case HDP1:
-        return JMX_PROPERTY_IDS.get(resourceType);
-      case HDP2:
-      default:
-        return JMX_PROPERTY_IDS_2.get(resourceType);
-    }
+  public static Map<String, Map<String, PropertyInfo>> getJMXPropertyIds(Resource.Type resourceType) {
+    return JMX_PROPERTY_IDS.get(resourceType);
   }
 
   public static Map<Resource.Type, String> getKeyPropertyIds(Resource.Type resourceType) {
