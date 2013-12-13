@@ -1,0 +1,146 @@
+#!/bin/sh
+# $Id$
+# Nagios	Startup script for the Nagios monitoring daemon
+#
+# chkconfig:	- 85 15
+# description:	Nagios is a service monitoring system
+# processname: nagios
+# config: /etc/nagios/nagios.cfg
+# pidfile: /var/nagios/nagios.pid
+#
+### BEGIN INIT INFO
+# Provides:		nagios
+# Required-Start:	$local_fs $syslog $network
+# Required-Stop:	$local_fs $syslog $network
+# Short-Description:    start and stop Nagios monitoring server
+# Description:		Nagios is is a service monitoring system 
+### END INIT INFO
+
+#
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+#
+#
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+prefix="/usr"
+exec_prefix="/usr"
+exec="/usr/sbin/nagios"
+prog="nagios"
+config="/etc/nagios/nagios.cfg"
+pidfile="{{nagios_pid_file}}"
+user="{{nagios_user}}"
+
+[ -e /etc/sysconfig/$prog ] && . /etc/sysconfig/$prog
+
+lockfile=/var/lock/subsys/$prog
+
+start() {
+    [ -x $exec ] || exit 5
+    [ -f $config ] || exit 6
+    echo -n $"Starting $prog: "
+    daemon --user=$user $exec -d $config
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && touch $lockfile
+    return $retval
+}
+
+stop() {
+    echo -n $"Stopping $prog: "
+    killproc -d 10 $exec
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && rm -f $lockfile
+    return $retval
+}
+
+
+restart() {
+    stop
+    start
+}
+
+reload() {
+    echo -n $"Reloading $prog: "
+    killproc $exec -HUP
+    RETVAL=$?
+    echo
+}
+
+force_reload() {
+    restart
+}
+
+check_config() {
+        $nice runuser -s /bin/bash - $user -c "$corelimit >/dev/null 2>&1 ; $exec -v $config > /dev/null 2>&1"
+        RETVAL=$?
+        if [ $RETVAL -ne 0 ] ; then
+                echo -n $"Configuration validation failed"
+                failure
+                echo
+                exit 1
+
+        fi
+}
+
+
+case "$1" in
+    start)
+        status $prog && exit 0
+	check_config
+        $1
+        ;;
+    stop)
+        status $prog|| exit 0
+        $1
+        ;;
+    restart)
+	check_config
+        $1
+        ;;
+    reload)
+        status $prog || exit 7
+	check_config
+        $1
+        ;;
+    force-reload)
+	check_config
+        force_reload
+        ;;
+    status)
+        status $prog
+        ;;
+    condrestart|try-restart)
+        status $prog|| exit 0
+	check_config
+        restart
+        ;;
+    configtest)
+        echo -n  $"Checking config for $prog: "
+        check_config && success
+        echo
+	;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|condrestart|try-restart|reload|force-reload|configtest}"
+        exit 2
+esac
+exit $?

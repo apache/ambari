@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -14,14 +15,17 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+Ambari Agent
+
 """
+from resource_management.libraries.script.config_dictionary import UnknownConfiguration
 
-from resource_management import *
-
-
-def server(action=None):# 'start' or 'stop'
-  command = "service hdp-gmetad {action} >> /tmp/gmetad.log  2>&1 ; /bin/ps auwx | /bin/grep [g]metad  >> /tmp/gmetad.log  2>&1"
-  Execute(format(command),
-          path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
-  )
-  MonitorWebserver("restart")
+def get_port_from_url(address):
+  if not is_empty(address):
+    return address.split(':')[-1]
+  else:
+    return address
+  
+def is_empty(var):
+  return isinstance(var, UnknownConfiguration)

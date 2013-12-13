@@ -59,6 +59,9 @@ class AttributeDictionary(object):
 
   def items(self):
     return self._dict.items()
+  
+  def iteritems(self):
+    return self._dict.iteritems()
 
   def values(self):
     return self._dict.values()

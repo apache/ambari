@@ -26,8 +26,6 @@ import functions
 # server configurations
 config = Script.get_config()
 
-abc = config['configurations']['global']['wtf']
-
 conf_dir = "/etc/hbase/conf"
 daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
 

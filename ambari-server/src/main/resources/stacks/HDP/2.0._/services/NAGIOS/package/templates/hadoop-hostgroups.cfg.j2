@@ -1,0 +1,15 @@
+{% for name, hosts in hostgroup_defs.iteritems() %}
+{% if hosts %}
+define hostgroup {
+        hostgroup_name  {{name}}
+        alias           {{name}}
+        members         {{','.join(hosts)}}
+}
+{% endif %}
+{% endfor %}
+
+define hostgroup {
+        hostgroup_name  all-servers
+        alias           All Servers
+        members         {{','.join(all_hosts)}}
+}

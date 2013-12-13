@@ -17,7 +17,6 @@ limitations under the License.
 """
 
 from resource_management import *
-from resource_management.libraries.resources.monitor_webserver import MonitorWebserver
 
 
 def server(action=None):# 'start' or 'stop'

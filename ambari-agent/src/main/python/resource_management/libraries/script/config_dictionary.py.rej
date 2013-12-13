@@ -1,0 +1,13 @@
+--- ambari-agent/src/main/python/resource_management/libraries/script/config_dictionary.py
++++ ambari-agent/src/main/python/resource_management/libraries/script/config_dictionary.py
+@@ -72,4 +72,10 @@
+     self.name = name
+    
+   def __getattr__(self, name):
+-    raise Fail("Configuration parameter '"+self.name+"' was not found in configurations dictionary!")+    raise Fail("Configuration parameter '"+self.name+"' was not found in configurations dictionary!")
++  
++  def __getitem__(self, name):
++    """
++    Allow [] 
++    """
++    return self
