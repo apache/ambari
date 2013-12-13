@@ -30,7 +30,7 @@ class HiveServiceCheck(Script):
     env.set_params(params)
     if params.security_enabled:
       kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser};")
-      hive_principal_ext = format("principal={hive_metatore_keytab_path}")
+      hive_principal_ext = format("principal={hive_metastore_keytab_path}")
       hive_url_ext = format("{hive_url}/\\;{hive_principal_ext}")
       smoke_cmd = format("{kinit_cmd} env JAVA_HOME={java64_home} {smoke_test_path} {hive_url_ext} {smoke_test_sql}")
     else:

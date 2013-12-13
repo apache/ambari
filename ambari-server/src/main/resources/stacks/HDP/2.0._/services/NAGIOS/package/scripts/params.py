@@ -66,6 +66,7 @@ datanode_port = get_port_from_url(config['configurations']['hdfs-site']['dfs.dat
 flume_port = "4159"
 hive_metastore_port = config['configurations']['global']['hive_metastore_port'] #"9083"
 templeton_port = config['configurations']['webhcat-site']['templeton.port'] #"50111"
+hbase_rs_port = "60030"
 
 # this is different for HDP1
 nn_metrics_property = "FSNamesystem"
@@ -125,7 +126,7 @@ _flume_hosts = default("/clusterHostInfo/flume_hosts", None)
 _nagios_server_host = default("/clusterHostInfo/nagios_server_host",None)
 _ganglia_server_host = default("/clusterHostInfo/ganglia_server_host",None)
 
-_hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts",None)
+hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts",None)
 _hive_server_host = default("/clusterHostInfo/hive_server_host",None)
 _oozie_server = default("/clusterHostInfo/oozie_server",None)
 _webhcat_server_host = default("/clusterHostInfo/webhcat_server_host",None)
@@ -149,7 +150,7 @@ hostgroup_defs = {
     'ganglia-server' : _ganglia_server_host,
     'flume-servers' : _flume_hosts,
     'zookeeper-servers' : _zookeeper_hosts,
-    'hbasemasters' : _hbase_master_hosts,
+    'hbasemasters' : hbase_master_hosts,
     'hiveserver' : _hive_server_host,
     'region-servers' : _hbase_rs_hosts,
     'oozie-server' : _oozie_server,

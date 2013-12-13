@@ -58,7 +58,7 @@ smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
 security_enabled = config['configurations']['global']['security_enabled']
 
 kinit_path_local = get_kinit_path([default("kinit_path_local",None), "/usr/bin", "/usr/kerberos/bin", "/usr/sbin"])
-hive_metatore_keytab_path = default("hive-site/hive.metastore.kerberos.keytab.file","/etc/security/keytabs/hive.service.keytab")
+hive_metastore_keytab_path =  config['configurations']['hive-site']['hive.metastore.kerberos.keytab.file']
 
 #hive_env
 hive_conf_dir = "/etc/hive/conf"
@@ -127,4 +127,4 @@ webhcat_user = config['configurations']['global']['webhcat_user']
 hcat_pid_dir = config['configurations']['global']['hcat_pid_dir']   #hcat_pid_dir
 hcat_log_dir = config['configurations']['global']['hcat_log_dir']   #hcat_log_dir
 
-hadoop_conf_dir = config['configurations']['global']['hadoop_conf_dir']
+hadoop_conf_dir = '/etc/hadoop/conf'

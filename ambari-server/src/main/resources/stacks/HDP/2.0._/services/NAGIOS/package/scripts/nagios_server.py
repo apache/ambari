@@ -66,10 +66,10 @@ def remove_conflicting_packages():
   )
 
 def main():
-  command_type = sys.argv[1] if len(sys.argv)>1 else "stop"
+  command_type = sys.argv[1] if len(sys.argv)>1 else "install"
   print "Running "+command_type
-  command_data_file = '/root/workspace/Nagios/input.json'
-  basedir = '/root/workspace/Nagios/main'
+  command_data_file = '/var/lib/ambari-agent/data/command-3.json'
+  basedir = '/root/ambari/ambari-server/src/main/resources/stacks/HDP/2.0._/services/NAGIOS/package'
   stroutfile = '/1.txt'
   sys.argv = ["", command_type, command_data_file, basedir, stroutfile]
   
