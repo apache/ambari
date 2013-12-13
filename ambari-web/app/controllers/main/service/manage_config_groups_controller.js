@@ -650,7 +650,7 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
         });
         if (duplicated) {
           self.get('selectedConfigGroup.properties').forEach(function(property) {
-            var property = $.extend(true, {},property);
+            var property = $.extend(false, {},property);
             property.set('group', newConfigGroupData);
             properties.push(App.ServiceConfigProperty.create(property));
           });
