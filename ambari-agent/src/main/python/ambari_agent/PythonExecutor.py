@@ -48,16 +48,22 @@ class PythonExecutor:
     pass
 
   def run_file(self, script, script_params, tmpoutfile, tmperrfile, timeout,
-               tmpstructedoutfile):
+               tmpstructedoutfile, override_output_files = True):
     """
     Executes the specified python file in a separate subprocess.
     Method returns only when the subprocess is finished.
     Params arg is a list of script parameters
     Timeout meaning: how many seconds should pass before script execution
     is forcibly terminated
+    override_output_files option defines whether stdout/stderr files will be
+    recreated or appended
     """
-    tmpout =  open(tmpoutfile, 'w')
-    tmperr =  open(tmperrfile, 'w')
+    if override_output_files: # Recreate files
+      tmpout =  open(tmpoutfile, 'w')
+      tmperr =  open(tmperrfile, 'w')
+    else: # Append to files
+      tmpout =  open(tmpoutfile, 'a')
+      tmperr =  open(tmperrfile, 'a')
     script_params += [tmpstructedoutfile]
     pythonCommand = self.python_command(script, script_params)
     logger.info("Running command " + pprint.pformat(pythonCommand))

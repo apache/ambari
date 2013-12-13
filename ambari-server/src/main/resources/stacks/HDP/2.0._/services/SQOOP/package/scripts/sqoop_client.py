@@ -16,8 +16,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Ambari Agent
-
 """
 
 import sys
@@ -35,6 +33,9 @@ class SqoopClient(Script):
     import params
     env.set_params(params)
     sqoop(type='client')
+
+  def status(self, env):
+    raise ClientComponentHasNoStatus()
 
 if __name__ == "__main__":
   SqoopClient().execute()

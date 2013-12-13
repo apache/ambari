@@ -22,6 +22,7 @@ Ambari Agent
 
 from resource_management import *
 from functions import get_port_from_url
+import status_params
 
 # server configurations
 config = Script.get_config()
@@ -33,14 +34,12 @@ plugins_dir = "/usr/lib64/nagios/plugins"
 nagios_obj_dir = "/etc/nagios/objects"
 check_result_path = "/var/nagios/spool/checkresults"
 nagios_httpd_config_file = format("/etc/httpd/conf.d/nagios.conf")
-nagios_pid_dir = "/var/run/nagios"
-pid_file = format("{nagios_pid_dir}/nagios.pid")
 nagios_log_dir = "/var/log/nagios"
 nagios_log_archives_dir = format("{nagios_log_dir}/archives")
 nagios_host_cfg = format("{nagios_obj_dir}/hadoop-hosts.cfg")
 nagios_lookup_daemon_str = "/usr/sbin/nagios"
-nagios_pid_dir = "/var/run/nagios"
-nagios_pid_file = format("{nagios_pid_dir}/nagios.pid")
+nagios_pid_dir = status_params.nagios_pid_dir
+nagios_pid_file = status_params.nagios_pid_file
 nagios_resource_cfg = format("{conf_dir}/resource.cfg")
 nagios_hostgroup_cfg = format("{nagios_obj_dir}/hadoop-hostgroups.cfg")
 nagios_servicegroup_cfg = format("{nagios_obj_dir}/hadoop-servicegroups.cfg")

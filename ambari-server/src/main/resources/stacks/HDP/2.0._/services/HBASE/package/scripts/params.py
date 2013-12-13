@@ -16,12 +16,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Ambari Agent
-
 """
 
 from resource_management import *
 import functions
+import status_params
 
 # server configurations
 config = Script.get_config()
@@ -46,7 +45,7 @@ master_heapsize = config['configurations']['global']['hbase_master_heapsize']
 regionserver_heapsize = config['configurations']['global']['hbase_regionserver_heapsize']
 regionserver_xmn_size = functions.calc_xmn_from_xms(regionserver_heapsize, 0.2, 512)
 
-pid_dir = config['configurations']['global']['hbase_pid_dir']
+pid_dir = status_params.pid_dir
 tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
 
 client_jaas_config_file = default('hbase_client_jaas_config_file', format("{conf_dir}/hbase_client_jaas.conf"))

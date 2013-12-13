@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -16,28 +16,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Ambari Agent
-
 """
 
-import sys
 from resource_management import *
 
-from zookeeper import zookeeper
+config = Script.get_config()
 
-class ZookeeperClient(Script):
-  def install(self, env):
-    self.install_packages(env)
-    self.configure(env)
+hive_pid_dir = config['configurations']['global']['hive_pid_dir']
+hive_pid = 'hive-server.pid'
 
-  def configure(self, env):
-    import params
-    env.set_params(params)
+hive_metastore_pid = 'hive.pid'
 
-    zookeeper(type='client')
-
-  def status(self, env):
-    raise ClientComponentHasNoStatus()
-
-if __name__ == "__main__":
-  ZookeeperClient().execute()
+hcat_pid_dir = config['configurations']['global']['hcat_pid_dir'] #hcat_pid_dir

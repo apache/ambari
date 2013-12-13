@@ -16,8 +16,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Ambari Agent
-
 """
 
 import sys
@@ -53,6 +51,12 @@ class HbaseRegionServer(Script):
     hbase_service( 'regionserver',
       action = 'stop'
     )
+
+  def status(self, env):
+    import status_params
+    env.set_params(status_params)
+    pid_file = format("{pid_dir}/hbase-hbase-regionserver.pid")
+    check_process_status(pid_file)
     
   def decommission(self):
     print "Decommission not yet implemented!"

@@ -16,8 +16,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Ambari Agent
-
 """
 
 import sys
@@ -27,6 +25,7 @@ from hive import hive
 from hive_service import hive_service
 
 class HiveServer(Script):
+
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
@@ -51,6 +50,14 @@ class HiveServer(Script):
     hive_service( 'hiveserver2',
                   action = 'stop'
     )
+
+
+  def status(self, env):
+    import status_params
+    env.set_params(status_params)
+    pid_file = format("{hive_pid_dir}/{hive_pid}")
+    # Recursively check all existing gmetad pid files
+    check_process_status(pid_file)
 
 if __name__ == "__main__":
   HiveServer().execute()

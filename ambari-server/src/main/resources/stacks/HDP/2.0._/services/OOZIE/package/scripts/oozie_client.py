@@ -15,6 +15,9 @@ class OozieClient(Script):
     env.set_params(params)
 
     oozie(is_server=False)
+
+  def status(self, env):
+    raise ClientComponentHasNoStatus()
     
 def main():
   command_type = sys.argv[1] if len(sys.argv)>1 else "install"

@@ -251,6 +251,7 @@ public class ExecutionCommand extends AgentCommand {
     String DB_DRIVER_FILENAME = "db_driver_filename";
     String REPO_INFO = "repo_info";
     String DB_NAME = "db_name";
+    String GLOBAL = "global";
     String SERVICE_CHECK = "SERVICE_CHECK"; // TODO: is it standart command? maybe add it to RoleCommand enum?
 
     String COMMAND_TIMEOUT_DEFAULT = "600"; // TODO: Will be replaced by proper initialization in another jira

@@ -1,4 +1,5 @@
 from resource_management import *
+import status_params
 
 # server configurations
 config = Script.get_config()
@@ -14,8 +15,8 @@ check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar
 hadoop_prefix = "/usr"
 oozie_tmp_dir = "/var/tmp/oozie"
 oozie_hdfs_user_dir = format("/user/{oozie_user}")
-oozie_pid_dir = config['configurations']['global']['oozie_pid_dir']
-pid_file = format("{oozie_pid_dir}/oozie.pid")
+oozie_pid_dir = status_params.oozie_pid_dir
+pid_file = status_params.pid_file
 hadoop_jar_location = "/usr/lib/hadoop/"
 # for HDP1 it's "/usr/share/HDP-oozie/ext.zip"
 ext_js_path = "/usr/share/HDP-oozie/ext-2.2.zip"

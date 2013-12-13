@@ -16,17 +16,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Ambari Agent
-
 """
 
 import sys
 from resource_management import *
 
-from mysql import mysql
 from mysql_service import mysql_service
 
 class MysqlServer(Script):
+
+  if System.get_instance().platform == "suse":
+    daemon_name = 'mysql'
+  else:
+    daemon_name = 'mysqld'
+
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
@@ -34,19 +37,41 @@ class MysqlServer(Script):
   def configure(self, env):
     import params
     env.set_params(params)
-    mysql()
+
+    mysql_service(daemon_name=self.daemon_name, action='start')
+
+    File(params.mysql_adduser_path,
+         mode=0755,
+         content=StaticFile('addMysqlUser.sh')
+    )
+
+    # Autoescaping
+    cmd = ("bash", "-x", params.mysql_adduser_path, self.daemon_name,
+           params.hive_metastore_user_name, params.hive_metastore_user_passwd, params.mysql_host[0])
+
+    Execute(cmd,
+            tries=3,
+            try_sleep=5,
+            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+            logoutput=True
+    )
+
+    mysql_service(daemon_name=self.daemon_name, action='stop')
 
   def start(self, env):
     import params
     env.set_params(params)
 
-    mysql_service(action = 'start')
+    mysql_service(daemon_name=self.daemon_name, action = 'start')
 
   def stop(self, env):
     import params
     env.set_params(params)
 
-    mysql_service(action = 'stop')
+    mysql_service(daemon_name=self.daemon_name, action = 'stop')
+
+  def status(self, env):
+    mysql_service(daemon_name=self.daemon_name, action = 'status')
 
 if __name__ == "__main__":
   MysqlServer().execute()

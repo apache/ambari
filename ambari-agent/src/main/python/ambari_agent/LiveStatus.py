@@ -141,21 +141,25 @@ class LiveStatus:
     #TODO: Should also check belonging of server to cluster
     return component['serviceName'] == self.service
 
-  # Live status was stripped from heartbeat after revision e1718dd
-  def build(self):
+  def build(self, forsed_component_status = None):
+    """
+    If forsed_component_status is explicitly defined, than StatusCheck methods are
+    not used. This feature has been added to support custom (ver 2.0) services.
+    """
     global SERVICES, CLIENT_COMPONENTS, COMPONENTS, LIVE_STATUS, DEAD_STATUS
-    statusCheck = StatusCheck(AmbariConfig.servicesToPidNames,
-      AmbariConfig.pidPathesVars, self.globalConfig,
-      AmbariConfig.servicesToLinuxUser)
+
     livestatus = None
     component = {"serviceName" : self.service, "componentName" : self.component}
     if component in self.COMPONENTS + self.CLIENT_COMPONENTS :
-      # CLIENT components can't have status STARTED
-      if component in self.CLIENT_COMPONENTS:
-        status = self.DEAD_STATUS
+      if forsed_component_status: # If already determined
+        status = forsed_component_status  # Nothing to do
+      elif component in self.CLIENT_COMPONENTS:
+        status = self.DEAD_STATUS # CLIENT components can't have status STARTED
       else:
+        statusCheck = StatusCheck(AmbariConfig.servicesToPidNames,
+                                  AmbariConfig.pidPathesVars, self.globalConfig,
+                                  AmbariConfig.servicesToLinuxUser)
         serviceStatus = statusCheck.getStatus(self.component)
-
         if serviceStatus is None:
           logger.warn("There is no service to pid mapping for " + self.component)
         status = self.LIVE_STATUS if serviceStatus else self.DEAD_STATUS

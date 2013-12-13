@@ -39,6 +39,23 @@ class GangliaMonitor(Script):
   def stop(self, env):
     ganglia_monitor_service.monitor("stop")
 
+
+  def status(self, env):
+    import status_params
+    pid_file_name = 'gmond.pid'
+    pid_file_count = 0
+    pid_dir = status_params.pid_dir
+    # Recursively check all existing gmond pid files
+    for cur_dir, subdirs, files in os.walk(pid_dir):
+      for file_name in files:
+        if file_name == pid_file_name:
+          pid_file = os.path.join(cur_dir, file_name)
+          check_process_status(pid_file)
+          pid_file_count += 1
+    if pid_file_count == 0: # If no any pid file is present
+      raise ComponentIsNotRunning()
+
+
   def config(self, env):
     import params
 

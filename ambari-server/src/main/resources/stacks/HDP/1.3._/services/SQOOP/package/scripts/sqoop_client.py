@@ -33,5 +33,8 @@ class SqoopClient(Script):
     env.set_params(params)
     sqoop(type='client')
 
+  def status(self, env):
+    raise ClientComponentHasNoStatus()
+
 if __name__ == "__main__":
   SqoopClient().execute()

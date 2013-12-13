@@ -26,3 +26,19 @@ class Fail(Exception):
 
 class InvalidArgument(Fail):
   pass
+
+class ClientComponentHasNoStatus(Fail):
+  """
+  Thrown when status() method is called for a CLIENT component.
+  The only valid status for CLIENT component is installed,
+  that's why exception is thrown and later silently processed at script.py
+  """
+  pass
+
+class ComponentIsNotRunning(Fail):
+  """
+  Thrown when status() method is called for a component (only
+  in situations when component process is not running).
+  Later exception is silently processed at script.py
+  """
+  pass

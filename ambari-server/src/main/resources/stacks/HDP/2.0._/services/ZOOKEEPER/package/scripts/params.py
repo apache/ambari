@@ -21,6 +21,7 @@ Ambari Agent
 """
 
 from resource_management import *
+import status_params
 
 # server configurations
 config = Script.get_config()
@@ -35,8 +36,8 @@ smoke_script = "/usr/lib/zookeeper/bin/zkCli.sh"
 
 zk_log_dir = config['configurations']['global']['zk_log_dir']
 zk_data_dir = config['configurations']['global']['zk_data_dir']
-zk_pid_dir = config['configurations']['global']['zk_pid_dir']
-zk_pid_file = format("{zk_pid_dir}/zookeeper_server.pid")
+zk_pid_dir = status_params.zk_pid_dir
+zk_pid_file = status_params.zk_pid_file
 zk_server_heapsize = "-Xmx1024m"
 
 tickTime = config['configurations']['global']['tickTime']

@@ -58,3 +58,15 @@ class TestLiveStatus(TestCase):
     result = livestatus.build()
     self.assertTrue(len(result) > 0, 'Livestatus should not be empty')
     self.assertTrue(result.has_key('configurationTags'))
+    # Test build status with forsed_component_status
+    ## Alive
+    livestatus = LiveStatus('c1', 'HDFS', 'HDFS_CLIENT', { }, config)
+    result = livestatus.build(forsed_component_status = LiveStatus.LIVE_STATUS)
+    self.assertTrue(len(result) > 0, 'Livestatus should not be empty')
+    self.assertTrue(result['status'], LiveStatus.LIVE_STATUS)
+    ## Dead
+    livestatus = LiveStatus('c1', 'HDFS', 'HDFS_CLIENT', { }, config)
+    result = livestatus.build(forsed_component_status = LiveStatus.DEAD_STATUS)
+    self.assertTrue(len(result) > 0, 'Livestatus should not be empty')
+    self.assertTrue(result['status'], LiveStatus.DEAD_STATUS)
+

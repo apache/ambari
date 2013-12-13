@@ -45,5 +45,10 @@ class WebHCatServer(Script):
 
     webhcat_service(action = 'stop')
 
+  def status(self, env):
+    import status_params
+    env.set_params(status_params)
+    check_process_status(status_params.pid_file)
+
 if __name__ == "__main__":
   WebHCatServer().execute()

@@ -21,14 +21,17 @@ class OozieServer(Script):
   def start(self, env):
     import params
     env.set_params(params)
-
     oozie_service(action='start')
     
   def stop(self, env):
     import params
     env.set_params(params)
-
     oozie_service(action='stop')
+
+  def status(self, env):
+    import status_params
+    env.set_params(status_params)
+    check_process_status(status_params.pid_file)
     
 def main():
   command_type = sys.argv[1] if len(sys.argv)>1 else "start"

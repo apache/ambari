@@ -136,7 +136,6 @@ class TestPythonExecutor(TestCase):
     self.assertTrue("python" in command[0])
     self.assertEquals("script", command[1])
     self.assertEquals("script_param1", command[2])
-    pprint.pprint(command)
 
 
   class Subprocess_mockup():

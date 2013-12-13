@@ -16,8 +16,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Ambari Agent
-
 """
 
 from resource_management import *
@@ -30,7 +28,7 @@ def hive_service(
   import params
 
   if name == 'metastore':
-    pid_file = format("{hive_pid_dir}/hive.pid")
+    pid_file = format("{hive_pid_dir}/{hive_metastore_pid}")
     cmd = format(
       "env HADOOP_HOME={hadoop_home} JAVA_HOME={java64_home} {start_metastore_path} {hive_log_dir}/hive.out {hive_log_dir}/hive.log {pid_file} {hive_server_conf_dir}")
   elif name == 'hiveserver2':

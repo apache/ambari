@@ -210,9 +210,18 @@ class ActionQueue(threading.Thread):
         globalConfig = configurations['global']
       else:
         globalConfig = {}
+
+      command_format = self.determine_command_format_version(command)
+
       livestatus = LiveStatus(cluster, service, component,
                               globalConfig, self.config)
-      result = livestatus.build()
+      component_status = None
+      if command_format == self.COMMAND_FORMAT_V2:
+        # For custom services, responsibility to determine service status is
+        # delegated to python scripts
+        component_status = self.customServiceOrchestrator.requestComponentStatus(command)
+
+      result = livestatus.build(forsed_component_status= component_status)
       logger.debug("Got live status for component " + component + \
                    " of service " + str(service) + \
                    " of cluster " + str(cluster))

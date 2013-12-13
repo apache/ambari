@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -16,28 +16,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Ambari Agent
-
 """
 
-import sys
 from resource_management import *
 
-from zookeeper import zookeeper
+config = Script.get_config()
 
-class ZookeeperClient(Script):
-  def install(self, env):
-    self.install_packages(env)
-    self.configure(env)
-
-  def configure(self, env):
-    import params
-    env.set_params(params)
-
-    zookeeper(type='client')
-
-  def status(self, env):
-    raise ClientComponentHasNoStatus()
-
-if __name__ == "__main__":
-  ZookeeperClient().execute()
+nagios_pid_dir = "/var/run/nagios"
+nagios_pid_file = format("{nagios_pid_dir}/nagios.pid")

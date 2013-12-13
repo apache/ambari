@@ -16,15 +16,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Ambari Agent
-
 """
 
 from resource_management import *
 
 def hbase_service(
   name,
-  action = 'start'): # 'start' or 'stop'
+  action = 'start'): # 'start' or 'stop' or 'status'
     
     import params
   
@@ -40,7 +38,7 @@ def hbase_service(
       no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
     elif action == 'stop':
       daemon_cmd = format("{cmd} stop {role} && rm -f {pid_file}")
-  
+
     if daemon_cmd is not None:
       Execute ( daemon_cmd,
         not_if = no_op_test,

@@ -16,8 +16,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Ambari Agent
-
 """
 
 import sys
@@ -53,7 +51,13 @@ class HbaseMaster(Script):
     hbase_service( 'master',
       action = 'stop'
     )
-    
+
+  def status(self, env):
+    import status_params
+    env.set_params(status_params)
+    pid_file = format("{pid_dir}/hbase-hbase-master.pid")
+    check_process_status(pid_file)
+
 def main():
   command_type = sys.argv[1] if len(sys.argv)>1 else "install"
   print "Running "+command_type

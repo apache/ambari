@@ -16,8 +16,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Ambari Agent
-
 """
 import sys
 from resource_management import *
@@ -28,11 +26,16 @@ class HiveClient(Script):
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
+
   def configure(self, env):
     import params
     env.set_params(params)
 
     hive(type='client')
+
+
+  def status(self, env):
+    raise ClientComponentHasNoStatus()
 
 if __name__ == "__main__":
   HiveClient().execute()

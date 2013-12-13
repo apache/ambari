@@ -16,25 +16,29 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Ambari Agent
-
 """
 
 from resource_management import *
 
 
-def mysql_service(action='start'):
+def mysql_service(daemon_name=None, action='start'):
 
-  import params
-
+  logoutput=True
   if action == 'start':
-    cmd = format('service {service_name} start')
+    cmd = format('service {daemon_name} start')
   elif action == 'stop':
-    cmd = format('service {service_name} stop')
+    cmd = format('service {daemon_name} stop')
+  elif action == 'status':
+    cmd = format('service {daemon_name} status')
+    logoutput = False
   else:
     cmd = None
 
   if cmd is not None:
     Execute(cmd,
             path="/usr/local/bin/:/bin/:/sbin/",
-            logoutput=True)
+            tries=1,
+            logoutput=logoutput)
+
+
+

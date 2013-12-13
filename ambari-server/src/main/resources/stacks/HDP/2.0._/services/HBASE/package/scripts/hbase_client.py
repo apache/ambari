@@ -16,8 +16,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Ambari Agent
-
 """
 
 import sys
@@ -36,7 +34,10 @@ class HbaseClient(Script):
     env.set_params(params)
     
     hbase(type='client')
-    
+
+  def status(self, env):
+    raise ClientComponentHasNoStatus()
+
 #for tests
 def main():
   command_type = 'install'

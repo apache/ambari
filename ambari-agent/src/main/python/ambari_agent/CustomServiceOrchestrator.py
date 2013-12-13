@@ -28,6 +28,7 @@ from AgentException import AgentException
 from PythonExecutor import PythonExecutor
 from AmbariConfig import AmbariConfig
 import hostname
+from LiveStatus import LiveStatus
 
 
 logger = logging.getLogger()
@@ -39,6 +40,7 @@ class CustomServiceOrchestrator():
   """
 
   SCRIPT_TYPE_PYTHON = "PYTHON"
+  COMMAND_NAME_STATUS = "STATUS"
   CUSTOM_ACTION_COMMAND = 'ACTIONEXECUTE'
 
   PRE_HOOK_PREFIX="before"
@@ -49,16 +51,43 @@ class CustomServiceOrchestrator():
     self.tmp_dir = config.get('agent', 'prefix')
     self.file_cache = FileCache(config)
     self.python_executor = PythonExecutor(self.tmp_dir, config)
-
-
-  def runCommand(self, command, tmpoutfile, tmperrfile):
+    self.status_commands_stdout = os.path.join(self.tmp_dir,
+                                               'status_command_stdout.txt')
+    self.status_commands_stderr = os.path.join(self.tmp_dir,
+                                               'status_command_stderr.txt')
+    # Clean up old status command files if any
     try:
-      component_name = command['role']
+      os.unlink(self.status_commands_stdout)
+      os.unlink(self.status_commands_stderr)
+    except OSError:
+      pass # Ignore fail
+
+
+  def runCommand(self, command, tmpoutfile, tmperrfile, forsed_command_name = None,
+                 override_output_files = True):
+    """
+    forsed_command_name may be specified manually. In this case, value, defined at
+    command json, is ignored.
+    """
+    try:
+      try:
+        component_name = command['role']
+      except KeyError:
+        # For status commands and (maybe) custom actions component name
+        # is stored at another location
+        component_name = command['componentName']
       script_type = command['commandParams']['script_type']
       script = command['commandParams']['script']
-      command_name = command['roleCommand']
       timeout = int(command['commandParams']['command_timeout'])
-      task_id = command['taskId']
+      task_id = "status"
+      try:
+        task_id = command['taskId']
+        command_name = command['roleCommand']
+      except KeyError:
+        pass # Status commands have no taskId
+
+      if forsed_command_name is not None: # If not supplied as an argument
+        command_name = forsed_command_name
 
       if command_name == self.CUSTOM_ACTION_COMMAND:
         base_dir = self.config.get('python', 'custom_actions_dir')
@@ -73,6 +102,7 @@ class CustomServiceOrchestrator():
           stack_name, stack_version, metadata_folder, component_name)
         script_path = self.resolve_script_path(base_dir, script, script_type)
         script_tuple = (script_path, base_dir)
+
 
       tmpstrucoutfile = os.path.join(self.tmp_dir,
                                     "structured-out-{0}.json".format(task_id))
@@ -89,12 +119,16 @@ class CustomServiceOrchestrator():
       py_file_list = [pre_hook_tuple, script_tuple, post_hook_tuple]
       # filter None values
       filtered_py_file_list = [i for i in py_file_list if i]
+
       # Executing hooks and script
       ret = None
       for py_file, current_base_dir in filtered_py_file_list:
         script_params = [command_name, json_path, current_base_dir]
         ret = self.python_executor.run_file(py_file, script_params,
-                               tmpoutfile, tmperrfile, timeout, tmpstrucoutfile)
+                               tmpoutfile, tmperrfile, timeout,
+                               tmpstrucoutfile, override_output_files)
+        # Next run_file() invocations should always append to current output
+        override_output_files = False
         if ret['exitcode'] != 0:
           break
 
@@ -105,7 +139,7 @@ class CustomServiceOrchestrator():
       exc_type, exc_obj, exc_tb = sys.exc_info()
       message = "Catched an exception while executing "\
         "custom service command: {0}: {1}".format(exc_type, exc_obj)
-      logger.error(message)
+      logger.exception(message)
       ret = {
         'stdout' : message,
         'stderr' : message,
@@ -113,6 +147,24 @@ class CustomServiceOrchestrator():
         'exitcode': 1,
       }
     return ret
+
+
+  def requestComponentStatus(self, command):
+    """
+     Component status is determined by exit code, returned by runCommand().
+     Exit code 0 means that component is running and any other exit code means that
+     component is not running
+    """
+    override_output_files=True # by default, we override status command output
+    if logger.level == logging.DEBUG:
+      override_output_files = False
+    res = self.runCommand(command, self.status_commands_stdout,
+                          self.status_commands_stderr, self.COMMAND_NAME_STATUS,
+                          override_output_files=override_output_files)
+    if res['exitcode'] == 0:
+      return LiveStatus.LIVE_STATUS
+    else:
+      return LiveStatus.DEAD_STATUS
 
 
   def resolve_script_path(self, base_dir, script, script_type):
@@ -151,10 +203,20 @@ class CustomServiceOrchestrator():
     public_fqdn = hostname.public_hostname()
     command['public_hostname'] = public_fqdn
     # Now, dump the json file
-    task_id = command['taskId']
-    file_path = os.path.join(self.tmp_dir, "command-{0}.json".format(task_id))
-    # Command json contains passwords, that's why we need proper permissions
-    with os.fdopen(os.open(file_path, os.O_WRONLY | os.O_CREAT,0600), 'w') as f:
+    command_type = command['commandType']
+    from ActionQueue import ActionQueue  # To avoid cyclic dependency
+    if command_type == ActionQueue.STATUS_COMMAND:
+      # These files are frequently created, thats why we don't
+      # store them all, but only the latest one
+      file_path = os.path.join(self.tmp_dir, "status_command.json")
+    else:
+      task_id = command['taskId']
+      file_path = os.path.join(self.tmp_dir, "command-{0}.json".format(task_id))
+    # Json may contain passwords, that's why we need proper permissions
+    if os.path.isfile(file_path):
+      os.unlink(file_path)
+    with os.fdopen(os.open(file_path, os.O_WRONLY | os.O_CREAT,
+                           0600), 'w') as f:
       content = json.dumps(command, sort_keys = False, indent = 4)
       f.write(content)
     return file_path

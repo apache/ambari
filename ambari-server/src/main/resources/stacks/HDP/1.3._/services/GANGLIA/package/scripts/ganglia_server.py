@@ -45,6 +45,13 @@ class GangliaServer(Script):
     env.set_params(params)
     ganglia_server_service.server("stop")
 
+  def status(self, env):
+    import status_params
+    env.set_params(status_params)
+    pid_file = format("{pid_dir}/gmetad.pid")
+    # Recursively check all existing gmetad pid files
+    check_process_status(pid_file)
+
   def config(self, env):
     import params
 

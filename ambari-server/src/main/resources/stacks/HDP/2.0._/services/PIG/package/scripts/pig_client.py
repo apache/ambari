@@ -34,6 +34,9 @@ class PigClient(Script):
     import params
     env.set_params(params)
     pig()
+
+  def status(self, env):
+    raise ClientComponentHasNoStatus()
     
 #for tests
 def main():

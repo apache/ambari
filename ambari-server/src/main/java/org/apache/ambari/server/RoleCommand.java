@@ -18,6 +18,15 @@
 package org.apache.ambari.server;
 
 public enum RoleCommand {
+
+  /*
+   * When adding/modifying enum members, please beware that except Java usages,
+   * RoleCommand string representations are used at role_command_order.json
+   * files
+   */
+
+
+public enum RoleCommand {
   INSTALL,
   UNINSTALL,
   START,

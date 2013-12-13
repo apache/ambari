@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.agent;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,6 +36,8 @@ public class StatusCommand extends AgentCommand {
   private String serviceName;
   private String componentName;
   private Map<String, Map<String, String>> configurations;
+  private Map<String, String> commandParams = new HashMap<String, String>();
+  private Map<String, String> hostLevelParams = new HashMap<String, String>();
 
   @JsonProperty("clusterName")
   public String getClusterName() {
@@ -75,4 +78,25 @@ public class StatusCommand extends AgentCommand {
   public void setConfigurations(Map<String, Map<String, String>> configurations) {
     this.configurations = configurations;
   }
+
+  @JsonProperty("hostLevelParams")
+  public Map<String, String> getHostLevelParams() {
+    return hostLevelParams;
+  }
+
+  @JsonProperty("hostLevelParams")
+  public void setHostLevelParams(Map<String, String> params) {
+    this.hostLevelParams = params;
+  }
+
+  @JsonProperty("commandParams")
+  public Map<String, String> getCommandParams() {
+    return commandParams;
+  }
+
+  @JsonProperty("commandParams")
+  public void setCommandParams(Map<String, String> commandParams) {
+    this.commandParams = commandParams;
+  }
+
 }

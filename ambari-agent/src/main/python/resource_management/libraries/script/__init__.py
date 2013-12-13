@@ -22,3 +22,4 @@ Ambari Agent
 
 from resource_management.libraries.script.script import *
 from resource_management.libraries.script.hook import *
+from resource_management.libraries.script.config_dictionary import *

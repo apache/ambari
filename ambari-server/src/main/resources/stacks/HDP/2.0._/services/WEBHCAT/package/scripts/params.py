@@ -21,6 +21,7 @@ Ambari Agent
 """
 
 from resource_management import *
+import status_params
 
 # server configurations
 config = Script.get_config()
@@ -31,9 +32,9 @@ download_url = config['configurations']['global']['apache_artifacts_download_url
 config_dir = '/etc/hcatalog/conf'
 
 templeton_log_dir = config['configurations']['global']['hcat_log_dir']
-templeton_pid_dir = config['configurations']['global']['hcat_pid_dir']
+templeton_pid_dir = status_params.templeton_pid_dir
 
-pid_file = format('{templeton_pid_dir}/webhcat.pid')
+pid_file = status_params.pid_file
 
 hadoop_conf_dir = config['configurations']['webhcat-site']['templeton.hadoop.conf.dir']
 templeton_jar = config['configurations']['webhcat-site']['templeton.jar']

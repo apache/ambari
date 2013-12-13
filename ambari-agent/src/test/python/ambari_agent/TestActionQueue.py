@@ -354,20 +354,36 @@ class TestActionQueue(TestCase):
 
 
   @patch.object(ActionQueue, "status_update_callback")
+  @patch.object(ActionQueue, "determine_command_format_version")
   @patch.object(StackVersionsFileHandler, "read_stack_version")
+  @patch.object(CustomServiceOrchestrator, "requestComponentStatus")
   @patch.object(ActionQueue, "execute_command")
   @patch.object(LiveStatus, "build")
   def test_execute_status_command(self, build_mock, execute_command_mock,
-                                  read_stack_version_mock,
+                                  requestComponentStatus_mock, read_stack_version_mock,
+                                  determine_command_format_version_mock,
                                   status_update_callback):
     actionQueue = ActionQueue(AmbariConfig().getConfig(), 'dummy_controller')
+
     build_mock.return_value = "dummy report"
-    # Try normal execution
+    # Check execution ov V1 status command
+    determine_command_format_version_mock.return_value = ActionQueue.COMMAND_FORMAT_V1
     actionQueue.execute_status_command(self.status_command)
     report = actionQueue.result()
     expected = 'dummy report'
     self.assertEqual(len(report['componentStatus']), 1)
     self.assertEqual(report['componentStatus'][0], expected)
+    self.assertFalse(requestComponentStatus_mock.called)
+
+    # Check execution ov V2 status command
+    requestComponentStatus_mock.reset_mock()
+    determine_command_format_version_mock.return_value = ActionQueue.COMMAND_FORMAT_V2
+    actionQueue.execute_status_command(self.status_command)
+    report = actionQueue.result()
+    expected = 'dummy report'
+    self.assertEqual(len(report['componentStatus']), 1)
+    self.assertEqual(report['componentStatus'][0], expected)
+    self.assertTrue(requestComponentStatus_mock.called)
 
 
   def test_determine_command_format_version(self):

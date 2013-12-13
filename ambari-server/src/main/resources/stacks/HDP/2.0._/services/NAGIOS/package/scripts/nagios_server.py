@@ -50,6 +50,12 @@ class NagiosServer(Script):
     env.set_params(params)
     
     nagios_service(action='stop')
+
+
+  def status(self, env):
+    import status_params
+    env.set_params(status_params)
+    check_process_status(status_params.nagios_pid_file)
     
 def remove_conflicting_packages():  
   Package( 'hdp_mon_nagios_addons',

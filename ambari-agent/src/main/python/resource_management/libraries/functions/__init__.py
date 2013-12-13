@@ -24,3 +24,4 @@ from resource_management.libraries.functions.default import *
 from resource_management.libraries.functions.format import *
 from resource_management.libraries.functions.get_kinit_path import *
 from resource_management.libraries.functions.get_unique_id_and_date import *
+from resource_management.libraries.functions.check_process_status import *

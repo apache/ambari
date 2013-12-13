@@ -16,11 +16,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Ambari Agent
-
 """
 
 from resource_management import *
+import status_params
 
 # server configurations
 config = Script.get_config()
@@ -64,8 +63,8 @@ hive_metastore_keytab_path =  config['configurations']['hive-site']['hive.metast
 hive_conf_dir = "/etc/hive/conf"
 hive_dbroot = config['configurations']['global']['hive_dbroot']
 hive_log_dir = config['configurations']['global']['hive_log_dir']
-hive_pid_dir = config['configurations']['global']['hive_pid_dir']
-hive_pid = 'hive-server.pid'
+hive_pid_dir = status_params.hive_pid_dir
+hive_pid = status_params.hive_pid
 
 #hive-site
 hive_database_name = config['configurations']['global']['hive_database_name']
@@ -77,7 +76,7 @@ hadoop_home = '/usr'
 
 ##Starting metastore
 start_metastore_script = 'startMetastore.sh'
-
+hive_metastore_pid = status_params.hive_metastore_pid
 java_share_dir = '/usr/share/java'
 driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
 
@@ -106,12 +105,6 @@ mysql_host = config['clusterHostInfo']['hive_mysql_host']
 
 mysql_adduser_path = "/tmp/addMysqlUser.sh"
 
-if System.get_instance().platform == "suse":
-  service_name = 'mysql'
-else:
-  service_name = 'mysqld'
-
-
 ########## HCAT
 
 hcat_conf_dir = '/etc/hcatalog/conf'
@@ -124,7 +117,7 @@ hcat_dbroot = hcat_lib
 hcat_user = config['configurations']['global']['hcat_user']
 webhcat_user = config['configurations']['global']['webhcat_user']
 
-hcat_pid_dir = config['configurations']['global']['hcat_pid_dir']   #hcat_pid_dir
+hcat_pid_dir = status_params.hcat_pid_dir
 hcat_log_dir = config['configurations']['global']['hcat_log_dir']   #hcat_log_dir
 
 hadoop_conf_dir = '/etc/hadoop/conf'

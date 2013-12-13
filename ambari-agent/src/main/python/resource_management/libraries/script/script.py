@@ -25,7 +25,7 @@ import json
 import logging
 
 from resource_management.core.environment import Environment
-from resource_management.core.exceptions import Fail
+from resource_management.core.exceptions import Fail, ClientComponentHasNoStatus, ComponentIsNotRunning
 from resource_management.core.resources.packaging import Package
 from resource_management.libraries.script.config_dictionary import ConfigDictionary
 from resource_management.libraries.script.repo_installer import RepoInstaller
@@ -35,8 +35,14 @@ class Script(object):
   Executes a command for custom service. stdout and stderr are written to
   tmpoutfile and to tmperrfile respectively.
   Script instances share configuration as a class parameter and therefore
-  even different Script instances can not be used from different threads at
-  the same time
+  different Script instances can not be used from different threads at
+  the same time within a single python process
+
+  Accepted command line arguments mapping:
+  1 command type (START/STOP/...)
+  2 path to command json file
+  3 path to service metadata dir (Directory "package" inside service directory)
+  4 path to file with structured command output (file will be created)
   """
   structuredOut = {}
 
@@ -87,6 +93,10 @@ class Script(object):
       method = self.choose_method_to_execute(command_name)
       with Environment(basedir) as env:
         method(env)
+    except ClientComponentHasNoStatus or ComponentIsNotRunning:
+      # Support of component status checks.
+      # Non-zero exit code is interpreted as an INSTALLED status of a component
+      sys.exit(1)
     except Fail:
       logger.exception("Got exception while executing command {0}:".format(command_name))
       sys.exit(1)

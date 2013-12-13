@@ -36,6 +36,7 @@ import StringIO
 import sys
 from AgentException import AgentException
 from FileCache import FileCache
+from LiveStatus import LiveStatus
 
 
 class TestCustomServiceOrchestrator(TestCase):
@@ -55,7 +56,9 @@ class TestCustomServiceOrchestrator(TestCase):
 
 
   @patch("hostname.public_hostname")
-  def test_dump_command_to_json(self, hostname_mock):
+  @patch("os.path.isfile")
+  @patch("os.unlink")
+  def test_dump_command_to_json(self, unlink_mock, isfile_mock, hostname_mock):
     hostname_mock.return_value = "test.hst"
     command = {
       'commandType': 'EXECUTION_COMMAND',
@@ -72,13 +75,25 @@ class TestCustomServiceOrchestrator(TestCase):
     tempdir = tempfile.gettempdir()
     config.set('agent', 'prefix', tempdir)
     orchestrator = CustomServiceOrchestrator(config)
-    file = orchestrator.dump_command_to_json(command)
-    self.assertTrue(os.path.exists(file))
-    self.assertTrue(os.path.getsize(file) > 0)
-    self.assertEqual(oct(os.stat(file).st_mode & 0777), '0600')
-    os.unlink(file)
+    isfile_mock.return_value = True
+    # Test dumping EXECUTION_COMMAND
+    json_file = orchestrator.dump_command_to_json(command)
+    self.assertTrue(os.path.exists(json_file))
+    self.assertTrue(os.path.getsize(json_file) > 0)
+    self.assertEqual(oct(os.stat(json_file).st_mode & 0777), '0600')
+    self.assertTrue(json_file.endswith("command-3.json"))
+    os.unlink(json_file)
+    # Test dumping STATUS_COMMAND
+    command['commandType']='STATUS_COMMAND'
+    json_file = orchestrator.dump_command_to_json(command)
+    self.assertTrue(os.path.exists(json_file))
+    self.assertTrue(os.path.getsize(json_file) > 0)
+    self.assertEqual(oct(os.stat(json_file).st_mode & 0777), '0600')
+    self.assertTrue(json_file.endswith("status_command.json"))
+    os.unlink(json_file)
     # Testing side effect of dump_command_to_json
     self.assertEquals(command['public_hostname'], "test.hst")
+    self.assertTrue(unlink_mock.called)
 
 
   @patch("os.path.exists")
@@ -143,6 +158,25 @@ class TestCustomServiceOrchestrator(TestCase):
     self.assertEqual(run_file_mock.call_count, 3)
 
     run_file_mock.reset_mock()
+
+    # Case when we force another command
+    run_file_mock.return_value = {
+        'stdout' : 'sss',
+        'stderr' : 'eee',
+        'exitcode': 0,
+      }
+    ret = orchestrator.runCommand(command, "out.txt", "err.txt",
+              forsed_command_name=CustomServiceOrchestrator.COMMAND_NAME_STATUS)
+    ## Check that override_output_files was true only during first call
+    self.assertEquals(run_file_mock.call_args_list[0][0][6], True)
+    self.assertEquals(run_file_mock.call_args_list[1][0][6], False)
+    self.assertEquals(run_file_mock.call_args_list[2][0][6], False)
+    ## Check that forsed_command_name was taken into account
+    self.assertEqual(run_file_mock.call_args_list[0][0][1][0],
+                                  CustomServiceOrchestrator.COMMAND_NAME_STATUS)
+
+    run_file_mock.reset_mock()
+
     # unknown script type case
     command['commandParams']['script_type'] = "PUPPET"
     ret = orchestrator.runCommand(command, "out.txt", "err.txt")
@@ -200,7 +234,31 @@ class TestCustomServiceOrchestrator(TestCase):
     res3 = orchestrator.resolve_hook_script_path("/hooks_dir/", "prefix", "command",
                                                  "script_type")
     self.assertEqual(res3, None)
-    pass
+
+
+  @patch.object(CustomServiceOrchestrator, "runCommand")
+  def test_requestComponentStatus(self, runCommand_mock):
+    status_command = {
+      "serviceName" : 'HDFS',
+      "commandType" : "STATUS_COMMAND",
+      "clusterName" : "",
+      "componentName" : "DATANODE",
+      'configurations':{}
+    }
+    orchestrator = CustomServiceOrchestrator(self.config)
+    # Test alive case
+    runCommand_mock.return_value = {
+      "exitcode" : 0
+    }
+    status = orchestrator.requestComponentStatus(status_command)
+    self.assertEqual(LiveStatus.LIVE_STATUS, status)
+
+    # Test dead case
+    runCommand_mock.return_value = {
+      "exitcode" : 1
+    }
+    status = orchestrator.requestComponentStatus(status_command)
+    self.assertEqual(LiveStatus.DEAD_STATUS, status)
 
 
   def tearDown(self):
