@@ -126,7 +126,9 @@ class TestCustomServiceOrchestrator(TestCase):
     }
     get_service_base_dir_mock.return_value = "/basedir/"
     resolve_script_path_mock.return_value = "/basedir/scriptpath"
-    resolve_hook_script_path_mock.return_value = "/basedir/hooks/hookpath"
+    resolve_hook_script_path_mock.return_value = \
+      ('/hooks_dir/prefix-command/scripts/hook.py',
+       '/hooks_dir/prefix-command')
     orchestrator = CustomServiceOrchestrator(self.config)
     get_hook_base_dir_mock.return_value = "/hooks/"
     # normal run case
@@ -191,7 +193,8 @@ class TestCustomServiceOrchestrator(TestCase):
     isfile_mock.return_value = True
     res2 = orchestrator.resolve_hook_script_path("/hooks_dir/", "prefix", "command",
                                             "script_type")
-    self.assertEqual(res2, "/hooks_dir/prefix-command.py")
+    self.assertEqual(res2, ('/hooks_dir/prefix-command/scripts/hook.py',
+                            '/hooks_dir/prefix-command'))
     # Testing not existing hook script
     isfile_mock.return_value = False
     res3 = orchestrator.resolve_hook_script_path("/hooks_dir/", "prefix", "command",

@@ -62,7 +62,7 @@ class CustomServiceOrchestrator():
 
       if command_name == self.CUSTOM_ACTION_COMMAND:
         base_dir = self.config.get('python', 'custom_actions_dir')
-        script_path = os.path.join(base_dir, script)
+        script_tuple = (os.path.join(base_dir, script) , base_dir)
         hook_dir = None
       else:
         stack_name = command['hostLevelParams']['stack_name']
@@ -72,6 +72,7 @@ class CustomServiceOrchestrator():
         base_dir = self.file_cache.get_service_base_dir(
           stack_name, stack_version, metadata_folder, component_name)
         script_path = self.resolve_script_path(base_dir, script, script_type)
+        script_tuple = (script_path, base_dir)
 
       tmpstrucoutfile = os.path.join(self.tmp_dir,
                                     "structured-out-{0}.json".format(task_id))
@@ -81,17 +82,17 @@ class CustomServiceOrchestrator():
         raise AgentException(message)
       # Execute command using proper interpreter
       json_path = self.dump_command_to_json(command)
-      script_params = [command_name, json_path, base_dir]
-      pre_hook = self.resolve_hook_script_path(hook_dir,
+      pre_hook_tuple = self.resolve_hook_script_path(hook_dir,
           self.PRE_HOOK_PREFIX, command_name, script_type)
-      post_hook = self.resolve_hook_script_path(hook_dir,
+      post_hook_tuple = self.resolve_hook_script_path(hook_dir,
           self.POST_HOOK_PREFIX, command_name, script_type)
-      py_file_list = [pre_hook, script_path, post_hook]
+      py_file_list = [pre_hook_tuple, script_tuple, post_hook_tuple]
       # filter None values
       filtered_py_file_list = [i for i in py_file_list if i]
       # Executing hooks and script
       ret = None
-      for py_file in filtered_py_file_list:
+      for py_file, current_base_dir in filtered_py_file_list:
+        script_params = [command_name, json_path, current_base_dir]
         ret = self.python_executor.run_file(py_file, script_params,
                                tmpoutfile, tmperrfile, timeout, tmpstrucoutfile)
         if ret['exitcode'] != 0:
@@ -125,19 +126,20 @@ class CustomServiceOrchestrator():
     return path
 
 
-  def resolve_hook_script_path(self, hook_base_dir, prefix, command_name, script_type):
+  def resolve_hook_script_path(self, stack_hooks_dir, prefix, command_name, script_type):
     """
-    Returns a path to hook script according to string prefix
+    Returns a tuple(path to hook script, hook base dir) according to string prefix
     and command name. If script does not exist, returns None
     """
-    if not hook_base_dir:
+    if not stack_hooks_dir:
       return None
-    script_file = "{0}-{1}.py".format(prefix, command_name)
-    hook_script_path = os.path.join(hook_base_dir, script_file)
+    hook_dir = "{0}-{1}".format(prefix, command_name)
+    hook_base_dir = os.path.join(stack_hooks_dir, hook_dir)
+    hook_script_path = os.path.join(hook_base_dir, "scripts", "hook.py")
     if not os.path.isfile(hook_script_path):
       logger.debug("Hook script {0} not found, skipping".format(hook_script_path))
       return None
-    return hook_script_path
+    return hook_script_path, hook_base_dir
 
 
   def dump_command_to_json(self, command):
