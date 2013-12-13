@@ -68,16 +68,6 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     return App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').get('length') > 0;
   }.property('service.hostComponents.@each'),
 
-  journalNodeHostText: function () {
-    if (this.get("service.journalNodes").content.length == 0) {
-      return '';
-    } else if (this.get("service.journalNodes").content.length > 1){
-      return Em.I18n.t('services.service.summary.viewHosts');
-    }else{
-      return Em.I18n.t('services.service.summary.viewHost');
-    }
-  }.property("service"),
-
   dataNodesLiveTextView: App.ComponentLiveTextView.extend({
     liveComponents: function() {
       return App.HostComponent.find().filterProperty('componentName', 'DATANODE').filterProperty("workStatus","STARTED").get("length");
@@ -88,12 +78,15 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
   }),
 
   journalNodesLiveTextView: App.ComponentLiveTextView.extend({
+    allJournalNodes: function () {
+      return App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE')
+    }.property('service.hostComponents.@each'),
     liveComponents: function() {
-      return App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').filterProperty("workStatus","STARTED").get("length");
-    }.property("service.hostComponents.@each"),
+      return this.get('allJournalNodes').filterProperty("workStatus","STARTED").get("length");
+    }.property("allJournalNodes"),
     totalComponents: function() {
-      return this.get("service.journalNodes.length");
-    }.property("service.journalNodes.length")
+      return this.get('allJournalNodes').get("length");
+    }.property("allJournalNodes")
   }),
 
   dfsTotalBlocks: function(){
