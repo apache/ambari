@@ -989,8 +989,8 @@ def backup_single_config_type(options, type, error_if_na=True):
 def install_services(options):
   SERVICE_URL_FORMAT = URL_FORMAT + '/services/{2}'
   SERVICES = ["YARN", "MAPREDUCE2"]
-  PUT_IN_INSTALLED = ["""{"RequestInfo":{"context":"Install YARN"}, "Body":{"ServiceInfo": {"state":"INSTALLED"}}}""",
-                      """{"RequestInfo":{"context":"Install MapReduce2"}, "Body":{"ServiceInfo": {"state":"INSTALLED"}}}"""]
+  PUT_IN_INSTALLED = ["""{"RequestInfo":{"context":"Install MapReduce2"}, "Body":{"ServiceInfo": {"state":"INSTALLED"}}}""",
+                      """{"RequestInfo":{"context":"Install YARN"}, "Body":{"ServiceInfo": {"state":"INSTALLED"}}}"""]
   err_retcode = 0
   err_message = ""
   for index in [0, 1]:
