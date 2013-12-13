@@ -502,7 +502,7 @@ Em.I18n.translations = {
   'installer.step9.host.status.startAborted':'Install completed. Start aborted',
   'installer.step9.host.status.warning':'Warnings encountered',
   'installer.step9.host.status.failed':'Failures encountered',
-  'installer.step9.host.status.nothingToInstall':'Waiting (Nothing to install)',
+  'installer.step9.host.status.nothingToInstall':'Install complete (Waiting to start)',
   'installer.step9.hosts.status.label.inProgress':'In Progress',
   'installer.step9.hosts.status.label.warning':'Warning',
   'installer.step9.hostLog.popup.header':'Tasks. executed on ',
@@ -606,7 +606,7 @@ Em.I18n.translations = {
   'installer.stackUpgrade.step3.status.warning':"Upgraded the cluster to {0} with some warnings.\nYou can start using the cluster but the components that failed to upgrade will not be functional."+
   "You can click on the Retry button to retry upgrading the failed components. Alternatively you can proceed and retry upgrade on individual components in the Host Detail page.",
   'installer.stackUpgrade.step3.status.failed':"Failed to upgrade hosts. Click on each host to see what might have gone wrong.\n After fixing the problem, click the Retry button",
-  'installer.stackUpgrade.step3.host.nothingToUpgrade':'Waiting (Nothing to upgrade)',
+  'installer.stackUpgrade.step3.host.nothingToUpgrade':'Install complete (Waiting to start)',
   'installer.stackUpgrade.step3.service.upgraded':'Services upgraded',
   'installer.stackUpgrade.step3.service.upgrading':'Services upgrade in progress',
   'installer.stackUpgrade.step3.service.pending':'Services upgrade pending',
