@@ -369,14 +369,14 @@ var configs = [
     "filename": "mapred-site.xml"
   },
   {
-    "name": "mapred.healthChecker.script.path",
+    "name": "mapred.job.tracker.persist.jobstatus.dir",
     "templateName": ["mapred_jobstatus_dir"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "mapred-site.xml"
   },
   {
-    "name": "mapred.job.tracker.persist.jobstatus.dir",
+    "name": "mapred.healthChecker.script.path",
     "templateName": ["hadoop_conf_dir"],
     "foreignKey": null,
     "value": "<templateName[0]>/health_check",
