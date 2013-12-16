@@ -25,8 +25,6 @@ public enum RoleCommand {
    * files
    */
 
-
-public enum RoleCommand {
   INSTALL,
   UNINSTALL,
   START,
