@@ -84,6 +84,7 @@ App.WizardStep1View = Em.View.extend({
     if (this.get('isRLCollapsed')) {
       this.$('.accordion-body').hide();
     }
+    $("[rel=skip-validation-tooltip]").tooltip({ placement: 'right'});
   },
   loadRepositories: function () {
     var selectedStack = this.get('controller.content.stacks').findProperty('isSelected', true);
@@ -176,15 +177,21 @@ App.WizardStep1View = Em.View.extend({
           self.set('allGroupsCheckbox', self.get('allGroupsCheckbox'));
         } else {
           os.selected = true;
+          os.skipValidation = self.get('skipValidationChecked');
+          if (os.skipValidation) {
+            targetGroup.set('validation', null);
+            targetGroup.set('invalid-error', false);
+          }
           targetGroup.set('clearAll', targetGroup.get('baseUrl'));
           targetGroup.set('empty-error',!targetGroup.get('baseUrl'));
           self.get('allGroupsCheckbox')[groupNumber] = true;
         }
       });
     }
-  }.observes('allRepositoriesGroup.@each.checked'),
+  }.observes('allRepositoriesGroup.@each.checked', 'skipValidationChecked'),
 
   allGroupsCheckbox: [true, true, true],
+  skipValidationChecked: false,
   /**
    * Onclick handler for undo action of each repo group
    */

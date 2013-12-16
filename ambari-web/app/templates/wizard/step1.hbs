@@ -95,6 +95,10 @@
               {{/each}}
             </tbody>
           </table>
+          <div id="skip-validation">
+            <label>{{view Ember.Checkbox checkedBinding="view.skipValidationChecked" class="checkbox"}}{{t installer.step1.advancedRepo.skipValidation.message}}
+              <i class="icon-question-sign" rel="skip-validation-tooltip" data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.skipValidation.tooltip"}}></i></label>
+          </div>
           {{#if view.emptyRepoExist}}
             <div class="alert">{{t installer.step1.attentionNeeded}}</div>
           {{/if}}

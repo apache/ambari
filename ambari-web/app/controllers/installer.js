@@ -383,7 +383,10 @@ App.InstallerController = App.WizardController.extend({
       this.set('validationCnt', selectedStack.get('operatingSystems').filterProperty('selected', true).length);
       this.set('invalidCnt', 0);
       selectedStack.operatingSystems.forEach(function (os) {
-        if (os.selected) {
+        if (os.skipValidation) {
+          this.set('validationCnt', 0);
+        }
+        if (os.selected && !os.skipValidation) {
           os.validation = 'icon-repeat';
           selectedStack.set('reload', !selectedStack.get('reload'));
           App.ajax.send({
