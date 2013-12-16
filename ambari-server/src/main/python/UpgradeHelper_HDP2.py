@@ -988,7 +988,7 @@ def backup_single_config_type(options, type, error_if_na=True):
 
 def install_services(options):
   SERVICE_URL_FORMAT = URL_FORMAT + '/services/{2}'
-  SERVICES = ["YARN", "MAPREDUCE2"]
+  SERVICES = ["MAPREDUCE2", "YARN"]
   PUT_IN_INSTALLED = ["""{"RequestInfo":{"context":"Install MapReduce2"}, "Body":{"ServiceInfo": {"state":"INSTALLED"}}}""",
                       """{"RequestInfo":{"context":"Install YARN"}, "Body":{"ServiceInfo": {"state":"INSTALLED"}}}"""]
   err_retcode = 0
@@ -1091,6 +1091,8 @@ def main():
   action = args[0]
 
   options.exit_message = "Upgrade action '%s' completed successfully." % action
+  if options.printonly:
+    options.exit_message = "Simulated execution of action '%s'. Verify the list edit calls." % action
 
   backup_file(options.logfile)
   global logger
