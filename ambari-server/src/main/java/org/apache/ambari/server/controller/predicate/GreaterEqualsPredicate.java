@@ -50,4 +50,9 @@ public class GreaterEqualsPredicate<T> extends ComparisonPredicate<T> {
   public String getOperator() {
     return ">=";
   }
+
+  @Override
+  public ComparisonPredicate<T> copy(String propertyId) {
+    return new GreaterEqualsPredicate<T>(propertyId, getValue());
+  }
 }

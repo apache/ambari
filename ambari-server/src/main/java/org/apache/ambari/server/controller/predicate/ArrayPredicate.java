@@ -32,12 +32,40 @@ public abstract class ArrayPredicate implements BasePredicate {
   private final Predicate[] predicates;
   private final Set<String> propertyIds = new HashSet<String>();
 
+  // ----- Constructors -----------------------------------------------------
+
+  /**
+   * Constructor.
+   *
+   * @param predicates  the predicates
+   */
   public ArrayPredicate(Predicate... predicates) {
     this.predicates = predicates;
     for (Predicate predicate : predicates) {
       propertyIds.addAll(PredicateHelper.getPropertyIds(predicate));
     }
   }
+
+
+  // ----- BasePredicate ----------------------------------------------------
+
+  @Override
+  public Set<String> getPropertyIds() {
+    return propertyIds;
+  }
+
+
+  // ----- PredicateVisitorAcceptor -----------------------------------------
+
+  @Override
+  public void accept(PredicateVisitor visitor) {
+    visitor.acceptArrayPredicate(this);
+  }
+
+
+  // ----- ArrayPredicate ---------------------------------------------------
+
+  public abstract String getOperator();
 
   /**
    * Factory method.
@@ -49,14 +77,19 @@ public abstract class ArrayPredicate implements BasePredicate {
   public abstract Predicate create(Predicate... predicates);
 
 
+  // ----- accessors --------------------------------------------------------
+
+  /**
+   * Get the predicates.
+   *
+   * @return the predicates
+   */
   public Predicate[] getPredicates() {
     return predicates;
   }
 
-  @Override
-  public Set<String> getPropertyIds() {
-    return propertyIds;
-  }
+
+  // ----- Object overrides --------------------------------------------------
 
   @Override
   public boolean equals(Object o) {
@@ -82,9 +115,23 @@ public abstract class ArrayPredicate implements BasePredicate {
   }
 
   @Override
-  public void accept(PredicateVisitor visitor) {
-    visitor.acceptArrayPredicate(this);
-  }
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
 
-  public abstract String getOperator();
+    for (Predicate predicate : predicates) {
+
+      boolean arrayPredicate = predicate instanceof ArrayPredicate;
+
+      if (sb.length() > 0) {
+        sb.append(" ").append(getOperator()).append(" ");
+      }
+
+      if (arrayPredicate) {
+        sb.append("(").append(predicate).append(")");
+      } else {
+        sb.append(predicate);
+      }
+    }
+    return sb.toString();
+  }
 }

@@ -926,6 +926,7 @@ public class ClusterControllerImplTest {
       Set<String> keyPropertyValues = new LinkedHashSet<String>();
 
       keyPropertyValues.add("repo1");
+      keyPropertyValues.add("repo2");
 
       return getResources(Resource.Type.Repository, predicate, "Repositories/repo_id", keyPropertyValues);
     }

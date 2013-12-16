@@ -43,6 +43,7 @@ import java.util.Set;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 
 /**
@@ -151,6 +152,90 @@ public class QueryImplTest {
   }
 
   @Test
+  public void testGetJoinedResourceProperties() throws Exception {
+    ResourceDefinition resourceDefinition = new StackResourceDefinition();
+
+    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Stack, "HDP");
+
+    //test
+    QueryImpl instance = new TestQuery(mapIds, resourceDefinition);
+
+    instance.addProperty("versions/*", null);
+    instance.addProperty("versions/operatingSystems/*", null);
+    instance.addProperty("versions/operatingSystems/repositories/*", null);
+
+    instance.execute();
+
+    Set<String> propertyIds = new HashSet<String>();
+    propertyIds.add("versions/operatingSystems/repositories/Repositories/repo_id");
+    propertyIds.add("versions/operatingSystems/OperatingSystems/os_type");
+
+    Map<Resource, Set<Map<String, Object>>> resourcePropertiesMap = instance.getJoinedResourceProperties(propertyIds, null, null);
+
+    Set<Map<String, Object>> propertyMaps = null;
+
+    for (Map.Entry<Resource, Set<Map<String, Object>>> resourceSetEntry : resourcePropertiesMap.entrySet()) {
+      Assert.assertEquals(Resource.Type.Stack, resourceSetEntry.getKey().getType());
+      propertyMaps = resourceSetEntry.getValue();
+    }
+    if (propertyMaps == null) {
+      fail("No property maps found!");
+    }
+
+    Assert.assertEquals(6, propertyMaps.size());
+
+    for (Map<String, Object> map : propertyMaps) {
+      Assert.assertEquals(2, map.size());
+      Assert.assertTrue(map.containsKey("versions/operatingSystems/OperatingSystems/os_type"));
+      Assert.assertTrue(map.containsKey("versions/operatingSystems/repositories/Repositories/repo_id"));
+    }
+  }
+
+  @Test
+  public void testExecute_subResourcePredicate() throws Exception {
+    ResourceDefinition resourceDefinition = new StackResourceDefinition();
+
+    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Stack, "HDP");
+
+    //test
+    QueryImpl instance = new TestQuery(mapIds, resourceDefinition);
+
+    PredicateBuilder pb = new PredicateBuilder();
+    Predicate predicate = pb.property("versions/operatingSystems/OperatingSystems/os_type").equals("centos5").toPredicate();
+
+    instance.setUserPredicate(predicate);
+
+    Result result = instance.execute();
+
+    TreeNode<Resource> tree = result.getResultTree();
+
+    Assert.assertEquals(1, tree.getChildren().size());
+    TreeNode<Resource> stackNode = tree.getChild("Stack:1");
+    Assert.assertEquals("Stack:1", stackNode.getName());
+    Assert.assertEquals(Resource.Type.Stack, stackNode.getObject().getType());
+    Assert.assertEquals(1, stackNode.getChildren().size());
+    TreeNode<Resource> versionsNode = stackNode.getChild("versions");
+    Assert.assertEquals(3, versionsNode.getChildren().size());
+
+    TreeNode<Resource> versionNode = versionsNode.getChild("StackVersion:1");
+    Assert.assertEquals("StackVersion:1", versionNode.getName());
+    Assert.assertEquals(Resource.Type.StackVersion, versionNode.getObject().getType());
+
+    Assert.assertEquals(1, versionNode.getChildren().size());
+    TreeNode<Resource> opSystemsNode = versionNode.getChild("operatingSystems");
+    Assert.assertEquals(1, opSystemsNode.getChildren().size());
+
+    TreeNode<Resource> opSystemNode = opSystemsNode.getChild("OperatingSystem:1");
+    Assert.assertEquals("OperatingSystem:1", opSystemNode.getName());
+    Resource osResource = opSystemNode.getObject();
+    Assert.assertEquals(Resource.Type.OperatingSystem, opSystemNode.getObject().getType());
+
+    Assert.assertEquals("centos5", osResource.getPropertyValue("OperatingSystems/os_type"));
+  }
+
+  @Test
   public void testExecute__Stack_instance_specifiedSubResources() throws Exception {
     ResourceDefinition resourceDefinition = new StackResourceDefinition();
 
@@ -190,7 +275,7 @@ public class QueryImplTest {
 
     Assert.assertEquals(1, opSystemNode.getChildren().size());
     TreeNode<Resource> repositoriesNode = opSystemNode.getChild("repositories");
-    Assert.assertEquals(1, repositoriesNode.getChildren().size());
+    Assert.assertEquals(2, repositoriesNode.getChildren().size());
 
     TreeNode<Resource> repositoryNode = repositoriesNode.getChild("Repository:1");
     Assert.assertEquals("Repository:1", repositoryNode.getName());
@@ -448,7 +533,7 @@ public class QueryImplTest {
     Assert.assertNotNull(hostNode.getObject().getPropertyValue("c1/p3"));
   }
 
-  private class TestQuery extends QueryImpl {
+  public static class TestQuery extends QueryImpl {
     public TestQuery(Map<Resource.Type, String> mapIds, ResourceDefinition resourceDefinition) {
       super(mapIds, resourceDefinition, new ClusterControllerImpl(new ClusterControllerImplTest.TestProviderModule()));
     }
