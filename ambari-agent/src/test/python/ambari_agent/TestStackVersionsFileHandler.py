@@ -32,7 +32,7 @@ import logging
 
 stackVersionsFileHandler = \
       StackVersionsFileHandler.StackVersionsFileHandler("/tmp")
-dummyVersionsFile = 'ambari_agent' + os.sep + 'dummy_files' + os.sep + 'dummy_current_stack'
+dummyVersionsFile = os.path.dirname(os.path.abspath(__file__))+ os.sep +'dummy_files' + os.sep + 'dummy_current_stack'
 
 class TestStackVersionsFileHandler(TestCase):
 
