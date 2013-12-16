@@ -1318,7 +1318,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         }
       } else if (_serviceTags.siteName === 'core-site') {
         console.log("TRACE: Inside core-site");
-        if (this.get('content.serviceName') === 'HDFS' || this.get('content.serviceName') === 'HCFS') {
+        if (this.get('content.serviceName') === 'HDFS' || this.get('content.serviceName') === 'GLUSTERFS') {
           var coreSiteConfigs = this.createCoreSiteObj(_serviceTags.newTagName);
           siteNameToServerDataMap['core-site'] = coreSiteConfigs;
           var loadedProperties = configController.getConfigsByTags([{siteName: 'core-site', tagName: this.loadedClusterSiteToTagMap['core-site']}]);
@@ -1656,7 +1656,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       nameNodeHost.defaultValue = App.Service.find('HDFS').get('hostComponents').filterProperty('componentName', 'NAMENODE').mapProperty('host.hostName');
       globalConfigs.push(nameNodeHost);
     } catch (err) {
-      console.log("No NameNode Host available.  This is expected if you're using HCFS rather than HDFS.");
+      console.log("No NameNode Host available.  This is expected if you're using GLUSTERFS rather than HDFS.");
     }
 
     //zooKeeperserver_host

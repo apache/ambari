@@ -21,7 +21,7 @@
     <version>1.0.0</version>
     <components>
         <component>
-            <name>HCFS_CLIENT</name>
+            <name>GLUSTERFS_CLIENT</name>
             <category>CLIENT</category>
         </component>
     </components>

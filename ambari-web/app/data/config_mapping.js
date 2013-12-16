@@ -109,20 +109,6 @@ var configs = [
     "filename": "core-site.xml"
   },
   {
-    "name": "fs.glusterfs.server",
-    "templateName": ["fs_glusterfs_server"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "core-site.xml"
-  },
-  {
-    "name": "fs.glusterfs.automount",
-    "templateName": ["fs_glusterfs_automount"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "core-site.xml"
-  },
-  {
     "name": "fs.glusterfs.getfattrcmd",
     "templateName": ["fs_glusterfs_getfattrcmd"],
     "foreignKey": null,

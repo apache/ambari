@@ -18,9 +18,19 @@
 # under the License.
 #
 #
-class hdp-hadoop::hcfs_service_check(
-  $service_state = $hdp::params::cluster_client_state
+class hdp-hadoop::glusterfs_client(
+  $service_state = $hdp::params::cluster_client_state,
+  $opts = {}
 ) inherits hdp-hadoop::params
 {
-  $hdp::params::service_exists['hdp-hadoop::hcfs'] = true
+  $hdp::params::service_exists['hdp-hadoop::glusterfs_client'] = true
+  Hdp-hadoop::Common<||>{service_state => $service_state}
+  Hdp-hadoop::Package<||>{include_64_bit => true}
+  Hdp-hadoop::Configfile<||>{sizes +> 64}
+  
+  if ($service_state == 'no_op') {
+  } elsif ($service_state in ['running','stopped','installed_and_configured','uninstalled']) {
+  	#adds package, users and directories, and common hadoop configs
+  	include hdp-hadoop::initialize
+  }
 }

@@ -71,17 +71,17 @@ public class RoleCommandOrderTest {
 
 
   /**
-   * Tests building dependencies in HCFS cluster. Uses real dependency mapping
+   * Tests building dependencies in GLUSTERFS cluster. Uses real dependency mapping
    * file (role_command_order.json)
    */
   @Test
-  public void testInitializeAtHCFSCluster() throws AmbariException {
+  public void testInitializeAtGLUSTERFSCluster() throws AmbariException {
 
     RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
     ClusterImpl cluster = createMock(ClusterImpl.class);
     Service service = createMock(Service.class);
     expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.6"));
-    expect(cluster.getService("HCFS")).andReturn(service);
+    expect(cluster.getService("GLUSTERFS")).andReturn(service);
     expect(cluster.getService("HDFS")).andReturn(null);
     replay(cluster);
 
@@ -108,7 +108,7 @@ public class RoleCommandOrderTest {
     assertFalse(dependenciesContainBlockerRole(deps, Role.HDFS_SERVICE_CHECK));
     assertFalse(dependenciesContainBlockerRole(deps, Role.HDFS_CLIENT));
 
-    // And that some HCFS components are present (section has been loaded)
+    // And that some GLUSTERFS components are present (section has been loaded)
     assertTrue(dependenciesContainBlockerRole(deps, Role.PEERSTATUS));
 
   }
@@ -123,7 +123,7 @@ public class RoleCommandOrderTest {
 
     RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
     ClusterImpl cluster = createMock(ClusterImpl.class);
-    expect(cluster.getService("HCFS")).andReturn(null);
+    expect(cluster.getService("GLUSTERFS")).andReturn(null);
 
     Service hdfsService = createMock(Service.class);
 
@@ -140,15 +140,15 @@ public class RoleCommandOrderTest {
     assertTrue("Dependencies are loaded after initialization", deps.size() > 0);
     verify(cluster);
     verify(hdfsService);
-    // Check that HCFS components are not present in dependencies
+    // Check that GLUSTERFS components are not present in dependencies
     // Checking blocked roles
     assertFalse(dependenciesContainBlockedRole(deps, Role.PEERSTATUS));
-    assertFalse(dependenciesContainBlockedRole(deps, Role.HCFS_SERVICE_CHECK));
-    assertFalse(dependenciesContainBlockedRole(deps, Role.HCFS_CLIENT));
+    assertFalse(dependenciesContainBlockedRole(deps, Role.GLUSTERFS_SERVICE_CHECK));
+    assertFalse(dependenciesContainBlockedRole(deps, Role.GLUSTERFS_CLIENT));
     // Checking blocker roles
     assertFalse(dependenciesContainBlockerRole(deps, Role.PEERSTATUS));
-    assertFalse(dependenciesContainBlockerRole(deps, Role.HCFS_SERVICE_CHECK));
-    assertFalse(dependenciesContainBlockerRole(deps, Role.HCFS_CLIENT));
+    assertFalse(dependenciesContainBlockerRole(deps, Role.GLUSTERFS_SERVICE_CHECK));
+    assertFalse(dependenciesContainBlockerRole(deps, Role.GLUSTERFS_CLIENT));
 
     // And that some HDFS components are present (section has been loaded)
     assertTrue(dependenciesContainBlockerRole(deps, Role.DATANODE));
@@ -166,7 +166,7 @@ public class RoleCommandOrderTest {
   public void testInitializeAtHaHDFSCluster() throws AmbariException {
     RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
     ClusterImpl cluster = createMock(ClusterImpl.class);
-    expect(cluster.getService("HCFS")).andReturn(null);
+    expect(cluster.getService("GLUSTERFS")).andReturn(null);
 
     Service hdfsService = createMock(Service.class);
     ServiceComponent journalnodeSC = createMock(ServiceComponent.class);
@@ -184,15 +184,15 @@ public class RoleCommandOrderTest {
     assertTrue("Dependencies are loaded after initialization", deps.size() > 0);
     verify(cluster);
     verify(hdfsService);
-    // Check that HCFS components are not present in dependencies
+    // Check that GLUSTERFS components are not present in dependencies
     // Checking blocked roles
     assertFalse(dependenciesContainBlockedRole(deps, Role.PEERSTATUS));
-    assertFalse(dependenciesContainBlockedRole(deps, Role.HCFS_SERVICE_CHECK));
-    assertFalse(dependenciesContainBlockedRole(deps, Role.HCFS_CLIENT));
+    assertFalse(dependenciesContainBlockedRole(deps, Role.GLUSTERFS_SERVICE_CHECK));
+    assertFalse(dependenciesContainBlockedRole(deps, Role.GLUSTERFS_CLIENT));
     // Checking blocker roles
     assertFalse(dependenciesContainBlockerRole(deps, Role.PEERSTATUS));
-    assertFalse(dependenciesContainBlockerRole(deps, Role.HCFS_SERVICE_CHECK));
-    assertFalse(dependenciesContainBlockerRole(deps, Role.HCFS_CLIENT));
+    assertFalse(dependenciesContainBlockerRole(deps, Role.GLUSTERFS_SERVICE_CHECK));
+    assertFalse(dependenciesContainBlockerRole(deps, Role.GLUSTERFS_CLIENT));
 
     // And that some HDFS components are present (section has been loaded)
     assertTrue(dependenciesContainBlockerRole(deps, Role.DATANODE));
@@ -235,7 +235,7 @@ public class RoleCommandOrderTest {
   public void testInitializeDefault() throws IOException {
     RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
     ClusterImpl cluster = createMock(ClusterImpl.class);
-    expect(cluster.getService("HCFS")).andReturn(null);
+    expect(cluster.getService("GLUSTERFS")).andReturn(null);
 
     Service hdfsService = createMock(Service.class);
 

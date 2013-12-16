@@ -1,8 +1,8 @@
 {
-  "name" : "HCFS",
+  "name" : "GLUSTERFS",
   "version" : "9.9.9.9-9",
   "user" : "root",
-  "comment" : "This is comment for HCFS service",
+  "comment" : "This is comment for GLUSTERFS service",
   "properties" : [ {
     "name" : "dfs.replication.max",
     "description" : "Maximal block replication.\n  ",
@@ -18,14 +18,14 @@
     "client" : false,
     "master" : false
   }, {
-    "name" : "HCFS_CLIENT",
+    "name" : "GLUSTERFS_CLIENT",
     "category" : "CLIENT",
     "client" : true,
     "master" : false
   } ],
   "clientOnlyService" : false,
   "clientComponent" : {
-    "name" : "HCFS_CLIENT",
+    "name" : "GLUSTERFS_CLIENT",
     "category" : "CLIENT",
     "client" : true,
     "master" : false

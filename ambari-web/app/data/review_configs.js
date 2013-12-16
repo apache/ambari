@@ -61,11 +61,11 @@ module.exports = [
         ]
       }),
       Ember.Object.create({
-        service_name: 'HCFS',
-        display_name: 'HCFS',
+        service_name: 'GLUSTERFS',
+        display_name: 'GLUSTERFS',
         service_components: [
           Ember.Object.create({
-            display_name: 'HCFS Client',
+            display_name: 'GLUSTERFS Client',
             component_value: ''
           })
         ]

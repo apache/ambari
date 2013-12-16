@@ -52,16 +52,16 @@
     "GANGLIA_SERVER-UPGRADE" : ["NAGIOS_SERVER-UPGRADE"],
     "GANGLIA_MONITOR-UPGRADE" : ["GANGLIA_SERVER-UPGRADE"]
   },
-  "_comment" : "HCFS-specific dependencies",
-  "optional_hcfs": {
+  "_comment" : "GLUSTERFS-specific dependencies",
+  "optional_glusterfs": {
     "HBASE_MASTER-START": ["PEERSTATUS-START"],
     "JOBTRACKER-START": ["PEERSTATUS-START"],
     "TASKTRACKER-START": ["PEERSTATUS-START"],
-    "HCFS_SERVICE_CHECK-SERVICE_CHECK": ["PEERSTATUS-START"],
-    "JOBTRACKER-UPGRADE": ["HCFS_CLIENT-UPGRADE"]
+    "GLUSTERFS_SERVICE_CHECK-SERVICE_CHECK": ["PEERSTATUS-START"],
+    "JOBTRACKER-UPGRADE": ["GLUSTERFS_CLIENT-UPGRADE"]
   },
-  "_comment" : "Dependencies that are used when HCFS is not present in cluster",
-  "optional_no_hcfs": {
+  "_comment" : "Dependencies that are used when GLUSTERFS is not present in cluster",
+  "optional_no_glusterfs": {
     "SECONDARY_NAMENODE-START": ["NAMENODE-START"],
     "RESOURCEMANAGER-START": ["NAMENODE-START", "DATANODE-START"],
     "NODEMANAGER-START": ["NAMENODE-START", "DATANODE-START", "RESOURCEMANAGER-START"],

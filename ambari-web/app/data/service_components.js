@@ -315,11 +315,11 @@ module.exports = new Ember.Set([
     description: ''
   },
   { 
-    service_name: 'HCFS',
-    component_name: 'HCFS_CLIENT',
-    display_name: 'HCFS Client', 
+    service_name: 'GLUSTERFS',
+    component_name: 'GLUSTERFS_CLIENT',
+    display_name: 'GLUSTERFS Client', 
     isMaster: false, 
     isClient: true, 
-    description: 'Client component for HCFS'
+    description: 'Client component for GLUSTERFS'
   }
 ]);

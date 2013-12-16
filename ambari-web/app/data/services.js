@@ -28,12 +28,12 @@ module.exports = [
     description: Em.I18n.t('services.hdfs.description')
   },
   {
-    serviceName: 'HCFS',
-    displayName: 'HCFS',
+    serviceName: 'GLUSTERFS',
+    displayName: 'GLUSTERFS',
     isDisabled: false,
     isSelected: false,
     canBeSelected: true,
-    description: Em.I18n.t('services.hcfs.description')
+    description: Em.I18n.t('services.glusterfs.description')
   },
   {
     serviceName: 'MAPREDUCE',

@@ -126,12 +126,12 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     return this.findProperty('serviceName', 'ZOOKEEPER') && this.findProperty('serviceName', 'ZOOKEEPER').get('isSelected') === false;
   },
   /** 
-   * Check whether we should turn on <code>HDFS or HCFS</code> service
+   * Check whether we should turn on <code>HDFS or GLUSTERFS</code> service
    * @return {Boolean}
    */
   noDFSs: function () {
     return (this.findProperty('serviceName', 'HDFS').get('isSelected') === false &&
-    		(!this.findProperty('serviceName', 'HCFS') || this.findProperty('serviceName', 'HCFS').get('isSelected') === false));
+    		(!this.findProperty('serviceName', 'GLUSTERFS') || this.findProperty('serviceName', 'GLUSTERFS').get('isSelected') === false));
   },
 
   /** 
@@ -140,7 +140,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    */
   multipleDFSs: function () {
 	  return (this.findProperty('serviceName', 'HDFS').get('isSelected') === true &&
-	    	(this.findProperty('serviceName', 'HCFS') && this.findProperty('serviceName', 'HCFS').get('isSelected') === true));
+	    	(this.findProperty('serviceName', 'GLUSTERFS') && this.findProperty('serviceName', 'GLUSTERFS').get('isSelected') === true));
   },
 
   /**
@@ -231,7 +231,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   multipleDFSPopup: function() {
     var services = [
       {serviceName: 'HDFS', selected: true},
-      {serviceName: 'HCFS', selected: false}
+      {serviceName: 'GLUSTERFS', selected: false}
     ];
     this.needToAddServicePopup(services, 'multipleDFS');
   },

@@ -247,84 +247,91 @@ module.exports =
       "category": "NameNode"
     },
 
-  /**********************************************HCFS***************************************/
+  /**********************************************GLUSTERFS***************************************/
     {
-      "id": "puppet var",
-      "name": "fs_glusterfs_server",
-      "displayName": "Gluster server",
-      "description": "Gluster server (Slave FQDN)",
-      "defaultValue": "{firstHost}",
-      "displayType": "string",
-      "isVisible": true,
-      "serviceName": "HCFS",
-      "category": "General"
-    },
-    {
-      "id": "puppet var",
-      "name": "fs_glusterfs_default_name",
-      "displayName": "Gluster default fs name",
-      "description": "Gluster default filesystem name (glusterfs://{MasterFQDN}:9000)",
-      "defaultValue": "glusterfs://{firstHost}:9000",
-      "displayType": "string",
-      "isVisible": false,
-      "serviceName": "HCFS",
-      "category": "General"
-    },
-    {
-      "id": "puppet var",
-      "name": "fs_glusterfs_volname",
-      "displayName": "Gluster volume name",
-      "description": "Gluster volume name",
-      "defaultValue": "HadoopVol",
-      "displayType": "string",
-      "isVisible": true,
-      "serviceName": "HCFS",
-      "category": "General"
-    },
-    {
-      "id": "puppet var",
-      "name": "fs_glusterfs_mount",
-      "displayName": "Gluster mount point",
-      "description": "Gluster mount point",
-      "defaultValue": "/mnt/glusterfs",
-      "displayType": "string",
-      "isVisible": true,
-      "serviceName": "HCFS",
-      "category": "General"
-    },
-    {
-      "id": "puppet var",
-      "name": "fs_glusterfs_automount",
-      "displayName": "Automount HCFS",
-      "description": "Automount the HCFS Volume",
-      "defaultValue": "false",
-      "displayType": "string",
-      "isVisible": false,
-      "serviceName": "HCFS",
-      "category": "General"
-    },
-    {
-      "id": "puppet var",
-      "name": "fs_glusterfs_impl",
-      "displayName": "Gluster fs impl",
-      "description": "Gluster fs impl",
-      "defaultValue": "org.apache.hadoop.fs.glusterfs.GlusterFileSystem",
-      "displayType": "string",
-      "isVisible": false,
-      "serviceName": "HCFS",
-      "category": "General"
-    },
-    {
-      "id": "puppet var",
-      "name": "fs_glusterfs_getfattrcmd",
-      "displayName": "Gluster getfattr command",
-      "description": "Gluster getfattr command",
-      "defaultValue": "sudo getfattr -m . -n trusted.glusterfs.pathinfo",
-      "displayType": "string",
-      "isVisible": false,
-      "serviceName": "HCFS",
-      "category": "General"
-    },
+        "id": "puppet var",
+        "name": "fs_glusterfs_default_name",
+        "displayName": "GlusterFS default fs name 1.x Hadoop",
+        "description": "GlusterFS default filesystem name (glusterfs://{MasterFQDN}:9000)",
+        "defaultValue": "glusterfs:///",
+        "displayType": "string",
+        "isVisible": true,
+        "domain": "global",
+        "serviceName": "GLUSTERFS",
+        "category": "General"
+      },
+      {
+          "id": "puppet var",
+          "name": "glusterfs_defaultFS_name",
+          "displayName": "GlusterFS default fs name 2.x Hadoop",
+          "description": "GlusterFS default filesystem name (glusterfs:///)",
+          "defaultValue": "glusterfs:///",
+          "displayType": "string",
+          "isVisible": true,
+          "domain": "global",
+          "serviceName": "GLUSTERFS",
+          "category": "General"
+        },
+      {
+        "id": "puppet var",
+        "name": "fs_glusterfs_volname",
+        "displayName": "GlusterFS volume name",
+        "description": "GlusterFS volume name",
+        "defaultValue": "HadoopVol",
+        "displayType": "string",
+        "isVisible": true,
+        "domain": "global",
+        "serviceName": "GLUSTERFS",
+        "category": "General"
+      },
+      {
+          "id": "puppet var",
+          "name": "fs_glusterfs_mount",
+          "displayName": "GlusterFS mount point",
+          "description": "GlusterFS mount point",
+          "defaultValue": "/mnt/glusterfs",
+          "displayType": "string",
+          "isVisible": true,
+          "domain": "global",
+          "serviceName": "GLUSTERFS",
+          "category": "General"
+        },
+        {
+          "id": "puppet var",
+          "name": "fs_glusterfs_impl",
+          "displayName": "GlusterFS fs impl",
+          "description": "GlusterFS fs impl",
+          "defaultValue": "org.apache.hadoop.fs.glusterfs.GlusterFileSystem",
+          "displayType": "string",
+          "isVisible": true,
+          "domain": "global",
+          "serviceName": "GLUSTERFS",
+          "category": "General"
+        },
+        {
+          "id": "puppet var",
+          "name": "fs_glusterfs_getfattrcmd",
+          "displayName": "GlusterFS getfattr command",
+          "description": "GlusterFS getfattr command",
+          "defaultValue": "sudo getfattr -m . -n trusted.glusterfs.pathinfo",
+          "displayType": "string",
+          "isVisible": true,
+          "domain": "global",
+          "serviceName": "GLUSTERFS",
+          "category": "General"
+        },
+        {
+            "id": "puppet var",
+            "name": "fs_AbstractFileSystem_glusterfs_impl",
+            "displayName": "GlusterFS Abstract Filesystem declaration",
+            "description": "GlusterFS Abstract Filesystem declaration",
+            "defaultValue": "org.apache.hadoop.fs.local.GlusterFs",
+            "displayType": "string",
+            "isVisible": true,
+            "domain": "global",
+            "serviceName": "GLUSTERFS",
+            "category": "General"
+          },
   /**********************************************MAPREDUCE***************************************/
     {
       "id": "puppet var",

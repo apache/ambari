@@ -40,8 +40,8 @@ module.exports = [
     configs: []
   },
   {
-    serviceName: 'HCFS',
-    displayName: 'HCFS',
+    serviceName: 'GLUSTERFS',
+    displayName: 'GLUSTERFS',
     filename: 'core-site',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'})

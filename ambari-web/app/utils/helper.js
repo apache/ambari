@@ -340,10 +340,10 @@ App.format = {
         return 'Update Exclude File';
       case 'HUE_SERVER':
         return 'Hue Server';
-      case 'HCFS_CLIENT':
-        return 'HCFS Client';
-      case 'HCFS_SERVICE_CHECK':
-        return 'HCFS Service Check';
+      case 'GLUSTERFS_CLIENT':
+        return 'GLUSTERFS Client';
+      case 'GLUSTERFS_SERVICE_CHECK':
+        return 'GLUSTERFS Service Check';
       case 'FLUME_SERVER':
         return 'Flume Agent';
       case 'ZKFC':

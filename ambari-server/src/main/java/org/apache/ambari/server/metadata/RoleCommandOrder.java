@@ -48,8 +48,8 @@ public class RoleCommandOrder {
 			LoggerFactory.getLogger(RoleCommandOrder.class);
 
   private final static String GENERAL_DEPS_KEY = "general_deps";
-  private final static String HCFS_DEPS_KEY = "optional_hcfs";
-  private final static String NO_HCFS_DEPS_KEY = "optional_no_hcfs";
+  private final static String GLUSTERFS_DEPS_KEY = "optional_glusterfs";
+  private final static String NO_GLUSTERFS_DEPS_KEY = "optional_no_glusterfs";
   private final static String HA_DEPS_KEY = "optional_ha";
   private final static String COMMENT_STR = "_comment";
   private static final String ROLE_COMMAND_ORDER_FILE = "role_command_order.json";
@@ -171,12 +171,12 @@ public class RoleCommandOrder {
   }
 
   public void initialize(Cluster cluster) {
-    Boolean hasHCFS = false;
+    Boolean hasGLUSTERFS = false;
     Boolean isHAEnabled = false;
 
     try {
-      if (cluster != null && cluster.getService("HCFS") != null) {
-    	  hasHCFS = true;
+      if (cluster != null && cluster.getService("GLUSTERFS") != null) {
+    	  hasGLUSTERFS = true;
       } 
     } catch (AmbariException e) {
     }
@@ -219,12 +219,12 @@ public class RoleCommandOrder {
 
     Map<String,Object> generalSection = (Map<String, Object>) userData.get(GENERAL_DEPS_KEY);
     addDependencies(generalSection);
-    if (hasHCFS) {
-      Map<String,Object> hcfsSection = (Map<String, Object>) userData.get(HCFS_DEPS_KEY);
-      addDependencies(hcfsSection);
+    if (hasGLUSTERFS) {
+      Map<String,Object> glusterfsSection = (Map<String, Object>) userData.get(GLUSTERFS_DEPS_KEY);
+      addDependencies(glusterfsSection);
     } else {
-      Map<String,Object> noHcfsSection = (Map<String, Object>) userData.get(NO_HCFS_DEPS_KEY);
-      addDependencies(noHcfsSection);
+      Map<String,Object> noGlusterFSSection = (Map<String, Object>) userData.get(NO_GLUSTERFS_DEPS_KEY);
+      addDependencies(noGlusterFSSection);
     }
     if (isHAEnabled) {
       Map<String,Object> isHASection = (Map<String, Object>) userData.get(HA_DEPS_KEY);

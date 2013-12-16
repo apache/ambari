@@ -81,9 +81,9 @@ imports = [
 ]
 
 rolesToClass = {
-  'HCFS': 'hdp-hadoop::hcfs',
-  'HCFS_CLIENT': 'hdp-hadoop::hcfs_client',
-  'HCFS_SERVICE_CHECK': 'hdp-hadoop::hcfs_service_check',
+  'GLUSTERFS': 'hdp-hadoop::glusterfs',
+  'GLUSTERFS_CLIENT': 'hdp-hadoop::glusterfs_client',
+  'GLUSTERFS_SERVICE_CHECK': 'hdp-hadoop::glusterfs_service_check',
   'NAMENODE': 'hdp-hadoop::namenode',
   'DATANODE': 'hdp-hadoop::datanode',
   'SECONDARY_NAMENODE': 'hdp-hadoop::snamenode',
@@ -148,7 +148,7 @@ serviceStates = {
 }
 
 servicesToPidNames = {
-  'HCFS' : 'glusterd.pid$',    
+  'GLUSTERFS' : 'glusterd.pid$',    
   'NAMENODE': 'hadoop-{USER}-namenode.pid$',
   'SECONDARY_NAMENODE': 'hadoop-{USER}-secondarynamenode.pid$',
   'DATANODE': 'hadoop-{USER}-datanode.pid$',
@@ -194,7 +194,7 @@ servicesToLinuxUser = {
 }
 
 pidPathesVars = [
-  {'var' : 'hcfs_pid_dir_prefix',
+  {'var' : 'glusterfs_pid_dir_prefix',
    'defaultValue' : '/var/run'},      
   {'var' : 'hadoop_pid_dir_prefix',
    'defaultValue' : '/var/run/hadoop'},

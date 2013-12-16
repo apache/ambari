@@ -548,7 +548,7 @@ App.config = Em.Object.create({
     return renderedServiceConfigs;
   },
   /**
-   Takes care of the "dynamic defaults" for the HCFS configs.  Sets
+   Takes care of the "dynamic defaults" for the GLUSTERFS configs.  Sets
    some of the config defaults to previously user-entered data.
    **/
   tweakDynamicDefaults: function (localDB, serviceConfigProperty, config) {

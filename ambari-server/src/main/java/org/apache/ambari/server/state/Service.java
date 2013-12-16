@@ -90,7 +90,7 @@ public interface Service {
 
   public enum Type {
     HDFS,
-    HCFS,
+    GLUSTERFS,
     MAPREDUCE,
     HBASE,
     HIVE,

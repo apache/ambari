@@ -490,8 +490,8 @@ App.WizardStep8Controller = Em.Controller.extend({
           case 'HDFS':
             this.loadHDFS(serviceObj);
             break;
-          case 'HCFS':
-            this.loadHCFS(serviceObj);
+          case 'GLUSTERFS':
+            this.loadGLUSTERFS(serviceObj);
             break;
           case 'MAPREDUCE':
             this.loadMapReduce(serviceObj);
@@ -564,25 +564,25 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
   
   /**
-   * load all info about HCFS service
-   * @param hcfsObj
+   * load all info about GLUSTERFS service
+   * @param glusterfsObj
    */
-  loadHCFS: function (hcfsObj) {
-    hcfsObj.get('service_components').forEach(function (_component) {
+  loadGLUSTERFS: function (glusterfsObj) {
+    glusterfsObj.get('service_components').forEach(function (_component) {
       switch (_component.get('display_name')) {
-        case 'HCFS Client':
-          this.loadHCFSClientValue(_component);
+        case 'GLUSTERFS Client':
+          this.loadGLUSTERFSClientValue(_component);
           break;
         default:
       }
     }, this);
-    this.get('services').pushObject(hcfsObj);
+    this.get('services').pushObject(glusterfsObj);
   },
   
-  loadHCFSClientValue: function (hcfsComponent) {
-    var hcfsClientHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'Client');
-    var totalHCFSHosts = hcfsClientHosts.hosts.length;
-    hcfsComponent.set('component_value', totalHCFSHosts + ' hosts');  
+  loadGLUSTERFSClientValue: function (glusterfsComponent) {
+    var glusterfsClientHosts = this.get('content.slaveComponentHosts').findProperty('displayName', 'Client');
+    var totalGLUSTERFSHosts = glusterfsClientHosts.hosts.length;
+    glusterfsComponent.set('component_value', totalGLUSTERFSHosts + ' hosts');  
   },
 
   loadNnValue: function (nnComponent) {
@@ -1520,10 +1520,10 @@ App.WizardStep8Controller = Em.Controller.extend({
   createGlobalSiteObj: function () {
     var globalSiteProperties = {};
     var globalSiteObj = this.get('globals');
-    var isHCFSSelected = this.get('selectedServices').someProperty('serviceName', 'HCFS');
+    var isGLUSTERFSSelected = this.get('selectedServices').someProperty('serviceName', 'GLUSTERFS');
     
-    // screen out the HCFS-specific global config entries when they are not required
-    if (!isHCFSSelected) {
+    // screen out the GLUSTERFS-specific global config entries when they are not required
+    if (!isGLUSTERFSSelected) {
       globalSiteObj = globalSiteObj.filter(function(_config) {
         return _config.name.indexOf("fs_glusterfs") < 0;
       });
@@ -1560,10 +1560,10 @@ App.WizardStep8Controller = Em.Controller.extend({
     var hiveUser = this.get('globals').someProperty('name', 'hive_user') ? this.get('globals').findProperty('name', 'hive_user').value : null;
     var isHcatSelected = this.get('selectedServices').someProperty('serviceName', 'WEBHCAT');
     var hcatUser = this.get('globals').someProperty('name', 'hcat_user') ? this.get('globals').findProperty('name', 'hcat_user').value : null;
-    var isHCFSSelected = this.get('selectedServices').someProperty('serviceName', 'HCFS');
+    var isGLUSTERFSSelected = this.get('selectedServices').someProperty('serviceName', 'GLUSTERFS');
     
-    // screen out the HCFS-specific core-site.xml entries when they are not needed
-    if (!isHCFSSelected) {
+    // screen out the GLUSTERFS-specific core-site.xml entries when they are not needed
+    if (!isGLUSTERFSSelected) {
        coreSiteObj = coreSiteObj.filter(function(_config) {
          return _config.name.indexOf("fs.glusterfs") < 0;
       });
@@ -1573,7 +1573,7 @@ App.WizardStep8Controller = Em.Controller.extend({
         coreSiteProperties[_coreSiteObj.name] = App.config.escapeXMLCharacters(_coreSiteObj.value);
         this._recordHostOverrideFromObj(_coreSiteObj, 'core-site', 'version1', this);
       }
-      if (isHCFSSelected && _coreSiteObj.name == "fs.default.name") {
+      if (isGLUSTERFSSelected && _coreSiteObj.name == "fs.default.name") {
         coreSiteProperties[_coreSiteObj.name] = this.get('globals').someProperty('name', 'fs_glusterfs_default_name') ? App.config.escapeXMLCharacters(this.get('globals').findProperty('name', 'fs_glusterfs_default_name').value) : null;
       }
       console.log("STEP*: name of the property is: " + _coreSiteObj.name);
