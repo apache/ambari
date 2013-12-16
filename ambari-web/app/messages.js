@@ -490,6 +490,10 @@ Em.I18n.translations = {
   'installer.step8.hosts':' hosts',
   'installer.step8.host':' host',
   'installer.step8.other':' and {0} other hosts',
+  'installer.step8.repoInfo.osType.redhat6':'RHEL 6/CentOS 6/Oracle Linux 6',
+  'installer.step8.repoInfo.osType.redhat5':'RHEL 5/CentOS 5/Oracle Linux 5',
+  'installer.step8.repoInfo.osType.sles11':'SLES 11/SUSE 11',
+  'installer.step8.repoInfo.displayName':'Repositories',
   'installer.step8.securityWarning':'You are running your cluster in secure mode. You must set up the keytabs for all the hosts you are adding before you proceed.',
   'installer.step8.securityConfirmationPopupBody':'Before you proceed, please make sure that the keytabs have been set up on the hosts you are adding per the instructions on the Review page. Otherwise, the assigned components will not be able to start properly on the hosts being added.',
 

@@ -376,16 +376,102 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.get('clusterInfo').pushObject(Ember.Object.create(totalHostsObj));
 
     //repo
-    var repoOption = this.get('content.installOptions.localRepo');
-    var repoObj = this.rawContent.findProperty('config_name', 'Repo');
-    if (repoOption) {
-      repoObj.config_value = 'Yes';
-    } else {
-      repoObj.config_value = 'No';
+    if (this.get('content.controllerName') == 'addHostController') {
+      this.loadRepoInfo();
+    } else { // from install wizard
+      var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
+      var allRepos = [];
+      if (selectedStack && selectedStack.operatingSystems) {
+        selectedStack.operatingSystems.forEach (function(os){
+          if (os.selected) {
+            switch (os.osType) {
+              case 'redhat6':
+                var repo = Em.Object.create({
+                  base_url: os.baseUrl,
+                  os_type: Em.I18n.t("installer.step8.repoInfo.osType.redhat6")
+                });
+                allRepos.push(repo);
+                break;
+              case 'redhat5':
+                var repo = Em.Object.create({
+                  base_url: os.baseUrl,
+                  os_type: Em.I18n.t("installer.step8.repoInfo.osType.redhat5")
+                });
+                allRepos.push(repo);
+                break;
+              case 'sles11':
+                var repo = Em.Object.create({
+                  base_url: os.baseUrl,
+                  os_type: Em.I18n.t("installer.step8.repoInfo.osType.sles11")
+                });
+                allRepos.push(repo);
+                break;
+            }
+          }
+        }, this);
+      }
+      allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
+      this.get('clusterInfo').set('repoInfo', allRepos);
     }
-    this.get('clusterInfo').pushObject(Ember.Object.create(repoObj));
   },
 
+  /**
+   * get the repositories info of HDP from server. Used only in addHost controller.
+   */
+  loadRepoInfo: function(){
+    var nameVersionCombo = App.get('currentStackVersion');
+    var stackName = nameVersionCombo.split('-')[0];
+    var stackVersion = nameVersionCombo.split('-')[1];
+    App.ajax.send({
+      name: 'cluster.load_repositories',
+      sender: this,
+      data: {
+        stackName: stackName,
+        stackVersion: stackVersion
+      },
+      success: 'loadRepoInfoSuccessCallback',
+      error: 'loadRepositoriesErrorCallback'
+    });
+  },
+
+  loadRepoInfoSuccessCallback: function (data) {
+    var allRepos = [];
+    data.items.forEach(function(item) {
+      var os = item.repositories[0].Repositories;
+        switch (os.os_type) {
+          case 'redhat6':
+            var repo = Em.Object.create({
+              base_url: os.base_url,
+              os_type: Em.I18n.t("installer.step8.repoInfo.osType.redhat6")
+            });
+            allRepos.push(repo);
+            break;
+          case 'redhat5':
+            var repo = Em.Object.create({
+              base_url: os.base_url,
+              os_type: Em.I18n.t("installer.step8.repoInfo.osType.redhat5")
+            });
+            allRepos.push(repo);
+            break;
+          case 'sles11':
+            var repo = Em.Object.create({
+              base_url: os.base_url,
+              os_type: Em.I18n.t("installer.step8.repoInfo.osType.sles11")
+            });
+            allRepos.push(repo);
+            break;
+        }
+    }, this);
+    allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
+    this.get('clusterInfo').set('repoInfo', allRepos);
+  },
+
+  loadRepoInfoErrorCallback: function(request, ajaxOptions, error) {
+    console.log('Error message is: ' + request.responseText);
+    var allRepos = [];
+    allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
+    this.get('clusterInfo').set('repoInfo', allRepos);
+  },
 
   /**
    * Load all info about services to <code>services</code> variable
