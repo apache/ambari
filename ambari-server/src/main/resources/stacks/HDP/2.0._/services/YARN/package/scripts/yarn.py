@@ -114,11 +114,9 @@ def yarn():
     container_executor = format("{yarn_container_bin}/container-executor")
     File(container_executor,
          group=params.yarn_executor_container_group,
-         mode=6050
+         mode=06050
     )
-
-    Execute(format("chmod 6050 {yarn_container_bin}/container-executor"))   #Fix File permission setting
-
+    
     File(format("{config_dir}/container-executor.cfg"),
          group=params.user_group,
          mode=0644,

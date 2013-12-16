@@ -7,9 +7,7 @@ from oozie_service import oozie_service
          
 class OozieServer(Script):
   def install(self, env):
-    Package('oozie.noarch')
-    Package('oozie-client.noarch')
-    Package('extjs-2.2-1')
+    self.install_packages(env)
     self.configure(env)
     
   def configure(self, env):

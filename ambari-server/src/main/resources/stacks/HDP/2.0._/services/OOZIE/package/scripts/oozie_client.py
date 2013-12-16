@@ -7,7 +7,7 @@ from oozie_service import oozie_service
          
 class OozieClient(Script):
   def install(self, env):
-    Package('oozie-client.noarch')
+    self.install_packages(env)
     self.configure(env)
     
   def configure(self, env):
