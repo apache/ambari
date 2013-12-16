@@ -1,4 +1,3 @@
-#
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
 # this work for additional information regarding copyright ownership.
@@ -13,8 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-yarn.nodemanager.local-dirs=TODO-YARN-LOCAL-DIR
-yarn.nodemanager.linux-container-executor.group=hadoop
-yarn.nodemanager.log-dirs=TODO-YARN-LOG-DIR
-banned.users=hfds,bin,0
+
+{{yarn_user}}   - nofile 32768
+{{yarn_user}}   - nproc  65536
