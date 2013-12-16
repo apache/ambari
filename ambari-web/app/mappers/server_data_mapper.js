@@ -134,6 +134,31 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
     item.get('stateManager').transitionTo('loading');
     console.log('Record with id:' + item.get('id') + ' was deleted from model');
   },
+  /**
+   * check mutable fields whether they have been changed and if positive
+   * return host object only with properties, that contains new value
+   * @param current
+   * @param previous
+   * @param fields
+   * @return {*}
+   */
+  getDiscrepancies: function (current, previous, fields) {
+    var result = {};
+    if (previous) {
+      fields.forEach(function (field) {
+        if (Array.isArray(current[field])) {
+          if (JSON.stringify(current[field]) !== JSON.stringify(previous[field])) {
+            result[field] = current[field];
+            result.isLoadNeeded = true;
+          }
+        } else {
+          if (current[field] != previous[field]) result[field] = current[field];
+        }
+      });
+      return result;
+    }
+    return current;
+  },
 
   calculateState: function (json) {
 //    var stateEqual = (json.desired_status != json.work_status);

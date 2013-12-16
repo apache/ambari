@@ -300,31 +300,6 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     }, this)
   },
   /**
-   * check mutable fields whether they have been changed and if positive
-   * return host object only with properties, that contains new value
-   * @param current
-   * @param previous
-   * @param fields
-   * @return {*}
-   */
-  getDiscrepancies: function (current, previous, fields) {
-    var result = {};
-    if (previous) {
-      fields.forEach(function (field) {
-        if (Array.isArray(current[field])) {
-          if (JSON.stringify(current[field]) !== JSON.stringify(previous[field])) {
-            result[field] = current[field];
-            result.isLoadNeeded = true;
-          }
-        } else {
-          if (current[field] != previous[field]) result[field] = current[field];
-        }
-      });
-      return result;
-    }
-    return current;
-  },
-  /**
    * Map quick links to services:OOZIE,GANGLIA,NAGIOS,HUE
    * @param finalJson
    * @param item

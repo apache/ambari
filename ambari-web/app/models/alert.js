@@ -21,30 +21,26 @@ var App = require('app');
 App.AlertStatus = {
   negative: 'corrupt',
   positive: 'ok'
-}
+};
 
 /**
  * Defines structure for App.Alert class. Keys mentioned here are for JSON data
  * which comes back from NAGIOS server.
  */
 App.Alert = DS.Model.extend({
-  alertId: DS.attr('string'),
-  primaryKey: 'alertId',
   title: DS.attr('string'),//service_description in ajax response
   serviceType: DS.attr('string'),
-  date: DS.attr('date'),
   status: DS.attr('string'),//current_state in ajax response
   message: DS.attr('string'),//plugin_output in ajax response
   hostName: DS.attr('string'),
   currentAttempt: DS.attr('string'),
-  lastHardStateChange: DS.attr('number'),
-  lastHardState: DS.attr('number'),
-  lastTimeOk: DS.attr('number'),
-  lastTimeWarning: DS.attr('number'),
-  lastTimeUnknown: DS.attr('number'),
-  lastTimeCritical: DS.attr('number'),
   isFlapping: DS.attr('number'),
   lastCheck: DS.attr('number'),
+  lastTime: DS.attr('number'),
+
+  date: function () {
+    return DS.attr.transforms.date.from(this.get('lastTime'));
+  }.property('lastTime'),
 
   /**
    * Used to show correct icon in UI
