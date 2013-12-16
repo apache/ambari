@@ -26,6 +26,11 @@
 </div>
 <div class="assign-masters">
   <div class="select-hosts">
+    {{#if currentHostId}}
+      <div class="control-group offset1">{{t services.reassign.step2.currentHost}}
+        <span>{{currentHostId}}</span>
+      </div>
+    {{/if}}
     <form class="form-horizontal" autocomplete="off">
       <!-- View for array controller -->
       {{#each servicesMasters}}
