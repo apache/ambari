@@ -257,6 +257,7 @@ App.WizardStep6Controller = Em.Controller.extend({
         App.router.send('next');
       }
     }
+    this.get('hosts').sort(function(a, b){return a.isMaster < b.isMaster;});
   },
 
   /**
