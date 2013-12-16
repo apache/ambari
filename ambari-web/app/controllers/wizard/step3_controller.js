@@ -232,6 +232,7 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   retryHosts: function (hosts) {
+    this.selectAllCategory();
     var bootStrapData = JSON.stringify({'verbose': true, 'sshKey': this.get('content.installOptions.sshKey'), 'hosts': hosts.mapProperty('name'), 'user': this.get('content.installOptions.sshUser')});
     this.numPolls = 0;
     if (this.get('content.installOptions.manualInstall') !== true) {
@@ -614,6 +615,10 @@ App.WizardStep3Controller = Em.Controller.extend({
 
   selectCategory: function(event, context){
     this.set('category', event.context);
+  },
+
+  selectAllCategory: function(){
+    this.set('category', this.get('categories').get('firstObject'));
   },
 
   submit: function () {
