@@ -17,7 +17,7 @@
 }}
 
 <div>
-  {{#if view.isHighAvailabilityEnabled}}
+  {{#if App.isHaEnabled}}
     {{#if App.supports.autoRollbackHA}}
       <p class="text-success">
         {{t admin.highAvailability.enabled}}

@@ -133,9 +133,6 @@ App.ApplicationController = Em.Controller.extend({
             self.postUserPref(key, curValue);
           }
           this.hide();
-        },
-        onSecondary: function() {
-          this.hide();
         }
       })
     });

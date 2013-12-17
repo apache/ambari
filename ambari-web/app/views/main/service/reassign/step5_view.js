@@ -31,7 +31,7 @@ App.ReassignMasterWizardStep5View = Em.View.extend({
     var sourceHost = this.get('controller.content.reassignHosts.source');
     var targetHost = this.get('controller.content.reassignHosts.target');
     var ha = '';
-    if (this.get('controller.content.reassign.component_name') === 'NAMENODE' && !App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
+    if (this.get('controller.content.reassign.component_name') === 'NAMENODE' && App.get('isHaEnabled')) {
       ha = '_ha';
       var nnStartedHost = this.get('controller.content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName').without(this.get('controller.content.reassignHosts.target'));
     }

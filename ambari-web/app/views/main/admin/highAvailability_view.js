@@ -23,10 +23,5 @@ App.MainAdminHighAvailabilityView = Em.View.extend({
 
   didInsertElement: function () {
     this.get('controller').setSecurityStatus();
-  },
-
-  isHighAvailabilityEnabled: function () {
-    return !App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE');
-  }.property()
-
+  }
 });

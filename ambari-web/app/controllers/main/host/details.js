@@ -546,10 +546,8 @@ App.MainHostDetailsController = Em.Controller.extend({
     });
     zks_with_port = zks_with_port.slice(0,-1);
 
-    if (App.get('isHadoop2Stack')) {
-      if (!App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
-        configs['core-site']['ha.zookeeper.quorum'] = zks_with_port;
-      }
+    if (App.get('isHaEnabled')) {
+      configs['core-site']['ha.zookeeper.quorum'] = zks_with_port;
     }
     if (configs['hbase-site']) {
       configs['hbase-site']['hbase.zookeeper.quorum'] = zks.join(',');

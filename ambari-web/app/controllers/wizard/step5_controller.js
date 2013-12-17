@@ -243,7 +243,7 @@ App.WizardStep5Controller = Em.Controller.extend({
 
       if (item.component_name == 'SECONDARY_NAMENODE') {
         if (self.get('isAddServiceWizard')) {
-          if (!App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
+          if (App.get('isHaEnabled')) {
             return;
           }
         }

@@ -27,15 +27,15 @@ App.MainHostServiceMenuView = Em.CollectionView.extend({
     if (hostComponents) {
       hostComponents.forEach(function (hc) {
         var service = hc.get('service');
+        if (service) {
         var serviceName = service.get('serviceName');
-        if (serviceName) {
           if(!['PIG', 'SQOOP', 'HCATALOG', 'GANGLIA'].contains(serviceName)){
             if (!services.findProperty('serviceName', serviceName)) {
               services.push(service);
             }
           }
         } else {
-          console.warn("serviceName not found for " + hc.get('componentName'));
+          console.warn("service not found for " + hc.get('componentName'));
         }
       });
     }

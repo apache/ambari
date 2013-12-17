@@ -117,7 +117,7 @@ App.WizardStep7Controller = Em.Controller.extend({
       });
 
       // Remove SNameNode if HA is enabled
-      if (!App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
+      if (App.get('isHaEnabled')) {
         configs = serviceConfigs.findProperty('serviceName', 'HDFS').configs;
         var removedConfigs = configs.filterProperty('category', 'SNameNode');
         removedConfigs.map(function(config) {

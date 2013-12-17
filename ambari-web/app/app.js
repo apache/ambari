@@ -69,10 +69,9 @@ module.exports = Em.Application.create({
    * @type {Boolean}
    */
   isHaEnabled: function() {
-    if (!this.clusterStatus.get('isInstalled')) return false;
     if (!this.get('isHadoop2Stack')) return false;
     return !this.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE');
-  }.property('clusterStatus.isInstalled')
+  }.property('router.clusterController.isLoaded')
 
 });
 

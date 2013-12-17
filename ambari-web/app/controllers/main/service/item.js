@@ -272,7 +272,7 @@ App.MainServiceItemController = Em.Controller.extend({
 
   isStopDisabled: function () {
     if(this.get('isPending')) return true;
-    if (!App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE') && this.get('content.serviceName') == 'HDFS' && this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
+    if (App.get('isHaEnabled') && this.get('content.serviceName') == 'HDFS' && this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
       return false;
     }
     return (this.get('content.healthStatus') != 'green');

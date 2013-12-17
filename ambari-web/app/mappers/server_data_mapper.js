@@ -171,7 +171,7 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
 //    }
     return json;
   }
-})
+});
 
 App.QuickDataMapper.componentServiceMap = {
   'NAMENODE': 'HDFS',
@@ -179,6 +179,7 @@ App.QuickDataMapper.componentServiceMap = {
   'DATANODE': 'HDFS',
   'HDFS_CLIENT': 'HDFS',
   'JOURNALNODE': 'HDFS',
+  'ZKFC': 'HDFS',
   'JOBTRACKER': 'MAPREDUCE',
   'TASKTRACKER': 'MAPREDUCE',
   'MAPREDUCE_CLIENT': 'MAPREDUCE',
@@ -211,4 +212,4 @@ App.QuickDataMapper.componentServiceMap = {
   'KERBEROS_CLIENT': 'KERBEROS',
   'HUE_SERVER': 'HUE',
   'GLUSTERFS_CLIENT': 'GLUSTERFS'
-}
+};

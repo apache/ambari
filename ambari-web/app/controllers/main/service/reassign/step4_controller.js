@@ -31,7 +31,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   hostComponents: [],
 
   loadStep: function () {
-    if (this.get('content.reassign.component_name') === 'NAMENODE' && !App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
+    if (this.get('content.reassign.component_name') === 'NAMENODE' && App.get('isHaEnabled')) {
       this.set('hostComponents', ['NAMENODE', 'ZKFC']);
     } else {
       this.set('hostComponents', [this.get('content.reassign.component_name')]);
@@ -69,7 +69,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     }
 
     if (this.get('content.hasManualSteps')) {
-      if (this.get('content.reassign.component_name') === 'NAMENODE' && !App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
+      if (this.get('content.reassign.component_name') === 'NAMENODE' && App.get('isHaEnabled')) {
         // Only for reassign NameNode with HA enabled
         this.get('tasks').splice(7, 2);
       } else {
@@ -210,7 +210,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     switch (componentName) {
       case 'NAMENODE':
         if (isHadoop2Stack) {
-          if (!App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
+          if (App.get('isHaEnabled')) {
             var nameServices = configs['hdfs-site']['dfs.nameservices'];
             if (configs['hdfs-site']['dfs.namenode.http-address.' + nameServices + '.nn1'] === sourceHostName + ':50070') {
               configs['hdfs-site']['dfs.namenode.http-address.' + nameServices + '.nn1'] = targetHostName + ':50070';
@@ -233,7 +233,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
           configs['hdfs-site']['dfs.https.address'] = targetHostName + ':50470';
           configs['core-site']['fs.default.name'] = 'hdfs://' + targetHostName + ':8020';
         }
-        if (App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE')) {
+        if (!App.get('isHaEnabled')) {
           if (App.Service.find().someProperty('serviceName', 'HBASE')) {
             configs['hbase-site']['hbase.rootdir'] = configs['hbase-site']['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + targetHostName);
           }
