@@ -31,7 +31,7 @@ class Register:
   """ Registering with the server. Get the hardware profile and 
   declare success for now """
   def __init__(self, config):
-    self.hardware = Hardware(config)
+    self.hardware = Hardware()
     self.config = config
 
   def build(self, id='-1'):

@@ -18,17 +18,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import subprocess, os
-import tempfile
 from unittest import TestCase
 from ambari_agent.Hardware import Hardware
-from mock.mock import MagicMock, patch, ANY
-import mock.mock
-from AmbariConfig import AmbariConfig
+from mock.mock import patch
+from ambari_agent.Facter import Facter
 
 class TestHardware(TestCase):
   def test_build(self):
-    hardware = Hardware(AmbariConfig().getConfig())
+    hardware = Hardware()
     result = hardware.get()
     osdisks = hardware.osdisks()
     for dev_item in result['mounts']:
@@ -50,91 +47,6 @@ class TestHardware(TestCase):
       self.assertTrue(os_disk_item['size'] > 0)
 
     self.assertTrue(len(result['mounts']) == len(osdisks))
-
-
-  @patch.object(subprocess, "Popen")
-  @patch.object(Hardware, "facterLib")
-  @patch("os.path.exists")
-  def test_facterInfo(self, os_path_exists_mock, hardware_facterLib_mock, subprocess_popen_mock):
-    config = AmbariConfig().getConfig()
-    tmp_dir = tempfile.gettempdir()
-    config.set("puppet", "facter_home", tmp_dir)
-    hardware = Hardware(config)
-    facter = MagicMock()
-    facter.communicate.return_value = ["memoryfree => 1 GB\n memorysize => 25 MB\n memorytotal => 300 KB\n "
-                                        + "physicalprocessorcount => 25\n is_virtual => true\n", "no errors"]
-    facter.returncode = 0
-    os.environ['RUBYLIB'] = tmp_dir;
-    subprocess_popen_mock.return_value = facter
-    os_path_exists_mock.return_value = True
-    hardware_facterLib_mock.return_value = "bla bla bla"
-    facterInfo = hardware.facterInfo()
-
-    self.assertEquals(facterInfo['memoryfree'], 1048576L)
-    self.assertEquals(facterInfo['memorysize'], 25600L)
-    self.assertEquals(facterInfo['memorytotal'], 300L)
-    self.assertEquals(facterInfo['physicalprocessorcount'], 25)
-    self.assertTrue(facterInfo['is_virtual'])
-    self.assertEquals(subprocess_popen_mock.call_args[1]['env']['RUBYLIB'],
-                      tmp_dir + ":" + "bla bla bla")
-
-    facter.communicate.return_value = ["memoryfree => 1 G\n memorysize => 25 M\n memorytotal => 300 K\n "
-                                         + "someinfo => 12 Byte\n ssh_name_key => Aa06Fdd\n", "no errors"]
-    facterInfo = hardware.facterInfo()
-    facter.returncode = 1
-    self.assertEquals(facterInfo['memoryfree'], 1048576L)
-    self.assertEquals(facterInfo['memorysize'], 25600L)
-    self.assertEquals(facterInfo['memorytotal'], 300L)
-    self.assertEquals(facterInfo['someinfo'], '12 Byte')
-    self.assertFalse(facterInfo.has_key('ssh_name_key'))
-
-    facter.communicate.return_value = ["memoryfree => 1024 M B\n memorytotal => 1024 Byte" , "no errors"]
-
-    facterInfo = hardware.facterInfo()
-
-    self.assertEquals(facterInfo['memoryfree'], 1L)
-    self.assertEquals(facterInfo['memorytotal'], 1L)
-
-    os_path_exists_mock.return_value = False
-    facterInfo = hardware.facterInfo()
-
-    self.assertEquals(facterInfo, {})
-
-
-  @patch("os.path.exists")
-  def test_facterBin(self, ps_path_exists_mock):
-    hardware = Hardware(AmbariConfig().getConfig())
-    ps_path_exists_mock.return_value = False
-    result = hardware.facterBin("bla bla bla")
-    self.assertEquals(result, "facter")
-
-    ps_path_exists_mock.return_value = True
-    result = hardware.facterBin("bla bla bla")
-    self.assertEquals(result, "bla bla bla/bin/facter")
-
-
-  @patch("os.path.exists")
-  @patch.dict('os.environ', {"PATH": ""})
-  @patch.object(subprocess, "Popen")
-  @patch.object(Hardware, "facterInfo")
-  def test_configureEnviron(self, hrdware_facterinfo_mock, subproc_popen, os_path_exists_mock):
-    config = AmbariConfig().getConfig()
-    tmpdir = tempfile.gettempdir()
-    config.set("puppet", "ruby_home", tmpdir)
-    hardware = Hardware(config)
-    os_path_exists_mock.return_value = True
-    result = hardware.configureEnviron({'PATH': ""})
-
-    self.assertEquals(result['PATH'], tmpdir + "/bin:")
-    self.assertEquals(result['MY_RUBY_HOME'], tmpdir)
-    config.remove_option("puppet", "ruby_home")
-
-
-  def test_facterLib(self):
-    hardware = Hardware(AmbariConfig().getConfig())
-    facterLib = hardware.facterLib("/home")
-    self.assertEquals(facterLib, "/home/lib/")
-
 
   def test_extractMountInfo(self):
     outputLine = "device type size used available percent mountpoint"
@@ -163,6 +75,83 @@ class TestHardware(TestCase):
 
     self.assertEquals(result, None)
 
+  @patch.object(Facter, "getFqdn")
+  def test_fqdnDomainHostname(self, facter_getFqdn_mock):
+    facter_getFqdn_mock.return_value = "ambari.apache.org"
+    result = Facter().facterInfo()
 
+    self.assertEquals(result['hostname'], "ambari")
+    self.assertEquals(result['domain'], "apache.org")
+    self.assertEquals(result['fqdn'], (result['hostname'] + '.' + result['domain']))
+
+  @patch.object(Facter, "setDataUpTimeOutput")
+  def test_uptimeSecondsHoursDays(self, facter_setDataUpTimeOutput_mock):
+    # 3 days + 1 hour + 13 sec
+    facter_setDataUpTimeOutput_mock.return_value = "262813.00 123.45"
+    result = Facter().facterInfo()
+
+    self.assertEquals(result['uptime_seconds'], '262813')
+    self.assertEquals(result['uptime_hours'], '73')
+    self.assertEquals(result['uptime_days'], '3')
+
+  @patch.object(Facter, "setMemInfoOutput")
+  def test_facterMemInfoOutput(self, facter_setMemInfoOutput_mock):
+
+    facter_setMemInfoOutput_mock.return_value = '''
+MemTotal:        1832392 kB
+MemFree:          868648 kB
+HighTotal:             0 kB
+HighFree:              0 kB
+LowTotal:        1832392 kB
+LowFree:          868648 kB
+SwapTotal:       2139592 kB
+SwapFree:        1598676 kB
+    '''
+
+    result = Facter().facterInfo()
+
+    self.assertEquals(result['memorysize'], 1832392)
+    self.assertEquals(result['memorytotal'], 1832392)
+    self.assertEquals(result['memoryfree'], 868648)
+    self.assertEquals(result['swapsize'], '2.04 GB')
+    self.assertEquals(result['swapfree'], '1.52 GB')
+
+  @patch.object(Facter, "setDataIfConfigOutput")
+  def test_facterDataIfConfigOutput(self, facter_setDataIfConfigOutput_mock):
+
+    facter_setDataIfConfigOutput_mock.return_value = '''
+eth0      Link encap:Ethernet  HWaddr 08:00:27:C9:39:9E
+          inet addr:10.0.2.15  Bcast:10.0.2.255  Mask:255.255.255.0
+          inet6 addr: fe80::a00:27ff:fec9:399e/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:7575 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:3463 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000
+          RX bytes:9383574 (8.9 MiB)  TX bytes:231609 (226.1 KiB)
+
+eth1      Link encap:Ethernet  HWaddr 08:00:27:9A:9A:45
+          inet addr:192.168.64.101  Bcast:192.168.64.255  Mask:255.255.255.0
+          inet6 addr: fe80::a00:27ff:fe9a:9a45/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:180 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:89 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000
+          RX bytes:18404 (17.9 KiB)  TX bytes:17483 (17.0 KiB)
+
+lo        Link encap:Local Loopback
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          inet6 addr: ::1/128 Scope:Host
+          UP LOOPBACK RUNNING  MTU:16436  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0
+          RX bytes:0 (0.0 b)  TX bytes:0 (0.0 b)
+    '''
+
+    result = Facter().facterInfo()
+
+    self.assertEquals(result['ipaddress'], '10.0.2.15')
+    self.assertEquals(result['netmask'], '255.255.255.0')
+    self.assertEquals(result['interfaces'], 'eth0,eth1,lo')
 
 
