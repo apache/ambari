@@ -21,14 +21,15 @@ Ambari Agent
 """
 
 from resource_management import *
+import status_params
 
 # server configurations
 config = Script.get_config()
 
 config_dir = "/etc/hadoop/conf"
 
-mapred_user = config['configurations']['global']['mapred_user']
-yarn_user = config['configurations']['global']['yarn_user']
+mapred_user = status_params.mapred_user
+yarn_user = status_params.yarn_user
 hdfs_user = config['configurations']['global']['hdfs_user']
 
 smokeuser = config['configurations']['global']['smokeuser']
@@ -50,8 +51,8 @@ resourcemanager_heapsize = config['configurations']['global']['resourcemanager_h
 nodemanager_heapsize = config['configurations']['global']['nodemanager_heapsize']
 
 yarn_log_dir_prefix = config['configurations']['global']['yarn_log_dir_prefix']
-yarn_pid_dir_prefix = config['configurations']['global']['yarn_pid_dir_prefix']
-mapred_pid_dir_prefix = config['configurations']['global']['mapred_pid_dir_prefix']
+yarn_pid_dir_prefix = status_params.yarn_pid_dir_prefix
+mapred_pid_dir_prefix = status_params.mapred_pid_dir_prefix
 mapred_log_dir_prefix = config['configurations']['global']['mapred_log_dir_prefix']
 
 rm_webui_address = format("{rm_host}:{rm_port}")
@@ -67,8 +68,8 @@ hadoop_mapred2_jar_location = "/usr/lib/hadoop-mapreduce"
 distrAppJarName = "hadoop-yarn-applications-distributedshell-2.*.jar"
 hadoopMapredExamplesJarName = "hadoop-mapreduce-examples-2.*.jar"
 
-yarn_pid_dir = format("{yarn_pid_dir_prefix}/{yarn_user}")
-mapred_pid_dir = format("{mapred_pid_dir_prefix}/{mapred_user}")
+yarn_pid_dir = status_params.yarn_pid_dir
+mapred_pid_dir = status_params.mapred_pid_dir
 
 mapred_log_dir = format("{mapred_log_dir_prefix}/{mapred_user}")
 yarn_log_dir = format("{yarn_log_dir_prefix}/{yarn_user}")

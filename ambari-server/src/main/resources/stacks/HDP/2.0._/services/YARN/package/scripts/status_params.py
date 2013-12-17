@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.6
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -16,46 +16,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Ambari Agent
-
 """
 
-import sys
 from resource_management import *
 
-from yarn import yarn
-from service import service
+config = Script.get_config()
 
-class Nodemanager(Script):
-  def install(self, env):
-    self.install_packages(env)
-    self.configure(env)
+mapred_user = config['configurations']['global']['mapred_user']
+yarn_user = config['configurations']['global']['yarn_user']
+yarn_pid_dir_prefix = config['configurations']['global']['yarn_pid_dir_prefix']
+mapred_pid_dir_prefix = config['configurations']['global']['mapred_pid_dir_prefix']
+yarn_pid_dir = format("{yarn_pid_dir_prefix}/{yarn_user}")
+mapred_pid_dir = format("{mapred_pid_dir_prefix}/{mapred_user}")
 
-  def configure(self, env):
-    import params
-    env.set_params(params)
-    yarn()
-
-  def start(self, env):
-    import params
-    env.set_params(params)
-    self.configure(env) # FOR SECURITY
-    service('nodemanager',
-            action='start'
-    )
-
-  def stop(self, env):
-    import params
-    env.set_params(params)
-
-    service('nodemanager',
-            action='stop'
-    )
-
-  def status(self, env):
-    import status_params
-    env.set_params(status_params)
-    check_process_status(status_params.nodemanager_pid_file)
-
-if __name__ == "__main__":
-  Nodemanager().execute()
+resourcemanager_pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-resourcemanager.pid")
+nodemanager_pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-nodemanager.pid")
+histroyserver_pid_file = format("{mapred_pid_dir}/mapred-{mapred_user}-historyserver.pid")
