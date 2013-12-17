@@ -17,6 +17,8 @@
 }}
 
 <div id="step6">
+  <div {{bindAttr class=":spinner-overlay controller.isLoaded:hidden"}}></div>
+  <i {{bindAttr class=":icon-spin :spinner controller.isLoaded:hidden"}}></i>
   <h2>{{view.title}}</h2>
   <div class="alert alert-info">{{{view.label}}}</div>
   {{#if errorMessage}}
