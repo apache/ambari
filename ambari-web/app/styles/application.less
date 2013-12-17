@@ -400,8 +400,26 @@ h1 {
       color: #FF4B4B;
     }
   }
-  #step6 .pre-scrollable {
-    max-height: 440px;
+  #step6 {
+    .pre-scrollable {
+      max-height: 440px;
+      position: relative;
+    }
+    .hidden-scroll {
+      overflow-y: hidden;
+    }
+    .spinner-overlay {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-color: #808080;
+      opacity: 0.2;
+    }
+    .spinner {
+      position: absolute;
+      margin-top: 30%;
+      margin-left: 50%;
+    }
   }
   #deploy {
     #overallProgress {
