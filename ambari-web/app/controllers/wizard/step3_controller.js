@@ -136,6 +136,7 @@ App.WizardStep3Controller = Em.Controller.extend({
     console.log("TRACE: Loading step3: Confirm Hosts");
     this.set('registrationStartedAt', null);
     this.set('isLoaded', false);
+    this.disablePreviousSteps();
 
     this.clearStep();
     this.loadHosts();
@@ -158,14 +159,14 @@ App.WizardStep3Controller = Em.Controller.extend({
       hosts.pushObject(hostInfo);
     }
 
-    if(hosts.length > 100) {
+    if(hosts.length > 200) {
       lazyloading.run({
         destination: this.get('hosts'),
         source: hosts,
         context: this,
-        initSize: 20,
-        chunkSize: 100,
-        delay: 300
+        initSize: 100,
+        chunkSize: 150,
+        delay: 50
       });
     } else {
       this.set('hosts', hosts);
@@ -192,14 +193,21 @@ App.WizardStep3Controller = Em.Controller.extend({
     return this.get('bootHosts').length != 0 && this.get('bootHosts').someProperty('bootStatus', 'RUNNING');
   },
 
+  filterByCategory: function () {
+    var category = this.get('category.hostsBootStatus');
+    if (category) {
+      this.get('hosts').forEach(function (host) {
+        host.set('isVisible', (category === host.get('bootStatus')));
+      });
+    } else { // if (this.get('category') === 'All Hosts')
+      this.get('hosts').setEach('isVisible', true);
+    }
+  }.observes('category', 'hosts.@each.bootStatus'),
+
   /* Returns the current set of visible hosts on view (All, Succeeded, Failed) */
   visibleHosts: function () {
-    if (this.get('category.hostsBootStatus')) {
-      return this.hosts.filterProperty('bootStatus', this.get('category.hostsBootStatus'));
-    } else { // if (this.get('category') === 'All Hosts')
-      return this.hosts;
-    }
-  }.property('category', 'hosts.@each.bootStatus'),
+    return this.get('hosts').filterProperty('isVisible');
+  }.property('hosts.@each.isVisible'),
 
   removeHosts: function (hosts) {
     var self = this;
@@ -272,33 +280,29 @@ App.WizardStep3Controller = Em.Controller.extend({
     this.doBootstrap();
   },
 
-  installationProcess: function() {
-    Ember.run.once(this, 'setInstallationInProgress');
+  isRegistrationInProgress: true,
+
+  setRegistrationInProgress: function () {
+    var bootHosts = this.get('bootHosts');
+    //if hosts aren't loaded yet then registration should be in progress
+    var result = (bootHosts.length === 0);
+    for (var i = 0, l = bootHosts.length; i < l; i++) {
+      if (bootHosts[i].get('bootStatus') !== 'REGISTERED' && bootHosts[i].get('bootStatus') !== 'FAILED') {
+        result = true;
+        break;
+      }
+    }
+    this.set('isRegistrationInProgress', result);
   }.observes('bootHosts.@each.bootStatus'),
 
-  isInstallInProgress: true,
-
-  setInstallationInProgress: function() {
-    var result = false;
-    this.get('bootHosts').forEach(function(host) {
-      var status = host.get('bootStatus');
-      if (status != 'REGISTERED' && status != 'FAILED') {
-        result = true;
-      }
-    });
-    this.set('isInstallInProgress',result);
-  },
-
-  disablePreviousSteps: function(){
-    if(this.get('isInstallInProgress')){
-      App.router.get('installerController').setLowerStepsDisable(3);
+  disablePreviousSteps: function () {
+    App.router.get('installerController.isStepDisabled').filter(function (step) {
+      if (step.step >= 0 && step.step <= 2) return true;
+    }).setEach('value', this.get('isRegistrationInProgress'));
+    if (this.get('isRegistrationInProgress')) {
       this.set('isSubmitDisabled', true);
-    } else {
-      App.router.get('installerController.isStepDisabled').filter(function(step){
-        if(step.step >= 0 && step.step <= 2) return true;
-      }).setEach('value', false);
     }
-  }.observes('isInstallInProgress','isLoaded'),
+  }.observes('isRegistrationInProgress'),
 
   doBootstrap: function () {
     if (this.get('stopBootstrap')) {
@@ -735,8 +739,8 @@ App.WizardStep3Controller = Em.Controller.extend({
   }.property('warnings'),
 
   isWarningsBoxVisible: function(){
-    return (App.testMode) ? true : !this.get('isInstallInProgress');
-  }.property('isInstallInProgress'),
+    return (App.testMode) ? true : !this.get('isRegistrationInProgress');
+  }.property('isRegistrationInProgress'),
 
   checksUpdateProgress:0,
   checksUpdateStatus: null,
@@ -1216,7 +1220,7 @@ App.WizardStep3Controller = Em.Controller.extend({
   },
 
   back: function () {
-    if (this.get('isInstallInProgress')) {
+    if (this.get('isRegistrationInProgress')) {
       return;
     }
     App.router.send('back');

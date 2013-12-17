@@ -314,14 +314,15 @@ App.WizardStep6Controller = Em.Controller.extend({
         destination: this.get('hosts'),
         source: hostsObj,
         context: this,
-        initSize: 20,
-        chunkSize: 50,
-        delay: 300
+        initSize: 50,
+        chunkSize: 100,
+        delay: 100
       });
     } else {
       hostsObj.forEach(function (host) {
         this.get('hosts').pushObject(host);
       }, this);
+      this.set('isLoaded', true);
     }
     this.get('headers').forEach(function (header) {
       self.checkCallback(header.get('label'));

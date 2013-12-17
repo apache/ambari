@@ -57,8 +57,8 @@ App.SelectHostView = Em.Select.extend({
         source: source,
         context: this,
         initSize: 30,
-        chunkSize: 50,
-        delay: 200
+        chunkSize: 200,
+        delay: 50
       });
     }
   },

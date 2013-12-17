@@ -77,7 +77,7 @@ App.WizardStep3View = Em.View.extend({
 App.WizardHostView = Em.View.extend({
 
   tagName: 'tr',
-  classNameBindings: ['hostInfo.bootStatus'],
+  classNameBindings: ['hostInfo.bootStatus', 'hostInfo.isVisible::hidden'],
   hostInfo: null,
 
   remove: function () {

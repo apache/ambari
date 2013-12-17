@@ -71,8 +71,7 @@
         </thead>
 
         <tbody>
-        {{#if visibleHosts.length}}
-        {{#each host in visibleHosts}}
+        {{#each host in hosts}}
         {{#view App.WizardHostView categoryBinding="controller.category" hostInfoBinding="host"}}
         <td>
           {{view Ember.Checkbox checkedBinding="host.isChecked"}}
@@ -98,11 +97,11 @@
         </td>
         {{/view}}
         {{/each}}
-        {{else}}
+        {{#unless visibleHosts.length}}
         <tr>
             <td colspan="5"><p>{{t installer.step3.hosts.noHosts}}</p></td>
         </tr>
-        {{/if}}
+        {{/unless}}
 
         </tbody>
 
