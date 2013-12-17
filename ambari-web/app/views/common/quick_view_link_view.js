@@ -21,8 +21,7 @@ var stringUtils = require('utils/string_utils');
 
 App.QuickViewLinks = Em.View.extend({
 
-
-  loadTags: function() {
+  loadTags: function () {
     App.ajax.send({
       name: 'config.tags.sync',
       sender: this,
@@ -31,43 +30,39 @@ App.QuickViewLinks = Em.View.extend({
     });
   },
 
-  loadTagsSuccess: function(data) {
+  loadTagsSuccess: function (data) {
     var tags = [];
-    for( var prop in data.Clusters.desired_configs){
+    for (var prop in data.Clusters.desired_configs) {
       tags.push(Em.Object.create({
         siteName: prop,
         tagName: data.Clusters.desired_configs[prop]['tag']
       }));
     }
     this.set('actualTags', tags);
-    this.getSecurityProperties();
+    this.setConfigProperties();
   },
 
   actualTags: [],
 
-  securityProperties: [],
+  configProperties: [],
 
   /**
    * list of files that contains properties for enabling/disabling ssl
    */
-  requiredSiteNames: ['core-site'],
+  requiredSiteNames: ['core-site', 'hdfs-site', 'hbase-site', 'oozie-site', 'yarn-site', 'mapred-site'],
 
-  getSecurityProperties: function () {
-    this.set('securityProperties', []);
+  setConfigProperties: function () {
+    this.set('configProperties', []);
     var requiredSiteNames = this.get('requiredSiteNames');
-    var tags = this.get('actualTags').filter(function(tag){
+    var tags = this.get('actualTags').filter(function (tag) {
       return requiredSiteNames.contains(tag.siteName);
     });
     var data = App.router.get('configurationController').getConfigsByTags(tags);
-    var properties = this.get('securityProperties');
-    var coreSiteProperties = data.findProperty('type', 'core-site');
-    if(coreSiteProperties) {
-      properties.pushObject(coreSiteProperties);
-      this.set('securityProperties', properties);
-    }
+    this.set('configProperties', data);
+
   },
 
-  ambariProperties: function() {
+  ambariProperties: function () {
     return App.router.get('clusterController.ambariProperties');
   },
   /**
@@ -75,9 +70,10 @@ App.QuickViewLinks = Em.View.extend({
    */
   quickLinks: [],
 
-  didInsertElement: function() {
+  didInsertElement: function () {
     this.setQuickLinks();
   },
+
   setQuickLinks: function () {
     this.loadTags();
     var serviceName = this.get('content.serviceName');
@@ -88,13 +84,13 @@ App.QuickViewLinks = Em.View.extend({
     var quickLinks = [];
     switch (serviceName) {
       case "HDFS":
-        if ( this.get('content.snameNode')) { // not HA
+        if (this.get('content.snameNode')) { // not HA
           host = App.singleNodeInstall ? App.singleNodeAlias : components.findProperty('componentName', 'NAMENODE').get('host.publicHostName');
         } else {
           // HA
           if (this.get('content.activeNameNode')) {
             host = this.get('content.activeNameNode.publicHostName');
-          }else {
+          } else {
             host = 'noActiveNN';
           }
         }
@@ -137,37 +133,32 @@ App.QuickViewLinks = Em.View.extend({
         }
       ];
     } else {
-    quickLinks = this.get('content.quickLinks').map(function (item) {
-      if (host == 'noActiveNN') {
-        item.set('disabled', true);
-      } else {
-        item.set('disabled', false);
-        var protocol = self.setProtocol(item.get('service_id'));
-        if (item.get('template')) {
-          if(item.get('service_id') === 'YARN'){
-            var port = self.setPort(item.get('service_id'),protocol, version);
-            item.set('url', item.get('template').fmt(protocol,host,port));
-          } else {
-            item.set('url', item.get('template').fmt(protocol,host));
+      quickLinks = this.get('content.quickLinks').map(function (item) {
+        if (host == 'noActiveNN') {
+          item.set('disabled', true);
+        } else {
+          item.set('disabled', false);
+          var protocol = self.setProtocol(item.get('service_id'));
+          if (item.get('template')) {
+            var port = item.get('http_config') && self.setPort(item, protocol, version);
+            item.set('url', item.get('template').fmt(protocol, host, port));
           }
         }
-      }
-      return item;
-    });
-    }
-    this.set('quickLinks',quickLinks);
-  }.observes('App.currentStackVersionNumber', 'App.router.mainAdminSecurityController.securityEnabled'),
-
-  setProtocol: function(service_id){
-    var properties  = this.ambariProperties();
-    var securityProperties = this.get('securityProperties');
-    var hadoopSslEnabled = false;
-    if(securityProperties) {
-      securityProperties.forEach(function(property){
-        property['hadoop.ssl.enabled'] && property['hadoop.ssl.enabled'] === 'true' ?  hadoopSslEnabled = true : null;
+        return item;
       });
     }
-    switch(service_id){
+    this.set('quickLinks', quickLinks);
+  }.observes('App.currentStackVersionNumber', 'App.singleNodeInstall'),
+
+  setProtocol: function (service_id) {
+    var properties = this.ambariProperties();
+    var configProperties = this.get('configProperties');
+    var hadoopSslEnabled = false;
+    if (configProperties) {
+      var site = configProperties.findProperty('type', 'core-site');
+      site.properties['hadoop.ssl.enabled'] && site.properties['hadoop.ssl.enabled'] === 'true' ? hadoopSslEnabled = true : null;
+    }
+    switch (service_id) {
       case "GANGLIA":
         return (properties && properties.hasOwnProperty('ganglia.https') && properties['ganglia.https']) ? "https" : "http";
         break;
@@ -175,10 +166,30 @@ App.QuickViewLinks = Em.View.extend({
         return (properties && properties.hasOwnProperty('nagios.https') && properties['nagios.https']) ? "https" : "http";
         break;
       case "HDFS":
-      case "YARN":
-      case "MAPREDUCE":
-      case "MAPREDUCE2":
       case "HBASE":
+      case "MAPREDUCE":
+        return hadoopSslEnabled ? "https" : "http";
+        break;
+      case "YARN":
+        var yarnProperties = configProperties.findProperty('type', 'yarn-site');
+        if (yarnProperties && yarnProperties.properties) {
+          if (yarnProperties.properties['yarn.http.policy'] === 'HTTPS_ONLY') {
+            return "https";
+          } else if (yarnProperties.properties['yarn.http.policy'] === 'HTTP_ONLY') {
+            return "http";
+          }
+        }
+        return hadoopSslEnabled ? "https" : "http";
+        break;
+      case "MAPREDUCE2":
+        var mapred2Properties = configProperties.findProperty('type', 'mapred-site');
+        if (mapred2Properties && mapred2Properties.properties) {
+          if (mapred2Properties.properties['mapreduce.jobhistory.http.policy'] === 'HTTPS_ONLY') {
+            return "https";
+          } else if (mapred2Properties.properties['mapreduce.jobhistory.http.policy'] === 'HTTP_ONLY') {
+            return "http";
+          }
+        }
         return hadoopSslEnabled ? "https" : "http";
         break;
       default:
@@ -186,12 +197,27 @@ App.QuickViewLinks = Em.View.extend({
     }
   },
 
-  setPort: function(service_id, protocol, version) {
-    var port = '';
-    if (service_id === 'YARN') {
-      port = (protocol === 'https' && stringUtils.compareVersions(version,'2.0.5') === 1) ? '8090' : '8088'
+  setPort: function (item, protocol, version) {
+    var service_id = item.get('service_id');
+    var configProperties = this.get('configProperties');
+    var config = item.get('http_config');
+    var defaultPort = item.get('default_http_port');
+    if (protocol === 'https' && item.get('https_config')) {
+      config = item.get('https_config');
+      if (item.get('default_https_port')) {
+        defaultPort = item.get('default_https_port');
+      }
     }
-    return port;
+    var site = configProperties.findProperty('type', item.get('site'));
+    var propertyValue = site && site.properties[config];
+    if (!propertyValue) {
+      return defaultPort;
+    }
+
+    var re = new RegExp(item.get('regex'));
+
+    var portValue = propertyValue.match(re);
+    return  portValue[1];
   },
 
   linkTarget: function () {
