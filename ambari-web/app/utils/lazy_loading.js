@@ -63,11 +63,11 @@ module.exports = {
     var self = this;
     setTimeout(function () {
       destination.pushObjects(chunks[index]);
-      if (chunks.length === (index + 1)) {
+      if (chunks.length === (++index)) {
         context.set('isLoaded', true);
+      } else {
+        self.pushChunk(chunks, index, delay, destination, context);
       }
-      index++;
-      self.pushChunk(chunks, index, delay, destination, context);
     }, delay);
   },
 
