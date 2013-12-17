@@ -86,6 +86,16 @@ App.WizardStep1View = Em.View.extend({
     }
     $("[rel=skip-validation-tooltip]").tooltip({ placement: 'right'});
   },
+
+  popoverView: Em.View.extend({
+    tagName: 'i',
+    classNameBindings: ['repoGroup.validation'],
+    attributeBindings: ['repoGroup.errorTitle:title', 'repoGroup.errorContent:data-content'],
+    didInsertElement: function() {
+      App.popover($(this.get('element')), {'trigger': 'hover'});
+    }
+  }),
+
   loadRepositories: function () {
     var selectedStack = this.get('controller.content.stacks').findProperty('isSelected', true);
     var reposGroup = [[],[],[]];
@@ -149,6 +159,8 @@ App.WizardStep1View = Em.View.extend({
     group.set('validation', os.validation);
     group.set('undo', os.baseUrl != os.defaultBaseUrl);
     group.set('clearAll', os.baseUrl);
+    group.set('errorTitle', os.errorTitle);
+    group.set('errorContent', os.errorContent);
     group.set('group-number', groupNumber);
   },
   /**

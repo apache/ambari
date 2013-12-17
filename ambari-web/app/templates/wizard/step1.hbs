@@ -71,7 +71,7 @@
                   </td>
                   <td class="validation-results">
                     {{#if repoGroup.validation}}
-                      <i {{bindAttr class="repoGroup.validation"}}></i>
+                      {{view view.popoverView repoGroupBinding="repoGroup"}}
                     {{/if}}
                   </td>
                   <td  {{bindAttr class=":url-results repoGroup.checked::disabled-textfield repoGroup.empty-error:textfield-error repoGroup.invalid-error:textfield-error"}}>
