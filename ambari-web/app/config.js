@@ -43,7 +43,7 @@ App.reassignableComponents = ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'R
 App.enableExperimental = false;
 
 App.supports = {
-  addServices: true,
+  addServices: false,
   hostOverrides: true,
   hostOverridesInstaller: true,
   hostOverridesHost: true,
