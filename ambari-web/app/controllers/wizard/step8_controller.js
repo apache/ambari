@@ -1413,6 +1413,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       this.get('serviceConfigTags').pushObject(this.createGlobalSiteObj());
       this.get('serviceConfigTags').pushObject(this.createCoreSiteObj());
       this.get('serviceConfigTags').pushObject(this.createHdfsSiteObj());
+      this.get('serviceConfigTags').pushObject(this.createLog4jObj('HDFS'));
     }
     if (selectedServices.someProperty('serviceName', 'MAPREDUCE')) {
       this.get('serviceConfigTags').pushObject(this.createMrSiteObj());
@@ -1420,9 +1421,11 @@ App.WizardStep8Controller = Em.Controller.extend({
         this.get('serviceConfigTags').pushObject(this.createCapacityScheduler());
         this.get('serviceConfigTags').pushObject(this.createMapredQueueAcls());
       }
+      this.get('serviceConfigTags').pushObject(this.createLog4jObj('MAPREDUCE'));
     }
     if (selectedServices.someProperty('serviceName', 'MAPREDUCE2')) {
       this.get('serviceConfigTags').pushObject(this.createMrSiteObj());
+      this.get('serviceConfigTags').pushObject(this.createLog4jObj('MAPREDUCE2'));
     }
     if (selectedServices.someProperty('serviceName', 'YARN')) {
       this.get('serviceConfigTags').pushObject(this.createYarnSiteObj());
@@ -1430,12 +1433,15 @@ App.WizardStep8Controller = Em.Controller.extend({
     }
     if (selectedServices.someProperty('serviceName', 'HBASE')) {
       this.get('serviceConfigTags').pushObject(this.createHbaseSiteObj());
+      this.get('serviceConfigTags').pushObject(this.createLog4jObj('HBASE'));
     }
     if (selectedServices.someProperty('serviceName', 'OOZIE')) {
       this.get('serviceConfigTags').pushObject(this.createOozieSiteObj('OOZIE'));
+      this.get('serviceConfigTags').pushObject(this.createLog4jObj('OOZIE'));
     }
     if (selectedServices.someProperty('serviceName', 'HIVE')) {
       this.get('serviceConfigTags').pushObject(this.createHiveSiteObj('HIVE'));
+      this.get('serviceConfigTags').pushObject(this.createLog4jObj('HIVE'));
     }
     if (selectedServices.someProperty('serviceName', 'WEBHCAT')) {
       this.get('serviceConfigTags').pushObject(this.createWebHCatSiteObj('WEBHCAT'));
@@ -1443,6 +1449,13 @@ App.WizardStep8Controller = Em.Controller.extend({
     if (selectedServices.someProperty('serviceName', 'HUE')) {
       this.get('serviceConfigTags').pushObject(this.createHueSiteObj('HUE'));
     }
+    if (selectedServices.someProperty('serviceName', 'PIG')) {
+      this.get('serviceConfigTags').pushObject(this.createLog4jObj('PIG'));
+    }
+    if (selectedServices.someProperty('serviceName', 'ZOOKEEPER')) {
+      this.get('serviceConfigTags').pushObject(this.createLog4jObj('ZOOKEEPER'));
+    }
+
     this.applyConfigurationsToCluster();
   },
 
@@ -1591,6 +1604,31 @@ App.WizardStep8Controller = Em.Controller.extend({
       console.log("STEP8: value of the property is: " + _configProperty.value);
     }, this);
     return {"type": "hdfs-site", "tag": "version1", "properties": hdfsProperties };
+  },
+
+  createLog4jObj: function (serviceName) {
+    serviceName = serviceName.toLowerCase();
+    var file = '';
+    switch(serviceName) {
+      case 'zookeeper':
+        file = 'zoo';
+        break;
+      case 'mapreduce':
+      case 'mapreduce2':
+        file = 'mapred';
+        break;
+      default:
+        file = serviceName;
+    }
+    var Log4jObj = this.get('configs').filterProperty('filename', serviceName + '-log4j.xml');
+    var Log4jProperties = {};
+    Log4jObj.forEach(function (_configProperty) {
+      Log4jProperties[_configProperty.name] = App.config.escapeXMLCharacters(_configProperty.value);
+      this._recordHostOverrideFromObj(_configProperty, serviceName + '-log4j', 'version1', this);
+      console.log("STEP*: name of the property is: " + _configProperty.name);
+      console.log("STEP8: value of the property is: " + _configProperty.value);
+    }, this);
+    return {"type": serviceName + "-log4j", "tag": "version1", "properties": Log4jProperties };
   },
 
   createHueSiteObj: function () {

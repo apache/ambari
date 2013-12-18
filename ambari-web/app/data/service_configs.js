@@ -34,9 +34,10 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
       App.ServiceConfigCategory.create({ name: 'AdvancedCoreSite', displayName : 'Custom core-site.xml', siteFileName: 'core-site.xml', canAddProperty: true}),
-      App.ServiceConfigCategory.create({ name: 'AdvancedHDFSSite', displayName : 'Custom hdfs-site.xml', siteFileName: 'hdfs-site.xml', canAddProperty: true})
+      App.ServiceConfigCategory.create({ name: 'AdvancedHDFSSite', displayName : 'Custom hdfs-site.xml', siteFileName: 'hdfs-site.xml', canAddProperty: true}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedHDFSLog4j', displayName : 'Custom hdfs-log4j.xml', siteFileName: 'hdfs-log4j.xml', canAddProperty: true})
     ],
-    sites: ['global', 'core-site', 'hdfs-site'],
+    sites: ['global', 'core-site', 'hdfs-site', 'hdfs-log4j'],
     configs: []
   },
   {
@@ -59,9 +60,10 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'TaskTracker', displayName : 'TaskTracker', hostComponentNames : ['TASKTRACKER']}),
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
-      App.ServiceConfigCategory.create({ name: 'AdvancedMapredSite', displayName : 'Custom mapred-site.xml', siteFileName: 'mapred-site.xml', canAddProperty: true})
+      App.ServiceConfigCategory.create({ name: 'AdvancedMapredSite', displayName : 'Custom mapred-site.xml', siteFileName: 'mapred-site.xml', canAddProperty: true}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedMapredLog4j', displayName : 'Custom mapred-log4j.xml', siteFileName: 'mapred-log4j.xml', canAddProperty: true})
     ],
-    sites: ['global', 'mapred-site', 'mapred-queue-acls'],
+    sites: ['global', 'mapred-site', 'mapred-queue-acls', 'mapred-log4j'],
     configs: []
   },
 
@@ -93,9 +95,10 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'HistoryServer', displayName : 'History Server', hostComponentNames : ['HISTORYSERVER']}),
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
-      App.ServiceConfigCategory.create({ name: 'AdvancedMapredSite', displayName : 'Custom mapred-site.xml', siteFileName: 'mapred-site.xml', canAddProperty: true})
+      App.ServiceConfigCategory.create({ name: 'AdvancedMapredSite', displayName : 'Custom mapred-site.xml', siteFileName: 'mapred-site.xml', canAddProperty: true}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedMapredLog4j', displayName : 'Custom mapred-log4j.xml', siteFileName: 'mapred-log4j.xml', canAddProperty: true})
     ],
-    sites: ['global', 'mapred-site', 'mapred-queue-acls'],
+    sites: ['global', 'mapred-site', 'mapred-queue-acls', 'mapred-log4j'],
     configs: []
   },
 
@@ -106,9 +109,10 @@ module.exports = [
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Hive Metastore', displayName : 'Hive Metastore'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
-      App.ServiceConfigCategory.create({ name: 'AdvancedHiveSite', displayName : 'Custom hive-site.xml', siteFileName: 'hive-site.xml', canAddProperty: true})
+      App.ServiceConfigCategory.create({ name: 'AdvancedHiveSite', displayName : 'Custom hive-site.xml', siteFileName: 'hive-site.xml', canAddProperty: true}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedHiveLog4j', displayName : 'Custom hive-log4j.xml', siteFileName: 'hive-log4j.xml', canAddProperty: true})
     ],
-    sites: ['global', 'hive-site'],
+    sites: ['global', 'hive-site', 'hive-log4j'],
     configs: []
   },
 
@@ -134,9 +138,10 @@ module.exports = [
       App.ServiceConfigCategory.create({ name: 'RegionServer', displayName : 'RegionServer'}),
       App.ServiceConfigCategory.create({ name: 'General', displayName : 'General'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
-      App.ServiceConfigCategory.create({ name: 'AdvancedHbaseSite', displayName : 'Custom hbase-site.xml', siteFileName: 'hbase-site.xml', canAddProperty: true})
+      App.ServiceConfigCategory.create({ name: 'AdvancedHbaseSite', displayName : 'Custom hbase-site.xml', siteFileName: 'hbase-site.xml', canAddProperty: true}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedHbaseLog4j', displayName : 'Custom hbase-log4j.xml', siteFileName: 'hbase-log4j.xml', canAddProperty: true})
     ],
-    sites: ['global', 'hbase-site'],
+    sites: ['global', 'hbase-site', 'hbase-log4j'],
     configs: []
   },
 
@@ -145,9 +150,10 @@ module.exports = [
     displayName: 'ZooKeeper',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'ZooKeeper Server', displayName : 'ZooKeeper Server'}),
-      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'})
+      App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedZooLog4j', displayName : 'Custom zoo-log4j.xml', siteFileName: 'zoo-log4j.xml', canAddProperty: true})
     ],
-    sites: ['global'],
+    sites: ['global', 'zoo-log4j'],
     configs: []
   },
 
@@ -158,9 +164,10 @@ module.exports = [
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'Oozie Server', displayName : 'Oozie Server'}),
       App.ServiceConfigCategory.create({ name: 'Advanced', displayName : 'Advanced'}),
-      App.ServiceConfigCategory.create({ name: 'AdvancedOozieSite', displayName : 'Custom oozie-site.xml', siteFileName: 'oozie-site.xml', canAddProperty: true})
+      App.ServiceConfigCategory.create({ name: 'AdvancedOozieSite', displayName : 'Custom oozie-site.xml', siteFileName: 'oozie-site.xml', canAddProperty: true}),
+      App.ServiceConfigCategory.create({ name: 'AdvancedOozieLog4j', displayName : 'Custom oozie-log4j.xml', siteFileName: 'oozie-log4j.xml', canAddProperty: true})
     ],
-    sites: ['global', 'oozie-site'],
+    sites: ['global', 'oozie-site', 'oozie-log4j'],
     configs: []
   },
 
