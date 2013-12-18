@@ -65,7 +65,7 @@ App.StageLabelView = Em.View.extend({
 });
 
 App.StageSuccessView = Em.View.extend({
-  layout: Ember.Handlebars.compile('<i class="icon-ok icon-large"></i> {{t commin.done}}')
+  layout: Ember.Handlebars.compile('<i class="icon-ok icon-large"></i> {{t common.done}}')
 });
 
 App.StageFailureView = Em.View.extend({
