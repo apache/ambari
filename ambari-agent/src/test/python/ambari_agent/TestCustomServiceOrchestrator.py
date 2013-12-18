@@ -183,6 +183,10 @@ class TestCustomServiceOrchestrator(TestCase):
     self.assertEqual(ret['exitcode'], 1)
     self.assertFalse(run_file_mock.called)
     self.assertTrue("Unknown script type" in ret['stdout'])
+
+    #By default returns empty dictionary
+    self.assertEqual(ret['structuredOut'], {})
+
     pass
 
   @patch.object(CustomServiceOrchestrator, "dump_command_to_json")

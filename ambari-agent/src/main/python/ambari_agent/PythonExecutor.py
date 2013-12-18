@@ -94,7 +94,7 @@ class PythonExecutor:
         }
         logger.warn(structured_out)
       else:
-        structured_out = ''
+        structured_out = {}
 
     if self.python_process_has_been_killed:
       error = str(error) + "\n Python script has been killed due to timeout"
