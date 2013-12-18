@@ -1078,7 +1078,7 @@ App.config = Em.Object.create({
           callback(selectedConfigGroup);
         } else {
           var newConfigGroupName = this.get('newConfigGroupName').trim();
-          var newConfigGroup = self.createNewConfigurationGroup(serviceId, newConfigGroupName, isInstaller);
+          var newConfigGroup = self.createNewConfigurationGroup(serviceId, newConfigGroupName, null, [], isInstaller);
           if (newConfigGroup) {
             newConfigGroup.set('parentConfigGroup', configGroups.findProperty('isDefault'));
             configGroups.pushObject(newConfigGroup);
@@ -1190,18 +1190,21 @@ App.config = Em.Object.create({
    *
    * @param serviceId   Service for which this group has to be created
    * @param configGroupName    Name of the new config-group
-   * @return  Returns the created config-group or error as
-   *        { configGroup: {id:4}, error: {...}}
+   * @param description    Description of the new config-group
+   * @param hosts    Hosts for the new config-group
+   * @param isInstaller    Determines whether send data to server or not
+   * @param callback    Callback function for Success or Error handling
+   * @return  Returns the created config-group
    */
-  createNewConfigurationGroup: function (serviceId, configGroupName, isInstaller) {
+  createNewConfigurationGroup: function (serviceId, configGroupName, description, hosts, isInstaller, callback) {
     var newConfigGroupData = App.ConfigGroup.create({
       id: null,
       name: configGroupName,
-      description: "New configuration group created on " + new Date().toDateString(),
+      description: description || "New configuration group created on " + new Date().toDateString(),
       isDefault: false,
       parentConfigGroup: null,
       service: App.Service.find().findProperty('serviceName', serviceId),
-      hosts: [],
+      hosts: hosts || [],
       configSiteTags: [],
       properties: []
     });
@@ -1209,20 +1212,35 @@ App.config = Em.Object.create({
       newConfigGroupData.set('service', Em.Object.create({id: serviceId}));
       return newConfigGroupData;
     }
+    var dataHosts = [];
+    newConfigGroupData.get('hosts').forEach(function (_host) {
+      dataHosts.push({
+        host_name: _host
+      });
+    }, this);
     var sendData = {
       name: 'config_groups.create',
       data: {
         'group_name': configGroupName,
         'service_id': serviceId,
-        'description': newConfigGroupData.description
+        'description': newConfigGroupData.description,
+        'hosts': dataHosts
       },
       success: 'successFunction',
       error: 'errorFunction',
       successFunction: function (response) {
-        newConfigGroupData.id = response.resources[0].ConfigGroup.id;
+        if (callback) {
+          callback();
+        } else {
+          newConfigGroupData.id = response.resources[0].ConfigGroup.id;
+        }
       },
-      errorFunction: function () {
-        newConfigGroupData = null;
+      errorFunction: function (xhr, text, errorThrown) {
+        if (callback) {
+          callback(xhr, text, errorThrown);
+        } else {
+          newConfigGroupData = null;
+        }
         console.error('Error in creating new Config Group');
       }
     };
@@ -1230,7 +1248,7 @@ App.config = Em.Object.create({
     App.ajax.send(sendData);
     return newConfigGroupData;
   },
-  
+
   /**
    * PUTs the new configuration-group on the server.
    * Changes possible here are the name, description and
@@ -1243,7 +1261,7 @@ App.config = Em.Object.create({
       ConfigGroup: {
         group_name: configGroup.get('name'),
         description: configGroup.get('description'),
-        tag: configGroup.get('service.serviceName'),
+        tag: configGroup.get('service.id'),
         hosts: [],
         desired_configs: []
       }  
@@ -1274,15 +1292,8 @@ App.config = Em.Object.create({
         }
       },
       errorFunction: function (xhr, text, errorThrown) {
-        error = xhr.status + "(" + errorThrown + ") ";
-        try {
-          var json = $.parseJSON(xhr.responseText);
-          error += json.message;
-        } catch (err) {
-        }
-        console.error('Error updating Config Group:', error, configGroup);
         if(errorCallback) {
-          errorCallback(error);
+          errorCallback(xhr, text, errorThrown);
         }
       }
     };
@@ -1294,6 +1305,30 @@ App.config = Em.Object.create({
     configGroup = jQuery.extend({}, configGroup);
     configGroup.set('hosts', []);
     this.updateConfigurationGroup(configGroup, successCallback, errorCallback);
+  },
+
+  deleteConfigGroup: function (configGroup, successCallback, errorCallback) {
+    var sendData = {
+      name: 'config_groups.delete_config_group',
+      sender: this,
+      data: {
+        id: configGroup.get('id')
+      },
+      success: 'successFunction',
+      error: 'errorFunction',
+      successFunction: function () {
+        if(successCallback) {
+          successCallback();
+        }
+      },
+      errorFunction: function (xhr, text, errorThrown) {
+        if(errorCallback) {
+          errorCallback(xhr, text, errorThrown);
+        }
+      }
+    };
+    sendData.sender = sendData;
+    App.ajax.send(sendData);
   },
 
   /**

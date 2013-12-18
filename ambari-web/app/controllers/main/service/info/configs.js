@@ -1910,12 +1910,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var serviceData = (controller && controller.get('selectedService')) || this.get('content');
     var serviceName = serviceData.get('serviceName');
     var displayName = serviceData.get('displayName');
+    App.router.get('manageConfigGroupsController').set('isInstaller', !!controller);
     App.ModalPopup.show({
       header: Em.I18n.t('services.service.config_groups_popup.header').format(displayName),
       bodyClass: App.MainServiceManageConfigGroupView.extend({
         serviceName: serviceName,
         displayName: displayName,
-        controllerBinding: (!!controller) ? 'App.router.installerManageConfigGroupsController' : 'App.router.manageConfigGroupsController'
+        controllerBinding: 'App.router.manageConfigGroupsController'
       }),
       classNames: ['sixty-percent-width-modal', 'manage-configuration-group-popup'],
       primary: Em.I18n.t('common.save'),
@@ -1925,7 +1926,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         }
         // Save modified config-groups
         if (!!controller) {
-          controller.set('selectedService.configGroups', App.router.get('installerManageConfigGroupsController.configGroups'));
+          controller.set('selectedService.configGroups', App.router.get('manageConfigGroupsController.configGroups'));
           controller.selectedServiceObserver();
           if (controller.get('name') == "wizardStep7Controller") {
             App.config.persistWizardStep7ConfigGroups();
@@ -1938,68 +1939,79 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
         console.log("manageConfigurationGroups(): Saving modified config-groups: ", modifiedConfigGroups);
         var self = this;
         var errors = [];
-        var clearHostsPutCount = modifiedConfigGroups.toClearHosts.length;
-        var setHostsPutCount = modifiedConfigGroups.toSetHosts.length;
-        var finishFunction = function(error) {
-          if (error != null) {
-            errors.push(error);
-          }
-          if (--clearHostsPutCount <= 0) {
-            // Done with all the clear hosts PUTs
-            if (--setHostsPutCount < 0) {
-              // Done with all the PUTs
-              if (errors.length > 0) {
-                console.log(errors);
-                self.get('subViewController').set('errorMessage',
-                    errors.join(". "));
-              } else {
-                self.hide();
-              }
-            } else {
-              App.config.updateConfigurationGroup(modifiedConfigGroups.toSetHosts[setHostsPutCount], finishFunction, finishFunction);
-            }
+        var deleteQueriesCounter = modifiedConfigGroups.toClearHosts.length + modifiedConfigGroups.toDelete.length;
+        var createQueriesCounter = modifiedConfigGroups.toSetHosts.length + modifiedConfigGroups.toCreate.length;
+        var deleteQueriesRun = false;
+        var createQueriesRun = false;
+        var runNextQuery = function () {
+          if (!deleteQueriesRun && deleteQueriesCounter > 0) {
+            deleteQueriesRun = true;
+            modifiedConfigGroups.toClearHosts.forEach(function (cg) {
+              App.config.clearConfigurationGroupHosts(cg, finishFunction, finishFunction);
+            }, this);
+            modifiedConfigGroups.toDelete.forEach(function (cg) {
+              App.config.deleteConfigGroup(cg, finishFunction, finishFunction);
+            }, this);
+          } else if (!createQueriesRun && deleteQueriesCounter < 1) {
+            createQueriesRun = true;
+            modifiedConfigGroups.toSetHosts.forEach(function (cg) {
+              App.config.updateConfigurationGroup(cg, finishFunction, finishFunction);
+            }, this);
+            modifiedConfigGroups.toCreate.forEach(function (cg) {
+              App.config.createNewConfigurationGroup(cg.get('service.id'), cg.get('name'), cg.get('description'), cg.get('hosts'),  false, finishFunction);
+            }, this);
           }
         };
-        this.updateConfigGroupOnServicePage();
-        modifiedConfigGroups.toClearHosts.forEach(function (cg) {
-          App.config.clearConfigurationGroupHosts(cg, finishFunction, finishFunction);
-        });
+        var finishFunction = function (xhr, text, errorThrown) {
+          if (xhr && errorThrown) {
+            var error = xhr.status + "(" + errorThrown + ") ";
+            try {
+              var json = $.parseJSON(xhr.responseText);
+              error += json.message;
+            } catch (err) {
+            }
+            console.error('Error updating Config Group:', error);
+            errors.push(error);
+          }
+          if (createQueriesRun) {
+            createQueriesCounter--;
+          } else {
+            deleteQueriesCounter--;
+          }
+          if (deleteQueriesCounter + createQueriesCounter < 1) {
+            if (errors.length > 0) {
+              console.log(errors);
+              self.get('subViewController').set('errorMessage', errors.join(". "));
+            } else {
+              self.updateConfigGroupOnServicePage();
+              self.hide();
+            }
+          } else {
+            runNextQuery();
+          }
+        };
+       runNextQuery();
       },
       onSecondary: function () {
-        this.updateConfigGroupOnServicePage(true);
         this.hide();
       },
       onClose: function () {
-        this.updateConfigGroupOnServicePage(true);
         this.hide();
       },
       subViewController: function () {
-        return controller ? App.router.get('installerManageConfigGroupsController') : App.router.get('manageConfigGroupsController');
-      }.property('App.router.manageConfigGroupsController', 'App.router.installerManageConfigGroupsController'),
+        return App.router.get('manageConfigGroupsController');
+      }.property('App.router.manageConfigGroupsController'),
 
-      updateConfigGroupOnServicePage: function (onClose) {
+      updateConfigGroupOnServicePage: function () {
         var subViewController = this.get('subViewController');
         var selectedConfigGroup = subViewController.get('selectedConfigGroup');
         var managedConfigGroups = subViewController.get('configGroups');
-        // restore config groups hosts in wizards if Cancel or Close button is clicked
-        if (onClose && controller) {
-          var unusedHosts = controller.get('getAllHosts').slice().mapProperty('hostName');
-          var hostsToGroupMap = subViewController.get('loadedHostsToGroupMap');
-          for (var group in hostsToGroupMap) {
-            var groupToChange = managedConfigGroups.findProperty('name', group);
-            if (groupToChange) {
-              hostsToGroupMap[group].forEach(function (host) {
-                unusedHosts = unusedHosts.without(host);
-              }, this);
-              groupToChange.set('hosts', hostsToGroupMap[group]);
-            }
-          }
-          managedConfigGroups.findProperty('isDefault').set('hosts', unusedHosts);
-        }
         if (!controller) {
           controller = App.router.get('mainServiceInfoConfigsController');
+          controller.set('configGroups', managedConfigGroups);
+        } else {
+          controller.set('selectedService.configGroups', managedConfigGroups);
         }
-        controller.set('selectedService.configGroups', managedConfigGroups);
         //check whether selectedConfigGroup was selected
         if (selectedConfigGroup && controller.get('configGroups').someProperty('name', selectedConfigGroup.get('name'))) {
           controller.set('selectedConfigGroup', selectedConfigGroup);
