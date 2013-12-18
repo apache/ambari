@@ -65,10 +65,29 @@ def printMetric(clusterName, hostName, metricName, file, cf, start, end, resolut
   sys.stdout.write("\n")
 
   if not pointInTime:
+    valueCount = 0
+    lastValue = None
+
     for tuple in rrdMetric[2]:
-      if tuple[0] is not None:
-        sys.stdout.write(str(tuple[0]))
-        sys.stdout.write("\n")
+
+      thisValue = tuple[0]
+
+      if valueCount > 0 and thisValue == lastValue:
+        valueCount += 1
+      else:
+        if valueCount > 1:
+          sys.stdout.write("[~r]")
+          sys.stdout.write(str(valueCount))
+          sys.stdout.write("\n")
+
+        if thisValue is None:
+          sys.stdout.write("[~n]\n")
+        else:
+          sys.stdout.write(str(thisValue))
+          sys.stdout.write("\n")
+
+        valueCount = 1
+        lastValue = thisValue
   else:
     value = None
     idx   = -1
@@ -83,7 +102,7 @@ def printMetric(clusterName, hostName, metricName, file, cf, start, end, resolut
       sys.stdout.write(str(value))
       sys.stdout.write("\n")
 
-  sys.stdout.write("[AMBARI_DP_END]\n")
+  sys.stdout.write("[~EOM]\n")
   return
 
 def stripList(l):
@@ -147,9 +166,9 @@ if "pt" in queryString:
   pointInTime = True
 else:
   pointInTime = False
-  
+
 def _walk(*args, **kwargs):
- 
+
   for root,dirs,files in os.walk(*args, **kwargs):
     for dir in dirs:
       qualified_dir = os.path.join(root,dir)
@@ -157,7 +176,7 @@ def _walk(*args, **kwargs):
         for x in os.walk(qualified_dir, **kwargs):
           yield x
     yield (root, dirs, files)
-    
+
 
 for cluster in clusterParts:
   for path, dirs, files in _walk(rrdPath + cluster):
@@ -180,7 +199,7 @@ for cluster in clusterParts:
             printMetric(pathParts[-2], pathParts[-1], matchedFile[:-4], os.path.join(path, matchedFile), cf, start, end, resolution, pointInTime)
 
 
-sys.stdout.write("[AMBARI_END]\n")
+sys.stdout.write("[~EOF]\n")
 # write end time
 sys.stdout.write(str(time.mktime(time.gmtime())))
 sys.stdout.write("\n")

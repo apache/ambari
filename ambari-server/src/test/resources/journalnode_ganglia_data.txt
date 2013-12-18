@@ -6,7 +6,7 @@ rpc.rpc.NumOpenConnections
 1378216155
 15
 1.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -14,7 +14,7 @@ metricssystem.MetricsSystem.NumAllSinks
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -22,21 +22,21 @@ part_max_used
 1378216155
 15
 12.8
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.NewEpochAvgTime
 1378216155
 15
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.FinalizeLogSegmentNumOps
 1378216155
 15
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -44,7 +44,7 @@ dfs.JournalNode.Syncs60s90thPercentileLatencyMicros
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -52,7 +52,7 @@ ugi.UgiMetrics.LoginFailureAvgTime
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -60,7 +60,7 @@ dfs.JournalNode.Syncs60s95thPercentileLatencyMicros
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -68,7 +68,7 @@ metricssystem.MetricsSystem.Sink_gangliaDropped
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -76,7 +76,7 @@ ugi.UgiMetrics.LoginSuccessNumOps
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -84,7 +84,7 @@ jvm.JvmMetrics.GcTimeMillisPS Scavenge
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -92,7 +92,7 @@ dfs.JournalNode.Syncs300sNumOps
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -100,7 +100,7 @@ metricssystem.MetricsSystem.SnapshotAvgTime
 1378216155
 15
 0.266666666667
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -108,7 +108,7 @@ rpcdetailed.rpcdetailed.GetEditLogManifestAvgTime
 1378216155
 15
 2.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -116,21 +116,21 @@ dfs.JournalNode.Syncs300s95thPercentileLatencyMicros
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.JournalAvgTime
 1378216155
 15
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.StartLogSegmentNumOps
 1378216155
 15
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -138,7 +138,7 @@ rpc.rpc.RpcQueueTimeNumOps
 1378216155
 15
 0.0266666666667
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -146,7 +146,7 @@ jvm.JvmMetrics.GcCountPS MarkSweep
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -154,7 +154,7 @@ dfs.JournalNode.Syncs60sNumOps
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -162,14 +162,14 @@ dfs.JournalNode.BatchesWritten
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.PrepareRecoveryAvgTime
 1378216155
 15
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -177,7 +177,7 @@ dfs.JournalNode.LastWriterEpoch
 1378216155
 15
 5.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -185,7 +185,7 @@ jvm.JvmMetrics.MemNonHeapCommittedM
 1378216155
 15
 23.5625
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -193,7 +193,7 @@ load_five
 1378216155
 15
 0.114
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -201,7 +201,7 @@ dfs.JournalNode.Syncs300s75thPercentileLatencyMicros
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -209,7 +209,7 @@ jvm.JvmMetrics.LogInfo
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -217,14 +217,14 @@ metricssystem.MetricsSystem.DroppedPubAll
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.FinalizeLogSegmentAvgTime
 1378216155
 15
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -232,7 +232,7 @@ jvm.JvmMetrics.ThreadsTerminated
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -240,7 +240,7 @@ rpc.rpc.CallQueueLength
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -248,7 +248,7 @@ dfs.JournalNode.Syncs3600s99thPercentileLatencyMicros
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -256,7 +256,7 @@ jvm.JvmMetrics.MemHeapUsedM
 1378216155
 15
 9.5575423
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -264,7 +264,7 @@ dfs.JournalNode.Syncs3600s50thPercentileLatencyMicros
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -272,7 +272,7 @@ load_one
 1378216155
 15
 0.226
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -280,7 +280,7 @@ metricssystem.MetricsSystem.NumActiveSources
 1378216155
 15
 5.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -288,7 +288,7 @@ metricssystem.MetricsSystem.PublishNumOps
 1378216155
 15
 0.112380952381
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -296,7 +296,7 @@ jvm.JvmMetrics.ThreadsWaiting
 1378216155
 15
 9.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -304,7 +304,7 @@ rpc.rpc.RpcProcessingTimeNumOps
 1378216155
 15
 0.0266666666667
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -312,7 +312,7 @@ metricssystem.MetricsSystem.Sink_gangliaAvgTime
 1378216155
 15
 25.4
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -320,7 +320,7 @@ swap_total
 1378216155
 15
 4128760.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -328,7 +328,7 @@ rpc.rpc.RpcAuthenticationSuccesses
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -336,14 +336,14 @@ cpu_user
 1378216155
 15
 3.3
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.GetJournalStateNumOps
 1378216155
 15
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -351,7 +351,7 @@ dfs.JournalNode.Syncs300s90thPercentileLatencyMicros
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -359,7 +359,7 @@ jvm.JvmMetrics.LogWarn
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -367,7 +367,7 @@ metricssystem.MetricsSystem.SnapshotNumOps
 1378216155
 15
 0.674285714286
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -375,7 +375,7 @@ rpc.rpc.RpcAuthenticationFailures
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -383,14 +383,14 @@ bytes_in
 1378216155
 15
 22547.48
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.AcceptRecoveryAvgTime
 1378216155
 15
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -398,7 +398,7 @@ mem_free
 1378216155
 15
 1365496.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -406,7 +406,7 @@ mem_cached
 1378216155
 15
 589576.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -414,7 +414,7 @@ mem_shared
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -422,7 +422,7 @@ jvm.JvmMetrics.MemMaxM
 1378216155
 15
 910.25
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -430,7 +430,7 @@ dfs.JournalNode.Syncs300s50thPercentileLatencyMicros
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -438,7 +438,7 @@ jvm.JvmMetrics.MemNonHeapUsedM
 1378216155
 15
 22.78144
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -446,7 +446,7 @@ cpu_idle
 1378216155
 15
 88.2
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -454,7 +454,7 @@ dfs.JournalNode.LastPromisedEpoch
 1378216155
 15
 5.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -462,14 +462,14 @@ jvm.JvmMetrics.ThreadsBlocked
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.AcceptRecoveryNumOps
 1378216155
 15
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -477,14 +477,14 @@ jvm.JvmMetrics.GcTimeMillis
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.PrepareRecoveryNumOps
 1378216155
 15
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -492,7 +492,7 @@ disk_total
 1378216155
 15
 101.515
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -500,7 +500,7 @@ rpc.rpc.RpcProcessingTimeAvgTime
 1378216155
 15
 2.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -508,7 +508,7 @@ rpc.rpc.SentBytes
 1378216155
 15
 1.01333333333
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -516,7 +516,7 @@ jvm.JvmMetrics.ThreadsNew
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -524,7 +524,7 @@ load_fifteen
 1378216155
 15
 0.026
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -532,7 +532,7 @@ rpc.rpc.RpcQueueTimeAvgTime
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -540,7 +540,7 @@ jvm.JvmMetrics.GcCountPS Scavenge
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -548,7 +548,7 @@ bytes_out
 1378216155
 15
 5772.33
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -556,7 +556,7 @@ dfs.JournalNode.Syncs3600sNumOps
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -564,7 +564,7 @@ jvm.JvmMetrics.ThreadsTimedWaiting
 1378216155
 15
 3.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -572,7 +572,7 @@ jvm.JvmMetrics.MemHeapCommittedM
 1378216155
 15
 48.8125
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -580,14 +580,14 @@ dfs.JournalNode.Syncs3600s95thPercentileLatencyMicros
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.StartLogSegmentAvgTime
 1378216155
 15
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -595,7 +595,7 @@ metricssystem.MetricsSystem.NumAllSources
 1378216155
 15
 5.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -603,7 +603,7 @@ dfs.JournalNode.Syncs3600s90thPercentileLatencyMicros
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -611,7 +611,7 @@ cpu_system
 1378216155
 15
 8.4
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -619,7 +619,7 @@ pkts_in
 1378216155
 15
 24.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -627,7 +627,7 @@ jvm.JvmMetrics.LogError
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -635,7 +635,7 @@ dfs.JournalNode.Syncs3600s75thPercentileLatencyMicros
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -643,7 +643,7 @@ cpu_num
 1378216155
 15
 2.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -651,7 +651,7 @@ disk_free
 1378216155
 15
 92.428
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -659,7 +659,7 @@ rpc.rpc.RpcAuthorizationSuccesses
 1378216155
 15
 0.0266666666667
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -667,7 +667,7 @@ cpu_nice
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -675,7 +675,7 @@ metricssystem.MetricsSystem.NumActiveSinks
 1378216155
 15
 1.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -683,7 +683,7 @@ mem_total
 1378216155
 15
 4055144.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -691,7 +691,7 @@ dfs.JournalNode.Syncs60s50thPercentileLatencyMicros
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -699,7 +699,7 @@ dfs.JournalNode.CurrentLagTxns
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -707,14 +707,14 @@ proc_total
 1378216155
 15
 657.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.NewEpochNumOps
 1378216155
 15
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -722,7 +722,7 @@ proc_run
 1378216155
 15
 4.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -730,7 +730,7 @@ metricssystem.MetricsSystem.Sink_gangliaNumOps
 1378216155
 15
 0.112380952381
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -738,7 +738,7 @@ swap_free
 1378216155
 15
 4128760.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -746,7 +746,7 @@ jvm.JvmMetrics.LogFatal
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -754,7 +754,7 @@ pkts_out
 1378216155
 15
 35.4
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -762,7 +762,7 @@ jvm.JvmMetrics.ThreadsRunnable
 1378216155
 15
 6.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -770,7 +770,7 @@ cpu_wio
 1378216155
 15
 0.1
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -778,7 +778,7 @@ rpc.rpc.RpcAuthorizationFailures
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -786,7 +786,7 @@ dfs.JournalNode.BatchesWrittenWhileLagging
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -794,7 +794,7 @@ ugi.UgiMetrics.LoginFailureNumOps
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -802,7 +802,7 @@ dfs.JournalNode.TxnsWritten
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -810,7 +810,7 @@ jvm.JvmMetrics.GcTimeMillisPS MarkSweep
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -818,7 +818,7 @@ dfs.JournalNode.BytesWritten
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -826,7 +826,7 @@ dfs.JournalNode.LastWrittenTxId
 1378216155
 15
 613.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -834,7 +834,7 @@ metricssystem.MetricsSystem.Sink_gangliaQsize
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -842,7 +842,7 @@ mem_buffers
 1378216155
 15
 129384.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -850,7 +850,7 @@ boottime
 1378216155
 15
 1378290058.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -858,7 +858,7 @@ dfs.JournalNode.Syncs60s75thPercentileLatencyMicros
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -866,7 +866,7 @@ ugi.UgiMetrics.LoginSuccessAvgTime
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -874,7 +874,7 @@ cpu_speed
 1378216155
 15
 3583.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -882,7 +882,7 @@ metricssystem.MetricsSystem.PublishAvgTime
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -890,7 +890,7 @@ rpc.rpc.ReceivedBytes
 1378216155
 15
 6.34666666667
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -898,7 +898,7 @@ cpu_aidle
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -906,14 +906,14 @@ dfs.JournalNode.Syncs60s99thPercentileLatencyMicros
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.JournalNumOps
 1378216155
 15
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -921,7 +921,7 @@ dfs.JournalNode.Syncs300s99thPercentileLatencyMicros
 1378216155
 15
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -929,14 +929,14 @@ rpcdetailed.rpcdetailed.GetEditLogManifestNumOps
 1378216155
 15
 0.0266666666667
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
 rpcdetailed.rpcdetailed.GetJournalStateAvgTime
 1378216155
 15
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPSlaves
 ip-10-39-113-33.ec2.internal
@@ -944,6 +944,6 @@ jvm.JvmMetrics.GcCount
 1378216155
 15
 0.0
-[AMBARI_DP_END]
-[AMBARI_END]
+[~EOM]
+[~EOF]
 1378331362.0

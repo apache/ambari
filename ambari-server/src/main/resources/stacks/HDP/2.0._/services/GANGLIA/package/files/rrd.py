@@ -66,10 +66,29 @@ def printMetric(clusterName, hostName, metricName, file, cf, start, end,
   sys.stdout.write("\n")
 
   if not pointInTime:
+    valueCount = 0
+    lastValue = None
+
     for tuple in rrdMetric[2]:
-      if tuple[0] is not None:
-        sys.stdout.write(str(tuple[0]))
-        sys.stdout.write("\n")
+
+      thisValue = tuple[0]
+
+      if valueCount > 0 and thisValue == lastValue:
+        valueCount += 1
+      else:
+        if valueCount > 1:
+          sys.stdout.write("[~r]")
+          sys.stdout.write(str(valueCount))
+          sys.stdout.write("\n")
+
+        if thisValue is None:
+          sys.stdout.write("[~n]\n")
+        else:
+          sys.stdout.write(str(thisValue))
+          sys.stdout.write("\n")
+
+        valueCount = 1
+        lastValue = thisValue
   else:
     value = None
     idx = -1
@@ -84,7 +103,7 @@ def printMetric(clusterName, hostName, metricName, file, cf, start, end,
       sys.stdout.write(str(value))
       sys.stdout.write("\n")
 
-  sys.stdout.write("[AMBARI_DP_END]\n")
+  sys.stdout.write("[~EOM]\n")
   return
 
 
@@ -101,8 +120,8 @@ sys.stdout.write("\n")
 requestMethod = os.environ['REQUEST_METHOD']
 
 if requestMethod == 'POST':
-  postData = sys.stdin.read()
-  queryString = urlparse.parse_qs(postData)
+  postData = sys.stdin.readline()
+  queryString = cgi.parse_qs(postData)
   queryString = dict((k, v[0]) for k, v in queryString.items())
 elif requestMethod == 'GET':
   queryString = dict(cgi.parse_qsl(os.environ['QUERY_STRING']));
@@ -186,7 +205,7 @@ for cluster in clusterParts:
                         os.path.join(path, matchedFile), cf, start, end,
                         resolution, pointInTime)
 
-sys.stdout.write("[AMBARI_END]\n")
+sys.stdout.write("[~EOF]\n")
 # write end time
 sys.stdout.write(str(time.mktime(time.gmtime())))
 sys.stdout.write("\n")

@@ -450,7 +450,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
           LOG.info("Ganglia host is not live");
           return Collections.emptySet();
         }
-        
+
         //Check if Ganglia server component is live
         if (!hostProvider.isGangliaCollectorComponentLive(clusterName)) {
           LOG.info("Ganglia server component is not live");
@@ -475,7 +475,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
           return Collections.emptySet();
         }
 
-        while(!dsName.equals("[AMBARI_END]")) {
+        while(!dsName.equals("[~EOF]")) {
           GangliaMetric metric = new GangliaMetric();
           List<GangliaMetric.TemporalMetric> listTemporalMetrics =
               new ArrayList<GangliaMetric.TemporalMetric>();
@@ -488,11 +488,27 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
           int time = convertToNumber(reader.readLine()).intValue();
           int step = convertToNumber(reader.readLine()).intValue();
 
-          String val = reader.readLine();
-          while(! val.equals("[AMBARI_DP_END]")) {
-            GangliaMetric.TemporalMetric tm = new GangliaMetric.TemporalMetric(val, time);
-            if (tm.isValid()) listTemporalMetrics.add(tm);
-            time += step;
+          String val     = reader.readLine();
+          String lastVal = null;
+
+          while(! val.equals("[~EOM]")) {
+            if (val.startsWith("[~r]")) {
+              Integer repeat = Integer.valueOf(val.substring(4));
+              for (int i = 0; i < repeat; ++i) {
+                if (! lastVal.equals("[~n]")) {
+                  GangliaMetric.TemporalMetric tm = new GangliaMetric.TemporalMetric(lastVal, time);
+                  if (tm.isValid()) listTemporalMetrics.add(tm);
+                }
+                time += step;
+              }
+            } else {
+              if (! val.equals("[~n]")) {
+                GangliaMetric.TemporalMetric tm = new GangliaMetric.TemporalMetric(val, time);
+                if (tm.isValid()) listTemporalMetrics.add(tm);
+              }
+              time += step;
+            }
+            lastVal = val;
             val = reader.readLine();
           }
 

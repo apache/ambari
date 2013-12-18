@@ -141,7 +141,7 @@ yarn.ClusterMetrics.NumActiveNMs
 0.0
 0.0
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPResourceManager
 ip-10-39-113-33.ec2.internal
@@ -284,7 +284,7 @@ yarn.ClusterMetrics.NumDecommissionedNMs
 0.0
 0.0
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPResourceManager
 ip-10-39-113-33.ec2.internal
@@ -427,7 +427,7 @@ yarn.ClusterMetrics.NumLostNMs
 0.0
 0.0
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPResourceManager
 ip-10-39-113-33.ec2.internal
@@ -570,7 +570,7 @@ yarn.ClusterMetrics.NumUnhealthyNMs
 0.0
 0.0
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPResourceManager
 ip-10-39-113-33.ec2.internal
@@ -713,7 +713,7 @@ yarn.ClusterMetrics.NumRebootedNMs
 0.0
 0.0
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPResourceManager
 __SummaryInfo__
@@ -856,7 +856,7 @@ yarn.ClusterMetrics.NumActiveNMs
 0.0
 0.0
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPResourceManager
 __SummaryInfo__
@@ -999,7 +999,7 @@ yarn.ClusterMetrics.NumDecommissionedNMs
 0.0
 0.0
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPResourceManager
 __SummaryInfo__
@@ -1142,7 +1142,7 @@ yarn.ClusterMetrics.NumLostNMs
 0.0
 0.0
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPResourceManager
 __SummaryInfo__
@@ -1285,7 +1285,7 @@ yarn.ClusterMetrics.NumUnhealthyNMs
 0.0
 0.0
 0.0
-[AMBARI_DP_END]
+[~EOM]
 sum
 HDPResourceManager
 __SummaryInfo__
@@ -1428,6 +1428,6 @@ yarn.ClusterMetrics.NumRebootedNMs
 0.0
 0.0
 0.0
-[AMBARI_DP_END]
-[AMBARI_END]
+[~EOM]
+[~EOF]
 1371220597.0
