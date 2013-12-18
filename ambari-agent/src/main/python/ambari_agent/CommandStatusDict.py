@@ -97,13 +97,15 @@ class CommandStatusDict():
     try:
       tmpout = open(report['tmpout'], 'r').read()
       tmperr = open(report['tmperr'], 'r').read()
-      with open(report['structuredOut'], 'r') as fp:
-        tmpstructuredout = json.load(fp)
     except Exception, err:
       logger.warn(err)
       tmpout = '...'
       tmperr = '...'
-      tmpstructuredout = ''
+    try:
+      with open(report['structuredOut'], 'r') as fp:
+        tmpstructuredout = json.load(fp)
+    except Exception:
+      tmpstructuredout = {}
     grep = Grep()
     output = grep.tail(tmpout, Grep.OUTPUT_LAST_LINES)
     inprogress = self.generate_report_template(command)
