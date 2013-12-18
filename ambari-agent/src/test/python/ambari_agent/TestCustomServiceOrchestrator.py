@@ -200,7 +200,7 @@ class TestCustomServiceOrchestrator(TestCase):
     self.assertTrue("Unknown script type" in ret['stdout'])
 
     #By default returns empty dictionary
-    self.assertEqual(ret['structuredOut'], {})
+    self.assertEqual(ret['structuredOut'], '{}')
 
     pass
 

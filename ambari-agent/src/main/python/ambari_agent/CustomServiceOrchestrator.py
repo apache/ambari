@@ -144,7 +144,7 @@ class CustomServiceOrchestrator():
       ret = {
         'stdout' : message,
         'stderr' : message,
-        'structuredOut' : {},
+        'structuredOut' : '{}',
         'exitcode': 1,
       }
     return ret
