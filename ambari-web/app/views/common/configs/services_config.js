@@ -66,6 +66,9 @@ App.ServiceConfigView = Em.View.extend({
    */
   checkCanEdit: function () {
     var controller = App.get('router.'+this.get('controller.name'));
+    if(!this.get('controller.selectedService.configCategories')){
+      return;
+    }
     var canAddProperty = true;
     if(controller.get('selectedConfigGroup') && !controller.get('selectedConfigGroup').isDefault){
      canAddProperty = false;
