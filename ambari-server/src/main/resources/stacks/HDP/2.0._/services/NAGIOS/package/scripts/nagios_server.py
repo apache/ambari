@@ -41,7 +41,8 @@ class NagiosServer(Script):
   def start(self, env):
     import params
     env.set_params(params)
-    
+
+    self.configure(env) # done for updating configs after Security enabled
     nagios_service(action='start')
 
     

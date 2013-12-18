@@ -46,7 +46,7 @@ nagios_servicegroup_cfg = format("{nagios_obj_dir}/hadoop-servicegroups.cfg")
 nagios_service_cfg = format("{nagios_obj_dir}/hadoop-services.cfg")
 nagios_command_cfg = format("{nagios_obj_dir}/hadoop-commands.cfg")
 eventhandlers_dir = "/usr/lib/nagios/eventhandlers"
-nagios_principal_name = "nagios"
+nagios_principal_name = default("nagios_principal_name", "nagios")
 hadoop_ssl_enabled = False
 
 namenode_metadata_port = "8020"
