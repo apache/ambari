@@ -36,5 +36,8 @@ class MapReduce2Client(Script):
     env.set_params(params)
     yarn()
 
+  def status(self, env):
+    raise ClientComponentHasNoStatus()
+
 if __name__ == "__main__":
   MapReduce2Client().execute()
