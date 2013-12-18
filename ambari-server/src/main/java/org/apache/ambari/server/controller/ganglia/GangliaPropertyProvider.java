@@ -493,7 +493,7 @@ public abstract class GangliaPropertyProvider extends AbstractPropertyProvider {
 
           while(! val.equals("[~EOM]")) {
             if (val.startsWith("[~r]")) {
-              Integer repeat = Integer.valueOf(val.substring(4));
+              Integer repeat = Integer.valueOf(val.substring(4)) - 1;
               for (int i = 0; i < repeat; ++i) {
                 if (! lastVal.equals("[~n]")) {
                   GangliaMetric.TemporalMetric tm = new GangliaMetric.TemporalMetric(lastVal, time);

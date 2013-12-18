@@ -6,7 +6,11 @@ mapred.shuffleOutput.shuffle_exceptions_caught
 1358434800
 360
 0.0
-[~r]106
+[~r]10
+7.0
+[~r]10
+0.0
+[~r]86
 [~EOM]
 sum
 HDPSlaves

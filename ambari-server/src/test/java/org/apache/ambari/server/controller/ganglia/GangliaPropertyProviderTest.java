@@ -193,7 +193,17 @@ public class GangliaPropertyProviderTest {
 
 
     Assert.assertEquals(6, PropertyHelper.getProperties(resource).size());
+
     Assert.assertNotNull(resource.getPropertyValue(shuffle_exceptions_caught));
+
+    Number[][] dataPoints = (Number[][]) resource.getPropertyValue(shuffle_exceptions_caught);
+
+    Assert.assertEquals(106, dataPoints.length);
+    for (int i = 0; i < dataPoints.length; ++i) {
+      Assert.assertEquals(i >=10 && i < 20 ? 7 : 0.0, dataPoints[i][0]);
+      Assert.assertEquals(360 * i + 1358434800, dataPoints[i][1]);
+    }
+
     Assert.assertNotNull(resource.getPropertyValue(shuffle_failed_outputs));
     Assert.assertNotNull(resource.getPropertyValue(shuffle_output_bytes));
     Assert.assertNotNull(resource.getPropertyValue(shuffle_success_outputs));
