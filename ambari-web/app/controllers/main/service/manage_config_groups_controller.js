@@ -575,7 +575,7 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
         if (originalGroup.get('description') !== this.get('configGroupDesc') && !this.get('isDescriptionDirty')) {
           this.set('isDescriptionDirty', true);
         }
-        if (originalGroup.get('name') === this.get('configGroupName')) {
+        if (originalGroup.get('name').trim() === this.get('configGroupName').trim()) {
           if (this.get('isDescriptionDirty')) {
             warningMessage = '';
           } else {
@@ -589,7 +589,7 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
         this.set('warningMessage', warningMessage);
       }.observes('configGroupName', 'configGroupDesc'),
       enablePrimary: function () {
-        return this.get('configGroupName').length > 0 && !this.get('warningMessage');
+        return this.get('configGroupName').trim().length > 0 && !this.get('warningMessage');
       }.property('warningMessage', 'configGroupName', 'configGroupDesc'),
       onPrimary: function () {
         if (!this.get('enablePrimary')) {
@@ -623,13 +623,13 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
       warningMessage: '',
       validate: function () {
         var warningMessage = '';
-        if (self.get('configGroups').mapProperty('name').contains(this.get('configGroupName'))) {
+        if (self.get('configGroups').mapProperty('name').contains(this.get('configGroupName').trim())) {
           warningMessage = Em.I18n.t("config.group.selection.dialog.err.name.exists");
         }
         this.set('warningMessage', warningMessage);
       }.observes('configGroupName'),
       enablePrimary: function () {
-        return this.get('configGroupName').length > 0 && !this.get('warningMessage');
+        return this.get('configGroupName').trim().length > 0 && !this.get('warningMessage');
       }.property('warningMessage', 'configGroupName'),
       onPrimary: function () {
         if (!this.get('enablePrimary')) {
@@ -639,7 +639,7 @@ App.InstallerManageConfigGroupsController = App.ManageConfigGroupsController.ext
         var properties = [];
         var newConfigGroupData = App.ConfigGroup.create({
           id: null,
-          name: this.get('configGroupName'),
+          name: this.get('configGroupName').trim(),
           description: this.get('configGroupDesc'),
           isDefault: false,
           parentConfigGroup: defaultConfigGroup,
