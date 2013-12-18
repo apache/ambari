@@ -93,8 +93,6 @@ App.MainAdminSecurityAddStep2Controller = Em.Controller.extend({
 
       this.loadComponentConfigs(_serviceConfig, serviceConfig);
 
-      console.log('pushing ' + serviceConfig.serviceName, serviceConfig);
-
       this.get('stepConfigs').pushObject(serviceConfig);
     }, this);
     this.set('selectedService', this.get('stepConfigs').filterProperty('showConfig', true).objectAt(0));

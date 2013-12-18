@@ -1361,7 +1361,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     if (hostNames.length == 0) {
       return;
     }
-    console.log('registering ' + componentName + ' to ' + JSON.stringify(hostNames));
 
     // currently we are specifying the predicate as a query string.
     // this can hit a ~4000-character limit in Jetty server.

@@ -485,9 +485,7 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
    * @param host
    */
   setLogTasksStatePerHost: function (tasksPerHost, host) {
-    console.log('In step3 setTasksStatePerHost function.');
     tasksPerHost.forEach(function (_task) {
-      console.log('In step3 _taskPerHost function.');
       var task = host.get('logTasks').findProperty('Tasks.id', _task.Tasks.id);
       if (task) {
         host.get('logTasks').removeObject(task);
@@ -549,7 +547,6 @@ App.StackUpgradeStep3Controller = Em.Controller.extend({
    */
   displayMessage: function (task) {
     var role = App.format.role(task.role);
-    console.log("In display message with task command value: " + task.command);
     switch (task.command){
       case 'UPGRADE':
         switch (task.status) {
