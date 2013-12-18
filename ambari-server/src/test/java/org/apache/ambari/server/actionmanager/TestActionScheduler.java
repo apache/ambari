@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.common.reflect.TypeToken;
 import com.google.inject.persist.UnitOfWork;
@@ -78,7 +79,7 @@ public class TestActionScheduler {
   @Test
   public void testActionSchedule() throws Exception {
     
-    Type type = new TypeToken<Map<String, List<String>>>() {}.getType();
+    Type type = new TypeToken<Map<String, Set<String>>>() {}.getType();
     Map<String, List<String>> clusterHostInfo = StageUtils.getGson().fromJson(CLUSTER_HOST_INFO, type);
     
     ActionQueue aq = new ActionQueue();
@@ -631,11 +632,11 @@ public class TestActionScheduler {
   @Test
   public void testClusterHostInfoCache() throws Exception {
     
-    Type type = new TypeToken<Map<String, List<String>>>() {}.getType();
+    Type type = new TypeToken<Map<String, Set<String>>>() {}.getType();
     
     //Data for stages
-    Map<String, List<String>> clusterHostInfo1 = StageUtils.getGson().fromJson(CLUSTER_HOST_INFO, type);
-    Map<String, List<String>> clusterHostInfo2 = StageUtils.getGson().fromJson(CLUSTER_HOST_INFO_UPDATED, type);
+    Map<String, Set<String>> clusterHostInfo1 = StageUtils.getGson().fromJson(CLUSTER_HOST_INFO, type);
+    Map<String, Set<String>> clusterHostInfo2 = StageUtils.getGson().fromJson(CLUSTER_HOST_INFO_UPDATED, type);
     int stageId = 1;
     int requestId1 = 1;
     int requestId2 = 2;
@@ -676,8 +677,9 @@ public class TestActionScheduler {
 
     assertTrue(ac.get(0) instanceof ExecutionCommand);
     assertEquals(String.valueOf(requestId1) + "-" + stageId, ((ExecutionCommand) (ac.get(0))).getCommandId());
+    
     assertEquals(clusterHostInfo1, ((ExecutionCommand) (ac.get(0))).getClusterHostInfo());
-
+    
 
     when(db.getStagesInProgress()).thenReturn(Collections.singletonList(s2));
     

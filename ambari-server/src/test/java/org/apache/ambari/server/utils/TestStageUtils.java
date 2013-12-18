@@ -18,15 +18,21 @@
 package org.apache.ambari.server.utils;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import javax.xml.bind.JAXBException;
 
@@ -41,6 +47,7 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.logging.Log;
@@ -50,17 +57,23 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.ContiguousSet;
+import com.google.common.collect.DiscreteDomain;
+import com.google.common.collect.Range;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 public class TestStageUtils {
+  private static final String HOSTS_LIST = "all_hosts";
+
+  private static final String STACK_ID = "HDP-1.3.1";
+
   private static Log LOG = LogFactory.getLog(TestStageUtils.class);
 
   private AmbariMetaInfo ambariMetaInfo;
 
   private Injector injector;
 
-//  ServiceComponentFactory serviceComponentFactory;
   static ServiceComponentHostFactory serviceComponentHostFactory;
 
   @Before
@@ -74,71 +87,24 @@ public class TestStageUtils {
   }
 
 
-  public static void addHdfsService(Cluster cl, String [] hostList,
-      Injector injector) throws AmbariException {
-    cl.setDesiredStackVersion(new StackId("HDP-0.1"));
-    cl.addService("HDFS");
-    cl.getService("HDFS").addServiceComponent("NAMENODE");
-    cl.getService("HDFS").addServiceComponent("DATANODE");
-    cl.getService("HDFS").addServiceComponent("SECONDARY_NAMENODE");
-    cl.getService("HDFS")
-        .getServiceComponent("NAMENODE")
+  public static void addService(Cluster cl, List<String> hostList,
+       Map<String, List<Integer>> topology, String serviceName,
+       Injector injector) throws AmbariException {
+    cl.setDesiredStackVersion(new StackId(STACK_ID));
+    cl.addService(serviceName);
+    
+    for (Entry<String, List<Integer>> component : topology.entrySet()) {
+      
+      String componentName = component.getKey();
+      cl.getService(serviceName).addServiceComponent(componentName);
+      
+      for (Integer hostIndex : component.getValue()) {
+        cl.getService(serviceName)
+        .getServiceComponent(componentName)
         .addServiceComponentHost(
-            serviceComponentHostFactory.createNew(cl.getService("HDFS")
-                .getServiceComponent("NAMENODE"), hostList[0], false));
-    cl.getService("HDFS")
-        .getServiceComponent("SECONDARY_NAMENODE")
-        .addServiceComponentHost(
-            serviceComponentHostFactory.createNew(cl.getService("HDFS")
-                .getServiceComponent("SECONDARY_NAMENODE"), hostList[1], false)
-        );
-    for (int i = 1; i < hostList.length; i++) {
-      cl.getService("HDFS")
-          .getServiceComponent("DATANODE")
-          .addServiceComponentHost(serviceComponentHostFactory.createNew(cl.getService("HDFS")
-              .getServiceComponent("DATANODE"), hostList[i], false));
-    }
-  }
-
-  public static void addHbaseService(Cluster cl, String [] hostList,
-      Injector injector) throws AmbariException {
-    cl.setDesiredStackVersion(new StackId("HDP-0.2"));
-    cl.addService("HBASE");
-    cl.getService("HBASE").addServiceComponent("HBASE_MASTER");
-    cl.getService("HBASE").addServiceComponent("HBASE_REGIONSERVER");
-    cl.getService("HBASE")
-        .getServiceComponent("HBASE_MASTER")
-        .addServiceComponentHost(
-            serviceComponentHostFactory.createNew(cl.getService("HBASE")
-                .getServiceComponent("HBASE_MASTER"), hostList[0], false));
-    for (int i = 1; i < hostList.length; i++) {
-      cl.getService("HBASE")
-          .getServiceComponent("HBASE_REGIONSERVER")
-          .addServiceComponentHost(
-              serviceComponentHostFactory.createNew(cl.getService("HBASE")
-                  .getServiceComponent("HBASE_REGIONSERVER"), hostList[i],
-                  false));
-    }
-  }
-
-  public static void addMapreduceService(Cluster cl, String [] hostList,
-                                     Injector injector) throws AmbariException {
-    cl.setDesiredStackVersion(new StackId("HDP-0.2"));
-    cl.addService("MAPREDUCE");
-    cl.getService("MAPREDUCE").addServiceComponent("JOBTRACKER");
-    cl.getService("MAPREDUCE").addServiceComponent("TASKTRACKER");
-    cl.getService("MAPREDUCE")
-        .getServiceComponent("JOBTRACKER")
-        .addServiceComponentHost(
-            serviceComponentHostFactory.createNew(cl.getService("MAPREDUCE")
-                .getServiceComponent("JOBTRACKER"), hostList[0], false));
-    for (int i = 1; i < hostList.length; i++) {
-      cl.getService("MAPREDUCE")
-          .getServiceComponent("TASKTRACKER")
-          .addServiceComponentHost(
-              serviceComponentHostFactory.createNew(cl.getService("MAPREDUCE")
-                  .getServiceComponent("TASKTRACKER"), hostList[i],
-                  false));
+            serviceComponentHostFactory.createNew(cl.getService(serviceName)
+                .getServiceComponent(componentName), hostList.get(hostIndex), false));
+      }
     }
   }
 
@@ -170,11 +136,11 @@ public class TestStageUtils {
       JsonMappingException, JAXBException, IOException {
     Stage s = StageUtils.getATestStage(1, 2, "host1", "clusterHostInfo");
     ExecutionCommand cmd = s.getExecutionCommands("host1").get(0).getExecutionCommand();    
-    cmd.setConfigurationTags(new HashMap<String, Map<String,String>>() {{
-      put("global", new HashMap<String, String>() {{ put("tag", "version1"); }});
-    }});
-    
-    
+    HashMap<String, Map<String,String>> configTags = new HashMap<String, Map<String,String>>();
+    Map<String, String> globalTag = new HashMap<String, String>();
+    globalTag.put("tag", "version1");
+    configTags.put("global", globalTag );
+    cmd.setConfigurationTags(configTags);
     String json = StageUtils.jaxbToString(cmd);
     ExecutionCommand cmdDes = StageUtils.stringToExecutionCommand(json);
     assertEquals(cmd.toString(), cmdDes.toString());
@@ -184,50 +150,235 @@ public class TestStageUtils {
   @Test
   public void testGetClusterHostInfo() throws AmbariException, UnknownHostException {
     Clusters fsm = injector.getInstance(Clusters.class);
+    
+    List<String> hostList = new ArrayList<String>();
+    hostList.add("h1");
+    hostList.add("h2");
+    hostList.add("h3");
+    hostList.add("h4");
+    hostList.add("h5");
+    hostList.add("h6");
+    hostList.add("h7");
+    hostList.add("h8");
+    hostList.add("h9");
+    hostList.add("h10");
+    
+    List<Integer> pingPorts = Arrays.asList(StageUtils.DEFAULT_PING_PORT,
+        StageUtils.DEFAULT_PING_PORT,
+        StageUtils.DEFAULT_PING_PORT,
+        8671,
+        8671,
+        null,
+        8672,
+        8672,
+        null,
+        8673);
+    
     fsm.addCluster("c1");
-    fsm.addHost("h1");
-    fsm.addHost("h2");
-    fsm.addHost("h3");
-    fsm.addHost("h4");
-    fsm.getCluster("c1").setDesiredStackVersion(new StackId("HDP-0.1"));
-    fsm.getHost("h1").setOsType("centos5");
-    fsm.getHost("h2").setOsType("centos5");
-    fsm.getHost("h3").setOsType("centos5");
-    fsm.getHost("h4").setOsType("centos5");
-    fsm.getHost("h1").setCurrentPingPort(8670);
-    fsm.getHost("h2").setCurrentPingPort(null);
-    fsm.getHost("h3").setCurrentPingPort(null);
-    fsm.getHost("h4").setCurrentPingPort(8670);
-    fsm.getHost("h1").persist();
-    fsm.getHost("h2").persist();
-    fsm.getHost("h3").persist();
-    fsm.getHost("h4").persist();
-    fsm.mapHostToCluster("h1", "c1");
-    fsm.mapHostToCluster("h2", "c1");
-    fsm.mapHostToCluster("h3", "c1");
-    fsm.mapHostToCluster("h4", "c1");
-    String [] hostList = {"h1", "h2", "h3" };
-    addHdfsService(fsm.getCluster("c1"), hostList, injector);
-    addHbaseService(fsm.getCluster("c1"), hostList, injector);
-    addMapreduceService(fsm.getCluster("c1"), hostList, injector);
-    Map<String, List<String>> info = StageUtils.getClusterHostInfo(fsm.getHostsForCluster("c1"),
+    fsm.getCluster("c1").setDesiredStackVersion(new StackId(STACK_ID));
+    
+    int index = 0;
+    
+    for (String host: hostList) {
+      fsm.addHost(host);
+      fsm.getHost(host).setOsType("centos5");
+      fsm.getHost(host).setCurrentPingPort(pingPorts.get(index));
+      fsm.getHost(host).persist();
+      fsm.mapHostToCluster(host, "c1");
+      index++;
+    }
+
+    //Add HDFS service
+    Map<String, List<Integer>> hdfsTopology = new HashMap<String, List<Integer>>();
+    hdfsTopology.put("NAMENODE", Collections.singletonList(0));
+    hdfsTopology.put("SECONDARY_NAMENODE", Collections.singletonList(1));
+    List<Integer> datanodeIndexes = Arrays.asList(0,1,2,3,5,7,8,9);
+    hdfsTopology.put("DATANODE", new ArrayList<Integer>(datanodeIndexes));
+    addService(fsm.getCluster("c1"), hostList, hdfsTopology , "HDFS", injector);
+    
+    //Add HBASE service
+    Map<String, List<Integer>> hbaseTopology = new HashMap<String, List<Integer>>(); 
+    hbaseTopology.put("HBASE_MASTER", Collections.singletonList(5));
+    List<Integer> regionServiceIndexes = Arrays.asList(1,3,5,8,9);;
+    hbaseTopology.put("HBASE_REGIONSERVER", regionServiceIndexes);
+    addService(fsm.getCluster("c1"), hostList, hbaseTopology , "HBASE", injector);
+    
+    //Add MAPREDUCE service
+    Map<String, List<Integer>> mrTopology = new HashMap<String, List<Integer>>(); 
+    mrTopology.put("JOBTRACKER", Collections.singletonList(5));
+    List<Integer> taskTrackerIndexes = Arrays.asList(1,2,3,4,5,7,9);;
+    mrTopology.put("TASKTRACKER", taskTrackerIndexes);
+    addService(fsm.getCluster("c1"), hostList, mrTopology , "MAPREDUCE", injector);
+    
+    //Get cluster host info
+    Map<String, Set<String>> info = StageUtils.getClusterHostInfo(fsm.getHostsForCluster("c1"),
         fsm.getCluster("c1"), new HostsMap(injector.getInstance(Configuration.class)),
         injector.getInstance(Configuration.class));
-    assertEquals(2, info.get("slave_hosts").size());
-    assertEquals(2, info.get("mapred_tt_hosts").size());
-    assertEquals(2, info.get("hbase_rs_hosts").size());
-    assertEquals(1, info.get("hbase_master_hosts").size());
-    assertEquals(4, info.get("all_hosts").size());
-    assertEquals(4, info.get("all_ping_ports").size());
-    assertEquals("h1", info.get("hbase_master_hosts").get(0));
-    assertEquals("8670", info.get("all_ping_ports").get(0));
-    assertEquals("8670", info.get("all_ping_ports").get(1));
-    assertEquals("8670", info.get("all_ping_ports").get(2));
-    assertEquals("8670", info.get("all_ping_ports").get(3));
 
-    assertFalse(info.get("ambari_db_rca_url").get(0).contains(Configuration.HOSTNAME_MACRO));
-    String address = InetAddress.getLocalHost().getCanonicalHostName();
-    assertTrue(info.get("ambari_db_rca_url").get(0).contains(address));
+    //All hosts present in cluster host info
+    assertEquals(fsm.getHosts().size(), info.get(HOSTS_LIST).size());
+    for (Host host: fsm.getHosts()) {
+      assertTrue(info.get(HOSTS_LIST).contains(host.getHostName()));
+    }
+    
+    
+    //Check HDFS topology compression
+    Map<String, String> hdfsMapping = new HashMap<String, String>();
+    hdfsMapping.put("DATANODE", "slave_hosts");
+    hdfsMapping.put("NAMENODE", "namenode_host");
+    hdfsMapping.put("SECONDARY_NAMENODE", "snamenode_host");
+    checkServiceCompression(info, hdfsMapping, hdfsTopology, hostList);
+    
+    
+    //Check HBASE topology compression
+    Map<String, String> hbaseMapping = new HashMap<String, String>();
+    hbaseMapping.put("HBASE_MASTER", "hbase_master_hosts");
+    hbaseMapping.put("HBASE_REGIONSERVER", "hbase_rs_hosts");
+    checkServiceCompression(info, hbaseMapping, hbaseTopology, hostList);
+    
+    //Check MAPREDUCE topology compression
+    Map<String, String> mrMapping = new HashMap<String, String>();
+    mrMapping.put("JOBTRACKER", "jtnode_host");
+    mrMapping.put("TASKTRACKER", "mapred_tt_hosts");
+    checkServiceCompression(info, mrMapping, mrTopology, hostList);
+    
+    Set<String> actualPingPorts = info.get("all_ping_ports");
+    
+    
+    if (pingPorts.contains(null))
+      assertEquals(new HashSet<Integer>(pingPorts).size(), actualPingPorts.size() + 1);
+    else
+      assertEquals(new HashSet<Integer>(pingPorts).size(), actualPingPorts.size());
+    
+    List<Integer> pingPortsActual = getRangeMappedDecompressedSet(actualPingPorts);
+    
+    
+    List<Integer> reindexedPorts = getReindexedList(pingPortsActual, new ArrayList<String>(info.get(HOSTS_LIST)), hostList);
+    
+    //Treat null values
+    while (pingPorts.contains(null)) {
+      int indexOfNull = pingPorts.indexOf(null);
+      pingPorts.set(indexOfNull, StageUtils.DEFAULT_PING_PORT);
+    }
+
+    assertEquals(pingPorts, reindexedPorts);
 
   }
+
+  private void checkServiceCompression(Map<String, Set<String>> info,
+      Map<String, String> serviceMapping, Map<String, List<Integer>> serviceTopology,
+      List<String> hostList) {
+    
+    
+    for (Entry<String, List<Integer>> component: serviceTopology.entrySet()) {
+      
+      String componentName = component.getKey();
+      
+      List<Integer> componentIndexesExpected = component.getValue();
+      
+      String roleName = serviceMapping.get(componentName);
+      
+      assertTrue("No mapping for " + componentName , roleName != null);
+      
+      Set<Integer> componentIndexesActual = getDecompressedSet(info.get(roleName));
+      
+      Set<String> expectedComponentHosts = new HashSet<String>();
+      
+      for (Integer i: componentIndexesExpected)
+        expectedComponentHosts.add(hostList.get(i));
+      
+      Set<String> actualSlavesHosts = new HashSet<String>();
+      
+      for (Integer i: componentIndexesActual)
+        actualSlavesHosts.add(new ArrayList<String>(info.get(HOSTS_LIST)).get(i));
+        
+      
+      
+      assertEquals(expectedComponentHosts, actualSlavesHosts);
+    
+    }
+    
+  }
+
+  private Set<Integer> getDecompressedSet(Set<String> set) {
+
+    Set<Integer> resultSet = new HashSet<Integer>();
+
+    for (String index : set) {
+
+      String[] ranges = index.split(",");
+
+      for (String r : ranges) {
+
+        String[] split = r.split("-");
+
+        if (split.length == 2) {
+          Integer start = Integer.valueOf(split[0]);
+          Integer end = Integer.valueOf(split[1]);
+          ContiguousSet<Integer> rangeSet =
+          ContiguousSet.create(Range.closed(start, end), DiscreteDomain.integers()) ;
+
+          for (Integer i : rangeSet) {
+            resultSet.add(i);
+
+          }
+
+        } else {
+          resultSet.add(Integer.valueOf(split[0]));
+        }
+      }
+
+    }
+    return resultSet;
+  }
+  
+  private List<Integer> getRangeMappedDecompressedSet(Set<String> compressedSet) {
+
+    SortedMap<Integer, Integer> resultMap = new TreeMap<Integer, Integer>();
+
+    for (String token : compressedSet) {
+
+      String[] split = token.split(":");
+
+      if (split.length != 2)
+        throw new RuntimeException("Broken data, expected format - m:r, got - "
+            + token);
+
+      Integer index = Integer.valueOf(split[0]);
+
+      String rangeTokens = split[1];
+
+      Set<String> rangeTokensSet =
+          new HashSet<String>(Arrays.asList(rangeTokens.split(",")));
+
+      Set<Integer> decompressedSet = getDecompressedSet(rangeTokensSet);
+
+      for (Integer i : decompressedSet)
+        resultMap.put(i, index);
+
+    }
+
+    List<Integer> resultList = new ArrayList<Integer>(resultMap.values());
+
+    return resultList;
+
+  }
+  
+  private List<Integer> getReindexedList(List<Integer> list,
+      List<String> currentIndexes, List<String> desiredIndexes) {
+
+    SortedMap<Integer, Integer> sortedMap = new TreeMap<Integer, Integer>();
+
+    int index = 0;
+
+    for (Integer value : list) {
+      String currentIndexValue = currentIndexes.get(index);
+      Integer desiredIndexValue = desiredIndexes.indexOf(currentIndexValue);
+      sortedMap.put(desiredIndexValue, value);
+      index++;
+    }
+
+    return new ArrayList<Integer>(sortedMap.values());
+  }
+
 }

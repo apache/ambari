@@ -1047,7 +1047,7 @@ public class AmbariManagementControllerImpl implements
       // FIXME cannot work with a single stage
       // multiple stages may be needed for reconfigure
       long stageId = 0;
-      Map<String, List<String>> clusterHostInfo = StageUtils.getClusterHostInfo(
+      Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(
           clusters.getHostsForCluster(cluster.getClusterName()), cluster, hostsMap, injector.getInstance(Configuration.class));
       
       
@@ -1978,7 +1978,7 @@ public class AmbariManagementControllerImpl implements
       actionExecContext = actionExecutionHelper.validateCustomAction(actionRequest, cluster);
     }
 
-    Map<String, List<String>> clusterHostInfo = StageUtils.getClusterHostInfo(
+    Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(
         clusters.getHostsForCluster(cluster.getClusterName()), cluster, hostsMap,
         configs);
 
@@ -1991,6 +1991,7 @@ public class AmbariManagementControllerImpl implements
     // TODO : Update parameter population to be done only here
     params.put(JDK_LOCATION, this.jdkResourceUrl);
     params.put(STACK_VERSION, cluster.getDesiredStackVersion().getStackVersion());
+    params.putAll(getRcaParameters());
 
     if (actionRequest.isCommand()) {
       customCommandExecutionHelper.addAction(actionRequest, stage, hostsMap, params);
@@ -2537,4 +2538,25 @@ public class AmbariManagementControllerImpl implements
   public String getMysqljdbcUrl() {
     return mysqljdbcUrl;
   }
+  
+  public Map<String, String> getRcaParameters() {
+
+    String hostName = StageUtils.getHostName();
+
+    String url = configs.getRcaDatabaseUrl();
+    if (url.contains(Configuration.HOSTNAME_MACRO))
+      url =
+          url.replace(Configuration.HOSTNAME_MACRO,
+              hostsMap.getHostMap(hostName));
+
+    Map<String, String> rcaParameters = new HashMap<String, String>();
+
+    rcaParameters.put(AMBARI_DB_RCA_URL, url);
+    rcaParameters.put(AMBARI_DB_RCA_DRIVER, configs.getRcaDatabaseDriver());
+    rcaParameters.put(AMBARI_DB_RCA_USERNAME, configs.getRcaDatabaseUser());
+    rcaParameters.put(AMBARI_DB_RCA_PASSWORD, configs.getRcaDatabasePassword());
+
+    return rcaParameters;
+  }
+  
 }

@@ -37,6 +37,7 @@ import sys
 from AgentException import AgentException
 from FileCache import FileCache
 from LiveStatus import LiveStatus
+import manifestGenerator
 
 
 class TestCustomServiceOrchestrator(TestCase):
@@ -55,10 +56,11 @@ class TestCustomServiceOrchestrator(TestCase):
     self.config.set('python', 'custom_actions_dir', tmpdir)
 
 
+  @patch.object(manifestGenerator, 'decompressClusterHostInfo')
   @patch("hostname.public_hostname")
   @patch("os.path.isfile")
   @patch("os.unlink")
-  def test_dump_command_to_json(self, unlink_mock, isfile_mock, hostname_mock):
+  def test_dump_command_to_json(self, unlink_mock, isfile_mock, hostname_mock, decompress_cluster_host_info_mock):
     hostname_mock.return_value = "test.hst"
     command = {
       'commandType': 'EXECUTION_COMMAND',
@@ -69,8 +71,18 @@ class TestCustomServiceOrchestrator(TestCase):
       'clusterName': u'cc',
       'serviceName': u'HDFS',
       'configurations':{'global' : {}},
-      'configurationTags':{'global' : { 'tag': 'v1' }}
+      'configurationTags':{'global' : { 'tag': 'v1' }},
+      'clusterHostInfo':{'namenode_host' : ['1'],
+                         'slave_hosts'   : ['0', '1'],
+                         'all_hosts'     : ['h1.hortonworks.com', 'h2.hortonworks.com'],
+                         'all_ping_ports': ['8670:0,1']}
     }
+    
+    decompress_cluster_host_info_mock.return_value = {'namenode_host' : ['h2.hortonworks.com'],
+                         'slave_hosts'   : ['h1.hortonworks.com', 'h2.hortonworks.com'],
+                         'all_hosts'     : ['h1.hortonworks.com', 'h2.hortonworks.com'],
+                         'all_ping_ports': ['8670', '8670']}
+    
     config = AmbariConfig().getConfig()
     tempdir = tempfile.gettempdir()
     config.set('agent', 'prefix', tempdir)
@@ -82,14 +94,17 @@ class TestCustomServiceOrchestrator(TestCase):
     self.assertTrue(os.path.getsize(json_file) > 0)
     self.assertEqual(oct(os.stat(json_file).st_mode & 0777), '0600')
     self.assertTrue(json_file.endswith("command-3.json"))
+    self.assertTrue(decompress_cluster_host_info_mock.called)
     os.unlink(json_file)
     # Test dumping STATUS_COMMAND
     command['commandType']='STATUS_COMMAND'
+    decompress_cluster_host_info_mock.reset_mock()
     json_file = orchestrator.dump_command_to_json(command)
     self.assertTrue(os.path.exists(json_file))
     self.assertTrue(os.path.getsize(json_file) > 0)
     self.assertEqual(oct(os.stat(json_file).st_mode & 0777), '0600')
     self.assertTrue(json_file.endswith("status_command.json"))
+    self.assertFalse(decompress_cluster_host_info_mock.called)
     os.unlink(json_file)
     # Testing side effect of dump_command_to_json
     self.assertEquals(command['public_hostname'], "test.hst")

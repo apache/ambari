@@ -29,6 +29,7 @@ from PythonExecutor import PythonExecutor
 from AmbariConfig import AmbariConfig
 import hostname
 from LiveStatus import LiveStatus
+import manifestGenerator
 
 
 logger = logging.getLogger()
@@ -211,6 +212,7 @@ class CustomServiceOrchestrator():
       file_path = os.path.join(self.tmp_dir, "status_command.json")
     else:
       task_id = command['taskId']
+      command['clusterHostInfo'] = manifestGenerator.decompressClusterHostInfo(command['clusterHostInfo'])
       file_path = os.path.join(self.tmp_dir, "command-{0}.json".format(task_id))
     # Json may contain passwords, that's why we need proper permissions
     if os.path.isfile(file_path):

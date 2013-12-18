@@ -18,10 +18,9 @@
 package org.apache.ambari.server.agent;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.logging.Log;
@@ -50,8 +49,8 @@ public class ExecutionCommand extends AgentCommand {
   private Map<String, String> hostLevelParams = new HashMap<String, String>();
   private Map<String, String> roleParams = null;
   private RoleCommand roleCommand;
-  private Map<String, List<String>> clusterHostInfo = 
-      new HashMap<String, List<String>>();
+  private Map<String, Set<String>> clusterHostInfo = 
+      new HashMap<String, Set<String>>();
   private Map<String, Map<String, String>> configurations;
   private Map<String, Map<String, String>> configurationTags;
   private Map<String, String> commandParams;
@@ -166,12 +165,12 @@ public class ExecutionCommand extends AgentCommand {
   }
 
   @JsonProperty("clusterHostInfo")
-  public Map<String, List<String>> getClusterHostInfo() {
+  public Map<String, Set<String>> getClusterHostInfo() {
     return clusterHostInfo;
   }
 
   @JsonProperty("clusterHostInfo")
-  public void setClusterHostInfo(Map<String, List<String>> clusterHostInfo) {
+  public void setClusterHostInfo(Map<String, Set<String>> clusterHostInfo) {
     this.clusterHostInfo = clusterHostInfo;
   }
   
@@ -252,6 +251,10 @@ public class ExecutionCommand extends AgentCommand {
     String REPO_INFO = "repo_info";
     String DB_NAME = "db_name";
     String GLOBAL = "global";
+    String AMBARI_DB_RCA_URL = "ambari_db_rca_url";
+    String AMBARI_DB_RCA_DRIVER = "ambari_db_rca_driver";
+    String AMBARI_DB_RCA_USERNAME = "ambari_db_rca_username";
+    String AMBARI_DB_RCA_PASSWORD = "ambari_db_rca_password";
     String SERVICE_CHECK = "SERVICE_CHECK"; // TODO: is it standart command? maybe add it to RoleCommand enum?
 
     String COMMAND_TIMEOUT_DEFAULT = "600"; // TODO: Will be replaced by proper initialization in another jira

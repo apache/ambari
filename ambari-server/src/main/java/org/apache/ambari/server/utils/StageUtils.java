@@ -24,26 +24,31 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import javax.xml.bind.JAXBException;
 
+import com.google.common.base.Joiner;
 import com.google.gson.Gson;
-import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.commons.logging.Log;
@@ -55,13 +60,19 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 
 public class StageUtils {
+  
+
   private static final Log LOG = LogFactory.getLog(StageUtils.class);
 
   private static Map<String, String> componentToClusterInfoKeyMap =
       new HashMap<String, String>();
 
   private volatile static Gson gson;
-  private static final String DEFAULT_PING_PORT = "8670";
+  public static final Integer DEFAULT_PING_PORT = 8670;
+
+  private static final String HOSTS_LIST = "all_hosts";
+
+  private static final String PORTS = "all_ping_ports";
 
   public static void setGson(Gson gson) {
     if (gson==null) {
@@ -86,7 +97,7 @@ public class StageUtils {
   static {
     componentToClusterInfoKeyMap.put("NAMENODE", "namenode_host");
     componentToClusterInfoKeyMap.put("JOBTRACKER", "jtnode_host");
-    componentToClusterInfoKeyMap.put("SNAMENODE", "snamenode_host");
+    componentToClusterInfoKeyMap.put("SECONDARY_NAMENODE", "snamenode_host");
     componentToClusterInfoKeyMap.put("RESOURCEMANAGER", "rm_host");
     componentToClusterInfoKeyMap.put("NODEMANAGER", "nm_hosts");
     componentToClusterInfoKeyMap.put("HISTORYSERVER", "hs_host");
@@ -190,59 +201,161 @@ public class StageUtils {
   }
 
 
-  public static Map<String, List<String>> getClusterHostInfo(
+  public static Map<String, Set<String>> getClusterHostInfo(
       Map<String, Host> allHosts, Cluster cluster, HostsMap hostsMap,
       Configuration configuration) throws AmbariException {
-    Map<String, List<String>> info = new HashMap<String, List<String>>();
-    if (cluster.getServices() != null) {
-      String hostName = getHostName();
-      for (String serviceName : cluster.getServices().keySet()) {
-        if (cluster.getServices().get(serviceName) != null) {
-          for (String componentName : cluster.getServices().get(serviceName)
-              .getServiceComponents().keySet()) {
-            String clusterInfoKey = componentToClusterInfoKeyMap
-                .get(componentName);
-            if (clusterInfoKey == null) {
-              continue;
-            }
-            ServiceComponent scomp = cluster.getServices().get(serviceName)
-                .getServiceComponents().get(componentName);
-            if (scomp.getServiceComponentHosts() != null
-                && !scomp.getServiceComponentHosts().isEmpty()) {
-              List<String> hostList = new ArrayList<String>();
-              for (String host: scomp.getServiceComponentHosts().keySet()) {
-                String mappedHost = hostsMap.getHostMap(host);
-                hostList.add(mappedHost);
-              }
-              info.put(clusterInfoKey, hostList);
-            }
-            //Set up ambari-rca connection properties, is this a hack?
-            //info.put("ambari_db_server_host", Arrays.asList(hostsMap.getHostMap(getHostName())));
-            String url = configuration.getRcaDatabaseUrl();
-            if (url.contains(Configuration.HOSTNAME_MACRO)) {
-              url = url.replace(Configuration.HOSTNAME_MACRO, hostsMap.getHostMap(hostName));
-            }
-            info.put("ambari_db_rca_url", Arrays.asList(url));
-            info.put("ambari_db_rca_driver", Arrays.asList(configuration.getRcaDatabaseDriver()));
-            info.put("ambari_db_rca_username", Arrays.asList(configuration.getRcaDatabaseUser()));
-            info.put("ambari_db_rca_password", Arrays.asList(configuration.getRcaDatabasePassword()));
 
+    Map<String, SortedSet<Integer>> hostRolesInfo = new HashMap<String, SortedSet<Integer>>();
+    
+    Map<String, Set<String>> clusterHostInfo = new HashMap<String, Set<String>>();
+
+    //Fill hosts and ports lists
+    Set<String> hostsSet = new LinkedHashSet<String>();
+    List<Integer> portsList = new ArrayList<Integer>();
+    
+    for (Host host : allHosts.values()) {
+      
+      Integer currentPingPort = host.getCurrentPingPort() == null ?
+          DEFAULT_PING_PORT : host.getCurrentPingPort();
+      
+      hostsSet.add(host.getHostName());
+      portsList.add(currentPingPort);
+    }
+    
+    List<String> hostsList = new ArrayList<String>(hostsSet);
+    
+    //Fill host roles
+    for (Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) { 
+      
+      Service service = serviceEntry.getValue();
+      
+      for (Entry<String, ServiceComponent> serviceComponentEntry : service.getServiceComponents().entrySet()) {
+        
+        ServiceComponent serviceComponent = serviceComponentEntry.getValue();
+        String componentName = serviceComponent.getName();
+
+        for (final String hostName:serviceComponent.getServiceComponentHosts().keySet()) {
+
+          if (componentToClusterInfoKeyMap.containsKey(componentName)) {
+            
+            String roleName = componentToClusterInfoKeyMap.get(componentName);
+            SortedSet<Integer> hostsForComponentsHost = hostRolesInfo.get(roleName);
+            
+            if (hostsForComponentsHost == null) {
+              hostsForComponentsHost = new TreeSet<Integer>();
+              hostRolesInfo.put(roleName, hostsForComponentsHost);
+            }
+
+            int hostIndex = hostsList.indexOf(hostName);
+            //Add index of host to current host role
+            hostsForComponentsHost.add(hostIndex);
           }
+          else
+            LOG.warn("Component " + componentName + " doesn't have mapped role name for cluster host info");
         }
       }
     }
+    
+    for (String roleName : componentToClusterInfoKeyMap.values()) {
+      if (hostRolesInfo.containsKey(roleName)) {
 
-    // Add a lists of all hosts and all ping ports for agents and hosts monitoring
-    List<String> allHostNames = new ArrayList<String>();
-    List<String> allHostPingPorts = new ArrayList<String>();
-    for (Host host : allHosts.values()) {
-      allHostNames.add(host.getHostName());
-      allHostPingPorts.add(host.getCurrentPingPort() == null ?
-        DEFAULT_PING_PORT : host.getCurrentPingPort().toString());
+        TreeSet<Integer> sortedSet =
+            new TreeSet<Integer>(hostRolesInfo.get(roleName));
+
+        Set<String> replacedRangesSet = replaceRanges(sortedSet);
+
+        clusterHostInfo.put(roleName, replacedRangesSet);
+
+      }
     }
-    info.put("all_hosts", allHostNames);
-    info.put("all_ping_ports", allHostPingPorts);
-    return info;
+
+    clusterHostInfo.put(HOSTS_LIST, hostsSet);
+    clusterHostInfo.put(PORTS, replaceMappedRanges(portsList));
+    
+    return clusterHostInfo;
+  }
+  
+  
+  /**
+   * Finds ranges in sorted set and replaces ranges by compact notation
+   * 
+   * <p>For example, suppose <tt>set</tt> comprises<tt> [1, 2, 3, 4, 7]</tt>.
+   * After invoking <tt>rangedSet = StageUtils.replaceRanges(set)</tt> 
+   * <tt>rangedSet</tt> will comprise
+   * <tt>["1-4", "7"]</tt>..
+   *
+   * @param  set  the source set to be ranged
+   */
+  public static Set<String> replaceRanges(SortedSet<Integer> set) {
+    
+    if (set == null)
+      return null;
+    
+    Set<String> rangedSet = new HashSet<String>();
+    
+    Integer prevElement = null;
+    Integer startOfRange = set.first();
+    
+    for (Integer i : set) {
+      if (prevElement != null && (i - prevElement) > 1 ) {
+        String rangeItem = getRangedItem(startOfRange, prevElement);
+        rangedSet.add(rangeItem);
+        startOfRange = i;
+      }
+      prevElement = i;
+    }
+    
+    rangedSet.add(getRangedItem(startOfRange, prevElement));
+    
+    return rangedSet;
+  }
+  
+  /**
+   * Finds ranges in list and replaces ranges by compact notation
+   * 
+   * <p>For example, suppose <tt>list</tt> comprises<tt> [1, 1, 2, 2, 1, 3]</tt>.
+   * After invoking <tt>rangedMappedSet = StageUtils.replaceMappedRanges(list)</tt> 
+   * <tt>rangedMappedSet</tt> will comprise
+   * <tt>["1:0-1,4", "2:2-3", "3:5"]</tt>..
+   *
+   * @param  list  the source list to be ranged
+   */
+  public static Set<String> replaceMappedRanges(List<Integer> values) {
+
+    Map<Integer, SortedSet<Integer>> convolutedValues = new HashMap<Integer, SortedSet<Integer>>();
+
+    int valueIndex = 0;
+
+    for (Integer value : values) {
+
+      SortedSet<Integer> correspValues = convolutedValues.get(value);
+
+      if (correspValues == null) {
+        correspValues = new TreeSet<Integer>();
+        convolutedValues.put(value, correspValues);
+      }
+      correspValues.add(valueIndex);
+      valueIndex++;
+    }
+
+    Set<String> result = new HashSet<String>();
+
+    for (Entry<Integer, SortedSet<Integer>> entry : convolutedValues.entrySet()) {
+      Set<String> replacedRanges = replaceRanges(entry.getValue());
+      result.add(entry.getKey() + ":" + Joiner.on(",").join(replacedRanges));
+    }
+
+    return result;
+  }
+
+  private static String getRangedItem(Integer startOfRange, Integer endOfRange) {
+    
+    String separator = (endOfRange - startOfRange) > 1 ? "-" : ",";
+    
+    String rangeItem = endOfRange.equals(startOfRange) ? 
+        endOfRange.toString() :
+          startOfRange + separator + endOfRange;
+    return rangeItem;
   }
 
   public static String getHostName() {
@@ -253,5 +366,4 @@ public class StageUtils {
       return "localhost";
     }
   }
-
 }
