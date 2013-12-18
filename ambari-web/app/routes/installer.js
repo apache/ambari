@@ -316,6 +316,9 @@ module.exports = Em.Route.extend({
       if (App.supports.hostOverridesInstaller) {
         installerController.saveServiceConfigGroups(wizardStep7Controller);
       }
+      if (App.Host.find().content.length) {
+        App.Host.find().clear();
+      }
       router.transitionTo('step8');
     }
   }),
