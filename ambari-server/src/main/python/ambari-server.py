@@ -380,8 +380,12 @@ STACK_LOCATION_DEFAULT = '/var/lib/ambari-server/resources/stacks'
 DATABASE_INSERT_METAINFO_SCRIPTS = ['/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-Postgres-INSERT_METAINFO.sql',
                                   '/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-Oracle-INSERT_METAINFO.sql',
                                   '/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-MySQL-INSERT_METAINFO.sql']
+DATABASE_FIX_LOCAL_REPO_SCRIPTS = ['/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-Postgres-FIX_LOCAL_REPO.sql',
+                                  '/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-Oracle-FIX_LOCAL_REPO.sql',
+                                  '/var/lib/ambari-server/resources/upgrade/dml/Ambari-DML-MySQL-FIX_LOCAL_REPO.sql']
 INSERT_METAINFO_CMD = ['su', 'postgres',
         '--command=psql -f {0} -v metainfo_key="\'{1}\'" -v metainfo_value="\'{2}\'" -v dbname="{3}"']
+FIX_LOCAL_REPO_CMD = ['su', 'postgres', '--command=psql -f {0} -v dbname="{1}"']
 
 #Apache License Header
 ASF_LICENSE_HEADER = '''
@@ -2490,6 +2494,18 @@ def upgrade_local_repo_remote_db(args, sqlfile, dbkey, dbvalue):
       dbkey,
       dbvalue
     )))
+
+    retcode, out, err = run_in_shell('{0} {1}'.format(tool, ORACLE_UPGRADE_STACK_ARGS.format(
+      args.database_username,
+      args.database_password,
+      args.database_host,
+      args.database_port,
+      args.database_name,
+      DATABASE_FIX_LOCAL_REPO_SCRIPTS[DATABASE_INDEX],
+      sid_or_sname,
+      '',
+      ''
+    )))
     return retcode, out, err
 
   return -2, "Wrong database", "Wrong database"
@@ -2535,6 +2551,16 @@ def upgrade_local_repo_db(args, dbkey, dbvalue):
       raise FatalException(retcode, errdata)
     if errdata:
       print_warning_msg(errdata)
+
+    sqlfile = DATABASE_FIX_LOCAL_REPO_SCRIPTS[0]
+    command = FIX_LOCAL_REPO_CMD[:]
+    command[-1] = command[-1].format(sqlfile, dbname)
+    retcode, outdata, errdata = run_os_command(command)
+    if not retcode == 0:
+      raise FatalException(retcode, errdata)
+    if errdata:
+      print_warning_msg(errdata)
+
     return retcode
   pass
 
