@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
@@ -82,7 +83,7 @@ class ActionScheduler implements Runnable {
    */
   private boolean activeAwakeRequest = false;
   //Cache for clusterHostinfo, key - stageId-requestId
-  private Cache<String, Map<String, List<String>>> clusterHostInfoCache;
+  private Cache<String, Map<String, Set<String>>> clusterHostInfoCache;
 
   public ActionScheduler(long sleepTimeMilliSec, long actionTimeoutMilliSec,
       ActionDBAccessor db, ActionQueue actionQueue, Clusters fsmObject,
@@ -454,10 +455,10 @@ class ActionScheduler implements Runnable {
 
     //Try to get clusterHostInfo from cache
     String stagePk = s.getStageId() + "-" + s.getRequestId();
-    Map<String, List<String>> clusterHostInfo = clusterHostInfoCache.getIfPresent(stagePk);
+    Map<String, Set<String>> clusterHostInfo = clusterHostInfoCache.getIfPresent(stagePk);
     
     if (clusterHostInfo == null) {
-      Type type = new TypeToken<Map<String, List<String>>>() {}.getType();
+      Type type = new TypeToken<Map<String, Set<String>>>() {}.getType();
       clusterHostInfo = StageUtils.getGson().fromJson(s.getClusterHostInfo(), type);
       clusterHostInfoCache.put(stagePk, clusterHostInfo);
     }

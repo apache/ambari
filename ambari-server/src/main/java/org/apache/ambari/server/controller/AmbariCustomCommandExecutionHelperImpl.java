@@ -221,6 +221,7 @@ public class AmbariCustomCommandExecutionHelperImpl implements AmbariCustomComma
     hostLevelParams.put(JDK_LOCATION, amc.getJdkResourceUrl());
     hostLevelParams.put(STACK_NAME, stackId.getStackName());
     hostLevelParams.put(STACK_VERSION,stackId.getStackVersion());
+    hostLevelParams.putAll(amc.getRcaParameters());
     execCmd.setHostLevelParams(hostLevelParams);
 
     Map<String,String> commandParams = new TreeMap<String, String>();
@@ -427,6 +428,7 @@ public class AmbariCustomCommandExecutionHelperImpl implements AmbariCustomComma
     hostParams.put(DB_NAME, amc.getServerDB());
     hostParams.put(MYSQL_JDBC_URL, amc.getMysqljdbcUrl());
     hostParams.put(ORACLE_JDBC_URL, amc.getOjdbcUrl());
+    hostParams.putAll(amc.getRcaParameters());
 
     // Write down os specific info for the service
     ServiceOsSpecific anyOs = null;

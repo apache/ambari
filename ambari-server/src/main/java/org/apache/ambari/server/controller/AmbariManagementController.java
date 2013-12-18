@@ -482,5 +482,13 @@ public interface AmbariManagementController {
    */
   public Map<String, Map<String,String>> findConfigurationTagsWithOverrides(
           Cluster cluster, String hostName) throws AmbariException;
+  
+  /**
+   * Returns parameters for RCA database
+   *
+   * @return the map with parameters for RCA db
+   *
+   */
+  public Map<String, String> getRcaParameters();
 }
   
