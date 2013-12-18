@@ -128,12 +128,12 @@ def isAgentPackageAlreadyInstalled(projectVersion):
 
 def getAvaliableAgentPackageVersions():
     yumCommand = ["bash", "-c",
-        """yum list all ambari-agent | grep -E '^ambari-agent' | sed -re 's/\s+/ /g' | cut -d ' ' -f 2 | tr '\\n' ', ' """]
+        """yum list all ambari-agent | grep -E '^ambari-agent' | sed -re 's/\s+/ /g' | cut -d ' ' -f 2 | tr '\\n' ', ' | sed -e 's/-\w[^:]*//1' """]
     return execOsCommand(yumCommand)
 
 def getAvaliableAgentPackageVersionsSuse():
     yumCommand = ["bash", "-c",
-        """zypper search -s --match-exact ambari-agent | grep -E '^ambari-agent' | sed -re 's/\s+/ /g' | cut -d '|' -f 4 | tr '\\n' ', ' """]
+        """zypper search -s --match-exact ambari-agent | grep ambari-agent | sed -re 's/\s+/ /g' | cut -d '|' -f 4 | tr '\\n' ', ' | sed -e 's/-\w[^:]*//1' """]
     return execOsCommand(yumCommand)
 
 def checkServerReachability(host, port):
