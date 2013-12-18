@@ -34,7 +34,7 @@ function startGmondForCluster()
     if [ -z "${gmondRunningPid}" ]
     then
       gmondCoreConfFileName=`getGmondCoreConfFileName ${gmondClusterName}`;
-
+      removeGmondPidFileName ${gmondClusterName};
       if [ -e "${gmondCoreConfFileName}" ]
       then 
         gmondPidFileName=`getGmondPidFileName ${gmondClusterName}`;

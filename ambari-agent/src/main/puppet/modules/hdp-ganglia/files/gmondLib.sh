@@ -85,6 +85,17 @@ function getGmondPidFileName()
     fi
 }
 
+function removeGmondPidFileName()
+{
+    clusterName=${1};
+    gmondPidFileName=`getGmondPidFileName ${clusterName}`;
+    if [ -e "${gmondPidFileName}" ]; 
+     then
+      rm -rf ${gmondPidFileName};          
+    fi 
+}
+
+
 function getGmondLoggedPid()
 {
     gmondPidFile=`getGmondPidFileName ${1}`;

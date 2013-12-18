@@ -34,6 +34,7 @@ function stopGmondForCluster()
     if [ -n "${gmondRunningPid}" ]
     then
       kill -KILL ${gmondRunningPid};
+      removeGmondPidFileName ${gmondClusterName};
       echo "Stopped ${GMOND_BIN} for cluster ${gmondClusterName} (with PID ${gmondRunningPid})";
     fi
 }
