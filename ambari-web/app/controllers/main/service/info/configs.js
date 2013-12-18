@@ -1270,25 +1270,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   },
 
   _replaceConfigValues: function (name, express, value, globValue) {
-    if (name === "templeton.zookeeper.hosts" || name === 'hbase.zookeeper.quorum') {
-      var zooKeeperPort = '2181';
-      if (typeof globValue === 'string') {
-        var temp = [];
-        temp.push(globValue);
-        globValue = temp;
-      }
-      if (name === "templeton.zookeeper.hosts") {
-        var temp = [];
-        globValue.forEach(function (_host, index) {
-          temp.push(globValue[index] + ':' + zooKeeperPort);
-        }, this);
-        globValue = temp;
-      }
-      value = value.replace(express, globValue.toString());
-    } else {
-      value = value.replace(express, globValue);
-    }
-    return value;
+    return value.replace(express, globValue);
   },
 
   /**

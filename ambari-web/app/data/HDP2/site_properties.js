@@ -683,6 +683,26 @@ module.exports =
       "category": "General",
       "serviceName": "HBASE",
       "index": 5
+    },
+    {
+      "id": "site property",
+      "name": "hbase.zookeeper.quorum",
+      "displayName": "hbase.zookeeper.quorum",
+      "defaultValue": "",
+      "displayType": "multiLine",
+      "serviceName": "HBASE",
+      "category": "Advanced"
+    },
+
+  /**********************************************webhcat-site***************************************/
+    {
+      "id": "site property",
+      "name": "templeton.zookeeper.hosts",
+      "displayName": "templeton.zookeeper.hosts",
+      "defaultValue": "",
+      "displayType": "multiLine",
+      "serviceName": "WEBHCAT",
+      "category": "Advanced"
     }
   ]
 };

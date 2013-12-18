@@ -97,27 +97,11 @@ var configs = [
     "filename": "core-site.xml"
   },
   {
-        "name": "fs.AbstractFileSystem.glusterfs.impl",
-        "templateName": ["fs_AbstractFileSystem_glusterfs_impl"],
+    "name": "fs.AbstractFileSystem.glusterfs.impl",
+    "templateName": ["fs_AbstractFileSystem_glusterfs_impl"],
     "foreignKey": null,
     "value": "<templateName[0]>",
     "filename": "core-site.xml"
-  },
-/**********************************************hbase-site***************************************/
-  {
-    "name": "hbase.zookeeper.quorum",
-    "templateName": ["zookeeperserver_hosts"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-/**********************************************webhcat-site***************************************/
-  {
-    "name": "templeton.zookeeper.hosts",
-    "templateName": ["zookeeperserver_hosts"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "webhcat-site.xml"
   }
 ];
 

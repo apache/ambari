@@ -394,6 +394,22 @@ App.ServiceConfigProperty = Ember.Object.extend({
       case 'zookeeperserver_hosts':
         this.set('value', masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName'));
         break;
+      case 'hbase.zookeeper.quorum':
+        var zkHosts = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
+        this.setDefaultValue("(\\w*)", zkHosts);
+        break;
+      case 'templeton.zookeeper.hosts':
+        var zkHosts = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
+        var zkHostPort = zkHosts;
+        var regex = "\\w*:(\\d+)";   //regex to fetch the port
+        var portValue = this.get('defaultValue').match(new RegExp(regex));
+        if (portValue[1]) {
+          for ( var i = 0; i < zkHosts.length; i++ ) {
+            zkHostPort[i] = zkHosts[i] + ":" + portValue[1];
+          }
+        }
+        this.setDefaultValue("(.*)", zkHostPort);
+        break;
       case 'dfs.name.dir':
       case 'dfs.namenode.name.dir':
       case 'dfs.data.dir':

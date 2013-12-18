@@ -320,21 +320,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   },
 
   _replaceConfigValues: function (name, express, value, globValue) {
-    if (name === "templeton.zookeeper.hosts" || name === 'hbase.zookeeper.quorum') {
-      // globValue is an array of ZooKeeper Server hosts
-      var zooKeeperPort = '2181';
-      if (name === "templeton.zookeeper.hosts") {
-        var zooKeeperServers = globValue.map(function (item) {
-          return item + ':' + zooKeeperPort;
-        }).join(',');
-        value = value.replace(express, zooKeeperServers);
-      } else {
-        value = value.replace(express, globValue.join(','));
-      }
-    } else {
-      value = value.replace(express, globValue);
-    }
-    return value;
+    return value.replace(express, globValue);
   },
 
   /**

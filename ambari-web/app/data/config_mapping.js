@@ -67,25 +67,6 @@ var configs = [
     "isOverridable" : true
   },
 
-/**********************************************hbase-site***************************************/
-  {
-    "name": "hbase.zookeeper.quorum",
-    "templateName": ["zookeeperserver_hosts"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "hbase-site.xml"
-  },
-
-/**********************************************webhcat-site***************************************/
-
-  {
-    "name": "templeton.zookeeper.hosts",
-    "templateName": ["zookeeperserver_hosts"],
-    "foreignKey": null,
-    "value": "<templateName[0]>",
-    "filename": "webhcat-site.xml"
-  },
-
 /**********************************************core-site for glusterfs***************************************/
   {
     "name": "fs.glusterfs.impl",
