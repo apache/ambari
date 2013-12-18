@@ -552,7 +552,6 @@ App.config = Em.Object.create({
    some of the config defaults to previously user-entered data.
    **/
   tweakDynamicDefaults: function (localDB, serviceConfigProperty, config) {
-    console.log("Step7: Tweaking Dynamic defaults");
     var firstHost = null;
     for (var host in localDB.hosts) {
       firstHost = host;

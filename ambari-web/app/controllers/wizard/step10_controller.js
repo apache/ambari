@@ -70,7 +70,6 @@ App.WizardStep10Controller = Em.Controller.extend({
     var hostsInfo = [];
     for (var index in hosts) {
       hostsInfo.pushObject(hosts[index]);
-      console.log('Step10 SUMMARY: value of hosts is: ' + hosts[index].status);
     }
     var succeededHosts = hostsInfo.filterProperty('status', 'success');
     var warnedHosts = hostsInfo.filterProperty('status', 'warning').concat(hostsInfo.filterProperty('status', 'failed'));
@@ -100,7 +99,6 @@ App.WizardStep10Controller = Em.Controller.extend({
         } else if (this.get('content.cluster.status') === 'START FAILED') {
           clusterState = Em.I18n.t('installer.step10.clusterState.starting');
         }
-        console.log('host value is: ' + JSON.stringify(_host));
         var failedTasks = _host.tasks.filterProperty('Tasks.status', 'FAILED');
         failedTasks.forEach(function (_task) {
           var taskStatement = clusterState + App.format.role(_task.Tasks.role) + Em.I18n.t('installer.step10.taskStatus.failed') + _host.name;

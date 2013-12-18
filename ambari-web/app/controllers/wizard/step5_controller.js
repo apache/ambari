@@ -450,7 +450,6 @@ App.WizardStep5Controller = Em.Controller.extend({
 
     mappedHosts.forEach(function (item) {
       hostObj = self.get("hosts").findProperty("host_name", item);
-      console.log("Name of the host is: " + hostObj.host_name);
 
       mappingObject = Ember.Object.create({
         host_name:item,

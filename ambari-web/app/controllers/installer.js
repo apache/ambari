@@ -104,7 +104,6 @@ App.InstallerController = App.WizardController.extend({
       });
       this.set('content.services', servicesInfo);
       console.log('installerController.loadServices: loaded data ', JSON.stringify(servicesInfo));
-      console.log("The type odf serviceInfo: " + typeof servicesInfo);
       console.log('selected services ', servicesInfo.filterProperty('isSelected', true).mapProperty('serviceName'));
     } else {
       console.log("Failed to load Services");

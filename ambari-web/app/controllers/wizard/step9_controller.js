@@ -224,7 +224,6 @@ App.WizardStep9Controller = Em.Controller.extend({
       obj.tasks = [];
       obj.logTasks = [];
       hosts.add(obj);
-      console.log("TRACE: host name is: " + hostInfo[index].name);
     }
     return hosts.filterProperty('bootStatus', 'REGISTERED');
   },
@@ -240,7 +239,6 @@ App.WizardStep9Controller = Em.Controller.extend({
         message: _hostInfo.message,
         progress: _hostInfo.progress
       });
-      console.log('pushing ' + hostInfo.name);
       this.get('hosts').pushObject(hostInfo);
     }, this);
   },
@@ -252,7 +250,6 @@ App.WizardStep9Controller = Em.Controller.extend({
 
   displayMessage: function (task) {
     var role = App.format.role(task.role);
-    console.log("In display message with task command value: " + task.command);
     switch (task.command) {
       case 'INSTALL':
         switch (task.status) {
@@ -532,7 +529,6 @@ App.WizardStep9Controller = Em.Controller.extend({
         progress = 100;
         break;
     }
-    console.log('INFO: progressPerHost is: ' + progress);
     contentHost.set('progress', progress.toString());
     return progress;
   },
@@ -663,7 +659,6 @@ App.WizardStep9Controller = Em.Controller.extend({
       var tasksPerHost = tasksData.filterProperty('Tasks.host_name', _host.name); // retrieved from polled Data
       if (tasksPerHost !== null && tasksPerHost !== undefined && tasksPerHost.length !== 0) {
         tasksPerHost.forEach(function (_taskPerHost) {
-          console.log('In step9 _taskPerHost function.');
           _host.tasks.pushObject(_taskPerHost);
         }, this);
       }
@@ -673,9 +668,7 @@ App.WizardStep9Controller = Em.Controller.extend({
   // This is done at HostRole level.
   setLogTasksStatePerHost: function (tasksPerHost, host) {
     if (!tasksPerHost) return;
-    console.log('In step9 setTasksStatePerHost function.');
     tasksPerHost.forEach(function (_task) {
-      console.log('In step9 _taskPerHost function.');
       var task = host.logTasks.findProperty('Tasks.id', _task.Tasks.id);
       if (task) {
         host.logTasks.removeObject(task);

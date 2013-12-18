@@ -155,7 +155,6 @@ App.WizardStep3Controller = Em.Controller.extend({
         isChecked: false
       });
 
-      console.log('pushing ' + hostInfo.name);
       hosts.pushObject(hostInfo);
     }
 
@@ -444,11 +443,9 @@ App.WizardStep3Controller = Em.Controller.extend({
           break;
         case 'REGISTERING':
           if (jsonData.items.someProperty('Hosts.host_name', _host.name)) {
-            console.log(_host.name + ' has been registered');
             _host.set('bootStatus', 'REGISTERED');
             _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + Em.I18n.t('installer.step3.hosts.bootLog.registering'));
           } else {
-            console.log(_host.name + ' is registering...');
             stopPolling = false;
           }
           break;
@@ -560,7 +557,6 @@ App.WizardStep3Controller = Em.Controller.extend({
         if(context) {
           hostsContext.push(context);
         }
-        console.log("The value of memory is: " + _host.memory);
       }
     });
     if (hostsContext.length > 0) { // warning exist
@@ -574,7 +570,6 @@ App.WizardStep3Controller = Em.Controller.extend({
     }
     this.set('repoCategoryWarnings', repoWarnings);
     this.set('bootHosts', hosts);
-    console.log("The value of hosts: " + JSON.stringify(hosts));
     this.stopRegistration();
   },
 
