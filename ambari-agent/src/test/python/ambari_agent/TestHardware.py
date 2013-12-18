@@ -19,6 +19,7 @@ limitations under the License.
 '''
 
 from unittest import TestCase
+from ambari_agent import hostname
 from ambari_agent.Hardware import Hardware
 from mock.mock import patch
 from ambari_agent.Facter import Facter
@@ -75,9 +76,11 @@ class TestHardware(TestCase):
 
     self.assertEquals(result, None)
 
+  @patch.object(hostname,"hostname")
   @patch.object(Facter, "getFqdn")
-  def test_fqdnDomainHostname(self, facter_getFqdn_mock):
+  def test_fqdnDomainHostname(self, facter_getFqdn_mock, hostname_mock):
     facter_getFqdn_mock.return_value = "ambari.apache.org"
+    hostname_mock.return_value = 'ambari'
     result = Facter().facterInfo()
 
     self.assertEquals(result['hostname'], "ambari")
