@@ -1192,7 +1192,8 @@ var urls = {
             "group_name": data.group_name,
             "tag": data.service_id,
             "description": data.description,
-            "desired_configs": data.desired_configs
+            "desired_configs": data.desired_configs,
+            "hosts": data.hosts
           }
         }])
       }

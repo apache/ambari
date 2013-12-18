@@ -42,7 +42,7 @@ App.MainServiceManageConfigGroupView = Em.View.extend({
       this.set('isRenameButtonDisabled', false);
       this.set('isDuplicateButtonDisabled', false);
     }
-  }.observes('controller.selectedConfigGroup', 'controller.isHostsModified'),
+  }.observes('controller.selectedConfigGroup'),
 
   onGroupSelect: function () {
     var selectedConfigGroup = this.get('selectedConfigGroup');
@@ -63,6 +63,7 @@ App.MainServiceManageConfigGroupView = Em.View.extend({
   }.observes('controller.isLoaded', 'controller.configGroups'),
 
   didInsertElement: function () {
+    this.set('controller.isLoaded', false);
     this.get('controller').loadConfigGroups(this.get('serviceName'));
     this.selectDefaultGroup();
     App.tooltip($('.properties-link'));
