@@ -30,16 +30,16 @@ from exceptions import Fail
 log = logging.getLogger("resource_management.provider")
 
 def checked_call(command, logoutput=False, 
-         cwd=None, env=None, preexec_fn=None):
-  return _call(command, logoutput, True, cwd, env, preexec_fn)
+         cwd=None, env=None, preexec_fn=None, user=None):
+  return _call(command, logoutput, True, cwd, env, preexec_fn, user)
 
 def call(command, logoutput=False, 
-         cwd=None, env=None, preexec_fn=None):
-  return _call(command, logoutput, False, cwd, env, preexec_fn)
+         cwd=None, env=None, preexec_fn=None, user=None):
+  return _call(command, logoutput, False, cwd, env, preexec_fn, user)
   
 
 def _call(command, logoutput=False, throw_on_failure=True, 
-         cwd=None, env=None, preexec_fn=None):
+         cwd=None, env=None, preexec_fn=None, user=None):
   """
   Execute shell command
   
@@ -54,7 +54,10 @@ def _call(command, logoutput=False, throw_on_failure=True,
   if isinstance(command, (list, tuple)):
     command = ' '.join(pipes.quote(x) for x in command)
 
-  command = ["/bin/bash","--login","-c", command]
+  if user:
+    command = ["su", "-", user, "-c", command]
+  else:
+    command = ["/bin/bash","--login","-c", command]
 
   proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                           cwd=cwd, env=env, shell=False,

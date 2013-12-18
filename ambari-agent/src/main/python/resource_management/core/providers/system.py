@@ -208,10 +208,6 @@ def _preexec_fn(resource):
       gid = _coerce_gid(resource.group)
       os.setgid(gid)
       os.setegid(gid)
-    if resource.user:
-      uid = _coerce_uid(resource.user)
-      os.setuid(uid)
-      os.seteuid(uid)
 
   return preexec
 
@@ -234,7 +230,7 @@ class ExecuteProvider(Provider):
       try:
         shell.checked_call(self.resource.command, logoutput=self.resource.logoutput,
                             cwd=self.resource.cwd, env=self.resource.environment,
-                            preexec_fn=_preexec_fn(self.resource))
+                            preexec_fn=_preexec_fn(self.resource), user=self.resource.user)
         break
       except Fail as ex:
         if i == self.resource.tries-1: # last try

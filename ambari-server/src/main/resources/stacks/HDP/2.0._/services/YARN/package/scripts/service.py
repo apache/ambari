@@ -41,10 +41,10 @@ def service(
   cmd = format("export HADOOP_LIBEXEC_DIR={hadoop_libexec_dir} && {daemon} --config {config_dir}")
 
   if action == 'start':
-    daemon_cmd = format("su - {usr} -c '{cmd} start {name}'")
+    daemon_cmd = format("{cmd} start {name}")
     no_op = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
     Execute(daemon_cmd,
-            #user=usr,      #Fix execution from user
+            user=usr,
             not_if=no_op
     )
 
