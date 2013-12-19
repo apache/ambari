@@ -612,7 +612,7 @@ define service {
         service_description     OOZIE::Oozie Server status
         servicegroups           OOZIE
         {% if security_enabled %}
-        check_command           check_oozie_status!{{ oozie_server_port }}!{{ java64_home }}!true!{{ nagios_keytab_path }}>!{{ nagios_principal_name }}!{{ kinit_path_local }}
+        check_command           check_oozie_status!{{ oozie_server_port }}!{{ java64_home }}!true!{{ nagios_keytab_path }}!{{ nagios_principal_name }}!{{ kinit_path_local }}
         {% else %}
         check_command           check_oozie_status!{{ oozie_server_port }}!{{ java64_home }}!false
         {% endif %}

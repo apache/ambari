@@ -39,6 +39,7 @@ class HbaseRegionServer(Script):
   def start(self, env):
     import params
     env.set_params(params)
+    self.configure(env) # for security
 
     hbase_service( 'regionserver',
       action = 'start'
