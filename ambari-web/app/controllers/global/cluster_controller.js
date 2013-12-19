@@ -368,10 +368,6 @@ App.ClusterController = Em.Controller.extend({
       });
     }
     
-    this.requestHosts(hostsRealUrl, function (jqXHR, textStatus) {
-      self.updateLoadStatus('hosts');
-    });
-
     App.HttpClient.get(usersUrl, App.usersMapper, {
       complete:function (jqXHR, textStatus) {
         self.updateLoadStatus('users');
@@ -379,6 +375,15 @@ App.ClusterController = Em.Controller.extend({
     }, function (jqXHR, textStatus) {
         self.updateLoadStatus('users');
     });
+
+    /**
+     * Order of loading:
+     * 1. put services in cache
+     * 2. load host-components to model
+     * 3. load services from cache with metrics to model
+     * 4. update stale_configs of host-components (depends on App.supports.hostOverrides)
+     * 5. load hosts to model
+     */
 
     App.router.get('updateController').updateServices(function () {
       self.updateLoadStatus('services');
@@ -393,6 +398,9 @@ App.ClusterController = Em.Controller.extend({
             self.updateLoadStatus('componentConfigs');
           }
           self.updateLoadStatus('serviceMetrics');
+          self.requestHosts(hostsRealUrl, function (jqXHR, textStatus) {
+            self.updateLoadStatus('hosts');
+          });
         }, true);
       });
     });
