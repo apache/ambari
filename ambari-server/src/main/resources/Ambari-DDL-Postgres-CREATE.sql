@@ -148,13 +148,7 @@ BEGIN;
   UNION ALL
   SELECT 'host_role_command_id_seq', 1
   union all
-<<<<<<< HEAD
-  select 'configgroup_id_seq', 1
-  union all
-  select 'requestschedule_id_seq', 1;
-=======
   select 'configgroup_id_seq', 1;
->>>>>>> parent of 630983a... AMBARI-4027. Define RequestSchedule DAO and relational schema. (swagle)
 
   INSERT INTO ambari.Roles (role_name)
   SELECT 'admin'
