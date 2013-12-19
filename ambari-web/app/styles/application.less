@@ -16,6 +16,10 @@
  * limitations under the License.
  */
 
+@space-s: 5px;
+@space-m: 10px;
+@space-l: 20px;
+
 .gradient(@color: #FAFAFA, @start: #FFFFFF, @stop: #F2F2F2) {
   background: @color;
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0, @start), color-stop(1, @stop));
@@ -5033,9 +5037,16 @@ i.icon-asterisks {
 
 .prrl {
   position: relative;
-  right: 10px;
+  right: @space-m;
 }
 
+.pts {
+  padding-top: @space-s;
+}
+
+.mlc {
+  margin-left: 0;
+}
 #cleanerContainer {
   z-index: 1000;
   position: absolute;
