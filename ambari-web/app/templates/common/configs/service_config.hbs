@@ -68,9 +68,9 @@
       &nbsp;<a href="#" {{action "switchHostGroup" target="controller"}}>{{t common.change}}</a>
     {{/if}}
      <a href="#" class="link" {{action "manageConfigurationGroup" target="controller"}}>{{t services.service.actions.manage_configuration_groups.short}}</a>
-     <div class="pull-right">
-       {{view App.FilterComboboxView filterBinding="view.filter" columnsBinding="view.columns" }}
-     </div>
+    <div class="pull-right">
+      {{view App.FilterComboCleanableView filterBinding="view.filter" columnsBinding="view.columns" }}
+    </div>
 	</div>
 {{/if}}
 <div class="accordion">
