@@ -26,6 +26,13 @@
   <br />
 {{/if}}
 <p><i class="icon-warning-sign"></i> {{{deletePopupBody}}}</p>
+{{#if lastComponent}}
+    <div class="alert-error row-fluid">
+        <div class='tinyspan tinyoffset'>{{view Ember.Checkbox checkedBinding="enablePrimary"}}</div>
+        <div class='span10'>{{view lastComponentError}}</div>
+    </div>
+{{/if}}
+<br />
 <div class='alert'><strong>{{t common.important}}:</strong>
   {{#if unknownComponents}}
     {{t hosts.delete.popup.body.msg.unknownComponents}}
@@ -34,9 +41,3 @@
 </div>
 <div class='alert'><strong>{{t common.important}}:</strong> {{t hosts.delete.popup.body.msg2}}</div>
 <div class='alert'><strong>{{t common.important}}:</strong> {{t hosts.delete.popup.body.msg3}}</div>
-{{#if lastComponent}}
-  <div class="alert-error row-fluid">
-      <div class='tinyspan tinyoffset'>{{view Ember.Checkbox checkedBinding="enablePrimary"}}</div>
-      <div class='span10'>{{view lastComponentError}}</div>
-  </div>
-{{/if}}
