@@ -38,6 +38,8 @@ html, body {
 
 @footer-height: 100px;
 
+@restart-indicator-color: #FDB82F;
+
 #main {
   overflow: visible;
   padding-bottom: @footer-height;
@@ -626,9 +628,6 @@ h1 {
   }
   .collapsable {
     cursor: pointer;
-  }
-  .icon-refresh {
-    color: #FDB82F;
   }
   .directories {
     min-width: 280px;
@@ -2031,10 +2030,6 @@ width:100%;
     }
   }
 
-  .icon-refresh {
-    color: #FDB82F;
-  }
-
   .add-service-button {
     margin: 20px 20px 10px;
   }
@@ -3141,9 +3136,6 @@ background: url(	data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByU
       width: 160px;
       height: 30px;
     }
-    .icon-refresh {
-      color: #FDB82F;
-    }
   }
 
   .host-components .btn-group {
@@ -3173,6 +3165,11 @@ background: url(	data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByU
   }
 }
 
+#host-details, #hosts, .services-menu, #serviceConfig{
+  .icon-refresh {
+    color: @restart-indicator-color;
+  }
+}
 .background-operations {
   .progress {
     margin-bottom: 5px;
