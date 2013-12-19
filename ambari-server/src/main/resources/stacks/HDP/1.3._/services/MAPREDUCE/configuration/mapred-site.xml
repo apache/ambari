@@ -324,136 +324,137 @@
     </description>
   </property>
 
-<property>
-  <name>mapred.hosts</name>
-  <value>/etc/hadoop/conf/mapred.include</value>
-  <description>
-    Names a file that contains the list of nodes that may
-    connect to the jobtracker.  If the value is empty, all hosts are
-    permitted.
-  </description>
-</property>
+  <property>
+    <name>mapred.hosts</name>
+    <value>/etc/hadoop/conf/mapred.include</value>
+    <description>
+      Names a file that contains the list of nodes that may
+      connect to the jobtracker.  If the value is empty, all hosts are
+      permitted.
+    </description>
+  </property>
 
-<property>
-  <name>mapred.hosts.exclude</name>
-  <value>/etc/hadoop/conf/mapred.exclude</value>
-  <description>
-    Names a file that contains the list of hosts that
-    should be excluded by the jobtracker.  If the value is empty, no
-    hosts are excluded.
-  </description>
-</property>
+  <property>
+    <name>mapred.hosts.exclude</name>
+    <value>/etc/hadoop/conf/mapred.exclude</value>
+    <description>
+      Names a file that contains the list of hosts that
+      should be excluded by the jobtracker.  If the value is empty, no
+      hosts are excluded.
+    </description>
+  </property>
 
-<property>
-  <name>mapred.max.tracker.blacklists</name>
-  <value>16</value>
-  <description>
-    if node is reported blacklisted by 16 successful jobs within timeout-window, it will be graylisted
-  </description>
-</property>
+  <property>
+    <name>mapred.max.tracker.blacklists</name>
+    <value>16</value>
+    <description>
+      if node is reported blacklisted by 16 successful jobs within timeout-window, it will be graylisted
+    </description>
+  </property>
 
-<property>
-  <name>mapred.healthChecker.script.path</name>
-  <value>file:////mapred/jobstatus</value>
-  <description>
-    Directory path to view job status
-  </description>
-</property>
+  <property>
+    <name>mapred.healthChecker.script.path</name>
+    <value>/etc/hadoop/conf/health_check</value>
+    <description>
+      Directory path to view job status
+    </description>
+  </property>
 
-<property>
-  <name>mapred.healthChecker.interval</name>
-  <value>135000</value>
-</property>
+  <property>
+    <name>mapred.healthChecker.interval</name>
+    <value>135000</value>
+  </property>
 
-<property>
-  <name>mapred.healthChecker.script.timeout</name>
-  <value>60000</value>
-</property>
+  <property>
+    <name>mapred.healthChecker.script.timeout</name>
+    <value>60000</value>
+  </property>
 
-<property>
-  <name>mapred.job.tracker.persist.jobstatus.active</name>
-  <value>false</value>
-  <description>Indicates if persistency of job status information is
-  active or not.
-  </description>
-</property>
+  <property>
+    <name>mapred.job.tracker.persist.jobstatus.active</name>
+    <value>false</value>
+    <description>Indicates if persistency of job status information is
+      active or not.
+    </description>
+  </property>
 
-<property>
-  <name>mapred.job.tracker.persist.jobstatus.hours</name>
-  <value>1</value>
-  <description>The number of hours job status information is persisted in DFS.
-    The job status information will be available after it drops of the memory
-    queue and between jobtracker restarts. With a zero value the job status
-    information is not persisted at all in DFS.
-  </description>
-</property>
+  <property>
+    <name>mapred.job.tracker.persist.jobstatus.hours</name>
+    <value>1</value>
+    <description>The number of hours job status information is persisted in DFS.
+      The job status information will be available after it drops of the memory
+      queue and between jobtracker restarts. With a zero value the job status
+      information is not persisted at all in DFS.
+    </description>
+  </property>
 
-<property>
-  <name>mapred.job.tracker.persist.jobstatus.dir</name>
-  <value>/etc/hadoop/conf/health_check</value>
-  <description>The directory where the job status information is persisted
-   in a file system to be available after it drops of the memory queue and
-   between jobtracker restarts.
-  </description>
-</property>
+  <property>
+    <name>mapred.job.tracker.persist.jobstatus.dir</name>
+    <value>/etc/hadoop/conf/health_check</value>
+    <description>The directory where the job status information is persisted
+      in a file system to be available after it drops of the memory queue and
+      between jobtracker restarts.
+    </description>
+  </property>
 
-<property>
-  <name>mapred.jobtracker.retirejob.check</name>
-  <value>10000</value>
-</property>
+  <property>
+    <name>mapred.jobtracker.retirejob.check</name>
+    <value>10000</value>
+  </property>
 
-<property>
-  <name>mapred.jobtracker.retirejob.interval</name>
-  <value>21600000</value>
-</property>
+  <property>
+    <name>mapred.jobtracker.retirejob.interval</name>
+    <value>21600000</value>
+  </property>
 
-<property>
-  <name>mapred.job.tracker.history.completed.location</name>
-  <value>/mapred/history/done</value>
-  <description>No description</description>
-</property>
+  <property>
+    <name>mapred.job.tracker.history.completed.location</name>
+    <value>/mapred/history/done</value>
+    <description>No description</description>
+  </property>
 
-<property>
-  <name>mapred.task.maxvmem</name>
-  <value></value>
-  <final>true</final>
-   <description>No description</description>
-</property>
+  <property>
+    <name>mapred.task.maxvmem</name>
+    <value></value>
+    <final>true</final>
+    <description>No description</description>
+  </property>
 
-<property>
-  <name>mapred.jobtracker.maxtasks.per.job</name>
-  <value>-1</value>
-  <final>true</final>
-  <description>The maximum number of tasks for a single job.
-  A value of -1 indicates that there is no maximum.  </description>
-</property>
+  <property>
+    <name>mapred.jobtracker.maxtasks.per.job</name>
+    <value>-1</value>
+    <final>true</final>
+    <description>The maximum number of tasks for a single job.
+      A value of -1 indicates that there is no maximum.  </description>
+  </property>
 
-<property>
-  <name>mapreduce.fileoutputcommitter.marksuccessfuljobs</name>
-  <value>false</value>
-</property>
+  <property>
+    <name>mapreduce.fileoutputcommitter.marksuccessfuljobs</name>
+    <value>false</value>
+  </property>
 
-<property>
-  <name>mapred.userlog.retain.hours</name>
-  <value>24</value>
-  <description>
-    The maximum time, in hours, for which the user-logs are to be retained after the job completion.
-  </description>
-</property>
+  <property>
+    <name>mapred.userlog.retain.hours</name>
+    <value>24</value>
+    <description>
+      The maximum time, in hours, for which the user-logs are to be retained after the job completion.
+    </description>
+  </property>
 
-<property>
-  <name>mapred.job.reuse.jvm.num.tasks</name>
-  <value>1</value>
-  <description>
-    How many tasks to run per jvm. If set to -1, there is no limit
-  </description>
-  <final>true</final>
-</property>
+  <property>
+    <name>mapred.job.reuse.jvm.num.tasks</name>
+    <value>1</value>
+    <description>
+      How many tasks to run per jvm. If set to -1, there is no limit
+    </description>
+    <final>true</final>
+  </property>
 
-<property>
-  <name>mapreduce.jobtracker.kerberos.principal</name>
-  <value></value>
-  <description>
+  <property>
+    <name>mapreduce.jobtracker.kerberos.principal</name>
+    <value></value>
+    <description>
+>>>>>>> 4f8dadd... AMBARI-4074. Fix mapred-site.xml configs. (yusaku)
       JT user name key.
  </description>
 </property>

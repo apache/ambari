@@ -260,16 +260,6 @@ module.exports =
     },
     {
       "id": "site property",
-      "name": "mapred.healthChecker.script.path",
-      "displayName": "Job Status directory",
-      "description": "Directory path to view job status",
-      "defaultValue": "",
-      "displayType": "advanced",
-      "serviceName": "MAPREDUCE",
-      "category": "Advanced"
-    },
-    {
-      "id": "site property",
       "name": "io.sort.mb",
       "displayName": "Map-side sort buffer memory",
       "description": "The total amount of Map-side buffer memory to use while sorting files (Expert-only configuration)",

@@ -360,7 +360,7 @@
 
   <property>
     <name>mapred.healthChecker.script.path</name>
-    <value>file:////mapred/jobstatus</value>
+    <value>/etc/hadoop/conf/health_check</value>
     <description>
       Directory path to view job status
     </description>

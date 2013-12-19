@@ -143,7 +143,7 @@
   </property>
   <property>
     <name>mapred_jobstatus_dir</name>
-    <value>file:////mapred/jobstatus</value>
+    <value>/mapred/jobstatus</value>
     <description>Job Status directory</description>
   </property>
   <property>
