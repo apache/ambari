@@ -324,7 +324,7 @@
 
 <property>
   <name>mapred.healthChecker.script.path</name>
-  <value></value>
+  <value>/etc/hadoop/conf/health_check</value>
 </property>
 
 <property>
