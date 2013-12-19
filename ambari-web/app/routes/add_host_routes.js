@@ -177,14 +177,6 @@ module.exports = Em.Route.extend({
 
       if (wizardStep6Controller.validate()) {
         addHostController.saveSlaveComponentHosts(wizardStep6Controller);
-        addHostController.get('content').set('serviceConfigProperties', null);
-        addHostController.setDBProperty('serviceConfigProperties', null);
-        addHostController.loadAdvancedConfigs();
-        var wizardStep7Controller = router.get('wizardStep7Controller');
-        wizardStep7Controller.set('wizardController', addHostController);
-        wizardStep7Controller.set('content', addHostController.get('content'));
-        wizardStep7Controller.loadStep();
-        addHostController.saveServiceConfigProperties(wizardStep7Controller);
         if(App.supports.hostOverrides){
           router.transitionTo('step4');
         }else{
