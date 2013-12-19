@@ -32,6 +32,7 @@ require('views/common/quick_view_link_view');
 require('views/common/configs/services_config');
 require('views/common/configs/overriddenProperty_view');
 require('views/common/filter_combobox');
+require('views/common/filter_combo_cleanable');
 require('views/common/table_view');
 require('views/login');
 require('views/main');
