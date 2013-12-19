@@ -16,8 +16,6 @@
  * limitations under the License.
  */
 
-  console.log = function(){};
-console.warn = function(){};
 
 var App = require('app');
 
