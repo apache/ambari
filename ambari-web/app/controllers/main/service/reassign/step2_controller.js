@@ -24,8 +24,7 @@ App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
 
   loadStep: function() {
     this._super();
-    this.rebalanceComponentHosts('NAMENODE');
-    this.rebalanceComponentHosts('SECONDARY_NAMENODE');
+    this.rebalanceComponentHosts(this.get('content.reassign.component_name'));
   },
 
   loadComponents: function () {
@@ -51,6 +50,29 @@ App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
       });
     }, this);
     return result;
+  },
+
+  rebalanceComponentHosts:function (componentName) {
+    var currentComponents = this.get("selectedServicesMasters").filterProperty("component_name", componentName),
+      componentHosts = currentComponents.mapProperty("selectedHost"),
+      availableComponentHosts = [],
+      preparedAvailableHosts = null;
+    this.get("hosts").forEach(function (item) {
+      if (this.get('currentHostId') !== item.get('host_name')) {
+        availableComponentHosts.pushObject(item);
+      }
+    }, this);
+    if (availableComponentHosts.length == 0) {
+      return false;
+    }
+    currentComponents.forEach(function (item) {
+      preparedAvailableHosts = availableComponentHosts.slice(0);
+      if (item.get('selectedHost') == this.get('currentHostId') && item.get('component_name') == this.get('content.reassign.component_name')) {
+        item.set('selectedHost', preparedAvailableHosts.objectAt(0).host_name);
+      }
+      preparedAvailableHosts.sort(this.sortHostsByName, this);
+      item.set("availableHosts", preparedAvailableHosts);
+    }, this);
   }
 });
 

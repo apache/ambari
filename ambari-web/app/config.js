@@ -16,6 +16,9 @@
  * limitations under the License.
  */
 
+  console.log = function(){};
+console.warn = function(){};
+
 var App = require('app');
 
 App.testMode = (location.port == '3333'); // test mode is automatically enabled if running on brunch server

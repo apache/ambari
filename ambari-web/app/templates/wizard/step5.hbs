@@ -24,51 +24,65 @@
     {{t installer.step5.body.hive}}
   {{/if}}
 </div>
-<div class="assign-masters">
-  <div class="select-hosts">
-    {{#if currentHostId}}
-      <div class="control-group offset1">{{t services.reassign.step2.currentHost}}
-        <span>{{currentHostId}}</span>
-      </div>
-    {{/if}}
-    <form class="form-horizontal" autocomplete="off">
-      <!-- View for array controller -->
-      {{#each servicesMasters}}
-      <div class="control-group">
-        <label class="control-label">
-          {{#if controller.isReassignHive}}
-            {{t installer.step5.hiveGroup}}
-          {{else}}
-            {{display_name}}:
-          {{/if}}
-        </label>
-        {{#if isHiveCoHost}}
-          <label class="host-name">{{selectedHost}}<i class="icon-asterisks">&#10037</i></label>
-        {{else}}
-        <div class="controls">
-          {{view App.SelectHostView
-            contentBinding="availableHosts"
-            optionValuePath="content.host_name"
-            optionLabelPath="content.host_info"
-            selectedHostBinding="selectedHost"
-            componentNameBinding="component_name"
-            zIdBinding="zId"
-            disabledBinding="isInstalled"
-          }}
-          {{#if showAddControl}}
-            {{view App.AddControlView componentNameBinding="component_name"}}
-          {{/if}}
-          {{#if showRemoveControl}}
-            {{view App.RemoveControlView componentNameBinding="component_name" zIdBinding="zId"}}
-          {{/if}}
-        </div>
+<div class="assign-masters row-fluid">
+  <div class="select-hosts span6">
+    <div class="row-fluid">
+      <div class="span12 control-group">
+        {{#if currentHostId}}
+          <div class="row-fluid">
+            <div class="span4"><span class="pull-right control-label">{{t services.reassign.step2.currentHost}}</span></div>
+            <div class="span8"><span>{{currentHostId}}</span></div>
+          </div>
         {{/if}}
       </div>
-      {{/each}}
-    </form>
+      <div class="clearfix"></div>
+      <div class="row-fluid">
+        <div class="span12 control-group">
+          <form class="form-horizontal" autocomplete="off">
+            <!-- View for array controller -->
+            {{#each servicesMasters}}
+              <div class="row-fluid">
+                <div class="span4">
+                  <div class="control-group">
+                    <label class="pts pull-right">
+                      {{#if controller.isReassignHive}}
+                        {{t installer.step5.hiveGroup}}
+                      {{else}}
+                        {{display_name}}:
+                      {{/if}}
+                    </label>
+                  </div>
+                </div>
+                <div class="span8">
+                  {{#if isHiveCoHost}}
+                    <label class="host-name">{{selectedHost}}<i class="icon-asterisks">&#10037</i></label>
+                  {{else}}
+                    {{view App.SelectHostView
+                      contentBinding="availableHosts"
+                      optionValuePath="content.host_name"
+                      optionLabelPath="content.host_info"
+                      selectedHostBinding="selectedHost"
+                      componentNameBinding="component_name"
+                      zIdBinding="zId"
+                      disabledBinding="isInstalled"
+                    }}
+                    {{#if showAddControl}}
+                      {{view App.AddControlView componentNameBinding="component_name"}}
+                    {{/if}}
+                    {{#if showRemoveControl}}
+                      {{view App.RemoveControlView componentNameBinding="component_name" zIdBinding="zId"}}
+                    {{/if}}
+                  </div>
+                {{/if}}
+              </div>
+            {{/each}}
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="host-assignments">
+  <div class="host-assignments span6">
     {{#each masterHostMapping}}
     <div class="mapping-box round-corners well">
       <div class="hostString"><span>{{hostInfo}}</span></div>
@@ -83,7 +97,7 @@
       <span><strong>{{remainingHosts}}</strong> {{t installer.step5.attention}}</span></div>
     {{/if}}
   </div>
-  <div style="clear: both;"></div>
+  <div class="clearfix"></div>
 </div>
 <div class="btn-area">
   <a class="btn pull-left" {{action back href="true"}}>&larr; {{t common.back}}</a>
