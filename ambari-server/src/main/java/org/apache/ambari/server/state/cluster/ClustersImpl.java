@@ -43,6 +43,7 @@ import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.host.HostFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -609,6 +610,8 @@ public class ClustersImpl implements Clusters {
       hostClusterMap.get(hostname).remove(cluster);
       clusterHostMap.get(clusterName).remove(host);
 
+      deleteConfigGroupHostMapping(hostname);
+
     } finally {
       w.unlock();
     }
@@ -623,10 +626,18 @@ public class ClustersImpl implements Clusters {
     hostEntity.getClusterEntities().remove(clusterEntity);
     clusterEntity.getHostEntities().remove(hostEntity);
 
-    configGroupHostMappingDAO.removeAllByHost(hostName);
-    
     hostDAO.merge(hostEntity);
     clusterDAO.merge(clusterEntity);
+  }
+
+  @Transactional
+  private void deleteConfigGroupHostMapping(String hostname) throws AmbariException {
+    // Remove Config group mapping
+    for (Cluster cluster : clusters.values()) {
+      for (ConfigGroup configGroup : cluster.getConfigGroups().values()) {
+        configGroup.removeHost(hostname);
+      }
+    }
   }
   
   @Override
@@ -643,8 +654,7 @@ public class ClustersImpl implements Clusters {
       hostDAO.refresh(entity);
       hostDAO.remove(entity);
       hosts.remove(hostname);
-      // Remove Config group mapping
-      configGroupHostMappingDAO.removeAllByHost(hostname);
+      deleteConfigGroupHostMapping(hostname);
     } catch (Exception e) {
       throw new AmbariException("Could not remove host", e);
     } finally {
