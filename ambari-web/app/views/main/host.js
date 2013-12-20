@@ -49,20 +49,24 @@ App.MainHostView = App.TableView.extend({
 
   sortView: sort.wrapperView,
   nameSort: sort.fieldView.extend({
+    column: 1,
     name:'publicHostName',
     displayName: Em.I18n.t('common.name')
   }),
   ipSort: sort.fieldView.extend({
+    column: 2,
     name:'ip',
     displayName: Em.I18n.t('common.ipAddress'),
     type: 'ip'
   }),
   cpuSort: sort.fieldView.extend({
+    column: 3,
     name:'cpu',
     displayName: Em.I18n.t('common.cpu'),
     type: 'number'
   }),
   memorySort: sort.fieldView.extend({
+    column: 4,
     name:'memory',
     displayName: Em.I18n.t('common.ram'),
     type: 'number'
@@ -72,6 +76,7 @@ App.MainHostView = App.TableView.extend({
     displayName: Em.I18n.t('common.diskUsage')
   }),
   loadAvgSort: sort.fieldView.extend({
+    column: 5,
     name:'loadAvg',
     displayName: Em.I18n.t('common.loadAvg'),
     type: 'number'

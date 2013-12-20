@@ -151,12 +151,16 @@ var wrapperView = Em.View.extend({
  */
 var fieldView = Em.View.extend({
   template:Em.Handlebars.compile('{{view.displayName}}'),
-  classNameBindings: ['status'],
+  classNameBindings: ['status', 'viewNameClass'],
   tagName: 'th',
   name: null,
   displayName: null,
   status: 'sorting',
+  viewNameClass: function () {
+    return 'sort-view-' + this.get('column');
+  }.property(),
   type: null,
+  column: 0,
   /**
    * callback that run sorting and define order of sorting
    * @param event
