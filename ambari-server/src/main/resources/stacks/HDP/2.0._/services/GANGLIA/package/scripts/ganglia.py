@@ -23,15 +23,6 @@ import os
 def groups_and_users():
   import params
 
-  Group(params.user_group)
-  Group(params.gmetad_user)
-  Group(params.gmond_user)
-  User(params.gmond_user,
-       groups=[params.gmond_user])
-  User(params.gmetad_user,
-       groups=[params.gmetad_user])
-
-
 def config():
   import params
 

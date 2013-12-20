@@ -1,4 +1,3 @@
-##!/usr/bin/env python2.6
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -18,21 +17,46 @@ limitations under the License.
 
 """
 
-import sys
 from resource_management import *
-from shared_initialization import *
+from utils import service
 
-#TODO this must be "CONFIGURE" hook when CONFIGURE command will be implemented
-class BeforeConfigureHook(Hook):
 
-  def hook(self, env):
+class ZkfcSlave(Script):
+  def install(self, env):
+    import params
+
+    self.install_packages(env)
+    env.set_params(params)
+
+  def start(self, env):
     import params
 
     env.set_params(params)
-    setup_java()
-    setup_users()
-    setup_hadoop()
-    setup_configs()
+    self.config(env)
+    service(
+      action="start", name="zkfc", user=params.hdfs_user, create_pid_dir=True,
+      create_log_dir=True
+    )
+
+  def stop(self, env):
+    import params
+
+    env.set_params(params)
+    service(
+      action="stop", name="zkfc", user=params.hdfs_user, create_pid_dir=True,
+      create_log_dir=True
+    )
+
+  def config(self, env):
+    pass
+
+  def status(self, env):
+    import status_params
+
+    env.set_params(status_params)
+
+    check_process_status(status_params.zkfc_pid_file)
+
 
 if __name__ == "__main__":
-  BeforeConfigureHook().execute()
+  ZkfcSlave().execute()

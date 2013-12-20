@@ -1,4 +1,3 @@
-##!/usr/bin/env python2.6
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -18,21 +17,43 @@ limitations under the License.
 
 """
 
-import sys
 from resource_management import *
-from shared_initialization import *
+from hdfs_namenode import namenode
 
-#TODO this must be "CONFIGURE" hook when CONFIGURE command will be implemented
-class BeforeConfigureHook(Hook):
 
-  def hook(self, env):
+class NameNode(Script):
+  def install(self, env):
+    import params
+
+    self.install_packages(env)
+    env.set_params(params)
+
+  def start(self, env):
     import params
 
     env.set_params(params)
-    setup_java()
-    setup_users()
-    setup_hadoop()
-    setup_configs()
+    self.config(env)
+    namenode(action="start")
+
+  def stop(self, env):
+    import params
+
+    env.set_params(params)
+    namenode(action="stop")
+
+  def config(self, env):
+    import params
+
+    env.set_params(params)
+    namenode(action="configure")
+    pass
+
+  def status(self, env):
+    import status_params
+
+    env.set_params(status_params)
+    check_process_status(status_params.namenode_pid_file)
+
 
 if __name__ == "__main__":
-  BeforeConfigureHook().execute()
+  NameNode().execute()
