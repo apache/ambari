@@ -869,10 +869,12 @@ module.exports = Em.Route.extend({
           var item = router.get('mainServiceItemController.content');
           router.get('mainServiceItemController').connectOutlet('mainServiceInfoConfigs', item);
         },
-        exit: function(router, context) {
+        unroutePath: function (router, context) {
           var controller = router.get('mainServiceInfoConfigsController');
-          if (controller.hasUnsavedChanges()) {
-            controller.showSavePopup();
+          if (!controller.get('forceTransition') && controller.hasUnsavedChanges()) {
+            controller.showSavePopup(context);
+          } else {
+            this._super(router, context);
           }
         }
       }),
@@ -884,6 +886,11 @@ module.exports = Em.Route.extend({
         }
       }),
       showInfo: function (router, event) {
+        var mainServiceInfoConfigsController = App.router.get('mainServiceInfoConfigsController');
+        if (event.context === 'summary' && mainServiceInfoConfigsController.hasUnsavedChanges()) {
+          mainServiceInfoConfigsController.showSavePopup(router.get('location.lastSetURL').replace('configs', 'summary'));
+          return false;
+        }
         var parent = event.view._parentView;
         parent.deactivateChildViews();
         event.view.set('active', "active");
