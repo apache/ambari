@@ -361,6 +361,9 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       configGroupName: duplicated ? self.get('selectedConfigGroup.name') + ' Copy' : "",
       configGroupDesc: duplicated ? self.get('selectedConfigGroup.description') + ' (Copy)' : "",
       warningMessage: '',
+      didInsertElement: function(){
+        this.validate();
+      },
       validate: function () {
         var warningMessage = '';
         if (self.get('configGroups').mapProperty('name').contains(this.get('configGroupName').trim())) {
