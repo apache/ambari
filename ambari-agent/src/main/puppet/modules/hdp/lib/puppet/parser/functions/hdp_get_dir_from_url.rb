@@ -36,15 +36,20 @@ module Puppet::Parser::Functions
       else
         splitArgsResult = args.split(":")
       end
-      if splitArgsResult.length != 3
+      if splitArgsResult.length < 2
         var = default
       else
-        strWithDir = splitArgsResult[2]
+        strWithDir = splitArgsResult[splitArgsResult.length - 1]
         startIndexOfDir = strWithDir.index('/')
+        startIndexOfUri = strWithDir.index('///')
         if startIndexOfDir == nil
           var = default
         else
-          var = strWithDir[startIndexOfDir, strWithDir.size - 1]
+          if startIndexOfUri == nil
+            var = strWithDir[startIndexOfDir, strWithDir.size - 1]
+          else
+            var = strWithDir[startIndexOfDir + 2, strWithDir.size - 1]
+          end
         end
       end
     end

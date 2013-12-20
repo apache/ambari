@@ -171,7 +171,7 @@ define hdp-hadoop::namenode::create_app_directories($service_state)
 
     if ($hdp::params::webhcat_server_host != "") {
       $webhcat_user = $hdp::params::webhcat_user
-      $webhcat_apps_dir = $hdp::params::webhcat_apps_dir
+      $webhcat_apps_dir = hdp_get_directory_from_filepath(hdp_get_dir_from_url(hdp_default("webhcat-site/templeton.streaming.jar",""), "/apps/webhcat"))
 
       hdp-hadoop::hdfs::directory{ $webhcat_apps_dir:
         service_state => $service_state,
