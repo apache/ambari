@@ -22,6 +22,7 @@ require('controllers/wizard/slave_component_groups_controller');
 App.MainServiceInfoConfigsController = Em.Controller.extend({
   name: 'mainServiceInfoConfigsController',
   isHostsConfigsPage: false,
+  forceTransition: false,
   dataIsLoaded: false,
   stepConfigs: [], //contains all field properties that are viewed in this service
   selectedService: null,
@@ -147,6 +148,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   clearStep: function () {
     this.set('isInit', true);
     this.set('hash', null);
+    this.set('forceTransition', false);
     this.set('dataIsLoaded', false);
     this.set('filter', '');
     this.get('filterColumns').setEach('selected', false);
@@ -2014,7 +2016,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
   selectConfigGroup: function (event) {
     if (!this.get('isInit')) {
       if (this.hasUnsavedChanges()) {
-        this.showSavePopup(event);
+        this.showSavePopup(null, event);
         return;
       }
     }
@@ -2033,26 +2035,36 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
    * If some configs are changed and user navigates away or select another config-group, show this popup with propose to save changes
    * @param {object} event - triggered event for seleting another config-group
    */
-  showSavePopup: function(event) {
-    if (!event) event = null;
+  showSavePopup: function (path, event) {
     var _this = this;
     App.ModalPopup.show({
       header: Em.I18n.t('common.warning'),
       body: Em.I18n.t('services.service.config.exitPopup.body'),
+      footerClass: Ember.View.extend({
+        templateName: require('templates/main/service/info/save_popup_footer'),
+        isSaveDisabled: function() {
+          return _this.get('isSubmitDisabled');
+        }.property()
+      }),
       primary: Em.I18n.t('common.save'),
       secondary: Em.I18n.t('common.cancel'),
-      onPrimary: function() {
+      onSave: function () {
         _this.restartServicePopup();
-        this._super();
+        this.hide();
       },
-      onSecondary: function() {
-        if (event) {
+      onDiscard: function () {
+        if (path) {
+          _this.set('forceTransition', true);
+          App.router.route(path);
+        } else if (event) {
           // Prevent multiple popups
           _this.set('hash', _this.getHash());
-
           _this.selectConfigGroup(event);
         }
-        this._super();
+        this.hide();
+      },
+      onCancel: function () {
+        this.hide();
       }
     });
   }

@@ -162,6 +162,7 @@ Em.I18n.translations = {
   'common.conf.group': 'Configuration Group',
   'common.ignore': 'Ignore',
   'common.restart': 'Restart',
+  'common.discard': 'Discard',
 
   'requestInfo.installComponents':'Install Components',
   'requestInfo.installServices':'Install Services',
