@@ -76,7 +76,9 @@ class hdp-templeton::server(
 
 class hdp-templeton::copy-hdfs-directories($service_state)
 {
- $webhcat_apps_dir = $hdp::params::webhcat_apps_dir
+ $streaming_jar =  hdp_get_dir_from_url(hdp_default("webhcat-site/templeton.streaming.jar",""), "/apps/webhcat/hadoop-streaming.jar") 
+ $pig_archiv =  hdp_get_dir_from_url(hdp_default("webhcat-site/templeton.pig.archive",""), "/apps/webhcat/pig.tar.gz")
+ $templeton_hive_archive =  hdp_get_dir_from_url(hdp_default("webhcat-site/templeton.hive.archive",""), "/apps/webhcat/hive.tar.gz")
  $webhcat_user = $hdp::params::webhcat_user
  $smoke_test_user = $hdp::params::smokeuser
  $smokeuser_keytab = $hdp::params::smokeuser_keytab
@@ -100,7 +102,7 @@ class hdp-templeton::copy-hdfs-directories($service_state)
       service_state => $service_state,
       owner => $webhcat_user,
       mode  => '755',
-      dest_dir => "$webhcat_apps_dir/hadoop-streaming.jar",
+      dest_dir => "$streaming_jar",
       kinit_if_needed => $kinit_if_needed
     }
   }
@@ -109,7 +111,7 @@ class hdp-templeton::copy-hdfs-directories($service_state)
       service_state => $service_state,
       owner => $webhcat_user,
       mode  => '755',
-      dest_dir => "$webhcat_apps_dir/hadoop-streaming.jar",
+      dest_dir => "$streaming_jar",
       kinit_if_needed => $kinit_if_needed
     }
   }
@@ -117,13 +119,13 @@ class hdp-templeton::copy-hdfs-directories($service_state)
     service_state => $service_state,
     owner => $webhcat_user,
     mode  => '755',
-    dest_dir => "$webhcat_apps_dir/pig.tar.gz",
+    dest_dir => "$pig_archiv",
   }
   hdp-hadoop::hdfs::copyfromlocal { '/usr/share/HDP-webhcat/hive.tar.gz' :
     service_state => $service_state,
     owner => $webhcat_user,
     mode  => '755',
-    dest_dir => "$webhcat_apps_dir/hive.tar.gz",
+    dest_dir => "$templeton_hive_archive",
   }
   Anchor["hdp::hdp-templeton::copy-hdfs-directories::begin"] ->
   Exec[$kinit_cmd] ->
