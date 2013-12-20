@@ -111,7 +111,7 @@ class PythonExecutor:
     """
     return subprocess.Popen(command,
       stdout=tmpout,
-      stderr=tmperr)
+      stderr=tmperr, close_fds=True)
 
   def isSuccessfull(self, returncode):
     return not self.python_process_has_been_killed and returncode == 0
