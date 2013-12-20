@@ -984,6 +984,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       var site = sites.findProperty('type', type);
       if (site) {
         site.properties.push({
+          isRequiredByAgent: config.get('isRequiredByAgent'),
           name: config.get('name'),
           value: config.get('value')
         });
@@ -992,6 +993,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           type: type,
           tag: 'version' + time,
           properties: [{
+            isRequiredByAgent: config.get('isRequiredByAgent'),
             name: config.get('name'),
             value: config.get('value')
           }]
