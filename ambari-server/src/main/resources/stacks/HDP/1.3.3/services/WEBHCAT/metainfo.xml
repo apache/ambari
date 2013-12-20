@@ -27,5 +27,10 @@
         </component>
     </components>
 
+  <configuration-dependencies>
+    <config-type>global</config-type>
+    <config-type>webhcat-site</config-type>
+  </configuration-dependencies>
+
 
 </metainfo>
