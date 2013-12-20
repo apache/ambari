@@ -1158,6 +1158,10 @@ App.WizardStep3Controller = Em.Controller.extend({
           newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.header') + new Date;
           newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.hosts');
           newContent += warningsByHost.filterProperty('warnings.length').mapProperty('name').join(' ');
+          if (content.findProperty('category', 'firewall').warnings.length) {
+            newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.firewall');
+            newContent += content.findProperty('category', 'firewall').warnings.mapProperty('name').join('<br>');
+          }
           if (content.findProperty('category', 'fileFolders').warnings.length) {
             newContent += Em.I18n.t('installer.step3.hostWarningsPopup.report.fileFolders');
             newContent += content.findProperty('category', 'fileFolders').warnings.mapProperty('name').join(' ');
