@@ -81,7 +81,8 @@ public class AmbariCustomCommandExecutionHelperImpl implements AmbariCustomComma
         + ", serviceName=" + actionRequest.getServiceName()
         + ", request=" + actionRequest.toString());
 
-    if (!isValidCommand(actionRequest.getCommandName(), actionRequest.getServiceName())) {
+    if (!isValidCommand(actionRequest.getCommandName(),
+      actionRequest.getServiceName()) && !isValidCustomCommand(actionRequest)) {
       throw new AmbariException(
           "Unsupported action " + actionRequest.getCommandName() + " for " + actionRequest.getServiceName());
     }
@@ -100,6 +101,28 @@ public class AmbariCustomCommandExecutionHelperImpl implements AmbariCustomComma
     return true;
   }
 
+  private Boolean isValidCustomCommand(ExecuteActionRequest actionRequest) throws AmbariException {
+    String clustername = actionRequest.getClusterName();
+    Cluster cluster = clusters.getCluster(clustername);
+    StackId stackId = cluster.getDesiredStackVersion();
+    String serviceName = actionRequest.getServiceName();
+    String componentName = actionRequest.getComponentName();
+    String commandName = actionRequest.getCommandName();
+
+    if (componentName == null) {
+      return false;
+    }
+    ComponentInfo componentInfo = ambariMetaInfo.getComponent(
+      stackId.getStackName(), stackId.getStackVersion(),
+      serviceName, componentName);
+
+    if (!componentInfo.isCustomCommand(commandName) &&
+      !actionMetadata.isDefaultHostComponentCommand(commandName)) {
+      return false;
+    }
+    return true;
+  }
+
   @Override
   public void addAction(ExecuteActionRequest actionRequest, Stage stage,
                         HostsMap hostsMap, Map<String, String> hostLevelParams)
@@ -108,8 +131,96 @@ public class AmbariCustomCommandExecutionHelperImpl implements AmbariCustomComma
       addServiceCheckAction(actionRequest, stage, hostsMap, hostLevelParams);
     } else if (actionRequest.getCommandName().equals("DECOMMISSION_DATANODE")) {
       addDecommissionDatanodeAction(actionRequest, stage, hostLevelParams);
+    } else if (isValidCustomCommand(actionRequest)) {
+      addCustomcommandAction(actionRequest, stage, hostsMap, hostLevelParams);
     } else {
       throw new AmbariException("Unsupported action " + actionRequest.getCommandName());
+    }
+  }
+
+  private void addCustomcommandAction(ExecuteActionRequest actionRequest,
+    Stage stage, HostsMap hostsMap, Map<String, String> hostLevelParams)
+    throws AmbariException {
+
+    if (actionRequest.getHosts().isEmpty()) {
+      throw new AmbariException("Invalid request : No hosts specified.");
+    }
+
+    String serviceName = actionRequest.getServiceName();
+    String componentName = actionRequest.getComponentName();
+    String commandName = actionRequest.getCommandName();
+
+    String clusterName = stage.getClusterName();
+    Cluster cluster = clusters.getCluster(clusterName);
+    StackId stackId = cluster.getDesiredStackVersion();
+    AmbariMetaInfo ambariMetaInfo = amc.getAmbariMetaInfo();
+    ServiceInfo serviceInfo =
+      ambariMetaInfo.getServiceInfo(stackId.getStackName(),
+        stackId.getStackVersion(), serviceName);
+
+    long nowTimestamp = System.currentTimeMillis();
+
+    for (String hostName: actionRequest.getHosts()) {
+
+      stage.addHostRoleExecutionCommand(hostName, Role.valueOf(componentName),
+        RoleCommand.CUSTOM_COMMAND,
+        new ServiceComponentHostOpInProgressEvent(componentName,
+        hostName, nowTimestamp), cluster.getClusterName(), serviceName);
+
+      Map<String, Map<String, String>> configurations =
+        new TreeMap<String, Map<String, String>>();
+      Map<String, Map<String, String>> configTags =
+        amc.findConfigurationTagsWithOverrides(cluster, hostName);
+
+      ExecutionCommand execCmd =  stage.getExecutionCommandWrapper(hostName,
+        componentName).getExecutionCommand();
+
+      execCmd.setConfigurations(configurations);
+      execCmd.setConfigurationTags(configTags);
+
+      execCmd.setClusterHostInfo(
+        StageUtils.getClusterHostInfo(clusters.getHostsForCluster(clusterName), cluster, hostsMap, configs));
+
+      if (hostLevelParams == null) {
+        hostLevelParams = new TreeMap<String, String>();
+      }
+      hostLevelParams.put(JDK_LOCATION, amc.getJdkResourceUrl());
+      hostLevelParams.put(STACK_NAME, stackId.getStackName());
+      hostLevelParams.put(STACK_VERSION,stackId.getStackVersion());
+      hostLevelParams.put(CUSTOM_COMMAND, commandName);
+      execCmd.setHostLevelParams(hostLevelParams);
+
+      Map<String,String> commandParams = new TreeMap<String, String>();
+      commandParams.put(SCHEMA_VERSION, serviceInfo.getSchemaVersion());
+
+      String commandTimeout = COMMAND_TIMEOUT_DEFAULT;
+
+      if (serviceInfo.getSchemaVersion().equals(AmbariMetaInfo.SCHEMA_VERSION_2)) {
+        // Service check command is not custom command
+        ComponentInfo componentInfo = ambariMetaInfo.getComponent(
+          stackId.getStackName(), stackId.getStackVersion(),
+          serviceName, componentName);
+        CommandScriptDefinition script = componentInfo.getCommandScript();
+
+        if (script != null) {
+          commandParams.put(SCRIPT, script.getScript());
+          commandParams.put(SCRIPT_TYPE, script.getScriptType().toString());
+          commandTimeout = String.valueOf(script.getTimeout());
+        } else {
+          String message = String.format("Component %s has not command script " +
+            "defined. It is not possible to run service check" +
+            " for this service", componentName);
+          throw new AmbariException(message);
+        }
+        // We don't need package/repo infomation to perform service check
+      }
+      commandParams.put(COMMAND_TIMEOUT, commandTimeout);
+
+      commandParams.put(SERVICE_METADATA_FOLDER,
+        serviceInfo.getServiceMetadataFolder());
+
+      execCmd.setCommandParams(commandParams);
+
     }
   }
 
@@ -238,7 +349,7 @@ public class AmbariCustomCommandExecutionHelperImpl implements AmbariCustomComma
         commandParams.put(SCRIPT_TYPE, script.getScriptType().toString());
         commandTimeout = String.valueOf(script.getTimeout());
       } else {
-        String message = String.format("Service %s has not command script " +
+        String message = String.format("Service %s has no command script " +
                 "defined. It is not possible to run service check" +
                 " for this service", serviceName);
         throw new AmbariException(message);

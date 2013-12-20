@@ -89,4 +89,15 @@ public class ComponentInfo {
     }
     return customCommands;
   }
+
+  public boolean isCustomCommand(String commandName) {
+    if (customCommands != null && commandName != null) {
+      for (CustomCommandDefinition cc: customCommands) {
+        if (commandName.equals(cc.getName())){
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 }

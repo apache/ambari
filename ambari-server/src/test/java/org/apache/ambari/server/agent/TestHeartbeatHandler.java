@@ -1308,6 +1308,57 @@ public class TestHeartbeatHandler {
             State.INSTALL_FAILED, serviceComponentHost2.getState());
   }
 
+  @Test
+  public void testIgnoreCustomActionReport() throws AmbariException, InvalidStateTransitionException {
+    ActionManager am = getMockActionManager();
+
+    CommandReport cr1 = new CommandReport();
+    cr1.setActionId(StageUtils.getActionId(requestId, stageId));
+    cr1.setTaskId(1);
+    cr1.setClusterName(DummyCluster);
+    cr1.setServiceName(HDFS);
+    cr1.setRole(NAMENODE);
+    cr1.setStatus(HostRoleStatus.FAILED.toString());
+    cr1.setRoleCommand("CUSTOM_COMMAND");
+    cr1.setStdErr("none");
+    cr1.setStdOut("dummy output");
+    cr1.setExitCode(0);
+    CommandReport cr2 = new CommandReport();
+    cr2.setActionId(StageUtils.getActionId(requestId, stageId));
+    cr2.setTaskId(2);
+    cr2.setClusterName(DummyCluster);
+    cr2.setServiceName(HDFS);
+    cr2.setRole(NAMENODE);
+    cr2.setStatus(HostRoleStatus.FAILED.toString());
+    cr2.setRoleCommand("ACTIONEXECUTE");
+    cr2.setStdErr("none");
+    cr2.setStdOut("dummy output");
+    cr2.setExitCode(0);
+
+    ArrayList<CommandReport> reports = new ArrayList<CommandReport>();
+    reports.add(cr1);
+    reports.add(cr2);
+
+    HeartBeat hb = new HeartBeat();
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(0);
+    hb.setHostname(DummyHostname1);
+    hb.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb.setReports(reports);
+
+    ActionQueue aq = new ActionQueue();
+    HeartBeatHandler handler = getHeartBeatHandler(am, aq);
+
+    // CUSTOM_COMMAND and ACTIONEXECUTE reports are ignored
+    // they should not change the host component state
+    try {
+      handler.handleHeartBeat(hb);
+    } catch (Exception e) {
+      fail();
+    }
+
+  }
+
   private ActionManager getMockActionManager() {
     return new ActionManager(0, 0, null, null,
               new ActionDBInMemoryImpl(), new HostsMap((String) null), null, unitOfWork, null);

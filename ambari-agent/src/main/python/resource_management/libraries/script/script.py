@@ -163,3 +163,29 @@ class Script(object):
     print("Error: " + message)
     sys.stderr.write("Error: " + message)
     sys.exit(1)
+
+  def start(self, env):
+    """
+    To be overridden by subclasses
+    """
+    self.fail_with_error('start method isn\'t implemented')
+
+  def stop(self, env):
+    """
+    To be overridden by subclasses
+    """
+    self.fail_with_error('stop method isn\'t implemented')
+
+  def restart(self, env):
+    """
+    Default implementation of restart command is to call stop and start methods
+    Feel free to override restart() method with your implementation.
+    """
+    self.stop(env)
+    self.start(env)
+
+  def configure(self, env):
+    """
+    To be overridden by subclasses
+    """
+    self.fail_with_error('configure method isn\'t implemented')

@@ -43,6 +43,7 @@ class CustomServiceOrchestrator():
   SCRIPT_TYPE_PYTHON = "PYTHON"
   COMMAND_NAME_STATUS = "STATUS"
   CUSTOM_ACTION_COMMAND = 'ACTIONEXECUTE'
+  CUSTOM_COMMAND_COMMAND = 'CUSTOM_COMMAND'
 
   PRE_HOOK_PREFIX="before"
   POST_HOOK_PREFIX="after"
@@ -95,6 +96,8 @@ class CustomServiceOrchestrator():
         script_tuple = (os.path.join(base_dir, script) , base_dir)
         hook_dir = None
       else:
+        if command_name == self.CUSTOM_COMMAND_COMMAND:
+          command_name = command['hostLevelParams']['custom_command']
         stack_name = command['hostLevelParams']['stack_name']
         stack_version = command['hostLevelParams']['stack_version']
         hook_dir = self.file_cache.get_hook_base_dir(stack_name, stack_version)

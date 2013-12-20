@@ -89,6 +89,7 @@ public class StackExtensionHelperTest {
                 firstComponent.getCustomCommands();
         assertEquals(1, customCommands.size());
         assertEquals("RESTART", customCommands.get(0).getName());
+        assertTrue(firstComponent.isCustomCommand("RESTART"));
         assertEquals("scripts/hbase_master_restart.py",
                 customCommands.get(0).getCommandScript().getScript());
         assertEquals(CommandScriptDefinition.Type.PYTHON,

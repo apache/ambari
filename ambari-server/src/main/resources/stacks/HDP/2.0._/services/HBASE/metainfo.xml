@@ -44,7 +44,7 @@
           </commandScript>
           <customCommands>
             <customCommand>
-              <name>DECOMMISSION_REGIONSERVER</name>
+              <name>DECOMMISSION</name>
               <commandScript>
                 <script>scripts/hbase_regionserver.py</script>
                 <scriptType>PYTHON</scriptType>

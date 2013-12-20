@@ -33,5 +33,6 @@ public enum RoleCommand {
   ABORT,
   UPGRADE,
   SERVICE_CHECK,
+  CUSTOM_COMMAND,
   ACTIONEXECUTE
 }

@@ -32,11 +32,20 @@ public class ActionMetadata {
   private final Map<String, String> serviceClients = new HashMap<String, String>();
   private final Map<String, String> serviceCheckActions =
       new HashMap<String, String>();
+  private final List<String> defaultHostComponentCommands = new ArrayList<String>();
 
   public ActionMetadata() {
     fillServiceActions();
     fillServiceClients();
     fillServiceCheckActions();
+    fillHostComponentCommands();
+  }
+
+  private void fillHostComponentCommands() {
+    //Standart commands for any host component
+    // TODO: Add START/STOP/INSTALL commands
+    defaultHostComponentCommands.add("RESTART");
+    defaultHostComponentCommands.add("CONFIGURE");
   }
 
   private void fillServiceClients() {
@@ -105,5 +114,12 @@ public class ActionMetadata {
 
   public String getServiceCheckAction(String serviceName) {
     return serviceCheckActions.get(serviceName.toLowerCase());
+  }
+
+  public boolean isDefaultHostComponentCommand(String command) {
+    if (command != null && defaultHostComponentCommands.contains(command)) {
+      return true;
+    }
+    return false;
   }
 }
