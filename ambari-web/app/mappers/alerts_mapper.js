@@ -69,16 +69,18 @@ App.alertsMapper = App.QuickDataMapper.create({
       }, this);
 
       this.get('model').find().forEach(function (alertRecord) {
-        var existAlert = alertsMap[alertRecord.get('id')];
-        if (existAlert) {
-          existAlert = this.getDiscrepancies(existAlert, previousAlertsResponse[alertRecord.get('id')], mutableFields);
+        if (alertRecord) {
+          var existAlert = alertsMap[alertRecord.get('id')];
           if (existAlert) {
-            for (var i in existAlert) {
-              alertRecord.set(stringUtils.underScoreToCamelCase(i), existAlert[i]);
+            existAlert = this.getDiscrepancies(existAlert, previousAlertsResponse[alertRecord.get('id')], mutableFields);
+            if (existAlert) {
+              for (var i in existAlert) {
+                alertRecord.set(stringUtils.underScoreToCamelCase(i), existAlert[i]);
+              }
             }
+          } else {
+            this.deleteRecord(alertRecord);
           }
-        } else {
-          this.deleteRecord(alertRecord);
         }
       }, this);
 

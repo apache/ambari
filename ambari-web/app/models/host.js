@@ -58,7 +58,7 @@ App.Host = DS.Model.extend({
   }.property('memTotal', 'memFree'),
 
   criticalAlertsCount: function () {
-    return App.router.get('clusterController.alerts').filterProperty('hostName', this.get('hostName')).filterProperty('isOk', false).filterProperty('ignoredForHosts', false).length;
+    return App.router.get('clusterController.alertsHostMap')[this.get('hostName')];
   }.property('App.router.clusterController.alerts.length'),
 
   componentsWithStaleConfigsCount: function() {

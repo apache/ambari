@@ -198,21 +198,33 @@ App.ClusterController = Em.Controller.extend({
    * Changes whenever alerts are loaded.
    */
   alerts:[],
+  alertsHostMap: {},
+  alertsServiceMap: {},
   updateAlerts: function(){
-    var alerts = App.Alert.find();
-    var alertsArray = alerts.toArray();
-    var sortedArray = alertsArray.sort(function (left, right) {
-      var statusDiff = right.get('status') - left.get('status');
-      if (statusDiff == 0) { // same error severity - sort by time
-        var rightTime = right.get('date');
-        var leftTime = left.get('date');
-        rightTime = rightTime ? rightTime.getTime() : 0;
-        leftTime = leftTime ? leftTime.getTime() : 0;
-        statusDiff = rightTime - leftTime;
+    var alerts = App.Alert.find().toArray();
+    var alertsHostMap = {};
+    var alertsServiceMap = {};
+    alerts.forEach(function (alert) {
+      if (!alert.get('isOk')) {
+        if (!alert.get('ignoredForHosts')) {
+          if (alertsHostMap[alert.get('hostName')]) {
+            alertsHostMap[alert.get('hostName')]++;
+          } else {
+            alertsHostMap[alert.get('hostName')] = 1;
+          }
+        }
+        if (!alert.get('ignoredForServices')) {
+          if (alertsServiceMap[alert.get('serviceType')]) {
+            alertsServiceMap[alert.get('serviceType')]++;
+          } else {
+            alertsServiceMap[alert.get('serviceType')] = 1;
+          }
+        }
       }
-      return statusDiff;
-    });
-    this.set('alerts', sortedArray);
+    }, this);
+    this.set('alertsHostMap', alertsHostMap);
+    this.set('alertsServiceMap', alertsServiceMap);
+    this.set('alerts', alerts);
   },
 
   /**
