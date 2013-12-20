@@ -362,7 +362,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.get('clusterInfo').pushObject(Ember.Object.create(totalHostsObj));
 
     //repo
-    if (this.get('content.controllerName') == 'addHostController') {
+    if (['addHostController', 'addServiceController'].contains(this.get('content.controllerName'))) {
       this.loadRepoInfo();
     } else { // from install wizard
       var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
