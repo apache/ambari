@@ -40,6 +40,7 @@ import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntity;
+import org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntityPK;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -61,7 +62,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class ConfigGroupImpl implements ConfigGroup {
   private static final Logger LOG = LoggerFactory.getLogger(ConfigGroupImpl.class);
-  //private final ReadWriteLock clusterGlobalLock;
   private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
   private Cluster cluster;
@@ -261,7 +261,33 @@ public class ConfigGroupImpl implements ConfigGroup {
 
   @Override
   @Transactional
+  public void removeHost(String hostname) throws AmbariException {
+    readWriteLock.writeLock().lock();
+    try {
+      if (hosts.containsKey(hostname)) {
+        LOG.info("Removing host from config group, hostname = " + hostname);
+        hosts.remove(hostname);
+        try {
+          ConfigGroupHostMappingEntityPK hostMappingEntityPK = new
+            ConfigGroupHostMappingEntityPK();
+          hostMappingEntityPK.setHostname(hostname);
+          hostMappingEntityPK.setConfigGroupId(configGroupEntity.getGroupId());
+          configGroupHostMappingDAO.removeByPK(hostMappingEntityPK);
+        } catch (Exception e) {
+          LOG.error("Failed to delete config group host mapping"
+            + ", clusterName = " + getClusterName()
+            + ", id = " + getId()
+            + ", hostname = " + hostname, e);
+          throw new AmbariException(e.getMessage());
+        }
+      }
+    } finally {
+      readWriteLock.writeLock().unlock();
+    }
+  }
 
+  @Override
+  @Transactional
   public void persist() {
     readWriteLock.writeLock().lock();
     try {

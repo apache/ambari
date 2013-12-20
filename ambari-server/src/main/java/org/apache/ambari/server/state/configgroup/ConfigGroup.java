@@ -147,4 +147,9 @@ public interface ConfigGroup {
    * @param configs
    */
   public void setConfigurations(Map<String, Config> configs);
+
+  /**
+   * Remove host mapping
+   */
+  public void removeHost(String hostname) throws AmbariException;
 }
