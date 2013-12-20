@@ -214,7 +214,7 @@ App.HostStatusView = Em.View.extend({
               var taskInfo = Ember.Object.create({});
               taskInfo.set('id', _task.Tasks.id);
               taskInfo.set('requestId', _task.Tasks.request_id);
-              taskInfo.set('command', _task.Tasks.command.toLowerCase());
+              taskInfo.set('command', _task.Tasks.command.toLowerCase() === 'service_check' ? '' : _task.Tasks.command.toLowerCase());
               taskInfo.set('status', App.format.taskStatus(_task.Tasks.status));
               taskInfo.set('role', App.format.role(_task.Tasks.role));
               taskInfo.set('stderr', _task.Tasks.stderr);
