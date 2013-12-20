@@ -123,8 +123,7 @@ App.MainDashboardServiceView = Em.View.extend({
   },
 
   criticalAlertsCount: function () {
-    var alerts = App.router.get('clusterController.alerts');
-    return alerts.filterProperty('serviceType', this.get('service.id')).filterProperty('isOk', false).filterProperty('ignoredForServices', false).length;
+    return App.router.get('clusterController.alertsServiceMap')[this.get('service.id')];
   }.property('App.router.clusterController.alerts'),
 
   isCollapsed: false,
