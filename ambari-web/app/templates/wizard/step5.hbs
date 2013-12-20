@@ -25,16 +25,16 @@
   {{/if}}
 </div>
 <div class="assign-masters row-fluid">
-  <div class="select-hosts span6">
+  <div class="select-hosts span7">
     <div class="row-fluid">
-      <div class="span12 control-group">
-        {{#if currentHostId}}
+      {{#if currentHostId}}
+        <div class="span12 control-group mlc">
           <div class="row-fluid">
             <div class="span4"><span class="pull-right control-label">{{t services.reassign.step2.currentHost}}</span></div>
             <div class="span8"><span>{{currentHostId}}</span></div>
           </div>
-        {{/if}}
-      </div>
+        </div>
+      {{/if}}
       <div class="clearfix"></div>
       <div class="row-fluid">
         <div class="span12 control-group">
@@ -82,7 +82,7 @@
     </div>
   </div>
 
-  <div class="host-assignments span6">
+  <div class="host-assignments span5">
     {{#each masterHostMapping}}
     <div class="mapping-box round-corners well">
       <div class="hostString"><span>{{hostInfo}}</span></div>
