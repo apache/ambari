@@ -36,7 +36,6 @@ App.MainHostView = App.TableView.extend({
     Em.run.next(function() {
       if (self.get('controller.clearFilters')) {
         self.clearFilters();
-        self.clearDisplayLength();
         self.clearStartIndex();
       }
     });

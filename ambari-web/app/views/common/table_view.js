@@ -32,7 +32,7 @@ App.TableView = Em.View.extend({
    */
   startIndexOnLoad: null,
   /**
-   * Loaded from local storage displayLength value
+   * Loaded from server persist value
    */
   displayLengthOnLoad: null,
 
@@ -44,7 +44,9 @@ App.TableView = Em.View.extend({
     var name = this.get('controller.name');
 
     this.set('startIndexOnLoad', App.db.getStartIndex(name));
-    this.set('displayLengthOnLoad', App.db.getDisplayLength(name));
+    self.dataLoading().done(function (initValue) {
+      self.set('displayLength', initValue);
+    });
 
     var filterConditions = App.db.getFilterConditions(name);
     if (filterConditions) {
@@ -73,6 +75,75 @@ App.TableView = Em.View.extend({
   },
 
   /**
+   * Load user preference value on hosts page from server
+   */
+  dataLoading: function () {
+    var dfd = $.Deferred();
+    var self = this;
+    this.getUserPref(this.displayLengthKey()).done(function () {
+      var curLength = self.get('displayLengthOnLoad');
+      self.set('displayLengthOnLoad', null);
+      dfd.resolve(curLength);
+    });
+    return dfd.promise();
+  },
+  displayLengthKey: function (loginName) {
+    if (!loginName)
+      loginName = App.router.get('loginName');
+    return 'hosts-pagination-displayLength-' + loginName;
+  },
+
+  /**
+   * get display length persist value from server with displayLengthKey
+   */
+  getUserPref: function(key){
+    return App.ajax.send({
+      name: 'settings.get.user_pref',
+      sender: this,
+      data: {
+        key: key
+      },
+      success: 'getDisplayLengthSuccessCallback',
+      error: 'getDisplayLengthErrorCallback'
+    });
+  },
+  getDisplayLengthSuccessCallback: function (response, request, data) {
+    if (response != null) {
+      console.log('Got DisplayLength value from server with key ' + data.key + '. Value is: ' + response);
+      this.set('displayLengthOnLoad', response);
+      return response;
+    }
+  },
+  getDisplayLengthErrorCallback: function (request, ajaxOptions, error) {
+    // this user is first time login
+    if (request.status == 404) {
+      console.log('Persist did NOT find the key');
+      var displayLengthDefault = 10;
+      this.set('displayLengthOnLoad', displayLengthDefault);
+      this.postUserPref(this.displayLengthKey(), displayLengthDefault);
+      return displayLengthDefault;
+    }
+  },
+  /**
+   * post display length persist key/value to server, value is object
+   */
+  postUserPref: function (key, value) {
+    var keyValuePair = {};
+    keyValuePair[key] = JSON.stringify(value);
+    App.ajax.send({
+      'name': 'settings.post.user_pref',
+      'sender': this,
+      'beforeSend': 'postUserPrefBeforeSend',
+      'data': {
+        'keyValuePair': keyValuePair
+      }
+    });
+  },
+  postUserPrefBeforeSend: function(request, ajaxOptions, data){
+    console.log('BeforeSend to persist: persistKeyValues', data.keyValuePair);
+  },
+
+  /**
    * Do pagination after filtering and sorting
    * Don't call this method! It's already used where it's need
    */
@@ -80,9 +151,6 @@ App.TableView = Em.View.extend({
     var self = this;
     Em.run.next(function() {
       Em.run.next(function() {
-        if (self.get('displayLengthOnLoad')) {
-          self.set('displayLength', self.get('displayLengthOnLoad'));
-        }
         if(self.get('startIndexOnLoad')) {
           self.set('startIndex', self.get('startIndexOnLoad'));
         }
@@ -209,7 +277,11 @@ App.TableView = Em.View.extend({
   saveDisplayLength: function() {
     var self = this;
     Em.run.next(function() {
-      App.db.setDisplayLength(self.get('controller.name'), self.get('displayLength'));
+      //App.db.setDisplayLength(self.get('controller.name'), self.get('displayLength'));
+      var key = self.displayLengthKey();
+      if (!App.testMode) {
+        self.postUserPref(key, self.get('displayLength'));
+      }
     });
   }.observes('displayLength'),
 
@@ -221,10 +293,6 @@ App.TableView = Em.View.extend({
 
   clearFilterCondition: function() {
     App.db.setFilterConditions(this.get('controller.name'), null);
-  },
-
-  clearDisplayLength: function() {
-    App.db.setDisplayLength(this.get('controller.name'), null);
   },
 
   clearStartIndex: function() {
