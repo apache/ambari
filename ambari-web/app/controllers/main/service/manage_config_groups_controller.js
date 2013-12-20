@@ -467,16 +467,26 @@ App.ManageConfigGroupsController = Em.Controller.extend({
    */
   copyConfigGroups: function (originGroups) {
     var configGroups = [];
-    var defaultConfigGroup = App.ConfigGroup.create($.extend(false, {},originGroups.findProperty('isDefault')));
+    var result = [];
+    var defaultConfigGroup = App.ConfigGroup.create($.extend(true, {}, originGroups.findProperty('isDefault')));
     originGroups.forEach(function (configGroup) {
       if (!configGroup.get('isDefault')) {
-        var copiedGroup = App.ConfigGroup.create($.extend(false, {}, configGroup));
+        var copiedGroup = App.ConfigGroup.create($.extend(true, {}, configGroup));
         copiedGroup.set('parentConfigGroup', defaultConfigGroup);
         configGroups.pushObject(copiedGroup);
       }
     });
     defaultConfigGroup.set('childConfigGroups', configGroups.slice());
     configGroups.pushObject(defaultConfigGroup);
-    return configGroups;
+    configGroups.forEach(function (group) {
+      var groupCopy = {};
+      for (var prop in group) {
+        if (group.hasOwnProperty(prop)) {
+          groupCopy[prop] = group[prop];
+        }
+      }
+      result.push(App.ConfigGroup.create(groupCopy));
+    }, this);
+    return result;
   }
 });
