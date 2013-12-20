@@ -32,4 +32,8 @@
         </component>
     </components>
 
+  <configuration-dependencies>
+    <config-type>global</config-type>
+  </configuration-dependencies>
+
 </metainfo>
