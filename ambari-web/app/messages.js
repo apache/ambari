@@ -1116,7 +1116,7 @@ Em.I18n.translations = {
   'services.service.config.saved':'Saved Configuration Changes',
   'services.service.config.notSaved':'Unable to Save Configuration Changes',
   'services.service.config.restartService.TooltipMessage':'<b>Restart Service</b><br>Stale configuration used by {0} components on {1} hosts:{2}',
-  'services.service.config.restartService.needToRestart':'<strong>Restart Required.</strong> ',
+  'services.service.config.restartService.needToRestart':'<strong>Restart Required:</strong> ',
   'services.service.config.restartService.needToRestartEnd':'should be restarted',
   'service.service.config.restartService.shouldBeRestarted':'{0} Requiring Restart',
   'services.service.config.saved.message':'Service configuration changes saved successfully.',
