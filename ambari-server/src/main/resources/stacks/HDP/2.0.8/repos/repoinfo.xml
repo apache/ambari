@@ -18,57 +18,57 @@
 <reposinfo>
   <os type="centos6">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-2.0.8.0/repos/centos6</baseurl>
-      <repoid>HDP-2.0._</repoid>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0</baseurl>
+      <repoid>HDP-2.0.8</repoid>
       <reponame>HDP</reponame>
     </repo>
   </os>
   <os type="centos5">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-2.0.8.0/repos/centos5</baseurl>
-      <repoid>HDP-2.0._</repoid>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.6.0</baseurl>
+      <repoid>HDP-2.0.8</repoid>
       <reponame>HDP</reponame>
     </repo>
   </os>
   <os type="redhat6">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-2.0.8.0/repos/centos6</baseurl>
-      <repoid>HDP-2.0._</repoid>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0</baseurl>
+      <repoid>HDP-2.0.8</repoid>
       <reponame>HDP</reponame>
     </repo>
   </os>
   <os type="redhat5">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-2.0.8.0/repos/centos5</baseurl>
-      <repoid>HDP-2.0._</repoid>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.6.0</baseurl>
+      <repoid>HDP-2.0.8</repoid>
       <reponame>HDP</reponame>
     </repo>
   </os>
-   <os type="oraclelinux6">
+  <os type="oraclelinux6">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-2.0.8.0/repos/centos6</baseurl>
-      <repoid>HDP-2.0._</repoid>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0</baseurl>
+      <repoid>HDP-2.0.8</repoid>
       <reponame>HDP</reponame>
     </repo>
   </os>
   <os type="oraclelinux5">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-2.0.8.0/repos/centos5</baseurl>
-      <repoid>HDP-2.0._</repoid>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/centos5/2.x/updates/2.0.6.0</baseurl>
+      <repoid>HDP-2.0.8</repoid>
       <reponame>HDP</reponame>
     </repo>
   </os>
   <os type="suse11">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-2.0.8.0/repos/suse11</baseurl>
-      <repoid>HDP-2.0._</repoid>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.0.6.0</baseurl>
+      <repoid>HDP-2.0.8</repoid>
       <reponame>HDP</reponame>
     </repo>
   </os>
   <os type="sles11">
     <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-2.0.8.0/repos/suse11</baseurl>
-      <repoid>HDP-2.0._</repoid>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP/suse11/2.x/updates/2.0.6.0</baseurl>
+      <repoid>HDP-2.0.8</repoid>
       <reponame>HDP</reponame>
     </repo>
   </os>

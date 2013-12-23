@@ -188,7 +188,7 @@ class Controller(threading.Thread):
         if 'executionCommands' in response.keys():
           self.addToQueue(response['executionCommands'])
           pass
-        if 'statusCommands' in response.keys():
+        if 'statusCommands' in response.keys() and self.actionQueue.empty():
           self.addToQueue(response['statusCommands'])
           pass
         if "true" == response['restartAgent']:

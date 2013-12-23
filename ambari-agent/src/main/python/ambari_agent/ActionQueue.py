@@ -85,6 +85,9 @@ class ActionQueue(threading.Thread):
       logger.debug(pprint.pformat(command))
       self.commandQueue.put(command)
 
+  def empty(self):
+    return self.commandQueue.empty()
+
 
   def run(self):
     while not self.stopped():
