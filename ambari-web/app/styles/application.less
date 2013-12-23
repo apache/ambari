@@ -3258,8 +3258,6 @@ background: url(	data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByU
 
 .assign-masters {
   .select-hosts {
-    width: 50%;
-    float: left;
     white-space: nowrap;
   }
 
@@ -3271,11 +3269,6 @@ background: url(	data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAATCAYAAAByU
     border-radius: 8px;
     -webkit-border-radius: 8px;
     -moz-border-radius: 8px;
-  }
-
-  .host-assignments {
-    float: right;
-    width: 45%;
   }
 
   .remaining-hosts {
@@ -4256,6 +4249,16 @@ ul.inline li {
   }
   .summary-width {
     width:757px!important
+  }
+
+  .assign-masters {
+    .host-assignments {
+      margin-left: 0;
+      width: 32%;
+    }
+    .select-hosts {
+      width: 68%;
+    }
   }
 }
 
