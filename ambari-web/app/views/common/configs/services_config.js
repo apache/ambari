@@ -398,7 +398,7 @@ App.ServiceConfigsByCategoryView = Ember.View.extend({
   }.property('category.canAddProperty', 'filteredCategoryConfigs.length'),
 
   didInsertElement: function () {
-    var isCollapsed = (this.get('category.name').indexOf('Advanced') != -1);
+    var isCollapsed = (this.get('category.name').indexOf('Advanced') != -1 || this.get('category.name').indexOf('CapacityScheduler') != -1);
     var self = this;
     this.set('category.isCollapsed', isCollapsed);
     if (isCollapsed) {
