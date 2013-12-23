@@ -38,7 +38,9 @@ App.WizardStep8Controller = Em.Controller.extend({
   hasErrorOccurred: false,
   servicesInstalled: false,
   serviceConfigTags: [],
-  securityEnabled: false,
+  securityEnabled: function() {
+    return App.router.get('mainAdminSecurityController.securityEnabled');
+  }.property('App.router.mainAdminSecurityController.securityEnabled'),
   /**
    * During page save time, we set the host overrides to the server.
    * The new host -> site:tag map is stored below. This will be
@@ -79,7 +81,7 @@ App.WizardStep8Controller = Em.Controller.extend({
   loadStep: function () {
     console.log("TRACE: Loading step8: Review Page");
     if (this.get('content.controllerName') != 'installerController') {
-      this.set('securityEnabled', App.router.get('mainAdminSecurityController').getUpdatedSecurityStatus());
+      App.router.get('mainAdminSecurityController').setSecurityStatus();
     }
     this.clearStep();
     this.formatProperties();
