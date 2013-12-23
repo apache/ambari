@@ -274,6 +274,19 @@ App.config = Em.Object.create({
           }
           serviceConfigObj.displayName = configsPropertyDef ? configsPropertyDef.displayName : index;
           this.calculateConfigProperties(serviceConfigObj, isAdvanced, advancedConfigs);
+          if(serviceConfigObj.get('displayType') == 'directories'
+            && (serviceConfigObj.get('category') == 'DataNode'
+            || serviceConfigObj.get('category') == 'NameNode')) {
+            var dirs = serviceConfigObj.get('value').split(',').sort();
+            serviceConfigObj.set('value', dirs.join(','));
+            serviceConfigObj.set('defaultValue', dirs.join(','));
+          }
+          if(serviceConfigObj.get('displayType') == 'directory'
+            && serviceConfigObj.get('category') == 'SNameNode') {
+            var dirs = serviceConfigObj.get('value').split(',').sort();
+            serviceConfigObj.set('value', dirs[0]);
+            serviceConfigObj.set('defaultValue', dirs[0]);
+          }
           configs.push(serviceConfigObj);
         } else {
           mappingConfigs.push(serviceConfigObj);
