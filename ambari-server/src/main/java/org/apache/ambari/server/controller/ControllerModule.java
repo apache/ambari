@@ -32,6 +32,8 @@ import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.PersistenceType;
+import org.apache.ambari.server.scheduler.ExecutionScheduler;
+import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.serveraction.ServerActionManager;
 import org.apache.ambari.server.serveraction.ServerActionManagerImpl;
 import org.apache.ambari.server.state.Cluster;
@@ -56,6 +58,9 @@ import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroupImpl;
 import org.apache.ambari.server.state.host.HostFactory;
 import org.apache.ambari.server.state.host.HostImpl;
+import org.apache.ambari.server.state.scheduler.RequestExecution;
+import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
+import org.apache.ambari.server.state.scheduler.RequestExecutionImpl;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.StandardPasswordEncoder;
@@ -112,6 +117,7 @@ public class ControllerModule extends AbstractModule {
         .to(AmbariManagementControllerImpl.class);
     bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
     bind(ServerActionManager.class).to(ServerActionManagerImpl.class);
+    bind(ExecutionScheduler.class).to(ExecutionSchedulerImpl.class);
 
     requestStaticInjection(ExecutionCommandWrapper.class);
   }
@@ -189,6 +195,8 @@ public class ControllerModule extends AbstractModule {
         Config.class, ConfigImpl.class).build(ConfigFactory.class));
     install(new FactoryModuleBuilder().implement(
       ConfigGroup.class, ConfigGroupImpl.class).build(ConfigGroupFactory.class));
+    install(new FactoryModuleBuilder().implement(RequestExecution.class,
+      RequestExecutionImpl.class).build(RequestExecutionFactory.class));
     install(new FactoryModuleBuilder().build(StageFactory.class));
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
   }

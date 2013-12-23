@@ -110,11 +110,11 @@ GRANT ALL PRIVILEGES ON TABLE ambari.configgrouphostmapping TO :username;
 CREATE TABLE ambari.action (action_name VARCHAR(255) NOT NULL, action_type VARCHAR(32) NOT NULL, inputs VARCHAR(1000), target_service VARCHAR(255), target_component VARCHAR(255), default_timeout SMALLINT NOT NULL, description VARCHAR(1000), target_type VARCHAR(32), PRIMARY KEY (action_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.action TO :username;
 
-CREATE TABLE ambari.requestschedule (schedule_id bigint, cluster_id BIGINT NOT NULL, request_context varchar(255), status varchar(255), target_type varchar(255), target_name varchar(255) NOT NULL, target_service varchar(255) NOT NULL, target_component varchar(255), batch_requests_by_host boolean, batch_host_count smallint, batch_separation_minutes smallint, batch_toleration_limit smallint, create_user varchar(255), create_timestamp bigint, update_user varchar(255), update_timestamp bigint, minutes varchar(10), hours varchar(10), days_of_month varchar(10), month varchar(10), day_of_week varchar(10), yearToSchedule varchar(10), startTime bigint, endTime bigint, last_execution_status varchar(255), PRIMARY KEY(schedule_id));
+CREATE TABLE ambari.requestschedule (schedule_id bigint, cluster_id bigint NOT NULL, description varchar(255), status varchar(255), batch_separation_minutes smallint, batch_toleration_limit smallint, create_user varchar(255), create_timestamp bigint, update_user varchar(255), update_timestamp bigint, minutes varchar(10), hours varchar(10), days_of_month varchar(10), month varchar(10), day_of_week varchar(10), yearToSchedule varchar(10), startTime varchar(50), endTime varchar(50), last_execution_status varchar(255), PRIMARY KEY(schedule_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.requestschedule TO :username;
 
-CREATE TABLE ambari.requestschedulebatchhost (schedule_id bigint, batch_id bigint, host_name varchar(255), batch_name varchar(255), PRIMARY KEY(schedule_id, batch_id, host_name));
-GRANT ALL PRIVILEGES ON TABLE ambari.requestschedulebatchhost TO :username;
+CREATE TABLE ambari.requestschedulebatchrequest (schedule_id bigint, batch_id bigint, request_id bigint, request_type varchar(255), request_uri varchar(1024), request_body varchar(4000), request_status varchar(255), return_code smallint, return_message varchar(255), PRIMARY KEY(schedule_id, batch_id));
+GRANT ALL PRIVILEGES ON TABLE ambari.requestschedulebatchrequest TO :username;
 
 --------altering tables by creating foreign keys----------
 ALTER TABLE ambari.clusterconfig ADD CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
@@ -144,8 +144,7 @@ ALTER TABLE ambari.confgroupclusterconfigmapping ADD CONSTRAINT FK_confgroupclus
 ALTER TABLE ambari.confgroupclusterconfigmapping ADD CONSTRAINT FK_confgroupclusterconfigmapping_group_id FOREIGN KEY (config_group_id) REFERENCES ambari.configgroup (group_id);
 ALTER TABLE ambari.configgrouphostmapping ADD CONSTRAINT FK_configgrouphostmapping_configgroup_id FOREIGN KEY (config_group_id) REFERENCES ambari.configgroup (group_id);
 ALTER TABLE ambari.configgrouphostmapping ADD CONSTRAINT FK_configgrouphostmapping_host_name FOREIGN KEY (host_name) REFERENCES ambari.hosts (host_name);
-ALTER TABLE ambari.requestschedulebatchhost ADD CONSTRAINT FK_requestschedulebatchhost_host_name FOREIGN KEY (host_name) REFERENCES ambari.hosts (host_name);
-ALTER TABLE ambari.requestschedulebatchhost ADD CONSTRAINT FK_requestschedulebatchhost_schedule FOREIGN KEY (schedule_id) REFERENCES ambari.requestschedule (schedule_id);
+ALTER TABLE ambari.requestschedulebatchrequest ADD CONSTRAINT FK_requestschedulebatchrequest_schedule_id FOREIGN KEY (schedule_id) REFERENCES ambari.requestschedule (schedule_id);
 
 ---------inserting some data-----------
 BEGIN;

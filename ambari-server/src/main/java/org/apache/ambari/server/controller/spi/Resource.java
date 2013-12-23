@@ -79,6 +79,7 @@ public interface Resource {
     ConfigGroup,
     Action,
     Request,
+    RequestSchedule,
     Task,
     User,
     Stack,

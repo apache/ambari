@@ -126,6 +126,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
         return new RootServiceHostComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
       case ConfigGroup:
         return new ConfigGroupResourceProvider(propertyIds, keyPropertyIds, managementController);
+      case RequestSchedule:
+        return new RequestScheduleResourceProvider(propertyIds, keyPropertyIds, managementController);
       default:
         throw new IllegalArgumentException("Unknown type " + type);
     }

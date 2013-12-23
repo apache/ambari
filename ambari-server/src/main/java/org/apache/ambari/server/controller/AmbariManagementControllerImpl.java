@@ -61,6 +61,7 @@ import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
+import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostMaintenanceEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostRestoreEvent;
@@ -130,6 +131,8 @@ public class AmbariManagementControllerImpl implements
   private ConfigGroupFactory configGroupFactory;
   @Inject
   private ConfigHelper configHelper;
+  @Inject
+  private RequestExecutionFactory requestExecutionFactory;
 
   final private String masterHostname;
   final private Integer masterPort;
@@ -1004,6 +1007,11 @@ public class AmbariManagementControllerImpl implements
           Cluster cluster, String hostName) throws AmbariException {
 
     return configHelper.getEffectiveDesiredTags(cluster, hostName);
+  }
+
+  @Override
+  public RequestExecutionFactory getRequestExecutionFactory() {
+    return requestExecutionFactory;
   }
 
   private List<Stage> doStageCreation(Cluster cluster,

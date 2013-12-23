@@ -26,6 +26,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
+import org.apache.ambari.server.state.scheduler.RequestExecution;
 
 public interface Cluster {
 
@@ -255,4 +256,24 @@ public interface Cluster {
    * @return Map of config group id to config group
    */
   public Map<Long, ConfigGroup> getConfigGroupsByHostname(String hostname) throws AmbariException;
+
+  /**
+   * Add a @RequestExecution to the cluster
+   * @param requestExecution
+   * @throws AmbariException
+   */
+  public void addRequestExecution(RequestExecution requestExecution) throws AmbariException;
+
+  /**
+   * Get all @RequestExecution objects associated with the cluster
+   * @return
+   */
+  public Map<Long, RequestExecution> getAllRequestExecutions();
+
+  /**
+   * Delete a @RequestExecution associated with the cluster
+   * @param id
+   * @throws AmbariException
+   */
+  public void deleteRequestExecution(Long id) throws AmbariException;
 }

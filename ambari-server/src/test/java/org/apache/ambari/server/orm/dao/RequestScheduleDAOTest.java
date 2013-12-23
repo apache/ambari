@@ -26,8 +26,9 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.RequestScheduleBatchHostEntity;
+import org.apache.ambari.server.orm.entities.RequestScheduleBatchRequestEntity;
 import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
+import org.apache.ambari.server.state.scheduler.BatchRequest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,7 +40,10 @@ public class RequestScheduleDAOTest {
   private HostDAO hostDAO;
   private ClusterDAO clusterDAO;
   private RequestScheduleDAO requestScheduleDAO;
-  private RequestScheduleBatchHostDAO batchHostDAO;
+  private RequestScheduleBatchRequestDAO batchRequestDAO;
+  private String testUri = "http://localhost/blah";
+  private String testBody = "ValidJson";
+  private String testType = BatchRequest.Type.POST.name();
 
   @Before
   public void setup() throws Exception {
@@ -50,7 +54,7 @@ public class RequestScheduleDAOTest {
     hostDAO = injector.getInstance(HostDAO.class);
     clusterDAO = injector.getInstance(ClusterDAO.class);
     requestScheduleDAO = injector.getInstance(RequestScheduleDAO.class);
-    batchHostDAO = injector.getInstance(RequestScheduleBatchHostDAO.class);
+    batchRequestDAO = injector.getInstance(RequestScheduleBatchRequestDAO.class);
   }
 
   @After
@@ -67,13 +71,7 @@ public class RequestScheduleDAOTest {
 
     scheduleEntity.setClusterEntity(clusterEntity);
     scheduleEntity.setClusterId(clusterEntity.getClusterId());
-    scheduleEntity.setRequestContext("Test");
     scheduleEntity.setStatus("SCHEDULED");
-    scheduleEntity.setTargetType("ACTION");
-    scheduleEntity.setTargetName("REBALANCE");
-    scheduleEntity.setTargetService("HDFS");
-    scheduleEntity.setTargetComponent("DATANODE");
-    scheduleEntity.setBatchRequestByHost(false);
     scheduleEntity.setMinutes("30");
     scheduleEntity.setHours("12");
     scheduleEntity.setDayOfWeek("*");
@@ -87,17 +85,21 @@ public class RequestScheduleDAOTest {
     hostEntity.setOsType("centOS");
     hostDAO.create(hostEntity);
 
-    RequestScheduleBatchHostEntity batchHostEntity = new
-      RequestScheduleBatchHostEntity();
+    RequestScheduleBatchRequestEntity batchRequestEntity = new
+      RequestScheduleBatchRequestEntity();
 
-    batchHostEntity.setBatchId(1L);
-    batchHostEntity.setScheduleId(scheduleEntity.getScheduleId());
-    batchHostEntity.setRequestScheduleEntity(scheduleEntity);
-    batchHostEntity.setHostName(hostEntity.getHostName());
-    batchHostEntity.setRequestScheduleEntity(scheduleEntity);
-    batchHostDAO.create(batchHostEntity);
+    batchRequestEntity.setBatchId(1L);
+    batchRequestEntity.setScheduleId(scheduleEntity.getScheduleId());
+    batchRequestEntity.setRequestScheduleEntity(scheduleEntity);
+    batchRequestEntity.setRequestScheduleEntity(scheduleEntity);
+    batchRequestEntity.setRequestType(testType);
+    batchRequestEntity.setRequestUri(testUri);
+    batchRequestEntity.setRequestBody(testBody);
 
-    scheduleEntity.getRequestScheduleBatchHostEntities().add(batchHostEntity);
+    batchRequestDAO.create(batchRequestEntity);
+
+    scheduleEntity.getRequestScheduleBatchRequestEntities().add
+      (batchRequestEntity);
     scheduleEntity = requestScheduleDAO.merge(scheduleEntity);
 
     return scheduleEntity;
@@ -109,12 +111,13 @@ public class RequestScheduleDAOTest {
 
     Assert.assertTrue(scheduleEntity.getScheduleId() > 0);
     Assert.assertEquals("SCHEDULED", scheduleEntity.getStatus());
-    Assert.assertEquals("REBALANCE", scheduleEntity.getTargetName());
-    Assert.assertEquals("HDFS", scheduleEntity.getTargetService());
-    Assert.assertEquals(false, scheduleEntity.getIsBatchRequestByHost());
     Assert.assertEquals("12", scheduleEntity.getHours());
-    Assert.assertEquals("h1", scheduleEntity
-      .getRequestScheduleBatchHostEntities().iterator().next().getHostName());
+    RequestScheduleBatchRequestEntity batchRequestEntity = scheduleEntity
+      .getRequestScheduleBatchRequestEntities().iterator().next();
+    Assert.assertNotNull(batchRequestEntity);
+    Assert.assertEquals(testUri, batchRequestEntity.getRequestUri());
+    Assert.assertEquals(testType, batchRequestEntity.getRequestType());
+    Assert.assertEquals(testBody, batchRequestEntity.getRequestBody());
   }
 
   @Test

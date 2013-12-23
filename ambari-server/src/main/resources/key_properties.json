@@ -102,5 +102,9 @@
   "ConfigGroup": {
     "Cluster": "ConfigGroup/cluster_name",
     "ConfigGroup": "ConfigGroup/id"
+  },
+  "RequestSchedule" : {
+    "Cluster": "RequestSchedule/cluster_name",
+    "RequestSchedule": "RequestSchedule/id"
   }
 }

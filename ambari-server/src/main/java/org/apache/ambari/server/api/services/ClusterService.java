@@ -200,6 +200,15 @@ public class ClusterService extends BaseService {
   }
 
   /**
+   * Gets the request schedule service
+   */
+  @Path("{clusterName}/request_schedules")
+  public RequestScheduleService getRequestScheduleService
+                             (@PathParam ("clusterName") String clusterName) {
+    return new RequestScheduleService(clusterName);
+  }
+
+  /**
    * Create a cluster resource instance.
    *
    * @param clusterName cluster name

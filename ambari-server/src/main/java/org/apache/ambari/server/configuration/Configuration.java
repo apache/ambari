@@ -262,6 +262,18 @@ public class Configuration {
    */
   private static final String REPO_SUFFIX_DEFAULT = "/repodata/repomd.xml";
 
+  public static final String EXECUTION_SCHEDULER_CLUSTERED =
+    "server.execution.scheduler.isClustered";
+  public static final String EXECUTION_SCHEDULER_THREADS =
+    "server.execution.scheduler.maxThreads";
+  public static final String EXECUTION_SCHEDULER_CONNECTIONS =
+    "server.execution.scheduler.maxDbConnections";
+  public static final String EXECUTION_SCHEDULER_MISFIRE_TOLERATION =
+    "server.execution.scheduler.misfire.toleration.minutes";
+  public static final String DEFAULT_SCHEDULER_THREAD_COUNT = "5";
+  public static final String DEFAULT_SCHEDULER_MAX_CONNECTIONS = "5";
+  public static final String DEFAULT_EXECUTION_SCHEDULER_MISFIRE_TOLERATION = "480";
+
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
 
@@ -590,11 +602,11 @@ public class Configuration {
   }
 
   public String getDatabaseDriver() {
-    return properties.getProperty(SERVER_JDBC_DRIVER_KEY);
+    return properties.getProperty(SERVER_JDBC_DRIVER_KEY, JDBC_LOCAL_DRIVER);
   }
 
   public String getDatabaseUrl() {
-    return properties.getProperty(SERVER_JDBC_URL_KEY);
+    return properties.getProperty(SERVER_JDBC_URL_KEY, getLocalDatabaseUrl());
   }
 
   public String getLocalDatabaseUrl() {
@@ -602,7 +614,7 @@ public class Configuration {
     if(dbName == null || dbName.isEmpty())
       throw new RuntimeException("Server DB Name is not configured!");
 
-    return JDBC_LOCAL_URL + properties.getProperty(SERVER_DB_NAME_KEY);
+    return JDBC_LOCAL_URL + dbName;
   }
 
   public String getDatabaseUser() {
@@ -611,7 +623,10 @@ public class Configuration {
 
   public String getDatabasePassword() {
     String passwdProp = properties.getProperty(SERVER_JDBC_USER_PASSWD_KEY);
-    String dbpasswd = readPasswordFromStore(passwdProp);
+    String dbpasswd = null;
+    if (CredentialProvider.isAliasString(passwdProp)) {
+      dbpasswd = readPasswordFromStore(passwdProp);
+    }
 
     if (dbpasswd != null)
       return dbpasswd;
@@ -849,5 +864,26 @@ public class Configuration {
         REPO_SUFFIX_DEFAULT);
     
     return value.split(",");
+  }
+
+  public String isExecutionSchedulerClusterd() {
+    return properties.getProperty(EXECUTION_SCHEDULER_CLUSTERED, "false");
+  }
+
+  public String getExecutionSchedulerThreads() {
+    return properties.getProperty(EXECUTION_SCHEDULER_THREADS,
+      DEFAULT_SCHEDULER_THREAD_COUNT);
+  }
+
+  public String getExecutionSchedulerConnections() {
+    return properties.getProperty(EXECUTION_SCHEDULER_CONNECTIONS,
+      DEFAULT_SCHEDULER_MAX_CONNECTIONS);
+  }
+
+  public Long getExecutionSchedulerMisfireToleration() {
+    String limit = properties.getProperty
+      (EXECUTION_SCHEDULER_MISFIRE_TOLERATION,
+        DEFAULT_EXECUTION_SCHEDULER_MISFIRE_TOLERATION);
+    return Long.parseLong(limit);
   }
 }

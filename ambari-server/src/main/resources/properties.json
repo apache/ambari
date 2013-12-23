@@ -105,6 +105,15 @@
         "Requests/progress_percent",
         "_"
     ],
+    "RequestSchedule" : [
+        "RequestSchedule/id",
+        "RequestSchedule/cluster_name",
+        "RequestSchedule/description",
+        "RequestSchedule/status",
+        "RequestSchedule/batch",
+        "RequestSchedule/schedule",
+        "_"
+    ],
     "Task":[
         "Tasks/id",
         "Tasks/request_id",

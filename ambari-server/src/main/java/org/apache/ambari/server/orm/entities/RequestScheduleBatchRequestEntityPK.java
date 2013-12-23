@@ -17,15 +17,13 @@
  */
 package org.apache.ambari.server.orm.entities;
 
-
 import javax.persistence.Column;
 import javax.persistence.Id;
 import java.io.Serializable;
 
-public class RequestScheduleBatchHostEntityPK implements Serializable {
+public class RequestScheduleBatchRequestEntityPK implements Serializable {
   private Long scheduleId;
-  private Long  batchId;
-  private String hostName;
+  private Long batchId;
 
   @Id
   @Column(name = "schedule_id", nullable = false, insertable = true, updatable = true)
@@ -47,25 +45,14 @@ public class RequestScheduleBatchHostEntityPK implements Serializable {
     this.batchId = batchId;
   }
 
-  @Id
-  @Column(name = "host_name", nullable = false, insertable = true, updatable = true)
-  public String getHostName() {
-    return hostName;
-  }
-
-  public void setHostName(String hostName) {
-    this.hostName = hostName;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    RequestScheduleBatchHostEntityPK that = (RequestScheduleBatchHostEntityPK) o;
+    RequestScheduleBatchRequestEntityPK that = (RequestScheduleBatchRequestEntityPK) o;
 
     if (!batchId.equals(that.batchId)) return false;
-    if (!hostName.equals(that.hostName)) return false;
     if (!scheduleId.equals(that.scheduleId)) return false;
 
     return true;
@@ -75,7 +62,6 @@ public class RequestScheduleBatchHostEntityPK implements Serializable {
   public int hashCode() {
     int result = scheduleId.hashCode();
     result = 31 * result + batchId.hashCode();
-    result = 31 * result + hostName.hashCode();
     return result;
   }
 }

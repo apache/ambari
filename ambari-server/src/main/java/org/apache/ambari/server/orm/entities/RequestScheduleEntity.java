@@ -50,29 +50,11 @@ public class RequestScheduleEntity {
   @Column(name = "cluster_id", insertable = false, updatable = false, nullable = false)
   private Long clusterId;
 
-  @Column(name = "request_context")
-  private String requestContext;
+  @Column(name = "description")
+  private String description;
 
   @Column(name = "status")
   private String status;
-
-  @Column(name = "target_type")
-  private String targetType;
-
-  @Column(name = "target_name")
-  private String targetName;
-
-  @Column(name = "target_service")
-  private String targetService;
-
-  @Column(name = "target_component")
-  private String targetComponent;
-
-  @Column(name = "batch_requests_by_host")
-  private boolean batchRequestByHost;
-
-  @Column(name = "batch_host_count")
-  private Integer batchHostCount;
 
   @Column(name = "batch_separation_minutes")
   private Integer batchSeparationInMinutes;
@@ -111,10 +93,10 @@ public class RequestScheduleEntity {
   private String year;
 
   @Column(name = "starttime")
-  private Long startTime;
+  private String startTime;
 
   @Column(name = "endtime")
-  private Long endTime;
+  private String endTime;
 
   @Column(name = "last_execution_status")
   private String lastExecutionStatus;
@@ -124,7 +106,8 @@ public class RequestScheduleEntity {
   private ClusterEntity clusterEntity;
 
   @OneToMany(mappedBy = "requestScheduleEntity", cascade = CascadeType.ALL)
-  private Collection<RequestScheduleBatchHostEntity> requestScheduleBatchHostEntities;
+  private Collection<RequestScheduleBatchRequestEntity>
+    requestScheduleBatchRequestEntities;
 
   public long getScheduleId() {
     return scheduleId;
@@ -142,12 +125,12 @@ public class RequestScheduleEntity {
     this.clusterId = clusterId;
   }
 
-  public String getRequestContext() {
-    return requestContext;
+  public String getDescription() {
+    return description;
   }
 
-  public void setRequestContext(String request_context) {
-    this.requestContext = request_context;
+  public void setDescription(String description) {
+    this.description = description;
   }
 
   public String getStatus() {
@@ -156,54 +139,6 @@ public class RequestScheduleEntity {
 
   public void setStatus(String status) {
     this.status = status;
-  }
-
-  public String getTargetType() {
-    return targetType;
-  }
-
-  public void setTargetType(String targetType) {
-    this.targetType = targetType;
-  }
-
-  public String getTargetName() {
-    return targetName;
-  }
-
-  public void setTargetName(String targetName) {
-    this.targetName = targetName;
-  }
-
-  public String getTargetService() {
-    return targetService;
-  }
-
-  public void setTargetService(String targetService) {
-    this.targetService = targetService;
-  }
-
-  public String getTargetComponent() {
-    return targetComponent;
-  }
-
-  public void setTargetComponent(String targetComponent) {
-    this.targetComponent = targetComponent;
-  }
-
-  public boolean getIsBatchRequestByHost() {
-    return batchRequestByHost;
-  }
-
-  public void setBatchRequestByHost(boolean batchRequestByHost) {
-    this.batchRequestByHost = batchRequestByHost;
-  }
-
-  public Integer getBatchHostCount() {
-    return batchHostCount;
-  }
-
-  public void setBatchHostCount(Integer batchHostCount) {
-    this.batchHostCount = batchHostCount;
   }
 
   public Integer getBatchSeparationInMinutes() {
@@ -302,19 +237,19 @@ public class RequestScheduleEntity {
     this.year = year;
   }
 
-  public Long getStartTime() {
+  public String getStartTime() {
     return startTime;
   }
 
-  public void setStartTime(Long startTime) {
+  public void setStartTime(String startTime) {
     this.startTime = startTime;
   }
 
-  public Long getEndTime() {
+  public String getEndTime() {
     return endTime;
   }
 
-  public void setEndTime(Long endTime) {
+  public void setEndTime(String endTime) {
     this.endTime = endTime;
   }
 
@@ -334,12 +269,13 @@ public class RequestScheduleEntity {
     this.clusterEntity = clusterEntity;
   }
 
-  public Collection<RequestScheduleBatchHostEntity> getRequestScheduleBatchHostEntities() {
-    return requestScheduleBatchHostEntities;
+  public Collection<RequestScheduleBatchRequestEntity> getRequestScheduleBatchRequestEntities() {
+    return requestScheduleBatchRequestEntities;
   }
 
-  public void setRequestScheduleBatchHostEntities(Collection<RequestScheduleBatchHostEntity> requestScheduleBatchHostEntities) {
-    this.requestScheduleBatchHostEntities = requestScheduleBatchHostEntities;
+  public void setRequestScheduleBatchRequestEntities(
+    Collection<RequestScheduleBatchRequestEntity> requestScheduleBatchRequestEntities) {
+    this.requestScheduleBatchRequestEntities = requestScheduleBatchRequestEntities;
   }
 
   @Override

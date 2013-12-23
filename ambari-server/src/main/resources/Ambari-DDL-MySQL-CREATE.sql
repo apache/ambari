@@ -52,8 +52,8 @@ CREATE TABLE ambari_sequences (sequence_name VARCHAR(50) NOT NULL, value DECIMAL
 CREATE TABLE confgroupclusterconfigmapping (config_group_id BIGINT NOT NULL, cluster_id BIGINT NOT NULL, config_type VARCHAR(255) NOT NULL, version_tag VARCHAR(255) NOT NULL, user_name VARCHAR(255) DEFAULT '_db', create_timestamp BIGINT NOT NULL, PRIMARY KEY(config_group_id, cluster_id, config_type));
 CREATE TABLE configgroup (group_id BIGINT, cluster_id BIGINT NOT NULL, group_name VARCHAR(255) NOT NULL, tag VARCHAR(1024) NOT NULL, description VARCHAR(1024), create_timestamp BIGINT NOT NULL, PRIMARY KEY(group_id));
 CREATE TABLE configgrouphostmapping (config_group_id BIGINT NOT NULL, host_name VARCHAR(255) NOT NULL, PRIMARY KEY(config_group_id, host_name));
-CREATE TABLE ambari.requestschedule (schedule_id bigint, cluster_id BIGINT NOT NULL, request_context varchar(255), status varchar(255), target_type varchar(255), target_name varchar(255) NOT NULL, target_service varchar(255) NOT NULL, target_component varchar(255), batch_requests_by_host boolean, batch_host_count smallint, batch_separation_minutes smallint, batch_toleration_limit smallint, create_user varchar(255), create_timestamp bigint, update_user varchar(255), update_timestamp bigint, minutes varchar(10), hours varchar(10), days_of_month varchar(10), month varchar(10), day_of_week varchar(10), yearToSchedule varchar(10), startTime bigint, endTime bigint, last_execution_status varchar(255), PRIMARY KEY(schedule_id));
-CREATE TABLE ambari.requestschedulebatchhost (schedule_id bigint, batch_id bigint, host_name varchar(255), batch_name varchar(255), PRIMARY KEY(schedule_id, batch_id, host_name));
+CREATE TABLE ambari.requestschedule (schedule_id bigint, cluster_id BIGINT NOT NULL, description varchar(255), status varchar(255), batch_separation_minutesallint, batch_toleration_limit smallint, create_user varchar(255), create_timestamp bigint, update_user varchar(255), update_timestamp bigint, minutes varchar(10), hours varchar(10), days_of_month varchar(10), month varchar(10), day_of_week varchar(10), yearToSchedule varchar(10), startTime varchar(50), endTime varchar(50), last_execution_status varchar(255), PRIMARY KEY(schedule_id));
+CREATE TABLE ambari.requestschedulebatchrequest (schedule_id bigint, batch_id bigint, request_id bigint, request_type varchar(255), request_uri varchar(1024), request_body varchar(4000), request_status varchar(255), return_code smallint, return_message varchar(255), PRIMARY KEY(schedule_id, batch_id));
 
 
 ALTER TABLE users ADD CONSTRAINT UNQ_users_0 UNIQUE (user_name, ldap_user);
@@ -82,8 +82,7 @@ ALTER TABLE confgroupclusterconfigmapping ADD CONSTRAINT FK_confgroupclusterconf
 ALTER TABLE configgroup ADD CONSTRAINT FK_configgroup_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE configgrouphostmapping ADD CONSTRAINT FK_configgrouphostmapping_configgroup_id FOREIGN KEY (config_group_id) REFERENCES configgroup (group_id);
 ALTER TABLE configgrouphostmapping ADD CONSTRAINT FK_configgrouphostmapping_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
-ALTER TABLE ambari.requestschedulebatchhost ADD CONSTRAINT FK_requestschedulebatchhost_host_name FOREIGN KEY (host_name) REFERENCES ambari.hosts (host_name);
-ALTER TABLE ambari.requestschedulebatchhost ADD CONSTRAINT FK_requestschedulebatchhost_schedule FOREIGN KEY (schedule_id) REFERENCES ambari.requestschedule (schedule_id);
+ALTER TABLE ambari.requestschedulebatchrequest ADD CONSTRAINT FK_requestschedulebatchrequest_schedule_id FOREIGN KEY (schedule_id) REFERENCES ambari.requestschedule (schedule_id);
 
 
 INSERT INTO ambari_sequences(sequence_name, value) values ('cluster_id_seq', 0);

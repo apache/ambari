@@ -47,6 +47,8 @@ import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.resources.ResourceManager;
 import org.apache.ambari.server.resources.api.rest.GetResource;
+import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
+import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.CertificateManager;
 import org.apache.ambari.server.security.SecurityFilter;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
@@ -110,7 +112,6 @@ public class AmbariServer {
   public String getServerOsType() {
     return configs.getServerOsType();
   }
-
 
   private static AmbariManagementController clusterController = null;
 
@@ -349,6 +350,11 @@ public class AmbariServer {
       AmbariManagementController controller = injector.getInstance(
           AmbariManagementController.class);
 
+      LOG.info("********* Initializing Scheduled Request Manager **********");
+      ExecutionScheduleManager executionScheduleManager = injector
+        .getInstance(ExecutionScheduleManager.class);
+
+
       clusterController = controller;
 
       // FIXME need to figure out correct order of starting things to
@@ -365,10 +371,8 @@ public class AmbariServer {
       manager.start();
       LOG.info("********* Started ActionManager **********");
 
-      //TODO: Remove this code when APIs are ready for testing.
-      //      RequestInjectorForTest testInjector = new RequestInjectorForTest(controller, clusters);
-      //      Thread testInjectorThread = new Thread(testInjector);
-      //      testInjectorThread.start();
+      executionScheduleManager.start();
+      LOG.info("********* Started Scheduled Request Manager **********");
 
       server.join();
       LOG.info("Joined the Server");

@@ -21,12 +21,10 @@ package org.apache.ambari.server.orm;
 import com.google.inject.AbstractModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
-
 import java.util.Properties;
 
 public class InMemoryDefaultTestModule extends AbstractModule {
   Properties properties = new Properties();
-
 
   @Override
   protected void configure() {

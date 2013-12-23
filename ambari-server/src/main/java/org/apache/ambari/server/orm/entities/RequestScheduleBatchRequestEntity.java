@@ -20,6 +20,7 @@ package org.apache.ambari.server.orm.entities;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
@@ -27,15 +28,14 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
-@Table(name = "requestschedulebatchhost")
+@IdClass(RequestScheduleBatchRequestEntityPK.class)
 @Entity
+@Table(name = "requestschedulebatchrequest")
 @NamedQueries({
-  @NamedQuery(name = "batchHostsBySchedule", query =
-    "SELECT batchHost FROM RequestScheduleBatchHostEntity batchHost " +
-      "WHERE batchHost.scheduleId=:id")
+  @NamedQuery(name = "findByScheduleId", query = "SELECT batchreqs FROM " +
+    "RequestScheduleBatchRequestEntity  batchreqs WHERE batchreqs.scheduleId=:id")
 })
-public class RequestScheduleBatchHostEntity {
-
+public class RequestScheduleBatchRequestEntity {
   @Id
   @Column(name = "schedule_id", nullable = false, insertable = true, updatable = true)
   private Long scheduleId;
@@ -44,17 +44,26 @@ public class RequestScheduleBatchHostEntity {
   @Column(name = "batch_id", nullable = false, insertable = true, updatable = true)
   private Long batchId;
 
-  @Id
-  @Column(name = "host_name", nullable = false, insertable = true, updatable = true)
-  private String hostName;
+  @Column(name = "request_id")
+  private Long requestId;
 
-  @Column(name = "batch_name")
-  private String batchName;
+  @Column(name = "request_type")
+  private String requestType;
 
-  @ManyToOne
-  @JoinColumns({
-    @JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false, insertable = false, updatable = false) })
-  private HostEntity hostEntity;
+  @Column(name = "request_uri")
+  private String requestUri;
+
+  @Column(name = "request_body")
+  private String requestBody;
+
+  @Column(name = "request_status")
+  private String requestStatus;
+
+  @Column(name = "return_code")
+  private Integer returnCode;
+
+  @Column(name = "return_message")
+  private String returnMessage;
 
   @ManyToOne
   @JoinColumns({
@@ -77,28 +86,60 @@ public class RequestScheduleBatchHostEntity {
     this.batchId = batchId;
   }
 
-  public String getHostName() {
-    return hostName;
+  public Long getRequestId() {
+    return requestId;
   }
 
-  public void setHostName(String hostName) {
-    this.hostName = hostName;
+  public void setRequestId(Long requestId) {
+    this.requestId = requestId;
   }
 
-  public String getBatchName() {
-    return batchName;
+  public String getRequestType() {
+    return requestType;
   }
 
-  public void setBatchName(String batchName) {
-    this.batchName = batchName;
+  public void setRequestType(String requestType) {
+    this.requestType = requestType;
   }
 
-  public HostEntity getHostEntity() {
-    return hostEntity;
+  public String getRequestUri() {
+    return requestUri;
   }
 
-  public void setHostEntity(HostEntity hostEntity) {
-    this.hostEntity = hostEntity;
+  public void setRequestUri(String requestUri) {
+    this.requestUri = requestUri;
+  }
+
+  public String getRequestBody() {
+    return requestBody;
+  }
+
+  public void setRequestBody(String requestBody) {
+    this.requestBody = requestBody;
+  }
+
+  public String getRequestStatus() {
+    return requestStatus;
+  }
+
+  public void setRequestStatus(String requestStatus) {
+    this.requestStatus = requestStatus;
+  }
+
+  public Integer getReturnCode() {
+    return returnCode;
+  }
+
+  public void setReturnCode(Integer returnCode) {
+    this.returnCode = returnCode;
+  }
+
+  public String getReturnMessage() {
+    return returnMessage;
+  }
+
+  public void setReturnMessage(String returnMessage) {
+    this.returnMessage = returnMessage;
   }
 
   public RequestScheduleEntity getRequestScheduleEntity() {
@@ -114,10 +155,9 @@ public class RequestScheduleBatchHostEntity {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    RequestScheduleBatchHostEntity that = (RequestScheduleBatchHostEntity) o;
+    RequestScheduleBatchRequestEntity that = (RequestScheduleBatchRequestEntity) o;
 
     if (!batchId.equals(that.batchId)) return false;
-    if (!hostName.equals(that.hostName)) return false;
     if (!scheduleId.equals(that.scheduleId)) return false;
 
     return true;
@@ -127,7 +167,6 @@ public class RequestScheduleBatchHostEntity {
   public int hashCode() {
     int result = scheduleId.hashCode();
     result = 31 * result + batchId.hashCode();
-    result = 31 * result + hostName.hashCode();
     return result;
   }
 }

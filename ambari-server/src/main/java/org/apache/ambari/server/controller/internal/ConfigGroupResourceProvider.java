@@ -343,7 +343,8 @@ public class ConfigGroupResourceProvider extends
       cluster = clusters.getCluster(request.getClusterName());
     } catch (ClusterNotFoundException e) {
       throw new ParentObjectNotFoundException(
-        "Attempted to add a service to a cluster which doesn't exist", e);
+        "Attempted to delete a config group from a cluster which doesn't " +
+          "exist", e);
     }
 
     configLogger.info("Deleting Config group, "
@@ -469,7 +470,7 @@ public class ConfigGroupResourceProvider extends
         cluster = clusters.getCluster(request.getClusterName());
       } catch (ClusterNotFoundException e) {
         throw new ParentObjectNotFoundException(
-          "Attempted to add a service to a cluster which doesn't exist", e);
+          "Attempted to add a config group to a cluster which doesn't exist", e);
       }
 
       if (request.getId() == null) {

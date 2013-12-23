@@ -30,6 +30,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
+import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 
 import java.util.Collection;
 import java.util.List;
@@ -482,7 +483,7 @@ public interface AmbariManagementController {
    */
   public Map<String, Map<String,String>> findConfigurationTagsWithOverrides(
           Cluster cluster, String hostName) throws AmbariException;
-  
+
   /**
    * Returns parameters for RCA database
    *
@@ -490,5 +491,11 @@ public interface AmbariManagementController {
    *
    */
   public Map<String, String> getRcaParameters();
+
+  /**
+   * Get the Factory to create Request schedules
+   * @return
+   */
+  public RequestExecutionFactory getRequestExecutionFactory();
 }
   

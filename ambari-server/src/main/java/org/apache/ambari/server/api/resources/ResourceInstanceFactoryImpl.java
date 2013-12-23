@@ -163,6 +163,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new ConfigGroupResourceDefinition();
         break;
 
+      case RequestSchedule:
+        resourceDefinition = new RequestScheduleResourceDefinition();
+        break;
+
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }

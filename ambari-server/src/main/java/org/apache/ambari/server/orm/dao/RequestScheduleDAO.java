@@ -73,7 +73,7 @@ public class RequestScheduleDAO {
 
   @Transactional
   public void remove(RequestScheduleEntity requestScheduleEntity) {
-    entityManagerProvider.get().remove(requestScheduleEntity);
+    entityManagerProvider.get().remove(merge(requestScheduleEntity));
   }
 
   @Transactional
