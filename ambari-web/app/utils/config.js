@@ -254,10 +254,10 @@ App.config = Em.Object.create({
           this.setServiceConfigUiAttributes(serviceConfigObj, configsPropertyDef);
         }
         if (_tag.siteName === 'global') {
-          if (configsPropertyDef.isRequiredByAgent === false) {
-            continue;
-          }
           if (configsPropertyDef) {
+            if (configsPropertyDef.isRequiredByAgent === false) {
+              continue;
+            }
             this.handleSpecialProperties(serviceConfigObj);
           } else {
             serviceConfigObj.isVisible = false;  // if the global property is not defined on ui metadata global_properties.js then it shouldn't be a part of errorCount
