@@ -16,14 +16,17 @@
 * limitations under the License.
 }}
 
-<p><i class="icon-warning-sign"></i> {{componentsBody}}</p>
-<div class='row-fluid'>
-  <div class='tinyoffset span10'>
-    <i>{{componentsStr}}</i>
+<div class="dialog-delete-component">
+  <div class="warning">
+  <i class="icon-warning-sign"></i> <strong>{{componentsBody}}</strong>
   </div>
-</div>
+  <div class="row-fluid">
+    <div class="tinyoffset span10 warning-list">
+    {{componentsStr}}
+    </div>
+  </div>
 
 {{#if showBodyEnd}}
-    <br />
-    <div class='alert alert-warning'>{{{componentsBodyEnd}}}</div>
+  <div class="warning-details">{{{componentsBodyEnd}}}</div>
 {{/if}}
+</div>
