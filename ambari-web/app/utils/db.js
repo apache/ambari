@@ -17,6 +17,29 @@
  */
 var App = require('app');
 App.db = {};
+var InitialData =  {
+  'app': {
+    'loginName': '',
+    'authenticated': false,
+    'configs': [],
+    'tables': {
+      'filterConditions': {},
+      'displayLength': {},
+      'startIndex': {},
+      'sortingConditions': {}
+    }
+  },
+
+  'Installer' : {},
+  'AddHost' : {},
+  'AddService' : {},
+  'StackUpgrade' : {},
+  'ReassignMaster' : {},
+  'AddSecurity': {},
+  'HighAvailabilityWizard': {},
+  'RollbackHighAvailabilityWizard': {}
+
+};
 
 if (typeof Storage !== 'undefined') {
   Storage.prototype.setObject = function (key, value) {
@@ -46,29 +69,7 @@ if (typeof Storage !== 'undefined') {
 
 App.db.cleanUp = function () {
   console.log('TRACE: Entering db:cleanup function');
-  App.db.data = {
-    'app': {
-      'loginName': '',
-      'authenticated': false,
-      'configs': [],
-      'tables': {
-        'filterConditions': {},
-        'displayLength': {},
-        'startIndex': {},
-        'sortingConditions': {}
-      }
-    },
-
-    'Installer' : {},
-    'AddHost' : {},
-    'AddService' : {},
-    'StackUpgrade' : {},
-    'ReassignMaster' : {},
-    'AddSecurity': {},
-    'HighAvailabilityWizard': {},
-    'RollbackHighAvailabilityWizard': {}
-
-  };
+  App.db.data = InitialData;
   console.log("In cleanup./..");
   localStorage.setObject('ambari', App.db.data);
 };
@@ -82,6 +83,20 @@ App.db.updateStorage = function() {
   App.db.cleanUp();
   return false;
 };
+
+/*
+  Initialize wizard namespaces if they are not initialized on login.
+  This will be required during upgrade.
+ */
+App.db.mergeStorage = function() {
+  if (localStorage.getObject('ambari') == null) {
+    console.log('doing a cleanup');
+    App.db.cleanUp();
+  } else {
+    App.db.data = $.extend(true,{}, InitialData, App.db.data);
+  }
+};
+
 // called whenever user logs in
 if (localStorage.getObject('ambari') == null) {
   console.log('doing a cleanup');

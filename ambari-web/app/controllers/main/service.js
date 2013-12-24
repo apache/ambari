@@ -157,6 +157,7 @@ App.MainServiceController = Em.ArrayController.extend({
     if (this.get('isAllServicesInstalled')) {
       return;
     }
+    App.db.mergeStorage();
     App.router.transitionTo('main.serviceAdd');
   }
 
