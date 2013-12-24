@@ -282,6 +282,17 @@ public interface Host {
    * @param timeInState the timeInState to set
    */
   public void setTimeInState(long timeInState);
+  
+  /**
+   * Get Current Host Status
+   * @return String
+   */
+  public String getStatus();
+  /**
+   * Set the Status of the Host
+   * @param status Host Status
+   */
+  public void setStatus(String status);
 
   public HostResponse convertToResponse();
 

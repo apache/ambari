@@ -37,7 +37,6 @@ import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostStateDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntity;
 import org.apache.ambari.server.orm.entities.HostConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
@@ -115,6 +114,10 @@ public class HostImpl implements Host {
   private static final String SWAPSIZE = "swap_size";
   private static final String SWAPFREE = "swap_free";
   private static final String TIMEZONE = "timezone";
+  
+  
+  //In-memory status, based on host components states
+  private String status;
 
   private static final StateMachineFactory
     <HostImpl, HostState, HostEventType, HostEvent>
@@ -853,6 +856,10 @@ public class HostImpl implements Host {
     try {
       writeLock.lock();
       hostStateEntity.setHealthStatus(gson.toJson(healthStatus));
+      
+      if (healthStatus.getHealthStatus().equals(HealthStatus.UNKNOWN))
+        setStatus(HealthStatus.UNKNOWN.name());
+      
       saveIfPersisted();
     } finally {
       writeLock.unlock();
@@ -992,6 +999,23 @@ public class HostImpl implements Host {
       writeLock.unlock();
     }
   }
+  
+  
+  @Override
+  public String getStatus() {
+    return status;
+  }
+
+  @Override
+  public void setStatus(String status) {
+    try {
+      writeLock.lock();
+      this.status = status;
+    }
+    finally {
+      writeLock.unlock();
+    }
+  }
 
   @Override
   public HostResponse convertToResponse() {
@@ -1018,6 +1042,7 @@ public class HostImpl implements Host {
       r.setTotalMemBytes(getTotalMemBytes());
       r.setPublicHostName(getPublicHostName());
       r.setHostState(getState().toString());
+      r.setStatus(getStatus());
 
       return r;
     }
