@@ -15,22 +15,22 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-"""
 
+Ambari Agent
+
+"""
 
 from resource_management import *
 
+def nagios_service(action='start'): # start or stop
+  import params
 
-class SqoopServiceCheck(Script):
-  def service_check(self, env):
-    import params
-    env.set_params(params)
-    if params.security_enabled:
-        Execute(format("{kinit_path_local}  -kt {smoke_user_keytab} {smokeuser}"))
-    Execute("sqoop version",
-            user = params.smokeuser,
-            logoutput = True
-    )
+  if action == 'start':
+   command = "service nagios start"
+  elif action == 'stop':
+   command = format("service nagios stop && rm -f {nagios_pid_file}")
 
-if __name__ == "__main__":
-  SqoopServiceCheck().execute()
+  Execute( command,
+     path    = "/usr/local/bin/:/bin/:/sbin/"      
+  )
+  MonitorWebserver("restart")
