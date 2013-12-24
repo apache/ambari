@@ -41,6 +41,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
+import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.StackId;
 import org.easymock.Capture;
 import org.junit.Assert;
@@ -253,6 +254,7 @@ public class HostResourceProviderTest {
     expect(hostResponse1.getClusterName()).andReturn("").anyTimes();
     expect(hostResponse1.getHostname()).andReturn("Host100").anyTimes();
     expect(hostResponse1.getHealthStatus()).andReturn(healthStatus).anyTimes();
+    expect(hostResponse1.getStatus()).andReturn(HealthStatus.HEALTHY.name()).anyTimes();
 
     expect(healthStatus.getHealthStatus()).andReturn(HostHealthStatus.HealthStatus.HEALTHY).anyTimes();
     expect(healthStatus.getHealthReport()).andReturn("HEALTHY").anyTimes();
@@ -344,8 +346,6 @@ public class HostResourceProviderTest {
 
     expect(clusters.getClustersForHost("Host100")).andReturn(clusterSet).anyTimes();
 
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-
     expect(host1.getHostName()).andReturn("Host100").anyTimes();
 
     expect(host1.convertToResponse()).andReturn(hostResponse1);
@@ -353,6 +353,7 @@ public class HostResourceProviderTest {
     expect(hostResponse1.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(hostResponse1.getHostname()).andReturn("Host100").anyTimes();
     expect(hostResponse1.getHealthStatus()).andReturn(healthStatus).anyTimes();
+    expect(hostResponse1.getStatus()).andReturn(HealthStatus.HEALTHY.name()).anyTimes();
 
     expect(healthStatus.getHealthStatus()).andReturn(HostHealthStatus.HealthStatus.HEALTHY).anyTimes();
     expect(healthStatus.getHealthReport()).andReturn("HEALTHY").anyTimes();
@@ -444,8 +445,6 @@ public class HostResourceProviderTest {
 
     expect(clusters.getClustersForHost("Host100")).andReturn(clusterSet).anyTimes();
 
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-
     expect(host1.getHostName()).andReturn("Host100").anyTimes();
 
     expect(host1.convertToResponse()).andReturn(hostResponse1);
@@ -453,6 +452,7 @@ public class HostResourceProviderTest {
     expect(hostResponse1.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(hostResponse1.getHostname()).andReturn("Host100").anyTimes();
     expect(hostResponse1.getHealthStatus()).andReturn(healthStatus).anyTimes();
+    expect(hostResponse1.getStatus()).andReturn(HealthStatus.UNHEALTHY.name()).anyTimes();
 
     expect(healthStatus.getHealthStatus()).andReturn(HostHealthStatus.HealthStatus.HEALTHY).anyTimes();
     expect(healthStatus.getHealthReport()).andReturn("HEALTHY").anyTimes();
@@ -539,6 +539,7 @@ public class HostResourceProviderTest {
     expect(hostResponse1.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(hostResponse1.getHostname()).andReturn("Host100").anyTimes();
     expect(hostResponse1.getHealthStatus()).andReturn(healthStatus).anyTimes();
+    expect(hostResponse1.getStatus()).andReturn(HealthStatus.UNKNOWN.name()).anyTimes();
 
     expect(healthStatus.getHealthStatus()).andReturn(HostHealthStatus.HealthStatus.UNKNOWN).anyTimes();
     expect(healthStatus.getHealthReport()).andReturn("UNKNOWN").anyTimes();
@@ -624,8 +625,6 @@ public class HostResourceProviderTest {
 
     expect(clusters.getClustersForHost("Host100")).andReturn(clusterSet).anyTimes();
 
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
-
     expect(host1.getHostName()).andReturn("Host100").anyTimes();
 
     expect(host1.convertToResponse()).andReturn(hostResponse1);
@@ -633,6 +632,7 @@ public class HostResourceProviderTest {
     expect(hostResponse1.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(hostResponse1.getHostname()).andReturn("Host100").anyTimes();
     expect(hostResponse1.getHealthStatus()).andReturn(healthStatus).anyTimes();
+    expect(hostResponse1.getStatus()).andReturn(HealthStatus.ALERT.name()).anyTimes();
 
     expect(healthStatus.getHealthStatus()).andReturn(HostHealthStatus.HealthStatus.HEALTHY).anyTimes();
     expect(healthStatus.getHealthReport()).andReturn("HEALTHY").anyTimes();

@@ -181,13 +181,6 @@ class HostResourceProvider extends AbstractControllerResourceProvider {
     for (HostResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.Host);
 
-      String hostStatus;
-      try {
-        hostStatus = calculateHostStatus(response);
-      } catch (AmbariException e) {
-        throw new SystemException("", e);
-      }
-
       // TODO : properly handle more than one cluster
       if (response.getClusterName() != null
           && !response.getClusterName().isEmpty()) {
@@ -219,7 +212,7 @@ class HostResourceProvider extends AbstractControllerResourceProvider {
       setResourceProperty(resource, HOST_LAST_REGISTRATION_TIME_PROPERTY_ID,
           response.getLastRegistrationTime(), requestedIds);
       setResourceProperty(resource, HOST_HOST_STATUS_PROPERTY_ID,
-          hostStatus,requestedIds);
+          response.getStatus(),requestedIds);
       setResourceProperty(resource, HOST_HOST_HEALTH_REPORT_PROPERTY_ID,
           response.getHealthStatus().getHealthReport(), requestedIds);
       setResourceProperty(resource, HOST_DISK_INFO_PROPERTY_ID,
@@ -443,7 +436,7 @@ class HostResourceProvider extends AbstractControllerResourceProvider {
     return response;
   }
 
-  protected static synchronized Set<HostResponse> getHosts(AmbariManagementController controller, HostRequest request)
+  protected static Set<HostResponse> getHosts(AmbariManagementController controller, HostRequest request)
       throws AmbariException {
 
     //TODO/FIXME host can only belong to a single cluster so get host directly from Cluster

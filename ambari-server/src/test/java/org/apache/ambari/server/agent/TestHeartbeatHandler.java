@@ -73,6 +73,7 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -1306,6 +1307,101 @@ public class TestHeartbeatHandler {
             stack130, serviceComponentHost1.getDesiredStackVersion());
     assertEquals("Stack version of SCH should not change after fail report",
             State.INSTALL_FAILED, serviceComponentHost2.getState());
+  }
+  
+  @Test
+  public void testProcessStatusReports() throws Exception {
+    ActionManager am = getMockActionManager();
+    Clusters fsm = clusters;
+
+    Cluster cluster = getDummyCluster();
+    Host hostObject = clusters.getHost(DummyHostname1);
+    clusters.mapHostToCluster(hostObject.getHostName(), cluster.getClusterName());
+
+    ActionQueue aq = new ActionQueue();
+
+    HeartBeatHandler handler = new HeartBeatHandler(fsm, aq, am, injector);
+    Register reg = new Register();
+    HostInfo hi = new HostInfo();
+    hi.setHostName(DummyHostname1);
+    hi.setOS(DummyOs);
+    hi.setOSRelease(DummyOSRelease);
+    reg.setHostname(DummyHostname1);
+    reg.setHardwareProfile(hi);
+    reg.setAgentVersion(metaInfo.getServerVersion());
+    handler.handleRegistration(reg);
+
+    hostObject.setState(HostState.UNHEALTHY);
+
+    aq.enqueue(DummyHostname1, new StatusCommand());
+    
+    //All components are up
+    HeartBeat hb1 = new HeartBeat();
+    hb1.setResponseId(0);
+    hb1.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb1.setHostname(DummyHostname1);
+    List<ComponentStatus> componentStatus = new ArrayList<ComponentStatus>();
+    ComponentStatus dataNodeStatus = new ComponentStatus();
+    dataNodeStatus.setClusterName(cluster.getClusterName());
+    dataNodeStatus.setServiceName(HDFS);
+    dataNodeStatus.setComponentName(DATANODE);
+    dataNodeStatus.setStatus("STARTED");
+    componentStatus.add(dataNodeStatus);
+    ComponentStatus nameNodeStatus = new ComponentStatus();
+    nameNodeStatus.setClusterName(cluster.getClusterName());
+    nameNodeStatus.setServiceName(HDFS);
+    nameNodeStatus.setComponentName(NAMENODE);
+    nameNodeStatus.setStatus("STARTED");
+    componentStatus.add(nameNodeStatus);
+    hb1.setComponentStatus(componentStatus);
+    handler.handleHeartBeat(hb1);
+    assertEquals(HostHealthStatus.HealthStatus.HEALTHY.name(), hostObject.getStatus());
+    
+    //Some slaves are down, masters are up
+    HeartBeat hb2 = new HeartBeat();
+    hb2.setResponseId(1);
+    hb2.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb2.setHostname(DummyHostname1);
+    componentStatus = new ArrayList<ComponentStatus>();
+    dataNodeStatus = new ComponentStatus();
+    dataNodeStatus.setClusterName(cluster.getClusterName());
+    dataNodeStatus.setServiceName(HDFS);
+    dataNodeStatus.setComponentName(DATANODE);
+    dataNodeStatus.setStatus("INSTALLED");
+    componentStatus.add(dataNodeStatus);
+    nameNodeStatus = new ComponentStatus();
+    nameNodeStatus.setClusterName(cluster.getClusterName());
+    nameNodeStatus.setServiceName(HDFS);
+    nameNodeStatus.setComponentName(NAMENODE);
+    nameNodeStatus.setStatus("STARTED");
+    componentStatus.add(nameNodeStatus);
+    hb2.setComponentStatus(componentStatus);
+    handler.handleHeartBeat(hb2);
+    assertEquals(HostHealthStatus.HealthStatus.ALERT.name(), hostObject.getStatus());
+    
+    //Some masters are down
+    HeartBeat hb3 = new HeartBeat();
+    hb3.setResponseId(2);
+    hb3.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb3.setHostname(DummyHostname1);
+    componentStatus = new ArrayList<ComponentStatus>();
+    dataNodeStatus = new ComponentStatus();
+    dataNodeStatus.setClusterName(cluster.getClusterName());
+    dataNodeStatus.setServiceName(HDFS);
+    dataNodeStatus.setComponentName(DATANODE);
+    dataNodeStatus.setStatus("INSTALLED");
+    componentStatus.add(dataNodeStatus);
+    nameNodeStatus = new ComponentStatus();
+    nameNodeStatus.setClusterName(cluster.getClusterName());
+    nameNodeStatus.setServiceName(HDFS);
+    nameNodeStatus.setComponentName(NAMENODE);
+    nameNodeStatus.setStatus("INSTALLED");
+    componentStatus.add(nameNodeStatus);
+    hb3.setComponentStatus(componentStatus);
+    handler.handleHeartBeat(hb3);
+    assertEquals(HostHealthStatus.HealthStatus.UNHEALTHY.name(), hostObject.getStatus());
+    
+    
   }
 
   private ActionManager getMockActionManager() {
