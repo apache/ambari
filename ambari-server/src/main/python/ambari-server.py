@@ -2643,7 +2643,7 @@ def upgrade(args):
                                                                             BLIND_PASSWORD, args.database_name)
 
     #TODO temporarty code
-    if not args.database == "oracle":
+    if not args.database in ["oracle", "mysql"]:
       raise FatalException(-20, "Upgrade for remote database only supports Oracle.")
 
     if get_db_cli_tool(args):

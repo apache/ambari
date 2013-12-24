@@ -366,6 +366,9 @@
                 <source>
                   <location>target/classes/upgrade/ddl/Ambari-DDL-Oracle-UPGRADE.sql</location>
                 </source>
+                <source>
+                  <location>target/classes/upgrade/ddl/Ambari-DDL-MySQL-UPGRADE.sql</location>
+                </source>
               </sources>
             </mapping>
             <mapping>

@@ -32,26 +32,27 @@ CREATE TABLE clusterservices (service_name VARCHAR(255) NOT NULL, cluster_id BIG
 CREATE TABLE clusterstate (cluster_id BIGINT NOT NULL, current_cluster_state VARCHAR(255) NOT NULL, current_stack_version VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id));
 CREATE TABLE hostcomponentdesiredstate (cluster_id BIGINT NOT NULL, component_name VARCHAR(255) NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, desired_state VARCHAR(255) NOT NULL, host_name VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id, component_name, host_name, service_name));
 CREATE TABLE hostcomponentstate (cluster_id BIGINT NOT NULL, component_name VARCHAR(255) NOT NULL, current_stack_version VARCHAR(255) NOT NULL, current_state VARCHAR(255) NOT NULL, host_name VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id, component_name, host_name, service_name));
-CREATE TABLE hosts (host_name VARCHAR(255) NOT NULL, cpu_count INTEGER NOT NULL, cpu_info VARCHAR(255) NOT NULL, discovery_status VARCHAR(2000) NOT NULL, host_attributes LONGTEXT, ipv4 VARCHAR(255), ipv6 VARCHAR(255), last_registration_time BIGINT NOT NULL, os_arch VARCHAR(255) NOT NULL, os_info VARCHAR(1000) NOT NULL, os_type VARCHAR(255) NOT NULL, ph_cpu_count INTEGER NOT NULL, public_host_name VARCHAR(255), rack_info VARCHAR(255) NOT NULL, total_mem BIGINT NOT NULL, PRIMARY KEY (host_name));
+CREATE TABLE hosts (host_name VARCHAR(255) NOT NULL, cpu_count INTEGER NOT NULL, cpu_info VARCHAR(255) NOT NULL, discovery_status VARCHAR(2000) NOT NULL, host_attributes LONGTEXT NOT NULL, ipv4 VARCHAR(255), ipv6 VARCHAR(255), last_registration_time BIGINT NOT NULL, os_arch VARCHAR(255) NOT NULL, os_info VARCHAR(1000) NOT NULL, os_type VARCHAR(255) NOT NULL, ph_cpu_count INTEGER, public_host_name VARCHAR(255), rack_info VARCHAR(255) NOT NULL, total_mem BIGINT NOT NULL, PRIMARY KEY (host_name));
 CREATE TABLE hoststate (agent_version VARCHAR(255) NOT NULL, available_mem BIGINT NOT NULL, current_state VARCHAR(255) NOT NULL, health_status VARCHAR(255), host_name VARCHAR(255) NOT NULL, time_in_state BIGINT NOT NULL, PRIMARY KEY (host_name));
 CREATE TABLE servicecomponentdesiredstate (component_name VARCHAR(255) NOT NULL, cluster_id BIGINT NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, desired_state VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, PRIMARY KEY (component_name, cluster_id, service_name));
 CREATE TABLE servicedesiredstate (cluster_id BIGINT NOT NULL, desired_host_role_mapping INTEGER NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, desired_state VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id, service_name));
 CREATE TABLE roles (role_name VARCHAR(255) NOT NULL, PRIMARY KEY (role_name));
-CREATE TABLE users (user_id INTEGER NOT NULL, create_time TIMESTAMP DEFAULT NOW(), ldap_user INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255), user_password VARCHAR(255), PRIMARY KEY (user_id));
+CREATE TABLE users (user_id INTEGER, create_time TIMESTAMP DEFAULT NOW(), ldap_user INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL, user_password VARCHAR(255), PRIMARY KEY (user_id));
 CREATE TABLE execution_command (task_id BIGINT NOT NULL, command LONGBLOB, PRIMARY KEY (task_id));
 CREATE TABLE host_role_command (task_id BIGINT NOT NULL, attempt_count SMALLINT NOT NULL, event LONGTEXT NOT NULL, exitcode INTEGER NOT NULL, host_name VARCHAR(255) NOT NULL, last_attempt_time BIGINT NOT NULL, request_id BIGINT NOT NULL, role VARCHAR(255), role_command VARCHAR(255), stage_id BIGINT NOT NULL, start_time BIGINT NOT NULL, end_time BIGINT, status VARCHAR(255), std_error LONGBLOB, std_out LONGBLOB, structured_out LONGBLOB, PRIMARY KEY (task_id));
 CREATE TABLE role_success_criteria (role VARCHAR(255) NOT NULL, request_id BIGINT NOT NULL, stage_id BIGINT NOT NULL, success_factor DOUBLE NOT NULL, PRIMARY KEY (role, request_id, stage_id));
-CREATE TABLE stage (stage_id BIGINT NOT NULL, request_id BIGINT NOT NULL, cluster_id BIGINT, log_info VARCHAR(255) NOT NULL, request_context VARCHAR(255), cluster_host_info LONGBLOB, PRIMARY KEY (stage_id, request_id));
-CREATE TABLE key_value_store (`key` VARCHAR(255) NOT NULL, `value` LONGTEXT, PRIMARY KEY (`key`));
-CREATE TABLE clusterconfigmapping (type_name VARCHAR(255) NOT NULL, create_timestamp BIGINT NOT NULL, cluster_id BIGINT NOT NULL, selected INTEGER NOT NULL, version_tag VARCHAR(255) NOT NULL, user_name VARCHAR(255) NOT NULL DEFAULT '_db', PRIMARY KEY (type_name, create_timestamp, cluster_id));
-CREATE TABLE hostconfigmapping (create_timestamp BIGINT NOT NULL, host_name VARCHAR(255) NOT NULL, cluster_id BIGINT NOT NULL, type_name VARCHAR(255) NOT NULL, selected INTEGER NOT NULL, service_name VARCHAR(255), version_tag VARCHAR(255) NOT NULL, user_name VARCHAR(255) NOT NULL DEFAULT '_db', PRIMARY KEY (create_timestamp, host_name, cluster_id, type_name));
-CREATE TABLE metainfo (`metainfo_key` VARCHAR(255) NOT NULL, `metainfo_value` LONGTEXT, PRIMARY KEY (`metainfo_key`));
+CREATE TABLE stage (stage_id BIGINT NOT NULL, request_id BIGINT NOT NULL, cluster_id BIGINT NOT NULL, log_info VARCHAR(255) NOT NULL, request_context VARCHAR(255), cluster_host_info LONGBLOB NOT NULL, PRIMARY KEY (stage_id, request_id));
+CREATE TABLE key_value_store (`key` VARCHAR(255), `value` LONGTEXT, PRIMARY KEY (`key`));
+CREATE TABLE clusterconfigmapping (type_name VARCHAR(255) NOT NULL, create_timestamp BIGINT NOT NULL, cluster_id BIGINT NOT NULL, selected INTEGER NOT NULL DEFAULT 0, version_tag VARCHAR(255) NOT NULL, user_name VARCHAR(255) NOT NULL DEFAULT '_db', PRIMARY KEY (type_name, create_timestamp, cluster_id));
+CREATE TABLE hostconfigmapping (create_timestamp BIGINT NOT NULL, host_name VARCHAR(255) NOT NULL, cluster_id BIGINT NOT NULL, type_name VARCHAR(255) NOT NULL, selected INTEGER NOT NULL DEFAULT 0, service_name VARCHAR(255), version_tag VARCHAR(255) NOT NULL, user_name VARCHAR(255) NOT NULL DEFAULT '_db', PRIMARY KEY (create_timestamp, host_name, cluster_id, type_name));
+CREATE TABLE metainfo (`metainfo_key` VARCHAR(255), `metainfo_value` LONGTEXT, PRIMARY KEY (`metainfo_key`));
 CREATE TABLE ClusterHostMapping (cluster_id BIGINT NOT NULL, host_name VARCHAR(255) NOT NULL, PRIMARY KEY (cluster_id, host_name));
 CREATE TABLE user_roles (role_name VARCHAR(255) NOT NULL, user_id INTEGER NOT NULL, PRIMARY KEY (role_name, user_id));
-CREATE TABLE ambari_sequences (sequence_name VARCHAR(50) NOT NULL, value DECIMAL(38), PRIMARY KEY (sequence_name));
+CREATE TABLE ambari_sequences (sequence_name VARCHAR(255), value DECIMAL(38) NOT NULL, PRIMARY KEY (sequence_name));
 CREATE TABLE confgroupclusterconfigmapping (config_group_id BIGINT NOT NULL, cluster_id BIGINT NOT NULL, config_type VARCHAR(255) NOT NULL, version_tag VARCHAR(255) NOT NULL, user_name VARCHAR(255) DEFAULT '_db', create_timestamp BIGINT NOT NULL, PRIMARY KEY(config_group_id, cluster_id, config_type));
 CREATE TABLE configgroup (group_id BIGINT, cluster_id BIGINT NOT NULL, group_name VARCHAR(255) NOT NULL, tag VARCHAR(1024) NOT NULL, description VARCHAR(1024), create_timestamp BIGINT NOT NULL, PRIMARY KEY(group_id));
 CREATE TABLE configgrouphostmapping (config_group_id BIGINT NOT NULL, host_name VARCHAR(255) NOT NULL, PRIMARY KEY(config_group_id, host_name));
+CREATE TABLE action (action_name VARCHAR(255) NOT NULL, action_type VARCHAR(32) NOT NULL, inputs VARCHAR(1000), target_service VARCHAR(255), target_component VARCHAR(255), default_timeout SMALLINT NOT NULL, description VARCHAR(1000), target_type VARCHAR(32), PRIMARY KEY (action_name));
 
 
 ALTER TABLE users ADD CONSTRAINT UNQ_users_0 UNIQUE (user_name, ldap_user);
@@ -71,6 +72,8 @@ ALTER TABLE host_role_command ADD CONSTRAINT FK_host_role_command_host_name FORE
 ALTER TABLE role_success_criteria ADD CONSTRAINT FK_role_success_criteria_stage_id FOREIGN KEY (stage_id, request_id) REFERENCES stage (stage_id, request_id);
 ALTER TABLE stage ADD CONSTRAINT FK_stage_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE clusterconfigmapping ADD CONSTRAINT FK_clusterconfigmapping_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
+ALTER TABLE hostconfigmapping ADD CONSTRAINT FK_hostconfigmapping_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
+ALTER TABLE hostconfigmapping ADD CONSTRAINT FK_hostconfigmapping_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
 ALTER TABLE ClusterHostMapping ADD CONSTRAINT FK_ClusterHostMapping_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
 ALTER TABLE ClusterHostMapping ADD CONSTRAINT FK_ClusterHostMapping_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE user_roles ADD CONSTRAINT FK_user_roles_user_id FOREIGN KEY (user_id) REFERENCES users (user_id);
@@ -82,9 +85,10 @@ ALTER TABLE configgrouphostmapping ADD CONSTRAINT FK_configgrouphostmapping_conf
 ALTER TABLE configgrouphostmapping ADD CONSTRAINT FK_configgrouphostmapping_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
 
 
-INSERT INTO ambari_sequences(sequence_name, value) values ('cluster_id_seq', 0);
-INSERT INTO ambari_sequences(sequence_name, value) values ('host_role_command_id_seq', 0);
-INSERT INTO ambari_sequences(sequence_name, value) values ('user_id_seq', 1);
+INSERT INTO ambari_sequences(sequence_name, value) values ('cluster_id_seq', 1);
+INSERT INTO ambari_sequences(sequence_name, value) values ('host_role_command_id_seq', 1);
+INSERT INTO ambari_sequences(sequence_name, value) values ('user_id_seq', 2);
+INSERT INTO ambari_sequences(sequence_name, value) values ('configgroup_id_seq', 1);
 
 insert into roles(role_name)
   select 'admin'
@@ -111,7 +115,7 @@ CREATE TABLE workflow (
   inputBytes BIGINT, outputBytes BIGINT,
   duration BIGINT,
   PRIMARY KEY (workflowId),
-  FOREIGN KEY (parentWorkflowId) REFERENCES workflow(workflowId)
+  FOREIGN KEY (parentWorkflowId) REFERENCES workflow(workflowId) ON DELETE CASCADE
 );
 
 CREATE TABLE job (
@@ -125,7 +129,7 @@ CREATE TABLE job (
   mapCounters TEXT, reduceCounters TEXT, jobCounters TEXT,
   inputBytes BIGINT, outputBytes BIGINT,
   PRIMARY KEY(jobId),
-  FOREIGN KEY(workflowId) REFERENCES workflow(workflowId)
+  FOREIGN KEY(workflowId) REFERENCES workflow(workflowId) ON DELETE CASCADE
 );
 
 CREATE TABLE task (
@@ -133,7 +137,7 @@ CREATE TABLE task (
   startTime BIGINT, finishTime BIGINT, status TEXT, error TEXT, counters TEXT,
   failedAttempt TEXT,
   PRIMARY KEY(taskId),
-  FOREIGN KEY(jobId) REFERENCES job(jobId)
+  FOREIGN KEY(jobId) REFERENCES job(jobId) ON DELETE CASCADE
 );
 
 CREATE TABLE taskAttempt (
@@ -144,8 +148,8 @@ CREATE TABLE taskAttempt (
   status TEXT, error TEXT, counters TEXT,
   inputBytes BIGINT, outputBytes BIGINT,
   PRIMARY KEY(taskAttemptId),
-  FOREIGN KEY(jobId) REFERENCES job(jobId),
-  FOREIGN KEY(taskId) REFERENCES task(taskId)
+  FOREIGN KEY(jobId) REFERENCES job(jobId) ON DELETE CASCADE,
+  FOREIGN KEY(taskId) REFERENCES task(taskId) ON DELETE CASCADE
 );
 
 CREATE TABLE hdfsEvent (
