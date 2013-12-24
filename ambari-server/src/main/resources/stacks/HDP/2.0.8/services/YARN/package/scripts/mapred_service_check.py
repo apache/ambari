@@ -36,6 +36,13 @@ class MapReduce2ServiceCheck(Script):
     test_cmd = format("fs -test -e {output_file}")
     run_wordcount_job = format("jar {jar_path} wordcount {input_file} {output_file}")
 
+    if params.security_enabled:
+      kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser};")
+
+      Execute(kinit_cmd,
+              user=params.smokeuser
+      )
+
     ExecuteHadoop(cleanup_cmd,
                   tries=1,
                   try_sleep=5,
