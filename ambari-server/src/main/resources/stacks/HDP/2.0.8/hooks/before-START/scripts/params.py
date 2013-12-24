@@ -47,24 +47,11 @@ dfs_secondary_namenode_kerberos_principal = config['configurations']['hdfs-site'
 dfs_journalnode_kerberos_internal_spnego_principal = config['configurations']['hdfs-site']['dfs.journalnode.kerberos.internal.spnego.principal']
 
 #users and groups
-yarn_user = config['configurations']['global']['yarn_user']
-hbase_user = config['configurations']['global']['hbase_user']
-nagios_user = config['configurations']['global']['nagios_user']
-oozie_user = config['configurations']['global']['oozie_user']
-webhcat_user = config['configurations']['global']['hcat_user']
-hcat_user = config['configurations']['global']['hcat_user']
-hive_user = config['configurations']['global']['hive_user']
-smoke_user =  config['configurations']['global']['smokeuser']
 mapred_user = config['configurations']['global']['mapred_user']
 hdfs_user = config['configurations']['global']['hdfs_user']
-zk_user = config['configurations']['global']['zk_user']
-gmetad_user = config['configurations']['global']["gmetad_user"]
-gmond_user = config['configurations']['global']["gmond_user"]
+yarn_user = config['configurations']['global']['yarn_user']
 
 user_group = config['configurations']['global']['user_group']
-proxyuser_group =  config['configurations']['global']['proxyuser_group']
-nagios_group = config['configurations']['global']['nagios_group']
-smoke_user_group =  "users"
 mapred_tt_group = default("/configurations/mapred-site/mapreduce.tasktracker.group", user_group)
 
 #snmp

@@ -29,9 +29,7 @@ class BeforeConfigureHook(Hook):
     import params
 
     env.set_params(params)
-    setup_java()
-    setup_hadoop()
-    setup_configs()
+    setup_users()
 
 if __name__ == "__main__":
   BeforeConfigureHook().execute()

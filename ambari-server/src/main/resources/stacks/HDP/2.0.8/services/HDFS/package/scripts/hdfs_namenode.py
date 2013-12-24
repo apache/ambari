@@ -36,6 +36,8 @@ def namenode(action=None, format=True):
     service(
       action="start", name="namenode", user=params.hdfs_user,
       keytab=params.dfs_namenode_keytab_file,
+      create_pid_dir=True,
+      create_log_dir=True,
       principal=params.dfs_namenode_kerberos_principal
     )
 
