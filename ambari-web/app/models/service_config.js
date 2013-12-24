@@ -229,7 +229,6 @@ App.ServiceConfigProperty = Ember.Object.extend({
     types.forEach(function(type) {
       if (type === displayType) {
         result = true;
-        return;
       }
     });
     return result;
@@ -664,15 +663,16 @@ App.ServiceConfigProperty = Ember.Object.extend({
         case 'checkbox':
           break;
         case 'directories':
-          if (!validator.isValidDir(value)) {
-            this.set('errorMessage', 'Must be a slash at the start');
-            isError = true;
-          }
-          break;
         case 'directory':
           if (!validator.isValidDir(value)) {
             this.set('errorMessage', 'Must be a slash at the start');
             isError = true;
+          }
+          else {
+            if (!validator.isAllowedDir(value)) {
+              this.set('errorMessage', 'Can\'t start with "home(s)"');
+              isError = true;
+            }
           }
           break;
         case 'custom':
@@ -691,7 +691,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
           break;
         case 'host':
           var hiveOozieHostNames = ['hive_hostname','hive_existing_mysql_host','hive_existing_oracle_host','hive_ambari_host',
-          'oozie_hostname','oozie_existing_mysql_host','oozie_existing_oracle_host','oozie_ambari_host']
+          'oozie_hostname','oozie_existing_mysql_host','oozie_existing_oracle_host','oozie_ambari_host'];
           if(hiveOozieHostNames.contains(this.get('name'))) {
             if (validator.hasSpaces(value)) {
               this.set('errorMessage', Em.I18n.t('host.spacesValidation'));

@@ -57,6 +57,21 @@ module.exports = {
   },
 
   /**
+   * validate directory doesn't start "home" or "homes"
+   * @param value
+   * @returns {boolean}
+   */
+  isAllowedDir: function(value) {
+    var dirs = value.replace(/,/g,' ').trim().split(new RegExp("\\s+", "g"));
+    for(var i = 0; i < dirs.length; i++){
+      if(dirs[i].startsWith('/home') || dirs[i].startsWith('/homes')) {
+        return false;
+      }
+    }
+    return true;
+  },
+
+  /**
    * validate ip address with port
    * @param value
    * @return {Boolean}

@@ -256,6 +256,24 @@ describe('validator', function () {
       })
     });
   })
+  describe('#isAllowedDir(value)', function() {
+    var tests = [
+      {m:'"/home" - not allowed',i:'/home',e:false},
+      {m:'"/homes" - not allowed',i:'/homes',e:false},
+      {m:'"/home/" - not allowed',i:'/home/',e:false},
+      {m:'"/homes/" - not allowed',i:'/homes/',e:false},
+      {m:'"/dir" - allowed',i:'/dir',e:true},
+      {m:'"/dir/home" - allowed',i:'/dir/home',e:true},
+      {m:'"/dir/homes" - allowed',i:'/dir/homes',e:true},
+      {m:'"/dir/home/" - allowed',i:'/dir/home/',e:true},
+      {m:'"/dir/homes/" - allowed',i:'/dir/homes/',e:true}
+    ];
+    tests.forEach(function(test) {
+      it(test.m + ' ', function () {
+        expect(validator.isAllowedDir(test.i)).to.equal(test.e);
+      })
+    });
+  })
   describe('#isValidConfigKey(value)', function() {
     var tests = [
       {m:'"123" - valid',i:'123',e:true},
