@@ -17,7 +17,7 @@
 }}
 
 <div {{bindAttr class="view.isReady:hide:show :screensaver :no-borders :chart-container"}}></div>
-<div {{bindAttr class="view.isReady::hidden :time-label"}}>{{view.currentTimeState.name}}</div>
+<div {{bindAttr class="view.isReady::hidden :time-label"}}>{{view.parentView.currentTimeState.name}}</div>
 {{#if view.isTimePagingEnable}}
   <div {{bindAttr class="view.leftArrowVisible:visibleArrow :arrow-left"}} {{action "switchTimeBack" target="view.parentView"}}></div>
 {{/if}}
