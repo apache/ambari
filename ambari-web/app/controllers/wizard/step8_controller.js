@@ -1387,10 +1387,7 @@ App.WizardStep8Controller = Em.Controller.extend({
       this.ajax({
         type: 'POST',
         url: url,
-        data: JSON.stringify(data),
-        beforeSend: function () {
-          console.log('BeforeSend: registerHostsToComponent for ' + queryStr + ' and component ' + componentName);
-        }
+        data: JSON.stringify(data)
       });
     }, this);
   },
@@ -1765,7 +1762,6 @@ App.WizardStep8Controller = Em.Controller.extend({
     this.set('ajaxQueueLeft', this.get('ajaxQueue').length);
 
     this.set('ajaxBusy', true);
-    console.log('AJAX send ' + first.url);
     $.ajax(first);
 
   },
@@ -1859,10 +1855,7 @@ App.WizardStep8Controller = Em.Controller.extend({
         // console.log('Step8: Error message is: ' + request.responseText);
       },
       success: function (data) {
-        var jsonData = jQuery.parseJSON(data);
         console.log("TRACE: STep8 -> In success function");
-        console.log("TRACE: STep8 -> value of the url is: " + params.url);
-        console.log("TRACE: STep8 -> value of the received data is: " + jsonData);
       }
     }, params);
 

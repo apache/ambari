@@ -49,23 +49,8 @@ App.WizardStep9Controller = Em.Controller.extend({
   numPolls: 1,
   POLL_INTERVAL: 4000,
 
-  status: function () {
-    if (this.get('hosts').someProperty('status', 'failed')) {
-      return 'failed';
-    }
-    if (this.get('hosts').someProperty('status', 'warning')) {
-      if (this.isStepFailed()) {
-        return 'failed';
-      } else {
-        return 'warning';
-      }
-    }
-    if(this.get('progress') == '100') {
-      this.set('isStepCompleted', true);
-      return 'success';
-    }
-    return 'info';
-  }.property('hosts.@each.status', 'progress'),
+  visibleHosts: [],
+  status: 'info',
 
   showRetry: function () {
     return this.get('content.cluster.status') == 'INSTALL FAILED';
@@ -112,19 +97,43 @@ App.WizardStep9Controller = Em.Controller.extend({
     return categories;
   }.property(),
   category: false,
-  visibleHosts: function(){
+
+  hostStatusObserver: function(){
+    Ember.run.once(this, 'hostStatusUpdates');
+  }.observes('hosts.@each.status'),
+
+  hostStatusUpdates: function () {
+    this.updateVisibleHosts();
+    this.updateStatus();
+  },
+
+  updateVisibleHosts: function () {
     var targetStatus = this.get('category.hostStatus');
-    var visibleHosts =  this.get('hosts').filter(function(_host) {
-      if (targetStatus == 'all') {
-        return true;
-      }
+    var visibleHosts = (targetStatus === 'all') ? this.get('hosts') : this.get('hosts').filter(function (_host) {
       if (targetStatus == 'inProgress') {   // queued, pending, in_progress map to inProgress
         return (_host.get('status') !== 'success' && _host.get('status') !== 'failed' && _host.get('status') !== 'warning');
       }
       return (_host.get('status') == targetStatus);
     }, this);
-    return visibleHosts;
-  }.property('category', 'hosts.@each.status'),
+    this.set('visibleHosts', visibleHosts);
+  }.observes('category'),
+
+  updateStatus: function () {
+    var status = 'info';
+    if (this.get('hosts').someProperty('status', 'failed')) {
+      status = 'failed';
+    } else if (this.get('hosts').someProperty('status', 'warning')) {
+      if (this.isStepFailed()) {
+        status = 'failed';
+      } else {
+        status = 'warning';
+      }
+    } else if (this.get('progress') == '100') {
+      this.set('isStepCompleted', true);
+      status = 'success';
+    }
+    this.set('status', status);
+  }.observes('progress'),
 
   logTasksChangesCounter: 0,
 
@@ -199,7 +208,7 @@ App.WizardStep9Controller = Em.Controller.extend({
   loadStep: function () {
     console.log("TRACE: Loading step9: Install, Start and Test");
     this.clearStep();
-    this.renderHosts(this.loadHosts());
+    this.loadHosts();
   },
   /**
    * reset status and message of all hosts when retry install
@@ -214,33 +223,20 @@ App.WizardStep9Controller = Em.Controller.extend({
   },
 
   loadHosts: function () {
-    var hostInfo = this.get('content.hosts');
-    var hosts = new Ember.Set();
-    for (var index in hostInfo) {
-      var obj = Em.Object.create(hostInfo[index]);
-      obj.message = (obj.message) ? obj.message : 'Waiting';
-      obj.progress = 0;
-      obj.status = (obj.status) ? obj.status : 'info';
-      obj.tasks = [];
-      obj.logTasks = [];
-      hosts.add(obj);
+    var hosts = this.get('content.hosts');
+    for (var index in hosts) {
+      if (hosts[index].bootStatus === 'REGISTERED') {
+        var hostInfo = App.HostInfo.create({
+          name: hosts[index].name,
+          status: (hosts[index].status) ? hosts[index].status : 'info',
+          tasks: [],
+          logTasks: [],
+          message: (hosts[index].message) ? hosts[index].message : 'Waiting',
+          progress: 0
+        });
+        this.get('hosts').pushObject(hostInfo);
+      }
     }
-    return hosts.filterProperty('bootStatus', 'REGISTERED');
-  },
-
-  // sets this.hosts, where each element corresponds to a status and progress info on a host
-  renderHosts: function (hostsInfo) {
-    hostsInfo.forEach(function (_hostInfo) {
-      var hostInfo = App.HostInfo.create({
-        name: _hostInfo.name,
-        status: _hostInfo.status,
-        tasks: _hostInfo.tasks,
-        logTasks: _hostInfo.logTasks,
-        message: _hostInfo.message,
-        progress: _hostInfo.progress
-      });
-      this.get('hosts').pushObject(hostInfo);
-    }, this);
   },
 
   replacePolledData: function (polledData) {
@@ -450,7 +446,6 @@ App.WizardStep9Controller = Em.Controller.extend({
 
   // marks a host's status as "success" if all tasks are in COMPLETED state
   onSuccessPerHost: function (actions, contentHost) {
-    if (!actions) return;
     if (actions.everyProperty('Tasks.status', 'COMPLETED') && this.get('content.cluster.status') === 'INSTALLED') {
       contentHost.set('status', 'success');
     }
@@ -482,7 +477,6 @@ App.WizardStep9Controller = Em.Controller.extend({
   },
 
   onInProgressPerHost: function (actions, contentHost) {
-    if (!actions) return;
     var runningAction = actions.findProperty('Tasks.status', 'IN_PROGRESS');
     if (runningAction === undefined || runningAction === null) {
       runningAction = actions.findProperty('Tasks.status', 'QUEUED');
@@ -505,13 +499,14 @@ App.WizardStep9Controller = Em.Controller.extend({
   progressPerHost: function (actions, contentHost) {
     var progress = 0;
     var actionsPerHost = actions.length;
-    // TODO: consolidate to a single filter function for better performance
-    var completedActions = actions.filterProperty('Tasks.status', 'COMPLETED').length
-      + actions.filterProperty('Tasks.status', 'FAILED').length
-      + actions.filterProperty('Tasks.status', 'ABORTED').length
-      + actions.filterProperty('Tasks.status', 'TIMEDOUT').length;
-    var queuedActions = actions.filterProperty('Tasks.status', 'QUEUED').length;
-    var inProgressActions = actions.filterProperty('Tasks.status', 'IN_PROGRESS').length;
+    var completedActions = 0;
+    var queuedActions = 0;
+    var inProgressActions = 0;
+    actions.forEach(function (action) {
+      completedActions += +(['COMPLETED', 'FAILED', 'ABORTED', 'TIMEDOUT'].contains(action.Tasks.status));
+      queuedActions += +(action.Tasks.status === 'QUEUED');
+      inProgressActions += +(action.Tasks.status === 'IN_PROGRESS');
+    }, this);
     /** for the install phase (PENDING), % completed per host goes up to 33%; floor(100 / 3)
      * for the start phase (INSTALLED), % completed starts from 34%
      * when task in queued state means it's completed on 9%
@@ -667,15 +662,15 @@ App.WizardStep9Controller = Em.Controller.extend({
 
   // This is done at HostRole level.
   setLogTasksStatePerHost: function (tasksPerHost, host) {
-    if (!tasksPerHost) return;
     tasksPerHost.forEach(function (_task) {
       var task = host.logTasks.findProperty('Tasks.id', _task.Tasks.id);
       if (task) {
-        host.logTasks.removeObject(task);
+        task.Tasks.status = _task.Tasks.status;
+        task.Tasks.exit_code = _task.Tasks.exit_code;
+      } else {
+        host.logTasks.pushObject(_task);
       }
-      host.logTasks.pushObject(_task);
     }, this);
-    this.set('logTasksChangesCounter', this.get('logTasksChangesCounter') + 1);
   },
 
   parseHostInfo: function (polledData) {
@@ -695,19 +690,18 @@ App.WizardStep9Controller = Em.Controller.extend({
       // current requestId.
       return false;
     }
-    tasksData.setEach('Tasks.stderr', '');
-    tasksData.setEach('Tasks.stdout', '');
-    if (this.get('currentOpenTaskId')) {
-      var currentTask = tasksData.findProperty('Tasks.id', this.get('currentOpenTaskId'));
-      var log = this.get('currentOpenTaskLog');
-      if (currentTask && log) {
-        currentTask.Tasks.stderr = log.stderr;
-        currentTask.Tasks.stdout = log.stdout;
-      }
-    }
     this.replacePolledData(tasksData);
+    var tasksHostMap = {};
+    tasksData.forEach(function(task){
+      if(tasksHostMap[task.Tasks.host_name]) {
+        tasksHostMap[task.Tasks.host_name].push(task);
+      } else {
+        tasksHostMap[task.Tasks.host_name] = [task];
+      }
+    });
+
     this.get('hosts').forEach(function (_host) {
-      var actionsPerHost = tasksData.filterProperty('Tasks.host_name', _host.name); // retrieved from polled Data
+      var actionsPerHost = tasksHostMap[_host.name] || []; // retrieved from polled Data
       if (actionsPerHost.length === 0) {
         if(this.get('content.cluster.status') === 'PENDING') {
           _host.set('progress', '33');
@@ -729,6 +723,7 @@ App.WizardStep9Controller = Em.Controller.extend({
         _host.set('status', 'pending');
       }
     }, this);
+    this.set('logTasksChangesCounter', this.get('logTasksChangesCounter') + 1);
     totalProgress = Math.floor(totalProgress / this.get('hosts.length'));
     this.set('progress', totalProgress.toString());
     console.log("INFO: right now the progress is: " + this.get('progress'));
@@ -743,7 +738,7 @@ App.WizardStep9Controller = Em.Controller.extend({
   getUrl: function (requestId) {
     var clusterName = this.get('content.cluster.name');
     var requestId = requestId || this.get('content.cluster.requestId');
-    var url = App.apiPrefix + '/clusters/' + clusterName + '/requests/' + requestId + '?fields=*,tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status';
+    var url = App.apiPrefix + '/clusters/' + clusterName + '/requests/' + requestId + '?fields=tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status';
     console.log("URL for step9 is: " + url);
     return url;
   },
