@@ -311,14 +311,6 @@ App.InstallerController = App.WizardController.extend({
 
     this.set('content.advancedServiceConfig', this.getDBProperty('advancedServiceConfig'));
   },
-  /**
-   * Load config groups from local DB
-   */
-  loadServiceConfigGroups: function () {
-    var serviceConfigGroups = this.getDBProperty('serviceConfigGroups') || [];
-    this.set('content.configGroups', serviceConfigGroups);
-    console.log("InstallerController.configGroups: loaded config ", serviceConfigGroups);
-  },
 
   /**
    * Load information about hosts with clients components

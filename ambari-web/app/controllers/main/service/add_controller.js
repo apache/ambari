@@ -51,7 +51,8 @@ App.AddServiceController = App.WizardController.extend({
     masterComponentHosts: null,
     serviceConfigProperties: null,
     advancedServiceConfig: null,
-    controllerName: 'addServiceController'
+    controllerName: 'addServiceController',
+    configGroups: []
   }),
 
   setCurrentStep: function (currentStep, completed) {
@@ -388,6 +389,7 @@ App.AddServiceController = App.WizardController.extend({
       case '5':
         this.load('cluster');
       case '4':
+        this.loadServiceConfigGroups();
         this.loadServiceConfigProperties();
       case '3':
         this.loadServices();
