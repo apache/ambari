@@ -21,6 +21,7 @@ var Ember = require('ember');
 var App = require('app');
 require('models/hosts');
 require('controllers/wizard/step9_controller');
+require('utils/helper');
 
 describe('App.InstallerStep9Controller', function () {
 
@@ -98,6 +99,7 @@ describe('App.InstallerStep9Controller', function () {
     ];
     tests.forEach(function(test) {
       var controller = App.WizardStep9Controller.create({hosts: test.hosts, isStepFailed: function(){return test.isStepFailed}, progress: test.progress});
+      controller.updateStatus();
       it(test.m, function() {
         expect(controller.get('status')).to.equal(test.e);
       });
@@ -191,7 +193,8 @@ describe('App.InstallerStep9Controller', function () {
   
   describe('#loadHosts', function() {
     var controller = App.WizardStep9Controller.create({content: {hosts: hosts_for_load_and_render}});
-    var loaded_hosts = controller.loadHosts();
+    controller.loadHosts();
+    var loaded_hosts = controller.get('hosts');
     it('Only REGISTERED hosts', function() {
       expect(loaded_hosts.length).to.equal(2);
     });
@@ -204,15 +207,6 @@ describe('App.InstallerStep9Controller', function () {
     it('All host don\'t have tasks and logTasks', function() {
       expect(loaded_hosts.everyProperty('tasks.length', 0)).to.equal(true);
       expect(loaded_hosts.everyProperty('logTasks.length', 0)).to.equal(true);
-    });
-  });
-
-  describe('#renderHosts', function() {
-    var controller = App.WizardStep9Controller.create({content: {hosts: hosts_for_load_and_render}});
-    var loaded_hosts = controller.loadHosts();
-    controller.renderHosts(loaded_hosts);
-    it('All host should be rendered', function() {
-      expect(controller.get('hosts.length')).to.equal(loaded_hosts.length);
     });
   });
 
@@ -668,9 +662,9 @@ describe('App.InstallerStep9Controller', function () {
     it('check requestId priority', function() {
       cluster.set('content.cluster.requestId', 123);
       var url = cluster.getUrl(321);
-      expect(url).to.equal(App.apiPrefix + '/clusters/' + clusterName + '/requests/' + '321' + '?fields=tasks/*');
+      expect(url).to.equal(App.apiPrefix + '/clusters/' + clusterName + '/requests/' + '321' + '?fields=tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status');
       url = cluster.getUrl();
-      expect(url).to.equal(App.apiPrefix + '/clusters/' + clusterName + '/requests/' + '123' + '?fields=tasks/*');
+      expect(url).to.equal(App.apiPrefix + '/clusters/' + clusterName + '/requests/' + '123' + '?fields=tasks/Tasks/command,tasks/Tasks/exit_code,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status');
     });
   });
 
@@ -795,38 +789,36 @@ describe('App.InstallerStep9Controller', function () {
   describe('#setLogTasksStatePerHost', function() {
     var tests = [
       {
-        tasksPerHost: [{Tasks: {id: 1,message: '2'}},{Tasks: {id: 2,message: '2'}}],
+        tasksPerHost: [{Tasks: {id: 1,status: 'COMPLETED'}},{Tasks: {id: 2,status: 'COMPLETED'}}],
         tasks: [],
-        e: {m: '2',l: 2},
+        e: {m: 'COMPLETED',l: 2},
         m: 'host didn\'t have tasks and got 2 new'
       },
       {
-        tasksPerHost: [{Tasks: {id: 1,message: '2'}},{Tasks: {id: 2,message: '2'}}],
-        tasks: [{Tasks: {id: 1,message: '1'}},{Tasks: {id: 2,message: '1'}}],
-        e: {m: '2',l: 2},
+        tasksPerHost: [{Tasks: {id: 1,status: 'COMPLETED'}},{Tasks: {id: 2,status: 'COMPLETED'}}],
+        tasks: [{Tasks: {id: 1,status: 'IN_PROGRESS'}},{Tasks: {id: 2,status: 'IN_PROGRESS'}}],
+        e: {m: 'COMPLETED',l: 2},
         m: 'host had 2 tasks and got both updated'
       },
       {
         tasksPerHost: [],
-        tasks: [{Tasks: {id: 1,message: '1'}},{Tasks: {id: 2,message: '1'}}],
-        e: {m: '1',l: 2},
+        tasks: [{Tasks: {id: 1,status: 'IN_PROGRESS'}},{Tasks: {id: 2,status: 'IN_PROGRESS'}}],
+        e: {m: 'IN_PROGRESS',l: 2},
         m: 'host had 2 tasks and didn\'t get updates'
       },
       {
-        tasksPerHost: [{Tasks: {id: 1,message: '2'}},{Tasks: {id: 2,message: '2'}},{Tasks: {id: 3,message: '2'}}],
-        tasks: [{Tasks: {id: 1,message: '1'}},{Tasks: {id: 2,message: '1'}}],
-        e: {m: '2',l: 3},
+        tasksPerHost: [{Tasks: {id: 1,status: 'COMPLETED'}},{Tasks: {id: 2,status: 'COMPLETED'}},{Tasks: {id: 3,status: 'COMPLETED'}}],
+        tasks: [{Tasks: {id: 1,status: 'IN_PROGRESS'}},{Tasks: {id: 2,status: 'IN_PROGRESS'}}],
+        e: {m: 'COMPLETED',l: 3},
         m: 'host had 2 tasks and got both updated and 1 new'
       }
     ];
     tests.forEach(function(test) {
       it(test.m, function() {
         var controller = App.WizardStep9Controller.create({hosts: [Em.Object.create({logTasks: test.tasks})]});
-        var logTasksChangesCounter = controller.get('logTasksChangesCounter');
         controller.setLogTasksStatePerHost(test.tasksPerHost, controller.get('hosts')[0]);
-        expect(controller.get('hosts')[0].get('logTasks').everyProperty('Tasks.message', test.e.m)).to.equal(true);
+        expect(controller.get('hosts')[0].get('logTasks').everyProperty('Tasks.status', test.e.m)).to.equal(true);
         expect(controller.get('hosts')[0].get('logTasks.length')).to.equal(test.e.l);
-        expect(controller.get('logTasksChangesCounter')).to.equal(logTasksChangesCounter + 1);
       });
     });
   });
@@ -965,7 +957,9 @@ describe('App.InstallerStep9Controller', function () {
     tests.forEach(function(test) {
       it(test.m, function() {
         var controller = App.WizardStep9Controller.create({hosts: test.hosts, content: {cluster:{status: test.cluster.status}}, finishState: function(){return false;}});
+        var logTasksChangesCounter = controller.get('logTasksChangesCounter');
         controller.parseHostInfo(test.polledData);
+        expect(controller.get('logTasksChangesCounter')).to.equal(logTasksChangesCounter + 1);
         for (var name in test.e.hosts) {
           expect(controller.get('hosts').findProperty('name', name).get('progress')).to.equal(test.e.hosts[name].progress);
         }
