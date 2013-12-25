@@ -113,6 +113,7 @@ App.WizardStep7Controller = Em.Controller.extend({
       serviceConfigs.setEach('showConfig', true);
       serviceConfigs.setEach('selected', false);
       this.get('selectedServiceNames').forEach(function(serviceName) {
+        if(!serviceConfigs.findProperty('serviceName', serviceName)) return;
         serviceConfigs.findProperty('serviceName', serviceName).set('selected', true);
       });
 
