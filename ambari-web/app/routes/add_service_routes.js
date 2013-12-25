@@ -51,8 +51,10 @@ module.exports = Em.Route.extend({
               wizardControllerName: App.router.get('addServiceController.name'),
               localdb: App.db.data
             });
-            App.router.get('updateController').updateServiceMetric(function(){
-              self.hide();
+            App.router.get('updateController').updateServices(function(){
+              App.router.get('updateController').updateServiceMetric(function(){
+                self.hide();
+              });
             });
             App.router.transitionTo('main.services.index');
           },
