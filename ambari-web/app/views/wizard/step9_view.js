@@ -107,20 +107,20 @@ App.HostStatusView = Em.View.extend({
   }.observes('obj.status', 'obj.progress', 'controller.progress'),
 
   isFailed:function () {
-    return (this.get('controller.isStepCompleted') === true && this.get('obj.status') === 'failed');
-  }.property('controller.isStepCompleted', 'controller.status'),
+    return (this.get('isHostCompleted') && this.get('obj.status') === 'failed');
+  }.property('obj.status', 'isHostCompleted'),
 
   isSuccess:function () {
-    return (this.get('controller.isStepCompleted') === true && this.get('obj.status') === 'success');
-  }.property('controller.isStepCompleted', 'controller.status'),
+    return (this.get('isHostCompleted') && this.get('obj.status') === 'success');
+  }.property('obj.status', 'isHostCompleted'),
 
   isWarning:function () {
-    return(this.get('controller.isStepCompleted') === true && this.get('obj.status') === 'warning');
-  }.property('controller.isStepCompleted', 'controller.status'),
+    return(this.get('isHostCompleted') && this.get('obj.status') === 'warning');
+  }.property('obj.status', 'isHostCompleted'),
 
   isHostCompleted:function () {
-    return this.get('obj.progress') == 100 || this.get('controller.isStepCompleted');
-  }.property('controller.isStepCompleted', 'obj.progress'),
+    return this.get('obj.progress') == 100;
+  }.property('obj.progress'),
 
   hostLogPopup:function (event, context) {
     var controller = this.get('controller');
