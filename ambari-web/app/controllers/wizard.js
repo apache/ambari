@@ -518,6 +518,14 @@ App.WizardController = Em.Controller.extend({
     this.set('content.services', apiService);
     this.setDBProperty('service',apiService);
   },
+  /**
+   * Load config groups from local DB
+   */
+  loadServiceConfigGroups: function () {
+    var serviceConfigGroups = this.getDBProperty('serviceConfigGroups') || [];
+    this.set('content.configGroups', serviceConfigGroups);
+    console.log("InstallerController.configGroups: loaded config ", serviceConfigGroups);
+  },
 
   registerErrPopup: function (header, message) {
     App.ModalPopup.show({
