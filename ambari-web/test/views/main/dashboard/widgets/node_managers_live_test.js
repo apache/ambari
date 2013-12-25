@@ -71,8 +71,9 @@ describe('App.NodeManagersLiveView', function() {
   ];
 
   tests.forEach(function(test) {
-    describe('nodeManagerNodes length - ' + test.model.nodeManagerNodes.length + ' | nodeManagerLiveNodes length' + test.model.nodeManagerLiveNodes.length, function() {
-      var nodeManagersLiveView = App.NodeManagersLiveView.create({model_type:null, model: test.model});
+    describe('nodeManagerNodes length - ' + test.model.nodeManagerNodes.length + ' | nodeManagerLiveNodes length - ' + test.model.nodeManagerLiveNodes.length, function() {
+      var AppNodeManagersLiveView = App.NodeManagersLiveView.extend({nodeManagersLive: test.model.nodeManagerLiveNodes});
+      var nodeManagersLiveView = AppNodeManagersLiveView.create({model_type:null, model: test.model});
       it('content', function() {
         expect(nodeManagersLiveView.get('content')).to.equal(test.e.content);
       });

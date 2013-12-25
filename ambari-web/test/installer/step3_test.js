@@ -121,12 +121,6 @@ describe('App.WizardStep3Controller', function () {
         Em.Object.create({name:'wst3_host2', bootStatus: 'REGISTERING', isChecked: false})
       ],
       m: 'One registered, one registering',
-      allHostsComplete: {
-        e: false
-      },
-      isInstallInProgress: {
-        e: true
-      },
       visibleHosts: {
         RUNNING: {
           e: 0
@@ -151,12 +145,6 @@ describe('App.WizardStep3Controller', function () {
         Em.Object.create({name:'wst3_host2', bootStatus: 'REGISTERED', isChecked: false})
       ],
       m: 'Two registered',
-      allHostsComplete: {
-        e: true
-      },
-      isInstallInProgress: {
-        e: false
-      },
       visibleHosts: {
         RUNNING: {
           e: 0
@@ -181,12 +169,6 @@ describe('App.WizardStep3Controller', function () {
         Em.Object.create({name:'wst3_host2', bootStatus: 'REGISTERED', isChecked: false})
       ],
       m: 'One registered, one failed',
-      allHostsComplete: {
-        e: true
-      },
-      isInstallInProgress: {
-        e: false
-      },
       visibleHosts: {
         RUNNING: {
           e: 0
@@ -211,12 +193,6 @@ describe('App.WizardStep3Controller', function () {
         Em.Object.create({name:'wst3_host2', bootStatus: 'FAILED', isChecked: false})
       ],
       m: 'Two failed',
-      allHostsComplete: {
-        e: true
-      },
-      isInstallInProgress: {
-        e: false
-      },
       visibleHosts: {
         RUNNING: {
           e: 0
@@ -241,12 +217,6 @@ describe('App.WizardStep3Controller', function () {
         Em.Object.create({name:'wst3_host2', bootStatus: 'REGISTERING', isChecked: false})
       ],
       m: 'Two registering',
-      allHostsComplete: {
-        e: false
-      },
-      isInstallInProgress: {
-        e: true
-      },
       visibleHosts: {
         RUNNING: {
           e: 0
@@ -266,28 +236,6 @@ describe('App.WizardStep3Controller', function () {
       }
     }
   ];
-
-  describe('#allHostsComplete', function() {
-    tests.forEach(function(test) {
-      var controller = App.WizardStep3Controller.create({
-        bootHosts: test.bootHosts
-      });
-      it(test.m, function() {
-        expect(controller.get('allHostsComplete')).to.equal(test.allHostsComplete.e);
-      });
-    });
-  });
-
-  describe('#isInstallInProgress', function() {
-    tests.forEach(function(test) {
-      var controller = App.WizardStep3Controller.create({
-        bootHosts: test.bootHosts
-      });
-      it(test.m, function() {
-        expect(controller.get('isInstallInProgress')).to.equal(test.isInstallInProgress.e);
-      });
-    });
-  });
 
   describe('#registrationTimeoutSecs', function() {
     it('Manual install', function() {
@@ -312,30 +260,6 @@ describe('App.WizardStep3Controller', function () {
     });
   });
 
-  describe('#visibleHosts', function() {
-    var c = ['RUNNING', 'REGISTERING', 'REGISTERED', 'FAILED'];
-    tests.forEach(function(test) {
-      describe(test.m, function() {
-        c.forEach(function(_c) {
-          var controller = App.WizardStep3Controller.create({
-            hosts: test.bootHosts
-          });
-          controller.set('category', {hostsBootStatus: _c});
-          it(_c, function() {
-            expect(controller.get('visibleHosts').length).to.equal(test.visibleHosts[_c].e);
-          });
-        });
-        var controller = App.WizardStep3Controller.create({
-          hosts: test.bootHosts
-        });
-        controller.set('category', false);
-        it('ALL', function() {
-          expect(controller.get('visibleHosts').length).to.equal(test.bootHosts.length);
-        });
-      });
-    });
-  });
-
   describe('#isHostHaveWarnings', function() {
     var tests = [
       {
@@ -354,18 +278,6 @@ describe('App.WizardStep3Controller', function () {
       controller.set('warnings', test.warnings);
       it(test.m, function() {
         expect(controller.get('isHostHaveWarnings')).to.equal(test.e);
-      });
-    });
-  });
-
-  describe('#onAllChecked', function() {
-    tests.forEach(function(test) {
-      var controller = App.WizardStep3Controller.create({
-        hosts: test.bootHosts
-      });
-      controller.set('allChecked', true);
-      it(test.m, function() {
-        expect(controller.get('visibleHosts').getEach('isChecked')).to.eql(test.onAllChecked.e);
       });
     });
   });

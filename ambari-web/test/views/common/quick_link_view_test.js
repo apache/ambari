@@ -25,35 +25,37 @@ describe('App.QuickViewLinks', function () {
 
   describe('#setPort', function () {
     var testData = [
-      {
-        'service_id': 'HDFS',
-        'protocol': 'https',
-        'version': '2.0.6',
-        'result': ''
-      },
-      {
+      Em.Object.create({
         'service_id': 'YARN',
         'protocol': 'http',
-        'version': '2.0.6',
-        'result': '8088'
-      },
-      {
+        'result': '8088',
+        'default_http_port': '8088',
+        'default_https_port': '8090',
+        'regex': '\\w*:(\\d+)'
+      }),
+      Em.Object.create({
         'service_id': 'YARN',
         'protocol': 'https',
-        'version': '2.0.5',
-        'result': '8088'
-      },
-      {
+        'https_config': 'https_config',
+        'result': '8090',
+        'default_http_port': '8088',
+        'default_https_port': '8090',
+        'regex': '\\w*:(\\d+)'
+      }),
+      Em.Object.create({
         'service_id': 'YARN',
         'protocol': 'https',
-        'version': '2.0.6',
-        'result': '8090'
-      },
+        'https_config': 'https_config',
+        'result': '8090',
+        'default_http_port': '8088',
+        'default_https_port': '8090',
+        'regex': '\\w*:(\\d+)'
+      })
     ];
 
     testData.forEach(function(item) {
-      it('should return empty string if service_id is not YARN, 8090 if protocol is https and stack version higher than 2.0.5, http otherwise', function () {
-        expect(quickViewLinks.setPort(item.service_id, item.protocol, item.version)).to.equal(item.result);
+      it(item.service_id + ' ' + item.protocol, function () {
+        expect(quickViewLinks.setPort(item, item.protocol, item.version)).to.equal(item.result);
       })
     },this);
   });

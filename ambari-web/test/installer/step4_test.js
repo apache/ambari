@@ -68,13 +68,18 @@ describe('App.WizardStep4Controller', function () {
     });
   });
 
+  var ajax_send;
   describe('#checkDependencies()', function () {
-    /*it('should set ZooKeeper isSelected property like in HBase', function () {
-      controller.setEach('isSelected', false);
-      controller.findProperty('serviceName', 'HBASE').set('isSelected', true);
-      controller.checkDependencies();
-      expect(controller.findProperty('serviceName', 'ZOOKEEPER').get('isSelected')).to.equal(true);
-    });*/
+
+    beforeEach(function() {
+      ajax_send = App.ajax.send;
+      App.ajax.send = function() {};
+    });
+
+    afterEach(function() {
+      App.ajax.send = ajax_send;
+    });
+
     it('should set ZooKeeper, HCatalog, WebHCatalog isSelected property like in Hive', function () {
       controller.setEach('isSelected', false);
       controller.findProperty('serviceName', 'HIVE').set('isSelected', true);
