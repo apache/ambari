@@ -1,4 +1,3 @@
-##!/usr/bin/env python2.6
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -18,20 +17,15 @@ limitations under the License.
 
 """
 
-import sys
 from resource_management import *
-from shared_initialization import *
 
-#TODO this must be "CONFIGURE" hook when CONFIGURE command will be implemented
-class BeforeConfigureHook(Hook):
+config = Script.get_config()
 
-  def hook(self, env):
-    import params
-
-    env.set_params(params)
-    setup_java()
-    setup_hadoop()
-    setup_configs()
-
-if __name__ == "__main__":
-  BeforeConfigureHook().execute()
+hadoop_pid_dir_prefix = config['configurations']['global']['hadoop_pid_dir_prefix']
+hdfs_user = config['configurations']['global']['hdfs_user']
+hdp_pid_dir = format("{hadoop_pid_dir_prefix}/{hdfs_user}")
+datanode_pid_file = format("{hdp_pid_dir}/hadoop-{hdfs_user}-datanode.pid")
+namenode_pid_file = format("{hdp_pid_dir}/hadoop-{hdfs_user}-namenode.pid")
+snamenode_pid_file = format("{hdp_pid_dir}/hadoop-{hdfs_user}-secondarynamenode.pid")
+journalnode_pid_file = format("{hdp_pid_dir}/hadoop-{hdfs_user}-journalnode.pid")
+zkfc_pid_file = format("{hdp_pid_dir}/hadoop-{hdfs_user}-zkfc.pid")

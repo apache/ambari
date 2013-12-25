@@ -85,11 +85,7 @@ def setup_hadoop():
             owner='root',
             group='root'
   )
-  #this doesn't needed with stack 1
-  Directory(os.path.dirname(params.hadoop_tmp_dir),
-            recursive=True,
-            owner=params.hdfs_user,
-            )
+
   #files
   File(os.path.join(params.limits_conf_dir, 'hdfs.conf'),
        owner='root',
@@ -127,7 +123,7 @@ def setup_hadoop():
          content=Template(file + ".j2")
     )
 
-  health_check_template = "health_check-v2" #for stack 1 use 'health_check'
+  health_check_template = "health_check" #for stack 1 use 'health_check'
   File(os.path.join(params.hadoop_conf_dir, "health_check"),
        owner=tc_owner,
        content=Template(health_check_template + ".j2")
@@ -225,10 +221,9 @@ def setup_configs():
   )
 
   # if params.stack_version[0] == "1":
-  #   Link('/usr/lib/hadoop/hadoop-tools.jar',
-  #         to = '/usr/lib/hadoop/lib/hadoop-tools.jar',
-  #         mode = 0755
-  #   )
+  Link('/usr/lib/hadoop/lib/hadoop-tools.jar',
+       to = '/usr/lib/hadoop/hadoop-tools.jar'
+  )
 
   if os.path.exists(os.path.join(params.hadoop_conf_dir, 'configuration.xsl')):
     File(os.path.join(params.hadoop_conf_dir, 'configuration.xsl'),
@@ -258,8 +253,8 @@ def setup_configs():
          group=params.user_group
     )
 
-  generate_exlude_file()
-  generate_include_file()
+  # generate_exlude_file()
+  # generate_include_file()
 
 def update_log4j_props(file):
   import params

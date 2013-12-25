@@ -20,11 +20,16 @@ limitations under the License.
 
 import sys
 from resource_management import *
+from shared_initialization import *
 
-class BeforeStartHook(Hook):
+#TODO this must be "CONFIGURE" hook when CONFIGURE command will be implemented
+class BeforeConfigureHook(Hook):
 
   def hook(self, env):
-    Execute(("touch", "/tmp/hook-test"))
+    import params
+
+    env.set_params(params)
+    setup_users()
 
 if __name__ == "__main__":
-  BeforeStartHook().execute()
+  BeforeConfigureHook().execute()
