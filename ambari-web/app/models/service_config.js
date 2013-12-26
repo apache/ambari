@@ -180,7 +180,7 @@ App.ServiceConfigProperty = Ember.Object.extend({
    * and fields which represent master hosts.
    */
   isPropertyOverridable: function () {
-    var overrideable = this.get('isOverridable');
+    var overrideable = this.get('name').contains('pid_dir') ? false : this.get('isOverridable');
     var editable = this.get('isEditable');
     var overrides = this.get('overrides');
     var dt = this.get('displayType');
