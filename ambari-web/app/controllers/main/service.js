@@ -35,13 +35,14 @@ App.MainServiceController = Em.ArrayController.extend({
   }.property('App.router.clusterController.isLoaded'),
 
   isAllServicesInstalled: function() {
+    if (!this.get('content.content')) return false;
     var availableServices = App.db.getServices();
     if (!availableServices) {
       this.loadAvailableServices();
       availableServices = App.db.getServices();
     }
-    return this.get('content').length == availableServices.length;
-  }.property('content.@each', 'content.length'),
+    return this.get('content.content').length == availableServices.length;
+  }.property('content.content.@each', 'content.content.length'),
 
   loadAvailableServices: function() {
     App.ajax.send({
