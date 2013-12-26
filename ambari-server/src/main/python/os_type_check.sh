@@ -32,8 +32,8 @@ pattern='[^[:digit:]]*'
 # OS type detection
 if [ -f  "/etc/centos-release" ] 
 then
-  grep -qE "${pattern}6" /etc/centos-release && current_os=$C6
-  grep -qE "${pattern}5" /etc/centos-release && current_os=$C5
+  grep -sqiE "^centos ${pattern}6" /etc/centos-release && current_os=$C6
+  grep -sqiE "^centos ${pattern}5" /etc/centos-release && current_os=$C5
 elif [ -f  "/etc/oracle-release" ] || [ -f  "/etc/ovs-release" ] || [ -f  "/etc/enterprise-release" ] 
 then
   grep -sqE "${pattern}6" /etc/oracle-release || grep -sqE "${pattern}6" /etc/ovs-release || \
@@ -43,6 +43,7 @@ then
 elif [ -f  "/etc/redhat-release" ]
 then
   grep -sqiE "^centos ${pattern}5" /etc/redhat-release && current_os=$C5
+  grep -sqiE "^centos ${pattern}6" /etc/redhat-release && current_os=$C6
   grep -sqE "^Red Hat Enterprise Linux ${pattern}6" /etc/redhat-release && current_os=$RH6
   grep -sqE "^Red Hat Enterprise Linux ${pattern}5" /etc/redhat-release && current_os=$RH5
 elif [ -f  "/etc/SuSE-release" ]
