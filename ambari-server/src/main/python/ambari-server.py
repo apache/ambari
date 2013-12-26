@@ -309,9 +309,10 @@ DATABASE_CLI_TOOLS_USAGE = ['su -postgres --command=psql -f {0} -v username=\'"{
                             'sqlplus {1}/{2} < {0} ',
                             'mysql --user={1} --password={2} {3}<{0}']
 
+MYSQL_INIT_SCRIPT = '/var/lib/ambari-server/resources/Ambari-DDL-MySQL-CREATE.sql'
 DATABASE_INIT_SCRIPTS = ['/var/lib/ambari-server/resources/Ambari-DDL-Postgres-REMOTE-CREATE.sql',
                          '/var/lib/ambari-server/resources/Ambari-DDL-Oracle-CREATE.sql',
-                         '/var/lib/ambari-server/resources/Ambari-DDL-MySQL-CREATE.sql']
+                         MYSQL_INIT_SCRIPT]
 DATABASE_DROP_SCRIPTS = ['/var/lib/ambari-server/resources/Ambari-DDL-Postgres-REMOTE-DROP.sql',
                          '/var/lib/ambari-server/resources/Ambari-DDL-Oracle-DROP.sql',
                          '/var/lib/ambari-server/resources/Ambari-DDL-MySQL-DROP.sql']
@@ -342,8 +343,9 @@ REGEX_ANYTHING = ".*"
 
 POSTGRES_EXEC_ARGS = "-h {0} -p {1} -d {2} -U {3} -f {4} -v username='\"{3}\"'"
 ORACLE_EXEC_ARGS = "-S -L '{0}/{1}@(description=(address=(protocol=TCP)(host={2})(port={3}))(connect_data=({6}={4})))' @{5} {0}"
-MYSQL_EXEC_ARGS = "--host={0} --port={1} --user={2} --password={3} {4} " \
+MYSQL_EXEC_ARGS_WITH_USER_VARS = "--host={0} --port={1} --user={2} --password={3} {4} " \
                  "-e\"set @schema=\'{4}\'; set @username=\'{2}\'; source {5};\""
+MYSQL_EXEC_ARGS_WO_USER_VARS = "--force --host={0} --port={1} --user={2} --password={3} --database={4} < {5} 2> /dev/null"
 
 ORACLE_UPGRADE_STACK_ARGS = "-S '{0}/{1}@(description=(address=(protocol=TCP)(host={2})(port={3}))(connect_data=({6}={4})))' @{5} {7} {8}"
 
@@ -1375,6 +1377,7 @@ def execute_remote_script(args, scriptPath):
     )))
     return retcode, out, err
   elif args.database == "mysql":
+    MYSQL_EXEC_ARGS = MYSQL_EXEC_ARGS_WO_USER_VARS if MYSQL_INIT_SCRIPT == scriptPath else MYSQL_EXEC_ARGS_WITH_USER_VARS
     retcode, out, err = run_in_shell('{0} {1}'.format(tool, MYSQL_EXEC_ARGS.format(
       args.database_host,
       args.database_port,
