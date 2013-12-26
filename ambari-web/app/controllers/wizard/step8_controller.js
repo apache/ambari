@@ -1593,18 +1593,6 @@ App.WizardStep8Controller = Em.Controller.extend({
 
   createLog4jObj: function (serviceName) {
     serviceName = serviceName.toLowerCase();
-    var file = '';
-    switch(serviceName) {
-      case 'zookeeper':
-        file = 'zoo';
-        break;
-      case 'mapreduce':
-      case 'mapreduce2':
-        file = 'mapred';
-        break;
-      default:
-        file = serviceName;
-    }
     var Log4jObj = this.get('configs').filterProperty('filename', serviceName + '-log4j.xml');
     var Log4jProperties = {};
     Log4jObj.forEach(function (_configProperty) {
