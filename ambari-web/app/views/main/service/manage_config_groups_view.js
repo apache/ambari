@@ -36,7 +36,7 @@ App.MainServiceManageConfigGroupView = Em.View.extend({
     if(selectedConfigGroup.isDefault){
       this.set('isRemoveButtonDisabled', true);
       this.set('isRenameButtonDisabled', true);
-      this.set('isDuplicateButtonDisabled', true);
+      this.set('isDuplicateButtonDisabled', false);
     }else{
       this.set('isRemoveButtonDisabled', false);
       this.set('isRenameButtonDisabled', false);
