@@ -28,6 +28,7 @@ import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.HostResponse;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.HostRequest;
+import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -57,6 +58,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
@@ -80,11 +82,16 @@ public class HostResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
-
-    expect(managementController.getClusters()).andReturn(clusters);
-
+    ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
+    ResourceProvider hostResourceProvider = createNiceMock(HostResourceProvider.class);
+    
+    AbstractControllerResourceProvider.init(resourceProviderFactory);
+    
+    //expect(managementController.getResourceProviderFactory()).andReturn(resourceProviderFactory).anyTimes();
+    expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
+        eq(managementController))).andReturn(hostResourceProvider).anyTimes();
     // replay
-    replay(managementController, response, clusters);
+    replay(managementController, response, clusters, resourceProviderFactory, hostResourceProvider);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -124,10 +131,10 @@ public class HostResourceProviderTest {
     Host host3 = createNiceMock(Host.class);
     HostHealthStatus healthStatus = createNiceMock(HostHealthStatus.class);
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-
-    HostResponse hostResponse1 = createNiceMock(HostResponse.class);
-    HostResponse hostResponse2 = createNiceMock(HostResponse.class);
-    HostResponse hostResponse3 = createNiceMock(HostResponse.class);
+    ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
+    ResourceProvider hostResourceProvider = createNiceMock(HostResourceProvider.class);
+    
+    AbstractControllerResourceProvider.init(resourceProviderFactory);
 
     List<Host> hosts = new LinkedList<Host>();
     hosts.add(host1);
@@ -141,6 +148,11 @@ public class HostResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
+    //expect(managementController.getResourceProviderFactory()).andReturn(resourceProviderFactory).anyTimes();
+    expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class),
+                                                           anyObject(Map.class),
+                                                           eq(managementController))).
+                                                           andReturn(hostResourceProvider).anyTimes();
 
     expect(clusters.getHosts()).andReturn(hosts).anyTimes();
 
@@ -154,35 +166,9 @@ public class HostResourceProviderTest {
     expect(host2.getHostName()).andReturn("Host101").anyTimes();
     expect(host3.getHostName()).andReturn("Host102").anyTimes();
 
-    expect(host1.convertToResponse()).andReturn(hostResponse1);
-    expect(host2.convertToResponse()).andReturn(hostResponse2);
-    expect(host3.convertToResponse()).andReturn(hostResponse3);
-
-    expect(hostResponse1.getClusterName()).andReturn("Cluster100").anyTimes();
-    expect(hostResponse2.getClusterName()).andReturn("Cluster100").anyTimes();
-    expect(hostResponse3.getClusterName()).andReturn("Cluster100").anyTimes();
-    expect(hostResponse1.getHostname()).andReturn("Host100").anyTimes();
-    expect(hostResponse2.getHostname()).andReturn("Host101").anyTimes();
-    expect(hostResponse3.getHostname()).andReturn("Host102").anyTimes();
-    expect(hostResponse1.getHealthStatus()).andReturn(healthStatus).anyTimes();
-    expect(hostResponse2.getHealthStatus()).andReturn(healthStatus).anyTimes();
-    expect(hostResponse3.getHealthStatus()).andReturn(healthStatus).anyTimes();
-
     expect(healthStatus.getHealthStatus()).andReturn(HostHealthStatus.HealthStatus.HEALTHY).anyTimes();
     expect(healthStatus.getHealthReport()).andReturn("HEALTHY").anyTimes();
-
-    // replay
-    replay(managementController, clusters, cluster,
-        host1, host2, host3,
-        hostResponse1, hostResponse2, hostResponse3,
-        healthStatus, ambariMetaInfo);
-
-    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-        type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController);
-
+    
     Set<String> propertyIds = new HashSet<String>();
 
     propertyIds.add(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID);
@@ -192,6 +178,37 @@ public class HostResourceProviderTest {
         new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
             toPredicate();
     Request request = PropertyHelper.getReadRequest(propertyIds);
+    
+    Set<Resource> hostsResources = new HashSet<Resource>();
+    
+    Resource hostResource1 = new ResourceImpl(Resource.Type.Host);
+    hostResource1.setProperty(PropertyHelper.getPropertyId("Hosts", "cluster_name"), "Cluster100");
+    hostResource1.setProperty(PropertyHelper.getPropertyId("Hosts", "host_name"), "Host100");
+    Resource hostResource2 = new ResourceImpl(Resource.Type.Host);
+    hostResource2.setProperty(PropertyHelper.getPropertyId("Hosts", "cluster_name"), "Cluster100");
+    hostResource2.setProperty(PropertyHelper.getPropertyId("Hosts", "host_name"), "Host101");
+    Resource hostResource3 = new ResourceImpl(Resource.Type.Host);
+    hostResource3.setProperty(PropertyHelper.getPropertyId("Hosts", "cluster_name"), "Cluster100");
+    hostResource3.setProperty(PropertyHelper.getPropertyId("Hosts", "host_name"), "Host102");
+    hostsResources.add(hostResource1);
+    hostsResources.add(hostResource2);
+    hostsResources.add(hostResource3);
+    
+    expect(hostResourceProvider.getResources(eq(request), eq(predicate))).andReturn(hostsResources).anyTimes();
+    
+
+    // replay
+    replay(managementController, clusters, cluster,
+        host1, host2, host3,
+        healthStatus, ambariMetaInfo, resourceProviderFactory, hostResourceProvider);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+    
     Set<Resource> resources = provider.getResources(request, predicate);
 
     Assert.assertEquals(3, resources.size());
@@ -203,7 +220,6 @@ public class HostResourceProviderTest {
     // verify
     verify(managementController, clusters, cluster,
         host1, host2, host3,
-        hostResponse1, hostResponse2, hostResponse3,
         healthStatus, ambariMetaInfo);
   }
 
@@ -214,15 +230,16 @@ public class HostResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
-    Host host1 = createNiceMock(Host.class);
     HostHealthStatus healthStatus = createNiceMock(HostHealthStatus.class);
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
     HostResponse hostResponse1 = createNiceMock(HostResponse.class);
-
-    List<Host> hosts = new LinkedList<Host>();
-    hosts.add(host1);
+    
+    ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
+    ResourceProvider hostResourceProvider = createNiceMock(HostResourceProvider.class);
+    
+    AbstractControllerResourceProvider.init(resourceProviderFactory);
 
     Set<Cluster> clusterSet = new HashSet<Cluster>();
     clusterSet.add(cluster);
@@ -241,15 +258,10 @@ public class HostResourceProviderTest {
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
 
-    expect(clusters.getHosts()).andReturn(hosts).anyTimes();
-
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
     expect(clusters.getClustersForHost("Host100")).andReturn(clusterSet).anyTimes();
 
-    expect(host1.getHostName()).andReturn("Host100").anyTimes();
-
-    expect(host1.convertToResponse()).andReturn(hostResponse1);
 
     expect(hostResponse1.getClusterName()).andReturn("").anyTimes();
     expect(hostResponse1.getHostname()).andReturn("Host100").anyTimes();
@@ -264,20 +276,13 @@ public class HostResourceProviderTest {
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.getCategory()).andReturn("MASTER").anyTimes();
-
-
-    // replay
-    replay(managementController, clusters, cluster,
-        host1,
-        hostResponse1, componentInfo,
-        healthStatus, ambariMetaInfo);
-
-    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-        type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController);
-
+    
+    //expect(managementController.getResourceProviderFactory()).andReturn(resourceProviderFactory).anyTimes();
+    expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class),
+                                                               anyObject(Map.class),
+                                                               eq(managementController))).
+                                                               andReturn(hostResourceProvider).anyTimes();
+    
     Set<String> propertyIds = new HashSet<String>();
 
     propertyIds.add(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID);
@@ -288,6 +293,27 @@ public class HostResourceProviderTest {
         new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
             toPredicate();
     Request request = PropertyHelper.getReadRequest(propertyIds);
+    
+    Set<Resource> hostsResources = new HashSet<Resource>();
+    
+    Resource hostResource1 = new ResourceImpl(Resource.Type.Host);
+    hostResource1.setProperty(HostResourceProvider.HOST_HOST_STATUS_PROPERTY_ID, HealthStatus.HEALTHY.name());
+    hostsResources.add(hostResource1);
+    
+    expect(hostResourceProvider.getResources(eq(request), eq(predicate))).andReturn(hostsResources).anyTimes();
+
+
+    // replay
+    replay(managementController, clusters, cluster,
+        hostResponse1, componentInfo,
+        healthStatus, ambariMetaInfo, resourceProviderFactory, hostResourceProvider);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
     Set<Resource> resources = provider.getResources(request, predicate);
 
     Assert.assertEquals(1, resources.size());
@@ -300,7 +326,6 @@ public class HostResourceProviderTest {
 
     // verify
     verify(managementController, clusters, cluster,
-        host1,
         hostResponse1, componentInfo,
         healthStatus, ambariMetaInfo);
   }
@@ -312,16 +337,17 @@ public class HostResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
-    Host host1 = createNiceMock(Host.class);
     HostHealthStatus healthStatus = createNiceMock(HostHealthStatus.class);
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
     HostResponse hostResponse1 = createNiceMock(HostResponse.class);
-
-    List<Host> hosts = new LinkedList<Host>();
-    hosts.add(host1);
+    
+    ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
+    ResourceProvider hostResourceProvider = createNiceMock(HostResourceProvider.class);
+    
+    AbstractControllerResourceProvider.init(resourceProviderFactory);
 
     Set<Cluster> clusterSet = new HashSet<Cluster>();
     clusterSet.add(cluster);
@@ -340,15 +366,9 @@ public class HostResourceProviderTest {
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
 
-    expect(clusters.getHosts()).andReturn(hosts).anyTimes();
-
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
     expect(clusters.getClustersForHost("Host100")).andReturn(clusterSet).anyTimes();
-
-    expect(host1.getHostName()).andReturn("Host100").anyTimes();
-
-    expect(host1.convertToResponse()).andReturn(hostResponse1);
 
     expect(hostResponse1.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(hostResponse1.getHostname()).andReturn("Host100").anyTimes();
@@ -363,20 +383,11 @@ public class HostResourceProviderTest {
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.getCategory()).andReturn("MASTER").anyTimes();
-
-
-    // replay
-    replay(managementController, clusters, cluster,
-        host1,
-        hostResponse1, stackId, componentInfo,
-        healthStatus, ambariMetaInfo);
-
-    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-        type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController);
-
+    
+    //expect(managementController.getResourceProviderFactory()).andReturn(resourceProviderFactory).anyTimes();
+    expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
+        eq(managementController))).andReturn(hostResourceProvider).anyTimes();
+    
     Set<String> propertyIds = new HashSet<String>();
 
     propertyIds.add(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID);
@@ -387,6 +398,30 @@ public class HostResourceProviderTest {
         new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
             toPredicate();
     Request request = PropertyHelper.getReadRequest(propertyIds);
+    
+    
+    Set<Resource> hostsResources = new HashSet<Resource>();
+       
+    Resource hostResource1 = new ResourceImpl(Resource.Type.Host);
+    hostResource1.setProperty(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    hostResource1.setProperty(HostResourceProvider.HOST_HOST_STATUS_PROPERTY_ID, HealthStatus.HEALTHY.name());
+    hostsResources.add(hostResource1);
+    
+    expect(hostResourceProvider.getResources(eq(request), eq(predicate))).andReturn(hostsResources).anyTimes();
+
+
+    // replay
+    replay(managementController, clusters, cluster,
+        hostResponse1, stackId, componentInfo,
+        healthStatus, ambariMetaInfo, resourceProviderFactory, hostResourceProvider);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+
     Set<Resource> resources = provider.getResources(request, predicate);
 
     Assert.assertEquals(1, resources.size());
@@ -399,9 +434,8 @@ public class HostResourceProviderTest {
 
     // verify
     verify(managementController, clusters, cluster,
-        host1,
         hostResponse1, stackId, componentInfo,
-        healthStatus, ambariMetaInfo);
+        healthStatus, ambariMetaInfo, resourceProviderFactory, hostResourceProvider);
   }
 
   @Test
@@ -411,17 +445,16 @@ public class HostResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
-    Host host1 = createNiceMock(Host.class);
     HostHealthStatus healthStatus = createNiceMock(HostHealthStatus.class);
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
-
     HostResponse hostResponse1 = createNiceMock(HostResponse.class);
-
-    List<Host> hosts = new LinkedList<Host>();
-    hosts.add(host1);
-
+    ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
+    ResourceProvider hostResourceProvider = createNiceMock(HostResourceProvider.class);
+    
+    AbstractControllerResourceProvider.init(resourceProviderFactory);
+    
     Set<Cluster> clusterSet = new HashSet<Cluster>();
     clusterSet.add(cluster);
 
@@ -439,15 +472,9 @@ public class HostResourceProviderTest {
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
 
-    expect(clusters.getHosts()).andReturn(hosts).anyTimes();
-
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
     expect(clusters.getClustersForHost("Host100")).andReturn(clusterSet).anyTimes();
-
-    expect(host1.getHostName()).andReturn("Host100").anyTimes();
-
-    expect(host1.convertToResponse()).andReturn(hostResponse1);
 
     expect(hostResponse1.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(hostResponse1.getHostname()).andReturn("Host100").anyTimes();
@@ -462,20 +489,11 @@ public class HostResourceProviderTest {
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
 
     expect(componentInfo.getCategory()).andReturn("MASTER").anyTimes();
-
-
-    // replay
-    replay(managementController, clusters, cluster,
-        host1,
-        hostResponse1, stackId, componentInfo,
-        healthStatus, ambariMetaInfo);
-
-    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-        type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController);
-
+    
+    //expect(managementController.getResourceProviderFactory()).andReturn(resourceProviderFactory).anyTimes();
+    expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
+        eq(managementController))).andReturn(hostResourceProvider).anyTimes();
+    
     Set<String> propertyIds = new HashSet<String>();
 
     propertyIds.add(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID);
@@ -486,6 +504,30 @@ public class HostResourceProviderTest {
         new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
             toPredicate();
     Request request = PropertyHelper.getReadRequest(propertyIds);
+    
+    
+    Set<Resource> hostsResources = new HashSet<Resource>();
+    
+    Resource hostResource1 = new ResourceImpl(Resource.Type.Host);
+    hostResource1.setProperty(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    hostResource1.setProperty(HostResourceProvider.HOST_HOST_STATUS_PROPERTY_ID, HealthStatus.UNHEALTHY.name());
+    hostsResources.add(hostResource1);
+    
+    expect(hostResourceProvider.getResources(eq(request), eq(predicate))).andReturn(hostsResources).anyTimes();
+
+
+    // replay
+    replay(managementController, clusters, cluster,
+        hostResponse1, stackId, componentInfo,
+        healthStatus, ambariMetaInfo, resourceProviderFactory, hostResourceProvider);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+
     Set<Resource> resources = provider.getResources(request, predicate);
 
     Assert.assertEquals(1, resources.size());
@@ -498,9 +540,8 @@ public class HostResourceProviderTest {
 
     // verify
     verify(managementController, clusters, cluster,
-        host1,
         hostResponse1, stackId, componentInfo,
-        healthStatus, ambariMetaInfo);
+        healthStatus, ambariMetaInfo, resourceProviderFactory, hostResourceProvider);
   }
 
   @Test
@@ -510,15 +551,14 @@ public class HostResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
-    Host host1 = createNiceMock(Host.class);
     HostHealthStatus healthStatus = createNiceMock(HostHealthStatus.class);
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-
     HostResponse hostResponse1 = createNiceMock(HostResponse.class);
-
-    List<Host> hosts = new LinkedList<Host>();
-    hosts.add(host1);
-
+    ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
+    ResourceProvider hostResourceProvider = createNiceMock(HostResourceProvider.class);
+    
+    AbstractControllerResourceProvider.init(resourceProviderFactory);
+    
     Set<Cluster> clusterSet = new HashSet<Cluster>();
     clusterSet.add(cluster);
 
@@ -526,16 +566,10 @@ public class HostResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
 
-    expect(clusters.getHosts()).andReturn(hosts).anyTimes();
-
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
     expect(clusters.getClustersForHost("Host100")).andReturn(clusterSet).anyTimes();
-
-    expect(host1.getHostName()).andReturn("Host100").anyTimes();
-
-    expect(host1.convertToResponse()).andReturn(hostResponse1);
-
+    
     expect(hostResponse1.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(hostResponse1.getHostname()).andReturn("Host100").anyTimes();
     expect(hostResponse1.getHealthStatus()).andReturn(healthStatus).anyTimes();
@@ -543,20 +577,17 @@ public class HostResourceProviderTest {
 
     expect(healthStatus.getHealthStatus()).andReturn(HostHealthStatus.HealthStatus.UNKNOWN).anyTimes();
     expect(healthStatus.getHealthReport()).andReturn("UNKNOWN").anyTimes();
-
-
-    // replay
-    replay(managementController, clusters, cluster,
-        host1,
-        hostResponse1,
-        healthStatus, ambariMetaInfo);
-
-    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-        type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController);
-
+    //expect(managementController.getResourceProviderFactory()).andReturn(resourceProviderFactory).anyTimes();
+    expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
+        eq(managementController))).andReturn(hostResourceProvider).anyTimes();
+    
+    Set<Resource> hostsResources = new HashSet<Resource>();
+    
+    Resource hostResource1 = new ResourceImpl(Resource.Type.Host);
+    hostResource1.setProperty(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    hostResource1.setProperty(HostResourceProvider.HOST_HOST_STATUS_PROPERTY_ID, HealthStatus.UNKNOWN.name());
+    hostsResources.add(hostResource1);
+    
     Set<String> propertyIds = new HashSet<String>();
 
     propertyIds.add(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID);
@@ -567,6 +598,20 @@ public class HostResourceProviderTest {
         new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
             toPredicate();
     Request request = PropertyHelper.getReadRequest(propertyIds);
+    
+    expect(hostResourceProvider.getResources(eq(request), eq(predicate))).andReturn(hostsResources).anyTimes();
+
+    // replay
+    replay(managementController, clusters, cluster,
+        hostResponse1,
+        healthStatus, ambariMetaInfo, resourceProviderFactory, hostResourceProvider);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
     Set<Resource> resources = provider.getResources(request, predicate);
 
     Assert.assertEquals(1, resources.size());
@@ -579,9 +624,8 @@ public class HostResourceProviderTest {
 
     // verify
     verify(managementController, clusters, cluster,
-        host1,
         hostResponse1,
-        healthStatus, ambariMetaInfo);
+        healthStatus, ambariMetaInfo, resourceProviderFactory, hostResourceProvider);
   }
 
   @Test
@@ -591,16 +635,15 @@ public class HostResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
-    Host host1 = createNiceMock(Host.class);
     HostHealthStatus healthStatus = createNiceMock(HostHealthStatus.class);
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     StackId stackId = createNiceMock(StackId.class);
     ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
-
     HostResponse hostResponse1 = createNiceMock(HostResponse.class);
-
-    List<Host> hosts = new LinkedList<Host>();
-    hosts.add(host1);
+    ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
+    ResourceProvider hostResourceProvider = createNiceMock(HostResourceProvider.class);
+    
+    AbstractControllerResourceProvider.init(resourceProviderFactory);
 
     Set<Cluster> clusterSet = new HashSet<Cluster>();
     clusterSet.add(cluster);
@@ -618,44 +661,22 @@ public class HostResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
-
-    expect(clusters.getHosts()).andReturn(hosts).anyTimes();
-
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
-
     expect(clusters.getClustersForHost("Host100")).andReturn(clusterSet).anyTimes();
-
-    expect(host1.getHostName()).andReturn("Host100").anyTimes();
-
-    expect(host1.convertToResponse()).andReturn(hostResponse1);
-
     expect(hostResponse1.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(hostResponse1.getHostname()).andReturn("Host100").anyTimes();
     expect(hostResponse1.getHealthStatus()).andReturn(healthStatus).anyTimes();
     expect(hostResponse1.getStatus()).andReturn(HealthStatus.ALERT.name()).anyTimes();
-
     expect(healthStatus.getHealthStatus()).andReturn(HostHealthStatus.HealthStatus.HEALTHY).anyTimes();
     expect(healthStatus.getHealthReport()).andReturn("HEALTHY").anyTimes();
-
-
     expect(ambariMetaInfo.getComponentCategory((String) anyObject(), (String) anyObject(),
         (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
-
     expect(componentInfo.getCategory()).andReturn("SLAVE").anyTimes();
-
-
-    // replay
-    replay(managementController, clusters, cluster,
-        host1,
-        hostResponse1, stackId, componentInfo,
-        healthStatus, ambariMetaInfo);
-
-    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-        type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController);
-
+    //expect(managementController.getResourceProviderFactory()).andReturn(resourceProviderFactory).anyTimes();
+    expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
+        eq(managementController))).andReturn(hostResourceProvider).anyTimes();
+    
+    
     Set<String> propertyIds = new HashSet<String>();
 
     propertyIds.add(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID);
@@ -666,6 +687,29 @@ public class HostResourceProviderTest {
         new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
             toPredicate();
     Request request = PropertyHelper.getReadRequest(propertyIds);
+    
+    Set<Resource> hostsResources = new HashSet<Resource>();
+    
+    Resource hostResource1 = new ResourceImpl(Resource.Type.Host);
+    hostResource1.setProperty(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    hostResource1.setProperty(HostResourceProvider.HOST_HOST_STATUS_PROPERTY_ID, HealthStatus.ALERT.name());
+    hostsResources.add(hostResource1);
+    
+    expect(hostResourceProvider.getResources(eq(request), eq(predicate))).andReturn(hostsResources).anyTimes();
+
+
+    // replay
+    replay(managementController, clusters, cluster,
+        hostResponse1, stackId, componentInfo,
+        healthStatus, ambariMetaInfo, resourceProviderFactory, hostResourceProvider);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+    
     Set<Resource> resources = provider.getResources(request, predicate);
 
     Assert.assertEquals(1, resources.size());
@@ -678,9 +722,8 @@ public class HostResourceProviderTest {
 
     // verify
     verify(managementController, clusters, cluster,
-        host1,
         hostResponse1, stackId, componentInfo,
-        healthStatus, ambariMetaInfo);
+        healthStatus, ambariMetaInfo, resourceProviderFactory, hostResourceProvider);
   }
 
   @Test
@@ -689,14 +732,13 @@ public class HostResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
-    Host host1 = createNiceMock(Host.class);
     HostHealthStatus healthStatus = createNiceMock(HostHealthStatus.class);
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-
     HostResponse hostResponse1 = createNiceMock(HostResponse.class);
-
-    List<Host> hosts = new LinkedList<Host>();
-    hosts.add(host1);
+    ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
+    ResourceProvider hostResourceProvider = createNiceMock(HostResourceProvider.class);
+    
+    AbstractControllerResourceProvider.init(resourceProviderFactory);
 
     Set<Cluster> clusterSet = new HashSet<Cluster>();
     clusterSet.add(cluster);
@@ -705,36 +747,26 @@ public class HostResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
-
-    expect(clusters.getHosts()).andReturn(hosts).anyTimes();
-    expect(clusters.getHost("Host100")).andReturn(host1).anyTimes();
-
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
-
     expect(clusters.getClustersForHost("Host100")).andReturn(clusterSet).anyTimes();
-
-    expect(host1.getHostName()).andReturn("Host100").anyTimes();
-
-    expect(host1.convertToResponse()).andReturn(hostResponse1);
-
     expect(hostResponse1.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(hostResponse1.getHostname()).andReturn("Host100").anyTimes();
     expect(hostResponse1.getHealthStatus()).andReturn(healthStatus).anyTimes();
-
     expect(healthStatus.getHealthStatus()).andReturn(HostHealthStatus.HealthStatus.HEALTHY).anyTimes();
     expect(healthStatus.getHealthReport()).andReturn("HEALTHY").anyTimes();
+    //expect(managementController.getResourceProviderFactory()).andReturn(resourceProviderFactory).anyTimes();
+    expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
+        eq(managementController))).andReturn(hostResourceProvider).anyTimes();
 
     // replay
     replay(managementController, clusters, cluster,
-        host1,
         hostResponse1,
-        healthStatus, ambariMetaInfo);
+        healthStatus, ambariMetaInfo, resourceProviderFactory, hostResourceProvider);
 
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
     properties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     properties.put(HostResourceProvider.HOST_NAME_PROPERTY_ID, "Host100");
-    
     properties.put(PropertyHelper.getPropertyId("Hosts.desired_config", "type"), "global");
     properties.put(PropertyHelper.getPropertyId("Hosts.desired_config", "tag"), "version1");
     properties.put(PropertyHelper.getPropertyId("Hosts.desired_config.properties", "a"), "b");
@@ -757,9 +789,8 @@ public class HostResourceProviderTest {
     
     // verify
     verify(managementController, clusters, cluster,
-        host1,
         hostResponse1,
-        healthStatus, ambariMetaInfo);
+        healthStatus, ambariMetaInfo, resourceProviderFactory, hostResourceProvider);
   }
 
   @Test
@@ -769,14 +800,13 @@ public class HostResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
-    Host host1 = createNiceMock(Host.class);
     HostHealthStatus healthStatus = createNiceMock(HostHealthStatus.class);
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-
     HostResponse hostResponse1 = createNiceMock(HostResponse.class);
-
-    List<Host> hosts = new LinkedList<Host>();
-    hosts.add(host1);
+    ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
+    ResourceProvider hostResourceProvider = createNiceMock(HostResourceProvider.class);
+    
+    AbstractControllerResourceProvider.init(resourceProviderFactory);
 
     Set<Cluster> clusterSet = new HashSet<Cluster>();
     clusterSet.add(cluster);
@@ -785,30 +815,21 @@ public class HostResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
     expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
-
-    expect(clusters.getHosts()).andReturn(hosts).anyTimes();
-    expect(clusters.getHost("Host100")).andReturn(host1).anyTimes();
-
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
-
     expect(clusters.getClustersForHost("Host100")).andReturn(clusterSet).anyTimes();
-
-    expect(host1.getHostName()).andReturn("Host100").anyTimes();
-
-    expect(host1.convertToResponse()).andReturn(hostResponse1);
-
     expect(hostResponse1.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(hostResponse1.getHostname()).andReturn("Host100").anyTimes();
     expect(hostResponse1.getHealthStatus()).andReturn(healthStatus).anyTimes();
-
     expect(healthStatus.getHealthStatus()).andReturn(HostHealthStatus.HealthStatus.HEALTHY).anyTimes();
     expect(healthStatus.getHealthReport()).andReturn("HEALTHY").anyTimes();
+    //expect(managementController.getResourceProviderFactory()).andReturn(resourceProviderFactory).anyTimes();
+    expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
+        eq(managementController))).andReturn(hostResourceProvider).anyTimes();
 
     // replay
     replay(managementController, clusters, cluster,
-        host1,
         hostResponse1,
-        healthStatus, ambariMetaInfo);
+        healthStatus, ambariMetaInfo, resourceProviderFactory, hostResourceProvider);
 
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -832,9 +853,8 @@ public class HostResourceProviderTest {
 
     // verify
     verify(managementController, clusters, cluster,
-        host1,
         hostResponse1,
-        healthStatus, ambariMetaInfo);
+        healthStatus, ambariMetaInfo, resourceProviderFactory, hostResourceProvider);
   }
 
   @Test
@@ -856,13 +876,9 @@ public class HostResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getHosts()).andReturn(hosts).anyTimes();
     expect(clusters.getHost("Host100")).andReturn(host1).anyTimes();
-
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
-
     expect(clusters.getClustersForHost("Host100")).andReturn(clusterSet).anyTimes();
-
     expect(host1.getHostName()).andReturn("Host100").anyTimes();
-
     expect(healthStatus.getHealthStatus()).andReturn(HostHealthStatus.HealthStatus.HEALTHY).anyTimes();
     expect(healthStatus.getHealthReport()).andReturn("HEALTHY").anyTimes();
 
@@ -871,11 +887,7 @@ public class HostResourceProviderTest {
         host1,
         healthStatus);
 
-    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-        type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController);
+    ResourceProvider provider = getHostProvider(managementController);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
 
@@ -902,11 +914,9 @@ public class HostResourceProviderTest {
   public static HostResourceProvider getHostProvider(AmbariManagementController managementController) {
     Resource.Type type = Resource.Type.Host;
 
-    return (HostResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
-        type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController);
+    return new HostResourceProvider(PropertyHelper.getPropertyIds(type),
+                                    PropertyHelper.getKeyPropertyIds(type),
+                                    managementController);
   }
 
   @Test

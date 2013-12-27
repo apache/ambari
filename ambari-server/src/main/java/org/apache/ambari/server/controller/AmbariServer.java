@@ -40,6 +40,7 @@ import org.apache.ambari.server.api.services.PersistKeyValueService;
 import org.apache.ambari.server.bootstrap.BootStrapImpl;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterControllerImpl;
 import org.apache.ambari.server.controller.internal.StackDefinedPropertyProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -443,6 +444,7 @@ public class AmbariServer {
         injector.getInstance(Configuration.class));
     SecurityFilter.init(injector.getInstance(Configuration.class));
     StackDefinedPropertyProvider.init(injector);
+    AbstractControllerResourceProvider.init(injector.getInstance(ResourceProviderFactory.class));
   }
 
   public static void main(String[] args) throws Exception {
