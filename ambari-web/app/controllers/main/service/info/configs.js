@@ -984,7 +984,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
       var site = sites.findProperty('type', type);
       if (site) {
         site.properties.push({
-          isRequiredByAgent: config.get('isRequiredByAgent'),
           name: config.get('name'),
           value: config.get('value')
         });
@@ -993,7 +992,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
           type: type,
           tag: 'version' + time,
           properties: [{
-            isRequiredByAgent: config.get('isRequiredByAgent'),
             name: config.get('name'),
             value: config.get('value')
           }]
@@ -1499,7 +1497,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend({
     var globalSiteProperties = {};
     globalConfigs.forEach(function (_globalSiteObj) {
       // do not pass any globalConfigs whose name ends with _host or _hosts
-      if (_globalSiteObj.isRequiredByAgent === true) {
+      if (_globalSiteObj.isRequiredByAgent !== false) {
         // append "m" to JVM memory options except for hadoop_heapsize
         if (/_heapsize|_newsize|_maxnewsize$/.test(_globalSiteObj.name) && !heapsizeException.contains(_globalSiteObj.name)) {
           _globalSiteObj.value += "m";

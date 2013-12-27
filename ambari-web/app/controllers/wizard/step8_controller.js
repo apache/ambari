@@ -1535,7 +1535,7 @@ App.WizardStep8Controller = Em.Controller.extend({
     globalSiteObj.forEach(function (_globalSiteObj) {
       var heapsizeException =  ['hadoop_heapsize','yarn_heapsize','nodemanager_heapsize','resourcemanager_heapsize'];
       // do not pass any globals whose name ends with _host or _hosts
-      if (_globalSiteObj.isRequiredByAgent === true) {
+      if (_globalSiteObj.isRequiredByAgent !== false) {
         // append "m" to JVM memory options except for hadoop_heapsize
         if (/_heapsize|_newsize|_maxnewsize$/.test(_globalSiteObj.name) && !heapsizeException.contains(_globalSiteObj.name)) {
           globalSiteProperties[_globalSiteObj.name] = _globalSiteObj.value + "m";
